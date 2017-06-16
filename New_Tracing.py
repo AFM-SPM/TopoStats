@@ -148,29 +148,39 @@ def Edgefinding(minicircle_length, pixel_size, otsu_data, otsu_mask):
 	trace_length = minicircle_length # expected trace length
 	print 'Expected trace length:', trace_length
 
+	# Laplace filter otsu masked image to obtain the traces of the edges of the features
 	otsu_edges = scipy.ndimage.filters.laplace(otsu_mask)
+
+	# Perform a binary closing operation to fill in any gaps in the traces
 	otsu_edges = morphology.binary_closing(otsu_edges)
 
+	# Determine the number of features in the image and return an image with the features labelled iteratively 
 	mask = otsu_edges > 0
-
 	labeled_otsu_edges, num_features = measurements.label(otsu_edges, structure = connectivitymap)
 	print 'No features:', num_features
 
+	# Measure the lengths of the traces
 	DNA_lengths = measurements.sum(mask, labeled_otsu_edges, range(0, num_features+1))
 	print DNA_lengths
 
-	# Remove small objects less 1/2 median
-	Small_features = DNA_lengths < np.median(DNA_lengths)/2
+	# Remove small objects less 1/2 mean
+	Small_features = DNA_lengths < np.mean(DNA_lengths)/2
 	Removing_small_features = Small_features[labeled_otsu_edges]
 	labeled_otsu_edges[Removing_small_features] = 0
 	small_cleaned_otsu_edges = np.multiply((labeled_otsu_edges>0),otsu_edges)
 
-	# Remove large objects more than 2*median
-	Large_features = DNA_lengths > np.median(DNA_lengths)*7
+	# Remove large objects more than 2*mean
+	Large_features = DNA_lengths > np.mean(DNA_lengths)*2
 	Removing_large_features = Large_features[labeled_otsu_edges]
 	labeled_otsu_edges[Removing_large_features] = 0
 	cleaned_otsu_edges = np.multiply((labeled_otsu_edges>0),small_cleaned_otsu_edges)
 
+
+	# Relabel cleaned image and recount the number of features post cleaning
+	labelled_cleaned_otsu_edges, num_features_cleaned = measurements.label(cleaned_otsu_edges, structure = connectivitymap)
+	print 'No features post cleaning:', num_features_cleaned
+	DNA_lengths_cleaned = measurements.sum(mask, labelled_cleaned_otsu_edges, range(0, num_features+1))
+	print 'Clean DNA lengths:', DNA_lengths_cleaned
 
 	fig = plt.figure()
 	fig.add_subplot(121)   #top right
@@ -178,13 +188,14 @@ def Edgefinding(minicircle_length, pixel_size, otsu_data, otsu_mask):
 	plt.title('Labelled Otsu')
 	cbar = plt.colorbar()
 	fig.add_subplot(122)   #top left
-	plt.pcolor(cleaned_otsu_edges, cmap = 'binary')
+	plt.pcolor(labelled_cleaned_otsu_edges, cmap = 'binary')
 	plt.title('Cleaned')
 	cbar = plt.colorbar()
 	plt.savefig(file_name + 'edges.png')
+	plt.show()
 	plt.close()
 
-	return otsu_edges
+	return otsu_edges, labelled_cleaned_otsu_edges, DNA_lengths_cleaned, num_features_cleaned
 
 
 def ImageLabelling(minicircle_length,pixel_size,skele_otsu):
@@ -253,7 +264,10 @@ if __name__ == '__main__':
 			# Otsu filter data to remove background
 			otsu_eroded_mask, otsu_data, otsu_mask = GetOtsuMask(data, min_size, pixel_size)
 
-			otsu_edges = Edgefinding(minicircle_length,pixel_size,otsu_data,otsu_mask)
+			# Laplace transform the image masked by Otsu thresholding to obtain the edge traces of the molecules
+			# Return an image of the edges of each feature, an image with aggregates and small features removed which is labelled by its iterative value, 
+			# the lengths of the edge features remaining after cleaning and the number of edge features remaining after cleaning
+			otsu_edges, labelled_cleaned_otsu_edges, DNA_lengths_cleaned, num_features_cleaned = Edgefinding(minicircle_length,pixel_size,otsu_data,otsu_mask)
 
 			# # Skeletonise otsu filtered data (acts on mask)
 			# skele_otsu = morphology.skeletonize(otsu_eroded_mask)
