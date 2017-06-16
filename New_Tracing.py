@@ -198,46 +198,6 @@ def Edgefinding(minicircle_length, pixel_size, otsu_data, otsu_mask):
 	return otsu_edges, labelled_cleaned_otsu_edges, DNA_lengths_cleaned, num_features_cleaned
 
 
-def ImageLabelling(minicircle_length,pixel_size,skele_otsu):
-	connectivitymap = np.ones((3,3)) # Erosion shape
-	trace_length = minicircle_length  # expected trace length
-	print 'Expected trace length:', trace_length
-
-	# Trace all objects in image
-	mask = skele_otsu > 0
-	labelled_DNA, number_of_circles = measurements.label(skele_otsu, structure = connectivitymap) #labelled DNA is plot of circles with each circle assigned the smae values based on its iterative number 
-	DNA_lengths = measurements.sum(mask, labelled_DNA, range(0, number_of_circles+1))
-
-	# Remove small objects less than 1/3 standard trace length
-	mask_size = DNA_lengths < trace_length/3
-	remove_mask = mask_size[labelled_DNA]
-	labelled_DNA[remove_mask] = 0
-	temp_map = np.multiply((labelled_DNA>0), skele_otsu)
-
-	# Remove large objects more than 1.5x standard trace length
-	mask_size = DNA_lengths > trace_length*1.5
-	remove_mask = mask_size[labelled_DNA]
-	labelled_DNA[remove_mask] = 0
-	temp_map = np.multiply((labelled_DNA>0), skele_otsu)
-
-	# Retrace clean data to get trace lengths
-	labelled_skele_otsu, number_of_circles = measurements.label(temp_map, structure = connectivitymap)
-	trace_lengths = measurements.sum(mask, labelled_skele_otsu, range(1, number_of_circles + 1))	#This could be improved using range(1,number_of_circles+1) I think, would get rid of checking at 0
-	print trace_lengths
-	print number_of_circles
-
-	plt.figure()
-	plt.pcolor(labelled_skele_otsu, cmap = 'binary')
-	cbar = plt.colorbar()
-	cbar.ax.set_ylabel('Height ($\AA$)', size = 'large')
-	plt.xlabel('x-axis ($\AA$)')
-	plt.ylabel('y-axis ($\AA$)')
-	#plt.show()
-	plt.savefig(file_name + 'lso.png')
-	plt.close()
-
-	return trace_lengths, labelled_skele_otsu, number_of_circles
-
 
 
 if __name__ == '__main__':
