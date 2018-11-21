@@ -10,31 +10,32 @@ s = gwy.gwy_app_settings_get()
 s['/module/linematch/method'] = 1
 
 # Define the settings for exporting images
-#Font and linewidth info
+# Font and linewidth info
 s['/module/pixmap/font'] =  "Liberation Sans"
 s['/module/pixmap/line_width'] =  float(2)
 s["/module/pixmap/scale_font"] = True
 s['/module/pixmap/font_size'] =  float(18)
-#Put a scale bar for 100 nm on the image
+# Put a scale bar for 100 nm on the image
 s['/module/pixmap/inset_draw_label'] = True
 s['/module/pixmap/inset_draw_text_above'] = True
 s['/module/pixmap/inset_draw_ticks'] = False
-s['/module/pixmap/inset_length'] = "100 nm"
+s['/module/pixmap/inset_length'] = "200 nm"
 s["/module/pixmap/inset_pos"] = 3 #bottom left = 3
-#Keep the original image parameters - e.g. number of pixels
+# Keep the original image parameters - e.g. number of pixels
 s["/module/pixmap/xytype"] = 2
 s["/module/pixmap/zoom"] = float(1)
 s["/module/pixmap/ztype"] = 1
-#Export image with the mask on
+# Export image with the mask on
 s['/module/pixmap/draw_mask'] = True
+
 
 
 def getfiles(filetype):
         # This function finds all the files in your current directory with the filetype set in the main script
-        dir=os.getcwd()
+        dir = os.getcwd()
         importdirectory = dir + filetype
         flist = glob.glob(importdirectory)
-        if bool(flist) == True:
+        if bool(flist):
             print 'Files found: ' + str(len(flist))
         else:
             filetype = '/*.*[0-9]'
@@ -44,12 +45,13 @@ def getfiles(filetype):
             print 'Files found: ' + str(len(flist))
         return flist, dir
 
+
 def getallfiles(filetype):
         dir = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/20160215_339-2_8ng_Ni_3mM'
         filetype = filetype
         importdirectory = dir + filetype
         flist = glob.glob(importdirectory)
-        if bool(flist) == True:
+        if bool(flist):
             print 'Files found: ' + str(len(flist))
         else:
             filetype = '/*.*[0-9]'
@@ -59,12 +61,14 @@ def getallfiles(filetype):
             print 'Files found: ' + str(len(flist))
         return flist
 
-def getdata(filename):        
+
+def getdata(filename):
         # Open file and add data to browser
         data = gwy.gwy_file_load(filename, gwy.RUN_NONINTERACTIVE)
         # Add data to browser
         gwy.gwy_app_data_browser_add(data)
         return data
+
 
 def choosechannels(data):
         # Obtain the data field ids for the data file (i.e. the various channels within the file)
@@ -117,35 +121,55 @@ def editfile(data, minheightscale, maxheightscale):
         maximum_disp_value = data.set_double_by_name("/"+str(k)+"/base/max", float(maxheightscale))
         return data, filename
 
-def grainfinding(data, DNAarea):
+def grainfinding(data, minarea):
         # select each channel of the file in turn
         gwy.gwy_app_data_browser_select_data_field(data, k) 
         datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
         mask = gwy.DataField.new_alike(datafield, False)
-        mask2 = gwy.DataField.new_alike(datafield, False)
-
         # Mask data that are above thresh*sigma from average height.
         # Sigma denotes root-mean square deviation of heights. 
         # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
         datafield.mask_outliers(mask, 1)
-
         ## Editing grain mask
         # Remove grains touching the edge of the mask
         mask.grains_remove_touching_border()
         # Calculate pixel width in nm
         dx = datafield.get_dx()
         # Calculate minimum feature size in pixels (integer)
-        minsize = int(DNAarea/dx)
-        maxsize = int(3.5*minsize)
+        minsize = int(minarea/dx)
         # Remove grains smaller than (size) in integer pixels
         mask.grains_remove_by_size(minsize)
+        # Numbering grains for grain analysis
+        grains = mask.number_grains()
+        # Update data to show mask, comment out to remove mask
+        # data['/%d/mask' % k] = mask
+        return data, mask, datafield, grains
+
+def removelargeobjects(datafield, mask, median_pixel_area):
+        mask2 = gwy.DataField.new_alike(datafield, False)
+        # Mask data that are above thresh*sigma from average height.
+        # Sigma denotes root-mean square deviation of heights. 
+        # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
+        datafield.mask_outliers(mask2, 1)
+        # Calculate pixel width in nm
+        dx = datafield.get_dx()
+        # Calculate minimum feature size in pixels (integer)
+        # here this is calculated as 2* the median grain size, as calculated in find_median_pixel_area()
+        maxsize = int(2*median_pixel_area)
+        # Remove grains smaller than the maximum feature size in integer pixels
+        # This should remove everything that you do want to keep
+        # i.e. everything smaller than aggregates/junk
+        mask2.grains_remove_by_size(maxsize)
+        # Invert mask2 so everything smaller than aggregates/junk is masked
+        mask2.grains_invert()
+        #Make mask equalto the intersection of mask and mask 2, i.e. rmeove large objects unmasked by mask2
+        mask.grains_intersect(mask2)
 
         # Numbering grains for grain analysis
         grains = mask.number_grains()
 
-        # Update data to show mask, comment out to remove mask
-        # data['/%d/mask' % k] = mask
-        return data, mask, datafield, grains
+        return mask
+
 
 def grainanalysis(directory, filename, data, mask, datafield, grains):
         ### Setting up filenames and directories for writing data
@@ -184,7 +208,7 @@ def grainanalysis(directory, filename, data, mask, datafield, grains):
         grain_data_to_save = {}
 
 
-        ### Saving out the Grain Statistics  
+        # Saving out the Grain Statistics
         try:
             # Write the statistics to a file called: Grain_Statistics_filename.txt
             write_file = open(grain_directory + 'Grain_Statistics_' + filename + '.txt', 'w')
@@ -192,8 +216,8 @@ def grainanalysis(directory, filename, data, mask, datafield, grains):
             print >>write_file, '#This file contains the grain statistics from file ' + filename + '\n\n'
             # Iterate over each grain statistic (key) and save out as 'grainstats'
             for key in values_to_compute.keys():
-                ### here we stave the gran stats to both a dictionary and an array in that order
-                ### these are basically duplicate steps - but are both included as we arent sure which to use later
+                # here we stave the gran stats to both a dictionary and an array in that order
+                # these are basically duplicate steps - but are both included as we arent sure which to use later
                 # Save grain statistics to a dictionary: grain_data_to_save
                 grain_data_to_save[key] = datafield.grains_get_values(grains, values_to_compute[key])
                 # Delete 0th value in all arrays - this corresponds to the background
@@ -202,7 +226,7 @@ def grainanalysis(directory, filename, data, mask, datafield, grains):
                 grainstats = datafield.grains_get_values(grains, values_to_compute[key])
                 # Delete 0th value in all arrays - this corresponds to the background
                 del grainstats[0]
-                ### Currently save only the array to a text file
+                # Currently save only the array to a text file
                 # Use numpy (np) to save out grain values as text files
                 # np.savetxt('{}.txt'.format(str(key)),grainstats)
                 # Write each grain statistic type to the file Grain_Statistics_filename.txt (must be within for loop)
@@ -215,39 +239,21 @@ def grainanalysis(directory, filename, data, mask, datafield, grains):
 
         return values_to_compute, grainstats, grain_data_to_save
 
-def grainthinning(data):
-        ## script to edit image with higher gaussian filtering to obtain mask for tracing
-        gwy.gwy_app_data_browser_select_data_field(data, k) 
-        datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-        mask = gwy.DataField.new_alike(datafield, False)
+def find_median_pixel_area(datafield, grains):
+        # print values_to_compute.keys()
+        grain_pixel_area = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_PIXEL_AREA)
+        grain_pixel_area = np.array(grain_pixel_area)
+        median_pixel_area = np.median(grain_pixel_area)
+        return median_pixel_area
 
+
+def grainthinning(data, mask, dx):
         # Calculate gaussian width from pixel size
-        dx = datafield.get_dx()
         Gaussiansize = 2e-9/dx
         # Gaussian filter data
         datafield.filter_gaussian(Gaussiansize)
-
-        # Thresholding data above 1 * sigma * average height.
-        datafield.mask_outliers(mask, 1)
-        
-        ## Editing grain mask
-        # Remove grains touching the edge of the mask
-        mask.grains_remove_touching_border()
-        # Calculate pixel width in nm
-        dx = datafield.get_dx()
-        # Calculate minimum feature size in pixels (integer)
-        minsize = int(DNAarea/dx)
-        # Remove grains smaller than (size) in integer pixels
-        mask.grains_remove_by_size(minsize)
-
-        # Numbering grains for grain analysis
-        grains = mask.number_grains()
-
         # Thin (skeletonise) gaussian filtered grains to get traces
         mask.grains_thin()
-
-        # Update data to show mask, comment out to remove mask
-        data['/%d/mask' % k] = mask
         return data, mask
 
 def savefiles(data, filename, extension):
@@ -276,10 +282,10 @@ def savefiles(data, filename, extension):
         # Print the name of the file you're saving to the command line
         print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))    
 
-
-
 # This the main script
 if __name__ == '__main__':
+
+    print s
 
     #Set various options here:    
     # Set file type to run here e.g.'/*.spm*'
@@ -288,18 +294,13 @@ if __name__ == '__main__':
     # filetype = '/*.gwy'
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
-    # # Set saving values for DNA 
-    # minheightscale = -1e-9
-    # maxheightscale = 3e-9
-    # # Set values for determining sizes:
-    # sequencelength = 339
-    # DNAarea = sequencelength*0.34*2e-9
-
-    # Set saving values for MAC 
-    minheightscale = -30e-9
-    maxheightscale = 30e-9
+    # Set saving values for height 
+    minheightscale = -20e-9
+    maxheightscale = 20e-9
     # Set values for determining sizes:
-    DNAarea = 500e-9
+    sequencelength = 339
+    # DNA area approximation length (bp) * len per bp * DNA width (incl tip broadening)
+    minarea = sequencelength*0.34*5e-9
 
     # Call the first function, which finds the files in your current directory
     flist, dir = getfiles(filetype)
@@ -312,8 +313,10 @@ if __name__ == '__main__':
         for k in chosen_ids:
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
             data, filename = editfile(data, minheightscale, maxheightscale)
-            data, mask, datafield, grains = grainfinding(data, DNAarea)
+            data, mask, datafield, grains = grainfinding(data, minarea)
+            median_pixel_area = find_median_pixel_area(datafield, grains)
+            mask = removelargeobjects(datafield, mask, median_pixel_area)
             values_to_compute, grainstats, grain_data_to_save = grainanalysis(dir, filename, data, mask, datafield, grains)
-            # data, mask = grainthinning(data)
+            # data, mask = grainthinning(data, mask, dx)
             savefiles(data, filename, extension)
-        gwy.gwy_app_data_browser_remove(data) #close the file once we've finished with it 
+        gwy.gwy_app_data_browser_remove(data) # close the file once we've finished with it
