@@ -6,28 +6,13 @@ sys.path.append("/usr/local/Cellar/gwyddion/2.52/share/gwyddion/pygwy")
 # Set the settings for each function from the saved settings file (~/.gwyddion/settings)
 s = gwy.gwy_app_settings_get()
 
+# Generate a settings file - should be found at /Users/alice/.gwyddion/settings
+# a = gwy.gwy_app_settings_get_settings_filename()
+# # Location of the settings file - edit to change values
+# print a
+
 # Define the settings for image processing functions e.g. align rows here
 s['/module/linematch/method'] = 1
-
-# Define the settings for exporting images
-# Font and linewidth info
-s['/module/pixmap/font'] =  "Liberation Sans"
-s['/module/pixmap/line_width'] =  float(2)
-s["/module/pixmap/scale_font"] = True
-s['/module/pixmap/font_size'] =  float(18)
-# Put a scale bar for 100 nm on the image
-s['/module/pixmap/inset_draw_label'] = True
-s['/module/pixmap/inset_draw_text_above'] = True
-s['/module/pixmap/inset_draw_ticks'] = False
-s['/module/pixmap/inset_length'] = "200 nm"
-s["/module/pixmap/inset_pos"] = 3 #bottom left = 3
-# Keep the original image parameters - e.g. number of pixels
-s["/module/pixmap/xytype"] = 2
-s["/module/pixmap/zoom"] = float(1)
-s["/module/pixmap/ztype"] = 1
-# Export image with the mask on
-s['/module/pixmap/draw_mask'] = True
-
 
 
 def getfiles(filetype):
@@ -84,6 +69,7 @@ def choosechannels(data):
         # Save out chosen_ids as a list of the channel ids for ZSensor or height if ZSensor doesnt exist
         return chosen_ids
 
+
 def imagedetails(data):
         # select the channel file of chosen_ids
         gwy.gwy_app_data_browser_select_data_field(data, k) 
@@ -96,6 +82,7 @@ def imagedetails(data):
         dx = datafield.get_dx()
         dy = datafield.get_dy()
         return xres, yres, xreal, yreal, dx, dy
+
 
 def editfile(data, minheightscale, maxheightscale):
         # select each channel of the file in turn
@@ -119,7 +106,8 @@ def editfile(data, minheightscale, maxheightscale):
         maximum_disp_value = data.set_int32_by_name("/"+str(k)+"/base/range-type", int(1))
         minimum_disp_value = data.set_double_by_name("/"+str(k)+"/base/min", float(minheightscale))
         maximum_disp_value = data.set_double_by_name("/"+str(k)+"/base/max", float(maxheightscale))
-        return data, filename
+        return data
+
 
 def grainfinding(data, minarea):
         # select each channel of the file in turn
@@ -145,6 +133,7 @@ def grainfinding(data, minarea):
         # data['/%d/mask' % k] = mask
         return data, mask, datafield, grains
 
+
 def removelargeobjects(datafield, mask, median_pixel_area):
         mask2 = gwy.DataField.new_alike(datafield, False)
         # Mask data that are above thresh*sigma from average height.
@@ -155,7 +144,7 @@ def removelargeobjects(datafield, mask, median_pixel_area):
         dx = datafield.get_dx()
         # Calculate minimum feature size in pixels (integer)
         # here this is calculated as 2* the median grain size, as calculated in find_median_pixel_area()
-        maxsize = int(2*median_pixel_area)
+        maxsize = int(1.2*median_pixel_area)
         # Remove grains smaller than the maximum feature size in integer pixels
         # This should remove everything that you do want to keep
         # i.e. everything smaller than aggregates/junk
@@ -167,8 +156,9 @@ def removelargeobjects(datafield, mask, median_pixel_area):
 
         # Numbering grains for grain analysis
         grains = mask.number_grains()
+        print 'There were ' + str(max(grains)) + ' grains found'
 
-        return mask
+        return mask, grains
 
 
 def grainanalysis(directory, filename, data, mask, datafield, grains):
@@ -182,7 +172,6 @@ def grainanalysis(directory, filename, data, mask, datafield, grains):
         # Otherwise set the existing GrainStatistics dorectory as the directory to write to
         else:
             grain_directory = directory + '/GrainStatistics/'
-
 
         ### Calculating grain statistics using numbered grains file
         # Statistics to be computed should be specified here as a dictionary
@@ -206,7 +195,6 @@ def grainanalysis(directory, filename, data, mask, datafield, grains):
                     }
         # Create empty dictionary for data to be saved out
         grain_data_to_save = {}
-
 
         # Saving out the Grain Statistics
         try:
@@ -239,12 +227,16 @@ def grainanalysis(directory, filename, data, mask, datafield, grains):
 
         return values_to_compute, grainstats, grain_data_to_save
 
+
 def find_median_pixel_area(datafield, grains):
         # print values_to_compute.keys()
         grain_pixel_area = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_PIXEL_AREA)
         grain_pixel_area = np.array(grain_pixel_area)
         median_pixel_area = np.median(grain_pixel_area)
         return median_pixel_area
+
+def makeabox(filename, data, mask, datafield, grains):
+        bbox = datafield.get_grain_bounding_boxes(grains)
 
 
 def grainthinning(data, mask, dx):
@@ -255,6 +247,17 @@ def grainthinning(data, mask, dx):
         # Thin (skeletonise) gaussian filtered grains to get traces
         mask.grains_thin()
         return data, mask
+
+
+def exportasnparray(data, datafield, filename):
+        title = data["/%d/data/title" % k]
+        npdata = gwyutils.data_field_data_as_array(datafield)
+        filename = os.path.splitext(filename)[0]
+        savename = filename + '_' + str(k) +'_' + str(title)
+        np.savetxt(savename + '_array.txt', npdata)
+        print 'Exporting as numpy array' 
+        return npdata
+
 
 def savefiles(data, filename, extension):
         # Save the data for the channels found above i.e. ZSensor/Height, as chosen_ids
@@ -278,14 +281,11 @@ def savefiles(data, filename, extension):
         savename = filename + '_' + str(k) +'_' + str(title) + '_processed_masked' + str(extension)
         # Save the data
         gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE) 
-
         # Print the name of the file you're saving to the command line
         print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))    
 
 # This the main script
 if __name__ == '__main__':
-
-    print s
 
     #Set various options here:    
     # Set file type to run here e.g.'/*.spm*'
@@ -308,15 +308,18 @@ if __name__ == '__main__':
     # flist = getallfiles(filetype)
     # Iterate over all files found 
     for i, filename in enumerate(flist):
+        print 'Analysing ' + str(os.path.basename(filename))
         data = getdata(filename)
         chosen_ids = choosechannels(data)
         for k in chosen_ids:
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
-            data, filename = editfile(data, minheightscale, maxheightscale)
+            data = editfile(data, minheightscale, maxheightscale)
             data, mask, datafield, grains = grainfinding(data, minarea)
             median_pixel_area = find_median_pixel_area(datafield, grains)
-            mask = removelargeobjects(datafield, mask, median_pixel_area)
+            mask, grains = removelargeobjects(datafield, mask, median_pixel_area)
             values_to_compute, grainstats, grain_data_to_save = grainanalysis(dir, filename, data, mask, datafield, grains)
-            # data, mask = grainthinning(data, mask, dx)
+            makeabox(filename, data, mask, datafield, grains)
+            #data, mask = grainthinning(data, mask, dx)
+            nparray = exportasnparray(data, datafield, filename)
             savefiles(data, filename, extension)
         gwy.gwy_app_data_browser_remove(data) # close the file once we've finished with it
