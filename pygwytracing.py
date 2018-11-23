@@ -1,6 +1,8 @@
 #!/usr/bin/env python2
 
-import glob, sys, time, os, gtk, gwy, gwyutils, numpy as np
+import glob, sys, time, os, json, gtk, gwy, gwyutils
+import numpy as np
+import matplotlib.pyplot as plt
 sys.path.append("/usr/local/Cellar/gwyddion/2.52/share/gwyddion/pygwy")
 
 # Set the settings for each function from the saved settings file (~/.gwyddion/settings)
@@ -193,10 +195,22 @@ def grainanalysis(directory, filename, data, mask, datafield, grains):
                     'grain_ellipse_major' : gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MAJOR,
                     'grain_ellipse_minor' : gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MINOR,
                     }
-        # Create empty dictionary for data to be saved out
+        # Create empty dictionary for grain data
         grain_data_to_save = {}
 
-        # Saving out the Grain Statistics
+        # Iterate over each grain statistic (key) to obtain all values in grain_data_to_save
+        for key in values_to_compute.keys():
+            # here we stave the gran stats to both a dictionary and an array in that order
+            # these are basically duplicate steps - but are both included as we arent sure which to use later
+            # Save grain statistics to a dictionary: grain_data_to_save
+            grain_data_to_save[key] = datafield.grains_get_values(grains, values_to_compute[key])
+            # Delete 0th value in all arrays - this corresponds to the background
+            del grain_data_to_save[key][0]
+        # Save out stats to a json format file
+        with open(grain_directory + filename + '_grains.json', 'w') as save_file:
+            json.dump(grain_data_to_save, save_file)
+
+        # Saving out the Grain Statistics as text files
         try:
             # Write the statistics to a file called: Grain_Statistics_filename.txt
             write_file = open(grain_directory + 'Grain_Statistics_' + filename + '.txt', 'w')
@@ -221,7 +235,7 @@ def grainanalysis(directory, filename, data, mask, datafield, grains):
                 print >>write_file, str(key) + '\n' + str(grainstats) + '\n'
 
         except TypeError:
-            write_file = open(grain_directory + 'Grain_Statistics_' + filename + '.txt', 'w')
+            write_file = open(grain_directory + filename + 'Grain_Statistics.txt', 'w')
             print >>write_file, '#The file ' + filename + ' contains no detectable grain statistics'
         print 'Saving grain statistics for: ' + str(filename)
 
@@ -235,12 +249,30 @@ def find_median_pixel_area(datafield, grains):
         median_pixel_area = np.median(grain_pixel_area)
         return median_pixel_area
 
-def makeabox(filename, data, mask, datafield, grains):
+
+def boundbox(datafield, grains):
+        # Function to return the coordinates of the bounding box for all grains.
+        # contains 4 coordinates per image
         bbox = datafield.get_grain_bounding_boxes(grains)
+        # Remove all data up to index 4 (i.e. the 0th, 1st, 2nd, 3rd). 
+        # These are the bboxes for grain zero which is the background and should be ignored
+        del bbox[:4]
+
+        # Find the center of each grain in x
+        center_x = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_CENTER_X)
+        # Delete the background grain center
+        del center_x[0]
+        # Find the center of each grain in x
+        center_y = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_CENTER_Y)
+        # Delete the background grain center
+        del center_y[0]
+        center_pos = (center_x, center_y)
+
+        return bbox, center_pos
 
 
 def grainthinning(data, mask, dx):
-        # Calculate gaussian width from pixel size
+        # Calculate gaussian width in pixels from real value using pixel size
         Gaussiansize = 2e-9/dx
         # Gaussian filter data
         datafield.filter_gaussian(Gaussiansize)
@@ -249,14 +281,34 @@ def grainthinning(data, mask, dx):
         return data, mask
 
 
-def exportasnparray(data, datafield, filename):
-        title = data["/%d/data/title" % k]
+def exportasnparray(datafield, mask):
+        # Export the current datafield (channel) and mask (grains) as numpy arrays
         npdata = gwyutils.data_field_data_as_array(datafield)
+        npmask = gwyutils.data_field_data_as_array(mask)
+        return npdata, npmask
+
+
+def savenparray(data, npdata, npmask, filename):
+        # Saving out np arrays as plots using the filename and matplotlib
+        title = data["/%d/data/title" % k]
         filename = os.path.splitext(filename)[0]
         savename = filename + '_' + str(k) +'_' + str(title)
         np.savetxt(savename + '_array.txt', npdata)
+        np.savetxt(savename + '_masked_array.txt', npmask)
+        # Plot np arrays as images
+        title = data["/%d/data/title" % k]
+        # Determine the filename for each file including path
+        filename = os.path.splitext(filename)[0]
+        # Generate a filename to save to by removing the extension to the file, adding the suffix '_processed'
+        # and an extension set in the main file 
+        savename = filename + '_' + str(k) +'_' + str(title) + '_np.png'
         print 'Exporting as numpy array' 
-        return npdata
+        plt.figure()
+        plt.pcolor(npmask, cmap = 'binary')
+        cbar = plt.colorbar()
+        #plt.show()
+        plt.savefig(savename)
+        plt.close()
 
 
 def savefiles(data, filename, extension):
@@ -304,7 +356,7 @@ if __name__ == '__main__':
 
     # Call the first function, which finds the files in your current directory
     flist, dir = getfiles(filetype)
-    # Call the first function, which finds the files in a set directory
+    ## Call the first function, which finds the files in a set directory
     # flist = getallfiles(filetype)
     # Iterate over all files found 
     for i, filename in enumerate(flist):
@@ -318,8 +370,9 @@ if __name__ == '__main__':
             median_pixel_area = find_median_pixel_area(datafield, grains)
             mask, grains = removelargeobjects(datafield, mask, median_pixel_area)
             values_to_compute, grainstats, grain_data_to_save = grainanalysis(dir, filename, data, mask, datafield, grains)
-            makeabox(filename, data, mask, datafield, grains)
+            bbox, center_pos = boundbox(datafield, grains)
             #data, mask = grainthinning(data, mask, dx)
-            nparray = exportasnparray(data, datafield, filename)
+            npdata, npmask = exportasnparray(datafield, mask)
+            #savenparray(data, npdata, npmask, filename)
             savefiles(data, filename, extension)
         gwy.gwy_app_data_browser_remove(data) # close the file once we've finished with it
