@@ -250,7 +250,7 @@ def find_median_pixel_area(datafield, grains):
         return median_pixel_area
 
 
-def boundbox(datafield, grains):
+def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres, minheightscale, maxheightscale):
         # Function to return the coordinates of the bounding box for all grains.
         # contains 4 coordinates per image
         bbox = datafield.get_grain_bounding_boxes(grains)
@@ -260,15 +260,45 @@ def boundbox(datafield, grains):
 
         # Find the center of each grain in x
         center_x = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_CENTER_X)
-        # Delete the background grain center
+         # Delete the background grain center
         del center_x[0]
-        # Find the center of each grain in x
+        # Find the center of each grain in y
         center_y = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_CENTER_Y)
         # Delete the background grain center
         del center_y[0]
-        center_pos = (center_x, center_y)
+       
+        # Find the centre of the grain in pixels
+        # get active container
+        data = gwy.gwy_app_data_browser_get_current(gwy.APP_CONTAINER)
+        # get current number of files
+        orig_ids = gwy.gwy_app_data_browser_get_data_ids(data)
 
-        return bbox, center_pos
+        # Define the width of the image to crop to
+        cropwidth = int((cropwidth/xreal)*xres)
+
+        for i in range(len(center_x)):
+            px_center_x = int((center_x[i] / xreal) * xres)
+            px_center_y = int((center_y[i] / yreal) * yres)
+            ULcol = px_center_x - cropwidth
+            if ULcol < 0:
+                ULcol = 0
+            ULrow = px_center_y - cropwidth
+            if ULrow < 0:
+                ULrow = 0
+            BRcol = px_center_x + cropwidth  
+            if BRcol > xres:
+                BRcol = xres-1       
+            BRrow = px_center_y + cropwidth
+            if BRrow > yres:
+                BRrow = yres-1
+            crop_datafield_i = datafield.duplicate()
+            crop_datafield_i.resize(ULcol, ULrow, BRcol+1, BRrow+1)
+            # add cropped datafield to active container
+            gwy.gwy_app_data_browser_add_data_field(crop_datafield_i, data, i+(len(orig_ids)))
+        # Generate list of datafields including cropped fields
+        crop_ids = gwy.gwy_app_data_browser_get_data_ids(data)
+
+        return bbox, orig_ids, crop_ids, data
 
 
 def grainthinning(data, mask, dx):
@@ -334,7 +364,40 @@ def savefiles(data, filename, extension):
         # Save the data
         gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE) 
         # Print the name of the file you're saving to the command line
-        print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))    
+        print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0])) 
+
+def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale):
+        # Save the data for the cropped channels
+        # Data is exported to a file of extension set in the main script
+        # Data is exported with the string '_cropped' added to the end of its filename
+
+        # Get the main file filename
+        filename = os.path.splitext(os.path.basename(filename))[0]
+        # If the folder Cropped doest exist make it here
+        if not os.path.exists(directory + '/Cropped/'):
+            os.makedirs(directory + '/Cropped/')
+            crop_directory = directory + '/Cropped/'
+        # Otherwise set the existing GrainStatistics dorectory as the directory to write to
+        else:
+            crop_directory = directory + '/Cropped/'
+
+        # For each cropped file, save out the data with the suffix _Cropped_#
+        for i in range(len(orig_ids), len(crop_ids), 1):
+            gwy.gwy_app_data_browser_select_data_field(data, i)
+            # change the colour map for all channels (k) in the image:
+            palette = data.set_string_by_name("/"+str(i)+"/base/palette", "Nanoscope")
+             # Set the image display to fized range and the colour scale for the images
+            maximum_disp_value = data.set_int32_by_name("/"+str(i)+"/base/range-type", int(1))
+            minimum_disp_value = data.set_double_by_name("/"+str(i)+"/base/min", float(minheightscale))
+            maximum_disp_value = data.set_double_by_name("/"+str(i)+"/base/max", float(maxheightscale))
+            # Generate a filename to save to by removing the extension to the file, adding the suffix '_processed'
+            # and an extension set in the main file
+            savename = crop_directory + filename + '_cropped_' + str(i) + str(extension)
+            # print savename
+            # Save the file
+            gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE) 
+            # Print the name of the file you're saving to the command line
+            print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))       
 
 # This the main script
 if __name__ == '__main__':
@@ -353,9 +416,11 @@ if __name__ == '__main__':
     sequencelength = 339
     # DNA area approximation length (bp) * len per bp * DNA width (incl tip broadening)
     minarea = sequencelength*0.34*5e-9
+    # Set size of the cropped window/2 in pixels
+    cropwidth = 40e-9
 
     # Call the first function, which finds the files in your current directory
-    flist, dir = getfiles(filetype)
+    flist, directory = getfiles(filetype)
     ## Call the first function, which finds the files in a set directory
     # flist = getallfiles(filetype)
     # Iterate over all files found 
@@ -365,14 +430,16 @@ if __name__ == '__main__':
         chosen_ids = choosechannels(data)
         for k in chosen_ids:
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
+            print xreal
             data = editfile(data, minheightscale, maxheightscale)
             data, mask, datafield, grains = grainfinding(data, minarea)
             median_pixel_area = find_median_pixel_area(datafield, grains)
             mask, grains = removelargeobjects(datafield, mask, median_pixel_area)
-            values_to_compute, grainstats, grain_data_to_save = grainanalysis(dir, filename, data, mask, datafield, grains)
-            bbox, center_pos = boundbox(datafield, grains)
-            #data, mask = grainthinning(data, mask, dx)
+            values_to_compute, grainstats, grain_data_to_save = grainanalysis(directory, filename, data, mask, datafield, grains)
+            bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres, minheightscale, maxheightscale)
+            savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            # data, mask = grainthinning(data, mask, dx)
             npdata, npmask = exportasnparray(datafield, mask)
-            #savenparray(data, npdata, npmask, filename)
-            savefiles(data, filename, extension)
-        gwy.gwy_app_data_browser_remove(data) # close the file once we've finished with it
+            # savenparray(data, npdata, npmask, filename)
+            # savefiles(data, filename, extension)
+            gwy.gwy_app_data_browser_remove(data) # close the file once we've finished with it
