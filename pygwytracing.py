@@ -289,7 +289,7 @@ def grainanalysis(directory, filename, datafield, grains):
         return values_to_compute, grainstats, grain_data_to_save
 
 
-def boundingsizes(datafield, grains, filename, result):
+def grainstatistics(datafield, grains, filename, result):
         # Get only last part of filename without extension
         filename = os.path.splitext(os.path.basename(filename))[0]
 
@@ -378,7 +378,7 @@ def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
 
 def grainthinning(data, mask, dx):
         # Calculate gaussian width in pixels from real value using pixel size
-        Gaussiansize = 6e-9/dx
+        Gaussiansize = 2e-9/dx
         # Gaussiansize = 10
         # Gaussian filter data
         datafield.filter_gaussian(Gaussiansize)
@@ -545,7 +545,7 @@ if __name__ == '__main__':
             npdata, npmask = exportasnparray(datafield, mask)
             ### Determine the minimum and maximum bounding sizes
             ### Appending those stats to one file to get all bounding sizes in a directory
-            result, resultsheader = boundingsizes(datafield, grains, filename, result)
+            result, resultsheader = grainstatistics(datafield, grains, filename, result)
         ### Saving stats to text files with name of directory
         savestats(result, directory, '_result', resultsheader)
         ### Close the file once we've finished with it
