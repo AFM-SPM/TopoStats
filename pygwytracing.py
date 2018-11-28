@@ -3,7 +3,9 @@
 import glob, sys, time, os, json, gtk, gwy, gwyutils
 import numpy as np
 import matplotlib.pyplot as plt
-sys.path.append("/usr/local/Cellar/gwyddion/2.52/share/gwyddion/pygwy")
+import pandas as pd
+
+# sys.path.append("/usr/local/Cellar/gwyddion/2.52/share/gwyddion/pygwy")
 
 # Set the settings for each function from the saved settings file (~/.gwyddion/settings)
 s = gwy.gwy_app_settings_get()
@@ -13,8 +15,28 @@ s = gwy.gwy_app_settings_get()
 # # Location of the settings file - edit to change values
 # print a
 
+# Turn colour bar off
+s["/module/pixmap/ztype"] = 0
+
 # Define the settings for image processing functions e.g. align rows here
 s['/module/linematch/method'] = 1
+
+def traversedirectories(fileend):
+    # This function finds all the files with the file ending set in the main script as fileend (usually.spm)
+    # in the path directory, and all subfolders
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing'
+    # initialise the list
+    spmfiles = []
+    # use os.walk to search folders and subfolders and append each file with the correct filetype to the list spmfiles
+    for dirpath, subdirs, files in os.walk(path):
+        for x in files:
+            if x.endswith(fileend):
+                spmfiles.append(os.path.join(dirpath, x))
+        # print the number of files found
+    print 'Files found: ' + str(len(spmfiles))
+    # return a list of files including their root and the original path specified
+    return spmfiles, path
 
 
 def getfiles(filetype):
@@ -34,19 +56,18 @@ def getfiles(filetype):
 
 
 def getallfiles(filetype):
-        dir = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/20160215_339-2_8ng_Ni_3mM'
-        filetype = filetype
-        importdirectory = dir + filetype
-        flist = glob.glob(importdirectory)
-        if bool(flist):
-            print 'Files found: ' + str(len(flist))
-        else:
-            filetype = '/*.*[0-9]'
-            print 'No files found, trying next filetype'
+            dir = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/20160510_339-2_10ng_434rep_200ng_Ni_10mM'
             importdirectory = dir + filetype
             flist = glob.glob(importdirectory)
-            print 'Files found: ' + str(len(flist))
-        return flist
+            if bool(flist):
+                print 'Files found: ' + str(len(flist))
+            else:
+                filetype = '/*.*[0-9]'
+                print 'No files found, trying next filetype'
+                importdirectory = dir + filetype
+                flist = glob.glob(importdirectory)
+                print 'Files found: ' + str(len(flist))
+            return flist, dir
 
 
 def getdata(filename):
@@ -64,7 +85,7 @@ def choosechannels(data):
         chosen_ids = []
         # Find channels with the title ZSensor, if these do not exist, find channels with the title Height
         chosen_ids = gwy.gwy_app_data_browser_find_data_by_title(data, 'ZSensor')
-        if bool(chosen_ids) == False:
+        if not chosen_ids:
             chosen_ids = gwy.gwy_app_data_browser_find_data_by_title(data, 'Height')
         else:
             chosen_ids = chosen_ids
@@ -98,9 +119,9 @@ def editfile(data, minheightscale, maxheightscale):
         gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
         #remove scars
         gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
-        # # Apply a 1.5 pixel gaussian filter
-        # data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-        # data_field.filter_gaussian(1.5)
+        # Apply a 1.5 pixel gaussian filter
+        data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
+        data_field.filter_gaussian(1)
         # # Shift contrast - equivalent to 'fix zero'
         # datafield.add(-data_field.get_min())
 
@@ -158,12 +179,36 @@ def removelargeobjects(datafield, mask, median_pixel_area):
 
         # Numbering grains for grain analysis
         grains = mask.number_grains()
-        print 'There were ' + str(max(grains)) + ' grains found'
 
         return mask, grains
 
 
-def grainanalysis(directory, filename, data, mask, datafield, grains):
+def removesmallobjects(datafield, mask, median_pixel_area):
+    mask2 = gwy.DataField.new_alike(datafield, False)
+    # Mask data that are above thresh*sigma from average height.
+    # Sigma denotes root-mean square deviation of heights.
+    # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
+    datafield.mask_outliers(mask2, 1)
+    # Calculate pixel width in nm
+    dx = datafield.get_dx()
+    # Calculate minimum feature size in pixels (integer)
+    # here this is calculated as 2* the median grain size, as calculated in find_median_pixel_area()
+    minsize = int(0.5 * median_pixel_area)
+    # Remove grains smaller than the maximum feature size in integer pixels
+    # This should remove everything that you do want to keep
+    # i.e. everything smaller than aggregates/junk
+    mask2.grains_remove_by_size(minsize)
+    # Make mask equalto the intersection of mask and mask 2, i.e. rmeove large objects unmasked by mask2
+    mask.grains_intersect(mask2)
+
+    # Numbering grains for grain analysis
+    grains = mask.number_grains()
+    print 'There were ' + str(max(grains)) + ' grains found'
+
+    return mask, grains
+
+
+def grainanalysis(directory, filename, datafield, grains):
         ### Setting up filenames and directories for writing data
         # Get the base of the filename i.e. the last part without directory or extension
         filename = os.path.splitext(os.path.basename(filename))[0]
@@ -198,19 +243,16 @@ def grainanalysis(directory, filename, data, mask, datafield, grains):
         # Create empty dictionary for grain data
         grain_data_to_save = {}
 
-        # Iterate over each grain statistic (key) to obtain all values in grain_data_to_save
-        for key in values_to_compute.keys():
-            # here we stave the gran stats to both a dictionary and an array in that order
-            # these are basically duplicate steps - but are both included as we arent sure which to use later
-            # Save grain statistics to a dictionary: grain_data_to_save
-            grain_data_to_save[key] = datafield.grains_get_values(grains, values_to_compute[key])
-            # Delete 0th value in all arrays - this corresponds to the background
-            del grain_data_to_save[key][0]
-        # Save out stats to a json format file
-        with open(grain_directory + filename + '_grains.json', 'w') as save_file:
-            json.dump(grain_data_to_save, save_file)
 
-        # Saving out the Grain Statistics as text files
+        # for key in values_to_compute.keys():
+        #     # here we stave the gran stats to both a dictionary and an array in that order
+        #     # these are basically duplicate steps - but are both included as we arent sure which to use later
+        #     # Save grain statistics to a dictionary: grain_data_to_save
+        #     grain_data_to_save[key] = datafield.grains_get_values(grains, values_to_compute[key])
+        #     # Delete 0th value in all arrays - this corresponds to the background
+        #     del grain_data_to_save[key][0]
+
+        # Iterate over each grain statistic (key) to obtain all values in grain_data_to_save
         try:
             # Write the statistics to a file called: Grain_Statistics_filename.txt
             write_file = open(grain_directory + 'Grain_Statistics_' + filename + '.txt', 'w')
@@ -224,15 +266,20 @@ def grainanalysis(directory, filename, data, mask, datafield, grains):
                 grain_data_to_save[key] = datafield.grains_get_values(grains, values_to_compute[key])
                 # Delete 0th value in all arrays - this corresponds to the background
                 del grain_data_to_save[key][0]
-                # Save grain statistcis to an array: grainstats
+                # Save grain statistics to an array: grainstats
                 grainstats = datafield.grains_get_values(grains, values_to_compute[key])
                 # Delete 0th value in all arrays - this corresponds to the background
                 del grainstats[0]
-                # Currently save only the array to a text file
+
+                # Saving out the statistics
                 # Use numpy (np) to save out grain values as text files
                 # np.savetxt('{}.txt'.format(str(key)),grainstats)
+                # Saving out the Grain Statistics as text files
                 # Write each grain statistic type to the file Grain_Statistics_filename.txt (must be within for loop)
                 print >>write_file, str(key) + '\n' + str(grainstats) + '\n'
+                # Save out stats to a json format file
+                with open(grain_directory + filename + '_grains.json', 'w') as save_file:
+                    json.dump(grain_data_to_save, save_file)
 
         except TypeError:
             write_file = open(grain_directory + filename + 'Grain_Statistics.txt', 'w')
@@ -240,6 +287,17 @@ def grainanalysis(directory, filename, data, mask, datafield, grains):
         print 'Saving grain statistics for: ' + str(filename)
 
         return values_to_compute, grainstats, grain_data_to_save
+
+
+def boundingsizes(datafield, grains):
+        # Calculate minimum and maximum bounding sizes
+        grain_min_bound = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MINIMUM_BOUND_SIZE)
+        grain_max_bound = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MAXIMUM_BOUND_SIZE)
+        # Delete 0th value in all arrays - this corresponds to the background
+        del grain_max_bound[0]
+        del grain_min_bound[0]
+
+        return grain_min_bound, grain_max_bound
 
 
 def find_median_pixel_area(datafield, grains):
@@ -250,7 +308,7 @@ def find_median_pixel_area(datafield, grains):
         return median_pixel_area
 
 
-def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres, minheightscale, maxheightscale):
+def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
         # Function to return the coordinates of the bounding box for all grains.
         # contains 4 coordinates per image
         bbox = datafield.get_grain_bounding_boxes(grains)
@@ -287,12 +345,12 @@ def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres, min
                 ULrow = 0
             BRcol = px_center_x + cropwidth  
             if BRcol > xres:
-                BRcol = xres-1       
+                BRcol = xres       
             BRrow = px_center_y + cropwidth
             if BRrow > yres:
-                BRrow = yres-1
+                BRrow = yres
             crop_datafield_i = datafield.duplicate()
-            crop_datafield_i.resize(ULcol, ULrow, BRcol+1, BRrow+1)
+            crop_datafield_i.resize(ULcol, ULrow, BRcol, BRrow)
             # add cropped datafield to active container
             gwy.gwy_app_data_browser_add_data_field(crop_datafield_i, data, i+(len(orig_ids)))
         # Generate list of datafields including cropped fields
@@ -318,30 +376,28 @@ def exportasnparray(datafield, mask):
         return npdata, npmask
 
 
-def savenparray(data, npdata, npmask, filename):
-        # Saving out np arrays as plots using the filename and matplotlib
-        title = data["/%d/data/title" % k]
-        filename = os.path.splitext(filename)[0]
-        savename = filename + '_' + str(k) +'_' + str(title)
-        np.savetxt(savename + '_array.txt', npdata)
-        np.savetxt(savename + '_masked_array.txt', npmask)
-        # Plot np arrays as images
-        title = data["/%d/data/title" % k]
-        # Determine the filename for each file including path
-        filename = os.path.splitext(filename)[0]
-        # Generate a filename to save to by removing the extension to the file, adding the suffix '_processed'
-        # and an extension set in the main file 
-        savename = filename + '_' + str(k) +'_' + str(title) + '_np.png'
-        print 'Exporting as numpy array' 
-        plt.figure()
-        plt.pcolor(npmask, cmap = 'binary')
-        cbar = plt.colorbar()
-        #plt.show()
-        plt.savefig(savename)
-        plt.close()
+def savestats(datatypetosave, directory, outname):
+        savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
+
+        with open(savename + '.json', 'w') as save_file:
+            json.dump(grain_data_to_save, save_file)
+
+        try:
+            # Write the statistics to a file called: Grain_Statistics_filename.txt
+            write_file = open(savename + '.txt', 'w')
+            # Write a header for the file
+            print >> write_file, '#This file contains the grain statistics from folder ' + str(os.path.splitext(os.path.basename(directory))[0]) + '\n\n'
+            print >> write_file, datatypetosave
+        except TypeError:
+            write_file = open(savename, 'w')
+            print >> write_file, '#The file ' + filename + ' contains no detectable grain statistics'
+
+        print 'Saving: ' + str(os.path.splitext(os.path.basename(directory))[0])
 
 
 def savefiles(data, filename, extension):
+        # Turn rulers on
+        s["/module/pixmap/xytype"] = 1
         # Save the data for the channels found above i.e. ZSensor/Height, as chosen_ids
         # Data is exported to a file of extension set in the main script
         # Data is exported with the string '_processed' added to the end of its filename
@@ -366,7 +422,10 @@ def savefiles(data, filename, extension):
         # Print the name of the file you're saving to the command line
         print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0])) 
 
+
 def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale):
+        # Turn rulers off
+        s["/module/pixmap/xytype"] = 0
         # Save the data for the cropped channels
         # Data is exported to a file of extension set in the main script
         # Data is exported with the string '_cropped' added to the end of its filename
@@ -383,6 +442,7 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
 
         # For each cropped file, save out the data with the suffix _Cropped_#
         for i in range(len(orig_ids), len(crop_ids), 1):
+            # select each channel fo the file in turn
             gwy.gwy_app_data_browser_select_data_field(data, i)
             # change the colour map for all channels (k) in the image:
             palette = data.set_string_by_name("/"+str(i)+"/base/palette", "Nanoscope")
@@ -390,56 +450,91 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
             maximum_disp_value = data.set_int32_by_name("/"+str(i)+"/base/range-type", int(1))
             minimum_disp_value = data.set_double_by_name("/"+str(i)+"/base/min", float(minheightscale))
             maximum_disp_value = data.set_double_by_name("/"+str(i)+"/base/max", float(maxheightscale))
-            # Generate a filename to save to by removing the extension to the file, adding the suffix '_processed'
-            # and an extension set in the main file
-            savename = crop_directory + filename + '_cropped_' + str(i) + str(extension)
-            # print savename
+            # Generate a filename to save to by removing the extension to the file and a numerical identifier (the crop no)
+            # The 'crop number' is the channel number minus the original number of channels, less one to avoid starting at 0
+            savenumber = i - (len(orig_ids)-1)
+            # adding the suffix '_cropped' and adding the extension set in the main file
+            savename = crop_directory + filename + '_cropped_' + str(savenumber) + str(extension)
             # Save the file
             gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE) 
             # Print the name of the file you're saving to the command line
-            print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))       
+            # print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))       
+
 
 # This the main script
 if __name__ == '__main__':
 
-    #Set various options here:    
+    ### Set various options here:
     # Set file type to run here e.g.'/*.spm*'
+    fileend = '.spm' #default
     filetype = '/*.spm' #default
     # filetype = '/*.*[0-9]'
     # filetype = '/*.gwy'
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
-    # Set saving values for height 
+    # Set height scale values to save out
     minheightscale = -20e-9
     maxheightscale = 20e-9
-    # Set values for determining sizes:
-    sequencelength = 339
-    # DNA area approximation length (bp) * len per bp * DNA width (incl tip broadening)
-    minarea = sequencelength*0.34*5e-9
+    # Set minimum size for grain determination:
+    minarea = 200e-9
     # Set size of the cropped window/2 in pixels
     cropwidth = 40e-9
 
-    # Call the first function, which finds the files in your current directory
-    flist, directory = getfiles(filetype)
-    ## Call the first function, which finds the files in a set directory
-    # flist = getallfiles(filetype)
-    # Iterate over all files found 
+    ### Look through the current directory and all subdirectories for files ending in .spm and add to flist
+    flist, directory = traversedirectories(fileend)
+    ### Find the files in your current directory and add to flist
+    # flist, directory = getfiles(filetype)
+    ### Find the files in a set directory and add to flist
+    # flist, directory = getallfiles(filetype)
+    ### Iterate over all files found
     for i, filename in enumerate(flist):
         print 'Analysing ' + str(os.path.basename(filename))
+        ### Load the data for the specified filename
         data = getdata(filename)
+        ### Find the channels of data you wish to use within the finle e.g. ZSensor or height
         chosen_ids = choosechannels(data)
+        ### Iterate over the chosen channels in your file e.g. the ZSensor channel
         for k in chosen_ids:
+            ### Get all the image details eg resolution for your chosen channel
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
-            print xreal
+            ### Perform basic image processing, to align rows, flatten and set the mean value to zero
             data = editfile(data, minheightscale, maxheightscale)
+            #### Find all grains in the mask which are both above a height threshold
+            ### and bigger than the min size set in the main code
             data, mask, datafield, grains = grainfinding(data, minarea)
+            ### Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
             median_pixel_area = find_median_pixel_area(datafield, grains)
+            ### Remove all large objects defined as 1.2* the median grain size (in pixel area)
             mask, grains = removelargeobjects(datafield, mask, median_pixel_area)
-            values_to_compute, grainstats, grain_data_to_save = grainanalysis(directory, filename, data, mask, datafield, grains)
-            bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres, minheightscale, maxheightscale)
-            savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            ### Remove all small objects defined as less than 0.5x the median grain size (in pixel area)
+            mask, grains = removesmallobjects(datafield, mask, median_pixel_area)
+            ### Compute all grain statistics in in the 'values to compute' dictionary for garins in the file
+            values_to_compute, grainstats, grain_data_to_save = grainanalysis(directory, filename, datafield, grains)
+            ### Create cropped datafields for every grain of size set in the main directory
+            bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
+            ### Save out cropped files as images with no scales to a subfolder
+            # savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            ### Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)
+            ### Save data as 2 images, with and without mask
+            savefiles(data, filename, extension)
+            ### Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
-            # savenparray(data, npdata, npmask, filename)
-            # savefiles(data, filename, extension)
-            gwy.gwy_app_data_browser_remove(data) # close the file once we've finished with it
+            ### Determine the minimum and maximum bounding sizes
+            grain_min_bound, grain_max_bound = boundingsizes(datafield, grains)
+            ### Appending those stats to one file to get all bounding sizes in a directory
+            try:
+                grain_min_bound_all.append(grain_min_bound)
+                grain_max_bound_all.append(grain_max_bound)
+            except NameError:
+                grain_min_bound_all = [grain_min_bound]
+                grain_max_bound_all = [grain_max_bound]
+    ### Saving stats to text files with name of directory
+    outname = '_grain_min_bound_all'
+    savestats(grain_min_bound_all, directory, outname)
+    outname = '_grain_max_bound_all'
+    savestats(grain_max_bound_all, directory, outname)
+    ### Close the file once we've finished with it
+    gwy.gwy_app_data_browser_remove(data)
+
+
