@@ -132,8 +132,8 @@ def editfile(data, minheightscale, maxheightscale):
         return data
 
 
-def grainfinding(data, minarea):
-        # select each channel of the file in turn
+def grainfinding(data, minarea, k):
+        # Select channel 'k' of the file
         gwy.gwy_app_data_browser_select_data_field(data, k) 
         datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
         mask = gwy.DataField.new_alike(datafield, False)
@@ -141,19 +141,23 @@ def grainfinding(data, minarea):
         # Sigma denotes root-mean square deviation of heights. 
         # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
         datafield.mask_outliers(mask, 1)
-        ## Editing grain mask
+
+        ### Editing grain mask
         # Remove grains touching the edge of the mask
         mask.grains_remove_touching_border()
         # Calculate pixel width in nm
         dx = datafield.get_dx()
-        # Calculate minimum feature size in pixels (integer)
+        # Calculate minimum feature size in pixels (integer) from a real size specified in the main
         minsize = int(minarea/dx)
-        # Remove grains smaller than (size) in integer pixels
+        # Remove grains smaller than the minimum size in integer pixels
         mask.grains_remove_by_size(minsize)
+
         # Numbering grains for grain analysis
         grains = mask.number_grains()
+
         # Update data to show mask, comment out to remove mask
         # data['/%d/mask' % k] = mask
+
         return data, mask, datafield, grains
 
 
@@ -293,7 +297,7 @@ def grainstatistics(datafield, grains, filename, result):
         # Get only last part of filename without extension
         filename = os.path.splitext(os.path.basename(filename))[0]
 
-        # Calculate minimum and maximum bounding sizes
+        # Calculate grain statistics
         grain_min_bound = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MINIMUM_BOUND_SIZE)
         grain_max_bound = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MAXIMUM_BOUND_SIZE)
         grain_mean_rad = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MEAN_RADIUS)
@@ -314,6 +318,7 @@ def grainstatistics(datafield, grains, filename, result):
         for i in range(len(grain_min_bound)):
             resultsheader = 'filename, i, grain_min_bound[i], grain_max_bound[i], grain_mean_rad[i], grain_proj_area[i], grain_max[i], grain_med[i]'
             result.append([filename, i, grain_min_bound[i], grain_max_bound[i], grain_mean_rad[i], grain_proj_area[i], grain_max[i], grain_med[i]])
+
         return result, resultsheader
 
 
@@ -395,24 +400,30 @@ def exportasnparray(datafield, mask):
 
 
 def savestats(datatypetosave, directory, outname, resultsheader):
+        # Generate a filepath to save the files to using the directory and the 'outname' i.e. what you;d like to append to it
         savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
 
+        # Save the contents of 'result' as a JSON file
         with open(savename + '.json', 'w') as save_file:
             json.dump(datatypetosave, save_file)
 
+        # Write the statistics to a text file
         try:
-            # Write the statistics to a file called: Grain_Statistics_filename.txt
+
             write_file = open(savename + '.txt', 'w')
             # Write a header for the file
             print >> write_file, '# This file contains the grain statistics from folder ' + str(os.path.splitext(os.path.basename(directory))[0])
             print >> write_file, '# The data contained is:'
             print >> write_file, '# ' + resultsheader + '\n'
-
+            # Write the data to save to file
             print >> write_file, datatypetosave
+
+        # If there are no grain statistics save out with a message to say so
         except TypeError:
             write_file = open(savename, 'w')
             print >> write_file, '#The file ' + filename + ' contains no detectable grain statistics'
 
+        # Print the filename being saved to the command line
         print 'Saving: ' + str(os.path.splitext(os.path.basename(directory))[0])
 
 
@@ -526,7 +537,7 @@ if __name__ == '__main__':
             data = editfile(data, minheightscale, maxheightscale)
             #### Find all grains in the mask which are both above a height threshold
             ### and bigger than the min size set in the main code
-            data, mask, datafield, grains = grainfinding(data, minarea)
+            data, mask, datafield, grains = grainfinding(data, minarea, k)
             ### Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
             median_pixel_area = find_median_pixel_area(datafield, grains)
             ### Remove all large objects defined as 1.2* the median grain size (in pixel area)
