@@ -501,6 +501,8 @@ if __name__ == '__main__':
     # Set size of the cropped window/2 in pixels
     cropwidth = 40e-9
 
+    # Declare variables used later
+    # # Placed outside for loop in order that they don't overwrite data to be appended
     result = []
 
     ### Look through the current directory and all subdirectories for files ending in .spm and add to flist
@@ -550,5 +552,3 @@ if __name__ == '__main__':
         savestats(result, directory, '_result', resultsheader)
         ### Close the file once we've finished with it
         gwy.gwy_app_data_browser_remove(data)
-
-
