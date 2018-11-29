@@ -319,7 +319,12 @@ def grainstatistics(datafield, grains, filename, result):
             resultsheader = 'filename, i, grain_min_bound[i], grain_max_bound[i], grain_mean_rad[i], grain_proj_area[i], grain_max[i], grain_med[i]'
             result.append([filename, i, grain_min_bound[i], grain_max_bound[i], grain_mean_rad[i], grain_proj_area[i], grain_max[i], grain_med[i]])
 
-        return result, resultsheader
+        # Covenrt results to a pandas dataframe with column headings to save out
+        grainstats_df = pd.DataFrame.from_records(result,
+                                    columns=['filename', 'i', 'grain_min_bound', 'grain_max_bound', 'grain_mean_rad',
+                                            'grain_proj_area', 'grain_max', 'grain_med'])
+
+        return grainstats_df
 
 
 def find_median_pixel_area(datafield, grains):
@@ -399,32 +404,36 @@ def exportasnparray(datafield, mask):
         return npdata, npmask
 
 
-def savestats(datatypetosave, directory, outname, resultsheader):
+def savestats(directory, outname, dataframetosave):
         # Generate a filepath to save the files to using the directory and the 'outname' i.e. what you;d like to append to it
+        directory = os.getcwd()
         savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
 
-        # Save the contents of 'result' as a JSON file
-        with open(savename + '.json', 'w') as save_file:
-            json.dump(datatypetosave, save_file)
+        dataframetosave.to_json(savename + '.json')
+        dataframetosave.to_csv(savename + '.txt')
 
-        # Write the statistics to a text file
-        try:
-
-            write_file = open(savename + '.txt', 'w')
-            # Write a header for the file
-            print >> write_file, '# This file contains the grain statistics from folder ' + str(os.path.splitext(os.path.basename(directory))[0])
-            print >> write_file, '# The data contained is:'
-            print >> write_file, '# ' + resultsheader + '\n'
-            # Write the data to save to file
-            print >> write_file, datatypetosave
-
-        # If there are no grain statistics save out with a message to say so
-        except TypeError:
-            write_file = open(savename, 'w')
-            print >> write_file, '#The file ' + filename + ' contains no detectable grain statistics'
+        # # Save the contents of 'result' as a JSON file
+        # with open(savename + '.json', 'w') as save_file:
+        #     json.dump(datatypetosave, save_file)
+        #
+        # # Write the statistics to a text file
+        # try:
+        #
+        #     write_file = open(savename + '.txt', 'w')
+        #     # Write a header for the file
+        #     print >> write_file, '# This file contains the grain statistics from folder ' + str(os.path.splitext(os.path.basename(directory))[0])
+        #     print >> write_file, '# The data contained is:'
+        #     print >> write_file, '# ' + resultsheader + '\n'
+        #     # Write the data to save to file
+        #     print >> write_file, datatypetosave
+        #
+        # # If there are no grain statistics save out with a message to say so
+        # except TypeError:
+        #     write_file = open(savename, 'w')
+        #     print >> write_file, '#The file ' + filename + ' contains no detectable grain statistics'
 
         # Print the filename being saved to the command line
-        print 'Saving: ' + str(os.path.splitext(os.path.basename(directory))[0])
+        print 'Saving stats for : ' + str(os.path.splitext(os.path.basename(directory))[0])
 
 
 def savefiles(data, filename, extension):
@@ -544,22 +553,22 @@ if __name__ == '__main__':
             mask, grains = removelargeobjects(datafield, mask, median_pixel_area)
             ### Remove all small objects defined as less than 0.5x the median grain size (in pixel area)
             mask, grains = removesmallobjects(datafield, mask, median_pixel_area)
-            ### Compute all grain statistics in in the 'values to compute' dictionary for garins in the file
-            values_to_compute, grainstats, grain_data_to_save = grainanalysis(directory, filename, datafield, grains)
+            ### Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
+            ### Not currently used - replaced by grainstatistics function
+            # values_to_compute, grainstats, grain_data_to_save = grainanalysis(directory, filename, datafield, grains)
             ### Create cropped datafields for every grain of size set in the main directory
             bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             ### Save out cropped files as images with no scales to a subfolder
             savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
             ### Skeletonise data after performing an aggressive gaussian to improve skeletonisation
-            data, mask = grainthinning(data, mask, dx)
+            # data, mask = grainthinning(data, mask, dx)
             ### Save data as 2 images, with and without mask
             savefiles(data, filename, extension)
             ### Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
-            ### Determine the minimum and maximum bounding sizes
-            ### Appending those stats to one file to get all bounding sizes in a directory
-            result, resultsheader = grainstatistics(datafield, grains, filename, result)
-        ### Saving stats to text files with name of directory
-        savestats(result, directory, '_result', resultsheader)
-        ### Close the file once we've finished with it
-        gwy.gwy_app_data_browser_remove(data)
+            ### Determine the grain statistics
+                ### Append those stats to one file to get all stats in a directory
+                ### Save out as a pandas dataframe
+            grainstats_df = grainstatistics(datafield, grains, filename, result)
+    ### Saving stats to text files with name of directory
+    savestats(directory, '_grainstats', grainstats_df)
