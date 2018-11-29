@@ -336,10 +336,11 @@ def plotting(dataframe):
         # df.groupby("filename")['grain_max_bound'].plot(kind='hist', legend=True)
 
         # fig, ax = plt.subplots()
-        # fig = df.groupby("filename")[('grain_min_bound')].plot(kind="hist", legend=True, bins=20)
-        # ax = df.groupby("filename")[('grain_max_bound')].plot(kind="hist", legend=True, bins=20)
+        df.groupby("filename")[('grain_min_bound')].plot(kind="hist", legend=True, color='green', bins = 20, range=(1e-8, 7e-8))
+        df.groupby("filename")[('grain_max_bound')].plot(kind="hist", legend=True, color='blue', bins = 20, range=(1e-8, 7e-8))
 
-        fig = df.groupby("filename")[('grain_min_bound'), ('grain_max_bound')].plot(kind="hist", legend=True, bins=10, alpha=.5)
+
+        # fig = df.groupby("filename")[('grain_min_bound'), ('grain_max_bound')].plot(kind="hist", legend=True, bins=10, alpha=.5)
 
         ## Plot all three histograms in a single plot
         # fig, ax = plt.subplots()
@@ -350,8 +351,6 @@ def plotting(dataframe):
 
         # for col in df.columns[2:4]:
         #     fig = plt.hist(df[col], alpha=0.5)
-
-        return fig
 
 
 def find_median_pixel_area(datafield, grains):
@@ -597,6 +596,6 @@ if __name__ == '__main__':
                 ### Append those stats to one file to get all stats in a directory
                 ### Save out as a pandas dataframe
             grainstats_df = grainstatistics(datafield, grains, filename, result)
-    fig = plotting(grainstats_df)
+    plotting(grainstats_df)
     ### Saving stats to text files with name of directory
     savestats(directory, '_grainstats', grainstats_df)
