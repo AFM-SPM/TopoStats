@@ -331,26 +331,20 @@ def grainstatistics(datafield, grains, filename, result):
 def plotting(dataframe):
         df = dataframe
 
-        # fig = plt.figure()
-        # df.groupby("filename")['grain_min_bound'].plot(kind='hist', legend = True)
-        # df.groupby("filename")['grain_max_bound'].plot(kind='hist', legend=True)
+        ### Plotting min and max bounding sizes for each filename separately
+        df.groupby("filename")['grain_min_bound'].plot(kind='hist', legend = True, bins = 20, range=(1e-8, 7e-8), alpha=.3)
+        df.groupby("filename")['grain_max_bound'].plot(kind='hist', legend=True, bins = 20, range=(1e-8, 7e-8), alpha=.3)
 
-        # fig, ax = plt.subplots()
-        df.groupby("filename")[('grain_min_bound')].plot(kind="hist", legend=True, color='green', bins = 20, range=(1e-8, 7e-8))
-        df.groupby("filename")[('grain_max_bound')].plot(kind="hist", legend=True, color='blue', bins = 20, range=(1e-8, 7e-8))
+        # ### Plotting min and max bounding sizes in green and blue for each filename separately
+        # df.groupby("filename")[('grain_min_bound')].plot(kind="hist", legend=True, color='green', bins = 20, range=(1e-8, 7e-8), alpha=.3)
+        # df.groupby("filename")[('grain_max_bound')].plot(kind="hist", legend=True, color='blue', bins = 20, range=(1e-8, 7e-8), alpha=.3)
 
+        # ### Plotting min and max bounding size for each filename as a separate file
+        # fig = df.groupby("filename")[('grain_min_bound'), ('grain_max_bound')].plot(kind="hist", legend=True, bins=10, alpha=.3)
 
-        # fig = df.groupby("filename")[('grain_min_bound'), ('grain_max_bound')].plot(kind="hist", legend=True, bins=10, alpha=.5)
-
-        ## Plot all three histograms in a single plot
-        # fig, ax = plt.subplots()
-        # for i, data in df.iterrows():
-        #     ax.hist(data["len_PIs"], label=data['chrom'], alpha=.5)
-        # ax.legend()
-        # plt.show()
-
+        # ### Plotting min and max bounding sizes for all filenames in the folder
         # for col in df.columns[2:4]:
-        #     fig = plt.hist(df[col], alpha=0.5)
+        #     plt.hist(df[col], bins = 20, range=(1e-8, 7e-8), alpha=.3)
 
 
 def find_median_pixel_area(datafield, grains):
