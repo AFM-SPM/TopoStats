@@ -1,9 +1,11 @@
 #!/usr/bin/env python2
 
-import glob, sys, time, os, json, gtk, gwy, gwyutils
+import glob, sys, time, os, json, gtk, gwy, gwyutils, scipy
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
+sns.set()
 
 # sys.path.append("/usr/local/Cellar/gwyddion/2.52/share/gwyddion/pygwy")
 
@@ -327,12 +329,29 @@ def grainstatistics(datafield, grains, filename, result):
         return grainstats_df
 
 def plotting(dataframe):
-        fig = plt.figure()
-        # ax = dataframe.plot(kind="hist", alpha=0.7)
-        ax = dataframe[('grain_min_bound')].plot(kind="hist", alpha=0.4)
-        ax2 = dataframe[('grain_max_bound')].plot(kind="hist", alpha=0.2)
+        df = dataframe
 
-        return ax, fig
+        # fig = plt.figure()
+        # df.groupby("filename")['grain_min_bound'].plot(kind='hist', legend = True)
+        # df.groupby("filename")['grain_max_bound'].plot(kind='hist', legend=True)
+
+        # fig, ax = plt.subplots()
+        # fig = df.groupby("filename")[('grain_min_bound')].plot(kind="hist", legend=True, bins=20)
+        # ax = df.groupby("filename")[('grain_max_bound')].plot(kind="hist", legend=True, bins=20)
+
+        fig = df.groupby("filename")[('grain_min_bound'), ('grain_max_bound')].plot(kind="hist", legend=True, bins=10, alpha=.5)
+
+        ## Plot all three histograms in a single plot
+        # fig, ax = plt.subplots()
+        # for i, data in df.iterrows():
+        #     ax.hist(data["len_PIs"], label=data['chrom'], alpha=.5)
+        # ax.legend()
+        # plt.show()
+
+        # for col in df.columns[2:4]:
+        #     fig = plt.hist(df[col], alpha=0.5)
+
+        return fig
 
 
 def find_median_pixel_area(datafield, grains):
@@ -515,7 +534,7 @@ if __name__ == '__main__':
 
     ### Set various options here:
     # Set file type to run here e.g.'/*.spm*'
-    fileend = 'circle.spm' #default
+    fileend = '.spm' #default
     filetype = '/*.spm' #default
     # filetype = '/*.*[0-9]'
     # filetype = '/*.gwy'
@@ -578,6 +597,6 @@ if __name__ == '__main__':
                 ### Append those stats to one file to get all stats in a directory
                 ### Save out as a pandas dataframe
             grainstats_df = grainstatistics(datafield, grains, filename, result)
-    ax, fig = plotting(grainstats_df)
+    fig = plotting(grainstats_df)
     ### Saving stats to text files with name of directory
     savestats(directory, '_grainstats', grainstats_df)
