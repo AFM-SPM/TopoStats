@@ -406,7 +406,7 @@ def exportasnparray(datafield, mask):
 
 def savestats(directory, outname, dataframetosave):
         # Generate a filepath to save the files to using the directory and the 'outname' i.e. what you;d like to append to it
-        directory = os.getcwd()
+        # directory = os.getcwd()
         savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
 
         dataframetosave.to_json(savename + '.json')
