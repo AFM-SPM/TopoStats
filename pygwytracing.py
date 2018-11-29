@@ -326,6 +326,14 @@ def grainstatistics(datafield, grains, filename, result):
 
         return grainstats_df
 
+def plotting(dataframe):
+        fig = plt.figure()
+        # ax = dataframe.plot(kind="hist", alpha=0.7)
+        ax = dataframe[('grain_min_bound')].plot(kind="hist", alpha=0.4)
+        ax2 = dataframe[('grain_max_bound')].plot(kind="hist", alpha=0.2)
+
+        return ax, fig
+
 
 def find_median_pixel_area(datafield, grains):
         # print values_to_compute.keys()
@@ -507,7 +515,7 @@ if __name__ == '__main__':
 
     ### Set various options here:
     # Set file type to run here e.g.'/*.spm*'
-    fileend = '.spm' #default
+    fileend = 'circle.spm' #default
     filetype = '/*.spm' #default
     # filetype = '/*.*[0-9]'
     # filetype = '/*.gwy'
@@ -559,16 +567,17 @@ if __name__ == '__main__':
             ### Create cropped datafields for every grain of size set in the main directory
             bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             ### Save out cropped files as images with no scales to a subfolder
-            savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            # savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
             ### Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)
             ### Save data as 2 images, with and without mask
-            savefiles(data, filename, extension)
+            # savefiles(data, filename, extension)
             ### Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
             ### Determine the grain statistics
                 ### Append those stats to one file to get all stats in a directory
                 ### Save out as a pandas dataframe
             grainstats_df = grainstatistics(datafield, grains, filename, result)
+    ax, fig = plotting(grainstats_df)
     ### Saving stats to text files with name of directory
     savestats(directory, '_grainstats', grainstats_df)
