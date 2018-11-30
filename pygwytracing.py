@@ -332,8 +332,8 @@ def plotting(dataframe):
         df = dataframe
 
         ### Plotting min and max bounding sizes for each filename separately
-        df.groupby("filename")['grain_min_bound'].plot(kind='hist', legend = True, bins = 20, range=(1e-8, 7e-8), alpha=.3)
-        df.groupby("filename")['grain_max_bound'].plot(kind='hist', legend=True, bins = 20, range=(1e-8, 7e-8), alpha=.3)
+        df.groupby("filename")['grain_min_bound'].plot(kind='hist', legend=True, bins=20, range=(1e-8, 7e-8), alpha=.3)
+        df.groupby("filename")['grain_max_bound'].plot(kind='hist', legend=True, bins=20, range=(1e-8, 7e-8), alpha=.3)
 
         # ### Plotting min and max bounding sizes in green and blue for each filename separately
         # df.groupby("filename")[('grain_min_bound')].plot(kind="hist", legend=True, color='green', bins = 20, range=(1e-8, 7e-8), alpha=.3)
