@@ -332,9 +332,9 @@ def plotting(dataframe, arg1, arg2, grouparg):
         df = dataframe
 
         ### Generating min and max axes based on datasets
-        min_ax = df[arg1].min()
+        min_ax = min(df[arg1].min(), df[arg2].min())
         min_ax = round(min_ax, 9)
-        max_ax = df[arg2].max()
+        max_ax = max(df[arg1].max(), df[arg2].max())
         max_ax = round(max_ax, 9)
 
         # ### Generating labels
@@ -342,12 +342,12 @@ def plotting(dataframe, arg1, arg2, grouparg):
 
 
         ### Plotting min and max bounding sizes for each filename separately
-        df.groupby(grouparg)[arg1].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3, label=arg1)
-        ax = df.groupby(grouparg)[arg2].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3, label=arg2)
+        # df.groupby(grouparg)[arg1].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3, label=arg1)
+        # ax = df.groupby(grouparg)[arg2].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3, label=arg2)
 
         # ### Plotting min and max bounding sizes in green and blue for each filename separately
-        # df.groupby("filename")[('grain_min_bound')].plot(kind="hist", legend=True, color='green', bins = 20, range=(1e-8, 7e-8), alpha=.3)
-        # df.groupby("filename")[('grain_max_bound')].plot(kind="hist", legend=True, color='blue', bins = 20, range=(1e-8, 7e-8), alpha=.3)
+        df.groupby("filename")[(arg1)].plot(kind="hist", legend=True, color='green', bins = 20, range=(1e-8, 7e-8), alpha=.3)
+        df.groupby("filename")[(arg2)].plot(kind="hist", legend=True, color='blue', bins = 20, range=(1e-8, 7e-8), alpha=.3)
 
         # ### Plotting min and max bounding size for each filename as a separate file
         # fig = df.groupby("filename")[('grain_min_bound'), ('grain_max_bound')].plot(kind="hist", legend=True, bins=10, alpha=.3)
