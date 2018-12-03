@@ -328,12 +328,22 @@ def grainstatistics(datafield, grains, filename, result):
 
         return grainstats_df
 
-def plotting(dataframe):
+def plotting(dataframe, arg1, arg2, grouparg):
         df = dataframe
 
+        ### Generating min and max axes based on datasets
+        min_ax = df[arg1].min()
+        min_ax = round(min_ax, 9)
+        max_ax = df[arg2].max()
+        max_ax = round(max_ax, 9)
+
+        # ### Generating labels
+        # title_ = str(arg1) + ' ' + str(arg2)
+
+
         ### Plotting min and max bounding sizes for each filename separately
-        df.groupby("filename")['grain_min_bound'].plot(kind='hist', legend=True, bins=20, range=(1e-8, 7e-8), alpha=.3)
-        df.groupby("filename")['grain_max_bound'].plot(kind='hist', legend=True, bins=20, range=(1e-8, 7e-8), alpha=.3)
+        df.groupby(grouparg)[arg1].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3, label=arg1)
+        ax = df.groupby(grouparg)[arg2].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3, label=arg2)
 
         # ### Plotting min and max bounding sizes in green and blue for each filename separately
         # df.groupby("filename")[('grain_min_bound')].plot(kind="hist", legend=True, color='green', bins = 20, range=(1e-8, 7e-8), alpha=.3)
@@ -345,6 +355,8 @@ def plotting(dataframe):
         # ### Plotting min and max bounding sizes for all filenames in the folder
         # for col in df.columns[2:4]:
         #     plt.hist(df[col], bins = 20, range=(1e-8, 7e-8), alpha=.3)
+
+        return ax
 
 
 def find_median_pixel_area(datafield, grains):
@@ -590,6 +602,6 @@ if __name__ == '__main__':
                 ### Append those stats to one file to get all stats in a directory
                 ### Save out as a pandas dataframe
             grainstats_df = grainstatistics(datafield, grains, filename, result)
-    plotting(grainstats_df)
+    ax = plotting(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename')
     ### Saving stats to text files with name of directory
     savestats(directory, '_grainstats', grainstats_df)
