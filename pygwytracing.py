@@ -339,9 +339,9 @@ def plotall(dataframe, bins):
         df = dataframe
         for i, col in enumerate(df.columns):
             plt.figure(i)
-            # sns.distplot(df[col])
+            sns.distplot(df[col], bins=bins)
             # plt.hist(df[col])
-            df[col].plot.hist()
+            # df[col].plot.hist()
 
 def plotting(dataframe, arg1, grouparg, bins):
         df = dataframe
@@ -378,8 +378,7 @@ def plotting2(dataframe, arg1, arg2, grouparg, bins):
         max_ax = max(df[arg1].max(), df[arg2].max())
         max_ax = round(max_ax, 9)
 
-        # plot data
-
+        ### Plot data
 
         ### Plot each type using MatPlotLib separated by filetype on two separate graphs with stacking
         df1 = df.pivot(columns=grouparg, values=arg1)
@@ -391,7 +390,6 @@ def plotting2(dataframe, arg1, arg2, grouparg, bins):
         df3 = pd.melt(df, id_vars=[arg1, arg2])
         df3.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3)
 
-        # df.set_index('nm').plot(subplots=True)
 
         # ### Plotting min and max bounding sizes for each filename separately
         # df.groupby(grouparg)[arg1].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
@@ -677,8 +675,5 @@ if __name__ == '__main__':
     ### Plot two variables from the dataframe - outputs both stacked by filename and full distributions
     # plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename', bins)
     # plotting2(grainstats_df, 'grain_max', 'grain_med', 'filename', bins)
-    # ### Takes the grainstats not grainstats_df input and plots all the statistics in grainanalysis() as separate graphs
-    # ### Useful as an overview bu otherwise not very functional
-    # plotall(grainstats, bins)
     ### Saving stats to text files with name of directory
     savestats(directory, '_grainstats', grainstats_df)
