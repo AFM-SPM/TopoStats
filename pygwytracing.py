@@ -9,7 +9,7 @@ import seaborn as sns
 sns.set()
 # ###The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
 # ### The notebook style is the default
-# sns.set_context("poster")
+sns.set_context("paper")
 # ### This can be customised further here
 # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 2.5})
 
@@ -335,16 +335,20 @@ def grainstatistics(datafield, grains, filename, result):
 
         return grainstats_df
 
-def plotall(dataframe, bins):
+def plotall(dataframe, bins, directory, outname, extension):
+        savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
         df = dataframe
         for i, col in enumerate(df.columns):
             plt.figure(i)
             sns.distplot(df[col], bins=bins)
             # plt.hist(df[col])
             # df[col].plot.hist()
+            plt.show()
+            plt.savefig(savename + str(i) + extension)
 
-def plotting(dataframe, arg1, grouparg, bins):
+def plotting(dataframe, arg1, grouparg, bins, directory, outname, extension):
         df = dataframe
+        savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
 
         ### Change from m to nm units for plotting
         df[arg1] = df[arg1] * 1e9
@@ -358,15 +362,22 @@ def plotting(dataframe, arg1, grouparg, bins):
         ### Plot using MatPlotLib separated by filetype on two separate graphs with stacking
         df1 = df.pivot(columns=grouparg, values=arg1)
         df1.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        plt.xlabel('nm')
+        plt.show()
+        plt.savefig(savename + arg1 + '_a' + extension)
 
         ### Plot each argument together using MatPlotLib
         df3 = pd.melt(df, id_vars=[arg1])
         df3.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3)
+        plt.xlabel('nm')
+        plt.show()
+        plt.savefig(savename + arg1 + '_b' + extension)
 
 
 
-def plotting2(dataframe, arg1, arg2, grouparg, bins):
+def plotting2(dataframe, arg1, arg2, grouparg, bins, directory, outname, extension):
         df = dataframe
+        savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
 
         ### Change from m to nm units for plotting
         df[arg1] = df[arg1]*1e9
@@ -383,13 +394,21 @@ def plotting2(dataframe, arg1, arg2, grouparg, bins):
         ### Plot each type using MatPlotLib separated by filetype on two separate graphs with stacking
         df1 = df.pivot(columns=grouparg, values=arg1)
         df1.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        plt.xlabel('nm')
+        plt.show()
+        plt.savefig(savename + arg1 + arg2 + '_a' + extension)
         df2 = df.pivot(columns=grouparg, values=arg2)
         df2.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        plt.xlabel('nm')
+        plt.show()
+        plt.savefig(savename + arg1 + arg2 + '_b' + extension)
 
         ### Plot each argument together using MatPlotLib
         df3 = pd.melt(df, id_vars=[arg1, arg2])
         df3.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3)
-
+        plt.xlabel('nm')
+        plt.show()
+        plt.savefig(savename + arg1 + arg2 + '_c' + extension)
 
         # ### Plotting min and max bounding sizes for each filename separately
         # df.groupby(grouparg)[arg1].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
@@ -667,13 +686,15 @@ if __name__ == '__main__':
             ### Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
             ### Determine the grain statistics
-                ### Append those stats to one file to get all stats in a directory
-                ### Save out as a pandas dataframe
+            ### Append those stats to one file to get all stats in a directory
+            ### Save out as a pandas dataframe
             grainstats_df = grainstatistics(datafield, grains, filename, result)
     ### Plot a single variable from the dataframe
-    # plotting(grainstats_df, 'grain_mean_rad', 'filename', bins)
+    plotting(grainstats_df, 'grain_mean_rad', 'filename', bins, directory, '_grainstats', '.png')
     ### Plot two variables from the dataframe - outputs both stacked by filename and full distributions
-    # plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename', bins)
-    # plotting2(grainstats_df, 'grain_max', 'grain_med', 'filename', bins)
+    plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename', bins, directory, '_grainstats', '.png')
+    plotting2(grainstats_df, 'grain_max', 'grain_med', 'filename', bins, directory, '_grainstats', '.png')
+    # ### Plot all output from bigger dataframe grainstats
+    # plotall(grainstats, bins, directory, '_grainstats', '.png')
     ### Saving stats to text files with name of directory
     savestats(directory, '_grainstats', grainstats_df)
