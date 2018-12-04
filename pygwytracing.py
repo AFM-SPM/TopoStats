@@ -5,7 +5,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+### Set seaborn to override matplotlib for plot output
 sns.set()
+###The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
+### The notebook style is the default
+# sns.set_context("poster")
+### This can be customised further here
+sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 2.5})
 
 # sys.path.append("/usr/local/Cellar/gwyddion/2.52/share/gwyddion/pygwy")
 
@@ -328,8 +334,34 @@ def grainstatistics(datafield, grains, filename, result):
 
         return grainstats_df
 
-def plotting(dataframe, arg1, arg2, grouparg):
+def plotting(dataframe, arg1, grouparg, bins):
         df = dataframe
+
+        ### Change from m to nm units for plotting
+        df[arg1] = df[arg1] * 1e9
+
+        ### Generating min and max axes based on datasets
+        min_ax = df[arg1].min()
+        min_ax = round(min_ax, 9)
+        max_ax = df[arg1].max()
+        max_ax = round(max_ax, 9)
+
+        ### Plot using MatPlotLib separated by filetype on two separate graphs with stacking
+        df1 = df.pivot(columns=grouparg, values=arg1)
+        df1.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
+
+        ### Plot each argument together using MatPlotLib
+        df3 = pd.melt(df, id_vars=[arg1])
+        df3.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3)
+
+
+
+def plotting2(dataframe, arg1, arg2, grouparg, bins):
+        df = dataframe
+
+        ### Change from m to nm units for plotting
+        df[arg1] = df[arg1]*1e9
+        df[arg2] = df[arg2]*1e9
 
         ### Generating min and max axes based on datasets
         min_ax = min(df[arg1].min(), df[arg2].min())
@@ -339,14 +371,13 @@ def plotting(dataframe, arg1, arg2, grouparg):
 
         ### Plot each type using MatPlotLib separated by filetype on two separate graphs with stacking
         df1 = df.pivot(columns=grouparg, values=arg1)
-        df1.plot.hist(legend=True, bins=20, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        df1.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
         df2 = df.pivot(columns=grouparg, values=arg2)
-        df2.plot.hist(legend=True, bins=20, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        df2.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
 
         ### Plot each argument together using MatPlotLib
         df3 = pd.melt(df, id_vars=[arg1, arg2])
-        df3.plot.hist(legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
-
+        df3.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3)
 
         # ### Plotting min and max bounding sizes for each filename separately
         # df.groupby(grouparg)[arg1].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
@@ -380,8 +411,6 @@ def plotting(dataframe, arg1, arg2, grouparg):
         # ### Plotting min and max bounding sizes for all filenames in the folder
         # for col in df.columns[2:4]:
         #     plt.hist(df[col], bins = 20, range=(1e-8, 7e-8), alpha=.3)
-
-        return df, df2
 
 
 def find_median_pixel_area(datafield, grains):
@@ -577,6 +606,8 @@ if __name__ == '__main__':
     minarea = 200e-9
     # Set size of the cropped window/2 in pixels
     cropwidth = 40e-9
+    # Set number of bins
+    bins = 20
 
     # Declare variables used later
     # # Placed outside for loop in order that they don't overwrite data to be appended
@@ -602,7 +633,7 @@ if __name__ == '__main__':
             ### Perform basic image processing, to align rows, flatten and set the mean value to zero
             data = editfile(data, minheightscale, maxheightscale)
             #### Find all grains in the mask which are both above a height threshold
-            ### and bigger than the min size set in the main code
+            ### and bigger than the min size set in the main codegrain_mean_rad
             data, mask, datafield, grains = grainfinding(data, minarea, k)
             ### Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
             median_pixel_area = find_median_pixel_area(datafield, grains)
@@ -627,6 +658,8 @@ if __name__ == '__main__':
                 ### Append those stats to one file to get all stats in a directory
                 ### Save out as a pandas dataframe
             grainstats_df = grainstatistics(datafield, grains, filename, result)
-    df, df2 = plotting(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename')
+    plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename', bins)
+    plotting2(grainstats_df, 'grain_max', 'grain_med', 'filename', bins)
+    # plotting(grainstats_df, 'grain_mean_rad', 'filename', bins)
     ### Saving stats to text files with name of directory
     savestats(directory, '_grainstats', grainstats_df)
