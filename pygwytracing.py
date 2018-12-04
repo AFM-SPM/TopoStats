@@ -337,17 +337,42 @@ def plotting(dataframe, arg1, arg2, grouparg):
         max_ax = max(df[arg1].max(), df[arg2].max())
         max_ax = round(max_ax, 9)
 
-        # ### Generating labels
-        # title_ = str(arg1) + ' ' + str(arg2)
+        ### Plot each type using MatPlotLib separated by filetype on two separate graphs with stacking
+        df1 = df.pivot(columns=grouparg, values=arg1)
+        df1.plot.hist(legend=True, bins=20, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        df2 = df.pivot(columns=grouparg, values=arg2)
+        df2.plot.hist(legend=True, bins=20, range=(min_ax, max_ax), alpha=.3, stacked=True)
+
+        ### Plot each argument together using MatPlotLib
+        df3 = pd.melt(df, id_vars=[arg1, arg2])
+        df3.plot.hist(legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
 
 
-        ### Plotting min and max bounding sizes for each filename separately
-        # df.groupby(grouparg)[arg1].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3, label=arg1)
-        # ax = df.groupby(grouparg)[arg2].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3, label=arg2)
+        # ### Plotting min and max bounding sizes for each filename separately
+        # df.groupby(grouparg)[arg1].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
+        # df.groupby(grouparg)[arg2].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
+
+        ### Plot all together for each filename
+        # df.groupby(grouparg).plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
+
+        ### Plot each type using MatPlotLib
+        # df[arg1].plot.hist(legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
+        # df[arg2].plot.hist(legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
 
         # ### Plotting min and max bounding sizes in green and blue for each filename separately
-        df.groupby("filename")[(arg1)].plot(kind="hist", legend=True, color='green', bins = 20, range=(1e-8, 7e-8), alpha=.3)
-        ax = df.groupby("filename")[(arg2)].plot(kind="hist", legend=True, color='blue', bins = 20, range=(1e-8, 7e-8), alpha=.3)
+        # df.groupby("filename")[arg1].plot(kind="hist", legend=True, color='green', bins = 20, range=(1e-8, 7e-8), alpha=.3)
+        # ax = df.groupby("filename")[arg2].plot(kind="hist", legend=True, color='blue', bins = 20, range=(1e-8, 7e-8), alpha=.3)
+
+        # # Take each required column of the df
+        # c = df[arg1]
+        # d = df[arg2]
+        # # Stack the data
+        # plt.figure()
+        # plt.hist([c, d], range=(min_ax, max_ax), bins=30, stacked=True)
+        # # Set axes etc
+        # plt.ylabel("frequency")
+        # plt.xlabel("m")
+        # plt.show()
 
         # ### Plotting min and max bounding size for each filename as a separate file
         # fig = df.groupby("filename")[('grain_min_bound'), ('grain_max_bound')].plot(kind="hist", legend=True, bins=10, alpha=.3)
@@ -356,7 +381,7 @@ def plotting(dataframe, arg1, arg2, grouparg):
         # for col in df.columns[2:4]:
         #     plt.hist(df[col], bins = 20, range=(1e-8, 7e-8), alpha=.3)
 
-        return ax
+        return df, df2
 
 
 def find_median_pixel_area(datafield, grains):
@@ -602,6 +627,6 @@ if __name__ == '__main__':
                 ### Append those stats to one file to get all stats in a directory
                 ### Save out as a pandas dataframe
             grainstats_df = grainstatistics(datafield, grains, filename, result)
-    ax = plotting(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename')
+    df, df2 = plotting(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename')
     ### Saving stats to text files with name of directory
     savestats(directory, '_grainstats', grainstats_df)
