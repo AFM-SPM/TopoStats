@@ -7,11 +7,11 @@ import pandas as pd
 import seaborn as sns
 ### Set seaborn to override matplotlib for plot output
 sns.set()
-###The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
-### The notebook style is the default
+# ###The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
+# ### The notebook style is the default
 # sns.set_context("poster")
-### This can be customised further here
-sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 2.5})
+# ### This can be customised further here
+# sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 2.5})
 
 # sys.path.append("/usr/local/Cellar/gwyddion/2.52/share/gwyddion/pygwy")
 
@@ -256,47 +256,49 @@ def grainanalysis(directory, filename, datafield, grains):
         grain_data_to_save = {}
 
 
-        # for key in values_to_compute.keys():
-        #     # here we stave the gran stats to both a dictionary and an array in that order
-        #     # these are basically duplicate steps - but are both included as we arent sure which to use later
-        #     # Save grain statistics to a dictionary: grain_data_to_save
-        #     grain_data_to_save[key] = datafield.grains_get_values(grains, values_to_compute[key])
-        #     # Delete 0th value in all arrays - this corresponds to the background
-        #     del grain_data_to_save[key][0]
+        for key in values_to_compute.keys():
+            # here we stave the gran stats to both a dictionary and an array in that order
+            # these are basically duplicate steps - but are both included as we arent sure which to use later
+            # Save grain statistics to a dictionary: grain_data_to_save
+            grain_data_to_save[key] = datafield.grains_get_values(grains, values_to_compute[key])
+            # Delete 0th value in all arrays - this corresponds to the background
+            del grain_data_to_save[key][0]
 
-        # Iterate over each grain statistic (key) to obtain all values in grain_data_to_save
-        try:
-            # Write the statistics to a file called: Grain_Statistics_filename.txt
-            write_file = open(grain_directory + 'Grain_Statistics_' + filename + '.txt', 'w')
-            # Write a header for the file
-            print >>write_file, '#This file contains the grain statistics from file ' + filename + '\n\n'
-            # Iterate over each grain statistic (key) and save out as 'grainstats'
-            for key in values_to_compute.keys():
-                # here we stave the gran stats to both a dictionary and an array in that order
-                # these are basically duplicate steps - but are both included as we arent sure which to use later
-                # Save grain statistics to a dictionary: grain_data_to_save
-                grain_data_to_save[key] = datafield.grains_get_values(grains, values_to_compute[key])
-                # Delete 0th value in all arrays - this corresponds to the background
-                del grain_data_to_save[key][0]
-                # Save grain statistics to an array: grainstats
-                grainstats = datafield.grains_get_values(grains, values_to_compute[key])
-                # Delete 0th value in all arrays - this corresponds to the background
-                del grainstats[0]
+        # ### Iterate over each grain statistic (key) to obtain all values in grain_data_to_save
+        # try:
+        #     # Write the statistics to a file called: Grain_Statistics_filename.txt
+        #     write_file = open(grain_directory + 'Grain_Statistics_' + filename + '.txt', 'w')
+        #     # Write a header for the file
+        #     print >>write_file, '#This file contains the grain statistics from file ' + filename + '\n\n'
+        #     # Iterate over each grain statistic (key) and save out as 'grainstats'
+        #     for key in values_to_compute.keys():
+        #         # here we stave the gran stats to both a dictionary and an array in that order
+        #         # these are basically duplicate steps - but are both included as we arent sure which to use later
+        #         # Save grain statistics to a dictionary: grain_data_to_save
+        #         grain_data_to_save[key] = datafield.grains_get_values(grains, values_to_compute[key])
+        #         # Delete 0th value in all arrays - this corresponds to the background
+        #         del grain_data_to_save[key][0]
+        #         # Save grain statistics to an array: grainstats
+        #         grainstats = datafield.grains_get_values(grains, values_to_compute[key])
+        #         # Delete 0th value in all arrays - this corresponds to the background
+        #         del grainstats[0]
+        #
+        #         # Saving out the statistics
+        #         # Use numpy (np) to save out grain values as text files
+        #         # np.savetxt('{}.txt'.format(str(key)),grainstats)
+        #         # Saving out the Grain Statistics as text files
+        #         # Write each grain statistic type to the file Grain_Statistics_filename.txt (must be within for loop)
+        #         print >>write_file, str(key) + '\n' + str(grainstats) + '\n'
+        #         # Save out stats to a json format file
+        #         with open(grain_directory + filename + '_grains.json', 'w') as save_file:
+        #             json.dump(grain_data_to_save, save_file)
+        #
+        # except TypeError:
+        #     write_file = open(grain_directory + filename + 'Grain_Statistics.txt', 'w')
+        #     print >>write_file, '#The file ' + filename + ' contains no detectable grain statistics'
+        # print 'Saving grain statistics for: ' + str(filename)
 
-                # Saving out the statistics
-                # Use numpy (np) to save out grain values as text files
-                # np.savetxt('{}.txt'.format(str(key)),grainstats)
-                # Saving out the Grain Statistics as text files
-                # Write each grain statistic type to the file Grain_Statistics_filename.txt (must be within for loop)
-                print >>write_file, str(key) + '\n' + str(grainstats) + '\n'
-                # Save out stats to a json format file
-                with open(grain_directory + filename + '_grains.json', 'w') as save_file:
-                    json.dump(grain_data_to_save, save_file)
-
-        except TypeError:
-            write_file = open(grain_directory + filename + 'Grain_Statistics.txt', 'w')
-            print >>write_file, '#The file ' + filename + ' contains no detectable grain statistics'
-        print 'Saving grain statistics for: ' + str(filename)
+        grainstats = pd.DataFrame.from_dict(grain_data_to_save, orient='index').transpose()
 
         return values_to_compute, grainstats, grain_data_to_save
 
@@ -312,7 +314,6 @@ def grainstatistics(datafield, grains, filename, result):
         grain_proj_area = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_PROJECTED_AREA)
         grain_max = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MAXIMUM)
         grain_med = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MEDIAN)
-
 
         # Delete 0th value in all arrays - this corresponds to the background
         del grain_max_bound[0]
@@ -333,6 +334,14 @@ def grainstatistics(datafield, grains, filename, result):
                                             'grain_proj_area', 'grain_max', 'grain_med'])
 
         return grainstats_df
+
+def plotall(dataframe, bins):
+        df = dataframe
+        for i, col in enumerate(df.columns):
+            plt.figure(i)
+            # sns.distplot(df[col])
+            # plt.hist(df[col])
+            df[col].plot.hist()
 
 def plotting(dataframe, arg1, grouparg, bins):
         df = dataframe
@@ -369,6 +378,9 @@ def plotting2(dataframe, arg1, arg2, grouparg, bins):
         max_ax = max(df[arg1].max(), df[arg2].max())
         max_ax = round(max_ax, 9)
 
+        # plot data
+
+
         ### Plot each type using MatPlotLib separated by filetype on two separate graphs with stacking
         df1 = df.pivot(columns=grouparg, values=arg1)
         df1.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
@@ -378,6 +390,8 @@ def plotting2(dataframe, arg1, arg2, grouparg, bins):
         ### Plot each argument together using MatPlotLib
         df3 = pd.melt(df, id_vars=[arg1, arg2])
         df3.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3)
+
+        # df.set_index('nm').plot(subplots=True)
 
         # ### Plotting min and max bounding sizes for each filename separately
         # df.groupby(grouparg)[arg1].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
@@ -643,7 +657,7 @@ if __name__ == '__main__':
             mask, grains = removesmallobjects(datafield, mask, median_pixel_area)
             ### Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
             ### Not currently used - replaced by grainstatistics function
-            # values_to_compute, grainstats, grain_data_to_save = grainanalysis(directory, filename, datafield, grains)
+            values_to_compute, grainstats, grain_data_to_save = grainanalysis(directory, filename, datafield, grains)
             ### Create cropped datafields for every grain of size set in the main directory
             bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             ### Save out cropped files as images with no scales to a subfolder
@@ -658,8 +672,13 @@ if __name__ == '__main__':
                 ### Append those stats to one file to get all stats in a directory
                 ### Save out as a pandas dataframe
             grainstats_df = grainstatistics(datafield, grains, filename, result)
-    plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename', bins)
-    plotting2(grainstats_df, 'grain_max', 'grain_med', 'filename', bins)
+    ### Plot a single variable from the dataframe
     # plotting(grainstats_df, 'grain_mean_rad', 'filename', bins)
+    ### Plot two variables from the dataframe - outputs both stacked by filename and full distributions
+    # plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename', bins)
+    # plotting2(grainstats_df, 'grain_max', 'grain_med', 'filename', bins)
+    # ### Takes the grainstats not grainstats_df input and plots all the statistics in grainanalysis() as separate graphs
+    # ### Useful as an overview bu otherwise not very functional
+    # plotall(grainstats, bins)
     ### Saving stats to text files with name of directory
     savestats(directory, '_grainstats', grainstats_df)
