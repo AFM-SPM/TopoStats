@@ -9,7 +9,7 @@ import seaborn as sns
 sns.set()
 # ###The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
 # ### The notebook style is the default
-sns.set_context("paper")
+sns.set_context("talk")
 # ### This can be customised further here
 # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 2.5})
 
@@ -374,9 +374,27 @@ def plotting(dataframe, arg1, grouparg, bins, directory, outname, extension):
         plt.savefig(savename + arg1 + '_b' + extension)
 
 
+def seaplotting(df, arg1, arg2, grouparg, bins, directory, outname, extension):
+        ### Create a saving name format/directory
+        savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
 
-def plotting2(dataframe, arg1, arg2, grouparg, bins, directory, outname, extension):
-        df = dataframe
+        ### Change from m to nm units for plotting
+        df[arg1] = df[arg1] * 1e9
+        df[arg2] = df[arg2] * 1e9
+
+        ### Generating min and max axes based on datasets
+        min_ax = min(df[arg1].min(), df[arg2].min())
+        min_ax = round(min_ax, 9)
+        max_ax = max(df[arg1].max(), df[arg2].max())
+        max_ax = round(max_ax, 9)
+
+        ### Plot data
+        with sns.axes_style('white'):
+            sns.jointplot("grain_min_bound", "grain_max_bound", data=grainstats_df, kind='hex', aspect=1.5, )
+            sns.jointplot("grain_min_bound", "grain_max_bound", data=grainstats_df, kind='reg')
+
+def plotting2(df, arg1, arg2, grouparg, bins, directory, outname, extension):
+        ### Create a saving name format/directory
         savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
 
         ### Change from m to nm units for plotting
@@ -392,23 +410,61 @@ def plotting2(dataframe, arg1, arg2, grouparg, bins, directory, outname, extensi
         ### Plot data
 
         ### Plot each type using MatPlotLib separated by filetype on two separate graphs with stacking
+        # Create a figure of given size
+        fig = plt.figure(figsize=(28, 8))
+        # First dataframe
+        # Add a subplot to lot both sets on the same figure
+        ax = fig.add_subplot(121)
+        # Set title
+        ttl = 'Histogram of %s and %s' % (arg1, arg2)
+        # Pivot dataframe to get required variables in correct format for plotting
         df1 = df.pivot(columns=grouparg, values=arg1)
-        df1.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
-        plt.xlabel('nm')
+        # Plot histogram
+        df1.plot.hist(legend=True, ax=ax, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        # Set x axis label
+        plt.xlabel('%s (nm)' % (arg1))
+        # Set tight borders
+        plt.tight_layout()
+        # Set legend options
+        plt.legend(ncol=2, loc='upper right')
         plt.show()
-        plt.savefig(savename + arg1 + arg2 + '_a' + extension)
+        # # Save plot
+        # plt.savefig(savename + arg1 + arg2 + '_a' + extension)
+        # Second dataframe
+        # Add a subplot
+        ax = fig.add_subplot(122)
+        # Pivot second dataframe to get required variables in correct format for plotting
         df2 = df.pivot(columns=grouparg, values=arg2)
-        df2.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
-        plt.xlabel('nm')
+        # Plot histogram
+        df2.plot.hist(legend=True, ax=ax, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        # Set x axis label
+        plt.xlabel('%s (nm)' % (arg2))
+        # Set tight borders
+        plt.tight_layout()
+        # Set legend options
+        plt.legend(ncol=2, loc='upper right')
         plt.show()
-        plt.savefig(savename + arg1 + arg2 + '_b' + extension)
+        # Save plot
+        plt.savefig(savename + arg1 + arg2 + 'a' + extension)
 
+        # Create a figure of given size
+        fig = plt.figure(figsize=(18, 12))
+        # Add a subplot
+        ax = fig.add_subplot(111)
+        # Set title
+        ttl = 'Histogram of %s and %s' % (arg1, arg2)
         ### Plot each argument together using MatPlotLib
         df3 = pd.melt(df, id_vars=[arg1, arg2])
-        df3.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3)
+        df3.plot.hist(legend=True, ax=ax, range=(min_ax, max_ax), alpha=.3)
+        # plt.xlabel('%s %s (nm)' % (arg1, arg2))
         plt.xlabel('nm')
+        # # Set legend options
+        # plt.legend(ncol=2, loc='upper right')
+        # Set tight borders
+        plt.tight_layout()
         plt.show()
-        plt.savefig(savename + arg1 + arg2 + '_c' + extension)
+        # Save plot
+        plt.savefig(savename + arg1 + arg2 + '_b' + extension)
 
         # ### Plotting min and max bounding sizes for each filename separately
         # df.groupby(grouparg)[arg1].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
@@ -624,7 +680,7 @@ if __name__ == '__main__':
 
     ### Set various options here:
     # Set file type to run here e.g.'/*.spm*'
-    fileend = '.spm' #default
+    fileend = 'test.spm' #default
     filetype = '/*.spm' #default
     # filetype = '/*.*[0-9]'
     # filetype = '/*.gwy'
@@ -678,11 +734,11 @@ if __name__ == '__main__':
             ### Create cropped datafields for every grain of size set in the main directory
             bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             ### Save out cropped files as images with no scales to a subfolder
-            # savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
             ### Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)
             ### Save data as 2 images, with and without mask
-            # savefiles(data, filename, extension)
+            savefiles(data, filename, extension)
             ### Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
             ### Determine the grain statistics
@@ -690,11 +746,11 @@ if __name__ == '__main__':
             ### Save out as a pandas dataframe
             grainstats_df = grainstatistics(datafield, grains, filename, result)
     ### Plot a single variable from the dataframe
-    plotting(grainstats_df, 'grain_mean_rad', 'filename', bins, directory, '_grainstats', '.png')
+    # plotting(grainstats_df, 'grain_mean_rad', 'filename', bins, directory, '_grainstats', '.png')
     ### Plot two variables from the dataframe - outputs both stacked by filename and full distributions
-    plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename', bins, directory, '_grainstats', '.png')
+    # plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename', bins, directory, '_grainstats', '.png')
     plotting2(grainstats_df, 'grain_max', 'grain_med', 'filename', bins, directory, '_grainstats', '.png')
-    # ### Plot all output from bigger dataframe grainstats
+    # ### Plot all output from bigger dataframe grainstats for initial visualisation as KDE plots
     # plotall(grainstats, bins, directory, '_grainstats', '.png')
     ### Saving stats to text files with name of directory
     savestats(directory, '_grainstats', grainstats_df)
