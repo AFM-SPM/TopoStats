@@ -33,7 +33,7 @@ def traversedirectories(fileend):
     # This function finds all the files with the file ending set in the main script as fileend (usually.spm)
     # in the path directory, and all subfolders
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Kavit/kavit poster 1 copy'
     # initialise the list
     spmfiles = []
     # use os.walk to search folders and subfolders and append each file with the correct filetype to the list spmfiles
@@ -115,53 +115,6 @@ def imagedetails(data):
         return xres, yres, xreal, yreal, dx, dy
 
 
-def editfile_AMPS(data, minheightscale, maxheightscale):
-    # select each channel of the file in turn
-    # this is run within the for k in chosen_ids loop so k refers to the index of each chosen channel to analyse
-    gwy.gwy_app_data_browser_select_data_field(data, k)
-
-    # flatten the data
-    gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
-    # level the data
-    gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
-    # align the rows
-    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)  # NONINTERACTIVE is only for file modules
-    # Fix zero
-    gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
-    # remove scars
-    gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
-    # Apply a 1.5 pixel gaussian filter
-    data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    data_field.filter_gaussian(1.5)
-    # # Shift contrast - equivalent to 'fix zero'
-    # datafield.add(-data_field.get_min())
-
-    # Set the image display to fized range and the colour scale for the images
-    maximum_disp_value = data.set_int32_by_name("/" + str(k) + "/base/range-type", int(1))
-    minimum_disp_value = data.set_double_by_name("/" + str(k) + "/base/min", float(minheightscale))
-    maximum_disp_value = data.set_double_by_name("/" + str(k) + "/base/max", float(maxheightscale))
-
-    # Select channel 'k' of the file
-    gwy.gwy_app_data_browser_select_data_field(data, k)
-    datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    mask = gwy.DataField.new_alike(datafield, False)
-    # Mask data that are above thresh*sigma from average height.
-    # Sigma denotes root-mean square deviation of heights.
-    # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
-    datafield.mask_outliers(mask, 1)
-
-    gwy.gwy_app_data_browser_select_data_field(data, k)
-    # level the data
-    gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
-    # flatten the data
-    gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
-    # align the rows
-    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)  # NONINTERACTIVE is only for file modules
-    # Fix zero
-    gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
-
-    return data
-
 def editfile(data, minheightscale, maxheightscale):
         # select each channel of the file in turn
         # this is run within the for k in chosen_ids loop so k refers to the index of each chosen channel to analyse
@@ -178,7 +131,7 @@ def editfile(data, minheightscale, maxheightscale):
         gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
         # Apply a 1.5 pixel gaussian filter
         data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-        data_field.filter_gaussian(1.5)
+        data_field.filter_gaussian(1)
         # # Shift contrast - equivalent to 'fix zero'
         # datafield.add(-data_field.get_min())
 
@@ -417,14 +370,14 @@ def plotting(dataframe, arg1, grouparg, bins, directory, outname, extension):
         # Pivot dataframe to get required variables in correct format for plotting
         df1 = df.pivot(columns=grouparg, values=arg1)
         # Plot histogram
-        df1.plot.hist(ax=ax, legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        df1.plot.hist(ax=ax, legend=False, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
         # Set x axis label
         plt.xlabel('%s (nm)' % (arg1))
         # Set tight borders
         plt.tight_layout()
         # Set legend options
-        plt.legend(ncol=2, loc='upper right')
-        plt.show()
+        # plt.legend(ncol=2, loc='upper right')
+        # plt.show()
         # Save plot
         plt.savefig(savename + arg1 + 'a' + extension)
 
@@ -443,7 +396,7 @@ def plotting(dataframe, arg1, grouparg, bins, directory, outname, extension):
         # plt.legend(ncol=2, loc='upper right')
         # Set tight borders
         plt.tight_layout()
-        plt.show()
+        # plt.show()
         # Save plot
         plt.savefig(savename + arg1 + '_b' + extension)
 
@@ -494,15 +447,15 @@ def plotting2(df, arg1, arg2, grouparg, bins, directory, outname, extension):
         # Pivot dataframe to get required variables in correct format for plotting
         df1 = df.pivot(columns=grouparg, values=arg1)
         # Plot histogram
-        df1.plot.hist(legend=True, ax=ax, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        df1.plot.hist(legend=False, ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
         # Set x axis label
         plt.xlabel('%s (nm)' % (arg1))
         # Set tight borders
         plt.tight_layout()
         # Set legend options
-        plt.legend(ncol=2, loc='upper right')
-        plt.show()
-        # # Save plot
+        # plt.legend(ncol=2, loc='upper right')
+        # plt.show()
+        # # Save plot (don't do here as is a subplot)
         # plt.savefig(savename + arg1 + arg2 + '_a' + extension)
         # Second dataframe
         # Add a subplot
@@ -510,14 +463,14 @@ def plotting2(df, arg1, arg2, grouparg, bins, directory, outname, extension):
         # Pivot second dataframe to get required variables in correct format for plotting
         df2 = df.pivot(columns=grouparg, values=arg2)
         # Plot histogram
-        df2.plot.hist(legend=True, ax=ax, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        df2.plot.hist(legend=False, ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
         # Set x axis label
         plt.xlabel('%s (nm)' % (arg2))
         # Set tight borders
         plt.tight_layout()
         # Set legend options
-        plt.legend(ncol=2, loc='upper right')
-        plt.show()
+        # plt.legend(ncol=2, loc='upper right')
+        # plt.show()
         # Save plot
         plt.savefig(savename + arg1 + arg2 + 'a' + extension)
 
@@ -529,14 +482,14 @@ def plotting2(df, arg1, arg2, grouparg, bins, directory, outname, extension):
         ttl = 'Histogram of %s and %s' % (arg1, arg2)
         ### Plot each argument together using MatPlotLib
         df3 = pd.melt(df, id_vars=[arg1, arg2])
-        df3.plot.hist(legend=True, ax=ax, range=(min_ax, max_ax), alpha=.3)
+        df3.plot.hist(legend=True, ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3)
         # plt.xlabel('%s %s (nm)' % (arg1, arg2))
         plt.xlabel('nm')
         # # Set legend options
         # plt.legend(ncol=2, loc='upper right')
         # Set tight borders
         plt.tight_layout()
-        plt.show()
+        # plt.show()
         # Save plot
         plt.savefig(savename + arg1 + arg2 + '_b' + extension)
 
@@ -768,7 +721,7 @@ if __name__ == '__main__':
     # Set size of the cropped window/2 in pixels
     cropwidth = 40e-9
     # Set number of bins
-    bins = 20
+    bins = 25
 
     # Declare variables used later
     # # Placed outside for loop in order that they don't overwrite data to be appended
@@ -820,10 +773,10 @@ if __name__ == '__main__':
             ### Save out as a pandas dataframe
             grainstats_df = grainstatistics(datafield, grains, filename, result)
     ### Plot a single variable from the dataframe
-    # plotting(grainstats_df, 'grain_mean_rad', 'filename', bins, directory, '_grainstats', '.png')
+    plotting(grainstats_df, 'grain_mean_rad', 'filename', bins, directory, '_grainstats', '.png')
     ### Plot two variables from the dataframe - outputs both stacked by filename and full distributions
     plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename', bins, directory, '_grainstats', '.png')
-    # plotting2(grainstats_df, 'grain_max', 'grain_med', 'filename', bins, directory, '_grainstats', '.png')
+    plotting2(grainstats_df, 'grain_max', 'grain_med', 'filename', bins, directory, '_grainstats', '.png')
     # # ### Plot all output from bigger dataframe grainstats for initial visualisation as KDE plots
     # plotall(grainstats, bins, directory, '_grainstats', '.png')
     ### Saving stats to text files with name of directory
