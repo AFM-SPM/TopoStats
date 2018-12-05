@@ -115,10 +115,59 @@ def imagedetails(data):
         return xres, yres, xreal, yreal, dx, dy
 
 
+def editfile_AMPS(data, minheightscale, maxheightscale):
+    # select each channel of the file in turn
+    # this is run within the for k in chosen_ids loop so k refers to the index of each chosen channel to analyse
+    gwy.gwy_app_data_browser_select_data_field(data, k)
+
+    # flatten the data
+    gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
+    # level the data
+    gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
+    # align the rows
+    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)  # NONINTERACTIVE is only for file modules
+    # Fix zero
+    gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
+    # remove scars
+    gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
+    # Apply a 1.5 pixel gaussian filter
+    data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
+    data_field.filter_gaussian(1.5)
+    # # Shift contrast - equivalent to 'fix zero'
+    # datafield.add(-data_field.get_min())
+
+    # Set the image display to fized range and the colour scale for the images
+    maximum_disp_value = data.set_int32_by_name("/" + str(k) + "/base/range-type", int(1))
+    minimum_disp_value = data.set_double_by_name("/" + str(k) + "/base/min", float(minheightscale))
+    maximum_disp_value = data.set_double_by_name("/" + str(k) + "/base/max", float(maxheightscale))
+
+    # Select channel 'k' of the file
+    gwy.gwy_app_data_browser_select_data_field(data, k)
+    datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
+    mask = gwy.DataField.new_alike(datafield, False)
+    # Mask data that are above thresh*sigma from average height.
+    # Sigma denotes root-mean square deviation of heights.
+    # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
+    datafield.mask_outliers(mask, 1)
+
+    gwy.gwy_app_data_browser_select_data_field(data, k)
+    # level the data
+    gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
+    # flatten the data
+    gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
+    # align the rows
+    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)  # NONINTERACTIVE is only for file modules
+    # Fix zero
+    gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
+
+    return data
+
 def editfile(data, minheightscale, maxheightscale):
         # select each channel of the file in turn
         # this is run within the for k in chosen_ids loop so k refers to the index of each chosen channel to analyse
-        gwy.gwy_app_data_browser_select_data_field(data, k) 
+        gwy.gwy_app_data_browser_select_data_field(data, k)
+        # flatten the data
+        gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
         # level the data
         gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
         # align the rows
@@ -129,7 +178,7 @@ def editfile(data, minheightscale, maxheightscale):
         gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
         # Apply a 1.5 pixel gaussian filter
         data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-        data_field.filter_gaussian(1)
+        data_field.filter_gaussian(1.5)
         # # Shift contrast - equivalent to 'fix zero'
         # datafield.add(-data_field.get_min())
 
@@ -360,17 +409,42 @@ def plotting(dataframe, arg1, grouparg, bins, directory, outname, extension):
         max_ax = round(max_ax, 9)
 
         ### Plot using MatPlotLib separated by filetype on two separate graphs with stacking
+        # Create a figure of given size
+        fig = plt.figure(figsize=(18, 12))
+        ax = fig.add_subplot(111)
+        # Set title
+        ttl = 'Histogram of %s' % (arg1)
+        # Pivot dataframe to get required variables in correct format for plotting
         df1 = df.pivot(columns=grouparg, values=arg1)
-        df1.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
-        plt.xlabel('nm')
+        # Plot histogram
+        df1.plot.hist(ax=ax, legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        # Set x axis label
+        plt.xlabel('%s (nm)' % (arg1))
+        # Set tight borders
+        plt.tight_layout()
+        # Set legend options
+        plt.legend(ncol=2, loc='upper right')
         plt.show()
-        plt.savefig(savename + arg1 + '_a' + extension)
+        # Save plot
+        plt.savefig(savename + arg1 + 'a' + extension)
 
         ### Plot each argument together using MatPlotLib
+        # Create a figure of given size
+        fig = plt.figure(figsize=(18, 12))
+        ax = fig.add_subplot(111)
+        # Set title
+        ttl = 'Histogram of %s' % (arg1)
+        # Melt dataframe to leave only columns we are interested in
         df3 = pd.melt(df, id_vars=[arg1])
-        df3.plot.hist(legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3)
-        plt.xlabel('nm')
+        # Plot histogram
+        df3.plot.hist(ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3)
+        plt.xlabel('%s (nm)' % (arg1))
+        # # Set legend options
+        # plt.legend(ncol=2, loc='upper right')
+        # Set tight borders
+        plt.tight_layout()
         plt.show()
+        # Save plot
         plt.savefig(savename + arg1 + '_b' + extension)
 
 
@@ -680,7 +754,7 @@ if __name__ == '__main__':
 
     ### Set various options here:
     # Set file type to run here e.g.'/*.spm*'
-    fileend = 'test.spm' #default
+    fileend = '.spm' #default
     filetype = '/*.spm' #default
     # filetype = '/*.*[0-9]'
     # filetype = '/*.gwy'
@@ -748,9 +822,9 @@ if __name__ == '__main__':
     ### Plot a single variable from the dataframe
     # plotting(grainstats_df, 'grain_mean_rad', 'filename', bins, directory, '_grainstats', '.png')
     ### Plot two variables from the dataframe - outputs both stacked by filename and full distributions
-    # plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename', bins, directory, '_grainstats', '.png')
-    plotting2(grainstats_df, 'grain_max', 'grain_med', 'filename', bins, directory, '_grainstats', '.png')
-    # ### Plot all output from bigger dataframe grainstats for initial visualisation as KDE plots
+    plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename', bins, directory, '_grainstats', '.png')
+    # plotting2(grainstats_df, 'grain_max', 'grain_med', 'filename', bins, directory, '_grainstats', '.png')
+    # # ### Plot all output from bigger dataframe grainstats for initial visualisation as KDE plots
     # plotall(grainstats, bins, directory, '_grainstats', '.png')
     ### Saving stats to text files with name of directory
     savestats(directory, '_grainstats', grainstats_df)
