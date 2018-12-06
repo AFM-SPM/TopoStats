@@ -33,7 +33,7 @@ def traversedirectories(fileend):
     # This function finds all the files with the file ending set in the main script as fileend (usually.spm)
     # in the path directory, and all subfolders
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Kavit/kavit poster 1 copy'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing'
     # initialise the list
     spmfiles = []
     # use os.walk to search folders and subfolders and append each file with the correct filetype to the list spmfiles
@@ -417,7 +417,7 @@ def seaplotting(df, arg1, arg2, grouparg, bins, directory, outname, extension):
 
         ### Plot data
         with sns.axes_style('white'):
-            sns.jointplot("grain_min_bound", "grain_max_bound", data=grainstats_df, kind='hex', aspect=1.5, )
+            sns.jointplot("grain_min_bound", "grain_max_bound", data=grainstats_df, kind='hex')
             sns.jointplot("grain_min_bound", "grain_max_bound", data=grainstats_df, kind='reg')
 
 def plotting2(df, arg1, arg2, grouparg, bins, directory, outname, extension):
