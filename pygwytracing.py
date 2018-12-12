@@ -1,15 +1,16 @@
 #!/usr/bin/env python2
 
-import glob, sys, time, os, json, gtk, gwy, gwyutils, scipy
+import glob, sys, time, os, json, gtk, gwy, gwyutils, scipy, re
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+
 ### Set seaborn to override matplotlib for plot output
 sns.set()
 # ###The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
 # ### The notebook style is the default
-sns.set_context("talk")
+sns.set_context("notebook")
 # ### This can be customised further here
 # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 2.5})
 
@@ -33,7 +34,7 @@ def traversedirectories(fileend):
     # This function finds all the files with the file ending set in the main script as fileend (usually.spm)
     # in the path directory, and all subfolders
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Test'
     # initialise the list
     spmfiles = []
     # use os.walk to search folders and subfolders and append each file with the correct filetype to the list spmfiles
@@ -171,7 +172,7 @@ def grainfinding(data, minarea, k):
         return data, mask, datafield, grains
 
 
-def removelargeobjects(datafield, mask, median_pixel_area):
+def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation):
         mask2 = gwy.DataField.new_alike(datafield, False)
         # Mask data that are above thresh*sigma from average height.
         # Sigma denotes root-mean square deviation of heights. 
@@ -181,7 +182,7 @@ def removelargeobjects(datafield, mask, median_pixel_area):
         dx = datafield.get_dx()
         # Calculate minimum feature size in pixels (integer)
         # here this is calculated as 2* the median grain size, as calculated in find_median_pixel_area()
-        maxsize = int(1.5*median_pixel_area)
+        maxsize = int(maxdeviation * median_pixel_area)
         # Remove grains smaller than the maximum feature size in integer pixels
         # This should remove everything that you do want to keep
         # i.e. everything smaller than aggregates/junk
@@ -197,7 +198,7 @@ def removelargeobjects(datafield, mask, median_pixel_area):
         return mask, grains
 
 
-def removesmallobjects(datafield, mask, median_pixel_area):
+def removesmallobjects(datafield, mask, median_pixel_area, mindeviation):
     mask2 = gwy.DataField.new_alike(datafield, False)
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
@@ -207,7 +208,7 @@ def removesmallobjects(datafield, mask, median_pixel_area):
     dx = datafield.get_dx()
     # Calculate minimum feature size in pixels (integer)
     # here this is calculated as 2* the median grain size, as calculated in find_median_pixel_area()
-    minsize = int(0.5 * median_pixel_area)
+    minsize = int(mindeviation * median_pixel_area)
     # Remove grains smaller than the maximum feature size in integer pixels
     # This should remove everything that you do want to keep
     # i.e. everything smaller than aggregates/junk
@@ -223,17 +224,6 @@ def removesmallobjects(datafield, mask, median_pixel_area):
 
 
 def grainanalysis(directory, filename, datafield, grains):
-        ### Setting up filenames and directories for writing data
-        # Get the base of the filename i.e. the last part without directory or extension
-        filename = os.path.splitext(os.path.basename(filename))[0]
-        # If the folder Grain Statistics doest exist make it here
-        if not os.path.exists(directory + '/GrainStatistics/'):
-            os.makedirs(directory + '/GrainStatistics/')
-            grain_directory = directory + '/GrainStatistics/'
-        # Otherwise set the existing GrainStatistics dorectory as the directory to write to
-        else:
-            grain_directory = directory + '/GrainStatistics/'
-
         ### Calculating grain statistics using numbered grains file
         # Statistics to be computed should be specified here as a dictionary
         values_to_compute = {'grain_proj_area' : gwy.GRAIN_VALUE_PROJECTED_AREA,
@@ -254,9 +244,8 @@ def grainanalysis(directory, filename, datafield, grains):
                     'grain_ellipse_major' : gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MAJOR,
                     'grain_ellipse_minor' : gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MINOR,
                     }
-        # Create empty dictionary for grain data
+        ### Create empty dictionary for grain data
         grain_data_to_save = {}
-
 
         for key in values_to_compute.keys():
             # here we stave the gran stats to both a dictionary and an array in that order
@@ -266,50 +255,18 @@ def grainanalysis(directory, filename, datafield, grains):
             # Delete 0th value in all arrays - this corresponds to the background
             del grain_data_to_save[key][0]
 
-        # ### Iterate over each grain statistic (key) to obtain all values in grain_data_to_save
-        # try:
-        #     # Write the statistics to a file called: Grain_Statistics_filename.txt
-        #     write_file = open(grain_directory + 'Grain_Statistics_' + filename + '.txt', 'w')
-        #     # Write a header for the file
-        #     print >>write_file, '#This file contains the grain statistics from file ' + filename + '\n\n'
-        #     # Iterate over each grain statistic (key) and save out as 'grainstats'
-        #     for key in values_to_compute.keys():
-        #         # here we stave the gran stats to both a dictionary and an array in that order
-        #         # these are basically duplicate steps - but are both included as we arent sure which to use later
-        #         # Save grain statistics to a dictionary: grain_data_to_save
-        #         grain_data_to_save[key] = datafield.grains_get_values(grains, values_to_compute[key])
-        #         # Delete 0th value in all arrays - this corresponds to the background
-        #         del grain_data_to_save[key][0]
-        #         # Save grain statistics to an array: grainstats
-        #         grainstats = datafield.grains_get_values(grains, values_to_compute[key])
-        #         # Delete 0th value in all arrays - this corresponds to the background
-        #         del grainstats[0]
-        #
-        #         # Saving out the statistics
-        #         # Use numpy (np) to save out grain values as text files
-        #         # np.savetxt('{}.txt'.format(str(key)),grainstats)
-        #         # Saving out the Grain Statistics as text files
-        #         # Write each grain statistic type to the file Grain_Statistics_filename.txt (must be within for loop)
-        #         print >>write_file, str(key) + '\n' + str(grainstats) + '\n'
-        #         # Save out stats to a json format file
-        #         with open(grain_directory + filename + '_grains.json', 'w') as save_file:
-        #             json.dump(grain_data_to_save, save_file)
-        #
-        # except TypeError:
-        #     write_file = open(grain_directory + filename + 'Grain_Statistics.txt', 'w')
-        #     print >>write_file, '#The file ' + filename + ' contains no detectable grain statistics'
-        # print 'Saving grain statistics for: ' + str(filename)
-
         grainstats = pd.DataFrame.from_dict(grain_data_to_save, orient='index').transpose()
 
-        return values_to_compute, grainstats, grain_data_to_save
-
+        return values_to_compute, grainstats
 
 def grainstatistics(datafield, grains, filename, result):
-        # Get only last part of filename without extension
+        ### Get only last part of filename without extension
+        directory = str(os.path.dirname(filename))
+        directory = str(os.path.splitext(os.path.basename(directory))[0])
         filename = os.path.splitext(os.path.basename(filename))[0]
 
-        # Calculate grain statistics
+        ### Calculate grain statistics
+        # grain_bound_len = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_FLAT_BOUNDARY_LENGTH)
         grain_min_bound = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MINIMUM_BOUND_SIZE)
         grain_max_bound = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MAXIMUM_BOUND_SIZE)
         grain_mean_rad = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MEAN_RADIUS)
@@ -317,7 +274,8 @@ def grainstatistics(datafield, grains, filename, result):
         grain_max = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MAXIMUM)
         grain_med = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MEDIAN)
 
-        # Delete 0th value in all arrays - this corresponds to the background
+
+        ### Delete 0th value in all arrays - this corresponds to the background
         del grain_max_bound[0]
         del grain_min_bound[0]
         del grain_mean_rad[0]
@@ -325,20 +283,25 @@ def grainstatistics(datafield, grains, filename, result):
         del grain_max[0]
         del grain_med[0]
 
-        # Loop over list to get filename, grain number, and grain min and max bounding sizes
+        ### Loop over list to get filename, grain number, and grain min and max bounding sizes
         for i in range(len(grain_min_bound)):
             resultsheader = 'filename, i, grain_min_bound[i], grain_max_bound[i], grain_mean_rad[i], grain_proj_area[i], grain_max[i], grain_med[i]'
-            result.append([filename, i, grain_min_bound[i], grain_max_bound[i], grain_mean_rad[i], grain_proj_area[i], grain_max[i], grain_med[i]])
+            result.append([directory, filename, i, grain_min_bound[i], grain_max_bound[i], grain_mean_rad[i], grain_proj_area[i], grain_max[i], grain_med[i]])
 
-        # Covenrt results to a pandas dataframe with column headings to save out
+        ### Convert results to a pandas dataframe with column headings to save out
         grainstats_df = pd.DataFrame.from_records(result,
-                                    columns=['filename', 'i', 'grain_min_bound', 'grain_max_bound', 'grain_mean_rad',
+                                    columns=['directory', 'filename', 'i', 'grain_min_bound', 'grain_max_bound', 'grain_mean_rad',
                                             'grain_proj_area', 'grain_max', 'grain_med'])
 
         return grainstats_df
 
 def plotall(dataframe, bins, directory, outname, extension):
-        savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
+        ### Create a saving name format/directory
+        savedir = os.path.join(directory, 'Plots')
+        savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
+        if not os.path.exists(savedir):
+            os.makedirs(savedir)
+
         df = dataframe
         for i, col in enumerate(df.columns):
             plt.figure(i)
@@ -348,9 +311,13 @@ def plotall(dataframe, bins, directory, outname, extension):
             plt.show()
             plt.savefig(savename + str(i) + extension)
 
-def plotting(dataframe, arg1, grouparg, bins, directory, outname, extension):
+def plotting(dataframe, arg1, grouparg, bins, directory, extension):
+        ### Create a saving name format/directory
+        savedir = os.path.join(directory, 'Plots')
+        savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
+        if not os.path.exists(savedir):
+            os.makedirs(savedir)
         df = dataframe
-        savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
 
         ### Change from m to nm units for plotting
         df[arg1] = df[arg1] * 1e9
@@ -370,16 +337,15 @@ def plotting(dataframe, arg1, grouparg, bins, directory, outname, extension):
         # Pivot dataframe to get required variables in correct format for plotting
         df1 = df.pivot(columns=grouparg, values=arg1)
         # Plot histogram
-        df1.plot.hist(ax=ax, legend=False, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        df1.plot.hist(ax=ax, legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
         # Set x axis label
         plt.xlabel('%s (nm)' % (arg1))
         # Set tight borders
         plt.tight_layout()
         # Set legend options
         # plt.legend(ncol=2, loc='upper right')
-        # plt.show()
         # Save plot
-        plt.savefig(savename + arg1 + 'a' + extension)
+        plt.savefig(savename + '_' + arg1 + '_a' + extension)
 
         ### Plot each argument together using MatPlotLib
         # Create a figure of given size
@@ -396,14 +362,16 @@ def plotting(dataframe, arg1, grouparg, bins, directory, outname, extension):
         # plt.legend(ncol=2, loc='upper right')
         # Set tight borders
         plt.tight_layout()
-        # plt.show()
         # Save plot
-        plt.savefig(savename + arg1 + '_b' + extension)
+        plt.savefig(savename + '_' + arg1 + '_b' + extension)
 
 
 def seaplotting(df, arg1, arg2, grouparg, bins, directory, outname, extension):
         ### Create a saving name format/directory
-        savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
+        savedir = os.path.join(directory, 'Plots')
+        savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
+        if not os.path.exists(savedir):
+            os.makedirs(savedir)
 
         ### Change from m to nm units for plotting
         df[arg1] = df[arg1] * 1e9
@@ -420,9 +388,12 @@ def seaplotting(df, arg1, arg2, grouparg, bins, directory, outname, extension):
             sns.jointplot("grain_min_bound", "grain_max_bound", data=grainstats_df, kind='hex')
             sns.jointplot("grain_min_bound", "grain_max_bound", data=grainstats_df, kind='reg')
 
-def plotting2(df, arg1, arg2, grouparg, bins, directory, outname, extension):
+def plotting2(df, arg1, arg2, grouparg, bins, directory, extension):
         ### Create a saving name format/directory
-        savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
+        savedir = os.path.join(directory, 'Plots/')
+        savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
+        if not os.path.exists(savedir):
+            os.makedirs(savedir)
 
         ### Change from m to nm units for plotting
         df[arg1] = df[arg1]*1e9
@@ -447,32 +418,28 @@ def plotting2(df, arg1, arg2, grouparg, bins, directory, outname, extension):
         # Pivot dataframe to get required variables in correct format for plotting
         df1 = df.pivot(columns=grouparg, values=arg1)
         # Plot histogram
-        df1.plot.hist(legend=False, ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        df1.plot.hist(legend=True, ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
         # Set x axis label
         plt.xlabel('%s (nm)' % (arg1))
         # Set tight borders
         plt.tight_layout()
         # Set legend options
         # plt.legend(ncol=2, loc='upper right')
-        # plt.show()
-        # # Save plot (don't do here as is a subplot)
-        # plt.savefig(savename + arg1 + arg2 + '_a' + extension)
         # Second dataframe
         # Add a subplot
         ax = fig.add_subplot(122)
         # Pivot second dataframe to get required variables in correct format for plotting
         df2 = df.pivot(columns=grouparg, values=arg2)
         # Plot histogram
-        df2.plot.hist(legend=False, ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
+        df2.plot.hist(legend=True, ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
         # Set x axis label
         plt.xlabel('%s (nm)' % (arg2))
         # Set tight borders
         plt.tight_layout()
         # Set legend options
         # plt.legend(ncol=2, loc='upper right')
-        # plt.show()
         # Save plot
-        plt.savefig(savename + arg1 + arg2 + 'a' + extension)
+        plt.savefig(savename + '_' + arg1 + '_' + arg2 + '_' + 'a' + extension)
 
         # Create a figure of given size
         fig = plt.figure(figsize=(18, 12))
@@ -489,42 +456,8 @@ def plotting2(df, arg1, arg2, grouparg, bins, directory, outname, extension):
         # plt.legend(ncol=2, loc='upper right')
         # Set tight borders
         plt.tight_layout()
-        # plt.show()
         # Save plot
-        plt.savefig(savename + arg1 + arg2 + '_b' + extension)
-
-        # ### Plotting min and max bounding sizes for each filename separately
-        # df.groupby(grouparg)[arg1].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
-        # df.groupby(grouparg)[arg2].plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
-
-        ### Plot all together for each filename
-        # df.groupby(grouparg).plot(kind='hist', legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
-
-        ### Plot each type using MatPlotLib
-        # df[arg1].plot.hist(legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
-        # df[arg2].plot.hist(legend=True, bins=20, range=(min_ax, max_ax), alpha=.3)
-
-        # ### Plotting min and max bounding sizes in green and blue for each filename separately
-        # df.groupby("filename")[arg1].plot(kind="hist", legend=True, color='green', bins = 20, range=(1e-8, 7e-8), alpha=.3)
-        # ax = df.groupby("filename")[arg2].plot(kind="hist", legend=True, color='blue', bins = 20, range=(1e-8, 7e-8), alpha=.3)
-
-        # # Take each required column of the df
-        # c = df[arg1]
-        # d = df[arg2]
-        # # Stack the data
-        # plt.figure()
-        # plt.hist([c, d], range=(min_ax, max_ax), bins=30, stacked=True)
-        # # Set axes etc
-        # plt.ylabel("frequency")
-        # plt.xlabel("m")
-        # plt.show()
-
-        # ### Plotting min and max bounding size for each filename as a separate file
-        # fig = df.groupby("filename")[('grain_min_bound'), ('grain_max_bound')].plot(kind="hist", legend=True, bins=10, alpha=.3)
-
-        # ### Plotting min and max bounding sizes for all filenames in the folder
-        # for col in df.columns[2:4]:
-        #     plt.hist(df[col], bins = 20, range=(1e-8, 7e-8), alpha=.3)
+        plt.savefig(savename + '_' + arg1 + '_' + arg2 + '_' + 'b' + extension)
 
 
 def find_median_pixel_area(datafield, grains):
@@ -607,33 +540,16 @@ def exportasnparray(datafield, mask):
 def savestats(directory, outname, dataframetosave):
         # Generate a filepath to save the files to using the directory and the 'outname' i.e. what you;d like to append to it
         # directory = os.getcwd()
-        savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
+        # savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
+        savedir = directory + '/' + outname + '/'
+        savename = savedir + str(os.path.splitext(os.path.basename(directory))[0])
+        if not os.path.exists(savedir):
+            os.makedirs(savedir)
 
         dataframetosave.to_json(savename + '.json')
         dataframetosave.to_csv(savename + '.txt')
 
-        # # Save the contents of 'result' as a JSON file
-        # with open(savename + '.json', 'w') as save_file:
-        #     json.dump(datatypetosave, save_file)
-        #
-        # # Write the statistics to a text file
-        # try:
-        #
-        #     write_file = open(savename + '.txt', 'w')
-        #     # Write a header for the file
-        #     print >> write_file, '# This file contains the grain statistics from folder ' + str(os.path.splitext(os.path.basename(directory))[0])
-        #     print >> write_file, '# The data contained is:'
-        #     print >> write_file, '# ' + resultsheader + '\n'
-        #     # Write the data to save to file
-        #     print >> write_file, datatypetosave
-        #
-        # # If there are no grain statistics save out with a message to say so
-        # except TypeError:
-        #     write_file = open(savename, 'w')
-        #     print >> write_file, '#The file ' + filename + ' contains no detectable grain statistics'
-
-        # Print the filename being saved to the command line
-        print 'Saving stats for : ' + str(os.path.splitext(os.path.basename(directory))[0])
+        print 'Saving stats for: ' + str(os.path.splitext(os.path.basename(directory))[0])
 
 
 def savefiles(data, filename, extension):
@@ -671,13 +587,14 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
         # Data is exported to a file of extension set in the main script
         # Data is exported with the string '_cropped' added to the end of its filename
 
-        # Get the main file filename
+        ### Get only last part of filename without extension
+        directory = str(os.path.dirname(filename))
         filename = os.path.splitext(os.path.basename(filename))[0]
         # If the folder Cropped doest exist make it here
         if not os.path.exists(directory + '/Cropped/'):
             os.makedirs(directory + '/Cropped/')
             crop_directory = directory + '/Cropped/'
-        # Otherwise set the existing GrainStatistics dorectory as the directory to write to
+        # Otherwise set the existing Cropped directory as the directory to write to
         else:
             crop_directory = directory + '/Cropped/'
 
@@ -708,16 +625,17 @@ if __name__ == '__main__':
     ### Set various options here:
     # Set file type to run here e.g.'/*.spm*'
     fileend = '.spm' #default
-    filetype = '/*.spm' #default
-    # filetype = '/*.*[0-9]'
-    # filetype = '/*.gwy'
+    fileend2 = '.*[0-9]'
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
     # Set height scale values to save out
-    minheightscale = -20e-9
-    maxheightscale = 20e-9
+    minheightscale = -2e-9
+    maxheightscale = 4e-9
     # Set minimum size for grain determination:
-    minarea = 200e-9
+    minarea = 500e-9
+    # Set allowable deviation from the median pixel size for removal of large and small objects
+    maxdeviation = 1.5
+    mindeviation = 0.5
     # Set size of the cropped window/2 in pixels
     cropwidth = 40e-9
     # Set number of bins
@@ -729,10 +647,6 @@ if __name__ == '__main__':
 
     ### Look through the current directory and all subdirectories for files ending in .spm and add to flist
     flist, directory = traversedirectories(fileend)
-    ### Find the files in your current directory and add to flist
-    # flist, directory = getfiles(filetype)
-    ### Find the files in a set directory and add to flist
-    # flist, directory = getallfiles(filetype)
     ### Iterate over all files found
     for i, filename in enumerate(flist):
         print 'Analysing ' + str(os.path.basename(filename))
@@ -752,12 +666,12 @@ if __name__ == '__main__':
             ### Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
             median_pixel_area = find_median_pixel_area(datafield, grains)
             ### Remove all large objects defined as 1.2* the median grain size (in pixel area)
-            mask, grains = removelargeobjects(datafield, mask, median_pixel_area)
+            mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation)
             ### Remove all small objects defined as less than 0.5x the median grain size (in pixel area)
-            mask, grains = removesmallobjects(datafield, mask, median_pixel_area)
+            mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
             ### Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
             ### Not currently used - replaced by grainstatistics function
-            values_to_compute, grainstats, grain_data_to_save = grainanalysis(directory, filename, datafield, grains)
+            values_to_compute, grainstats = grainanalysis(directory, filename, datafield, grains)
             ### Create cropped datafields for every grain of size set in the main directory
             bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             ### Save out cropped files as images with no scales to a subfolder
@@ -773,11 +687,11 @@ if __name__ == '__main__':
             ### Save out as a pandas dataframe
             grainstats_df = grainstatistics(datafield, grains, filename, result)
     ### Plot a single variable from the dataframe
-    plotting(grainstats_df, 'grain_mean_rad', 'filename', bins, directory, '_grainstats', '.png')
+    plotting(grainstats_df, 'grain_mean_rad', 'directory', bins, directory, extension)
     ### Plot two variables from the dataframe - outputs both stacked by filename and full distributions
-    plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'filename', bins, directory, '_grainstats', '.png')
-    plotting2(grainstats_df, 'grain_max', 'grain_med', 'filename', bins, directory, '_grainstats', '.png')
-    # # ### Plot all output from bigger dataframe grainstats for initial visualisation as KDE plots
+    plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'directory', bins, directory, extension)
+    plotting2(grainstats_df, 'grain_max', 'grain_med', 'directory', bins, directory, extension)
+    # ### Plot all output from bigger dataframe grainstats for initial visualisation as KDE plots
     # plotall(grainstats, bins, directory, '_grainstats', '.png')
     ### Saving stats to text files with name of directory
-    savestats(directory, '_grainstats', grainstats_df)
+    savestats(directory, 'GrainStatistics', grainstats_df)
