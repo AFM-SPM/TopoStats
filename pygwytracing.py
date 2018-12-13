@@ -610,7 +610,7 @@ if __name__ == '__main__':
     path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Test'
     # Set file type to look for here
     fileend = '.spm'
-    filetype = '.*[0-9]'
+    filetype = '*.*[0-9]'
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
     # Set height scale values to save out
