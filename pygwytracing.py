@@ -1,6 +1,5 @@
 #!/usr/bin/env python2
 
-import glob
 import gwy
 import gwyutils
 import os
@@ -36,9 +35,9 @@ s["/module/pixmap/ztype"] = 0
 s['/module/linematch/method'] = 1
 
 
-def traversedirectories(fileend, path):
+def traversedirectories(fileend, filetype, path):
     # This function finds all the files with the file ending set in the main script as fileend (usually.spm)
-    # in the path directory, and all subfolders
+    # in the path directory, and all subfolder
 
     # initialise the list
     spmfiles = []
@@ -605,7 +604,8 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
 
 # This the main script
 if __name__ == '__main__':
-    ### Set various options here:
+    # Set various options here:
+
     # Set the file path, i.e. the directory where the files are here
     path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Test'
     # Set file type to look for here
@@ -627,56 +627,56 @@ if __name__ == '__main__':
     bins = 25
 
     # Declare variables used later
-    # # Placed outside for loop in order that they don't overwrite data to be appended
+    # Placed outside for loop in order that they don't overwrite data to be appended
     result = []
 
-    ### Look through the current directory and all subdirectories for files ending in .spm and add to flist
+    # Look through the current directory and all subdirectories for files ending in .spm and add to flist
     spmfiles = traversedirectories(fileend, filetype, path)
-    ### Iterate over all files found
+    # Iterate over all files found
     for i, filename in enumerate(spmfiles):
         print 'Analysing ' + str(os.path.basename(filename))
-        ### Load the data for the specified filename
+        # Load the data for the specified filename
         data = getdata(filename)
-        ### Find the channels of data you wish to use within the finle e.g. ZSensor or height
+        # Find the channels of data you wish to use within the finle e.g. ZSensor or height
         chosen_ids = choosechannels(data)
-        ### Iterate over the chosen channels in your file e.g. the ZSensor channel
+        # Iterate over the chosen channels in your file e.g. the ZSensor channel
         for k in chosen_ids:
-            ### Get all the image details eg resolution for your chosen channel
+            # Get all the image details eg resolution for your chosen channel
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
-            ### Perform basic image processing, to align rows, flatten and set the mean value to zero
+            # Perform basic image processing, to align rows, flatten and set the mean value to zero
             data = editfile(data, minheightscale, maxheightscale)
-            #### Find all grains in the mask which are both above a height threshold
-            ### and bigger than the min size set in the main codegrain_mean_rad
+            # Find all grains in the mask which are both above a height threshold
+            # and bigger than the min size set in the main codegrain_mean_rad
             data, mask, datafield, grains = grainfinding(data, minarea, k)
-            ### Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
+            # Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
             median_pixel_area = find_median_pixel_area(datafield, grains)
-            ### Remove all large objects defined as 1.2* the median grain size (in pixel area)
+            # Remove all large objects defined as 1.2* the median grain size (in pixel area)
             mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation)
-            ### Remove all small objects defined as less than 0.5x the median grain size (in pixel area)
+            # Remove all small objects defined as less than 0.5x the median grain size (in pixel area)
             mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
-            ### Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
-            ### Not currently used - replaced by grainstatistics function
+            # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
+            # Not currently used - replaced by grainstatistics function
             values_to_compute, grainstats = grainanalysis(path, filename, datafield, grains)
-            ### Create cropped datafields for every grain of size set in the main directory
+            # Create cropped datafields for every grain of size set in the main directory
             bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
-            ### Save out cropped files as images with no scales to a subfolder
+            # Save out cropped files as images with no scales to a subfolder
             savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
-            ### Skeletonise data after performing an aggressive gaussian to improve skeletonisation
+            # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)
-            ### Save data as 2 images, with and without mask
+            # Save data as 2 images, with and without mask
             savefiles(data, filename, extension)
-            ### Export the channels data and mask as numpy arrays
+            # Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
-            ### Determine the grain statistics
-            ### Append those stats to one file to get all stats in a directory
-            ### Save out as a pandas dataframe
+            # Determine the grain statistics
+            # Append those stats to one file to get all stats in a directory
+            # Save out as a pandas dataframe
             grainstats_df = grainstatistics(datafield, grains, filename, result)
-    ### Plot a single variable from the dataframe
+    # Plot a single variable from the dataframe
     plotting(grainstats_df, 'grain_mean_rad', 'directory', bins, path, extension)
-    ### Plot two variables from the dataframe - outputs both stacked by filename and full distributions
+    # Plot two variables from the dataframe - outputs both stacked by filename and full distributions
     # plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'directory', bins, path, extension)
     # plotting2(grainstats_df, 'grain_max', 'grain_med', 'directory', bins, path, extension)
-    # # ### Plot all output from bigger dataframe grainstats for initial visualisation as KDE plots
+    # Plot all output from bigger dataframe grainstats for initial visualisation as KDE plots
     # plotall(grainstats, bins, directory, '_grainstats', '.png')
-    ### Saving stats to text files with name of directory
+    # Saving stats to text and JSON files named by master path
     savestats(path, 'GrainStatistics', grainstats_df)
