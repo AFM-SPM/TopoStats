@@ -10,6 +10,9 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+# Import height thresholding.py for processing bilayer removal images
+import heightthresholding
+
 ### Set seaborn to override matplotlib for plot output
 sns.set()
 # ###The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
@@ -277,13 +280,15 @@ def grainstatistics(datafield, grains, filename, result):
             [directory, filename, i, grain_bound_len[i], grain_min_bound[i],
              grain_max_bound[i], grain_mean_rad[i], grain_proj_area[i],
              grain_max[i], grain_med[i], grain_ellipse_min[i], grain_ellipse_maj[i],
-            grain_ellipse_ang[i], grain_curv1[i], grain_curv2[i]])
+             grain_ellipse_ang[i], grain_curv1[i], grain_curv2[i]])
 
     ### Convert results to a pandas dataframe with column headings to save out
     grainstats_df = pd.DataFrame.from_records(result,
-                                              columns=['directory', 'filename', 'i', 'grain_bound_len', 'grain_min_bound',
+                                              columns=['directory', 'filename', 'i', 'grain_bound_len',
+                                                       'grain_min_bound',
                                                        'grain_max_bound', 'grain_mean_rad', 'grain_proj_area',
-                                                       'grain_max', 'grain_med', 'grain_ellipse_min', 'grain_ellipse_maj',
+                                                       'grain_max', 'grain_med', 'grain_ellipse_min',
+                                                       'grain_ellipse_maj',
                                                        'grain_ellipse_ang', 'grain_curv1', 'grain_curv2'])
 
     return grainstats_df
@@ -362,48 +367,48 @@ def plotting(dataframe, arg1, grouparg, bins, directory, extension):
 
 
 def seaplotting(df, arg1, arg2, grouparg, bins, directory, outname, extension):
-    ### Create a saving name format/directory
+    # Create a saving name format/directory
     savedir = os.path.join(directory, 'Plots')
     savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
     if not os.path.exists(savedir):
         os.makedirs(savedir)
 
-    ### Change from m to nm units for plotting
+    # Change from m to nm units for plotting
     df[arg1] = df[arg1] * 1e9
     df[arg2] = df[arg2] * 1e9
 
-    ### Generating min and max axes based on datasets
+    # Generating min and max axes based on datasets
     min_ax = min(df[arg1].min(), df[arg2].min())
     min_ax = round(min_ax, 9)
     max_ax = max(df[arg1].max(), df[arg2].max())
     max_ax = round(max_ax, 9)
 
-    ### Plot data
+    # Plot data
     with sns.axes_style('white'):
         sns.jointplot("grain_min_bound", "grain_max_bound", data=grainstats_df, kind='hex')
         sns.jointplot("grain_min_bound", "grain_max_bound", data=grainstats_df, kind='reg')
 
 
 def plotting2(df, arg1, arg2, grouparg, bins, directory, extension):
-    ### Create a saving name format/directory
+    # Create a saving name format/directory
     savedir = os.path.join(directory, 'Plots/')
     savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
     if not os.path.exists(savedir):
         os.makedirs(savedir)
 
-    ### Change from m to nm units for plotting
+    # Change from m to nm units for plotting
     df[arg1] = df[arg1] * 1e9
     df[arg2] = df[arg2] * 1e9
 
-    ### Generating min and max axes based on datasets
+    # Generating min and max axes based on datasets
     min_ax = min(df[arg1].min(), df[arg2].min())
     min_ax = round(min_ax, 9)
     max_ax = max(df[arg1].max(), df[arg2].max())
     max_ax = round(max_ax, 9)
 
-    ### Plot data
+    # Plot data
 
-    ### Plot each type using MatPlotLib separated by filetype on two separate graphs with stacking
+    # Plot each type using MatPlotLib separated by filetype on two separate graphs with stacking
     # Create a figure of given size
     fig = plt.figure(figsize=(28, 8))
     # First dataframe
@@ -443,7 +448,7 @@ def plotting2(df, arg1, arg2, grouparg, bins, directory, extension):
     ax = fig.add_subplot(111)
     # Set title
     ttl = 'Histogram of %s and %s' % (arg1, arg2)
-    ### Plot each argument together using MatPlotLib
+    # Plot each argument together using MatPlotLib
     df3 = pd.melt(df, id_vars=[arg1, arg2])
     df3.plot.hist(legend=True, ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3)
     # plt.xlabel('%s %s (nm)' % (arg1, arg2))
@@ -533,12 +538,9 @@ def exportasnparray(datafield, mask):
     return npdata, npmask
 
 
-def savestats(directory, outname, dataframetosave):
-    # Generate a filepath to save the files to using the directory and the 'outname' i.e. what you;d like to append to it
-    # directory = os.getcwd()
-    # savename = directory + '/' + str(os.path.splitext(os.path.basename(directory))[0]) + outname
-    savedir = directory + '/' + outname + '/'
-    savename = savedir + str(os.path.splitext(os.path.basename(directory))[0])
+def savestats(directory, dataframetosave):
+    savedir = os.path.join(directory, 'GrainStatistics')
+    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
     if not os.path.exists(savedir):
         os.makedirs(savedir)
 
@@ -620,7 +622,8 @@ if __name__ == '__main__':
     # Set various options here:
 
     # Set the file path, i.e. the directory where the files are here
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Test'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Test'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing'
     # Set file type to look for here
     fileend = '.spm'
     filetype = '*.*[0-9]'
@@ -658,9 +661,13 @@ if __name__ == '__main__':
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
             # Perform basic image processing, to align rows, flatten and set the mean value to zero
             data = editfile(data, minheightscale, maxheightscale)
+            # Perform basic image processing, to align rows, flatten and set the mean value to zero
             # Find all grains in the mask which are both above a height threshold
             # and bigger than the min size set in the main codegrain_mean_rad
             data, mask, datafield, grains = grainfinding(data, minarea, k)
+            # # Flattening based on masked data and subsequent grain finding
+            # # Used for analysing data e.g. peptide induced bilayer degradation
+            # data, mask, datafield, grains = heightthresholding.otsuthresholdgrainfinding(data, k)
             # Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
             median_pixel_area = find_median_pixel_area(datafield, grains)
             # Remove all large objects defined as 1.2* the median grain size (in pixel area)
@@ -669,17 +676,17 @@ if __name__ == '__main__':
             mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
             # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
             # Not currently used - replaced by grainstatistics function
-            # values_to_compute, grainstats = grainanalysis(path, filename, datafield, grains)
+            values_to_compute, grainstats = grainanalysis(path, filename, datafield, grains)
             # Create cropped datafields for every grain of size set in the main directory
             bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             # Save out cropped files as images with no scales to a subfolder
             savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
             # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)
-            # Save data as 2 images, with and without mask
-            savefiles(data, filename, extension)
             # Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
+            # Save data as 2 images, with and without mask
+            savefiles(data, filename, extension)
             # Determine the grain statistics
             # Append those stats to one file to get all stats in a directory
             # Save out as a pandas dataframe
@@ -692,4 +699,4 @@ if __name__ == '__main__':
     # Plot all output from bigger dataframe grainstats for initial visualisation as KDE plots
     # plotall(grainstats, bins, path, '.png')
     # Saving stats to text and JSON files named by master path
-    savestats(path, 'GrainStatistics', grainstats_df)
+    savestats(path, grainstats_df)
