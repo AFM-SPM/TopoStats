@@ -244,34 +244,47 @@ def grainstatistics(datafield, grains, filename, result):
     filename = os.path.splitext(os.path.basename(filename))[0]
 
     ### Calculate grain statistics
-    # grain_bound_len = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_FLAT_BOUNDARY_LENGTH)
+    grain_bound_len = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_FLAT_BOUNDARY_LENGTH)
     grain_min_bound = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MINIMUM_BOUND_SIZE)
     grain_max_bound = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MAXIMUM_BOUND_SIZE)
     grain_mean_rad = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MEAN_RADIUS)
     grain_proj_area = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_PROJECTED_AREA)
     grain_max = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MAXIMUM)
     grain_med = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MEDIAN)
+    grain_ellipse_min = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MINOR)
+    grain_ellipse_maj = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MAJOR)
+    grain_ellipse_ang = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_EQUIV_ELLIPSE_ANGLE)
+    grain_curv1 = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_CURVATURE1)
+    grain_curv2 = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_CURVATURE2)
 
     ### Delete 0th value in all arrays - this corresponds to the background
-    del grain_max_bound[0]
+    del grain_bound_len[0]
     del grain_min_bound[0]
+    del grain_max_bound[0]
     del grain_mean_rad[0]
     del grain_proj_area[0]
     del grain_max[0]
     del grain_med[0]
+    del grain_ellipse_min[0]
+    del grain_ellipse_maj[0]
+    del grain_curv1[0]
+    del grain_curv2[0]
 
     ### Loop over list to get filename, grain number, and grain min and max bounding sizes
     for i in range(len(grain_min_bound)):
-        resultsheader = 'filename, i, grain_min_bound[i], grain_max_bound[i], grain_mean_rad[i], grain_proj_area[i], grain_max[i], grain_med[i]'
+        # resultsheader = 'directory, filename, i, grain_bound_len[i], grain_min_bound[i], grain_max_bound[i], grain_mean_rad[i], grain_proj_area[i], grain_max[i], grain_med[i]'
         result.append(
-            [directory, filename, i, grain_min_bound[i], grain_max_bound[i], grain_mean_rad[i], grain_proj_area[i],
-             grain_max[i], grain_med[i]])
+            [directory, filename, i, grain_bound_len[i], grain_min_bound[i],
+             grain_max_bound[i], grain_mean_rad[i], grain_proj_area[i],
+             grain_max[i], grain_med[i], grain_ellipse_min[i], grain_ellipse_maj[i],
+            grain_ellipse_ang[i], grain_curv1[i], grain_curv2[i]])
 
     ### Convert results to a pandas dataframe with column headings to save out
     grainstats_df = pd.DataFrame.from_records(result,
-                                              columns=['directory', 'filename', 'i', 'grain_min_bound',
-                                                       'grain_max_bound', 'grain_mean_rad',
-                                                       'grain_proj_area', 'grain_max', 'grain_med'])
+                                              columns=['directory', 'filename', 'i', 'grain_bound_len', 'grain_min_bound',
+                                                       'grain_max_bound', 'grain_mean_rad', 'grain_proj_area',
+                                                       'grain_max', 'grain_med', 'grain_ellipse_min', 'grain_ellipse_maj',
+                                                       'grain_ellipse_ang', 'grain_curv1', 'grain_curv2'])
 
     return grainstats_df
 
