@@ -289,7 +289,7 @@ def grainstatistics(datafield, grains, filename, result):
     return grainstats_df
 
 
-def plotall(dataframe, bins, directory, outname, extension):
+def plotall(dataframe, bins, directory, extension):
     ### Create a saving name format/directory
     savedir = os.path.join(directory, 'Plots')
     savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
@@ -669,7 +669,7 @@ if __name__ == '__main__':
             mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
             # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
             # Not currently used - replaced by grainstatistics function
-            values_to_compute, grainstats = grainanalysis(path, filename, datafield, grains)
+            # values_to_compute, grainstats = grainanalysis(path, filename, datafield, grains)
             # Create cropped datafields for every grain of size set in the main directory
             bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             # Save out cropped files as images with no scales to a subfolder
@@ -690,6 +690,6 @@ if __name__ == '__main__':
     # plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'directory', bins, path, extension)
     # plotting2(grainstats_df, 'grain_max', 'grain_med', 'directory', bins, path, extension)
     # Plot all output from bigger dataframe grainstats for initial visualisation as KDE plots
-    # plotall(grainstats, bins, directory, '_grainstats', '.png')
+    # plotall(grainstats, bins, path, '.png')
     # Saving stats to text and JSON files named by master path
     savestats(path, 'GrainStatistics', grainstats_df)
