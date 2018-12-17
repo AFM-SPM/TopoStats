@@ -608,16 +608,19 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
         # Print the name of the file you're saving to the command line
         # print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))
 
-def getdataforallfiles(appended_data, dfargtosearch, searchvalue1, searchvalue2):
+def getdataforallfiles(appended_data):
     # Get dataframe of all files within folder from appended_data list file
     grainstats_df = pd.concat(appended_data).reset_index(level=1, drop=True)
 
-    # Get dataframe of only files containing a certain string
-    df1 = grainstats_df[grainstats_df[dfargtosearch].str.contains(searchvalue1)]
-    df2 = grainstats_df[grainstats_df[dfargtosearch].str.contains(searchvalue2)]
-    specificgrainstats = pd.concat([df1, df2])
+    return grainstats_df
 
-    return grainstats_df, specificgrainstats
+def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
+    # Get dataframe of only files containing a certain string
+    df1 = df[df[dfargtosearch].str.contains(searchvalue1)]
+    df2 = df[df[dfargtosearch].str.contains(searchvalue2)]
+    grainstats_searched = pd.concat([df1, df2])
+
+    return grainstats_searched
 
 # This the main script
 if __name__ == '__main__':
@@ -691,7 +694,9 @@ if __name__ == '__main__':
             # Save data as 2 images, with and without mask
             savefiles(data, filename, extension)
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
-    grainstats_df, specificgrainstats = getdataforallfiles(appended_data, 'filename', '339', 'MAC')
+    grainstats_df = getdataforallfiles(appended_data)
+    # Search dataframes and return a new dataframe of only files containing a specific string
+    grainstats_searched = searchgrainstats(grainstats_df, 'filename', '339', 'nothing')
     # Plot all output from dataframe grainstats for initial visualisation as KDE plots
     # plotall(grainstats_df, path, extension)
     # Plot a single variable from the dataframe
