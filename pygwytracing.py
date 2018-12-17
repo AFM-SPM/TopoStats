@@ -16,10 +16,10 @@ import heightthresholding
 
 ### Set seaborn to override matplotlib for plot output
 sns.set()
-# ###The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
-# ### The notebook style is the default
+# The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
+# The notebook style is the default
 sns.set_context("notebook")
-# ### This can be customised further here
+# This can be customised further here
 # sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 2.5})
 
 # sys.path.append("/usr/local/Cellar/gwyddion/2.52/share/gwyddion/pygwy")
@@ -29,7 +29,7 @@ s = gwy.gwy_app_settings_get()
 
 # Generate a settings file - should be found at /Users/alice/.gwyddion/settings
 # a = gwy.gwy_app_settings_get_settings_filename()
-# # Location of the settings file - edit to change values
+# Location of the settings file - edit to change values
 # print a
 
 # Turn colour bar off
@@ -205,7 +205,7 @@ def removesmallobjects(datafield, mask, median_pixel_area, mindeviation):
 
 
 def grainanalysis(appended_data, filename, datafield, grains):
-    ### Calculating grain statistics using numbered grains file
+    # Calculating grain statistics using numbered grains file
     # Statistics to be computed should be specified here as a dictionary
     values_to_compute = {'grain_proj_area': gwy.GRAIN_VALUE_PROJECTED_AREA,
                          'grain_maximum': gwy.GRAIN_VALUE_MAXIMUM,
@@ -225,7 +225,7 @@ def grainanalysis(appended_data, filename, datafield, grains):
                          'grain_ellipse_major': gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MAJOR,
                          'grain_ellipse_minor': gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MINOR,
                          }
-    ### Create empty dictionary for grain data
+    # Create empty dictionary for grain data
     grain_data_to_save = {}
 
     for key in values_to_compute.keys():
@@ -263,7 +263,7 @@ def grainanalysis(appended_data, filename, datafield, grains):
 def plotall(dataframe, directory, extension):
     print 'Plotting graphs for all dataframe variables in %s' % directory
 
-    ### Create a saving name format/directory
+    # Create a saving name format/directory
     savedir = os.path.join(directory, 'Plots')
     savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
     if not os.path.exists(savedir):
@@ -284,23 +284,23 @@ def plotall(dataframe, directory, extension):
 
 def plotting(dataframe, arg1, grouparg, bins, directory, extension):
     print 'Plotting graph of %s' % (arg1)
-    ### Create a saving name format/directory
+    # Create a saving name format/directory
     savedir = os.path.join(directory, 'Plots')
     savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
     if not os.path.exists(savedir):
         os.makedirs(savedir)
     df = dataframe
 
-    ### Change from m to nm units for plotting
+    # Change from m to nm units for plotting
     df[arg1] = df[arg1] * 1e9
 
-    ### Generating min and max axes based on datasets
+    # Generating min and max axes based on datasets
     min_ax = df[arg1].min()
     min_ax = round(min_ax, 9)
     max_ax = df[arg1].max()
     max_ax = round(max_ax, 9)
 
-    ### Plot using MatPlotLib separated by filetype on two separate graphs with stacking
+    # Plot using MatPlotLib separated by filetype on two separate graphs with stacking
     # Create a figure of given size
     fig = plt.figure(figsize=(18, 12))
     ax = fig.add_subplot(111)
@@ -319,7 +319,7 @@ def plotting(dataframe, arg1, grouparg, bins, directory, extension):
     # Save plot
     plt.savefig(savename + '_' + arg1 + '_a' + extension)
 
-    ### Plot each argument together using MatPlotLib
+    # Plot each argument together using MatPlotLib
     # Create a figure of given size
     fig = plt.figure(figsize=(18, 12))
     ax = fig.add_subplot(111)
