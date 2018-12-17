@@ -608,6 +608,16 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
         # Print the name of the file you're saving to the command line
         # print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))
 
+def getdataforallfiles(appended_data, dfargtosearch, searchvalue1, searchvalue2):
+    # Get dataframe of all files within folder from appended_data list file
+    grainstats_df = pd.concat(appended_data).reset_index(level=1, drop=True)
+
+    # Get dataframe of only files containing a certain string
+    df1 = grainstats_df[grainstats_df[dfargtosearch].str.contains(searchvalue1)]
+    df2 = grainstats_df[grainstats_df[dfargtosearch].str.contains(searchvalue2)]
+    specificgrainstats = pd.concat([df1, df2])
+
+    return grainstats_df, specificgrainstats
 
 # This the main script
 if __name__ == '__main__':
@@ -681,7 +691,7 @@ if __name__ == '__main__':
             # Save data as 2 images, with and without mask
             savefiles(data, filename, extension)
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
-    grainstats_df = pd.concat(appended_data).reset_index(level=1, drop=True)
+    grainstats_df, specificgrainstats = getdataforallfiles(appended_data, 'filename', '339', 'MAC')
     # Plot all output from dataframe grainstats for initial visualisation as KDE plots
     # plotall(grainstats_df, path, extension)
     # Plot a single variable from the dataframe
@@ -693,4 +703,3 @@ if __name__ == '__main__':
     seaplotting(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', bins, path, extension)
     # Saving stats to text and JSON files named by master path
     savestats(path, grainstats_df)
-
