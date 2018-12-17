@@ -553,6 +553,18 @@ def savestats(directory, dataframetosave):
 def savefiles(data, filename, extension):
     # Turn rulers on
     s["/module/pixmap/xytype"] = 1
+
+    ### Get only last part of filename without extension
+    directory = str(os.path.dirname(filename))
+    filename = os.path.splitext(os.path.basename(filename))[0]
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Processed')
+
+    # If the folder Processed doest exist make it here
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
     # Save the data for the channels found above i.e. ZSensor/Height, as chosen_ids
     # Data is exported to a file of extension set in the main script
     # Data is exported with the string '_processed' added to the end of its filename
@@ -565,13 +577,13 @@ def savefiles(data, filename, extension):
     filename = os.path.splitext(filename)[0]
     # Generate a filename to save to by removing the extension to the file, adding the suffix '_processed'
     # and an extension set in the main file
-    savename = filename + '_' + str(k) + '_' + str(title) + '_processed' + str(extension)
+    savename = os.path.join(savedir, filename) + str(k) + '_' + str(title) + '_processed' + str(extension)
     # Save the file
     gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE)
     # Show the mask
     data['/%d/mask' % k] = mask
     # Add the sufix _masked to the previous filename
-    savename = filename + '_' + str(k) + '_' + str(title) + '_processed_masked' + str(extension)
+    savename = os.path.join(savedir, filename) + str(k) + '_' + str(title) + '_processed_masked' + str(extension)
     # Save the data
     gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE)
     # Print the name of the file you're saving to the command line
@@ -579,22 +591,27 @@ def savefiles(data, filename, extension):
 
 
 def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale):
-    # Turn rulers off
-    s["/module/pixmap/xytype"] = 0
     # Save the data for the cropped channels
     # Data is exported to a file of extension set in the main script
     # Data is exported with the string '_cropped' added to the end of its filename
 
+    # Turn rulers off
+    s["/module/pixmap/xytype"] = 0
+
     ### Get only last part of filename without extension
     directory = str(os.path.dirname(filename))
     filename = os.path.splitext(os.path.basename(filename))[0]
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Cropped')
+
     # If the folder Cropped doest exist make it here
-    if not os.path.exists(directory + '/Cropped/'):
-        os.makedirs(directory + '/Cropped/')
-        crop_directory = directory + '/Cropped/'
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+        crop_directory = savedir
     # Otherwise set the existing Cropped directory as the directory to write to
     else:
-        crop_directory = directory + '/Cropped/'
+        crop_directory = savedir
 
     # For each cropped file, save out the data with the suffix _Cropped_#
     for i in range(len(orig_ids), len(crop_ids), 1):
@@ -602,7 +619,7 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
         gwy.gwy_app_data_browser_select_data_field(data, i)
         # change the colour map for all channels (k) in the image:
         palette = data.set_string_by_name("/" + str(i) + "/base/palette", "Nanoscope")
-        # Set the image display to fized range and the colour scale for the images
+        # Set the image display to fixed range and the colour scale for the images
         maximum_disp_value = data.set_int32_by_name("/" + str(i) + "/base/range-type", int(1))
         minimum_disp_value = data.set_double_by_name("/" + str(i) + "/base/min", float(minheightscale))
         maximum_disp_value = data.set_double_by_name("/" + str(i) + "/base/max", float(maxheightscale))
@@ -610,7 +627,7 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
         # The 'crop number' is the channel number minus the original number of channels, less one to avoid starting at 0
         savenumber = i - (len(orig_ids) - 1)
         # adding the suffix '_cropped' and adding the extension set in the main file
-        savename = crop_directory + filename + '_cropped_' + str(savenumber) + str(extension)
+        savename = os.path.join(crop_directory, filename) + '_cropped_' + str(savenumber) + str(extension)
         # Save the file
         gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE)
         # Print the name of the file you're saving to the command line

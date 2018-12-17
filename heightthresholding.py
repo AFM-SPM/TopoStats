@@ -7,14 +7,14 @@ s = gwy.gwy_app_settings_get()
 # Turn colour bar off
 s["/module/pixmap/ztype"] = 0
 # Define the settings for image processing functions e.g. align rows here
-s['/module/linematch/method'] = 1
+# s['/module/linematch/method'] = 2
 # 'align_rows' function
 s["/module/linematch/direction"] = 0
 s["/module/linematch/do_extract"] = False
 s["/module/linematch/do_plot"] = False
-s["/module/linematch/masking"] = 2
+s["/module/linematch/masking"] = 1
 s["/module/linematch/max_degree"] = 0
-s["/module/linematch/method"] = 0  # uses median
+s["/module/linematch/method"] = 1
 s["/module/linematch/trim_fraction"] = float(0.05)
 
 
