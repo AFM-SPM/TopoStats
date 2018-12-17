@@ -330,7 +330,7 @@ def plotting(dataframe, arg1, grouparg, bins, directory, extension):
     plt.savefig(savename + '_' + arg1 + '_b' + extension)
 
 
-def seaplotting(df, arg1, arg2, grouparg, bins, directory, outname, extension):
+def seaplotting(df, arg1, arg2, bins, directory, extension):
     # Create a saving name format/directory
     savedir = os.path.join(directory, 'Plots')
     savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
@@ -347,10 +347,12 @@ def seaplotting(df, arg1, arg2, grouparg, bins, directory, outname, extension):
     max_ax = max(df[arg1].max(), df[arg2].max())
     max_ax = round(max_ax, 9)
 
-    # Plot data
+    # Plot data using seaborn
     with sns.axes_style('white'):
-        sns.jointplot("grain_min_bound", "grain_max_bound", data=grainstats_df, kind='hex')
-        sns.jointplot("grain_min_bound", "grain_max_bound", data=grainstats_df, kind='reg')
+        # sns.jointplot(arg1, arg2, data=df, kind='hex')
+        sns.jointplot(arg1, arg2, data=df, kind='reg')
+        plt.savefig(savename + '_' + str(arg1) + str(arg2) + '_seaborn' + extension)
+
 
 
 def plotting2(df, arg1, arg2, grouparg, bins, directory, extension):
@@ -673,12 +675,14 @@ if __name__ == '__main__':
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = pd.concat(appended_data).reset_index(level=1, drop=True)
     # Plot all output from dataframe grainstats for initial visualisation as KDE plots
-    plotall(grainstats_df, path, extension)
+    # plotall(grainstats_df, path, extension)
     # Plot a single variable from the dataframe
     # plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
     # Plot two variables from the dataframe - outputs both stacked by filename and full distributions
-    plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
+    # plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
     # plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
+    # Plot a joint axis seaborn plot
+    seaplotting(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', bins, path, extension)
     # Saving stats to text and JSON files named by master path
     savestats(path, grainstats_df)
 
