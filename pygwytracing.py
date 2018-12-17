@@ -4,6 +4,7 @@ import gwy
 import gwyutils
 import os
 import fnmatch
+import re
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -246,6 +247,11 @@ def grainanalysis(appended_data, filename, datafield, grains):
     grainstats['filename'] = pd.Series(filename, index=grainstats.index)
     grainstats['directory'] = pd.Series(directory, index=grainstats.index)
     grainstats['grain no'] = (grainstats.reset_index().index) + 1
+
+    # Sort dataframe columns to appear alphabetically - ensures consistency in columns order
+    # when using dictionary to generate columns
+    grainstats.sort_index(axis=1, inplace=True)
+
     # Append dataframe to appended_data as list to collect statistics on multiple files
     appended_data.append(grainstats)
 
