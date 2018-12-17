@@ -638,7 +638,7 @@ if __name__ == '__main__':
     minheightscale = -2e-9
     maxheightscale = 4e-9
     # Set minimum size for grain determination:
-    minarea = 500e-9
+    minarea = 200e-9
     # Set allowable deviation from the median pixel size for removal of large and small objects
     maxdeviation = 1.5
     mindeviation = 0.5
@@ -654,6 +654,7 @@ if __name__ == '__main__':
 
     # Look through the current directory and all subdirectories for files ending in .spm and add to flist
     spmfiles = traversedirectories(fileend, filetype, path)
+
     # Iterate over all files found
     for i, filename in enumerate(spmfiles):
         print 'Analysing ' + str(os.path.basename(filename))
@@ -661,12 +662,15 @@ if __name__ == '__main__':
         data = getdata(filename)
         # Find the channels of data you wish to use within the finle e.g. ZSensor or height
         chosen_ids = choosechannels(data)
+
         # Iterate over the chosen channels in your file e.g. the ZSensor channel
         for k in chosen_ids:
             # Get all the image details eg resolution for your chosen channel
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
+
             # Perform basic image processing, to align rows, flatten and set the mean value to zero
             data = editfile(data, minheightscale, maxheightscale)
+
             # Perform basic image processing, to align rows, flatten and set the mean value to zero
             # Find all grains in the mask which are both above a height threshold
             # and bigger than the min size set in the main codegrain_mean_rad
@@ -680,23 +684,29 @@ if __name__ == '__main__':
             mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation)
             # Remove all small objects defined as less than 0.5x the median grain size (in pixel area)
             mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
+
             # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
             # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
             grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
+
             # Create cropped datafields for every grain of size set in the main directory
             bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             # Save out cropped files as images with no scales to a subfolder
             savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+
             # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)
+
             # Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
             # Save data as 2 images, with and without mask
             savefiles(data, filename, extension)
+
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = getdataforallfiles(appended_data)
     # Search dataframes and return a new dataframe of only files containing a specific string
     grainstats_searched = searchgrainstats(grainstats_df, 'filename', '339', 'nothing')
+
     # Plot all output from dataframe grainstats for initial visualisation as KDE plots
     # plotall(grainstats_df, path, extension)
     # Plot a single variable from the dataframe
@@ -706,5 +716,6 @@ if __name__ == '__main__':
     # plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
     # Plot a joint axis seaborn plot
     seaplotting(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', bins, path, extension)
+
     # Saving stats to text and JSON files named by master path
     savestats(path, grainstats_df)
