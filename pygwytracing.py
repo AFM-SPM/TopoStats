@@ -650,7 +650,6 @@ if __name__ == '__main__':
     # Declare variables used later
     # Placed outside for loop in order that they don't overwrite data to be appended
     appended_data = []
-    result = []
 
     # Look through the current directory and all subdirectories for files ending in .spm and add to flist
     spmfiles = traversedirectories(fileend, filetype, path)
@@ -699,6 +698,7 @@ if __name__ == '__main__':
 
             # Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
+
             # Save data as 2 images, with and without mask
             savefiles(data, filename, extension)
 
