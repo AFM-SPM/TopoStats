@@ -271,7 +271,7 @@ def plotall(dataframe, directory, extension):
         # plt.hist(df[col])
         # df[col].plot.hist()
         plt.show()
-        plt.savefig(savename + str(i) + extension)
+        plt.savefig(savename + str(col) + extension)
 
 
 def plotting(dataframe, arg1, grouparg, bins, directory, extension):
@@ -672,6 +672,8 @@ if __name__ == '__main__':
             savefiles(data, filename, extension)
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = pd.concat(appended_data).reset_index(level=1, drop=True)
+    # Plot all output from dataframe grainstats for initial visualisation as KDE plots
+    plotall(grainstats_df, path, extension)
     # Plot a single variable from the dataframe
     # plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
     # Plot two variables from the dataframe - outputs both stacked by filename and full distributions
@@ -679,5 +681,4 @@ if __name__ == '__main__':
     # plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
     # Saving stats to text and JSON files named by master path
     savestats(path, grainstats_df)
-    # Plot all output from dataframe grainstats for initial visualisation as KDE plots
-    # plotall(grainstats_df, path, extension)
+
