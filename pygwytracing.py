@@ -242,14 +242,16 @@ def grainanalysis(appended_data, filename, datafield, grains):
     directory = str(os.path.dirname(filename))
     directory = str(os.path.splitext(os.path.basename(directory))[0])
     filename = os.path.splitext(os.path.basename(filename))[0]
-
+    # Append filename, directory and grain ID to dataframe
     grainstats['filename'] = pd.Series(filename, index=grainstats.index)
     grainstats['directory'] = pd.Series(directory, index=grainstats.index)
     grainstats['grain no'] = (grainstats.reset_index().index) + 1
-
+    # Append dataframe to appended_data as list to collect statistics on multiple files
     appended_data.append(grainstats)
 
-    return values_to_compute, grainstats, appended_data
+    grainstatsarguments = list(values_to_compute.keys())
+
+    return grainstatsarguments, grainstats, appended_data
 
 
 def plotall(dataframe, directory, extension):
@@ -661,7 +663,7 @@ if __name__ == '__main__':
             mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
             # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
             # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
-            values_to_compute, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
+            grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
             # Create cropped datafields for every grain of size set in the main directory
             bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             # Save out cropped files as images with no scales to a subfolder
