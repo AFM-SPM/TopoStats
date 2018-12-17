@@ -252,7 +252,9 @@ def grainanalysis(appended_data, filename, datafield, grains):
     return values_to_compute, grainstats, appended_data
 
 
-def plotall(dataframe, bins, directory, extension):
+def plotall(dataframe, directory, extension):
+    print 'Plotting graphs for all dataframe variables in %s' % directory
+
     ### Create a saving name format/directory
     savedir = os.path.join(directory, 'Plots')
     savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
@@ -260,6 +262,9 @@ def plotall(dataframe, bins, directory, extension):
         os.makedirs(savedir)
 
     df = dataframe
+    # Select columns of datatype 'float64' i.e. not integers or strings
+    df = df.select_dtypes(include=['float64'])
+    # Iterate through all columns to plot data using seaborn
     for i, col in enumerate(df.columns):
         plt.figure(i)
         sns.distplot(df[col], bins=bins)
@@ -270,6 +275,7 @@ def plotall(dataframe, bins, directory, extension):
 
 
 def plotting(dataframe, arg1, grouparg, bins, directory, extension):
+    print 'Plotting graph of %s' % (arg1)
     ### Create a saving name format/directory
     savedir = os.path.join(directory, 'Plots')
     savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
@@ -348,6 +354,7 @@ def seaplotting(df, arg1, arg2, grouparg, bins, directory, outname, extension):
 
 
 def plotting2(df, arg1, arg2, grouparg, bins, directory, extension):
+    print 'Plotting graph of %s and %s' % (arg1, arg2)
     # Create a saving name format/directory
     savedir = os.path.join(directory, 'Plots/')
     savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
@@ -497,6 +504,8 @@ def exportasnparray(datafield, mask):
 
 
 def savestats(directory, dataframetosave):
+    print 'Saving stats for: ' + str(os.path.splitext(os.path.basename(directory))[0])
+
     savedir = os.path.join(directory, 'GrainStatistics')
     savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
     if not os.path.exists(savedir):
@@ -504,8 +513,6 @@ def savestats(directory, dataframetosave):
 
     dataframetosave.to_json(savename + '.json')
     dataframetosave.to_csv(savename + '.txt')
-
-    print 'Saving stats for: ' + str(os.path.splitext(os.path.basename(directory))[0])
 
 
 def savefiles(data, filename, extension):
@@ -663,16 +670,14 @@ if __name__ == '__main__':
             npdata, npmask = exportasnparray(datafield, mask)
             # Save data as 2 images, with and without mask
             savefiles(data, filename, extension)
-            # Determine the grain statistics
-            # Append those stats to one file to get all stats in a directory
-            # Save out as a pandas dataframe
+    # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = pd.concat(appended_data).reset_index(level=1, drop=True)
     # Plot a single variable from the dataframe
-    plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
+    # plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
     # Plot two variables from the dataframe - outputs both stacked by filename and full distributions
     plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
-    plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
-    # Plot all output from bigger dataframe grainstats for initial visualisation as KDE plots
-    # plotall(grainstats_df, bins, path, '.png')
+    # plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
     # Saving stats to text and JSON files named by master path
     savestats(path, grainstats_df)
+    # Plot all output from dataframe grainstats for initial visualisation as KDE plots
+    # plotall(grainstats_df, path, extension)
