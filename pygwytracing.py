@@ -203,7 +203,7 @@ def removesmallobjects(datafield, mask, median_pixel_area, mindeviation):
     return mask, grains
 
 
-def grainanalysis(directory, filename, datafield, grains):
+def grainanalysis(appended_data, filename, datafield, grains):
     ### Calculating grain statistics using numbered grains file
     # Statistics to be computed should be specified here as a dictionary
     values_to_compute = {'grain_proj_area': gwy.GRAIN_VALUE_PROJECTED_AREA,
@@ -235,63 +235,21 @@ def grainanalysis(directory, filename, datafield, grains):
         # Delete 0th value in all arrays - this corresponds to the background
         del grain_data_to_save[key][0]
 
-    grainstats = pd.DataFrame.from_dict(grain_data_to_save, orient='index').transpose()
+    # Create pandas dataframe of stats
+    grainstats = pd.DataFrame.from_dict(grain_data_to_save)
 
-    return values_to_compute, grainstats
-
-
-def grainstatistics(datafield, grains, filename, result):
-    ### Get only last part of filename without extension
+    # Determine directory, filename and grain number to append to dataframe
     directory = str(os.path.dirname(filename))
     directory = str(os.path.splitext(os.path.basename(directory))[0])
     filename = os.path.splitext(os.path.basename(filename))[0]
 
-    ### Calculate grain statistics
-    grain_bound_len = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_FLAT_BOUNDARY_LENGTH)
-    grain_min_bound = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MINIMUM_BOUND_SIZE)
-    grain_max_bound = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MAXIMUM_BOUND_SIZE)
-    grain_mean_rad = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MEAN_RADIUS)
-    grain_proj_area = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_PROJECTED_AREA)
-    grain_max = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MAXIMUM)
-    grain_med = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_MEDIAN)
-    grain_ellipse_min = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MINOR)
-    grain_ellipse_maj = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MAJOR)
-    grain_ellipse_ang = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_EQUIV_ELLIPSE_ANGLE)
-    grain_curv1 = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_CURVATURE1)
-    grain_curv2 = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_CURVATURE2)
+    grainstats['filename'] = pd.Series(filename, index=grainstats.index)
+    grainstats['directory'] = pd.Series(directory, index=grainstats.index)
+    grainstats['grain no'] = (grainstats.reset_index().index) + 1
 
-    ### Delete 0th value in all arrays - this corresponds to the background
-    del grain_bound_len[0]
-    del grain_min_bound[0]
-    del grain_max_bound[0]
-    del grain_mean_rad[0]
-    del grain_proj_area[0]
-    del grain_max[0]
-    del grain_med[0]
-    del grain_ellipse_min[0]
-    del grain_ellipse_maj[0]
-    del grain_curv1[0]
-    del grain_curv2[0]
+    appended_data.append(grainstats)
 
-    ### Loop over list to get filename, grain number, and grain min and max bounding sizes
-    for i in range(len(grain_min_bound)):
-        # resultsheader = 'directory, filename, i, grain_bound_len[i], grain_min_bound[i], grain_max_bound[i], grain_mean_rad[i], grain_proj_area[i], grain_max[i], grain_med[i]'
-        result.append(
-            [directory, filename, i, grain_bound_len[i], grain_min_bound[i],
-             grain_max_bound[i], grain_mean_rad[i], grain_proj_area[i],
-             grain_max[i], grain_med[i], grain_ellipse_min[i], grain_ellipse_maj[i],
-             grain_ellipse_ang[i], grain_curv1[i], grain_curv2[i]])
-
-    ### Convert results to a pandas dataframe with column headings to save out
-    grainstats_df = pd.DataFrame.from_records(result,
-                                              columns=['directory', 'filename', 'i', 'grain_bound_len',
-                                                       'grain_min_bound',
-                                                       'grain_max_bound', 'grain_mean_rad', 'grain_proj_area',
-                                                       'grain_max', 'grain_med', 'grain_ellipse_min',
-                                                       'grain_ellipse_maj',
-                                                       'grain_ellipse_ang', 'grain_curv1', 'grain_curv2'])
-
-    return grainstats_df
+    return values_to_compute, grainstats, appended_data
 
 
 def plotall(dataframe, bins, directory, extension):
@@ -661,6 +619,7 @@ if __name__ == '__main__':
 
     # Declare variables used later
     # Placed outside for loop in order that they don't overwrite data to be appended
+    appended_data = []
     result = []
 
     # Look through the current directory and all subdirectories for files ending in .spm and add to flist
@@ -692,8 +651,8 @@ if __name__ == '__main__':
             # Remove all small objects defined as less than 0.5x the median grain size (in pixel area)
             mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
             # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
-            # Not currently used - replaced by grainstatistics function
-            values_to_compute, grainstats = grainanalysis(path, filename, datafield, grains)
+            # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
+            values_to_compute, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
             # Create cropped datafields for every grain of size set in the main directory
             bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             # Save out cropped files as images with no scales to a subfolder
@@ -707,13 +666,13 @@ if __name__ == '__main__':
             # Determine the grain statistics
             # Append those stats to one file to get all stats in a directory
             # Save out as a pandas dataframe
-            grainstats_df = grainstatistics(datafield, grains, filename, result)
+    grainstats_df = pd.concat(appended_data).reset_index(level=1, drop=True)
     # Plot a single variable from the dataframe
-    plotting(grainstats_df, 'grain_mean_rad', 'directory', bins, path, extension)
+    plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
     # Plot two variables from the dataframe - outputs both stacked by filename and full distributions
-    # plotting2(grainstats_df, 'grain_min_bound', 'grain_max_bound', 'directory', bins, path, extension)
-    # plotting2(grainstats_df, 'grain_max', 'grain_med', 'directory', bins, path, extension)
+    plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
+    plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
     # Plot all output from bigger dataframe grainstats for initial visualisation as KDE plots
-    # plotall(grainstats, bins, path, '.png')
+    # plotall(grainstats_df, bins, path, '.png')
     # Saving stats to text and JSON files named by master path
     savestats(path, grainstats_df)
