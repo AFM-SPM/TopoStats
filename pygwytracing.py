@@ -271,7 +271,7 @@ def plotall(dataframe, directory, extension):
         # plt.hist(df[col])
         # df[col].plot.hist()
         plt.show()
-        plt.savefig(savename + str(col) + extension)
+        plt.savefig(savename + '_' + str(col) + extension)
 
 
 def plotting(dataframe, arg1, grouparg, bins, directory, extension):
