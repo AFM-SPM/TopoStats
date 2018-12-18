@@ -664,8 +664,8 @@ if __name__ == '__main__':
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
     # Set height scale values to save out
-    minheightscale = -2e-9
-    maxheightscale = 4e-9
+    minheightscale = -20e-9
+    maxheightscale = 20e-9
     # Set minimum size for grain determination:
     minarea = 200e-9
     # Set allowable deviation from the median pixel size for removal of large and small objects
@@ -739,17 +739,18 @@ if __name__ == '__main__':
     # Plot all output from dataframe grainstats for initial visualisation as KDE plots
     # plotall(grainstats_df, path, extension)
 
-    # Plot a single variable from the dataframe
+    # # Plot a single variable from the dataframe
     # plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
 
-    # Iterate through all keys in the grainstatsarguments file to plot various statistical quantities for a dataframe
-    plottingallstats(grainstatsarguments, grainstats_df, extension, path)
+    # # Iterate through all keys in the grainstatsarguments file to plot various statistical quantities for a dataframe
+    # plottingallstats(grainstatsarguments, grainstats_df, extension, path)
 
-    # Plot two variables from the dataframe - outputs both stacked by filename and full distributions
+    # # Plot two variables from the dataframe - outputs both stacked by filename and full distributions
     # plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
-    # plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
+    plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
+
     # Plot a joint axis seaborn plot
-    # seaplotting(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', bins, path, extension)
+    seaplotting(grainstats_searched, 'grain_min_bound_size', 'grain_max_bound_size', bins, path, extension)
 
     # Saving stats to text and JSON files named by master path
-    # savestats(path, grainstats_df)
+    savestats(path, grainstats_df)
