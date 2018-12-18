@@ -256,6 +256,7 @@ def grainanalysis(appended_data, filename, datafield, grains):
     appended_data.append(grainstats)
 
     grainstatsarguments = list(values_to_compute.keys())
+    grainstatsarguments = sorted(grainstatsarguments)
 
     return grainstatsarguments, grainstats, appended_data
 
@@ -300,7 +301,7 @@ def plotting(dataframe, arg1, grouparg, bins, directory, extension):
     max_ax = df[arg1].max()
     max_ax = round(max_ax, 9)
 
-    # Plot using MatPlotLib separated by filetype on two separate graphs with stacking
+    # Plot using MatPlotLib separated by the grouparg on two separate graphs with stacking
     # Create a figure of given size
     fig = plt.figure(figsize=(18, 12))
     ax = fig.add_subplot(111)
@@ -361,12 +362,40 @@ def seaplotting(df, arg1, arg2, bins, directory, extension):
         sns.jointplot(arg1, arg2, data=df, kind='reg')
         plt.savefig(savename + '_' + str(arg1) + str(arg2) + '_seaborn' + extension)
 
+def plottingallstats(grainstatsarguments, df, extension, directory):
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    for key in grainstatsarguments:
+        print 'Plotting graph of %s' % (key)
+        # Plot each argument together using MatPlotLib
+        # Create a figure of given size
+        fig = plt.figure(figsize=(18, 12))
+        ax = fig.add_subplot(111)
+        # Set title
+        ttl = 'Histogram of %s' % key
+        # Melt dataframe to leave only columns we are interested in
+        df3 = pd.melt(df, id_vars=[key])
+        # Plot histogram
+        df3.plot.hist(ax=ax, alpha=.3)
+        plt.xlabel('%s (nm)' % key)
+        # # Set legend options
+        # plt.legend(ncol=2, loc='upper right')
+        # Set tight borders
+        plt.tight_layout()
+        # Save plot
+        plt.savefig(savename + '_' + key + extension)
+
 
 
 def plotting2(df, arg1, arg2, grouparg, bins, directory, extension):
     print 'Plotting graph of %s and %s' % (arg1, arg2)
     # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Plots/')
+    savedir = os.path.join(directory, 'Plots')
     savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
     if not os.path.exists(savedir):
         os.makedirs(savedir)
@@ -709,13 +738,18 @@ if __name__ == '__main__':
 
     # Plot all output from dataframe grainstats for initial visualisation as KDE plots
     # plotall(grainstats_df, path, extension)
+
     # Plot a single variable from the dataframe
     # plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
+
+    # Iterate through all keys in the grainstatsarguments file to plot various statistical quantities for a dataframe
+    plottingallstats(grainstatsarguments, grainstats_df, extension, path)
+
     # Plot two variables from the dataframe - outputs both stacked by filename and full distributions
     # plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
     # plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
     # Plot a joint axis seaborn plot
-    seaplotting(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', bins, path, extension)
+    # seaplotting(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', bins, path, extension)
 
     # Saving stats to text and JSON files named by master path
-    savestats(path, grainstats_df)
+    # savestats(path, grainstats_df)
