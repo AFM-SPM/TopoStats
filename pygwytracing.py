@@ -47,7 +47,7 @@ def traversedirectories(fileend, filetype, path):
     for dirpath, subdirs, files in os.walk(path):
         # Looking for files ending in fileend
         for filename in files:
-            if filename.endswith(fileend):
+            if filename.endswith((fileend)):
                 spmfiles.append(os.path.join(dirpath, filename))
         # Looking for files of a certain filetype
         for filename in fnmatch.filter(files, filetype):
@@ -668,10 +668,11 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Test/20160601_339_-6_PLL_NaOAc'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/NI'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing/Files'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/NI'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing/Files'
     # Set file type to look for here
-    fileend = '.spm'
+    fileend = '.spm', '.gwy', '.jpk', '*.*[0-9]'
+    fileextension = ['*.spm', '*.gwy', '*.jpk', '*.*[0-9]']
     filetype = '*.*[0-9]'
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
@@ -722,7 +723,7 @@ if __name__ == '__main__':
             median_pixel_area = find_median_pixel_area(datafield, grains)
             # Remove all large objects defined as 1.2* the median grain size (in pixel area)
             mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation)
-            # Remove all small objects defined as less than 0.5x the median grain size (in pixel area)
+            # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
             mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
 
             # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
@@ -755,7 +756,7 @@ if __name__ == '__main__':
     # plotall(grainstats_df, path, extension)
 
     # Plot a single variable from the dataframe
-    plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
+    # plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
     # plotting(grainstats_df, 'grain_max_bound_size', 'directory', bins, path, extension)
     # plotting(grainstats_df, 'grain_min_bound_size', 'directory', bins, path, extension)
 
@@ -763,11 +764,11 @@ if __name__ == '__main__':
     # plottingallstats(grainstatsarguments, grainstats_df, extension, path)
 
     # # Plot two variables from the dataframe - outputs both stacked by filename and full distributions
-    plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
+    # plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
     # plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
 
     # # Plot a joint axis seaborn plot
-    seaplotting(grainstats_searched, 'grain_min_bound_size', 'grain_max_bound_size', bins, path, extension)
+    # seaplotting(grainstats_searched, 'grain_min_bound_size', 'grain_max_bound_size', bins, path, extension)
 
     # Saving stats to text and JSON files named by master path
     savestats(path, grainstats_df)
