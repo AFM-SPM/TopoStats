@@ -543,10 +543,27 @@ def exportasnparray(datafield, mask):
 
 
 def savestats(directory, dataframetosave):
-    print 'Saving stats for: ' + str(os.path.splitext(os.path.basename(directory))[0])
+    directoryname = os.path.splitext(os.path.basename(directory))[0]
+    print 'Saving stats for: ' + str(directoryname)
 
-    savedir = os.path.join(directory, 'GrainStatistics')
-    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
+    savedir = os.path.join(directory, directoryname + 'GrainStatistics')
+    savename = os.path.join(savedir, directoryname)
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    dataframetosave.to_json(savename + '.json')
+    dataframetosave.to_csv(savename + '.txt')
+
+
+def saveindividualstats(filename, dataframetosave):
+
+    # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
+    filedirectory, filename = os.path.split(filename)
+
+    print 'Saving stats for: ' + str(filename)
+
+    savedir = os.path.join(filedirectory, 'GrainStatistics')
+    savename = os.path.join(savedir, filename)
     if not os.path.exists(savedir):
         os.makedirs(savedir)
 
@@ -558,9 +575,8 @@ def savefiles(data, filename, extension):
     # Turn rulers on
     s["/module/pixmap/xytype"] = 1
 
-    ### Get only last part of filename without extension
-    directory = str(os.path.dirname(filename))
-    filename = os.path.splitext(os.path.basename(filename))[0]
+    # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
+    directory, filename = os.path.split(filename)
 
     # Create a saving name format/directory
     savedir = os.path.join(directory, 'Processed')
@@ -577,8 +593,6 @@ def savefiles(data, filename, extension):
     palette = data.set_string_by_name("/" + str(k) + "/base/palette", "Nanoscope")
     # Determine the title of each channel
     title = data["/%d/data/title" % k]
-    # Determine the filename for each file including path
-    filename = os.path.splitext(filename)[0]
     # Generate a filename to save to by removing the extension to the file, adding the suffix '_processed'
     # and an extension set in the main file
     savename = os.path.join(savedir, filename) + str(k) + '_' + str(title) + '_processed' + str(extension)
@@ -602,9 +616,8 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
     # Turn rulers off
     s["/module/pixmap/xytype"] = 0
 
-    ### Get only last part of filename without extension
-    directory = str(os.path.dirname(filename))
-    filename = os.path.splitext(os.path.basename(filename))[0]
+    # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
+    directory, filename = os.path.split(filename)
 
     # Create a saving name format/directory
     savedir = os.path.join(directory, 'Cropped')
@@ -656,16 +669,17 @@ if __name__ == '__main__':
     # Set various options here:
 
     # Set the file path, i.e. the directory where the files are here
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Test'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Test/20160601_339_-6_PLL_NaOAc'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/NI'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing/Files'
     # Set file type to look for here
     fileend = '.spm'
     filetype = '*.*[0-9]'
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
     # Set height scale values to save out
-    minheightscale = -20e-9
-    maxheightscale = 20e-9
+    minheightscale = -2e-9
+    maxheightscale = 4e-9
     # Set minimum size for grain determination:
     minarea = 200e-9
     # Set allowable deviation from the median pixel size for removal of large and small objects
@@ -731,25 +745,30 @@ if __name__ == '__main__':
             # Save data as 2 images, with and without mask
             savefiles(data, filename, extension)
 
+            # Saving stats to text and JSON files named by master path
+            saveindividualstats(filename, grainstats)
+
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = getdataforallfiles(appended_data)
     # Search dataframes and return a new dataframe of only files containing a specific string
     grainstats_searched = searchgrainstats(grainstats_df, 'filename', '339', 'nothing')
 
-    # Plot all output from dataframe grainstats for initial visualisation as KDE plots
+    # # Plot all output from dataframe grainstats for initial visualisation as KDE plots
     # plotall(grainstats_df, path, extension)
 
-    # # Plot a single variable from the dataframe
-    # plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
+    # Plot a single variable from the dataframe
+    plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
+    # plotting(grainstats_df, 'grain_max_bound_size', 'directory', bins, path, extension)
+    # plotting(grainstats_df, 'grain_min_bound_size', 'directory', bins, path, extension)
 
     # # Iterate through all keys in the grainstatsarguments file to plot various statistical quantities for a dataframe
     # plottingallstats(grainstatsarguments, grainstats_df, extension, path)
 
     # # Plot two variables from the dataframe - outputs both stacked by filename and full distributions
-    # plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
-    plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
+    plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
+    # plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
 
-    # Plot a joint axis seaborn plot
+    # # Plot a joint axis seaborn plot
     seaplotting(grainstats_searched, 'grain_min_bound_size', 'grain_max_bound_size', bins, path, extension)
 
     # Saving stats to text and JSON files named by master path
