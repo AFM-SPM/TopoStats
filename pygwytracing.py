@@ -47,8 +47,9 @@ def traversedirectories(fileend, filetype, path):
     for dirpath, subdirs, files in os.walk(path):
         # Looking for files ending in fileend
         for filename in files:
-            if filename.endswith((fileend)):
-                spmfiles.append(os.path.join(dirpath, filename))
+            if not fnmatch.fnmatch(filename, '*_cs*'):
+                if filename.endswith((fileend)):
+                    spmfiles.append(os.path.join(dirpath, filename))
         # Looking for files of a certain filetype
         for filename in fnmatch.filter(files, filetype):
             spmfiles.append(os.path.join(dirpath, filename))
