@@ -1,18 +1,16 @@
 #!/usr/bin/env python2
 
-import gwy
+import fnmatch
 import gwyutils
 import os
-import fnmatch
-import re
 
+import gwy
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
 # Import height thresholding.py for processing bilayer removal images
-import heightthresholding
 
 ### Set seaborn to override matplotlib for plot output
 sns.set()
@@ -669,8 +667,8 @@ if __name__ == '__main__':
     # Set various options here:
 
     # Set the file path, i.e. the directory where the files are here
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Test/20160601_339_-6_PLL_NaOAc'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/NI'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Test/20160601_339_-6_PLL_NaOAc'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/NI'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing/Files'
     # Set file type to look for here
     fileend = '.spm'
