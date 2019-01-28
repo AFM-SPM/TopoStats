@@ -550,7 +550,7 @@ def savestats(directory, dataframetosave):
     directoryname = os.path.splitext(os.path.basename(directory))[0]
     print 'Saving stats for: ' + str(directoryname)
 
-    savedir = os.path.join(directory, directoryname + 'GrainStatistics')
+    savedir = os.path.join(directory)
     savename = os.path.join(savedir, directoryname)
     if not os.path.exists(savedir):
         os.makedirs(savedir)
@@ -564,7 +564,7 @@ def saveindividualstats(filename, dataframetosave):
     # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
     filedirectory, filename = os.path.split(filename)
 
-    print 'Saving stats for: ' + str(filename)
+    # print 'Saving stats for: ' + str(filename)
 
     savedir = os.path.join(filedirectory, 'GrainStatistics')
     savename = os.path.join(savedir, filename)
@@ -609,7 +609,7 @@ def savefiles(data, filename, extension):
     # Save the data
     gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE)
     # Print the name of the file you're saving to the command line
-    print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))
+    # print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))
 
 
 def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale):
@@ -672,19 +672,19 @@ def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
 if __name__ == '__main__':
     # Set various options here:
 
-    # Set the file path, i.e. the directory where the files are here
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Test/20160601_339_-6_PLL_NaOAc'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/NI'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing/Files'
+    # Set the file path, i.e. the directory where the files are here'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/251'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Test'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing/Files'
     # Set file type to look for here
-    fileend = '.spm', '.gwy', '.jpk', '*.*[0-9]'
-    fileextension = ['*.spm', '*.gwy', '*.jpk', '*.*[0-9]']
+    fileend = '.spm', '.jpk', '*.*[0-9]'
     filetype = '*.*[0-9]'
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
     # Set height scale values to save out
-    minheightscale = -2e-9
-    maxheightscale = 4e-9
+    minheightscale = -1e-9
+    maxheightscale = 2.5e-9
     # Set minimum size for grain determination:
     minarea = 200e-9
     # Set allowable deviation from the median pixel size for removal of large and small objects
@@ -707,8 +707,9 @@ if __name__ == '__main__':
         print 'Analysing ' + str(os.path.basename(filename))
         # Load the data for the specified filename
         data = getdata(filename)
-        # Find the channels of data you wish to use within the finle e.g. ZSensor or height
+        # Find the channels of data you wish to use within the file e.g. ZSensor or height
         chosen_ids = choosechannels(data)
+        # chosen_ids = [chosen_ids[0]]
 
         # Iterate over the chosen channels in your file e.g. the ZSensor channel
         for k in chosen_ids:
@@ -725,6 +726,7 @@ if __name__ == '__main__':
             # # Flattening based on masked data and subsequent grain finding
             # # Used for analysing data e.g. peptide induced bilayer degradation
             # data, mask, datafield, grains = heightthresholding.otsuthresholdgrainfinding(data, k)
+
             # Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
             median_pixel_area = find_median_pixel_area(datafield, grains)
             # Remove all large objects defined as 1.2* the median grain size (in pixel area)
@@ -762,15 +764,17 @@ if __name__ == '__main__':
     # plotall(grainstats_df, path, extension)
 
     # Plot a single variable from the dataframe
-    # plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
+    plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
+    # plotting(grainstats_df, 'grain_bound_len', 'directory', bins, path, extension)
     # plotting(grainstats_df, 'grain_max_bound_size', 'directory', bins, path, extension)
     # plotting(grainstats_df, 'grain_min_bound_size', 'directory', bins, path, extension)
 
-    # # Iterate through all keys in the grainstatsarguments file to plot various statistical quantities for a dataframe
+    # Iterate through all keys in the grainstatsarguments file to plot various statistical quantities for a dataframe
     # plottingallstats(grainstatsarguments, grainstats_df, extension, path)
 
-    # # Plot two variables from the dataframe - outputs both stacked by filename and full distributions
-    # plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
+    # # Plot two variables from the dataframe - outputs both stacked by variable and full distributions
+    plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
+    # plotting2(grainstats_df, 'grain_mean', 'grain_maximum', 'directory', bins, path, extension)
     # plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
 
     # # Plot a joint axis seaborn plot
