@@ -673,9 +673,9 @@ if __name__ == '__main__':
     # Set various options here:
 
     # Set the file path, i.e. the directory where the files are here'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/251'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Test'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel_Kavit'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/TFO'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/PLL'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing/Files'
     # Set file type to look for here
     fileend = '.spm', '.jpk', '*.*[0-9]'
@@ -684,7 +684,7 @@ if __name__ == '__main__':
     extension = '.tiff'
     # Set height scale values to save out
     minheightscale = -1e-9
-    maxheightscale = 2.5e-9
+    maxheightscale = 3e-9
     # Set minimum size for grain determination:
     minarea = 200e-9
     # Set allowable deviation from the median pixel size for removal of large and small objects
@@ -764,7 +764,7 @@ if __name__ == '__main__':
     # plotall(grainstats_df, path, extension)
 
     # Plot a single variable from the dataframe
-    plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
+    # plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
     # plotting(grainstats_df, 'grain_bound_len', 'directory', bins, path, extension)
     # plotting(grainstats_df, 'grain_max_bound_size', 'directory', bins, path, extension)
     # plotting(grainstats_df, 'grain_min_bound_size', 'directory', bins, path, extension)
@@ -773,7 +773,7 @@ if __name__ == '__main__':
     # plottingallstats(grainstatsarguments, grainstats_df, extension, path)
 
     # # Plot two variables from the dataframe - outputs both stacked by variable and full distributions
-    plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
+    # plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
     # plotting2(grainstats_df, 'grain_mean', 'grain_maximum', 'directory', bins, path, extension)
     # plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
 
