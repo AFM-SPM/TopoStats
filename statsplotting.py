@@ -6,13 +6,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-# Import height thresholding.py for processing bilayer removal images
-
-### Set seaborn to override matplotlib for plot output
+# Set seaborn to override matplotlib for plot output
 sns.set()
 # The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
 # The notebook style is the default
-sns.set_context("talk")
+sns.set_context("poster")
 
 
 def importfromjson(path, name):
@@ -203,51 +201,99 @@ def plotting2(df, arg1, arg2, grouparg, bins, directory, extension):
     plt.savefig(savename + '_' + arg1 + '_' + arg2 + '_' + 'b' + extension)
 
 
+def savestats(directory, dataframetosave):
+    directoryname = os.path.splitext(os.path.basename(directory))[0]
+    print 'Saving stats for: ' + str(directoryname)
+
+    savedir = os.path.join(directory)
+    savename = os.path.join(savedir, directoryname)
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    dataframetosave.to_json(savename + 'evaluated.json')
+    dataframetosave.to_csv(savename + 'evaluated.txt')
+
+
 # This the main script
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/Nickel'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/Nickel'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel'
     # Set the name of the json file to import here
-    name = '339'
-    plotextension = '.tiff'
-    bins = 100
-
-    savename = os.path.join(path, name + plotextension)
+    name = 'Nickel_Kavit'
+    plotextension = '.pdf'
+    bins = 25
 
     # import data form the json file specified as a dataframe
     df = importfromjson(path, name)
-    print 'done'
+
     # Rename directory column as topoisomer
     df = df.rename(columns={"directory": "topoisomer"})
+    # df = df.rename(columns={'grain_min_bound_size': 'width', 'grain_max_bound_size': 'length'})
+
+    # Evaluate the aspect ratio for each grain
+    df['aspectratio'] = df['grain_min_bound_size'] / df['grain_max_bound_size']
 
     # Get list of unique directory names i.e. topoisomers
-    a = df['topoisomer'].unique()
-    a.sort()
-    for x in a:
-        print x
+    topos = df['topoisomer'].unique()
+    sorted(topos, reverse=True)
 
+    # Generate new dataframes for each topoisomer
+    dfrel = df.loc[df['topoisomer'] == 'Relaxed']
+    dfnic = df.loc[df['topoisomer'] == 'Nicked']
+    dfnat = df.loc[df['topoisomer'] == 'Native']
+    df6 = df.loc[df['topoisomer'] == '-6']
+    df3 = df.loc[df['topoisomer'] == '-3']
+    df2 = df.loc[df['topoisomer'] == '-2']
+    df1 = df.loc[df['topoisomer'] == '-1']
+
+    topodflist = [dfrel, dfnic, dfnat, df1, df2, df3, df6]
+
+    nat = df.query("topoisomer == 'native'")
+
+    # Generate a new smaller df from the original df containing only the columns topoisomer and mean radius
     dfradius = df[['topoisomer', 'grain_mean_radius']]
+    dfaspectratio = df[['topoisomer', 'aspectratio']]
 
-    std_values = df.groupby('topoisomer')['grain_mean_radius'].std()
-    mean_values = df.groupby('topoisomer')['grain_mean_radius'].mean()
+    # Get statistics for different topoisoimers
     allstats = df.groupby('topoisomer').describe()
+    # transpose allstats dataframe to get better saving output
+    allstats1 = allstats.transpose()
+    # Save out statistics file
+    savestats(path, allstats1)
 
-    # df['grain_mean_radius'].plot(kind='hist', bins=100)
-    plt.figure(1)
-    df.groupby('topoisomer')['grain_mean_radius'].plot(kind='hist', bins=100, alpha=.3)
-    plt.legend()
-    plt.xlabel('mean radius')
-    plt.xlim(10, 25)
-    savename = os.path.join(path, name + '_b' + plotextension)
+    # Plot and save figures
+    savename = os.path.join(path, name + '_aspectratio' + plotextension)
+    fig, ax = plt.subplots(figsize=(10, 7))
+    df.groupby('topoisomer')['aspectratio'].plot.kde(ax=ax, legend=True)
+    plt.xlim(0, 1)
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles[::-1], labels[::-1], loc='upper left')
     plt.savefig(savename)
 
-    savename = os.path.join(path, name + '_b' + plotextension)
-    fig, ax = plt.subplots()
-    df.groupby('topoisomer')['grain_mean_radius'].plot.kde(ax=ax, legend=False, title='Topoisomer KDE plots')
-    plt.legend()
-    plt.xlabel('mean radius')
-    plt.xlim(10, 25)
-    savename = os.path.join(path, name + '_a' + plotextension)
-    plt.savefig(savename)
+    plotting(df, 'aspectratio', 'topoisomer', bins, path, plotextension)
 
-    plotting(df, 'grain_mean_radius', 'topoisomer', bins, path, plotextension)
+    # Plot all columns of dataframe and save as graph
+    columnstoplot = list(df.select_dtypes(include=['float64', 'int64']).columns)
+    for x in columnstoplot:
+        savename = os.path.join(path, name + '_' + str(x) + plotextension)
+        fig, ax = plt.subplots(figsize=(10, 7))
+        df.groupby('topoisomer')[x].plot.kde(ax=ax, legend=True)
+        plt.savefig(savename)
+
+    # # Plotting all topoisomers separately as KDE plots using seaborn
+    # p1 = sns.kdeplot(dfnicked['aspectratio'], shade=True)
+    # p2 = sns.kdeplot(dfrelaxed['aspectratio'], shade=True)
+    # p3 = sns.kdeplot(dfnative['aspectratio'], shade=True)
+    # p4 = sns.kdeplot(df1['aspectratio'], shade=True)
+    # p5 = sns.kdeplot(df2['aspectratio'], shade=True)
+    # p6 = sns.kdeplot(df3['aspectratio'], shade=True)
+    # p7 = sns.kdeplot(df6['aspectratio'], shade=True)
+
+    # Plotting a distribution with given fit
+    # sns.distplot(df6['aspectratio'], kde=False, fit=stats.gamma)
+
+    # plotting(df, 'grain_max_bound_size', 'topoisomer', bins, path, plotextension)
+
+    # plotting2(df, 'grain_min_bound_size', 'grain_max_bound_size', 'topoisomer', bins, path, plotextension)
