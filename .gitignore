@@ -7,4 +7,6 @@
 *.gwy
 *.txt
 *.rtf
+.json
+.npy
 
