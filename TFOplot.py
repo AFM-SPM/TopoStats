@@ -1,5 +1,4 @@
 import os
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
@@ -8,7 +7,7 @@ import seaborn as sns
 sns.set()
 # The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
 # The notebook style is the default
-sns.set_context("poster")
+sns.set_context("talk")
 
 
 def importfromjson(path, name):
@@ -30,6 +29,20 @@ bins = 8
 
 # import data from a JSON file
 TFO = importfromjson(path, name)
+
+# Get details of different length types
+lengths = TFO['Obj'].unique()
+sorted(lengths)
+
+# Determine mean and std for measurements
+TFO1mean = TFO.query('Obj == 1').loc[:,'length (nm)'].mean()
+TFO1std = TFO.query('Obj == 1').loc[:,'length (nm)'].std()
+TFO2mean = TFO.query('Obj == 2').loc[:,'length (nm)'].mean()
+TFO2std = TFO.query('Obj == 2').loc[:,'length (nm)'].std()
+TFO3mean = TFO.query('Obj == 3').loc[:,'length (nm)'].mean()
+TFO3std = TFO.query('Obj == 3').loc[:,'length (nm)'].std()
+TFO4mean = TFO.query('Obj == 4').loc[:,'length (nm)'].mean()
+TFO4std = TFO.query('Obj == 4').loc[:,'length (nm)'].std()
 
 # TFO plotting
 savename = os.path.join(path, name + '_1' + plotextension)
