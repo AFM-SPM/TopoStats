@@ -50,7 +50,8 @@ def plotting(dataframe, arg1, grouparg, bins, directory, extension):
     max_ax = df[arg1].max()
     max_ax = round(max_ax, 9)
 
-    # Plot using MatPlotLib separated by the grouparg on two separate graphs with stacking
+    # Plot arg1 using MatPlotLib separated by the grouparg
+    # Plot with figure with stacking sorted by grouparg
     # Create a figure of given size
     fig = plt.figure(figsize=(18, 12))
     ax = fig.add_subplot(111)
@@ -69,16 +70,14 @@ def plotting(dataframe, arg1, grouparg, bins, directory, extension):
     # Save plot
     plt.savefig(savename + '_' + arg1 + '_a' + extension)
 
-    # Plot each argument together using MatPlotLib
+    # Plot arg1 using MatPlotLib
     # Create a figure of given size
     fig = plt.figure(figsize=(18, 12))
     ax = fig.add_subplot(111)
     # Set title
     ttl = 'Histogram of %s' % arg1
-    # Melt dataframe to leave only columns we are interested in
-    df3 = pd.melt(df, id_vars=[arg1])
     # Plot histogram
-    df3.plot.hist(ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3)
+    df[arg1].plot.hist(ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3)
     plt.xlabel('%s (nm)' % arg1)
     # # Set legend options
     # plt.legend(ncol=2, loc='upper right')
@@ -235,6 +234,26 @@ def plotall(dataframe, directory, extension):
         plt.savefig(savename + '_' + str(col) + extension)
 
 
+def plotdfcolumns(path, name, df):
+    # Plot all columns of dataframe and save as graph
+    columnstoplot = list(df.select_dtypes(include=['float64', 'int64']).columns)
+    for x in columnstoplot:
+        savename = os.path.join(path, name + '_' + str(x) + plotextension)
+        fig, ax = plt.subplots(figsize=(10, 7))
+        df.groupby('topoisomer')[x].plot.kde(ax=ax, legend=True)
+        plt.savefig(savename)
+
+def plottopoisomerkdes(path, name, df):
+    # Plotting all topoisomers separately as KDE plots using seaborn
+    p1 = sns.kdeplot(dfnicked['aspectratio'], shade=True)
+    p2 = sns.kdeplot(dfrelaxed['aspectratio'], shade=True)
+    p3 = sns.kdeplot(dfnative['aspectratio'], shade=True)
+    p4 = sns.kdeplot(df1['aspectratio'], shade=True)
+    p5 = sns.kdeplot(df2['aspectratio'], shade=True)
+    p6 = sns.kdeplot(df3['aspectratio'], shade=True)
+    p7 = sns.kdeplot(df6['aspectratio'], shade=True)
+
+
 # This the main script
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
@@ -260,7 +279,7 @@ if __name__ == '__main__':
     topos = df['topoisomer'].unique()
     sorted(topos, reverse=True)
 
-    # Generate new dataframes for each topoisomer
+    # Generate separate dataframes for each topoisomer
     dfrel = df.loc[df['topoisomer'] == 'Relaxed']
     dfnic = df.loc[df['topoisomer'] == 'Nicked']
     dfnat = df.loc[df['topoisomer'] == 'Native']
@@ -269,9 +288,9 @@ if __name__ == '__main__':
     df2 = df.loc[df['topoisomer'] == '-2']
     df1 = df.loc[df['topoisomer'] == '-1']
 
-    topodflist = [dfrel, dfnic, dfnat, df1, df2, df3, df6]
-
     nat = df.query("topoisomer == 'native'")
+
+    topodflist = [dfrel, dfnic, dfnat, df1, df2, df3, df6]
 
     # Generate a new smaller df from the original df containing only the columns topoisomer and mean radius
     dfradius = df[['topoisomer', 'grain_mean_radius']]
@@ -284,33 +303,22 @@ if __name__ == '__main__':
     # Save out statistics file
     savestats(path, allstats1)
 
-    # # Plot and save figures
-    # savename = os.path.join(path, name + '_aspectratio' + plotextension)
-    # fig, ax = plt.subplots(figsize=(10, 7))
-    # df.groupby('topoisomer')['aspectratio'].plot.kde(ax=ax, legend=True)
-    # plt.xlim(0, 1)
-    # handles, labels = ax.get_legend_handles_labels()
-    # ax.legend(handles[::-1], labels[::-1], loc='upper left')
-    # plt.savefig(savename)
-    #
-    # plotting(df, 'aspectratio', 'topoisomer', bins, path, plotextension)
-    #
-    # # Plot all columns of dataframe and save as graph
-    # columnstoplot = list(df.select_dtypes(include=['float64', 'int64']).columns)
-    # for x in columnstoplot:
-    #     savename = os.path.join(path, name + '_' + str(x) + plotextension)
-    #     fig, ax = plt.subplots(figsize=(10, 7))
-    #     df.groupby('topoisomer')[x].plot.kde(ax=ax, legend=True)
-    #     plt.savefig(savename)
+    # Plot and save figures
+    savename = os.path.join(path, name + '_aspectratio' + plotextension)
+    fig, ax = plt.subplots(figsize=(10, 7))
+    df.groupby('topoisomer')['aspectratio'].plot.kde(ax=ax, legend=True)
+    plt.xlim(0, 1)
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles[::-1], labels[::-1], loc='upper left')
+    plt.savefig(savename)
 
-    # # Plotting all topoisomers separately as KDE plots using seaborn
-    # p1 = sns.kdeplot(dfnicked['aspectratio'], shade=True)
-    # p2 = sns.kdeplot(dfrelaxed['aspectratio'], shade=True)
-    # p3 = sns.kdeplot(dfnative['aspectratio'], shade=True)
-    # p4 = sns.kdeplot(df1['aspectratio'], shade=True)
-    # p5 = sns.kdeplot(df2['aspectratio'], shade=True)
-    # p6 = sns.kdeplot(df3['aspectratio'], shade=True)
-    # p7 = sns.kdeplot(df6['aspectratio'], shade=True)
+    # # Plot all columns of a dataframe as separate graphs grouped by topoisomer
+    # plotdfcolumns(path, name, df)
+
+    # Plot the aspect ratio column of the dataframe, grouped by topoisomer as a histogram
+    plotting(df, 'aspectratio', 'topoisomer', bins, path, plotextension)
+
+
 
     # Plotting a distribution with given fit
     # sns.distplot(df6['aspectratio'], kde=False, fit=stats.gamma)
