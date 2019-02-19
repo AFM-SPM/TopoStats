@@ -1,7 +1,6 @@
 #!/usr/bin/env python2
 
 import os
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
@@ -18,6 +17,19 @@ def importfromjson(path, name):
     importeddata = pd.read_json(filename)
 
     return importeddata
+
+
+def savestats(directory, dataframetosave):
+    directoryname = os.path.splitext(os.path.basename(directory))[0]
+    print 'Saving stats for: ' + str(directoryname)
+
+    savedir = os.path.join(directory)
+    savename = os.path.join(savedir, directoryname)
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    dataframetosave.to_json(savename + 'evaluated.json')
+    dataframetosave.to_csv(savename + 'evaluated.txt')
 
 
 def plotting(dataframe, arg1, grouparg, bins, directory, extension):
@@ -74,58 +86,6 @@ def plotting(dataframe, arg1, grouparg, bins, directory, extension):
     plt.tight_layout()
     # Save plot
     plt.savefig(savename + '_' + arg1 + '_b' + extension)
-
-
-def seaplotting(df, arg1, arg2, bins, directory, extension):
-    # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Plots')
-    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
-
-    # Change from m to nm units for plotting
-    df[arg1] = df[arg1] * 1e9
-    df[arg2] = df[arg2] * 1e9
-
-    # Generating min and max axes based on datasets
-    min_ax = min(df[arg1].min(), df[arg2].min())
-    min_ax = round(min_ax, 9)
-    max_ax = max(df[arg1].max(), df[arg2].max())
-    max_ax = round(max_ax, 9)
-
-    # Plot data using seaborn
-    with sns.axes_style('white'):
-        # sns.jointplot(arg1, arg2, data=df, kind='hex')
-        sns.jointplot(arg1, arg2, data=df, kind='reg')
-        plt.savefig(savename + '_' + str(arg1) + str(arg2) + '_seaborn' + extension)
-
-
-def plottingallstats(grainstatsarguments, df, extension, directory):
-    # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Plots')
-    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
-
-    for key in grainstatsarguments:
-        print 'Plotting graph of %s' % (key)
-        # Plot each argument together using MatPlotLib
-        # Create a figure of given size
-        fig = plt.figure(figsize=(18, 12))
-        ax = fig.add_subplot(111)
-        # Set title
-        ttl = 'Histogram of %s' % key
-        # Melt dataframe to leave only columns we are interested in
-        df3 = pd.melt(df, id_vars=[key])
-        # Plot histogram
-        df3.plot.hist(ax=ax, alpha=.3)
-        plt.xlabel('%s (nm)' % key)
-        # # Set legend options
-        # plt.legend(ncol=2, loc='upper right')
-        # Set tight borders
-        plt.tight_layout()
-        # Save plot
-        plt.savefig(savename + '_' + key + extension)
 
 
 def plotting2(df, arg1, arg2, grouparg, bins, directory, extension):
@@ -201,17 +161,78 @@ def plotting2(df, arg1, arg2, grouparg, bins, directory, extension):
     plt.savefig(savename + '_' + arg1 + '_' + arg2 + '_' + 'b' + extension)
 
 
-def savestats(directory, dataframetosave):
-    directoryname = os.path.splitext(os.path.basename(directory))[0]
-    print 'Saving stats for: ' + str(directoryname)
-
-    savedir = os.path.join(directory)
-    savename = os.path.join(savedir, directoryname)
+def seaplotting(df, arg1, arg2, bins, directory, extension):
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
     if not os.path.exists(savedir):
         os.makedirs(savedir)
 
-    dataframetosave.to_json(savename + 'evaluated.json')
-    dataframetosave.to_csv(savename + 'evaluated.txt')
+    # Change from m to nm units for plotting
+    df[arg1] = df[arg1] * 1e9
+    df[arg2] = df[arg2] * 1e9
+
+    # Generating min and max axes based on datasets
+    min_ax = min(df[arg1].min(), df[arg2].min())
+    min_ax = round(min_ax, 9)
+    max_ax = max(df[arg1].max(), df[arg2].max())
+    max_ax = round(max_ax, 9)
+
+    # Plot data using seaborn
+    with sns.axes_style('white'):
+        # sns.jointplot(arg1, arg2, data=df, kind='hex')
+        sns.jointplot(arg1, arg2, data=df, kind='reg')
+        plt.savefig(savename + '_' + str(arg1) + str(arg2) + '_seaborn' + extension)
+
+
+def plottingallstats(grainstatsarguments, df, extension, directory):
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    for key in grainstatsarguments:
+        print 'Plotting graph of %s' % (key)
+        # Plot each argument together using MatPlotLib
+        # Create a figure of given size
+        fig = plt.figure(figsize=(18, 12))
+        ax = fig.add_subplot(111)
+        # Set title
+        ttl = 'Histogram of %s' % key
+        # Melt dataframe to leave only columns we are interested in
+        df3 = pd.melt(df, id_vars=[key])
+        # Plot histogram
+        df3.plot.hist(ax=ax, alpha=.3)
+        plt.xlabel('%s (nm)' % key)
+        # # Set legend options
+        # plt.legend(ncol=2, loc='upper right')
+        # Set tight borders
+        plt.tight_layout()
+        # Save plot
+        plt.savefig(savename + '_' + key + extension)
+
+
+def plotall(dataframe, directory, extension):
+    print 'Plotting graphs for all dataframe variables in %s' % directory
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    df = dataframe
+    # Select columns of datatype 'float64' i.e. not integers or strings
+    df = df.select_dtypes(include=['float64'])
+    # Iterate through all columns to plot data using seaborn
+    for i, col in enumerate(df.columns):
+        plt.figure(i)
+        sns.distplot(df[col], bins=bins)
+        # plt.hist(df[col])
+        # df[col].plot.hist()
+        plt.show()
+        plt.savefig(savename + '_' + str(col) + extension)
 
 
 # This the main script
@@ -263,24 +284,24 @@ if __name__ == '__main__':
     # Save out statistics file
     savestats(path, allstats1)
 
-    # Plot and save figures
-    savename = os.path.join(path, name + '_aspectratio' + plotextension)
-    fig, ax = plt.subplots(figsize=(10, 7))
-    df.groupby('topoisomer')['aspectratio'].plot.kde(ax=ax, legend=True)
-    plt.xlim(0, 1)
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles[::-1], labels[::-1], loc='upper left')
-    plt.savefig(savename)
-
-    plotting(df, 'aspectratio', 'topoisomer', bins, path, plotextension)
-
-    # Plot all columns of dataframe and save as graph
-    columnstoplot = list(df.select_dtypes(include=['float64', 'int64']).columns)
-    for x in columnstoplot:
-        savename = os.path.join(path, name + '_' + str(x) + plotextension)
-        fig, ax = plt.subplots(figsize=(10, 7))
-        df.groupby('topoisomer')[x].plot.kde(ax=ax, legend=True)
-        plt.savefig(savename)
+    # # Plot and save figures
+    # savename = os.path.join(path, name + '_aspectratio' + plotextension)
+    # fig, ax = plt.subplots(figsize=(10, 7))
+    # df.groupby('topoisomer')['aspectratio'].plot.kde(ax=ax, legend=True)
+    # plt.xlim(0, 1)
+    # handles, labels = ax.get_legend_handles_labels()
+    # ax.legend(handles[::-1], labels[::-1], loc='upper left')
+    # plt.savefig(savename)
+    #
+    # plotting(df, 'aspectratio', 'topoisomer', bins, path, plotextension)
+    #
+    # # Plot all columns of dataframe and save as graph
+    # columnstoplot = list(df.select_dtypes(include=['float64', 'int64']).columns)
+    # for x in columnstoplot:
+    #     savename = os.path.join(path, name + '_' + str(x) + plotextension)
+    #     fig, ax = plt.subplots(figsize=(10, 7))
+    #     df.groupby('topoisomer')[x].plot.kde(ax=ax, legend=True)
+    #     plt.savefig(savename)
 
     # # Plotting all topoisomers separately as KDE plots using seaborn
     # p1 = sns.kdeplot(dfnicked['aspectratio'], shade=True)

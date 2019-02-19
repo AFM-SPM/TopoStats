@@ -1,43 +1,21 @@
 #!/usr/bin/env python2
+# sys.path.append("/usr/local/Cellar/gwyddion/2.52/share/gwyddion/pygwy")
 
 import fnmatch
 import gwyutils
 import os
-
 import gwy
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 
-from math import sqrt,acos, degrees, atan2, pi, cos, sin
-from scipy import spatial, interpolate as interp
-from scipy.ndimage import morphology as morph, measurements, fourier, interpolation as imginterp
-from skimage import feature, filters, morphology, segmentation, measure, transform
-
-# Import height thresholding.py for processing bilayer removal images
-
-### Set seaborn to override matplotlib for plot output
-sns.set()
-# The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
-# The notebook style is the default
-sns.set_context("notebook")
-# This can be customised further here
-# sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 2.5})
-
-# sys.path.append("/usr/local/Cellar/gwyddion/2.52/share/gwyddion/pygwy")
-
-# Set the settings for each function from the saved settings file (~/.gwyddion/settings)
-s = gwy.gwy_app_settings_get()
-
-# Generate a settings file - should be found at /Users/alice/.gwyddion/settings
+# Generate a gwyddion settings file - should be found at /Users/alice/.gwyddion/settings
 # a = gwy.gwy_app_settings_get_settings_filename()
 # Location of the settings file - edit to change values
 # print a
-
+# Set the settings for each function from the saved settings file (~/.gwyddion/settings)
+s = gwy.gwy_app_settings_get()
 # Turn colour bar off
 s["/module/pixmap/ztype"] = 0
-
 # Define the settings for image processing functions e.g. align rows here
 s['/module/linematch/method'] = 1
 
@@ -162,6 +140,14 @@ def grainfinding(data, minarea, k):
     return data, mask, datafield, grains
 
 
+def find_median_pixel_area(datafield, grains):
+    # print values_to_compute.keys()
+    grain_pixel_area = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_PIXEL_AREA)
+    grain_pixel_area = np.array(grain_pixel_area)
+    median_pixel_area = np.median(grain_pixel_area)
+    return median_pixel_area
+
+
 def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation):
     mask2 = gwy.DataField.new_alike(datafield, False)
     # Mask data that are above thresh*sigma from average height.
@@ -270,14 +256,6 @@ def grainanalysis(appended_data, filename, datafield, grains):
     return grainstatsarguments, grainstats, appended_data
 
 
-def find_median_pixel_area(datafield, grains):
-    # print values_to_compute.keys()
-    grain_pixel_area = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_PIXEL_AREA)
-    grain_pixel_area = np.array(grain_pixel_area)
-    median_pixel_area = np.median(grain_pixel_area)
-    return median_pixel_area
-
-
 def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
     # Function to return the coordinates of the bounding box for all grains.
     # contains 4 coordinates per image
@@ -329,90 +307,6 @@ def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
     return bbox, orig_ids, crop_ids, data
 
 
-def grainthinning(data, mask, dx):
-    # Calculate gaussian width in pixels from real value using pixel size
-    Gaussiansize = 2e-9 / dx
-    # Gaussiansize = 10
-    # Gaussian filter data
-    datafield.filter_gaussian(Gaussiansize)
-    # Thin (skeletonise) gaussian filtered grains to get traces
-    mask.grains_thin()
-    return data, mask
-
-
-def exportasnparray(datafield, mask):
-    # Export the current datafield (channel) and mask (grains) as numpy arrays
-    npdata = gwyutils.data_field_data_as_array(datafield)
-    npmask = gwyutils.data_field_data_as_array(mask)
-    return npdata, npmask
-
-
-def savestats(directory, dataframetosave):
-    directoryname = os.path.splitext(os.path.basename(directory))[0]
-    print 'Saving stats for: ' + str(directoryname)
-
-    savedir = os.path.join(directory)
-    savename = os.path.join(savedir, directoryname)
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
-
-    dataframetosave.to_json(savename + '.json')
-    dataframetosave.to_csv(savename + '.txt')
-
-
-def saveindividualstats(filename, dataframetosave):
-
-    # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
-    filedirectory, filename = os.path.split(filename)
-
-    # print 'Saving stats for: ' + str(filename)
-
-    savedir = os.path.join(filedirectory, 'GrainStatistics')
-    savename = os.path.join(savedir, filename)
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
-
-    dataframetosave.to_json(savename + '.json')
-    dataframetosave.to_csv(savename + '.txt')
-
-
-def savefiles(data, filename, extension):
-    # Turn rulers on
-    s["/module/pixmap/xytype"] = 1
-
-    # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
-    directory, filename = os.path.split(filename)
-
-    # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Processed')
-
-    # If the folder Processed doest exist make it here
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
-
-    # Save the data for the channels found above i.e. ZSensor/Height, as chosen_ids
-    # Data is exported to a file of extension set in the main script
-    # Data is exported with the string '_processed' added to the end of its filename
-    gwy.gwy_app_data_browser_select_data_field(data, k)
-    # change the colour map for all channels (k) in the image:
-    palette = data.set_string_by_name("/" + str(k) + "/base/palette", "Nanoscope")
-    # Determine the title of each channel
-    title = data["/%d/data/title" % k]
-    # Generate a filename to save to by removing the extension to the file, adding the suffix '_processed'
-    # and an extension set in the main file
-    savename = os.path.join(savedir, filename) + str(k) + '_' + str(title) + '_processed' + str(extension)
-    # Save the file
-    gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE)
-    # Show the mask
-    data['/%d/mask' % k] = mask
-    # Add the sufix _masked to the previous filename
-    savename = os.path.join(savedir, filename) + str(k) + '_' + str(title) + '_processed_masked' + str(extension)
-    # Save the data
-    gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE)
-    # Print the name of the file you're saving to the command line
-    # print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))
-
-
 def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale):
     # Save the data for the cropped channels
     # Data is exported to a file of extension set in the main script
@@ -455,11 +349,83 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
         # Print the name of the file you're saving to the command line
         # print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))
 
+
+def grainthinning(data, mask, dx):
+    # Calculate gaussian width in pixels from real value using pixel size
+    Gaussiansize = 2e-9 / dx
+    # Gaussiansize = 10
+    # Gaussian filter data
+    datafield.filter_gaussian(Gaussiansize)
+    # Thin (skeletonise) gaussian filtered grains to get traces
+    mask.grains_thin()
+    return data, mask
+
+
+def exportasnparray(datafield, mask):
+    # Export the current datafield (channel) and mask (grains) as numpy arrays
+    npdata = gwyutils.data_field_data_as_array(datafield)
+    npmask = gwyutils.data_field_data_as_array(mask)
+    return npdata, npmask
+
+
+def savefiles(data, filename, extension):
+    # Turn rulers on
+    s["/module/pixmap/xytype"] = 1
+
+    # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
+    directory, filename = os.path.split(filename)
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Processed')
+
+    # If the folder Processed doest exist make it here
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    # Save the data for the channels found above i.e. ZSensor/Height, as chosen_ids
+    # Data is exported to a file of extension set in the main script
+    # Data is exported with the string '_processed' added to the end of its filename
+    gwy.gwy_app_data_browser_select_data_field(data, k)
+    # change the colour map for all channels (k) in the image:
+    palette = data.set_string_by_name("/" + str(k) + "/base/palette", "Nanoscope")
+    # Determine the title of each channel
+    title = data["/%d/data/title" % k]
+    # Generate a filename to save to by removing the extension to the file, adding the suffix '_processed'
+    # and an extension set in the main file
+    savename = os.path.join(savedir, filename) + str(k) + '_' + str(title) + '_processed' + str(extension)
+    # Save the file
+    gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE)
+    # Show the mask
+    data['/%d/mask' % k] = mask
+    # Add the sufix _masked to the previous filename
+    savename = os.path.join(savedir, filename) + str(k) + '_' + str(title) + '_processed_masked' + str(extension)
+    # Save the data
+    gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE)
+    # Print the name of the file you're saving to the command line
+    # print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))
+
+
+def saveindividualstats(filename, dataframetosave):
+    # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
+    filedirectory, filename = os.path.split(filename)
+
+    # print 'Saving stats for: ' + str(filename)
+
+    savedir = os.path.join(filedirectory, 'GrainStatistics')
+    savename = os.path.join(savedir, filename)
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    dataframetosave.to_json(savename + '.json')
+    dataframetosave.to_csv(savename + '.txt')
+
+
 def getdataforallfiles(appended_data):
     # Get dataframe of all files within folder from appended_data list file
     grainstats_df = pd.concat(appended_data).reset_index(level=1, drop=True)
 
     return grainstats_df
+
 
 def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
     # Get dataframe of only files containing a certain string
@@ -469,10 +435,23 @@ def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
 
     return grainstats_searched
 
+
+def savestats(directory, dataframetosave):
+    directoryname = os.path.splitext(os.path.basename(directory))[0]
+    print 'Saving stats for: ' + str(directoryname)
+
+    savedir = os.path.join(directory)
+    savename = os.path.join(savedir, directoryname)
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    dataframetosave.to_json(savename + '.json')
+    dataframetosave.to_csv(savename + '.txt')
+
+
 # This the main script
 if __name__ == '__main__':
     # Set various options here:
-
     # Set the file path, i.e. the directory where the files are here'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel_Kavit'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/TFO'
