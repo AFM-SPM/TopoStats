@@ -7,6 +7,7 @@ import os
 import gwy
 import numpy as np
 import pandas as pd
+import heightthresholding
 
 # Generate a gwyddion settings file - should be found at /Users/alice/.gwyddion/settings
 # a = gwy.gwy_app_settings_get_settings_filename()
