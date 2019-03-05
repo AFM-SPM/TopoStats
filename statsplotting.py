@@ -40,12 +40,11 @@ def plotkde(df, directory, name, plotextension, grouparg, plotarg):
 
     # Create a saving name format/directory
     savedir = os.path.join(directory, 'Plots')
-    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
     if not os.path.exists(savedir):
         os.makedirs(savedir)
 
     # Plot and save figures
-    savename = os.path.join(path, name + plotarg + plotextension)
+    savename = os.path.join(savedir, name + plotarg + plotextension)
     fig, ax = plt.subplots(figsize=(10, 7))
     df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=0.7)
     plt.xlim(0, 1)
@@ -58,12 +57,11 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
 
     # Create a saving name format/directory
     savedir = os.path.join(directory, 'Plots')
-    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
     if not os.path.exists(savedir):
         os.makedirs(savedir)
 
     # Plot and save figures
-    savename = os.path.join(path, name + 'plotarg' + '_KDE_new' + plotextension)
+    savename = os.path.join(savedir, name + plotarg + '_KDE_new' + plotextension)
 
     # Determine KDE for each topoisomer
     # Determine max of each KDE and plot
@@ -79,13 +77,12 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
         kdemax[i] = xs[np.argmax(b)]
     # plt.savefig(savename)
 
-    savename2 = os.path.join(path, name + 'plotarg' + '_KDE_max' + plotextension)
+    savename2 = os.path.join(savedir, name + 'plotarg' + '_KDE_max' + plotextension)
     fig = plt.figure(figsize=(10, 7))
     plt.xlabel('Topoisomer')
     plt.ylabel('Aspect ratio')
     for i in sorted(topos, reverse=True):
         plt.bar(i, kdemax[i], alpha=0.7)
-
     plt.savefig(savename2)
 
 def plotdfcolumns(df, path, name, grouparg):
