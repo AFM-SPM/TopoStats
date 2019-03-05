@@ -4,6 +4,8 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import numpy as np
+import scipy
 from scipy import stats
 
 # Set seaborn to override matplotlib for plot output
@@ -45,12 +47,46 @@ def plotkde(df, directory, name, plotextension, grouparg, plotarg):
     # Plot and save figures
     savename = os.path.join(path, name + plotarg + plotextension)
     fig, ax = plt.subplots(figsize=(10, 7))
-    df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True)
+    df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=0.7)
     plt.xlim(0, 1)
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles[::-1], labels[::-1], loc='upper left')
     plt.savefig(savename)
 
+def plotkdemax(df, directory, name, plotextension, plotarg, topos):
+    print 'Plotting kde and maxima for %s' % plotarg
+
+    sns.set_context("notebook")
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    # Plot and save figures
+    savename = os.path.join(path, name + 'plotarg' + '_KDE_new' + plotextension)
+
+    # Determine KDE for each topoisomer
+    # Determine max of each KDE and plot
+    xs = np.linspace(0, 1, 100)
+    kdemax = dict()
+    # plt.figure()
+    for i in sorted(topos, reverse=True):
+        kdemax[i] = i
+        x = df.query('topoisomer == @i')[plotarg]
+        a = scipy.stats.gaussian_kde(x)
+        b = a.pdf(xs)
+        # plt.plot(xs, b)
+        kdemax[i] = xs[np.argmax(b)]
+    # plt.savefig(savename)
+
+    savename2 = os.path.join(path, name + 'plotarg' + '_KDE_max' + plotextension)
+    fig = plt.figure(figsize=(10, 7))
+    plt.xlabel('Topoisomer')
+    plt.ylabel('Aspect ratio')
+    for i in sorted(topos, reverse=True):
+        plt.bar(i, kdemax[i], alpha=0.7)
+
+    plt.savefig(savename2)
 
 def plotdfcolumns(df, path, name, grouparg):
     print 'Plotting graphs for all dataframe variables in %s' % name
@@ -171,17 +207,7 @@ if __name__ == '__main__':
 
     # Get list of unique directory names i.e. topoisomers
     topos = df['topoisomer'].unique()
-    sorted(topos, reverse=True)
-    # Generate separate dataframes for each topoisomer
-    # dfrel = df.loc[df['topoisomer'] == '0']
-    # dfnic = df.loc[df['topoisomer'] == 'NIC']
-    # dfnat = df.loc[df['topoisomer'] == 'NAT']
-    # df6 = df.loc[df['topoisomer'] == '-6']
-    # df3 = df.loc[df['topoisomer'] == '-3']
-    # df2 = df.loc[df['topoisomer'] == '-2']
-    # df1 = df.loc[df['topoisomer'] == '-1']
-    # alternative method of generating dataframes for each topoisomer
-    nat = df.query("topoisomer == 'native'")
+    topos = sorted(topos, reverse=True)
 
     # Generate a new smaller df from the original df containing only selected columns
     dfaspectratio = df[['topoisomer', 'aspectratio']]
@@ -197,6 +223,10 @@ if __name__ == '__main__':
     # grouped by grouparg e.g. 'topoisomer'
     plotkde(df, path, name, plotextension, 'topoisomer', 'aspectratio')
 
+    # Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
+    # grouped by grouparg e.g. 'topoisomer'
+    # Then plot the maxima of each KDE as a bar plot
+    plotkdemax(df, path, name, plotextension, 'aspectratio', topos)
 
     # # Plot all columns of a dataframe as separate graphs grouped by topoisomer
     # plotdfcolumns(df, path, name, 'topoisomer')
@@ -219,54 +249,38 @@ if __name__ == '__main__':
     # # Plot two variables in the dataframe on a seaborn joint plot to examine dependencies
     # seaplotting(df, 'grain_ellipse_major', 'grain_ellipse_minor', bins, path, plotextension)
 
-    # # Plotting all topoisomers separately as KDE plots using seaborn
-    # p1 = sns.kdeplot(dfnicked['aspectratio'], shade=True)
-    # p2 = sns.kdeplot(dfrelaxed['aspectratio'], shade=True)
-    # p3 = sns.kdeplot(dfnative['aspectratio'], shade=True)
-    # p4 = sns.kdeplot(df1['aspectratio'], shade=True)
-    # p5 = sns.kdeplot(df2['aspectratio'], shade=True)
-    # p6 = sns.kdeplot(df3['aspectratio'], shade=True)
-    # p7 = sns.kdeplot(df6['aspectratio'], shade=True)
+    # # # # Plot bivariate plot using seaborn
+    # sns.kdeplot(df.query("topoisomer == '-6'")['grain_max_bound_size'],
+    #             df.query("topoisomer == '-6'")['grain_min_bound_size'], n_levels=15, shade=True)
 
+    # # Use seaborn to setup KDE apsect ratio plots for each unique topoisomer on the same page stacked as columns
+    # h = sns.FacetGrid(df, col="topoisomer")
+    # h.map(sns.kdeplot, "aspectratio")
 
-    # # # Plot bivariate plot using seaborn
-    # ax = sns.kdeplot(df.query("topoisomer == '-6'")['grain_max_bound_size'], df.query("topoisomer == '-6'")['grain_min_bound_size'], n_levels=15, shade=True)
-    # ax = sns.kdeplot(df.query("topoisomer == 'NAT'")['grain_max_bound_size'], df.query("topoisomer == 'NAT'")['grain_min_bound_size'], n_levels=15, shade=True)
-    # ax = sns.kdeplot(df.query("topoisomer == 'REL'")['grain_max_bound_size'], df.query("topoisomer == 'REL'")['grain_min_bound_size'], n_levels=15, shade=True)
+    # Use seaborn to plot a KDE for each topoisomer separately on the same page, stacked by row
+    # ordered_topos = df.topoisomer.value_counts().index
+    # ordered_topos = sorted(ordered_topos, reverse=True)
+    # g = sns.FacetGrid(df, row="topoisomer", row_order=ordered_topos,
+    #                   height=1.7, aspect=4)
+    # g.map(sns.distplot, "aspectratio", hist=False, rug=True);
+    # plt.xlim(0,1)
     #
-    # # # Use seaborn to setup plots for each unique topoisomer
-    h = sns.FacetGrid(df, col="topoisomer")
-    h.map(sns.kdeplot, "aspectratio")
-
-    ordered_topos = df.topoisomer.value_counts().index
-    ordered_topos = sorted(ordered_topos, reverse=True)
-    g = sns.FacetGrid(df, row="topoisomer", row_order=ordered_topos,
-                      height=1.7, aspect=4)
-    g.map(sns.distplot, "aspectratio", hist=False, rug=True);
-
+    # # Create scatter plot of two variables in seaborn to show correlation
     # h = sns.FacetGrid(df, col="topoisomer")
     # h.map(plt.scatter, "grain_min_bound_size", "grain_max_bound_size", alpha=.7)
-
-    sns.kdeplot(df.query("topoisomer == '0'")['grain_max_bound_size'],
-                df.query("topoisomer == '0'")['grain_min_bound_size'], n_levels=15, shade=True)
+    # plt.xlim(0e-7, 0.7e-7)
+    # plt.ylim(0e-7, 1.5e-7)
+    #
+    # # Create bivariate scatter plot of two variables with shading
+    # fig, ax = plt.subplots(figsize=(5, 3))
+    # sns.kdeplot(df.query("topoisomer == '0'")['grain_max_bound_size'],
+    #             df.query("topoisomer == '0'")['grain_min_bound_size'], n_levels=15, shade=True)
+    # plt.xlim(4e-8, 8e-8)
+    # plt.ylim(2e-8, 6e-8)
 
     # g = sns.PairGrid(df, vars=['grain_max_bound_size', 'grain_min_bound_size', 'aspectratio'], hue="topoisomer")
     # g.map_diag(sns.kdeplot)
     # g.map_lower(sns.kdeplot)
     # g.map_upper(plt.scatter)
 
-    # Determine KDE for each topoisomer and plot
-    # Determine max of each KDE and plot
-    xs = np.linspace(0, 1, 100)
-    kdemax = dict()
-    plt.figure()
-    for i in sorted(topos):
-        kdemax[i] = i
-        x = df.query('topoisomer == @i')['aspectratio']
-        a = scipy.stats.gaussian_kde(x)
-        b = a.pdf(xs)
-        plt.plot(xs, b)
-        kdemax[i] = xs[np.argmax(b)]
-    plt.figure()
-    for i in sorted(topos):
-        plt.bar(i, kdemax[i])
+
