@@ -454,10 +454,10 @@ def savestats(directory, dataframetosave):
 if __name__ == '__main__':
     # Set various options here:
     # Set the file path, i.e. the directory where the files are here'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel_Kavit'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel/Nickel'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/TFO'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/PLL'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing'
     path = os.getcwd()
     # Set file type to look for here
     fileend = '.spm', '.jpk', '*.*[0-9]'

@@ -9,7 +9,6 @@ sns.set()
 # The notebook style is the default
 sns.set_context("talk")
 
-
 def importfromjson(path, name):
     filename = os.path.join(path, name + '.json')
     importeddata = pd.read_json(filename)

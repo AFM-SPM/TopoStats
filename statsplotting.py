@@ -153,9 +153,9 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/Nickel'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/Nickel'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel/Nickel'
     # Set the name of the json file to import here
-    name = 'Nickel_Kavit'
+    name = 'Nickel'
     plotextension = '.pdf'
     bins = 25
 
@@ -173,13 +173,13 @@ if __name__ == '__main__':
     topos = df['topoisomer'].unique()
     sorted(topos, reverse=True)
     # Generate separate dataframes for each topoisomer
-    dfrel = df.loc[df['topoisomer'] == 'Relaxed']
-    dfnic = df.loc[df['topoisomer'] == 'Nicked']
-    dfnat = df.loc[df['topoisomer'] == 'Native']
-    df6 = df.loc[df['topoisomer'] == '-6']
-    df3 = df.loc[df['topoisomer'] == '-3']
-    df2 = df.loc[df['topoisomer'] == '-2']
-    df1 = df.loc[df['topoisomer'] == '-1']
+    # dfrel = df.loc[df['topoisomer'] == '0']
+    # dfnic = df.loc[df['topoisomer'] == 'NIC']
+    # dfnat = df.loc[df['topoisomer'] == 'NAT']
+    # df6 = df.loc[df['topoisomer'] == '-6']
+    # df3 = df.loc[df['topoisomer'] == '-3']
+    # df2 = df.loc[df['topoisomer'] == '-2']
+    # df1 = df.loc[df['topoisomer'] == '-1']
     # alternative method of generating dataframes for each topoisomer
     nat = df.query("topoisomer == 'native'")
 
@@ -197,19 +197,20 @@ if __name__ == '__main__':
     # grouped by grouparg e.g. 'topoisomer'
     plotkde(df, path, name, plotextension, 'topoisomer', 'aspectratio')
 
+
     # # Plot all columns of a dataframe as separate graphs grouped by topoisomer
     # plotdfcolumns(df, path, name, 'topoisomer')
 
     # Plot a histogram of one column of the dataframe - arg1 e.g. 'aspectratio'
     # grouped by grouparg e.g. 'topoisomer'
-    plothist(df, 'aspectratio', 'topoisomer', bins, path, plotextension)
+    # plothist(df, 'aspectratio', 'topoisomer', bins, path, plotextension)
 
     # # Plotting indidiviual stats from a dataframe
     # # e.g. Plot the aspect ratio column of the dataframe, grouped by topoisomer as a kde plot
     # savedir = os.path.join(path, 'Plots')
     # savename = os.path.join(savedir, name + '_aspectratio' + plotextension)
     # fig, ax = plt.subplots(figsize=(10, 7))
-    # df.groupby('topoisomer')['aspectratio'].plot.kde(ax=ax, legend=True)
+    # 3.plot.kde(ax=ax, legend=True)
     # plt.savefig(savename)
 
     # # Plotting a distribution with given fit (e.g. gamma)
@@ -228,3 +229,44 @@ if __name__ == '__main__':
     # p7 = sns.kdeplot(df6['aspectratio'], shade=True)
 
 
+    # # # Plot bivariate plot using seaborn
+    # ax = sns.kdeplot(df.query("topoisomer == '-6'")['grain_max_bound_size'], df.query("topoisomer == '-6'")['grain_min_bound_size'], n_levels=15, shade=True)
+    # ax = sns.kdeplot(df.query("topoisomer == 'NAT'")['grain_max_bound_size'], df.query("topoisomer == 'NAT'")['grain_min_bound_size'], n_levels=15, shade=True)
+    # ax = sns.kdeplot(df.query("topoisomer == 'REL'")['grain_max_bound_size'], df.query("topoisomer == 'REL'")['grain_min_bound_size'], n_levels=15, shade=True)
+    #
+    # # # Use seaborn to setup plots for each unique topoisomer
+    h = sns.FacetGrid(df, col="topoisomer")
+    h.map(sns.kdeplot, "aspectratio")
+
+    ordered_topos = df.topoisomer.value_counts().index
+    ordered_topos = sorted(ordered_topos, reverse=True)
+    g = sns.FacetGrid(df, row="topoisomer", row_order=ordered_topos,
+                      height=1.7, aspect=4)
+    g.map(sns.distplot, "aspectratio", hist=False, rug=True);
+
+    # h = sns.FacetGrid(df, col="topoisomer")
+    # h.map(plt.scatter, "grain_min_bound_size", "grain_max_bound_size", alpha=.7)
+
+    sns.kdeplot(df.query("topoisomer == '0'")['grain_max_bound_size'],
+                df.query("topoisomer == '0'")['grain_min_bound_size'], n_levels=15, shade=True)
+
+    # g = sns.PairGrid(df, vars=['grain_max_bound_size', 'grain_min_bound_size', 'aspectratio'], hue="topoisomer")
+    # g.map_diag(sns.kdeplot)
+    # g.map_lower(sns.kdeplot)
+    # g.map_upper(plt.scatter)
+
+    # Determine KDE for each topoisomer and plot
+    # Determine max of each KDE and plot
+    xs = np.linspace(0, 1, 100)
+    kdemax = dict()
+    plt.figure()
+    for i in sorted(topos):
+        kdemax[i] = i
+        x = df.query('topoisomer == @i')['aspectratio']
+        a = scipy.stats.gaussian_kde(x)
+        b = a.pdf(xs)
+        plt.plot(xs, b)
+        kdemax[i] = xs[np.argmax(b)]
+    plt.figure()
+    for i in sorted(topos):
+        plt.bar(i, kdemax[i])
