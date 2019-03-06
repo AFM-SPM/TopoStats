@@ -81,7 +81,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     fig = plt.figure(figsize=(10, 7))
     plt.xlabel('Topoisomer')
     plt.ylabel('Aspect ratio')
-    for i in sorted(topos, reverse=True):
+    for i in sorted(topos, reverse=False):
         plt.bar(i, kdemax[i], alpha=0.7)
     plt.savefig(savename2)
 
@@ -204,7 +204,7 @@ if __name__ == '__main__':
 
     # Get list of unique directory names i.e. topoisomers
     topos = df['topoisomer'].unique()
-    topos = sorted(topos, reverse=True)
+    topos = sorted(topos, reverse=False)
 
     # Generate a new smaller df from the original df containing only selected columns
     dfaspectratio = df[['topoisomer', 'aspectratio']]
