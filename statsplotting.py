@@ -69,14 +69,17 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     xs = np.linspace(0, 1, 100)
     kdemax = dict()
     dfstd = dict()
+    dfvar = dict()
     # plt.figure()
     for i in sorted(topos, reverse=True):
         kdemax[i] = i
         dfstd[i] = i
+        dfvar[i] = i
         x = df.query('topoisomer == @i')[plotarg]
         a = scipy.stats.gaussian_kde(x)
         b = a.pdf(xs)
         dfstd[i] = x.std()
+        dfvar[i] = np.var(x)
         # plt.plot(xs, b)
         kdemax[i] = xs[np.argmax(b)]
     # plt.savefig(savename)
@@ -88,6 +91,14 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     for i in sorted(topos, reverse=False):
         plt.bar(i, kdemax[i], yerr=dfstd[i], alpha=0.7)
     plt.savefig(savename2)
+
+    savename3 = os.path.join(savedir, name + 'plotarg' + '_KDE_max_var' + plotextension)
+    fig = plt.figure(figsize=(10, 7))
+    # plt.xlabel('Topoisomer')
+    plt.ylabel('Aspect ratio')
+    for i in sorted(topos, reverse=False):
+        plt.bar(i, kdemax[i], yerr=dfvar[i], alpha=0.7)
+    plt.savefig(savename3)
 
 
 def plotdfcolumns(df, path, name, grouparg):
