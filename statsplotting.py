@@ -50,6 +50,7 @@ def plotkde(df, directory, name, plotextension, grouparg, plotarg):
     plt.xlim(0, 1)
     plt.savefig(savename)
 
+
 def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     print 'Plotting kde and maxima for %s' % plotarg
 
@@ -84,6 +85,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     for i in sorted(topos, reverse=False):
         plt.bar(i, kdemax[i], alpha=0.7)
     plt.savefig(savename2)
+
 
 def plotdfcolumns(df, path, name, grouparg):
     print 'Plotting graphs for all dataframe variables in %s' % name
