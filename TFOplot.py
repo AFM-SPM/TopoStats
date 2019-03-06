@@ -1,12 +1,9 @@
 import os
 import matplotlib.pyplot as plt
-from matplotlib.pyplot import cm
 import pandas as pd
 import seaborn as sns
 import numpy as np
-import scipy
 from cycler import cycler
-from itertools import cycle, islice
 
 # Set seaborn to override matplotlib for plot output
 sns.set()
