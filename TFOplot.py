@@ -17,6 +17,7 @@ def importfromjson(path, name):
 
     return importeddata
 
+
 def plotkde(df, directory, name, plotextension, grouparg, plotarg):
     print 'Plotting kde of %s' % plotarg
 
@@ -30,6 +31,7 @@ def plotkde(df, directory, name, plotextension, grouparg, plotarg):
     fig, ax = plt.subplots(figsize=(10, 7))
     df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=0.7)
     plt.savefig(savename)
+
 
 def plot_mean_SD(df, directory, name, plotextension, plotarg, lengths):
     print 'Plotting mean and SD for %s' % plotarg
@@ -82,6 +84,7 @@ def plothist(df, arg1, grouparg, directory, extension):
     # Save plot
     plt.savefig(savename + '_' + arg1 + '_a' + extension)
 
+
 # Set the file path, i.e. the directory where the files are here'
 path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/TFO/TFOlengthanalysis'
 # Set the name of the json file to import here
@@ -90,7 +93,7 @@ plotextension = '.pdf'
 bins = 8
 allbins = 20
 
-# # import data form the csv file specified as a dataframe
+# # import data from the csv file specified as a dataframe
 # TFO = pd.read_csv(os.path.join(path, '339LINTFOlengthanalysis.csv'))
 
 # import data from a JSON file
