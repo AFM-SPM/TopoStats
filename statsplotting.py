@@ -53,7 +53,7 @@ def plotkde(df, directory, name, plotextension, grouparg, plotarg):
 def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     print 'Plotting kde and maxima for %s' % plotarg
 
-    sns.set_context("notebook")
+    # sns.set_context("notebook")
 
     # Create a saving name format/directory
     savedir = os.path.join(directory, 'Plots')
@@ -79,7 +79,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
 
     savename2 = os.path.join(savedir, name + 'plotarg' + '_KDE_max' + plotextension)
     fig = plt.figure(figsize=(10, 7))
-    plt.xlabel('Topoisomer')
+    # plt.xlabel('Topoisomer')
     plt.ylabel('Aspect ratio')
     for i in sorted(topos, reverse=False):
         plt.bar(i, kdemax[i], alpha=0.7)
@@ -186,7 +186,7 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/Nickel'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/Nickel'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel/Nickel'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel'
     # Set the name of the json file to import here
     name = 'Nickel'
     plotextension = '.pdf'
