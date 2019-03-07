@@ -2,6 +2,7 @@
 
 import os
 import matplotlib.pyplot as plt
+from matplotlib import cm
 import pandas as pd
 import seaborn as sns
 import numpy as np
@@ -13,6 +14,7 @@ sns.set()
 # The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
 # The notebook style is the default
 sns.set_context("poster")
+sns.color_palette(palette=None)
 
 
 def importfromjson(path, name):
@@ -85,20 +87,38 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
         kdemax[i] = xs[np.argmax(b)]
     # plt.savefig(savename)
 
-    # savename2 = os.path.join(savedir, name + 'plotarg' + '_KDE_max' + plotextension)
-    # fig = plt.figure(figsize=(10, 7))
-    # # plt.xlabel('Topoisomer')
-    # plt.ylabel('Aspect ratio')
-    # for i in sorted(topos, reverse=False):
-    #     plt.bar(i, kdemax[i], yerr=dfstd[i], alpha=0.7)
-    # plt.savefig(savename2)
+    savename2 = os.path.join(savedir, name + plotarg + '_KDE_max_var_reverse' + plotextension)
+    # Reverse colour order for
+    palette = sns.color_palette(n_colors=len(topos))
+    palette.reverse()
+    with palette:
+        fig = plt.figure(figsize=(10, 7))
+        # plt.xlabel('Topoisomer')
+        plt.ylabel(' ')
+        # Set an arbitrary value to plot to in x, increasing by one each loop iteration
+        order = 0
+        # Set a value for the placement of the bars, by creating an array of the length of topos
+        bars = np.linspace(0, len(topos), len(topos), endpoint=False, dtype=int)
+        for i in sorted(topos, reverse=True):
+            plt.bar(order, kdemax[i], yerr=dfvar[i], alpha=0.7)
+            order = order + 1
+            # Set the bar names to be the topoisomer names
+            plt.xticks(bars, sorted(topos, reverse=True))
+        plt.savefig(savename2)
 
-    savename3 = os.path.join(savedir, name + 'plotarg' + '_KDE_max_var' + plotextension)
+    savename3 = os.path.join(savedir, name + plotarg + '_KDE_max_var' + plotextension)
     fig = plt.figure(figsize=(10, 7))
+    # sns.set_palette("tab10")
     # plt.xlabel('Topoisomer')
     plt.ylabel(' ')
+    # Set an arbitrary value to plot to in x, increasing by one each loop iteration
+    order = 0
+    # Set a value for the placement of the bars, by creating an array of the length of topos
+    bars = np.linspace(0, len(topos), len(topos), endpoint=False, dtype=int)
     for i in sorted(topos, reverse=False):
-        plt.bar(i, kdemax[i], yerr=dfvar[i], alpha=0.7)
+        plt.bar(order, kdemax[i], yerr=dfvar[i], alpha=0.7)
+        order = order + 1
+        plt.xticks(bars, topos)
     plt.savefig(savename3)
 
 
