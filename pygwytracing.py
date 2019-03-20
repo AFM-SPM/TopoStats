@@ -423,7 +423,7 @@ def saveindividualstats(filename, dataframetosave):
 
 def getdataforallfiles(appended_data):
     # Get dataframe of all files within folder from appended_data list file
-    grainstats_df = pd.concat(appended_data).reset_index(level=1, drop=True)
+    grainstats_df = pd.concat(appended_data, ignore_index=True)
 
     return grainstats_df
 
