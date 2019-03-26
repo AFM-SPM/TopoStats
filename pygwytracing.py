@@ -1,24 +1,40 @@
 #!/usr/bin/env python2
-# sys.path.append("/usr/local/Cellar/gwyddion/2.52/share/gwyddion/pygwy")
 
 import fnmatch
 import gwyutils
 import os
+
 import gwy
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import heightthresholding
+import seaborn as sns
 
-# Generate a gwyddion settings file - should be found at /Users/alice/.gwyddion/settings
+# Import height thresholding.py for processing bilayer removal images
+
+### Set seaborn to override matplotlib for plot output
+sns.set()
+# The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
+# The notebook style is the default
+sns.set_context("notebook")
+# This can be customised further here
+# sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 2.5})
+
+# sys.path.append("/usr/local/Cellar/gwyddion/2.52/share/gwyddion/pygwy")
+
+# Set the settings for each function from the saved settings file (~/.gwyddion/settings)
+s = gwy.gwy_app_settings_get()
+
+# Generate a settings file - should be found at /Users/alice/.gwyddion/settings
 # a = gwy.gwy_app_settings_get_settings_filename()
 # Location of the settings file - edit to change values
 # print a
-# Set the settings for each function from the saved settings file (~/.gwyddion/settings)
-s = gwy.gwy_app_settings_get()
+
 # Turn colour bar off
 s["/module/pixmap/ztype"] = 0
+
 # Define the settings for image processing functions e.g. align rows here
-s['/module/linematch/method'] = 1
+s['/module/linematch/method'] = 0
 
 
 def traversedirectories(fileend, filetype, path):
@@ -89,19 +105,19 @@ def editfile(data, minheightscale, maxheightscale):
     # select each channel of the file in turn
     # this is run within the for k in chosen_ids loop so k refers to the index of each chosen channel to analyse
     gwy.gwy_app_data_browser_select_data_field(data, k)
-    # align the rows
+    # align rows
     gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)  # NONINTERACTIVE is only for file modules
-    # level the data
-    gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
     # flatten the data
+    gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
+    # # align the rows
     gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
     # Fix zero
     gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
-    # # remove scars
-    # gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
+    # remove scars
+    gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
     # Apply a 1.5 pixel gaussian filter
     data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    data_field.filter_gaussian(1.5)
+    # data_field.filter_gaussian(1.5)
     # # Shift contrast - equivalent to 'fix zero'
     # datafield.add(-data_field.get_min())
 
@@ -120,7 +136,7 @@ def grainfinding(data, minarea, k):
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
-    datafield.mask_outliers(mask, 1)
+    datafield.mask_outliers(mask, 1.2)
 
     ### Editing grain mask
     # Remove grains touching the edge of the mask
@@ -139,14 +155,6 @@ def grainfinding(data, minarea, k):
     # data['/%d/mask' % k] = mask
 
     return data, mask, datafield, grains
-
-
-def find_median_pixel_area(datafield, grains):
-    # print values_to_compute.keys()
-    grain_pixel_area = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_PIXEL_AREA)
-    grain_pixel_area = np.array(grain_pixel_area)
-    median_pixel_area = np.median(grain_pixel_area)
-    return median_pixel_area
 
 
 def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation):
@@ -257,6 +265,218 @@ def grainanalysis(appended_data, filename, datafield, grains):
     return grainstatsarguments, grainstats, appended_data
 
 
+def plotall(dataframe, directory, extension):
+    print 'Plotting graphs for all dataframe variables in %s' % directory
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    df = dataframe
+    # Select columns of datatype 'float64' i.e. not integers or strings
+    df = df.select_dtypes(include=['float64'])
+    # Iterate through all columns to plot data using seaborn
+    for i, col in enumerate(df.columns):
+        plt.figure(i)
+        sns.distplot(df[col], bins=bins)
+        # plt.hist(df[col])
+        # df[col].plot.hist()
+        plt.show()
+        plt.savefig(savename + '_' + str(col) + extension)
+
+
+def plotting(dataframe, arg1, grouparg, bins, directory, extension):
+    print 'Plotting graph of %s' % (arg1)
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+    df = dataframe
+
+    # Change from m to nm units for plotting
+    df[arg1] = df[arg1] * 1e9
+
+    # Generating min and max axes based on datasets
+    min_ax = df[arg1].min()
+    min_ax = round(min_ax, 9)
+    max_ax = df[arg1].max()
+    max_ax = round(max_ax, 9)
+
+    # Plot using MatPlotLib separated by the grouparg on two separate graphs with stacking
+    # Create a figure of given size
+    fig = plt.figure(figsize=(18, 12))
+    ax = fig.add_subplot(111)
+    # Set title
+    ttl = 'Histogram of %s' % arg1
+    # Pivot dataframe to get required variables in correct format for plotting
+    df1 = df.pivot(columns=grouparg, values=arg1)
+    # Plot histogram
+    df1.plot.hist(ax=ax, legend=True, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
+    # Set x axis label
+    plt.xlabel('%s (nm)' % arg1)
+    # Set tight borders
+    plt.tight_layout()
+    # Set legend options
+    # plt.legend(ncol=2, loc='upper right')
+    # Save plot
+    plt.savefig(savename + '_' + arg1 + '_a' + extension)
+
+    # Plot each argument together using MatPlotLib
+    # Create a figure of given size
+    fig = plt.figure(figsize=(18, 12))
+    ax = fig.add_subplot(111)
+    # Set title
+    ttl = 'Histogram of %s' % arg1
+    # Melt dataframe to leave only columns we are interested in
+    df3 = pd.melt(df, id_vars=[arg1])
+    # Plot histogram
+    df3.plot.hist(ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3)
+    plt.xlabel('%s (nm)' % arg1)
+    # # Set legend options
+    # plt.legend(ncol=2, loc='upper right')
+    # Set tight borders
+    plt.tight_layout()
+    # Save plot
+    plt.savefig(savename + '_' + arg1 + '_b' + extension)
+
+
+def seaplotting(df, arg1, arg2, bins, directory, extension):
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    # Change from m to nm units for plotting
+    df[arg1] = df[arg1] * 1e9
+    df[arg2] = df[arg2] * 1e9
+
+    # Generating min and max axes based on datasets
+    min_ax = min(df[arg1].min(), df[arg2].min())
+    min_ax = round(min_ax, 9)
+    max_ax = max(df[arg1].max(), df[arg2].max())
+    max_ax = round(max_ax, 9)
+
+    # Plot data using seaborn
+    with sns.axes_style('white'):
+        # sns.jointplot(arg1, arg2, data=df, kind='hex')
+        sns.jointplot(arg1, arg2, data=df, kind='reg')
+        plt.savefig(savename + '_' + str(arg1) + str(arg2) + '_seaborn' + extension)
+
+def plottingallstats(grainstatsarguments, df, extension, directory):
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    for key in grainstatsarguments:
+        print 'Plotting graph of %s' % (key)
+        # Plot each argument together using MatPlotLib
+        # Create a figure of given size
+        fig = plt.figure(figsize=(18, 12))
+        ax = fig.add_subplot(111)
+        # Set title
+        ttl = 'Histogram of %s' % key
+        # Melt dataframe to leave only columns we are interested in
+        df3 = pd.melt(df, id_vars=[key])
+        # Plot histogram
+        df3.plot.hist(ax=ax, alpha=.3)
+        plt.xlabel('%s (nm)' % key)
+        # # Set legend options
+        # plt.legend(ncol=2, loc='upper right')
+        # Set tight borders
+        plt.tight_layout()
+        # Save plot
+        plt.savefig(savename + '_' + key + extension)
+
+
+
+def plotting2(df, arg1, arg2, grouparg, bins, directory, extension):
+    print 'Plotting graph of %s and %s' % (arg1, arg2)
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    savename = os.path.join(savedir, os.path.splitext(os.path.basename(directory))[0])
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    # Change from m to nm units for plotting
+    df[arg1] = df[arg1] * 1e9
+    df[arg2] = df[arg2] * 1e9
+
+    # Generating min and max axes based on datasets
+    min_ax = min(df[arg1].min(), df[arg2].min())
+    min_ax = round(min_ax, 9)
+    max_ax = max(df[arg1].max(), df[arg2].max())
+    max_ax = round(max_ax, 9)
+
+    # Plot data
+
+    # Plot each type using MatPlotLib separated by filetype on two separate graphs with stacking
+    # Create a figure of given size
+    fig = plt.figure(figsize=(28, 8))
+    # First dataframe
+    # Add a subplot to lot both sets on the same figure
+    ax = fig.add_subplot(121)
+    # Set title
+    ttl = 'Histogram of %s and %s' % (arg1, arg2)
+    # Pivot dataframe to get required variables in correct format for plotting
+    df1 = df.pivot(columns=grouparg, values=arg1)
+    # Plot histogram
+    df1.plot.hist(legend=True, ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
+    # Set x axis label
+    plt.xlabel('%s (nm)' % arg1)
+    # Set tight borders
+    plt.tight_layout()
+    # Set legend options
+    # plt.legend(ncol=2, loc='upper right')
+    # Second dataframe
+    # Add a subplot
+    ax = fig.add_subplot(122)
+    # Pivot second dataframe to get required variables in correct format for plotting
+    df2 = df.pivot(columns=grouparg, values=arg2)
+    # Plot histogram
+    df2.plot.hist(legend=True, ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3, stacked=True)
+    # Set x axis label
+    plt.xlabel('%s (nm)' % arg2)
+    # Set tight borders
+    plt.tight_layout()
+    # Set legend options
+    # plt.legend(ncol=2, loc='upper right')
+    # Save plot
+    plt.savefig(savename + '_' + arg1 + '_' + arg2 + '_' + 'a' + extension)
+
+    # Create a figure of given size
+    fig = plt.figure(figsize=(18, 12))
+    # Add a subplot
+    ax = fig.add_subplot(111)
+    # Set title
+    ttl = 'Histogram of %s and %s' % (arg1, arg2)
+    # Plot each argument together using MatPlotLib
+    df3 = pd.melt(df, id_vars=[arg1, arg2])
+    df3.plot.hist(legend=True, ax=ax, bins=bins, range=(min_ax, max_ax), alpha=.3)
+    # plt.xlabel('%s %s (nm)' % (arg1, arg2))
+    plt.xlabel('nm')
+    # # Set legend options
+    # plt.legend(ncol=2, loc='upper right')
+    # Set tight borders
+    plt.tight_layout()
+    # Save plot
+    plt.savefig(savename + '_' + arg1 + '_' + arg2 + '_' + 'b' + extension)
+
+
+def find_median_pixel_area(datafield, grains):
+    # print values_to_compute.keys()
+    grain_pixel_area = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_PIXEL_AREA)
+    grain_pixel_area = np.array(grain_pixel_area)
+    median_pixel_area = np.median(grain_pixel_area)
+    return median_pixel_area
+
+
 def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
     # Function to return the coordinates of the bounding box for all grains.
     # contains 4 coordinates per image
@@ -308,6 +528,90 @@ def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
     return bbox, orig_ids, crop_ids, data
 
 
+def grainthinning(data, mask, dx):
+    # Calculate gaussian width in pixels from real value using pixel size
+    Gaussiansize = 2e-9 / dx
+    # Gaussiansize = 10
+    # Gaussian filter data
+    datafield.filter_gaussian(Gaussiansize)
+    # Thin (skeletonise) gaussian filtered grains to get traces
+    mask.grains_thin()
+    return data, mask
+
+
+def exportasnparray(datafield, mask):
+    # Export the current datafield (channel) and mask (grains) as numpy arrays
+    npdata = gwyutils.data_field_data_as_array(datafield)
+    npmask = gwyutils.data_field_data_as_array(mask)
+    return npdata, npmask
+
+
+def savestats(directory, dataframetosave):
+    directoryname = os.path.splitext(os.path.basename(directory))[0]
+    print 'Saving stats for: ' + str(directoryname)
+
+    savedir = os.path.join(directory)
+    savename = os.path.join(savedir, directoryname)
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    dataframetosave.to_json(savename + '.json')
+    dataframetosave.to_csv(savename + '.txt')
+
+
+def saveindividualstats(filename, dataframetosave):
+
+    # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
+    filedirectory, filename = os.path.split(filename)
+
+    # print 'Saving stats for: ' + str(filename)
+
+    savedir = os.path.join(filedirectory, 'GrainStatistics')
+    savename = os.path.join(savedir, filename)
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    dataframetosave.to_json(savename + '.json')
+    dataframetosave.to_csv(savename + '.txt')
+
+
+def savefiles(data, filename, extension):
+    # Turn rulers on
+    s["/module/pixmap/xytype"] = 1
+
+    # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
+    directory, filename = os.path.split(filename)
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Processed')
+
+    # If the folder Processed doest exist make it here
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    # Save the data for the channels found above i.e. ZSensor/Height, as chosen_ids
+    # Data is exported to a file of extension set in the main script
+    # Data is exported with the string '_processed' added to the end of its filename
+    gwy.gwy_app_data_browser_select_data_field(data, k)
+    # change the colour map for all channels (k) in the image:
+    palette = data.set_string_by_name("/" + str(k) + "/base/palette", "Nanoscope")
+    # Determine the title of each channel
+    title = data["/%d/data/title" % k]
+    # Generate a filename to save to by removing the extension to the file, adding the suffix '_processed'
+    # and an extension set in the main file
+    savename = os.path.join(savedir, filename) + str(k) + '_' + str(title) + '_processed' + str(extension)
+    # Save the file
+    gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE)
+    # Show the mask
+    data['/%d/mask' % k] = mask
+    # Add the sufix _masked to the previous filename
+    savename = os.path.join(savedir, filename) + str(k) + '_' + str(title) + '_processed_masked' + str(extension)
+    # Save the data
+    gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE)
+    # Print the name of the file you're saving to the command line
+    # print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))
+
+
 def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale):
     # Save the data for the cropped channels
     # Data is exported to a file of extension set in the main script
@@ -350,83 +654,11 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
         # Print the name of the file you're saving to the command line
         # print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))
 
-
-def grainthinning(data, mask, dx):
-    # Calculate gaussian width in pixels from real value using pixel size
-    Gaussiansize = 2e-9 / dx
-    # Gaussiansize = 10
-    # Gaussian filter data
-    datafield.filter_gaussian(Gaussiansize)
-    # Thin (skeletonise) gaussian filtered grains to get traces
-    mask.grains_thin()
-    return data, mask
-
-
-def exportasnparray(datafield, mask):
-    # Export the current datafield (channel) and mask (grains) as numpy arrays
-    npdata = gwyutils.data_field_data_as_array(datafield)
-    npmask = gwyutils.data_field_data_as_array(mask)
-    return npdata, npmask
-
-
-def savefiles(data, filename, extension):
-    # Turn rulers on
-    s["/module/pixmap/xytype"] = 1
-
-    # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
-    directory, filename = os.path.split(filename)
-
-    # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Processed')
-
-    # If the folder Processed doest exist make it here
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
-
-    # Save the data for the channels found above i.e. ZSensor/Height, as chosen_ids
-    # Data is exported to a file of extension set in the main script
-    # Data is exported with the string '_processed' added to the end of its filename
-    gwy.gwy_app_data_browser_select_data_field(data, k)
-    # change the colour map for all channels (k) in the image:
-    palette = data.set_string_by_name("/" + str(k) + "/base/palette", "Nanoscope")
-    # Determine the title of each channel
-    title = data["/%d/data/title" % k]
-    # Generate a filename to save to by removing the extension to the file, adding the suffix '_processed'
-    # and an extension set in the main file
-    savename = os.path.join(savedir, filename) + str(k) + '_' + str(title) + '_processed' + str(extension)
-    # Save the file
-    gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE)
-    # Show the mask
-    data['/%d/mask' % k] = mask
-    # Add the sufix _masked to the previous filename
-    savename = os.path.join(savedir, filename) + str(k) + '_' + str(title) + '_processed_masked' + str(extension)
-    # Save the data
-    gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE)
-    # Print the name of the file you're saving to the command line
-    # print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))
-
-
-def saveindividualstats(filename, dataframetosave):
-    # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
-    filedirectory, filename = os.path.split(filename)
-
-    # print 'Saving stats for: ' + str(filename)
-
-    savedir = os.path.join(filedirectory, 'GrainStatistics')
-    savename = os.path.join(savedir, filename)
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
-
-    dataframetosave.to_json(savename + '.json')
-    dataframetosave.to_csv(savename + '.txt')
-
-
 def getdataforallfiles(appended_data):
     # Get dataframe of all files within folder from appended_data list file
-    grainstats_df = pd.concat(appended_data, ignore_index=True)
+    grainstats_df = pd.concat(appended_data).reset_index(level=1, drop=True)
 
     return grainstats_df
-
 
 def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
     # Get dataframe of only files containing a certain string
@@ -436,29 +668,17 @@ def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
 
     return grainstats_searched
 
-
-def savestats(directory, dataframetosave):
-    directoryname = os.path.splitext(os.path.basename(directory))[0]
-    print 'Saving stats for: ' + str(directoryname)
-
-    savedir = os.path.join(directory)
-    savename = os.path.join(savedir, directoryname)
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
-
-    dataframetosave.to_json(savename + '.json')
-    dataframetosave.to_csv(savename + '.txt')
-
-
 # This the main script
 if __name__ == '__main__':
     # Set various options here:
+
     # Set the file path, i.e. the directory where the files are here'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/HR Images'
+    # path = '/Users/alice/Dropbox/UCL/DNA Knots/20180221_Knots'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/TFO'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/PLL'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing'
-    path = os.getcwd()
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing/Files'
     # Set file type to look for here
     fileend = '.spm', '.jpk', '*.*[0-9]'
     filetype = '*.*[0-9]'
@@ -469,11 +689,13 @@ if __name__ == '__main__':
     maxheightscale = 3e-9
     # Set minimum size for grain determination:
     minarea = 200e-9
+    # minarea = 1000e-9
     # Set allowable deviation from the median pixel size for removal of large and small objects
-    maxdeviation = 1.5
-    mindeviation = 0.5
+    maxdeviation = 1.2
+    mindeviation = 0.8
     # Set size of the cropped window/2 in pixels
     cropwidth = 40e-9
+    # cropwidth = 87.5e-9
     # Set number of bins
     bins = 25
 
@@ -539,8 +761,28 @@ if __name__ == '__main__':
 
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = getdataforallfiles(appended_data)
-    # # Search dataframes and return a new dataframe of only files containing a specific string
-    # grainstats_searched = searchgrainstats(grainstats_df, 'filename', '339', 'nothing')
+    # Search dataframes and return a new dataframe of only files containing a specific string
+    grainstats_searched = searchgrainstats(grainstats_df, 'filename', '339', 'nothing')
+
+    # # Plot all output from dataframe grainstats for initial visualisation as KDE plots
+    # plotall(grainstats_df, path, extension)
+
+    # Plot a single variable from the dataframe
+    # plotting(grainstats_df, 'grain_mean_radius', 'directory', bins, path, extension)
+    # plotting(grainstats_df, 'grain_bound_len', 'directory', bins, path, extension)
+    # plotting(grainstats_df, 'grain_max_bound_size', 'directory', bins, path, extension)
+    # plotting(grainstats_df, 'grain_min_bound_size', 'directory', bins, path, extension)
+
+    # Iterate through all keys in the grainstatsarguments file to plot various statistical quantities for a dataframe
+    # plottingallstats(grainstatsarguments, grainstats_df, extension, path)
+
+    # # Plot two variables from the dataframe - outputs both stacked by variable and full distributions
+    # plotting2(grainstats_df, 'grain_min_bound_size', 'grain_max_bound_size', 'directory', bins, path, extension)
+    # plotting2(grainstats_df, 'grain_mean', 'grain_maximum', 'directory', bins, path, extension)
+    # plotting2(grainstats_df, 'grain_maximum', 'grain_median', 'directory', bins, path, extension)
+
+    # # Plot a joint axis seaborn plot
+    # seaplotting(grainstats_searched, 'grain_min_bound_size', 'grain_max_bound_size', bins, path, extension)
 
     # Saving stats to text and JSON files named by master path
     savestats(path, grainstats_df)

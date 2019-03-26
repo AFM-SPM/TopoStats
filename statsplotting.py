@@ -223,9 +223,11 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/Nickel'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/Nickel'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/HR Images'
     # Set the name of the json file to import here
-    name = 'Nickel'
+    # name = 'Nickel'
+    name = 'HR Images'
     plotextension = '.pdf'
     bins = 25
 
