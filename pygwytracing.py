@@ -681,8 +681,8 @@ if __name__ == '__main__':
     # Set various options here:
 
     # Set the file path, i.e. the directory where the files are here'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/HR Images'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/HR Images'
     # path = '/Users/alice/Dropbox/UCL/DNA Knots/20180221_Knots'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/TFO'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/PLL'
@@ -726,48 +726,48 @@ if __name__ == '__main__':
         # Iterate over the chosen channels in your file e.g. the ZSensor channel
         # for k in chosen_ids:
         # Or just use first height/height sensor channel to avoid duplicating
-        k = chosen_ids[0]
-        # Get all the image details eg resolution for your chosen channel
-        xres, yres, xreal, yreal, dx, dy = imagedetails(data)
+        for k in chosen_ids[:1]:
+            # Get all the image details eg resolution for your chosen channel
+            xres, yres, xreal, yreal, dx, dy = imagedetails(data)
 
-        # Perform basic image processing, to align rows, flatten and set the mean value to zero
-        data = editfile(data, minheightscale, maxheightscale)
+            # Perform basic image processing, to align rows, flatten and set the mean value to zero
+            data = editfile(data, minheightscale, maxheightscale)
 
-        # Perform basic image processing, to align rows, flatten and set the mean value to zero
-        # Find all grains in the mask which are both above a height threshold
-        # and bigger than the min size set in the main codegrain_mean_rad
-        data, mask, datafield, grains = grainfinding(data, minarea, k)
-        # # Flattening based on masked data and subsequent grain finding
-        # # Used for analysing data e.g. peptide induced bilayer degradation
-        # data, mask, datafield, grains = heightthresholding.otsuthresholdgrainfinding(data, k)
+            # Perform basic image processing, to align rows, flatten and set the mean value to zero
+            # Find all grains in the mask which are both above a height threshold
+            # and bigger than the min size set in the main codegrain_mean_rad
+            data, mask, datafield, grains = grainfinding(data, minarea, k)
+            # # Flattening based on masked data and subsequent grain finding
+            # # Used for analysing data e.g. peptide induced bilayer degradation
+            # data, mask, datafield, grains = heightthresholding.otsuthresholdgrainfinding(data, k)
 
-        # Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
-        median_pixel_area = find_median_pixel_area(datafield, grains)
-        # Remove all large objects defined as 1.2* the median grain size (in pixel area)
-        mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation)
-        # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
-        mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
+            # Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
+            median_pixel_area = find_median_pixel_area(datafield, grains)
+            # Remove all large objects defined as 1.2* the median grain size (in pixel area)
+            mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation)
+            # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
+            mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
 
-        # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
-        # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
-        grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
+            # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
+            # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
+            grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
 
-        # Create cropped datafields for every grain of size set in the main directory
-        bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
-        # Save out cropped files as images with no scales to a subfolder
-        savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            # Create cropped datafields for every grain of size set in the main directory
+            bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
+            # Save out cropped files as images with no scales to a subfolder
+            savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 
-        # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
-        # data, mask = grainthinning(data, mask, dx)
+            # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
+            # data, mask = grainthinning(data, mask, dx)
 
-        # Export the channels data and mask as numpy arrays
-        npdata, npmask = exportasnparray(datafield, mask)
+            # Export the channels data and mask as numpy arrays
+            npdata, npmask = exportasnparray(datafield, mask)
 
-        # Save data as 2 images, with and without mask
-        savefiles(data, filename, extension)
+            # Save data as 2 images, with and without mask
+            savefiles(data, filename, extension)
 
-        # Saving stats to text and JSON files named by master path
-        saveindividualstats(filename, grainstats)
+            # Saving stats to text and JSON files named by master path
+            saveindividualstats(filename, grainstats)
 
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = getdataforallfiles(appended_data)
