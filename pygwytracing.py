@@ -34,7 +34,8 @@ s = gwy.gwy_app_settings_get()
 s["/module/pixmap/ztype"] = 0
 
 # Define the settings for image processing functions e.g. align rows here
-s['/module/linematch/method'] = 0
+s['/module/linematch/method'] = 1  # uses median
+s["/module/linematch/max_degree"] = 0
 
 
 def traversedirectories(fileend, filetype, path):
@@ -117,14 +118,10 @@ def editfile(data, minheightscale, maxheightscale):
     gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
     # Apply a 1.5 pixel gaussian filter
     data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    # data_field.filter_gaussian(1.5)
+    data_field.filter_gaussian(1.5)
     # # Shift contrast - equivalent to 'fix zero'
     # datafield.add(-data_field.get_min())
 
-    # Set the image display to fized range and the colour scale for the images
-    maximum_disp_value = data.set_int32_by_name("/" + str(k) + "/base/range-type", int(1))
-    minimum_disp_value = data.set_double_by_name("/" + str(k) + "/base/min", float(minheightscale))
-    maximum_disp_value = data.set_double_by_name("/" + str(k) + "/base/max", float(maxheightscale))
     return data
 
 
@@ -133,10 +130,21 @@ def grainfinding(data, minarea, k):
     gwy.gwy_app_data_browser_select_data_field(data, k)
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
     mask = gwy.DataField.new_alike(datafield, False)
+
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
     datafield.mask_outliers(mask, 1.2)
+
+    # excluding mask, zero mean
+    stats = datafield.area_get_stats_mask(mask, gwy.MASK_EXCLUDE, 0, 0, datafield.get_xres(), datafield.get_yres())
+    datafield.add(-stats[0])
+
+    # Set the image display to fized range and the colour scale for the images
+    maximum_disp_value = data.set_int32_by_name("/" + str(k) + "/base/range-type", int(1))
+    minimum_disp_value = data.set_double_by_name("/" + str(k) + "/base/min", float(minheightscale))
+    maximum_disp_value = data.set_double_by_name("/" + str(k) + "/base/max", float(maxheightscale))
+
 
     ### Editing grain mask
     # Remove grains touching the edge of the mask
@@ -688,10 +696,10 @@ if __name__ == '__main__':
     minheightscale = -1e-9
     maxheightscale = 3e-9
     # Set minimum size for grain determination:
-    minarea = 200e-9
+    minarea = 400e-9
     # minarea = 1000e-9
     # Set allowable deviation from the median pixel size for removal of large and small objects
-    maxdeviation = 1.2
+    maxdeviation = 1.5
     mindeviation = 0.8
     # Set size of the cropped window/2 in pixels
     cropwidth = 40e-9
@@ -716,48 +724,50 @@ if __name__ == '__main__':
         # chosen_ids = [chosen_ids[0]]
 
         # Iterate over the chosen channels in your file e.g. the ZSensor channel
-        for k in chosen_ids:
-            # Get all the image details eg resolution for your chosen channel
-            xres, yres, xreal, yreal, dx, dy = imagedetails(data)
+        # for k in chosen_ids:
+        # Or just use first height/height sensor channel to avoid duplicating
+        k = chosen_ids[0]
+        # Get all the image details eg resolution for your chosen channel
+        xres, yres, xreal, yreal, dx, dy = imagedetails(data)
 
-            # Perform basic image processing, to align rows, flatten and set the mean value to zero
-            data = editfile(data, minheightscale, maxheightscale)
+        # Perform basic image processing, to align rows, flatten and set the mean value to zero
+        data = editfile(data, minheightscale, maxheightscale)
 
-            # Perform basic image processing, to align rows, flatten and set the mean value to zero
-            # Find all grains in the mask which are both above a height threshold
-            # and bigger than the min size set in the main codegrain_mean_rad
-            data, mask, datafield, grains = grainfinding(data, minarea, k)
-            # # Flattening based on masked data and subsequent grain finding
-            # # Used for analysing data e.g. peptide induced bilayer degradation
-            # data, mask, datafield, grains = heightthresholding.otsuthresholdgrainfinding(data, k)
+        # Perform basic image processing, to align rows, flatten and set the mean value to zero
+        # Find all grains in the mask which are both above a height threshold
+        # and bigger than the min size set in the main codegrain_mean_rad
+        data, mask, datafield, grains = grainfinding(data, minarea, k)
+        # # Flattening based on masked data and subsequent grain finding
+        # # Used for analysing data e.g. peptide induced bilayer degradation
+        # data, mask, datafield, grains = heightthresholding.otsuthresholdgrainfinding(data, k)
 
-            # Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
-            median_pixel_area = find_median_pixel_area(datafield, grains)
-            # Remove all large objects defined as 1.2* the median grain size (in pixel area)
-            mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation)
-            # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
-            mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
+        # Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
+        median_pixel_area = find_median_pixel_area(datafield, grains)
+        # Remove all large objects defined as 1.2* the median grain size (in pixel area)
+        mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation)
+        # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
+        mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
 
-            # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
-            # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
-            grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
+        # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
+        # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
+        grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
 
-            # Create cropped datafields for every grain of size set in the main directory
-            bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
-            # Save out cropped files as images with no scales to a subfolder
-            savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+        # Create cropped datafields for every grain of size set in the main directory
+        bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
+        # Save out cropped files as images with no scales to a subfolder
+        savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 
-            # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
-            # data, mask = grainthinning(data, mask, dx)
+        # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
+        # data, mask = grainthinning(data, mask, dx)
 
-            # Export the channels data and mask as numpy arrays
-            npdata, npmask = exportasnparray(datafield, mask)
+        # Export the channels data and mask as numpy arrays
+        npdata, npmask = exportasnparray(datafield, mask)
 
-            # Save data as 2 images, with and without mask
-            savefiles(data, filename, extension)
+        # Save data as 2 images, with and without mask
+        savefiles(data, filename, extension)
 
-            # Saving stats to text and JSON files named by master path
-            saveindividualstats(filename, grainstats)
+        # Saving stats to text and JSON files named by master path
+        saveindividualstats(filename, grainstats)
 
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = getdataforallfiles(appended_data)
