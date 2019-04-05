@@ -84,11 +84,18 @@ if __name__ == '__main__':
     maxax = 300
 
     # Convert excel files to JSON format
-    sprfiles = traversedirectories('Kinetics.xlsx', path)
+    sprfiles = traversedirectories('.xlsx', path)
     for file in sprfiles:
         df = pd.read_excel(file)
         df = df.dropna()
+        df.to_json(os.path.splitext(file)[0] + '.json')
+
+    # Plot selected json files as line plots
+    jsonfiles = traversedirectories(fileend, path)
+    for file in jsonfiles:
+        df = pd.read_json(file)
+        df.sort_values(by=['Time'], inplace=True)
         df = df.set_index('Time')
-        savestats(path, file, df)
+        df = df[sorted(df.columns, key=float)]
+        df.columns = [str(col) + ' nM' for col in df.columns]
         plotline(df, path, file, plotextension)
-        df.to_json(file + '.json')
