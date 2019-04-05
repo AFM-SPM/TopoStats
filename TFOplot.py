@@ -7,9 +7,10 @@ from cycler import cycler
 
 # Set seaborn to override matplotlib for plot output
 sns.set()
+sns.set_style("white")
 # The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
 # The notebook style is the default
-sns.set_context("poster")
+sns.set_context("poster", font_scale=1.1)
 
 def importfromjson(path, name):
     filename = os.path.join(path, name + '.json')
@@ -57,7 +58,9 @@ def plot_mean_SD(df, directory, name, plotextension, plotarg, lengths):
         a = x.mean()
         b = x.std()
         TFOmean[i] = a
+        print a
         TFOstd[i] = b
+        print b
         c = next(color)
         plt.bar(i, TFOmean[i], yerr=TFOstd[i], alpha=0.7, color=c)
     plt.savefig(savename)

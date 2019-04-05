@@ -681,12 +681,8 @@ if __name__ == '__main__':
     # Set various options here:
 
     # Set the file path, i.e. the directory where the files are here'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/New Images/Nickel'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/HR Images'
-    # path = '/Users/alice/Dropbox/UCL/DNA Knots/20180221_Knots'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/TFO'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/PLL'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Code/GitTracing/Files'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/Nickel'
+    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/HR Images'
     # Set file type to look for here
     fileend = '.spm', '.jpk', '*.*[0-9]'
     filetype = '*.*[0-9]'
