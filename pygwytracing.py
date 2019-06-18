@@ -109,7 +109,7 @@ def editfile(data, minheightscale, maxheightscale):
     # align rows
     gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)  # NONINTERACTIVE is only for file modules
     # flatten the data
-    gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
+    # gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
     # # align the rows
     gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
     # Fix zero
@@ -118,7 +118,7 @@ def editfile(data, minheightscale, maxheightscale):
     gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
     # Apply a 1.5 pixel gaussian filter
     data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    data_field.filter_gaussian(1.5)
+    # data_field.filter_gaussian(1.5)
     # # Shift contrast - equivalent to 'fix zero'
     # datafield.add(-data_field.get_min())
 
@@ -526,6 +526,7 @@ def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
         BRrow = px_center_y + cropwidth
         if BRrow > yres:
             BRrow = yres
+        print ULcol, ULrow, BRcol, BRrow
         crop_datafield_i = datafield.duplicate()
         crop_datafield_i.resize(ULcol, ULrow, BRcol, BRrow)
         # add cropped datafield to active container
@@ -534,6 +535,44 @@ def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
     crop_ids = gwy.gwy_app_data_browser_get_data_ids(data)
 
     return bbox, orig_ids, crop_ids, data
+
+
+def splitimage(data, splitwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
+    # Find the centre of the grain in pixels
+    # get active container
+    data = gwy.gwy_app_data_browser_get_current(gwy.APP_CONTAINER)
+    # get current number of files
+    orig_ids = gwy.gwy_app_data_browser_get_data_ids(data)
+    splitwidth=2e-6
+    # Define the width of the image to crop to
+    print xreal, xres, splitwidth
+    splitwidth_px = int((splitwidth / xreal) * xres)
+    print 'splitwidth_px' + str(splitwidth_px)
+    no_splits = int(round(xreal / splitwidth))
+    print 'no_splits' + str(no_splits)
+    for x in range(no_splits):
+        xmin = splitwidth_px * x
+        if xmin < 0:
+            xmin = 0
+        xmax = splitwidth_px * x + splitwidth_px
+        if xmax > xres:
+            xmax = xres
+        for y in range(no_splits):
+            ymin = splitwidth_px * y
+            if ymin < 0:
+                ymin = 0
+            ymax = splitwidth_px * y + splitwidth_px
+            if ymax > yres:
+                ymax = yres
+            tiles = xmin, ymin, xmax, ymax
+            print tiles
+            crop_datafield_i = datafield.duplicate()
+            crop_datafield_i.resize(xmin, ymin, xmax, ymax)
+            # add cropped datafield to active container
+            gwy.gwy_app_data_browser_add_data_field(crop_datafield_i, data, i + (len(orig_ids)))
+    # Generate list of datafields including cropped fields
+    crop_ids = gwy.gwy_app_data_browser_get_data_ids(data)
+    return orig_ids, crop_ids, data
 
 
 def grainthinning(data, mask, dx):
@@ -682,12 +721,15 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/Nickel'
-    path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/HR Images'
+    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/HR Images'
+    path = '/Users/alice/Dropbox/UCL/DNA on PLL PEG/data'
+
     # Set file type to look for here
-    fileend = '.spm', '.jpk', '*.*[0-9]'
-    filetype = '*.*[0-9]'
+    fileend = '.spm', '.jpk', '*.[0-9]'
+    filetype = '*.[0-9]'
     # Set extension to export files as here e.g. '.tiff'
-    extension = '.tiff'
+    # extension = '.tiff'
+    extension = '.gwy'
     # Set height scale values to save out
     minheightscale = -1e-9
     maxheightscale = 3e-9
@@ -696,10 +738,11 @@ if __name__ == '__main__':
     # minarea = 1000e-9
     # Set allowable deviation from the median pixel size for removal of large and small objects
     maxdeviation = 1.5
-    mindeviation = 0.8
+    mindeviation = 0.5
     # Set size of the cropped window/2 in pixels
-    cropwidth = 40e-9
-    # cropwidth = 87.5e-9
+    # cropwidth = 40e-9
+    cropwidth = 100e-9
+    splitwidth = 1e-06
     # Set number of bins
     bins = 25
 
@@ -740,18 +783,19 @@ if __name__ == '__main__':
             # Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
             median_pixel_area = find_median_pixel_area(datafield, grains)
             # Remove all large objects defined as 1.2* the median grain size (in pixel area)
-            mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation)
+            # mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation)
             # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
-            mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
+            # mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
 
             # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
             # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
             grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
 
             # Create cropped datafields for every grain of size set in the main directory
-            bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
+            # bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
+            orig_ids, crop_ids, data = splitimage(data, cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             # Save out cropped files as images with no scales to a subfolder
-            savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            # savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 
             # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)

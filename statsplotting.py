@@ -14,7 +14,7 @@ sns.set()
 sns.set_style("white", {'font.family': ['sans-serif']})
 # The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
 # The notebook style is the default
-sns.set_context("poster", font_scale=1.3)
+sns.set_context("poster", font_scale=1.5)
 sns.color_palette(palette=None)
 
 
@@ -53,6 +53,7 @@ def plotkde(df, directory, name, plotextension, grouparg, plotarg):
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(reversed(handles), reversed(labels), title='Topoisomer', loc='upper left')
     plt.xlim(0, 1)
+    # plt.xlim(1.2e-8, 2.5e-8)
     plt.xlabel(' ')
     plt.ylabel(' ')
     plt.savefig(savename)
@@ -133,9 +134,11 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
         kdemax[i] = xs[np.argmax(b)]
     # plt.savefig(savename)
 
+    print kdemax
+
     savename2 = os.path.join(savedir, name + plotarg + '_KDE_max_var_reverse' + plotextension)
     # Reverse colour order for
-    palette = sns.color_palette(n_colors=len(topos))
+    palette = sns.color_palette('tab10', n_colors=len(topos))
     palette.reverse()
     with palette:
         fig = plt.figure(figsize=(10, 7))
@@ -146,6 +149,8 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
         # Set a value for the placement of the bars, by creating an array of the length of topos
         bars = np.linspace(0, len(topos), len(topos), endpoint=False, dtype=int)
         for i in sorted(topos, reverse=True):
+            # plt.bar(order, kdemax[i], yerr=dfvar[i], alpha=0.7)
+            # plt.bar(order, kdemax[i], yerr=dfstd[i], alpha=0.7)
             plt.bar(order, kdemax[i], yerr=dfvar[i], alpha=0.7)
             order = order + 1
             # Set the bar names to be the topoisomer names
@@ -269,6 +274,7 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/PLL NaOAc'
     path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
+    print path
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/Nickel'
 
     # Set the name of the json file to import here
@@ -302,20 +308,21 @@ if __name__ == '__main__':
 
     # Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
     # grouped by grouparg e.g. 'topoisomer'
-    plotkde(df, path, name, plotextension, 'topoisomer', 'aspectratio')
+    # plotkde(df, path, name, plotextension, 'topoisomer', 'aspectratio')
+    # plotkde(df, path, name, plotextension, 'topoisomer', 'grain_mean_radius')
 
 
-    # Plot a histogram of one column of the dataframe - arg1 e.g. 'aspectratio'
-    # grouped by grouparg e.g. 'topoisomer'
-    plothist2(df, path, name, plotextension, 'topoisomer', 'aspectratio')
-
-    # Plot a histogram of one column of the dataframe - arg1 e.g. 'aspectratio'
-    # grouped by grouparg e.g. 'topoisomer'
-    plothiststacked2(df, path, name, plotextension, 'topoisomer', 'aspectratio')
-
-    # Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
-    # grouped by grouparg e.g. 'topoisomer'
-    # Then plot the maxima of each KDE as a bar plot
+    # # Plot a histogram of one column of the dataframe - arg1 e.g. 'aspectratio'
+    # # grouped by grouparg e.g. 'topoisomer'
+    # plothist2(df, path, name, plotextension, 'topoisomer', 'aspectratio')
+    #
+    # # Plot a histogram of one column of the dataframe - arg1 e.g. 'aspectratio'
+    # # grouped by grouparg e.g. 'topoisomer'
+    # plothiststacked2(df, path, name, plotextension, 'topoisomer', 'aspectratio')
+    #
+    # # Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
+    # # grouped by grouparg e.g. 'topoisomer'
+    # # Then plot the maxima of each KDE as a bar plot
     plotkdemax(df, path, name, plotextension, 'aspectratio', topos)
 
     # # Plot all columns of a dataframe as separate graphs grouped by topoisomer
