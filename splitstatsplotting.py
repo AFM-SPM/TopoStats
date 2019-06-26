@@ -14,8 +14,7 @@ sns.set()
 sns.set_style("white", {'font.family': ['sans-serif']})
 # The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
 # The notebook style is the default
-# sns.set_context("notebook", font_scale=1.5)
-sns.set_context("poster")
+sns.set_context("poster", font_scale=1.5)
 sns.color_palette(palette=None)
 
 
@@ -52,8 +51,8 @@ def plotkde(df, directory, name, plotextension, grouparg, plotarg):
     fig, ax = plt.subplots(figsize=(10, 7))
     df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=0.7)
     handles, labels = ax.get_legend_handles_labels()
-    ax.legend(reversed(handles), reversed(labels), title='Topoisomer', loc='upper right')
-    plt.xlim(0, 1.2)
+    ax.legend(reversed(handles), reversed(labels), title='Topoisomer', loc='upper left')
+    plt.xlim(0, 1)
     # plt.xlim(1.2e-8, 2.5e-8)
     plt.xlabel(' ')
     plt.ylabel(' ')
@@ -275,15 +274,12 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/PLL NaOAc'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
-    # path = '/Users/alice/Dropbox/UCL/DNA on PLL PEG/data/Processed/GrainStatistics'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
-    path = '/Users/alicepyne/Dropbox/UCL/Kavit/mmc presentation data/DNA Immobilisation'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/PLL'
+    path = '/Users/alice/Dropbox/UCL/DNA on PLL PEG/data'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/Nickel'
 
     # Set the name of the json file to import here
     name = '*.json'
-    name = 'DNA Immobilisation'
+    name = 'Nickel'
     plotextension = '.pdf'
     bins = 10
 
@@ -313,7 +309,7 @@ if __name__ == '__main__':
 
     # Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
     # grouped by grouparg e.g. 'topoisomer'
-    plotkde(df, path, name, plotextension, 'topoisomer', 'aspectratio')
+    # plotkde(df, path, name, plotextension, 'topoisomer', 'aspectratio')
     # plotkde(df, path, name, plotextension, 'topoisomer', 'grain_mean_radius')
 
 
@@ -386,3 +382,17 @@ if __name__ == '__main__':
     # g.map_upper(plt.scatter)
 
 
+# a = '/Users/alice/Dropbox/UCL/DNA on PLL PEG/data2/data2.json'
+# df = pd.read_json(a)
+# df['file'] = df['filename']
+# df['filename'] = df['filename'].astype(str)
+# df['file'] = df['file'].astype(str)
+# df['file'] = df['file'].str.replace('s[0-9]_', '')
+# df['file'] = df['file'].str.replace('.[0-9]_[0-9]*[0-9].spm[0-9]', '')
+# df['file'] = df['file'].str.replace('_[0-9]*[0-9]', '')
+# new_df = df.groupby('filename')['grain_pixel_area'].sum()
+# y = df.groupby('filename')['grain_pixel_area'].sum()
+# y.plot.barh()
+# b = df[df["filename"].str.contains("strep")]
+# x = b.groupby('filename')['grain_pixel_area'].sum()
+# x.plot.barh()
