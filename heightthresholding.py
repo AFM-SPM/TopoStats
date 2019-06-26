@@ -112,4 +112,12 @@ def otsuthresholdgrainfinding(data, k):
     grains = mask.number_grains()
     print max(grains)
 
+    # Update data to show mask, comment out to remove mask
+    s['/module/pixmap/draw_mask'] = True
+    data['/0/mask/red'] = 0.1234
+
+    #excluding mask, zero mean
+    stats = datafield.area_get_stats_mask(mask, gwy.MASK_EXCLUDE, 0, 0, datafield.get_xres(), datafield.get_yres())
+    datafield.add(-stats[0])
+    
     return data, mask, datafield, grains
