@@ -18,7 +18,6 @@ sns.set_style("white", {'font.family': ['sans-serif']})
 sns.set_context("poster")
 sns.color_palette(palette=None)
 
-
 def importfromjson(path, name):
     filename = os.path.join(path, name + '.json')
     importeddata = pd.read_json(filename)
@@ -48,16 +47,20 @@ def plotkde(df, directory, name, plotextension, grouparg, plotarg):
         os.makedirs(savedir)
 
     # Plot and save figures
-    savename = os.path.join(savedir, name + plotarg + plotextension)
-    fig, ax = plt.subplots(figsize=(10, 7))
-    df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=0.7)
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend(reversed(handles), reversed(labels), title='Topoisomer', loc='upper right')
-    plt.xlim(0, 1.2)
-    # plt.xlim(1.2e-8, 2.5e-8)
-    plt.xlabel(' ')
-    plt.ylabel(' ')
-    plt.savefig(savename)
+    savename = os.path.join(savedir, name + plotarg + '1' + plotextension)
+    palette = sns.color_palette('YlOrRd', n_colors=len(topos))
+    # palette = sns.color_palette('tab10', n_colors=len(topos))
+    palette.reverse()
+    with palette:
+        fig, ax = plt.subplots(figsize=(10, 7))
+        df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=0.7)
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(reversed(handles), reversed(labels), title='Topoisomer', loc='upper right')
+        plt.xlim(0, 1.2)
+        # plt.xlim(1.2e-8, 2.5e-8)
+        plt.xlabel(' ')
+        plt.ylabel(' ')
+        plt.savefig(savename)
 
 
 def plothist2(df, directory, name, plotextension, grouparg, plotarg):
@@ -137,9 +140,10 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
 
     print kdemax
 
-    savename2 = os.path.join(savedir, name + plotarg + '_KDE_max_var_reverse' + plotextension)
+    savename2 = os.path.join(savedir, name + plotarg + '_KDE_max_var_reversed' + plotextension)
     # Reverse colour order for
-    palette = sns.color_palette('tab10', n_colors=len(topos))
+    palette = sns.color_palette('YlOrRd', n_colors=len(topos))
+    # palette = sns.color_palette('tab10', n_colors=len(topos))
     palette.reverse()
     with palette:
         fig = plt.figure(figsize=(10, 7))
@@ -274,16 +278,16 @@ def seaplotting(df, arg1, arg2, bins, directory, extension):
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/PLL NaOAc'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
+    path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
     # path = '/Users/alice/Dropbox/UCL/DNA on PLL PEG/data/Processed/GrainStatistics'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
-    path = '/Users/alicepyne/Dropbox/UCL/Kavit/mmc presentation data/DNA Immobilisation'
+    # path = '/Users/alicepyne/Dropbox/UCL/Kavit/mmc presentation data/DNA Immobilisation'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/PLL'
     # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/Nickel'
 
     # Set the name of the json file to import here
     name = '*.json'
-    name = 'DNA Immobilisation'
+    name = 'Nickel'
     plotextension = '.pdf'
     bins = 10
 

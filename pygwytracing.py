@@ -57,10 +57,10 @@ def traversedirectories(fileend, filetype, path):
             # ignore any files containing '_cs'
             if not fnmatch.fnmatch(filename, '*_cs*'):
                 # Find files ending in 'fileend'
-                if filename.endswith((fileend)):
+                if filename.endswith(fileend):
                     spmfiles.append(os.path.join(dirpath, filename))
                 # Find files of a certain 'filetype'
-                if fnmatch.fnmatch(filename, filetype):
+                if fnmatch.fnmatch(filename, '*.*[0-9]'):
                     spmfiles.append(os.path.join(dirpath, filename))
         #
         # for filename in fnmatch.filter(files, filetype):
@@ -107,6 +107,35 @@ def imagedetails(data):
     dy = datafield.get_dy()
     return xres, yres, xreal, yreal, dx, dy
 
+def heightediting(data, k):
+    gwy.gwy_app_data_browser_select_data_field(data, k)
+
+    # Flatten the data
+    gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
+
+    datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
+    mask = gwy.DataField.new_alike(datafield, False)
+    datafield.grains_mark_height(mask, 30, False)
+
+    # Re-do polynomial correction with masked height
+    s["/module/polylevel/masking"] = 0
+    gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
+
+    # Re-do align rows with masked heights
+    s["/module/linematch/masking"] = 0
+    gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
+
+    # # Remove scars
+    # gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
+
+    # Gaussian filter to remove noise
+    current_data = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
+    current_data.filter_gaussian(1.5)
+
+    # Set zero to mean value
+    gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
+
+    return data
 
 def editfile(data, minheightscale, maxheightscale):
     # select each channel of the file in turn
