@@ -39,9 +39,9 @@ s = gwy.gwy_app_settings_get()
 s["/module/pixmap/ztype"] = 0
 
 # Define the settings for image processing functions e.g. align rows here
-s['/module/linematch/method'] = 1  # uses median
+s['/module/linematch/method'] = 2  # uses median
 s["/module/linematch/max_degree"] = 2
-# s["/module/polylevel/col_degree"] = 3
+s["/module/polylevel/col_degree"] = 2
 
 
 def traversedirectories(fileend, filetype, path):
@@ -137,26 +137,33 @@ def heightediting(data, k):
 
     return data
 
-def editfile(data, minheightscale, maxheightscale):
+def editfile(data, k):
     # select each channel of the file in turn
     # this is run within the for k in chosen_ids loop so k refers to the index of each chosen channel to analyse
     # NONINTERACTIVE is only for file modules
     gwy.gwy_app_data_browser_select_data_field(data, k)
+
     # align rows
     gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+
     # flatten the data
     gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
+
     # align rows
     gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+
     # flatten base
-    # gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
+    gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
+
     # Fix zero
     gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
+
     # remove scars
-    gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
+    # gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
+
     # Apply a 1.5 pixel gaussian filter
-    data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    # data_field.filter_gaussian(1.5)
+    datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
+    datafield.filter_gaussian(1)
     # # Shift contrast - equivalent to 'fix zero'
     # datafield.add(-data_field.get_min())
 
@@ -624,7 +631,8 @@ if __name__ == '__main__':
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/HR Images'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/PLL'
-    path = '/Users/alicepyne/Dropbox/UCL/Kavit/mmc presentation data/DNA Immobilisation'
+    # path = '/Users/alicepyne/Dropbox/UCL/Kavit/mmc presentation data/DNA Immobilisation'
+    path = '/Users/alicepyne/Dropbox/UCL/DNA Origami'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA on PLL PEG'
 
     # Set file type to look for here
@@ -676,7 +684,7 @@ if __name__ == '__main__':
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
 
             # Perform basic image processing, to align rows, flatten and set the mean value to zero
-            data = editfile(data, minheightscale, maxheightscale)
+            data = editfile(data, k)
 
             # Perform basic image processing, to align rows, flatten and set the mean value to zero
             # Find all grains in the mask which are both above a height threshold
