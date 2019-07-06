@@ -41,7 +41,8 @@ s["/module/pixmap/ztype"] = 0
 # Define the settings for image processing functions e.g. align rows here
 s['/module/linematch/method'] = 2  # uses median
 s["/module/linematch/max_degree"] = 2
-s["/module/polylevel/col_degree"] = 2
+s["/module/polylevel/col_degree"] = 1
+s["/module/level/col_degree"] = 1
 
 
 def traversedirectories(fileend, filetype, path):
@@ -191,15 +192,17 @@ def grainfinding(data, minarea, k, thresholdingcriteria):
     maximum_disp_value = data.set_double_by_name("/" + str(k) + "/base/max", float(maxheightscale))
 
 
-    ### Editing grain mask
-    # Remove grains touching the edge of the mask
-    mask.grains_remove_touching_border()
-    # Calculate pixel width in nm
-    dx = datafield.get_dx()
-    # Calculate minimum feature size in pixels (integer) from a real size specified in the main
-    minsize = int(minarea / dx)
-    # Remove grains smaller than the minimum size in integer pixels
-    mask.grains_remove_by_size(minsize)
+    # ### Editing grain mask
+    # # Remove grains touching the edge of the mask
+    # mask.grains_remove_touching_border()
+    # # Calculate pixel width in nm
+    # dx = datafield.get_dx()
+    # # Calculate minimum feature size in pixels (integer) from a real size specified in the main
+    # minsize = int(minarea / dx)
+    # # Remove grains smaller than the minimum size in integer pixels
+    # mask.grains_remove_by_size(minsize)
+
+    mask.grains_invert()
 
     # Numbering grains for grain analysis
     grains = mask.number_grains()
@@ -209,6 +212,20 @@ def grainfinding(data, minarea, k, thresholdingcriteria):
 
     return data, mask, datafield, grains
 
+
+def removelargeobjects2(datafield, mask, median_pixel_area, maxdeviation, thresholdingcriteria):
+    mask2 = gwy.DataField.new_alike(datafield, False)
+    datafield.mask_outliers(mask2, thresholdingcriteria)
+    # mask2.grains_invert()
+    minsize = int(2*median_pixel_area)
+    mask = mask2
+    # mask2.grains_remove_by_size(minsize)
+    # mask.grains_intersect(mask2)
+    # mask.grains_invert()
+    # Numbering grains for grain analysis
+    grains = mask.number_grains()
+
+    return mask, grains
 
 def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation):
     mask2 = gwy.DataField.new_alike(datafield, False)
@@ -629,10 +646,10 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Code/TopoStats'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/HR Images'
-    path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
+    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/PLL'
     # path = '/Users/alicepyne/Dropbox/UCL/Kavit/mmc presentation data/DNA Immobilisation'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA Origami'
+    path = '/Users/alicepyne/Dropbox/UCL/DNA Origami'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA on PLL PEG'
 
     # Set file type to look for here
@@ -697,10 +714,13 @@ if __name__ == '__main__':
 
             # Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
             median_pixel_area = find_median_pixel_area(datafield, grains)
+            print median_pixel_area
             # Remove all large objects defined as 1.2* the median grain size (in pixel area)
-            mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation)
+            # mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation)
+            mask, grains = removelargeobjects2(datafield, mask, median_pixel_area, maxdeviation, 1)
+
             # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
-            mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
+            # mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
 
             # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
             # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files

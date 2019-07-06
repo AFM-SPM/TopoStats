@@ -15,8 +15,9 @@ sns.set_style("white", {'font.family': ['sans-serif']})
 # The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
 # The notebook style is the default
 # sns.set_context("notebook", font_scale=1.5)
-sns.set_context("poster")
-sns.color_palette(palette=None)
+sns.set_context("poster", font_scale=1.2)
+# sns.color_palette('YlOrRd', n_colors=len(topos))
+sns.color_palette('YlOrRd')
 
 def importfromjson(path, name):
     filename = os.path.join(path, name + '.json')
@@ -42,25 +43,21 @@ def plotkde(df, directory, name, plotextension, grouparg, plotarg):
     print 'Plotting kde of %s' % plotarg
 
     # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Plots')
+    savedir = os.path.join(directory, 'Plots_edited')
     if not os.path.exists(savedir):
         os.makedirs(savedir)
+    savename = os.path.join(savedir, name + plotarg + plotextension)
 
     # Plot and save figures
-    savename = os.path.join(savedir, name + plotarg + '1' + plotextension)
-    palette = sns.color_palette('YlOrRd', n_colors=len(topos))
-    # palette = sns.color_palette('tab10', n_colors=len(topos))
-    palette.reverse()
-    with palette:
-        fig, ax = plt.subplots(figsize=(10, 7))
-        df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=0.7)
-        handles, labels = ax.get_legend_handles_labels()
-        ax.legend(reversed(handles), reversed(labels), title='Topoisomer', loc='upper right')
-        plt.xlim(0, 1.2)
-        # plt.xlim(1.2e-8, 2.5e-8)
-        plt.xlabel(' ')
-        plt.ylabel(' ')
-        plt.savefig(savename)
+    fig, ax = plt.subplots(figsize=(10, 7))
+    df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=1, linewidth=7.0)
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(reversed(handles), reversed(labels), title='Topoisomer', loc='upper left')
+    plt.xlim(0, 1.2)
+    # plt.xlim(1.2e-8, 2.5e-8)
+    plt.xlabel(' ')
+    plt.ylabel(' ')
+    plt.savefig(savename)
 
 
 def plothist2(df, directory, name, plotextension, grouparg, plotarg):
@@ -73,6 +70,7 @@ def plothist2(df, directory, name, plotextension, grouparg, plotarg):
 
     # Plot and save figures
     savename = os.path.join(savedir, name + plotarg + '_histogram' + plotextension)
+
     fig, ax = plt.subplots(figsize=(10, 7))
     df.groupby(grouparg)[plotarg].plot.hist(ax=ax, legend=True, range=(0,1), bins=bins, alpha=0.3, stacked=True)
     handles, labels = ax.get_legend_handles_labels()
@@ -111,7 +109,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     # sns.set_context("notebook")
 
     # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Plots')
+    savedir = os.path.join(directory, 'Plots_edited')
     if not os.path.exists(savedir):
         os.makedirs(savedir)
 
@@ -124,16 +122,20 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     kdemax = dict()
     dfstd = dict()
     dfvar = dict()
+    dfste = dict()
     # plt.figure()
     for i in sorted(topos, reverse=True):
         kdemax[i] = i
         dfstd[i] = i
         dfvar[i] = i
+        dfste[i] = i
         x = df.query('topoisomer == @i')[plotarg]
         a = scipy.stats.gaussian_kde(x)
         b = a.pdf(xs)
-        dfstd[i] = x.std()
+        dfstd[i] = np.std(x)
+        # dfstd[i] = x.std()
         dfvar[i] = np.var(x)
+        dfste[i] = stats.sem
         # plt.plot(xs, b)
         kdemax[i] = xs[np.argmax(b)]
     # plt.savefig(savename)
@@ -141,9 +143,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     print kdemax
 
     savename2 = os.path.join(savedir, name + plotarg + '_KDE_max_var_reversed' + plotextension)
-    # Reverse colour order for
-    palette = sns.color_palette('YlOrRd', n_colors=len(topos))
-    # palette = sns.color_palette('tab10', n_colors=len(topos))
+    # palette = sns.color_palette('YlOrRd', n_colors=len(topos))
     palette.reverse()
     with palette:
         fig = plt.figure(figsize=(10, 7))
@@ -154,14 +154,14 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
         # Set a value for the placement of the bars, by creating an array of the length of topos
         bars = np.linspace(0, len(topos), len(topos), endpoint=False, dtype=int)
         for i in sorted(topos, reverse=True):
-            # plt.bar(order, kdemax[i], yerr=dfvar[i], alpha=0.7)
+            plt.bar(order, kdemax[i], yerr=dfstd[i], alpha=1)
             # plt.bar(order, kdemax[i], yerr=dfstd[i], alpha=0.7)
-            plt.bar(order, kdemax[i], yerr=dfvar[i], alpha=0.7)
+            # plt.bar(order, kdemax[i], yerr=dfvar[i], alpha=0.7)
             order = order + 1
             # Set the bar names to be the topoisomer names
             plt.xticks(bars, sorted(topos, reverse=True))
         plt.savefig(savename2)
-    #
+#
     # savename3 = os.path.join(savedir, name + plotarg + '_KDE_max_var' + plotextension)
     # fig = plt.figure(figsize=(10, 7))
     # # sns.set_palette("tab10")
@@ -308,6 +308,18 @@ if __name__ == '__main__':
     # Generate a new smaller df from the original df containing only selected columns
     dfaspectratio = df[['topoisomer', 'aspectratio']]
 
+    # Convert original (rounded) delta Lk to correct delta Lk
+    dfnew = df
+    dfnew['topoisomer'] = df['topoisomer'].astype(str).replace({'-2': '-1.8', '-3': '-2.8', '-6': '-4.9'})
+    # Get list of unique directory names i.e. topoisomers
+    newtopos = dfnew['topoisomer']
+    newtopos = pd.to_numeric(newtopos)
+    dfnew['topoisomer'] = newtopos
+
+    # Obtain list of unique topoisomers
+    topos = df['topoisomer'].unique()
+    topos = sorted(topos, reverse=False)
+
     # Get statistics for different topoisoimers
     allstats = df.groupby('topoisomer').describe()
     # transpose allstats dataframe to get better saving output
@@ -315,78 +327,81 @@ if __name__ == '__main__':
     # Save out statistics file
     savestats(path, name, allstats1)
 
-    # Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
-    # grouped by grouparg e.g. 'topoisomer'
-    plotkde(df, path, name, plotextension, 'topoisomer', 'aspectratio')
-    # plotkde(df, path, name, plotextension, 'topoisomer', 'grain_mean_radius')
+    palette = sns.color_palette('YlOrRd', n_colors=len(topos))
+    # palette = sns.color_palette('tab10', n_colors=len(topos))
+    palette.reverse()
+    with palette:
+        # Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
+        # grouped by grouparg e.g. 'topoisomer'
+        plotkde(df, path, name, plotextension, 'topoisomer', 'aspectratio')
+        # plotkde(df, path, name, plotextension, 'topoisomer', 'grain_mean_radius')
 
+        # # Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
+        # # grouped by grouparg e.g. 'topoisomer'
+        # # Then plot the maxima of each KDE as a bar plot
+        plotkdemax(df, path, name, plotextension, 'aspectratio', topos)
 
-    # # Plot a histogram of one column of the dataframe - arg1 e.g. 'aspectratio'
-    # # grouped by grouparg e.g. 'topoisomer'
-    # plothist2(df, path, name, plotextension, 'topoisomer', 'aspectratio')
-    #
-    # # Plot a histogram of one column of the dataframe - arg1 e.g. 'aspectratio'
-    # # grouped by grouparg e.g. 'topoisomer'
-    # plothiststacked2(df, path, name, plotextension, 'topoisomer', 'aspectratio')
-    #
-    # # Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
-    # # grouped by grouparg e.g. 'topoisomer'
-    # # Then plot the maxima of each KDE as a bar plot
-    plotkdemax(df, path, name, plotextension, 'aspectratio', topos)
+        # # Plot a histogram of one column of the dataframe - arg1 e.g. 'aspectratio'
+        # # grouped by grouparg e.g. 'topoisomer'
+        # plothist2(df, path, name, plotextension, 'topoisomer', 'aspectratio')
+        #
+        # # Plot a histogram of one column of the dataframe - arg1 e.g. 'aspectratio'
+        # # grouped by grouparg e.g. 'topoisomer'
+        # plothiststacked2(df, path, name, plotextension, 'topoisomer', 'aspectratio')
 
-    # # Plot all columns of a dataframe as separate graphs grouped by topoisomer
-    # plotdfcolumns(df, path, name, 'topoisomer')
+        # # Plot all columns of a dataframe as separate graphs grouped by topoisomer
+        # plotdfcolumns(df, path, name, 'topoisomer')
 
-    # Plot a histogram of one column of the dataframe - arg1 e.g. 'aspectratio'
-    # grouped by grouparg e.g. 'topoisomer'
-    # plothist(df, 'aspectratio', 'topoisomer', bins, path, plotextension)
+        # Plot a histogram of one column of the dataframe - arg1 e.g. 'aspectratio'
+        # grouped by grouparg e.g. 'topoisomer'
+        # plothist(df, 'aspectratio', 'topoisomer', bins, path, plotextension)
 
-    # # Plotting indidiviual stats from a dataframe
-    # # e.g. Plot the aspect ratio column of the dataframe, grouped by topoisomer as a kde plot
-    # savedir = os.path.join(path, 'Plots')
-    # savename = os.path.join(savedir, name + '_aspectratio' + plotextension)
-    # fig, ax = plt.subplots(figsize=(10, 7))
-    # 3.plot.kde(ax=ax, legend=True)
-    # plt.savefig(savename)
+        # # Plotting indidiviual stats from a dataframe
+        # # e.g. Plot the aspect ratio column of the dataframe, grouped by topoisomer as a kde plot
+        # savedir = os.path.join(path, 'Plots')
+        # savename = os.path.join(savedir, name + '_aspectratio' + plotextension)
+        # fig, ax = plt.subplots(figsize=(10, 7))
+        # 3.plot.kde(ax=ax, legend=True)
+        # plt.savefig(savename)
 
-    # # Plotting a distribution with given fit (e.g. gamma)
-    # sns.distplot(df6['aspectratio'], kde=False, fit=stats.gamma)
+        # # Plotting a distribution with given fit (e.g. gamma)
+        # sns.distplot(df6['aspectratio'], kde=False, fit=stats.gamma)
 
-    # # Plot two variables in the dataframe on a seaborn joint plot to examine dependencies
-    # seaplotting(df, 'grain_ellipse_major', 'grain_ellipse_minor', bins, path, plotextension)
+        # # Plot two variables in the dataframe on a seaborn joint plot to examine dependencies
+        # seaplotting(df, 'grain_ellipse_major', 'grain_ellipse_minor', bins, path, plotextension)
 
-    # # # # Plot bivariate plot using seaborn
-    # sns.kdeplot(df.query("topoisomer == '-6'")['grain_max_bound_size'],
-    #             df.query("topoisomer == '-6'")['grain_min_bound_size'], n_levels=15, shade=True)
+        # # # # Plot bivariate plot using seaborn
+        # sns.kdeplot(df.query("topoisomer == '-6'")['grain_max_bound_size'],
+        #             df.query("topoisomer == '-6'")['grain_min_bound_size'], n_levels=15, shade=True)
 
-    # # Use seaborn to setup KDE apsect ratio plots for each unique topoisomer on the same page stacked as columns
-    # h = sns.FacetGrid(df, col="topoisomer")
-    # h.map(sns.kdeplot, "aspectratio")
+        # # Use seaborn to setup KDE apsect ratio plots for each unique topoisomer on the same page stacked as columns
+        # h = sns.FacetGrid(df, col="topoisomer")
+        # h.map(sns.kdeplot, "aspectratio")
 
-    # Use seaborn to plot a KDE for each topoisomer separately on the same page, stacked by row
-    # ordered_topos = df.topoisomer.value_counts().index
-    # ordered_topos = sorted(ordered_topos, reverse=True)
-    # g = sns.FacetGrid(df, row="topoisomer", row_order=ordered_topos,
-    #                   height=1.7, aspect=4)
-    # g.map(sns.distplot, "aspectratio", hist=False, rug=True);
-    # plt.xlim(0,1)
-    #
-    # # Create scatter plot of two variables in seaborn to show correlation
-    # h = sns.FacetGrid(df, col="topoisomer")
-    # h.map(plt.scatter, "grain_min_bound_size", "grain_max_bound_size", alpha=.7)
-    # plt.xlim(0e-7, 0.7e-7)
-    # plt.ylim(0e-7, 1.5e-7)
-    #
-    # # Create bivariate scatter plot of two variables with shading
-    # fig, ax = plt.subplots(figsize=(5, 3))
-    # sns.kdeplot(df.query("topoisomer == '0'")['grain_max_bound_size'],
-    #             df.query("topoisomer == '0'")['grain_min_bound_size'], n_levels=15, shade=True)
-    # plt.xlim(4e-8, 8e-8)
-    # plt.ylim(2e-8, 6e-8)
+        # Use seaborn to plot a KDE for each topoisomer separately on the same page, stacked by row
+        # ordered_topos = df.topoisomer.value_counts().index
+        # ordered_topos = sorted(ordered_topos, reverse=True)
+        # g = sns.FacetGrid(df, row="topoisomer", row_order=ordered_topos,
+        #                   height=1.7, aspect=4)
+        # g.map(sns.distplot, "aspectratio", hist=False, rug=True);
+        # plt.xlim(0,1)
+        #
+        # # Create scatter plot of two variables in seaborn to show correlation
+        # h = sns.FacetGrid(df, col="topoisomer")
+        # h.map(plt.scatter, "grain_min_bound_size", "grain_max_bound_size", alpha=.7)
+        # plt.xlim(0e-7, 0.7e-7)
+        # plt.ylim(0e-7, 1.5e-7)
+        #
+        # # Create bivariate scatter plot of two variables with shading
+        # fig, ax = plt.subplots(figsize=(5, 3))
+        # sns.kdeplot(df.query("topoisomer == '0'")['grain_max_bound_size'],
+        #             df.query("topoisomer == '0'")['grain_min_bound_size'], n_levels=15, shade=True)
+        # plt.xlim(4e-8, 8e-8)
+        # plt.ylim(2e-8, 6e-8)
 
-    # g = sns.PairGrid(df, vars=['grain_max_bound_size', 'grain_min_bound_size', 'aspectratio'], hue="topoisomer")
-    # g.map_diag(sns.kdeplot)
-    # g.map_lower(sns.kdeplot)
-    # g.map_upper(plt.scatter)
+        # g = sns.PairGrid(df, vars=['grain_max_bound_size', 'grain_min_bound_size', 'aspectratio'], hue="topoisomer")
+        # g.map_diag(sns.kdeplot)
+        # g.map_lower(sns.kdeplot)
+        # g.map_upper(plt.scatter)
 
 
