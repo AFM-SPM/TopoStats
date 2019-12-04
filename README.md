@@ -1,9 +1,10 @@
 # TopoStats
 An AFM image analysis program to batch process data and obtain statistics from images
-AFM image processing:
+
+Image progessing is performed using the 'pygwytracing' script
 
 The algorithm searches recursively for files within a user-defined directory. 
-This search also excludes any files of the format ‘_cs’ which are cropped files exported by the Nanoscope Analysis software (Bruker, CA, USA). 
+This search also excludes any files of the format ‘_cs’ which are cropped files exported by the Nanoscope Analysis software. 
 AFM images are loaded  using gwyddion functions and topography data is automatically selected using the choosechannels function. 
 The pixel size and dimensions of each image are determined using the imagedetails function, which allows all inputs to be specified in real, i.e. nanometre values, in place of pixel values. 
 This is especially important for datasets with changing resolution. 
@@ -22,5 +23,6 @@ This array is converted to a pandas dataframe using the getdataforallfiles funct
 
 Individual grains (i.e. isolated molecules) are cropped out using the function bbox, which uses the grain centre x and y positions obtained in the grainanalysis function to duplicate the original image and crop it to a predefined size (here 80 nm) around the centre of the grain. These images are then labelled with the grain ID and saved out as tiff files in a subdirectory ‘Cropped’ in the specified path.
 To allow for further processing in python, there is an option to obtain the image or mask as a numpy array41, using the function exportasnparray. The processed image, and a copy with the mask overlaid are saved out using the savefiles function to a subdirectory ‘Processed’ in the specified path. 
-Statistical analysis and plotting is performed using the statsplotting script. This script uses the importfromjson function to import the JSON format file exported by pygwytracing and calculates various statistical parameters for all grain quantities, e.g. length, width and saves these out as a new JSON file using the savestats function. 
+
+Statistical analysis and plotting is performed using the 'statsplotting' script. This script uses the importfromjson function to import the JSON format file exported by pygwytracing and calculates various statistical parameters for all grain quantities, e.g. length, width and saves these out as a new JSON file using the savestats function. 
 Both KDE plots and histograms are generated for any of the grain quantities using the matplotlib42 and seaborn43 libraries within the functions plotkde, plotcolumns and plothist. 
