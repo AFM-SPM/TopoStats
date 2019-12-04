@@ -17,7 +17,8 @@ sns.set_style("white", {'font.family': ['sans-serif']})
 # sns.set_context("notebook", font_scale=1.5)
 sns.set_context("poster", font_scale=1.2)
 # sns.color_palette('YlOrRd', n_colors=len(topos))
-sns.color_palette('YlOrRd')
+# plt.style.use("dark_background")
+
 
 def importfromjson(path, name):
     filename = os.path.join(path, name + '.json')
@@ -43,7 +44,7 @@ def plotkde(df, directory, name, plotextension, grouparg, plotarg):
     print 'Plotting kde of %s' % plotarg
 
     # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Plots_edited')
+    savedir = os.path.join(directory, 'Plots')
     if not os.path.exists(savedir):
         os.makedirs(savedir)
     savename = os.path.join(savedir, name + plotarg + plotextension)
@@ -109,7 +110,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     # sns.set_context("notebook")
 
     # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Plots_edited')
+    savedir = os.path.join(directory, 'Plots')
     if not os.path.exists(savedir):
         os.makedirs(savedir)
 
@@ -118,7 +119,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
 
     # Determine KDE for each topoisomer
     # Determine max of each KDE and plot
-    xs = np.linspace(0, 1, 100)
+    xs = np.linspace(0, 1, 10)
     kdemax = dict()
     dfstd = dict()
     dfvar = dict()
@@ -133,7 +134,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
         a = scipy.stats.gaussian_kde(x)
         b = a.pdf(xs)
         dfstd[i] = np.std(x)
-        # dfstd[i] = x.std()
+        dfstd[i] = x.std()
         dfvar[i] = np.var(x)
         dfste[i] = stats.sem
         # plt.plot(xs, b)
@@ -327,6 +328,7 @@ if __name__ == '__main__':
     # Save out statistics file
     savestats(path, name, allstats1)
 
+    # Set palette for all plots with length number of topoisomers and reverse
     palette = sns.color_palette('YlOrRd', n_colors=len(topos))
     # palette = sns.color_palette('tab10', n_colors=len(topos))
     palette.reverse()

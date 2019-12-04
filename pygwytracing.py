@@ -152,8 +152,20 @@ def editfile(data, k):
     # align rows
     gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
 
+    datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
+    mask = gwy.DataField.new_alike(datafield, False)
+    datafield.grains_mark_height(mask, 30, False)
+
+    # Re-do polynomial correction with masked height
+    s["/module/polylevel/masking"] = 0
+    gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
+
+    # Re-do align rows with masked heights
+    s["/module/linematch/masking"] = 0
+    gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
+
     # flatten base
-    gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
+    # gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
 
     # Fix zero
     gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
@@ -629,14 +641,18 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Code/TopoStats'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/HR Images'
-    path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
+    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
+    path = '/Users/alicepyne/Dropbox/Sheffield/DNA/Coster'
+    # path = '/Users/alicepyne/Dropbox/UCL/MPEG/MPEG1/20190704'
+    # path = '/Users/alicepyne/Downloads'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/PLL'
-    # path = '/Users/alicepyne/Dropbox/UCL/Kavit/mmc presentation data/DNA Immobilisation'
+    # path = '/Users/alicepyne/Dropbox/UCL/Kavit/Kanazawa Data'
+    # path = '/Users/alicepyne/Dropbox/Sheffield/DNA/CRISPR'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA Origami'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA on PLL PEG'
 
     # Set file type to look for here
-    fileend = '.spm', '.jpk', '*.[0-9]'
+    fileend = '.spm', '.ibw', '*.[0-9]'
     filetype = '*.[0-9]'
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
@@ -670,7 +686,7 @@ if __name__ == '__main__':
         # Load the data for the specified filename
         data = getdata(filename)
         # Find the channels of data you wish to use within the file e.g. ZSensor or height
-        chosen_ids = choosechannels(data, 'ZSensor', 'Height')
+        chosen_ids = choosechannels(data, 'ZSensor', 'HeightTrace')
         # chosen_ids = choosechannels(data,'U*', 'X')
         # chosen_ids = [chosen_ids[0]]
 
