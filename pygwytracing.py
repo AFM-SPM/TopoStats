@@ -639,17 +639,7 @@ if __name__ == '__main__':
     # Set various options here:
 
     # Set the file path, i.e. the directory where the files are here'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Code/TopoStats'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/HR Images'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
-    path = '/Users/alicepyne/Dropbox/Sheffield/DNA/Coster'
-    # path = '/Users/alicepyne/Dropbox/UCL/MPEG/MPEG1/20190704'
-    # path = '/Users/alicepyne/Downloads'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/PLL'
-    # path = '/Users/alicepyne/Dropbox/UCL/Kavit/Kanazawa Data'
-    # path = '/Users/alicepyne/Dropbox/Sheffield/DNA/CRISPR'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA Origami'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA on PLL PEG'
+    path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
 
     # Set file type to look for here
     fileend = '.spm', '.ibw', '*.[0-9]'
