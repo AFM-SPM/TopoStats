@@ -1,5 +1,8 @@
 import numpy as np
-
+import matplotlib.pyplot as plt
+from scipy import ndimage, spatial
+from skimage import morphology
+import math
 
 class dnaTrace(object):
 
@@ -15,49 +18,74 @@ class dnaTrace(object):
     in case these are useful for other things in the future.
     '''
 
-    def __init__(full_image_data, series_of_grains, afm_image_name, dna_masks = {}, skeletons = {}, fitted_traces = {},
-    splined_traces = {}):
+    def __init__(self, full_image_data, gwyddion_grains, afm_image_name, number_of_columns, number_of_rows):
         self.full_image_data = full_image_data
-        self.series_of_grains = series_of_grains
+        self.gwyddion_grains = gwyddion_grains
         self.afm_image_name = afm_image_name
-        self.dna_masks = dna_masks
-        self.skeletons = skeletons
-        self.fitted_traces = fitted_traces
-        self.splined_traces = splined_traces
+        self.number_of_columns = number_of_columns
+        self.number_of_rows = number_of_rows
+
+        self.image = []
+        self.grains = {}
+        self.dna_masks = {}
+        self.skeletons = {}
+        self.ordered_traces = {}
+        self.fitted_traces = {}
+        self.splined_traces = {}
+
+        self.number_of_traces = 0
 
         self.getParams()
-        self.getNumpyArraysfromGrains()
+        self.getNumpyArraysfromGwyddion()
         self.getSkeletons()
-        self.getOrderedTrace()
-        self.getFittedTraces()
+        self.getOrderedTraces()
+        #self.getFittedTraces()
         self.getSplinedTraces()
 
     def getParams(self):
         #do something with some of the gwyddion objects to get important parameters
         pass
 
-    def getNumpyArraysfromGrains(self):
+    def getNumpyArraysfromGwyddion(self):
 
         ''' Function to get each grain as a numpy array which is stored in a
         dictionary
 
+        Currently the grains are unnecessarily large (the full image) as I don't
+        know how to handle the cropped versions
+
         I find using the gwyddion objects clunky and not helpful once the
         grains have been found '''
 
-        #for num, i in enumerate(series_of_grains):
-            #self.dna_masks[num] = np.array(series_of_grains[num])
-        pass
+        for grain_num in set(self.gwyddion_grains):
+            #Skip the background
+            if grain_num == 0:
+                continue
+
+            #Saves each grain as a binary multidim numpy array for each grain
+            single_grain_1d = np.array([1 if i == grain_num else 0 for i in self.gwyddion_grains])
+            self.grains[grain_num] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
+
+        #Get AFM image data as a multidim numpy array
+        #self.image = np.reshape(self.full_image_data, (self.number_of_columns, self.number_of_rows))
 
     def getSkeletons(self):
 
-        '''Does skeletonisation for all of the dna_masks (grains) made in Alice's
-        part of the code'''
+        ''' Function to make a skeleton for each of the grains in an image
 
-        for dna_mol_no in sorted(self.dna_masks.keys()):
-            skele = morphology.skeletonize(mask3)
-            self.skeleton[dna_mol_no] = skele
+        There is a bit of work to do here as the grains often have very rough
+        edges '''
 
-        print('Skeletonising finished for all molecules from AFM image %s' % self.afm_image_name)
+        for grain_num in sorted(self.grains.keys()):
+
+            smoothed_grain = ndimage.binary_dilation(self.grains[grain_num], iterations = 2)
+            skeletonised_image = morphology.skeletonize(smoothed_grain)
+
+            #The skeleton is saved as a 2D array of the skeleton coordinates relative to the original image
+            self.skeletons[grain_num] = np.argwhere(skeletonised_image == 1)
+            self.number_of_traces +=1
+
+        #Sort out the shape of the data
 
     def getOrderedTraces(self):
 
@@ -68,9 +96,11 @@ class dnaTrace(object):
 
         This function is both slow and buggy - room for improvement'''
 
-        for dna_mol in sorted(self.skeletons(keys)):
+        for dna_mol in sorted(self.skeletons.keys()):
             #def FindOrderedTrace(trace_area, trace_coords2d, xmid, ymid, square_size, pixel_size):
-            trace_coords = self.skeleton[dna_mol]
+            trace_coords = self.skeletons[dna_mol]
+            print(self.skeletons[dna_mol])
+
 
             first_point = np.array((trace_coords[0]))
             tree = spatial.cKDTree(trace_coords)
@@ -89,12 +119,12 @@ class dnaTrace(object):
             contour_length = 0
             for i in range(len(trace_coords)-2):
             	query = tree.query(last_point, k = 30)
-                ordered_points, vector_angle_array, vector2, average_angle2, end, last_point = FindNextPoint(tree, next_point, query, ordered_points, vector_angle_array, trace_coords, vector2, average_angle2, last_point)
-                ordered_points = np.vstack((ordered_point, next_point))
+                ordered_points, vector_angle_array, vector2, average_angle2, end, last_point = self._getNextPoint(tree, next_point, query, ordered_points, vector_angle_array, trace_coords, vector2, average_angle2, last_point)
+                ordered_points = np.vstack((ordered_points, last_point))
                 if end == True:
             		break
 
-            self.ordered_trace[dna_num] = ordered_points
+            self.ordered_traces[dna_mol] = ordered_points
 
     def _getNextPoint(self, tree, next_point, query, ordered_points, vector_angle_array,
     trace_coords, vector2, average_angle2, last_point):
@@ -111,10 +141,10 @@ class dnaTrace(object):
     		next_point = trace_coords[query[1][j]]
     		vector1 = np.subtract(next_point, last_point)
 
-    		angle = atan2(vector2[1], vector2[0]) - atan2(vector1[1], vector1[0])
+    		angle = math.atan2(vector2[1], vector2[0]) - math.atan2(vector1[1], vector1[0])
     		if angle < 0:
-    			angle += 2*pi
-    		angle = degrees(angle)
+    			angle += 2*math.pi
+    		angle = math.degrees(angle)
     		if angle > 180:
     			angle -= 180
     		points_query = points_tree.query(next_point, k = 1)
@@ -143,14 +173,14 @@ class dnaTrace(object):
 
     					if points_query[0] == 0:
     						continue
-    					elif query[0][j+k] > query[0][j]*sqrt(2):
+    					elif query[0][j+k] > query[0][j]*math.sqrt(2):
     						continue
 
     					test_vector = np.subtract(test_point, last_point)
-    					test_angle = atan2(vector2[1], vector2[0]) - atan2(test_vector[1], test_vector[0])
+    					test_angle = math.atan2(vector2[1], vector2[0]) - math.atan2(test_vector[1], test_vector[0])
     					if test_angle < 0:
-    						test_angle += 2*pi
-    					test_angle = degrees(test_angle)
+    						test_angle += 2*math.pi
+    					test_angle = math.degrees(test_angle)
     					if test_angle > 180:
     						test_angle -= 180
 
@@ -165,9 +195,9 @@ class dnaTrace(object):
     					if local_angles - local_average_angle == local_angles - test_average_angle:
     						test_vector = test_point - last_point
 
-    						old_angle = atan2(vector2[1], vector2[0])
-    						new_angle = atan2(vector1[1], vector1[0])
-    						test_angle = atan2(test_vector[1], test_vector[0])
+    						old_angle = math.atan2(vector2[1], vector2[0])
+    						new_angle = math.atan2(vector1[1], vector1[0])
+    						test_angle = math.atan2(test_vector[1], test_vector[0])
 
     						if old_angle - test_angle > old_angle - new_angle:
     							next_point = test_point
@@ -182,6 +212,7 @@ class dnaTrace(object):
         return ordered_points, vector_angle_array, vector2, average_angle2, end, last_point
 
     def getFittedTraces(self, DNA_map, coordinates, pixel_size, xscan, yscan):
+    #def getFittedTrace(self, DNA_map, coordinates, pixel_size, xscan, yscan):
 
         ''' Moves the coordinates from the skeletionised traces to lie on the
         highest point on the DNA molecule '''
