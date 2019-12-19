@@ -1,7 +1,7 @@
 import sys
 #sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages')
 #sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy')
-sys.path.append('/home/bj002/.gwyddion/pygwy')
+sys.path.append('/usr/share/gwyddion/pygwy/')
 
 import pygtk
 pygtk.require20() # adds gtk-2.0 folder to sys.path
@@ -9,7 +9,7 @@ import gwy
 
 
 import fnmatch
-#import gwyutils
+import gwyutils
 import os
 
 import numpy as np
@@ -122,11 +122,11 @@ def heightediting(data, k):
     datafield.grains_mark_height(mask, 30, False)
 
     # Re-do polynomial correction with masked height
-    s["/module/polylevel/masking"] = 0
+    s["/module/polylevel/masking"] = 1
     gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
 
     # Re-do align rows with masked heights
-    s["/module/linematch/masking"] = 0
+    s["/module/linematch/masking"] = 1
     gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
 
     # # Remove scars
@@ -156,6 +156,7 @@ def editfile(data, minheightscale, maxheightscale):
     # gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
     # Fix zero
     gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
+    #gwy.gwy_process_func_run('fix_zero', data, gwy.RUN_IMMEDIATE)
     # remove scars
     gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
     # Apply a 1.5 pixel gaussian filter
@@ -172,6 +173,9 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
     gwy.gwy_app_data_browser_select_data_field(data, k)
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
     mask = gwy.DataField.new_alike(datafield, False)
+
+    #Gaussiansize = 0.25e-9 / dx
+    #datafield.filter_gaussian(Gaussiansize)
 
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
@@ -709,8 +713,13 @@ if __name__ == '__main__':
             bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             # orig_ids, crop_ids, data = splitimage(data, splitwidth, datafield, xreal, yreal, xres, yres)
 
+            # Export the channels data and mask as numpy arrays
+            npdata, npmask = exportasnparray(datafield, mask)
+
             #trace the DNA molecules - can compute stats etc as needed
-            dna_traces = dnatracing.dnaTrace(data, grains, filename, yres, xres)
+            data_nparray = gwyutils.data_field_data_as_array(datafield)
+            dna_traces = dnatracing.dnaTrace(npdata, grains, filename, xreal, yres, xres)
+            dna_traces.showTraces()
 
             # Save out cropped files as images with no scales to a subfolder
             savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)

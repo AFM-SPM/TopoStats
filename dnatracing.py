@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import ndimage, spatial
-from skimage import morphology
+from scipy import ndimage, spatial, interpolate as interp
+from skimage import morphology, filters
 import math
 
 class dnaTrace(object):
@@ -18,14 +18,16 @@ class dnaTrace(object):
     in case these are useful for other things in the future.
     '''
 
-    def __init__(self, full_image_data, gwyddion_grains, afm_image_name, number_of_columns, number_of_rows):
+    def __init__(self, full_image_data, gwyddion_grains, afm_image_name, pixel_size,
+    number_of_columns, number_of_rows):
         self.full_image_data = full_image_data
         self.gwyddion_grains = gwyddion_grains
         self.afm_image_name = afm_image_name
+        self.pixel_size = pixel_size
         self.number_of_columns = number_of_columns
         self.number_of_rows = number_of_rows
 
-        self.image = []
+        self.gauss_image = []
         self.grains = {}
         self.dna_masks = {}
         self.skeletons = {}
@@ -38,8 +40,8 @@ class dnaTrace(object):
         self.getParams()
         self.getNumpyArraysfromGwyddion()
         self.getSkeletons()
+        self.getFittedTraces()
         self.getOrderedTraces()
-        #self.getFittedTraces()
         self.getSplinedTraces()
 
     def getParams(self):
@@ -66,8 +68,9 @@ class dnaTrace(object):
             single_grain_1d = np.array([1 if i == grain_num else 0 for i in self.gwyddion_grains])
             self.grains[grain_num] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
 
-        #Get AFM image data as a multidim numpy array
-        #self.image = np.reshape(self.full_image_data, (self.number_of_columns, self.number_of_rows))
+        #Get a 20 A gauss filtered version of the original image
+        sigma = (10/math.sqrt(self.pixel_size*1e8))/1.5
+        self.gauss_image = filters.gaussian(self.full_image_data, sigma)
 
     def getSkeletons(self):
 
@@ -79,13 +82,16 @@ class dnaTrace(object):
         for grain_num in sorted(self.grains.keys()):
 
             smoothed_grain = ndimage.binary_dilation(self.grains[grain_num], iterations = 2)
-            skeletonised_image = morphology.skeletonize(smoothed_grain)
+
+            sigma = (10/math.sqrt(self.pixel_size*1e8))/1.5
+            very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
+
+            skeletonised_image = morphology.skeletonize(very_smoothed_grain)
 
             #The skeleton is saved as a 2D array of the skeleton coordinates relative to the original image
             self.skeletons[grain_num] = np.argwhere(skeletonised_image == 1)
             self.number_of_traces +=1
 
-        #Sort out the shape of the data
 
     def getOrderedTraces(self):
 
@@ -96,11 +102,9 @@ class dnaTrace(object):
 
         This function is both slow and buggy - room for improvement'''
 
-        for dna_mol in sorted(self.skeletons.keys()):
+        for dna_mol in sorted(self.fitted_traces.keys()):
             #def FindOrderedTrace(trace_area, trace_coords2d, xmid, ymid, square_size, pixel_size):
-            trace_coords = self.skeletons[dna_mol]
-            print(self.skeletons[dna_mol])
-
+            trace_coords = self.fitted_traces[dna_mol]
 
             first_point = np.array((trace_coords[0]))
             tree = spatial.cKDTree(trace_coords)
@@ -211,123 +215,125 @@ class dnaTrace(object):
 
         return ordered_points, vector_angle_array, vector2, average_angle2, end, last_point
 
-    def getFittedTraces(self, DNA_map, coordinates, pixel_size, xscan, yscan):
-    #def getFittedTrace(self, DNA_map, coordinates, pixel_size, xscan, yscan):
+    def getFittedTraces(self):
 
         ''' Moves the coordinates from the skeletionised traces to lie on the
-        highest point on the DNA molecule '''
+        highest point on the DNA molecule
 
-    	tree = spatial.cKDTree(coordinates)
-    	pixel_distance = int(40/sqrt(pixel_size))
+        There is some kind of discrepency between the ordering of arrays from
+        gwyddion and how they're usually handled in np arrays meaning you need
+        to be careful when indexing from gwyddion derived numpy arrays'''
 
-    	sigma = (20/sqrt(pixel_size))/1.5
+        for dna_num in sorted(self.skeletons.keys()):
 
-    	DNA_map = filters.gaussian_filter(DNA_map, sigma)
-    	#plt.figure()
-    	for i in coordinates:
-    		if i[0] < 0:
-    			i[0] = pixel_distance
-    		elif i[0] >= len(xscan)-pixel_distance:
-    			i[0] = i[0] = len(xscan)-pixel_distance
-    		elif i[1] < 0:
-    			i[1] = (pixel_distance+1)
-    		elif i[1] >= len(yscan)-pixel_distance:
-    			i[1] = len(yscan) - pixel_distance
+            individual_skeleton = self.skeletons[dna_num]
+            tree = spatial.cKDTree(individual_skeleton)
 
-    		height_values = None
-    		neighbour_array = tree.query(i, k = 6)
-    		nearest_point = coordinates[neighbour_array[1][3]]
-    		vector = np.subtract(nearest_point, i)
-    		vector_angle = degrees(atan2(vector[1],vector[0]))	#Angle with respect to x-axis
+            #This sets a 5 nm search in a direction perpendicular to the DNA chain
+            height_search_distance = int(20/(self.pixel_size*1e7))
 
-    		if vector_angle < 0:
-    			vector_angle += 180
+            for coord_num, trace_coordinate in enumerate(individual_skeleton):
 
-    		if 67.5 > vector_angle >= 22.5:	#aka if  angle is closest to 45 degrees
-    			perp_direction = 'negative diaganol'
-    			#positive diagonal (change in x and y)
-    			#Take height values at the inverse of the positive diaganol (i.e. the negative diaganol)
-    			y_coords = np.arange(i[1] - pixel_distance, i[1] + pixel_distance)[::-1]
-    			x_coords = np.arange(i[0] - pixel_distance, i[0] + pixel_distance)
+                height_values = None
 
-    		elif 157.5 >= vector_angle >= 112.5:#aka if angle is closest to 135 degrees
-    			perp_direction = 'positive diaganol'
-    			y_coords = np.arange(i[1] - pixel_distance, i[1] + pixel_distance)
-    			x_coords = np.arange(i[0] - pixel_distance, i[0] + pixel_distance)
+                #I don't have a clue what this block of code is doing
+                if trace_coordinate[0] < 0:
+                    trace_coordinate[0] = height_search_distance
+                elif trace_coordinate[0] >= self.number_of_rows - height_search_distance:
+                    trace_coordinate[0] = trace_coordinate[0] = self.number_of_rows - height_search_distance
+                elif trace_coordinate[1] < 0:
+                    trace_coordinate[1] = (height_search_distance+1)
+                elif trace_coordinate[1] >= self.number_of_columns - height_search_distance:
+                    trace_coordinate[1] = self.number_of_columns - height_search_distance
 
-    		if 112.5 > vector_angle >= 67.5: #if angle is closest to 90 degrees
-    			perp_direction = 'horizontal'
-    			x_coords = np.arange(i[0] - pixel_distance, i[0]+pixel_distance)
-    			y_coords = np.full(len(x_coords), i[1])
+                height_values = None
+                neighbour_array = tree.query(trace_coordinate, k = 6)
+                nearest_point = individual_skeleton[neighbour_array[1][3]]
+                vector = np.subtract(nearest_point, trace_coordinate)
+                vector_angle = math.degrees(math.atan2(vector[1],vector[0]))	#Angle with respect to x-axis
 
-    		elif 22.5 > vector_angle: #if angle is closest to 0 degrees
-    			perp_direction = 'vertical'
-    			y_coords = np.arange(i[1] - pixel_distance, i[1] + pixel_distance)
-    			x_coords = np.full(len(y_coords), i[0])
+                if vector_angle < 0:
+                    vector_angle += 180
 
-    		elif vector_angle >= 157.5: #if angle is closest to 180 degrees
-    			perp_direction = 'vertical'
-    			y_coords = np.arange(i[1] - pixel_distance, i[1] + pixel_distance)
-    			x_coords = np.full(len(y_coords), i[0])
+                if 67.5 > vector_angle >= 22.5:	#aka if  angle is closest to 45 degrees
+                    perp_direction = 'negative diaganol'
+        			#positive diagonal (change in x and y)
+        			#Take height values at the inverse of the positive diaganol (i.e. the negative diaganol)
+                    y_coords = np.arange(trace_coordinate[1] - height_search_distance, trace_coordinate[1] + height_search_distance)[::-1]
+                    x_coords = np.arange(trace_coordinate[0] - height_search_distance, trace_coordinate[0] + height_search_distance)
 
-    		perp_array = np.column_stack((x_coords, y_coords))
+                elif 157.5 >= vector_angle >= 112.5:#aka if angle is closest to 135 degrees
+                    perp_direction = 'positive diaganol'
+                    y_coords = np.arange(trace_coordinate[1] - height_search_distance, trace_coordinate[1] + height_search_distance)
+                    x_coords = np.arange(trace_coordinate[0] - height_search_distance, trace_coordinate[0] + height_search_distance)
 
-    		#plt.plot(perp_array[:,1], perp_array[:,0])
-    		#plt.draw()
-    		for j in perp_array:
-    			height = DNA_map[j[0], j[1]]
-    			if height_values == None:
-    				height_values = height
-    			else:
-    				height_values = np.vstack((height_values, height))
+                if 112.5 > vector_angle >= 67.5: #if angle is closest to 90 degrees
+                    perp_direction = 'horizontal'
+                    #print(trace_coordinate[0] - height_search_distance)
+                    #print(trace_coordinate[0] + height_search_distance)
+                    x_coords = np.arange(trace_coordinate[0] - height_search_distance, trace_coordinate[0]+height_search_distance)
+                    y_coords = np.full(len(x_coords), trace_coordinate[1])
 
-    		if perp_direction == 'negative diaganol':
-    			int_func = interp.interp1d(perp_array[:,0], np.ndarray.flatten(height_values), kind = 'cubic')
-    			interp_heights = int_func(np.arange(perp_array[0,0], perp_array[-1,0], 0.1))
+                elif 22.5 > vector_angle: #if angle is closest to 0 degrees
+                    perp_direction = 'vertical'
+                    y_coords = np.arange(trace_coordinate[1] - height_search_distance, trace_coordinate[1] + height_search_distance)
+                    x_coords = np.full(len(y_coords), trace_coordinate[0])
 
-    		elif perp_direction == 'positive diaganol':
-    			int_func = interp.interp1d(perp_array[:,0], np.ndarray.flatten(height_values), kind = 'cubic')
-    			interp_heights = int_func(np.arange(perp_array[0,0], perp_array[-1,0], 0.1))
+                elif vector_angle >= 157.5: #if angle is closest to 180 degrees
+                    perp_direction = 'vertical'
+                    y_coords = np.arange(trace_coordinate[1] - height_search_distance, trace_coordinate[1] + height_search_distance)
+                    x_coords = np.full(len(y_coords), trace_coordinate[0])
 
-    		elif perp_direction == 'vertical':
-    			int_func = interp.interp1d(perp_array[:,1], np.ndarray.flatten(height_values), kind = 'cubic')
-    			interp_heights = int_func(np.arange(perp_array[0,1], perp_array[-1,1], 0.1))
+                #Use the perp array to index the guassian filtered image
+                perp_array = np.column_stack((x_coords, y_coords))
+                height_values = self.gauss_image[perp_array[:,1],perp_array[:,0]]
 
-    		elif perp_direction == 'horizontal':
-    			int_func = interp.interp1d(perp_array[:,0], np.ndarray.flatten(height_values), kind = 'cubic')
-    			interp_heights = int_func(np.arange(perp_array[0,0], perp_array[-1,0], 0.1))
-    		else:
-    			quit('A fatal error occured in the CorrectHeightPositions function, this was likely caused by miscalculating vector angles')
+                #Use interpolation to get "sub pixel" accuracy for heighest position
+                if perp_direction == 'negative diaganol':
+                    int_func = interp.interp1d(perp_array[:,0], np.ndarray.flatten(height_values), kind = 'cubic')
+                    interp_heights = int_func(np.arange(perp_array[0,0], perp_array[-1,0], 0.1))
 
-    		if perp_direction == 'negative diaganol':
-    			fine_x_coords = np.arange(perp_array[0,0], perp_array[-1,0], 0.1)
-    			fine_y_coords = np.arange(perp_array[-1,1], perp_array[0,1], 0.1)[::-1]
-    		elif perp_direction == 'positive diaganol':
-    			fine_x_coords = np.arange(perp_array[0,0], perp_array[-1,0], 0.1)
-    			fine_y_coords = np.arange(perp_array[0,1], perp_array[-1,1], 0.1)
-    		elif perp_direction == 'vertical':
-    			fine_y_coords = np.arange(perp_array[0,1], perp_array[-1,1], 0.1)
-    			fine_x_coords = np.full(len(fine_y_coords), i[0], dtype = 'float')
-    		elif perp_direction == 'horizontal':
-    			fine_x_coords = np.arange(perp_array[0,0], perp_array[-1,0], 0.1)
-    			fine_y_coords = np.full(len(fine_x_coords), i[1], dtype = 'float')
+                elif perp_direction == 'positive diaganol':
+                    int_func = interp.interp1d(perp_array[:,0], np.ndarray.flatten(height_values), kind = 'cubic')
+                    interp_heights = int_func(np.arange(perp_array[0,0], perp_array[-1,0], 0.1))
 
+                elif perp_direction == 'vertical':
+                    int_func = interp.interp1d(perp_array[:,1], np.ndarray.flatten(height_values), kind = 'cubic')
+                    interp_heights = int_func(np.arange(perp_array[0,1], perp_array[-1,1], 0.1))
 
-    		fine_coords = np.column_stack((fine_x_coords, fine_y_coords))
+                elif perp_direction == 'horizontal':
+                    #print(perp_array[:,0])
+                    #print(np.ndarray.flatten(height_values))
+                    int_func = interp.interp1d(perp_array[:,0], np.ndarray.flatten(height_values), kind = 'cubic')
+                    interp_heights = int_func(np.arange(perp_array[0,0], perp_array[-1,0], 0.1))
+                else:
+                    quit('A fatal error occured in the CorrectHeightPositions function, this was likely caused by miscalculating vector angles')
 
-    		sorted_array = fine_coords[np.argsort(interp_heights)]
-    		highest_point = sorted_array[-1]
-    		try:
-    			fitted_coordinate_array = np.vstack((fitted_coordinate_array, highest_point))
-    		except UnboundLocalError:
-    			fitted_coordinate_array = highest_point
+                #Make "fine" coordinates which havethe same number of coordinates as the interpolated height values
+                if perp_direction == 'negative diaganol':
+                    fine_x_coords = np.arange(perp_array[0,0], perp_array[-1,0], 0.1)
+                    fine_y_coords = np.arange(perp_array[-1,1], perp_array[0,1], 0.1)[::-1]
+                elif perp_direction == 'positive diaganol':
+                    fine_x_coords = np.arange(perp_array[0,0], perp_array[-1,0], 0.1)
+                    fine_y_coords = np.arange(perp_array[0,1], perp_array[-1,1], 0.1)
+                elif perp_direction == 'vertical':
+                    fine_y_coords = np.arange(perp_array[0,1], perp_array[-1,1], 0.1)
+                    fine_x_coords = np.full(len(fine_y_coords), trace_coordinate[0], dtype = 'float')
+                elif perp_direction == 'horizontal':
+                    fine_x_coords = np.arange(perp_array[0,0], perp_array[-1,0], 0.1)
+                    fine_y_coords = np.full(len(fine_x_coords), trace_coordinate[1], dtype = 'float')
 
-            #plt.pcolor(xlimit, ylimit, DNA_map, cmap = 'binary')
-        	#plt.plot(coordinates[:,1], coordinates[:,0], '.')
-        	#plt.plot(fitted_coordinate_array[:,1], fitted_coordinate_array[:,0], '.')
-        	#plt.show()
+                #Get the coordinates relating to the highest point in the interpolated height values
+                fine_coords = np.column_stack((fine_x_coords, fine_y_coords))
+                sorted_array = fine_coords[np.argsort(interp_heights)]
+                highest_point = sorted_array[-1]
 
-        	return fitted_coordinate_array
+                try:
+                    fitted_coordinate_array = np.vstack((fitted_coordinate_array, highest_point))
+                except UnboundLocalError:
+                    fitted_coordinate_array = highest_point
+
+            self.fitted_traces[dna_num] = fitted_coordinate_array
 
 
     def getSplinedTraces(self):
@@ -340,48 +346,66 @@ class dnaTrace(object):
 
         step_size = 10 #arbitary number for time being
 
-        for dna_num in self.fitted_traces.keys():
+        for dna_num in sorted(self.ordered_traces.keys()):
 
-            #This function makes 5 a bunch of splined plots and averages them
-        	for i in range(step_size):
-            		try:
-            			nbr = len(ordered_points[:,0])
-            			x = [ordered_points[:,0][j] for j in range(i,nbr,step_size)]
-            			y = [ordered_points[:,1][j] for j in range(i,nbr,step_size)]
-            			tck,u = interp.splprep([x,y], s=0, per=1)
-            			out = interp.splev(np.linspace(0,1,nbr), tck)
-            			splined_coords = np.column_stack((out[0], out[1]))
-            			try:
-            				rolling_total = np.add(rolling_total, splined_coords)
-            			except UnboundLocalError:
-            				rolling_total = splined_coords
-            			spline_success = True
-            			count +=1
+            print(self.ordered_traces[dna_num])
+
+            single_fitted_trace = self.ordered_traces[dna_num]
+            nbr = len(single_fitted_trace[:,0])
+            count = 0
+
+            #This function makes 5 splined plots and averages them
+            for i in range(step_size):
+                    try:
+                        #nbr = len(single_fitted_trace[:,0])
+                        x = [single_fitted_trace[:,0][j] for j in range(i,nbr,step_size)]
+                        y = [single_fitted_trace[:,1][j] for j in range(i,nbr,step_size)]
+                        tck,u = interp.splprep([x,y], s=0, per=1)
+                        out = interp.splev(np.linspace(0,1,nbr), tck)
+                        splined_coords = np.column_stack((out[0], out[1]))
+                        print(np.shape(out), np.shape(splined_coords))
+                        try:
+                            rolling_total = np.add(rolling_total, splined_coords)
+                        except UnboundLocalError:
+                            rolling_total = splined_coords
+                        spline_success = True
+                        count +=1
 
                     #Not a great sign that system errors are being caught hah
-            		except SystemError:
-            			print 'Could not spline coordinates'
-            			spline_success = False
-            			splined_coords = None
-            			continue
-            		except TypeError:
-            			print 'The trace is too short or something'
-            			spline_success = False
-            			splined_coords = None
-            	if spline_success:
-            		rolling_average = np.divide(rolling_total, [count, count])
+                    except SystemError:
+                        print 'Could not spline coordinates'
+                        spline_success = False
+                        splined_coords = None
+                        continue
+                    except TypeError:
+                        print 'The trace is too short or something'
+                        spline_success = False
+                        splined_coords = None
+            if spline_success:
+                rolling_average = np.divide(rolling_total, [count, count])
 
-            		nbr = len(rolling_average[:,0])
-            		x = rolling_average[:,0]
-            		y = rolling_average[:,1]
-            		tck,u = interp.splprep([x,y], s=0, per=1)
-            		out = interp.splev(np.linspace(0,1,nbr), tck)
+                nbr = len(rolling_average[:,0])
+                x = rolling_average[:,0]
+                y = rolling_average[:,1]
+                tck,u = interp.splprep([x,y], s=0, per=1)
+                out = interp.splev(np.linspace(0,1,nbr), tck)
 
-            		splined_coords = np.column_stack((out[0], out[1]))
-            	else:
-            		spline_coords = None
+                splined_coords = np.column_stack((out[0], out[1]))
+            else:
+                splined_coords = None
 
-                self.splined_coords[dna_num] = spline_coords
+            self.splined_traces[dna_num] = splined_coords
+            print(self.splined_traces[dna_num])
+            del rolling_total
+
+    def showTraces(self):
+
+        plt.pcolor(self.full_image_data)
+        plt.colorbar()
+        for dna_num in sorted(self.ordered_traces.keys()):
+            print('adding new line')
+            plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1], '.')
+        plt.show()
 
     def findWrithe(self):
         pass
