@@ -37,15 +37,18 @@ class dnaTrace(object):
 
         self.number_of_traces = 0
 
-        self.getParams()
+        #self.getParams()
         self.getNumpyArraysfromGwyddion()
         self.getSkeletons()
         self.getFittedTraces()
+        self.determineLinearOrCircular()
         self.getOrderedTraces()
         self.getSplinedTraces()
 
     def getParams(self):
-        #do something with some of the gwyddion objects to get important parameters
+
+        ''' '''
+
         pass
 
     def getNumpyArraysfromGwyddion(self):
@@ -64,12 +67,12 @@ class dnaTrace(object):
             if grain_num == 0:
                 continue
 
-            #Saves each grain as a binary multidim numpy array for each grain
+            #Saves each grain as a multidim numpy array
             single_grain_1d = np.array([1 if i == grain_num else 0 for i in self.gwyddion_grains])
             self.grains[grain_num] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
 
-        #Get a 20 A gauss filtered version of the original image
-        sigma = (10/math.sqrt(self.pixel_size*1e8))/1.5
+        #Get a 20 A gauss filtered version of the original image - not sure this is actually used anymore
+        sigma = (5/math.sqrt(self.pixel_size*1e8))/1.5
         self.gauss_image = filters.gaussian(self.full_image_data, sigma)
 
     def getSkeletons(self):
@@ -81,9 +84,9 @@ class dnaTrace(object):
 
         for grain_num in sorted(self.grains.keys()):
 
-            smoothed_grain = ndimage.binary_dilation(self.grains[grain_num], iterations = 2)
+            smoothed_grain = ndimage.binary_dilation(self.grains[grain_num], iterations = 1)
 
-            sigma = (10/math.sqrt(self.pixel_size*1e8))/1.5
+            sigma = (5/math.sqrt(self.pixel_size*1e8))/1.5
             very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
             skeletonised_image = morphology.skeletonize(very_smoothed_grain)
@@ -100,10 +103,10 @@ class dnaTrace(object):
 
         This could be replaced with a simpler and more elegant solution in the future
 
-        This function is both slow and buggy - room for improvement'''
+        This function is both overly complicated and buggy - room for improvement'''
 
         for dna_mol in sorted(self.fitted_traces.keys()):
-            #def FindOrderedTrace(trace_area, trace_coords2d, xmid, ymid, square_size, pixel_size):
+
             trace_coords = self.fitted_traces[dna_mol]
 
             first_point = np.array((trace_coords[0]))
@@ -224,13 +227,13 @@ class dnaTrace(object):
         gwyddion and how they're usually handled in np arrays meaning you need
         to be careful when indexing from gwyddion derived numpy arrays'''
 
-        for dna_num in sorted(self.skeletons.keys()):
+        for dna_num in sorted(self.grains.keys()):
 
             individual_skeleton = self.skeletons[dna_num]
             tree = spatial.cKDTree(individual_skeleton)
 
             #This sets a 5 nm search in a direction perpendicular to the DNA chain
-            height_search_distance = int(20/(self.pixel_size*1e7))
+            height_search_distance = int(15/(self.pixel_size*1e7))
 
             for coord_num, trace_coordinate in enumerate(individual_skeleton):
 
@@ -309,7 +312,7 @@ class dnaTrace(object):
                 else:
                     quit('A fatal error occured in the CorrectHeightPositions function, this was likely caused by miscalculating vector angles')
 
-                #Make "fine" coordinates which havethe same number of coordinates as the interpolated height values
+                #Make "fine" coordinates which have the same number of coordinates as the interpolated height values
                 if perp_direction == 'negative diaganol':
                     fine_x_coords = np.arange(perp_array[0,0], perp_array[-1,0], 0.1)
                     fine_y_coords = np.arange(perp_array[-1,1], perp_array[0,1], 0.1)[::-1]
@@ -334,7 +337,15 @@ class dnaTrace(object):
                     fitted_coordinate_array = highest_point
 
             self.fitted_traces[dna_num] = fitted_coordinate_array
+            del fitted_coordinate_array
 
+    def determineLinearOrCircular(self):
+
+        ''' Its important for the "ordering" function that it is known if a
+        given DNA molecule is linear or circular as this will change how the
+        "ordering" of the coordinates is done '''
+
+        pass
 
     def getSplinedTraces(self):
 
@@ -348,9 +359,8 @@ class dnaTrace(object):
 
         for dna_num in sorted(self.ordered_traces.keys()):
 
-            print(self.ordered_traces[dna_num])
+            single_fitted_trace = np.unique(self.ordered_traces[dna_num], axis = 0)
 
-            single_fitted_trace = self.ordered_traces[dna_num]
             nbr = len(single_fitted_trace[:,0])
             count = 0
 
@@ -395,7 +405,7 @@ class dnaTrace(object):
                 splined_coords = None
 
             self.splined_traces[dna_num] = splined_coords
-            print(self.splined_traces[dna_num])
+
             del rolling_total
 
     def showTraces(self):
@@ -404,7 +414,7 @@ class dnaTrace(object):
         plt.colorbar()
         for dna_num in sorted(self.ordered_traces.keys()):
             print('adding new line')
-            plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1], '.')
+            plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1])
         plt.show()
 
     def findWrithe(self):
