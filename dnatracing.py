@@ -4,6 +4,8 @@ from scipy import ndimage, spatial, interpolate as interp
 from skimage import morphology, filters
 import math
 
+import tracingfuncs
+
 class dnaTrace(object):
 
     '''
@@ -31,6 +33,7 @@ class dnaTrace(object):
         self.grains = {}
         self.dna_masks = {}
         self.skeletons = {}
+        self.disordered_trace = {}
         self.ordered_traces = {}
         self.fitted_traces = {}
         self.splined_traces = {}
@@ -39,11 +42,12 @@ class dnaTrace(object):
 
         #self.getParams()
         self.getNumpyArraysfromGwyddion()
+        self.getDisorderedTrace()
         self.getSkeletons()
-        self.getFittedTraces()
-        self.determineLinearOrCircular()
-        self.getOrderedTraces()
-        self.getSplinedTraces()
+        #self.getFittedTraces()
+        #self.determineLinearOrCircular()
+        #self.getOrderedTraces()
+        #self.getSplinedTraces()
 
     def getParams(self):
 
@@ -60,7 +64,14 @@ class dnaTrace(object):
         know how to handle the cropped versions
 
         I find using the gwyddion objects clunky and not helpful once the
-        grains have been found '''
+        grains have been found
+
+        There is some kind of discrepency between the ordering of arrays from
+        gwyddion and how they're usually handled in np arrays meaning you need
+        to be careful when indexing from gwyddion derived numpy arrays'''
+
+        #
+        #self.full_image_data = np.reshape(self.full_image_data, (self.number_of_columns, self.number_of_rows))
 
         for grain_num in set(self.gwyddion_grains):
             #Skip the background
@@ -69,11 +80,23 @@ class dnaTrace(object):
 
             #Saves each grain as a multidim numpy array
             single_grain_1d = np.array([1 if i == grain_num else 0 for i in self.gwyddion_grains])
-            self.grains[grain_num] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
+            self.grains[int(grain_num)] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
 
         #Get a 20 A gauss filtered version of the original image - not sure this is actually used anymore
         sigma = (5/math.sqrt(self.pixel_size*1e8))/1.5
         self.gauss_image = filters.gaussian(self.full_image_data, sigma)
+
+    def getDisorderedTrace(self):
+
+        for grain_num in sorted(self.grains.keys()):
+
+            smoothed_grain = ndimage.binary_dilation(self.grains[grain_num], iterations = 1).astype(self.grains[grain_num].dtype)
+
+            sigma = (5/math.sqrt(self.pixel_size*1e8))/2
+            very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
+
+            dna_skeleton = tracingfuncs.getSkeleton(self.full_image_data, very_smoothed_grain, self.number_of_columns, self.number_of_rows)
+            self.disordered_trace[grain_num] = dna_skeleton.output_skeleton
 
     def getSkeletons(self):
 
@@ -94,7 +117,7 @@ class dnaTrace(object):
             #The skeleton is saved as a 2D array of the skeleton coordinates relative to the original image
             self.skeletons[grain_num] = np.argwhere(skeletonised_image == 1)
             self.number_of_traces +=1
-
+            print(self.number_of_traces)
 
     def getOrderedTraces(self):
 
@@ -222,10 +245,7 @@ class dnaTrace(object):
 
         ''' Moves the coordinates from the skeletionised traces to lie on the
         highest point on the DNA molecule
-
-        There is some kind of discrepency between the ordering of arrays from
-        gwyddion and how they're usually handled in np arrays meaning you need
-        to be careful when indexing from gwyddion derived numpy arrays'''
+        '''
 
         for dna_num in sorted(self.grains.keys()):
 
@@ -233,7 +253,7 @@ class dnaTrace(object):
             tree = spatial.cKDTree(individual_skeleton)
 
             #This sets a 5 nm search in a direction perpendicular to the DNA chain
-            height_search_distance = int(15/(self.pixel_size*1e7))
+            height_search_distance = int(20/(self.pixel_size*1e7))
 
             for coord_num, trace_coordinate in enumerate(individual_skeleton):
 
@@ -381,7 +401,7 @@ class dnaTrace(object):
                         spline_success = True
                         count +=1
 
-                    #Not a great sign that system errors are being caught hah
+                    #Old code - Not a great sign that system errors are being caught
                     except SystemError:
                         print 'Could not spline coordinates'
                         spline_success = False
@@ -410,13 +430,28 @@ class dnaTrace(object):
 
     def showTraces(self):
 
+        #plt.pcolor(self.full_image_data)
+        #plt.show()
+
+
+        #plt.pcolor(self.full_image_data)
+        #plt.colorbar()
+        #for dna_num in sorted(self.skeletons.keys()):
+        #    plt.plot(self.skeletons[dna_num][:,0], self.skeletons[dna_num][:,1], '.')
+        #plt.show()
+
         plt.pcolor(self.full_image_data)
         plt.colorbar()
-        for dna_num in sorted(self.ordered_traces.keys()):
-            print('adding new line')
-            plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1])
+        for dna_num in sorted(self.skeletons.keys()):
+            plt.plot(self.disordered_trace[dna_num][:,0], self.disordered_trace[dna_num][:,1], '.')
         plt.show()
 
+        '''
+        for dna_num in sorted(self.ordered_traces.keys()):
+            print(self.full_image_data[self.grains[dna_num]])
+            plt.pcolor(np.reshape(np.multiply(self.full_image_data, self.grains[dna_num]), (self.number_of_columns, self.number_of_rows)))
+            plt.show()
+        '''
     def findWrithe(self):
         pass
 
