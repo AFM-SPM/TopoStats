@@ -380,7 +380,7 @@ class dnaTrace(object):
             points_with_one_neighbour = 0
             fitted_trace_list = self.disordered_trace[dna_num].tolist()
 
-            #For loop determines how many neighbours a point has - should be 2 or 1
+            #For loop determines how many neighbours a point has - if only one it is an end
             for x,y in fitted_trace_list:
                 number_of_neighbours = 0
 
@@ -516,20 +516,40 @@ class dnaTrace(object):
 
         for dna_num in sorted(self.ordered_traces.keys()):
 
-            for num, i in enumerate(self.ordered_traces[dna_num]):
+            if self.mol_is_circular[dna_num]:
+                for num, i in enumerate(self.ordered_traces[dna_num]):
 
-                x1 = self.ordered_traces[dna_num][num - 1, 0]
-                y1 = self.ordered_traces[dna_num][num - 1, 1]
+                    x1 = self.ordered_traces[dna_num][num - 1, 0]
+                    y1 = self.ordered_traces[dna_num][num - 1, 1]
 
-                x2 = self.ordered_traces[dna_num][num, 0]
-                y2 = self.ordered_traces[dna_num][num, 1]
+                    x2 = self.ordered_traces[dna_num][num, 0]
+                    y2 = self.ordered_traces[dna_num][num, 1]
 
-                try:
-                    hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
-                except NameError:
-                    hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
+                    try:
+                        hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
+                    except NameError:
+                        hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
 
 
-            self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size
-            print(self.contour_lengths[dna_num])
-            del hypotenuse_array
+                self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size
+                print(self.contour_lengths[dna_num])
+                del hypotenuse_array
+
+            else:
+                for num, i in enumerate(self.ordered_traces[dna_num]):
+                    try:
+                        x1 = self.ordered_traces[dna_num][num, 0]
+                        y1 = self.ordered_traces[dna_num][num, 1]
+
+                        x2 = self.ordered_traces[dna_num][num + 1, 0]
+                        y2 = self.ordered_traces[dna_num][num + 1, 1]
+
+                        try:
+                            hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
+                        except NameError:
+                            hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
+                    except IndexError: #IndexError happens at last point in array
+                        self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size
+                        print(self.contour_lengths[dna_num])
+                        del hypotenuse_array
+                        break
