@@ -37,17 +37,20 @@ class dnaTrace(object):
         self.ordered_traces = {}
         self.fitted_traces = {}
         self.splined_traces = {}
+        self.contour_lengths = {}
+        self.linear_or_circular = {}
 
         self.number_of_traces = 0
 
         #self.getParams()
         self.getNumpyArraysfromGwyddion()
         self.getDisorderedTrace()
-        self.getSkeletons()
-        #self.getFittedTraces()
+        #self.getSkeletons()
+        self.getFittedTraces()
         #self.determineLinearOrCircular()
-        #self.getOrderedTraces()
-        #self.getSplinedTraces()
+        self.getOrderedTraces()
+        self.getSplinedTraces()
+        self.measureContourLength()
 
     def getParams(self):
 
@@ -83,7 +86,7 @@ class dnaTrace(object):
             self.grains[int(grain_num)] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
 
         #Get a 20 A gauss filtered version of the original image - not sure this is actually used anymore
-        sigma = (5/math.sqrt(self.pixel_size*1e8))/1.5
+        sigma = (20/math.sqrt(self.pixel_size*1e8))
         self.gauss_image = filters.gaussian(self.full_image_data, sigma)
 
     def getDisorderedTrace(self):
@@ -249,7 +252,7 @@ class dnaTrace(object):
 
         for dna_num in sorted(self.grains.keys()):
 
-            individual_skeleton = self.skeletons[dna_num]
+            individual_skeleton = self.disordered_trace[dna_num]
             tree = spatial.cKDTree(individual_skeleton)
 
             #This sets a 5 nm search in a direction perpendicular to the DNA chain
@@ -365,6 +368,8 @@ class dnaTrace(object):
         given DNA molecule is linear or circular as this will change how the
         "ordering" of the coordinates is done '''
 
+
+
         pass
 
     def getSplinedTraces(self):
@@ -433,7 +438,6 @@ class dnaTrace(object):
         #plt.pcolor(self.full_image_data)
         #plt.show()
 
-
         #plt.pcolor(self.full_image_data)
         #plt.colorbar()
         #for dna_num in sorted(self.skeletons.keys()):
@@ -442,8 +446,8 @@ class dnaTrace(object):
 
         plt.pcolor(self.full_image_data)
         plt.colorbar()
-        for dna_num in sorted(self.skeletons.keys()):
-            plt.plot(self.disordered_trace[dna_num][:,0], self.disordered_trace[dna_num][:,1], '.')
+        for dna_num in sorted(self.ordered_traces.keys()):
+            plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1], '.')
         plt.show()
 
         '''
@@ -452,8 +456,33 @@ class dnaTrace(object):
             plt.pcolor(np.reshape(np.multiply(self.full_image_data, self.grains[dna_num]), (self.number_of_columns, self.number_of_rows)))
             plt.show()
         '''
+
     def findWrithe(self):
         pass
 
     def findRadiusOfCurvature(self):
         pass
+
+    def measureContourLength(self):
+
+        '''Measure the contour length for each of the splined traces '''
+
+        for dna_num in sorted(self.ordered_traces.keys()):
+
+            for num, i in enumerate(self.ordered_traces[dna_num]):
+
+                x1 = self.ordered_traces[dna_num][num - 1, 0]
+                y1 = self.ordered_traces[dna_num][num - 1, 1]
+
+                x2 = self.ordered_traces[dna_num][num, 0]
+                y2 = self.ordered_traces[dna_num][num, 1]
+
+                try:
+                    hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
+                except NameError:
+                    hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
+
+
+            self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size
+            print(self.contour_lengths[dna_num])
+            del hypotenuse_array
