@@ -38,7 +38,7 @@ class dnaTrace(object):
         self.fitted_traces = {}
         self.splined_traces = {}
         self.contour_lengths = {}
-        self.linear_or_circular = {}
+        self.mol_is_circular = {}
 
         self.number_of_traces = 0
 
@@ -47,7 +47,7 @@ class dnaTrace(object):
         self.getDisorderedTrace()
         #self.getSkeletons()
         self.getFittedTraces()
-        #self.determineLinearOrCircular()
+        self.determineLinearOrCircular()
         self.getOrderedTraces()
         self.getSplinedTraces()
         self.measureContourLength()
@@ -73,9 +73,6 @@ class dnaTrace(object):
         gwyddion and how they're usually handled in np arrays meaning you need
         to be careful when indexing from gwyddion derived numpy arrays'''
 
-        #
-        #self.full_image_data = np.reshape(self.full_image_data, (self.number_of_columns, self.number_of_rows))
-
         for grain_num in set(self.gwyddion_grains):
             #Skip the background
             if grain_num == 0:
@@ -85,11 +82,17 @@ class dnaTrace(object):
             single_grain_1d = np.array([1 if i == grain_num else 0 for i in self.gwyddion_grains])
             self.grains[int(grain_num)] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
 
-        #Get a 20 A gauss filtered version of the original image - not sure this is actually used anymore
+        #Get a 20 A gauss filtered version of the original image - used in refining the pixel positions in getFittedTraces()
         sigma = (20/math.sqrt(self.pixel_size*1e8))
         self.gauss_image = filters.gaussian(self.full_image_data, sigma)
 
     def getDisorderedTrace(self):
+
+        '''Function to make a skeleton for each of the grains in the image
+
+        Uses my own skeletonisation function from tracingfuncs module. I will
+        eventually get round to editing this function to try to reduce the branching
+        and to try to better trace from looped molecules '''
 
         for grain_num in sorted(self.grains.keys()):
 
@@ -106,7 +109,9 @@ class dnaTrace(object):
         ''' Function to make a skeleton for each of the grains in an image
 
         There is a bit of work to do here as the grains often have very rough
-        edges '''
+        edges
+
+        Now a redundant function - will be deleted soon'''
 
         for grain_num in sorted(self.grains.keys()):
 
@@ -129,7 +134,7 @@ class dnaTrace(object):
 
         This could be replaced with a simpler and more elegant solution in the future
 
-        This function is both overly complicated and buggy - room for improvement'''
+        This function doesn't really work - room for improvement'''
 
         for dna_mol in sorted(self.fitted_traces.keys()):
 
@@ -364,13 +369,52 @@ class dnaTrace(object):
 
     def determineLinearOrCircular(self):
 
-        ''' Its important for the "ordering" function that it is known if a
-        given DNA molecule is linear or circular as this will change how the
-        "ordering" of the coordinates is done '''
+        ''' Determines whether each molecule is circular or linear based on the
+        local environment of each pixel from the trace
 
+        This function is sensitive to branches from the skeleton so might need
+        to implement a function to remove them'''
 
+        for dna_num in sorted(self.disordered_trace.keys()):
 
-        pass
+            points_with_one_neighbour = 0
+            fitted_trace_list = self.disordered_trace[dna_num].tolist()
+
+            #For loop determines how many neighbours a point has - should be 2 or 1
+            for x,y in fitted_trace_list:
+                number_of_neighbours = 0
+
+                if [x    , y + 1] in fitted_trace_list:
+                    number_of_neighbours += 1
+                if [x + 1, y + 1] in fitted_trace_list:
+                    number_of_neighbours +=1
+                if [x + 1, y    ] in fitted_trace_list:
+                    number_of_neighbours +=1
+                if [x + 1, y - 1] in fitted_trace_list:
+                    number_of_neighbours +=1
+                if [x    , y - 1] in fitted_trace_list:
+                    number_of_neighbours +=1
+                if [x - 1, y - 1] in fitted_trace_list:
+                    number_of_neighbours +=1
+                if [x - 1, y    ] in fitted_trace_list:
+                    number_of_neighbours +=1
+                if [x - 1, y + 1] in fitted_trace_list:
+                    number_of_neighbours +=1
+
+                if number_of_neighbours == 1:
+                    points_with_one_neighbour += 1
+                else:
+                    pass
+
+            if points_with_one_neighbour == 2:
+                self.mol_is_circular[dna_num] = False
+            else:
+                self.mol_is_circular[dna_num] = True
+
+            if self.mol_is_circular[dna_num]:
+                print('Found a circular DNA molecule')
+            else:
+                print('Found a linear DNA molecule')
 
     def getSplinedTraces(self):
 
@@ -380,7 +424,7 @@ class dnaTrace(object):
         This function actually calculates the average of several splines which
         is important for getting a good fit on the lower res data'''
 
-        step_size = 10 #arbitary number for time being
+        step_size = 10 #arbitary number - needs to reflect pixel size
 
         for dna_num in sorted(self.ordered_traces.keys()):
 
@@ -465,7 +509,10 @@ class dnaTrace(object):
 
     def measureContourLength(self):
 
-        '''Measure the contour length for each of the splined traces '''
+        '''Measure the contour length for each of the splined traces
+
+        Splined traces are currently complete junk so this uses the ordered traces
+        for now'''
 
         for dna_num in sorted(self.ordered_traces.keys()):
 
