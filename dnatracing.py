@@ -45,11 +45,11 @@ class dnaTrace(object):
         #self.getParams()
         self.getNumpyArraysfromGwyddion()
         self.getDisorderedTrace()
-        #self.getSkeletons()
+        #self.isMolLooped()
         self.getFittedTraces()
         self.determineLinearOrCircular()
-        self.getOrderedTracesByPolarCoordinates()
-        #self.getOrderedTraces()
+        #self.getOrderedTracesByPolarCoordinates()
+        self.getOrderedTraces()
         self.getSplinedTraces()
         self.measureContourLength()
 
@@ -128,48 +128,69 @@ class dnaTrace(object):
             self.number_of_traces +=1
             print(self.number_of_traces)
 
-    def getOrderedTracesByPolarCoordinates(self):
+    def getOrderedTraces(self):
 
         for dna_num in sorted(self.fitted_traces.keys()):
-            polar_coordinates = []
 
-            com_x = np.average(self.fitted_traces[dna_num][:,0])
-            com_y = np.average(self.fitted_traces[dna_num][:,1])
+            if self.mol_is_circular[dna_num]: #and not self.mol_is_looped[dna_num]:
+                self.ordered_traces[dna_num] = self._getOrderedCircularTrace(self.fitted_traces[dna_num])
+            elif not self.mol_is_circular[dna_num]: #and not self.mol_is_looped[dna_num]:
+                self.ordered_traces[dna_num = self._getOrderedLinearTrace(self.fitted_traces[dna_num])
+
+    def _getOrderedCircularTrace(self, trace_coordinates):
+
+        ''' Reorders the coordinates of a trace from a circular DNA molecule
+        (with no loops) using a polar coordinate system with reference to the
+        center of mass'''
+
+        #calculate the centre of mass for the trace
+        com_x = np.average(trace_coordinates[:,0])
+        com_y = np.average(trace_coordinates[:,1])
+
+        #convert to polar coordinates with respect to the centre of mass
+        polar_coordinates = []
+        for x1, y1 in trace_coordinates:
+
+            x = x1 - com_x
+            y = y1 - com_y
+
+            r = math.hypot(x,y)
+            theta = math.atan2(x,y)
+
+            polar_coordinates.append([theta,r])
+
+        sorted_polar_coordinates = sorted(polar_coordinates, key = lambda i:i[0])
+
+        #Reconvert to x, y coordinates
+        sorted_coordinates = []
+        for theta, r in sorted_polar_coordinates:
+
+            x = r*math.cos(theta)
+            y = r*math.sin(theta)
+
+            x2 = x + com_x
+            y2 = y + com_y
+
+            sorted_coordinates.append([x2,y2])
+
+        return np.array(sorted_coordinates)
+
+    def _getOrderedLinearTrace(self, trace_coordinates):
+
+        '''Reorders the sequence of coordinates from a linear DNA molecule '''
+
+        #Find one of the end points
+        for i, x, y in enumerate(trace_coordinates):
+            if self._countNeighbours(x, y, fitted_trace_list) == 1:
+                starting_point = [x, y]
+                remaining_coordinates = np.delete(trace_coordinates, i)
+                break
+
+        #Cycle through the points in the
+        while trace_coordinates:
 
 
-            #convert to polar coordinates with respect to the centre of mass
-            for x1, y1 in self.fitted_traces[dna_num]:
 
-                x = x1 - com_x
-                y = y1 - com_y
-
-                r = math.hypot(x,y)
-                theta = math.atan2(x,y)
-
-                polar_coordinates.append([theta,r])
-
-            sorted_polar_coordinates = sorted(polar_coordinates, key = lambda i:i[0])
-
-            #Reconvert to x, y coordinates
-            sorted_coordinates = []
-
-            for theta, r in sorted_polar_coordinates:
-
-                x = r*math.cos(theta)
-                y = r*math.sin(theta)
-
-                x2 = x + com_x
-                y2 = y + com_y
-
-                sorted_coordinates.append([x2,y2])
-
-            self.ordered_traces[dna_num] = np.array(sorted_coordinates)
-
-    def getOrderedTraces(self):
-        pass
-        #for dna_num in sorted(self.fitted_traces.keys()):
-
-        #    if self.
 
     def getOrderedTraces_old(self):
 
@@ -178,7 +199,9 @@ class dnaTrace(object):
 
         This could be replaced with a simpler and more elegant solution in the future
 
-        This function doesn't really work - room for improvement'''
+        This function doesn't really work - room for improvement
+
+        Now superceded with more simple and elegant functions'''
 
         for dna_mol in sorted(self.fitted_traces.keys()):
 
@@ -426,8 +449,10 @@ class dnaTrace(object):
 
             #For loop determines how many neighbours a point has - if only one it is an end
             for x,y in fitted_trace_list:
-                number_of_neighbours = 0
+                #number_of_neighbours = 0
 
+                #number_of_neighbours = self._countNeighbours(x, y, fitted_trace_list)
+                '''
                 if [x    , y + 1] in fitted_trace_list:
                     number_of_neighbours += 1
                 if [x + 1, y + 1] in fitted_trace_list:
@@ -444,8 +469,8 @@ class dnaTrace(object):
                     number_of_neighbours +=1
                 if [x - 1, y + 1] in fitted_trace_list:
                     number_of_neighbours +=1
-
-                if number_of_neighbours == 1:
+                '''
+                if self._countNeighbours(x, y, fitted_trace_list) == 1:
                     points_with_one_neighbour += 1
                 else:
                     pass
@@ -597,3 +622,22 @@ class dnaTrace(object):
                         print(self.contour_lengths[dna_num])
                         del hypotenuse_array
                         break
+
+    def _countNeighbours(self, x, y, fitted_trace_list):
+        if [x    , y + 1] in fitted_trace_list:
+            number_of_neighbours += 1
+        if [x + 1, y + 1] in fitted_trace_list:
+            number_of_neighbours +=1
+        if [x + 1, y    ] in fitted_trace_list:
+            number_of_neighbours +=1
+        if [x + 1, y - 1] in fitted_trace_list:
+            number_of_neighbours +=1
+        if [x    , y - 1] in fitted_trace_list:
+            number_of_neighbours +=1
+        if [x - 1, y - 1] in fitted_trace_list:
+            number_of_neighbours +=1
+        if [x - 1, y    ] in fitted_trace_list:
+            number_of_neighbours +=1
+        if [x - 1, y + 1] in fitted_trace_list:
+            number_of_neighbours +=1
+        return number_of_neighbours
