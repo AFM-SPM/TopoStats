@@ -48,7 +48,8 @@ class dnaTrace(object):
         #self.getSkeletons()
         self.getFittedTraces()
         self.determineLinearOrCircular()
-        self.getOrderedTraces()
+        self.getOrderedTracesByPolarCoordinates()
+        #self.getOrderedTraces()
         self.getSplinedTraces()
         self.measureContourLength()
 
@@ -127,7 +128,50 @@ class dnaTrace(object):
             self.number_of_traces +=1
             print(self.number_of_traces)
 
+    def getOrderedTracesByPolarCoordinates(self):
+
+        for dna_num in sorted(self.fitted_traces.keys()):
+            polar_coordinates = []
+
+            com_x = np.average(self.fitted_traces[dna_num][:,0])
+            com_y = np.average(self.fitted_traces[dna_num][:,1])
+
+
+            #convert to polar coordinates with respect to the centre of mass
+            for x1, y1 in self.fitted_traces[dna_num]:
+
+                x = x1 - com_x
+                y = y1 - com_y
+
+                r = math.hypot(x,y)
+                theta = math.atan2(x,y)
+
+                polar_coordinates.append([theta,r])
+
+            sorted_polar_coordinates = sorted(polar_coordinates, key = lambda i:i[0])
+
+            #Reconvert to x, y coordinates
+            sorted_coordinates = []
+
+            for theta, r in sorted_polar_coordinates:
+
+                x = r*math.cos(theta)
+                y = r*math.sin(theta)
+
+                x2 = x + com_x
+                y2 = y + com_y
+
+                sorted_coordinates.append([x2,y2])
+
+            self.ordered_traces[dna_num] = np.array(sorted_coordinates)
+
     def getOrderedTraces(self):
+        pass
+        #for dna_num in sorted(self.fitted_traces.keys()):
+
+        #    if self.
+
+    def getOrderedTraces_old(self):
 
         '''The skeletonised traces are not in a sequence that follows the path
         of the DNA molecule - this function fixes this issue
@@ -491,7 +535,7 @@ class dnaTrace(object):
         plt.pcolor(self.full_image_data)
         plt.colorbar()
         for dna_num in sorted(self.ordered_traces.keys()):
-            plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1], '.')
+            plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1])
         plt.show()
 
         '''
@@ -509,7 +553,8 @@ class dnaTrace(object):
 
     def measureContourLength(self):
 
-        '''Measure the contour length for each of the splined traces
+        '''Measures the contour length for each of the splined traces taking into
+        account whether the molecule is circular or linear
 
         Splined traces are currently complete junk so this uses the ordered traces
         for now'''
@@ -529,7 +574,6 @@ class dnaTrace(object):
                         hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
                     except NameError:
                         hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
-
 
                 self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size
                 print(self.contour_lengths[dna_num])
