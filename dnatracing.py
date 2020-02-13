@@ -21,13 +21,14 @@ class dnaTrace(object):
     '''
 
     def __init__(self, full_image_data, gwyddion_grains, afm_image_name, pixel_size,
-    number_of_columns, number_of_rows):
+    number_of_columns, number_of_rows, savefile = False):
         self.full_image_data = full_image_data
         self.gwyddion_grains = gwyddion_grains
         self.afm_image_name = afm_image_name
         self.pixel_size = pixel_size
         self.number_of_columns = number_of_columns
         self.number_of_rows = number_of_rows
+        self.savefile = savefile
 
         self.gauss_image = []
         self.grains = {}
@@ -54,6 +55,9 @@ class dnaTrace(object):
         #self.getOrderedTraces()
         #self.getSplinedTraces()
         #self.measureContourLength()
+
+        if self.savefile:
+            self.saveTraceFigures()
 
     def getParams(self):
 
@@ -170,8 +174,8 @@ class dnaTrace(object):
         sorted_coordinates = []
         for theta, r in sorted_polar_coordinates:
 
-            x = r*math.cos(theta)
-            y = r*math.sin(theta)
+            x = r*math.sin(theta)
+            y = r*math.cos(theta)
 
             x2 = x + com_x
             y2 = y + com_y
@@ -185,7 +189,6 @@ class dnaTrace(object):
         '''Reorders the sequence of coordinates from a linear DNA molecule '''
 
         #Find one of the end points
-        #print(trace_coordinates)
         for x, y in trace_coordinates:
             #print(x,y)
             if genTracingFuncs.countNeighbours(x, y, trace_coordinates) == 1:
@@ -211,8 +214,8 @@ class dnaTrace(object):
         sorted_coordinates = []
         for theta, r in polar_coordinates:
 
-            x = r*math.cos(theta)
-            y = r*math.sin(theta)
+            x = r*math.sin(theta)
+            y = r*math.cos(theta)
 
             x2 = x + starting_point[0]
             y2 = y + starting_point[1]
@@ -558,27 +561,29 @@ class dnaTrace(object):
 
     def showTraces(self):
 
-        #plt.pcolor(self.full_image_data)
-        #plt.show()
-
-        #plt.pcolor(self.full_image_data)
-        #plt.colorbar()
-        #for dna_num in sorted(self.skeletons.keys()):
-        #    plt.plot(self.skeletons[dna_num][:,0], self.skeletons[dna_num][:,1], '.')
-        #plt.show()
+        plt.pcolor(self.full_image_data)
+        plt.colorbar()
+        for dna_num in sorted(self.disordered_trace.keys()):
+            plt.plot(self.disordered_trace[dna_num][:,0], self.disordered_trace[dna_num][:,1])
+        plt.show()
+        plt.close()
 
         plt.pcolor(self.full_image_data)
         plt.colorbar()
         for dna_num in sorted(self.ordered_traces.keys()):
             plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1])
         plt.show()
+        plt.close()
 
-        '''
+    def saveTraceFigures(self):
+
+        plt.pcolor(self.full_image_data)
+        plt.colorbar()
         for dna_num in sorted(self.ordered_traces.keys()):
-            print(self.full_image_data[self.grains[dna_num]])
-            plt.pcolor(np.reshape(np.multiply(self.full_image_data, self.grains[dna_num]), (self.number_of_columns, self.number_of_rows)))
-            plt.show()
-        '''
+            plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1])
+        plt.savefig('test.png')
+        plt.close()
+
 
     def findWrithe(self):
         pass
