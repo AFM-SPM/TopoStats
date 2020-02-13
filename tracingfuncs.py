@@ -38,15 +38,12 @@ class getSkeleton(object):
         self.mask_being_skeletonised = self.binary_map
 
         all_points = np.argwhere(self.mask_being_skeletonised == 1)
-        #plt.plot(all_points[:,0], all_points[:,1], '.')
 
         while not self.skeleton_converged:
             self._doSkeletonisingIteration()
 
         self.output_skeleton = np.argwhere(self.mask_being_skeletonised == 1)
 
-        #plt.plot(self.output_skeleton[:,0], self.output_skeleton[:,1], '.')
-        #plt.show()
 
     def _doSkeletonisingIteration(self):
 
@@ -89,7 +86,8 @@ class getSkeleton(object):
         '''Function to check whether a single point should be deleted based
         on both its local binary environment and its local height values'''
 
-        self._getLocalPixelsBinary(point[0], point[1])
+        self.p2, self.p3, self.p4, self.p4, self.p5, self.p6, self.p7, self.p8 = genTracingFuncs.getLocalPixelsBinary(self.mask_being_skeletonised, point[0],point[1])
+        #self._getLocalPixelsBinary(point[0], point[1])
 
         if (self._binaryThinCheck_a() and
             self._binaryThinCheck_b() and
@@ -213,3 +211,77 @@ class getSkeleton(object):
             return True
         else:
             return False
+
+class reorderTrace(object):
+
+    def __init__(self, trace_coordinates):
+        self.trace_coordinates = trace_coordinates
+
+        pass
+
+    def linearTrace(self):
+        pass
+
+    def circularTrace(self):
+        pass
+
+    def loopedCircularTrace(self):
+        pass
+
+    def
+
+    pass
+
+class genTracingFuncs:
+
+    def getLocalPixelsBinary(binary_map, x, y):
+        p2 = binary_map[x    , y + 1]
+        p3 = binary_map[x + 1, y + 1]
+        p4 = binary_map[x + 1, y    ]
+        p5 = binary_map[x + 1, y - 1]
+        p6 = binary_map[x    , y - 1]
+        p7 = binary_map[x - 1, y - 1]
+        p8 = binary_map[x - 1, y    ]
+        p9 = binary_map[x - 1, y + 1]
+
+        return p2,p3,p4,p5,p6,p7,p8,p9
+
+    def countNeighbours( x, y, trace_coordinates):
+        number_of_neighbours = 0
+        if [x    , y + 1] in trace_coordinates:
+            number_of_neighbours += 1
+        if [x + 1, y + 1] in trace_coordinates:
+            number_of_neighbours +=1
+        if [x + 1, y    ] in trace_coordinates:
+            number_of_neighbours +=1
+        if [x + 1, y - 1] in trace_coordinates:
+            number_of_neighbours +=1
+        if [x    , y - 1] in trace_coordinates:
+            number_of_neighbours +=1
+        if [x - 1, y - 1] in trace_coordinates:
+            number_of_neighbours +=1
+        if [x - 1, y    ] in trace_coordinates:
+            number_of_neighbours +=1
+        if [x - 1, y + 1] in trace_coordinates:
+            number_of_neighbours +=1
+        return number_of_neighbours
+
+    def getNeighbours(x, y, trace_coordinates):
+        neighbour_array = []
+        if [x    , y + 1] in trace_coordinates:
+            neighbour_array.append([x    ,y + 1])
+        if [x + 1, y + 1] in trace_coordinates:
+            neighbour_array.append([x + 1,y + 1])
+        if [x + 1, y    ] in trace_coordinates:
+            neighbour_array.append([x + 1,y    ])
+        if [x + 1, y - 1] in trace_coordinates:
+            neighbour_array.append([x + 1, y - 1])
+        if [x    , y - 1] in trace_coordinates:
+            neighbour_array.append([x    , y - 1])
+        if [x - 1, y - 1] in trace_coordinates:
+            neighbour_array.append([x - 1, y - 1])
+        if [x - 1, y    ] in trace_coordinates:
+            neighbour_array.append([x - 1, y    ])
+        if [x - 1, y + 1] in trace_coordinates:
+            neighbour_array.append([x - 1, y + 1])
+        return neighbour_array
