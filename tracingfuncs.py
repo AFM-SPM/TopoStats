@@ -86,7 +86,7 @@ class getSkeleton(object):
         '''Function to check whether a single point should be deleted based
         on both its local binary environment and its local height values'''
 
-        self.p2, self.p3, self.p4, self.p4, self.p5, self.p6, self.p7, self.p8 = genTracingFuncs.getLocalPixelsBinary(self.mask_being_skeletonised, point[0],point[1])
+        self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(self.mask_being_skeletonised, point[0],point[1])
         #self._getLocalPixelsBinary(point[0], point[1])
 
         if (self._binaryThinCheck_a() and
@@ -228,12 +228,12 @@ class reorderTrace(object):
     def loopedCircularTrace(self):
         pass
 
-    def
-
-    pass
+    def loopedLinearTrace(self):
+        pass
 
 class genTracingFuncs:
 
+    @staticmethod
     def getLocalPixelsBinary(binary_map, x, y):
         p2 = binary_map[x    , y + 1]
         p3 = binary_map[x + 1, y + 1]
@@ -246,6 +246,7 @@ class genTracingFuncs:
 
         return p2,p3,p4,p5,p6,p7,p8,p9
 
+    @staticmethod
     def countNeighbours( x, y, trace_coordinates):
         number_of_neighbours = 0
         if [x    , y + 1] in trace_coordinates:
@@ -266,6 +267,7 @@ class genTracingFuncs:
             number_of_neighbours +=1
         return number_of_neighbours
 
+    @staticmethod
     def getNeighbours(x, y, trace_coordinates):
         neighbour_array = []
         if [x    , y + 1] in trace_coordinates:
