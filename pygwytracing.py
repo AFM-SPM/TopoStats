@@ -1,10 +1,12 @@
 import sys
-sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages')
-sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy')
+#sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages')
+#sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy')
+sys.path.append('/usr/share/gwyddion/pygwy/')
 
 import pygtk
 pygtk.require20() # adds gtk-2.0 folder to sys.path
 import gwy
+
 
 import fnmatch
 import gwyutils
@@ -14,6 +16,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import dnatracing
 
 # Import height thresholding.py for processing bilayer removal images
 
@@ -66,7 +69,7 @@ def traversedirectories(fileend, filetype, path):
         # for filename in fnmatch.filter(files, filetype):
         #     spmfiles.append(os.path.join(dirpath, filename))
         # print the number of files found
-    print 'Files found: ' + str(len(spmfiles))
+    print( 'Files found: ' + str(len(spmfiles)))
     # return a list of files including their root and the original path specified
     return spmfiles
 
@@ -97,14 +100,15 @@ def choosechannels(data, channel1, channel2):
 def imagedetails(data):
     # select the channel file of chosen_ids
     gwy.gwy_app_data_browser_select_data_field(data, k)
+
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
 
     xres = datafield.get_xres()
     yres = datafield.get_yres()
     xreal = datafield.get_xreal()
     yreal = datafield.get_yreal()
-    dx = datafield.get_dx()
-    dy = datafield.get_dy()
+    dx = xreal/xres
+    dy = yreal/yres
     return xres, yres, xreal, yreal, dx, dy
 
 def heightediting(data, k):
@@ -118,11 +122,11 @@ def heightediting(data, k):
     datafield.grains_mark_height(mask, 30, False)
 
     # Re-do polynomial correction with masked height
-    s["/module/polylevel/masking"] = 0
+    s["/module/polylevel/masking"] = 1
     gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
 
     # Re-do align rows with masked heights
-    s["/module/linematch/masking"] = 0
+    s["/module/linematch/masking"] = 1
     gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
 
     # # Remove scars
@@ -169,7 +173,7 @@ def editfile(data, k):
 
     # Fix zero
     gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
-
+    
     # remove scars
     # gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
 
@@ -182,11 +186,14 @@ def editfile(data, k):
     return data
 
 
-def grainfinding(data, minarea, k, thresholdingcriteria):
+def grainfinding(data, minarea, k, thresholdingcriteria, dx):
     # Select channel 'k' of the file
     gwy.gwy_app_data_browser_select_data_field(data, k)
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
     mask = gwy.DataField.new_alike(datafield, False)
+
+    #Gaussiansize = 0.25e-9 / dx
+    #datafield.filter_gaussian(Gaussiansize)
 
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
@@ -206,8 +213,9 @@ def grainfinding(data, minarea, k, thresholdingcriteria):
     ### Editing grain mask
     # Remove grains touching the edge of the mask
     mask.grains_remove_touching_border()
+
     # Calculate pixel width in nm
-    dx = datafield.get_dx()
+    #dx = datafield.get_dx()
     # Calculate minimum feature size in pixels (integer) from a real size specified in the main
     minsize = int(minarea / dx)
     # Remove grains smaller than the minimum size in integer pixels
@@ -222,14 +230,14 @@ def grainfinding(data, minarea, k, thresholdingcriteria):
     return data, mask, datafield, grains
 
 
-def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation):
+def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, dx):
     mask2 = gwy.DataField.new_alike(datafield, False)
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
     datafield.mask_outliers(mask2, 1)
     # Calculate pixel width in nm
-    dx = datafield.get_dx()
+    #dx = datafield.get_dx()
     # Calculate minimum feature size in pixels (integer)
     # here this is calculated as 2* the median grain size, as calculated in find_median_pixel_area()
     maxsize = int(maxdeviation * median_pixel_area)
@@ -248,14 +256,14 @@ def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation):
     return mask, grains
 
 
-def removesmallobjects(datafield, mask, median_pixel_area, mindeviation):
+def removesmallobjects(datafield, mask, median_pixel_area, mindeviation, dx):
     mask2 = gwy.DataField.new_alike(datafield, False)
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
     datafield.mask_outliers(mask2, 1)
     # Calculate pixel width in nm
-    dx = datafield.get_dx()
+    #dx = datafield.get_dx()
     # Calculate minimum feature size in pixels (integer)
     # here this is calculated as 2* the median grain size, as calculated in find_median_pixel_area()
     minsize = int(mindeviation * median_pixel_area)
@@ -268,7 +276,7 @@ def removesmallobjects(datafield, mask, median_pixel_area, mindeviation):
 
     # Numbering grains for grain analysis
     grains = mask.number_grains()
-    print 'There were ' + str(max(grains)) + ' grains found'
+    print('There were ' + str(max(grains)) + ' grains found')
 
     return mask, grains
 
@@ -446,7 +454,7 @@ def exportasnparray(datafield, mask):
 
 def savestats(directory, dataframetosave):
     directoryname = os.path.splitext(os.path.basename(directory))[0]
-    print 'Saving stats for: ' + str(directoryname)
+    print('Saving stats for: ' + str(directoryname))
 
     savedir = os.path.join(directory)
     savename = os.path.join(savedir, directoryname)
@@ -639,7 +647,16 @@ if __name__ == '__main__':
     # Set various options here:
 
     # Set the file path, i.e. the directory where the files are here'
+
+    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Code/TopoStats'
+    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/HR Images'
+    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
+    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/PLL'
+    #path = '/Users/alicepyne/Dropbox/UCL/Kavit/mmc presentation data/DNA Immobilisation'
+    # path = '/Users/alicepyne/Dropbox/UCL/DNA on PLL PEG'
     path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
+
+    path = 'test_data'
 
     # Set file type to look for here
     fileend = '.spm', '.ibw', '*.[0-9]'
@@ -672,7 +689,7 @@ if __name__ == '__main__':
     spmfiles = traversedirectories(fileend, filetype, path)
     # Iterate over all files found
     for i, filename in enumerate(spmfiles):
-        print 'Analysing ' + str(os.path.basename(filename))
+        print('Analysing ' + str(os.path.basename(filename)))
         # Load the data for the specified filename
         data = getdata(filename)
         # Find the channels of data you wish to use within the file e.g. ZSensor or height
@@ -696,7 +713,7 @@ if __name__ == '__main__':
             # Find all grains in the mask which are both above a height threshold
             # and bigger than the min size set in the main codegrain_mean_rad
             # 1.2 works well for DNA minicircle images
-            data, mask, datafield, grains = grainfinding(data, minarea, k, 1)
+            data, mask, datafield, grains = grainfinding(data, minarea, k, 1, dx)
             # # Flattening based on masked data and subsequent grain finding
             # # Used for analysing data e.g. peptide induced bilayer degradation
             # data, mask, datafield, grains = heightthresholding.otsuthresholdgrainfinding(data, k)
@@ -704,9 +721,9 @@ if __name__ == '__main__':
             # Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
             median_pixel_area = find_median_pixel_area(datafield, grains)
             # Remove all large objects defined as 1.2* the median grain size (in pixel area)
-            mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation)
+            mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, dx)
             # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
-            mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation)
+            mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation, dx)
 
             # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
             # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
@@ -715,6 +732,15 @@ if __name__ == '__main__':
             # Create cropped datafields for every grain of size set in the main directory
             bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             # orig_ids, crop_ids, data = splitimage(data, splitwidth, datafield, xreal, yreal, xres, yres)
+
+            # Export the channels data and mask as numpy arrays
+            npdata, npmask = exportasnparray(datafield, mask)
+
+            #trace the DNA molecules - can compute stats etc as needed
+            data_nparray = gwyutils.data_field_data_as_array(datafield)
+            dna_traces = dnatracing.dnaTrace(npdata, grains, filename, xreal, yres, xres)
+            dna_traces.showTraces()
+
             # Save out cropped files as images with no scales to a subfolder
             savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 
