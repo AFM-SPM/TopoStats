@@ -91,6 +91,8 @@ class dnaTrace(object):
         eventually get round to editing this function to try to reduce the branching
         and to try to better trace from looped molecules '''
 
+        #plt.pcolor(self.full_image_data)
+
         for grain_num in sorted(self.grains.keys()):
 
             smoothed_grain = ndimage.binary_dilation(self.grains[grain_num], iterations = 1).astype(self.grains[grain_num].dtype)
@@ -98,8 +100,14 @@ class dnaTrace(object):
             sigma = (5/math.sqrt(self.pixel_size*1e8))/2
             very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
-            dna_skeleton = getSkeleton(self.full_image_data, very_smoothed_grain, self.number_of_columns, self.number_of_rows)
+            dna_skeleton = getSkeleton(self.full_image_data, self.grains[grain_num], self.number_of_columns, self.number_of_rows)
             self.disordered_trace[grain_num] = dna_skeleton.output_skeleton
+
+            #grain = np.argwhere(smoothed_grain == 1)
+            #print(len(self.disordered_trace[grain_num]))
+            #plt.plot(self.disordered_trace[grain_num][:,0], self.disordered_trace[grain_num][:,1], '.')
+            #plt.plot(grain[:,0],grain[:,1], '.')
+        #plt.show()
 
     def determineLinearOrCircular(self):
 
@@ -147,7 +155,7 @@ class dnaTrace(object):
         for dna_num in sorted(self.disordered_trace.keys()):
 
             if self.mol_is_circular[dna_num]: #and not self.mol_is_looped[dna_num]:
-                self.ordered_traces[dna_num] = self._getOrderedCircularTrace(self.disordered_trace[dna_num])
+                self.ordered_traces[dna_num] = reorderTrace.circularTrace(self.disordered_trace[dna_num])
 
             elif not self.mol_is_circular[dna_num]: #and not self.mol_is_looped[dna_num]:
                 self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
