@@ -205,6 +205,22 @@ class reorderTrace:
     @staticmethod
     def linearTrace(trace_coordinates):
 
+        '''My own (quite simple) function to order the points from a linear trace.
+
+        This works by checking the local neighbours for a given pixel (starting
+        at one of the ends). If this pixel has only one neighbour in the array
+        of unordered points, this must be the next pixel in the trace -- and it
+        is added to the ordered points trace and removed from the
+        remaining_unordered_coords array.
+
+        If there is more than one neighbouring pixel, a fairly simple function
+        (checkVectorsCandidatePoints) finds which pixel incurs the smallest
+        change in angle compared with the rest of the trace and chooses that as
+        the next point.
+
+        This process is repeated until all the points are placed in the ordered
+        trace array or the other end point is reached. '''
+
         try:
             trace_coordinates = trace_coordinates.tolist()
         except AttributeError: #array is already a python list
@@ -307,6 +323,10 @@ class genTracingFuncs:
 
     @staticmethod
     def countNeighbours( x, y, trace_coordinates):
+
+        '''Counts the number of neighbouring points for a given coordinate in
+        a list of points '''
+
         number_of_neighbours = 0
         if [x    , y + 1] in trace_coordinates:
             number_of_neighbours += 1
@@ -328,6 +348,10 @@ class genTracingFuncs:
 
     @staticmethod
     def getNeighbours(x, y, trace_coordinates):
+
+        '''Returns an array containing the neighbouring points for a given
+        coordinate in a list of points '''
+
         neighbour_array = []
         if [x    , y + 1] in trace_coordinates:
             neighbour_array.append([x    ,y + 1])
@@ -349,6 +373,10 @@ class genTracingFuncs:
 
     @staticmethod
     def countandGetNeighbours(x, y, trace_coordinates):
+
+        '''Returns the number of neighbouring points for a coordinate and an
+        array containing the those points '''
+
         neighbour_array = []
         number_of_neighbours = 0
         if [x    , y + 1] in trace_coordinates:
@@ -380,8 +408,9 @@ class genTracingFuncs:
     @staticmethod
     def checkVectorsCandidatePoints(x, y, ordered_points, candidate_points):
 
-        '''Finds the best next pixel to move to based on the smallest change in
-        angle compared to a point already in the ordered stack'''
+        '''Finds which neighbouring pixel incurs the smallest angular change
+        with reference to a previous pixel in the ordered trace and chooses that
+        as the next point '''
 
         x_y_theta = []
         point_to_check_from = ordered_points[-3]
