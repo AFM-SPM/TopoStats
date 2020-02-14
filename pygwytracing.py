@@ -744,7 +744,7 @@ if __name__ == '__main__':
             data_nparray = gwyutils.data_field_data_as_array(datafield)
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, xreal, yres, xres)
             dna_traces.showTraces()
-
+            dna_traces.writeContourLengths(filename)
             # Save out cropped files as images with no scales to a subfolder
             savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 

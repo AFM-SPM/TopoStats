@@ -428,8 +428,7 @@ class dnaTrace(object):
                     except NameError:
                         hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
 
-                self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size
-                print(self.contour_lengths[dna_num])
+                self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size *1e9
                 del hypotenuse_array
 
             else:
@@ -446,10 +445,19 @@ class dnaTrace(object):
                         except NameError:
                             hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
                     except IndexError: #IndexError happens at last point in array
-                        self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size
-                        print(self.contour_lengths[dna_num])
+                        self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size * 1e9
                         del hypotenuse_array
                         break
+
+    def writeContourLengths(self, filename):
+
+        if not self.contour_lengths:
+            self.measureContourLength()
+
+        with open('%s_contours.txt' % filename, 'w') as writing_file:
+            writing_file.write('#units: nm\n')
+            for dna_num in sorted(self.contour_lengths.keys()):
+                writing_file.write('%f \n' % self.contour_lengths[dna_num])
 
 
 ####### THESE ARE ALL OLD FUNCTIONS THAT CAN BE DELETED ###########
