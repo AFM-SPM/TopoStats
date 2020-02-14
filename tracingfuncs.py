@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 class getSkeleton(object):
 
@@ -103,7 +104,7 @@ class getSkeleton(object):
         on both its local binary environment and its local height values'''
 
         #Does the binary pixel enviroment mean a pixel should be killed?
-        local_binary_pixels = self._getLocalPixelsBinary(point[0], point[1])
+        self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(self.mask_being_skeletonised, point[0],point[1])
 
         #Add in generic code here to protect high points from being deleted
         if (self._binaryThinCheck_a() and
@@ -113,19 +114,6 @@ class getSkeleton(object):
             return True
         else:
             return False
-
-    def _getLocalPixelsBinary(self, x, y):
-
-        '''Function to get the local pixels from the binary map'''
-
-        self.p2 = self.mask_being_skeletonised[x    , y + 1]
-        self.p3 = self.mask_being_skeletonised[x + 1, y + 1]
-        self.p4 = self.mask_being_skeletonised[x + 1, y    ]
-        self.p5 = self.mask_being_skeletonised[x + 1, y - 1]
-        self.p6 = self.mask_being_skeletonised[x    , y - 1]
-        self.p7 = self.mask_being_skeletonised[x - 1, y - 1]
-        self.p8 = self.mask_being_skeletonised[x - 1, y    ]
-        self.p9 = self.mask_being_skeletonised[x - 1, y + 1]
 
     def _getLocalPixelsData(self, x, y):
 
@@ -212,23 +200,94 @@ class getSkeleton(object):
         else:
             return False
 
-class reorderTrace(object):
+class reorderTrace:
 
-    def __init__(self, trace_coordinates):
-        self.trace_coordinates = trace_coordinates
+    @staticmethod
+    def linearTrace(trace_coordinates):
 
+        try:
+            trace_coordinates = trace_coordinates.tolist()
+        except AttributeError: #array is already a python list
+            pass
+
+        #Find one of the end points
+        for i, (x, y) in enumerate(trace_coordinates):
+            if genTracingFuncs.countNeighbours(x, y, trace_coordinates) == 1:
+                ordered_points = [[x, y]]
+                trace_coordinates.pop(i)
+                break
+
+        remaining_unordered_coords = trace_coordinates[:]
+
+        while remaining_unordered_coords:
+
+            x_n, y_n = ordered_points[-1] #get the last point to be added to the array and find its neighbour
+
+            no_of_neighbours, neighbour_array = genTracingFuncs.countandGetNeighbours(x_n, y_n, remaining_unordered_coords)
+
+            if no_of_neighbours == 1: #if there's only one candidate - its the next point add it to array and delete from candidate points
+                ordered_points.append(neighbour_array[0])
+                remaining_unordered_coords.pop(remaining_unordered_coords.index(neighbour_array[0]))
+                continue
+            elif no_of_neighbours > 1:
+                best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
+                ordered_points.append(best_next_pixel)
+                remaining_unordered_coords.pop(remaining_unordered_coords.index(best_next_pixel))
+                continue
+
+            #If the tracing has reached the other final point then tracing is finished
+            if genTracingFuncs.countNeighbours(x_n, y_n,trace_coordinates) == 1:
+                break
+            #print(x_n, y_n)
+        return np.array(ordered_points)
+
+    @staticmethod
+    def circularTrace(trace_coordinates):
+
+        ''' Reorders the coordinates of a trace from a circular DNA molecule
+        (with no loops) using a polar coordinate system with reference to the
+        center of mass
+
+        I think every step of this can be vectorised for speed up
+
+        This is vulnerable to bugs if the dna molecule folds in on itself slightly'''
+
+        #calculate the centre of mass for the trace
+        com_x = np.average(trace_coordinates[:,0])
+        com_y = np.average(trace_coordinates[:,1])
+
+        #convert to polar coordinates with respect to the centre of mass
+        polar_coordinates = []
+        for x1, y1 in trace_coordinates:
+
+            x = x1 - com_x
+            y = y1 - com_y
+
+            r = math.hypot(x,y)
+            theta = math.atan2(x,y)
+
+            polar_coordinates.append([theta,r])
+
+        sorted_polar_coordinates = sorted(polar_coordinates, key = lambda i:i[0])
+
+        #Reconvert to x, y coordinates
+        sorted_coordinates = []
+        for theta, r in sorted_polar_coordinates:
+
+            x = r*math.sin(theta)
+            y = r*math.cos(theta)
+
+            x2 = x + com_x
+            y2 = y + com_y
+
+            sorted_coordinates.append([x2,y2])
+
+        return np.array(sorted_coordinates)
+
+    def loopedCircularTrace():
         pass
 
-    def linearTrace(self):
-        pass
-
-    def circularTrace(self):
-        pass
-
-    def loopedCircularTrace(self):
-        pass
-
-    def loopedLinearTrace(self):
+    def loopedLinearTrace():
         pass
 
 class genTracingFuncs:
@@ -287,3 +346,55 @@ class genTracingFuncs:
         if [x - 1, y + 1] in trace_coordinates:
             neighbour_array.append([x - 1, y + 1])
         return neighbour_array
+
+    @staticmethod
+    def countandGetNeighbours(x, y, trace_coordinates):
+        neighbour_array = []
+        number_of_neighbours = 0
+        if [x    , y + 1] in trace_coordinates:
+            neighbour_array.append([x    ,y + 1])
+            number_of_neighbours +=1
+        if [x + 1, y + 1] in trace_coordinates:
+            neighbour_array.append([x + 1,y + 1])
+            number_of_neighbours +=1
+        if [x + 1, y    ] in trace_coordinates:
+            neighbour_array.append([x + 1,y    ])
+            number_of_neighbours +=1
+        if [x + 1, y - 1] in trace_coordinates:
+            neighbour_array.append([x + 1, y - 1])
+            number_of_neighbours +=1
+        if [x    , y - 1] in trace_coordinates:
+            neighbour_array.append([x    , y - 1])
+            number_of_neighbours +=1
+        if [x - 1, y - 1] in trace_coordinates:
+            neighbour_array.append([x - 1, y - 1])
+            number_of_neighbours +=1
+        if [x - 1, y    ] in trace_coordinates:
+            neighbour_array.append([x - 1, y    ])
+            number_of_neighbours +=1
+        if [x - 1, y + 1] in trace_coordinates:
+            neighbour_array.append([x - 1, y + 1])
+            number_of_neighbours +=1
+        return number_of_neighbours, neighbour_array
+
+    @staticmethod
+    def checkVectorsCandidatePoints(x, y, ordered_points, candidate_points):
+
+        '''Finds the best next pixel to move to based on the smallest change in
+        angle compared to a point already in the ordered stack'''
+
+        x_y_theta = []
+        point_to_check_from = ordered_points[-3]
+
+        for x_n, y_n in candidate_points:
+
+            x = x_n - point_to_check_from[0]
+            y = y_n - point_to_check_from[1]
+
+            theta = math.atan2(x,y)
+
+            x_y_theta.append([x_n,y_n,theta])
+
+        ordered_x_y_theta = sorted(x_y_theta, key = lambda x:x[2])
+
+        return [ordered_x_y_theta[0][0], ordered_x_y_theta[0][1]]
