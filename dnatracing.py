@@ -43,27 +43,17 @@ class dnaTrace(object):
 
         self.number_of_traces = 0
 
-        #self.getParams()
         self.getNumpyArraysfromGwyddion()
         self.getDisorderedTrace()
         #self.isMolLooped()
         self.determineLinearOrCircular()
         self.getOrderedTraces()
         #self.getFittedTraces()
-        #self.determineLinearOrCircular()
-        #self.getOrderedTracesByPolarCoordinates()
-        #self.getOrderedTraces()
         #self.getSplinedTraces()
         #self.measureContourLength()
 
         if self.savefile:
             self.saveTraceFigures()
-
-    def getParams(self):
-
-        ''' '''
-
-        pass
 
     def getNumpyArraysfromGwyddion(self):
 
@@ -142,7 +132,7 @@ class dnaTrace(object):
                 self.ordered_traces[dna_num] = self._getOrderedCircularTrace(self.disordered_trace[dna_num])
 
             elif not self.mol_is_circular[dna_num]: #and not self.mol_is_looped[dna_num]:
-                self.ordered_traces[dna_num] = self._getOrderedLinearTrace(self.disordered_trace[dna_num].tolist())
+                self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
 
     def _getOrderedCircularTrace(self, trace_coordinates):
 
@@ -506,17 +496,20 @@ class dnaTrace(object):
         This function actually calculates the average of several splines which
         is important for getting a good fit on the lower res data'''
 
-        step_size = 10 #arbitary number - needs to reflect pixel size
+        step_size = 5 #arbitary number - needs to reflect pixel size
 
         for dna_num in sorted(self.ordered_traces.keys()):
 
-            single_fitted_trace = np.unique(self.ordered_traces[dna_num], axis = 0)
+            #single_fitted_trace = np.unique(self.ordered_traces[dna_num], axis = 0)
+
+            single_fitted_trace = self.ordered_traces[dna_num]
 
             nbr = len(single_fitted_trace[:,0])
             count = 0
 
             #This function makes 5 splined plots and averages them
-            for i in range(step_size):
+            if self.mol_is_circular[dna_num]:
+                for i in range(step_size):
                     try:
                         #nbr = len(single_fitted_trace[:,0])
                         x = [single_fitted_trace[:,0][j] for j in range(i,nbr,step_size)]
@@ -524,7 +517,7 @@ class dnaTrace(object):
                         tck,u = interp.splprep([x,y], s=0, per=1)
                         out = interp.splev(np.linspace(0,1,nbr), tck)
                         splined_coords = np.column_stack((out[0], out[1]))
-                        print(np.shape(out), np.shape(splined_coords))
+                        #print(np.shape(out), np.shape(splined_coords))
                         try:
                             rolling_total = np.add(rolling_total, splined_coords)
                         except UnboundLocalError:
@@ -542,31 +535,47 @@ class dnaTrace(object):
                         print 'The trace is too short or something'
                         spline_success = False
                         splined_coords = None
-            if spline_success:
-                rolling_average = np.divide(rolling_total, [count, count])
+                    if spline_success:
+                        rolling_average = np.divide(rolling_total, [count, count])
 
-                nbr = len(rolling_average[:,0])
-                x = rolling_average[:,0]
-                y = rolling_average[:,1]
-                tck,u = interp.splprep([x,y], s=0, per=1)
-                out = interp.splev(np.linspace(0,1,nbr), tck)
+                        nbr = len(rolling_average[:,0])
+                        x = rolling_average[:,0]
+                        y = rolling_average[:,1]
+                        tck,u = interp.splprep([x,y], s=0, per=1)
+                        out = interp.splev(np.linspace(0,1,nbr), tck)
 
-                splined_coords = np.column_stack((out[0], out[1]))
+                        splined_coords = np.column_stack((out[0], out[1]))
+                    else:
+                        splined_coords = None
+
+                del rolling_total
             else:
-                splined_coords = None
+                try:
+                    #nbr = len(single_fitted_trace[:,0])
+                    x = [single_fitted_trace[:,0]]
+                    y = [single_fitted_trace[:,1]]
+                    tck,u = interp.splprep(single_fitted_trace, s=0, per=1)
+                    out = interp.splev(np.linspace(0,1,nbr), tck)
+                    splined_coords = np.column_stack((out[0], out[1]))
+                    #print(np.shape(out), np.shape(splined_coords))
+                    spline_success = True
+
+                #Old code - Not a great sign that system errors are being caught
+                except SystemError:
+                    print 'Could not spline coordinates'
+                    spline_success = False
+                    splined_coords = None
+                    continue
+                except TypeError:
+                    print 'The trace is too short or something'
+                    spline_success = False
+                    splined_coords = None
 
             self.splined_traces[dna_num] = splined_coords
 
-            del rolling_total
+            #del rolling_total
 
     def showTraces(self):
-
-        plt.pcolor(self.full_image_data)
-        plt.colorbar()
-        for dna_num in sorted(self.disordered_trace.keys()):
-            plt.plot(self.disordered_trace[dna_num][:,0], self.disordered_trace[dna_num][:,1])
-        plt.show()
-        plt.close()
 
         plt.pcolor(self.full_image_data)
         plt.colorbar()
@@ -581,7 +590,22 @@ class dnaTrace(object):
         plt.colorbar()
         for dna_num in sorted(self.ordered_traces.keys()):
             plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1])
-        plt.savefig('test.png')
+        plt.savefig('ordered_trace.png')
+        plt.close()
+
+        plt.pcolor(self.full_image_data)
+        plt.colorbar()
+        for dna_num in sorted(self.disordered_trace.keys()):
+            plt.plot(self.disordered_trace[dna_num][:,0], self.disordered_trace[dna_num][:,1])
+        plt.savefig('disordered_trace.png')
+        plt.close()
+
+        plt.pcolor(self.full_image_data)
+        plt.colorbar()
+        for dna_num in sorted(self.grains.keys()):
+            grain_plt = np.argwhere(self.grains[dna_num] == 1)
+            plt.plot(grain_plt[:,0], grain_plt[:,1], '.')
+        plt.savefig('grains.png')
         plt.close()
 
 
