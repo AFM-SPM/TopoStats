@@ -42,9 +42,9 @@ s = gwy.gwy_app_settings_get()
 s["/module/pixmap/ztype"] = 0
 
 # Define the settings for image processing functions e.g. align rows here
-s['/module/linematch/method'] = 1  # uses median
+s['/module/linematch/method'] = 2  # uses median
 s["/module/linematch/max_degree"] = 2
-# s["/module/polylevel/col_degree"] = 3
+s["/module/polylevel/col_degree"] = 2
 
 
 def traversedirectories(fileend, filetype, path):
@@ -141,27 +141,45 @@ def heightediting(data, k):
 
     return data
 
-def editfile(data, minheightscale, maxheightscale):
+def editfile(data, k):
     # select each channel of the file in turn
     # this is run within the for k in chosen_ids loop so k refers to the index of each chosen channel to analyse
     # NONINTERACTIVE is only for file modules
     gwy.gwy_app_data_browser_select_data_field(data, k)
+
     # align rows
     gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+
     # flatten the data
     gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
+
     # align rows
     gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+
+    datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
+    mask = gwy.DataField.new_alike(datafield, False)
+    datafield.grains_mark_height(mask, 30, False)
+
+    # Re-do polynomial correction with masked height
+    s["/module/polylevel/masking"] = 0
+    gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
+
+    # Re-do align rows with masked heights
+    s["/module/linematch/masking"] = 0
+    gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
+
     # flatten base
     # gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
+
     # Fix zero
     gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
-    #gwy.gwy_process_func_run('fix_zero', data, gwy.RUN_IMMEDIATE)
+    
     # remove scars
-    gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
+    # gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
+
     # Apply a 1.5 pixel gaussian filter
-    data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    # data_field.filter_gaussian(1.5)
+    datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
+    datafield.filter_gaussian(1)
     # # Shift contrast - equivalent to 'fix zero'
     # datafield.add(-data_field.get_min())
 
@@ -229,7 +247,7 @@ def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, dx):
     mask2.grains_remove_by_size(maxsize)
     # Invert mask2 so everything smaller than aggregates/junk is masked
     mask2.grains_invert()
-    # Make mask equalto the intersection of mask and mask 2, i.e. rmeove large objects unmasked by mask2
+    # Make mask equal to the intersection of mask and mask 2, i.e. rmeove large objects unmasked by mask2
     mask.grains_intersect(mask2)
 
     # Numbering grains for grain analysis
@@ -253,7 +271,7 @@ def removesmallobjects(datafield, mask, median_pixel_area, mindeviation, dx):
     # This should remove everything that you do want to keep
     # i.e. everything smaller than aggregates/junk
     mask2.grains_remove_by_size(minsize)
-    # Make mask equalto the intersection of mask and mask 2, i.e. rmeove large objects unmasked by mask2
+    # Make mask equalto the intersection of mask and mask 2, i.e. remove large objects unmasked by mask2
     mask.grains_intersect(mask2)
 
     # Numbering grains for grain analysis
@@ -629,17 +647,19 @@ if __name__ == '__main__':
     # Set various options here:
 
     # Set the file path, i.e. the directory where the files are here'
+
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Code/TopoStats'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/HR Images'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/PLL'
     #path = '/Users/alicepyne/Dropbox/UCL/Kavit/mmc presentation data/DNA Immobilisation'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA on PLL PEG'
+    path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
 
     path = 'test_data'
 
     # Set file type to look for here
-    fileend = '.spm', '.jpk', '*.[0-9]'
+    fileend = '.spm', '.ibw', '*.[0-9]'
     filetype = '*.[0-9]'
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
@@ -654,8 +674,8 @@ if __name__ == '__main__':
     maxdeviation = 1.5
     mindeviation = 0.5
     # Set size of the cropped window/2 in pixels
-    cropwidth = 40e-9
-    # cropwidth = 100e-9
+    # cropwidth = 40e-9
+    cropwidth = 100e-9
     splitwidth = 2e-6
     # Set number of bins
     bins = 25
@@ -673,7 +693,7 @@ if __name__ == '__main__':
         # Load the data for the specified filename
         data = getdata(filename)
         # Find the channels of data you wish to use within the file e.g. ZSensor or height
-        chosen_ids = choosechannels(data,'ZSensor', 'Height')
+        chosen_ids = choosechannels(data, 'ZSensor', 'HeightTrace')
         # chosen_ids = choosechannels(data,'U*', 'X')
         # chosen_ids = [chosen_ids[0]]
 
@@ -682,12 +702,12 @@ if __name__ == '__main__':
         # Or just use first height/height sensor channel to avoid duplicating
         # for k in chosen_ids:
         # Option if you want to only choose one channel for each file being analysed
-        for k in chosen_ids[:1]:
+        for k in chosen_ids:
             # Get all the image details eg resolution for your chosen channel
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
 
             # Perform basic image processing, to align rows, flatten and set the mean value to zero
-            data = editfile(data, minheightscale, maxheightscale)
+            data = editfile(data, k)
 
             # Perform basic image processing, to align rows, flatten and set the mean value to zero
             # Find all grains in the mask which are both above a height threshold

@@ -2,7 +2,7 @@
 *.png
 *.jpeg
 *.tiff
-*.spm
+
 *.*[0-9]
 *.gwy
 *.txt
