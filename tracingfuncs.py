@@ -38,13 +38,10 @@ class getSkeleton(object):
 
         self.mask_being_skeletonised = self.binary_map
 
-        all_points = np.argwhere(self.mask_being_skeletonised == 1)
-
         while not self.skeleton_converged:
             self._doSkeletonisingIteration()
 
         self.output_skeleton = np.argwhere(self.mask_being_skeletonised == 1)
-
 
     def _doSkeletonisingIteration(self):
 
@@ -103,7 +100,6 @@ class getSkeleton(object):
         '''Function to check whether a single point should be deleted based
         on both its local binary environment and its local height values'''
 
-        #Does the binary pixel enviroment mean a pixel should be killed?
         self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(self.mask_being_skeletonised, point[0],point[1])
 
         #Add in generic code here to protect high points from being deleted
@@ -149,7 +145,6 @@ class getSkeleton(object):
             return True
         else:
             return False
-
 
     def _binaryThinCheck_b(self):
         count = 0
@@ -237,6 +232,9 @@ class reorderTrace:
 
         while remaining_unordered_coords:
 
+            if len(ordered_points) > len(trace_coordinates):
+                break
+
             x_n, y_n = ordered_points[-1] #get the last point to be added to the array and find its neighbour
 
             no_of_neighbours, neighbour_array = genTracingFuncs.countandGetNeighbours(x_n, y_n, remaining_unordered_coords)
@@ -246,10 +244,18 @@ class reorderTrace:
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(neighbour_array[0]))
                 continue
             elif no_of_neighbours > 1:
-                best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
+                try:
+                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
+                except IndexError:
+                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array, compare = False)
+
                 ordered_points.append(best_next_pixel)
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(best_next_pixel))
                 continue
+            elif no_of_neighbours == 0:
+                nn, neighbour_array_all_coords = genTracingFuncs.countandGetNeighbours(x_n, y_n, trace_coordinates)
+                best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array_all_coords)
+                ordered_points.append(best_next_pixel)
 
             #If the tracing has reached the other final point then tracing is finished
             if genTracingFuncs.countNeighbours(x_n, y_n,trace_coordinates) == 1:
@@ -259,6 +265,86 @@ class reorderTrace:
 
     @staticmethod
     def circularTrace(trace_coordinates):
+
+        ''' An alternative implementation of the linear tracing algorithm but
+        with some adaptations to work with circular dna molecules'''
+
+        try:
+            trace_coordinates = trace_coordinates.tolist()
+        except AttributeError: #array is already a python list
+            pass
+
+        remaining_unordered_coords = trace_coordinates[:]
+
+        #Find a sensible point to start of the end points
+        for i, (x, y) in enumerate(trace_coordinates):
+            if genTracingFuncs.countNeighbours(x, y, trace_coordinates) == 2:
+                ordered_points = [[x, y]]
+                remaining_unordered_coords.pop(i)
+                break
+
+        #Randomly choose one of the neighbouring points as the next point
+        x_n = ordered_points[0][0]
+        y_n = ordered_points[0][1]
+        no_of_neighbours, neighbour_array = genTracingFuncs.countandGetNeighbours(x_n, y_n,remaining_unordered_coords)
+        ordered_points.append(neighbour_array[0])
+        remaining_unordered_coords.pop(remaining_unordered_coords.index(neighbour_array[0]))
+
+        count = 0
+
+        while remaining_unordered_coords:
+
+            count +=1
+
+            x_n, y_n = ordered_points[-1] #get the last point to be added to the array and find its neighbour
+
+            no_of_neighbours, neighbour_array = genTracingFuncs.countandGetNeighbours(x_n, y_n, remaining_unordered_coords)
+
+            if no_of_neighbours == 1: #if there's only one candidate - its the next point add it to array and delete from candidate points
+                ordered_points.append(neighbour_array[0])
+                remaining_unordered_coords.pop(remaining_unordered_coords.index(neighbour_array[0]))
+                continue
+
+            elif no_of_neighbours > 1:
+                try:
+                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
+                except IndexError:
+                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array, compare = False)
+
+                ordered_points.append(best_next_pixel)
+                remaining_unordered_coords.pop(remaining_unordered_coords.index(best_next_pixel))
+                continue
+            elif len(ordered_points) > len(trace_coordinates):
+                break
+
+            elif no_of_neighbours == 0:
+                #Check if the tracing is finished
+                nn, neighbour_array_all_coords = genTracingFuncs.countandGetNeighbours(x_n, y_n, trace_coordinates)
+                if ordered_points[0] in neighbour_array_all_coords:
+                    break
+                #Maybe at a crossing with all neighbours deleted
+                else:
+                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array_all_coords, compare = False)
+                    ordered_points.append(best_next_pixel)
+                    #trace_coordinates.pop(trace_coordinates.index(best_next_pixel))
+                    if count > 1000:
+                        #print(len(ordered_points))
+                        #print(len(trace_coordinates))
+                        #print(ordered_points[-2])
+                        #print(ordered_points[-1])
+                        #np_array_1 = np.array(ordered_points)
+                        #np_array_2 = np.array(remaining_unordered_coords)
+                        #plt.plot(np_array_1[:,0], np_array_1[:,1])
+                        #plt.plot(np_array_2[:,0], np_array_2[:,1], '.')
+                        #plt.show()
+                        break
+                    continue
+
+        ordered_points.append(ordered_points[0])
+        return np.array(ordered_points)
+
+    @staticmethod
+    def circularTrace_old(trace_coordinates):
 
         ''' Reorders the coordinates of a trace from a circular DNA molecule
         (with no loops) using a polar coordinate system with reference to the
@@ -406,14 +492,26 @@ class genTracingFuncs:
         return number_of_neighbours, neighbour_array
 
     @staticmethod
-    def checkVectorsCandidatePoints(x, y, ordered_points, candidate_points):
+    def checkVectorsCandidatePoints(x, y, ordered_points, candidate_points, compare = True):
 
         '''Finds which neighbouring pixel incurs the smallest angular change
         with reference to a previous pixel in the ordered trace and chooses that
         as the next point '''
+        if compare:
+            #Calculate reference angle
+            x_1 = ordered_points[-4][0]
+            y_1 = ordered_points[-4][1]
+
+            x_2 = ordered_points[-1][0]
+            y_2 = ordered_points[-1][1]
+
+            dx = x_2 - x_1
+            dy = y_2 - y_1
+
+            ref_theta = math.atan2(dx,dy)
 
         x_y_theta = []
-        point_to_check_from = ordered_points[-3]
+        point_to_check_from = ordered_points[-2]
 
         for x_n, y_n in candidate_points:
 
@@ -421,9 +519,10 @@ class genTracingFuncs:
             y = y_n - point_to_check_from[1]
 
             theta = math.atan2(x,y)
-
-            x_y_theta.append([x_n,y_n,theta])
+            if compare:
+                x_y_theta.append([x_n,y_n,abs(theta-ref_theta)])
+            else:
+                x_y_theta.append([x_n,y_n,abs(theta)])
 
         ordered_x_y_theta = sorted(x_y_theta, key = lambda x:x[2])
-
         return [ordered_x_y_theta[0][0], ordered_x_y_theta[0][1]]

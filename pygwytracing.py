@@ -134,7 +134,7 @@ def heightediting(data, k):
 
     # Gaussian filter to remove noise
     current_data = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    current_data.filter_gaussian(1.5)
+    current_data.filter_gaussian(1)
 
     # Set zero to mean value
     gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
@@ -148,40 +148,40 @@ def editfile(data, k):
     gwy.gwy_app_data_browser_select_data_field(data, k)
 
     # align rows
-    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+    #gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
 
     # flatten the data
     gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
 
     # align rows
-    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+    #gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
 
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
     mask = gwy.DataField.new_alike(datafield, False)
-    datafield.grains_mark_height(mask, 30, False)
+    datafield.grains_mark_height(mask, 10, False)
 
     # Re-do polynomial correction with masked height
     s["/module/polylevel/masking"] = 0
-    gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
+    #gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
 
     # Re-do align rows with masked heights
     s["/module/linematch/masking"] = 0
-    gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
+    #gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
 
     # flatten base
     # gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
 
     # Fix zero
     gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
-    
+
     # remove scars
-    # gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
+    gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
 
     # Apply a 1.5 pixel gaussian filter
-    datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    datafield.filter_gaussian(1)
+    data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
+    data_field.filter_gaussian(0.5)
     # # Shift contrast - equivalent to 'fix zero'
-    # datafield.add(-data_field.get_min())
+    #datafield.add(-data_field.get_min())
 
     return data
 
@@ -190,15 +190,18 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
     # Select channel 'k' of the file
     gwy.gwy_app_data_browser_select_data_field(data, k)
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    mask = gwy.DataField.new_alike(datafield, False)
-
     #Gaussiansize = 0.25e-9 / dx
     #datafield.filter_gaussian(Gaussiansize)
+
+    mask = gwy.DataField.new_alike(datafield, False)
+
+    Gaussiansize = 0.2e-9 / dx
+    datafield.filter_gaussian(Gaussiansize)
 
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
-    datafield.mask_outliers(mask, thresholdingcriteria)
+    datafield.mask_outliers(mask, 0.75)
 
     # excluding mask, zero mean
     stats = datafield.area_get_stats_mask(mask, gwy.MASK_EXCLUDE, 0, 0, datafield.get_xres(), datafield.get_yres())
@@ -232,6 +235,7 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
 
 def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, dx):
     mask2 = gwy.DataField.new_alike(datafield, False)
+
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
@@ -661,7 +665,7 @@ if __name__ == '__main__':
     minheightscale = -1e-9
     maxheightscale = 3e-9
     # Set minimum size for grain determination:
-    minarea = 400e-9
+    minarea = 300e-9
     # minarea = 50e-9
     # minarea = 1000e-9
     # Set allowable deviation from the median pixel size for removal of large and small objects
@@ -734,7 +738,7 @@ if __name__ == '__main__':
             data_nparray = gwyutils.data_field_data_as_array(datafield)
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, xreal, yres, xres)
             dna_traces.showTraces()
-
+            dna_traces.writeContourLengths(filename)
             # Save out cropped files as images with no scales to a subfolder
             savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 
