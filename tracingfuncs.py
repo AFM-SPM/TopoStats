@@ -41,6 +41,9 @@ class getSkeleton(object):
         while not self.skeleton_converged:
             self._doSkeletonisingIteration()
 
+        #When skeleton converged do an additional iteration of thinning to remove hanging points
+        self.finalSkeletonisationIteration()
+
         self.output_skeleton = np.argwhere(self.mask_being_skeletonised == 1)
 
     def _doSkeletonisingIteration(self):
@@ -117,10 +120,6 @@ class getSkeleton(object):
 
         local_height_values = np.ones((4,4))
 
-        #for i in range(4):
-        #    for j in range(4):
-        #        local_height_values[i,j] = self.full_image_data[]
-
         local_height_values[0,0] = self.full_image_data[(point[0] - 1), (point[1] + 1)]
         local_height_values[0,1] = self.full_image_data[(point[0]), (point[1] + 1)]
         local_height_values[0,2] = self.full_image_data[(point[0] + 1), (point[1] + 1)]
@@ -195,12 +194,74 @@ class getSkeleton(object):
         else:
             return False
 
+    def finalSkeletonisationIteration(self):
+
+        remaining_coordinates = np.argwhere(self.mask_being_skeletonised)
+
+        for x, y in remaining_coordinates:
+
+            self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(self.mask_being_skeletonised, x,y)
+
+            if (self.p2 + self.p3 + self.p4 + self.p5 + self.p6 + self.p7 + self.p8 + self.p9 == 2 and
+                self._binaryFinalThinCheck_a()):
+                self.mask_being_skeletonised[x,y] = 0
+            elif (self._binaryThinCheck_b_returncount() == 3 and
+                self._binaryFinalThinCheck_b()):
+                self.mask_being_skeletonised[x,y] = 0
+
+
+    def _binaryFinalThinCheck_a(self):
+
+        if self.p2 * self.p4 == 1:
+            return True
+        elif self.p4 * self.p6 == 1:
+            return True
+        elif self.p6 * self.p8 ==1:
+            return True
+        elif self.p8 * self.p2 == 1:
+            return True
+
+    def _binaryFinalThinCheck_b(self):
+
+        if self.p2 * self.p4 * self.p6 == 1:
+            return True
+        elif self.p4 * self.p6 * self.p8 == 1:
+            return True
+        elif self.p6 * self.p8 * self.p2 ==1:
+            return True
+        elif self.p8 * self.p2 * self.p4 == 1:
+            return True
+
+    def _binaryThinCheck_b_returncount(self):
+        count = 0
+
+        if [self.p2, self.p3] == [0,1]:
+            count += 1
+        if [self.p3, self.p4] == [0,1]:
+            count += 1
+        if [self.p4, self.p5] == [0,1]:
+            count += 1
+        if [self.p5, self.p6] == [0,1]:
+            count += 1
+        if [self.p6, self.p7] == [0,1]:
+            count += 1
+        if [self.p7, self.p8] == [0,1]:
+            count += 1
+        if [self.p8, self.p9] == [0,1]:
+            count += 1
+        if [self.p9, self.p2] == [0,1]:
+            count += 1
+
+        return count
+
+
+
 class reorderTrace:
 
     @staticmethod
     def linearTrace(trace_coordinates):
 
-        '''My own (quite simple) function to order the points from a linear trace.
+        '''My own function to order the points from a linear trace.
 
         This works by checking the local neighbours for a given pixel (starting
         at one of the ends). If this pixel has only one neighbour in the array
