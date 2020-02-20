@@ -103,11 +103,6 @@ class dnaTrace(object):
             dna_skeleton = getSkeleton(self.full_image_data, self.grains[grain_num], self.number_of_columns, self.number_of_rows)
             self.disordered_trace[grain_num] = dna_skeleton.output_skeleton
 
-            #grain = np.argwhere(smoothed_grain == 1)
-            #print(len(self.disordered_trace[grain_num]))
-            #plt.plot(self.disordered_trace[grain_num][:,0], self.disordered_trace[grain_num][:,1], '.')
-            #plt.plot(grain[:,0],grain[:,1], '.')
-        #plt.show()
 
     def determineLinearOrCircular(self):
 
@@ -378,14 +373,18 @@ class dnaTrace(object):
         plt.pcolor(self.full_image_data)
         plt.colorbar()
         for dna_num in sorted(self.ordered_traces.keys()):
-            plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1])
+            disordered_trace_list = self.ordered_traces[dna_num].tolist()
+            less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
+            plt.plot(less_dense_trace[:,0], less_dense_trace[:,1])
         plt.savefig('ordered_trace.png')
         plt.close()
 
         plt.pcolor(self.full_image_data)
         plt.colorbar()
         for dna_num in sorted(self.disordered_trace.keys()):
-            plt.plot(self.disordered_trace[dna_num][:,0], self.disordered_trace[dna_num][:,1])
+            disordered_trace_list = self.disordered_trace[dna_num].tolist()
+            less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
+            plt.plot(less_dense_trace[:,0], less_dense_trace[:,1])
         plt.savefig('disordered_trace.png')
         plt.close()
 
@@ -458,234 +457,3 @@ class dnaTrace(object):
             writing_file.write('#units: nm\n')
             for dna_num in sorted(self.contour_lengths.keys()):
                 writing_file.write('%f \n' % self.contour_lengths[dna_num])
-
-
-####### THESE ARE ALL OLD FUNCTIONS THAT CAN BE DELETED ###########
-
-    def getSkeletons(self):
-
-        ''' Function to make a skeleton for each of the grains in an image
-
-        There is a bit of work to do here as the grains often have very rough
-        edges
-
-        Now a redundant function - will be deleted soon'''
-
-        for grain_num in sorted(self.grains.keys()):
-
-            smoothed_grain = ndimage.binary_dilation(self.grains[grain_num], iterations = 1)
-
-            sigma = (5/math.sqrt(self.pixel_size*1e8))/1.5
-            very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
-
-            skeletonised_image = morphology.skeletonize(very_smoothed_grain)
-
-            #The skeleton is saved as a 2D array of the skeleton coordinates relative to the original image
-            self.skeletons[grain_num] = np.argwhere(skeletonised_image == 1)
-            self.number_of_traces +=1
-            print(self.number_of_traces)
-
-    def _getOrderedCircularTrace(self, trace_coordinates):
-
-        ''' Reorders the coordinates of a trace from a circular DNA molecule
-        (with no loops) using a polar coordinate system with reference to the
-        center of mass
-
-        I think every step of this can be vectorised for speed up'''
-
-        #calculate the centre of mass for the trace
-        com_x = np.average(trace_coordinates[:,0])
-        com_y = np.average(trace_coordinates[:,1])
-
-        #convert to polar coordinates with respect to the centre of mass
-        polar_coordinates = []
-        for x1, y1 in trace_coordinates:
-
-            x = x1 - com_x
-            y = y1 - com_y
-
-            r = math.hypot(x,y)
-            theta = math.atan2(x,y)
-
-            polar_coordinates.append([theta,r])
-
-        sorted_polar_coordinates = sorted(polar_coordinates, key = lambda i:i[0])
-
-        #Reconvert to x, y coordinates
-        sorted_coordinates = []
-        for theta, r in sorted_polar_coordinates:
-
-            x = r*math.sin(theta)
-            y = r*math.cos(theta)
-
-            x2 = x + com_x
-            y2 = y + com_y
-
-            sorted_coordinates.append([x2,y2])
-
-        return np.array(sorted_coordinates)
-
-    def _getOrderedLinearTrace(self, trace_coordinates):
-
-        '''Reorders the sequence of coordinates from a linear DNA molecule '''
-
-        #Find one of the end points
-        for x, y in trace_coordinates:
-            #print(x,y)
-            if genTracingFuncs.countNeighbours(x, y, trace_coordinates) == 1:
-                starting_point = [x, y]
-                #remaining_coordinates = np.delete(trace_coordinates, i)
-                break
-
-        #Compute the polar coordinates for the remaining points
-        polar_coordinates = []
-        for x1, y1 in trace_coordinates:
-
-            x = x1 - starting_point[0]
-            y = y1 - starting_point[1]
-
-            r = math.hypot(x,y)
-            theta = math.atan2(x,y)
-
-            polar_coordinates.append([theta,r])
-
-        #Work through the polar points appending the closest
-        polar_coordinates = sorted(polar_coordinates, key = lambda i:i[1])
-
-        sorted_coordinates = []
-        for theta, r in polar_coordinates:
-
-            x = r*math.sin(theta)
-            y = r*math.cos(theta)
-
-            x2 = x + starting_point[0]
-            y2 = y + starting_point[1]
-
-            sorted_coordinates.append([x2,y2])
-
-        return np.array(sorted_coordinates)
-
-
-    def getOrderedTraces_old(self):
-
-        '''The skeletonised traces are not in a sequence that follows the path
-        of the DNA molecule - this function fixes this issue
-
-        This could be replaced with a simpler and more elegant solution in the future
-
-        This function doesn't really work - room for improvement
-
-        Now superceded with more simple and elegant functions'''
-
-        for dna_mol in sorted(self.fitted_traces.keys()):
-
-            trace_coords = self.fitted_traces[dna_mol]
-
-            first_point = np.array((trace_coords[0]))
-            tree = spatial.cKDTree(trace_coords)
-            ordered_points = np.empty((0,1))
-            vector_angle_array = np.empty((0))
-
-            query = tree.query(first_point, k=2)
-            next_point = trace_coords[query[1][1]]
-            last_point = next_point
-
-            vector2 = np.subtract(next_point, last_point)
-            third_point = first_point
-            ordered_points = np.vstack((first_point, next_point))
-            average_angle2 = 0
-
-            contour_length = 0
-            for i in range(len(trace_coords)-2):
-            	query = tree.query(last_point, k = 30)
-                ordered_points, vector_angle_array, vector2, average_angle2, end, last_point = self._getNextPoint(tree, next_point, query, ordered_points, vector_angle_array, trace_coords, vector2, average_angle2, last_point)
-                ordered_points = np.vstack((ordered_points, last_point))
-                if end == True:
-            		break
-
-            self.ordered_traces[dna_mol] = ordered_points
-
-    def _getNextPoint(self, tree, next_point, query, ordered_points, vector_angle_array,
-    trace_coords, vector2, average_angle2, last_point):
-
-        '''Fairly nightmarish function to find the "next point" in the trace coordinates
-        used in getFittedTraces function
-
-        As with getOrderedTraces this function needs to be simplified - but works'''
-
-    	points_tree = spatial.cKDTree(ordered_points)
-    	end = False
-    	scale_factor = 40
-    	for j in range(len(query[1])):
-    		next_point = trace_coords[query[1][j]]
-    		vector1 = np.subtract(next_point, last_point)
-
-    		angle = math.atan2(vector2[1], vector2[0]) - math.atan2(vector1[1], vector1[0])
-    		if angle < 0:
-    			angle += 2*math.pi
-    		angle = math.degrees(angle)
-    		if angle > 180:
-    			angle -= 180
-    		points_query = points_tree.query(next_point, k = 1)
-
-    		last_vectors = np.append(vector_angle_array[-19:], angle)
-    		average_angle1 = np.mean(last_vectors)
-
-    		if points_query[0] == 0:
-    			continue
-    		elif len(ordered_points) < 10:
-    			break
-    		elif average_angle2 - average_angle1 == 0:
-    			break
-    		elif average_angle2 - average_angle1 > scale_factor:
-    			continue
-    		elif np.all(ordered_points[0] == next_point):
-    			print 'end'
-    			end = True
-    			break
-    		else:
-    			for k in range(1,5,1):
-    				try:
-    					test_point = trace_coords[query[1][j+k]]
-
-    					points_query = points_tree.query(test_point, k = 1)
-
-    					if points_query[0] == 0:
-    						continue
-    					elif query[0][j+k] > query[0][j]*math.sqrt(2):
-    						continue
-
-    					test_vector = np.subtract(test_point, last_point)
-    					test_angle = math.atan2(vector2[1], vector2[0]) - math.atan2(test_vector[1], test_vector[0])
-    					if test_angle < 0:
-    						test_angle += 2*math.pi
-    					test_angle = math.degrees(test_angle)
-    					if test_angle > 180:
-    						test_angle -= 180
-
-    					local_angles = np.mean(vector_angle_array[-20:])
-    					local_average_angle = np.mean(np.append(vector_angle_array[-19:], angle))
-    					test_average_angle = np.mean(np.append(vector_angle_array[-19:], test_angle))
-
-    					if local_angles - local_average_angle > local_angles - test_average_angle:
-    						next_point = test_point
-    						angle = test_angle
-    						break
-    					if local_angles - local_average_angle == local_angles - test_average_angle:
-    						test_vector = test_point - last_point
-
-    						old_angle = math.atan2(vector2[1], vector2[0])
-    						new_angle = math.atan2(vector1[1], vector1[0])
-    						test_angle = math.atan2(test_vector[1], test_vector[0])
-
-    						if old_angle - test_angle > old_angle - new_angle:
-    							next_point = test_point
-    						break
-    				except IndexError:
-    					break
-    			break
-    	average_angle2 = average_angle1
-    	last_point = next_point
-    	vector_angle_array = np.append(vector_angle_array, angle)
-
-        return ordered_points, vector_angle_array, vector2, average_angle2, end, last_point
