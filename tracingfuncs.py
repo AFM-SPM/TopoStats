@@ -280,6 +280,8 @@ class getSkeleton(object):
             temp_coordinates = coordinates[:]
             temp_coordinates.pop(temp_coordinates.index([x_b,y_b]))
 
+            count = 0
+
             while branch_continues:
                 no_of_neighbours, neighbours = genTracingFuncs.countandGetNeighbours(x_b,y_b,temp_coordinates)
 
@@ -294,6 +296,10 @@ class getSkeleton(object):
                     branch_coordinates.pop(branch_coordinates.index([x_b,y_b]))
                     branch_continues = False
                     is_branch = True
+                #Weird case that happens sometimes
+                elif no_of_neighbours == 0:
+                    is_branch = True
+                    branch_continues = False
 
                 if len(branch_coordinates) > max_branch_length:
                     branch_continues = False
