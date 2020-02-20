@@ -44,6 +44,9 @@ class getSkeleton(object):
         #When skeleton converged do an additional iteration of thinning to remove hanging points
         self.finalSkeletonisationIteration()
 
+        #Attempts to remove the sticky out points from traces
+        self.pruneSkeleton()
+
         self.output_skeleton = np.argwhere(self.mask_being_skeletonised == 1)
 
     def _doSkeletonisingIteration(self):
@@ -196,13 +199,13 @@ class getSkeleton(object):
 
     def finalSkeletonisationIteration(self):
 
-        remaining_coordinates = np.argwhere(self.mask_being_skeletonised)
+        remaining_coordinates = np.argwhere(self.mask_being_skeletonised).tolist()
 
         for x, y in remaining_coordinates:
 
             self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(self.mask_being_skeletonised, x,y)
 
-            if (self.p2 + self.p3 + self.p4 + self.p5 + self.p6 + self.p7 + self.p8 + self.p9 == 2 and
+            if (self._binaryThinCheck_b_returncount() == 2 and
                 self._binaryFinalThinCheck_a()):
                 self.mask_being_skeletonised[x,y] = 0
             elif (self._binaryThinCheck_b_returncount() == 3 and
@@ -253,6 +256,54 @@ class getSkeleton(object):
             count += 1
 
         return count
+
+    def pruneSkeleton(self):
+
+        '''Function to remove the hanging branches from the skeletons - these
+        are a persistent problem in the overall tracing process. '''
+
+        coordinates = np.argwhere(self.mask_being_skeletonised == 1).tolist()
+
+        length_of_trace = len(coordinates)
+        max_branch_length = int(length_of_trace * 0.15)
+
+        #first check to find all the end coordinates in the trace
+        potential_branch_ends = []
+        for x, y in coordinates:
+            if genTracingFuncs.countNeighbours(x,y,coordinates) == 1:
+                potential_branch_ends.append([x,y])
+
+        #Now check if its a branch - and if it is delete it
+        for x_b, y_b in potential_branch_ends:
+            branch_coordinates = [[x_b,y_b]]
+            branch_continues = True
+            temp_coordinates = coordinates[:]
+            temp_coordinates.pop(temp_coordinates.index([x_b,y_b]))
+
+            while branch_continues:
+                no_of_neighbours, neighbours = genTracingFuncs.countandGetNeighbours(x_b,y_b,temp_coordinates)
+
+                #If branch continues
+                if no_of_neighbours == 1:
+                    x_b, y_b = neighbours[0]
+                    branch_coordinates.append([x_b,y_b])
+                    temp_coordinates.pop(temp_coordinates.index([x_b,y_b]))
+
+                #If the branch reaches the edge of the main trace
+                elif no_of_neighbours > 1:
+                    branch_coordinates.pop(branch_coordinates.index([x_b,y_b]))
+                    branch_continues = False
+                    is_branch = True
+
+                if len(branch_coordinates) > max_branch_length:
+                    branch_continues = False
+                    is_branch = False
+
+            if is_branch:
+                for x,y in branch_coordinates:
+                    self.mask_being_skeletonised[x,y] = 0
+
+        remaining_coordinates = np.argwhere(self.mask_being_skeletonised)
 
 
 

@@ -45,6 +45,7 @@ class dnaTrace(object):
 
         self.getNumpyArraysfromGwyddion()
         self.getDisorderedTrace()
+        self.purgeObviousCrap()
         #self.isMolLooped()
         self.determineLinearOrCircular()
         self.getOrderedTraces()
@@ -103,6 +104,12 @@ class dnaTrace(object):
             dna_skeleton = getSkeleton(self.full_image_data, self.grains[grain_num], self.number_of_columns, self.number_of_rows)
             self.disordered_trace[grain_num] = dna_skeleton.output_skeleton
 
+    def purgeObviousCrap(self):
+
+        for dna_num in sorted(self.disordered_trace.keys()):
+
+            if len(self.disordered_trace[dna_num]) < 30:
+                self.disordered_trace.pop(dna_num, None)
 
     def determineLinearOrCircular(self):
 
