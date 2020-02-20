@@ -24,6 +24,7 @@ class getSkeleton(object):
         self.mask_being_skeletonised = []
         self.output_skeleton = []
         self.skeleton_converged = False
+        self.pruning = True
 
         self.getDNAmolHeightStats()
         self.doSkeletonising()
@@ -44,8 +45,9 @@ class getSkeleton(object):
         #When skeleton converged do an additional iteration of thinning to remove hanging points
         self.finalSkeletonisationIteration()
 
-        #Attempts to remove the sticky out points from traces
-        self.pruneSkeleton()
+        #Attempts to remove the small branches from traces
+        while self.pruning:
+            self.pruneSkeleton()
 
         self.output_skeleton = np.argwhere(self.mask_being_skeletonised == 1)
 
@@ -262,10 +264,13 @@ class getSkeleton(object):
         '''Function to remove the hanging branches from the skeletons - these
         are a persistent problem in the overall tracing process. '''
 
+        number_of_branches = 0
         coordinates = np.argwhere(self.mask_being_skeletonised == 1).tolist()
 
+        #The branches are typicall short so if a branch is longer than a quarter
+        #of the total points its assumed to be part of the real data
         length_of_trace = len(coordinates)
-        max_branch_length = int(length_of_trace * 0.15)
+        max_branch_length = int(length_of_trace * 0.25)
 
         #first check to find all the end coordinates in the trace
         potential_branch_ends = []
@@ -306,11 +311,14 @@ class getSkeleton(object):
                     is_branch = False
 
             if is_branch:
+                number_of_branches +=1
                 for x,y in branch_coordinates:
                     self.mask_being_skeletonised[x,y] = 0
 
         remaining_coordinates = np.argwhere(self.mask_being_skeletonised)
 
+        if number_of_branches == 0:
+            self.pruning = False
 
 
 class reorderTrace:
