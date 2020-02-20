@@ -1,7 +1,7 @@
 import sys
-#sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages')
-#sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy')
-sys.path.append('/usr/share/gwyddion/pygwy/')
+sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages')
+sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy')
+# sys.path.append('/usr/share/gwyddion/pygwy/')
 
 import pygtk
 pygtk.require20() # adds gtk-2.0 folder to sys.path
@@ -652,18 +652,12 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Code/TopoStats'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/HR Images'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/PLL'
-    #path = '/Users/alicepyne/Dropbox/UCL/Kavit/mmc presentation data/DNA Immobilisation'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA on PLL PEG'
-    path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
+    path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Code/Images/test'
 
-    path = 'lengthtesting'
+    # path = 'test_data'
 
     # Set file type to look for here
-    fileend = '.spm', '.ibw', '*.[0-9]'
+    fileend = '.spm', '.gwy', '*.[0-9]'
     filetype = '*.[0-9]'
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
@@ -678,8 +672,8 @@ if __name__ == '__main__':
     maxdeviation = 1.5
     mindeviation = 0.5
     # Set size of the cropped window/2 in pixels
-    # cropwidth = 40e-9
-    cropwidth = 100e-9
+    cropwidth = 40e-9
+    # cropwidth = 100e-9
     splitwidth = 2e-6
     # Set number of bins
     bins = 25
