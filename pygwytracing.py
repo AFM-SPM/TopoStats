@@ -1,7 +1,7 @@
 import sys
 sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages')
 sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy')
-# sys.path.append('/usr/share/gwyddion/pygwy/')
+sys.path.append('/usr/share/gwyddion/pygwy/')
 
 import pygtk
 pygtk.require20() # adds gtk-2.0 folder to sys.path
@@ -134,7 +134,10 @@ def heightediting(data, k):
 
     # Gaussian filter to remove noise
     current_data = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    current_data.filter_gaussian(1)
+
+    filter_width = 5 * dx*1e9
+
+    current_data.filter_gaussian(filter_width)
 
     # Set zero to mean value
     gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
@@ -166,7 +169,7 @@ def editfile(data, k):
 
     # Re-do align rows with masked heights
     s["/module/linematch/masking"] = 0
-    #gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
+    gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
 
     # flatten base
     # gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
@@ -195,7 +198,7 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
 
     mask = gwy.DataField.new_alike(datafield, False)
 
-    Gaussiansize = 0.2e-9 / dx
+    Gaussiansize = 0.15e-9 / dx
     datafield.filter_gaussian(Gaussiansize)
 
     # Mask data that are above thresh*sigma from average height.
@@ -652,9 +655,9 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Code/Images/test'
+    #path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Code/Images/test'
 
-    # path = 'test_data'
+    path = 'lengthtesting/G4_ForAP_030220/'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -691,7 +694,7 @@ if __name__ == '__main__':
         # Load the data for the specified filename
         data = getdata(filename)
         # Find the channels of data you wish to use within the file e.g. ZSensor or height
-        chosen_ids = choosechannels(data, 'ZSensor', 'HeightTrace')
+        chosen_ids = choosechannels(data, 'ZSensor', 'Height')
         # chosen_ids = choosechannels(data,'U*', 'X')
         # chosen_ids = [chosen_ids[0]]
 
@@ -736,8 +739,9 @@ if __name__ == '__main__':
 
             #trace the DNA molecules - can compute stats etc as needed
             data_nparray = gwyutils.data_field_data_as_array(datafield)
-            dna_traces = dnatracing.dnaTrace(npdata, grains, filename, xreal, yres, xres, True)
-            dna_traces.showTraces()
+            dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
+            #dna_traces.showTraces()
+            dna_traces.saveTraceFigures(filename)
             dna_traces.writeContourLengths(filename)
             # Save out cropped files as images with no scales to a subfolder
             savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
