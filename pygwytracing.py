@@ -660,7 +660,7 @@ if __name__ == '__main__':
     # path = '/Users/alicepyne/Dropbox/UCL/DNA on PLL PEG'
     path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
 
-    path = 'test_data'
+    path = 'lengthtesting'
 
     # Set file type to look for here
     fileend = '.spm', '.ibw', '*.[0-9]'
@@ -742,7 +742,7 @@ if __name__ == '__main__':
 
             #trace the DNA molecules - can compute stats etc as needed
             data_nparray = gwyutils.data_field_data_as_array(datafield)
-            dna_traces = dnatracing.dnaTrace(npdata, grains, filename, xreal, yres, xres)
+            dna_traces = dnatracing.dnaTrace(npdata, grains, filename, xreal, yres, xres, True)
             dna_traces.showTraces()
             dna_traces.writeContourLengths(filename)
             # Save out cropped files as images with no scales to a subfolder
