@@ -46,6 +46,7 @@ class getSkeleton(object):
         self.finalSkeletonisationIteration()
 
         #Attempts to remove the small branches from traces
+        self.pruning = True
         while self.pruning:
             self.pruneSkeleton()
 
@@ -370,11 +371,7 @@ class reorderTrace:
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(neighbour_array[0]))
                 continue
             elif no_of_neighbours > 1:
-                try:
-                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
-                except IndexError:
-                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array, compare = False)
-
+                best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
                 ordered_points.append(best_next_pixel)
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(best_next_pixel))
                 continue
@@ -432,16 +429,18 @@ class reorderTrace:
                 continue
 
             elif no_of_neighbours > 1:
-                try:
-                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
-                except IndexError:
-                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array, compare = False)
-
+                best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
                 ordered_points.append(best_next_pixel)
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(best_next_pixel))
                 continue
             elif len(ordered_points) > len(trace_coordinates):
-                break
+                if abs(math.hypot(ordered_points[0][0] - ordered_points[-1][0], ordered_points[0][1]-ordered_points[-1][1])) > 5:
+                    #print(math.hypot(ordered_points[0][0] - ordered_points[-1][0], ordered_points[0][1]-ordered_points[-1][1]))
+                    ordered_points.pop(-1)
+                    ordered_points = reorderTrace.linearTrace(ordered_points)
+                    return np.array(ordered_points), False
+                else:
+                    break
 
             elif no_of_neighbours == 0:
                 #Check if the tracing is finished
@@ -450,24 +449,16 @@ class reorderTrace:
                     break
                 #Maybe at a crossing with all neighbours deleted
                 else:
-                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array_all_coords, compare = False)
+                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array_all_coords)
                     ordered_points.append(best_next_pixel)
-                    #trace_coordinates.pop(trace_coordinates.index(best_next_pixel))
                     if count > 1000:
-                        #print(len(ordered_points))
-                        #print(len(trace_coordinates))
-                        #print(ordered_points[-2])
-                        #print(ordered_points[-1])
-                        #np_array_1 = np.array(ordered_points)
-                        #np_array_2 = np.array(remaining_unordered_coords)
-                        #plt.plot(np_array_1[:,0], np_array_1[:,1])
-                        #plt.plot(np_array_2[:,0], np_array_2[:,1], '.')
-                        #plt.show()
-                        break
+                        raise ValueError
+                        ordered_points = reorderTrace.linearTrace(ordered_points)
+                        return np.array(ordered_points), False
                     continue
 
         ordered_points.append(ordered_points[0])
-        return np.array(ordered_points)
+        return np.array(ordered_points), True
 
     @staticmethod
     def circularTrace_old(trace_coordinates):
@@ -618,11 +609,17 @@ class genTracingFuncs:
         return number_of_neighbours, neighbour_array
 
     @staticmethod
-    def checkVectorsCandidatePoints(x, y, ordered_points, candidate_points, compare = True):
+    def checkVectorsCandidatePoints(x, y, ordered_points, candidate_points):
 
         '''Finds which neighbouring pixel incurs the smallest angular change
         with reference to a previous pixel in the ordered trace and chooses that
         as the next point '''
+
+        if len(ordered_points) > 5:
+            compare = True
+        else:
+            compare = False
+
         if compare:
             #Calculate reference angle
             x_1 = ordered_points[-4][0]
