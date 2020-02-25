@@ -164,21 +164,24 @@ def editfile(data, k):
     datafield.grains_mark_height(mask, 10, False)
 
     # Re-do polynomial correction with masked height
-    s["/module/polylevel/masking"] = 0
+    #s["/module/polylevel/masking"] = 0
     #gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
 
     # Re-do align rows with masked heights
     s["/module/linematch/masking"] = 0
     gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
 
-    # flatten base
-    # gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
+    #s["/module/polylevel/masking"] = 1
+    #gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
 
-    # Fix zero
-    gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
+    # flatten base
+    #gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
 
     # remove scars
     gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
+
+    # Fix zero
+    gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
 
     # Apply a 1.5 pixel gaussian filter
     data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
@@ -657,7 +660,7 @@ if __name__ == '__main__':
 
     #path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Code/Images/test'
 
-    path = 'lengthtesting/G4_ForAP_030220/'
+    path = 'lengthtesting'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -694,6 +697,7 @@ if __name__ == '__main__':
         # Load the data for the specified filename
         data = getdata(filename)
         # Find the channels of data you wish to use within the file e.g. ZSensor or height
+        channels = ['ZSensor', 'Height']
         chosen_ids = choosechannels(data, 'ZSensor', 'Height')
         # chosen_ids = choosechannels(data,'U*', 'X')
         # chosen_ids = [chosen_ids[0]]
@@ -737,12 +741,17 @@ if __name__ == '__main__':
             # Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
 
+            if max(grains) == 0:
+                continue
+
+            channel_name = channels[k] + str(k+1)
+
             #trace the DNA molecules - can compute stats etc as needed
             data_nparray = gwyutils.data_field_data_as_array(datafield)
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
             #dna_traces.showTraces()
-            dna_traces.saveTraceFigures(filename)
-            dna_traces.writeContourLengths(filename)
+            dna_traces.saveTraceFigures(filename, channel_name)
+            dna_traces.writeContourLengths(filename, channel_name)
             # Save out cropped files as images with no scales to a subfolder
             savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 
