@@ -42,9 +42,10 @@ s = gwy.gwy_app_settings_get()
 s["/module/pixmap/ztype"] = 0
 
 # Define the settings for image processing functions e.g. align rows here
-s['/module/linematch/method'] = 2  # uses median
-s["/module/linematch/max_degree"] = 2
-s["/module/polylevel/col_degree"] = 2
+s['/module/linematch/method'] = 1  # uses median
+s["/module/linematch/max_degree"] = 1
+s["/module/polylevel/masking"] = 0
+s["/module/polylevel/col_degree"] = 1
 
 
 def traversedirectories(fileend, filetype, path):
@@ -148,25 +149,23 @@ def editfile(data, k):
     gwy.gwy_app_data_browser_select_data_field(data, k)
 
     # align rows
-    #gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
 
     # flatten the data
     gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
 
     # align rows
-    #gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
 
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
     mask = gwy.DataField.new_alike(datafield, False)
     datafield.grains_mark_height(mask, 10, False)
 
     # Re-do polynomial correction with masked height
-    s["/module/polylevel/masking"] = 0
-    #gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
+    gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
 
     # Re-do align rows with masked heights
-    s["/module/linematch/masking"] = 0
-    #gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
+    gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
 
     # flatten base
     # gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
@@ -179,7 +178,7 @@ def editfile(data, k):
 
     # Apply a 1.5 pixel gaussian filter
     data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    data_field.filter_gaussian(0.5)
+    data_field.filter_gaussian(1)
     # # Shift contrast - equivalent to 'fix zero'
     #datafield.add(-data_field.get_min())
 
@@ -653,6 +652,7 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
 
     path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Code/Images/test'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /AFM data/DNA/Klostermeier/20191219_Jana_210bp_minicircle_7ng_3mM_NiCl2'
 
     # path = 'test_data'
 
@@ -662,7 +662,7 @@ if __name__ == '__main__':
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
     # Set height scale values to save out
-    minheightscale = -1e-9
+    minheightscale = -2e-9
     maxheightscale = 3e-9
     # Set minimum size for grain determination:
     minarea = 300e-9
@@ -734,11 +734,12 @@ if __name__ == '__main__':
             # Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
 
-            #trace the DNA molecules - can compute stats etc as needed
+            # trace the DNA molecules - can compute stats etc as needed
             data_nparray = gwyutils.data_field_data_as_array(datafield)
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, xreal, yres, xres)
             dna_traces.showTraces()
             dna_traces.writeContourLengths(filename)
+
             # Save out cropped files as images with no scales to a subfolder
             savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 
@@ -758,10 +759,11 @@ if __name__ == '__main__':
         # Save modified files as gwyddion files
         # savefilesasgwy(data, filename)
 
-    # Concatenate statistics form all files into one dataframe for saving and plotting statistics
-    grainstats_df = getdataforallfiles(appended_data)
+    # # Concatenate statistics form all files into one dataframe for saving and plotting statistics
+    # grainstats_df = getdataforallfiles(appended_data)
+
     # # Search dataframes and return a new dataframe of only files containing a specific string
     # grainstats_searched = searchgrainstats(grainstats_df, 'filename', '339', 'nothing')
 
-    # Saving stats to text and JSON files named by master path
-    savestats(path, grainstats_df)
+    # # Saving stats to text and JSON files named by master path
+    # savestats(path, grainstats_df)
