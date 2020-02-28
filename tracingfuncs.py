@@ -45,7 +45,7 @@ class getSkeleton(object):
 
     def getDNAmolHeightStats(self):
 
-        self.image_data = np.flip(self.image_data, axis = 0)
+        self.image_data = np.swapaxes(self.image_data, 0,1)
 
         self.average_height = np.average(self.image_data[np.argwhere(self.binary_map == 1)])
         #print(self.average_height)
@@ -56,13 +56,13 @@ class getSkeleton(object):
 
         self.mask_being_skeletonised = self.binary_map
 
-        mask = np.argwhere(self.mask_being_skeletonised == 1)
+        #mask = np.argwhere(self.mask_being_skeletonised == 1)
 
-        for x, y in mask:
-            self.image_data[x,y] = 0
+        #for x, y in mask:
+        #    self.image_data[x,y] = 0
 
-        plt.pcolor(self.image_data)
-        plt.show()
+        #plt.pcolor(self.image_data)
+        #plt.show()
 
         while not self.skeleton_converged:
             self._doSkeletonisingIteration()
@@ -80,23 +80,17 @@ class getSkeleton(object):
         delete a point
         '''
 
-        points = np.argwhere(self.mask_being_skeletonised == 1)
-        plt.plot(points[:,0], points[:,1], '.')
-        plt.show()
-
         number_of_deleted_points = 0
         pixels_to_delete = []
 
         #Sub-iteration 1 - binary check
         mask_coordinates = np.argwhere(self.mask_being_skeletonised == 1).tolist()
         for point in mask_coordinates:
-            #delete_pixel = self._assessLocalEnvironmentSubit1(point)
             if self._deletePixelSubit1(point):
                 pixels_to_delete.append(point)
-        #print(len(pixels_to_delete))
+
         #Check the local height values to determine if pixels should be deleted
         pixels_to_delete = self._checkHeights(pixels_to_delete)
-        #print(len(pixels_to_delete))
 
         for x, y in pixels_to_delete:
             number_of_deleted_points += 1
@@ -106,23 +100,17 @@ class getSkeleton(object):
         #Sub-iteration 2 - binary check
         mask_coordinates = np.argwhere(self.mask_being_skeletonised == 1).tolist()
         for point in mask_coordinates:
-            #delete_pixel = self._assessLocalEnvironmentSubit2(point)
             if self._deletePixelSubit2(point):
                 pixels_to_delete.append(point)
 
-        #print(len(pixels_to_delete))
-
         #Check the local height values to determine if pixels should be deleted
         pixels_to_delete = self._checkHeights(pixels_to_delete)
-
-        #print('%i \n' % len(pixels_to_delete))
 
         for x,y in pixels_to_delete:
             number_of_deleted_points += 1
             self.mask_being_skeletonised[x, y] = 0
 
         if number_of_deleted_points == 0:
-            #print(len(mask_coordinates))
             self.skeleton_converged = True
 
     def _deletePixelSubit1(self, point):
@@ -131,7 +119,6 @@ class getSkeleton(object):
         on both its local binary environment and its local height values'''
 
         self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(self.mask_being_skeletonised, point[0],point[1])
-        #self._getLocalPixelsBinary(point[0], point[1])
 
         if (self._binaryThinCheck_a() and
             self._binaryThinCheck_b() and
@@ -229,8 +216,8 @@ class getSkeleton(object):
         for x, y in candidate_points:
 
             #if point is basically at background don't bother assessing height and just delete:
-            #if self.image_data[x,y] < 1e-9:
-            #    continue
+            if self.image_data[x,y] < 1e-9:
+                continue
 
             #Check if the point has already been identified as a high point
             try:
@@ -246,16 +233,12 @@ class getSkeleton(object):
             height_points_to_check = self._checkWhichHeightPoints()
             height_points = self.cropping_dict[height_points_to_check](x, y)
 
-            print(height_points_to_check, [x,y], self.image_data[x,y], height_points)
+            #print(height_points_to_check, [x,y], self.image_data[x,y], height_points)
 
             #if the candidate points is the highest local point don't delete it
             if self.image_data[x,y] > sorted(height_points)[-1]:
-
-                print('point above saved')
-
                 self.highest_points[(x,y)] = True
                 candidate_points.pop(candidate_points.index([x,y]))
-                #print(x,y)
             else:
                 pass
 
@@ -265,30 +248,30 @@ class getSkeleton(object):
 
         #Is the point on the left hand edge?
         #if (self.p8 == 1 and self.p4 == 0 and self.p2 == self.p6):
-        if (self.p7 + self.p8 + self.p9 == 3 and self.p3 + self.p4 + self.p5 == 0 and self.p2 == self.p6):
+        if (self.p7 + self.p8 + self.p9 == 3 and self.p3 + self.p4 + self.p5 == 0 ):
             '''e.g. [1, 1, 0]
                     [1, 1, 0]
                     [1, 1, 0]'''
             return 'horiz_left'
         #elif (self.p8 == 0 and self.p4 == 1 and self.p2 == self.p6):
-        elif (self.p7 + self.p8 + self.p9 == 0 and self.p3 + self.p4 + self.p5 == 3 and self.p2 == self.p6):
+        elif (self.p7 + self.p8 + self.p9 == 0 and self.p3 + self.p4 + self.p5 == 3 ):
             '''e.g. [0, 1, 1]
                     [0, 1, 1]
                     [0, 1, 1]'''
             return 'horiz_right'
         #elif (self.p2 == 1 and self.p6 == 0 and self.p4 == self.p8):
-        elif (self.p9 + self.p2 + self.p3 == 3 and self.p5 + self.p6 + self.p7 == 0 and self.p4 == self.p8):
+        elif (self.p9 + self.p2 + self.p3 == 3 and self.p5 + self.p6 + self.p7 == 0 ):
             '''e.g. [1, 1, 1]
                     [1, 1, 1]
                     [0, 0, 0]'''
             return 'vert_up'
         #elif (self.p2 == 0 and self.p6 == 1 and self.p4 == self.p8):
-        elif (self.p9 + self.p2 + self.p3 == 0 and self.p5 + self.p6 + self.p7 == 3 and self.p4 == self.p8):
+        elif (self.p9 + self.p2 + self.p3 == 0 and self.p5 + self.p6 + self.p7 == 3): #and self.p4 == self.p8):
             '''e.g. [0, 0, 0]
                     [1, 1, 1]
                     [1, 1, 1]'''
             return 'vert_down'
-        elif (self.p3 == self.p7 and self.p2 + self.p8 == 0 and self.p4 + self.p5 + self.p6 == 3):
+        elif (self.p2 + self.p8 == 0 and self.p4 + self.p5 + self.p6 == 3):
             '''e.g. [0, 0, 1]       [0, 0, 0]
                     [0, 1, 1]       [0, 1, 1]
                     [1, 1, 1]   or  [0, 1, 1]'''
