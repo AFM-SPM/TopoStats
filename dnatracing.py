@@ -41,14 +41,16 @@ class dnaTrace(object):
         self.mol_is_circular = {}
 
         self.number_of_traces = 0
+        self.num_circular = 0
+        self.num_linear = 0
 
         self.getNumpyArraysfromGwyddion()
         self.getDisorderedTrace()
-        self.purgeObviousCrap()
+        #self.purgeObviousCrap()
         #self.isMolLooped()
-        self.determineLinearOrCircular()
-        self.getOrderedTraces()
-        self.reportBasicStats()
+        #self.determineLinearOrCircular()
+        #self.getOrderedTraces()
+        #self.reportBasicStats()
         #self.getFittedTraces()
         #self.getSplinedTraces()
         #self.measureContourLength()
@@ -79,8 +81,8 @@ class dnaTrace(object):
             single_grain_1d = np.array([1 if i == grain_num else 0 for i in self.gwyddion_grains])
             self.grains[int(grain_num)] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
 
-        #Get a 20 A gauss filtered version of the original image - used in refining the pixel positions in getFittedTraces()
-        sigma = 3/(self.pixel_size*1e9)
+        #Get a 10 A gauss filtered version of the original image - used in refining the pixel positions in getFittedTraces()
+        sigma = 0.7/(self.pixel_size*1e9)
         self.gauss_image = filters.gaussian(self.full_image_data, sigma)
 
     def getDisorderedTrace(self):
@@ -95,11 +97,13 @@ class dnaTrace(object):
 
             smoothed_grain = ndimage.binary_dilation(self.grains[grain_num], iterations = 1).astype(self.grains[grain_num].dtype)
 
-            sigma = (5/math.sqrt(self.pixel_size*1e9))/2
+            sigma = (0.01/(self.pixel_size*1e9))
             very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
-            dna_skeleton = getSkeleton(self.full_image_data, smoothed_grain, self.number_of_columns, self.number_of_rows)
+            dna_skeleton = getSkeleton(self.gauss_image, very_smoothed_grain, self.number_of_columns, self.number_of_rows, self.pixel_size)
             self.disordered_trace[grain_num] = dna_skeleton.output_skeleton
+            skel = morphology.skeletonize(self.grains[grain_num])
+            self.skeletons[grain_num] = np.argwhere(skel == 1)
 
     def purgeObviousCrap(self):
 
@@ -131,8 +135,10 @@ class dnaTrace(object):
 
             if points_with_one_neighbour == 2:
                 self.mol_is_circular[dna_num] = False
+                self.num_linear += 1
             else:
                 self.mol_is_circular[dna_num] = True
+                self.num_circular += 1
 
 
     def getOrderedTraces(self):
@@ -151,16 +157,6 @@ class dnaTrace(object):
                 self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
 
     def reportBasicStats(self):
-
-        num_circular = 0
-        num_linear = 0
-
-        for dna_num in sorted(self.mol_is_circular.keys()):
-            if self.mol_is_circular[dna_num]:
-                num_circular += 1
-            else:
-                num_linear += 1
-
         print('There are %i circular and %i linear DNA molecules found in the image' % (num_circular, num_linear))
 
 
@@ -430,9 +426,17 @@ class dnaTrace(object):
 
         plt.pcolor(self.full_image_data)
         plt.colorbar()
-        for dna_num in sorted(self.fitted_traces.keys()):
-            plt.plot(self.fitted_traces[dna_num][:,0], self.fitted_traces[dna_num][:,1])
-            plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1])
+        for dna_num in sorted(self.grains.keys()):
+            grain_plt = np.argwhere(self.grains[dna_num] == 1)
+            plt.plot(grain_plt[:,0], grain_plt[:,1],  'o', markersize = 2)
+        plt.show()
+
+        plt.pcolor(self.gauss_image)
+        plt.colorbar()
+        for dna_num in sorted(self.disordered_trace.keys()):
+            plt.plot(self.disordered_trace[dna_num][:,0], self.disordered_trace[dna_num][:,1], 'o', markersize = 1)
+            #print(len(self.skeletons[dna_num]), len(self.disordered_trace[dna_num]))
+            plt.plot(self.skeletons[dna_num][:,0], self.skeletons[dna_num][:,1], 'o', markersize = 0.8)
         plt.show()
         plt.close()
 
