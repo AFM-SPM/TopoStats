@@ -46,14 +46,14 @@ class dnaTrace(object):
 
         self.getNumpyArraysfromGwyddion()
         self.getDisorderedTrace()
-        #self.purgeObviousCrap()
+        self.purgeObviousCrap()
         #self.isMolLooped()
-        #self.determineLinearOrCircular()
-        #self.getOrderedTraces()
-        #self.reportBasicStats()
+        self.determineLinearOrCircular()
+        self.getOrderedTraces()
+        self.reportBasicStats()
         #self.getFittedTraces()
         #self.getSplinedTraces()
-        #self.measureContourLength()
+        self.measureContourLength()
 
 
     def getNumpyArraysfromGwyddion(self):
@@ -100,10 +100,14 @@ class dnaTrace(object):
             sigma = (0.01/(self.pixel_size*1e9))
             very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
-            dna_skeleton = getSkeleton(self.gauss_image, very_smoothed_grain, self.number_of_columns, self.number_of_rows, self.pixel_size)
-            self.disordered_trace[grain_num] = dna_skeleton.output_skeleton
-            skel = morphology.skeletonize(self.grains[grain_num])
-            self.skeletons[grain_num] = np.argwhere(skel == 1)
+            #Some of the gwyddion grains still touch the border which causes a IndexError - this handles that by deleting such grains
+            try:
+                dna_skeleton = getSkeleton(self.gauss_image, very_smoothed_grain, self.number_of_columns, self.number_of_rows, self.pixel_size)
+                self.disordered_trace[grain_num] = dna_skeleton.output_skeleton
+            except IndexError:
+                self.grains.pop(grain_num)
+            #skel = morphology.skeletonize(self.grains[grain_num])
+            #self.skeletons[grain_num] = np.argwhere(skel == 1)
 
     def purgeObviousCrap(self):
 
@@ -157,7 +161,7 @@ class dnaTrace(object):
                 self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
 
     def reportBasicStats(self):
-        print('There are %i circular and %i linear DNA molecules found in the image' % (num_circular, num_linear))
+        print('There are %i circular and %i linear DNA molecules found in the image' % (self.num_circular, self.num_linear))
 
 
     def getFittedTraces(self):
@@ -424,19 +428,12 @@ class dnaTrace(object):
 
     def showTraces(self):
 
-        plt.pcolor(self.full_image_data)
-        plt.colorbar()
-        for dna_num in sorted(self.grains.keys()):
-            grain_plt = np.argwhere(self.grains[dna_num] == 1)
-            plt.plot(grain_plt[:,0], grain_plt[:,1],  'o', markersize = 2)
-        plt.show()
-
         plt.pcolor(self.gauss_image)
         plt.colorbar()
         for dna_num in sorted(self.disordered_trace.keys()):
             plt.plot(self.disordered_trace[dna_num][:,0], self.disordered_trace[dna_num][:,1], 'o', markersize = 1)
             #print(len(self.skeletons[dna_num]), len(self.disordered_trace[dna_num]))
-            plt.plot(self.skeletons[dna_num][:,0], self.skeletons[dna_num][:,1], 'o', markersize = 0.8)
+            #plt.plot(self.skeletons[dna_num][:,0], self.skeletons[dna_num][:,1], 'o', markersize = 0.8)
         plt.show()
         plt.close()
 
