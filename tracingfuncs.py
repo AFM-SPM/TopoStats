@@ -30,12 +30,12 @@ class getSkeleton(object):
 
         #Height checking variables
         self.average_height = 0
-        self.cropping_dict = self._initialiseHeightFindingDict()
+        #self.cropping_dict = self._initialiseHeightFindingDict()
         self.highest_points = {}
-        self.search_window = int(1 / (pixel_size*1e9))
+        self.search_window = int(3 / (pixel_size*1e9))
         #Check that the search window is bigger than 0:
-        if self.search_window < 1:
-            self.search_window = 2
+        if self.search_window < 2:
+            self.search_window = 3
         self.dir_search = int(0.75/(pixel_size*1e9))
         if self.dir_search < 3:
             self.dir_search = 3
@@ -56,22 +56,18 @@ class getSkeleton(object):
 
         self.mask_being_skeletonised = self.binary_map
 
-        #mask = np.argwhere(self.mask_being_skeletonised == 1)
-
-        #for x, y in mask:
-        #    self.image_data[x,y] = 0
-
-        #plt.pcolor(self.image_data)
-        #plt.show()
-
         while not self.skeleton_converged:
             self._doSkeletonisingIteration()
 
         #When skeleton converged do an additional iteration of thinning to remove hanging points
         self.finalSkeletonisationIteration()
 
+        self.pruning = True
+        while self.pruning:
+            self.pruneSkeleton()
+
         self.output_skeleton = np.argwhere(self.mask_being_skeletonised == 1)
-        #print(len(self.output_skeleton))
+
 
     def _doSkeletonisingIteration(self):
 
@@ -90,7 +86,7 @@ class getSkeleton(object):
                 pixels_to_delete.append(point)
 
         #Check the local height values to determine if pixels should be deleted
-        pixels_to_delete = self._checkHeights(pixels_to_delete)
+        #pixels_to_delete = self._checkHeights(pixels_to_delete)
 
         for x, y in pixels_to_delete:
             number_of_deleted_points += 1
@@ -104,7 +100,7 @@ class getSkeleton(object):
                 pixels_to_delete.append(point)
 
         #Check the local height values to determine if pixels should be deleted
-        pixels_to_delete = self._checkHeights(pixels_to_delete)
+        #pixels_to_delete = self._checkHeights(pixels_to_delete)
 
         for x,y in pixels_to_delete:
             number_of_deleted_points += 1
@@ -230,16 +226,23 @@ class getSkeleton(object):
 
             self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(self.mask_being_skeletonised, x, y)
 
-            height_points_to_check = self._checkWhichHeightPoints()
-            height_points = self.cropping_dict[height_points_to_check](x, y)
+            print([self.p9, self.p2, self.p3],[self.p8, 1, self.p4],[self.p7, self.p6, self.p5])
 
+            height_points_to_check = self._checkWhichHeightPoints()
+            height_points = np.around(self.cropping_dict[height_points_to_check](x, y), decimals = 11)
+            test_value = np.around(self.image_data[x,y], decimals = 11)
             #print(height_points_to_check, [x,y], self.image_data[x,y], height_points)
 
             #if the candidate points is the highest local point don't delete it
-            if self.image_data[x,y] > sorted(height_points)[-1]:
-                self.highest_points[(x,y)] = True
+            if test_value >= sorted(height_points)[-1]:
+                print([self.p9, self.p2, self.p3],[self.p8, 1, self.p4],[self.p7, self.p6, self.p5])
+                print(height_points_to_check, [x,y], self.image_data[x,y], height_points)
+                self.highest_points[(x,y)] = height_points_to_check
                 candidate_points.pop(candidate_points.index([x,y]))
+                print(height_points_to_check, (x,y))
             else:
+                x_n, y_n = self._identifyHighestPoint(x, y, height_points_to_check, height_points)
+                self.highest_points[(x_n,y_n)] = height_points_to_check
                 pass
 
         return candidate_points
@@ -248,51 +251,51 @@ class getSkeleton(object):
 
         #Is the point on the left hand edge?
         #if (self.p8 == 1 and self.p4 == 0 and self.p2 == self.p6):
-        if (self.p7 + self.p8 + self.p9 == 3 and self.p3 + self.p4 + self.p5 == 0 ):
+        if (self.p7 + self.p8 + self.p9 == 3 and self.p3 + self.p4 + self.p5 == 0 and self.p2 == self.p6):
             '''e.g. [1, 1, 0]
                     [1, 1, 0]
                     [1, 1, 0]'''
             return 'horiz_left'
         #elif (self.p8 == 0 and self.p4 == 1 and self.p2 == self.p6):
-        elif (self.p7 + self.p8 + self.p9 == 0 and self.p3 + self.p4 + self.p5 == 3 ):
+        elif (self.p7 + self.p8 + self.p9 == 0 and self.p3 + self.p4 + self.p5 == 3 and self.p2 == self.p6 ):
             '''e.g. [0, 1, 1]
                     [0, 1, 1]
                     [0, 1, 1]'''
             return 'horiz_right'
         #elif (self.p2 == 1 and self.p6 == 0 and self.p4 == self.p8):
-        elif (self.p9 + self.p2 + self.p3 == 3 and self.p5 + self.p6 + self.p7 == 0 ):
+        elif (self.p9 + self.p2 + self.p3 == 3 and self.p5 + self.p6 + self.p7 == 0 and self.p4 == self.p8):
             '''e.g. [1, 1, 1]
                     [1, 1, 1]
                     [0, 0, 0]'''
             return 'vert_up'
         #elif (self.p2 == 0 and self.p6 == 1 and self.p4 == self.p8):
-        elif (self.p9 + self.p2 + self.p3 == 0 and self.p5 + self.p6 + self.p7 == 3): #and self.p4 == self.p8):
+        elif (self.p9 + self.p2 + self.p3 == 0 and self.p5 + self.p6 + self.p7 == 3 and self.p4 == self.p8): #and self.p4 == self.p8):
             '''e.g. [0, 0, 0]
                     [1, 1, 1]
                     [1, 1, 1]'''
             return 'vert_down'
-        elif (self.p2 + self.p8 == 0 and self.p4 + self.p5 + self.p6 == 3):
+        elif (self.p2 + self.p8 <= 1 and self.p4 + self.p5 + self.p6 >= 2):
             '''e.g. [0, 0, 1]       [0, 0, 0]
                     [0, 1, 1]       [0, 1, 1]
                     [1, 1, 1]   or  [0, 1, 1]'''
             return 'diagright_down'
-        elif (self.p9 == self.p5 and self.p2 + self.p4 == 0 and self.p8 + self.p9 + self.p2 == 3):
+        elif (self.p4 + self.p6 <= 1 and self.p8 + self.p9 + self.p2 >= 2):
             '''e.g. [1, 1, 1]       [1, 1, 0]
                     [1, 1, 0]       [1, 1, 0]
                     [1, 0, 0]   or  [0, 0, 0]'''
             return 'diagright_up'
-        elif (self.p9 == self.p5 and self.p2 + self.p4 == 0 and self.p8 + self.p7 + self.p6 == 3):
+        elif (self.p2 + self.p4 <=1 and self.p8 + self.p7 + self.p6 >= 2):
             '''e.g. [1, 0, 0]       [0, 0, 0]
                     [1, 1, 0]       [1, 1, 0]
                     [1, 1, 1]   or  [1, 1, 0]'''
             return 'diagleft_down'
-        elif (self.p9 == self.p5 and self.p8 + self.p6 == 0 and self.p2 + self.p3 + self.p4 == 3):
+        elif (self.p8 + self.p6 <= 1 and self.p2 + self.p3 + self.p4 >= 2):
             '''e.g. [1, 1, 1]       [0, 1, 1]
                     [0, 1, 1]       [0, 1, 1]
                     [0, 0, 1]   or  [0, 0, 0]'''
             return 'diagleft_up'
-        else:
-            return 'condemn'
+        #else:
+        #    return 'save'
 
     def _initialiseHeightFindingDict(self):
         height_cropping_funcs = {}
@@ -305,7 +308,7 @@ class getSkeleton(object):
         height_cropping_funcs['diagleft_down'] = self._getDiaganolLeftDownwardHeights
         height_cropping_funcs['diagright_up'] = self._getHorizontalRightHeights
         height_cropping_funcs['diagright_down'] = self._getHorizontalRightHeights
-        height_cropping_funcs['condemn'] = self._condemnPoint
+        height_cropping_funcs['save'] = self._savePoint
 
         return height_cropping_funcs
 
@@ -387,6 +390,33 @@ class getSkeleton(object):
         for i in range(1, self.search_window):
             heights.append(10)
         return heights
+
+    def _identifyHighestPoint(self, x, y, index_direction, indexed_heights):
+        highest_value = 0
+
+        offset = len(indexed_heights)/2
+
+        for num, height_value in enumerate(indexed_heights):
+            if height_value > highest_value:
+                highest_point = height_value
+                index_position = (num + 1)-offset
+
+        if index_direction == 'horiz_left':
+            return x - num, y
+        elif index_direction == 'horiz_right':
+            return x + num, y
+        elif index_direction == 'vert_up':
+            return x, y + num
+        elif index_direction == 'vert_down':
+            return x, y - num
+        elif index_direction == 'diagleft_up':
+            return x + num, y + num
+        elif index_direction == 'diagleft_down':
+            return x + num, y - num
+        elif index_direction == 'diagright_up':
+            return x - num, y + num
+        elif index_direction == 'diagright_down':
+            return x - num, y - num
 
     def finalSkeletonisationIteration(self):
 
