@@ -1,7 +1,7 @@
 import sys
 sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages')
 sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy')
-# sys.path.append('/usr/share/gwyddion/pygwy/')
+sys.path.append('/usr/share/gwyddion/pygwy/')
 
 import pygtk
 pygtk.require20() # adds gtk-2.0 folder to sys.path
@@ -42,10 +42,9 @@ s = gwy.gwy_app_settings_get()
 s["/module/pixmap/ztype"] = 0
 
 # Define the settings for image processing functions e.g. align rows here
-s['/module/linematch/method'] = 1  # uses median
-s["/module/linematch/max_degree"] = 1
-s["/module/polylevel/masking"] = 0
-s["/module/polylevel/col_degree"] = 1
+s['/module/linematch/method'] = 1  # keep as 1
+s["/module/linematch/max_degree"] = 2
+s["/module/polylevel/col_degree"] = 2
 
 
 def traversedirectories(fileend, filetype, path):
@@ -135,7 +134,10 @@ def heightediting(data, k):
 
     # Gaussian filter to remove noise
     current_data = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    current_data.filter_gaussian(1)
+
+    filter_width = 5 * dx*1e9
+
+    current_data.filter_gaussian(filter_width)
 
     # Set zero to mean value
     gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
@@ -149,36 +151,41 @@ def editfile(data, k):
     gwy.gwy_app_data_browser_select_data_field(data, k)
 
     # align rows
-    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+    # gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
 
     # flatten the data
     gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
 
     # align rows
-    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+    # gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
 
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
     mask = gwy.DataField.new_alike(datafield, False)
     datafield.grains_mark_height(mask, 10, False)
 
     # Re-do polynomial correction with masked height
-    gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
+    #s["/module/polylevel/masking"] = 0
+    #gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
 
     # Re-do align rows with masked heights
+    s["/module/linematch/masking"] = 0
     gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
 
-    # flatten base
-    # gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
+    #s["/module/polylevel/masking"] = 1
+    #gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
 
-    # Fix zero
-    gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
+    # flatten base
+    #gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
 
     # remove scars
     gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
 
+    # Fix zero
+    gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
+
     # Apply a 1.5 pixel gaussian filter
     data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    data_field.filter_gaussian(1)
+    data_field.filter_gaussian(0.5)
     # # Shift contrast - equivalent to 'fix zero'
     #datafield.add(-data_field.get_min())
 
@@ -194,7 +201,7 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
 
     mask = gwy.DataField.new_alike(datafield, False)
 
-    Gaussiansize = 0.2e-9 / dx
+    Gaussiansize = 0.15e-9 / dx
     datafield.filter_gaussian(Gaussiansize)
 
     # Mask data that are above thresh*sigma from average height.
@@ -651,10 +658,9 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Code/Images/test'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /AFM data/DNA/Klostermeier/20191219_Jana_210bp_minicircle_7ng_3mM_NiCl2'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/test'
 
-    # path = 'test_data'
+    # path = 'lengthtesting'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -663,7 +669,7 @@ if __name__ == '__main__':
     extension = '.tiff'
     # Set height scale values to save out
     minheightscale = -2e-9
-    maxheightscale = 3e-9
+    maxheightscale = 2e-9
     # Set minimum size for grain determination:
     minarea = 300e-9
     # minarea = 50e-9
@@ -691,7 +697,8 @@ if __name__ == '__main__':
         # Load the data for the specified filename
         data = getdata(filename)
         # Find the channels of data you wish to use within the file e.g. ZSensor or height
-        chosen_ids = choosechannels(data, 'ZSensor', 'HeightTrace')
+        channels = ['ZSensor', 'Height']
+        chosen_ids = choosechannels(data, 'ZSensor', 'Height')
         # chosen_ids = choosechannels(data,'U*', 'X')
         # chosen_ids = [chosen_ids[0]]
 
@@ -734,12 +741,17 @@ if __name__ == '__main__':
             # Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
 
-            # trace the DNA molecules - can compute stats etc as needed
-            data_nparray = gwyutils.data_field_data_as_array(datafield)
-            dna_traces = dnatracing.dnaTrace(npdata, grains, filename, xreal, yres, xres)
-            dna_traces.showTraces()
-            dna_traces.writeContourLengths(filename)
+            # if max(grains) == 0:
+            #     continue
+            #
+            # channel_name = channels[k] + str(k+1)
 
+            #trace the DNA molecules - can compute stats etc as needed
+            # data_nparray = gwyutils.data_field_data_as_array(datafield)
+            # dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
+            # #dna_traces.showTraces()
+            # dna_traces.saveTraceFigures(filename, channel_name)
+            # dna_traces.writeContourLengths(filename, channel_name)
             # Save out cropped files as images with no scales to a subfolder
             savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 
@@ -759,11 +771,10 @@ if __name__ == '__main__':
         # Save modified files as gwyddion files
         # savefilesasgwy(data, filename)
 
-    # # Concatenate statistics form all files into one dataframe for saving and plotting statistics
-    # grainstats_df = getdataforallfiles(appended_data)
-
+    # Concatenate statistics form all files into one dataframe for saving and plotting statistics
+    grainstats_df = getdataforallfiles(appended_data)
     # # Search dataframes and return a new dataframe of only files containing a specific string
     # grainstats_searched = searchgrainstats(grainstats_df, 'filename', '339', 'nothing')
 
-    # # Saving stats to text and JSON files named by master path
-    # savestats(path, grainstats_df)
+    # Saving stats to text and JSON files named by master path
+    savestats(path, grainstats_df)
