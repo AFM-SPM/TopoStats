@@ -7,11 +7,12 @@ class getSkeleton(object):
     '''Skeltonisation algorithm based on the paper "A Fast Parallel Algorithm for
     Thinning Digital Patterns" by Zhang et al., 1984'''
 
-    def __init__(self, full_image_data, binary_map, number_of_columns, number_of_rows):
-        self.full_image_data = full_image_data
+    def __init__(self, image_data, binary_map, number_of_columns, number_of_rows, pixel_size):
+        self.image_data = image_data
         self.binary_map = binary_map
         self.number_of_columns = number_of_columns
         self.number_of_rows = number_of_rows
+        self.pixel_size = pixel_size
 
         self.p2 = 0
         self.p3 = 0
@@ -21,16 +22,33 @@ class getSkeleton(object):
         self.p7 = 0
         self.p8 = 0
 
+        #skeletonising variables
         self.mask_being_skeletonised = []
         self.output_skeleton = []
         self.skeleton_converged = False
+        self.pruning = True
+
+        #Height checking variables
+        self.average_height = 0
+        #self.cropping_dict = self._initialiseHeightFindingDict()
+        self.highest_points = {}
+        self.search_window = int(3 / (pixel_size*1e9))
+        #Check that the search window is bigger than 0:
+        if self.search_window < 2:
+            self.search_window = 3
+        self.dir_search = int(0.75/(pixel_size*1e9))
+        if self.dir_search < 3:
+            self.dir_search = 3
 
         self.getDNAmolHeightStats()
         self.doSkeletonising()
 
     def getDNAmolHeightStats(self):
-        #Placeholder for where I want to shove my height stats
-        pass
+
+        self.image_data = np.swapaxes(self.image_data, 0,1)
+
+        self.average_height = np.average(self.image_data[np.argwhere(self.binary_map == 1)])
+        #print(self.average_height)
 
     def doSkeletonising(self):
 
@@ -41,7 +59,15 @@ class getSkeleton(object):
         while not self.skeleton_converged:
             self._doSkeletonisingIteration()
 
+        #When skeleton converged do an additional iteration of thinning to remove hanging points
+        self.finalSkeletonisationIteration()
+
+        self.pruning = True
+        while self.pruning:
+            self.pruneSkeleton()
+
         self.output_skeleton = np.argwhere(self.mask_being_skeletonised == 1)
+
 
     def _doSkeletonisingIteration(self):
 
@@ -53,27 +79,31 @@ class getSkeleton(object):
         number_of_deleted_points = 0
         pixels_to_delete = []
 
-        #Sub-iteration 1
-        mask_coordinates = np.argwhere(self.mask_being_skeletonised == 1)
+        #Sub-iteration 1 - binary check
+        mask_coordinates = np.argwhere(self.mask_being_skeletonised == 1).tolist()
         for point in mask_coordinates:
-            #delete_pixel = self._assessLocalEnvironmentSubit1(point)
             if self._deletePixelSubit1(point):
                 pixels_to_delete.append(point)
-                number_of_deleted_points += 1
+
+        #Check the local height values to determine if pixels should be deleted
+        #pixels_to_delete = self._checkHeights(pixels_to_delete)
 
         for x, y in pixels_to_delete:
+            number_of_deleted_points += 1
             self.mask_being_skeletonised[x, y] = 0
         pixels_to_delete = []
 
-        #Sub-iteration 2
-        mask_coordinates = np.argwhere(self.mask_being_skeletonised == 1)
+        #Sub-iteration 2 - binary check
+        mask_coordinates = np.argwhere(self.mask_being_skeletonised == 1).tolist()
         for point in mask_coordinates:
-            #delete_pixel = self._assessLocalEnvironmentSubit2(point)
             if self._deletePixelSubit2(point):
                 pixels_to_delete.append(point)
-                number_of_deleted_points += 1
+
+        #Check the local height values to determine if pixels should be deleted
+        #pixels_to_delete = self._checkHeights(pixels_to_delete)
 
         for x,y in pixels_to_delete:
+            number_of_deleted_points += 1
             self.mask_being_skeletonised[x, y] = 0
 
         if number_of_deleted_points == 0:
@@ -85,7 +115,6 @@ class getSkeleton(object):
         on both its local binary environment and its local height values'''
 
         self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(self.mask_being_skeletonised, point[0],point[1])
-        #self._getLocalPixelsBinary(point[0], point[1])
 
         if (self._binaryThinCheck_a() and
             self._binaryThinCheck_b() and
@@ -110,28 +139,6 @@ class getSkeleton(object):
             return True
         else:
             return False
-
-    def _getLocalPixelsData(self, x, y):
-
-        '''Function to access the local pixels from the real data'''
-
-        local_height_values = np.ones((4,4))
-
-        #for i in range(4):
-        #    for j in range(4):
-        #        local_height_values[i,j] = self.full_image_data[]
-
-        local_height_values[0,0] = self.full_image_data[(point[0] - 1), (point[1] + 1)]
-        local_height_values[0,1] = self.full_image_data[(point[0]), (point[1] + 1)]
-        local_height_values[0,2] = self.full_image_data[(point[0] + 1), (point[1] + 1)]
-        local_height_values[1,0] = self.full_image_data[(point[0] - 1), (point[1])]
-        local_height_values[1,1] = self.full_image_data[(point[0]), (point[1])]
-        local_height_values[1,2] = self.full_image_data[(point[0] + 1), (point[1])]
-        local_height_values[2,0] = self.full_image_data[(point[0] - 1), (point[1] - 1)]
-        local_height_values[2,1] = self.full_image_data[(point[0]), (point[1] - 1)]
-        local_height_values[2,2] = self.full_image_data[(point[0] + 1), (point[1] - 1)]
-
-        return local_height_values
 
     '''These functions are ripped from the Zhang et al. paper and do the basic
     skeletonisation steps
@@ -195,12 +202,362 @@ class getSkeleton(object):
         else:
             return False
 
+    def _checkHeights(self, candidate_points):
+
+        try:
+            candidate_points = candidate_points.tolist()
+        except AttributeError:
+            pass
+
+        for x, y in candidate_points:
+
+            #if point is basically at background don't bother assessing height and just delete:
+            if self.image_data[x,y] < 1e-9:
+                continue
+
+            #Check if the point has already been identified as a high point
+            try:
+                self.highest_points[(x,y)]
+                candidate_points.pop(candidate_points.index([x,y]))
+                #print(x,y)
+                continue
+            except KeyError:
+                pass
+
+            self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(self.mask_being_skeletonised, x, y)
+
+            print([self.p9, self.p2, self.p3],[self.p8, 1, self.p4],[self.p7, self.p6, self.p5])
+
+            height_points_to_check = self._checkWhichHeightPoints()
+            height_points = np.around(self.cropping_dict[height_points_to_check](x, y), decimals = 11)
+            test_value = np.around(self.image_data[x,y], decimals = 11)
+            #print(height_points_to_check, [x,y], self.image_data[x,y], height_points)
+
+            #if the candidate points is the highest local point don't delete it
+            if test_value >= sorted(height_points)[-1]:
+                print([self.p9, self.p2, self.p3],[self.p8, 1, self.p4],[self.p7, self.p6, self.p5])
+                print(height_points_to_check, [x,y], self.image_data[x,y], height_points)
+                self.highest_points[(x,y)] = height_points_to_check
+                candidate_points.pop(candidate_points.index([x,y]))
+                print(height_points_to_check, (x,y))
+            else:
+                x_n, y_n = self._identifyHighestPoint(x, y, height_points_to_check, height_points)
+                self.highest_points[(x_n,y_n)] = height_points_to_check
+                pass
+
+        return candidate_points
+
+    def _checkWhichHeightPoints(self):
+
+        #Is the point on the left hand edge?
+        #if (self.p8 == 1 and self.p4 == 0 and self.p2 == self.p6):
+        if (self.p7 + self.p8 + self.p9 == 3 and self.p3 + self.p4 + self.p5 == 0 and self.p2 == self.p6):
+            '''e.g. [1, 1, 0]
+                    [1, 1, 0]
+                    [1, 1, 0]'''
+            return 'horiz_left'
+        #elif (self.p8 == 0 and self.p4 == 1 and self.p2 == self.p6):
+        elif (self.p7 + self.p8 + self.p9 == 0 and self.p3 + self.p4 + self.p5 == 3 and self.p2 == self.p6 ):
+            '''e.g. [0, 1, 1]
+                    [0, 1, 1]
+                    [0, 1, 1]'''
+            return 'horiz_right'
+        #elif (self.p2 == 1 and self.p6 == 0 and self.p4 == self.p8):
+        elif (self.p9 + self.p2 + self.p3 == 3 and self.p5 + self.p6 + self.p7 == 0 and self.p4 == self.p8):
+            '''e.g. [1, 1, 1]
+                    [1, 1, 1]
+                    [0, 0, 0]'''
+            return 'vert_up'
+        #elif (self.p2 == 0 and self.p6 == 1 and self.p4 == self.p8):
+        elif (self.p9 + self.p2 + self.p3 == 0 and self.p5 + self.p6 + self.p7 == 3 and self.p4 == self.p8): #and self.p4 == self.p8):
+            '''e.g. [0, 0, 0]
+                    [1, 1, 1]
+                    [1, 1, 1]'''
+            return 'vert_down'
+        elif (self.p2 + self.p8 <= 1 and self.p4 + self.p5 + self.p6 >= 2):
+            '''e.g. [0, 0, 1]       [0, 0, 0]
+                    [0, 1, 1]       [0, 1, 1]
+                    [1, 1, 1]   or  [0, 1, 1]'''
+            return 'diagright_down'
+        elif (self.p4 + self.p6 <= 1 and self.p8 + self.p9 + self.p2 >= 2):
+            '''e.g. [1, 1, 1]       [1, 1, 0]
+                    [1, 1, 0]       [1, 1, 0]
+                    [1, 0, 0]   or  [0, 0, 0]'''
+            return 'diagright_up'
+        elif (self.p2 + self.p4 <=1 and self.p8 + self.p7 + self.p6 >= 2):
+            '''e.g. [1, 0, 0]       [0, 0, 0]
+                    [1, 1, 0]       [1, 1, 0]
+                    [1, 1, 1]   or  [1, 1, 0]'''
+            return 'diagleft_down'
+        elif (self.p8 + self.p6 <= 1 and self.p2 + self.p3 + self.p4 >= 2):
+            '''e.g. [1, 1, 1]       [0, 1, 1]
+                    [0, 1, 1]       [0, 1, 1]
+                    [0, 0, 1]   or  [0, 0, 0]'''
+            return 'diagleft_up'
+        #else:
+        #    return 'save'
+
+    def _initialiseHeightFindingDict(self):
+        height_cropping_funcs = {}
+
+        height_cropping_funcs['horiz_left'] = self._getHorizontalLeftHeights
+        height_cropping_funcs['horiz_right'] = self._getHorizontalRightHeights
+        height_cropping_funcs['vert_up'] = self._getVerticalUpwardHeights
+        height_cropping_funcs['vert_down'] = self._getVerticalDonwardHeights
+        height_cropping_funcs['diagleft_up'] = self._getDiaganolLeftUpwardHeights
+        height_cropping_funcs['diagleft_down'] = self._getDiaganolLeftDownwardHeights
+        height_cropping_funcs['diagright_up'] = self._getHorizontalRightHeights
+        height_cropping_funcs['diagright_down'] = self._getHorizontalRightHeights
+        height_cropping_funcs['save'] = self._savePoint
+
+        return height_cropping_funcs
+
+    def _getHorizontalLeftHeights(self, x, y):
+        heights = []#[self.image_data[x,y]]
+
+        for i in range(-self.search_window, self.search_window):
+            if i == 0:
+                continue
+            heights.append(self.image_data[x - i, y])
+        return heights
+
+    def _getHorizontalRightHeights(self, x, y):
+        heights = []#[self.image_data[x,y]]
+
+        for i in range(-self.search_window, self.search_window):
+            if i == 0:
+                continue
+            heights.append(self.image_data[x + i, y])
+        return heights
+
+    def _getVerticalUpwardHeights(self, x, y):
+        heights = []#[self.image_data[x,y]]
+
+        for i in range(-self.search_window, self.search_window):
+            if i == 0:
+                continue
+            heights.append(self.image_data[x, y + i])
+        return heights
+
+    def _getVerticalDonwardHeights(self, x, y):
+        heights = []#[self.image_data[x,y]]
+
+        for i in range(-self.search_window, self.search_window):
+            if i == 0:
+                continue
+            heights.append(self.image_data[x, y - i])
+        return heights
+
+    def _getDiaganolLeftUpwardHeights(self, x, y):
+        heights = []#[self.image_data[x,y]]
+
+        for i in range(-self.search_window, self.search_window):
+            if i == 0:
+                continue
+            heights.append(self.image_data[x + i, y + i])
+        return heights
+
+    def _getDiaganolLeftDownwardHeights(self, x, y):
+        heights = []#[self.image_data[x,y]]
+
+        for i in range(-self.search_window, self.search_window):
+            if i == 0:
+                continue
+            heights.append(self.image_data[x - i, y - i])
+        return heights
+
+    def _getDiaganolRightUpwardHeights(self, x, y):
+        heights = []#[self.image_data[x,y]]
+
+        for i in range(-self.search_window, self.search_window):
+            if i == 0:
+                continue
+            heights.append(self.image_data[x - i, y + i])
+        return heights
+
+    def _getDiaganolRightDownwardHeights(self, x, y):
+        heights = []#[self.image_data[x,y]]
+
+        for i in range(-self.search_window, self.search_window):
+            if i == 0:
+                continue
+            heights.append(self.image_data[x + i, y - i])
+        return heights
+
+    def _condemnPoint(self,x ,y):
+        heights = []#[self.image_data[x,y]]
+
+        for i in range(1, self.search_window):
+            heights.append(10)
+        return heights
+
+    def _identifyHighestPoint(self, x, y, index_direction, indexed_heights):
+        highest_value = 0
+
+        offset = len(indexed_heights)/2
+
+        for num, height_value in enumerate(indexed_heights):
+            if height_value > highest_value:
+                highest_point = height_value
+                index_position = (num + 1)-offset
+
+        if index_direction == 'horiz_left':
+            return x - num, y
+        elif index_direction == 'horiz_right':
+            return x + num, y
+        elif index_direction == 'vert_up':
+            return x, y + num
+        elif index_direction == 'vert_down':
+            return x, y - num
+        elif index_direction == 'diagleft_up':
+            return x + num, y + num
+        elif index_direction == 'diagleft_down':
+            return x + num, y - num
+        elif index_direction == 'diagright_up':
+            return x - num, y + num
+        elif index_direction == 'diagright_down':
+            return x - num, y - num
+
+    def finalSkeletonisationIteration(self):
+
+        ''' A final skeletonisation iteration that removes "hanging" pixels.
+        Examples of such pixels are:
+
+                    [0, 0, 0]               [0, 1, 0]            [0, 0, 0]
+                    [0, 1, 1]               [0, 1, 1]            [0, 1, 1]
+            case 1: [0, 1, 0]   or  case 2: [0, 1, 0] or case 3: [1, 1, 0]
+
+        This is useful for the future functions that rely on local pixel environment
+        to make assessments about the overall shape/structure of traces '''
+
+        remaining_coordinates = np.argwhere(self.mask_being_skeletonised).tolist()
+
+        for x, y in remaining_coordinates:
+
+            self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(self.mask_being_skeletonised, x,y)
+
+            #Checks for case 1 pixels
+            if (self._binaryThinCheck_b_returncount() == 2 and
+                self._binaryFinalThinCheck_a()):
+                self.mask_being_skeletonised[x,y] = 0
+            #Checks for case 2 pixels
+            elif (self._binaryThinCheck_b_returncount() == 3 and
+                self._binaryFinalThinCheck_b()):
+                self.mask_being_skeletonised[x,y] = 0
+
+
+    def _binaryFinalThinCheck_a(self):
+
+        if self.p2 * self.p4 == 1:
+            return True
+        elif self.p4 * self.p6 == 1:
+            return True
+        elif self.p6 * self.p8 ==1:
+            return True
+        elif self.p8 * self.p2 == 1:
+            return True
+
+    def _binaryFinalThinCheck_b(self):
+
+        if self.p2 * self.p4 * self.p6 == 1:
+            return True
+        elif self.p4 * self.p6 * self.p8 == 1:
+            return True
+        elif self.p6 * self.p8 * self.p2 == 1:
+            return True
+        elif self.p8 * self.p2 * self.p4 == 1:
+            return True
+
+    def _binaryThinCheck_b_returncount(self):
+        count = 0
+
+        if [self.p2, self.p3] == [0,1]:
+            count += 1
+        if [self.p3, self.p4] == [0,1]:
+            count += 1
+        if [self.p4, self.p5] == [0,1]:
+            count += 1
+        if [self.p5, self.p6] == [0,1]:
+            count += 1
+        if [self.p6, self.p7] == [0,1]:
+            count += 1
+        if [self.p7, self.p8] == [0,1]:
+            count += 1
+        if [self.p8, self.p9] == [0,1]:
+            count += 1
+        if [self.p9, self.p2] == [0,1]:
+            count += 1
+
+        return count
+
+    def pruneSkeleton(self):
+
+        '''Function to remove the hanging branches from the skeletons - these
+        are a persistent problem in the overall tracing process. '''
+
+        number_of_branches = 0
+        coordinates = np.argwhere(self.mask_being_skeletonised == 1).tolist()
+
+        #The branches are typicall short so if a branch is longer than a quarter
+        #of the total points its assumed to be part of the real data
+        length_of_trace = len(coordinates)
+        max_branch_length = int(length_of_trace * 0.15)
+
+        #first check to find all the end coordinates in the trace
+        potential_branch_ends = []
+        for x, y in coordinates:
+            if genTracingFuncs.countNeighbours(x,y,coordinates) == 1:
+                potential_branch_ends.append([x,y])
+
+        #Now check if its a branch - and if it is delete it
+        for x_b, y_b in potential_branch_ends:
+            branch_coordinates = [[x_b,y_b]]
+            branch_continues = True
+            temp_coordinates = coordinates[:]
+            temp_coordinates.pop(temp_coordinates.index([x_b,y_b]))
+
+            count = 0
+
+            while branch_continues:
+                no_of_neighbours, neighbours = genTracingFuncs.countandGetNeighbours(x_b,y_b,temp_coordinates)
+
+                #If branch continues
+                if no_of_neighbours == 1:
+                    x_b, y_b = neighbours[0]
+                    branch_coordinates.append([x_b,y_b])
+                    temp_coordinates.pop(temp_coordinates.index([x_b,y_b]))
+
+                #If the branch reaches the edge of the main trace
+                elif no_of_neighbours > 1:
+                    branch_coordinates.pop(branch_coordinates.index([x_b,y_b]))
+                    branch_continues = False
+                    is_branch = True
+                #Weird case that happens sometimes
+                elif no_of_neighbours == 0:
+                    is_branch = True
+                    branch_continues = False
+
+                if len(branch_coordinates) > max_branch_length:
+                    branch_continues = False
+                    is_branch = False
+
+            if is_branch:
+                number_of_branches +=1
+                for x,y in branch_coordinates:
+                    self.mask_being_skeletonised[x,y] = 0
+
+        remaining_coordinates = np.argwhere(self.mask_being_skeletonised)
+
+        if number_of_branches == 0:
+            self.pruning = False
+
+
 class reorderTrace:
 
     @staticmethod
     def linearTrace(trace_coordinates):
 
-        '''My own (quite simple) function to order the points from a linear trace.
+        '''My own function to order the points from a linear trace.
 
         This works by checking the local neighbours for a given pixel (starting
         at one of the ends). If this pixel has only one neighbour in the array
@@ -244,11 +601,7 @@ class reorderTrace:
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(neighbour_array[0]))
                 continue
             elif no_of_neighbours > 1:
-                try:
-                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
-                except IndexError:
-                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array, compare = False)
-
+                best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
                 ordered_points.append(best_next_pixel)
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(best_next_pixel))
                 continue
@@ -306,16 +659,19 @@ class reorderTrace:
                 continue
 
             elif no_of_neighbours > 1:
-                try:
-                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
-                except IndexError:
-                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array, compare = False)
-
+                best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
                 ordered_points.append(best_next_pixel)
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(best_next_pixel))
                 continue
+
             elif len(ordered_points) > len(trace_coordinates):
-                break
+                if abs(math.hypot(ordered_points[0][0] - ordered_points[-1][0], ordered_points[0][1]-ordered_points[-1][1])) > 5:
+                    #print(math.hypot(ordered_points[0][0] - ordered_points[-1][0], ordered_points[0][1]-ordered_points[-1][1]))
+                    ordered_points.pop(-1)
+                    ordered_points = reorderTrace.linearTrace(ordered_points)
+                    return np.array(ordered_points), False
+                else:
+                    break
 
             elif no_of_neighbours == 0:
                 #Check if the tracing is finished
@@ -324,24 +680,16 @@ class reorderTrace:
                     break
                 #Maybe at a crossing with all neighbours deleted
                 else:
-                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array_all_coords, compare = False)
+                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array_all_coords)
                     ordered_points.append(best_next_pixel)
-                    #trace_coordinates.pop(trace_coordinates.index(best_next_pixel))
                     if count > 1000:
-                        #print(len(ordered_points))
-                        #print(len(trace_coordinates))
-                        #print(ordered_points[-2])
-                        #print(ordered_points[-1])
-                        #np_array_1 = np.array(ordered_points)
-                        #np_array_2 = np.array(remaining_unordered_coords)
-                        #plt.plot(np_array_1[:,0], np_array_1[:,1])
-                        #plt.plot(np_array_2[:,0], np_array_2[:,1], '.')
-                        #plt.show()
-                        break
+                        raise ValueError
+                        ordered_points = reorderTrace.linearTrace(ordered_points)
+                        return np.array(ordered_points), False
                     continue
 
         ordered_points.append(ordered_points[0])
-        return np.array(ordered_points)
+        return np.array(ordered_points), True
 
     @staticmethod
     def circularTrace_old(trace_coordinates):
@@ -492,11 +840,17 @@ class genTracingFuncs:
         return number_of_neighbours, neighbour_array
 
     @staticmethod
-    def checkVectorsCandidatePoints(x, y, ordered_points, candidate_points, compare = True):
+    def checkVectorsCandidatePoints(x, y, ordered_points, candidate_points):
 
         '''Finds which neighbouring pixel incurs the smallest angular change
-        with reference to a previous pixel in the ordered trace and chooses that
+        with reference to a previous pixel in the ordered trace, and chooses that
         as the next point '''
+
+        if len(ordered_points) > 5:
+            compare = True
+        else:
+            compare = False
+
         if compare:
             #Calculate reference angle
             x_1 = ordered_points[-4][0]
