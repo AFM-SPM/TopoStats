@@ -585,6 +585,8 @@ class reorderTrace:
                 trace_coordinates.pop(i)
                 break
 
+
+
         remaining_unordered_coords = trace_coordinates[:]
 
         while remaining_unordered_coords:
@@ -668,7 +670,7 @@ class reorderTrace:
                 if abs(math.hypot(ordered_points[0][0] - ordered_points[-1][0], ordered_points[0][1]-ordered_points[-1][1])) > 5:
                     #print(math.hypot(ordered_points[0][0] - ordered_points[-1][0], ordered_points[0][1]-ordered_points[-1][1]))
                     ordered_points.pop(-1)
-                    ordered_points = reorderTrace.linearTrace(ordered_points)
+                    #ordered_points = reorderTrace.linearTrace(ordered_points)
                     return np.array(ordered_points), False
                 else:
                     break

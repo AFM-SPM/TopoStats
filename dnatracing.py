@@ -156,6 +156,13 @@ class dnaTrace(object):
 
                 if not circle_tracing:
                     self.mol_is_circular[dna_num] = False
+                    try:
+                        self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.ordered_traces[dna_num].tolist())
+                    except UnboundLocalError:
+                        self.mol_is_circular.pop(dna_num)
+                        self.disordered_trace.pop(dna_num)
+                        self.grains.pop(dna_num)
+                        self.ordered_traces.pop(dna_num)
 
             elif not self.mol_is_circular[dna_num]: #and not self.mol_is_looped[dna_num]:
                 self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())

@@ -658,9 +658,9 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/test'
+    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/test'
 
-    # path = 'lengthtesting'
+    path = 'new_data/210 bp circular vs linear/'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -750,7 +750,7 @@ if __name__ == '__main__':
             data_nparray = gwyutils.data_field_data_as_array(datafield)
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
             #dna_traces.showTraces()
-            dna_traces.saveTraceFigures(filename, channel_name)
+            #dna_traces.saveTraceFigures(filename, channel_name)
             dna_traces.writeContourLengths(filename, channel_name)
             # Save out cropped files as images with no scales to a subfolder
             savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
