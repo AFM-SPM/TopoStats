@@ -42,7 +42,7 @@ s = gwy.gwy_app_settings_get()
 s["/module/pixmap/ztype"] = 0
 
 # Define the settings for image processing functions e.g. align rows here
-s['/module/linematch/method'] = 2  # uses median
+s['/module/linematch/method'] = 1  # uses median keep as 1
 s["/module/linematch/max_degree"] = 2
 s["/module/polylevel/col_degree"] = 2
 
@@ -658,9 +658,9 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    #path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Code/Images/test'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/test'
 
-    path = 'new_data'
+    # path = 'new_data'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
