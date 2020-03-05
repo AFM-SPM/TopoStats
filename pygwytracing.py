@@ -164,18 +164,18 @@ def editfile(data, k):
     datafield.grains_mark_height(mask, 10, False)
 
     # Re-do polynomial correction with masked height
-    #s["/module/polylevel/masking"] = 0
-    #gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
+    s["/module/polylevel/masking"] = 0
+    gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
 
     # Re-do align rows with masked heights
     s["/module/linematch/masking"] = 0
     gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
 
-    #s["/module/polylevel/masking"] = 1
-    #gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
+    s["/module/polylevel/masking"] = 1
+    gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
 
     # flatten base
-    #gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
+    gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
 
     # remove scars
     gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
@@ -658,9 +658,9 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/test'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/251 bp circular'
 
-    path = 'new_data/210 bp circular vs linear/'
+    # path = 'new_data/210 bp circular vs linear/'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -668,7 +668,7 @@ if __name__ == '__main__':
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
     # Set height scale values to save out
-    minheightscale = -1e-9
+    minheightscale = -3e-9
     maxheightscale = 3e-9
     # Set minimum size for grain determination:
     minarea = 300e-9

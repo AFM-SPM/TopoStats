@@ -278,13 +278,7 @@ def seaplotting(df, arg1, arg2, bins, directory, extension):
 # This the main script
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/PLL NaOAc'
-    path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
-    # path = '/Users/alice/Dropbox/UCL/DNA on PLL PEG/data/Processed/GrainStatistics'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Test'
-    # path = '/Users/alicepyne/Dropbox/UCL/Kavit/mmc presentation data/DNA Immobilisation'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/PLL'
-    # path = '/Users/alice/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/DNA/339/Nickel'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/251 bp circular'
 
     # Set the name of the json file to import here
     name = '*.json'
