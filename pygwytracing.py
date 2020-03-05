@@ -42,7 +42,7 @@ s = gwy.gwy_app_settings_get()
 s["/module/pixmap/ztype"] = 0
 
 # Define the settings for image processing functions e.g. align rows here
-s['/module/linematch/method'] = 1  # uses median keep as 1
+s['/module/linematch/method'] = 2  # uses median
 s["/module/linematch/max_degree"] = 2
 s["/module/polylevel/col_degree"] = 2
 
@@ -123,7 +123,7 @@ def heightediting(data, k):
 
     # Re-do polynomial correction with masked height
     s["/module/polylevel/masking"] = 1
-    #gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
+    gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
 
     # Re-do align rows with masked heights
     s["/module/linematch/masking"] = 1
@@ -135,7 +135,7 @@ def heightediting(data, k):
     # Gaussian filter to remove noise
     current_data = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
 
-    filter_width = 5/ dx*1e9
+    filter_width = 5 * dx*1e9
 
     current_data.filter_gaussian(filter_width)
 
@@ -151,13 +151,13 @@ def editfile(data, k):
     gwy.gwy_app_data_browser_select_data_field(data, k)
 
     # align rows
-    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+    #gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
 
     # flatten the data
     gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
 
     # align rows
-    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+    #gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
 
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
     mask = gwy.DataField.new_alike(datafield, False)
@@ -172,7 +172,7 @@ def editfile(data, k):
     gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
 
     #s["/module/polylevel/masking"] = 1
-    gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
+    #gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
 
     # flatten base
     #gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
@@ -185,7 +185,7 @@ def editfile(data, k):
 
     # Apply a 1.5 pixel gaussian filter
     data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    data_field.filter_gaussian(0.5* (dx*1e9))
+    data_field.filter_gaussian(0.5)
     # # Shift contrast - equivalent to 'fix zero'
     #datafield.add(-data_field.get_min())
 
@@ -201,7 +201,7 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
 
     mask = gwy.DataField.new_alike(datafield, False)
 
-    Gaussiansize = 0.3/ (dx*1e9)
+    Gaussiansize = 0.15e-9 / dx
     datafield.filter_gaussian(Gaussiansize)
 
     # Mask data that are above thresh*sigma from average height.
@@ -658,9 +658,9 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/test'
+    #path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Code/Images/test'
 
-    # path = 'new_data'
+    path = 'lengthtesting'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -707,8 +707,7 @@ if __name__ == '__main__':
         # Or just use first height/height sensor channel to avoid duplicating
         # for k in chosen_ids:
         # Option if you want to only choose one channel for each file being analysed
-        for num, k in enumerate(chosen_ids):
-            #print(k)
+        for k in chosen_ids:
             # Get all the image details eg resolution for your chosen channel
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
 
@@ -745,8 +744,7 @@ if __name__ == '__main__':
             if max(grains) == 0:
                 continue
 
-            channel_name = channels[num] + str(num+1)
-            print('Analysing %s from image %s' % (channel_name, filename))
+            channel_name = channels[k] + str(k+1)
 
             #trace the DNA molecules - can compute stats etc as needed
             data_nparray = gwyutils.data_field_data_as_array(datafield)
