@@ -752,6 +752,15 @@ if __name__ == '__main__':
             #dna_traces.showTraces()
             #dna_traces.saveTraceFigures(filename, channel_name)
             dna_traces.writeContourLengths(filename, channel_name)
+
+            #Update the pandas Dataframe used to monitor stats
+            try:
+                tracing_stats.updateTraceStats(dna_traces)
+            except NameError:
+                print('name Error')
+                tracing_stats = dnatracing.tracestats(dna_traces)
+
+
             # Save out cropped files as images with no scales to a subfolder
             savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 

@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import ndimage, spatial, interpolate as interp
 from skimage import morphology, filters
@@ -71,6 +72,7 @@ class dnaTrace(object):
         gwyddion and how they're usually handled in np arrays meaning you need
         to be careful when indexing from gwyddion derived numpy arrays'''
 
+        print(self.afm_image_name)
 
         for grain_num in set(self.gwyddion_grains):
             #Skip the background
@@ -546,3 +548,66 @@ class dnaTrace(object):
             writing_file.write('#units: nm\n')
             for dna_num in sorted(self.contour_lengths.keys()):
                 writing_file.write('%f \n' % self.contour_lengths[dna_num])
+
+class tracestats(object):
+
+    ''' Class used to report on the stats for all the traced molecules in the
+    given directory '''
+
+    def __init__(self, trace_object):
+
+        self.trace_object = trace_object
+
+        self.pd_dataframe = []
+
+        self.createTraceStatsObject()
+
+    def createTraceStatsObject(self):
+
+        '''Creates a pandas dataframe with the shape:
+
+        dna_num     directory       contourLength   Circular
+        1           exp_dir         200             True
+        2           exp_dir         210             False
+        3           exp_dir2        100             True
+        '''
+
+        data_dict = {}
+
+        trace_directory = self.trace_object.afm_image_name.split('/')[-2]
+        
+        for dna_num in sorted(self.trace_object.ordered_traces.keys()):
+
+            try:
+                data_dict['Experiment Directory'].append(trace_directory)
+                data_dict['Contour Lengths (nm)'].append(self.trace_object.contour_lengths[dna_num])
+                data_dict['Circular'].append(self.trace_object.mol_is_circular[dna_num])
+            except KeyError:
+                data_dict['Experiment Directory'] = [trace_directory]
+                data_dict['Contour Lengths (nm)'] = [self.trace_object.contour_lengths[dna_num]]
+                data_dict['Circular'] = [self.trace_object.mol_is_circular[dna_num]]
+
+        self.pd_dataframe = pd.DataFrame(data=data_dict)
+
+    def updateTraceStats(self, new_traces):
+
+        data_dict = {}
+
+        print('calling updateStats')
+
+        trace_directory = self.trace_object.afm_image_name.split('/')[-2]
+
+        for dna_num in sorted(self.trace_object.ordered_traces.keys()):
+
+            try:
+                data_dict['Experiment Directory'].append(trace_directory)
+                data_dict['Contour Lengths (nm)'].append(self.trace_object.contour_lengths[dna_num])
+                data_dict['Circular'].append(self.trace_object.mol_is_circular[dna_num])
+            except KeyError:
+                data_dict['Experiment Directory'] = [trace_directory]
+                data_dict['Contour Lengths (nm)'] = [self.trace_object.contour_lengths[dna_num]]
+                data_dict['Circular'] = [self.trace_object.mol_is_circular[dna_num]]
+        print('wtf')
+        pd_new_traces_dframe = pd.DataFrame(data=data_dict)
+
+        self.pd_dataframe = self.pd_dataframe.append(pd_new_traces_dframe, ignore_index = True)
