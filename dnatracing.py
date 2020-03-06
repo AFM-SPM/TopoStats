@@ -575,14 +575,16 @@ class tracestats(object):
         data_dict = {}
 
         trace_directory = self.trace_object.afm_image_name.split('/')[-2]
-        
-        for dna_num in sorted(self.trace_object.ordered_traces.keys()):
+
+        for mol_num, dna_num in enumerate(sorted(self.trace_object.ordered_traces.keys())):
 
             try:
+                data_dict['Molecule number'].append(mol_num)
                 data_dict['Experiment Directory'].append(trace_directory)
                 data_dict['Contour Lengths (nm)'].append(self.trace_object.contour_lengths[dna_num])
                 data_dict['Circular'].append(self.trace_object.mol_is_circular[dna_num])
             except KeyError:
+                data_dict['Molecule number'] = [mol_num]
                 data_dict['Experiment Directory'] = [trace_directory]
                 data_dict['Contour Lengths (nm)'] = [self.trace_object.contour_lengths[dna_num]]
                 data_dict['Circular'] = [self.trace_object.mol_is_circular[dna_num]]
@@ -597,17 +599,23 @@ class tracestats(object):
 
         trace_directory = self.trace_object.afm_image_name.split('/')[-2]
 
-        for dna_num in sorted(self.trace_object.ordered_traces.keys()):
+        for mol_num, dna_num in enumerate(sorted(self.trace_object.ordered_traces.keys())):
 
             try:
+                data_dict['Molecule number'].append(mol_num)
                 data_dict['Experiment Directory'].append(trace_directory)
                 data_dict['Contour Lengths (nm)'].append(self.trace_object.contour_lengths[dna_num])
                 data_dict['Circular'].append(self.trace_object.mol_is_circular[dna_num])
             except KeyError:
+                data_dict['Molecule number'] = [mol_num]
                 data_dict['Experiment Directory'] = [trace_directory]
                 data_dict['Contour Lengths (nm)'] = [self.trace_object.contour_lengths[dna_num]]
                 data_dict['Circular'] = [self.trace_object.mol_is_circular[dna_num]]
-        print('wtf')
+
         pd_new_traces_dframe = pd.DataFrame(data=data_dict)
 
         self.pd_dataframe = self.pd_dataframe.append(pd_new_traces_dframe, ignore_index = True)
+
+    def saveTraceStats(self):
+
+        self.pd_dataframe.to_json('allTraceData_%s.json' % self.trace_object.afm_image_name.split('/')[0])

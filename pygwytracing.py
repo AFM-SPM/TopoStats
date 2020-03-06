@@ -658,9 +658,9 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/251 bp circular'
+    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/251 bp circular'
 
-    # path = 'new_data/210 bp circular vs linear/'
+    path = 'new_data/210 bp circular vs linear/'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -779,6 +779,7 @@ if __name__ == '__main__':
         # Save modified files as gwyddion files
         # savefilesasgwy(data, filename)
 
+    tracing_stats.saveTraceStats()
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = getdataforallfiles(appended_data)
     # # Search dataframes and return a new dataframe of only files containing a specific string
