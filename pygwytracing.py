@@ -757,7 +757,6 @@ if __name__ == '__main__':
             try:
                 tracing_stats.updateTraceStats(dna_traces)
             except NameError:
-                print('name Error')
                 tracing_stats = dnatracing.tracestats(dna_traces)
 
 
