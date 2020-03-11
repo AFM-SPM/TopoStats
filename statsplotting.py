@@ -20,6 +20,39 @@ sns.set_context("poster", font_scale=1.2)
 # plt.style.use("dark_background")
 
 
+def plotHistogramOfTwoDataSets(data_frame_path, dataset_1_name, dataset_2_name):
+    pass
+
+
+def plotAllContourLengthHistograms(data_frame_path):
+
+    contour_lengths_df = pd.read_json(data_frame_path)
+    sns.set()
+
+    nbins = np.linspace(-10,10,30)
+
+    project_names = set(contour_lengths_df['Experiment Directory'].array)
+    #print(project_names)
+
+    for name in project_names:
+
+        
+        temp_df = contour_lengths_df.loc[contour_lengths_df['Experiment Directory'] == name ]
+
+        plt.hist(temp_df['Contour Lengths'], 50, histtype= 'bar', label = name)
+
+        try:
+            hist_data.append(temp_df['Contour Lengths'])
+        except NameError:
+            hist_data = [temp_df['Contour Lengths']]
+
+        #plt.hist(hist_data, 50, histtype= 'bar', label = project_names)
+            #sns.distplot(temp_df['Contour Lengths'])
+    plt.legend(loc='upper right')
+    plt.show()
+
+
+
 def importfromjson(path, name):
     filename = os.path.join(path, name + '.json')
     importeddata = pd.read_json(filename)
@@ -280,6 +313,10 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/251 bp circular'
 
+    file_name = 'allTraceData_new_data.json'
+
+    plotAllContourLengthHistograms(file_name)
+
     # Set the name of the json file to import here
     name = '*.json'
     name = 'Nickel'
@@ -399,5 +436,3 @@ if __name__ == '__main__':
         # g.map_diag(sns.kdeplot)
         # g.map_lower(sns.kdeplot)
         # g.map_upper(plt.scatter)
-
-

@@ -628,28 +628,3 @@ class traceStats(object):
         self.pd_dataframe.to_json('allTraceData_%s.json' % self.trace_object.afm_image_name.split('/')[0])
 
         print('Saved trace info for all analysed images into: allTraceData_%s.json' % self.trace_object.afm_image_name.split('/')[0])
-
-    def plotAllContourLengthHistograms(self):
-
-        #contour_lengths_df = pd.read_json(data_frame_path)
-
-        sns.set()
-
-        nbins = np.linspace(-10,10,30)
-
-        project_names = set(self.pd_dataframe['Experiment Directory'])
-
-        for name in project_names:
-            temp_df = self.pd_dataframe.loc[self.pd_dataframe['Experiment Directory'] == name ]
-
-            plt.hist(temp_df['Contour Lengths'], 500, histtype= 'bar', label = name)
-
-            try:
-                hist_data.append(temp_df['Contour Lengths'])
-            except NameError:
-                hist_data = [temp_df['Contour Lengths']]
-
-        #plt.hist(hist_data, 50, histtype= 'bar', label = project_names)
-            #sns.distplot(temp_df['Contour Lengths'])
-        plt.legend(loc='upper right')
-        plt.show()
