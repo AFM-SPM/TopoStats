@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 from scipy import ndimage, spatial, interpolate as interp
 from skimage import morphology, filters
 import math
@@ -170,6 +171,7 @@ class dnaTrace(object):
                 self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
 
     def reportBasicStats(self):
+        self.determineLinearOrCircular()
         print('There are %i circular and %i linear DNA molecules found in the image' % (self.num_circular, self.num_linear))
 
 
@@ -549,7 +551,7 @@ class dnaTrace(object):
             for dna_num in sorted(self.contour_lengths.keys()):
                 writing_file.write('%f \n' % self.contour_lengths[dna_num])
 
-class tracestats(object):
+class traceStats(object):
 
     ''' Class used to report on the stats for all the traced molecules in the
     given directory '''
@@ -566,27 +568,29 @@ class tracestats(object):
 
         '''Creates a pandas dataframe with the shape:
 
-        dna_num     directory       contourLength   Circular
-        1           exp_dir         200             True
-        2           exp_dir         210             False
-        3           exp_dir2        100             True
+        dna_num     directory       ImageName   contourLength   Circular
+        1           exp_dir         img1_name   200             True
+        2           exp_dir         img2_name   210             False
+        3           exp_dir2        img3_name   100             True
         '''
 
         data_dict = {}
 
         trace_directory = self.trace_object.afm_image_name.split('/')[-2]
-
+        img_name = self.trace_object.afm_image_name.split('/')[-1]
         for mol_num, dna_num in enumerate(sorted(self.trace_object.ordered_traces.keys())):
 
             try:
                 data_dict['Molecule number'].append(mol_num)
+                data_dict['Image Name'].append(img_name)
                 data_dict['Experiment Directory'].append(trace_directory)
-                data_dict['Contour Lengths (nm)'].append(self.trace_object.contour_lengths[dna_num])
+                data_dict['Contour Lengths'].append(self.trace_object.contour_lengths[dna_num])
                 data_dict['Circular'].append(self.trace_object.mol_is_circular[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
+                data_dict['Image Name'] = [img_name]
                 data_dict['Experiment Directory'] = [trace_directory]
-                data_dict['Contour Lengths (nm)'] = [self.trace_object.contour_lengths[dna_num]]
+                data_dict['Contour Lengths'] = [self.trace_object.contour_lengths[dna_num]]
                 data_dict['Circular'] = [self.trace_object.mol_is_circular[dna_num]]
 
         self.pd_dataframe = pd.DataFrame(data=data_dict)
@@ -595,27 +599,57 @@ class tracestats(object):
 
         data_dict = {}
 
-        print('calling updateStats')
+        trace_directory = new_traces.afm_image_name.split('/')[-2]
+        img_name = new_traces.afm_image_name.split('/')[-1]
 
-        trace_directory = self.trace_object.afm_image_name.split('/')[-2]
 
-        for mol_num, dna_num in enumerate(sorted(self.trace_object.ordered_traces.keys())):
+        for mol_num, dna_num in enumerate(sorted(new_traces.contour_lengths.keys())):
 
             try:
                 data_dict['Molecule number'].append(mol_num)
+                data_dict['Image Name'].append(img_name)
                 data_dict['Experiment Directory'].append(trace_directory)
-                data_dict['Contour Lengths (nm)'].append(self.trace_object.contour_lengths[dna_num])
-                data_dict['Circular'].append(self.trace_object.mol_is_circular[dna_num])
+                data_dict['Contour Lengths'].append(new_traces.contour_lengths[dna_num])
+                data_dict['Circular'].append(new_traces.mol_is_circular[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
+                data_dict['Image Name'] = [img_name]
                 data_dict['Experiment Directory'] = [trace_directory]
-                data_dict['Contour Lengths (nm)'] = [self.trace_object.contour_lengths[dna_num]]
-                data_dict['Circular'] = [self.trace_object.mol_is_circular[dna_num]]
+                data_dict['Contour Lengths'] = [new_traces.contour_lengths[dna_num]]
+                data_dict['Circular'] = [new_traces.mol_is_circular[dna_num]]
 
         pd_new_traces_dframe = pd.DataFrame(data=data_dict)
 
         self.pd_dataframe = self.pd_dataframe.append(pd_new_traces_dframe, ignore_index = True)
 
+
     def saveTraceStats(self):
 
         self.pd_dataframe.to_json('allTraceData_%s.json' % self.trace_object.afm_image_name.split('/')[0])
+
+        print('Saved trace info for all analysed images into: allTraceData_%s.json' % self.trace_object.afm_image_name.split('/')[0])
+
+    def plotAllContourLengthHistograms(self):
+
+        #contour_lengths_df = pd.read_json(data_frame_path)
+
+        sns.set()
+
+        nbins = np.linspace(-10,10,30)
+
+        project_names = set(self.pd_dataframe['Experiment Directory'])
+
+        for name in project_names:
+            temp_df = self.pd_dataframe.loc[self.pd_dataframe['Experiment Directory'] == name ]
+
+            plt.hist(temp_df['Contour Lengths'], 500, histtype= 'bar', label = name)
+
+            try:
+                hist_data.append(temp_df['Contour Lengths'])
+            except NameError:
+                hist_data = [temp_df['Contour Lengths']]
+
+        #plt.hist(hist_data, 50, histtype= 'bar', label = project_names)
+            #sns.distplot(temp_df['Contour Lengths'])
+        plt.legend(loc='upper right')
+        plt.show()
