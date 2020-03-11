@@ -660,7 +660,7 @@ if __name__ == '__main__':
 
     #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/251 bp circular'
 
-    path = 'new_data/210 bp circular vs linear/'
+    path = 'new_data'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -744,7 +744,10 @@ if __name__ == '__main__':
             if max(grains) == 0:
                 continue
 
-            channel_name = channels[k] + str(k+1)
+            try:
+                channel_name = channels[k] + str(k+1)
+            except IndexError:
+                channel_name = 'ZSensor'
 
             #trace the DNA molecules - can compute stats etc as needed
             data_nparray = gwyutils.data_field_data_as_array(datafield)
@@ -757,7 +760,7 @@ if __name__ == '__main__':
             try:
                 tracing_stats.updateTraceStats(dna_traces)
             except NameError:
-                tracing_stats = dnatracing.tracestats(dna_traces)
+                tracing_stats = dnatracing.traceStats(dna_traces)
 
 
             # Save out cropped files as images with no scales to a subfolder
@@ -779,6 +782,7 @@ if __name__ == '__main__':
         # Save modified files as gwyddion files
         # savefilesasgwy(data, filename)
 
+    #tracing_stats.plotAllContourLengthHistograms()
     tracing_stats.saveTraceStats()
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = getdataforallfiles(appended_data)
