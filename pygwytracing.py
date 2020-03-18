@@ -782,8 +782,7 @@ if __name__ == '__main__':
         # Save modified files as gwyddion files
         # savefilesasgwy(data, filename)
 
-    #tracing_stats.plotAllContourLengthHistograms()
-    tracing_stats.saveTraceStats()
+    tracing_stats.saveTraceStats(path)
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = getdataforallfiles(appended_data)
     # # Search dataframes and return a new dataframe of only files containing a specific string
