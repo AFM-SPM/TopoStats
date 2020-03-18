@@ -36,10 +36,10 @@ def plotAllContourLengthHistograms(data_frame_path):
 
     for name in project_names:
 
-        
+
         temp_df = contour_lengths_df.loc[contour_lengths_df['Experiment Directory'] == name ]
 
-        plt.hist(temp_df['Contour Lengths'], 50, histtype= 'bar', label = name)
+        plt.hist(temp_df['Contour Lengths'], 20, histtype= 'bar', label = name)
 
         try:
             hist_data.append(temp_df['Contour Lengths'])
@@ -49,7 +49,13 @@ def plotAllContourLengthHistograms(data_frame_path):
         #plt.hist(hist_data, 50, histtype= 'bar', label = project_names)
             #sns.distplot(temp_df['Contour Lengths'])
     plt.legend(loc='upper right')
-    plt.show()
+    plt.xlabel('Contour Length (nm)')
+    plt.ylabel('Occurence')
+
+    save_file_name = data_frame_path.split('/')
+
+    plt.savefig('%s.png' % data_frame_path[:-4])
+    plt.savefig('%s.svg' % data_frame_path[:-4])
 
 
 
