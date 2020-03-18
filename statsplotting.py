@@ -24,9 +24,9 @@ def plotHistogramOfTwoDataSets(data_frame_path, dataset_1_name, dataset_2_name):
     pass
 
 
-def plotAllContourLengthHistograms(data_frame_path):
+def plotAllContourLengthHistograms(json_path):
 
-    contour_lengths_df = pd.read_json(data_frame_path)
+    contour_lengths_df = pd.read_json(json_path)
     sns.set()
 
     nbins = np.linspace(-10,10,30)
@@ -52,11 +52,39 @@ def plotAllContourLengthHistograms(data_frame_path):
     plt.xlabel('Contour Length (nm)')
     plt.ylabel('Occurence')
 
-    save_file_name = data_frame_path.split('/')
+    save_file_name = json_path.split('/')
 
-    plt.savefig('%s.png' % data_frame_path[:-4])
-    plt.savefig('%s.svg' % data_frame_path[:-4])
+    plt.savefig('%s.png' % json_path[:-4])
+    plt.savefig('%s.svg' % json_path[:-4])
+    plt.close()
 
+def plotLinearVsCircular(json_path):
+    sns.set(style = 'whitegrid')
+    pal = sns.color_palette()
+
+    contour_lengths_df = pd.read_json(json_path)
+
+    linear_contour_lengths = contour_lengths_df.loc[contour_lengths_df['Circular'] == False]
+    circular_contour_lengths = contour_lengths_df.loc[contour_lengths_df['Circular'] == True]
+
+    plt.hist([circular_contour_lengths['Contour Lengths'].array, linear_contour_lengths['Contour Lengths'].array], 25, histtype = 'bar', label = ['Linear Molecules', 'Circular Molecules'])
+    plt.xlabel('Contour Length (nm)')
+    plt.ylabel('Occurence')
+    plt.legend(loc='upper right')
+    plt.title('%s Linear vs Circular' % json_path[:-4])
+    plt.savefig('%s_linearVcircularHist.png' % json_path[:-4])
+    plt.savefig('%s_linearVcircularHist.svg' % json_path[:-4])
+    plt.close()
+
+    num_lin_circ_df = pd.DataFrame(data = {'Linear' : [len(circular_contour_lengths)], 'Circular' : [len(linear_contour_lengths)]})
+
+    sns.barplot(data = num_lin_circ_df, order = ['Linear', 'Circular'])
+    plt.xlabel('Linear or Circular')
+    plt.ylabel('Occurence')
+    plt.title('%s Linear vs Circular' % json_path[:-4])
+    plt.savefig('%s_barplot.png' % json_path[:-4])
+    plt.savefig('%s_barplot.svg' % json_path[:-4])
+    plt.close()
 
 
 def importfromjson(path, name):
@@ -319,9 +347,10 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/251 bp circular'
 
-    file_name = 'allTraceData_new_data.json'
+    file_name = 'new_data/tracestats.json'
 
     plotAllContourLengthHistograms(file_name)
+    plotLinearVsCircular(file_name)
 
     # Set the name of the json file to import here
     name = '*.json'
