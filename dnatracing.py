@@ -623,8 +623,18 @@ class traceStats(object):
         self.pd_dataframe = self.pd_dataframe.append(pd_new_traces_dframe, ignore_index = True)
 
 
-    def saveTraceStats(self):
+    def saveTraceStats(self, save_path):
+        save_file_name = ''
 
-        self.pd_dataframe.to_json('allTraceData_%s.json' % self.trace_object.afm_image_name.split('/')[0])
+        if save_path[-1] == '/':
+            pass
+        else:
+            save_path = save_path + '/'
 
-        print('Saved trace info for all analysed images into: allTraceData_%s.json' % self.trace_object.afm_image_name.split('/')[0])
+        for i in self.trace_object.afm_image_name.split('/')[:-1]:
+            save_file_name = save_file_name + i + '/'
+        print(save_file_name)
+
+        self.pd_dataframe.to_json('%stracestats.json' % save_path)
+
+        print('Saved trace info for all analysed images into: %stracestats.json' % save_path)
