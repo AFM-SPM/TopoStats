@@ -1,17 +1,18 @@
 import sys
-sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages')
-sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy')
-sys.path.append('/usr/share/gwyddion/pygwy/')
+sys.path.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # location of gwy.so file (Macports install)
+sys.path.append('/opt/local/share/gwyddion/pygwy') # # location of gwyutils.py file (Macports install)
+
+# sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # Homebrew install on Mac
+# sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy') # Homebrew install on Mac
+
+# sys.path.append('/usr/share/gwyddion/pygwy/') # Windows
 
 import pygtk
 pygtk.require20() # adds gtk-2.0 folder to sys.path
 import gwy
-
-
 import fnmatch
 import gwyutils
 import os
-
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -658,9 +659,9 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/251 bp circular'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/251 bp circular'
 
-    path = 'new_data'
+    # path = 'new_data'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -782,7 +783,7 @@ if __name__ == '__main__':
         # Save modified files as gwyddion files
         # savefilesasgwy(data, filename)
 
-    tracing_stats.saveTraceStats(path)
+    # tracing_stats.saveTraceStats(path)
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = getdataforallfiles(appended_data)
     # # Search dataframes and return a new dataframe of only files containing a specific string
