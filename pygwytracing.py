@@ -661,6 +661,7 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
 
     path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fig 3 for tracing'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/test'
 
     # path = 'new_data'

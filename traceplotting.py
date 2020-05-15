@@ -242,6 +242,8 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     plt.savefig(savename)
 
     print kdemax
+    print dfstd
+    print dfste
 
     savename2 = os.path.join(savedir, name + plotarg + '_KDE_max' + plotextension)
     fig = plt.figure(figsize=(10, 7))
@@ -319,3 +321,17 @@ if __name__ == '__main__':
     #     plothisti(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths', i, 'black')
     #
 
+    # # T test testing
+    # df116 = df[df['Experiment Directory'] == '116 bp']
+    # df210 = df[df['Experiment Directory'] == '210 bp']
+    # df256 = df[df['Experiment Directory'] == '256 bp']
+    # df339 = df[df['Experiment Directory'] == '339 bp']
+    # df357 = df[df['Experiment Directory'] == '357 bp']
+    # df398 = df[df['Experiment Directory'] == '398 bp']
+    # df116 = df116['Contour Lengths']
+    # df210 = df210['Contour Lengths']
+    # df256 = df256['Contour Lengths']
+    # df339 = df339['Contour Lengths']
+    # df357 = df357['Contour Lengths']
+    # df398 = df398['Contour Lengths']
+    # scipy.stats.ttest_ind(df116, df210, equal_var=False)
