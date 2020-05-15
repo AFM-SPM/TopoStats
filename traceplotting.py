@@ -265,6 +265,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
     name = 'tracestats.json'
     file_name = os.path.join(path, name)
     # file_name = 'new_data/tracestats.json'
@@ -284,7 +285,10 @@ if __name__ == '__main__':
     no_expmts = len(expmts)
 
     # Add column to calculate length
-    df['Calculated Length'] = df['Experiment Directory'].str.extract('(\d+)').astype(int)
+    # Use if file directories have words and numbers
+    # df['Calculated Length'] = df['Experiment Directory'].str.extract('(\d+)').astype(int)
+    # Use if file directories have numbers only
+    df['Calculated Length'] = df['Experiment Directory']
     df['Length'] = df['Calculated Length'] * 0.34
 
     # Plot proportion of linear and circular molecules
