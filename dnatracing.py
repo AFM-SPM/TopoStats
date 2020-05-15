@@ -105,7 +105,7 @@ class dnaTrace(object):
 
             #Some of the gwyddion grains still touch the border which causes a IndexError - this handles that by deleting such grains
             try:
-                dna_skeleton = getSkeleton(self.gauss_image, very_smoothed_grain, self.number_of_columns, self.number_of_rows, self.pixel_size)
+                dna_skeleton = getSkeleton(self.gauss_image, smoothed_grain, self.number_of_columns, self.number_of_rows, self.pixel_size)
                 self.disordered_trace[grain_num] = dna_skeleton.output_skeleton
             except IndexError:
                 self.grains.pop(grain_num)
@@ -454,11 +454,7 @@ class dnaTrace(object):
 
         plt.pcolor(self.full_image_data)
         plt.colorbar()
-        for dna_num in sorted(self.ordered_traces.keys()):
-            #disordered_trace_list = self.ordered_traces[dna_num].tolist()
-            #less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
-            plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1])
-        plt.savefig('%s_%s_orderedtrace.png'  % (save_file, channel_name))
+        plt.savefig('%s_%s_originalImage.png'  % (save_file, channel_name))
         plt.close()
 
         plt.pcolor(self.full_image_data)
@@ -467,8 +463,19 @@ class dnaTrace(object):
             #disordered_trace_list = self.ordered_traces[dna_num].tolist()
             #less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
             plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1])
+        plt.savefig('%s_%s_orderedtrace.png'  % (save_file, channel_name))
+        plt.close()
+
+        '''
+        plt.pcolor(self.full_image_data)
+        plt.colorbar()
+        for dna_num in sorted(self.ordered_traces.keys()):
+            #disordered_trace_list = self.ordered_traces[dna_num].tolist()
+            #less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
+            plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1])
         plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name))
         plt.close()
+        '''
 
         plt.pcolor(self.full_image_data)
         plt.colorbar()
