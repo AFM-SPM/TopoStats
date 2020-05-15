@@ -1,17 +1,18 @@
 import sys
-sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages')
-sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy')
-sys.path.append('/usr/share/gwyddion/pygwy/')
+sys.path.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # location of gwy.so file (Macports install)
+sys.path.append('/opt/local/share/gwyddion/pygwy') # # location of gwyutils.py file (Macports install)
+
+# sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # Homebrew install on Mac
+# sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy') # Homebrew install on Mac
+
+# sys.path.append('/usr/share/gwyddion/pygwy/') # Windows
 
 import pygtk
 pygtk.require20() # adds gtk-2.0 folder to sys.path
 import gwy
-
-
 import fnmatch
 import gwyutils
 import os
-
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -150,40 +151,41 @@ def editfile(data, k):
     # NONINTERACTIVE is only for file modules
     gwy.gwy_app_data_browser_select_data_field(data, k)
 
-    # align rows
-    #gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+    # align rows (b)
+    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
 
-    # flatten the data
+    # flatten the data (c)
     gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
 
-    # align rows
-    #gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+    # align rows (d)
+    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
 
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
     mask = gwy.DataField.new_alike(datafield, False)
     datafield.grains_mark_height(mask, 10, False)
 
-    # Re-do polynomial correction with masked height
+    # Re-do polynomial correction with masked height (e)
     s["/module/polylevel/masking"] = 0
     gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
 
-    # Re-do align rows with masked heights
+    # Re-do align rows with masked heights (f)
     s["/module/linematch/masking"] = 0
     gwy.gwy_process_func_run('align_rows', data, gwy.RUN_IMMEDIATE)
 
+    # Re-do level with masked heights (g)
     s["/module/polylevel/masking"] = 1
     gwy.gwy_process_func_run('polylevel', data, gwy.RUN_IMMEDIATE)
 
-    # flatten base
+    # flatten base (h)
     gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
 
-    # remove scars
+    # remove scars (i)
     gwy.gwy_process_func_run('scars_remove', data, gwy.RUN_IMMEDIATE)
 
-    # Fix zero
+    # Fix zero (j)
     gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
 
-    # Apply a 1.5 pixel gaussian filter
+    # Apply a 1.5 pixel gaussian filter (k)
     data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
     data_field.filter_gaussian(0.5)
     # # Shift contrast - equivalent to 'fix zero'
@@ -658,9 +660,11 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/251 bp circular'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/test'
 
-    path = 'new_data/357 bp circular'
+    # path = 'new_data'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
