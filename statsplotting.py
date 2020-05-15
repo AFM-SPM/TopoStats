@@ -39,14 +39,14 @@ def plotAllContourLengthHistograms(json_path):
 
         temp_df = contour_lengths_df.loc[contour_lengths_df['Experiment Directory'] == name ]
 
-        plt.hist(temp_df['Contour Lengths'], 20, histtype= 'bar', label = name)
+        #plt.hist(temp_df['Contour Lengths'], 20, histtype= 'bar', label = name)
 
         try:
             hist_data.append(temp_df['Contour Lengths'])
         except NameError:
             hist_data = [temp_df['Contour Lengths']]
 
-        #plt.hist(hist_data, 50, histtype= 'bar', label = project_names)
+    plt.hist(hist_data, 10, histtype= 'bar', label = project_names)
             #sns.distplot(temp_df['Contour Lengths'])
     plt.legend(loc='upper right')
     plt.xlabel('Contour Length (nm)')
