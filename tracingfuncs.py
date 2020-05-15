@@ -64,7 +64,7 @@ class getSkeleton(object):
 
         self.pruning = True
         while self.pruning:
-            self.pruneSkeleton()
+           self.pruneSkeleton()
 
         self.output_skeleton = np.argwhere(self.mask_being_skeletonised == 1)
 
@@ -498,16 +498,15 @@ class getSkeleton(object):
         number_of_branches = 0
         coordinates = np.argwhere(self.mask_being_skeletonised == 1).tolist()
 
-        #The branches are typicall short so if a branch is longer than a quarter
+        #The branches are typically short so if a branch is longer than a quarter
         #of the total points its assumed to be part of the real data
         length_of_trace = len(coordinates)
         max_branch_length = int(length_of_trace * 0.15)
 
+        #_deleteSquareEnds(coordinates)
+
         #first check to find all the end coordinates in the trace
-        potential_branch_ends = []
-        for x, y in coordinates:
-            if genTracingFuncs.countNeighbours(x,y,coordinates) == 1:
-                potential_branch_ends.append([x,y])
+        potential_branch_ends = self._findBranchEnds(coordinates)
 
         #Now check if its a branch - and if it is delete it
         for x_b, y_b in potential_branch_ends:
@@ -551,6 +550,20 @@ class getSkeleton(object):
         if number_of_branches == 0:
             self.pruning = False
 
+    def _findBranchEnds(self, coordinates):
+        potential_branch_ends = []
+
+        #Most of the branch ends are just points with one neighbour
+        for x, y in coordinates:
+            if genTracingFuncs.countNeighbours(x,y,coordinates) == 1:
+                potential_branch_ends.append([x,y])
+        #Find the ends that are 3/4 neighbouring points
+        return potential_branch_ends
+
+    def _deleteSquareEnds(self, coordinates):
+
+        for x, y in coordinates:
+            pass
 
 class reorderTrace:
 
