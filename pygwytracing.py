@@ -660,7 +660,7 @@ if __name__ == '__main__':
 
     #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/251 bp circular'
 
-    path = 'new_data'
+    path = 'new_data/357 bp circular'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
