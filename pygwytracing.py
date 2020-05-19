@@ -660,8 +660,8 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/test'
 
     # path = 'new_data'
@@ -709,9 +709,9 @@ if __name__ == '__main__':
         # Iterate over the chosen channels in your file e.g. the ZSensor channel
         # for k in chosen_ids:
         # Or just use first height/height sensor channel to avoid duplicating
-        # for k in chosen_ids:
+        for k in chosen_ids[:1]:
         # Option if you want to only choose one channel for each file being analysed
-        for k in chosen_ids:
+        # for k in chosen_ids:
             # Get all the image details eg resolution for your chosen channel
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
 
@@ -757,7 +757,7 @@ if __name__ == '__main__':
             data_nparray = gwyutils.data_field_data_as_array(datafield)
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
             #dna_traces.showTraces()
-            #dna_traces.saveTraceFigures(filename, channel_name)
+            # dna_traces.saveTraceFigures(filename, channel_name)
             dna_traces.writeContourLengths(filename, channel_name)
 
             #Update the pandas Dataframe used to monitor stats
@@ -768,7 +768,7 @@ if __name__ == '__main__':
 
 
             # Save out cropped files as images with no scales to a subfolder
-            savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            # savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 
             # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)
@@ -781,7 +781,7 @@ if __name__ == '__main__':
             # saveunknownfiles(data, filename, extension)
 
             # Saving stats to text and JSON files named by master path
-            saveindividualstats(filename, grainstats, k)
+            # saveindividualstats(filename, grainstats, k)
 
         # Save modified files as gwyddion files
         # savefilesasgwy(data, filename)
