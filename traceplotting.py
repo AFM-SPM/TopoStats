@@ -59,14 +59,20 @@ def plotAllContourLengthHistograms(json_path):
     plt.close()
 
 def plotLinearVsCircular(json_path):
+    # Create a saving name format/directory
+    # Create a saving name format/directory
+    savedir = os.path.join(os.path.dirname(file_name), 'Plots')
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
     contour_lengths_df = pd.read_json(json_path)
 
     linear_contour_lengths = contour_lengths_df.loc[contour_lengths_df['Circular'] == False]
     circular_contour_lengths = contour_lengths_df.loc[contour_lengths_df['Circular'] == True]
 
     plt.hist([circular_contour_lengths['Contour Lengths'].array, linear_contour_lengths['Contour Lengths'].array], 25, histtype = 'bar', label = ['Linear', 'Circular'])
-    plt.xlabel('Contour Length (nm)')
-    plt.ylabel('Occurence')
+    # plt.xlabel('Contour Length (nm)')
+    # plt.ylabel('Occurence')
     # plt.legend(loc='upper right')
     # plt.title('%s Linear vs Circular' % json_path[:-4])
     plt.savefig(os.path.join(os.path.dirname(file_name), 'Plots', 'linearVcircularHist.png'))
@@ -74,9 +80,10 @@ def plotLinearVsCircular(json_path):
     num_lin_circ_df = pd.DataFrame(data = {'Linear' : [len(circular_contour_lengths)], 'Circular' : [len(linear_contour_lengths)]})
 
     sns.barplot(data = num_lin_circ_df, order = ['Linear', 'Circular'])
-    plt.xlabel('Conformation')
-    plt.ylabel('Occurence')
+    # plt.xlabel('Conformation')
+    # plt.ylabel('Occurence')
     # plt.title('%s Linear vs Circular' % json_path[:-4])
+    # plt.tight_layout()
     plt.savefig(os.path.join(os.path.dirname(file_name), 'Plots', 'barplot.png'))
     plt.close()
 
@@ -224,6 +231,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     dfstd = dict()
     dfvar = dict()
     dfste = dict()
+    N = dict()
     # plt.figure()
     for i in topos:
         kdemax[i] = i
@@ -237,14 +245,15 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
         dfstd[i] = x.std()
         dfvar[i] = np.var(x)
         dfste[i] = stats.sem(x)
+        N[i] = len(x)
         # plt.plot(xs, b)
         kdemax[i] = xs[np.argmax(b)]
     plt.savefig(savename)
 
-    listofdicts = [kdemax, dfstd, dfste]
+    listofdicts = [kdemax, dfstd, dfste, N]
     dflengths = pd.DataFrame(listofdicts)
     dflengths = dflengths.transpose()
-    dflengths.columns = ['length', 'std', 'ste']
+    dflengths.columns = ['length', 'std', 'ste', 'N']
     dflengths.to_csv(os.path.join(savedir, 'lengthsanderrors.txt'))
 
     savename2 = os.path.join(savedir, name + plotarg + '_KDE_max' + plotextension)

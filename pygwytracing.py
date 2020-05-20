@@ -662,7 +662,6 @@ if __name__ == '__main__':
 
     path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/test'
 
     # path = 'new_data'
 
