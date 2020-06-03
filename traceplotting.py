@@ -58,17 +58,23 @@ def plotAllContourLengthHistograms(json_path):
     plt.savefig('%s.svg' % json_path[:-4])
     plt.close()
 
-def plotLinearVsCircular(json_path):
-    # Create a saving name format/directory
+def plotLinearVsCircular(contour_lengths_df):
     # Create a saving name format/directory
     savedir = os.path.join(os.path.dirname(file_name), 'Plots')
     if not os.path.exists(savedir):
         os.makedirs(savedir)
 
-    contour_lengths_df = pd.read_json(json_path)
-
     linear_contour_lengths = contour_lengths_df.loc[contour_lengths_df['Circular'] == False]
     circular_contour_lengths = contour_lengths_df.loc[contour_lengths_df['Circular'] == True]
+    av_circ_len = circular_contour_lengths['Contour Lengths'].mean()
+    av_circ_std = circular_contour_lengths['Contour Lengths'].std()
+    av_lin_len = linear_contour_lengths['Contour Lengths'].mean()
+    av_lin_std = linear_contour_lengths['Contour Lengths'].std()
+    no_linear_mcles = len(linear_contour_lengths)
+    no_circular_mcles = len(circular_contour_lengths)
+
+    print 'circular', no_circular_mcles, av_circ_len, av_circ_std
+    print 'linear', no_linear_mcles, av_lin_len, av_lin_std
 
     plt.hist([circular_contour_lengths['Contour Lengths'].array, linear_contour_lengths['Contour Lengths'].array], 25, histtype = 'bar', label = ['Linear', 'Circular'])
     # plt.xlabel('Contour Length (nm)')
@@ -86,6 +92,8 @@ def plotLinearVsCircular(json_path):
     # plt.tight_layout()
     plt.savefig(os.path.join(os.path.dirname(file_name), 'Plots', 'barplot.png'))
     plt.close()
+
+    return linear_contour_lengths, circular_contour_lengths
 
 
 def plotkde(df, directory, name, plotextension, grouparg, plotarg):
@@ -187,6 +195,27 @@ def plotfacet(df, directory, name, plotextension, grouparg, plotarg):
     g.map(sns.distplot, "Contour Lengths", hist=True, rug=False, bins=bins).set(xlim=(0, 200), xticks=[50, 100, 150, 200])
     plt.savefig(savename)
 
+def plotfacetsearch(df, directory, name, plotextension, grouparg, plotarg, searchfor):
+    print 'Plotting reduced facet of %s' % plotarg
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    df = df[~df['Experiment Directory'].str.contains('|'.join(searchfor))]
+
+    # Plot and save figures as facet grid
+    savename = os.path.join(savedir, name + plotarg + '_facet_reduced' + plotextension)
+    fig, ax = plt.subplots()
+    bins = np.arange(0, 200, 10)
+    g = sns.FacetGrid(df, row='DNA Length (bp)', height=4.5, aspect=2)
+    g.map(sns.distplot, "Contour Lengths", hist=True, rug=False, bins=bins).set(xlim=(0, 200), xticks=[50, 100, 150, 200])
+    plt.xlabel(' ')
+
+    # plt.ylabel(' ')
+    plt.savefig(savename)
+
 def plothiststacked2(df, directory, name, plotextension, grouparg, plotarg):
     print 'Plotting histogram of %s' % plotarg
 
@@ -277,7 +306,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
 
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular/210 bp'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
     name = 'tracestats.json'
     file_name = os.path.join(path, name)
@@ -306,7 +335,7 @@ if __name__ == '__main__':
 
     # Plot proportion of linear and circular molecules
     sns.set_palette(sns.color_palette('BuPu', 2))
-    plotLinearVsCircular(file_name)
+    linear_contour_lengths, circular_contour_lengths = plotLinearVsCircular(df)
 
     sns.set_palette(sns.color_palette('BuPu', no_expmts))
     # Plot data as KDE
@@ -320,6 +349,11 @@ if __name__ == '__main__':
     # Plot all Contour lengths for each minicircle separately
     sns.set_palette(sns.color_palette('deep', 1))
     plotfacet(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths')
+
+    searchfor = ['116 bp', '357 bp', '398 bp']
+    plotfacetsearch(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths', searchfor)
+
+
 
     # # Plot all Contour Length Histograms
     # plotAllContourLengthHistograms(file_name)
