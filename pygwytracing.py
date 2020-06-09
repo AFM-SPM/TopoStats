@@ -209,6 +209,7 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
+    # For MAC ~2.1 works and DNA ~0.75
     datafield.mask_outliers(mask, 0.75)
 
     # excluding mask, zero mean
@@ -660,7 +661,8 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/MAC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
 
     # path = 'new_data'
@@ -756,8 +758,8 @@ if __name__ == '__main__':
             data_nparray = gwyutils.data_field_data_as_array(datafield)
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
             #dna_traces.showTraces()
-            # dna_traces.saveTraceFigures(filename, channel_name)
-            dna_traces.writeContourLengths(filename, channel_name)
+            dna_traces.saveTraceFigures(filename, channel_name)
+            # dna_traces.writeContourLengths(filename, channel_name)
 
             #Update the pandas Dataframe used to monitor stats
             try:

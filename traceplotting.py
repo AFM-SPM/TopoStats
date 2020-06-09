@@ -12,7 +12,7 @@ import itertools
 
 # Set seaborn to override matplotlib for plot output
 sns.set()
-sns.set_style("white", {'font.family': ['sans-serif']})
+sns.set_style("white")
 # The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
 # The notebook style is the default
 # sns.set_context("notebook", font_scale=1.5)
@@ -109,6 +109,26 @@ def plotkde(df, directory, name, plotextension, grouparg, plotarg):
     # Plot and save figures
     fig, ax = plt.subplots(figsize=(10, 7))
     df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=1, linewidth=3.0)
+    plt.xlim(-20, 200)
+    plt.legend(loc='upper right')
+    # plt.xlabel(' ')
+    # plt.ylabel(' ')
+    plt.savefig(savename)
+
+def plotdist2(df, directory, name, plotextension, grouparg, plotarg):
+
+    print 'Plotting kde of %s' % plotarg
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+    savename = os.path.join(savedir, name + plotarg + plotextension)
+
+    # Plot and save figures
+    fig, ax = plt.subplots(figsize=(10, 7))
+    x = df.groupby(grouparg)[plotarg]
+    sns.distplot(x, ax=ax, legend=True, alpha=1, linewidth=3.0)
     plt.xlim(-20, 200)
     plt.legend(loc='upper right')
     # plt.xlabel(' ')
@@ -240,6 +260,34 @@ def plothiststacked2(df, directory, name, plotextension, grouparg, plotarg):
     plt.savefig(savename)
 
 
+def plotdist(df, directory, name, plotextension, grouparg, plotarg):
+    print 'Plotting histogram of %s' % plotarg
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    # Plot and save figures
+    savename = os.path.join(savedir, name + plotarg + '_dist' + plotextension)
+
+    nbin = np.linspace(0, 300, 30)
+
+    g = sns.FacetGrid(df, hue="Experiment Directory", height=7, aspect=1.42)
+    # g.map(plt.hist, "Contour Lengths", bins=bins)
+    g.map(sns.distplot, "Contour Lengths", bins=nbin)
+    sns.despine()
+    for ax in g.axes.ravel():
+        ax.legend()
+    # g.add_legend();
+    # handles, labels = ax.get_legend_handles_labels()
+    # ax.legend(handles=handles[1:], labels=labels[1:])
+    plt.xlim(0, 200)
+    # plt.legend(loc='upper right')
+    plt.xlabel(' ')
+    plt.ylabel(' ')
+    plt.savefig(savename)
+
 def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     print 'Plotting kde and maxima for %s' % plotarg
 
@@ -306,7 +354,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
 
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular/210 bp'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
     name = 'tracestats.json'
     file_name = os.path.join(path, name)
@@ -340,11 +388,18 @@ if __name__ == '__main__':
     sns.set_palette(sns.color_palette('BuPu', no_expmts))
     # Plot data as KDE
     plotkde(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths')
+    plotkde(circular_contour_lengths, path, name, '_circular.pdf', 'Experiment Directory', 'Contour Lengths')
     dflen = plotkdemax(df, path, name, plotextension, 'Contour Lengths', expmts)
+    dflencirc = plotkdemax(circular_contour_lengths, path, name, '_circular.pdf', 'Contour Lengths', expmts)
 
     # Plot data as histograms
     plothist(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths')
+    plothist(circular_contour_lengths, path, name, '_circular.pdf', 'Experiment Directory', 'Contour Lengths')
     plothiststacked2(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths')
+    plothiststacked2(circular_contour_lengths, path, name, '_circular.pdf', 'Experiment Directory', 'Contour Lengths')
+
+    plotdist(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths')
+    plotdist(circular_contour_lengths, path, name, '_circular.pdf', 'Experiment Directory', 'Contour Lengths')
 
     # Plot all Contour lengths for each minicircle separately
     sns.set_palette(sns.color_palette('deep', 1))
@@ -352,8 +407,6 @@ if __name__ == '__main__':
 
     searchfor = ['116 bp', '357 bp', '398 bp']
     plotfacetsearch(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths', searchfor)
-
-
 
     # # Plot all Contour Length Histograms
     # plotAllContourLengthHistograms(file_name)
@@ -365,12 +418,13 @@ if __name__ == '__main__':
     #
     # palette = sns.color_palette('BuPu')
     # new_palette = itertools.cycle(palette)
+    #
+    # savename = os.path.join(os.path.join(path, 'Plots', 'dist.png'))
     # for i, df in d.iteritems():
     #     print i
     #     color = next(new_palette)
+    #     # Plot histogram
     #     plotkdei(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths', i, 'black')
-    #     plothisti(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths', i, 'black')
-    #
 
     # # T test testing
     # df116 = df[df['Experiment Directory'] == '116 bp']
