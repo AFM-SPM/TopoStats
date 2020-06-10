@@ -2,10 +2,11 @@ import sys
 sys.path.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # location of gwy.so file (Macports install)
 sys.path.append('/opt/local/share/gwyddion/pygwy') # # location of gwyutils.py file (Macports install)
 
-# sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # Homebrew install on Mac
-# sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy') # Homebrew install on Mac
 
-# sys.path.append('/usr/share/gwyddion/pygwy/') # Windows
+#sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # Homebrew install on Mac
+#sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy') # Homebrew install on Mac
+
+sys.path.append('/usr/share/gwyddion/pygwy/') # Windows
 
 import pygtk
 pygtk.require20() # adds gtk-2.0 folder to sys.path
@@ -661,10 +662,10 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
 
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
+    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/test'
 
-    # path = 'new_data'
+    path = 'Fortracing'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -757,7 +758,7 @@ if __name__ == '__main__':
             data_nparray = gwyutils.data_field_data_as_array(datafield)
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
             #dna_traces.showTraces()
-            #dna_traces.saveTraceFigures(filename, channel_name)
+            dna_traces.saveTraceFigures(filename, channel_name)
             dna_traces.writeContourLengths(filename, channel_name)
 
             #Update the pandas Dataframe used to monitor stats
