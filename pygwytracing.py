@@ -210,6 +210,7 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
+    # For MAC ~2.1 works and DNA ~0.75
     datafield.mask_outliers(mask, 0.75)
 
     # excluding mask, zero mean
@@ -662,8 +663,8 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
 
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/test'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/MAC'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
 
     path = 'Fortracing'
 
@@ -710,9 +711,9 @@ if __name__ == '__main__':
         # Iterate over the chosen channels in your file e.g. the ZSensor channel
         # for k in chosen_ids:
         # Or just use first height/height sensor channel to avoid duplicating
-        # for k in chosen_ids:
+        for k in chosen_ids[:1]:
         # Option if you want to only choose one channel for each file being analysed
-        for k in chosen_ids:
+        # for k in chosen_ids:
             # Get all the image details eg resolution for your chosen channel
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
 
@@ -759,7 +760,11 @@ if __name__ == '__main__':
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
             #dna_traces.showTraces()
             dna_traces.saveTraceFigures(filename, channel_name)
+<<<<<<< HEAD
             dna_traces.writeContourLengths(filename, channel_name)
+=======
+            # dna_traces.writeContourLengths(filename, channel_name)
+>>>>>>> 71b93c9365b199d73f5eae5542c76d6bd94ce7c1
 
             #Update the pandas Dataframe used to monitor stats
             try:
@@ -769,7 +774,7 @@ if __name__ == '__main__':
 
 
             # Save out cropped files as images with no scales to a subfolder
-            savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            # savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 
             # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)
@@ -782,7 +787,7 @@ if __name__ == '__main__':
             # saveunknownfiles(data, filename, extension)
 
             # Saving stats to text and JSON files named by master path
-            saveindividualstats(filename, grainstats, k)
+            # saveindividualstats(filename, grainstats, k)
 
         # Save modified files as gwyddion files
         # savefilesasgwy(data, filename)
