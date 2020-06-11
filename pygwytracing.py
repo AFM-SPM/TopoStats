@@ -222,7 +222,6 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
     minimum_disp_value = data.set_double_by_name("/" + str(k) + "/base/min", float(minheightscale))
     maximum_disp_value = data.set_double_by_name("/" + str(k) + "/base/max", float(maxheightscale))
 
-
     ### Editing grain mask
     # Remove grains touching the edge of the mask
     mask.grains_remove_touching_border()
@@ -365,6 +364,7 @@ def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
     # Function to return the coordinates of the bounding box for all grains.
     # contains 4 coordinates per image
     bbox = datafield.get_grain_bounding_boxes(grains)
+
     # Remove all data up to index 4 (i.e. the 0th, 1st, 2nd, 3rd).
     # These are the bboxes for grain zero which is the background and should be ignored
     del bbox[:4]
@@ -387,30 +387,63 @@ def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
     # Define the width of the image to crop to
     cropwidth = int((cropwidth / xreal) * xres)
 
+    #make 2d array for grains
+    multidim_grain_array = np.reshape(np.array(grains), (xres,yres))
+
     for i in range(len(center_x)):
         px_center_x = int((center_x[i] / xreal) * xres)
         px_center_y = int((center_y[i] / yreal) * yres)
-        ULcol = px_center_x - cropwidth
-        if ULcol < 0:
-            ULcol = 0
-        ULrow = px_center_y - cropwidth
-        if ULrow < 0:
-            ULrow = 0
-        BRcol = px_center_x + cropwidth
-        if BRcol > xres:
-            BRcol = xres
-        BRrow = px_center_y + cropwidth
-        if BRrow > yres:
-            BRrow = yres
+        #ULcol = px_center_x - cropwidth
+        xmin = px_center_x - cropwidth
+        #ULrow = px_center_y - cropwidth
+        ymin = px_center_y - cropwidth
+        #BRcol = px_center_x + cropwidth
+        xmax = px_center_x + cropwidth
+        #BRrow = px_center_y + cropwidth
+        ymax = px_center_y + cropwidth
+
+        #making sure cropping boxes dont run outside the image dimensions
+        if xmin < 0:
+            xmin = 0
+            xmax = 2*cropwidth
+        if ymin < 0:
+            ymin = 0
+            ymax = 2*cropwidth
+        if xmax > xres:
+            xmax = xres
+            xmin = xres - 2*cropwidth
+        if ymax > yres:
+            ymax = yres
+            ymin = yres - 2*cropwidth
+
         # print ULcol, ULrow, BRcol, BRrow
+        #crop the data
         crop_datafield_i = datafield.duplicate()
-        crop_datafield_i.resize(ULcol, ULrow, BRcol, BRrow)
+        crop_datafield_i.resize(xmin, ymin, xmax, ymax)
+
         # add cropped datafield to active container
         gwy.gwy_app_data_browser_add_data_field(crop_datafield_i, data, i + (len(orig_ids)))
+
+        #cropping the grain array:
+        grain_num = i+1
+        print([xmin,xmax],(ymin,ymax))
+        #single_multidim_grain_array = np.array([1 if i == grain_num else 0 for i in multidm_grain_array])
+        #print(single_multidim_grain_array)
+
+        cropped_np_grain = multidim_grain_array[ymin:ymax, xmin:xmax]
+        print(cropped_np_grain.shape)
+        cropped_grain = [1 if i == grain_num else 0 for i in cropped_np_grain.flatten()]
+
+        #make a list containing each of the cropped grains
+        try:
+            cropped_grains.append(cropped_grain)
+        except NameError:
+            cropped_grains = [cropped_grain]
+
     # Generate list of datafields including cropped fields
     crop_ids = gwy.gwy_app_data_browser_get_data_ids(data)
 
-    return bbox, orig_ids, crop_ids, data
+    return bbox, orig_ids, crop_ids, data, cropped_grains, cropwidth
 
 
 def splitimage(data, splitwidth, datafield, xreal, yreal, xres, yres):
@@ -648,8 +681,8 @@ def getdataforallfiles(appended_data):
 
     return grainstats_df
 
-def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
     # Get dataframe of only files containing a certain string
+def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
     df1 = df[df[dfargtosearch].str.contains(searchvalue1)]
     df2 = df[df[dfargtosearch].str.contains(searchvalue2)]
     grainstats_searched = pd.concat([df1, df2])
@@ -741,7 +774,7 @@ if __name__ == '__main__':
             grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
 
             # Create cropped datafields for every grain of size set in the main directory
-            bbox, orig_ids, crop_ids, data = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
+            bbox, orig_ids, crop_ids, data, cropped_grains, cropwidth_pix = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             # orig_ids, crop_ids, data = splitimage(data, splitwidth, datafield, xreal, yreal, xres, yres)
 
             # Export the channels data and mask as numpy arrays
@@ -755,16 +788,22 @@ if __name__ == '__main__':
             except IndexError:
                 channel_name = 'ZSensor'
 
+            #bbox, orig_ids, crop_ids, cropped_grains = boundbox(cropwidth, grains, grains, dx, dy, xreal, yreal, xres, yres)
+            #saving plots of indidiviual grains/traces
+            for grain_num, data_num in enumerate(range(len(orig_ids), len(crop_ids), 1)):
+                gwy.gwy_app_data_browser_select_data_field(data, data_num)
+                datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
+
+                np_data_array = gwyutils.data_field_data_as_array(datafield)
+
+                dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
+                dna_traces.showTraces()
+
             #trace the DNA molecules - can compute stats etc as needed
-            data_nparray = gwyutils.data_field_data_as_array(datafield)
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
-            #dna_traces.showTraces()
-            dna_traces.saveTraceFigures(filename, channel_name)
-<<<<<<< HEAD
-            dna_traces.writeContourLengths(filename, channel_name)
-=======
-            # dna_traces.writeContourLengths(filename, channel_name)
->>>>>>> 71b93c9365b199d73f5eae5542c76d6bd94ce7c1
+            dna_traces.showTraces()
+            #dna_traces.saveTraceFigures(filename, channel_name)
+            #dna_traces.writeContourLengths(filename, channel_name)
 
             #Update the pandas Dataframe used to monitor stats
             try:
