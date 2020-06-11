@@ -426,12 +426,7 @@ def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
 
         #cropping the grain array:
         grain_num = i+1
-        print([xmin,xmax],(ymin,ymax))
-        #single_multidim_grain_array = np.array([1 if i == grain_num else 0 for i in multidm_grain_array])
-        #print(single_multidim_grain_array)
-
         cropped_np_grain = multidim_grain_array[ymin:ymax, xmin:xmax]
-        print(cropped_np_grain.shape)
         cropped_grain = [1 if i == grain_num else 0 for i in cropped_np_grain.flatten()]
 
         #make a list containing each of the cropped grains
@@ -797,11 +792,11 @@ if __name__ == '__main__':
                 np_data_array = gwyutils.data_field_data_as_array(datafield)
 
                 dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
-                dna_traces.showTraces()
+                dna_traces.saveTraceFigures(filename, channel_name+str(grain_num))
 
             #trace the DNA molecules - can compute stats etc as needed
-            dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
-            dna_traces.showTraces()
+            #dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
+            #dna_traces.showTraces()
             #dna_traces.saveTraceFigures(filename, channel_name)
             #dna_traces.writeContourLengths(filename, channel_name)
 
