@@ -625,10 +625,10 @@ class reorderTrace:
                 best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array_all_coords)
                 ordered_points.append(best_next_pixel)
 
-            #If the tracing has reached the other final point then tracing is finished
+            #If the tracing has reached the other end of the trace then its finished
             if genTracingFuncs.countNeighbours(x_n, y_n,trace_coordinates) == 1:
                 break
-            #print(x_n, y_n)
+
         return np.array(ordered_points)
 
     @staticmethod
@@ -662,8 +662,6 @@ class reorderTrace:
 
         while remaining_unordered_coords:
 
-            count +=1
-
             x_n, y_n = ordered_points[-1] #get the last point to be added to the array and find its neighbour
 
             no_of_neighbours, neighbour_array = genTracingFuncs.countandGetNeighbours(x_n, y_n, remaining_unordered_coords)
@@ -680,10 +678,9 @@ class reorderTrace:
                 continue
 
             elif len(ordered_points) > len(trace_coordinates):
-                if abs(math.hypot(ordered_points[0][0] - ordered_points[-1][0], ordered_points[0][1]-ordered_points[-1][1])) > 5:
-                    #print(math.hypot(ordered_points[0][0] - ordered_points[-1][0], ordered_points[0][1]-ordered_points[-1][1]))
+                vector_start_end = abs(math.hypot(ordered_points[0][0] - ordered_points[-1][0], ordered_points[0][1]-ordered_points[-1][1]))
+                if vector_start_end > 5: #Checks if trace has basically finished i.e. is close to where it started
                     ordered_points.pop(-1)
-                    #ordered_points = reorderTrace.linearTrace(ordered_points)
                     return np.array(ordered_points), False
                 else:
                     break
@@ -693,13 +690,26 @@ class reorderTrace:
                 nn, neighbour_array_all_coords = genTracingFuncs.countandGetNeighbours(x_n, y_n, trace_coordinates)
                 if ordered_points[0] in neighbour_array_all_coords:
                     break
-                #Maybe at a crossing with all neighbours deleted
+
+                    #Checks for bug that happens when tracing messes up
+                if ordered_points[-1] == ordered_points[-3]:
+                    print(ordered_points[-1], ordered_points[-3], ordered_points[-5])
+                    ordered_points = ordered_points[:-6]
+                    return np.array(ordered_points), False
+
+
+                #Maybe at a crossing with all neighbours deleted - this is crucially a point where errors often occur
                 else:
-                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array_all_coords)
-                    ordered_points.append(best_next_pixel)
-                    if count > 1000:
-                        raise ValueError
-                        ordered_points = reorderTrace.linearTrace(ordered_points)
+                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, remaining_unordered_coords)
+
+                    vector_to_new_point = abs(math.hypot(best_next_pixel[0] - x_n, best_next_pixel[1] - y_n))
+
+                    if vector_to_new_point > 5: #arbitary distinction but mostly valid probably
+                        return np.array(ordered_points), False
+                    else:
+                        ordered_points.append(best_next_pixel)
+                    if ordered_points[-1] == ordered_points[-3] and ordered_points[-3] == ordered_points[-5]:
+                        ordered_points = ordered_points[:-6]
                         return np.array(ordered_points), False
                     continue
 
@@ -861,37 +871,40 @@ class genTracingFuncs:
         with reference to a previous pixel in the ordered trace, and chooses that
         as the next point '''
 
-        if len(ordered_points) > 5:
-            compare = True
+        x_test = ordered_points[-1][0]
+        y_test = ordered_points[-1][1]
+
+        if len(ordered_points) > 4:
+            x_ref = ordered_points[-3][0]
+            y_ref = ordered_points[-3][1]
         else:
-            compare = False
+            x_ref = ordered_points[0][0]
+            y_ref = ordered_points[0][1]
 
-        if compare:
-            #Calculate reference angle
-            x_1 = ordered_points[-4][0]
-            y_1 = ordered_points[-4][1]
+        dx = x_test - x_ref
+        dy = y_test - y_ref
 
-            x_2 = ordered_points[-1][0]
-            y_2 = ordered_points[-1][1]
-
-            dx = x_2 - x_1
-            dy = y_2 - y_1
-
-            ref_theta = math.atan2(dx,dy)
+        ref_theta = math.atan2(dx,dy)
 
         x_y_theta = []
-        point_to_check_from = ordered_points[-2]
 
         for x_n, y_n in candidate_points:
 
-            x = x_n - point_to_check_from[0]
-            y = y_n - point_to_check_from[1]
+            x = x_n - x_ref
+            y = y_n - y_ref
 
             theta = math.atan2(x,y)
-            if compare:
-                x_y_theta.append([x_n,y_n,abs(theta-ref_theta)])
-            else:
-                x_y_theta.append([x_n,y_n,abs(theta)])
+
+            x_y_theta.append([x_n,y_n,abs(theta-ref_theta)])
 
         ordered_x_y_theta = sorted(x_y_theta, key = lambda x:x[2])
         return [ordered_x_y_theta[0][0], ordered_x_y_theta[0][1]]
+
+    def findNearestAngularPoint(x,y,remaining_coordinates):
+
+        for x_n, y_n in remaining_coordinates:
+
+            r = math.hypot(x_n,y_n)
+            theta = math.atan2(x_n,y_n)
+
+            polar_coordinates.append([theta,r])
