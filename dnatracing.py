@@ -418,7 +418,7 @@ class dnaTrace(object):
             #disordered_trace_list = self.ordered_traces[dna_num].tolist()
             #less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
             plt.plot(self.splined_traces[dna_num][:,0], self.splined_traces[dna_num][:,1])
-        plt.savefig('%s_%s_orderedtrace.png'  % (save_file, channel_name))
+        plt.savefig('%s_%s_splinedtrace.png'  % (save_file, channel_name))
         plt.close()
 
         '''
