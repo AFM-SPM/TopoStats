@@ -53,11 +53,11 @@ class dnaTrace(object):
         self.getNumpyArraysfromGwyddion()
         self.getDisorderedTrace()
         #self.isMolLooped()
+        self.purgeObviousCrap()
         self.determineLinearOrCircular()
         self.getOrderedTraces()
         self.reportBasicStats()
         self.getFittedTraces()
-        self.purgeObviousCrap()
         self.getSplinedTraces()
         self.measureContourLength()
 
@@ -318,6 +318,7 @@ class dnaTrace(object):
 
         for dna_num in sorted(self.fitted_traces.keys()):
 
+            self.splining_success = True
             nbr = len(self.fitted_traces[dna_num][:,0])
 
             #Hard to believe but some traces have less than 4 coordinates in total
@@ -345,14 +346,25 @@ class dnaTrace(object):
                             x = np.array([self.ordered_traces[dna_num][:,0][j] for j in range(i, len(self.ordered_traces[dna_num][:,0]),step_size)])
                             y = np.array([self.ordered_traces[dna_num][:,1][j] for j in range(i, len(self.ordered_traces[dna_num][:,1]),step_size)])
 
-                            tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1)
-                            out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
-                            splined_trace = np.column_stack((out[0], out[1]))
-                        
+                            try:
+                                tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1)
+                                out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
+                                splined_trace = np.column_stack((out[0], out[1]))
+                            except ValueError:
+                                self.mol_is_circular.pop(dna_num)
+                                self.disordered_trace.pop(dna_num)
+                                self.grains.pop(dna_num)
+                                self.ordered_traces.pop(dna_num)
+                                self.splining_success = False
+                                break
+
                         try:
                             spline_running_total = np.add(spline_running_total, splined_trace)
                         except NameError:
                             spline_running_total = np.array(splined_trace)
+
+                    if not self.splining_success:
+                        continue
 
                     spline_average = np.divide(spline_running_total, [step_size,step_size])
                     del spline_running_total
