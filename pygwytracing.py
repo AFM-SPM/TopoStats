@@ -289,9 +289,10 @@ def removesmallobjects(datafield, mask, median_pixel_area, mindeviation, dx):
 
     # Numbering grains for grain analysis
     grains = mask.number_grains()
-    print('There were ' + str(max(grains)) + ' grains found')
+    number_of_grains = max(grains)
+    print('There were %i grains found' % (number_of_grains))
 
-    return mask, grains
+    return mask, grains, number_of_grains
 
 
 def grainanalysis(appended_data, filename, datafield, grains):
@@ -691,10 +692,10 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
 
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/MAC'
+    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/MAC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
 
-    path = 'Fortracing'
+    path = 'Circular'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -712,7 +713,7 @@ if __name__ == '__main__':
     maxdeviation = 1.5
     mindeviation = 0.5
     # Set size of the cropped window/2 in pixels
-    cropwidth = 40e-9
+    cropwidth = 60e-9
     # cropwidth = 100e-9
     splitwidth = 2e-6
     # Set number of bins
@@ -762,7 +763,11 @@ if __name__ == '__main__':
             # Remove all large objects defined as 1.2* the median grain size (in pixel area)
             mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, dx)
             # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
-            mask, grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation, dx)
+            mask, grains, number_of_grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation, dx)
+
+            #if there's no grains skip this image
+            if number_of_grains == 0:
+                continue
 
             # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
             # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
@@ -775,8 +780,6 @@ if __name__ == '__main__':
             # Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
 
-            if max(grains) == 0:
-                continue
 
             try:
                 channel_name = channels[k] + str(k+1)
@@ -791,21 +794,21 @@ if __name__ == '__main__':
 
                 np_data_array = gwyutils.data_field_data_as_array(datafield)
 
-                dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
-                dna_traces.saveTraceFigures(filename, channel_name+str(grain_num))
+                #dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
+                #dna_traces.showTraces()
+                #dna_traces.saveTraceFigures(filename, channel_name+str(grain_num))
 
             #trace the DNA molecules - can compute stats etc as needed
-            #dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
+            dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
             #dna_traces.showTraces()
-            #dna_traces.saveTraceFigures(filename, channel_name)
-            #dna_traces.writeContourLengths(filename, channel_name)
+            dna_traces.saveTraceFigures(filename, channel_name)
+            dna_traces.writeContourLengths(filename, channel_name)
 
             #Update the pandas Dataframe used to monitor stats
             try:
                 tracing_stats.updateTraceStats(dna_traces)
             except NameError:
                 tracing_stats = dnatracing.traceStats(dna_traces)
-
 
             # Save out cropped files as images with no scales to a subfolder
             # savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
