@@ -184,13 +184,14 @@ class dnaTrace(object):
         for dna_num in sorted(self.ordered_traces.keys()):
 
             individual_skeleton = self.ordered_traces[dna_num]
-            #tree = spatial.cKDTree(individual_skeleton)
 
             #This sets a 5 nm search in a direction perpendicular to the DNA chain
-            height_search_distance = int(2e-9/(self.pixel_size))
+            height_search_distance = int(3e-9/(self.pixel_size))
+
+            if height_search_distance < 1:
+                height_search_distance = 1
 
             for coord_num, trace_coordinate in enumerate(individual_skeleton):
-
                 height_values = None
 
                 #I don't have a clue what this block of code is doing
@@ -203,7 +204,7 @@ class dnaTrace(object):
                 elif trace_coordinate[1] >= self.number_of_columns - height_search_distance:
                     trace_coordinate[1] = self.number_of_columns - height_search_distance
 
-                if self.mol_is_circular:
+                if self.mol_is_circular[dna_num]:
                     nearest_point = individual_skeleton[coord_num-2]
                     vector = np.subtract(nearest_point, trace_coordinate)
                     vector_angle = math.degrees(math.atan2(vector[1],vector[0]))
@@ -308,7 +309,7 @@ class dnaTrace(object):
         This function actually calculates the average of several splines which
         is important for getting a good fit on the lower res data'''
 
-        step_size = int(4e-9/(self.pixel_size)) #3 nm step size
+        step_size = int(5e-9/(self.pixel_size)) #3 nm step size
         interp_step = int(1e-10/self.pixel_size)
 
         for dna_num in sorted(self.fitted_traces.keys()):
@@ -355,10 +356,17 @@ class dnaTrace(object):
                     x = self.fitted_traces[dna_num][:,0]
                     y = self.fitted_traces[dna_num][:,1]
 
-                    tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1, k = 3)
-                    out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
-                    splined_trace = np.column_stack((out[0], out[1]))
-                    self.splined_traces[dna_num] = splined_trace
+
+                    try:
+                        tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1, k = 3)
+                        out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
+                        splined_trace = np.column_stack((out[0], out[1]))
+                        self.splined_traces[dna_num] = splined_trace
+                    except ValueError: #if the trace is really messed up just delete it
+                        self.mol_is_circular.pop(dna_num)
+                        self.disordered_trace.pop(dna_num)
+                        self.grains.pop(dna_num)
+                        self.ordered_traces.pop(dna_num)
             else:
                 '''
                 start_x = self.fitted_traces[dna_num][0,0]
