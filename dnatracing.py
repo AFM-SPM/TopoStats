@@ -5,6 +5,7 @@ import seaborn as sns
 from scipy import ndimage, spatial, interpolate as interp
 from skimage import morphology, filters
 import math
+import warnings
 
 from tracingfuncs import genTracingFuncs, getSkeleton, reorderTrace
 
@@ -46,14 +47,17 @@ class dnaTrace(object):
         self.num_circular = 0
         self.num_linear = 0
 
+        #splining generates annoying warnings I don't understand - this suppresses them
+        warnings.filterwarnings('ignore')
+
         self.getNumpyArraysfromGwyddion()
         self.getDisorderedTrace()
-        self.purgeObviousCrap()
         #self.isMolLooped()
         self.determineLinearOrCircular()
         self.getOrderedTraces()
         self.reportBasicStats()
         self.getFittedTraces()
+        self.purgeObviousCrap()
         self.getSplinedTraces()
         self.measureContourLength()
 
@@ -188,8 +192,8 @@ class dnaTrace(object):
             #This sets a 5 nm search in a direction perpendicular to the DNA chain
             height_search_distance = int(3e-9/(self.pixel_size))
 
-            if height_search_distance < 1:
-                height_search_distance = 1
+            if height_search_distance < 2:
+                height_search_distance = 2
 
             for coord_num, trace_coordinate in enumerate(individual_skeleton):
                 height_values = None
@@ -344,6 +348,7 @@ class dnaTrace(object):
                             tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1)
                             out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
                             splined_trace = np.column_stack((out[0], out[1]))
+                        
                         try:
                             spline_running_total = np.add(spline_running_total, splined_trace)
                         except NameError:
