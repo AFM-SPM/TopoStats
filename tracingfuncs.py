@@ -693,7 +693,6 @@ class reorderTrace:
 
                     #Checks for bug that happens when tracing messes up
                 if ordered_points[-1] == ordered_points[-3]:
-                    print(ordered_points[-1], ordered_points[-3], ordered_points[-5])
                     ordered_points = ordered_points[:-6]
                     return np.array(ordered_points), False
 
@@ -899,12 +898,3 @@ class genTracingFuncs:
 
         ordered_x_y_theta = sorted(x_y_theta, key = lambda x:x[2])
         return [ordered_x_y_theta[0][0], ordered_x_y_theta[0][1]]
-
-    def findNearestAngularPoint(x,y,remaining_coordinates):
-
-        for x_n, y_n in remaining_coordinates:
-
-            r = math.hypot(x_n,y_n)
-            theta = math.atan2(x_n,y_n)
-
-            polar_coordinates.append([theta,r])
