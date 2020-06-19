@@ -361,7 +361,7 @@ class dnaTrace(object):
                             tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1)
                             out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
                             splined_trace = np.column_stack((out[0], out[1]))
-                        except ValueError:
+                        except ValueError: #sometimes even the ordered_traces are too bugged out so just delete these traces
                             self.mol_is_circular.pop(dna_num)
                             self.disordered_trace.pop(dna_num)
                             self.grains.pop(dna_num)
@@ -443,7 +443,7 @@ class dnaTrace(object):
     def saveTraceFigures(self, filename_with_ext, channel_name, directory_name = None):
 
         if directory_name:
-            self._checkForSaveDirectory(directory_name)
+            filename_with_ext = self._checkForSaveDirectory(filename_with_ext, directory_name)
 
         save_file = filename_with_ext[:-4]
 
@@ -489,8 +489,24 @@ class dnaTrace(object):
         plt.savefig('%s_%s_grains.png' % (save_file, channel_name))
         plt.close()
 
-    def _checkForSaveDirectory(self, directory_name):
-        pass 
+    def _checkForSaveDirectory(self, filename, new_directory_name):
+
+        path_list = filename.split('/')
+        directory_string = ''
+
+        for dir in path_list[:-1]:
+            directory_string = directory_string + dir + '/'
+
+        files_list = os.listdir(directory_string)
+
+        try:
+            files_list.index(new_directory_name)
+        except ValueError:
+            os.mkdir(directory_string + new_directory_name)
+
+        updated_filename = directory_string + new_directory_name + '/' + path_list[-1]
+
+        return updated_filename
 
     def findWrithe(self):
         pass
