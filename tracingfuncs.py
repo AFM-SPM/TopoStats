@@ -876,9 +876,21 @@ class genTracingFuncs:
         if len(ordered_points) > 4:
             x_ref = ordered_points[-3][0]
             y_ref = ordered_points[-3][1]
+
+            x_ref_2 = ordered_points[-2][0]
+            y_ref_2 = ordered_points[-2][1]
+        elif len(ordered_points) > 3:
+            x_ref = ordered_points[-2][0]
+            y_ref = ordered_points[-2][1]
+
+            x_ref_2 = ordered_points[0][0]
+            y_ref_2 = ordered_points[0][1]
         else:
             x_ref = ordered_points[0][0]
             y_ref = ordered_points[0][1]
+
+            x_ref_2 = ordered_points[0][0]
+            y_ref_2 = ordered_points[0][1]
 
         dx = x_test - x_ref
         dy = y_test - y_ref
@@ -889,8 +901,8 @@ class genTracingFuncs:
 
         for x_n, y_n in candidate_points:
 
-            x = x_n - x_ref
-            y = y_n - y_ref
+            x = x_n - x_ref_2
+            y = y_n - y_ref_2
 
             theta = math.atan2(x,y)
 
