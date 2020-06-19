@@ -695,7 +695,7 @@ if __name__ == '__main__':
     #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/MAC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
 
-    path = 'Circular'
+    path = 'Circular/339 bp/'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -796,13 +796,13 @@ if __name__ == '__main__':
 
                 #dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
                 #dna_traces.showTraces()
-                #dna_traces.saveTraceFigures(filename, channel_name+str(grain_num))
+                #dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), 'cropped')
 
             #trace the DNA molecules - can compute stats etc as needed
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
             #dna_traces.showTraces()
-            dna_traces.saveTraceFigures(filename, channel_name)
-            dna_traces.writeContourLengths(filename, channel_name)
+            dna_traces.saveTraceFigures(filename, channel_name, 'processed')
+            #dna_traces.writeContourLengths(filename, channel_name)
 
             #Update the pandas Dataframe used to monitor stats
             try:
