@@ -6,6 +6,7 @@ from scipy import ndimage, spatial, interpolate as interp
 from skimage import morphology, filters
 import math
 import warnings
+import os
 
 from tracingfuncs import genTracingFuncs, getSkeleton, reorderTrace
 
@@ -313,7 +314,9 @@ class dnaTrace(object):
         This function actually calculates the average of several splines which
         is important for getting a good fit on the lower res data'''
 
-        step_size = int(5e-9/(self.pixel_size)) #3 nm step size
+        step_size = int(7e-9/(self.pixel_size)) #3 nm step size
+        print(self.pixel_size)
+        print(step_size)
         interp_step = int(1e-10/self.pixel_size)
 
         for dna_num in sorted(self.fitted_traces.keys()):
@@ -326,64 +329,73 @@ class dnaTrace(object):
                 self.splined_traces[dna_num] = self.fitted_traces[dna_num]
                 continue
 
+            #The degree of spline fit used is 3 so there cannot be less than 3 points in the splined trace
+            while nbr/step_size < 4:
+                if step_size <= 1:
+                    step_size = 1
+                    break
+                step_size =- 1
+                print(step_size)
+
             if self.mol_is_circular[dna_num]:
 
-                if nbr/step_size > 4: #the degree of spline fit is 3 so there cannot be less than 3 points in splined trace
+                #if nbr/step_size > 4: #the degree of spline fit is 3 so there cannot be less than 3 points in splined trace
 
-                    ev_array = np.linspace(0,1,nbr*step_size)
+                ev_array = np.linspace(0,1,nbr*step_size)
 
-                    for i in range(step_size):
-                        x_sampled = np.array([self.fitted_traces[dna_num][:,0][j] for j in range(i, len(self.fitted_traces[dna_num][:,0]),step_size)])
-                        y_sampled = np.array([self.fitted_traces[dna_num][:,1][j] for j in range(i, len(self.fitted_traces[dna_num][:,1]),step_size)])
-
-                        try:
-                            tck, u = interp.splprep([x_sampled, y_sampled], s=0, per = 2, quiet = 1, k = 3)
-                            out = interp.splev(ev_array, tck)
-                            splined_trace = np.column_stack((out[0], out[1]))
-                        except ValueError:
-                            #Value error occurs when the "trace fitting" really messes up the traces
-
-                            x = np.array([self.ordered_traces[dna_num][:,0][j] for j in range(i, len(self.ordered_traces[dna_num][:,0]),step_size)])
-                            y = np.array([self.ordered_traces[dna_num][:,1][j] for j in range(i, len(self.ordered_traces[dna_num][:,1]),step_size)])
-
-                            try:
-                                tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1)
-                                out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
-                                splined_trace = np.column_stack((out[0], out[1]))
-                            except ValueError:
-                                self.mol_is_circular.pop(dna_num)
-                                self.disordered_trace.pop(dna_num)
-                                self.grains.pop(dna_num)
-                                self.ordered_traces.pop(dna_num)
-                                self.splining_success = False
-                                break
-
-                        try:
-                            spline_running_total = np.add(spline_running_total, splined_trace)
-                        except NameError:
-                            spline_running_total = np.array(splined_trace)
-
-                    if not self.splining_success:
-                        continue
-
-                    spline_average = np.divide(spline_running_total, [step_size,step_size])
-                    del spline_running_total
-                    self.splined_traces[dna_num] = spline_average
-                else:
-                    x = self.fitted_traces[dna_num][:,0]
-                    y = self.fitted_traces[dna_num][:,1]
-
+                for i in range(step_size):
+                    x_sampled = np.array([self.fitted_traces[dna_num][:,0][j] for j in range(i, len(self.fitted_traces[dna_num][:,0]),step_size)])
+                    y_sampled = np.array([self.fitted_traces[dna_num][:,1][j] for j in range(i, len(self.fitted_traces[dna_num][:,1]),step_size)])
 
                     try:
-                        tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1, k = 3)
-                        out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
+                        tck, u = interp.splprep([x_sampled, y_sampled], s=0, per = 2, quiet = 1, k = 3)
+                        out = interp.splev(ev_array, tck)
                         splined_trace = np.column_stack((out[0], out[1]))
-                        self.splined_traces[dna_num] = splined_trace
-                    except ValueError: #if the trace is really messed up just delete it
-                        self.mol_is_circular.pop(dna_num)
-                        self.disordered_trace.pop(dna_num)
-                        self.grains.pop(dna_num)
-                        self.ordered_traces.pop(dna_num)
+                    except ValueError:
+                        #Value error occurs when the "trace fitting" really messes up the traces
+
+                        x = np.array([self.ordered_traces[dna_num][:,0][j] for j in range(i, len(self.ordered_traces[dna_num][:,0]),step_size)])
+                        y = np.array([self.ordered_traces[dna_num][:,1][j] for j in range(i, len(self.ordered_traces[dna_num][:,1]),step_size)])
+
+                        try:
+                            tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1)
+                            out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
+                            splined_trace = np.column_stack((out[0], out[1]))
+                        except ValueError:
+                            self.mol_is_circular.pop(dna_num)
+                            self.disordered_trace.pop(dna_num)
+                            self.grains.pop(dna_num)
+                            self.ordered_traces.pop(dna_num)
+                            self.splining_success = False
+                            del spline_running_total
+                            break
+
+                    try:
+                        spline_running_total = np.add(spline_running_total, splined_trace)
+                    except NameError:
+                        spline_running_total = np.array(splined_trace)
+
+                if not self.splining_success:
+                    continue
+
+                spline_average = np.divide(spline_running_total, [step_size,step_size])
+                del spline_running_total
+                self.splined_traces[dna_num] = spline_average
+                #else:
+                #    x = self.fitted_traces[dna_num][:,0]
+                #    y = self.fitted_traces[dna_num][:,1]
+
+
+                #    try:
+                #        tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1, k = 3)
+                #        out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
+                #        splined_trace = np.column_stack((out[0], out[1]))
+                #        self.splined_traces[dna_num] = splined_trace
+                #    except ValueError: #if the trace is really messed up just delete it
+                #        self.mol_is_circular.pop(dna_num)
+                #        self.disordered_trace.pop(dna_num)
+                #        self.grains.pop(dna_num)
+                #        self.ordered_traces.pop(dna_num)
             else:
                 '''
                 start_x = self.fitted_traces[dna_num][0,0]
@@ -428,7 +440,10 @@ class dnaTrace(object):
         plt.show()
         plt.close()
 
-    def saveTraceFigures(self, filename_with_ext, channel_name):
+    def saveTraceFigures(self, filename_with_ext, channel_name, directory_name = None):
+
+        if directory_name:
+            self._checkForSaveDirectory(directory_name)
 
         save_file = filename_with_ext[:-4]
 
@@ -474,6 +489,8 @@ class dnaTrace(object):
         plt.savefig('%s_%s_grains.png' % (save_file, channel_name))
         plt.close()
 
+    def _checkForSaveDirectory(self, directory_name):
+        pass 
 
     def findWrithe(self):
         pass
