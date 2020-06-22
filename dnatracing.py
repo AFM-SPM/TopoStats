@@ -315,8 +315,6 @@ class dnaTrace(object):
         is important for getting a good fit on the lower res data'''
 
         step_size = int(7e-9/(self.pixel_size)) #3 nm step size
-        print(self.pixel_size)
-        print(step_size)
         interp_step = int(1e-10/self.pixel_size)
 
         for dna_num in sorted(self.fitted_traces.keys()):
@@ -335,7 +333,6 @@ class dnaTrace(object):
                     step_size = 1
                     break
                 step_size =- 1
-                print(step_size)
 
             if self.mol_is_circular[dna_num]:
 
@@ -497,12 +494,10 @@ class dnaTrace(object):
         for dir in path_list[:-1]:
             directory_string = directory_string + dir + '/'
 
-        files_list = os.listdir(directory_string)
-
         try:
-            files_list.index(new_directory_name)
-        except ValueError:
             os.mkdir(directory_string + new_directory_name)
+        except OSError: #OSError happens if the directory already exists
+            pass
 
         updated_filename = directory_string + new_directory_name + '/' + path_list[-1]
 
