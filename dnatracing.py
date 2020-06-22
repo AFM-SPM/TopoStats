@@ -364,7 +364,10 @@ class dnaTrace(object):
                             self.grains.pop(dna_num)
                             self.ordered_traces.pop(dna_num)
                             self.splining_success = False
-                            del spline_running_total
+                            try:
+                                del spline_running_total
+                            except UnboundLocalError: #happens if splining fails immediately 
+                                break
                             break
 
                     try:
