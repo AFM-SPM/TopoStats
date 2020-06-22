@@ -345,12 +345,7 @@ def seaplotting(df, arg1, arg2, bins, directory, extension):
 # This the main script
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/251 bp circular'
-
-    file_name = 'new_data/tracestats.json'
-
-    plotAllContourLengthHistograms(file_name)
-    plotLinearVsCircular(file_name)
+    path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
 
     # Set the name of the json file to import here
     name = '*.json'
