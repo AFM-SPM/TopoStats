@@ -211,7 +211,8 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
     # For MAC ~2.1 works and DNA ~0.75
-    datafield.mask_outliers(mask, 0.75)
+    # datafield.mask_outliers(mask, 0.75)
+    datafield.mask_outliers(mask, 2.1)
 
     # excluding mask, zero mean
     stats = datafield.area_get_stats_mask(mask, gwy.MASK_EXCLUDE, 0, 0, datafield.get_xres(), datafield.get_yres())
@@ -691,11 +692,12 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/MAC'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/MAC'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
 
-    path = 'Circular/339 bp/'
+    # path = 'Circular/339 bp/'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -703,8 +705,8 @@ if __name__ == '__main__':
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
     # Set height scale values to save out
-    minheightscale = -3e-9
-    maxheightscale = 3e-9
+    minheightscale = -30e-9
+    maxheightscale = 30e-9
     # Set minimum size for grain determination:
     minarea = 300e-9
     # minarea = 50e-9
@@ -713,7 +715,7 @@ if __name__ == '__main__':
     maxdeviation = 1.5
     mindeviation = 0.5
     # Set size of the cropped window/2 in pixels
-    cropwidth = 60e-9
+    cropwidth = 40e-9
     # cropwidth = 100e-9
     splitwidth = 2e-6
     # Set number of bins
@@ -794,15 +796,15 @@ if __name__ == '__main__':
 
                 np_data_array = gwyutils.data_field_data_as_array(datafield)
 
-                #dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
+                # dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
                 #dna_traces.showTraces()
-                #dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), 'cropped')
+                # dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), 'cropped')
 
-            #trace the DNA molecules - can compute stats etc as needed
+            # #trace the DNA molecules - can compute stats etc as needed
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
-            #dna_traces.showTraces()
+            # #dna_traces.showTraces()
             dna_traces.saveTraceFigures(filename, channel_name, 'processed')
-            #dna_traces.writeContourLengths(filename, channel_name)
+            # dna_traces.writeContourLengths(filename, channel_name)
 
             #Update the pandas Dataframe used to monitor stats
             try:
