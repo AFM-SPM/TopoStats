@@ -259,6 +259,25 @@ def plothiststacked2(df, directory, name, plotextension, grouparg, plotarg):
     # plt.ylabel(' ')
     plt.savefig(savename)
 
+def plotviolin(df, directory, name, plotextension, grouparg, plotarg):
+    print 'Plotting violin of %s' % plotarg
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    # Plot and save figures
+    savename = os.path.join(savedir, name + plotarg + '_violin' + plotextension)
+    fig, ax = plt.subplots(figsize=(10, 7))
+    # Plot violinplot
+    # ax.invert_xaxis()
+    ax = sns.violinplot(x=grouparg, y=plotarg, data=df)
+    # plt.xlim(0, 1)
+    # plt.xlabel(' ')
+    # plt.ylabel(' ')
+    plt.savefig(savename)
+
 
 def plotdist(df, directory, name, plotextension, grouparg, plotarg):
     print 'Plotting histogram of %s' % plotarg
@@ -354,8 +373,9 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
 
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/MAC'
     name = 'tracestats.json'
     file_name = os.path.join(path, name)
     # file_name = 'new_data/tracestats.json'
@@ -374,12 +394,13 @@ if __name__ == '__main__':
     expmts = sorted(expmts, reverse=False)
     no_expmts = len(expmts)
 
-    # Add column to calculate length
-    # Use if file directories have words and numbers
-    df['DNA Length (bp)'] = df['Experiment Directory'].str.extract('(\d+)').astype(int)
+    # # Add column to calculate length
+    # # Use if file directories have words and numbers
+    # df['DNA Length (bp)'] = df['Experiment Directory'].str.extract('(\d+)').astype(int)
+    # df['Length'] = df['DNA Length (bp)'] * 0.34
+
     # Use if file directories have numbers only
-    # df['DNA Length (bp)'] = df['Experiment Directory']
-    df['Length'] = df['DNA Length (bp)'] * 0.34
+    df['DNA Length (bp)'] = df['Experiment Directory']
 
     # Plot proportion of linear and circular molecules
     sns.set_palette(sns.color_palette('BuPu', 2))
@@ -391,6 +412,7 @@ if __name__ == '__main__':
     plotkde(circular_contour_lengths, path, name, '_circular.pdf', 'Experiment Directory', 'Contour Lengths')
     dflen = plotkdemax(df, path, name, plotextension, 'Contour Lengths', expmts)
     dflencirc = plotkdemax(circular_contour_lengths, path, name, '_circular.pdf', 'Contour Lengths', expmts)
+    plotviolin(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths')
 
     # Plot data as histograms
     plothist(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths')
@@ -407,6 +429,8 @@ if __name__ == '__main__':
 
     searchfor = ['116 bp', '357 bp', '398 bp']
     plotfacetsearch(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths', searchfor)
+
+
 
     # # Plot all Contour Length Histograms
     # plotAllContourLengthHistograms(file_name)
