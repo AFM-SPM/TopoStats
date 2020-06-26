@@ -691,11 +691,12 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/MAC'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/MAC'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
 
-    path = '/home/bj002/Documents/afm_videos'
+    # path = 'Circular/339 bp/'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -703,8 +704,8 @@ if __name__ == '__main__':
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
     # Set height scale values to save out
-    minheightscale = -3e-9
-    maxheightscale = 3e-9
+    minheightscale = -30e-9
+    maxheightscale = 30e-9
     # Set minimum size for grain determination:
     minarea = 300e-9
     # minarea = 50e-9
@@ -713,7 +714,7 @@ if __name__ == '__main__':
     maxdeviation = 1.5
     mindeviation = 0.5
     # Set size of the cropped window/2 in pixels
-    cropwidth = 60e-9
+    cropwidth = 40e-9
     # cropwidth = 100e-9
     splitwidth = 2e-6
     # Set number of bins
@@ -729,7 +730,7 @@ if __name__ == '__main__':
 
     if len(spmfiles) == 0:
         quit('No .spm files were found in the folder %s' % (path))
-    
+
     # Iterate over all files found
     for i, filename in enumerate(spmfiles):
         print('Analysing ' + str(os.path.basename(filename)))
@@ -798,15 +799,15 @@ if __name__ == '__main__':
 
                 np_data_array = gwyutils.data_field_data_as_array(datafield)
 
-                #dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
+                # dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
                 #dna_traces.showTraces()
-                #dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), 'cropped')
+                # dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), 'cropped')
 
-            #trace the DNA molecules - can compute stats etc as needed
+            # #trace the DNA molecules - can compute stats etc as needed
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
-            #dna_traces.showTraces()
+            # #dna_traces.showTraces()
             dna_traces.saveTraceFigures(filename, channel_name, 'processed')
-            #dna_traces.writeContourLengths(filename, channel_name)
+            # dna_traces.writeContourLengths(filename, channel_name)
 
             #Update the pandas Dataframe used to monitor stats
             try:

@@ -81,7 +81,7 @@ def plotLinearVsCircular(contour_lengths_df):
     # plt.ylabel('Occurence')
     # plt.legend(loc='upper right')
     # plt.title('%s Linear vs Circular' % json_path[:-4])
-    plt.savefig(os.path.join(os.path.dirname(file_name), 'Plots', 'linearVcircularHist.png'))
+    plt.savefig(os.path.join(os.path.dirname(file_name), 'Plots', 'linearVcircularHist.pdf'))
 
     num_lin_circ_df = pd.DataFrame(data = {'Linear' : [len(circular_contour_lengths)], 'Circular' : [len(linear_contour_lengths)]})
 
@@ -90,7 +90,7 @@ def plotLinearVsCircular(contour_lengths_df):
     # plt.ylabel('Occurence')
     # plt.title('%s Linear vs Circular' % json_path[:-4])
     # plt.tight_layout()
-    plt.savefig(os.path.join(os.path.dirname(file_name), 'Plots', 'barplot.png'))
+    plt.savefig(os.path.join(os.path.dirname(file_name), 'Plots', 'barplot.pdf'))
     plt.close()
 
     return linear_contour_lengths, circular_contour_lengths
@@ -211,7 +211,7 @@ def plotfacet(df, directory, name, plotextension, grouparg, plotarg):
     savename = os.path.join(savedir, name + plotarg + '_facet' + plotextension)
     fig, ax = plt.subplots()
     bins = np.arange(0, 200, 10)
-    g = sns.FacetGrid(df, row='DNA Length (bp)', height=4.5, aspect=2)
+    g = sns.FacetGrid(df, row='DNA Length', height=4.5, aspect=2)
     g.map(sns.distplot, "Contour Lengths", hist=True, rug=False, bins=bins).set(xlim=(0, 200), xticks=[50, 100, 150, 200])
     plt.savefig(savename)
 
@@ -229,10 +229,9 @@ def plotfacetsearch(df, directory, name, plotextension, grouparg, plotarg, searc
     savename = os.path.join(savedir, name + plotarg + '_facet_reduced' + plotextension)
     fig, ax = plt.subplots()
     bins = np.arange(0, 200, 10)
-    g = sns.FacetGrid(df, row='DNA Length (bp)', height=4.5, aspect=2)
-    g.map(sns.distplot, "Contour Lengths", hist=True, rug=False, bins=bins).set(xlim=(0, 200), xticks=[50, 100, 150, 200])
+    g = sns.FacetGrid(df, row='DNA Length', height=4.5, aspect=2)
+    g.map(sns.distplot, "Contour Lengths", hist=True, rug=False, axlabel=False, bins=bins).set(xlim=(0, 200), xticks=[50, 100, 150, 200])
     plt.xlabel(' ')
-
     # plt.ylabel(' ')
     plt.savefig(savename)
 
@@ -257,6 +256,25 @@ def plothiststacked2(df, directory, name, plotextension, grouparg, plotarg):
     plt.legend(loc='upper right')
     # plt.xlabel(' ')
     # plt.ylabel(' ')
+    plt.savefig(savename)
+
+def plotviolin(df, directory, name, plotextension, grouparg, plotarg):
+    print 'Plotting violin of %s' % plotarg
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    # Plot and save figures
+    savename = os.path.join(savedir, name + plotarg + '_violin' + plotextension)
+    fig, ax = plt.subplots(figsize=(10, 7))
+    # Plot violinplot
+    # ax.invert_xaxis()
+    ax = sns.violinplot(x=grouparg, y=plotarg, data=df)
+    # plt.xlim(0, 1)
+    plt.xlabel(' ')
+    plt.ylabel(' ')
     plt.savefig(savename)
 
 
@@ -355,7 +373,9 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
+    # path2 = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/MAC'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Bea'
     name = 'tracestats.json'
     file_name = os.path.join(path, name)
     # file_name = 'new_data/tracestats.json'
@@ -374,12 +394,13 @@ if __name__ == '__main__':
     expmts = sorted(expmts, reverse=False)
     no_expmts = len(expmts)
 
-    # Add column to calculate length
-    # Use if file directories have words and numbers
-    df['DNA Length (bp)'] = df['Experiment Directory'].str.extract('(\d+)').astype(int)
+    # # Add column to calculate length
+    # # Use if file directories have words and numbers
+    # df['DNA Length'] = df['Experiment Directory'].str.extract('(\d+)').astype(int)
+    # df['Length'] = df['DNA Length'] * 0.34
+
     # Use if file directories have numbers only
-    # df['DNA Length (bp)'] = df['Experiment Directory']
-    df['Length'] = df['DNA Length (bp)'] * 0.34
+    df['DNA Length'] = df['Experiment Directory']
 
     # Plot proportion of linear and circular molecules
     sns.set_palette(sns.color_palette('BuPu', 2))
@@ -391,6 +412,8 @@ if __name__ == '__main__':
     plotkde(circular_contour_lengths, path, name, '_circular.pdf', 'Experiment Directory', 'Contour Lengths')
     dflen = plotkdemax(df, path, name, plotextension, 'Contour Lengths', expmts)
     dflencirc = plotkdemax(circular_contour_lengths, path, name, '_circular.pdf', 'Contour Lengths', expmts)
+    plotviolin(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths')
+    plotviolin(circular_contour_lengths, path, name, '_circularviolin.pdf', 'Experiment Directory', 'Contour Lengths')
 
     # Plot data as histograms
     plothist(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths')
@@ -407,6 +430,8 @@ if __name__ == '__main__':
 
     searchfor = ['116 bp', '357 bp', '398 bp']
     plotfacetsearch(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths', searchfor)
+
+
 
     # # Plot all Contour Length Histograms
     # plotAllContourLengthHistograms(file_name)
@@ -440,3 +465,38 @@ if __name__ == '__main__':
     # df357 = df357['Contour Lengths']
     # df398 = df398['Contour Lengths']
     # scipy.stats.ttest_ind(df116, df210, equal_var=False)
+
+
+    # # Analysing two data sets together
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Bea'
+    # file_name = os.path.join(path, name)
+    # df = pd.read_json(file_name)
+    # df['DNA Length'] = df['Experiment Directory']
+    # df = df.replace(["Bea"], "Origami")
+
+    # path2 = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/MAC'
+    # file_name2 = os.path.join(path2, name)
+    # df2 = pd.read_json(file_name2)
+    # df2['DNA Length'] = df2['Experiment Directory']
+    # df3 = pd.concat([df, df2], axis=0)
+
+    # df3 = pd.concat([df, df2], axis=0)
+
+    # def plotviolin(df, directory, name, plotextension, grouparg, plotarg):
+    #     print 'Plotting violin of %s' % plotarg
+    #     # Create a saving name format/directory
+    #     savedir = os.path.join(directory, 'Plots')
+    #     if not os.path.exists(savedir):
+    #         os.makedirs(savedir)
+    #     # Plot and save figures
+    #     savename = os.path.join(savedir, name + plotarg + '_violin' + plotextension)
+    #     fig, ax = plt.subplots(figsize=(15, 5))
+    #     # Plot violinplot
+    #     ax = sns.violinplot(x=grouparg, y=plotarg, data=df)
+    #     ax.invert_xaxis()
+    #     plt.xlabel(' ')
+    #     plt.ylabel(' ')
+    #     plt.savefig(savename)
+
+    # sns.set_palette(sns.color_palette('BuPu',2 ))
+    # plotviolin(df3, path, name, '_circularviolinboth.pdf', 'Experiment Directory', 'Contour Lengths')

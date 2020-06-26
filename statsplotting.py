@@ -171,6 +171,26 @@ def plothiststacked2(df, directory, name, plotextension, grouparg, plotarg):
     plt.savefig(savename)
 
 
+def plotviolin(df, directory, name, plotextension, grouparg, plotarg):
+    print 'Plotting violin of %s' % plotarg
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    # Plot and save figures
+    savename = os.path.join(savedir, name + plotarg + '_violin' + plotextension)
+    fig, ax = plt.subplots(figsize=(10, 7))
+    # Plot violinplot
+    ax.invert_xaxis()
+    ax = sns.violinplot(x=grouparg, y=plotarg, data=df)
+    # plt.xlim(0, 1)
+    # plt.xlabel(' ')
+    # plt.ylabel(' ')
+    plt.savefig(savename)
+
+
 def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     print 'Plotting kde and maxima for %s' % plotarg
 
@@ -403,6 +423,8 @@ if __name__ == '__main__':
         # # grouped by grouparg e.g. 'topoisomer'
         # # Then plot the maxima of each KDE as a bar plot
         plotkdemax(df, path, name, plotextension, 'aspectratio', topos)
+
+        plotviolin(df, path, name, plotextension, 'topoisomer', 'aspectratio')
 
         # # Plot a histogram of one column of the dataframe - arg1 e.g. 'aspectratio'
         # # grouped by grouparg e.g. 'topoisomer'
