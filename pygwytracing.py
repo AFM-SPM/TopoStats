@@ -211,7 +211,7 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
     # For MAC ~2.1 works and DNA ~0.75
-    datafield.mask_outliers(mask, 0.75)
+    datafield.mask_outliers(mask, 2.1)
 
     # excluding mask, zero mean
     stats = datafield.area_get_stats_mask(mask, gwy.MASK_EXCLUDE, 0, 0, datafield.get_xres(), datafield.get_yres())
@@ -695,7 +695,7 @@ if __name__ == '__main__':
     #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/MAC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Fortracing'
 
-    path = 'Circular/339 bp/'
+    path = '/home/bj002/Documents/afm_videos'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -726,6 +726,10 @@ if __name__ == '__main__':
     # Look through the current directory and all subdirectories for files ending in .spm and add to flist
     # spmfiles = traversedirectories(fileend, filetype, path)
     spmfiles = traversedirectories(fileend, filetype, path)
+
+    if len(spmfiles) == 0:
+        quit('No .spm files were found in the folder %s' % (path))
+    
     # Iterate over all files found
     for i, filename in enumerate(spmfiles):
         print('Analysing ' + str(os.path.basename(filename)))
