@@ -55,12 +55,13 @@ class dnaTrace(object):
         self.getDisorderedTrace()
         #self.isMolLooped()
         self.purgeObviousCrap()
-        self.determineLinearOrCircular()
+        self.determineLinearOrCircular(self.disordered_trace)
         self.getOrderedTraces()
-        self.reportBasicStats()
+        self.determineLinearOrCircular(self.ordered_traces)
         self.getFittedTraces()
         self.getSplinedTraces()
         self.measureContourLength()
+        self.reportBasicStats()
 
 
     def getNumpyArraysfromGwyddion(self):
@@ -123,7 +124,7 @@ class dnaTrace(object):
             if len(self.disordered_trace[dna_num]) < 10:
                 self.disordered_trace.pop(dna_num, None)
 
-    def determineLinearOrCircular(self):
+    def determineLinearOrCircular(self, traces):
 
         ''' Determines whether each molecule is circular or linear based on the
         local environment of each pixel from the trace
@@ -131,10 +132,13 @@ class dnaTrace(object):
         This function is sensitive to branches from the skeleton so might need
         to implement a function to remove them'''
 
-        for dna_num in sorted(self.disordered_trace.keys()):
+        self.num_circular = 0
+        self.num_linear = 0
+
+        for dna_num in sorted(traces.keys()):
 
             points_with_one_neighbour = 0
-            fitted_trace_list = self.disordered_trace[dna_num].tolist()
+            fitted_trace_list = traces[dna_num].tolist()
 
             #For loop determines how many neighbours a point has - if only one it is an end
             for x,y in fitted_trace_list:
@@ -144,12 +148,12 @@ class dnaTrace(object):
                 else:
                     pass
 
-            if points_with_one_neighbour == 2:
-                self.mol_is_circular[dna_num] = False
-                self.num_linear += 1
-            else:
+            if points_with_one_neighbour == 0:
                 self.mol_is_circular[dna_num] = True
                 self.num_circular += 1
+            else:
+                self.mol_is_circular[dna_num] = False
+                self.num_linear += 1
 
 
     def getOrderedTraces(self):
@@ -176,7 +180,7 @@ class dnaTrace(object):
                 self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
 
     def reportBasicStats(self):
-        self.determineLinearOrCircular()
+        #self.determineLinearOrCircular()
         print('There are %i circular and %i linear DNA molecules found in the image' % (self.num_circular, self.num_linear))
 
 
@@ -366,7 +370,7 @@ class dnaTrace(object):
                             self.splining_success = False
                             try:
                                 del spline_running_total
-                            except UnboundLocalError: #happens if splining fails immediately 
+                            except UnboundLocalError: #happens if splining fails immediately
                                 break
                             break
 
