@@ -188,7 +188,7 @@ def editfile(data, k):
 
     # Apply a 1.5 pixel gaussian filter (k)
     data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    data_field.filter_gaussian(0.5)
+    data_field.filter_gaussian(1)
     # # Shift contrast - equivalent to 'fix zero'
     #datafield.add(-data_field.get_min())
 
@@ -204,14 +204,14 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
 
     mask = gwy.DataField.new_alike(datafield, False)
 
-    Gaussiansize = 0.15e-9 / dx
+    Gaussiansize = 0.1e-9 / dx
     datafield.filter_gaussian(Gaussiansize)
 
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
     # For MAC ~2.1 works and DNA ~0.75
-    datafield.mask_outliers(mask, 2.1)
+    datafield.mask_outliers(mask, 0.75)
 
     # excluding mask, zero mean
     stats = datafield.area_get_stats_mask(mask, gwy.MASK_EXCLUDE, 0, 0, datafield.get_xres(), datafield.get_yres())
@@ -691,12 +691,12 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/MAC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
 
-    # path = 'Circular/339 bp/'
+    path = 'Circular/210 bp/'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -729,7 +729,7 @@ if __name__ == '__main__':
     spmfiles = traversedirectories(fileend, filetype, path)
 
     if len(spmfiles) == 0:
-        quit('No .spm files were found in the folder %s' % (path))
+        quit('No .spm files were found in the folder ' + path)
 
     # Iterate over all files found
     for i, filename in enumerate(spmfiles):
