@@ -211,6 +211,10 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
     # For MAC ~2.1 works and DNA ~0.75
+<<<<<<< HEAD
+=======
+    # datafield.mask_outliers(mask, 2.1)
+>>>>>>> ebe0836e792081a9fdd622243b4df2dd18f69fca
     datafield.mask_outliers(mask, 0.75)
 
     # excluding mask, zero mean
@@ -691,7 +695,13 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
+<<<<<<< HEAD
     #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+=======
+    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
+    path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Paper/Pyne et al/Figure 1/aspectratioanalysis'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+>>>>>>> ebe0836e792081a9fdd622243b4df2dd18f69fca
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/MAC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
@@ -704,8 +714,8 @@ if __name__ == '__main__':
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
     # Set height scale values to save out
-    minheightscale = -30e-9
-    maxheightscale = 30e-9
+    minheightscale = -3e-9
+    maxheightscale = 3e-9
     # Set minimum size for grain determination:
     minarea = 300e-9
     # minarea = 50e-9

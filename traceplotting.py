@@ -85,11 +85,13 @@ def plotLinearVsCircular(contour_lengths_df):
 
     num_lin_circ_df = pd.DataFrame(data = {'Linear' : [len(circular_contour_lengths)], 'Circular' : [len(linear_contour_lengths)]})
 
-    sns.barplot(data = num_lin_circ_df, order = ['Linear', 'Circular'])
+    fig, ax = plt.subplots()
+    ax = sns.barplot(data = num_lin_circ_df, order = ['Linear', 'Circular'])
     # plt.xlabel('Conformation')
     # plt.ylabel('Occurence')
     # plt.title('%s Linear vs Circular' % json_path[:-4])
     # plt.tight_layout()
+    ax.invert_xaxis()
     plt.savefig(os.path.join(os.path.dirname(file_name), 'Plots', 'barplot.pdf'))
     plt.close()
 
@@ -268,7 +270,7 @@ def plotviolin(df, directory, name, plotextension, grouparg, plotarg):
 
     # Plot and save figures
     savename = os.path.join(savedir, name + plotarg + '_violin' + plotextension)
-    fig, ax = plt.subplots(figsize=(10, 7))
+    fig, ax = plt.subplots(figsize=(5, 5))
     # Plot violinplot
     # ax.invert_xaxis()
     ax = sns.violinplot(x=grouparg, y=plotarg, data=df)
@@ -322,6 +324,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     # Determine KDE for each topoisomer
     # Determine max of each KDE and plot
     xs = np.linspace(0, 400, 100)
+    dfmean = dict()
     kdemax = dict()
     dfstd = dict()
     dfvar = dict()
@@ -329,6 +332,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     N = dict()
     # plt.figure()
     for i in topos:
+        dfmean[i] = i
         kdemax[i] = i
         dfstd[i] = i
         dfvar[i] = i
@@ -336,6 +340,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
         x = df.query('expmt == @i')[plotarg]
         a = scipy.stats.gaussian_kde(x)
         b = a.pdf(xs)
+        dfmean[i] = np.mean(x)
         dfstd[i] = np.std(x)
         dfstd[i] = x.std()
         dfvar[i] = np.var(x)
@@ -345,10 +350,10 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
         kdemax[i] = xs[np.argmax(b)]
     plt.savefig(savename)
 
-    listofdicts = [kdemax, dfstd, dfste, N]
+    listofdicts = [dfmean, kdemax, dfstd, dfste, N]
     dflengths = pd.DataFrame(listofdicts)
     dflengths = dflengths.transpose()
-    dflengths.columns = ['length', 'std', 'ste', 'N']
+    dflengths.columns = ['mean length', 'length', 'std', 'ste', 'N']
     dflengths.to_csv(os.path.join(savedir, 'lengthsanderrors.txt'))
 
     savename2 = os.path.join(savedir, name + plotarg + '_KDE_max' + plotextension)
@@ -372,10 +377,12 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
 
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular/210 bp'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
     # path2 = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/MAC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Bea'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing/339 bp'
+
     name = 'tracestats.json'
     file_name = os.path.join(path, name)
     # file_name = 'new_data/tracestats.json'
