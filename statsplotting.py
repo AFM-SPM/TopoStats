@@ -15,8 +15,7 @@ sns.set_style("white", {'font.family': ['sans-serif']})
 # The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
 # The notebook style is the default
 # sns.set_context("notebook", font_scale=1.5)
-sns.set_context("poster", font_scale=1.2)
-# sns.color_palette('YlOrRd', n_colors=len(topos))
+sns.set_context("poster", font_scale=1.4)
 # plt.style.use("dark_background")
 
 
@@ -183,11 +182,32 @@ def plotviolin(df, directory, name, plotextension, grouparg, plotarg):
     savename = os.path.join(savedir, name + plotarg + '_violin' + plotextension)
     fig, ax = plt.subplots(figsize=(10, 7))
     # Plot violinplot
-    ax.invert_xaxis()
     ax = sns.violinplot(x=grouparg, y=plotarg, data=df)
+    ax.invert_xaxis()
+    # plt.xlim(0, 1)
+    plt.xlabel(' ')
+    plt.ylabel(' ')
+    plt.savefig(savename)
+
+
+def plotmarginal(df, directory, name, plotextension, grouparg, plotarg):
+    print 'Plotting contour of %s' % plotarg
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    # Plot and save figures
+    savename = os.path.join(savedir, name + plotarg + '_marg' + plotextension)
+    fig, ax = plt.subplots(figsize=(10, 7))
+    # Plot violinplot
+    ax = sns.jointplot(x=df[grouparg], y=df[plotarg], kind='kde', color="skyblue")
+    # ax = sns.violinplot(x=grouparg, y=plotarg, data=df)
+    # ax.invert_xaxis()
     # plt.xlim(0, 1)
     # plt.xlabel(' ')
-    # plt.ylabel(' ')
+    plt.ylabel(' ')
     plt.savefig(savename)
 
 
@@ -410,7 +430,7 @@ if __name__ == '__main__':
     savestats(path, name, allstats1)
 
     # Set palette for all plots with length number of topoisomers and reverse
-    palette = sns.color_palette('YlOrRd', n_colors=len(topos))
+    palette = sns.color_palette('BuPu', n_colors=len(topos))
     # palette = sns.color_palette('tab10', n_colors=len(topos))
     palette.reverse()
     with palette:
@@ -425,6 +445,8 @@ if __name__ == '__main__':
         plotkdemax(df, path, name, plotextension, 'aspectratio', topos)
 
         plotviolin(df, path, name, plotextension, 'topoisomer', 'aspectratio')
+
+        plotmarginal(df, path, name, plotextension, 'topoisomer', 'aspectratio')
 
         # # Plot a histogram of one column of the dataframe - arg1 e.g. 'aspectratio'
         # # grouped by grouparg e.g. 'topoisomer'
@@ -488,3 +510,157 @@ if __name__ == '__main__':
         # g.map_diag(sns.kdeplot)
         # g.map_lower(sns.kdeplot)
         # g.map_upper(plt.scatter)
+
+        def plotviolin(df, directory, name, plotextension, grouparg, plotarg):
+            print 'Plotting violin of %s' % plotarg
+
+            # Create a saving name format/directory
+            savedir = os.path.join(directory, 'Plots')
+            if not os.path.exists(savedir):
+                os.makedirs(savedir)
+
+            df['topoisomer'] = df['topoisomer'].astype(np.int32)
+
+            # Plot and save figures
+            savename = os.path.join(savedir, name + plotarg + '_violin' + plotextension)
+            fig, ax = plt.subplots(figsize=(10, 7))
+            # Plot violinplot
+            ax = sns.violinplot(x=grouparg, y=plotarg, data=df)
+            ax.invert_xaxis()
+            # plt.xlim(0, 1)
+            plt.xlabel(' ')
+            plt.ylabel(' ')
+            plt.savefig(savename)
+
+# # # import pandas as pd
+# # # import os
+# # # import matplotlib as plt
+# where ='/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Paper/Pyne et al/SI Violin'
+# RGEX=pd.read_csv(os.path.join(where,'radgyrEX.csv'))
+# # RGEX.columns = ['-6','-3','-2','-1','0']
+# RGIM=pd.read_csv(os.path.join(where,'radgyrIM.csv'))
+# # RGIM.columns = ['-6','-3','-2','-1','0']
+# WREX=pd.read_csv(os.path.join(where,'writheEX.csv'))
+# # WREX.columns = ['-6','-3','-2','-1','0']
+# WRIM=pd.read_csv(os.path.join(where,'writheIM.csv'))
+# # WRIM.columns = ['-6','-3','-2','-1','0']
+# RGEX = RGEX.melt(var_name='groups', value_name='vals')
+# # RGEX['groups'] = RGEX['groups'].astype(np.int32)
+# RGIM = RGIM.melt(var_name='groups', value_name='vals')
+# # RGIM['groups'] = RGIM['groups'].astype(np.int32)
+# WREX = WREX.melt(var_name='groups', value_name='vals')
+# # WREX['groups'] = WREX['groups'].astype(np.int32)
+# WRIM = WRIM.melt(var_name='groups', value_name='vals')
+# # WRIM['groups'] = WRIM['groups'].astype(np.int32)
+# sns.set_palette(sns.color_palette('BuPu',5))
+# savename = os.path.join(where, 'RGEX_violin' + plotextension)
+# fig, ax = plt.subplots(figsize=(10, 7))
+# ax = sns.violinplot(x="groups", y="vals", data=RGEX)
+# ax.invert_xaxis()
+# plt.xlabel(' ')
+# plt.ylim(8, 18.5)
+# plt.ylabel(' ')
+# plt.savefig(savename)
+# savename = os.path.join(where, 'RGIM_violin' + plotextension)
+# fig, ax = plt.subplots(figsize=(10, 7))
+# ax = sns.violinplot(x="groups", y="vals", data=RGIM)
+# ax.invert_xaxis()
+# plt.xlabel(' ')
+# plt.ylim(8, 18.5)
+# plt.ylabel(' ')
+# plt.savefig(savename)
+# savename = os.path.join(where, 'WREX_violin' + plotextension)
+# fig, ax = plt.subplots(figsize=(10, 7))
+# ax = sns.violinplot(x="groups", y="vals", data=WREX)
+# ax.invert_xaxis()
+# plt.xlabel(' ')
+# plt.ylim(-5, 0.5)
+# plt.ylabel(' ')
+# plt.savefig(savename)
+# savename = os.path.join(where, 'WRIM_violin' + plotextension)
+# fig, ax = plt.subplots(figsize=(10, 7))
+# ax = sns.violinplot(x="groups", y="vals", data=WRIM)
+# ax.invert_xaxis()
+# plt.xlabel(' ')
+# plt.ylim(-5, 0.5)
+# plt.ylabel(' ')
+# plt.savefig(savename)
+# savename = os.path.join(where, 'RG_violin' + plotextension)
+# fig, ax = plt.subplots(figsize=(10, 7))
+# with sns.color_palette("Blues"):
+#     ax = sns.violinplot(x="groups", y="vals", data=RGIM, label='Implicit')
+#     ax.invert_xaxis()
+# with sns.color_palette("Reds"):
+#     ax = sns.violinplot(x="groups", y="vals", data=RGEX, label='Explicit')
+#     ax.invert_xaxis()
+# plt.xlabel(' ')
+# plt.ylim(8,18.5)
+# plt.ylabel(' ')
+# plt.savefig(savename)
+# savename = os.path.join(where, 'WR_violin' + plotextension)
+# fig, ax = plt.subplots(figsize=(10, 7))
+# with sns.color_palette("Blues"):
+#     ax = sns.violinplot(x="groups", y="vals", data=WRIM, label='Implicit')
+#     ax.invert_xaxis()
+# with sns.color_palette("Reds"):
+#     ax = sns.violinplot(x="groups", y="vals", data=WREX, label='Explicit')
+#     ax.invert_xaxis()
+# plt.xlabel(' ')
+# plt.ylim(-5, 1)
+# plt.ylabel(' ')
+# plt.savefig(savename)
+#
+# savename = os.path.join(where, 'EX_violin' + plotextension)
+# fig, ax = plt.subplots(figsize=(10, 7))
+# with sns.color_palette("Blues"):
+#     ax1 = sns.violinplot(x="groups", y="vals", data=WREX, label='Writhe', ax=ax, alpha=0.7)
+#     # ax.invert_xaxis()
+#     plt.xlabel(' ')
+#     plt.ylabel(' ')
+#     plt.ylim(-8,0.5)
+# ax2 = plt.twinx()
+# with sns.color_palette("Reds"):
+#     ax2 = sns.violinplot(x="groups", y="vals", data=RGEX, label='Rg', ax=ax2, alpha=0.7)
+#     # ax.invert_xaxis()
+#     plt.xlabel(' ')
+#     plt.ylabel(' ')
+# plt.ylim(8,20)
+# plt.xlabel(' ')
+# # plt.ylim(-5, 0.5)
+# plt.ylabel(' ')
+# plt.savefig(savename)
+# savename = os.path.join(where, 'IM_violin' + plotextension)
+# fig, ax = plt.subplots(figsize=(10, 7))
+# with sns.color_palette("Blues"):
+#     ax1 = sns.violinplot(x="groups", y="vals", data=WRIM, label='Writhe', ax=ax, alpha=0.7)
+#     ax.invert_xaxis()
+#     plt.ylim(-8,0.5)
+# ax2 = plt.twinx()
+# with sns.color_palette("Reds"):
+#     ax2 = sns.violinplot(x="groups", y="vals", data=RGIM, label='Rg', ax=ax2, alpha=0.7)
+#     ax.invert_xaxis()
+# plt.ylim(8,20)
+# plt.xlabel(' ')
+# # plt.ylim(-5, 0.5)
+# plt.ylabel(' ')
+# plt.savefig(savename)
+#
+#
+# savename = os.path.join(where, 'RGEX_violin_sq' + plotextension)
+# fig, ax = plt.subplots(figsize=(7, 7))
+# ax = sns.violinplot(x="groups", y="vals", data=RGEX)
+# ax.invert_xaxis()
+# plt.xlabel(' ')
+# plt.ylim(8, 18.5)
+# plt.ylabel(' ')
+# plt.savefig(savename)
+#
+#
+# savename = os.path.join(where, 'WREX_violin_sq' + plotextension)
+# fig, ax = plt.subplots(figsize=(7, 7))
+# ax = sns.violinplot(x="groups", y="vals", data=WREX)
+# ax.invert_xaxis()
+# plt.xlabel(' ')
+# plt.ylim(-5, 0.5)
+# plt.ylabel(' ')
+# plt.savefig(savename)
