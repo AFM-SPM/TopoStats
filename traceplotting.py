@@ -76,19 +76,34 @@ def plotLinearVsCircular(contour_lengths_df):
     print 'circular', no_circular_mcles, av_circ_len, av_circ_std
     print 'linear', no_linear_mcles, av_lin_len, av_lin_std
 
-    plt.hist([circular_contour_lengths['Contour Lengths'].array, linear_contour_lengths['Contour Lengths'].array], 25, histtype = 'bar', label = ['Linear', 'Circular'])
+    plt.hist([linear_contour_lengths['Contour Lengths'].array, circular_contour_lengths['Contour Lengths'].array], 25, histtype = 'bar', label = ['Linear', 'Circular'])
     # plt.xlabel('Contour Length (nm)')
     # plt.ylabel('Occurence')
-    # plt.legend(loc='upper right')
+    plt.legend(loc='upper right')
     # plt.title('%s Linear vs Circular' % json_path[:-4])
     plt.savefig(os.path.join(os.path.dirname(file_name), 'Plots', 'linearVcircularHist.pdf'))
 
     num_lin_circ_df = pd.DataFrame(data = {'Linear' : [len(circular_contour_lengths)], 'Circular' : [len(linear_contour_lengths)]})
 
+
     fig, ax = plt.subplots()
+    ax = sns.violinplot(x='Circular', y='Contour Lengths', data=contour_lengths_df)
+    # ax = sns.barplot(data = num_lin_circ_df, order = ['Linear', 'Circular'])
+    plt.xlabel(' ')
+    plt.ylabel(' ')
+    ax.set_xticklabels(['Linear', 'Circular'])
+    # plt.title('%s Linear vs Circular' % json_path[:-4])
+    # plt.tight_layout()
+    ax.invert_xaxis()
+    plt.savefig(os.path.join(os.path.dirname(file_name), 'Plots', 'violinplot.pdf'))
+    plt.close()
+
+    fig, ax = plt.subplots()
+    # ax = sns.violinplot(x='Circular', y='Contour Lengths', data=contour_lengths_df)
     ax = sns.barplot(data = num_lin_circ_df, order = ['Linear', 'Circular'])
-    # plt.xlabel('Conformation')
-    # plt.ylabel('Occurence')
+    plt.xlabel(' ')
+    plt.ylabel(' ')
+    # ax.set_xticklabels(['Linear', 'Circular'])
     # plt.title('%s Linear vs Circular' % json_path[:-4])
     # plt.tight_layout()
     ax.invert_xaxis()
@@ -111,7 +126,6 @@ def plotkde(df, directory, name, plotextension, grouparg, plotarg):
     # Plot and save figures
     fig, ax = plt.subplots(figsize=(10, 7))
     df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=1, linewidth=3.0)
-    plt.xlim(-20, 200)
     plt.legend(loc='upper right')
     # plt.xlabel(' ')
     # plt.ylabel(' ')
@@ -270,7 +284,7 @@ def plotviolin(df, directory, name, plotextension, grouparg, plotarg):
 
     # Plot and save figures
     savename = os.path.join(savedir, name + plotarg + '_violin' + plotextension)
-    fig, ax = plt.subplots(figsize=(5, 5))
+    fig, ax = plt.subplots(figsize=(10,7))
     # Plot violinplot
     # ax.invert_xaxis()
     ax = sns.violinplot(x=grouparg, y=plotarg, data=df)
@@ -325,6 +339,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     # Determine max of each KDE and plot
     xs = np.linspace(0, 400, 100)
     dfmean = dict()
+    dfmed = dict()
     kdemax = dict()
     dfstd = dict()
     dfvar = dict()
@@ -333,6 +348,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     # plt.figure()
     for i in topos:
         dfmean[i] = i
+        dfmed[i] = i
         kdemax[i] = i
         dfstd[i] = i
         dfvar[i] = i
@@ -341,6 +357,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
         a = scipy.stats.gaussian_kde(x)
         b = a.pdf(xs)
         dfmean[i] = np.mean(x)
+        dfmed[i] = np.median(x)
         dfstd[i] = np.std(x)
         dfstd[i] = x.std()
         dfvar[i] = np.var(x)
@@ -350,10 +367,10 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
         kdemax[i] = xs[np.argmax(b)]
     plt.savefig(savename)
 
-    listofdicts = [dfmean, kdemax, dfstd, dfste, N]
+    listofdicts = [dfmean, dfmed, kdemax, dfstd, dfste, N]
     dflengths = pd.DataFrame(listofdicts)
     dflengths = dflengths.transpose()
-    dflengths.columns = ['mean length', 'length', 'std', 'ste', 'N']
+    dflengths.columns = ['mean length', 'median length', 'length', 'std', 'ste', 'N']
     dflengths.to_csv(os.path.join(savedir, 'lengthsanderrors.txt'))
 
     savename2 = os.path.join(savedir, name + plotarg + '_KDE_max' + plotextension)
@@ -377,7 +394,8 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
 
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular/210 bp'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
     # path2 = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/MAC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Bea'
@@ -392,6 +410,7 @@ if __name__ == '__main__':
 
     # import data form the json file specified as a dataframe
     df = pd.read_json(file_name)
+    # df = df.replace(["256 bp"], "251 bp")
 
     # Sort dataframe
     df = df.sort_values(["Experiment Directory", "Image Name", "Molecule number"], ascending=(True, True, True))
@@ -475,19 +494,24 @@ if __name__ == '__main__':
 
 
     # # Analysing two data sets together
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Bea'
+    # path1 = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
     # file_name = os.path.join(path, name)
     # df = pd.read_json(file_name)
     # df['DNA Length'] = df['Experiment Directory']
-    # df = df.replace(["Bea"], "Origami")
+
+    #
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
+    # file_name1 = os.path.join(path1, name)
+    # df1 = pd.read_json(file_name1)
+    # df1['DNA Length'] = df1['Experiment Directory']
+    # df1 = df1.replace(["Bea"], "Origami")
 
     # path2 = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/MAC'
     # file_name2 = os.path.join(path2, name)
     # df2 = pd.read_json(file_name2)
     # df2['DNA Length'] = df2['Experiment Directory']
-    # df3 = pd.concat([df, df2], axis=0)
 
-    # df3 = pd.concat([df, df2], axis=0)
+    # df3 = pd.concat([df, df1, df2], axis=0)
 
     # def plotviolin(df, directory, name, plotextension, grouparg, plotarg):
     #     print 'Plotting violin of %s' % plotarg
@@ -505,5 +529,5 @@ if __name__ == '__main__':
     #     plt.ylabel(' ')
     #     plt.savefig(savename)
 
-    # sns.set_palette(sns.color_palette('BuPu',2 ))
+    # sns.set_palette(sns.color_palette('BuPu',3))
     # plotviolin(df3, path, name, '_circularviolinboth.pdf', 'Experiment Directory', 'Contour Lengths')
