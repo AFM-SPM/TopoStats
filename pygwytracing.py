@@ -212,6 +212,7 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
     # For MAC ~2.1 works and DNA ~0.75
     # datafield.mask_outliers(mask, 2.1)
+    # datafield.mask_outliers(mask, 0.5)
     datafield.mask_outliers(mask, 0.75)
 
     # excluding mask, zero mean
@@ -692,7 +693,6 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Paper/Pyne et al/Figure 1/aspectratioanalysis'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular/194 bp'
@@ -709,13 +709,15 @@ if __name__ == '__main__':
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
     # Set height scale values to save out
-    minheightscale = -3e-9
+    minheightscale = -0e-9
     maxheightscale = 3e-9
     # Set minimum size for grain determination:
     minarea = 300e-9
     # minarea = 50e-9
     # minarea = 1000e-9
     # Set allowable deviation from the median pixel size for removal of large and small objects
+    # maxdeviation = 1.3
+    # mindeviation = 0.3
     maxdeviation = 1.3
     mindeviation = 0.7
     # Set size of the cropped window/2 in pixels
@@ -805,13 +807,13 @@ if __name__ == '__main__':
                 np_data_array = gwyutils.data_field_data_as_array(datafield)
 
                 dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
-                #dna_traces.showTraces()
-                # dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), 'cropped')
+                # dna_traces.showTraces()
+                # dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), minheightscale, maxheightscale, 'cropped')
 
             # #trace the DNA molecules - can compute stats etc as needed
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
             # #dna_traces.showTraces()
-            # dna_traces.saveTraceFigures(filename, channel_name, 'processed')
+            dna_traces.saveTraceFigures(filename, channel_name,  minheightscale, maxheightscale, 'processed')
             # dna_traces.writeContourLengths(filename, channel_name)
 
             #Update the pandas Dataframe used to monitor stats

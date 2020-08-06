@@ -444,19 +444,22 @@ class dnaTrace(object):
         plt.show()
         plt.close()
 
-    def saveTraceFigures(self, filename_with_ext, channel_name, directory_name = None):
+    def saveTraceFigures(self, filename_with_ext, channel_name, vmaxval, vminval, directory_name = None):
 
         if directory_name:
             filename_with_ext = self._checkForSaveDirectory(filename_with_ext, directory_name)
 
         save_file = filename_with_ext[:-4]
 
-        plt.pcolor(self.full_image_data, vmax = 2.5e-9, vmin = -1e-9)
+        # vmaxval = 20e-9
+        # vminval = -10e-9
+
+        plt.pcolor(self.full_image_data, vmax = vmaxval, vmin = vminval)
         plt.colorbar()
         plt.savefig('%s_%s_originalImage.png'  % (save_file, channel_name))
         plt.close()
 
-        plt.pcolor(self.full_image_data, vmax = 2.5e-9, vmin = -1e-9)
+        plt.pcolor(self.full_image_data, vmax = vmaxval, vmin = vminval)
         plt.colorbar()
         for dna_num in sorted(self.splined_traces.keys()):
             #disordered_trace_list = self.ordered_traces[dna_num].tolist()
@@ -476,7 +479,7 @@ class dnaTrace(object):
         plt.close()
         '''
 
-        plt.pcolor(self.full_image_data, vmax = 2.5e-9, vmin = -1e-9)
+        plt.pcolor(self.full_image_data, vmax = vmaxval, vmin = vminval)
         plt.colorbar()
         for dna_num in sorted(self.disordered_trace.keys()):
             #disordered_trace_list = self.disordered_trace[dna_num].tolist()
@@ -485,7 +488,7 @@ class dnaTrace(object):
         plt.savefig('%s_%s_disorderedtrace.png'  % (save_file, channel_name))
         plt.close()
 
-        plt.pcolor(self.full_image_data, vmax = 2.5e-9, vmin = -1e-9)
+        plt.pcolor(self.full_image_data, vmax = vmaxval, vmin = vminval)
         plt.colorbar()
         for dna_num in sorted(self.grains.keys()):
             grain_plt = np.argwhere(self.grains[dna_num] == 1)

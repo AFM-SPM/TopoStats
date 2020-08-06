@@ -128,7 +128,7 @@ def plotkde(df, directory, name, plotextension, grouparg, plotarg):
     df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=1, linewidth=3.0)
     plt.legend(loc='upper right')
     # plt.xlabel(' ')
-    # plt.ylabel(' ')
+    plt.ylabel(' ')
     plt.savefig(savename)
 
 def plotdist2(df, directory, name, plotextension, grouparg, plotarg):
@@ -245,8 +245,9 @@ def plotfacetsearch(df, directory, name, plotextension, grouparg, plotarg, searc
     savename = os.path.join(savedir, name + plotarg + '_facet_reduced' + plotextension)
     fig, ax = plt.subplots()
     bins = np.arange(0, 200, 10)
-    g = sns.FacetGrid(df, row='DNA Length', height=4.5, aspect=2)
+    g = sns.FacetGrid(df, row='DNA Length',row_order=["339 bp", "251 bp"], height=4.5, aspect=2)
     g.map(sns.distplot, "Contour Lengths", hist=True, rug=False, axlabel=False, bins=bins).set(xlim=(0, 200), xticks=[50, 100, 150, 200])
+
     plt.xlabel(' ')
     # plt.ylabel(' ')
     plt.savefig(savename)
@@ -337,10 +338,12 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
 
     # Determine KDE for each topoisomer
     # Determine max of each KDE and plot
-    xs = np.linspace(0, 400, 100)
+    xs = np.linspace(0, 400, 10000)
     dfmean = dict()
     dfmed = dict()
+    dfmode = dict()
     kdemax = dict()
+    dfiqr = dict()
     dfstd = dict()
     dfvar = dict()
     dfste = dict()
@@ -349,7 +352,9 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
     for i in topos:
         dfmean[i] = i
         dfmed[i] = i
+        dfmode[i] = i
         kdemax[i] = i
+        dfiqr[i] = i
         dfstd[i] = i
         dfvar[i] = i
         dfste[i] = i
@@ -358,19 +363,21 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
         b = a.pdf(xs)
         dfmean[i] = np.mean(x)
         dfmed[i] = np.median(x)
+        dfmode[i] = stats.mode(x)
+        dfiqr[i] = stats.iqr(x)
         dfstd[i] = np.std(x)
         dfstd[i] = x.std()
         dfvar[i] = np.var(x)
-        dfste[i] = stats.sem(x)
+        dfste[i] = stats.sem(x) 
         N[i] = len(x)
         # plt.plot(xs, b)
         kdemax[i] = xs[np.argmax(b)]
     plt.savefig(savename)
 
-    listofdicts = [dfmean, dfmed, kdemax, dfstd, dfste, N]
+    listofdicts = [dfmean, dfmed, dfmode, kdemax, dfiqr, dfstd, dfste, N]
     dflengths = pd.DataFrame(listofdicts)
     dflengths = dflengths.transpose()
-    dflengths.columns = ['mean length', 'median length', 'length', 'std', 'ste', 'N']
+    dflengths.columns = ['mean length', 'median length', 'mode length', 'KDE max length', 'IQR', 'std', 'ste', 'N']
     dflengths.to_csv(os.path.join(savedir, 'lengthsanderrors.txt'))
 
     savename2 = os.path.join(savedir, name + plotarg + '_KDE_max' + plotextension)
@@ -394,6 +401,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
 
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular/194 bp'
     path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
@@ -454,7 +462,7 @@ if __name__ == '__main__':
     sns.set_palette(sns.color_palette('deep', 1))
     plotfacet(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths')
 
-    searchfor = ['116 bp', '357 bp', '398 bp']
+    searchfor = ['116 bp', '194 bp', '357 bp', '398 bp']
     plotfacetsearch(df, path, name, plotextension, 'Experiment Directory', 'Contour Lengths', searchfor)
 
 
