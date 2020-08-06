@@ -1,12 +1,14 @@
 #!/usr/bin/env python2
 
 import os
+import fnmatch
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import pandas as pd
 import seaborn as sns
 import numpy as np
 import scipy
+import glob
 from scipy import stats
 
 # Set seaborn to override matplotlib for plot output
@@ -17,6 +19,32 @@ sns.set_style("white", {'font.family': ['sans-serif']})
 # sns.set_context("notebook", font_scale=1.5)
 sns.set_context("poster", font_scale=1.4)
 # plt.style.use("dark_background")
+
+def traversedirectories(fileend, filetype, path):
+    # This function finds all the files with the file ending set in the main script as fileend (usually.spm)
+    # in the path directory, and all subfolder
+
+    # initialise the list
+    spmfiles = []
+    # use os.walk to search folders and subfolders and append each file with the correct filetype to the list spmfiles
+    for dirpath, subdirs, files in os.walk(path):
+        # Looking for files ending in fileend
+        for filename in files:
+            # ignore any files containing '_cs'
+            if not fnmatch.fnmatch(filename, '*_cs*'):
+                # Find files ending in 'fileend'
+                if filename.endswith(fileend):
+                    spmfiles.append(os.path.join(dirpath, filename))
+                # Find files of a certain 'filetype'
+                if fnmatch.fnmatch(filename, '*.*[0-9]'):
+                    spmfiles.append(os.path.join(dirpath, filename))
+        #
+        # for filename in fnmatch.filter(files, filetype):
+        #     spmfiles.append(os.path.join(dirpath, filename))
+        # print the number of files found
+    print( 'Files found: ' + str(len(spmfiles)))
+    # return a list of files including their root and the original path specified
+    return spmfiles
 
 
 def plotHistogramOfTwoDataSets(data_frame_path, dataset_1_name, dataset_2_name):
@@ -386,6 +414,7 @@ def seaplotting(df, arg1, arg2, bins, directory, extension):
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
+    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/NI/NAT/20140625_339_NAT_Ni_5mM'
 
     # Set the name of the json file to import here
     name = '*.json'
@@ -664,3 +693,199 @@ if __name__ == '__main__':
 # plt.ylim(-5, 0.5)
 # plt.ylabel(' ')
 # plt.savefig(savename)
+
+# sns.set_context("poster", font_scale=1.8)
+#
+# path = '/Volumes/GoogleDrive/My Drive/Sheffield/DNA minicircles/Fig4c'
+# colnames=['data', 'filename']
+# tfofilenames = glob.glob(path + "/tn*.dat")
+# dnafilenames = glob.glob(path + "/dn*.dat")
+#
+# tfo_list_of_dfs = [pd.read_csv(filename, names=colnames, header=None).assign(filename=os.path.basename(filename[:filename.index('.')])) for filename in tfofilenames]
+# # Combine a list of dataframes, on top of each other
+# tfo_df = pd.concat(tfo_list_of_dfs, ignore_index=True)
+# tfo_df['filename'] = tfo_df['filename'].astype(str).replace({'tn26': '-6', 'tn29': '-3', 'tn30': '-2', 'tn31': '-1', 'tn32': '0', 'tn33': '+1'})
+# tfo_df['filename'] = tfo_df['filename'].astype(np.float16)
+#
+# dna_list_of_dfs = [pd.read_csv(filename, names=colnames, header=None).assign(filename=os.path.basename(filename[:filename.index('.')])) for filename in dnafilenames]
+# # Combine a list of dataframes, on top of each other
+# dna_df = pd.concat(dna_list_of_dfs, ignore_index=True)
+# dna_df['filename'] = dna_df['filename'].astype(str).replace({'dn26': '-6', 'dn29': '-3', 'dn30': '-2', 'dn31': '-1', 'dn32': '0', 'dn33': '+1'})
+# dna_df['filename'] = dna_df['filename'].astype(np.float16)
+#
+# savename = os.path.join(path, '4c' + plotextension)
+# fig, ax = plt.subplots(figsize=(10, 7))
+# with sns.color_palette("Purples_r"):
+#     ax = sns.violinplot(x="filename", y="data", data=dna_df, label='DNA', ax=ax)
+#     ax.invert_xaxis()
+#     plt.xlabel(' ')
+#     plt.ylabel(' ')
+# with sns.color_palette("YlOrRd_r"):
+#     ax = sns.violinplot(x="filename", y="data", data=tfo_df, label='TFO', ax=ax)
+#     ax.invert_xaxis()
+#     plt.xlabel(' ')
+#     plt.ylabel(' ')
+# plt.xlabel(' ')
+# plt.ylim(-20,380)
+# plt.ylabel(' ')
+# plt.savefig(savename)
+#
+#
+# path = '/Volumes/GoogleDrive/My Drive/Sheffield/DNA minicircles/Fig4d'
+# colnames=['data', 'filename']
+# tfofilenames = glob.glob(path + "/*HBond.dat")
+# dnafilenames = glob.glob(path + "/*Stack.dat")
+# tfo_list_of_dfs = [pd.read_csv(filename, names=colnames, header=None).assign(filename=os.path.basename(filename[:filename.index('.')])) for filename in tfofilenames]
+# # Combine a list of dataframes, on top of each other
+# tfo_df = pd.concat(tfo_list_of_dfs, ignore_index=True)
+# tfo_df['filename'] = tfo_df['filename'].astype(str).replace({'diffnlin': '-7', 'diffnt26': '-6', 'diffnt29': '-3', 'diffnt30': '-2', 'diffnt31': '-1', 'diffnt32': '0', 'diffnt33': '+1'})
+# tfo_df['filename'] = tfo_df['filename'].astype(np.float16)
+#
+# dna_list_of_dfs = [pd.read_csv(filename, names=colnames, header=None).assign(filename=os.path.basename(filename[:filename.index('.')])) for filename in dnafilenames]
+# # Combine a list of dataframes, on top of each other
+# dna_df = pd.concat(dna_list_of_dfs, ignore_index=True)
+# dna_df['filename'] = dna_df['filename'].astype(str).replace({'diffnlin': '-7', 'diffnt26': '-6', 'diffnt29': '-3', 'diffnt30': '-2', 'diffnt31': '-1', 'diffnt32': '0', 'diffnt33': '+1'})
+# dna_df['filename'] = dna_df['filename'].astype(np.float16)
+#
+# savename = os.path.join(path, '4d' + plotextension)
+# fig, ax = plt.subplots(figsize=(10, 7))
+# with sns.color_palette("Blues"):
+#     ax = sns.violinplot(x="filename", y="data", data=dna_df, palette="Blues", label='DNA', ax=ax)
+#     ax.invert_xaxis()
+#     plt.xlabel(' ')
+#     plt.ylabel(' ')
+# with sns.color_palette("Greens"):
+#     ax = sns.violinplot(x="filename", y="data", data=tfo_df, palette="Greens", label='TFO', ax=ax)
+#     ax.invert_xaxis()
+#     plt.xlabel(' ')
+#     plt.ylabel(' ')
+# plt.xlabel(' ')
+# plt.ylim(-150,150)
+# plt.ylabel(' ')
+# plt.savefig(savename)
+#
+#
+# path = '/Volumes/GoogleDrive/My Drive/Sheffield/DNA minicircles/Fig4e'
+# colnames=['data', 'filename']
+# tfofilenames = glob.glob(path + "/tn*.dat")
+# dnafilenames = glob.glob(path + "/dn*.dat")
+#
+# tfo_list_of_dfs = [pd.read_csv(filename, names=colnames, header=None).assign(filename=os.path.basename(filename[:filename.index('.')])) for filename in tfofilenames]
+# # Combine a list of dataframes, on top of each other
+# tfo_df = pd.concat(tfo_list_of_dfs, ignore_index=True)
+# tfo_df['filename'] = tfo_df['filename'].astype(str).replace({'tn339t26': '-6', 'tn339t29': '-3', 'tn339t30': '-2', 'tn339t31': '-1', 'tn339t32': '0', 'tn339t33': '+1'})
+# tfo_df['filename'] = tfo_df['filename'].astype(np.float16)
+#
+# dna_list_of_dfs = [pd.read_csv(filename, names=colnames, header=None).assign(filename=os.path.basename(filename[:filename.index('.')])) for filename in dnafilenames]
+# # Combine a list of dataframes, on top of each other
+# dna_df = pd.concat(dna_list_of_dfs, ignore_index=True)
+# dna_df['filename'] = dna_df['filename'].astype(str).replace({'dn339t26': '-6', 'dn339t29': '-3', 'dn339t30': '-2', 'dn339t31': '-1', 'dn339t32': '0', 'dn339t33': '+1'})
+# dna_df['filename'] = dna_df['filename'].astype(np.float16)
+#
+# savename = os.path.join(path, '4e' + plotextension)
+# fig, ax = plt.subplots(figsize=(10, 7))
+# with sns.color_palette("Purples_r"):
+#     ax = sns.violinplot(x="filename", y="data", data=dna_df, label='DNA', ax=ax)
+#     ax.invert_xaxis()
+#     plt.xlabel(' ')
+#     plt.ylabel(' ')
+# with sns.color_palette("YlOrRd_r"):
+#     ax = sns.violinplot(x="filename", y="data", data=tfo_df, label='TFO', ax=ax)
+#     ax.invert_xaxis()
+#     plt.xlabel(' ')
+#     plt.ylabel(' ')
+# plt.xlabel(' ')
+# plt.ylim(-5, 1)
+# plt.ylabel(' ')
+# plt.savefig(savename)
+#
+#
+#
+# # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/NI/NAT/20140625_339_NAT_Ni_5mM'
+# # file = 'save-2014.06.25-15.20.23.grains_av_height.txt'
+# # df = pd.read_csv(os.path.join(path, file))
+# # df = df/1e-9
+# # # Create a saving name format/directory
+# # savedir = os.path.join(path, 'Plots')
+# # if not os.path.exists(savedir):
+# #     os.makedirs(savedir)
+# # # Plot and save figures
+# # savename = os.path.join(savedir, str(file) + '_violin' + plotextension)
+# # fig, ax = plt.subplots(figsize=(5, 5))
+# # # Plot violinplot
+# # ax = sns.violinplot(data=df)
+# # plt.ylim(0, 2)
+# # plt.xlabel(' ')
+# # plt.ylabel(' ')
+# # plt.savefig(savename)
+#
+# sns.set_context("poster", font_scale=1)
+# path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/NI/NAT/20140625_339_NAT_Ni_5mM'
+# file = 'save-2014.06.25-15.20.23_multipleprofiles.txt'
+# df = pd.read_csv(os.path.join(path, file), delimiter=';', header=1)
+# df = df.drop([0])
+# df = df.iloc[:, :-1]
+# df=df.astype(np.float32)
+# df=df/1e-9
+# # Create a saving name format/directory
+# savedir = os.path.join(path, 'Plots')
+# if not os.path.exists(savedir):
+#     os.makedirs(savedir)
+# # Plot and save figures
+# savename = os.path.join(savedir, str(file) + '_violin' + plotextension)
+# fig, ax = plt.subplots(figsize=(5, 5))
+# # Plot violinplot
+# # ax = sns.lineplot(df['x'], df['y'])
+# ax = sns.lineplot(df['x.1'], df['y.1'])
+# ax = sns.lineplot(df['x.2'], df['y.2'])
+# # ax = sns.lineplot(df['x.3'], df['y.3'])
+# ax = sns.lineplot(df['x.4'], df['y.4'])
+# # ax = sns.lineplot(df['x.5'], df['y.5'])
+# # ax = sns.lineplot(df['x.6'], df['y.6'])
+# plt.ylim(-0.25, 2)
+# plt.xlabel(' ')
+# plt.ylabel(' ')
+# plt.savefig(savename)
+# from scipy.signal import find_peaks
+# x = df['y']
+# peaks, properties = find_peaks(x, height=1, width=2)
+# plt.plot(x)
+# plt.plot(peaks, x[peaks], "x")
+# plt.plot(np.zeros_like(x), "--", color="gray")
+# plt.show()
+#
+# sns.set_context("poster", font_scale=1)
+# path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/NI/NAT/20140625_339_NAT_Ni_5mM'
+# file = 'DNAMCINF_all_height_profiles.txt'
+# df = pd.read_csv(os.path.join(path, file), header=0, delimiter=";")
+# df = df.iloc[:, :-1]
+# df=df.astype(np.float32)
+# df=df/1e-9
+# # Create a saving name format/directory
+# savedir = os.path.join(path, 'Plots')
+# if not os.path.exists(savedir):
+#     os.makedirs(savedir)
+# # Plot and save figures
+# savename = os.path.join(savedir, str(file) + '_heights' + plotextension)
+# fig, ax = plt.subplots(figsize=(5, 5))
+# # Plot line plot
+# ax = sns.lineplot(df['z'], df['ρ'])
+# # ax = sns.lineplot(df['z.1'], df['ρ.1'])
+# ax = sns.lineplot(df['z.2'], df['ρ.2'])
+# ax = sns.lineplot(df['z.3'], df['ρ.3'])
+# ax = sns.lineplot(df['z.4'], df['ρ.4'])
+# ax = sns.lineplot(df['z.5'], df['ρ.5'])
+# ax = sns.lineplot(df['z.6'], df['ρ.6'])
+# ax = sns.lineplot(df['z.7'], df['ρ.7'])
+# ax = sns.lineplot(df['z.8'], df['ρ.8'])
+# # handles, labels = ax.get_legend_handles_labels()
+# # ax.legend(handles[::-1], labels[::-1])
+# # ax.legend(handles, labels)
+# plt.xlim(-0.5, 2.5)
+# plt.xlabel(' ')
+# plt.ylabel(' ')
+# # plt.legend()
+# plt.savefig(savename)
+# from scipy.signal import find_peaks
+# x = df['ρ']
+# peaks, properties = find_peaks(x, height=1)
