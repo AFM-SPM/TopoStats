@@ -1,4 +1,7 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
 
 import os
 import fnmatch
@@ -326,6 +329,7 @@ def plotdfcolumns(df, path, name, grouparg):
     columnstoplot = list(df.select_dtypes(include=['float64', 'int64']).columns)
     for x in columnstoplot:
         savename = os.path.join(savedir, name + '_' + str(x) + plotextension)
+        savename = os.path.join(savedir, name + '_' + str(x) + plotextension)
         fig, ax = plt.subplots(figsize=(10, 7))
         df.groupby(grouparg)[x].plot.kde(ax=ax, legend=True)
         plt.savefig(savename)
@@ -564,135 +568,131 @@ if __name__ == '__main__':
 # # # import pandas as pd
 # # # import os
 # # # import matplotlib as plt
-# where ='/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Paper/Pyne et al/SI Violin'
-# RGEX=pd.read_csv(os.path.join(where,'radgyrEX.csv'))
-# # RGEX.columns = ['-6','-3','-2','-1','0']
-# RGIM=pd.read_csv(os.path.join(where,'radgyrIM.csv'))
-# # RGIM.columns = ['-6','-3','-2','-1','0']
-# WREX=pd.read_csv(os.path.join(where,'writheEX.csv'))
-# # WREX.columns = ['-6','-3','-2','-1','0']
-# WRIM=pd.read_csv(os.path.join(where,'writheIM.csv'))
-# # WRIM.columns = ['-6','-3','-2','-1','0']
-# RGEX = RGEX.melt(var_name='groups', value_name='vals')
-# # RGEX['groups'] = RGEX['groups'].astype(np.int32)
-# RGIM = RGIM.melt(var_name='groups', value_name='vals')
-# # RGIM['groups'] = RGIM['groups'].astype(np.int32)
-# WREX = WREX.melt(var_name='groups', value_name='vals')
-# # WREX['groups'] = WREX['groups'].astype(np.int32)
-# WRIM = WRIM.melt(var_name='groups', value_name='vals')
-# # WRIM['groups'] = WRIM['groups'].astype(np.int32)
-# sns.set_palette(sns.color_palette('BuPu',5))
-# savename = os.path.join(where, 'RGEX_violin' + plotextension)
-# fig, ax = plt.subplots(figsize=(10, 7))
-# ax = sns.violinplot(x="groups", y="vals", data=RGEX)
-# ax.invert_xaxis()
-# plt.xlabel(' ')
-# plt.ylim(8, 18.5)
-# plt.ylabel(' ')
-# plt.savefig(savename)
-# savename = os.path.join(where, 'RGIM_violin' + plotextension)
-# fig, ax = plt.subplots(figsize=(10, 7))
-# ax = sns.violinplot(x="groups", y="vals", data=RGIM)
-# ax.invert_xaxis()
-# plt.xlabel(' ')
-# plt.ylim(8, 18.5)
-# plt.ylabel(' ')
-# plt.savefig(savename)
-# savename = os.path.join(where, 'WREX_violin' + plotextension)
-# fig, ax = plt.subplots(figsize=(10, 7))
-# ax = sns.violinplot(x="groups", y="vals", data=WREX)
-# ax.invert_xaxis()
-# plt.xlabel(' ')
+path = '/Volumes/GoogleDrive/My Drive/Sheffield/DNA minicircles/EXIM'
+colnames=['data', 'filename']
+WREXlist = glob.glob(path + "/*writheEX*.dat")
+WRIMlist = glob.glob(path + "/*writheIM*.dat")
+RGIMlist = glob.glob(path + "/*radgyrIM*.dat")
+RGEXlist = glob.glob(path + "/*radgyrEX*.dat")
+
+WREX_list = [pd.read_csv(filename, names=colnames, header=None).assign(filename=os.path.basename(filename[:filename.index('.')])) for filename in WREXlist]
+# Combine a list of dataframes, on top of each other
+WREX_df = pd.concat(WREX_list, ignore_index=True)
+WREX_df['filename'] = WREX_df['filename'].astype(str).replace({'t26': '-6', 't29': '-3', 't30': '-2', 't31': '-1', 't32': '0', 't33': '+1'})
+WREX_df['filename'] = WREX_df['filename'].astype(np.float16)
+WREX_df['Type'] = 'Explicit'
+WREX_df['Measurement'] = 'Writhe'
+
+WRIM_list = [pd.read_csv(filename, names=colnames, header=None).assign(filename=os.path.basename(filename[:filename.index('.')])) for filename in WRIMlist]
+# Combine a list of dataframes, on top of each other
+WRIM_df = pd.concat(WRIM_list, ignore_index=True)
+WRIM_df['filename'] = WRIM_df['filename'].astype(str).replace({'t26': '-6', 't29': '-3', 't30': '-2', 't31': '-1', 't32': '0', 't33': '+1'})
+WRIM_df['filename'] = WRIM_df['filename'].astype(np.float16)
+WRIM_df['Type'] = 'Implicit'
+WRIM_df['Measurement'] = 'Writhe'
+
+RGEX_list = [pd.read_csv(filename, names=colnames, header=None).assign(filename=os.path.basename(filename[:filename.index('.')])) for filename in RGEXlist]
+# Combine a list of dataframes, on top of each other
+RGEX_df = pd.concat(RGEX_list, ignore_index=True)
+RGEX_df['filename'] = RGEX_df['filename'].astype(str).replace({'t26': '-6', 't29': '-3', 't30': '-2', 't31': '-1', 't32': '0', 't33': '+1'})
+RGEX_df['filename'] = RGEX_df['filename'].astype(np.float16)
+RGEX_df['Type'] = 'Explicit'
+RGEX_df['Measurement'] = 'Rg'
+
+RGIM_list = [pd.read_csv(filename, names=colnames, header=None).assign(filename=os.path.basename(filename[:filename.index('.')])) for filename in RGIMlist]
+# Combine a list of dataframes, on top of each other
+RGIM_df = pd.concat(RGIM_list, ignore_index=True)
+RGIM_df['filename'] = RGIM_df['filename'].astype(str).replace({'t26': '-6', 't29': '-3', 't30': '-2', 't31': '-1', 't32': '0', 't33': '+1'})
+RGIM_df['filename'] = RGIM_df['filename'].astype(np.float16)
+RGIM_df['Type'] = 'Implicit'
+RGIM_df['Measurement'] = 'Rg'
+
+Writhe = pd.concat([WREX_df,WRIM_df], ignore_index=True)
+Radgyr = pd.concat([RGEX_df,RGIM_df], ignore_index=True)
+Explicit = pd.concat([WREX_df,RGEX_df], ignore_index=True)
+Implicit = pd.concat([WRIM_df,RGIM_df], ignore_index=True)
+
+savename = os.path.join(path, 'writhe' + plotextension)
+palette = sns.color_palette('PuBu', 2)
+fig, ax = plt.subplots(figsize=(10, 7), dpi=300)
+ax = sns.violinplot(x="filename", y="data", hue="Type",data=Writhe,
+             palette=palette)
+ax.invert_xaxis()
+plt.xlabel(' ')
+plt.ylabel(' ')
+plt.savefig(savename)
+
+savename = os.path.join(path, 'radgyr' + plotextension)
+palette = sns.color_palette('PuBu', 2)
+fig, ax = plt.subplots(figsize=(10, 7), dpi=300)
+ax = sns.violinplot(x="filename", y="data", hue="Type",data=Radgyr,
+             palette=palette)
+ax.invert_xaxis()
+plt.xlabel(' ')
+plt.ylabel(' ')
+plt.savefig(savename)
+
+savename = os.path.join(path, 'explicit' + plotextension)
+palette = sns.color_palette('PuBu', 2)
+fig, ax = plt.subplots(figsize=(10, 7), dpi=300)
+ax = sns.violinplot(x="filename", y="data", hue="Measurement",data=Explicit,
+             palette=palette)
+ax.invert_xaxis()
+plt.xlabel(' ')
+plt.ylabel(' ')
+plt.savefig(savename)
+
+savename = os.path.join(path, 'implicit' + plotextension)
+palette = sns.color_palette('PuBu', 2)
+fig, axs = plt.subplots(figsize=(10,7), dpi=300)#, sharex=True)#, gridspec_kw={'hspace':.02})
+ax = sns.violinplot(x="filename", y="data", hue="Measurement", data=Implicit,
+             palette=palette)
+ax.invert_xaxis()
+plt.xlabel(' ')
+plt.ylabel(' ')
+plt.savefig(savename)
+
+savename = os.path.join(path, 'EX_violin' + plotextension)
+fig, ax = plt.subplots(figsize=(10, 7))
+with sns.color_palette("Blues"):
+    ax1 = sns.violinplot(x="filename", y="data", data=WREX_df, label='Writhe', ax=ax, alpha=0.7)
+    ax.invert_xaxis()
+    plt.xlabel(' ')
+    plt.ylabel(' ')
+    plt.ylim(-8,0.5)
+ax2 = plt.twinx()
+with sns.color_palette("Reds"):
+    ax2 = sns.violinplot(x="filename", y="data", data=RGEX_df, label='Rg', ax=ax2, alpha=0.7)
+    ax.invert_xaxis()
+    plt.xlabel(' ')
+    plt.ylabel(' ')
+plt.ylim(8,20)
+plt.xlabel(' ')
 # plt.ylim(-5, 0.5)
-# plt.ylabel(' ')
-# plt.savefig(savename)
-# savename = os.path.join(where, 'WRIM_violin' + plotextension)
-# fig, ax = plt.subplots(figsize=(10, 7))
-# ax = sns.violinplot(x="groups", y="vals", data=WRIM)
-# ax.invert_xaxis()
-# plt.xlabel(' ')
+plt.ylabel(' ')
+plt.savefig(savename)
+
+savename = os.path.join(path, 'IM_violin' + plotextension)
+fig, ax = plt.subplots(figsize=(10, 7))
+with sns.color_palette("Blues"):
+    ax1 = sns.violinplot(x="filename", y="data", data=WRIM_df, label='Writhe', ax=ax, alpha=0.7, dodge=True)
+    ax.invert_xaxis()
+    plt.xlabel(' ')
+    plt.ylabel(' ')
+    plt.ylim(-8,0.5)
+ax2 = plt.twinx()
+with sns.color_palette("Reds"):
+    ax2 = sns.violinplot(x="filename", y="data", data=RGIM_df, label='Rg', ax=ax2, alpha=0.7, dodge=True)
+    plt.xlabel(' ')
+    plt.ylabel(' ')
+    ax.invert_xaxis()
+plt.ylim(8,20)
+plt.legend()
+plt.xlabel(' ')
 # plt.ylim(-5, 0.5)
-# plt.ylabel(' ')
-# plt.savefig(savename)
-# savename = os.path.join(where, 'RG_violin' + plotextension)
-# fig, ax = plt.subplots(figsize=(10, 7))
-# with sns.color_palette("Blues"):
-#     ax = sns.violinplot(x="groups", y="vals", data=RGIM, label='Implicit')
-#     ax.invert_xaxis()
-# with sns.color_palette("Reds"):
-#     ax = sns.violinplot(x="groups", y="vals", data=RGEX, label='Explicit')
-#     ax.invert_xaxis()
-# plt.xlabel(' ')
-# plt.ylim(8,18.5)
-# plt.ylabel(' ')
-# plt.savefig(savename)
-# savename = os.path.join(where, 'WR_violin' + plotextension)
-# fig, ax = plt.subplots(figsize=(10, 7))
-# with sns.color_palette("Blues"):
-#     ax = sns.violinplot(x="groups", y="vals", data=WRIM, label='Implicit')
-#     ax.invert_xaxis()
-# with sns.color_palette("Reds"):
-#     ax = sns.violinplot(x="groups", y="vals", data=WREX, label='Explicit')
-#     ax.invert_xaxis()
-# plt.xlabel(' ')
-# plt.ylim(-5, 1)
-# plt.ylabel(' ')
-# plt.savefig(savename)
-#
-# savename = os.path.join(where, 'EX_violin' + plotextension)
-# fig, ax = plt.subplots(figsize=(10, 7))
-# with sns.color_palette("Blues"):
-#     ax1 = sns.violinplot(x="groups", y="vals", data=WREX, label='Writhe', ax=ax, alpha=0.7)
-#     # ax.invert_xaxis()
-#     plt.xlabel(' ')
-#     plt.ylabel(' ')
-#     plt.ylim(-8,0.5)
-# ax2 = plt.twinx()
-# with sns.color_palette("Reds"):
-#     ax2 = sns.violinplot(x="groups", y="vals", data=RGEX, label='Rg', ax=ax2, alpha=0.7)
-#     # ax.invert_xaxis()
-#     plt.xlabel(' ')
-#     plt.ylabel(' ')
-# plt.ylim(8,20)
-# plt.xlabel(' ')
-# # plt.ylim(-5, 0.5)
-# plt.ylabel(' ')
-# plt.savefig(savename)
-# savename = os.path.join(where, 'IM_violin' + plotextension)
-# fig, ax = plt.subplots(figsize=(10, 7))
-# with sns.color_palette("Blues"):
-#     ax1 = sns.violinplot(x="groups", y="vals", data=WRIM, label='Writhe', ax=ax, alpha=0.7)
-#     ax.invert_xaxis()
-#     plt.ylim(-8,0.5)
-# ax2 = plt.twinx()
-# with sns.color_palette("Reds"):
-#     ax2 = sns.violinplot(x="groups", y="vals", data=RGIM, label='Rg', ax=ax2, alpha=0.7)
-#     ax.invert_xaxis()
-# plt.ylim(8,20)
-# plt.xlabel(' ')
-# # plt.ylim(-5, 0.5)
-# plt.ylabel(' ')
-# plt.savefig(savename)
-#
-#
-# savename = os.path.join(where, 'RGEX_violin_sq' + plotextension)
-# fig, ax = plt.subplots(figsize=(7, 7))
-# ax = sns.violinplot(x="groups", y="vals", data=RGEX)
-# ax.invert_xaxis()
-# plt.xlabel(' ')
-# plt.ylim(8, 18.5)
-# plt.ylabel(' ')
-# plt.savefig(savename)
-#
-#
-# savename = os.path.join(where, 'WREX_violin_sq' + plotextension)
-# fig, ax = plt.subplots(figsize=(7, 7))
-# ax = sns.violinplot(x="groups", y="vals", data=WREX)
-# ax.invert_xaxis()
-# plt.xlabel(' ')
-# plt.ylim(-5, 0.5)
-# plt.ylabel(' ')
-# plt.savefig(savename)
+plt.ylabel(' ')
+plt.savefig(savename)
+
 
 # sns.set_context("poster", font_scale=1.8)
 #
@@ -818,6 +818,41 @@ if __name__ == '__main__':
 # # plt.xlabel(' ')
 # # plt.ylabel(' ')
 # # plt.savefig(savename)
+
+path = '/Volumes/GoogleDrive/My Drive/Sheffield/DNA minicircles/VIOLIN'
+colnames=['data', 'filename']
+bsc1filenames = glob.glob(path + "/*bsc1*.dat")
+# ol4filenames = glob.glob(path + "/OL4*.dat")
+#
+bsc1_list_of_dfs = [pd.read_csv(filename, names=colnames, header=None).assign(filename=os.path.basename(filename[:filename.index('.')])) for filename in bsc1filenames]
+# # Combine a list of dataframes, on top of each other
+bsc1_df = pd.concat(bsc1_list_of_dfs, ignore_index=True)
+bsc1_df['filename'] = bsc1_df['filename'].astype(str).replace({'dn339t26': '-6', 'dn339t30': '-2', 'dn339t32': '0'})
+bsc1_df['filename'] = bsc1_df['filename'].astype(np.float16)
+#
+# dna_list_of_dfs = [pd.read_csv(filename, names=colnames, header=None).assign(filename=os.path.basename(filename[:filename.index('.')])) for filename in dnafilenames]
+# # Combine a list of dataframes, on top of each other
+# dna_df = pd.concat(dna_list_of_dfs, ignore_index=True)
+# dna_df['filename'] = dna_df['filename'].astype(str).replace({'dn339t26': '-6', 'dn339t29': '-3', 'dn339t30': '-2', 'dn339t31': '-1', 'dn339t32': '0', 'dn339t33': '+1'})
+# dna_df['filename'] = dna_df['filename'].astype(np.float16)
+#
+savename = os.path.join(path, 'BSC1' + plotextension)
+fig, ax = plt.subplots(figsize=(10, 7))
+with sns.color_palette("Purples_r"):
+    ax = sns.violinplot(x="filename", y="data", data=bsc1_df, label='DNA', ax=ax)
+    ax.invert_xaxis()
+    plt.xlabel(' ')
+    plt.ylabel(' ')
+# with sns.color_palette("YlOrRd_r"):
+#     ax = sns.violinplot(x="filename", y="data", data=tfo_df, label='TFO', ax=ax)
+#     ax.invert_xaxis()
+#     plt.xlabel(' ')
+#     plt.ylabel(' ')
+plt.xlabel(' ')
+plt.ylim(-5, 0.5)
+plt.ylabel(' ')
+plt.savefig(savename)
+
 #
 # sns.set_context("poster", font_scale=1)
 # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/NI/NAT/20140625_339_NAT_Ni_5mM'
