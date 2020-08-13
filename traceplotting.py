@@ -368,7 +368,7 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
         dfstd[i] = np.std(x)
         dfstd[i] = x.std()
         dfvar[i] = np.var(x)
-        dfste[i] = stats.sem(x) 
+        dfste[i] = stats.sem(x)
         N[i] = len(x)
         # plt.plot(xs, b)
         kdemax[i] = xs[np.argmax(b)]
@@ -408,6 +408,8 @@ if __name__ == '__main__':
     # path2 = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/MAC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Bea'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing/339 bp'
+
+    path = 'bea'
 
     name = 'tracestats.json'
     file_name = os.path.join(path, name)
