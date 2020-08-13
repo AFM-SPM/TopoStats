@@ -703,7 +703,7 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
 
-    path = 'Circular/398 bp/'
+    path = 'Fortracing/339/'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -822,6 +822,7 @@ if __name__ == '__main__':
 
             # #trace the DNA molecules - can compute stats etc as needed
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
+            trace_end = time.time()
             # #dna_traces.showTraces()
             dna_traces.saveTraceFigures(filename, channel_name,  minheightscale, maxheightscale, 'processed')
             # dna_traces.writeContourLengths(filename, channel_name)
