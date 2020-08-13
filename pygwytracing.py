@@ -6,7 +6,7 @@ sys.path.append('/opt/local/share/gwyddion/pygwy') # # location of gwyutils.py f
 #sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # Homebrew install on Mac
 #sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy') # Homebrew install on Mac
 
-# sys.path.append('/usr/share/gwyddion/pygwy/') # Windows
+sys.path.append('/usr/share/gwyddion/pygwy/') # Ubuntu
 
 import pygtk
 pygtk.require20() # adds gtk-2.0 folder to sys.path
@@ -19,6 +19,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import dnatracing
+import time
 
 # Import height thresholding.py for processing bilayer removal images
 
@@ -692,16 +693,16 @@ if __name__ == '__main__':
 
     # Set the file path, i.e. the directory where the files are here'
 
-    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Paper/Pyne et al/Figure 1/aspectratioanalysis'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular/194 bp'
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/MAC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
 
-    # path = 'Circular/210 bp/'
+    path = 'Circular/398 bp/'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -754,10 +755,14 @@ if __name__ == '__main__':
         # Option if you want to only choose one channel for each file being analysed
         # for k in chosen_ids:
             # Get all the image details eg resolution for your chosen channel
+            data_edit_start = time.time()
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
 
             # Perform basic image processing, to align rows, flatten and set the mean value to zero
             data = editfile(data, k)
+
+            data_edit_end = time.time()
+            mol_find_start = time.time()
 
             # Perform basic image processing, to align rows, flatten and set the mean value to zero
             # Find all grains in the mask which are both above a height threshold
@@ -787,6 +792,10 @@ if __name__ == '__main__':
             bbox, orig_ids, crop_ids, data, cropped_grains, cropwidth_pix = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
             # orig_ids, crop_ids, data = splitimage(data, splitwidth, datafield, xreal, yreal, xres, yres)
 
+            mol_find_end = time.time()
+
+            trace_start = time.time()
+
             # Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
 
@@ -798,20 +807,21 @@ if __name__ == '__main__':
 
             #bbox, orig_ids, crop_ids, cropped_grains = boundbox(cropwidth, grains, grains, dx, dy, xreal, yreal, xres, yres)
             #saving plots of indidiviual grains/traces
-            for grain_num, data_num in enumerate(range(len(orig_ids), len(crop_ids), 1)):
-                gwy.gwy_app_data_browser_select_data_field(data, data_num)
-                datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
+            #for grain_num, data_num in enumerate(range(len(orig_ids), len(crop_ids), 1)):
+            #    gwy.gwy_app_data_browser_select_data_field(data, data_num)
+            #    datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
 
-                np_data_array = gwyutils.data_field_data_as_array(datafield)
+            #    np_data_array = gwyutils.data_field_data_as_array(datafield)
 
-                dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
+            #    dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
                 #dna_traces.showTraces()
-                # dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), 'cropped')
+            #    dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), 'cropped')
 
             # #trace the DNA molecules - can compute stats etc as needed
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
             # #dna_traces.showTraces()
-            # dna_traces.saveTraceFigures(filename, channel_name, 'processed')
+            trace_end = time.time()
+            dna_traces.saveTraceFigures(filename, channel_name, 'processed')
             # dna_traces.writeContourLengths(filename, channel_name)
 
             #Update the pandas Dataframe used to monitor stats
@@ -832,6 +842,10 @@ if __name__ == '__main__':
             # Save data as 2 images, with and without mask
             savefiles(data, filename, extension)
             # saveunknownfiles(data, filename, extension)
+
+            print('Image correction took %f seconds' % (data_edit_end - data_edit_start))
+            print('Molecule identification took %f seconds' % (mol_find_end - mol_find_start))
+            print('Tracing took %f seconds' % (trace_end - trace_start))
 
             # Saving stats to text and JSON files named by master path
             # saveindividualstats(filename, grainstats, k)
