@@ -616,18 +616,18 @@ class reorderTrace:
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(neighbour_array[0]))
                 continue
             elif no_of_neighbours > 1:
-                #best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
+                best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
+                ordered_points.append(best_next_pixel)
+                remaining_unordered_coords.pop(remaining_unordered_coords.index(best_next_pixel))
+                continue
+            elif no_of_neighbours == 0:
+                #nn, neighbour_array_all_coords = genTracingFuncs.countandGetNeighbours(x_n, y_n, trace_coordinates)
+                #best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array_all_coords)
                 best_next_pixel = genTracingFuncs.findBestNextPoint(x_n, y_n, ordered_points, remaining_unordered_coords)
 
                 if not best_next_pixel:
                     return np.array(ordered_points)
 
-                ordered_points.append(best_next_pixel)
-                remaining_unordered_coords.pop(remaining_unordered_coords.index(best_next_pixel))
-                continue
-            elif no_of_neighbours == 0:
-                nn, neighbour_array_all_coords = genTracingFuncs.countandGetNeighbours(x_n, y_n, trace_coordinates)
-                best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array_all_coords)
                 ordered_points.append(best_next_pixel)
 
             #If the tracing has reached the other end of the trace then its finished
