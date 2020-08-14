@@ -616,7 +616,12 @@ class reorderTrace:
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(neighbour_array[0]))
                 continue
             elif no_of_neighbours > 1:
-                best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
+                #best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array)
+                best_next_pixel = genTracingFuncs.findBestNextPoint(x_n, y_n, ordered_points, remaining_unordered_coords)
+
+                if not best_next_pixel:
+                    return np.array(ordered_points)
+
                 ordered_points.append(best_next_pixel)
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(best_next_pixel))
                 continue
@@ -699,7 +704,11 @@ class reorderTrace:
 
                 #Maybe at a crossing with all neighbours deleted - this is crucially a point where errors often occur
                 else:
-                    best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, remaining_unordered_coords)
+                    #best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, remaining_unordered_coords)
+                    best_next_pixel = genTracingFuncs.findBestNextPoint(x_n, y_n, ordered_points, remaining_unordered_coords)
+
+                    if not best_next_pixel:
+                        return np.array(ordered_points), False
 
                     vector_to_new_point = abs(math.hypot(best_next_pixel[0] - x_n, best_next_pixel[1] - y_n))
 
@@ -862,6 +871,70 @@ class genTracingFuncs:
             neighbour_array.append([x - 1, y + 1])
             number_of_neighbours +=1
         return number_of_neighbours, neighbour_array
+
+    @staticmethod
+    def returnPointsInArray(points_array, trace_coordinates):
+
+        for x, y in points_array:
+            if [x, y] in trace_coordinates:
+                try:
+                    points_in_trace_coordinates.append([x,y])
+                except NameError:
+                    points_in_trace_coordinates = [[x,y]]
+        #for x, y in points_array:
+        #    print([x,y])
+        #    try:
+        #        trace_coordinates.index([x,y])
+        #        print(trace_coordinates.index([x,y]))
+        #    except ValueError:
+        #        continue
+        #    else:
+        #        try:
+        #            points_in_trace_coordinates.append([x,y])
+        #        except NameError:
+        #            points_in_trace_coordinates = [[x,y]]
+        try:
+            return points_in_trace_coordinates
+        except UnboundLocalError:
+            return None
+
+    @staticmethod
+    def makeGrid(x, y, size):
+        for x_n in range(-size, size+1):
+            x_2 = x + x_n
+            for y_n in range(-size, size+1):
+                y_2 = y + y_n
+                try:
+                    grid.append([x_2,y_2])
+                except NameError:
+                    grid = [[x_2,y_2]]
+        return grid
+
+    @staticmethod
+    def findBestNextPoint(x, y, ordered_points, candidate_points):
+
+        ordered_points = np.array(ordered_points)
+        candidate_points = np.array(candidate_points)
+
+        ordered_points = ordered_points.tolist()
+        candidate_points = candidate_points.tolist()
+
+        for i in range(1, 8):
+            #build array of coordinates from which to check
+            coords_to_check = genTracingFuncs.makeGrid(x, y, i)
+            #check for potential points in the larger search area
+            points_in_array = genTracingFuncs.returnPointsInArray(coords_to_check, candidate_points)
+
+            #Make a decision depending on how many points are found
+            if not points_in_array:
+                continue
+            elif len(points_in_array) == 1:
+                best_next_point = points_in_array[0]
+                return best_next_point
+            else:
+                best_next_point = genTracingFuncs.checkVectorsCandidatePoints(x, y, ordered_points, points_in_array)
+                return best_next_point
+        return None
 
     @staticmethod
     def checkVectorsCandidatePoints(x, y, ordered_points, candidate_points):
