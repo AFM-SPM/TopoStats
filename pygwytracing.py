@@ -703,7 +703,7 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
 
-    path = 'Fortracing/339/'
+    path = 'Circular/398 bp/'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
