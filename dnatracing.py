@@ -464,7 +464,7 @@ class dnaTrace(object):
         for dna_num in sorted(self.splined_traces.keys()):
             #disordered_trace_list = self.ordered_traces[dna_num].tolist()
             #less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
-            plt.plot(self.splined_traces[dna_num][:,0], self.splined_traces[dna_num][:,1], color = 'g')
+            plt.plot(self.splined_traces[dna_num][:,0], self.splined_traces[dna_num][:,1], color = 'c')
         plt.savefig('%s_%s_splinedtrace.png'  % (save_file, channel_name))
         plt.close()
 
@@ -484,7 +484,7 @@ class dnaTrace(object):
         for dna_num in sorted(self.disordered_trace.keys()):
             #disordered_trace_list = self.disordered_trace[dna_num].tolist()
             #less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
-            plt.plot(self.disordered_trace[dna_num][:,0], self.disordered_trace[dna_num][:,1], 'o', markersize = 0.5, color = 'g')
+            plt.plot(self.disordered_trace[dna_num][:,0], self.disordered_trace[dna_num][:,1], 'o', markersize = 0.5, color = 'c')
         plt.savefig('%s_%s_disorderedtrace.png'  % (save_file, channel_name))
         plt.close()
 
@@ -492,7 +492,7 @@ class dnaTrace(object):
         plt.colorbar()
         for dna_num in sorted(self.grains.keys()):
             grain_plt = np.argwhere(self.grains[dna_num] == 1)
-            plt.plot(grain_plt[:,0], grain_plt[:,1],  'o', markersize = 2, color = 'g')
+            plt.plot(grain_plt[:,0], grain_plt[:,1],  'o', markersize = 2, color = 'c')
         plt.savefig('%s_%s_grains.png' % (save_file, channel_name))
         plt.close()
 

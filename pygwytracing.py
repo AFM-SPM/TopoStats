@@ -211,7 +211,7 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
-    # For MAC ~2.1 works and DNA ~0.75
+    # For MAC ~2.1 works and DNA ~0.75 and NPC 0.5
     # datafield.mask_outliers(mask, 2.1)
     # datafield.mask_outliers(mask, 0.5)
     datafield.mask_outliers(mask, 0.75)
@@ -699,11 +699,11 @@ if __name__ == '__main__':
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Paper/Pyne et al/Figure 1/aspectratioanalysis'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular/194 bp'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/MAC'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
 
-    path = 'Fortracing/339/'
+    # path = 'Fortracing/339/'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -713,18 +713,21 @@ if __name__ == '__main__':
     # Set height scale values to save out
     minheightscale = -0e-9
     maxheightscale = 3e-9
+    # maxheightscale = 20e-9
+    # maxheightscale = 50e-9
     # Set minimum size for grain determination:
     minarea = 300e-9
     # minarea = 50e-9
     # minarea = 1000e-9
     # Set allowable deviation from the median pixel size for removal of large and small objects
-    # maxdeviation = 1.3
-    # mindeviation = 0.3
     maxdeviation = 1.3
     mindeviation = 0.7
+    # maxdeviation = 1.5
+    # mindeviation = 0.5
     # Set size of the cropped window/2 in pixels
-    cropwidth = 40e-9
     # cropwidth = 100e-9
+    # cropwidth = 60e-9
+    cropwidth = 40e-9
     splitwidth = 2e-6
     # Set number of bins
     bins = 25
@@ -757,13 +760,12 @@ if __name__ == '__main__':
         for k in chosen_ids[:1]:
         # Option if you want to only choose one channel for each file being analysed
         # for k in chosen_ids:
-            # Get all the image details eg resolution for your chosen channel
+        #     # Get all the image details eg resolution for your chosen channel
             data_edit_start = time.time()
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
 
             # Perform basic image processing, to align rows, flatten and set the mean value to zero
             data = editfile(data, k)
-
             data_edit_end = time.time()
             mol_find_start = time.time()
 
@@ -810,15 +812,15 @@ if __name__ == '__main__':
 
             #bbox, orig_ids, crop_ids, cropped_grains = boundbox(cropwidth, grains, grains, dx, dy, xreal, yreal, xres, yres)
             #saving plots of indidiviual grains/traces
-            #for grain_num, data_num in enumerate(range(len(orig_ids), len(crop_ids), 1)):
-            #    gwy.gwy_app_data_browser_select_data_field(data, data_num)
-            #    datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-
-            #    np_data_array = gwyutils.data_field_data_as_array(datafield)
-
-            #    dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
-                #dna_traces.showTraces()
-            #    dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), 'cropped')
+            # for grain_num, data_num in enumerate(range(len(orig_ids), len(crop_ids), 1)):
+            #     gwy.gwy_app_data_browser_select_data_field(data, data_num)
+            #     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
+            #
+            #     np_data_array = gwyutils.data_field_data_as_array(datafield)
+            #
+            #     dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
+            #     # dna_traces.showTraces()
+            #     dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), minheightscale, maxheightscale, 'cropped')
 
             # #trace the DNA molecules - can compute stats etc as needed
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
