@@ -1,4 +1,7 @@
 # TopoStats
+
+**This software is provided under the [GPL License](COPYING) with additional persmissions provided by the [LGPL License](COPYING.LESSER).**
+
 An AFM image analysis program to batch process data and obtain statistics from images
 
 Image progessing is performed using the 'pygwytracing' script
