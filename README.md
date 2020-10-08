@@ -1,4 +1,5 @@
 # TopoStats
+
 An AFM image analysis program to batch process data and obtain statistics from images
 
 Image progessing is performed using the 'pygwytracing' script
@@ -27,3 +28,5 @@ To allow for further processing in python, there is an option to obtain the imag
 Statistical analysis and plotting is performed using the 'statsplotting' script. 
 This script uses the importfromjson function to import the JSON format file exported by pygwytracing and calculates various statistical parameters for all grain quantities, e.g. length, width and saves these out as a new JSON file using the savestats function. 
 Both KDE plots and histograms are generated for any of the grain quantities using the matplotlib42 and seaborn43 libraries within the functions plotkde, plotcolumns and plothist. 
+
+**This software is licensed as specified by the [GPL License](COPYING) and [LGPL License](COPYING.LESSER).**
