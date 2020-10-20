@@ -30,3 +30,5 @@ This script uses the importfromjson function to import the JSON format file expo
 Both KDE plots and histograms are generated for any of the grain quantities using the matplotlib42 and seaborn43 libraries within the functions plotkde, plotcolumns and plothist. 
 
 **This software is licensed as specified by the [GPL License](COPYING) and [LGPL License](COPYING.LESSER).**
+
+If you'd like to contribute, have at look at our [contributing instructions](contributing.md).
