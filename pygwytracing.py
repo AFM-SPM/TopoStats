@@ -6,7 +6,10 @@ sys.path.append('/opt/local/share/gwyddion/pygwy') # # location of gwyutils.py f
 #sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # Homebrew install on Mac
 #sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy') # Homebrew install on Mac
 
-sys.path.append('/usr/share/gwyddion/pygwy/') # Ubuntu
+#sys.path.append('/usr/share/gwyddion/pygwy/') # Ubuntu
+
+sys.path.append('C:\Program Files (x86)\Gwyddion\\bin') 
+sys.path.append('C:\Program Files (x86)\Gwyddion\share\gwyddion\pygwy')
 
 import pygtk
 pygtk.require20() # adds gtk-2.0 folder to sys.path
@@ -701,7 +704,8 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
+    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
+    path = 'C:\Users\Work\OneDrive\Documents\Uni\Research\Code\DNA minicircles'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
