@@ -1,6 +1,6 @@
 import sys
-sys.path.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # location of gwy.so file (Macports install)
-sys.path.append('/opt/local/share/gwyddion/pygwy') # # location of gwyutils.py file (Macports install)
+#sys.path.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # location of gwy.so file (Macports install)
+#sys.path.append('/opt/local/share/gwyddion/pygwy') # # location of gwyutils.py file (Macports install)
 
 
 #sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # Homebrew install on Mac
@@ -8,8 +8,8 @@ sys.path.append('/opt/local/share/gwyddion/pygwy') # # location of gwyutils.py f
 
 #sys.path.append('/usr/share/gwyddion/pygwy/') # Ubuntu
 
-sys.path.append('C:\Program Files (x86)\Gwyddion\\bin') 
-sys.path.append('C:\Program Files (x86)\Gwyddion\share\gwyddion\pygwy')
+sys.path.append('C:\Program Files (x86)\Gwyddion\\bin')    #Windows install
+sys.path.append('C:\Program Files (x86)\Gwyddion\share\gwyddion\pygwy') #pygwy location on Windows
 
 import pygtk
 pygtk.require20() # adds gtk-2.0 folder to sys.path
