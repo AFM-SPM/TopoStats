@@ -448,7 +448,7 @@ if __name__ == '__main__':
     dfnew['topoisomer'] = df['topoisomer'].astype(str).replace({'-2': '-1.8', '-3': '-2.8', '-6': '-4.9'})
     # Get list of unique directory names i.e. topoisomers
     newtopos = dfnew['topoisomer']
-    newtopos = pd.to_numeric(newtopos)
+    newtopos = pd.to_numeric(newtopos, errors='ignore')
     dfnew['topoisomer'] = newtopos
 
     # Obtain list of unique topoisomers
