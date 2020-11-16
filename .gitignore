@@ -10,3 +10,6 @@
 .json
 .npy
 
+# IDE
+.vscode/
+.idea/
