@@ -498,18 +498,14 @@ class dnaTrace(object):
 
     def _checkForSaveDirectory(self, filename, new_directory_name):
 
-        path_list = filename.split('/')
-        directory_string = ''
-
-        for dir in path_list[:-1]:
-            directory_string = directory_string + dir + '/'
+        split_directory_path = os.path.split(filename)
 
         try:
-            os.mkdir(directory_string + new_directory_name)
-        except OSError: #OSError happens if the directory already exists
+            os.mkdir(os.path.join(split_directory_path[0], new_directory_name))
+        except OSError:  # OSError happens if the directory already exists
             pass
 
-        updated_filename = directory_string + new_directory_name + '/' + path_list[-1]
+        updated_filename = os.path.join(split_directory_path[0], new_directory_name, split_directory_path[1])
 
         return updated_filename
 
@@ -601,8 +597,10 @@ class traceStats(object):
 
         data_dict = {}
 
-        trace_directory = self.trace_object.afm_image_name.split('/')[-2]
-        img_name = self.trace_object.afm_image_name.split('/')[-1]
+        trace_directory_file = self.trace_object.afm_image_name
+        trace_directory = os.path.dirname(trace_directory_file)
+        img_name = os.path.basename(trace_directory_file)
+
         for mol_num, dna_num in enumerate(sorted(self.trace_object.ordered_traces.keys())):
 
             try:
@@ -624,8 +622,9 @@ class traceStats(object):
 
         data_dict = {}
 
-        trace_directory = new_traces.afm_image_name.split('/')[-2]
-        img_name = new_traces.afm_image_name.split('/')[-1]
+        trace_directory_file = self.trace_object.afm_image_name
+        trace_directory = os.path.dirname(trace_directory_file)
+        img_name = os.path.basename(trace_directory_file)
 
 
         for mol_num, dna_num in enumerate(sorted(new_traces.contour_lengths.keys())):
