@@ -12,9 +12,13 @@ This document explains how, technically, to contribute to this project. A code o
   In pycharm:
   * Add any new files to `git` (i.e. stage them):
   ![](assets/stage.png)
-  * Commit the changes (with a sensible message):
+  * Commit the changes (with a sensible message).
   ![](assets/commit.png)
+  > Add / commit multiple times to break your contribution into easy to follow chunks. 
+  * Push your changes:
+  ![](assets/push.png)
 * Make a pull request against the `master` branch of this repository.
+![](assets/pull-request.png)
 
 You are advised to make a draft pull request as soon as you start work so nobody else ends up working on the same thing.
 
