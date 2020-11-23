@@ -15,4 +15,6 @@ __pycache__/
 .json
 .npy
 
-
+# IDE
+.vscode/
+.idea/
