@@ -75,7 +75,7 @@ def traversedirectories(fileend, filetype, path):
         # for filename in fnmatch.filter(files, filetype):
         #     spmfiles.append(os.path.join(dirpath, filename))
         # print the number of files found
-    print( 'Files found: ' + str(len(spmfiles)))
+    print('Files found: ' + str(len(spmfiles)))
     # return a list of files including their root and the original path specified
     return spmfiles
 
@@ -113,8 +113,8 @@ def imagedetails(data):
     yres = datafield.get_yres()
     xreal = datafield.get_xreal()
     yreal = datafield.get_yreal()
-    dx = xreal/xres
-    dy = yreal/yres
+    dx = xreal / xres
+    dy = yreal / yres
     return xres, yres, xreal, yreal, dx, dy
 
 def heightediting(data, k):
@@ -141,7 +141,7 @@ def heightediting(data, k):
     # Gaussian filter to remove noise
     current_data = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
 
-    filter_width = 5 * dx*1e9
+    filter_width = 5 * dx * 1e9
 
     current_data.filter_gaussian(filter_width)
 
@@ -194,7 +194,7 @@ def editfile(data, k):
     data_field = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
     data_field.filter_gaussian(1)
     # # Shift contrast - equivalent to 'fix zero'
-    #datafield.add(-data_field.get_min())
+    # datafield.add(-data_field.get_min())
 
     return data
 
@@ -203,8 +203,8 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
     # Select channel 'k' of the file
     gwy.gwy_app_data_browser_select_data_field(data, k)
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    #Gaussiansize = 0.25e-9 / dx
-    #datafield.filter_gaussian(Gaussiansize)
+    # Gaussiansize = 0.25e-9 / dx
+    # datafield.filter_gaussian(Gaussiansize)
 
     mask = gwy.DataField.new_alike(datafield, False)
 
@@ -223,7 +223,7 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
     stats = datafield.area_get_stats_mask(mask, gwy.MASK_EXCLUDE, 0, 0, datafield.get_xres(), datafield.get_yres())
     datafield.add(-stats[0])
 
-    # Set the image display to fized range and the colour scale for the images
+    # Set the image display to fixed range and the colour scale for the images
     maximum_disp_value = data.set_int32_by_name("/" + str(k) + "/base/range-type", int(1))
     minimum_disp_value = data.set_double_by_name("/" + str(k) + "/base/min", float(minheightscale))
     maximum_disp_value = data.set_double_by_name("/" + str(k) + "/base/max", float(maxheightscale))
@@ -233,7 +233,7 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
     mask.grains_remove_touching_border()
 
     # Calculate pixel width in nm
-    #dx = datafield.get_dx()
+    # dx = datafield.get_dx()
     # Calculate minimum feature size in pixels (integer) from a real size specified in the main
     minsize = int(minarea / dx)
     # Remove grains smaller than the minimum size in integer pixels
@@ -256,7 +256,7 @@ def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, dx):
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
     datafield.mask_outliers(mask2, 1)
     # Calculate pixel width in nm
-    #dx = datafield.get_dx()
+    # dx = datafield.get_dx()
     # Calculate minimum feature size in pixels (integer)
     # here this is calculated as 2* the median grain size, as calculated in find_median_pixel_area()
     maxsize = int(maxdeviation * median_pixel_area)
@@ -266,7 +266,7 @@ def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, dx):
     mask2.grains_remove_by_size(maxsize)
     # Invert mask2 so everything smaller than aggregates/junk is masked
     mask2.grains_invert()
-    # Make mask equal to the intersection of mask and mask 2, i.e. rmeove large objects unmasked by mask2
+    # Make mask equal to the intersection of mask and mask 2, i.e. remove large objects unmasked by mask2
     mask.grains_intersect(mask2)
 
     # Numbering grains for grain analysis
@@ -282,7 +282,7 @@ def removesmallobjects(datafield, mask, median_pixel_area, mindeviation, dx):
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
     datafield.mask_outliers(mask2, 1)
     # Calculate pixel width in nm
-    #dx = datafield.get_dx()
+    # dx = datafield.get_dx()
     # Calculate minimum feature size in pixels (integer)
     # here this is calculated as 2* the median grain size, as calculated in find_median_pixel_area()
     minsize = int(mindeviation * median_pixel_area)
@@ -400,43 +400,43 @@ def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
     for i in range(len(center_x)):
         px_center_x = int((center_x[i] / xreal) * xres)
         px_center_y = int((center_y[i] / yreal) * yres)
-        #ULcol = px_center_x - cropwidth
+        # ULcol = px_center_x - cropwidth
         xmin = px_center_x - cropwidth
-        #ULrow = px_center_y - cropwidth
+        # ULrow = px_center_y - cropwidth
         ymin = px_center_y - cropwidth
-        #BRcol = px_center_x + cropwidth
+        # BRcol = px_center_x + cropwidth
         xmax = px_center_x + cropwidth
-        #BRrow = px_center_y + cropwidth
+        # BRrow = px_center_y + cropwidth
         ymax = px_center_y + cropwidth
 
-        #making sure cropping boxes dont run outside the image dimensions
+        # making sure cropping boxes dont run outside the image dimensions
         if xmin < 0:
             xmin = 0
-            xmax = 2*cropwidth
+            xmax = 2 * cropwidth
         if ymin < 0:
             ymin = 0
-            ymax = 2*cropwidth
+            ymax = 2 * cropwidth
         if xmax > xres:
             xmax = xres
             xmin = xres - 2*cropwidth
         if ymax > yres:
             ymax = yres
-            ymin = yres - 2*cropwidth
+            ymin = yres - 2 * cropwidth
 
         # print ULcol, ULrow, BRcol, BRrow
-        #crop the data
+        # crop the data
         crop_datafield_i = datafield.duplicate()
         crop_datafield_i.resize(xmin, ymin, xmax, ymax)
 
         # add cropped datafield to active container
         gwy.gwy_app_data_browser_add_data_field(crop_datafield_i, data, i + (len(orig_ids)))
 
-        #cropping the grain array:
-        grain_num = i+1
+        # cropping the grain array:
+        grain_num = i + 1
         cropped_np_grain = multidim_grain_array[ymin:ymax, xmin:xmax]
         cropped_grain = [1 if i == grain_num else 0 for i in cropped_np_grain.flatten()]
 
-        #make a list containing each of the cropped grains
+        # make a list containing each of the cropped grains
         try:
             cropped_grains.append(cropped_grain)
         except NameError:
@@ -563,6 +563,7 @@ def savefiles(data, filename, extension):
     savename = os.path.join(savedir, filename) + str(k) + '_' + str(title) + '_processed_masked' + str(extension)
     # Save the data
     gwy.gwy_file_save(data, savename, gwy.RUN_NONINTERACTIVE)
+    gwy.gwy_app_file_close()
     # Print the name of the file you're saving to the command line
     # print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))
 
@@ -760,9 +761,9 @@ if __name__ == '__main__':
         # for k in chosen_ids:
         # Or just use first height/height sensor channel to avoid duplicating
         for k in chosen_ids[:1]:
-        # Option if you want to only choose one channel for each file being analysed
-        # for k in chosen_ids:
-        #     # Get all the image details eg resolution for your chosen channel
+            # Option if you want to only choose one channel for each file being analysed
+            # for k in chosen_ids:
+            #     # Get all the image details eg resolution for your chosen channel
             data_edit_start = time.time()
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
 
@@ -787,7 +788,7 @@ if __name__ == '__main__':
             # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
             mask, grains, number_of_grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation, dx)
 
-            #if there's no grains skip this image
+            # if there's no grains skip this image
             if number_of_grains == 0:
                 continue
 
@@ -808,12 +809,12 @@ if __name__ == '__main__':
 
 
             try:
-                channel_name = channels[k] + str(k+1)
+                channel_name = channels[k] + str(k + 1)
             except IndexError:
                 channel_name = 'ZSensor'
 
-            #bbox, orig_ids, crop_ids, cropped_grains = boundbox(cropwidth, grains, grains, dx, dy, xreal, yreal, xres, yres)
-            #saving plots of indidiviual grains/traces
+            # bbox, orig_ids, crop_ids, cropped_grains = boundbox(cropwidth, grains, grains, dx, dy, xreal, yreal, xres, yres)
+            # saving plots of individual grains/traces
             # for grain_num, data_num in enumerate(range(len(orig_ids), len(crop_ids), 1)):
             #     gwy.gwy_app_data_browser_select_data_field(data, data_num)
             #     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
@@ -828,10 +829,10 @@ if __name__ == '__main__':
             dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
             trace_end = time.time()
             # #dna_traces.showTraces()
-            dna_traces.saveTraceFigures(filename, channel_name,  minheightscale, maxheightscale, 'processed')
+            dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
             # dna_traces.writeContourLengths(filename, channel_name)
 
-            #Update the pandas Dataframe used to monitor stats
+            # Update the pandas Dataframe used to monitor stats
             try:
                 tracing_stats.updateTraceStats(dna_traces)
             except NameError:
