@@ -188,8 +188,20 @@ class dnaTrace(object):
 
     def getFittedTraces(self):
 
-        ''' Moves the coordinates from the skeletonised traces to lie on the
-        highest point on the DNA molecule
+        '''
+        Creates self.fitted_traces dictonary which contains trace
+        coordinates (for each identified molecule) that are adjusted to lie
+        along the highest points of each traced molecule
+
+        param:  self.ordered_traces; the unadjusted skeleton traces
+        param:  self.gauss_image; gaussian filtered AFM image of the original
+                molecules
+        param:  index_width; 1/2th the width of the height profile indexed from
+                self.gauss_image at each coordinate (e.g. 2*index_width pixels
+                are indexed)
+
+        return: no direct output but instance variable self.fitted_traces
+                is populated with adjusted x,y coordinates
         '''
 
         for dna_num in sorted(self.ordered_traces.keys()):
