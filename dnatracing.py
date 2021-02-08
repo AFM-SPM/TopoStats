@@ -48,7 +48,7 @@ class dnaTrace(object):
         self.num_circular = 0
         self.num_linear = 0
 
-        #splining generates annoying warnings I don't understand - this suppresses them
+        #supresses scipy splining warnings
         warnings.filterwarnings('ignore')
 
         self.getNumpyArraysfromGwyddion()
@@ -89,7 +89,8 @@ class dnaTrace(object):
             single_grain_1d = np.array([1 if i == grain_num else 0 for i in self.gwyddion_grains])
             self.grains[int(grain_num)] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
 
-        #Get a 10 A gauss filtered version of the original image - used in refining the pixel positions in getFittedTraces()
+        # Get a 7 A gauss filtered version of the original image
+        # used in refining the pixel positions in getFittedTraces()
         sigma = 0.7/(self.pixel_size*1e9)
         self.gauss_image = filters.gaussian(self.full_image_data, sigma)
 
@@ -108,11 +109,12 @@ class dnaTrace(object):
             sigma = (0.01/(self.pixel_size*1e9))
             very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
-            #Some of the gwyddion grains still touch the border which causes a IndexError - this handles that by deleting such grains
             try:
                 dna_skeleton = getSkeleton(self.gauss_image, smoothed_grain, self.number_of_columns, self.number_of_rows, self.pixel_size)
                 self.disordered_trace[grain_num] = dna_skeleton.output_skeleton
             except IndexError:
+                # Some gwyddion grains touch image border causing IndexError
+                # These grains are deleted
                 self.grains.pop(grain_num)
             #skel = morphology.skeletonize(self.grains[grain_num])
             #self.skeletons[grain_num] = np.argwhere(skel == 1)
@@ -162,7 +164,7 @@ class dnaTrace(object):
 
             circle_tracing = True
 
-            if self.mol_is_circular[dna_num]: #and not self.mol_is_looped[dna_num]:
+            if self.mol_is_circular[dna_num]:
 
                 self.ordered_traces[dna_num], trace_completed = reorderTrace.circularTrace(self.disordered_trace[dna_num])
 
@@ -176,7 +178,7 @@ class dnaTrace(object):
                         self.grains.pop(dna_num)
                         self.ordered_traces.pop(dna_num)
 
-            elif not self.mol_is_circular[dna_num]: #and not self.mol_is_looped[dna_num]:
+            elif not self.mol_is_circular[dna_num]:
                 self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
 
     def reportBasicStats(self):
@@ -186,33 +188,56 @@ class dnaTrace(object):
 
     def getFittedTraces(self):
 
-        ''' Moves the coordinates from the skeletonised traces to lie on the
-        highest point on the DNA molecule
+        '''
+        Creates self.fitted_traces dictonary which contains trace
+        coordinates (for each identified molecule) that are adjusted to lie
+        along the highest points of each traced molecule
+
+        param:  self.ordered_traces; the unadjusted skeleton traces
+        param:  self.gauss_image; gaussian filtered AFM image of the original
+                molecules
+        param:  index_width; 1/2th the width of the height profile indexed from
+                self.gauss_image at each coordinate (e.g. 2*index_width pixels
+                are indexed)
+
+        return: no direct output but instance variable self.fitted_traces
+                is populated with adjusted x,y coordinates
         '''
 
         for dna_num in sorted(self.ordered_traces.keys()):
 
             individual_skeleton = self.ordered_traces[dna_num]
 
-            #This sets a 5 nm search in a direction perpendicular to the DNA chain
-            height_search_distance = int(3e-9/(self.pixel_size))
-
-            if height_search_distance < 2:
-                height_search_distance = 2
+            # This indexes a 3 nm height profile perpendicular to DNA backbone
+            # note that this is a hard coded parameter
+            index_width = int(3e-9/(self.pixel_size))
+            if index_width < 2:
+                index_width = 2
 
             for coord_num, trace_coordinate in enumerate(individual_skeleton):
                 height_values = None
 
-                #I don't have a clue what this block of code is doing
+                # Block of code to prevent indexing outside image limits
+                # e.g. indexing self.gauss_image[130, 130] for 128x128 image
                 if trace_coordinate[0] < 0:
-                    trace_coordinate[0] = height_search_distance
-                elif trace_coordinate[0] >= self.number_of_rows - height_search_distance:
-                    trace_coordinate[0] = trace_coordinate[0] = self.number_of_rows - height_search_distance
+                    # prevents negative number indexing
+                    # i.e. stops (trace_coordinate - index_width) < 0
+                    trace_coordinate[0] = index_width
+                elif trace_coordinate[0] >= self.number_of_rows -
+                                                        index_width:
+                    # prevents indexing above image range causing IndexError
+                    trace_coordinate[0] = self.number_of_rows -
+                                                        index_width
+                # do same for y coordinate
                 elif trace_coordinate[1] < 0:
-                    trace_coordinate[1] = (height_search_distance+1)
-                elif trace_coordinate[1] >= self.number_of_columns - height_search_distance:
-                    trace_coordinate[1] = self.number_of_columns - height_search_distance
+                    trace_coordinate[1] = index_width
+                elif trace_coordinate[1] >= self.number_of_columns -
+                                                        index_width:
+                    trace_coordinate[1] = self.number_of_columns -
+                                                        index_width
 
+
+                # calculate vector to n - 2 coordinate in trace
                 if self.mol_is_circular[dna_num]:
                     nearest_point = individual_skeleton[coord_num-2]
                     vector = np.subtract(nearest_point, trace_coordinate)
@@ -228,40 +253,67 @@ class dnaTrace(object):
                 if vector_angle < 0:
                     vector_angle += 180
 
-                if 67.5 > vector_angle >= 22.5:	#aka if  angle is closest to 45 degrees
+                # if  angle is closest to 45 degrees
+                if 67.5 > vector_angle >= 22.5:
                     perp_direction = 'negative diaganol'
-        			#positive diagonal (change in x and y)
-        			#Take height values at the inverse of the positive diaganol (i.e. the negative diaganol)
-                    y_coords = np.arange(trace_coordinate[1] - height_search_distance, trace_coordinate[1] + height_search_distance)[::-1]
-                    x_coords = np.arange(trace_coordinate[0] - height_search_distance, trace_coordinate[0] + height_search_distance)
+        			# positive diagonal (change in x and y)
+        			# Take height values at the inverse of the positive diaganol
+                    # (i.e. the negative diaganol)
+                    y_coords = np.arange(
+                                        trace_coordinate[1] - index_width,
+                                        trace_coordinate[1] + index_width
+                                        )[::-1]
+                    x_coords = np.arange(
+                                        trace_coordinate[0] - index_width,
+                                        trace_coordinate[0] + index_width
+                                        )
 
-                elif 157.5 >= vector_angle >= 112.5:#aka if angle is closest to 135 degrees
+                # if angle is closest to 135 degrees
+                elif 157.5 >= vector_angle >= 112.5:
                     perp_direction = 'positive diaganol'
-                    y_coords = np.arange(trace_coordinate[1] - height_search_distance, trace_coordinate[1] + height_search_distance)
-                    x_coords = np.arange(trace_coordinate[0] - height_search_distance, trace_coordinate[0] + height_search_distance)
+                    y_coords = np.arange(
+                                        trace_coordinate[1] - index_width,
+                                        trace_coordinate[1] + index_width
+                                        )
+                    x_coords = np.arange(
+                                        trace_coordinate[0] - index_width,
+                                        trace_coordinate[0] + index_width
+                                        )
 
-                if 112.5 > vector_angle >= 67.5: #if angle is closest to 90 degrees
+                # if angle is closest to 90 degrees
+                if 112.5 > vector_angle >= 67.5:
                     perp_direction = 'horizontal'
-                    #print(trace_coordinate[0] - height_search_distance)
-                    #print(trace_coordinate[0] + height_search_distance)
-                    x_coords = np.arange(trace_coordinate[0] - height_search_distance, trace_coordinate[0]+height_search_distance)
+                    x_coords = np.arange(
+                                        trace_coordinate[0] - index_width,
+                                        trace_coordinate[0]+index_width
+                                        )
                     y_coords = np.full(len(x_coords), trace_coordinate[1])
 
-                elif 22.5 > vector_angle: #if angle is closest to 0 degrees
+                elif 22.5 > vector_angle: # if angle is closest to 0 degrees
                     perp_direction = 'vertical'
-                    y_coords = np.arange(trace_coordinate[1] - height_search_distance, trace_coordinate[1] + height_search_distance)
+                    y_coords = np.arange(
+                                        trace_coordinate[1] - index_width,
+                                        trace_coordinate[1] + index_width
+                                        )
                     x_coords = np.full(len(y_coords), trace_coordinate[0])
 
-                elif vector_angle >= 157.5: #if angle is closest to 180 degrees
+                elif vector_angle >= 157.5: # if angle is closest to 180 degrees
                     perp_direction = 'vertical'
-                    y_coords = np.arange(trace_coordinate[1] - height_search_distance, trace_coordinate[1] + height_search_distance)
+                    y_coords = np.arange(
+                                        trace_coordinate[1] - index_width,
+                                        trace_coordinate[1] + index_width
+                                        )
                     x_coords = np.full(len(y_coords), trace_coordinate[0])
 
-                #Use the perp array to index the guassian filtered image
+                # Use the perp array to index the guassian filtered image
                 perp_array = np.column_stack((x_coords, y_coords))
-                height_values = self.gauss_image[perp_array[:,1],perp_array[:,0]]
+                height_values =
+                            self.gauss_image[perp_array[:,1], perp_array[:,0]]
 
                 '''
+                # Old code that interpolated the height profile for "sub-pixel
+                # accuracy" - probably slow and not necessary, can delete
+
                 #Use interpolation to get "sub pixel" accuracy for heighest position
                 if perp_direction == 'negative diaganol':
                     int_func = interp.interp1d(perp_array[:,0], np.ndarray.flatten(height_values), kind = 'cubic')
@@ -297,18 +349,22 @@ class dnaTrace(object):
                     fine_x_coords = np.arange(perp_array[0,0], perp_array[-1,0], 0.1)
                     fine_y_coords = np.full(len(fine_x_coords), trace_coordinate[1], dtype = 'float')
                 '''
-                #Get the coordinates relating to the highest point in the interpolated height values
+                # Grab x,y coordinates for highest point
                 #fine_coords = np.column_stack((fine_x_coords, fine_y_coords))
                 sorted_array = perp_array[np.argsort(height_values)]
                 highest_point = sorted_array[-1]
 
                 try:
-                    fitted_coordinate_array = np.vstack((fitted_coordinate_array, highest_point))
+                    # could use np.append() here
+                    fitted_coordinate_array = np.vstack((
+                                                    fitted_coordinate_array,
+                                                    highest_point
+                                                    ))
                 except UnboundLocalError:
                     fitted_coordinate_array = highest_point
 
             self.fitted_traces[dna_num] = fitted_coordinate_array
-            del fitted_coordinate_array
+            del fitted_coordinate_array # cleaned up by python anyway?
 
     def getSplinedTraces(self):
 
@@ -318,7 +374,7 @@ class dnaTrace(object):
         This function actually calculates the average of several splines which
         is important for getting a good fit on the lower res data'''
 
-        step_size = int(7e-9/(self.pixel_size)) #3 nm step size
+        step_size = int(7e-9/(self.pixel_size)) # 3 nm step size
         interp_step = int(1e-10/self.pixel_size)
 
         for dna_num in sorted(self.fitted_traces.keys()):
@@ -429,7 +485,8 @@ class dnaTrace(object):
 
                 spline_average = spline_running_total
                 '''
-                self.splined_traces[dna_num] = self.ordered_traces[dna_num] #can't get splining of linear molecules to work yet
+                # can't get splining of linear molecules to work yet
+                self.splined_traces[dna_num] = self.ordered_traces[dna_num]
 
     def showTraces(self):
 
