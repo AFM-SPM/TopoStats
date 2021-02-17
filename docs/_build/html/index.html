@@ -1,0 +1,250 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Welcome to TopoStats’s documentation! &#8212; TopoStats 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pygwytracing">
+<span id="welcome-to-topostats-s-documentation"></span><h1>Welcome to TopoStats’s documentation!<a class="headerlink" href="#module-pygwytracing" title="Permalink to this headline">¶</a></h1>
+<p><strong>pygwytracing.py</strong>
+This is the main script, containing modules for basic image processing.</p>
+<span class="target" id="module-dnatracing"></span><dl class="class">
+<dt id="dnatracing.dnaTrace">
+<em class="property">class </em><code class="descclassname">dnatracing.</code><code class="descname">dnaTrace</code><span class="sig-paren">(</span><em>full_image_data</em>, <em>gwyddion_grains</em>, <em>afm_image_name</em>, <em>pixel_size</em>, <em>number_of_columns</em>, <em>number_of_rows</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dnatracing.html#dnaTrace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dnatracing.dnaTrace" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class gets all the useful functions from the old tracing code and staples
+them together to create an object that contains the traces for each DNA molecule
+in an image and functions to calculate stats from those traces.</p>
+<p>The traces are stored in dictionaries labelled by their gwyddion defined grain
+number and are represented as numpy arrays.</p>
+<p>The object also keeps track of the skeletonised plots and other intermediates
+in case these are useful for other things in the future.</p>
+<dl class="method">
+<dt id="dnatracing.dnaTrace.determineLinearOrCircular">
+<code class="descname">determineLinearOrCircular</code><span class="sig-paren">(</span><em>traces</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dnatracing.html#dnaTrace.determineLinearOrCircular"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dnatracing.dnaTrace.determineLinearOrCircular" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines whether each molecule is circular or linear based on the
+local environment of each pixel from the trace</p>
+<p>This function is sensitive to branches from the skeleton so might need
+to implement a function to remove them</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dnatracing.dnaTrace.getDisorderedTrace">
+<code class="descname">getDisorderedTrace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dnatracing.html#dnaTrace.getDisorderedTrace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dnatracing.dnaTrace.getDisorderedTrace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to make a skeleton for each of the grains in the image</p>
+<p>Uses my own skeletonisation function from tracingfuncs module. I will
+eventually get round to editing this function to try to reduce the branching
+and to try to better trace from looped molecules</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dnatracing.dnaTrace.getFittedTraces">
+<code class="descname">getFittedTraces</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dnatracing.html#dnaTrace.getFittedTraces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dnatracing.dnaTrace.getFittedTraces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates self.fitted_traces dictonary which contains trace
+coordinates (for each identified molecule) that are adjusted to lie
+along the highest points of each traced molecule</p>
+<p>param:  self.ordered_traces; the unadjusted skeleton traces
+param:  self.gauss_image; gaussian filtered AFM image of the original</p>
+<blockquote>
+<div>molecules</div></blockquote>
+<dl class="docutils">
+<dt>param:  index_width; 1/2th the width of the height profile indexed from</dt>
+<dd>self.gauss_image at each coordinate (e.g. 2*index_width pixels
+are indexed)</dd>
+<dt>return: no direct output but instance variable self.fitted_traces</dt>
+<dd>is populated with adjusted x,y coordinates</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="dnatracing.dnaTrace.getNumpyArraysfromGwyddion">
+<code class="descname">getNumpyArraysfromGwyddion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dnatracing.html#dnaTrace.getNumpyArraysfromGwyddion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dnatracing.dnaTrace.getNumpyArraysfromGwyddion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to get each grain as a numpy array which is stored in a
+dictionary</p>
+<p>Currently the grains are unnecessarily large (the full image) as I don’t
+know how to handle the cropped versions</p>
+<p>I find using the gwyddion objects clunky and not helpful once the
+grains have been found</p>
+<p>There is some kind of discrepency between the ordering of arrays from
+gwyddion and how they’re usually handled in np arrays meaning you need
+to be careful when indexing from gwyddion derived numpy arrays</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dnatracing.dnaTrace.getSplinedTraces">
+<code class="descname">getSplinedTraces</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dnatracing.html#dnaTrace.getSplinedTraces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dnatracing.dnaTrace.getSplinedTraces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a splined version of the fitted trace - useful for finding the
+radius of gyration etc</p>
+<p>This function actually calculates the average of several splines which
+is important for getting a good fit on the lower res data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dnatracing.dnaTrace.measureContourLength">
+<code class="descname">measureContourLength</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dnatracing.html#dnaTrace.measureContourLength"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dnatracing.dnaTrace.measureContourLength" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measures the contour length for each of the splined traces taking into
+account whether the molecule is circular or linear</p>
+<p>Splined traces are currently complete junk so this uses the ordered traces
+for now</p>
+<p>Contour length units are nm</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dnatracing.traceStats">
+<em class="property">class </em><code class="descclassname">dnatracing.</code><code class="descname">traceStats</code><span class="sig-paren">(</span><em>trace_object</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dnatracing.html#traceStats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dnatracing.traceStats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class used to report on the stats for all the traced molecules in the
+given directory</p>
+<dl class="method">
+<dt id="dnatracing.traceStats.createTraceStatsObject">
+<code class="descname">createTraceStatsObject</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dnatracing.html#traceStats.createTraceStatsObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dnatracing.traceStats.createTraceStatsObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a pandas dataframe with the shape:</p>
+<p>dna_num     directory       ImageName   contourLength   Circular
+1           exp_dir         img1_name   200             True
+2           exp_dir         img2_name   210             False
+3           exp_dir2        img3_name   100             True</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-tracingfuncs"></span><dl class="class">
+<dt id="tracingfuncs.getSkeleton">
+<em class="property">class </em><code class="descclassname">tracingfuncs.</code><code class="descname">getSkeleton</code><span class="sig-paren">(</span><em>image_data</em>, <em>binary_map</em>, <em>number_of_columns</em>, <em>number_of_rows</em>, <em>pixel_size</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tracingfuncs.html#getSkeleton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tracingfuncs.getSkeleton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Skeltonisation algorithm based on the paper “A Fast Parallel Algorithm for
+Thinning Digital Patterns” by Zhang et al., 1984</p>
+<dl class="method">
+<dt id="tracingfuncs.getSkeleton.doSkeletonising">
+<code class="descname">doSkeletonising</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tracingfuncs.html#getSkeleton.doSkeletonising"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tracingfuncs.getSkeleton.doSkeletonising" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple while loop to check if the skeletonising is finished</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tracingfuncs.getSkeleton.finalSkeletonisationIteration">
+<code class="descname">finalSkeletonisationIteration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tracingfuncs.html#getSkeleton.finalSkeletonisationIteration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tracingfuncs.getSkeleton.finalSkeletonisationIteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>A final skeletonisation iteration that removes “hanging” pixels.
+Examples of such pixels are:</p>
+<blockquote>
+<div><blockquote>
+<div>[0, 0, 0]               [0, 1, 0]            [0, 0, 0]
+[0, 1, 1]               [0, 1, 1]            [0, 1, 1]</div></blockquote>
+<p>case 1: [0, 1, 0]   or  case 2: [0, 1, 0] or case 3: [1, 1, 0]</p>
+</div></blockquote>
+<p>This is useful for the future functions that rely on local pixel environment
+to make assessments about the overall shape/structure of traces</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tracingfuncs.getSkeleton.pruneSkeleton">
+<code class="descname">pruneSkeleton</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tracingfuncs.html#getSkeleton.pruneSkeleton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tracingfuncs.getSkeleton.pruneSkeleton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to remove the hanging branches from the skeletons - these
+are a persistent problem in the overall tracing process.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-heightthresholding"></span><div class="toctree-wrapper compound">
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">TopoStats</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, TopoStats authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

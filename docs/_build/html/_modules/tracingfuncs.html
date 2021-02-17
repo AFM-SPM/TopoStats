@@ -1,0 +1,1086 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>tracingfuncs &#8212; TopoStats 1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for tracingfuncs</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<div class="viewcode-block" id="getSkeleton"><a class="viewcode-back" href="../index.html#tracingfuncs.getSkeleton">[docs]</a><span class="k">class</span> <span class="nc">getSkeleton</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Skeltonisation algorithm based on the paper &quot;A Fast Parallel Algorithm for</span>
+<span class="sd">    Thinning Digital Patterns&quot; by Zhang et al., 1984&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_data</span><span class="p">,</span> <span class="n">binary_map</span><span class="p">,</span> <span class="n">number_of_columns</span><span class="p">,</span> <span class="n">number_of_rows</span><span class="p">,</span> <span class="n">pixel_size</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_data</span> <span class="o">=</span> <span class="n">image_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">binary_map</span> <span class="o">=</span> <span class="n">binary_map</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_columns</span> <span class="o">=</span> <span class="n">number_of_columns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_rows</span> <span class="o">=</span> <span class="n">number_of_rows</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pixel_size</span> <span class="o">=</span> <span class="n">pixel_size</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p3</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p5</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p7</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1">#skeletonising variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_skeleton</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skeleton_converged</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pruning</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1">#Height checking variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">average_height</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1">#self.cropping_dict = self._initialiseHeightFindingDict()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">highest_points</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">search_window</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">3</span> <span class="o">/</span> <span class="p">(</span><span class="n">pixel_size</span><span class="o">*</span><span class="mf">1e9</span><span class="p">))</span>
+        <span class="c1">#Check that the search window is bigger than 0:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_window</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_window</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dir_search</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.75</span><span class="o">/</span><span class="p">(</span><span class="n">pixel_size</span><span class="o">*</span><span class="mf">1e9</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir_search</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dir_search</span> <span class="o">=</span> <span class="mi">3</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">getDNAmolHeightStats</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doSkeletonising</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">getDNAmolHeightStats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_data</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">average_height</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_data</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">binary_map</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)])</span>
+        <span class="c1">#print(self.average_height)</span>
+
+<div class="viewcode-block" id="getSkeleton.doSkeletonising"><a class="viewcode-back" href="../index.html#tracingfuncs.getSkeleton.doSkeletonising">[docs]</a>    <span class="k">def</span> <span class="nf">doSkeletonising</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&#39;&#39;&#39; Simple while loop to check if the skeletonising is finished &#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">binary_map</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">skeleton_converged</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_doSkeletonisingIteration</span><span class="p">()</span>
+
+        <span class="c1">#When skeleton converged do an additional iteration of thinning to remove hanging points</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finalSkeletonisationIteration</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pruning</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">pruning</span><span class="p">:</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">pruneSkeleton</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_skeleton</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_doSkeletonisingIteration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&#39;&#39;&#39;Do an iteration of skeletonisation - check for the local binary pixel</span>
+<span class="sd">        environment and assess the local height values to decide whether to</span>
+<span class="sd">        delete a point</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">number_of_deleted_points</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">pixels_to_delete</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1">#Sub-iteration 1 - binary check</span>
+        <span class="n">mask_coordinates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">mask_coordinates</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deletePixelSubit1</span><span class="p">(</span><span class="n">point</span><span class="p">):</span>
+                <span class="n">pixels_to_delete</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+
+        <span class="c1">#Check the local height values to determine if pixels should be deleted</span>
+        <span class="c1">#pixels_to_delete = self._checkHeights(pixels_to_delete)</span>
+
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">pixels_to_delete</span><span class="p">:</span>
+            <span class="n">number_of_deleted_points</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">pixels_to_delete</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1">#Sub-iteration 2 - binary check</span>
+        <span class="n">mask_coordinates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">mask_coordinates</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deletePixelSubit2</span><span class="p">(</span><span class="n">point</span><span class="p">):</span>
+                <span class="n">pixels_to_delete</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+
+        <span class="c1">#Check the local height values to determine if pixels should be deleted</span>
+        <span class="c1">#pixels_to_delete = self._checkHeights(pixels_to_delete)</span>
+
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="ow">in</span> <span class="n">pixels_to_delete</span><span class="p">:</span>
+            <span class="n">number_of_deleted_points</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">number_of_deleted_points</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">skeleton_converged</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">_deletePixelSubit1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
+
+        <span class="sd">&#39;&#39;&#39;Function to check whether a single point should be deleted based</span>
+<span class="sd">        on both its local binary environment and its local height values&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">p2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p7</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p9</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">getLocalPixelsBinary</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span><span class="p">,</span> <span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_binaryThinCheck_a</span><span class="p">()</span> <span class="ow">and</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_binaryThinCheck_b</span><span class="p">()</span> <span class="ow">and</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_binaryThinCheck_c</span><span class="p">()</span> <span class="ow">and</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_binaryThinCheck_d</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_deletePixelSubit2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
+
+        <span class="sd">&#39;&#39;&#39;Function to check whether a single point should be deleted based</span>
+<span class="sd">        on both its local binary environment and its local height values&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">p2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p7</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p9</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">getLocalPixelsBinary</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span><span class="p">,</span> <span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1">#Add in generic code here to protect high points from being deleted</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_binaryThinCheck_a</span><span class="p">()</span> <span class="ow">and</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_binaryThinCheck_b</span><span class="p">()</span> <span class="ow">and</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_binaryThinCheck_csharp</span><span class="p">()</span> <span class="ow">and</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_binaryThinCheck_dsharp</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="sd">&#39;&#39;&#39;These functions are ripped from the Zhang et al. paper and do the basic</span>
+<span class="sd">    skeletonisation steps</span>
+
+<span class="sd">    I can use the information from the c,d,c&#39; and d&#39; tests to determine a good</span>
+<span class="sd">    direction to search for higher height values &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">_binaryThinCheck_a</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1">#Condition A protects the endpoints (which will be &gt; 2) - add in code here to prune low height points</span>
+        <span class="k">if</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p3</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p5</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p7</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p9</span> <span class="o">&lt;=</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_binaryThinCheck_b</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p3</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p5</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p6</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p7</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p7</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p8</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p9</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p9</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_binaryThinCheck_c</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_binaryThinCheck_d</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_binaryThinCheck_csharp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_binaryThinCheck_dsharp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_checkHeights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidate_points</span><span class="p">):</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">candidate_points</span> <span class="o">=</span> <span class="n">candidate_points</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">candidate_points</span><span class="p">:</span>
+
+            <span class="c1">#if point is basically at background don&#39;t bother assessing height and just delete:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_data</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">1e-9</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="c1">#Check if the point has already been identified as a high point</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">highest_points</span><span class="p">[(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)]</span>
+                <span class="n">candidate_points</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">candidate_points</span><span class="o">.</span><span class="n">index</span><span class="p">([</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]))</span>
+                <span class="c1">#print(x,y)</span>
+                <span class="k">continue</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">p2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p7</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p9</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">getLocalPixelsBinary</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">p9</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p3</span><span class="p">],[</span><span class="bp">self</span><span class="o">.</span><span class="n">p8</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span><span class="p">],[</span><span class="bp">self</span><span class="o">.</span><span class="n">p7</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p5</span><span class="p">])</span>
+
+            <span class="n">height_points_to_check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_checkWhichHeightPoints</span><span class="p">()</span>
+            <span class="n">height_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cropping_dict</span><span class="p">[</span><span class="n">height_points_to_check</span><span class="p">](</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">decimals</span> <span class="o">=</span> <span class="mi">11</span><span class="p">)</span>
+            <span class="n">test_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_data</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">],</span> <span class="n">decimals</span> <span class="o">=</span> <span class="mi">11</span><span class="p">)</span>
+            <span class="c1">#print(height_points_to_check, [x,y], self.image_data[x,y], height_points)</span>
+
+            <span class="c1">#if the candidate points is the highest local point don&#39;t delete it</span>
+            <span class="k">if</span> <span class="n">test_value</span> <span class="o">&gt;=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">height_points</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="nb">print</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">p9</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p3</span><span class="p">],[</span><span class="bp">self</span><span class="o">.</span><span class="n">p8</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span><span class="p">],[</span><span class="bp">self</span><span class="o">.</span><span class="n">p7</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p5</span><span class="p">])</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">height_points_to_check</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_data</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">],</span> <span class="n">height_points</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">highest_points</span><span class="p">[(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)]</span> <span class="o">=</span> <span class="n">height_points_to_check</span>
+                <span class="n">candidate_points</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">candidate_points</span><span class="o">.</span><span class="n">index</span><span class="p">([</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">height_points_to_check</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x_n</span><span class="p">,</span> <span class="n">y_n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_identifyHighestPoint</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">height_points_to_check</span><span class="p">,</span> <span class="n">height_points</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">highest_points</span><span class="p">[(</span><span class="n">x_n</span><span class="p">,</span><span class="n">y_n</span><span class="p">)]</span> <span class="o">=</span> <span class="n">height_points_to_check</span>
+                <span class="k">pass</span>
+
+        <span class="k">return</span> <span class="n">candidate_points</span>
+
+    <span class="k">def</span> <span class="nf">_checkWhichHeightPoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1">#Is the point on the left hand edge?</span>
+        <span class="c1">#if (self.p8 == 1 and self.p4 == 0 and self.p2 == self.p6):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p7</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p9</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">p3</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p5</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;e.g. [1, 1, 0]</span>
+<span class="sd">                    [1, 1, 0]</span>
+<span class="sd">                    [1, 1, 0]&#39;&#39;&#39;</span>
+            <span class="k">return</span> <span class="s1">&#39;horiz_left&#39;</span>
+        <span class="c1">#elif (self.p8 == 0 and self.p4 == 1 and self.p2 == self.p6):</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p7</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p9</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">p3</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p5</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;e.g. [0, 1, 1]</span>
+<span class="sd">                    [0, 1, 1]</span>
+<span class="sd">                    [0, 1, 1]&#39;&#39;&#39;</span>
+            <span class="k">return</span> <span class="s1">&#39;horiz_right&#39;</span>
+        <span class="c1">#elif (self.p2 == 1 and self.p6 == 0 and self.p4 == self.p8):</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p9</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p3</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">p5</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p7</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;e.g. [1, 1, 1]</span>
+<span class="sd">                    [1, 1, 1]</span>
+<span class="sd">                    [0, 0, 0]&#39;&#39;&#39;</span>
+            <span class="k">return</span> <span class="s1">&#39;vert_up&#39;</span>
+        <span class="c1">#elif (self.p2 == 0 and self.p6 == 1 and self.p4 == self.p8):</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p9</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p3</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">p5</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p7</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span><span class="p">):</span> <span class="c1">#and self.p4 == self.p8):</span>
+            <span class="sd">&#39;&#39;&#39;e.g. [0, 0, 0]</span>
+<span class="sd">                    [1, 1, 1]</span>
+<span class="sd">                    [1, 1, 1]&#39;&#39;&#39;</span>
+            <span class="k">return</span> <span class="s1">&#39;vert_down&#39;</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p5</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;e.g. [0, 0, 1]       [0, 0, 0]</span>
+<span class="sd">                    [0, 1, 1]       [0, 1, 1]</span>
+<span class="sd">                    [1, 1, 1]   or  [0, 1, 1]&#39;&#39;&#39;</span>
+            <span class="k">return</span> <span class="s1">&#39;diagright_down&#39;</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p9</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;e.g. [1, 1, 1]       [1, 1, 0]</span>
+<span class="sd">                    [1, 1, 0]       [1, 1, 0]</span>
+<span class="sd">                    [1, 0, 0]   or  [0, 0, 0]&#39;&#39;&#39;</span>
+            <span class="k">return</span> <span class="s1">&#39;diagright_up&#39;</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">&lt;=</span><span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p7</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;e.g. [1, 0, 0]       [0, 0, 0]</span>
+<span class="sd">                    [1, 1, 0]       [1, 1, 0]</span>
+<span class="sd">                    [1, 1, 1]   or  [1, 1, 0]&#39;&#39;&#39;</span>
+            <span class="k">return</span> <span class="s1">&#39;diagleft_down&#39;</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p3</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;e.g. [1, 1, 1]       [0, 1, 1]</span>
+<span class="sd">                    [0, 1, 1]       [0, 1, 1]</span>
+<span class="sd">                    [0, 0, 1]   or  [0, 0, 0]&#39;&#39;&#39;</span>
+            <span class="k">return</span> <span class="s1">&#39;diagleft_up&#39;</span>
+        <span class="c1">#else:</span>
+        <span class="c1">#    return &#39;save&#39;</span>
+
+    <span class="k">def</span> <span class="nf">_initialiseHeightFindingDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">height_cropping_funcs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">height_cropping_funcs</span><span class="p">[</span><span class="s1">&#39;horiz_left&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getHorizontalLeftHeights</span>
+        <span class="n">height_cropping_funcs</span><span class="p">[</span><span class="s1">&#39;horiz_right&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getHorizontalRightHeights</span>
+        <span class="n">height_cropping_funcs</span><span class="p">[</span><span class="s1">&#39;vert_up&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getVerticalUpwardHeights</span>
+        <span class="n">height_cropping_funcs</span><span class="p">[</span><span class="s1">&#39;vert_down&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getVerticalDonwardHeights</span>
+        <span class="n">height_cropping_funcs</span><span class="p">[</span><span class="s1">&#39;diagleft_up&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDiaganolLeftUpwardHeights</span>
+        <span class="n">height_cropping_funcs</span><span class="p">[</span><span class="s1">&#39;diagleft_down&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDiaganolLeftDownwardHeights</span>
+        <span class="n">height_cropping_funcs</span><span class="p">[</span><span class="s1">&#39;diagright_up&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getHorizontalRightHeights</span>
+        <span class="n">height_cropping_funcs</span><span class="p">[</span><span class="s1">&#39;diagright_down&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getHorizontalRightHeights</span>
+        <span class="n">height_cropping_funcs</span><span class="p">[</span><span class="s1">&#39;save&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_savePoint</span>
+
+        <span class="k">return</span> <span class="n">height_cropping_funcs</span>
+
+    <span class="k">def</span> <span class="nf">_getHorizontalLeftHeights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">heights</span> <span class="o">=</span> <span class="p">[]</span><span class="c1">#[self.image_data[x,y]]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">heights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_data</span><span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="n">i</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">heights</span>
+
+    <span class="k">def</span> <span class="nf">_getHorizontalRightHeights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">heights</span> <span class="o">=</span> <span class="p">[]</span><span class="c1">#[self.image_data[x,y]]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">heights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_data</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">heights</span>
+
+    <span class="k">def</span> <span class="nf">_getVerticalUpwardHeights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">heights</span> <span class="o">=</span> <span class="p">[]</span><span class="c1">#[self.image_data[x,y]]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">heights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_data</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">i</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">heights</span>
+
+    <span class="k">def</span> <span class="nf">_getVerticalDonwardHeights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">heights</span> <span class="o">=</span> <span class="p">[]</span><span class="c1">#[self.image_data[x,y]]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">heights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_data</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="n">i</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">heights</span>
+
+    <span class="k">def</span> <span class="nf">_getDiaganolLeftUpwardHeights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">heights</span> <span class="o">=</span> <span class="p">[]</span><span class="c1">#[self.image_data[x,y]]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">heights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_data</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">i</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">heights</span>
+
+    <span class="k">def</span> <span class="nf">_getDiaganolLeftDownwardHeights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">heights</span> <span class="o">=</span> <span class="p">[]</span><span class="c1">#[self.image_data[x,y]]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">heights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_data</span><span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="n">i</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="n">i</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">heights</span>
+
+    <span class="k">def</span> <span class="nf">_getDiaganolRightUpwardHeights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">heights</span> <span class="o">=</span> <span class="p">[]</span><span class="c1">#[self.image_data[x,y]]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">heights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_data</span><span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="n">i</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">i</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">heights</span>
+
+    <span class="k">def</span> <span class="nf">_getDiaganolRightDownwardHeights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">heights</span> <span class="o">=</span> <span class="p">[]</span><span class="c1">#[self.image_data[x,y]]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">heights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_data</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="n">i</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">heights</span>
+
+    <span class="k">def</span> <span class="nf">_condemnPoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span> <span class="p">,</span><span class="n">y</span><span class="p">):</span>
+        <span class="n">heights</span> <span class="o">=</span> <span class="p">[]</span><span class="c1">#[self.image_data[x,y]]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_window</span><span class="p">):</span>
+            <span class="n">heights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">heights</span>
+
+    <span class="k">def</span> <span class="nf">_identifyHighestPoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">index_direction</span><span class="p">,</span> <span class="n">indexed_heights</span><span class="p">):</span>
+        <span class="n">highest_value</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">offset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">indexed_heights</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+
+        <span class="k">for</span> <span class="n">num</span><span class="p">,</span> <span class="n">height_value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">indexed_heights</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">height_value</span> <span class="o">&gt;</span> <span class="n">highest_value</span><span class="p">:</span>
+                <span class="n">highest_point</span> <span class="o">=</span> <span class="n">height_value</span>
+                <span class="n">index_position</span> <span class="o">=</span> <span class="p">(</span><span class="n">num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="n">offset</span>
+
+        <span class="k">if</span> <span class="n">index_direction</span> <span class="o">==</span> <span class="s1">&#39;horiz_left&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span> <span class="o">-</span> <span class="n">num</span><span class="p">,</span> <span class="n">y</span>
+        <span class="k">elif</span> <span class="n">index_direction</span> <span class="o">==</span> <span class="s1">&#39;horiz_right&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">num</span><span class="p">,</span> <span class="n">y</span>
+        <span class="k">elif</span> <span class="n">index_direction</span> <span class="o">==</span> <span class="s1">&#39;vert_up&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">num</span>
+        <span class="k">elif</span> <span class="n">index_direction</span> <span class="o">==</span> <span class="s1">&#39;vert_down&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="n">num</span>
+        <span class="k">elif</span> <span class="n">index_direction</span> <span class="o">==</span> <span class="s1">&#39;diagleft_up&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">num</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">num</span>
+        <span class="k">elif</span> <span class="n">index_direction</span> <span class="o">==</span> <span class="s1">&#39;diagleft_down&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">num</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="n">num</span>
+        <span class="k">elif</span> <span class="n">index_direction</span> <span class="o">==</span> <span class="s1">&#39;diagright_up&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span> <span class="o">-</span> <span class="n">num</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">num</span>
+        <span class="k">elif</span> <span class="n">index_direction</span> <span class="o">==</span> <span class="s1">&#39;diagright_down&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span> <span class="o">-</span> <span class="n">num</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="n">num</span>
+
+<div class="viewcode-block" id="getSkeleton.finalSkeletonisationIteration"><a class="viewcode-back" href="../index.html#tracingfuncs.getSkeleton.finalSkeletonisationIteration">[docs]</a>    <span class="k">def</span> <span class="nf">finalSkeletonisationIteration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&#39;&#39;&#39; A final skeletonisation iteration that removes &quot;hanging&quot; pixels.</span>
+<span class="sd">        Examples of such pixels are:</span>
+
+<span class="sd">                    [0, 0, 0]               [0, 1, 0]            [0, 0, 0]</span>
+<span class="sd">                    [0, 1, 1]               [0, 1, 1]            [0, 1, 1]</span>
+<span class="sd">            case 1: [0, 1, 0]   or  case 2: [0, 1, 0] or case 3: [1, 1, 0]</span>
+
+<span class="sd">        This is useful for the future functions that rely on local pixel environment</span>
+<span class="sd">        to make assessments about the overall shape/structure of traces &#39;&#39;&#39;</span>
+
+        <span class="n">remaining_coordinates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">remaining_coordinates</span><span class="p">:</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">p2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p7</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p9</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">getLocalPixelsBinary</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+
+            <span class="c1">#Checks for case 1 pixels</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_binaryThinCheck_b_returncount</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_binaryFinalThinCheck_a</span><span class="p">()):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1">#Checks for case 2 pixels</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_binaryThinCheck_b_returncount</span><span class="p">()</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_binaryFinalThinCheck_b</span><span class="p">()):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_binaryFinalThinCheck_a</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">_binaryFinalThinCheck_b</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">_binaryThinCheck_b_returncount</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p3</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p4</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p5</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p6</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p6</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p7</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p7</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p8</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p8</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p9</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p9</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">count</span>
+
+<div class="viewcode-block" id="getSkeleton.pruneSkeleton"><a class="viewcode-back" href="../index.html#tracingfuncs.getSkeleton.pruneSkeleton">[docs]</a>    <span class="k">def</span> <span class="nf">pruneSkeleton</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&#39;&#39;&#39;Function to remove the hanging branches from the skeletons - these</span>
+<span class="sd">        are a persistent problem in the overall tracing process. &#39;&#39;&#39;</span>
+
+        <span class="n">number_of_branches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">coordinates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="c1">#The branches are typically short so if a branch is longer than a quarter</span>
+        <span class="c1">#of the total points its assumed to be part of the real data</span>
+        <span class="n">length_of_trace</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+        <span class="n">max_branch_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">length_of_trace</span> <span class="o">*</span> <span class="mf">0.15</span><span class="p">)</span>
+
+        <span class="c1">#_deleteSquareEnds(coordinates)</span>
+
+        <span class="c1">#first check to find all the end coordinates in the trace</span>
+        <span class="n">potential_branch_ends</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_findBranchEnds</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+
+        <span class="c1">#Now check if its a branch - and if it is delete it</span>
+        <span class="k">for</span> <span class="n">x_b</span><span class="p">,</span> <span class="n">y_b</span> <span class="ow">in</span> <span class="n">potential_branch_ends</span><span class="p">:</span>
+            <span class="n">branch_coordinates</span> <span class="o">=</span> <span class="p">[[</span><span class="n">x_b</span><span class="p">,</span><span class="n">y_b</span><span class="p">]]</span>
+            <span class="n">branch_continues</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">temp_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[:]</span>
+            <span class="n">temp_coordinates</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">temp_coordinates</span><span class="o">.</span><span class="n">index</span><span class="p">([</span><span class="n">x_b</span><span class="p">,</span><span class="n">y_b</span><span class="p">]))</span>
+
+            <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">while</span> <span class="n">branch_continues</span><span class="p">:</span>
+                <span class="n">no_of_neighbours</span><span class="p">,</span> <span class="n">neighbours</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">countandGetNeighbours</span><span class="p">(</span><span class="n">x_b</span><span class="p">,</span><span class="n">y_b</span><span class="p">,</span><span class="n">temp_coordinates</span><span class="p">)</span>
+
+                <span class="c1">#If branch continues</span>
+                <span class="k">if</span> <span class="n">no_of_neighbours</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">x_b</span><span class="p">,</span> <span class="n">y_b</span> <span class="o">=</span> <span class="n">neighbours</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">branch_coordinates</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x_b</span><span class="p">,</span><span class="n">y_b</span><span class="p">])</span>
+                    <span class="n">temp_coordinates</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">temp_coordinates</span><span class="o">.</span><span class="n">index</span><span class="p">([</span><span class="n">x_b</span><span class="p">,</span><span class="n">y_b</span><span class="p">]))</span>
+
+                <span class="c1">#If the branch reaches the edge of the main trace</span>
+                <span class="k">elif</span> <span class="n">no_of_neighbours</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">branch_coordinates</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">branch_coordinates</span><span class="o">.</span><span class="n">index</span><span class="p">([</span><span class="n">x_b</span><span class="p">,</span><span class="n">y_b</span><span class="p">]))</span>
+                    <span class="n">branch_continues</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="n">is_branch</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="c1">#Weird case that happens sometimes</span>
+                <span class="k">elif</span> <span class="n">no_of_neighbours</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">is_branch</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">branch_continues</span> <span class="o">=</span> <span class="kc">False</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">branch_coordinates</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_branch_length</span><span class="p">:</span>
+                    <span class="n">branch_continues</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="n">is_branch</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">if</span> <span class="n">is_branch</span><span class="p">:</span>
+                <span class="n">number_of_branches</span> <span class="o">+=</span><span class="mi">1</span>
+                <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="ow">in</span> <span class="n">branch_coordinates</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">remaining_coordinates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_being_skeletonised</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">number_of_branches</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pruning</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+    <span class="k">def</span> <span class="nf">_findBranchEnds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+        <span class="n">potential_branch_ends</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1">#Most of the branch ends are just points with one neighbour</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">countNeighbours</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">coordinates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">potential_branch_ends</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">])</span>
+        <span class="c1">#Find the ends that are 3/4 neighbouring points</span>
+        <span class="k">return</span> <span class="n">potential_branch_ends</span>
+
+    <span class="k">def</span> <span class="nf">_deleteSquareEnds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<span class="k">class</span> <span class="nc">reorderTrace</span><span class="p">:</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">linearTrace</span><span class="p">(</span><span class="n">trace_coordinates</span><span class="p">):</span>
+
+        <span class="sd">&#39;&#39;&#39;My own function to order the points from a linear trace.</span>
+
+<span class="sd">        This works by checking the local neighbours for a given pixel (starting</span>
+<span class="sd">        at one of the ends). If this pixel has only one neighbour in the array</span>
+<span class="sd">        of unordered points, this must be the next pixel in the trace -- and it</span>
+<span class="sd">        is added to the ordered points trace and removed from the</span>
+<span class="sd">        remaining_unordered_coords array.</span>
+
+<span class="sd">        If there is more than one neighbouring pixel, a fairly simple function</span>
+<span class="sd">        (checkVectorsCandidatePoints) finds which pixel incurs the smallest</span>
+<span class="sd">        change in angle compared with the rest of the trace and chooses that as</span>
+<span class="sd">        the next point.</span>
+
+<span class="sd">        This process is repeated until all the points are placed in the ordered</span>
+<span class="sd">        trace array or the other end point is reached. &#39;&#39;&#39;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">trace_coordinates</span> <span class="o">=</span> <span class="n">trace_coordinates</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> <span class="c1">#array is already a python list</span>
+            <span class="k">pass</span>
+
+        <span class="c1">#Find one of the end points</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trace_coordinates</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">countNeighbours</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">trace_coordinates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">ordered_points</span> <span class="o">=</span> <span class="p">[[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]]</span>
+                <span class="n">trace_coordinates</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">break</span>
+
+
+
+        <span class="n">remaining_unordered_coords</span> <span class="o">=</span> <span class="n">trace_coordinates</span><span class="p">[:]</span>
+
+        <span class="k">while</span> <span class="n">remaining_unordered_coords</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace_coordinates</span><span class="p">):</span>
+                <span class="k">break</span>
+
+            <span class="n">x_n</span><span class="p">,</span> <span class="n">y_n</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1">#get the last point to be added to the array and find its neighbour</span>
+
+            <span class="n">no_of_neighbours</span><span class="p">,</span> <span class="n">neighbour_array</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">countandGetNeighbours</span><span class="p">(</span><span class="n">x_n</span><span class="p">,</span> <span class="n">y_n</span><span class="p">,</span> <span class="n">remaining_unordered_coords</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">no_of_neighbours</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1">#if there&#39;s only one candidate - its the next point add it to array and delete from candidate points</span>
+                <span class="n">ordered_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">neighbour_array</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">remaining_unordered_coords</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">remaining_unordered_coords</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">neighbour_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="n">no_of_neighbours</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">best_next_pixel</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">checkVectorsCandidatePoints</span><span class="p">(</span><span class="n">x_n</span><span class="p">,</span> <span class="n">y_n</span><span class="p">,</span> <span class="n">ordered_points</span><span class="p">,</span> <span class="n">neighbour_array</span><span class="p">)</span>
+                <span class="n">ordered_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">best_next_pixel</span><span class="p">)</span>
+                <span class="n">remaining_unordered_coords</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">remaining_unordered_coords</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">best_next_pixel</span><span class="p">))</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="n">no_of_neighbours</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1">#nn, neighbour_array_all_coords = genTracingFuncs.countandGetNeighbours(x_n, y_n, trace_coordinates)</span>
+                <span class="c1">#best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array_all_coords)</span>
+                <span class="n">best_next_pixel</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">findBestNextPoint</span><span class="p">(</span><span class="n">x_n</span><span class="p">,</span> <span class="n">y_n</span><span class="p">,</span> <span class="n">ordered_points</span><span class="p">,</span> <span class="n">remaining_unordered_coords</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">best_next_pixel</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">)</span>
+
+                <span class="n">ordered_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">best_next_pixel</span><span class="p">)</span>
+
+            <span class="c1">#If the tracing has reached the other end of the trace then its finished</span>
+            <span class="k">if</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">countNeighbours</span><span class="p">(</span><span class="n">x_n</span><span class="p">,</span> <span class="n">y_n</span><span class="p">,</span><span class="n">trace_coordinates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">circularTrace</span><span class="p">(</span><span class="n">trace_coordinates</span><span class="p">):</span>
+
+        <span class="sd">&#39;&#39;&#39; An alternative implementation of the linear tracing algorithm but</span>
+<span class="sd">        with some adaptations to work with circular dna molecules&#39;&#39;&#39;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">trace_coordinates</span> <span class="o">=</span> <span class="n">trace_coordinates</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> <span class="c1">#array is already a python list</span>
+            <span class="k">pass</span>
+
+        <span class="n">remaining_unordered_coords</span> <span class="o">=</span> <span class="n">trace_coordinates</span><span class="p">[:]</span>
+
+        <span class="c1">#Find a sensible point to start of the end points</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trace_coordinates</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">countNeighbours</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">trace_coordinates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">ordered_points</span> <span class="o">=</span> <span class="p">[[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]]</span>
+                <span class="n">remaining_unordered_coords</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">break</span>
+
+        <span class="c1">#Randomly choose one of the neighbouring points as the next point</span>
+        <span class="n">x_n</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">y_n</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">no_of_neighbours</span><span class="p">,</span> <span class="n">neighbour_array</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">countandGetNeighbours</span><span class="p">(</span><span class="n">x_n</span><span class="p">,</span> <span class="n">y_n</span><span class="p">,</span><span class="n">remaining_unordered_coords</span><span class="p">)</span>
+        <span class="n">ordered_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">neighbour_array</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">remaining_unordered_coords</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">remaining_unordered_coords</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">neighbour_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">while</span> <span class="n">remaining_unordered_coords</span><span class="p">:</span>
+
+            <span class="n">x_n</span><span class="p">,</span> <span class="n">y_n</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1">#get the last point to be added to the array and find its neighbour</span>
+
+            <span class="n">no_of_neighbours</span><span class="p">,</span> <span class="n">neighbour_array</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">countandGetNeighbours</span><span class="p">(</span><span class="n">x_n</span><span class="p">,</span> <span class="n">y_n</span><span class="p">,</span> <span class="n">remaining_unordered_coords</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">no_of_neighbours</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1">#if there&#39;s only one candidate - its the next point add it to array and delete from candidate points</span>
+                <span class="n">ordered_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">neighbour_array</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">remaining_unordered_coords</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">remaining_unordered_coords</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">neighbour_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="k">continue</span>
+
+            <span class="k">elif</span> <span class="n">no_of_neighbours</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">best_next_pixel</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">checkVectorsCandidatePoints</span><span class="p">(</span><span class="n">x_n</span><span class="p">,</span> <span class="n">y_n</span><span class="p">,</span> <span class="n">ordered_points</span><span class="p">,</span> <span class="n">neighbour_array</span><span class="p">)</span>
+                <span class="n">ordered_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">best_next_pixel</span><span class="p">)</span>
+                <span class="n">remaining_unordered_coords</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">remaining_unordered_coords</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">best_next_pixel</span><span class="p">))</span>
+                <span class="k">continue</span>
+
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace_coordinates</span><span class="p">):</span>
+                <span class="n">vector_start_end</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">ordered_points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="k">if</span> <span class="n">vector_start_end</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span> <span class="c1">#Checks if trace has basically finished i.e. is close to where it started</span>
+                    <span class="n">ordered_points</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">),</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+            <span class="k">elif</span> <span class="n">no_of_neighbours</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1">#Check if the tracing is finished</span>
+                <span class="n">nn</span><span class="p">,</span> <span class="n">neighbour_array_all_coords</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">countandGetNeighbours</span><span class="p">(</span><span class="n">x_n</span><span class="p">,</span> <span class="n">y_n</span><span class="p">,</span> <span class="n">trace_coordinates</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ordered_points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">neighbour_array_all_coords</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+                    <span class="c1">#Checks for bug that happens when tracing messes up</span>
+                <span class="k">if</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]:</span>
+                    <span class="n">ordered_points</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[:</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span>
+                    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">),</span> <span class="kc">False</span>
+
+
+                <span class="c1">#Maybe at a crossing with all neighbours deleted - this is crucially a point where errors often occur</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1">#best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, remaining_unordered_coords)</span>
+                    <span class="n">best_next_pixel</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">findBestNextPoint</span><span class="p">(</span><span class="n">x_n</span><span class="p">,</span> <span class="n">y_n</span><span class="p">,</span> <span class="n">ordered_points</span><span class="p">,</span> <span class="n">remaining_unordered_coords</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">best_next_pixel</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">),</span> <span class="kc">False</span>
+
+                    <span class="n">vector_to_new_point</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">best_next_pixel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">x_n</span><span class="p">,</span> <span class="n">best_next_pixel</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">y_n</span><span class="p">))</span>
+
+                    <span class="k">if</span> <span class="n">vector_to_new_point</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span> <span class="c1">#arbitary distinction but mostly valid probably</span>
+                        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">),</span> <span class="kc">False</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">ordered_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">best_next_pixel</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="ow">and</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">]:</span>
+                        <span class="n">ordered_points</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[:</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span>
+                        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">),</span> <span class="kc">False</span>
+                    <span class="k">continue</span>
+
+        <span class="n">ordered_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">),</span> <span class="kc">True</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">circularTrace_old</span><span class="p">(</span><span class="n">trace_coordinates</span><span class="p">):</span>
+
+        <span class="sd">&#39;&#39;&#39; Reorders the coordinates of a trace from a circular DNA molecule</span>
+<span class="sd">        (with no loops) using a polar coordinate system with reference to the</span>
+<span class="sd">        center of mass</span>
+
+<span class="sd">        I think every step of this can be vectorised for speed up</span>
+
+<span class="sd">        This is vulnerable to bugs if the dna molecule folds in on itself slightly&#39;&#39;&#39;</span>
+
+        <span class="c1">#calculate the centre of mass for the trace</span>
+        <span class="n">com_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">trace_coordinates</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">com_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">trace_coordinates</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1">#convert to polar coordinates with respect to the centre of mass</span>
+        <span class="n">polar_coordinates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">com_x</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">y1</span> <span class="o">-</span> <span class="n">com_y</span>
+
+            <span class="n">r</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+
+            <span class="n">polar_coordinates</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">theta</span><span class="p">,</span><span class="n">r</span><span class="p">])</span>
+
+        <span class="n">sorted_polar_coordinates</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">polar_coordinates</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1">#Reconvert to x, y coordinates</span>
+        <span class="n">sorted_coordinates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">theta</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sorted_polar_coordinates</span><span class="p">:</span>
+
+            <span class="n">x</span> <span class="o">=</span> <span class="n">r</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">r</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+
+            <span class="n">x2</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">com_x</span>
+            <span class="n">y2</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="n">com_y</span>
+
+            <span class="n">sorted_coordinates</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x2</span><span class="p">,</span><span class="n">y2</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sorted_coordinates</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">loopedCircularTrace</span><span class="p">():</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">loopedLinearTrace</span><span class="p">():</span>
+        <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">genTracingFuncs</span><span class="p">:</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getLocalPixelsBinary</span><span class="p">(</span><span class="n">binary_map</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">p2</span> <span class="o">=</span> <span class="n">binary_map</span><span class="p">[</span><span class="n">x</span>    <span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">p3</span> <span class="o">=</span> <span class="n">binary_map</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">p4</span> <span class="o">=</span> <span class="n">binary_map</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span>    <span class="p">]</span>
+        <span class="n">p5</span> <span class="o">=</span> <span class="n">binary_map</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">p6</span> <span class="o">=</span> <span class="n">binary_map</span><span class="p">[</span><span class="n">x</span>    <span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">p7</span> <span class="o">=</span> <span class="n">binary_map</span><span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">p8</span> <span class="o">=</span> <span class="n">binary_map</span><span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span>    <span class="p">]</span>
+        <span class="n">p9</span> <span class="o">=</span> <span class="n">binary_map</span><span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">p2</span><span class="p">,</span><span class="n">p3</span><span class="p">,</span><span class="n">p4</span><span class="p">,</span><span class="n">p5</span><span class="p">,</span><span class="n">p6</span><span class="p">,</span><span class="n">p7</span><span class="p">,</span><span class="n">p8</span><span class="p">,</span><span class="n">p9</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">countNeighbours</span><span class="p">(</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">trace_coordinates</span><span class="p">):</span>
+
+        <span class="sd">&#39;&#39;&#39;Counts the number of neighbouring points for a given coordinate in</span>
+<span class="sd">        a list of points &#39;&#39;&#39;</span>
+
+        <span class="n">number_of_neighbours</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span>    <span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span>    <span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span>    <span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span>    <span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">return</span> <span class="n">number_of_neighbours</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getNeighbours</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">trace_coordinates</span><span class="p">):</span>
+
+        <span class="sd">&#39;&#39;&#39;Returns an array containing the neighbouring points for a given</span>
+<span class="sd">        coordinate in a list of points &#39;&#39;&#39;</span>
+
+        <span class="n">neighbour_array</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span>    <span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span>    <span class="p">,</span><span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span><span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span>    <span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span><span class="n">y</span>    <span class="p">])</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span>    <span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span>    <span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span>    <span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span>    <span class="p">])</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">neighbour_array</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">countandGetNeighbours</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">trace_coordinates</span><span class="p">):</span>
+
+        <span class="sd">&#39;&#39;&#39;Returns the number of neighbouring points for a coordinate and an</span>
+<span class="sd">        array containing the those points &#39;&#39;&#39;</span>
+
+        <span class="n">neighbour_array</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">number_of_neighbours</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span>    <span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span>    <span class="p">,</span><span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span><span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span>    <span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span><span class="n">y</span>    <span class="p">])</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span>    <span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span>    <span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span>    <span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span>    <span class="p">])</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+            <span class="n">neighbour_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">number_of_neighbours</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">return</span> <span class="n">number_of_neighbours</span><span class="p">,</span> <span class="n">neighbour_array</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">returnPointsInArray</span><span class="p">(</span><span class="n">points_array</span><span class="p">,</span> <span class="n">trace_coordinates</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">points_array</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="ow">in</span> <span class="n">trace_coordinates</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">points_in_trace_coordinates</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+                    <span class="n">points_in_trace_coordinates</span> <span class="o">=</span> <span class="p">[[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]]</span>
+        <span class="c1">#for x, y in points_array:</span>
+        <span class="c1">#    print([x,y])</span>
+        <span class="c1">#    try:</span>
+        <span class="c1">#        trace_coordinates.index([x,y])</span>
+        <span class="c1">#        print(trace_coordinates.index([x,y]))</span>
+        <span class="c1">#    except ValueError:</span>
+        <span class="c1">#        continue</span>
+        <span class="c1">#    else:</span>
+        <span class="c1">#        try:</span>
+        <span class="c1">#            points_in_trace_coordinates.append([x,y])</span>
+        <span class="c1">#        except NameError:</span>
+        <span class="c1">#            points_in_trace_coordinates = [[x,y]]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">points_in_trace_coordinates</span>
+        <span class="k">except</span> <span class="ne">UnboundLocalError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">makeGrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">x_n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">x_2</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">x_n</span>
+            <span class="k">for</span> <span class="n">y_n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">y_2</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="n">y_n</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">grid</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x_2</span><span class="p">,</span><span class="n">y_2</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+                    <span class="n">grid</span> <span class="o">=</span> <span class="p">[[</span><span class="n">x_2</span><span class="p">,</span><span class="n">y_2</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="n">grid</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">findBestNextPoint</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ordered_points</span><span class="p">,</span> <span class="n">candidate_points</span><span class="p">):</span>
+
+        <span class="n">ordered_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">)</span>
+        <span class="n">candidate_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">candidate_points</span><span class="p">)</span>
+
+        <span class="n">ordered_points</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">candidate_points</span> <span class="o">=</span> <span class="n">candidate_points</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+            <span class="c1">#build array of coordinates from which to check</span>
+            <span class="n">coords_to_check</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">makeGrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="c1">#check for potential points in the larger search area</span>
+            <span class="n">points_in_array</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">returnPointsInArray</span><span class="p">(</span><span class="n">coords_to_check</span><span class="p">,</span> <span class="n">candidate_points</span><span class="p">)</span>
+
+            <span class="c1">#Make a decision depending on how many points are found</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">points_in_array</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">points_in_array</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">best_next_point</span> <span class="o">=</span> <span class="n">points_in_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">best_next_point</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">best_next_point</span> <span class="o">=</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">checkVectorsCandidatePoints</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ordered_points</span><span class="p">,</span> <span class="n">points_in_array</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">best_next_point</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">checkVectorsCandidatePoints</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ordered_points</span><span class="p">,</span> <span class="n">candidate_points</span><span class="p">):</span>
+
+        <span class="sd">&#39;&#39;&#39;Finds which neighbouring pixel incurs the smallest angular change</span>
+<span class="sd">        with reference to a previous pixel in the ordered trace, and chooses that</span>
+<span class="sd">        as the next point &#39;&#39;&#39;</span>
+
+        <span class="n">x_test</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">y_test</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">x_ref</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">y_ref</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">x_ref_2</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">y_ref_2</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">ordered_points</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">x_ref</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">y_ref</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">x_ref_2</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">y_ref_2</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x_ref</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">y_ref</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">x_ref_2</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">y_ref_2</span> <span class="o">=</span> <span class="n">ordered_points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">x_test</span> <span class="o">-</span> <span class="n">x_ref</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">y_test</span> <span class="o">-</span> <span class="n">y_ref</span>
+
+        <span class="n">ref_theta</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span><span class="n">dy</span><span class="p">)</span>
+
+        <span class="n">x_y_theta</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">x_n</span><span class="p">,</span> <span class="n">y_n</span> <span class="ow">in</span> <span class="n">candidate_points</span><span class="p">:</span>
+
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x_n</span> <span class="o">-</span> <span class="n">x_ref_2</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">y_n</span> <span class="o">-</span> <span class="n">y_ref_2</span>
+
+            <span class="n">theta</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+
+            <span class="n">x_y_theta</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x_n</span><span class="p">,</span><span class="n">y_n</span><span class="p">,</span><span class="nb">abs</span><span class="p">(</span><span class="n">theta</span><span class="o">-</span><span class="n">ref_theta</span><span class="p">)])</span>
+
+        <span class="n">ordered_x_y_theta</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">x_y_theta</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ordered_x_y_theta</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">ordered_x_y_theta</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">TopoStats</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, TopoStats authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

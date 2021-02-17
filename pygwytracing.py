@@ -1,3 +1,6 @@
+''' **pygwytracing.py**
+This is the main script, containing modules for basic image processing. '''
+
 import sys
 #sys.path.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # location of gwy.so file (Macports install)
 #sys.path.append('/opt/local/share/gwyddion/pygwy') # # location of gwyutils.py file (Macports install)
