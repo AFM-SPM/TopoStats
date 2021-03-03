@@ -10,7 +10,6 @@ __pycache__/
 
 *.*[0-9]
 *.gwy
-*.txt
 *.rtf
 .json
 .npy
