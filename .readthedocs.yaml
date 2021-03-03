@@ -1,4 +1,4 @@
-# .readthedocs.yml
+# .readthedocs.yaml
 # Read the Docs configuration file
 # See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
 
@@ -20,5 +20,5 @@ formats:
 # Optionally set the version of Python and requirements required to build your docs
 python:
   version: 2.7
-# install:
-#   - requirements: docs/requirements.txt
+  install:
+    - requirements: requirements.txt
