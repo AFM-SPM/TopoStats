@@ -409,7 +409,6 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Bea'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing/339 bp'
 
-    path = 'bea'
 
     name = 'tracestats.json'
     file_name = os.path.join(path, name)
