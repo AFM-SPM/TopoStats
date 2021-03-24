@@ -29,6 +29,14 @@ Statistical analysis and plotting is performed using the 'statsplotting' script.
 This script uses the importfromjson function to import the JSON format file exported by pygwytracing and calculates various statistical parameters for all grain quantities, e.g. length, width and saves these out as a new JSON file using the savestats function. 
 Both KDE plots and histograms are generated for any of the grain quantities using the matplotlib42 and seaborn43 libraries within the functions plotkde, plotcolumns and plothist. 
 
+## Run using Docker
+
+Docker conatiners provide a way to run software in a controlled environment, without having to install lots of packages on your computer. To experiment with TopoStats using Docker you will first need to install [Docker](https://docs.docker.com/get-docker/). Then, using the command line, "pull" the container image to your computer:
+
+```
+
+```
+
 **This software is licensed as specified by the [GPL License](COPYING) and [LGPL License](COPYING.LESSER).**
 
 If you'd like to contribute, have at look at our [contributing instructions](contributing.md).
