@@ -709,7 +709,7 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    path = 'C:\Users\Work\OneDrive\Documents\Uni\Research\Code\DNA minicircles'
+    path = './'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
