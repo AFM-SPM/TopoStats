@@ -34,8 +34,23 @@ Both KDE plots and histograms are generated for any of the grain quantities usin
 Docker conatiners provide a way to run software in a controlled environment, without having to install lots of packages on your computer. To experiment with TopoStats using Docker you will first need to install [Docker](https://docs.docker.com/get-docker/). Then, using the command line, "pull" the container image to your computer:
 
 ```
+docker pull afmspm/topostats
+```
+
+Then run the container, mapping your current folder (the root of this repository) to a folder in the container (e.g.):
 
 ```
+docker run -it -v C:\Users\bobturner\Documents\TopoStats:/home/TopoStats afmspm/topostats:wip
+```
+
+Your next commands will be executed within the container:
+
+```
+cd home/TopoStats
+xvfb-run python pygwytracing.py
+```
+
+This should run the `pygwytracing.py` targetting the repository root folder to look for files (finding `minicircle.spm`).
 
 **This software is licensed as specified by the [GPL License](COPYING) and [LGPL License](COPYING.LESSER).**
 
