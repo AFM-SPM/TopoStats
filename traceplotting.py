@@ -402,20 +402,19 @@ def plotkdemax(df, directory, name, plotextension, plotarg, topos):
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular/194 bp'
-    path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
+    path = 'C:\Users\dumin\Documents\PhD\Data\KavitApr2021\Test3'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
     # path2 = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/MAC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Bea'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing/339 bp'
 
-    path = 'bea'
 
-    name = 'tracestats.json'
+    name = 'Test3.json'
     file_name = os.path.join(path, name)
     # file_name = 'new_data/tracestats.json'
 
-    plotextension = '.pdf'
+    plotextension = '.png'
     bins = 30
 
     # import data form the json file specified as a dataframe

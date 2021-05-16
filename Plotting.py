@@ -19,10 +19,11 @@ sns.set_style("white", {'font.family': ['sans-serif']})
 # sns.set_context("notebook", font_scale=1.5)
 sns.set_context("poster", font_scale=1.4)
 # plt.style.use("dark_background")
-sns.set_palette(sns.color_palette('BuPu_r'))
+sns.set_palette(sns.color_palette('bright'))
+defextension= '.png'
 
 colname2label = {
-    'grain_bound_len': 'Grain Boundary Length',
+    'grain_bound_len': 'Circumference / m',
     'aspectratio': 'Aspect Ratio',
     'grain_curvature1': 'Smaller Curvature',
     'grain_curvature2': 'Larger Curvature',
@@ -31,7 +32,7 @@ colname2label = {
     'grain_half_height_area': 'Area Above Half Height',
     # 'grain_maximum',grain_mean', 'grain_median',
     'grain_min_bound_size': 'Width / m',
-    'grain_max_bound_size': 'length',
+    'grain_max_bound_size': 'Length / m',
     'grain_mean_radius': 'Mean Radius / m',
     'grain_pixel_area': 'Area / Pixels',
     'grain_proj_area': 'Area / m^2'
@@ -59,7 +60,7 @@ def savestats(directory, name, dataframetosave):
     dataframetosave.to_csv(savename + '_evaluated.txt')
 
 
-def plotkde(df, directory, name, plotextension, plotarg, grouparg = None, xmin=0, xmax=1.5e-8):
+def plotkde(df, directory, name, plotarg, grouparg = None, xmin=0, xmax=1.5e-8, plotextension=defextension):
     print 'Plotting kde of %s' % plotarg
     # Create a saving name format/directory
     savedir = os.path.join(directory, 'Plots')
@@ -75,7 +76,7 @@ def plotkde(df, directory, name, plotextension, plotarg, grouparg = None, xmin=0
         df = df[[grouparg, plotarg]]
         df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=1, linewidth=7.0)
         handles, labels = ax.get_legend_handles_labels()
-        ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper left')
+        ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
 
     plt.xlim(xmin, xmax)
     plt.xlabel(colname2label[plotarg], alpha=1)
@@ -113,25 +114,21 @@ def plotviolin(df, directory, name, plotextension, grouparg, plotarg):
 
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
-    path = 'C:\\Users\\dumin\\Documents\\PhD\\Data\\KavitApr2021\\Test'
+    path = 'C:\\Users\\dumin\\Documents\\PhD\\Data\\KavitApr2021\\210120'
 
     # Set the name of the json file to import here
-    name = 'Test'
-    plotextension = '.png'
+    name = '210120'
     bins = 10
 
     # import data form the json file specified as a dataframe
     df = importfromjson(path, name)
-    # Rename directory column as proteins
-    df = df.rename(columns={"directory": "Proteins"})
+    # Rename directory column as appropriate
+    df = df.rename(columns={"directory": "Experimental Conditions"})
     # Calculate the aspect ratio for each grain
     df['aspectratio'] = df['grain_min_bound_size'] / df['grain_max_bound_size']
     # Get list of unique directory names i.e. topoisomers
     # # topos = df['Proteins'].unique()
     # # topos = sorted(topos, reverse=False)
-
-    # Generate a new smaller df from the original df containing only selected columns
-    # # dfaspectratio = df[['Proteins', 'aspectratio']]
 
     # Convert original (rounded) delta Lk to correct delta Lk
     # # dfnew = df
@@ -155,10 +152,11 @@ if __name__ == '__main__':
     # # palette = sns.color_palette('PuBu', n_colors=len(topos))
 
 # Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
-
-column = 'grain_bound_len'
-plotkde(df, path, name, plotextension, column, xmin=0, xmax=1e-7)
-column = 'grain_mean_radius'
-plotkde(df, path, name, plotextension, column)
-
+grouparg = 'Experimental Conditions'
+plotkde(df, path, name, 'grain_bound_len', grouparg=grouparg, xmin=0, xmax=1e-7)
+plotkde(df, path, name, 'grain_mean_radius', grouparg=grouparg)
+plotkde(df, path, name, 'grain_proj_area', grouparg=grouparg, xmax=3e-16)
+plotkde(df, path, name, 'aspectratio', grouparg=grouparg, xmax=1.4)
+plotkde(df, path, name, 'grain_min_bound_size', grouparg=grouparg, xmax=3e-8)
+plotkde(df, path, name, 'grain_max_bound_size', grouparg=grouparg, xmax=3.5e-8)
 # plotviolin(df, path, name, plotextension, 'topoisomer', column)
