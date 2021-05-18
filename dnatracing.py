@@ -43,6 +43,7 @@ class dnaTrace(object):
         self.splined_traces = {}
         self.contour_lengths = {}
         self.mol_is_circular = {}
+        self.radius_of_curvature = {}
 
         self.number_of_traces = 0
         self.num_circular = 0
@@ -60,6 +61,7 @@ class dnaTrace(object):
         self.determineLinearOrCircular(self.ordered_traces)
         self.getFittedTraces()
         self.getSplinedTraces()
+        self.findRadiusOfCurvature()
         self.measureContourLength()
         self.reportBasicStats()
 
@@ -143,7 +145,7 @@ class dnaTrace(object):
             fitted_trace_list = traces[dna_num].tolist()
 
             #For loop determines how many neighbours a point has - if only one it is an end
-            for x,y in fitted_trace_list:
+            for x, y in fitted_trace_list:
 
                 if genTracingFuncs.countNeighbours(x, y, fitted_trace_list) == 1:
                     points_with_one_neighbour += 1
@@ -569,7 +571,30 @@ class dnaTrace(object):
         pass
 
     def findRadiusOfCurvature(self):
-        pass
+        for dna_num in sorted(self.splined_traces.keys()): # the number of molecules identified
+            # splined_traces is a dictionary, where the keys are the number of the molecule, and the values are a list of coordinates, in a numpy.ndarray
+            if self.mol_is_circular[dna_num]:
+                rad_of_curve = []
+                for i, (x, y) in enumerate(self.splined_traces[dna_num]):
+                    x0 = self.splined_traces[dna_num][i][0]
+                    y0 = self.splined_traces[dna_num][i][1]
+                    x1 = self.splined_traces[dna_num][i-1][0]
+                    y1 = self.splined_traces[dna_num][i-1][1]
+                    x2 = self.splined_traces[dna_num][i-2][0]
+                    y2 = self.splined_traces[dna_num][i-2][1]
+                    theta1 = math.atan((y1-y0)/(x1-x0))
+                    theta2 = math.atan((y2-y1)/(x2-x1))
+                    xa = (x0 + x1) / 2
+                    ya = (y0 + y1) / 2
+                    xb = (x1 + x2) / 2
+                    yb = (y1 + y1) / 2
+                    dist = math.sqrt((xb-xa)**2 + (yb-ya)**2)
+                    rad_of_curve.append([i, (theta1-theta2)/dist])
+                self.radius_of_curvature[dna_num] = rad_of_curve
+                print (self.radius_of_curvature)
+
+
+
 
     def measureContourLength(self):
 
