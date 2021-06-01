@@ -705,8 +705,9 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
-    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    path = 'C:\Users\Work\OneDrive\Documents\Uni\Research\Code\DNA minicircles'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
+    # path = 'C:\Users\dumin\Documents\PhD\Data\Testing\Test_rad_of_curv'
+    path = 'C:\Users\dumin\Documents\PhD\Data\Testing\TestOct2020'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -831,12 +832,13 @@ if __name__ == '__main__':
             # #dna_traces.showTraces()
             dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
             # dna_traces.writeContourLengths(filename, channel_name)
-
+            dna_traces.plotRadiusOfCurvature(3)
             # Update the pandas Dataframe used to monitor stats
             try:
                 tracing_stats.updateTraceStats(dna_traces)
             except NameError:
                 tracing_stats = dnatracing.traceStats(dna_traces)
+
 
             # Save out cropped files as images with no scales to a subfolder
             # savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)

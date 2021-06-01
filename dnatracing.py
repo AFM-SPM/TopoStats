@@ -571,8 +571,10 @@ class dnaTrace(object):
         pass
 
     def findRadiusOfCurvature(self):
-        for dna_num in sorted(self.splined_traces.keys()): # the number of molecules identified
-            # splined_traces is a dictionary, where the keys are the number of the molecule, and the values are a list of coordinates, in a numpy.ndarray
+
+        for dna_num in sorted(self.splined_traces.keys()):  # the number of molecules identified
+            # splined_traces is a dictionary, where the keys are the number of the molecule, and the values are a
+            # list of coordinates, in a numpy.ndarray
             if self.mol_is_circular[dna_num]:
                 rad_of_curve = []
                 for i, (x, y) in enumerate(self.splined_traces[dna_num]):
@@ -589,10 +591,24 @@ class dnaTrace(object):
                     xb = (x1 + x2) / 2
                     yb = (y1 + y1) / 2
                     dist = math.sqrt((xb-xa)**2 + (yb-ya)**2)
-                    rad_of_curve.append([i, (theta1-theta2)/dist])
+                    rad_of_curve.append([i, (theta2-theta1)/dist])
                 self.radius_of_curvature[dna_num] = rad_of_curve
-                print (self.radius_of_curvature)
+        print self.radius_of_curvature
+        # for key, value in sorted(self.radius_of_curvature):
+            # print(key, ' : ', value)
 
+
+    def plotRadiusOfCurvature(self, key):
+        #for dna_num in sorted(self.radius_of_curvature.keys()):
+            #curvature = np.array(self.radius_of_curvature[dna_num])
+            #sns.lineplot(curvature[:,0],curvature[:,1])
+            #plt.savefig('test.png')
+        curvature = np.array(self.radius_of_curvature[key])
+        # print(curvature)
+        plt.figure()
+        sns.lineplot(curvature[:, 0], curvature[:, 1])
+        plt.ylim(-1, 1)
+        plt.savefig('test.png')
 
 
 
