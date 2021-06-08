@@ -86,8 +86,29 @@ def plotkde(df, directory, name, plotarg, grouparg = None, xmin=0, xmax=1.5e-8, 
     plt.savefig(savename)
 
 
+def plothist(df, directory, name, plotarg, grouparg = None, xmin=0, xmax=1.5e-8, bins=20, plotextension=defextension):
+    print 'Plotting histogram of %s' % plotarg
+    savedir = os.path.join(directory, 'Plots')
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+    savename = os.path.join(savedir, name + plotarg + "_histogram" + plotextension)
+    # Plot and save figures
+    fig, ax = plt.subplots(figsize=(15, 10))
+    if grouparg is None:
+        df = df[plotarg]
+        df.plot.hist(ax=ax, alpha=1, linewidth=7.0, bins=bins)
+    else:
+        df = df[[grouparg, plotarg]]
+        df.groupby(grouparg)[plotarg].plot.hist(ax=ax, legend=True, alpha=1, linewidth=7.0, bins=bins)
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
 
-
+    plt.xlim(xmin, xmax)
+    plt.xlabel(colname2label[plotarg], alpha=1)
+    plt.ylabel('Count', alpha=1)
+    plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
+    plt.title('Distribution of ' + colname2label[plotarg])
+    plt.savefig(savename)
 
 
 
@@ -114,11 +135,11 @@ def plotviolin(df, directory, name, plotextension, grouparg, plotarg):
 
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
-    path = 'C:\\Users\\dumin\\Documents\\PhD\\Data\\KavitApr2021\\210120'
+    path = 'C:\\Users\\dumin\\Documents\\PhD\\Data\\Kavit-Top1\\Non-incubation'
 
     # Set the name of the json file to import here
-    name = '210120'
-    bins = 10
+    name = 'Non-incubation'
+    bins = 50
 
     # import data form the json file specified as a dataframe
     df = importfromjson(path, name)
@@ -153,10 +174,13 @@ if __name__ == '__main__':
 
 # Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
 grouparg = 'Experimental Conditions'
-plotkde(df, path, name, 'grain_bound_len', grouparg=grouparg, xmin=0, xmax=1e-7)
-plotkde(df, path, name, 'grain_mean_radius', grouparg=grouparg)
-plotkde(df, path, name, 'grain_proj_area', grouparg=grouparg, xmax=3e-16)
-plotkde(df, path, name, 'aspectratio', grouparg=grouparg, xmax=1.4)
-plotkde(df, path, name, 'grain_min_bound_size', grouparg=grouparg, xmax=3e-8)
-plotkde(df, path, name, 'grain_max_bound_size', grouparg=grouparg, xmax=3.5e-8)
-# plotviolin(df, path, name, plotextension, 'topoisomer', column)
+plotkde(df, path, name, 'grain_bound_len',  xmin=0, xmax=1e-7)
+plotkde(df, path, name, 'grain_mean_radius')
+plotkde(df, path, name, 'grain_proj_area', xmax=3e-16, grouparg=grouparg)
+plotkde(df, path, name, 'aspectratio', xmax=1.4)
+plotkde(df, path, name, 'grain_min_bound_size', xmax=3e-8)
+plotkde(df, path, name, 'grain_max_bound_size', xmax=3.5e-8)
+plotkde(df, path, name, 'grain_half_height_area', xmax=1.0e-16, grouparg=grouparg)
+plothist(df, path, name, 'grain_min_bound_size', xmax=2.5e-8, bins=bins)
+plothist(df, path, name, 'grain_proj_area', xmax=3e-16)
+

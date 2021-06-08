@@ -718,7 +718,7 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    path = 'C:\Users\dumin\Documents\PhD\Data\KavitApr2021\\210120'
+    path = 'C:\Users\dumin\Documents\PhD\Data\Kavit-Top1\Non-incubation'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
