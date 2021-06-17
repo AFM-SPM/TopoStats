@@ -832,7 +832,11 @@ if __name__ == '__main__':
             # #dna_traces.showTraces()
             dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
             # dna_traces.writeContourLengths(filename, channel_name)
-            dna_traces.plotRadiusOfCurvature(3, path)
+            dna_traces.plotRadiusOfCurvature(3)
+            dna_traces.plotRadiusOfCurvature(5)
+            dna_traces.plotRadiusOfCurvature(8)
+            dna_traces.plotRadiusOfCurvature(10)
+            dna_traces.plotRadiusOfCurvature(11)
             # Update the pandas Dataframe used to monitor stats
             try:
                 tracing_stats.updateTraceStats(dna_traces)
@@ -841,7 +845,7 @@ if __name__ == '__main__':
 
 
             # Save out cropped files as images with no scales to a subfolder
-            # savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 
             # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)

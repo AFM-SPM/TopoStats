@@ -62,6 +62,7 @@ class dnaTrace(object):
         self.getFittedTraces()
         self.getSplinedTraces()
         self.findRadiusOfCurvature()
+        self.saveRadiusOfCurvature()
         self.measureContourLength()
         self.reportBasicStats()
 
@@ -600,28 +601,38 @@ class dnaTrace(object):
         # for key, value in sorted(self.radius_of_curvature):
         # print(key, ' : ', value)
 
-    def plotRadiusOfCurvature(self, key, path):
-        # for dna_num in sorted(self.radius_of_curvature.keys()):
-        # curvature = np.array(self.radius_of_curvature[dna_num])
-        # sns.lineplot(curvature[:,0],curvature[:,1])
-        # plt.savefig('test.png')
+    def saveRadiusOfCurvature(self):
+
         roc_array = np.zeros(shape=(1, 3))
         for dna_num in sorted(self.radius_of_curvature.keys()):
             for i, [n, c] in enumerate(self.radius_of_curvature[dna_num]):
                 roc_array = np.vstack((roc_array, np.array([dna_num, i, c])))
-        print "test"
-        print roc_array
-        print "test over"
-        roc_stats = pd.DataFrame.from_dict(self.radius_of_curvature[key])
-        print roc_stats
-        savename = os.path.join(path, str(key))
+        roc_array = np.delete(roc_array, 0, 0)
+        roc_stats = pd.DataFrame(roc_array)
+
+        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Radius_of_Curvature")):
+            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Radius_of_Curvature"))
+        directory = os.path.join(os.path.dirname(self.afm_image_name), "Radius_of_Curvature")
+        savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
         roc_stats.to_json(savename + '.json')
+        roc_stats.to_csv(savename + '.csv')
+
+    def plotRadiusOfCurvature(self, key):
+        # for dna_num in sorted(self.radius_of_curvature.keys()):
+        # curvature = np.array(self.radius_of_curvature[dna_num])
+        # sns.lineplot(curvature[:,0],curvature[:,1])
+        # plt.savefig('test.png')
+
         curvature = np.array(self.radius_of_curvature[key])
-        # print(curvature)
+        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Radius_of_Curvature")):
+            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Radius_of_Curvature"))
+        directory = os.path.join(os.path.dirname(self.afm_image_name), "Radius_of_Curvature")
+        savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
+
         plt.figure()
         sns.lineplot(curvature[:, 0], curvature[:, 1])
         plt.ylim(-1, 1)
-        plt.savefig('test.png')
+        plt.savefig('%s_%s.png' % (savename, key))
 
     def measureContourLength(self):
 
