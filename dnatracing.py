@@ -43,7 +43,7 @@ class dnaTrace(object):
         self.splined_traces = {}
         self.contour_lengths = {}
         self.mol_is_circular = {}
-        self.radius_of_curvature = {}
+        self.curvature = {}
 
         self.number_of_traces = 0
         self.num_circular = 0
@@ -61,8 +61,8 @@ class dnaTrace(object):
         self.determineLinearOrCircular(self.ordered_traces)
         self.getFittedTraces()
         self.getSplinedTraces()
-        self.findRadiusOfCurvature()
-        self.saveRadiusOfCurvature()
+        self.findCurvature()
+        self.saveCurvature()
         self.measureContourLength()
         self.reportBasicStats()
 
@@ -502,6 +502,7 @@ class dnaTrace(object):
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], markersize=1)
             # print(len(self.skeletons[dna_num]), len(self.disordered_trace[dna_num]))
             # plt.plot(self.skeletons[dna_num][:,0], self.skeletons[dna_num][:,1], 'o', markersize = 0.8)
+
         plt.show()
         plt.close()
 
@@ -525,7 +526,20 @@ class dnaTrace(object):
         for dna_num in sorted(self.splined_traces.keys()):
             # disordered_trace_list = self.ordered_traces[dna_num].tolist()
             # less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
-            plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c')
+            plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=1.0)
+            if self.mol_is_circular[dna_num]:
+                plt.plot(self.splined_traces[dna_num][0, 0], self.splined_traces[dna_num][0, 1], color='crimson',
+                         markersize=3.0, marker=5)
+                plt.plot(self.splined_traces[dna_num][100, 0], self.splined_traces[dna_num][100, 1], color='orange',
+                         markersize=3.0, marker=5)
+                plt.plot(self.splined_traces[dna_num][200, 0], self.splined_traces[dna_num][200, 1], color='y',
+                         markersize=3.0, marker=5)
+                plt.plot(self.splined_traces[dna_num][300, 0], self.splined_traces[dna_num][300, 1], color='g',
+                         markersize=3.0, marker=5)
+                plt.plot(self.splined_traces[dna_num][400, 0], self.splined_traces[dna_num][400, 1], color='b',
+                         markersize=3.0, marker=5)
+                plt.plot(self.splined_traces[dna_num][500, 0], self.splined_traces[dna_num][500, 1], color='purple',
+                         markersize=3.0, marker=5)
         plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name))
         plt.close()
 
@@ -574,13 +588,13 @@ class dnaTrace(object):
     def findWrithe(self):
         pass
 
-    def findRadiusOfCurvature(self):
+    def findCurvature(self):
 
         for dna_num in sorted(self.splined_traces.keys()):  # the number of molecules identified
             # splined_traces is a dictionary, where the keys are the number of the molecule, and the values are a
             # list of coordinates, in a numpy.ndarray
             if self.mol_is_circular[dna_num]:
-                rad_of_curve = []
+                curve = []
                 for i, (x, y) in enumerate(self.splined_traces[dna_num]):
                     x0 = self.splined_traces[dna_num][i][0]
                     y0 = self.splined_traces[dna_num][i][1]
@@ -595,43 +609,38 @@ class dnaTrace(object):
                     xb = (x1 + x2) / 2
                     yb = (y1 + y1) / 2
                     dist = math.sqrt((xb - xa) ** 2 + (yb - ya) ** 2)
-                    rad_of_curve.append([i, (theta2 - theta1) / dist])
-                self.radius_of_curvature[dna_num] = rad_of_curve
-        # print self.radius_of_curvature
-        # for key, value in sorted(self.radius_of_curvature):
-        # print(key, ' : ', value)
+                    dist_real = dist * self.pixel_size
+                    curve.append([i, (theta2 - theta1) / dist_real])
+                self.curvature[dna_num] = curve
 
-    def saveRadiusOfCurvature(self):
+
+    def saveCurvature(self):
 
         roc_array = np.zeros(shape=(1, 3))
-        for dna_num in sorted(self.radius_of_curvature.keys()):
-            for i, [n, c] in enumerate(self.radius_of_curvature[dna_num]):
+        for dna_num in sorted(self.curvature.keys()):
+            for i, [n, c] in enumerate(self.curvature[dna_num]):
                 roc_array = np.vstack((roc_array, np.array([dna_num, i, c])))
         roc_array = np.delete(roc_array, 0, 0)
         roc_stats = pd.DataFrame(roc_array)
 
-        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Radius_of_Curvature")):
-            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Radius_of_Curvature"))
-        directory = os.path.join(os.path.dirname(self.afm_image_name), "Radius_of_Curvature")
+        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Curvature")):
+            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Curvature"))
+        directory = os.path.join(os.path.dirname(self.afm_image_name), "Curvature")
         savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
         roc_stats.to_json(savename + '.json')
         roc_stats.to_csv(savename + '.csv')
 
-    def plotRadiusOfCurvature(self, key):
-        # for dna_num in sorted(self.radius_of_curvature.keys()):
-        # curvature = np.array(self.radius_of_curvature[dna_num])
-        # sns.lineplot(curvature[:,0],curvature[:,1])
-        # plt.savefig('test.png')
+    def plotCurvature(self, key):
 
-        curvature = np.array(self.radius_of_curvature[key])
-        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Radius_of_Curvature")):
-            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Radius_of_Curvature"))
-        directory = os.path.join(os.path.dirname(self.afm_image_name), "Radius_of_Curvature")
+        curvature = np.array(self.curvature[key])
+        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Curvature")):
+            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Curvature"))
+        directory = os.path.join(os.path.dirname(self.afm_image_name), "Curvature")
         savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
 
         plt.figure()
         sns.lineplot(curvature[:, 0], curvature[:, 1])
-        plt.ylim(-1, 1)
+        plt.ylim(-1e9, 1e9)
         plt.savefig('%s_%s.png' % (savename, key))
 
     def measureContourLength(self):
