@@ -30,7 +30,9 @@ colname2label = {
     'grain_ellipse_major': 'Ellipse Major Axis Length',  # / m',
     'grain_ellipse_minor': 'Ellipse Minor Axis Length',  # / m',
     'grain_half_height_area': 'Area Above Half Height',
-    # 'grain_maximum',grain_mean', 'grain_median',
+    'grain_maximum': 'Grain maximum',
+    'grain_mean': 'Grain mean',
+    'grain_median': 'Grain median',
     'grain_min_bound_size': 'Width / m',
     'grain_max_bound_size': 'Length / m',
     'grain_mean_radius': 'Mean Radius / m',
@@ -115,9 +117,10 @@ def plotviolin(df, directory, name, plotextension, grouparg, plotarg):
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
     path = 'C:\\Users\\dumin\\Documents\\PhD\\Data\\KavitApr2021\\210120'
+    path = '/Volumes/GoogleDrive/My Drive/AFM research group /AFM data/Sixfold/20210511/Test'    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
 
     # Set the name of the json file to import here
-    name = '210120'
+    name = 'Test'
     bins = 10
 
     # import data form the json file specified as a dataframe
@@ -153,7 +156,7 @@ if __name__ == '__main__':
 
 # Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
 grouparg = 'Experimental Conditions'
-plotkde(df, path, name, 'grain_bound_len', grouparg=grouparg, xmin=0, xmax=1e-7)
+plotkde(df, path, name, 'grain_median', grouparg=grouparg, xmin=0, xmax=1e-7)
 plotkde(df, path, name, 'grain_mean_radius', grouparg=grouparg)
 plotkde(df, path, name, 'grain_proj_area', grouparg=grouparg, xmax=3e-16)
 plotkde(df, path, name, 'aspectratio', grouparg=grouparg, xmax=1.4)
