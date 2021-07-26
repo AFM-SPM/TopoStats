@@ -528,17 +528,17 @@ class dnaTrace(object):
             # less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=1.0)
             if self.mol_is_circular[dna_num]:
-                plt.plot(self.splined_traces[dna_num][0, 0], self.splined_traces[dna_num][0, 1], color='crimson',
+                plt.plot(self.splined_traces[dna_num][0, 0], self.splined_traces[dna_num][0, 1], color='#D55E00',
                          markersize=3.0, marker=5)
-                plt.plot(self.splined_traces[dna_num][100, 0], self.splined_traces[dna_num][100, 1], color='orange',
+                plt.plot(self.splined_traces[dna_num][100, 0], self.splined_traces[dna_num][100, 1], color='#E69F00',
                          markersize=3.0, marker=5)
-                plt.plot(self.splined_traces[dna_num][200, 0], self.splined_traces[dna_num][200, 1], color='y',
+                plt.plot(self.splined_traces[dna_num][200, 0], self.splined_traces[dna_num][200, 1], color='#F0E442',
                          markersize=3.0, marker=5)
-                plt.plot(self.splined_traces[dna_num][300, 0], self.splined_traces[dna_num][300, 1], color='g',
+                plt.plot(self.splined_traces[dna_num][300, 0], self.splined_traces[dna_num][300, 1], color='#009E74',
                          markersize=3.0, marker=5)
-                plt.plot(self.splined_traces[dna_num][400, 0], self.splined_traces[dna_num][400, 1], color='b',
+                plt.plot(self.splined_traces[dna_num][400, 0], self.splined_traces[dna_num][400, 1], color='#56B4E9',
                          markersize=3.0, marker=5)
-                plt.plot(self.splined_traces[dna_num][500, 0], self.splined_traces[dna_num][500, 1], color='purple',
+                plt.plot(self.splined_traces[dna_num][500, 0], self.splined_traces[dna_num][500, 1], color='#CC79A7',
                          markersize=3.0, marker=5)
         plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name))
         plt.close()
@@ -639,8 +639,14 @@ class dnaTrace(object):
         savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
 
         plt.figure()
-        sns.lineplot(curvature[:, 0], curvature[:, 1])
+        sns.lineplot(self.pixel_size*curvature[:, 0], curvature[:, 1])
         plt.ylim(-1e9, 1e9)
+        plt.axvline(0, color="#D55E00")
+        plt.axvline(self.pixel_size * 100, color="#E69F00")
+        plt.axvline(self.pixel_size * 200, color="#F0E442")
+        plt.axvline(self.pixel_size * 300, color="#009E74")
+        plt.axvline(self.pixel_size * 400, color="#56B4E9")
+        plt.axvline(self.pixel_size * 500, color="#CC79A7")
         plt.savefig('%s_%s.png' % (savename, key))
 
     def measureContourLength(self):
