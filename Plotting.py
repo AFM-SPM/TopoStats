@@ -20,7 +20,7 @@ sns.set_style("white", {'font.family': ['sans-serif']})
 sns.set_context("poster", font_scale=1.4)
 # plt.style.use("dark_background")
 sns.set_palette(sns.color_palette('bright'))
-defextension= '.png'
+defextension = '.png'
 
 colname2label = {
     'grain_bound_len': 'Circumference / m',
@@ -62,7 +62,7 @@ def savestats(directory, name, dataframetosave):
     dataframetosave.to_csv(savename + '_evaluated.txt')
 
 
-def plotkde(df, directory, name, plotarg, grouparg = None, xmin=0, xmax=1.5e-8, plotextension=defextension):
+def plotkde(df, directory, name, plotarg, grouparg=None, xmin=0, xmax=None, plotextension=defextension):
     print 'Plotting kde of %s' % plotarg
     # Create a saving name format/directory
     savedir = os.path.join(directory, 'Plots')
@@ -74,13 +74,18 @@ def plotkde(df, directory, name, plotarg, grouparg = None, xmin=0, xmax=1.5e-8, 
     if grouparg is None:
         df = df[plotarg]
         df.plot.kde(ax=ax, alpha=1, linewidth=7.0)
+        if xmax is None:
+            xmax = df.max() * 0.8
     else:
         df = df[[grouparg, plotarg]]
         df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=1, linewidth=7.0)
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
+        if xmax is None:
+            xmax = df[plotarg].max() * 0.8
 
     plt.xlim(xmin, xmax)
+    print (xmin, xmax)
     plt.xlabel(colname2label[plotarg], alpha=1)
     plt.ylabel('Probability Density', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
@@ -88,7 +93,7 @@ def plotkde(df, directory, name, plotarg, grouparg = None, xmin=0, xmax=1.5e-8, 
     plt.savefig(savename)
 
 
-def plothist(df, directory, name, plotarg, grouparg = None, xmin=0, xmax=1.5e-8, bins=20, plotextension=defextension):
+def plothist(df, directory, name, plotarg, grouparg=None, xmin=0, xmax=None, bins=20, plotextension=defextension):
     print 'Plotting histogram of %s' % plotarg
     savedir = os.path.join(directory, 'Plots')
     if not os.path.exists(savedir):
@@ -99,11 +104,15 @@ def plothist(df, directory, name, plotarg, grouparg = None, xmin=0, xmax=1.5e-8,
     if grouparg is None:
         df = df[plotarg]
         df.plot.hist(ax=ax, alpha=1, linewidth=7.0, bins=bins)
+        if xmax is None:
+            xmax = df.max() * 0.8
     else:
         df = df[[grouparg, plotarg]]
         df.groupby(grouparg)[plotarg].plot.hist(ax=ax, legend=True, alpha=1, linewidth=7.0, bins=bins)
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
+        if xmax is None:
+            xmax = df[plotarg].max() * 0.8
 
     plt.xlim(xmin, xmax)
     plt.xlabel(colname2label[plotarg], alpha=1)
@@ -113,9 +122,7 @@ def plothist(df, directory, name, plotarg, grouparg = None, xmin=0, xmax=1.5e-8,
     plt.savefig(savename)
 
 
-
-
-def plotviolin(df, directory, name, plotarg, grouparg = None, ymin=0, ymax=1.5e-8, plotextension=defextension):
+def plotviolin(df, directory, name, plotarg, grouparg=None, ymin=0, ymax=None, plotextension=defextension):
     print 'Plotting violin of %s' % plotarg
 
     # Create a saving name format/directory
@@ -130,13 +137,44 @@ def plotviolin(df, directory, name, plotarg, grouparg = None, ymin=0, ymax=1.5e-
     if grouparg is None:
         df = df[plotarg]
         ax = sns.violinplot(data=df)
+        if ymax is None:
+            ymax = df.max() * 0.8
     else:
         df = df[[grouparg, plotarg]]
         ax = sns.violinplot(x=grouparg, y=plotarg, data=df)
+        if ymax is None:
+            ymax = df[plotarg].max() * 0.8
     ax.invert_xaxis()
     plt.ylim(ymin, ymax)
     plt.ylabel(colname2label[plotarg], alpha=1)
     plt.xlabel(' ')
+    plt.savefig(savename)
+
+
+def plotjoint(df, directory, arg1, arg2, xmin=0, xmax=None, ymin=0, ymax=None, plotextension=defextension):
+    print 'Plotting joint plot for %s and %s' % (arg1, arg2)
+
+    # Create a saving name format/directory
+    savedir = os.path.join(directory, 'Plots')
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+
+    savename = os.path.join(savedir, name + arg1 + '_and_' + arg2 + plotextension)
+
+    # Change from m to nm units for plotting
+    # df[arg1] = df[arg1] * 1e9
+    # df[arg2] = df[arg2] * 1e9
+    if xmax is None:
+        xmax = df[arg1].max()*0.8
+    if ymax is None:
+        ymax = df[arg2].max()*0.8
+
+    # Plot data using seaborn
+    sns.jointplot(arg1, arg2, data=df, kind='reg')
+    plt.xlim(xmin, xmax)
+    plt.ylim(ymin, ymax)
+    plt.xlabel(colname2label[arg1], alpha=1)
+    plt.ylabel(colname2label[arg2], alpha=1)
     plt.savefig(savename)
 
 
@@ -184,12 +222,12 @@ grouparg = 'Experimental Conditions'
 
 # plotkde(df, path, name, 'grain_bound_len',  xmin=0, xmax=1e-7)
 # plotkde(df, path, name, 'grain_mean_radius')
-# plotkde(df, path, name, 'grain_proj_area', xmax=3e-16, grouparg=grouparg)
+# plotkde(df, path, name, 'grain_proj_area', grouparg=grouparg)
 # plotkde(df, path, name, 'aspectratio', xmax=1.4)
 # plotkde(df, path, name, 'grain_min_bound_size', xmax=3e-8)
 # plotkde(df, path, name, 'grain_max_bound_size', xmax=3.5e-8)
 # plotkde(df, path, name, 'grain_half_height_area', xmax=1.0e-16, grouparg=grouparg)
 # plothist(df, path, name, 'grain_min_bound_size', xmax=2.5e-8, bins=bins)
 # plothist(df, path, name, 'grain_proj_area', xmax=3e-16)
-plotviolin(df, path, name, "grain_proj_area", ymax=6e-16, grouparg=grouparg)
-
+# plotviolin(df, path, name, "grain_proj_area", ymax=6e-16, grouparg=grouparg)
+plotjoint(df, path, 'grain_bound_len', 'grain_mean_radius')
