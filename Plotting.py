@@ -24,7 +24,6 @@ sns.set_palette(sns.color_palette('bright'))
 # sns.set_palette(sns.color_palette('BuPu'))
 defextension = '.png'
 
-
 colname2label = {
     'grain_bound_len': 'Circumference / m',
     'aspectratio': 'Aspect Ratio',
@@ -60,30 +59,22 @@ def savestats(dataframetosave):
     dataframetosave.to_csv(savename + '_evaluated.txt')
 
 
-
 def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, plotextension=defextension):
     print 'Plotting kde of %s' % plotarg
 
     savename = os.path.join(savedir, name + plotarg + plotextension)
 
-    # Plot and save figures
     fig, ax = plt.subplots(figsize=(15, 10))
+    # Simple KDE plot
     if grouparg is None:
         df = df[plotarg]
         df.plot.kde(ax=ax, alpha=1, linewidth=7.0)
-        if xmin is None:
-            xmin = df.quantile(.05)
-        if xmax is None:
-            xmax = df.quantile(.95)
+    # Grouped KDE plots
     else:
         df = df[[grouparg, plotarg]]
         df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=1, linewidth=7.0)
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
-        if xmin is None:
-            xmin = df[plotarg].quantile(.05)
-        if xmax is None:
-            xmax = df[plotarg].quantile(.95)
 
     plt.xlim(xmin, xmax)
     plt.xlabel(colname2label[plotarg], alpha=1)
@@ -91,7 +82,6 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, plotextension=defe
     plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
     plt.title('Distribution of ' + colname2label[plotarg])
     plt.savefig(savename)
-
 
 
 def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, plotextension=defextension):
@@ -103,21 +93,14 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, plotexte
     if grouparg is None:
         df = df[plotarg]
         df.plot.hist(ax=ax, alpha=1, linewidth=7.0, bins=bins)
-        if xmin is None:
-            xmin = df.quantile(.05)
-        if xmax is None:
-            xmax = df.quantile(.95)
+
     else:
         df = df[[grouparg, plotarg]]
         df.groupby(grouparg)[plotarg].plot.hist(ax=ax, legend=True, alpha=1, linewidth=7.0, bins=bins)
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
-        if xmin is None:
-            xmin = df[plotarg].quantile(.05)
-        if xmax is None:
-            xmax = df[plotarg].quantile(.95)
 
-    # plt.xlim(xmin, xmax)
+    plt.xlim(xmin, xmax)
     plt.xlabel(colname2label[plotarg], alpha=1)
     plt.ylabel('Count', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
@@ -135,17 +118,12 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, plotextension=d
     if grouparg is None:
         df = df[plotarg]
         ax = sns.violinplot(data=df)
-        if ymin is None:
-            ymin = df.quantile(.05)
-        if ymax is None:
-            ymax = df.quantile(.95)
+
     else:
         df = df[[grouparg, plotarg]]
         ax = sns.violinplot(x=grouparg, y=plotarg, data=df)
-        if ymin is None:
-            ymin = df[plotarg].quantile(.05)
-        if ymax is None:
-            ymax = df[plotarg].quantile(.95)
+
+
     ax.invert_xaxis()
     plt.ylim(ymin, ymax)
     plt.ylabel(colname2label[plotarg], alpha=1)
@@ -161,14 +139,6 @@ def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, plotex
     # Change from m to nm units for plotting
     # df[arg1] = df[arg1] * 1e9
     # df[arg2] = df[arg2] * 1e9
-    if xmin is None:
-        xmin = df[arg1].quantile(.05)
-    if xmax is None:
-        xmax = df[arg1].quantile(.95)
-    if ymin is None:
-        ymin = df[arg2].quantile(.05)
-    if ymax is None:
-        ymax = df[arg2].quantile(.95)
 
     # Plot data using seaborn
     sns.jointplot(arg1, arg2, data=df, kind='reg')
@@ -177,6 +147,7 @@ def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, plotex
     plt.xlabel(colname2label[arg1], alpha=1)
     plt.ylabel(colname2label[arg2], alpha=1)
     plt.savefig(savename)
+
 
 def plotLinearVsCircular(contour_lengths_df):
     pass
@@ -226,11 +197,16 @@ if __name__ == '__main__':
     # Set palette for all plots with length number of topoisomers and reverse
     # # palette = sns.color_palette('PuBu', n_colors=len(topos))
 
-# Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
+# Setting group argument
 grouparg = 'Experimental Conditions'
 
+
+# Plot one column of the dataframe e.g. 'grain_mean_radius'; grouparg can be specified for plotkde, plothist and
+# plotviolin by entering e.g. 'xmin = 0'; xmin and xmax can be specified for plotkde, plothist, and plotjoint;
+# ymin and ymax can be specified for plotviolin and plotjoint; bins can be speficied for plothist
+
 # plotkde(df, path, name, 'grain_bound_len',  xmin=0, xmax=1e-7)
-plotkde(df, 'grain_mean_radius')
+# plotkde(df, 'grain_mean_radius')
 # plotkde(df, 'grain_proj_area', grouparg=grouparg)
 plothist(df, 'aspectratio')
 # plotkde(df, 'grain_min_bound_size', xmax=3e-8)
@@ -238,6 +214,5 @@ plothist(df, 'aspectratio')
 # plotkde(df, 'grain_half_height_area', xmax=1.0e-16, grouparg=grouparg)
 # plothist(df, 'grain_min_bound_size', xmax=2.5e-8, bins=bins)
 # plothist(df, 'grain_proj_area', xmax=3e-16)
-plotviolin(df, "grain_proj_area", ymax=6e-16, grouparg=grouparg)
-plotjoint(df, 'grain_bound_len', 'grain_mean_radius')
-
+# plotviolin(df, "grain_proj_area", ymax=6e-16, grouparg=grouparg)
+# plotjoint(df, 'grain_bound_len', 'grain_mean_radius')
