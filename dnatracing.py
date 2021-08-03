@@ -596,18 +596,23 @@ class dnaTrace(object):
             if self.mol_is_circular[dna_num]:
                 curve = []
                 for i, (x, y) in enumerate(self.splined_traces[dna_num]):
+
                     x0 = self.splined_traces[dna_num][i][0]
                     y0 = self.splined_traces[dna_num][i][1]
                     x1 = self.splined_traces[dna_num][i - 1][0]
                     y1 = self.splined_traces[dna_num][i - 1][1]
                     x2 = self.splined_traces[dna_num][i - 2][0]
                     y2 = self.splined_traces[dna_num][i - 2][1]
-                    theta1 = math.atan((y1 - y0) / (x1 - x0))
-                    theta2 = math.atan((y2 - y1) / (x2 - x1))
-                    xa = (x0 + x1) / 2
-                    ya = (y0 + y1) / 2
-                    xb = (x1 + x2) / 2
-                    yb = (y1 + y1) / 2
+                    x3 = self.splined_traces[dna_num][i - 3][0]
+                    y3 = self.splined_traces[dna_num][i - 3][1]
+                    x4 = self.splined_traces[dna_num][i - 4][0]
+                    y4 = self.splined_traces[dna_num][i - 4][1]
+                    theta1 = math.atan((y2 - y0) / (x2 - x0))
+                    theta2 = math.atan((y4 - y2) / (x4 - x2))
+                    xa = (x0 + x1 + x2) / 3
+                    ya = (y0 + y1 + y2) / 3
+                    xb = (x2 + x3 + x4) / 3
+                    yb = (y2 + y3 + y4) / 3
                     dist = math.sqrt((xb - xa) ** 2 + (yb - ya) ** 2)
                     dist_real = dist * self.pixel_size
                     curve.append([i, (theta2 - theta1) / dist_real])
