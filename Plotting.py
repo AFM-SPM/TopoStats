@@ -10,6 +10,7 @@ import numpy as np
 import scipy
 import glob
 from scipy import stats
+from cycler import cycler
 
 # Set seaborn to override matplotlib for plot output
 sns.set()
@@ -20,7 +21,9 @@ sns.set_style("white", {'font.family': ['sans-serif']})
 sns.set_context("poster", font_scale=1.4)
 # plt.style.use("dark_background")
 sns.set_palette(sns.color_palette('bright'))
+# sns.set_palette(sns.color_palette('BuPu'))
 defextension = '.png'
+
 
 colname2label = {
     'grain_bound_len': 'Circumference / m',
@@ -49,26 +52,20 @@ def importfromjson(path, name):
     return importeddata
 
 
-def savestats(directory, name, dataframetosave):
-    directoryname = os.path.splitext(os.path.basename(directory))[0]
+def savestats(dataframetosave):
     print 'Saving stats for: ' + str(name) + '_evaluated'
-
-    savedir = os.path.join(directory)
-    savename = os.path.join(savedir, directoryname)
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
+    savename = os.path.join(path, name)
 
     dataframetosave.to_json(savename + '_evaluated.json')
     dataframetosave.to_csv(savename + '_evaluated.txt')
 
 
-def plotkde(df, directory, name, plotarg, grouparg=None, xmin=None, xmax=None, plotextension=defextension):
+
+def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, plotextension=defextension):
     print 'Plotting kde of %s' % plotarg
-    # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Plots')
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
+
     savename = os.path.join(savedir, name + plotarg + plotextension)
+
     # Plot and save figures
     fig, ax = plt.subplots(figsize=(15, 10))
     if grouparg is None:
@@ -96,11 +93,10 @@ def plotkde(df, directory, name, plotarg, grouparg=None, xmin=None, xmax=None, p
     plt.savefig(savename)
 
 
-def plothist(df, directory, name, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, plotextension=defextension):
+
+def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, plotextension=defextension):
     print 'Plotting histogram of %s' % plotarg
-    savedir = os.path.join(directory, 'Plots')
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
+
     savename = os.path.join(savedir, name + plotarg + "_histogram" + plotextension)
     # Plot and save figures
     fig, ax = plt.subplots(figsize=(15, 10))
@@ -129,13 +125,8 @@ def plothist(df, directory, name, plotarg, grouparg=None, xmin=None, xmax=None, 
     plt.savefig(savename)
 
 
-def plotviolin(df, directory, name, plotarg, grouparg=None, ymin=None, ymax=None, plotextension=defextension):
+def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, plotextension=defextension):
     print 'Plotting violin of %s' % plotarg
-
-    # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Plots')
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
 
     # Plot and save figures
     savename = os.path.join(savedir, name + plotarg + '_violin' + plotextension)
@@ -162,13 +153,8 @@ def plotviolin(df, directory, name, plotarg, grouparg=None, ymin=None, ymax=None
     plt.savefig(savename)
 
 
-def plotjoint(df, directory, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, plotextension=defextension):
+def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, plotextension=defextension):
     print 'Plotting joint plot for %s and %s' % (arg1, arg2)
-
-    # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Plots')
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
 
     savename = os.path.join(savedir, name + arg1 + '_and_' + arg2 + plotextension)
 
@@ -192,6 +178,9 @@ def plotjoint(df, directory, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=N
     plt.ylabel(colname2label[arg2], alpha=1)
     plt.savefig(savename)
 
+def plotLinearVsCircular(contour_lengths_df):
+    pass
+
 
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
@@ -200,6 +189,11 @@ if __name__ == '__main__':
     # Set the name of the json file to import here
     name = 'Non-incubation'
     bins = 50
+
+    # Set/create the directory to save the plots
+    savedir = os.path.join(path, 'Plots')
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
 
     # import data form the json file specified as a dataframe
     df = importfromjson(path, name)
@@ -228,7 +222,7 @@ if __name__ == '__main__':
     # transpose allstats dataframe to get better saving output
     # # allstats1 = allstats.transpose()
     # Save out statistics file
-    # # savestats(path, name, allstats1)
+    # # savestats(allstats1)
     # Set palette for all plots with length number of topoisomers and reverse
     # # palette = sns.color_palette('PuBu', n_colors=len(topos))
 
@@ -236,13 +230,14 @@ if __name__ == '__main__':
 grouparg = 'Experimental Conditions'
 
 # plotkde(df, path, name, 'grain_bound_len',  xmin=0, xmax=1e-7)
-# plotkde(df, path, name, 'grain_mean_radius')
-# plotkde(df, path, name, 'grain_proj_area', grouparg=grouparg)
-# plothist(df, path, name, 'aspectratio')
-# plotkde(df, path, name, 'grain_min_bound_size', xmax=3e-8)
-# plotkde(df, path, name, 'grain_max_bound_size', xmax=3.5e-8)
-# plotkde(df, path, name, 'grain_half_height_area', xmax=1.0e-16, grouparg=grouparg)
-# plothist(df, path, name, 'grain_min_bound_size', xmax=2.5e-8, bins=bins)
-# plothist(df, path, name, 'grain_proj_area', xmax=3e-16)
-# plotviolin(df, path, name, "grain_proj_area", ymax=6e-16, grouparg=grouparg)
-plotjoint(df, path, 'grain_bound_len', 'grain_mean_radius')
+plotkde(df, 'grain_mean_radius')
+# plotkde(df, 'grain_proj_area', grouparg=grouparg)
+plothist(df, 'aspectratio')
+# plotkde(df, 'grain_min_bound_size', xmax=3e-8)
+# plotkde(df, 'grain_max_bound_size', xmax=3.5e-8)
+# plotkde(df, 'grain_half_height_area', xmax=1.0e-16, grouparg=grouparg)
+# plothist(df, 'grain_min_bound_size', xmax=2.5e-8, bins=bins)
+# plothist(df, 'grain_proj_area', xmax=3e-16)
+plotviolin(df, "grain_proj_area", ymax=6e-16, grouparg=grouparg)
+plotjoint(df, 'grain_bound_len', 'grain_mean_radius')
+
