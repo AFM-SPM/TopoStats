@@ -31,7 +31,7 @@ colname2label = {
     'grain_curvature2': 'Larger Curvature',
     'grain_ellipse_major': 'Ellipse Major Axis Length / %s',
     'grain_ellipse_minor': 'Ellipse Minor Axis Length / %s',
-    'grain_half_height_area': 'Area Above Half Height / %s^2',
+    'grain_half_height_area': 'Area Above Half Height / $\mathregular{%s^2}$',
     'grain_maximum': 'Grain maximum / %s',
     'grain_mean': 'Grain mean / %s',
     'grain_median': 'Grain median / %s',
@@ -39,7 +39,7 @@ colname2label = {
     'grain_max_bound_size': 'Length / %s',
     'grain_mean_radius': 'Mean Radius / %s',
     'grain_pixel_area': 'Area / Pixels',
-    'grain_proj_area': 'Area / %s^2'
+    'grain_proj_area': 'Area / $\mathregular{%s^2}$'
 }
 
 
@@ -73,7 +73,12 @@ def pathman(path):
 
 def labelunitconversion(plotarg, nm):
     """Adding units to the axis labels"""
-    label = colname2label[plotarg]
+
+    if plotarg in colname2label:
+        label = colname2label[plotarg]
+    else:
+        label = plotarg
+
     if '%s' in label:
         if nm is True:
             label = label % 'nm'
@@ -108,7 +113,7 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath
     df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
 
     # Plot figure
-    fig, ax = plt.subplots(figsize=(15, 10))
+    fig, ax = plt.subplots(figsize=(15, 12))
     # Simple KDE plot
     if grouparg is None:
         df = df[plotarg]
@@ -140,7 +145,7 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
 
     # Plot figure
-    fig, ax = plt.subplots(figsize=(15, 10))
+    fig, ax = plt.subplots(figsize=(15, 12))
     # Simple histogram
     if grouparg is None:
         df = df[plotarg]
@@ -170,7 +175,7 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specp
 
     # Plot and save figures
     df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
-    fig, ax = plt.subplots(figsize=(15, 10))
+    fig, ax = plt.subplots(figsize=(15, 12))
     # Single violin plot
     if grouparg is None:
         df = df[plotarg]
@@ -184,7 +189,7 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specp
     # Label plot and save figure
     plt.ylim(ymin, ymax)
     plt.ylabel(labelunitconversion(plotarg, nm), alpha=1)
-    plt.xlabel(' ')
+    plt.xlabel(grouparg)
     plt.savefig(savename)
 
 
@@ -260,15 +265,15 @@ grouparg = 'Experimental Conditions'
 # ymin and ymax can be specified for plotviolin and plotjoint; bins can be speficied for plothist. The default unit is
 # m; add "nm=True" to change from m to nm.
 
-plotkde(df, 'grain_bound_len',  xmin=0, xmax=1e-7)
-plotkde(df, 'grain_mean_radius')
+# plotkde(df, 'grain_bound_len',  xmin=0, xmax=1e-7)
+# plotkde(df, 'grain_mean_radius')
 # plotkde(df, 'grain_proj_area', nm=True)
 # plotkde (df, 'aspectratio')
 # plotkde(df, 'grain_min_bound_size', nm=True)
 # plotkde(df, 'grain_max_bound_size', xmax=3.5e-8)
-# plotkde(df, 'grain_half_height_area', grouparg=grouparg)
-plothist(df, 'grain_min_bound_size', xmax=2.5e-8, bins=bins)
+plotkde(df, 'grain_half_height_area', grouparg=grouparg, nm=True)
+# plothist(df, 'grain_min_bound_size', xmax=2.5e-8, bins=bins)
 # plothist(df, 'grain_proj_area', xmax=3e-16)
 # plothist(df, 'aspectratio')
-# plotviolin(df, "grain_proj_area")
-plotjoint(df, 'grain_bound_len', 'grain_mean_radius', xmax=200, ymax=20, nm=True)
+plotviolin(df, "grain_proj_area", grouparg=grouparg)
+# plotjoint(df, 'grain_bound_len', 'grain_mean_radius', xmax=200, ymax=20, nm=True)
