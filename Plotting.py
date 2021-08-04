@@ -21,7 +21,6 @@ sns.set_style("white", {'font.family': ['sans-serif']})
 sns.set_context("poster", font_scale=1.4)
 # plt.style.use("dark_background")
 sns.set_palette(sns.color_palette('bright'))
-# sns.set_palette(sns.color_palette('BuPu'))
 defextension = '.png'
 
 colname2label = {
@@ -32,9 +31,9 @@ colname2label = {
     'grain_ellipse_major': 'Ellipse Major Axis Length / %s',
     'grain_ellipse_minor': 'Ellipse Minor Axis Length / %s',
     'grain_half_height_area': 'Area Above Half Height / $\mathregular{%s^2}$',
-    'grain_maximum': 'Grain maximum / %s',
-    'grain_mean': 'Grain mean / %s',
-    'grain_median': 'Grain median / %s',
+    'grain_maximum': 'Maximum Height / %s',
+    'grain_mean': 'Mean Height / %s',
+    'grain_median': 'Median Height / %s',
     'grain_min_bound_size': 'Width / %s',
     'grain_max_bound_size': 'Length / %s',
     'grain_mean_radius': 'Mean Radius / %s',
@@ -273,6 +272,10 @@ if __name__ == '__main__':
 # Setting group argument
 grouparg = 'Experimental Conditions'
 
+# Setting a continuous colour palette; useful for certain grouped plots, but can be commented out if unsuitable.
+sns.set_palette(sns.color_palette('BuPu', n_colors=len(df.groupby(grouparg))))
+# print df.pivot(columns=grouparg, values='grain_median')
+
 
 # Plot one column of the dataframe e.g. 'grain_mean_radius'; grouparg can be specified for plotkde, plothist and
 # plotviolin by entering e.g. 'xmin = 0'; xmin and xmax can be specified for plotkde, plothist, and plotjoint;
@@ -283,11 +286,11 @@ grouparg = 'Experimental Conditions'
 # plotkde(df, 'grain_mean_radius')
 # plotkde(df, 'grain_proj_area', nm=True)
 # plotkde (df, 'aspectratio')
-# plotkde(df, 'grain_min_bound_size', nm=True)
+# plotkde(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
 # plotkde(df, 'grain_max_bound_size', xmax=3.5e-8)
-plotkde(df, 'grain_half_height_area', grouparg=grouparg, nm=True)
+# plotkde(df, 'grain_half_height_area', grouparg=grouparg, nm=True)
 # plothist(df, 'grain_min_bound_size', xmax=2.5e-8, bins=bins)
 # plothist(df, 'grain_proj_area', xmax=3e-16)
-# plothist(df, 'aspectratio')
+# plothist(df, 'grain_half_height_area', grouparg=grouparg)
 plotviolin(df, "grain_proj_area", grouparg=grouparg)
 # plotjoint(df, 'grain_bound_len', 'grain_mean_radius', xmax=200, ymax=20, nm=True)
