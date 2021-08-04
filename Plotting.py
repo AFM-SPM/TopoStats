@@ -110,10 +110,11 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, plotexte
     plt.savefig(savename)
 
 
-def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, plotextension=defextension):
+def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, plotextension=defextension):
     print 'Plotting histogram of %s' % plotarg
 
     savename = os.path.join(savedir, name + plotarg + "_histogram" + plotextension)
+    df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
     # Plot and save figures
     fig, ax = plt.subplots(figsize=(15, 10))
     if grouparg is None:
@@ -127,18 +128,19 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, plotexte
         ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
 
     plt.xlim(xmin, xmax)
-    plt.xlabel(colname2label[plotarg], alpha=1)
+    plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.ylabel('Count', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
-    plt.title('Distribution of ' + colname2label[plotarg])
+    plt.title('Distribution of ' + labelunitconversion(plotarg, nm))
     plt.savefig(savename)
 
 
-def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, plotextension=defextension):
+def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, plotextension=defextension):
     print 'Plotting violin of %s' % plotarg
 
     # Plot and save figures
     savename = os.path.join(savedir, name + plotarg + '_violin' + plotextension)
+    df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
     fig, ax = plt.subplots(figsize=(10, 7))
     # Plot violinplot
     if grouparg is None:
@@ -152,26 +154,25 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, plotextension=d
 
     ax.invert_xaxis()
     plt.ylim(ymin, ymax)
-    plt.ylabel(colname2label[plotarg], alpha=1)
+    plt.ylabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.xlabel(' ')
     plt.savefig(savename)
 
 
-def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, plotextension=defextension):
+def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=False, plotextension=defextension):
     print 'Plotting joint plot for %s and %s' % (arg1, arg2)
 
     savename = os.path.join(savedir, name + arg1 + '_and_' + arg2 + plotextension)
 
-    # Change from m to nm units for plotting
-    # df[arg1] = df[arg1] * 1e9
-    # df[arg2] = df[arg2] * 1e9
+    df[arg1] = dataunitconversion(df[arg1], arg1, nm)
+    df[arg2] = dataunitconversion(df[arg2], arg2, nm)
 
     # Plot data using seaborn
     sns.jointplot(arg1, arg2, data=df, kind='reg')
     plt.xlim(xmin, xmax)
     plt.ylim(ymin, ymax)
-    plt.xlabel(colname2label[arg1], alpha=1)
-    plt.ylabel(colname2label[arg2], alpha=1)
+    plt.xlabel(labelunitconversion(arg1, nm), alpha=1)
+    plt.ylabel(labelunitconversion(arg2, nm), alpha=1)
     plt.savefig(savename)
 
 
@@ -229,17 +230,18 @@ grouparg = 'Experimental Conditions'
 
 # Plot one column of the dataframe e.g. 'grain_mean_radius'; grouparg can be specified for plotkde, plothist and
 # plotviolin by entering e.g. 'xmin = 0'; xmin and xmax can be specified for plotkde, plothist, and plotjoint;
-# ymin and ymax can be specified for plotviolin and plotjoint; bins can be speficied for plothist
+# ymin and ymax can be specified for plotviolin and plotjoint; bins can be speficied for plothist. The default unit is
+# m; add "nm=True" to change from m to nm.
 
 # plotkde(df, path, name, 'grain_bound_len',  xmin=0, xmax=1e-7)
 # plotkde(df, 'grain_mean_radius')
-plotkde(df, 'grain_proj_area', nm=True)
+# plotkde(df, 'grain_proj_area', nm=True)
 # plotkde (df, 'aspectratio')
-plotkde(df, 'grain_min_bound_size', nm=True)
+# plotkde(df, 'grain_min_bound_size', nm=True)
 # plotkde(df, 'grain_max_bound_size', xmax=3.5e-8)
 # plotkde(df, 'grain_half_height_area', grouparg=grouparg)
 # plothist(df, 'grain_min_bound_size', xmax=2.5e-8, bins=bins)
 # plothist(df, 'grain_proj_area', xmax=3e-16)
 # plothist(df, 'aspectratio')
 # plotviolin(df, "grain_proj_area", ymax=6e-16, grouparg=grouparg)
-# plotjoint(df, 'grain_bound_len', 'grain_mean_radius')
+plotjoint(df, 'grain_bound_len', 'grain_mean_radius', xmax=200, ymax=20, nm=True)
