@@ -25,25 +25,27 @@ sns.set_palette(sns.color_palette('bright'))
 defextension = '.png'
 
 colname2label = {
-    'grain_bound_len': 'Circumference / m',
+    'grain_bound_len': 'Circumference / %s',
     'aspectratio': 'Aspect Ratio',
     'grain_curvature1': 'Smaller Curvature',
     'grain_curvature2': 'Larger Curvature',
-    'grain_ellipse_major': 'Ellipse Major Axis Length',  # / m',
-    'grain_ellipse_minor': 'Ellipse Minor Axis Length',  # / m',
-    'grain_half_height_area': 'Area Above Half Height',
-    'grain_maximum': 'Grain maximum',
-    'grain_mean': 'Grain mean',
-    'grain_median': 'Grain median',
-    'grain_min_bound_size': 'Width / m',
-    'grain_max_bound_size': 'Length / m',
-    'grain_mean_radius': 'Mean Radius / m',
+    'grain_ellipse_major': 'Ellipse Major Axis Length / %s',
+    'grain_ellipse_minor': 'Ellipse Minor Axis Length / %s',
+    'grain_half_height_area': 'Area Above Half Height / %s^2',
+    'grain_maximum': 'Grain maximum / %s',
+    'grain_mean': 'Grain mean / %s',
+    'grain_median': 'Grain median / %s',
+    'grain_min_bound_size': 'Width / %s',
+    'grain_max_bound_size': 'Length / %s',
+    'grain_mean_radius': 'Mean Radius / %s',
     'grain_pixel_area': 'Area / Pixels',
-    'grain_proj_area': 'Area / m^2'
+    'grain_proj_area': 'Area / %s^2'
 }
 
 
 def importfromjson(path, name):
+    """Importing the data needed from a json file"""
+
     filename = os.path.join(path, name + '.json')
     print (filename)
     importeddata = pd.read_json(filename)
@@ -58,12 +60,36 @@ def savestats(dataframetosave):
     dataframetosave.to_json(savename + '_evaluated.json')
     dataframetosave.to_csv(savename + '_evaluated.txt')
 
+def labelunitconversion(plotarg, nm):
+    """Adding units to the axis labels"""
+    label = colname2label[plotarg]
+    if '%s' in label:
+        if nm is True:
+            label = label % 'nm'
+        else:
+            label = label % 'm'
+    return label
 
-def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, plotextension=defextension):
+
+def dataunitconversion(data, plotarg, nm):
+    """Converting the data based on the unit specified by the user. Only nm and m are supported at the moment."""
+    label = colname2label[plotarg]
+    if nm is True:
+        if '%s' in label:
+            if '^2' in label:
+                data = data*1e18
+            else:
+                data = data*1e9
+    return data
+
+
+def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, plotextension=defextension):
+    """Creating a KDE plot for the chose variable. Can be grouped. The x axis range can be defined by the user."""
+
     print 'Plotting kde of %s' % plotarg
 
     savename = os.path.join(savedir, name + plotarg + plotextension)
-
+    df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
     fig, ax = plt.subplots(figsize=(15, 10))
     # Simple KDE plot
     if grouparg is None:
@@ -77,10 +103,10 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, plotextension=defe
         ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
 
     plt.xlim(xmin, xmax)
-    plt.xlabel(colname2label[plotarg], alpha=1)
+    plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.ylabel('Probability Density', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
-    plt.title('Distribution of ' + colname2label[plotarg])
+    plt.title('Distribution of ' + labelunitconversion(plotarg, nm))
     plt.savefig(savename)
 
 
@@ -207,12 +233,13 @@ grouparg = 'Experimental Conditions'
 
 # plotkde(df, path, name, 'grain_bound_len',  xmin=0, xmax=1e-7)
 # plotkde(df, 'grain_mean_radius')
-# plotkde(df, 'grain_proj_area', grouparg=grouparg)
-plothist(df, 'aspectratio')
-# plotkde(df, 'grain_min_bound_size', xmax=3e-8)
+plotkde(df, 'grain_proj_area', nm=True)
+# plotkde (df, 'aspectratio')
+plotkde(df, 'grain_min_bound_size', nm=True)
 # plotkde(df, 'grain_max_bound_size', xmax=3.5e-8)
-# plotkde(df, 'grain_half_height_area', xmax=1.0e-16, grouparg=grouparg)
+# plotkde(df, 'grain_half_height_area', grouparg=grouparg)
 # plothist(df, 'grain_min_bound_size', xmax=2.5e-8, bins=bins)
 # plothist(df, 'grain_proj_area', xmax=3e-16)
+# plothist(df, 'aspectratio')
 # plotviolin(df, "grain_proj_area", ymax=6e-16, grouparg=grouparg)
 # plotjoint(df, 'grain_bound_len', 'grain_mean_radius')
