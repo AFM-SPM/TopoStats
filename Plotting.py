@@ -43,22 +43,33 @@ colname2label = {
 }
 
 
-def importfromjson(path, name):
-    """Importing the data needed from a json file"""
+def importfromjson(path):
+    """Importing the data needed from the json file specified by the user"""
 
-    filename = os.path.join(path, name + '.json')
-    print (filename)
-    importeddata = pd.read_json(filename)
+    print (path)
+    importeddata = pd.read_json(path)
 
     return importeddata
 
 
-def savestats(dataframetosave):
-    print 'Saving stats for: ' + str(name) + '_evaluated'
-    savename = os.path.join(path, name)
+def savestats(path, dataframetosave):
+    print 'Saving stats for: ' + str(os.path.basename(path)[:-5]) + '_evaluated'
 
-    dataframetosave.to_json(savename + '_evaluated.json')
-    dataframetosave.to_csv(savename + '_evaluated.txt')
+    dataframetosave.to_json(path[:-5] + '_evaluated.json')
+    dataframetosave.to_csv(path[:-5] + '_evaluated.txt')
+
+
+def pathman(path):
+    """Splitting the path into directory and file name; creating or specifying a directory to save the plots in"""
+
+    directory = os.path.dirname(path)
+    name = os.path.basename(path)[:-5]
+    savedir = os.path.join(directory, 'Plots')
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
+    plotname = os.path.join(savedir, name)
+    return plotname
+
 
 def labelunitconversion(plotarg, nm):
     """Adding units to the axis labels"""
@@ -83,13 +94,20 @@ def dataunitconversion(data, plotarg, nm):
     return data
 
 
-def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, plotextension=defextension):
+def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath=None, plotextension=defextension):
     """Creating a KDE plot for the chose variable. Can be grouped. The x axis range can be defined by the user."""
 
     print 'Plotting kde of %s' % plotarg
 
-    savename = os.path.join(savedir, name + plotarg + plotextension)
+    # Set the name of the file
+    if specpath is None:
+        specpath = path
+    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_KDE' + plotextension)
+
+    # Convert the unit of the data to nm if specified by the user
     df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
+
+    # Plot figure
     fig, ax = plt.subplots(figsize=(15, 10))
     # Simple KDE plot
     if grouparg is None:
@@ -102,73 +120,87 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, plotexte
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
 
+    # Label plot and save figure
     plt.xlim(xmin, xmax)
     plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.ylabel('Probability Density', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
-    plt.title('Distribution of ' + labelunitconversion(plotarg, nm))
     plt.savefig(savename)
 
 
-def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, plotextension=defextension):
+def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None, plotextension=defextension):
     print 'Plotting histogram of %s' % plotarg
 
-    savename = os.path.join(savedir, name + plotarg + "_histogram" + plotextension)
+    # Set the name of the file
+    if specpath is None:
+        specpath = path
+    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_histogram' + plotextension)
+
+    # Convert the unit of the data to nm if specified by the user
     df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
-    # Plot and save figures
+
+    # Plot figure
     fig, ax = plt.subplots(figsize=(15, 10))
+    # Simple histogram
     if grouparg is None:
         df = df[plotarg]
         df.plot.hist(ax=ax, alpha=1, linewidth=7.0, bins=bins)
-
+    # Grouped histogram
     else:
         df = df[[grouparg, plotarg]]
         df.groupby(grouparg)[plotarg].plot.hist(ax=ax, legend=True, alpha=1, linewidth=7.0, bins=bins)
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
 
+    # Label plot and save figure
     plt.xlim(xmin, xmax)
     plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.ylabel('Count', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
-    plt.title('Distribution of ' + labelunitconversion(plotarg, nm))
     plt.savefig(savename)
 
 
-def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, plotextension=defextension):
+def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specpath=None, plotextension=defextension):
     print 'Plotting violin of %s' % plotarg
 
+    # Set the name of the file
+    if specpath is None:
+        specpath = path
+    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_violin' + plotextension)
+
     # Plot and save figures
-    savename = os.path.join(savedir, name + plotarg + '_violin' + plotextension)
     df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
-    fig, ax = plt.subplots(figsize=(10, 7))
-    # Plot violinplot
+    fig, ax = plt.subplots(figsize=(15, 10))
+    # Single violin plot
     if grouparg is None:
         df = df[plotarg]
         ax = sns.violinplot(data=df)
-
+    # Grouped violin plot
     else:
         df = df[[grouparg, plotarg]]
         ax = sns.violinplot(x=grouparg, y=plotarg, data=df)
+        ax.invert_xaxis()  # Useful for topoisomers with negative writhe
 
-
-    ax.invert_xaxis()
+    # Label plot and save figure
     plt.ylim(ymin, ymax)
     plt.ylabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.xlabel(' ')
     plt.savefig(savename)
 
 
-def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=False, plotextension=defextension):
+def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=False, specpath=None, plotextension=defextension):
     print 'Plotting joint plot for %s and %s' % (arg1, arg2)
 
-    savename = os.path.join(savedir, name + arg1 + '_and_' + arg2 + plotextension)
+    # Set the name of the file
+    if specpath is None:
+        specpath = path
+    savename = os.path.join(pathman(specpath) + '_' + arg1 + '_and_' + arg2 + plotextension)
 
     df[arg1] = dataunitconversion(df[arg1], arg1, nm)
     df[arg2] = dataunitconversion(df[arg2], arg2, nm)
 
     # Plot data using seaborn
-    sns.jointplot(arg1, arg2, data=df, kind='reg')
+    sns.jointplot(arg1, arg2, data=df, kind='reg', height=15)
     plt.xlim(xmin, xmax)
     plt.ylim(ymin, ymax)
     plt.xlabel(labelunitconversion(arg1, nm), alpha=1)
@@ -181,20 +213,15 @@ def plotLinearVsCircular(contour_lengths_df):
 
 
 if __name__ == '__main__':
-    # Set the file path, i.e. the directory where the files are here'
-    path = 'C:\\Users\\dumin\\Documents\\PhD\\Data\\Kavit-Top1\\Non-incubation'
+    # Path to the json file, e.g. C:\\Users\\username\\Documents\\Data\\Data.json
+    path = 'C:\\Users\\dumin\\Documents\\PhD\\Data\\Kavit-Top1\\Non-incubation\\Non-incubation.json'
 
     # Set the name of the json file to import here
-    name = 'Non-incubation'
+    # name = 'Non-incubation'
     bins = 50
 
-    # Set/create the directory to save the plots
-    savedir = os.path.join(path, 'Plots')
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
-
     # import data form the json file specified as a dataframe
-    df = importfromjson(path, name)
+    df = importfromjson(path)
     # Rename directory column as appropriate
     df = df.rename(columns={"directory": "Experimental Conditions"})
     # Calculate the aspect ratio for each grain
@@ -220,7 +247,7 @@ if __name__ == '__main__':
     # transpose allstats dataframe to get better saving output
     # # allstats1 = allstats.transpose()
     # Save out statistics file
-    # # savestats(allstats1)
+    # # savestats(path, allstats1)
     # Set palette for all plots with length number of topoisomers and reverse
     # # palette = sns.color_palette('PuBu', n_colors=len(topos))
 
@@ -233,15 +260,15 @@ grouparg = 'Experimental Conditions'
 # ymin and ymax can be specified for plotviolin and plotjoint; bins can be speficied for plothist. The default unit is
 # m; add "nm=True" to change from m to nm.
 
-# plotkde(df, path, name, 'grain_bound_len',  xmin=0, xmax=1e-7)
-# plotkde(df, 'grain_mean_radius')
+plotkde(df, 'grain_bound_len',  xmin=0, xmax=1e-7)
+plotkde(df, 'grain_mean_radius')
 # plotkde(df, 'grain_proj_area', nm=True)
 # plotkde (df, 'aspectratio')
 # plotkde(df, 'grain_min_bound_size', nm=True)
 # plotkde(df, 'grain_max_bound_size', xmax=3.5e-8)
 # plotkde(df, 'grain_half_height_area', grouparg=grouparg)
-# plothist(df, 'grain_min_bound_size', xmax=2.5e-8, bins=bins)
+plothist(df, 'grain_min_bound_size', xmax=2.5e-8, bins=bins)
 # plothist(df, 'grain_proj_area', xmax=3e-16)
 # plothist(df, 'aspectratio')
-# plotviolin(df, "grain_proj_area", ymax=6e-16, grouparg=grouparg)
+# plotviolin(df, "grain_proj_area")
 plotjoint(df, 'grain_bound_len', 'grain_mean_radius', xmax=200, ymax=20, nm=True)
