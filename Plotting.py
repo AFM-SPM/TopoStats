@@ -60,7 +60,7 @@ def savestats(path, dataframetosave):
 
 
 def pathman(path):
-    """Splitting the path into directory and file name; creating or specifying a directory to save the plots in"""
+    """Splitting the path into directory and file name; creating or specifying a directory to save the plots"""
 
     directory = os.path.dirname(path)
     name = os.path.basename(path)[:-5]
@@ -72,7 +72,7 @@ def pathman(path):
 
 
 def labelunitconversion(plotarg, nm):
-    """Adding units to the axis labels"""
+    """Adding units (m or nm) to the axis labels"""
 
     if plotarg in colname2label:
         label = colname2label[plotarg]
@@ -100,7 +100,9 @@ def dataunitconversion(data, plotarg, nm):
 
 
 def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath=None, plotextension=defextension):
-    """Creating a KDE plot for the chose variable. Can be grouped. The x axis range can be defined by the user."""
+    """Creating a KDE plot for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
+    default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
+    the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
 
     print 'Plotting kde of %s' % plotarg
 
@@ -134,6 +136,10 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath
 
 
 def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None, plotextension=defextension):
+    """Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
+    default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
+    the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
+
     print 'Plotting histogram of %s' % plotarg
 
     # Set the name of the file
@@ -166,6 +172,10 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
 
 
 def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specpath=None, plotextension=defextension):
+    """Creating a violin plot for the chosen variable. Grouping optional. The y axis range can be defined by the user.
+    The default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path
+    under the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
+
     print 'Plotting violin of %s' % plotarg
 
     # Set the name of the file
@@ -194,6 +204,10 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specp
 
 
 def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=False, specpath=None, plotextension=defextension):
+    """Creating a joint plot for two chosen variables. The range for both axes can be defined by the user.
+    The default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path
+    under the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
+
     print 'Plotting joint plot for %s and %s' % (arg1, arg2)
 
     # Set the name of the file
