@@ -206,7 +206,7 @@ def editfile(data, k):
     return data
 
 
-def grainfinding(data, minarea, k, thresholdingcriteria, dx):
+def grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx):
     # Select channel 'k' of the file
     gwy.gwy_app_data_browser_select_data_field(data, k)
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
@@ -215,18 +215,15 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
 
     mask = gwy.DataField.new_alike(datafield, False)
 
-    # !!! Gaussiansize = 0.1e-9 / dx
-    Gaussiansize = 0.1e-9 / dx
+    Gaussiansize = gaussian / dx
     datafield.filter_gaussian(Gaussiansize)
 
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
-    # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
+    # This criterion corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
     # For MAC ~2.1 works and DNA ~0.75 and NPC 0.5
     # datafield.mask_outliers(mask, 2.1)
-    # datafield.mask_outliers(mask, 0.5)
-    # !!! datafield.mask_outliers(mask, 0.75)
-    datafield.mask_outliers(mask, 0.5)
+    datafield.mask_outliers(mask, thresholdingcriteria)
 
     # excluding mask, zero mean
     stats = datafield.area_get_stats_mask(mask, gwy.MASK_EXCLUDE, 0, 0, datafield.get_xres(), datafield.get_yres())
@@ -720,25 +717,22 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
     path = 'C:\Users\dumin\Documents\PhD\Data\KavitApr2021\\210120'
 
+    sample_type = 'DNA'
+    sample_type = 'protein'
+
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
     filetype = '*.[0-9]'
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
+
     # Set height scale values to save out
     minheightscale = -0e-9
     maxheightscale = 3e-9
     # maxheightscale = 20e-9
     # maxheightscale = 50e-9
     # Set minimum size for grain determination:
-    # !!! minarea = 300e-9 # For DNA
-    minarea = 50e-9 # For protein
     # minarea = 1000e-9
-    # Set allowable deviation from the median pixel size for removal of large and small objects
-    # !!! maxdeviation = 1.3
-    # !!! mindeviation = 0.7
-    maxdeviation = 2.0
-    mindeviation = 0.3
     # maxdeviation = 1.5
     # mindeviation = 0.5
     # Set size of the cropped window/2 in pixels
@@ -748,6 +742,23 @@ if __name__ == '__main__':
     splitwidth = 2e-6
     # Set number of bins
     bins = 25
+
+    # Set the value of different variables, based on the type of the sample. minarea is the minimum size for grain
+    # determination; maxdeviation and mindeviation are the allowable deviations from the median pixel size for
+    # removal of large and small objects
+
+    if sample_type == 'DNA':
+        minarea = 300e-9
+        maxdeviation = 1.3
+        mindeviation = 0.7
+        gaussian = 0.1e-9
+        thresholdingcriteria = 0.75
+    elif sample_type == 'protein':
+        minarea = 50e-9
+        maxdeviation = 2.0
+        mindeviation = 0.3
+        gaussian = 0.1e-9
+        thresholdingcriteria = 0.5
 
     # Declare variables used later
     # Placed outside for loop in order that they don't overwrite data to be appended
@@ -790,7 +801,7 @@ if __name__ == '__main__':
             # Find all grains in the mask which are both above a height threshold
             # and bigger than the min size set in the main codegrain_mean_rad
             # 1.2 works well for DNA minicircle images
-            data, mask, datafield, grains = grainfinding(data, minarea, k, 1, dx)
+            data, mask, datafield, grains = grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx)
             # # Flattening based on masked data and subsequent grain finding
             # # Used for analysing data e.g. peptide induced bilayer degradation
             # data, mask, datafield, grains = heightthresholding.otsuthresholdgrainfinding(data, k)
