@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-# import dnatracing
+import dnatracing
 import time
 
 # Import height thresholding.py for processing bilayer removal images
@@ -221,8 +221,6 @@ def grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx):
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterion corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
-    # For MAC ~2.1 works and DNA ~0.75 and NPC 0.5
-    # datafield.mask_outliers(mask, 2.1)
     datafield.mask_outliers(mask, thresholdingcriteria)
 
     # excluding mask, zero mean
@@ -715,10 +713,12 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    path = 'C:\Users\dumin\Documents\PhD\Data\KavitApr2021\\210120'
+    path = 'C:\Users\dumin\Documents\PhD\Data\Testing\TestOct2020'
 
+    # Set sample type here
     sample_type = 'DNA'
-    sample_type = 'protein'
+    # sample_type = 'MAC'
+    # sample_type = 'protein'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -731,10 +731,6 @@ if __name__ == '__main__':
     maxheightscale = 3e-9
     # maxheightscale = 20e-9
     # maxheightscale = 50e-9
-    # Set minimum size for grain determination:
-    # minarea = 1000e-9
-    # maxdeviation = 1.5
-    # mindeviation = 0.5
     # Set size of the cropped window/2 in pixels
     # cropwidth = 100e-9
     # cropwidth = 60e-9
@@ -753,12 +749,20 @@ if __name__ == '__main__':
         mindeviation = 0.7
         gaussian = 0.1e-9
         thresholdingcriteria = 0.75
+
     elif sample_type == 'protein':
         minarea = 50e-9
         maxdeviation = 2.0
         mindeviation = 0.3
         gaussian = 0.1e-9
         thresholdingcriteria = 0.5
+
+    elif sample_type == 'MAC':
+        minarea = 1000e-9
+        maxdeviation = 1.5
+        mindeviation = 0.5
+        gaussian = 0.25e-9
+        thresholdingcriteria = 2.1
 
     # Declare variables used later
     # Placed outside for loop in order that they don't overwrite data to be appended
@@ -828,40 +832,48 @@ if __name__ == '__main__':
 
             mol_find_end = time.time()
 
-            trace_start = time.time()
+            print('Image correction took %f seconds' % (data_edit_end - data_edit_start))
+            print('Molecule identification took %f seconds' % (mol_find_end - mol_find_start))
 
-            # Export the channels data and mask as numpy arrays
-            npdata, npmask = exportasnparray(datafield, mask)
+            if sample_type == 'DNA':
+                trace_start = time.time()
 
-            try:
-                channel_name = channels[k] + str(k + 1)
-            except IndexError:
-                channel_name = 'ZSensor'
+                # Export the channels data and mask as numpy arrays
+                npdata, npmask = exportasnparray(datafield, mask)
 
-            # bbox, orig_ids, crop_ids, cropped_grains = boundbox(cropwidth, grains, grains, dx, dy, xreal, yreal, xres, yres)
-            # saving plots of individual grains/traces
-            # for grain_num, data_num in enumerate(range(len(orig_ids), len(crop_ids), 1)):
-            #     gwy.gwy_app_data_browser_select_data_field(data, data_num)
-            #     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-            #
-            #     np_data_array = gwyutils.data_field_data_as_array(datafield)
-            #
-            #     dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
-            #     # dna_traces.showTraces()
-            #     dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), minheightscale, maxheightscale, 'cropped')
+                try:
+                    channel_name = channels[k] + str(k + 1)
+                except IndexError:
+                    channel_name = 'ZSensor'
 
-            # #trace the DNA molecules - can compute stats etc as needed
-            # !!!! dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
-            trace_end = time.time()
-            # #dna_traces.showTraces()
-            # !!!! dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
-            # dna_traces.writeContourLengths(filename, channel_name)
+                # bbox, orig_ids, crop_ids, cropped_grains = boundbox(cropwidth, grains, grains, dx, dy, xreal, yreal, xres, yres)
+                # saving plots of individual grains/traces
+                # for grain_num, data_num in enumerate(range(len(orig_ids), len(crop_ids), 1)):
+                #     gwy.gwy_app_data_browser_select_data_field(data, data_num)
+                #     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
 
-            # Update the pandas Dataframe used to monitor stats
-            # !!!! try:
-            # !!!!     tracing_stats.updateTraceStats(dna_traces)
-            # !!!! except NameError:
-            # !!!!     tracing_stats = dnatracing.traceStats(dna_traces)
+                #     np_data_array = gwyutils.data_field_data_as_array(datafield)
+
+                #     dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
+                #     # dna_traces.showTraces()
+                #     dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), minheightscale, maxheightscale, 'cropped')
+
+                # trace the DNA molecules - can compute stats etc as needed
+                dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
+                trace_end = time.time()
+                # #dna_traces.showTraces()
+                dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
+                # dna_traces.writeContourLengths(filename, channel_name)
+
+                # Update the pandas Dataframe used to monitor stats
+                try:
+                    tracing_stats.updateTraceStats(dna_traces)
+                except NameError:
+                    tracing_stats = dnatracing.traceStats(dna_traces)
+
+                print('Tracing took %f seconds' % (trace_end - trace_start))
+                tracing_stats.saveTraceStats(path)
+
 
             # Save out cropped files as images with no scales to a subfolder
             # savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
@@ -876,17 +888,13 @@ if __name__ == '__main__':
             savefiles(data, filename, extension)
             # saveunknownfiles(data, filename, extension)
 
-            print('Image correction took %f seconds' % (data_edit_end - data_edit_start))
-            print('Molecule identification took %f seconds' % (mol_find_end - mol_find_start))
-            print('Tracing took %f seconds' % (trace_end - trace_start))
-
             # Saving stats to text and JSON files named by master path
             # saveindividualstats(filename, grainstats, k)
 
         # Save modified files as gwyddion files
         # savefilesasgwy(data, filename)
 
-    # !!!! tracing_stats.saveTraceStats(path)
+
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = getdataforallfiles(appended_data)
     # # Search dataframes and return a new dataframe of only files containing a specific string
