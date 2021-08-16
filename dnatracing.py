@@ -494,7 +494,7 @@ class dnaTrace(object):
 
     def showTraces(self):
 
-        plt.pcolor(self.gauss_image, vmax=-3e-9, vmin=3e-9)
+        plt.pcolormesh(self.gauss_image, vmax=-3e-9, vmin=3e-9)
         plt.colorbar()
         for dna_num in sorted(self.disordered_trace.keys()):
             plt.plot(self.ordered_traces[dna_num][:, 0], self.ordered_traces[dna_num][:, 1], markersize=1)
@@ -516,12 +516,12 @@ class dnaTrace(object):
         # vmaxval = 20e-9
         # vminval = -10e-9
 
-        plt.pcolor(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         plt.savefig('%s_%s_originalImage.png' % (save_file, channel_name))
         plt.close()
 
-        plt.pcolor(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.splined_traces.keys()):
             # disordered_trace_list = self.ordered_traces[dna_num].tolist()
@@ -544,7 +544,7 @@ class dnaTrace(object):
         plt.close()
 
         '''
-        plt.pcolor(self.full_image_data)
+        plt.pcolormesh(self.full_image_data)
         plt.colorbar()
         for dna_num in sorted(self.ordered_traces.keys()):
             #disordered_trace_list = self.ordered_traces[dna_num].tolist()
@@ -554,7 +554,7 @@ class dnaTrace(object):
         plt.close()
         '''
 
-        plt.pcolor(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.disordered_trace.keys()):
             # disordered_trace_list = self.disordered_trace[dna_num].tolist()
@@ -564,7 +564,7 @@ class dnaTrace(object):
         plt.savefig('%s_%s_disorderedtrace.png' % (save_file, channel_name))
         plt.close()
 
-        plt.pcolor(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.grains.keys()):
             grain_plt = np.argwhere(self.grains[dna_num] == 1)
@@ -646,6 +646,7 @@ class dnaTrace(object):
         plt.figure()
         sns.lineplot(self.pixel_size*curvature[:, 0], curvature[:, 1])
         plt.ylim(-1e9, 1e9)
+        plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
         plt.axvline(0, color="#D55E00")
         plt.axvline(self.pixel_size * 100, color="#E69F00")
         plt.axvline(self.pixel_size * 200, color="#F0E442")
