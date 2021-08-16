@@ -2,20 +2,22 @@
 This is the main script, containing modules for basic image processing. '''
 
 import sys
-#sys.path.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # location of gwy.so file (Macports install)
-#sys.path.append('/opt/local/share/gwyddion/pygwy') # # location of gwyutils.py file (Macports install)
+
+# sys.path.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # location of gwy.so file (Macports install)
+# sys.path.append('/opt/local/share/gwyddion/pygwy') # # location of gwyutils.py file (Macports install)
 
 
-#sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # Homebrew install on Mac
-#sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy') # Homebrew install on Mac
+# sys.path.append('/usr/local/opt/python@2/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # Homebrew install on Mac
+# sys.path.append('/usr/local/Cellar/gwyddion/2.53_2/share/gwyddion/pygwy') # Homebrew install on Mac
 
-#sys.path.append('/usr/share/gwyddion/pygwy/') # Ubuntu
+# sys.path.append('/usr/share/gwyddion/pygwy/') # Ubuntu
 
-sys.path.append('C:\Program Files (x86)\Gwyddion\\bin')    #Windows install
-sys.path.append('C:\Program Files (x86)\Gwyddion\share\gwyddion\pygwy') #pygwy location on Windows
+sys.path.append('C:\Program Files (x86)\Gwyddion\\bin')  # Windows install
+sys.path.append('C:\Program Files (x86)\Gwyddion\share\gwyddion\pygwy')  # pygwy location on Windows
 
 import pygtk
-pygtk.require20() # adds gtk-2.0 folder to sys.path
+
+pygtk.require20()  # adds gtk-2.0 folder to sys.path
 import gwy
 import fnmatch
 import gwyutils
@@ -120,6 +122,7 @@ def imagedetails(data):
     dy = yreal / yres
     return xres, yres, xreal, yreal, dx, dy
 
+
 def heightediting(data, k):
     gwy.gwy_app_data_browser_select_data_field(data, k)
 
@@ -152,6 +155,7 @@ def heightediting(data, k):
     gwy.gwy_process_func_run('zero_mean', data, gwy.RUN_IMMEDIATE)
 
     return data
+
 
 def editfile(data, k):
     # select each channel of the file in turn
@@ -202,7 +206,7 @@ def editfile(data, k):
     return data
 
 
-def grainfinding(data, minarea, k, thresholdingcriteria, dx):
+def grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx):
     # Select channel 'k' of the file
     gwy.gwy_app_data_browser_select_data_field(data, k)
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
@@ -211,16 +215,13 @@ def grainfinding(data, minarea, k, thresholdingcriteria, dx):
 
     mask = gwy.DataField.new_alike(datafield, False)
 
-    Gaussiansize = 0.1e-9 / dx
+    Gaussiansize = gaussian / dx
     datafield.filter_gaussian(Gaussiansize)
 
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
-    # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
-    # For MAC ~2.1 works and DNA ~0.75 and NPC 0.5
-    # datafield.mask_outliers(mask, 2.1)
-    # datafield.mask_outliers(mask, 0.5)
-    datafield.mask_outliers(mask, 0.75)
+    # This criterion corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
+    datafield.mask_outliers(mask, thresholdingcriteria)
 
     # excluding mask, zero mean
     stats = datafield.area_get_stats_mask(mask, gwy.MASK_EXCLUDE, 0, 0, datafield.get_xres(), datafield.get_yres())
@@ -397,8 +398,8 @@ def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
     # Define the width of the image to crop to
     cropwidth = int((cropwidth / xreal) * xres)
 
-    #make 2d array for grains
-    multidim_grain_array = np.reshape(np.array(grains), (xres,yres))
+    # make 2d array for grains
+    multidim_grain_array = np.reshape(np.array(grains), (xres, yres))
 
     for i in range(len(center_x)):
         px_center_x = int((center_x[i] / xreal) * xres)
@@ -421,7 +422,7 @@ def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
             ymax = 2 * cropwidth
         if xmax > xres:
             xmax = xres
-            xmin = xres - 2*cropwidth
+            xmin = xres - 2 * cropwidth
         if ymax > yres:
             ymax = yres
             ymin = yres - 2 * cropwidth
@@ -518,7 +519,6 @@ def savestats(directory, dataframetosave):
 
 
 def saveindividualstats(filename, dataframetosave, k):
-
     # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
     filedirectory, filename = os.path.split(filename)
 
@@ -681,6 +681,7 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
         # Print the name of the file you're saving to the command line
         # print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))
 
+
 def getdataforallfiles(appended_data):
     # Get dataframe of all files within folder from appended_data list file
     grainstats_df = pd.concat(appended_data, ignore_index=True)
@@ -688,12 +689,15 @@ def getdataforallfiles(appended_data):
     return grainstats_df
 
     # Get dataframe of only files containing a certain string
+
+
 def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
     df1 = df[df[dfargtosearch].str.contains(searchvalue1)]
     df2 = df[df[dfargtosearch].str.contains(searchvalue2)]
     grainstats_searched = pd.concat([df1, df2])
 
     return grainstats_searched
+
 
 # This the main script
 if __name__ == '__main__':
@@ -708,28 +712,25 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
-    #path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    path = 'C:\Users\Work\OneDrive\Documents\Uni\Research\Code\DNA minicircles'
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
+    path = 'C:\Users\dumin\Documents\PhD\Data\Testing\TestOct2020'
+
+    # Set sample type here
+    sample_type = 'DNA'
+    # sample_type = 'MAC'
+    # sample_type = 'protein'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
     filetype = '*.[0-9]'
     # Set extension to export files as here e.g. '.tiff'
     extension = '.tiff'
+
     # Set height scale values to save out
     minheightscale = -0e-9
     maxheightscale = 3e-9
     # maxheightscale = 20e-9
     # maxheightscale = 50e-9
-    # Set minimum size for grain determination:
-    minarea = 300e-9
-    # minarea = 50e-9
-    # minarea = 1000e-9
-    # Set allowable deviation from the median pixel size for removal of large and small objects
-    maxdeviation = 1.3
-    mindeviation = 0.7
-    # maxdeviation = 1.5
-    # mindeviation = 0.5
     # Set size of the cropped window/2 in pixels
     # cropwidth = 100e-9
     # cropwidth = 60e-9
@@ -737,6 +738,31 @@ if __name__ == '__main__':
     splitwidth = 2e-6
     # Set number of bins
     bins = 25
+
+    # Set the value of different variables, based on the type of the sample. minarea is the minimum size for grain
+    # determination; maxdeviation and mindeviation are the allowable deviations from the median pixel size for
+    # removal of large and small objects
+
+    if sample_type == 'DNA':
+        minarea = 300e-9
+        maxdeviation = 1.3
+        mindeviation = 0.7
+        gaussian = 0.1e-9
+        thresholdingcriteria = 0.75
+
+    elif sample_type == 'protein':
+        minarea = 50e-9
+        maxdeviation = 2.0
+        mindeviation = 0.3
+        gaussian = 0.1e-9
+        thresholdingcriteria = 0.5
+
+    elif sample_type == 'MAC':
+        minarea = 1000e-9
+        maxdeviation = 1.5
+        mindeviation = 0.5
+        gaussian = 0.25e-9
+        thresholdingcriteria = 2.1
 
     # Declare variables used later
     # Placed outside for loop in order that they don't overwrite data to be appended
@@ -779,7 +805,7 @@ if __name__ == '__main__':
             # Find all grains in the mask which are both above a height threshold
             # and bigger than the min size set in the main codegrain_mean_rad
             # 1.2 works well for DNA minicircle images
-            data, mask, datafield, grains = grainfinding(data, minarea, k, 1, dx)
+            data, mask, datafield, grains = grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx)
             # # Flattening based on masked data and subsequent grain finding
             # # Used for analysing data e.g. peptide induced bilayer degradation
             # data, mask, datafield, grains = heightthresholding.otsuthresholdgrainfinding(data, k)
@@ -800,46 +826,54 @@ if __name__ == '__main__':
             grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
 
             # Create cropped datafields for every grain of size set in the main directory
-            bbox, orig_ids, crop_ids, data, cropped_grains, cropwidth_pix = boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres)
+            bbox, orig_ids, crop_ids, data, cropped_grains, cropwidth_pix = boundbox(cropwidth, datafield, grains, dx,
+                                                                                     dy, xreal, yreal, xres, yres)
             # orig_ids, crop_ids, data = splitimage(data, splitwidth, datafield, xreal, yreal, xres, yres)
 
             mol_find_end = time.time()
 
-            trace_start = time.time()
+            print('Image correction took %f seconds' % (data_edit_end - data_edit_start))
+            print('Molecule identification took %f seconds' % (mol_find_end - mol_find_start))
 
-            # Export the channels data and mask as numpy arrays
-            npdata, npmask = exportasnparray(datafield, mask)
+            if sample_type == 'DNA':
+                trace_start = time.time()
 
+                # Export the channels data and mask as numpy arrays
+                npdata, npmask = exportasnparray(datafield, mask)
 
-            try:
-                channel_name = channels[k] + str(k + 1)
-            except IndexError:
-                channel_name = 'ZSensor'
+                try:
+                    channel_name = channels[k] + str(k + 1)
+                except IndexError:
+                    channel_name = 'ZSensor'
 
-            # bbox, orig_ids, crop_ids, cropped_grains = boundbox(cropwidth, grains, grains, dx, dy, xreal, yreal, xres, yres)
-            # saving plots of individual grains/traces
-            # for grain_num, data_num in enumerate(range(len(orig_ids), len(crop_ids), 1)):
-            #     gwy.gwy_app_data_browser_select_data_field(data, data_num)
-            #     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-            #
-            #     np_data_array = gwyutils.data_field_data_as_array(datafield)
-            #
-            #     dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
-            #     # dna_traces.showTraces()
-            #     dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), minheightscale, maxheightscale, 'cropped')
+                # bbox, orig_ids, crop_ids, cropped_grains = boundbox(cropwidth, grains, grains, dx, dy, xreal, yreal, xres, yres)
+                # saving plots of individual grains/traces
+                # for grain_num, data_num in enumerate(range(len(orig_ids), len(crop_ids), 1)):
+                #     gwy.gwy_app_data_browser_select_data_field(data, data_num)
+                #     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
 
-            # #trace the DNA molecules - can compute stats etc as needed
-            dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
-            trace_end = time.time()
-            # #dna_traces.showTraces()
-            dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
-            # dna_traces.writeContourLengths(filename, channel_name)
+                #     np_data_array = gwyutils.data_field_data_as_array(datafield)
 
-            # Update the pandas Dataframe used to monitor stats
-            try:
-                tracing_stats.updateTraceStats(dna_traces)
-            except NameError:
-                tracing_stats = dnatracing.traceStats(dna_traces)
+                #     dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
+                #     # dna_traces.showTraces()
+                #     dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), minheightscale, maxheightscale, 'cropped')
+
+                # trace the DNA molecules - can compute stats etc as needed
+                dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
+                trace_end = time.time()
+                # #dna_traces.showTraces()
+                dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
+                # dna_traces.writeContourLengths(filename, channel_name)
+
+                # Update the pandas Dataframe used to monitor stats
+                try:
+                    tracing_stats.updateTraceStats(dna_traces)
+                except NameError:
+                    tracing_stats = dnatracing.traceStats(dna_traces)
+
+                print('Tracing took %f seconds' % (trace_end - trace_start))
+                tracing_stats.saveTraceStats(path)
+
 
             # Save out cropped files as images with no scales to a subfolder
             # savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
@@ -854,17 +888,13 @@ if __name__ == '__main__':
             savefiles(data, filename, extension)
             # saveunknownfiles(data, filename, extension)
 
-            print('Image correction took %f seconds' % (data_edit_end - data_edit_start))
-            print('Molecule identification took %f seconds' % (mol_find_end - mol_find_start))
-            print('Tracing took %f seconds' % (trace_end - trace_start))
-
             # Saving stats to text and JSON files named by master path
             # saveindividualstats(filename, grainstats, k)
 
         # Save modified files as gwyddion files
         # savefilesasgwy(data, filename)
 
-    tracing_stats.saveTraceStats(path)
+
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = getdataforallfiles(appended_data)
     # # Search dataframes and return a new dataframe of only files containing a specific string
