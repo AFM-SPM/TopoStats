@@ -527,18 +527,19 @@ class dnaTrace(object):
             # less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=1.0)
             if self.mol_is_circular[dna_num]:
+                length = len(self.curvature[dna_num])
                 plt.plot(self.splined_traces[dna_num][0, 0], self.splined_traces[dna_num][0, 1], color='#D55E00',
-                         markersize=3.0, marker=5)
-                plt.plot(self.splined_traces[dna_num][100, 0], self.splined_traces[dna_num][100, 1], color='#E69F00',
-                         markersize=3.0, marker=5)
-                plt.plot(self.splined_traces[dna_num][200, 0], self.splined_traces[dna_num][200, 1], color='#F0E442',
-                         markersize=3.0, marker=5)
-                plt.plot(self.splined_traces[dna_num][300, 0], self.splined_traces[dna_num][300, 1], color='#009E74',
-                         markersize=3.0, marker=5)
-                plt.plot(self.splined_traces[dna_num][400, 0], self.splined_traces[dna_num][400, 1], color='#56B4E9',
-                         markersize=3.0, marker=5)
-                plt.plot(self.splined_traces[dna_num][500, 0], self.splined_traces[dna_num][500, 1], color='#CC79A7',
-                         markersize=3.0, marker=5)
+                         markersize=6.0, marker=5)
+                plt.plot(self.splined_traces[dna_num][int(length/6), 0], self.splined_traces[dna_num][int(length/6), 1],
+                         color='#E69F00', markersize=6.0, marker=5)
+                plt.plot(self.splined_traces[dna_num][int(length/6*2), 0], self.splined_traces[dna_num][int(length/6*2), 1],
+                         color='#F0E442', markersize=6.0, marker=5)
+                plt.plot(self.splined_traces[dna_num][int(length/6*3), 0], self.splined_traces[dna_num][int(length/6*3), 1],
+                         color='#009E74', markersize=6.0, marker=5)
+                plt.plot(self.splined_traces[dna_num][int(length/6*4), 0], self.splined_traces[dna_num][int(length/6*4), 1],
+                         color='#0071B2', markersize=6.0, marker=5)
+                plt.plot(self.splined_traces[dna_num][int(length/6*5), 0], self.splined_traces[dna_num][int(length/6*5), 1],
+                         color='#CC79A7', markersize=6.0, marker=5)
         plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name))
         plt.close()
 
@@ -642,22 +643,25 @@ class dnaTrace(object):
 
     def plotCurvature(self, dna_num):
 
+        """Plot the curvature of the chosen molecule as a function of the contour length (in metres)"""
+
         curvature = np.array(self.curvature[dna_num])
+        length = len(curvature)
         if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Curvature")):
             os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Curvature"))
         directory = os.path.join(os.path.dirname(self.afm_image_name), "Curvature")
         savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
 
         plt.figure()
-        sns.lineplot(curvature[:, 1]*self.pixel_size, curvature[:, 2])
+        sns.lineplot(curvature[:, 1]*self.pixel_size, curvature[:, 2], color='k')
         plt.ylim(-1e9, 1e9)
         plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
-        plt.axvline(0, color="#D55E00")
-        plt.axvline(self.contour_lengths[dna_num]*1e-9/6, color="#E69F00")
-        plt.axvline(self.contour_lengths[dna_num]*1e-9/6*2, color="#F0E442")
-        plt.axvline(self.contour_lengths[dna_num]*1e-9/6*3, color="#009E74")
-        plt.axvline(self.contour_lengths[dna_num]*1e-9/6*4, color="#56B4E9")
-        plt.axvline(self.contour_lengths[dna_num]*1e-9/6*5, color="#CC79A7")
+        plt.axvline(curvature[0][1], color="#D55E00")
+        plt.axvline(curvature[int(length/6)][1]*self.pixel_size, color="#E69F00")
+        plt.axvline(curvature[int(length/6*2)][1]*self.pixel_size, color="#F0E442")
+        plt.axvline(curvature[int(length/6*3)][1]*self.pixel_size, color="#009E74")
+        plt.axvline(curvature[int(length/6*4)][1]*self.pixel_size, color="#0071B2")
+        plt.axvline(curvature[int(length/6*5)][1]*self.pixel_size, color="#CC79A7")
         plt.savefig('%s_%s.png' % (savename, dna_num))
 
     def measureContourLength(self):
