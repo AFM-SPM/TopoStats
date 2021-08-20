@@ -707,7 +707,7 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
     # path = 'C:\Users\dumin\Documents\PhD\Data\Testing\Test_rad_of_curv'
-    path = 'C:\Users\dumin\Documents\PhD\Data\Testing\TestOct2020'
+    path = 'C:\Users\dumin\Documents\PhD\Data\AFM-Training\Curvature_testing'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -833,12 +833,12 @@ if __name__ == '__main__':
             trace_end = time.time()
             # #dna_traces.showTraces()
             dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
-            # dna_traces.writeContourLengths(filename, channel_name)
-            # dna_traces.plotCurvature(1)
-            # dna_traces.plotCurvature(2)
-            dna_traces.plotCurvature(3)
+            dna_traces.writeContourLengths(filename, channel_name)
+            dna_traces.plotCurvature(1)
+            dna_traces.plotCurvature(2)
+            # dna_traces.plotCurvature(3)
             # dna_traces.plotCurvature(5)
-            dna_traces.plotCurvature(8)
+            # dna_traces.plotCurvature(8)
             # dna_traces.plotCurvature(10)
             # dna_traces.plotCurvature(11)
             # Update the pandas Dataframe used to monitor stats

@@ -48,7 +48,6 @@ class dnaTrace(object):
         self.number_of_traces = 0
         self.num_circular = 0
         self.num_linear = 0
-        self.displacement = 300
         # supresses scipy splining warnings
         warnings.filterwarnings('ignore')
 
@@ -595,9 +594,8 @@ class dnaTrace(object):
             # list of coordinates, in a numpy.ndarray
             if self.mol_is_circular[dna_num]:
                 curve = []
-                dist_cumu = 0
-                for j, (x, y) in enumerate(self.splined_traces[dna_num]):
-                    i = j - self.displacement
+                contour = 0
+                for i, (x, y) in enumerate(self.splined_traces[dna_num]):
                     x0 = self.splined_traces[dna_num][i][0]
                     y0 = self.splined_traces[dna_num][i][1]
                     x1 = self.splined_traces[dna_num][i - 1][0]
@@ -614,10 +612,11 @@ class dnaTrace(object):
                     ya = (y0 + y1 + y2) / 3
                     xb = (x2 + x3 + x4) / 3
                     yb = (y2 + y3 + y4) / 3
-                    dist = math.sqrt((xb - xa) ** 2 + (yb - ya) ** 2)
+                    # dist = math.sqrt((xb - xa) ** 2 + (yb - ya) ** 2)
+                    dist = math.hypot((xb - xa), (yb - ya))
                     dist_real = dist * self.pixel_size
-                    # dist_cumu = dist_cumu +
-                    curve.append([j, (theta2 - theta1) / dist_real])
+                    curve.append([i, contour, (theta2 - theta1) / dist_real])
+                    contour = contour + math.hypot((x2 - x1), (y2 - y1))
                 self.curvature[dna_num] = curve
 
 
@@ -625,11 +624,11 @@ class dnaTrace(object):
 
         # roc_array = np.zeros(shape=(1, 3))
         for dna_num in sorted(self.curvature.keys()):
-            for i, [n, c] in enumerate(self.curvature[dna_num]):
+            for i, [n, contour, c] in enumerate(self.curvature[dna_num]):
                 try:
-                    roc_array.append([dna_num, i, c])
+                    roc_array.append([dna_num, i, contour, c])
                 except NameError:
-                    roc_array = [dna_num, i, c]
+                    roc_array = [dna_num, i, contour, c]
                 # roc_array = np.vstack((roc_array, np.array([dna_num, i, c])))
         # roc_array = np.delete(roc_array, 0, 0)
         roc_stats = pd.DataFrame(roc_array)
@@ -641,25 +640,25 @@ class dnaTrace(object):
         roc_stats.to_json(savename + '.json')
         roc_stats.to_csv(savename + '.csv')
 
-    def plotCurvature(self, key):
+    def plotCurvature(self, dna_num):
 
-        curvature = np.array(self.curvature[key])
+        curvature = np.array(self.curvature[dna_num])
         if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Curvature")):
             os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Curvature"))
         directory = os.path.join(os.path.dirname(self.afm_image_name), "Curvature")
         savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
 
         plt.figure()
-        sns.lineplot(curvature[:, 0]*self.pixel_size, curvature[:, 1])
+        sns.lineplot(curvature[:, 1]*self.pixel_size, curvature[:, 2])
         plt.ylim(-1e9, 1e9)
         plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
         plt.axvline(0, color="#D55E00")
-        plt.axvline(self.pixel_size * 100, color="#E69F00")
-        plt.axvline(self.pixel_size * 200, color="#F0E442")
-        plt.axvline(self.pixel_size * 300, color="#009E74")
-        plt.axvline(self.pixel_size * 400, color="#56B4E9")
-        plt.axvline(self.pixel_size * 500, color="#CC79A7")
-        plt.savefig('%s_%s.png' % (savename, key))
+        plt.axvline(self.contour_lengths[dna_num]*1e-9/6, color="#E69F00")
+        plt.axvline(self.contour_lengths[dna_num]*1e-9/6*2, color="#F0E442")
+        plt.axvline(self.contour_lengths[dna_num]*1e-9/6*3, color="#009E74")
+        plt.axvline(self.contour_lengths[dna_num]*1e-9/6*4, color="#56B4E9")
+        plt.axvline(self.contour_lengths[dna_num]*1e-9/6*5, color="#CC79A7")
+        plt.savefig('%s_%s.png' % (savename, dna_num))
 
     def measureContourLength(self):
 
