@@ -707,7 +707,7 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
     # path = 'C:\Users\dumin\Documents\PhD\Data\Testing\Test_rad_of_curv'
-    path = 'C:\Users\dumin\Documents\PhD\Data\AFM-Training\\Curvature_testing'
+    path = 'C:\Users\dumin\Documents\PhD\Data\Testing\TestOct2020'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -768,6 +768,7 @@ if __name__ == '__main__':
             data_edit_start = time.time()
             xres, yres, xreal, yreal, dx, dy = imagedetails(data)
 
+
             # Perform basic image processing, to align rows, flatten and set the mean value to zero
             data = editfile(data, k)
             data_edit_end = time.time()
@@ -788,6 +789,7 @@ if __name__ == '__main__':
             mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, dx)
             # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
             mask, grains, number_of_grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation, dx)
+
 
             # if there's no grains skip this image
             if number_of_grains == 0:
@@ -832,11 +834,11 @@ if __name__ == '__main__':
             # #dna_traces.showTraces()
             dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
             # dna_traces.writeContourLengths(filename, channel_name)
-            dna_traces.plotCurvature(1)
-            dna_traces.plotCurvature(2)
-            # dna_traces.plotCurvature(3)
+            # dna_traces.plotCurvature(1)
+            # dna_traces.plotCurvature(2)
+            dna_traces.plotCurvature(3)
             # dna_traces.plotCurvature(5)
-            # dna_traces.plotCurvature(8)
+            dna_traces.plotCurvature(8)
             # dna_traces.plotCurvature(10)
             # dna_traces.plotCurvature(11)
             # Update the pandas Dataframe used to monitor stats

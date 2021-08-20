@@ -48,7 +48,7 @@ class dnaTrace(object):
         self.number_of_traces = 0
         self.num_circular = 0
         self.num_linear = 0
-
+        self.displacement = 300
         # supresses scipy splining warnings
         warnings.filterwarnings('ignore')
 
@@ -595,8 +595,9 @@ class dnaTrace(object):
             # list of coordinates, in a numpy.ndarray
             if self.mol_is_circular[dna_num]:
                 curve = []
-                for i, (x, y) in enumerate(self.splined_traces[dna_num]):
-
+                dist_cumu = 0
+                for j, (x, y) in enumerate(self.splined_traces[dna_num]):
+                    i = j - self.displacement
                     x0 = self.splined_traces[dna_num][i][0]
                     y0 = self.splined_traces[dna_num][i][1]
                     x1 = self.splined_traces[dna_num][i - 1][0]
@@ -615,17 +616,22 @@ class dnaTrace(object):
                     yb = (y2 + y3 + y4) / 3
                     dist = math.sqrt((xb - xa) ** 2 + (yb - ya) ** 2)
                     dist_real = dist * self.pixel_size
-                    curve.append([i, (theta2 - theta1) / dist_real])
+                    # dist_cumu = dist_cumu +
+                    curve.append([j, (theta2 - theta1) / dist_real])
                 self.curvature[dna_num] = curve
 
 
     def saveCurvature(self):
 
-        roc_array = np.zeros(shape=(1, 3))
+        # roc_array = np.zeros(shape=(1, 3))
         for dna_num in sorted(self.curvature.keys()):
             for i, [n, c] in enumerate(self.curvature[dna_num]):
-                roc_array = np.vstack((roc_array, np.array([dna_num, i, c])))
-        roc_array = np.delete(roc_array, 0, 0)
+                try:
+                    roc_array.append([dna_num, i, c])
+                except NameError:
+                    roc_array = [dna_num, i, c]
+                # roc_array = np.vstack((roc_array, np.array([dna_num, i, c])))
+        # roc_array = np.delete(roc_array, 0, 0)
         roc_stats = pd.DataFrame(roc_array)
 
         if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Curvature")):
@@ -644,7 +650,7 @@ class dnaTrace(object):
         savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
 
         plt.figure()
-        sns.lineplot(self.pixel_size*curvature[:, 0], curvature[:, 1])
+        sns.lineplot(curvature[:, 0]*self.pixel_size, curvature[:, 1])
         plt.ylim(-1e9, 1e9)
         plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
         plt.axvline(0, color="#D55E00")
@@ -659,9 +665,6 @@ class dnaTrace(object):
 
         '''Measures the contour length for each of the splined traces taking into
         account whether the molecule is circular or linear
-
-        Splined traces are currently complete junk so this uses the ordered traces
-        for now
 
         Contour length units are nm'''
 
