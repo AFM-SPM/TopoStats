@@ -601,7 +601,7 @@ class dnaTrace(object):
             if self.mol_is_circular[dna_num]:
                 curve = []
                 contour = 0
-                neighbours = 2
+                neighbours = 15
                 coordinates = np.zeros([2, neighbours * 2 + 1])
                 for i, (x, y) in enumerate(self.splined_traces[dna_num]):
                     # Extracts the coordinates for the required number of points and puts them in an array

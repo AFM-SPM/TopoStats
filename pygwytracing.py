@@ -708,6 +708,7 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
     # path = 'C:\Users\dumin\Documents\PhD\Data\Testing\Test_rad_of_curv'
     path = 'C:\Users\dumin\Documents\PhD\Data\Testing\TestOct2020'
+    # path = 'C:\Users\dumin\Documents\PhD\Data\AFM-Training\Curvature_testing'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
