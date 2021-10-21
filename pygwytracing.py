@@ -713,12 +713,14 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    path = 'C:\Users\dumin\Documents\PhD\Data\Testing\TestOct2020'
-
+    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
+    path = './'
+    
     # Set sample type here
     sample_type = 'DNA'
     # sample_type = 'MAC'
     # sample_type = 'protein'
+
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'

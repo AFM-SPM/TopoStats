@@ -29,6 +29,46 @@ Statistical analysis and plotting is performed using the 'statsplotting' script.
 This script uses the importfromjson function to import the JSON format file exported by pygwytracing and calculates various statistical parameters for all grain quantities, e.g. length, width and saves these out as a new JSON file using the savestats function. 
 Both KDE plots and histograms are generated for any of the grain quantities using the matplotlib42 and seaborn43 libraries within the functions plotkde, plotcolumns and plothist. 
 
+## Run using Docker
+
+Firstly, you will need to clone the TopoStats repository if you have not done so. It can be cloned by opening a terminal window and navigating to where you want to save TopoStats, then running the command:
+
+```
+git clone https://github.com/AFM-SPM/TopoStats.git
+```
+
+If this does not work, then you may have to install git. Alternatively, you can just download and extract the zip file from GitHub directly.
+
+Docker conatiners provide a way to run software in a controlled environment, without having to install lots of packages on your computer. To experiment with TopoStats using Docker you will first need to install [Docker](https://docs.docker.com/get-docker/). Then, using the command line, "pull" the container image to your computer:
+
+```
+docker pull afmspm/topostats:wip
+```
+
+This allows docker to know how and what to run as a virtual machine. Docker then needs to be able to access TopoStats on your operating system. This can be done by mapping the TopoStats folder on your operating system to a folder in the virtual machine. **The files that you wish to analyse will need to be in your TopoStats folder.** The following command both maps the folders and starts the virtual machine:
+
+```
+docker run -it -v <path/to/your/topostats>:/home/TopoStats afmspm/topostats:wip
+```
+
+This should have changed the location stated in the terminal from 'C:\ 'to something like 'root@', meaning that any commands will be running in the Docker container.
+
+Navigate to the mapped folder in the virtual machine using:
+
+```
+cd home/TopoStats
+```
+
+Then finally run TopoStats, using the command:
+
+```
+xvfb-run python pygwytracing.py
+```
+
+This should run the pygwytracing.py script for TopoStats, targetting the repository folder that was mapped on your operating system, looking for spm files.
+
+The terminal will output information about the status of the TopoStats script. Any results will be placed in a folder in the TopoStats folder, called 'processed'.
+
 **This software is licensed as specified by the [GPL License](COPYING) and [LGPL License](COPYING.LESSER).**
 
 If you'd like to contribute, have at look at our [contributing instructions](contributing.md).
