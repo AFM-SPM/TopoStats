@@ -28,6 +28,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import dnatracing
 import time
+import configparser
 
 # Import height thresholding.py for processing bilayer removal images
 
@@ -701,70 +702,116 @@ def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
 
 # This the main script
 if __name__ == '__main__':
-    # Set various options here:
-
-    # Set the file path, i.e. the directory where the files are here'
-
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Paper/Pyne et al/Figure 1/aspectratioanalysis'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular/194 bp'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    path = './'
     
-    # Set sample type here
-    sample_type = 'DNA'
-    # sample_type = 'MAC'
-    # sample_type = 'protein'
+    # Test if config file exists
+    # If it doesn't, create a new config file with default parameters
+    if(not os.path.isfile("Config.ini")) :
+
+        print("No config file found named 'Config.ini'")
+        print("Creating Default Config File")
+
+        config = configparser.ConfigParser(allow_no_value=True)
+
+        # General parameters
+        config.add_section("MainSection")
+        config.set("MainSection", "; File path - the directory where the files are")
+        config.set("MainSection", "path", './')
+        config.set("MainSection", "; Set the sample type here")
+        config.set("MainSection", "sample_type","DNA")
+        config.set("MainSection", "; Set the file type to look for")
+        config.set("MainSection", "fileend", ".spm,.gwy,*.[0-9]")
+        config.set("MainSection", "filetype", '*.[0-9]')
+        config.set("MainSection", "; Set the extension of exported files")
+        config.set("MainSection", "extension", '.tiff')
+        config.set("MainSection", "; Set height scale values")
+        config.set("MainSection", "minheightscale", '-0e-9')
+        config.set("MainSection", "maxheightscale", '3e-9')
+        config.set("MainSection", "; Set the size of the cropped window / 2 in pixels")
+        config.set("MainSection", "cropwidth", '40e-9')
+        config.set("MainSection", "splitwidth", '2e-6')
+        config.set("MainSection", "; Set the number of bins")
+        config.set("MainSection", "bins", '25')
+
+        config.set("MainSection", "; Set the value of different valriables, based on the type of the sample.")
+        config.set("MainSection", "; Minarea is the minimum size for grain determination")
+        config.set("MainSection", "; Maxdeviation and mindeviation are the allowable deviations from the median pixel size for removal of large and small objects")
+
+        # DNA Specific parameters 
+        config.add_section("DNA")
+        config.set("DNA","minarea", '300e-9')
+        config.set("DNA","maxdeviation", '1.3')
+        config.set("DNA","mindeviation", '0.7')
+        config.set("DNA","gaussian", '0.1e-9')
+        config.set("DNA","thresholdingcriteria", '0.75')
+        
+        # Protein specific parameters
+        config.add_section("PROTIEN")
+        config.set("PROTIEN","minarea", '50e-9')
+        config.set("PROTIEN","maxdeviation", '2.0')
+        config.set("PROTIEN","mindeviation", '0.3')
+        config.set("PROTIEN","gaussian", '0.1e-9')
+        config.set("PROTIEN","thresholdingcriteria", '0.5')
+
+        # MAC specific parameters
+        config.add_section("MAC")
+        config.set("MAC","minarea", '1000e-9')
+        config.set("MAC","maxdeviation", '1.5')
+        config.set("MAC","mindeviation", '0.5')
+        config.set("MAC","gaussian", '0.25e-09')
+        config.set("MAC","thresholdingcriteria", '2.1')
+
+        # Write the config to file
+        cfgfile = open("Config.ini",'w')
+        config.write(cfgfile)
+        cfgfile.close()
+
+    # Read the config file
+    print("Reading config file")
+    config = configparser.ConfigParser()
+    config.read("Config.ini")
+    print("Config loaded: ")
+    print(" ")
+
+    # Print the current parameters
+
+    # Main section
+    path = config.get("MainSection", "path")
+    print("Path: " + path)
+    sample_type = config.get("MainSection","sample_type")
+    print("Sample type: " + sample_type)
+    # fileend = tuple(config.get("MainSection", "fileend"))
+    fileend = tuple(map(str, config.get("MainSection", "fileend").split(",")))
+    print("File end: " + str(fileend))
+    filetype = config.get("MainSection", "filetype")
+    print("File type: " + filetype)
+    extension = config.get("MainSection", "extension")
+    print("Extension: " + extension)
+    minheightscale = float(config.get("MainSection", "minheightscale"))
+    print("Min height scale: " + str(minheightscale))
+    maxheightscale = float(config.get("MainSection", "maxheightscale"))
+    print("Max height scale: " + str(maxheightscale))
+    cropwidth = float(config.get("MainSection", "cropwidth"))
+    print("Crop width: " + str(cropwidth))
+    splitwidth = float(config.get("MainSection", "splitwidth"))
+    print("Split width: " + str(splitwidth))
+    bins = int(config.get("MainSection", "bins"))
+    print("Bins: " + str(bins))
+
+    # Sample type specific section
+    minarea = float(config.get(sample_type, "minarea"))
+    print("Min area: " + str(minarea))
+    maxdeviation = float(config.get(sample_type, "maxdeviation"))
+    print("Max deviation: " + str(maxdeviation))
+    mindeviation = float(config.get(sample_type, "mindeviation"))
+    print("Min deviation: " + str(mindeviation))
+    gaussian = float(config.get(sample_type, "gaussian"))
+    print("Gaussian: " + str(gaussian))
+    thresholdingcriteria = float(config.get(sample_type, "thresholdingcriteria"))
+    print("Thresholding criteria: " + str(thresholdingcriteria))
+    print(" ")
 
 
-    # Set file type to look for here
-    fileend = '.spm', '.gwy', '*.[0-9]'
-    filetype = '*.[0-9]'
-    # Set extension to export files as here e.g. '.tiff'
-    extension = '.tiff'
 
-    # Set height scale values to save out
-    minheightscale = -0e-9
-    maxheightscale = 3e-9
-    # maxheightscale = 20e-9
-    # maxheightscale = 50e-9
-    # Set size of the cropped window/2 in pixels
-    # cropwidth = 100e-9
-    # cropwidth = 60e-9
-    cropwidth = 40e-9
-    splitwidth = 2e-6
-    # Set number of bins
-    bins = 25
-
-    # Set the value of different variables, based on the type of the sample. minarea is the minimum size for grain
-    # determination; maxdeviation and mindeviation are the allowable deviations from the median pixel size for
-    # removal of large and small objects
-
-    if sample_type == 'DNA':
-        minarea = 300e-9
-        maxdeviation = 1.3
-        mindeviation = 0.7
-        gaussian = 0.1e-9
-        thresholdingcriteria = 0.75
-
-    elif sample_type == 'protein':
-        minarea = 50e-9
-        maxdeviation = 2.0
-        mindeviation = 0.3
-        gaussian = 0.1e-9
-        thresholdingcriteria = 0.5
-
-    elif sample_type == 'MAC':
-        minarea = 1000e-9
-        maxdeviation = 1.5
-        mindeviation = 0.5
-        gaussian = 0.25e-9
-        thresholdingcriteria = 2.1
 
     # Declare variables used later
     # Placed outside for loop in order that they don't overwrite data to be appended
