@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 
+# User-Specific config file
+config.ini
+
 # Source / output data
 .dropbox
 *.png
