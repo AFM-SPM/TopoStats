@@ -715,7 +715,7 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
     path = './'
-    
+    path = os.path.abspath(path)
     # Set sample type here
     sample_type = 'DNA'
     # sample_type = 'MAC'
