@@ -21,3 +21,6 @@ __pycache__/
 
 # Documentation 
 _build/
+
+# MacOS
+.DS_Store
