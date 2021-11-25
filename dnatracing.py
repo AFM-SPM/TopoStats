@@ -678,7 +678,7 @@ class traceStats(object):
 
         data_dict = {}
 
-        trace_directory_file = self.trace_object.afm_image_name
+        trace_directory_file = new_traces.afm_image_name
         trace_directory = os.path.dirname(trace_directory_file)
         img_name = os.path.basename(trace_directory_file)
 

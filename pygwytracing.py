@@ -716,6 +716,8 @@ if __name__ == '__main__':
     # Main section
     print("\nMain options:")
     path = config.get("MainSection", "path")
+    # Force correct path location for MacOS
+    path = os.path.abspath(path)
     print("Path: " + path)
     sample_type = config.get("MainSection","sample_type")
     print("Sample type: " + sample_type)
