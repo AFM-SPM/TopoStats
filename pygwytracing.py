@@ -51,15 +51,6 @@ s = gwy.gwy_app_settings_get()
 # Location of the settings file - edit to change values
 # print a
 
-# Turn colour bar off
-s["/module/pixmap/ztype"] = 0
-
-# Define the settings for image processing functions e.g. align rows here
-s['/module/linematch/method'] = 1  # uses median
-s["/module/linematch/max_degree"] = 2
-s["/module/polylevel/col_degree"] = 2
-
-
 def traversedirectories(fileend, filetype, path):
     # This function finds all the files with the file ending set in the main script as fileend (usually.spm)
     # in the path directory, and all subfolder
@@ -536,8 +527,9 @@ def saveindividualstats(filename, dataframetosave, k):
 
 
 def savefiles(data, filename, extension):
-    # Turn rulers on
-    s["/module/pixmap/xytype"] = 1
+    # Save file scale option: 1 - ruler, 2 - inset scale bar, 0 - none
+    s["/module/pixmap/xytype"] = savefilesScale_option
+    
 
     # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
     directory, filename = os.path.split(filename)
@@ -554,7 +546,7 @@ def savefiles(data, filename, extension):
     # Data is exported with the string '_processed' added to the end of its filename
     gwy.gwy_app_data_browser_select_data_field(data, k)
     # change the colour map for all channels (k) in the image:
-    palette = data.set_string_by_name("/%s/base/palette" % k, "Nanoscope.txt")
+    palette = data.set_string_by_name("/%s/base/palette" % k, savefilename)
     # Determine the title of each channel
     title = data["/%d/data/title" % k]
     # Generate a filename to save to by removing the extension to the file, adding the suffix '_processed'
@@ -722,6 +714,7 @@ if __name__ == '__main__':
     # Load and print the current parameters
 
     # Main section
+    print("\nMain options:")
     path = config.get("MainSection", "path")
     print("Path: " + path)
     sample_type = config.get("MainSection","sample_type")
@@ -745,6 +738,7 @@ if __name__ == '__main__':
     print("Bins: " + str(bins))
 
     # Sample type specific section
+    print("\nSample specific options: ")
     minarea = float(config.get(sample_type, "minarea"))
     print("Min area: " + str(minarea))
     maxdeviation = float(config.get(sample_type, "maxdeviation"))
@@ -755,9 +749,26 @@ if __name__ == '__main__':
     print("Gaussian: " + str(gaussian))
     thresholdingcriteria = float(config.get(sample_type, "thresholdingcriteria"))
     print("Thresholding criteria: " + str(thresholdingcriteria))
-    print(" ")
+
+    # Image output configs
+    print("\nImage Output options")
+    saveTraceFigures_option = bool(int(config.get("ImageOutput", "saveTraceFigures_option")))
+    print("Save trace figures option: " + str(saveTraceFigures_option))
+    savefilesScale_option = int(config.get("ImageOutput", "savefilesScale_option"))
+    print("Save files scale option: " + str(savefilesScale_option))
+    savefilename = str(config.get("ImageOutput", "savefilename"))
+    print("Save file name: " + str(savefilename))
+    zbar_option = int(config.get("ImageOutput","zbar_option"))
+    print("z bar option: " + str(zbar_option))
 
 
+    # Turn colour bar on/off
+    s["/module/pixmap/ztype"] = zbar_option
+
+    # Define the settings for image processing functions e.g. align rows here
+    s['/module/linematch/method'] = 1  # uses median
+    s["/module/linematch/max_degree"] = 2
+    s["/module/polylevel/col_degree"] = 2
 
 
     # Declare variables used later
@@ -858,7 +869,10 @@ if __name__ == '__main__':
                 dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
                 trace_end = time.time()
                 # #dna_traces.showTraces()
-                dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
+                if(saveTraceFigures_option):
+                    print("Saving trace figures")
+                    dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
+                else: print("Not saving trace figures")
                 # dna_traces.writeContourLengths(filename, channel_name)
 
                 # Update the pandas Dataframe used to monitor stats
