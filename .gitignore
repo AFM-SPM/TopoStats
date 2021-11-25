@@ -24,3 +24,6 @@ config.ini
 
 # Documentation 
 _build/
+
+# MacOS
+.DS_Store

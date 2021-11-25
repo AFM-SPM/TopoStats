@@ -723,6 +723,8 @@ if __name__ == '__main__':
 
     # Main section
     path = config.get("MainSection", "path")
+    # Force correct path location for MacOS
+    path = os.path.abspath(path)
     print("Path: " + path)
     sample_type = config.get("MainSection","sample_type")
     print("Sample type: " + sample_type)
@@ -756,9 +758,6 @@ if __name__ == '__main__':
     thresholdingcriteria = float(config.get(sample_type, "thresholdingcriteria"))
     print("Thresholding criteria: " + str(thresholdingcriteria))
     print(" ")
-
-
-
 
     # Declare variables used later
     # Placed outside for loop in order that they don't overwrite data to be appended
