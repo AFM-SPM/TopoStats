@@ -758,8 +758,8 @@ if __name__ == '__main__':
     print("Save trace figures option: " + str(saveTraceFigures_option))
     savefilesScale_option = int(config.get("ImageOutput", "savefilesScale_option"))
     print("Save files scale option: " + str(savefilesScale_option))
-    savefilename = str(config.get("ImageOutput", "savefilename"))
-    print("Save file name: " + str(savefilename))
+    savefile_zscalecolour = str(config.get("ImageOutput", "savefile_zscalecolour"))
+    print("Save file name: " + str(savefile_zscalecolour))
     zbar_option = int(config.get("ImageOutput","zbar_option"))
     print("z bar option: " + str(zbar_option))
 
