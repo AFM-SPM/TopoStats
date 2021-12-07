@@ -18,3 +18,9 @@ __pycache__/
 # IDE
 .vscode/
 .idea/
+
+# Documentation 
+_build/
+
+# MacOS
+.DS_Store

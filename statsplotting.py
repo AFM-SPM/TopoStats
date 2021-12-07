@@ -119,6 +119,7 @@ def plotLinearVsCircular(json_path):
 
 def importfromjson(path, name):
     filename = os.path.join(path, name + '.json')
+    print (filename)
     importeddata = pd.read_json(filename)
 
     return importeddata
@@ -417,13 +418,13 @@ def seaplotting(df, arg1, arg2, bins, directory, extension):
 # This the main script
 if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
-    path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
+    path = 'C:/Users/dumin/Documents/PhD/Data/KavitApr2021/Test'
+    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
     # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data/Data/DNA/339/NI/NAT/20140625_339_NAT_Ni_5mM'
 
     # Set the name of the json file to import here
-    name = '*.json'
-    name = 'Nickel'
-    plotextension = '.pdf'
+    name = 'Test.json'
+    plotextension = '.png'
     bins = 10
 
     # import data form the json file specified as a dataframe
@@ -469,14 +470,14 @@ if __name__ == '__main__':
     with palette:
         # Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
         # grouped by grouparg e.g. 'topoisomer'
-        plotkde(df, path, name, plotextension, 'topoisomer', 'aspectratio')
+
         # plotkde(df, path, name, plotextension, 'topoisomer', 'grain_mean_radius')
 
         # # Plot a KDE plot of one column of the dataframe - arg1 e.g. 'aspectratio'
         # # grouped by grouparg e.g. 'topoisomer'
         # # Then plot the maxima of each KDE as a bar plot
         plotkdemax(df, path, name, plotextension, 'aspectratio', topos)
-
+        plotkdemax(df, path, name, plotextension, '', topos)
         plotviolin(df, path, name, plotextension, 'topoisomer', 'aspectratio')
 
         plotmarginal(df, path, name, plotextension, 'topoisomer', 'aspectratio')
@@ -565,9 +566,6 @@ if __name__ == '__main__':
             plt.ylabel(' ')
             plt.savefig(savename)
 
-# # # import pandas as pd
-# # # import os
-# # # import matplotlib as plt
 path = '/Volumes/GoogleDrive/My Drive/Sheffield/DNA minicircles/EXIM'
 colnames=['data', 'filename']
 WREXlist = glob.glob(path + "/*writheEX*.dat")
@@ -924,3 +922,4 @@ plt.savefig(savename)
 # from scipy.signal import find_peaks
 # x = df['ρ']
 # peaks, properties = find_peaks(x, height=1)
+
