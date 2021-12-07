@@ -42,12 +42,14 @@ class dnaTrace(object):
         self.fitted_traces = {}
         self.splined_traces = {}
         self.contour_lengths = {}
+        self.EndtoEnd_Distance = {}
         self.mol_is_circular = {}
         self.curvature = {}
 
         self.number_of_traces = 0
         self.num_circular = 0
         self.num_linear = 0
+
         # supresses scipy splining warnings
         warnings.filterwarnings('ignore')
 
@@ -63,7 +65,9 @@ class dnaTrace(object):
         self.findCurvature()
         self.saveCurvature()
         self.measureContourLength()
+        self.measureEndtoEndDistance()
         self.reportBasicStats()
+
 
     def getNumpyArraysfromGwyddion(self):
 
@@ -489,7 +493,7 @@ class dnaTrace(object):
                 spline_average = spline_running_total
                 '''
                 # can't get splining of linear molecules to work yet
-                self.splined_traces[dna_num] = self.ordered_traces[dna_num]
+                self.splined_traces[dna_num] = self.fitted_traces[dna_num]
 
     def showTraces(self):
 
@@ -525,6 +529,7 @@ class dnaTrace(object):
         for dna_num in sorted(self.splined_traces.keys()):
             # disordered_trace_list = self.ordered_traces[dna_num].tolist()
             # less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
+            # if self.contour_lengths[dna_num] > 80:
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=1.0)
             if self.mol_is_circular[dna_num]:
                 length = len(self.curvature[dna_num])
@@ -731,6 +736,19 @@ class dnaTrace(object):
                 writing_file.write('%f \n' % self.contour_lengths[dna_num])
 
 
+    def measureEndtoEndDistance(self):
+
+        for dna_num in sorted(self.splined_traces.keys()):
+            if self.mol_is_circular[dna_num]:
+                self.EndtoEnd_Distance[dna_num] = 0
+            else:
+                x1 = self.splined_traces[dna_num][0, 0]
+                y1 = self.splined_traces[dna_num][0, 1]
+                x2 = self.splined_traces[dna_num][-1, 0]
+                y2 = self.splined_traces[dna_num][-1, 1]
+                self.EndtoEnd_Distance[dna_num] = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_size * 1e9
+
+
 class traceStats(object):
     ''' Class used to report on the stats for all the traced molecules in the
     given directory '''
@@ -757,6 +775,7 @@ class traceStats(object):
 
         trace_directory_file = self.trace_object.afm_image_name
         trace_directory = os.path.dirname(trace_directory_file)
+        basename = os.path.basename(trace_directory)
         img_name = os.path.basename(trace_directory_file)
 
         for mol_num, dna_num in enumerate(sorted(self.trace_object.ordered_traces.keys())):
@@ -765,15 +784,18 @@ class traceStats(object):
                 data_dict['Molecule number'].append(mol_num)
                 data_dict['Image Name'].append(img_name)
                 data_dict['Experiment Directory'].append(trace_directory)
+                data_dict['Basename'].append(basename)
                 data_dict['Contour Lengths'].append(self.trace_object.contour_lengths[dna_num])
                 data_dict['Circular'].append(self.trace_object.mol_is_circular[dna_num])
+                data_dict['End to End Distance'].append(self.trace_object.EndtoEnd_Distance[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
                 data_dict['Image Name'] = [img_name]
                 data_dict['Experiment Directory'] = [trace_directory]
+                data_dict['Basename'] = [basename]
                 data_dict['Contour Lengths'] = [self.trace_object.contour_lengths[dna_num]]
                 data_dict['Circular'] = [self.trace_object.mol_is_circular[dna_num]]
-
+                data_dict['End to End Distance'] = [self.trace_object.EndtoEnd_Distance[dna_num]]
         self.pd_dataframe = pd.DataFrame(data=data_dict)
 
     def updateTraceStats(self, new_traces):
@@ -782,6 +804,7 @@ class traceStats(object):
 
         trace_directory_file = new_traces.afm_image_name
         trace_directory = os.path.dirname(trace_directory_file)
+        basename = os.path.basename(trace_directory)
         img_name = os.path.basename(trace_directory_file)
 
         for mol_num, dna_num in enumerate(sorted(new_traces.contour_lengths.keys())):
@@ -790,14 +813,18 @@ class traceStats(object):
                 data_dict['Molecule number'].append(mol_num)
                 data_dict['Image Name'].append(img_name)
                 data_dict['Experiment Directory'].append(trace_directory)
+                data_dict['Basename'].append(basename)
                 data_dict['Contour Lengths'].append(new_traces.contour_lengths[dna_num])
                 data_dict['Circular'].append(new_traces.mol_is_circular[dna_num])
+                data_dict['End to End Distance'].append(new_traces.EndtoEnd_Distance[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
                 data_dict['Image Name'] = [img_name]
                 data_dict['Experiment Directory'] = [trace_directory]
+                data_dict['Basename'] = [basename]
                 data_dict['Contour Lengths'] = [new_traces.contour_lengths[dna_num]]
                 data_dict['Circular'] = [new_traces.mol_is_circular[dna_num]]
+                data_dict['End to End Distance'] = [new_traces.EndtoEnd_Distance[dna_num]]
 
         pd_new_traces_dframe = pd.DataFrame(data=data_dict)
 
@@ -816,5 +843,6 @@ class traceStats(object):
         print(save_file_name)
 
         self.pd_dataframe.to_json('%stracestats.json' % save_path)
+        self.pd_dataframe.to_csv('%stracestats.csv' % save_path)
 
         print('Saved trace info for all analysed images into: %stracestats.json' % save_path)

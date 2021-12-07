@@ -325,6 +325,9 @@ def grainanalysis(appended_data, filename, datafield, grains):
                          'grain_ellipse_angle': gwy.GRAIN_VALUE_EQUIV_ELLIPSE_ANGLE,
                          'grain_ellipse_major': gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MAJOR,
                          'grain_ellipse_minor': gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MINOR,
+                         'grain_min_volume': gwy.GRAIN_VALUE_VOLUME_MIN,
+                         'grain_zero_volume': gwy.GRAIN_VALUE_VOLUME_0,
+                         'grain_laplace_volume': gwy.GRAIN_VALUE_VOLUME_LAPLACE,
                          }
     # Create empty dictionary for grain data
     grain_data_to_save = {}
@@ -720,11 +723,7 @@ if __name__ == '__main__':
     sample_type = 'DNA'
     # sample_type = 'MAC'
     # sample_type = 'protein'
-
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    # path = 'C:\Users\dumin\Documents\PhD\Data\Testing\Test_rad_of_curv'
-    path = 'C:\Users\dumin\Documents\PhD\Data\Testing\TestOct2020'
-    # path = 'C:\Users\dumin\Documents\PhD\Data\AFM-Training\Curvature_testing'
+    # sample_type = 'protein_with_DNA'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -750,9 +749,9 @@ if __name__ == '__main__':
     # removal of large and small objects
 
     if sample_type == 'DNA':
-        minarea = 300e-9
-        maxdeviation = 1.3
-        mindeviation = 0.7
+        minarea = 200e-9
+        maxdeviation = 10
+        mindeviation = 0.5
         gaussian = 0.1e-9
         thresholdingcriteria = 0.75
 
@@ -762,6 +761,13 @@ if __name__ == '__main__':
         mindeviation = 0.3
         gaussian = 0.1e-9
         thresholdingcriteria = 0.5
+
+    elif sample_type == 'protein_with_DNA':
+        minarea = 1e-9
+        maxdeviation = 5
+        mindeviation = 0.9
+        gaussian = 0.3e-9
+        thresholdingcriteria = 4
 
     elif sample_type == 'MAC':
         minarea = 1000e-9
@@ -868,7 +874,7 @@ if __name__ == '__main__':
                 dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
                 trace_end = time.time()
                 # #dna_traces.showTraces()
-                dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
+                # dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
                 # dna_traces.writeContourLengths(filename, channel_name)
 
                 # Update the pandas Dataframe used to monitor stats

@@ -38,7 +38,12 @@ colname2label = {
     'grain_max_bound_size': 'Length / %s',
     'grain_mean_radius': 'Mean Radius / %s',
     'grain_pixel_area': 'Area / Pixels',
-    'grain_proj_area': 'Area / $\mathregular{%s^2}$'
+    'grain_proj_area': 'Area / $\mathregular{%s^2}$',
+    'grain_min_volume': 'Minimum Volume / $\mathregular{%s^3}$',
+    'grain_zero_volume': 'Zero Volume / $\mathregular{%s^3}$',
+    'grain_laplace_volume': 'Laplacian Volume / $\mathregular{%s^3}$',
+    'End to End Distance': 'End to End Distance',
+    'Contour Lengths': 'Contour Lengths'
 }
 
 
@@ -63,7 +68,7 @@ def pathman(path):
 
     directory = os.path.dirname(path)
     name = os.path.basename(path)[:-5]
-    savedir = os.path.join(directory, 'Plots')
+    savedir = os.path.join(directory, 'Plots_New_Filtered')
     if not os.path.exists(savedir):
         os.makedirs(savedir)
     plotname = os.path.join(savedir, name)
@@ -92,9 +97,11 @@ def dataunitconversion(data, plotarg, nm):
     if nm is True:
         if '%s' in label:
             if '^2' in label:
-                data = data*1e18
+                data = data * 1e18
+            elif '^3' in label:
+                data = data * 1e27
             else:
-                data = data*1e9
+                data = data * 1e9
     return data
 
 
@@ -134,14 +141,15 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath
     plt.savefig(savename)
 
 
-def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None, plotextension=defextension):
+def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None,
+             plotextension=defextension):
     """Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
     the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
 
     print 'Plotting histogram of %s' % plotarg
 
-    # Set the name of the file
+    # Set  the name of the file
     if specpath is None:
         specpath = path
     savename = os.path.join(pathman(specpath) + '_' + plotarg + '_histogram' + plotextension)
@@ -158,7 +166,9 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     # Grouped histogram
     else:
         df = df[[grouparg, plotarg]]
-        df.groupby(grouparg)[plotarg].plot.hist(ax=ax, legend=True, alpha=1, linewidth=7.0, bins=bins)
+        df = df.pivot(columns=grouparg, values=plotarg)
+        df.plot.hist(ax=ax, legend=True, bins=bins, alpha=1, linewidth=3.0, stacked=True)
+        # df.groupby(grouparg)[plotarg].plot.hist(ax=ax, legend=True, alpha=1, linewidth=7.0, bins=bins, stacked=True)
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
 
@@ -202,7 +212,8 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specp
     plt.savefig(savename)
 
 
-def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=False, specpath=None, plotextension=defextension):
+def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=False, specpath=None,
+              plotextension=defextension):
     """Creating a joint plot for two chosen variables. The range for both axes can be defined by the user.
     The default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path
     under the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
@@ -232,7 +243,10 @@ def plotLinearVsCircular(contour_lengths_df):
 
 if __name__ == '__main__':
     # Path to the json file, e.g. C:\\Users\\username\\Documents\\Data\\Data.json
-    path = 'C:\\Users\\dumin\\Documents\\PhD\\Data\\Kavit-Top1\\Non-incubation\\Non-incubation.json'
+    # path = 'C:\\Users\\dumin\\Documents\\PhD\\Data\\NDP52\\Curated_data\\NDP\\NDP.json'
+    path = 'C:\\Users\\dumin\\Documents\\PhD\\Data\\NDP52\\Curated_data_new\\DNA\\tracestats.json'
+    # path1 = 'C:\\Users\\dumin\\Documents\\PhD\\Data\\Kavit-All\\Kavit-All-0.json'
+    # path2 = 'C:\\Users\\dumin\\Documents\\PhD\\Data\\Kavit-All\\Kavit-All-4.json'
 
     # Set the name of the json file to import here
     # name = 'Non-incubation'
@@ -240,10 +254,29 @@ if __name__ == '__main__':
 
     # import data form the json file specified as a dataframe
     df = importfromjson(path)
+    df = df[df['End to End Distance'] != 0]
+    df = df[df['Contour Lengths'] > 80]
+    # df = df[df['Contour Lengths'] < 150]
+    # df1 = importfromjson(path1)
+    # df2 = importfromjson(path2)
+
     # Rename directory column as appropriate
-    df = df.rename(columns={"directory": "Experimental Conditions"})
+    # df = df.rename(columns={"directory": "Experimental Conditions"})
+    # df1 = df1.rename(columns={"directory": "Experimental Conditions"})
+    # df2 = df2.rename(columns={"directory": "Experimental Conditions"})
+
     # Calculate the aspect ratio for each grain
-    df['aspectratio'] = df['grain_min_bound_size'] / df['grain_max_bound_size']
+    # df['aspectratio'] = df['grain_min_bound_size'] / df['grain_max_bound_size']
+    # df1['aspectratio'] = df1['grain_min_bound_size'] / df1['grain_max_bound_size']
+    # df2['aspectratio'] = df2['grain_min_bound_size'] / df2['grain_max_bound_size']
+    # df['Basename'] = os.path.basename(df['Experiment Directory'])
+    # mask1 = np.repeat('Mask1', len(df1))
+    # mask2 = np.repeat('Mask2', len(df2))
+    # df1['Mask'] = mask1
+    # df2['Mask'] = mask2
+
+    # df = pd.concat([df1, df2])
+
     # Get list of unique directory names i.e. topoisomers
     # # topos = df['Proteins'].unique()
     # # topos = sorted(topos, reverse=False)
@@ -270,10 +303,13 @@ if __name__ == '__main__':
     # # palette = sns.color_palette('PuBu', n_colors=len(topos))
 
 # Setting group argument
-grouparg = 'Experimental Conditions'
+# grouparg = 'Experiment Directory'
+# grouparg = 'Mask'
+grouparg = 'Basename'
+#$ grouparg = 'directory'
 
 # Setting a continuous colour palette; useful for certain grouped plots, but can be commented out if unsuitable.
-sns.set_palette(sns.color_palette('BuPu', n_colors=len(df.groupby(grouparg))))
+# sns.set_palette(sns.color_palette('BuPu', n_colors=len(df.groupby(grouparg))))
 # print df.pivot(columns=grouparg, values='grain_median')
 
 
@@ -282,15 +318,31 @@ sns.set_palette(sns.color_palette('BuPu', n_colors=len(df.groupby(grouparg))))
 # ymin and ymax can be specified for plotviolin and plotjoint; bins can be speficied for plothist. The default unit is
 # m; add "nm=True" to change from m to nm.
 
-# plotkde(df, 'grain_bound_len',  xmin=0, xmax=1e-7)
+#$ plotkde(df, 'grain_bound_len', xmin=0, xmax=150, nm=True)
 # plotkde(df, 'grain_mean_radius')
-# plotkde(df, 'grain_proj_area', nm=True)
+#$ plotkde(df, 'grain_proj_area', xmin=0, xmax=300, nm=True)
+# plotkde(df, 'grain_min_volume', xmin=0, xmax=400, nm=True)
+#$ plotkde(df, 'grain_maximum', xmin=0, xmax=4, nm=True)
+#$ plothist(df, 'grain_maximum')
+plotkde(df, 'End to End Distance', xmin=0, xmax=1.5e2, grouparg=grouparg)
+plotkde(df, 'Contour Lengths', xmin=0, xmax=250, grouparg=grouparg)
+plothist(df, 'End to End Distance', bins=20, xmin=0, xmax=2e2, grouparg=grouparg)
+plothist(df, 'Contour Lengths', bins=20, xmin=0, xmax=250, grouparg=grouparg)
 # plotkde (df, 'aspectratio')
-# plotkde(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
+#$$ plotkde(df, 'grain_max_bound_size', xmin=0, xmax=40, nm=True)
+#$$ plotkde(df, 'grain_min_bound_size', xmin=0, xmax=40, nm=True)
 # plotkde(df, 'grain_max_bound_size', xmax=3.5e-8)
-# plotkde(df, 'grain_half_height_area', grouparg=grouparg, nm=True)
+# plotkde(df, 'grain_half_height_area', xmin=0, xmax=1.5e2, specpath=path1, grouparg=grouparg, nm=True)
+
+# plotkde(df, 'grain_maximum', specpath=path1, xmin=0, xmax=1e-8, grouparg=grouparg)
+# plotkde(df, 'grain_mean_radius', specpath=path1, xmin=0, xmax=1.5e-8, grouparg=grouparg)
+# plotkde(df, 'grain_bound_len', specpath=path1, xmin=-0.25e-7, xmax=1.25e-7, grouparg=grouparg)
+
+# plotkde(df, 'grain_min_volume', specpath=path1, xmin=-1e-25, xmax=2.5e-25, grouparg=grouparg)
+# plotkde(df, 'grain_zero_volume', specpath=path1, xmin=-1e-25, xmax=5e-25, grouparg=grouparg)
+# plotkde(df, 'grain_laplace_volume', specpath=path1, xmin=-1e-25, xmax=2.5e-25, grouparg=grouparg)
 # plothist(df, 'grain_min_bound_size', xmax=2.5e-8, bins=bins)
 # plothist(df, 'grain_proj_area', xmax=3e-16)
 # plothist(df, 'grain_half_height_area', grouparg=grouparg)
-plotviolin(df, "grain_proj_area", grouparg=grouparg)
+# plotviolin(df, "grain_proj_area", grouparg=grouparg)
 # plotjoint(df, 'grain_bound_len', 'grain_mean_radius', xmax=200, ymax=20, nm=True)
