@@ -325,6 +325,9 @@ def grainanalysis(appended_data, filename, datafield, grains):
                          'grain_ellipse_angle': gwy.GRAIN_VALUE_EQUIV_ELLIPSE_ANGLE,
                          'grain_ellipse_major': gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MAJOR,
                          'grain_ellipse_minor': gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MINOR,
+                         'grain_min_volume': gwy.GRAIN_VALUE_VOLUME_MIN,
+                         'grain_zero_volume': gwy.GRAIN_VALUE_VOLUME_0,
+                         'grain_laplace_volume': gwy.GRAIN_VALUE_VOLUME_LAPLACE,
                          }
     # Create empty dictionary for grain data
     grain_data_to_save = {}
@@ -541,7 +544,7 @@ def savefiles(data, filename, extension):
     directory, filename = os.path.split(filename)
 
     # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Processed')
+    savedir = os.path.join(directory, 'Processed_fitted')
 
     # If the folder Processed doest exist make it here
     if not os.path.exists(savedir):
@@ -714,13 +717,13 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    path = './'
+    path = 'C:\Users\dumin\Documents\PhD\Data\NDP52\Curated_data_new\DNA'
     path = os.path.abspath(path)
     # Set sample type here
     sample_type = 'DNA'
     # sample_type = 'MAC'
     # sample_type = 'protein'
-
+    # sample_type = 'protein_with_DNA'
 
     # Set file type to look for here
     fileend = '.spm', '.gwy', '*.[0-9]'
@@ -746,9 +749,9 @@ if __name__ == '__main__':
     # removal of large and small objects
 
     if sample_type == 'DNA':
-        minarea = 300e-9
-        maxdeviation = 1.3
-        mindeviation = 0.7
+        minarea = 200e-9
+        maxdeviation = 10
+        mindeviation = 0.5
         gaussian = 0.1e-9
         thresholdingcriteria = 0.75
 
@@ -758,6 +761,13 @@ if __name__ == '__main__':
         mindeviation = 0.3
         gaussian = 0.1e-9
         thresholdingcriteria = 0.5
+
+    elif sample_type == 'protein_with_DNA':
+        minarea = 1e-9
+        maxdeviation = 5
+        mindeviation = 0.9
+        gaussian = 0.3e-9
+        thresholdingcriteria = 4
 
     elif sample_type == 'MAC':
         minarea = 1000e-9
@@ -864,7 +874,7 @@ if __name__ == '__main__':
                 dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
                 trace_end = time.time()
                 # #dna_traces.showTraces()
-                dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
+                # dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed_filtered')
                 # dna_traces.writeContourLengths(filename, channel_name)
 
                 # Update the pandas Dataframe used to monitor stats
