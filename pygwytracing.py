@@ -546,7 +546,7 @@ def savefiles(data, filename, extension):
     # Data is exported with the string '_processed' added to the end of its filename
     gwy.gwy_app_data_browser_select_data_field(data, k)
     # change the colour map for all channels (k) in the image:
-    palette = data.set_string_by_name("/%s/base/palette" % k, savefilename)
+    palette = data.set_string_by_name("/%s/base/palette" % k, savefile_zscalecolour)
     # Determine the title of each channel
     title = data["/%d/data/title" % k]
     # Generate a filename to save to by removing the extension to the file, adding the suffix '_processed'
