@@ -717,7 +717,8 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    path = './'
+    path = 'C:\Users\dumin\Documents\PhD\Data\Testing\TestOct2020'
+    # path = './'
     path = os.path.abspath(path)
     # Set sample type here
     sample_type = 'DNA'
@@ -874,39 +875,28 @@ if __name__ == '__main__':
                 dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
                 trace_end = time.time()
                 # #dna_traces.showTraces()
-                # dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
-                # dna_traces.writeContourLengths(filename, channel_name)
+                dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
+                dna_traces.writeContourLengths(filename, channel_name)
+                # dna_traces.plotCurvature(1)
+                # dna_traces.plotCurvature(2)
+                dna_traces.plotCurvature(4)
+                # dna_traces.plotCurvature(5)
+                # dna_traces.plotCurvature(8)
+                # dna_traces.plotCurvature(10)
+                # dna_traces.plotCurvature(11)
 
                 # Update the pandas Dataframe used to monitor stats
                 try:
                     tracing_stats.updateTraceStats(dna_traces)
                 except NameError:
                     tracing_stats = dnatracing.traceStats(dna_traces)
-            # #trace the DNA molecules - can compute stats etc as needed
-            dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
-            trace_end = time.time()
-            # #dna_traces.showTraces()
-            dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
-            dna_traces.writeContourLengths(filename, channel_name)
-            # dna_traces.plotCurvature(1)
-            # dna_traces.plotCurvature(2)
-            dna_traces.plotCurvature(3)
-            dna_traces.plotCurvature(5)
-            # dna_traces.plotCurvature(8)
-            # dna_traces.plotCurvature(10)
-            # dna_traces.plotCurvature(11)
-            # Update the pandas Dataframe used to monitor stats
-            try:
-                tracing_stats.updateTraceStats(dna_traces)
-            except NameError:
-                tracing_stats = dnatracing.traceStats(dna_traces)
 
                 print('Tracing took %f seconds' % (trace_end - trace_start))
                 tracing_stats.saveTraceStats(path)
 
 
             # Save out cropped files as images with no scales to a subfolder
-            # savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 
             # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)
