@@ -68,7 +68,6 @@ class dnaTrace(object):
         self.measureEndtoEndDistance()
         self.reportBasicStats()
 
-
     def getNumpyArraysfromGwyddion(self):
 
         ''' Function to get each grain as a numpy array which is stored in a
@@ -531,7 +530,7 @@ class dnaTrace(object):
             # less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
             # if self.contour_lengths[dna_num] > 80:
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=1.0)
-            if self.mol_is_circular[dna_num]:
+            if self.mol_is_circular[dna_num] or not self.mol_is_circular[dna_num]:
                 length = len(self.curvature[dna_num])
                 plt.plot(self.splined_traces[dna_num][0, 0], self.splined_traces[dna_num][0, 1], color='#D55E00',
                          markersize=6.0, marker=5)
@@ -550,6 +549,11 @@ class dnaTrace(object):
                 plt.plot(self.splined_traces[dna_num][int(length / 6 * 5), 0],
                          self.splined_traces[dna_num][int(length / 6 * 5), 1],
                          color='#CC79A7', markersize=6.0, marker=5)
+        plt.savefig('%s_%s_splinedtrace_with_markers.png' % (save_file, channel_name))
+        plt.close()
+
+        for dna_num in sorted(self.splined_traces.keys()):
+            plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=1.0)
         plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name))
         plt.close()
 
@@ -603,40 +607,40 @@ class dnaTrace(object):
         for dna_num in sorted(self.splined_traces.keys()):  # the number of molecules identified
             # splined_traces is a dictionary, where the keys are the number of the molecule, and the values are a
             # list of coordinates, in a numpy.ndarray
-            if self.mol_is_circular[dna_num]:
-                curve = []
-                contour = 0
-                neighbours = 15
-                coordinates = np.zeros([2, neighbours * 2 + 1])
-                for i, (x, y) in enumerate(self.splined_traces[dna_num]):
-                    # Extracts the coordinates for the required number of points and puts them in an array
-                    for j in range(neighbours * 2 + 1):
-                        coordinates[0][j] = self.splined_traces[dna_num][i - j][0]
-                        coordinates[1][j] = self.splined_traces[dna_num][i - j][1]
+            # if self.mol_is_circular[dna_num]:
+            curve = []
+            contour = 0
+            neighbours = 3
+            coordinates = np.zeros([2, neighbours * 2 + 1])
+            for i, (x, y) in enumerate(self.splined_traces[dna_num]):
+                # Extracts the coordinates for the required number of points and puts them in an array
+                for j in range(neighbours * 2 + 1):
+                    coordinates[0][j] = self.splined_traces[dna_num][i - j][0]
+                    coordinates[1][j] = self.splined_traces[dna_num][i - j][1]
 
-                    # Calculates the angles for the tangent lines to the left and the right of the point
-                    theta1 = math.atan((coordinates[1][neighbours] - coordinates[1][0]) / (
-                                coordinates[0][neighbours] - coordinates[0][0]))
-                    theta2 = math.atan((coordinates[1][-1] - coordinates[1][neighbours]) / (
-                                coordinates[0][-1] - coordinates[0][neighbours]))
+                # Calculates the angles for the tangent lines to the left and the right of the point
+                theta1 = math.atan((coordinates[1][neighbours] - coordinates[1][0]) / (
+                        coordinates[0][neighbours] - coordinates[0][0]))
+                theta2 = math.atan((coordinates[1][-1] - coordinates[1][neighbours]) / (
+                        coordinates[0][-1] - coordinates[0][neighbours]))
 
-                    left = coordinates[:, :neighbours + 1]
-                    right = coordinates[:, -(neighbours + 1):]
+                left = coordinates[:, :neighbours + 1]
+                right = coordinates[:, -(neighbours + 1):]
 
-                    xa = np.mean(left[0])
-                    ya = np.mean(left[1])
+                xa = np.mean(left[0])
+                ya = np.mean(left[1])
 
-                    xb = np.mean(right[0])
-                    yb = np.mean(right[1])
+                xb = np.mean(right[0])
+                yb = np.mean(right[1])
 
-                    # Calculates the curvature using the change in angle divided by the distance
-                    dist = math.hypot((xb - xa), (yb - ya))
-                    dist_real = dist * self.pixel_size
-                    curve.append([i, contour, (theta2 - theta1) / dist_real])
+                # Calculates the curvature using the change in angle divided by the distance
+                dist = math.hypot((xb - xa), (yb - ya))
+                dist_real = dist * self.pixel_size
+                curve.append([i, contour, (theta2 - theta1) / dist_real])
 
-                    contour = contour + math.hypot((coordinates[0][neighbours] - coordinates[0][neighbours - 1]),
-                                                   (coordinates[1][neighbours] - coordinates[1][neighbours - 1]))
-                self.curvature[dna_num] = curve
+                contour = contour + math.hypot((coordinates[0][neighbours] - coordinates[0][neighbours - 1]),
+                                               (coordinates[1][neighbours] - coordinates[1][neighbours - 1]))
+            self.curvature[dna_num] = curve
 
     def saveCurvature(self):
 
@@ -644,9 +648,10 @@ class dnaTrace(object):
         for dna_num in sorted(self.curvature.keys()):
             for i, [n, contour, c] in enumerate(self.curvature[dna_num]):
                 try:
-                    roc_array.append([dna_num, i, contour, c])
+                    roc_array = np.append(roc_array, np.array([[dna_num, i, contour, c]]), axis=0)
+                    # oc_array.append([dna_num, i, contour, c])
                 except NameError:
-                    roc_array = [dna_num, i, contour, c]
+                    roc_array = np.array([[dna_num, i, contour, c]])
                 # roc_array = np.vstack((roc_array, np.array([dna_num, i, c])))
         # roc_array = np.delete(roc_array, 0, 0)
         roc_stats = pd.DataFrame(roc_array)
@@ -735,6 +740,20 @@ class dnaTrace(object):
             for dna_num in sorted(self.contour_lengths.keys()):
                 writing_file.write('%f \n' % self.contour_lengths[dna_num])
 
+    def writeCoordinates(self, dna_num):
+
+        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Coordinates")):
+            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Coordinates"))
+        directory = os.path.join(os.path.dirname(self.afm_image_name), "Coordinates")
+        savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
+        for i, (x, y) in enumerate(self.splined_traces[dna_num]):
+            try:
+                coordinates_array = np.append(coordinates_array, np.array([[x, y]]), axis=0)
+            except NameError:
+                coordinates_array = np.array([[x, y]])
+
+        coordinates = pd.DataFrame(coordinates_array)
+        coordinates.to_csv('%s_%s.csv' % (savename, dna_num))
 
     def measureEndtoEndDistance(self):
 
