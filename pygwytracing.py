@@ -28,6 +28,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import dnatracing
 import time
+import configparser
+from shutil import copyfile
 
 # Import height thresholding.py for processing bilayer removal images
 
@@ -48,15 +50,6 @@ s = gwy.gwy_app_settings_get()
 # a = gwy.gwy_app_settings_get_settings_filename()
 # Location of the settings file - edit to change values
 # print a
-
-# Turn colour bar off
-s["/module/pixmap/ztype"] = 0
-
-# Define the settings for image processing functions e.g. align rows here
-s['/module/linematch/method'] = 1  # uses median
-s["/module/linematch/max_degree"] = 2
-s["/module/polylevel/col_degree"] = 2
-
 
 def traversedirectories(fileend, filetype, path):
     # This function finds all the files with the file ending set in the main script as fileend (usually.spm)
@@ -534,8 +527,9 @@ def saveindividualstats(filename, dataframetosave, k):
 
 
 def savefiles(data, filename, extension):
-    # Turn rulers on
-    s["/module/pixmap/xytype"] = 1
+    # Save file scale option: 1 - ruler, 2 - inset scale bar, 0 - none
+    s["/module/pixmap/xytype"] = savefilesScale_option
+    
 
     # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
     directory, filename = os.path.split(filename)
@@ -552,7 +546,7 @@ def savefiles(data, filename, extension):
     # Data is exported with the string '_processed' added to the end of its filename
     gwy.gwy_app_data_browser_select_data_field(data, k)
     # change the colour map for all channels (k) in the image:
-    palette = data.set_string_by_name("/%s/base/palette" % k, "Nanoscope.txt")
+    palette = data.set_string_by_name("/%s/base/palette" % k, savefile_zscalecolour)
     # Determine the title of each channel
     title = data["/%d/data/title" % k]
     # Generate a filename to save to by removing the extension to the file, adding the suffix '_processed'
@@ -701,70 +695,83 @@ def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
 
 # This the main script
 if __name__ == '__main__':
-    # Set various options here:
+    
+    # Test if config file exists
+    # If it doesn't, create a new config file with default parameters
+    if(not os.path.isfile("config.ini")) :
+        # Copy default_config.ini to config.ini
+        print("No config file found named 'config.ini'")
+        print("Copying default_config.ini to config.ini")
+        copyfile('default_config.ini','config.ini')
 
-    # Set the file path, i.e. the directory where the files are here'
+    # Read the config file
+    print("Reading config file")
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    print("Config loaded: ")
+    print(" ")
 
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Paper/Pyne et al/Figure 1/aspectratioanalysis'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular/194 bp'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    path = './'
+    # Load and print the current parameters
+
+    # Main section
+    print("\nMain options:")
+    path = config.get("MainSection", "path")
+    # Force correct path location for MacOS
     path = os.path.abspath(path)
-    # Set sample type here
-    sample_type = 'DNA'
-    # sample_type = 'MAC'
-    # sample_type = 'protein'
+    print("Path: " + path)
+    sample_type = config.get("MainSection","sample_type")
+    print("Sample type: " + sample_type)
+    # fileend = tuple(config.get("MainSection", "fileend"))
+    fileend = tuple(map(str, config.get("MainSection", "fileend").split(",")))
+    print("File end: " + str(fileend))
+    filetype = config.get("MainSection", "filetype")
+    print("File type: " + filetype)
+    extension = config.get("MainSection", "extension")
+    print("Extension: " + extension)
+    minheightscale = float(config.get("MainSection", "minheightscale"))
+    print("Min height scale: " + str(minheightscale))
+    maxheightscale = float(config.get("MainSection", "maxheightscale"))
+    print("Max height scale: " + str(maxheightscale))
+    cropwidth = float(config.get("MainSection", "cropwidth"))
+    print("Crop width: " + str(cropwidth))
+    splitwidth = float(config.get("MainSection", "splitwidth"))
+    print("Split width: " + str(splitwidth))
+    bins = int(config.get("MainSection", "bins"))
+    print("Bins: " + str(bins))
+
+    # Sample type specific section
+    print("\nSample specific options: ")
+    minarea = float(config.get(sample_type, "minarea"))
+    print("Min area: " + str(minarea))
+    maxdeviation = float(config.get(sample_type, "maxdeviation"))
+    print("Max deviation: " + str(maxdeviation))
+    mindeviation = float(config.get(sample_type, "mindeviation"))
+    print("Min deviation: " + str(mindeviation))
+    gaussian = float(config.get(sample_type, "gaussian"))
+    print("Gaussian: " + str(gaussian))
+    thresholdingcriteria = float(config.get(sample_type, "thresholdingcriteria"))
+    print("Thresholding criteria: " + str(thresholdingcriteria))
+
+    # Image output configs
+    print("\nImage Output options")
+    saveTraceFigures_option = bool(int(config.get("ImageOutput", "saveTraceFigures_option")))
+    print("Save trace figures option: " + str(saveTraceFigures_option))
+    savefilesScale_option = int(config.get("ImageOutput", "savefilesScale_option"))
+    print("Save files scale option: " + str(savefilesScale_option))
+    savefile_zscalecolour = str(config.get("ImageOutput", "savefile_zscalecolour"))
+    print("Save file name: " + str(savefile_zscalecolour))
+    zbar_option = int(config.get("ImageOutput","zbar_option"))
+    print("z bar option: " + str(zbar_option))
 
 
-    # Set file type to look for here
-    fileend = '.spm', '.gwy', '*.[0-9]'
-    filetype = '*.[0-9]'
-    # Set extension to export files as here e.g. '.tiff'
-    extension = '.tiff'
+    # Turn colour bar on/off
+    s["/module/pixmap/ztype"] = zbar_option
 
-    # Set height scale values to save out
-    minheightscale = -0e-9
-    maxheightscale = 3e-9
-    # maxheightscale = 20e-9
-    # maxheightscale = 50e-9
-    # Set size of the cropped window/2 in pixels
-    # cropwidth = 100e-9
-    # cropwidth = 60e-9
-    cropwidth = 40e-9
-    splitwidth = 2e-6
-    # Set number of bins
-    bins = 25
+    # Define the settings for image processing functions e.g. align rows here
+    s['/module/linematch/method'] = 1  # uses median
+    s["/module/linematch/max_degree"] = 2
+    s["/module/polylevel/col_degree"] = 2
 
-    # Set the value of different variables, based on the type of the sample. minarea is the minimum size for grain
-    # determination; maxdeviation and mindeviation are the allowable deviations from the median pixel size for
-    # removal of large and small objects
-
-    if sample_type == 'DNA':
-        minarea = 300e-9
-        maxdeviation = 1.3
-        mindeviation = 0.7
-        gaussian = 0.1e-9
-        thresholdingcriteria = 0.75
-
-    elif sample_type == 'protein':
-        minarea = 50e-9
-        maxdeviation = 2.0
-        mindeviation = 0.3
-        gaussian = 0.1e-9
-        thresholdingcriteria = 0.5
-
-    elif sample_type == 'MAC':
-        minarea = 1000e-9
-        maxdeviation = 1.5
-        mindeviation = 0.5
-        gaussian = 0.25e-9
-        thresholdingcriteria = 2.1
 
     # Declare variables used later
     # Placed outside for loop in order that they don't overwrite data to be appended
@@ -864,7 +871,10 @@ if __name__ == '__main__':
                 dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
                 trace_end = time.time()
                 # #dna_traces.showTraces()
-                dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
+                if(saveTraceFigures_option):
+                    print("Saving trace figures")
+                    dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
+                else: print("Not saving trace figures")
                 # dna_traces.writeContourLengths(filename, channel_name)
 
                 # Update the pandas Dataframe used to monitor stats
