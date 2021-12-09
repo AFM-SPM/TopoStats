@@ -717,7 +717,7 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    path = 'C:\Users\dumin\Documents\PhD\Data\NDP52\Curated_data_new\Test'
+    path = 'C:\Users\dumin\Documents\PhD\Data\NDP52\Curated_data_new\Test_Curvature'
     # path = './'
     path = os.path.abspath(path)
     # Set sample type here
@@ -877,15 +877,8 @@ if __name__ == '__main__':
                 # #dna_traces.showTraces()
                 dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
                 dna_traces.writeContourLengths(filename, channel_name)
-                # dna_traces.plotCurvature(1)
-                # dna_traces.plotCurvature(2)
-                # dna_traces.plotCurvature(4)
-                # dna_traces.plotCurvature(5)
-                # dna_traces.plotCurvature(8)
-                # dna_traces.plotCurvature(10)
-                # dna_traces.plotCurvature(11)
-                dna_traces.plotCurvature(15)
-                dna_traces.writeCoordinates(15)
+                dna_traces.plotCurvature(6)
+                dna_traces.writeCoordinates(6)
 
                 # Update the pandas Dataframe used to monitor stats
                 try:
