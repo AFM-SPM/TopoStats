@@ -717,13 +717,13 @@ if __name__ == '__main__':
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    path = 'C:\Users\dumin\Documents\PhD\Data\NDP52\Curated_data_new\Test_Curvature'
+    path = 'C:\Users\dumin\Documents\PhD\Data\NDP52\Curated_data_new\FL_Test'
     # path = './'
     path = os.path.abspath(path)
     # Set sample type here
-    sample_type = 'DNA'
+    # sample_type = 'DNA'
     # sample_type = 'MAC'
-    # sample_type = 'protein'
+    sample_type = 'protein'
     # sample_type = 'protein_with_DNA'
 
     # Set file type to look for here
@@ -877,8 +877,8 @@ if __name__ == '__main__':
                 # #dna_traces.showTraces()
                 dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
                 dna_traces.writeContourLengths(filename, channel_name)
-                dna_traces.plotCurvature(6)
-                dna_traces.writeCoordinates(6)
+                dna_traces.plotCurvature(4)
+                dna_traces.writeCoordinates(4)
 
                 # Update the pandas Dataframe used to monitor stats
                 try:
@@ -909,7 +909,6 @@ if __name__ == '__main__':
         # Save modified files as gwyddion files
         # savefilesasgwy(data, filename)
 
-    tracing_stats.saveTraceStats(path)
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = getdataforallfiles(appended_data)
     # # Search dataframes and return a new dataframe of only files containing a specific string
