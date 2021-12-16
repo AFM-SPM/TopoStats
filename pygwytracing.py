@@ -210,8 +210,6 @@ def grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx):
     # Select channel 'k' of the file
     gwy.gwy_app_data_browser_select_data_field(data, k)
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-    # Gaussiansize = 0.25e-9 / dx
-    # datafield.filter_gaussian(Gaussiansize)
 
     mask = gwy.DataField.new_alike(datafield, False)
 
@@ -221,7 +219,7 @@ def grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx):
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterion corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
-    datafield.mask_outliers(mask, thresholdingcriteria)
+    datafield.mask_outliers2(mask, 5, thresholdingcriteria)
 
     # excluding mask, zero mean
     stats = datafield.area_get_stats_mask(mask, gwy.MASK_EXCLUDE, 0, 0, datafield.get_xres(), datafield.get_yres())
@@ -252,13 +250,13 @@ def grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx):
     return data, mask, datafield, grains
 
 
-def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, dx):
+def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, thresholdingcriteria, dx):
     mask2 = gwy.DataField.new_alike(datafield, False)
 
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
-    datafield.mask_outliers(mask2, 1)
+    datafield.mask_outliers2(mask2, 5, thresholdingcriteria)
     # Calculate pixel width in nm
     # dx = datafield.get_dx()
     # Calculate minimum feature size in pixels (integer)
@@ -279,12 +277,12 @@ def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, dx):
     return mask, grains
 
 
-def removesmallobjects(datafield, mask, median_pixel_area, mindeviation, dx):
+def removesmallobjects(datafield, mask, median_pixel_area, mindeviation, thresholdingcriteria, dx):
     mask2 = gwy.DataField.new_alike(datafield, False)
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
-    datafield.mask_outliers(mask2, 1)
+    datafield.mask_outliers2(mask2, 5, thresholdingcriteria)
     # Calculate pixel width in nm
     # dx = datafield.get_dx()
     # Calculate minimum feature size in pixels (integer)
@@ -517,8 +515,8 @@ def savestats(directory, dataframetosave):
     if not os.path.exists(savedir):
         os.makedirs(savedir)
 
-    dataframetosave.to_json(savename + '.json')
-    dataframetosave.to_csv(savename + '.txt')
+    dataframetosave.to_json(savename + '_ScaleChange.json')
+    dataframetosave.to_csv(savename + '_ScaleChange.csv')
 
 
 def saveindividualstats(filename, dataframetosave, k):
@@ -533,7 +531,7 @@ def saveindividualstats(filename, dataframetosave, k):
         os.makedirs(savedir)
 
     dataframetosave.to_json(savename + str(k) + '.json')
-    dataframetosave.to_csv(savename + str(k) + '.txt')
+    dataframetosave.to_csv(savename + str(k) + '.csv')
 
 
 def savefiles(data, filename, extension):
@@ -544,7 +542,7 @@ def savefiles(data, filename, extension):
     directory, filename = os.path.split(filename)
 
     # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Processed')
+    savedir = os.path.join(directory, 'Processed_ScaleChange')
 
     # If the folder Processed doest exist make it here
     if not os.path.exists(savedir):
@@ -709,16 +707,9 @@ if __name__ == '__main__':
     # Set the file path, i.e. the directory where the files are here'
 
     # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Minicircle Data Edited/Minicircle Manuscript/Nickel'
-    # path = '/Users/alicepyne/Dropbox/UCL/DNA MiniCircles/Paper/Pyne et al/Figure 1/aspectratioanalysis'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular/194 bp'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Circular'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/NPC'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Archive/'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    # path = '/Volumes/GoogleDrive/My Drive/AFM research group /Methods paper/Data/Fortracing'
-    path = 'C:\Users\dumin\Documents\PhD\Data\NDP52\Curated_data_new\FL_Test'
-    # path = './'
+
+    path = './'
+
     path = os.path.abspath(path)
     # Set sample type here
     # sample_type = 'DNA'
@@ -758,10 +749,10 @@ if __name__ == '__main__':
 
     elif sample_type == 'protein':
         minarea = 50e-9
-        maxdeviation = 2.0
-        mindeviation = 0.3
+        maxdeviation = 5
+        mindeviation = 0.5
         gaussian = 0.1e-9
-        thresholdingcriteria = 0.5
+        thresholdingcriteria = 0.7
 
     elif sample_type == 'protein_with_DNA':
         minarea = 1e-9
@@ -826,9 +817,9 @@ if __name__ == '__main__':
             # Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
             median_pixel_area = find_median_pixel_area(datafield, grains)
             # Remove all large objects defined as 1.2* the median grain size (in pixel area)
-            mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, dx)
+            mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, thresholdingcriteria, dx)
             # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
-            mask, grains, number_of_grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation, dx)
+            mask, grains, number_of_grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation, thresholdingcriteria, dx)
 
             # if there's no grains skip this image
             if number_of_grains == 0:
@@ -839,8 +830,8 @@ if __name__ == '__main__':
             grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
 
             # Create cropped datafields for every grain of size set in the main directory
-            bbox, orig_ids, crop_ids, data, cropped_grains, cropwidth_pix = boundbox(cropwidth, datafield, grains, dx,
-                                                                                     dy, xreal, yreal, xres, yres)
+            # bbox, orig_ids, crop_ids, data, cropped_grains, cropwidth_pix = boundbox(cropwidth, datafield, grains, dx,
+            #                                                                         dy, xreal, yreal, xres, yres)
             # orig_ids, crop_ids, data = splitimage(data, splitwidth, datafield, xreal, yreal, xres, yres)
 
             mol_find_end = time.time()
@@ -891,7 +882,7 @@ if __name__ == '__main__':
 
 
             # Save out cropped files as images with no scales to a subfolder
-            savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            # savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 
             # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)
@@ -916,3 +907,5 @@ if __name__ == '__main__':
 
     # Saving stats to text and JSON files named by master path
     savestats(path, grainstats_df)
+
+    print dx

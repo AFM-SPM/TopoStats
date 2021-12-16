@@ -50,7 +50,7 @@ class dnaTrace(object):
         self.num_circular = 0
         self.num_linear = 0
 
-        self.neighbours = 7
+        self.neighbours = 5
 
         # supresses scipy splining warnings
         warnings.filterwarnings('ignore')
@@ -464,26 +464,27 @@ class dnaTrace(object):
                 #        self.disordered_trace.pop(dna_num)
                 #        self.grains.pop(dna_num)
                 #        self.ordered_traces.pop(dna_num)
+
             else:
                 '''
-                start_x = self.fitted_traces[dna_num][0,0]
-                end_x = self.fitted_traces[dna_num][-1,0]
+                start_x = self.fitted_traces[dna_num][0, 0]
+                end_x = self.fitted_traces[dna_num][-1, 0]
 
                 for i in range(step_size):
-                    x_sampled = np.array([self.fitted_traces[dna_num][:,0][j] for j in range(i, len(self.fitted_traces[dna_num][:,0]),step_size)])
-                    y_sampled = np.array([self.fitted_traces[dna_num][:,1][j] for j in range(i, len(self.fitted_traces[dna_num][:,1]),step_size)])
+                    x_sampled = np.array([self.fitted_traces[dna_num][:, 0][j] for j in
+                                          range(i, len(self.fitted_traces[dna_num][:, 0]), step_size)])
+                    y_sampled = np.array([self.fitted_traces[dna_num][:, 1][j] for j in
+                                          range(i, len(self.fitted_traces[dna_num][:, 1]), step_size)])
 
+                    interp_f = interp.interp1d(x_sampled, y_sampled, kind='cubic', assume_sorted=False)
 
-
-                    #interp_f = interp.interp1d(x_sampled, y_sampled, kind = 'cubic', assume_sorted = False)
-
-                    #x_new = np.linspace(start_x,end_x,interp_step)
-                    #y_new = interp_f(x_new)
+                    x_new = np.linspace(start_x, end_x, interp_step)
+                    y_new = interp_f(x_new)
 
                     print(y_new)
 
-                    #tck = interp.splrep(x_sampled, y_sampled, quiet = 0)
-                    #out = interp.splev(np.linspace(start_x,end_x, nbr*step_size), tck)
+                    # tck = interp.splrep(x_sampled, y_sampled, quiet = 0)
+                    # out = interp.splev(np.linspace(start_x,end_x, nbr*step_size), tck)
                     splined_trace = np.column_stack((x_new, y_new))
 
                     try:
@@ -492,7 +493,9 @@ class dnaTrace(object):
                         spline_running_total = np.array(splined_trace)
 
                 spline_average = spline_running_total
+                self.splined_traces[dna_num] = spline_average
                 '''
+
                 # can't get splining of linear molecules to work yet
                 self.splined_traces[dna_num] = self.fitted_traces[dna_num]
 
@@ -694,7 +697,7 @@ class dnaTrace(object):
         plt.axvline(curvature[int(length / 6 * 3)][1] * self.pixel_size, color="#009E74")
         plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size, color="#0071B2")
         plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size, color="#CC79A7")
-        plt.savefig('%s_%s.png' % (savename, dna_num))
+        plt.savefig('%s_%s_curvature.png' % (savename, dna_num))
         plt.close()
 
     def measureContourLength(self):
