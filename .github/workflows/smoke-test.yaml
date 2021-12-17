@@ -1,0 +1,24 @@
+name: Continuous Integration Tests (pytest)
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    container: afmspm/gwyddion-python:latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install package and dependencies
+        run: |
+          apt-get update
+          apt-get install -y python-matplotlib python-pandas python-pip python-seaborn python-skimage
+        shell: bash -l {0}
+      - name: Run TopoStats
+        run: |
+          pwd
+          xvfb-run python pygwytracing.py
+        shell: bash -l {0}
