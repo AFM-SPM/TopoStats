@@ -9,13 +9,9 @@ jobs:
   test:
     name: Smoke Test
     runs-on: ubuntu-latest
-    container: afmspm/gwyddion-python:latest
+    container: afmspm/topostats:wip
     steps:
       - uses: actions/checkout@v2
-      - name: Install package and dependencies
-        run: |
-          apt-get update
-          apt-get install -y python-matplotlib python-pandas python-pip python-seaborn python-skimage
       - name: Run TopoStats
         run: |
           pwd
