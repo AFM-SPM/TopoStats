@@ -42,7 +42,7 @@ class dnaTrace(object):
         self.fitted_traces = {}
         self.splined_traces = {}
         self.contour_lengths = {}
-        self.EndtoEnd_Distance = {}
+        self.end_to_end_distance = {}
         self.mol_is_circular = {}
         self.curvature = {}
 
@@ -50,7 +50,7 @@ class dnaTrace(object):
         self.num_circular = 0
         self.num_linear = 0
 
-        self.neighbours = 5
+        self.neighbours = 5  # The number of neighbours used for the curvature measurement
 
         # supresses scipy splining warnings
         warnings.filterwarnings('ignore')
@@ -620,7 +620,6 @@ class dnaTrace(object):
             # if self.mol_is_circular[dna_num]:
             curve = []
             contour = 0
-            # neighbours = 7
             coordinates = np.zeros([2, self.neighbours * 2 + 1])
             for i, (x, y) in enumerate(self.splined_traces[dna_num]):
                 # Extracts the coordinates for the required number of points and puts them in an array
@@ -776,13 +775,13 @@ class dnaTrace(object):
 
         for dna_num in sorted(self.splined_traces.keys()):
             if self.mol_is_circular[dna_num]:
-                self.EndtoEnd_Distance[dna_num] = 0
+                self.end_to_end_distance[dna_num] = 0
             else:
                 x1 = self.splined_traces[dna_num][0, 0]
                 y1 = self.splined_traces[dna_num][0, 1]
                 x2 = self.splined_traces[dna_num][-1, 0]
                 y2 = self.splined_traces[dna_num][-1, 1]
-                self.EndtoEnd_Distance[dna_num] = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_size * 1e9
+                self.end_to_end_distance[dna_num] = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_size * 1e9
 
 
 class traceStats(object):
@@ -823,7 +822,7 @@ class traceStats(object):
                 data_dict['Basename'].append(basename)
                 data_dict['Contour Lengths'].append(self.trace_object.contour_lengths[dna_num])
                 data_dict['Circular'].append(self.trace_object.mol_is_circular[dna_num])
-                data_dict['End to End Distance'].append(self.trace_object.EndtoEnd_Distance[dna_num])
+                data_dict['End to End Distance'].append(self.trace_object.end_to_end_distance[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
                 data_dict['Image Name'] = [img_name]
@@ -831,7 +830,7 @@ class traceStats(object):
                 data_dict['Basename'] = [basename]
                 data_dict['Contour Lengths'] = [self.trace_object.contour_lengths[dna_num]]
                 data_dict['Circular'] = [self.trace_object.mol_is_circular[dna_num]]
-                data_dict['End to End Distance'] = [self.trace_object.EndtoEnd_Distance[dna_num]]
+                data_dict['End to End Distance'] = [self.trace_object.end_to_end_distance[dna_num]]
         self.pd_dataframe = pd.DataFrame(data=data_dict)
 
     def updateTraceStats(self, new_traces):
@@ -852,7 +851,7 @@ class traceStats(object):
                 data_dict['Basename'].append(basename)
                 data_dict['Contour Lengths'].append(new_traces.contour_lengths[dna_num])
                 data_dict['Circular'].append(new_traces.mol_is_circular[dna_num])
-                data_dict['End to End Distance'].append(new_traces.EndtoEnd_Distance[dna_num])
+                data_dict['End to End Distance'].append(new_traces.end_to_end_distance[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
                 data_dict['Image Name'] = [img_name]
@@ -860,7 +859,7 @@ class traceStats(object):
                 data_dict['Basename'] = [basename]
                 data_dict['Contour Lengths'] = [new_traces.contour_lengths[dna_num]]
                 data_dict['Circular'] = [new_traces.mol_is_circular[dna_num]]
-                data_dict['End to End Distance'] = [new_traces.EndtoEnd_Distance[dna_num]]
+                data_dict['End to End Distance'] = [new_traces.end_to_end_distance[dna_num]]
 
         pd_new_traces_dframe = pd.DataFrame(data=data_dict)
 
