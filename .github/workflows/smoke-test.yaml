@@ -1,4 +1,4 @@
-name: Continuous Integration Tests (pytest)
+name: Smoke Test
 
 on:
   pull_request:
