@@ -21,7 +21,7 @@ sns.set_style("white", {'font.family': ['sans-serif']})
 sns.set_context("poster", font_scale=1.4)
 # plt.style.use("dark_background")
 sns.set_palette(sns.color_palette('bright'))
-defextension = '.tiff'
+defextension = '.png'
 
 colname2label = {
     'grain_bound_len': 'Circumference / %s',
@@ -42,8 +42,8 @@ colname2label = {
     'grain_min_volume': 'Minimum Volume / $\mathregular{%s^3}$',
     'grain_zero_volume': 'Zero Volume / $\mathregular{%s^3}$',
     'grain_laplace_volume': 'Laplacian Volume / $\mathregular{%s^3}$',
-    'End to End Distance': 'End to End Distance',
-    'Contour Lengths': 'Contour Lengths',
+    'End to End Distance': 'End to End Distance / nm',
+    'Contour Lengths': 'Contour Lengths / nm',
 }
 
 
@@ -68,7 +68,7 @@ def pathman(path):
 
     directory = os.path.dirname(path)
     name = os.path.basename(path)[:-5]
-    savedir = os.path.join(directory, 'Plots_formatted_Height_Test')
+    savedir = os.path.join(directory, 'Plots')
     if not os.path.exists(savedir):
         os.makedirs(savedir)
     plotname = os.path.join(savedir, name)
@@ -88,12 +88,21 @@ def labelunitconversion(plotarg, nm):
             label = label % 'nm'
         else:
             label = label % 'm'
+    elif '/ nm' in label:
+        if nm is False:
+            label = label[:-2] + 'm'
+
     return label
 
 
 def dataunitconversion(data, plotarg, nm):
     """Converting the data based on the unit specified by the user. Only nm and m are supported at the moment."""
-    label = colname2label[plotarg]
+
+    if plotarg in colname2label:
+        label = colname2label[plotarg]
+    else:
+        label = plotarg
+
     data_new = data
     if nm is True:
         if '%s' in label:
@@ -103,6 +112,10 @@ def dataunitconversion(data, plotarg, nm):
                 data_new = data * 1e27
             else:
                 data_new = data * 1e9
+    else:
+        if '/ nm' in label:
+            data_new = data * 1e-9
+
     return data_new
 
 
@@ -115,7 +128,7 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath
 
     # Set the name of the file
     if specpath is None:
-        specpath = path1
+        specpath = path
     savename = os.path.join(pathman(specpath) + '_' + plotarg + '_KDE' + plotextension)
 
     # Convert the unit of the data to nm if specified by the user
@@ -127,22 +140,6 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath
     if grouparg is None:
         df = df[plotarg]
         df.plot.kde(ax=ax, alpha=1, linewidth=7.0)
-
-        ax1 = plt.gca()
-        line = ax1.lines[0]
-        x = line.get_xdata()
-        y = line.get_ydata()
-
-        xmax1 = x[np.argmax(y)]
-        err1 = stats.sem(x)
-        err2 = stats.sem(df)
-        err3 = x.std()
-        err4 = df.std()
-        print xmax1
-        print err1
-        print err2
-        print err3
-        print err4
 
     # Grouped KDE plots
     else:
@@ -230,44 +227,43 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     plt.savefig(savename)
 
 
-def plotdist(df, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None,
+def plotdist(df, xmin=None, xmax=None, bins=20, nm=False, specpath=None,
              plotextension=defextension, *plotargs):
-    # print 'Plotting dist plot of %s' % plotargs
-
-    # Set  the name of the file
-    if specpath is None:
-        specpath = path
-    savename = os.path.join(pathman(specpath) + '_' + 'test' + '_dist' + plotextension)
-
-    # Convert the unit of the data to nm if specified by the user
-    for plotarg in plotargs:
-        df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
-
-    # Plot figure
-    fig, ax = plt.subplots(figsize=(15, 12))
-    # Simple dist plot
-    if grouparg is None:
-        for plotarg in plotargs:
-            sns.distplot(df[plotarg], ax=ax, bins=bins)
-
-    # Grouped KDE plots
-    # else:
-    #     df = df[[grouparg, plotarg]]
-    #     df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=1, linewidth=7.0)
-    #     handles, labels = ax.get_legend_handles_labels()
-    #     ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
-
-    # Label plot and save figure
-    plt.xlim(xmin, xmax)
-    # plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
-    plt.ylabel('Probability Density', alpha=1)
-    plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
-    plt.savefig(savename)
+    """An attempt to make dist plots for a customisable number of arguments, but this doesn't work yet"""
 
 
-def plotdist2var(plotarg1, plotarg2, df1, df2=None, grouparg=None, xmin=None, xmax=None, bins=20, nm=False,
+    # # Set  the name of the file
+    # if specpath is None:
+    #     specpath = path
+    # savename = os.path.join(pathman(specpath) + '_dist' + plotextension)
+    #
+    # # Convert the unit of the data to nm if specified by the user
+    # for plotarg in plotargs:
+    #     df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
+    #
+    # # Plot figure
+    # fig, ax = plt.subplots(figsize=(15, 12))
+    # # Simple dist plot
+    #
+    # for plotarg in plotargs:
+    #     sns.distplot(df[plotarg], ax=ax, bins=bins)
+    #
+    # # Label plot and save figure
+    # plt.xlim(xmin, xmax)
+    # # plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
+    # plt.ylabel('Probability Density', alpha=1)
+    # # plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
+    # plt.savefig(savename)
+    pass
+
+
+
+def plotdist2var(plotarg1, plotarg2, df1, df2=None, xmin=None, xmax=None, bins=20, nm=False,
                  specpath=None,
                  plotextension=defextension, plotname=None, c1=None, c2=None):
+
+    """Dist plot for 2 variables"""
+
     print 'Plotting dist plot of %s and %s' % (plotarg1, plotarg2)
 
     if plotname is None:
@@ -275,15 +271,13 @@ def plotdist2var(plotarg1, plotarg2, df1, df2=None, grouparg=None, xmin=None, xm
 
     # Set  the name of the file
     if specpath is None:
-        specpath = path1
+        specpath = path
     savename = os.path.join(pathman(specpath) + '_' + plotname + '_dist' + plotextension)
 
     if df2 is None:
         df2 = df1
 
     # Convert the unit of the data to nm if specified by the user
-    # df1[plotarg1] = dataunitconversion(df1[plotarg1], plotarg1, nm)
-    # df2[plotarg2] = dataunitconversion(df2[plotarg2], plotarg2, nm)
 
     dfa = dataunitconversion(df1[plotarg1], plotarg1, nm)
     dfb = dataunitconversion(df2[plotarg2], plotarg2, nm)
@@ -291,33 +285,9 @@ def plotdist2var(plotarg1, plotarg2, df1, df2=None, grouparg=None, xmin=None, xm
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
     # Simple dist plot
-    if grouparg is None:
-        sns.distplot(dfa, ax=ax, bins=bins, color=c1)
-        sns.distplot(dfb, ax=ax, bins=bins, color=c2)
 
-    # xs = np.linspace(0, 1, 10)
-    # dfstd = 0
-    # dfvar = 0
-    # dfste = 0
-    # x = df1[plotarg1]
-    # a = scipy.stats.gaussian_kde(x)
-    # x0 = np.argmax(a)
-    # b = a.pdf(xs)
-    # # dfstd = np.std(x)
-    # dfstd = x.std()
-    # dfvar = np.var(x)
-    # dfste = stats.sem
-    # # plt.plot(xs, b)
-    # kdemax = xs[np.argmax(b)]
-    #
-    # plt.vlines(x0, ymin=kdemax-dfstd, ymax=kdemax+dfstd, alpha=1)
-
-    # Grouped KDE plots
-    # else:
-    #     df = df[[grouparg, plotarg]]
-    #     df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=1, linewidth=7.0)
-    #     handles, labels = ax.get_legend_handles_labels()
-    #     ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
+    sns.distplot(dfa, ax=ax, bins=bins, color=c1)
+    sns.distplot(dfb, ax=ax, bins=bins, color=c2)
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
@@ -392,22 +362,51 @@ def plotLinearVsCircular(contour_lengths_df):
     pass
 
 
+def computeStats(data, columns, min, max):
+
+    """Prints out a table of stats, including the standard deviation, standard error, N value, and peak position"""
+
+    xs = np.linspace(min, max, 1000)
+
+    a = {}
+    b = {}
+    table = {
+        'max': [0] * len(data),
+        'std': [0] * len(data),
+        'ste': [0] * len(data),
+        'N': [0] * len(data),
+    }
+
+    for i, x in enumerate(data):
+        x = x * 1e9
+        a[i] = scipy.stats.gaussian_kde(x)
+        b[i] = a[i].pdf(xs)
+        table['std'][i] = np.std(x)
+        table['ste'][i] = stats.sem(x)
+        table['max'][i] = xs[np.argmax(b[i])]
+        table['N'][i] = len(x)
+
+    dfmax = pd.DataFrame.from_dict(table, orient='index', columns=columns)
+    dfmax.to_csv(pathman(path) + '.csv')
+
+
 if __name__ == '__main__':
     # Path to the json file, e.g. C:\\Users\\username\\Documents\\Data\\Data.json
+
+    path = ''
+    path2 = ''
 
     # Set the name of the json file to import here
     # name = 'Non-incubation'
     bins = 50
 
     # import data form the json file specified as a dataframe
-    df1 = importfromjson(path1)
+    df = importfromjson(path)
     df2 = importfromjson(path2)
 
     # * df = df[df['End to End Distance'] != 0]
     # * df = df[df['Contour Lengths'] > 100]
     # * df = df[df['Contour Lengths'] < 120]
-    # df1 = importfromjson(path1)
-    # df2 = importfromjson(path2)
 
     # Rename directory column as appropriate
     # df = df.rename(columns={"directory": "Experimental Conditions"})
@@ -421,10 +420,6 @@ if __name__ == '__main__':
     # df1['aspectratio'] = df1['grain_min_bound_size'] / df1['grain_max_bound_size']
     # df2['aspectratio'] = df2['grain_min_bound_size'] / df2['grain_max_bound_size']
     # df['Basename'] = os.path.basename(df['Experiment Directory'])
-    # mask1 = np.repeat('Mask1', len(df1))
-    # mask2 = np.repeat('Mask2', len(df2))
-    # df1['Mask'] = mask1
-    # df2['Mask'] = mask2
 
     # df = pd.concat([df1, df2])
 
@@ -477,55 +472,37 @@ if __name__ == '__main__':
 # plotkde(df, 'grain_min_bound_size', xmin=0, xmax=40, nm=True)
 # plotkde2var(df, 'grain_min_bound_size', 'grain_max_bound_size', xmin=0, xmax=40, nm=True)
 
-# plotdist(df, ('grain_min_bound_size', 'grain_max_bound_size'))
-
-plotdist2var('grain_min_bound_size', 'grain_max_bound_size', df2, plotname='Bound Size for Full Protein', nm=True, xmin=0, xmax=50, c1='#f9cb9c', c2='#b45f06')
-plotdist2var('grain_min_bound_size', 'grain_max_bound_size', df1, df2=df1, plotname='Bound Size for CTD', nm=True, xmin=0, xmax=50, c1='#9fc5e8', c2='#0b5394')
-plotdist2var('grain_min_bound_size', 'grain_min_bound_size', df1, df2=df2, plotname='Minimum Bound Size for CTD and Full Protein', nm=True, xmin=0, xmax=50, c1='#9fc5e8', c2='#f9cb9c')
-plotdist2var('grain_max_bound_size', 'grain_max_bound_size', df1, df2=df2, plotname='Maximum Bound Size for CTD and Full Protein', nm=True, xmin=0, xmax=50, c1='#0b5394', c2='#b45f06')
-plotdist2var('grain_max_bound_size', 'grain_min_bound_size', df1, df2=df2, plotname='Mininmum Bound Size for Full Protein and Maximum Bound Size for CTD', nm=True, xmin=0, xmax=50, c1='#0b5394', c2='#f9cb9c')
-
-# plotdist2var('grain_min_bound_size', 'grain_max_bound_size', df2, plotname='Same masking as FL', nm=True, xmin=0, xmax=50, c1='#f9cb9c', c2='#b45f06')
-# plotdist2var('grain_min_bound_size', 'grain_max_bound_size', df1, df2=df1, plotname='No dimer masking', nm=True, xmin=0, xmax=50, c1='#9fc5e8', c2='#0b5394')
-# plotdist2var('grain_min_bound_size', 'grain_min_bound_size', df1, df2=df2, plotname='Minimum Bound Size for different masking', xmin=0, xmax=50, c1='#9fc5e8', c2='#f9cb9c')
-# plotdist2var('grain_max_bound_size', 'grain_max_bound_size', df1, df2=df2, plotname='Maximum Bound Size for different masking', xmin=0, xmax=50, c1='#0b5394', c2='#b45f06')
 
 
-
-# plotkde(df1, 'grain_min_bound_size', nm=True)
-# plotkde(df1, 'grain_max_bound_size', nm=True)
-# plotkde(df2, 'grain_min_bound_size', nm=True)
-# plotkde(df2, 'grain_max_bound_size', nm=True)
-
-
-xs = np.linspace(0, 50, 1000)
-
-data = [df1['grain_min_bound_size'], df1['grain_max_bound_size'], df2['grain_min_bound_size'],
-        df2['grain_max_bound_size']]
-
-
-a = {}
-b = {}
-table = {
-    'max': [0, 0, 0, 0],
-    'std': [0, 0, 0, 0],
-    'ste': [0, 0, 0, 0],
-    'N': [0, 0, 0, 0],
-}
-
-for i, x in enumerate(data):
-    x = x*1e9
-    a[i] = scipy.stats.gaussian_kde(x)
-    b[i] = a[i].pdf(xs)
-    table['std'][i] = np.std(x)
-    table['ste'][i] = stats.sem(x)
-    table['max'][i] = xs[np.argmax(b[i])]
-    table['N'][i] = len(x)
+plotdist2var('grain_min_bound_size', 'grain_max_bound_size', df2, plotname='Bound Size for Full Protein', nm=True,
+             xmin=0, xmax=50, c1='#f9cb9c', c2='#b45f06', plotextension='.tiff')
+plotdist2var('grain_min_bound_size', 'grain_max_bound_size', df, df2=df, plotname='Bound Size for CTD', nm=True, xmin=0,
+             xmax=50, c1='#9fc5e8', c2='#0b5394', plotextension='.tiff')
+plotdist2var('grain_min_bound_size', 'grain_min_bound_size', df, df2=df2,
+             plotname='Minimum Bound Size for CTD and Full Protein', nm=True, xmin=0, xmax=50, c1='#9fc5e8',
+             c2='#f9cb9c', plotextension='.tiff')
+plotdist2var('grain_max_bound_size', 'grain_max_bound_size', df, df2=df2,
+             plotname='Maximum Bound Size for CTD and Full Protein', nm=True, xmin=0, xmax=50, c1='#0b5394',
+             c2='#b45f06', plotextension='.tiff')
+plotdist2var('grain_max_bound_size', 'grain_min_bound_size', df, df2=df2,
+             plotname='Mininmum Bound Size for Full Protein and Maximum Bound Size for CTD', nm=True, xmin=0, xmax=50,
+             c1='#0b5394', c2='#f9cb9c', plotextension='.tiff')
 
 
-dfmax = pd.DataFrame.from_dict(table, orient='index', columns=['Min for CTD / nm', 'Max for CTD / nm',
-                                                               'Min for FL / nm', 'Max for FL / nm'])
-dfmax.to_csv(pathman(path1)+'.csv')
+
+
+data = [df['grain_min_bound_size'], df['grain_max_bound_size'], df2['grain_min_bound_size'],
+            df2['grain_max_bound_size']]
+columns = ['Min for CTD / nm', 'Max for CTD / nm',
+               'Min for FL / nm', 'Max for FL / nm']
+
+computeStats(data, columns, 0, 50)
+
+
+
+
+
+
 
 
 
@@ -541,15 +518,15 @@ dfmax.to_csv(pathman(path1)+'.csv')
 
 # plotkde2var(df, 'grain_min_bound_size', 'grain_max_bound_size', nm=True)
 # plotkde(df, 'grain_max_bound_size', xmax=3.5e-8)
-# plotkde(df, 'grain_half_height_area', xmin=0, xmax=1.5e2, specpath=path1, grouparg=grouparg, nm=True)
+# plotkde(df, 'grain_half_height_area', xmin=0, xmax=1.5e2, specpath=path, grouparg=grouparg, nm=True)
 
-# plotkde(df, 'grain_maximum', specpath=path1, xmin=0, xmax=1e-8, grouparg=grouparg)
-# plotkde(df, 'grain_mean_radius', specpath=path1, xmin=0, xmax=1.5e-8, grouparg=grouparg)
-# plotkde(df, 'grain_bound_len', specpath=path1, xmin=-0.25e-7, xmax=1.25e-7, grouparg=grouparg)
+# plotkde(df, 'grain_maximum', specpath=path, xmin=0, xmax=1e-8, grouparg=grouparg)
+# plotkde(df, 'grain_mean_radius', specpath=path, xmin=0, xmax=1.5e-8, grouparg=grouparg)
+# plotkde(df, 'grain_bound_len', specpath=path, xmin=-0.25e-7, xmax=1.25e-7, grouparg=grouparg)
 
-# plotkde(df, 'grain_min_volume', specpath=path1, xmin=-1e-25, xmax=2.5e-25, grouparg=grouparg)
-# plotkde(df, 'grain_zero_volume', specpath=path1, xmin=-1e-25, xmax=5e-25, grouparg=grouparg)
-# plotkde(df, 'grain_laplace_volume', specpath=path1, xmin=-1e-25, xmax=2.5e-25, grouparg=grouparg)
+# plotkde(df, 'grain_min_volume', specpath=path, xmin=-1e-25, xmax=2.5e-25, grouparg=grouparg)
+# plotkde(df, 'grain_zero_volume', specpath=path, xmin=-1e-25, xmax=5e-25, grouparg=grouparg)
+# plotkde(df, 'grain_laplace_volume', specpath=path, xmin=-1e-25, xmax=2.5e-25, grouparg=grouparg)
 # plothist(df, 'grain_min_bound_size', xmax=2.5e-8, bins=bins)
 # plothist(df, 'grain_proj_area', xmax=3e-16)
 # plothist(df, 'grain_half_height_area', grouparg=grouparg)
