@@ -15,8 +15,8 @@ config.ini
 *.gwy
 *.txt
 *.rtf
-.json
-.npy
+*.json
+*.npy
 
 # IDE
 .vscode/

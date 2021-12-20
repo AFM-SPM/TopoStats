@@ -214,7 +214,7 @@ def grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx):
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterion corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
-    datafield.mask_outliers(mask, thresholdingcriteria)
+    datafield.mask_outliers2(mask, 5, thresholdingcriteria)
 
     # excluding mask, zero mean
     stats = datafield.area_get_stats_mask(mask, gwy.MASK_EXCLUDE, 0, 0, datafield.get_xres(), datafield.get_yres())
@@ -245,13 +245,13 @@ def grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx):
     return data, mask, datafield, grains
 
 
-def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, dx):
+def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, thresholdingcriteria, dx):
     mask2 = gwy.DataField.new_alike(datafield, False)
 
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
-    datafield.mask_outliers(mask2, 1)
+    datafield.mask_outliers2(mask2, 5, thresholdingcriteria)
     # Calculate pixel width in nm
     # dx = datafield.get_dx()
     # Calculate minimum feature size in pixels (integer)
@@ -272,12 +272,12 @@ def removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, dx):
     return mask, grains
 
 
-def removesmallobjects(datafield, mask, median_pixel_area, mindeviation, dx):
+def removesmallobjects(datafield, mask, median_pixel_area, mindeviation, thresholdingcriteria, dx):
     mask2 = gwy.DataField.new_alike(datafield, False)
     # Mask data that are above thresh*sigma from average height.
     # Sigma denotes root-mean square deviation of heights.
     # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
-    datafield.mask_outliers(mask2, 1)
+    datafield.mask_outliers2(mask2, 5, thresholdingcriteria)
     # Calculate pixel width in nm
     # dx = datafield.get_dx()
     # Calculate minimum feature size in pixels (integer)
@@ -318,6 +318,9 @@ def grainanalysis(appended_data, filename, datafield, grains):
                          'grain_ellipse_angle': gwy.GRAIN_VALUE_EQUIV_ELLIPSE_ANGLE,
                          'grain_ellipse_major': gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MAJOR,
                          'grain_ellipse_minor': gwy.GRAIN_VALUE_EQUIV_ELLIPSE_MINOR,
+                         'grain_min_volume': gwy.GRAIN_VALUE_VOLUME_MIN,
+                         'grain_zero_volume': gwy.GRAIN_VALUE_VOLUME_0,
+                         'grain_laplace_volume': gwy.GRAIN_VALUE_VOLUME_LAPLACE,
                          }
     # Create empty dictionary for grain data
     grain_data_to_save = {}
@@ -508,7 +511,7 @@ def savestats(directory, dataframetosave):
         os.makedirs(savedir)
 
     dataframetosave.to_json(savename + '.json')
-    dataframetosave.to_csv(savename + '.txt')
+    dataframetosave.to_csv(savename + '.csv')
 
 
 def saveindividualstats(filename, dataframetosave, k):
@@ -523,13 +526,13 @@ def saveindividualstats(filename, dataframetosave, k):
         os.makedirs(savedir)
 
     dataframetosave.to_json(savename + str(k) + '.json')
-    dataframetosave.to_csv(savename + str(k) + '.txt')
+    dataframetosave.to_csv(savename + str(k) + '.csv')
 
 
 def savefiles(data, filename, extension):
     # Save file scale option: 1 - ruler, 2 - inset scale bar, 0 - none
     s["/module/pixmap/xytype"] = savefilesScale_option
-    
+
 
     # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
     directory, filename = os.path.split(filename)
@@ -695,7 +698,7 @@ def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
 
 # This the main script
 if __name__ == '__main__':
-    
+
     # Test if config file exists
     # If it doesn't, create a new config file with default parameters
     if(not os.path.isfile("config.ini")) :
@@ -822,9 +825,9 @@ if __name__ == '__main__':
             # Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
             median_pixel_area = find_median_pixel_area(datafield, grains)
             # Remove all large objects defined as 1.2* the median grain size (in pixel area)
-            mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, dx)
+            mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, thresholdingcriteria, dx)
             # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
-            mask, grains, number_of_grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation, dx)
+            mask, grains, number_of_grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation, thresholdingcriteria, dx)
 
             # if there's no grains skip this image
             if number_of_grains == 0:
