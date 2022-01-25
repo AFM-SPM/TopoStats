@@ -410,7 +410,7 @@ class dnaTrace(object):
                                           range(i, len(self.fitted_traces[dna_num][:, 1]), step_size)])
 
                     try:
-                        tck, u = interp.splprep([x_sampled, y_sampled], s=1, per=2, quiet=1, k=3)
+                        tck, u = interp.splprep([x_sampled, y_sampled], s=0, per=2, quiet=1, k=3)
                         out = interp.splev(ev_array, tck)
                         splined_trace = np.column_stack((out[0], out[1]))
                     except ValueError:
@@ -473,7 +473,7 @@ class dnaTrace(object):
                                           range(i, len(self.fitted_traces[dna_num][:, 1]), step_size)])
 
                     try:
-                        tck, u = interp.splprep([x_sampled, y_sampled], s=0, per=0, quiet=1, k=3)
+                        tck, u = interp.splprep([x_sampled, y_sampled], s=1, per=0, quiet=1, k=3)
                         out = interp.splev(ev_array, tck)
                         splined_trace = np.column_stack((out[0], out[1]))
                     except ValueError:
@@ -512,35 +512,34 @@ class dnaTrace(object):
                 spline_average = np.divide(spline_running_total, [step_size, step_size])
                 del spline_running_total
                 self.splined_traces[dna_num] = spline_average
-                '''
-                start_x = self.fitted_traces[dna_num][0, 0]
-                end_x = self.fitted_traces[dna_num][-1, 0]
 
-                for i in range(step_size):
-                    x_sampled = np.array([self.fitted_traces[dna_num][:, 0][j] for j in
-                                          range(i, len(self.fitted_traces[dna_num][:, 0]), step_size)])
-                    y_sampled = np.array([self.fitted_traces[dna_num][:, 1][j] for j in
-                                          range(i, len(self.fitted_traces[dna_num][:, 1]), step_size)])
-
-                    interp_f = interp.interp1d(x_sampled, y_sampled, kind='cubic', assume_sorted=False)
-
-                    x_new = np.linspace(start_x, end_x, interp_step)
-                    y_new = interp_f(x_new)
-
-                    print(y_new)
-
-                    # tck = interp.splrep(x_sampled, y_sampled, quiet = 0)
-                    # out = interp.splev(np.linspace(start_x,end_x, nbr*step_size), tck)
-                    splined_trace = np.column_stack((x_new, y_new))
-
-                    try:
-                        np.add(spline_running_total, splined_trace)
-                    except NameError:
-                        spline_running_total = np.array(splined_trace)
-
-                spline_average = spline_running_total
-                self.splined_traces[dna_num] = spline_average
-                '''
+                # start_x = self.fitted_traces[dna_num][0, 0]
+                # end_x = self.fitted_traces[dna_num][-1, 0]
+                #
+                # for i in range(step_size):
+                #     x_sampled = np.array([self.fitted_traces[dna_num][:, 0][j] for j in
+                #                           range(i, len(self.fitted_traces[dna_num][:, 0]), step_size)])
+                #     y_sampled = np.array([self.fitted_traces[dna_num][:, 1][j] for j in
+                #                           range(i, len(self.fitted_traces[dna_num][:, 1]), step_size)])
+                #
+                #     interp_f = interp.interp1d(x_sampled, y_sampled, kind='cubic', assume_sorted=False)
+                #
+                #     x_new = np.linspace(start_x, end_x, interp_step)
+                #     y_new = interp_f(x_new)
+                #
+                #     print(y_new)
+                #
+                #     # tck = interp.splrep(x_sampled, y_sampled, quiet = 0)
+                #     # out = interp.splev(np.linspace(start_x,end_x, nbr*step_size), tck)
+                #     splined_trace = np.column_stack((x_new, y_new))
+                #
+                #     try:
+                #         np.add(spline_running_total, splined_trace)
+                #     except NameError:
+                #         spline_running_total = np.array(splined_trace)
+                #
+                # spline_average = spline_running_total
+                # self.splined_traces[dna_num] = spline_average
 
                 # can't get splining of linear molecules to work yet
                 # self.splined_traces[dna_num] = self.fitted_traces[dna_num]
@@ -613,16 +612,16 @@ class dnaTrace(object):
         plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name))
         plt.close()
 
-        '''
-        plt.pcolormesh(self.full_image_data)
-        plt.colorbar()
-        for dna_num in sorted(self.ordered_traces.keys()):
-            #disordered_trace_list = self.ordered_traces[dna_num].tolist()
-            #less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
-            plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1])
-        plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name))
-        plt.close()
-        '''
+
+        # plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        # plt.colorbar()
+        # for dna_num in sorted(self.ordered_traces.keys()):
+        #     #disordered_trace_list = self.ordered_traces[dna_num].tolist()
+        #     #less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
+        #     plt.plot(self.ordered_traces[dna_num][:, 0], self.ordered_traces[dna_num][:, 1], color='c', linewidth=1.0)
+        # plt.savefig('%s_%s_orderedtrace.png' % (save_file, channel_name))
+        # plt.close()
+
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
@@ -814,8 +813,10 @@ class dnaTrace(object):
         coordinates = pd.DataFrame(coordinates_array)
         coordinates.to_csv('%s_%s.csv' % (savename, dna_num))
 
-        plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], 'ko')
+        plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], 'k.')
         plt.savefig('%s_%s_coordinates.png' % (savename, dna_num))
+        plt.close()
+
 
     def measureEndtoEndDistance(self):
 
