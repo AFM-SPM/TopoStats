@@ -263,8 +263,8 @@ class dnaTrace(object):
                 if 67.5 > vector_angle >= 22.5:
                     perp_direction = 'negative diaganol'
                     # positive diagonal (change in x and y)
-                    # Take height values at the inverse of the positive diaganol
-                    # (i.e. the negative diaganol)
+                    # Take height values at the inverse of the positive diagonal
+                    # (i.e. the negative diagonal)
                     y_coords = np.arange(
                         trace_coordinate[1] - index_width,
                         trace_coordinate[1] + index_width
@@ -401,8 +401,6 @@ class dnaTrace(object):
 
             if self.mol_is_circular[dna_num]:
 
-                # if nbr/step_size > 4: #the degree of spline fit is 3 so there cannot be less than 3 points in splined trace
-
                 ev_array = np.linspace(0, 1, nbr * step_size)
 
                 for i in range(step_size):
@@ -412,7 +410,7 @@ class dnaTrace(object):
                                           range(i, len(self.fitted_traces[dna_num][:, 1]), step_size)])
 
                     try:
-                        tck, u = interp.splprep([x_sampled, y_sampled], s=0, per=2, quiet=1, k=3)
+                        tck, u = interp.splprep([x_sampled, y_sampled], s=1, per=2, quiet=1, k=3)
                         out = interp.splev(ev_array, tck)
                         splined_trace = np.column_stack((out[0], out[1]))
                     except ValueError:
@@ -466,6 +464,54 @@ class dnaTrace(object):
                 #        self.ordered_traces.pop(dna_num)
 
             else:
+                ev_array = np.linspace(0, 1, nbr * step_size)
+
+                for i in range(step_size):
+                    x_sampled = np.array([self.fitted_traces[dna_num][:, 0][j] for j in
+                                          range(i, len(self.fitted_traces[dna_num][:, 0]), step_size)])
+                    y_sampled = np.array([self.fitted_traces[dna_num][:, 1][j] for j in
+                                          range(i, len(self.fitted_traces[dna_num][:, 1]), step_size)])
+
+                    try:
+                        tck, u = interp.splprep([x_sampled, y_sampled], s=0, per=0, quiet=1, k=3)
+                        out = interp.splev(ev_array, tck)
+                        splined_trace = np.column_stack((out[0], out[1]))
+                    except ValueError:
+                        # Value error occurs when the "trace fitting" really messes up the traces
+
+                        x = np.array([self.ordered_traces[dna_num][:, 0][j] for j in
+                                      range(i, len(self.ordered_traces[dna_num][:, 0]), step_size)])
+                        y = np.array([self.ordered_traces[dna_num][:, 1][j] for j in
+                                      range(i, len(self.ordered_traces[dna_num][:, 1]), step_size)])
+
+                        try:
+                            tck, u = interp.splprep([x, y], s=0, per=0, quiet=1)
+                            out = interp.splev(np.linspace(0, 1, nbr * step_size), tck)
+                            splined_trace = np.column_stack((out[0], out[1]))
+                        except ValueError:  # sometimes even the ordered_traces are too bugged out so just delete these traces
+                            self.mol_is_circular.pop(dna_num)
+                            self.disordered_trace.pop(dna_num)
+                            self.grains.pop(dna_num)
+                            self.ordered_traces.pop(dna_num)
+                            self.splining_success = False
+                            try:
+                                del spline_running_total
+                            except UnboundLocalError:  # happens if splining fails immediately
+                                break
+                            break
+
+                    try:
+                        spline_running_total = np.add(spline_running_total, splined_trace)
+                    except NameError:
+                        print('NameError')
+                        spline_running_total = np.array(splined_trace)
+
+                if not self.splining_success:
+                    continue
+
+                spline_average = np.divide(spline_running_total, [step_size, step_size])
+                del spline_running_total
+                self.splined_traces[dna_num] = spline_average
                 '''
                 start_x = self.fitted_traces[dna_num][0, 0]
                 end_x = self.fitted_traces[dna_num][-1, 0]
@@ -497,7 +543,7 @@ class dnaTrace(object):
                 '''
 
                 # can't get splining of linear molecules to work yet
-                self.splined_traces[dna_num] = self.fitted_traces[dna_num]
+                # self.splined_traces[dna_num] = self.fitted_traces[dna_num]
 
     def showTraces(self):
 
