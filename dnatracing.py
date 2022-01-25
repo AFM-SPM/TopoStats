@@ -814,6 +814,7 @@ class dnaTrace(object):
         coordinates.to_csv('%s_%s.csv' % (savename, dna_num))
 
         plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], 'k.')
+        plt.axis('equal')
         plt.savefig('%s_%s_coordinates.png' % (savename, dna_num))
         plt.close()
 
