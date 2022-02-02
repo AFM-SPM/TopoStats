@@ -64,8 +64,8 @@ class dnaTrace(object):
         self.determineLinearOrCircular(self.ordered_traces)
         self.getFittedTraces()
         self.getSplinedTraces()
-        self.findCurvature()
-        self.saveCurvature()
+        # self.findCurvature()
+        # self.saveCurvature()
         self.measureContourLength()
         self.measureEndtoEndDistance()
         self.reportBasicStats()
@@ -528,37 +528,37 @@ class dnaTrace(object):
         plt.savefig('%s_%s_originalImage.png' % (save_file, channel_name))
         plt.close()
 
-        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
-        plt.colorbar()
-        for dna_num in sorted(self.splined_traces.keys()):
-            # disordered_trace_list = self.ordered_traces[dna_num].tolist()
-            # less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
-            plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=1.0)
-            if self.mol_is_circular[dna_num]:
-                starting_point = 0
-            else:
-                starting_point = self.neighbours
-            length = len(self.curvature[dna_num])
-            plt.plot(self.splined_traces[dna_num][starting_point, 0],
-                     self.splined_traces[dna_num][starting_point, 1],
-                     color='#D55E00', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6), 1],
-                     color='#E69F00', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 1],
-                     color='#F0E442', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 1],
-                     color='#009E74', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 1],
-                     color='#0071B2', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 1],
-                     color='#CC79A7', markersize=3.0, marker=5)
-        plt.savefig('%s_%s_splinedtrace_with_markers.png' % (save_file, channel_name))
-        plt.close()
+        # plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        # plt.colorbar()
+        # for dna_num in sorted(self.splined_traces.keys()):
+        #     # disordered_trace_list = self.ordered_traces[dna_num].tolist()
+        #     # less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
+        #     plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=1.0)
+        #     if self.mol_is_circular[dna_num]:
+        #         starting_point = 0
+        #     else:
+        #         starting_point = self.neighbours
+        #     length = len(self.curvature[dna_num])
+        #     plt.plot(self.splined_traces[dna_num][starting_point, 0],
+        #              self.splined_traces[dna_num][starting_point, 1],
+        #              color='#D55E00', markersize=3.0, marker=5)
+        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6), 0],
+        #              self.splined_traces[dna_num][starting_point + int(length / 6), 1],
+        #              color='#E69F00', markersize=3.0, marker=5)
+        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 0],
+        #              self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 1],
+        #              color='#F0E442', markersize=3.0, marker=5)
+        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 0],
+        #              self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 1],
+        #              color='#009E74', markersize=3.0, marker=5)
+        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 0],
+        #              self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 1],
+        #              color='#0071B2', markersize=3.0, marker=5)
+        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 0],
+        #              self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 1],
+        #              color='#CC79A7', markersize=3.0, marker=5)
+        # plt.savefig('%s_%s_splinedtrace_with_markers.png' % (save_file, channel_name))
+        # plt.close()
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
