@@ -697,7 +697,7 @@ def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
 
 
 # This the main script
-if __name__ == '__main__':
+def trace():
 
     # Test if config file exists
     # If it doesn't, create a new config file with default parameters
