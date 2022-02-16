@@ -18,6 +18,7 @@ config.ini
 *.rtf
 *.json
 *.npy
+*.csv
 
 # IDE
 .vscode/
