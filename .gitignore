@@ -1,6 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*.egg-info/*
 
 # User-Specific config file
 config.ini
