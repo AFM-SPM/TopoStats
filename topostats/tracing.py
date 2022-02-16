@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import dnatracing
+import topostats.dnatracing as dnatracing
 import time
 import configparser
 from shutil import copyfile
