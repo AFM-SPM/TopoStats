@@ -101,7 +101,7 @@ def choosechannels(data, channel1, channel2):
     return chosen_ids
 
 
-def imagedetails(data):
+def imagedetails(data, k):
     # select the channel file of chosen_ids
     gwy.gwy_app_data_browser_select_data_field(data, k)
 
@@ -199,7 +199,7 @@ def editfile(data, k):
     return data
 
 
-def grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx):
+def grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx, minheightscale, maxheightscale):
     # Select channel 'k' of the file
     gwy.gwy_app_data_browser_select_data_field(data, k)
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
@@ -806,7 +806,7 @@ def trace():
             # for k in chosen_ids:
             #     # Get all the image details eg resolution for your chosen channel
             data_edit_start = time.time()
-            xres, yres, xreal, yreal, dx, dy = imagedetails(data)
+            xres, yres, xreal, yreal, dx, dy = imagedetails(data, k)
 
             # Perform basic image processing, to align rows, flatten and set the mean value to zero
             data = editfile(data, k)
@@ -817,7 +817,7 @@ def trace():
             # Find all grains in the mask which are both above a height threshold
             # and bigger than the min size set in the main codegrain_mean_rad
             # 1.2 works well for DNA minicircle images
-            data, mask, datafield, grains = grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx)
+            data, mask, datafield, grains = grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx, minheightscale, maxheightscale)
             # # Flattening based on masked data and subsequent grain finding
             # # Used for analysing data e.g. peptide induced bilayer degradation
             # data, mask, datafield, grains = heightthresholding.otsuthresholdgrainfinding(data, k)
