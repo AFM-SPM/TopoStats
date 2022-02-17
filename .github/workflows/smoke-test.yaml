@@ -1,4 +1,4 @@
-name: Smoke Test
+name: CI Tests
 
 on:
   pull_request:
@@ -7,12 +7,15 @@ on:
 
 jobs:
   test:
-    name: Smoke Test
+    name: CI Tests
     runs-on: ubuntu-latest
     container: afmspm/topostats:wip
     steps:
       - uses: actions/checkout@v2
-      - name: Run TopoStats
+      - name: Smoke Test
         run: |
           pwd
           xvfb-run python pygwytracing.py
+      - name: pytest Tests
+        run: |
+          pytest
