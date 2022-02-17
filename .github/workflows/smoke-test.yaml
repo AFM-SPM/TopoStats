@@ -21,4 +21,4 @@ jobs:
           xvfb-run python pygwytracing.py
       - name: pytest Tests
         run: |
-          pytest
+          xvfb-run python -m pytest
