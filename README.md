@@ -69,12 +69,12 @@ This should run the pygwytracing.py script for TopoStats, targetting the reposit
 
 The terminal will output information about the status of the TopoStats script. Any results will be placed in a folder in the TopoStats folder, called 'processed'.
 
-## Testing
+### Testing
 
 To run tests:
 
 ```
-pytest
+xvfb-run python -m pytest
 ```
 
 ## Parameter Configuration
