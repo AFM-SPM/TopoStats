@@ -529,7 +529,7 @@ def saveindividualstats(filename, dataframetosave, k):
     dataframetosave.to_csv(savename + str(k) + '.csv')
 
 
-def savefiles(data, filename, extension, savefilesScale_option, k):
+def savefiles(data, filename, extension, savefilesScale_option, k, savefile_zscalecolour, mask):
     # Save file scale option: 1 - ruler, 2 - inset scale bar, 0 - none
     s["/module/pixmap/xytype"] = savefilesScale_option
 
@@ -900,7 +900,7 @@ def trace():
             npdata, npmask = exportasnparray(datafield, mask)
 
             # Save data as 2 images, with and without mask
-            savefiles(data, filename, extension, savefilesScale_option, k)
+            savefiles(data, filename, extension, savefilesScale_option, k, savefile_zscalecolour, mask)
             # saveunknownfiles(data, filename, extension)
 
             # Saving stats to text and JSON files named by master path
