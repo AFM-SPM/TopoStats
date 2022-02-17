@@ -37,7 +37,12 @@ Both KDE plots and histograms are generated for any of the grain quantities usin
 
 ## Run TopoStats using Docker
 
-TopoStats uses the Docker platform to ensure that TopoStats runs correctly on any machine, and means you do not have to install python and python packages yourself. Docker is an all in one solution that downloads and installs all dependencies that you need to run TopoStats.
+TopoStats uses the Docker platform to ensure that TopoStats runs correctly on any machine, and removes the requirement of manually installing Python and Python packages yourself. Docker is an all in one solution that downloads and installs all dependencies that you need to run TopoStats.
+
+# What you will need 
+* To be an admin / have admin privileges on your computer.
+* An up-to date version of your operating system.
+* At least 4GB of RAM available to your computer.
 
 # Downloading the TopoStats files
 
