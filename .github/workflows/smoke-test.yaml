@@ -12,6 +12,9 @@ jobs:
     container: afmspm/topostats:wip
     steps:
       - uses: actions/checkout@v2
+      - name: Install topostats
+        run: |
+          pip install -e .
       - name: Smoke Test
         run: |
           pwd
