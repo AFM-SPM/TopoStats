@@ -76,7 +76,7 @@ Then finally run TopoStats, using the command:
 xvfb-run python pygwytracing.py
 ```
 
-This should run the pygwytracing.py script for TopoStats, targetting the repository folder that was mapped on your operating system, looking for spm files.
+This should run the pygwytracing.py script for TopoStats, targeting the repository folder that was mapped on your operating system, looking for spm files.
 
 The terminal will output information about the status of the TopoStats script. Any results will be placed in a folder in the TopoStats folder, called 'processed'.
 
