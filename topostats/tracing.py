@@ -298,7 +298,7 @@ def removesmallobjects(datafield, mask, median_pixel_area, mindeviation, thresho
     return mask, grains, number_of_grains
 
 
-def grainanalysis(appended_data, filename, datafield, grains):
+def grainanalysis(appended_data, filename, datafield, grains, k):
     # Calculating grain statistics using numbered grains file
     # Statistics to be computed should be specified here as a dictionary
     values_to_compute = {'grain_proj_area': gwy.GRAIN_VALUE_PROJECTED_AREA,
@@ -529,7 +529,7 @@ def saveindividualstats(filename, dataframetosave, k):
     dataframetosave.to_csv(savename + str(k) + '.csv')
 
 
-def savefiles(data, filename, extension):
+def savefiles(data, filename, extension, savefilesScale_option, k):
     # Save file scale option: 1 - ruler, 2 - inset scale bar, 0 - none
     s["/module/pixmap/xytype"] = savefilesScale_option
 
@@ -835,7 +835,7 @@ def trace():
 
             # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
             # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
-            grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
+            grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains, k)
 
             # Create cropped datafields for every grain of size set in the main directory
             bbox, orig_ids, crop_ids, data, cropped_grains, cropwidth_pix = boundbox(cropwidth, datafield, grains, dx,
@@ -900,7 +900,7 @@ def trace():
             npdata, npmask = exportasnparray(datafield, mask)
 
             # Save data as 2 images, with and without mask
-            savefiles(data, filename, extension)
+            savefiles(data, filename, extension, savefilesScale_option, k)
             # saveunknownfiles(data, filename, extension)
 
             # Saving stats to text and JSON files named by master path
