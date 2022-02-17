@@ -33,20 +33,22 @@ Both KDE plots and histograms are generated for any of the grain quantities usin
 
 TopoStats uses the Docker platform to ensure that TopoStats runs correctly on any machine, and removes the requirement of manually installing Python and Python packages yourself. Docker is an all in one solution that downloads and installs all dependencies that you need to run TopoStats.
 
-# What you will need 
+### What you will need 
 * To be an admin / have admin privileges on your computer.
-* An up-to date version of your operating system.
+* An up-to date version of your operating system (MacOS, GNU/Linux, Windows 10/11).
 * At least 4GB of RAM available to your computer.
 
-# Downloading the TopoStats files
+### Downloading the TopoStats files
 
-The first step is to get the file that Docker will need to be able to run TopoStats.
+The first step is to get the files that Docker will need to be able to run TopoStats.
 
-You can download the files directly from [GitHub] (https://github.com/AFM-SPM/TopoStats) by clicking the 'code' button, and selecting the 'Download ZIP' button. This will download the code in a compressed format which you should extract and move to a sensible place on your computer. 
+You can download the files directly from [GitHub] (https://github.com/AFM-SPM/TopoStats) via the 'code' button, and selecting the 'Download ZIP' button. This will download the code in a compressed format which you should extract and move to a sensible place on your computer (Eg: username/Documents/TopoStats).
 
-# Installing Docker
+### Installing Docker
 
-Docker provides a way to run software in a controlled environment, without having to install lots of packages on your computer. To run TopoStats using Docker you will first need to install [Docker](https://docs.docker.com/get-docker/). Then, using a terminal, "pull" the container image to your computer by running the following command:
+Docker provides a way to run software in a controlled environment, without having to install lots of packages on your computer. To run TopoStats using Docker you will first need to install [Docker](https://docs.docker.com/get-docker/). Please follow the installation instructions provided by the Docker team.
+
+After installing Docker, using a terminal (command prompt on Windows / terminal app on MacOS), "pull" the container image to your computer by running the following command:
 
 ```
 docker pull afmspm/topostats:wip
@@ -66,7 +68,7 @@ Navigate to the mapped folder in the virtual machine using:
 cd home/TopoStats
 ```
 
-This is where you have installed TopoStats. 
+This is where you have mapped the TopoStats code file to in the virtual machine. 
 
 Then finally run TopoStats, using the command:
 
