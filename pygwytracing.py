@@ -898,20 +898,22 @@ if __name__ == '__main__':
                 dna_traces.plotCurvature(7)
                 dna_traces.plotCurvature(8)
 
-                # dna_traces.writeCoordinates(1)
-                # dna_traces.writeCoordinates(2)
-                # dna_traces.writeCoordinates(3)
-                # dna_traces.writeCoordinates(4)
-                # dna_traces.writeCoordinates(5)
-                # dna_traces.writeCoordinates(6)
-                # dna_traces.writeCoordinates(7)
-                # dna_traces.writeCoordinates(8)
+                dna_traces.plotGradient(8)
+
+                dna_traces.writeCoordinates(1)
+                dna_traces.writeCoordinates(2)
+                dna_traces.writeCoordinates(3)
+                dna_traces.writeCoordinates(4)
+                dna_traces.writeCoordinates(5)
+                dna_traces.writeCoordinates(6)
+                dna_traces.writeCoordinates(7)
+                dna_traces.writeCoordinates(8)
 
 
 
 
             # Save out cropped files as images with no scales to a subfolder
-            # savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
 
             # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)

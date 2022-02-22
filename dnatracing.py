@@ -671,43 +671,43 @@ class dnaTrace(object):
             d2y = np.gradient(dy)
             for i, (x, y) in enumerate(self.splined_traces[dna_num]):
                 # Extracts the coordinates for the required number of points and puts them in an array
-                if self.mol_is_circular[dna_num] or (
-                        self.neighbours < i < len(self.splined_traces[dna_num]) - self.neighbours):
-                    for j in range(self.neighbours * 2 + 1):
-                        coordinates[0][j] = self.splined_traces[dna_num][i - j][0]
-                        coordinates[1][j] = self.splined_traces[dna_num][i - j][1]
+                # if self.mol_is_circular[dna_num] or (
+                #         self.neighbours < i < len(self.splined_traces[dna_num]) - self.neighbours):
+                for j in range(self.neighbours * 2 + 1):
+                    coordinates[0][j] = self.splined_traces[dna_num][i - j][0]
+                    coordinates[1][j] = self.splined_traces[dna_num][i - j][1]
 
-                    # Calculates the angles for the tangent lines to the left and the right of the point
-                    theta1 = math.atan((coordinates[1][self.neighbours] - coordinates[1][0]) / (
-                            coordinates[0][self.neighbours] - coordinates[0][0]))
-                    theta2 = math.atan((coordinates[1][-1] - coordinates[1][self.neighbours]) / (
-                            coordinates[0][-1] - coordinates[0][self.neighbours]))
+                # Calculates the angles for the tangent lines to the left and the right of the point
+                theta1 = math.atan((coordinates[1][self.neighbours] - coordinates[1][0]) / (
+                        coordinates[0][self.neighbours] - coordinates[0][0]))
+                theta2 = math.atan((coordinates[1][-1] - coordinates[1][self.neighbours]) / (
+                        coordinates[0][-1] - coordinates[0][self.neighbours]))
 
-                    left = coordinates[:, :self.neighbours + 1]
-                    right = coordinates[:, -(self.neighbours + 1):]
+                left = coordinates[:, :self.neighbours + 1]
+                right = coordinates[:, -(self.neighbours + 1):]
 
-                    xa = np.mean(left[0])
-                    ya = np.mean(left[1])
+                xa = np.mean(left[0])
+                ya = np.mean(left[1])
 
-                    xb = np.mean(right[0])
-                    yb = np.mean(right[1])
+                xb = np.mean(right[0])
+                yb = np.mean(right[1])
 
-                    # Calculates the curvature using the change in angle divided by the distance
-                    dist = math.hypot((xb - xa), (yb - ya))
-                    dist_real = dist * self.pixel_size
-                    # curve.append([i, contour, (theta2 - theta1) / dist_real])
-                    curvature_local = (dx[i] * d2y[i] - d2x[i] * dy[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
-                    curve.append([i, contour, curvature_local])
-                    contour = contour + math.hypot(
-                        (coordinates[0][self.neighbours] - coordinates[0][self.neighbours - 1]),
-                        (coordinates[1][self.neighbours] - coordinates[1][self.neighbours - 1]))
+                # Calculates the curvature using the change in angle divided by the distance
+                dist = math.hypot((xb - xa), (yb - ya))
+                dist_real = dist * self.pixel_size
+                # curve.append([i, contour, (theta2 - theta1) / dist_real])
+                curvature_local = -(dx[i] * d2y[i] - d2x[i] * dy[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
+                curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
+                contour = contour + math.hypot(
+                    (coordinates[0][self.neighbours] - coordinates[0][self.neighbours - 1]),
+                    (coordinates[1][self.neighbours] - coordinates[1][self.neighbours - 1]))
             self.curvature[dna_num] = curve
 
     def saveCurvature(self):
 
         # roc_array = np.zeros(shape=(1, 3))
         for dna_num in sorted(self.curvature.keys()):
-            for i, [n, contour, c] in enumerate(self.curvature[dna_num]):
+            for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(self.curvature[dna_num]):
                 try:
                     roc_array = np.append(roc_array, np.array([[dna_num, i, contour, c]]), axis=0)
                     # oc_array.append([dna_num, i, contour, c])
@@ -747,6 +747,26 @@ class dnaTrace(object):
         plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size, color="#CC79A7")
         plt.savefig('%s_%s_curvature.png' % (savename, dna_num))
         plt.close()
+
+    def plotGradient(self, dna_num):
+
+        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Gradient")):
+            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Gradient"))
+        directory = os.path.join(os.path.dirname(self.afm_image_name), "Gradient")
+        savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
+
+        curvature = np.array(self.curvature[dna_num])
+        plt.figure()
+        plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 3], color='r')
+        plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 4], color='b')
+        plt.savefig('%s_%s_gradient.png' % (savename, dna_num))
+        plt.close
+
+        plt.figure()
+        plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 5], color='r')
+        plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 6], color='b')
+        plt.savefig('%s_%s_second_order.png' % (savename, dna_num))
+        plt.close
 
     def measureContourLength(self):
 
@@ -822,6 +842,11 @@ class dnaTrace(object):
         plt.savefig('%s_%s_coordinates.png' % (savename, dna_num))
         plt.close()
 
+        curvature = np.array(self.curvature[dna_num])
+        plt.plot(curvature[:, 1] * self.pixel_size, coordinates_array[:, 0], color='r')
+        plt.plot(curvature[:, 1] * self.pixel_size, coordinates_array[:, 1], color='b')
+        plt.savefig('%s_%s_x_and_y.png' % (savename, dna_num))
+        plt.close()
 
     def measureEndtoEndDistance(self):
 
