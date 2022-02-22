@@ -665,6 +665,10 @@ class dnaTrace(object):
             curve = []
             contour = 0
             coordinates = np.zeros([2, self.neighbours * 2 + 1])
+            dx = np.gradient(self.splined_traces[dna_num], axis=0)[:, 0]
+            dy = np.gradient(self.splined_traces[dna_num], axis=0)[:, 1]
+            d2x = np.gradient(dx)
+            d2y = np.gradient(dy)
             for i, (x, y) in enumerate(self.splined_traces[dna_num]):
                 # Extracts the coordinates for the required number of points and puts them in an array
                 if self.mol_is_circular[dna_num] or (
@@ -691,8 +695,9 @@ class dnaTrace(object):
                     # Calculates the curvature using the change in angle divided by the distance
                     dist = math.hypot((xb - xa), (yb - ya))
                     dist_real = dist * self.pixel_size
-                    curve.append([i, contour, (theta2 - theta1) / dist_real])
-
+                    # curve.append([i, contour, (theta2 - theta1) / dist_real])
+                    curvature_local = (dx[i] * d2y[i] - d2x[i] * dy[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
+                    curve.append([i, contour, curvature_local])
                     contour = contour + math.hypot(
                         (coordinates[0][self.neighbours] - coordinates[0][self.neighbours - 1]),
                         (coordinates[1][self.neighbours] - coordinates[1][self.neighbours - 1]))
@@ -732,7 +737,7 @@ class dnaTrace(object):
 
         plt.figure()
         sns.lineplot(curvature[:, 1] * self.pixel_size, curvature[:, 2], color='k')
-        plt.ylim(-1e9, 1e9)
+        # plt.ylim(-0.1e9, 0.1e9)
         plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
         plt.axvline(curvature[0][1], color="#D55E00")
         plt.axvline(curvature[int(length / 6)][1] * self.pixel_size, color="#E69F00")
