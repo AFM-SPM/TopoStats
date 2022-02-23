@@ -56,7 +56,7 @@ Docker conatiners provide a way to run software in a controlled environment, wit
 docker pull afmspm/topostats:x
 ```
 
-This allows docker to know how to run TopoStats. Docker then needs to be able to access TopoStats on your operating system. This can be done by mapping the TopoStats folder on your operating system to a folder in the virtual machine. **The files that you wish to analyse will need to be in your TopoStats folder.** The following command both maps the folders and starts the virtual machine:
+This allows docker to know how to run TopoStats. Docker then needs to be able to access TopoStats on your operating system. This can be done by mapping the TopoStats folder on your operating system to a folder in the container. **The files that you wish to analyse will need to be in your TopoStats folder.** The following command both maps the folders and starts the virtual machine:
 
 ```
 docker run -it -v <path/to/your/topostats>:/home/TopoStats afmspm/topostats:x
