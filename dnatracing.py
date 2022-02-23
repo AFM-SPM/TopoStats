@@ -669,6 +669,7 @@ class dnaTrace(object):
             dy = np.gradient(self.splined_traces[dna_num], axis=0)[:, 1]
             d2x = np.gradient(dx)
             d2y = np.gradient(dy)
+
             for i, (x, y) in enumerate(self.splined_traces[dna_num]):
                 # Extracts the coordinates for the required number of points and puts them in an array
                 # if self.mol_is_circular[dna_num] or (
@@ -696,7 +697,8 @@ class dnaTrace(object):
                 dist = math.hypot((xb - xa), (yb - ya))
                 dist_real = dist * self.pixel_size
                 # curve.append([i, contour, (theta2 - theta1) / dist_real])
-                curvature_local = -(dx[i] * d2y[i] - d2x[i] * dy[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
+
+                curvature_local = (d2x[i] * dy[i] - dx[i] * d2y[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
                 curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
                 contour = contour + math.hypot(
                     (coordinates[0][self.neighbours] - coordinates[0][self.neighbours - 1]),
