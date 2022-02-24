@@ -1,6 +1,7 @@
 ''' **pygwytracing.py**
 This is the main script, containing modules for basic image processing. '''
 
+import pkg_resources
 import sys
 
 # sys.path.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # location of gwy.so file (Macports install)
@@ -705,7 +706,11 @@ def trace():
         # Copy default_config.ini to config.ini
         print("No config file found named 'config.ini'")
         print("Copying default_config.ini to config.ini")
-        copyfile('default_config.ini','config.ini')
+        
+        config_string = pkg_resources.resource_string(__name__, './default_config.ini')
+        with open("config.ini", "w") as text_file:            
+            text_file.write(config_string)
+               
 
     # Read the config file
     print("Reading config file")
