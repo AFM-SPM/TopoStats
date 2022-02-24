@@ -1,4 +1,4 @@
-import topostats.tracing as tracing
+import topostats.pygwytracing as pygwytracing
 
 def test_reg_trace():
-    tracing.trace()
+    pygwytracing.trace()
