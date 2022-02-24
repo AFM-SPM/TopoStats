@@ -1,4 +1,4 @@
-name: Smoke Test
+name: CI Tests
 
 on:
   pull_request:
@@ -8,12 +8,17 @@ on:
 
 jobs:
   test:
-    name: Smoke Test
+    name: CI Tests
     runs-on: ubuntu-latest
     container: afmspm/topostats:wip
     steps:
       - uses: actions/checkout@v2
-      - name: Run TopoStats
+      - name: Install topostats
         run: |
           pip install -e .
+      - name: Smoke Test
+        run: |
           xvfb-run python -m topostats
+      - name: pytest Tests
+        run: |
+          xvfb-run python -m pytest

@@ -75,6 +75,14 @@ This should run the pygwytracing.py script for TopoStats, targetting the reposit
 
 The terminal will output information about the status of the TopoStats script. Any results will be placed in a folder in the TopoStats folder, called 'processed'.
 
+### Testing
+
+To run tests:
+
+```
+xvfb-run python -m pytest
+```
+
 ## Parameter Configuration
 
 The parameters that the software uses for analysis of the data can be configured in `Config.ini` by simply opening the file in a text editor and changing the variables. You do not need to edit the code to change the parameters.
