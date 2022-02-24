@@ -59,10 +59,16 @@ Navigate to the mapped folder in the virtual machine using:
 cd home/TopoStats
 ```
 
+Install the package:
+
+```
+pip install -e .
+```
+
 Then finally run TopoStats, using the command:
 
 ```
-xvfb-run python pygwytracing.py
+xvfb-run python -m topostats
 ```
 
 This should run the pygwytracing.py script for TopoStats, targetting the repository folder that was mapped on your operating system, looking for spm files.

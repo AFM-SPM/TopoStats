@@ -1,6 +1,7 @@
 ''' **pygwytracing.py**
 This is the main script, containing modules for basic image processing. '''
 
+import pkg_resources
 import sys
 
 # sys.path.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages') # location of gwy.so file (Macports install)
@@ -26,7 +27,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import dnatracing
+import topostats.dnatracing as dnatracing
 import time
 import configparser
 from shutil import copyfile
@@ -101,7 +102,7 @@ def choosechannels(data, channel1, channel2):
     return chosen_ids
 
 
-def imagedetails(data):
+def imagedetails(data, k):
     # select the channel file of chosen_ids
     gwy.gwy_app_data_browser_select_data_field(data, k)
 
@@ -199,7 +200,7 @@ def editfile(data, k):
     return data
 
 
-def grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx):
+def grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx, minheightscale, maxheightscale):
     # Select channel 'k' of the file
     gwy.gwy_app_data_browser_select_data_field(data, k)
     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
@@ -298,7 +299,7 @@ def removesmallobjects(datafield, mask, median_pixel_area, mindeviation, thresho
     return mask, grains, number_of_grains
 
 
-def grainanalysis(appended_data, filename, datafield, grains):
+def grainanalysis(appended_data, filename, datafield, grains, k):
     # Calculating grain statistics using numbered grains file
     # Statistics to be computed should be specified here as a dictionary
     values_to_compute = {'grain_proj_area': gwy.GRAIN_VALUE_PROJECTED_AREA,
@@ -529,7 +530,7 @@ def saveindividualstats(filename, dataframetosave, k):
     dataframetosave.to_csv(savename + str(k) + '.csv')
 
 
-def savefiles(data, filename, extension):
+def savefiles(data, filename, extension, savefilesScale_option, k, savefile_zscalecolour, mask):
     # Save file scale option: 1 - ruler, 2 - inset scale bar, 0 - none
     s["/module/pixmap/xytype"] = savefilesScale_option
 
@@ -697,7 +698,7 @@ def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
 
 
 # This the main script
-if __name__ == '__main__':
+def trace():
 
     # Test if config file exists
     # If it doesn't, create a new config file with default parameters
@@ -705,7 +706,11 @@ if __name__ == '__main__':
         # Copy default_config.ini to config.ini
         print("No config file found named 'config.ini'")
         print("Copying default_config.ini to config.ini")
-        copyfile('default_config.ini','config.ini')
+        
+        config_string = pkg_resources.resource_string(__name__, './default_config.ini')
+        with open("config.ini", "w") as text_file:            
+            text_file.write(config_string)
+               
 
     # Read the config file
     print("Reading config file")
@@ -806,7 +811,7 @@ if __name__ == '__main__':
             # for k in chosen_ids:
             #     # Get all the image details eg resolution for your chosen channel
             data_edit_start = time.time()
-            xres, yres, xreal, yreal, dx, dy = imagedetails(data)
+            xres, yres, xreal, yreal, dx, dy = imagedetails(data, k)
 
             # Perform basic image processing, to align rows, flatten and set the mean value to zero
             data = editfile(data, k)
@@ -817,7 +822,7 @@ if __name__ == '__main__':
             # Find all grains in the mask which are both above a height threshold
             # and bigger than the min size set in the main codegrain_mean_rad
             # 1.2 works well for DNA minicircle images
-            data, mask, datafield, grains = grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx)
+            data, mask, datafield, grains = grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx, minheightscale, maxheightscale)
             # # Flattening based on masked data and subsequent grain finding
             # # Used for analysing data e.g. peptide induced bilayer degradation
             # data, mask, datafield, grains = heightthresholding.otsuthresholdgrainfinding(data, k)
@@ -835,7 +840,7 @@ if __name__ == '__main__':
 
             # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
             # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
-            grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
+            grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains, k)
 
             # Create cropped datafields for every grain of size set in the main directory
             bbox, orig_ids, crop_ids, data, cropped_grains, cropwidth_pix = boundbox(cropwidth, datafield, grains, dx,
@@ -900,7 +905,7 @@ if __name__ == '__main__':
             npdata, npmask = exportasnparray(datafield, mask)
 
             # Save data as 2 images, with and without mask
-            savefiles(data, filename, extension)
+            savefiles(data, filename, extension, savefilesScale_option, k, savefile_zscalecolour, mask)
             # saveunknownfiles(data, filename, extension)
 
             # Saving stats to text and JSON files named by master path

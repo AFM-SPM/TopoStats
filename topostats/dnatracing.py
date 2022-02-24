@@ -8,7 +8,7 @@ import math
 import warnings
 import os
 
-from tracingfuncs import genTracingFuncs, getSkeleton, reorderTrace
+from topostats.tracingfuncs import genTracingFuncs, getSkeleton, reorderTrace
 
 
 class dnaTrace(object):
