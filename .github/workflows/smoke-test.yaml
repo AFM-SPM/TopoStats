@@ -18,7 +18,7 @@ jobs:
           pip install -e .
       - name: Smoke Test
         run: |
-          xvfb-run python pygwytracing.py
+          xvfb-run python -m topostats
       - name: pytest Tests
         run: |
           xvfb-run python -m pytest
