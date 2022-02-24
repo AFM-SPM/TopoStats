@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - master
+      - dev
 
 jobs:
   test:
@@ -17,7 +18,6 @@ jobs:
           pip install -e .
       - name: Smoke Test
         run: |
-          pwd
           xvfb-run python pygwytracing.py
       - name: pytest Tests
         run: |
