@@ -659,50 +659,87 @@ class dnaTrace(object):
 
     def findCurvature(self):
 
+        n_points = 100
+        radius = float(5)
+        self.splined_traces[0] = np.zeros([n_points*2, 2])
+        for i in range(0, n_points):
+            x = -radius + i * radius * 2 / n_points
+            y = (radius ** 2 - x ** 2) ** 0.5
+            self.splined_traces[0][i][0] = x
+            self.splined_traces[0][i][1] = y
+        for i in range(n_points, n_points * 2):
+            x = radius - (i - n_points) * radius * 2 / n_points
+            y = -(radius ** 2 - x ** 2) ** 0.5
+            self.splined_traces[0][i][0] = x
+            self.splined_traces[0][i][1] = y
+        self.mol_is_circular[0] = True
+
         for dna_num in sorted(self.splined_traces.keys()):  # the number of molecules identified
             # splined_traces is a dictionary, where the keys are the number of the molecule, and the values are a
             # list of coordinates, in a numpy.ndarray
+            length = len(self.splined_traces[dna_num])
             curve = []
             contour = 0
             coordinates = np.zeros([2, self.neighbours * 2 + 1])
-            dx = np.gradient(self.splined_traces[dna_num], axis=0)[:, 0]
-            dy = np.gradient(self.splined_traces[dna_num], axis=0)[:, 1]
-            d2x = np.gradient(dx)
-            d2y = np.gradient(dy)
+            dxmean = np.zeros(length)
+            dymean = np.zeros(length)
+            gradients = np.zeros([2, self.neighbours * 2 + 1])
+            if self.mol_is_circular[dna_num]:
+                longlist = np.concatenate([self.splined_traces[dna_num], self.splined_traces[dna_num], self.splined_traces[dna_num]])
+                dx = np.gradient(longlist, axis=0)[:, 0]
+                dy = np.gradient(longlist, axis=0)[:, 1]
+                d2x = np.gradient(dx)
+                d2y = np.gradient(dy)
+
+                dx = dx[length:2 * length]
+                dy = dy[length:2 * length]
+                d2x = d2x[length:2 * length]
+                d2y = d2y[length:2 * length]
+            else:
+                dx = np.gradient(self.splined_traces[dna_num], axis=0)[:, 0]
+                dy = np.gradient(self.splined_traces[dna_num], axis=0)[:, 1]
+                d2x = np.gradient(dx)
+                d2y = np.gradient(dy)
 
             for i, (x, y) in enumerate(self.splined_traces[dna_num]):
                 # Extracts the coordinates for the required number of points and puts them in an array
-                # if self.mol_is_circular[dna_num] or (
-                #         self.neighbours < i < len(self.splined_traces[dna_num]) - self.neighbours):
-                for j in range(self.neighbours * 2 + 1):
-                    coordinates[0][j] = self.splined_traces[dna_num][i - j][0]
-                    coordinates[1][j] = self.splined_traces[dna_num][i - j][1]
+                if self.mol_is_circular[dna_num] or (
+                        self.neighbours < i < len(self.splined_traces[dna_num]) - self.neighbours):
+                    for j in range(self.neighbours * 2 + 1):
+                        coordinates[0][j] = self.splined_traces[dna_num][i - j][0]
+                        coordinates[1][j] = self.splined_traces[dna_num][i - j][1]
+                        gradients[0][j] = dx[i - j]
+                        gradients[1][j] = dy[i - j]
+                    dxmean[i] = np.mean(gradients[0])
+                    dymean[i] = np.mean(gradients[1])
 
-                # Calculates the angles for the tangent lines to the left and the right of the point
-                theta1 = math.atan((coordinates[1][self.neighbours] - coordinates[1][0]) / (
-                        coordinates[0][self.neighbours] - coordinates[0][0]))
-                theta2 = math.atan((coordinates[1][-1] - coordinates[1][self.neighbours]) / (
-                        coordinates[0][-1] - coordinates[0][self.neighbours]))
 
-                left = coordinates[:, :self.neighbours + 1]
-                right = coordinates[:, -(self.neighbours + 1):]
 
-                xa = np.mean(left[0])
-                ya = np.mean(left[1])
+                    # Calculates the angles for the tangent lines to the left and the right of the point
+                    # theta1 = math.atan((coordinates[1][self.neighbours] - coordinates[1][0]) / (
+                    #         coordinates[0][self.neighbours] - coordinates[0][0]))
+                    # theta2 = math.atan((coordinates[1][-1] - coordinates[1][self.neighbours]) / (
+                    #         coordinates[0][-1] - coordinates[0][self.neighbours]))
+                    #
+                    # left = coordinates[:, :self.neighbours + 1]
+                    # right = coordinates[:, -(self.neighbours + 1):]
+                    #
+                    # xa = np.mean(left[0])
+                    # ya = np.mean(left[1])
 
-                xb = np.mean(right[0])
-                yb = np.mean(right[1])
+                    # xb = np.mean(right[0])
+                    # yb = np.mean(right[1])
 
-                # Calculates the curvature using the change in angle divided by the distance
-                dist = math.hypot((xb - xa), (yb - ya))
-                dist_real = dist * self.pixel_size
-                # curve.append([i, contour, (theta2 - theta1) / dist_real])
+                    # Calculates the curvature using the change in angle divided by the distance
+                    # dist = math.hypot((xb - xa), (yb - ya))
+                    # dist_real = dist * self.pixel_size
+                    # curve.append([i, contour, (theta2 - theta1) / dist_real])
 
-                curvature_local = (d2x[i] * dy[i] - dx[i] * d2y[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
-                curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
-                contour = contour + math.hypot(
-                    (coordinates[0][self.neighbours] - coordinates[0][self.neighbours - 1]),
-                    (coordinates[1][self.neighbours] - coordinates[1][self.neighbours - 1]))
+                    curvature_local = (d2x[i] * dy[i] - dx[i] * d2y[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
+                    curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
+                    contour = contour + math.hypot(
+                        (coordinates[0][self.neighbours] - coordinates[0][self.neighbours - 1]),
+                        (coordinates[1][self.neighbours] - coordinates[1][self.neighbours - 1]))
             self.curvature[dna_num] = curve
 
     def saveCurvature(self):
