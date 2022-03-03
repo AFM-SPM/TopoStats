@@ -661,15 +661,11 @@ class dnaTrace(object):
 
         n_points = 100
         radius = float(5)
-        self.splined_traces[0] = np.zeros([n_points*2, 2])
+        self.splined_traces[0] = np.zeros([n_points, 2])
         for i in range(0, n_points):
-            x = -radius + i * radius * 2 / n_points
-            y = (radius ** 2 - x ** 2) ** 0.5
-            self.splined_traces[0][i][0] = x
-            self.splined_traces[0][i][1] = y
-        for i in range(n_points, n_points * 2):
-            x = radius - (i - n_points) * radius * 2 / n_points
-            y = -(radius ** 2 - x ** 2) ** 0.5
+            theta = 2 * math.pi / n_points * i
+            x = - math.cos(theta) * radius
+            y = math.sin(theta) * radius
             self.splined_traces[0][i][0] = x
             self.splined_traces[0][i][1] = y
         self.mol_is_circular[0] = True
