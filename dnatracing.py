@@ -659,8 +659,8 @@ class dnaTrace(object):
 
     def findCurvature(self):
 
-        n_points = 100
-        radius = float(5)
+        n_points = 1000
+        radius = float(1)
         self.splined_traces[0] = np.zeros([n_points, 2])
         for i in range(0, n_points):
             theta = 2 * math.pi / n_points * i
@@ -740,16 +740,12 @@ class dnaTrace(object):
 
     def saveCurvature(self):
 
-        # roc_array = np.zeros(shape=(1, 3))
         for dna_num in sorted(self.curvature.keys()):
             for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(self.curvature[dna_num]):
                 try:
                     roc_array = np.append(roc_array, np.array([[dna_num, i, contour, c]]), axis=0)
-                    # oc_array.append([dna_num, i, contour, c])
                 except NameError:
                     roc_array = np.array([[dna_num, i, contour, c]])
-                # roc_array = np.vstack((roc_array, np.array([dna_num, i, c])))
-        # roc_array = np.delete(roc_array, 0, 0)
         roc_stats = pd.DataFrame(roc_array)
 
         if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Curvature")):
@@ -772,7 +768,8 @@ class dnaTrace(object):
 
         plt.figure()
         sns.lineplot(curvature[:, 1] * self.pixel_size, curvature[:, 2], color='k')
-        # plt.ylim(-0.1e9, 0.1e9)
+        if dna_num == 0:
+            plt.ylim(0, 2)
         plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
         plt.axvline(curvature[0][1], color="#D55E00")
         plt.axvline(curvature[int(length / 6)][1] * self.pixel_size, color="#E69F00")
@@ -877,11 +874,11 @@ class dnaTrace(object):
         plt.savefig('%s_%s_coordinates.png' % (savename, dna_num))
         plt.close()
 
-        curvature = np.array(self.curvature[dna_num])
-        plt.plot(curvature[:, 1] * self.pixel_size, coordinates_array[:, 0], color='r')
-        plt.plot(curvature[:, 1] * self.pixel_size, coordinates_array[:, 1], color='b')
-        plt.savefig('%s_%s_x_and_y.png' % (savename, dna_num))
-        plt.close()
+        # curvature = np.array(self.curvature[dna_num])
+        # plt.plot(curvature[:, 1] * self.pixel_size, coordinates_array[:, 0], color='r')
+        # plt.plot(curvature[:, 1] * self.pixel_size, coordinates_array[:, 1], color='b')
+        # plt.savefig('%s_%s_x_and_y.png' % (savename, dna_num))
+        # plt.close()
 
     def measureEndtoEndDistance(self):
 
