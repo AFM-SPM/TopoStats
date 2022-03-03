@@ -25,7 +25,7 @@ jobs:
           pip install pytest pytest-cov
       - name: Test with pytest
         run: |
-          pytest --cov=pgfinder
+          pytest --cov=topostats
       - name: Determine coverage
         run: |
           coverage xml
