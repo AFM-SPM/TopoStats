@@ -3,7 +3,7 @@ name: Tests (pytest)
 on:
   pull_request:
     branches:
-      - master
+      - dev
 
 jobs:
   build:
