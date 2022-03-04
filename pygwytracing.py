@@ -893,11 +893,12 @@ if __name__ == '__main__':
                 dna_traces.plotCurvature(1)
                 dna_traces.plotCurvature(2)
                 dna_traces.plotCurvature(3)
-                # dna_traces.plotCurvature(4)
-                # dna_traces.plotCurvature(5)
-                # dna_traces.plotCurvature(6)
-                # dna_traces.plotCurvature(7)
-                # dna_traces.plotCurvature(8)
+                dna_traces.plotCurvature(4)
+                dna_traces.plotCurvature(5)
+                dna_traces.plotCurvature(6)
+                dna_traces.plotCurvature(7)
+                dna_traces.plotCurvature(8)
+
 
                 # dna_traces.plotGradient(8)
 
@@ -905,11 +906,11 @@ if __name__ == '__main__':
                 dna_traces.writeCoordinates(1)
                 dna_traces.writeCoordinates(2)
                 dna_traces.writeCoordinates(3)
-                # dna_traces.writeCoordinates(4)
-                # dna_traces.writeCoordinates(5)
-                # dna_traces.writeCoordinates(6)
-                # dna_traces.writeCoordinates(7)
-                # dna_traces.writeCoordinates(8)
+                dna_traces.writeCoordinates(4)
+                dna_traces.writeCoordinates(5)
+                dna_traces.writeCoordinates(6)
+                dna_traces.writeCoordinates(7)
+                dna_traces.writeCoordinates(8)
 
 
 

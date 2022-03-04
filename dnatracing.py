@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import scipy.ndimage
 import seaborn as sns
 from scipy import ndimage, spatial, interpolate as interp
 from skimage import morphology, filters
@@ -448,6 +449,7 @@ class dnaTrace(object):
 
                 spline_average = np.divide(spline_running_total, [step_size_px, step_size_px])
                 del spline_running_total
+                spline_average = np.delete(spline_average, -1, 0)
                 self.splined_traces[dna_num] = spline_average
                 # else:
                 #    x = self.fitted_traces[dna_num][:,0]
@@ -677,9 +679,9 @@ class dnaTrace(object):
             curve = []
             contour = 0
             coordinates = np.zeros([2, self.neighbours * 2 + 1])
-            dxmean = np.zeros(length)
-            dymean = np.zeros(length)
-            gradients = np.zeros([2, self.neighbours * 2 + 1])
+            # dxmean = np.zeros(length)
+            # dymean = np.zeros(length)
+            # gradients = np.zeros([2, self.neighbours * 2 + 1])
             if self.mol_is_circular[dna_num]:
                 longlist = np.concatenate([self.splined_traces[dna_num], self.splined_traces[dna_num], self.splined_traces[dna_num]])
                 dx = np.gradient(longlist, axis=0)[:, 0]
@@ -704,10 +706,10 @@ class dnaTrace(object):
                     for j in range(self.neighbours * 2 + 1):
                         coordinates[0][j] = self.splined_traces[dna_num][i - j][0]
                         coordinates[1][j] = self.splined_traces[dna_num][i - j][1]
-                        gradients[0][j] = dx[i - j]
-                        gradients[1][j] = dy[i - j]
-                    dxmean[i] = np.mean(gradients[0])
-                    dymean[i] = np.mean(gradients[1])
+                        # gradients[0][j] = dx[i - j]
+                        # gradients[1][j] = dy[i - j]
+                    # dxmean[i] = np.mean(gradients[0])
+                    # dymean[i] = np.mean(gradients[1])
 
 
 
@@ -733,9 +735,13 @@ class dnaTrace(object):
 
                     curvature_local = (d2x[i] * dy[i] - dx[i] * d2y[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
                     curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
+
                     contour = contour + math.hypot(
                         (coordinates[0][self.neighbours] - coordinates[0][self.neighbours - 1]),
                         (coordinates[1][self.neighbours] - coordinates[1][self.neighbours - 1]))
+            curve = np.array(curve)
+            curvature_smoothed = scipy.ndimage.gaussian_filter(curve[:, 2], 10, mode='nearest')
+            curve[:, 2] = curvature_smoothed
             self.curvature[dna_num] = curve
 
     def saveCurvature(self):
@@ -743,9 +749,9 @@ class dnaTrace(object):
         for dna_num in sorted(self.curvature.keys()):
             for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(self.curvature[dna_num]):
                 try:
-                    roc_array = np.append(roc_array, np.array([[dna_num, i, contour, c]]), axis=0)
+                    roc_array = np.append(roc_array, np.array([[dna_num, i, contour, c, dx, dy, d2x, d2y]]), axis=0)
                 except NameError:
-                    roc_array = np.array([[dna_num, i, contour, c]])
+                    roc_array = np.array([[dna_num, i, contour, c, dx, dy, d2x, d2y]])
         roc_stats = pd.DataFrame(roc_array)
 
         if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Curvature")):
@@ -871,6 +877,25 @@ class dnaTrace(object):
 
         plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], 'k.')
         plt.axis('equal')
+        length = len(coordinates_array)
+        plt.plot(coordinates_array[0, 0],
+                 coordinates_array[0, 1],
+                 color='#D55E00', markersize=10.0, marker='o')
+        plt.plot(coordinates_array[int(length / 6), 0],
+                 coordinates_array[int(length / 6), 1],
+                 color='#E69F00', markersize=10.0, marker='o')
+        plt.plot(coordinates_array[int(length / 6 * 2), 0],
+                 coordinates_array[int(length / 6 * 2), 1],
+                 color='#F0E442', markersize=10.0, marker='o')
+        plt.plot(coordinates_array[int(length / 6 * 3), 0],
+                 coordinates_array[int(length / 6 * 3), 1],
+                 color='#009E74', markersize=10.0, marker='o')
+        plt.plot(coordinates_array[int(length / 6 * 4), 0],
+                 coordinates_array[int(length / 6 * 4), 1],
+                 color='#56B4E9', markersize=10.0, marker='o')
+        plt.plot(coordinates_array[int(length / 6 * 5), 0],
+                 coordinates_array[int(length / 6 * 5), 1],
+                 color='#CC79A7', markersize=10.0, marker='o')
         plt.savefig('%s_%s_coordinates.png' % (savename, dna_num))
         plt.close()
 
