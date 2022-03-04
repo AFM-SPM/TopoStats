@@ -1,5 +1,7 @@
 # TopoStats
 
+[![Documentation Status](https://readthedocs.org/projects/topostats/badge/?version=dev)](https://topostats.readthedocs.io/en/dev/?badge=dev)
+
 | [How it works](#how-it-works) | [Run using Docker](#run-using-docker) | [Parameter Configuration](#parameter-configuration) | [Licence](#licence) | [Publications](#publications) | [Contributing](contributing.md) |
 
 An AFM image analysis program to batch process data and obtain statistics from images
