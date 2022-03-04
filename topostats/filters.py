@@ -5,6 +5,15 @@ import numpy as np
 
 def turner(image: np.array, level: float) -> np.array:
     """The Turner filter removes all noise in an image by replacing the value of all pixels with the `level` argument.
-    
-    This is, clearly, a silly example and will eventually be removed."""
+
+    This is, clearly, a silly example and will eventually be removed.
+
+        :param image: A 2D raster image
+        :type image: np.array
+        :param level: Filter level
+        :type level: int
+        :return: A filtered 2D raster image
+        :rtype: np.array
+    """
+
     return np.ones_like(image) * level
