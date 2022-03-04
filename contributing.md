@@ -19,9 +19,9 @@ You are advised to make a draft pull request as soon as you start work so nobody
 Currently the `topostats` module consists of:
 
 * `default_config.ini` The default config file.
-* `dnatracing.py`
+* `dnatracing.py` Applies tracing functions to each molecule.
 * `pygwytracing.py` The "main" routine.
-* `tracingfuncs.py`
+* `tracingfuncs.py` Skeletonises and generates backbone traces from masks.
 
 The current working plan is to move to a more modular architecture with new (and existing) functionality being grouped by theme within files. We expect to add such files as:
 
