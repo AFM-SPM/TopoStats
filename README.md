@@ -1,6 +1,6 @@
 # TopoStats
 
-| [How it works](#how-it-works) | [Run using Docker](#run-using-docker) | [Parameter Configuration](#parameter-configuration) | [License](#license) | [Publications](#publications) | [Contributing](contributing.md) |
+| [How it works](#how-it-works) | [Run using Docker](#run-using-docker) | [Parameter Configuration](#parameter-configuration) | [Licence](#licence) | [Publications](#publications) | [Contributing](contributing.md) |
 
 An AFM image analysis program to batch process data and obtain statistics from images
 
