@@ -8,12 +8,9 @@ def turner(image: np.array, level: float) -> np.array:
 
     This is, clearly, a silly example and will eventually be removed.
 
-        :param image: A 2D raster image
-        :type image: np.array
-        :param level: Filter level
-        :type level: int
-        :return: A filtered 2D raster image
-        :rtype: np.array
+    :param image: A 2D raster image
+    :param level: Filter level
+    :return: A filtered 2D raster image
     """
 
     return np.ones_like(image) * level
