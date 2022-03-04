@@ -64,20 +64,27 @@ Object oriented approaches will be used where appropriate, but not seen as inher
 ## Using pycharm and GitHub
 
 Check the issues and draft pull requests.
+
 ![](assets/issues-prs.png)
 
 Make a branch for your contribution.
+
 ![](assets/pycharm-branch.png)
 
 Add any new files to `git` (i.e. stage them).
+
 ![](assets/stage.png)
 
 Commit the changes (with a sensible message).
+
 ![](assets/commit.png)
+
 > Add / commit multiple times to break your contribution into easy to follow chunks.
 
 Push changes.
+
 ![](assets/push.png)
 
 Make a pull request.
+
 ![](assets/pull-request.png)
