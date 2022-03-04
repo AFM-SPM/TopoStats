@@ -200,14 +200,11 @@ class dnaTrace(object):
         coordinates (for each identified molecule) that are adjusted to lie
         along the highest points of each traced molecule
 
-        param:  self.ordered_traces; the unadjusted skeleton traces
-        param:  self.gauss_image; gaussian filtered AFM image of the original
-                molecules
-        param:  index_width; 1/2th the width of the height profile indexed from
-                self.gauss_image at each coordinate (e.g. 2*index_width pixels
-                are indexed)
+        :param self.ordered_traces: the unadjusted skeleton traces
+        :param self.gauss_image: gaussian filtered AFM image of the original molecules
+        :param index_width: 1/2th the width of the height profile indexed from self.gauss_image at each coordinate (e.g. 2*index_width pixels are indexed)
 
-        return: no direct output but instance variable self.fitted_traces
+        :return: no direct output but instance variable self.fitted_traces
                 is populated with adjusted x,y coordinates
         '''
 
