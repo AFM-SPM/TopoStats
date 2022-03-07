@@ -3,14 +3,12 @@ import numpy as np
 """Contains filter functions that take a 2D array representing an image as an input, as well as necessary parameters, and return a 2D array of the same size representing the filtered image."""
 
 
-def turner(image: np.array, level: float) -> np.array:
-    """The Turner filter removes all noise in an image by replacing the value of all pixels with the `level` argument.
-
-    This is, clearly, a silly example and will eventually be removed.
+def amplify(image: np.array, level: float) -> np.array:
+    """The amplify filter mulitplies the value of all pixels by the `level` argument.
 
     :param image: A 2D raster image
     :param level: Filter level
     :return: A filtered 2D raster image
     """
 
-    return np.ones_like(image) * level
+    return image * level
