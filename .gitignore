@@ -10,6 +10,8 @@ config.ini
 *.png
 *.jpeg
 *.tiff
+*.csv
+*.spm
 
 *.*[0-9]
 *.gwy
@@ -17,6 +19,10 @@ config.ini
 *.rtf
 *.json
 *.npy
+
+Coordinates/*
+Cropped/*
+Curvature/*
 
 # IDE
 .vscode/
