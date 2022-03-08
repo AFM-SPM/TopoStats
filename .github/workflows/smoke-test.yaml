@@ -1,4 +1,4 @@
-name: CI Tests
+name: Smoke test
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: CI Tests
+    name: Smoke tests (not pytest)
     runs-on: ubuntu-latest
     container: afmspm/topostats:wip
     steps:
@@ -19,6 +19,3 @@ jobs:
       - name: Smoke Test
         run: |
           xvfb-run python -m topostats
-      - name: pytest Tests
-        run: |
-          xvfb-run python -m pytest
