@@ -61,6 +61,38 @@ Object oriented approaches will be used where appropriate, but not seen as inher
 
 * [x] Use [`pylint`](https://pypi.org/project/pylint/) to analyse your code before submission.
 
+## Debug using docker
+
+1. Install vscode.
+2. Update your `.vscode/launch.json` file to the following:
+
+```
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/debugutils/python"
+        }
+    ]
+}
+```
+
+This will cause the Python debugger to run via `xvfb-run` using a shell script in the `python/` folder i.e. without any need for GUI windows. This is to be removed as part of migration to Python 3.
+
+3. Click "Open a Remote Window".
+4. Click "Reopen in container".
+5. Run the debugger as normal.
+
+
 ## Using pycharm and GitHub
 
 Check the issues and draft pull requests.
