@@ -912,6 +912,15 @@ if __name__ == '__main__':
                 dna_traces.writeCoordinates(7)
                 dna_traces.writeCoordinates(8)
 
+                for i in range(len(dna_traces.splined_traces)):
+                    if dna_traces.mol_is_circular[i]:
+                        plt.scatter(x = dna_traces.splined_traces[i][:,0], 
+                                    y = dna_traces.splined_traces[i][:,1], 
+                                    c = dna_traces.curvature[i][:,2],
+                                    s = 1)
+                plt.colorbar()
+                plt.savefig("Curvature/summary.png", dpi=300)
+
 
 
 
