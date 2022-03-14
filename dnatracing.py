@@ -578,6 +578,13 @@ class dnaTrace(object):
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.splined_traces.keys()):
+            plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=2.0)
+        plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name))
+        plt.close()
+
+        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        plt.colorbar()
+        for dna_num in sorted(self.splined_traces.keys()):
             # disordered_trace_list = self.ordered_traces[dna_num].tolist()
             # less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=1.0)
@@ -605,13 +612,6 @@ class dnaTrace(object):
                      self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 1],
                      color='#CC79A7', markersize=3.0, marker=5)
         plt.savefig('%s_%s_splinedtrace_with_markers.png' % (save_file, channel_name))
-        plt.close()
-
-        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
-        plt.colorbar()
-        for dna_num in sorted(self.splined_traces.keys()):
-            plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=1.0)
-        plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name))
         plt.close()
 
 
@@ -643,6 +643,21 @@ class dnaTrace(object):
         plt.savefig('%s_%s_grains.png' % (save_file, channel_name))
         plt.close()
 
+        for i in range(1, len(self.splined_traces)):
+            if self.mol_is_circular[i]:
+                plt.scatter(x=self.splined_traces[i][:, 0],
+                            y=self.splined_traces[i][:, 1],
+                            c=self.curvature[i][:, 2],
+                            s=1)
+            else:
+                plt.scatter(x=self.splined_traces[i][self.neighbours: -self.neighbours-1, 0],
+                            y=self.splined_traces[i][self.neighbours: -self.neighbours-1, 1],
+                            c=self.curvature[i][:, 2],
+                            s=1)
+        plt.colorbar()
+        plt.savefig('%s_%s_curvature_summary.png' % (save_file, channel_name), dpi=300)
+        plt.close()
+
     def _checkForSaveDirectory(self, filename, new_directory_name):
 
         split_directory_path = os.path.split(filename)
@@ -661,16 +676,19 @@ class dnaTrace(object):
 
     def findCurvature(self):
 
-        n_points = 1000
-        radius = float(1)
-        self.splined_traces[0] = np.zeros([n_points, 2])
-        for i in range(0, n_points):
-            theta = 2 * math.pi / n_points * i
-            x = - math.cos(theta) * radius
-            y = math.sin(theta) * radius
-            self.splined_traces[0][i][0] = x
-            self.splined_traces[0][i][1] = y
-        self.mol_is_circular[0] = True
+        # n_points = 1000
+        # radius = float(1)
+        # self.splined_traces[0] = np.zeros([n_points, 2])
+        # for i in range(0, n_points):
+        #     theta = 2 * math.pi / n_points * i
+        #     x = - math.cos(theta) * radius
+        #     y = math.sin(theta) * radius
+        #     self.splined_traces[0][i][0] = x
+        #     self.splined_traces[0][i][1] = y
+        # self.mol_is_circular[0] = True
+        #
+        # self.splined_traces[101] = self.splined_traces[1]*5
+        # self.mol_is_circular[101] = True
 
         for dna_num in sorted(self.splined_traces.keys()):  # the number of molecules identified
             # splined_traces is a dictionary, where the keys are the number of the molecule, and the values are a
@@ -773,17 +791,19 @@ class dnaTrace(object):
         savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
 
         plt.figure()
-        sns.lineplot(curvature[:, 1] * self.pixel_size, curvature[:, 2], color='k')
+        sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='k')
         if dna_num == 0:
             plt.ylim(0, 2)
-        plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 0))
+        plt.ticklabel_format(axis='both', style='sci', scilimits=(-1, 2))
         plt.axvline(curvature[0][1], color="#D55E00")
-        plt.axvline(curvature[int(length / 6)][1] * self.pixel_size, color="#E69F00")
-        plt.axvline(curvature[int(length / 6 * 2)][1] * self.pixel_size, color="#F0E442")
-        plt.axvline(curvature[int(length / 6 * 3)][1] * self.pixel_size, color="#009E74")
-        plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size, color="#0071B2")
-        plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size, color="#CC79A7")
-        plt.savefig('%s_%s_curvature.png' % (savename, dna_num))
+        plt.axvline(curvature[int(length / 6)][1] * self.pixel_size * 1e9, color="#E69F00")
+        plt.axvline(curvature[int(length / 6 * 2)][1] * self.pixel_size * 1e9, color="#F0E442")
+        plt.axvline(curvature[int(length / 6 * 3)][1] * self.pixel_size * 1e9, color="#009E74")
+        plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size * 1e9, color="#0071B2")
+        plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size * 1e9, color="#CC79A7")
+        plt.xlabel('Length alongside molecule / nm')
+        plt.ylabel('Curvature / $\mathregular{nm^{-1}}$')
+        plt.savefig('%s_%s_curvature.tiff' % (savename, dna_num))
         plt.close()
 
     def plotGradient(self, dna_num):
@@ -896,7 +916,7 @@ class dnaTrace(object):
         plt.plot(coordinates_array[int(length / 6 * 5), 0],
                  coordinates_array[int(length / 6 * 5), 1],
                  color='#CC79A7', markersize=10.0, marker='o')
-        plt.savefig('%s_%s_coordinates.png' % (savename, dna_num))
+        plt.savefig('%s_%s_coordinates.tiff' % (savename, dna_num))
         plt.close()
 
         # curvature = np.array(self.curvature[dna_num])

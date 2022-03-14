@@ -651,6 +651,7 @@ class reorderTrace:
 
         #Find a sensible point to start of the end points
         for i, (x, y) in enumerate(trace_coordinates):
+            # if i > 20:
             if genTracingFuncs.countNeighbours(x, y, trace_coordinates) == 2:
                 ordered_points = [[x, y]]
                 remaining_unordered_coords.pop(i)

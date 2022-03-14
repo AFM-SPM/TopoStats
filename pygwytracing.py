@@ -759,6 +759,8 @@ if __name__ == '__main__':
     print("\nImage Output options")
     saveTraceFigures_option = bool(int(config.get("ImageOutput", "saveTraceFigures_option")))
     print("Save trace figures option: " + str(saveTraceFigures_option))
+    saveCroppedFiles_option = bool(int(config.get("ImageOutput", "saveCroppedFiles_option")))
+    print("Save trace figures option: " + str(saveCroppedFiles_option))
     savefilesScale_option = int(config.get("ImageOutput", "savefilesScale_option"))
     print("Save files scale option: " + str(savefilesScale_option))
     savefile_zscalecolour = str(config.get("ImageOutput", "savefile_zscalecolour"))
@@ -889,7 +891,7 @@ if __name__ == '__main__':
                 print('Tracing took %f seconds' % (trace_end - trace_start))
                 tracing_stats.saveTraceStats(path)
 
-                dna_traces.plotCurvature(0)
+                #dna_traces.plotCurvature(0)
                 dna_traces.plotCurvature(1)
                 dna_traces.plotCurvature(2)
                 dna_traces.plotCurvature(3)
@@ -898,25 +900,28 @@ if __name__ == '__main__':
                 dna_traces.plotCurvature(6)
                 dna_traces.plotCurvature(7)
                 dna_traces.plotCurvature(8)
+                #dna_traces.plotCurvature(101)
 
 
                 # dna_traces.plotGradient(8)
 
-                dna_traces.writeCoordinates(0)
-                dna_traces.writeCoordinates(1)
-                dna_traces.writeCoordinates(2)
-                dna_traces.writeCoordinates(3)
-                dna_traces.writeCoordinates(4)
-                dna_traces.writeCoordinates(5)
-                dna_traces.writeCoordinates(6)
-                dna_traces.writeCoordinates(7)
-                dna_traces.writeCoordinates(8)
+                #dna_traces.writeCoordinates(0)
+                # dna_traces.writeCoordinates(1)
+                # dna_traces.writeCoordinates(2)
+                # dna_traces.writeCoordinates(3)
+                # dna_traces.writeCoordinates(4)
+                # dna_traces.writeCoordinates(5)
+                # dna_traces.writeCoordinates(6)
+                # dna_traces.writeCoordinates(7)
+                # dna_traces.writeCoordinates(8)
+                #dna_traces.writeCoordinates(101)
 
-
-
-
-            # Save out cropped files as images with no scales to a subfolder
-            savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            if (saveCroppedFiles_option):
+                print("Saving cropped files")
+                # Save out cropped files as images with no scales to a subfolder
+                savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            else:
+                print("Not saving cropped files")
 
             # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)
@@ -933,6 +938,7 @@ if __name__ == '__main__':
 
         # Save modified files as gwyddion files
         # savefilesasgwy(data, filename)
+
 
 
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
