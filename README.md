@@ -1,6 +1,12 @@
 # TopoStats
 
+[![Documentation Status](https://readthedocs.org/projects/topostats/badge/?version=dev)](https://topostats.readthedocs.io/en/dev/?badge=dev)
+
+| [How it works](#how-it-works) | [Run using Docker](#run-using-docker) | [Parameter Configuration](#parameter-configuration) | [Licence](#licence) | [Publications](#publications) | [Contributing](contributing.md) |
+
 An AFM image analysis program to batch process data and obtain statistics from images
+
+## How it works
 
 Image progessing is performed using the 'pygwytracing' script
 
@@ -59,22 +65,43 @@ Navigate to the mapped folder in the virtual machine using:
 cd home/TopoStats
 ```
 
+Install the package:
+
+```
+pip install -e .
+```
+
 Then finally run TopoStats, using the command:
 
 ```
-xvfb-run python pygwytracing.py
+xvfb-run python -m topostats
 ```
 
 This should run the pygwytracing.py script for TopoStats, targetting the repository folder that was mapped on your operating system, looking for spm files.
 
 The terminal will output information about the status of the TopoStats script. Any results will be placed in a folder in the TopoStats folder, called 'processed'.
 
+### Testing
+
+To run tests:
+
+```
+xvfb-run python -m pytest
+```
+
 ## Parameter Configuration
 
 The parameters that the software uses for analysis of the data can be configured in `Config.ini` by simply opening the file in a text editor and changing the variables. You do not need to edit the code to change the parameters.
-When updating TopoStats, the `Config.ini` file is ignored, so your parameters are maintained. Different sets of parameters can be saved for different sample types in the config file, and the sections for the different sample types are labelled in square brackets. 
+
+When updating TopoStats, the `Config.ini` file is ignored, so your parameters are maintained. Different sets of parameters can be saved for different sample types in the config file, and the sections for the different sample types are labelled in square brackets.
+
 If no config file is found while running TopoStats, it will make a copy of the default config file.
+
+## Licence
 
 **This software is licensed as specified by the [GPL License](COPYING) and [LGPL License](COPYING.LESSER).**
 
-If you'd like to contribute, have at look at our [contributing instructions](contributing.md).
+## Publications
+
+- [TopoStats – A program for automated tracing of biomolecules from AFM images](https://www.sciencedirect.com/science/article/pii/S1046202321000207)
+
