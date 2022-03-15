@@ -19,6 +19,10 @@ config.ini
 *.json
 *.npy
 *.csv
+*.spm
+
+# Example Data
+!minicircle.spm 
 
 # IDE
 .vscode/
@@ -29,3 +33,6 @@ _build/
 
 # MacOS
 .DS_Store
+
+# vscode develop in container settings
+!.devcontainer/devcontainer.json
