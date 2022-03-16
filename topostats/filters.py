@@ -1,5 +1,6 @@
 from statistics import median
 import numpy as np
+from skimage.filters import threshold_otsu
 
 """Contains filter functions that take a 2D array representing an image as an input, as well as necessary parameters, and return a 2D array of the same size representing the filtered image."""
 
@@ -104,5 +105,17 @@ def remove_x_y_tilt(image: np.array, binary_mask=None) -> np.array:
             image[i, j] -= y_grad * j
 
     return image
+
+
+def get_threshold(image: np.array) -> float:
+    """Returns a threshold value separating the background and foreground of a 2D heightmap.
+
+    :param image: A 2D raster image
+    :return: Float - the threshold between background and foreground heights. 
+    """
+
+    threshold = threshold_otsu(image)
+    
+    return threshold
 
 
