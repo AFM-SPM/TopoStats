@@ -26,8 +26,8 @@ jobs:
     needs: docker
     name: Smoke tests (not pytest)
     runs-on: ubuntu-latest
-    container: afmspm/topostats:x
     steps:
+      - uses: docker://afmspm/topostats:x
       - uses: actions/checkout@v2
       - name: Install topostats
         run: |
