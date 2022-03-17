@@ -13,4 +13,4 @@ RUN apt-get --allow-releaseinfo-change update && apt-get install -y \
 ENV DISPLAY=":1"
 COPY debugutils/dummy_display.sh /opt/dummy_display.sh
 RUN chmod a+x /opt/dummy_display.sh
-CMD /opt/dummy_display.sh
+ENTRYPOINT /opt/dummy_display.sh
