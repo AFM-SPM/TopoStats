@@ -26,9 +26,11 @@ jobs:
     needs: docker
     name: Smoke tests (not pytest)
     runs-on: ubuntu-latest
+    container:
+      image: afmspm/topostats:x
+      options: --entrypoint "/opt/dummy_display.sh" # in case entrypoint is overriden
     steps:
       - uses: actions/checkout@v2
-      - uses: docker://afmspm/topostats:x
       - name: Install topostats
         run: |
           pip install -e .
