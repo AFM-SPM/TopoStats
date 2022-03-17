@@ -28,9 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: afmspm/topostats:x
-      options: --entrypoint "/opt/dummy_display.sh" # in case entrypoint is overriden
     steps:
       - uses: actions/checkout@v2
+      - name: Setup xvfb
+        run: |
+          /opt/dummy_display.sh
       - name: Install topostats
         run: |
           pip install -e .
