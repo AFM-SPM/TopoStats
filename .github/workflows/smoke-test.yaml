@@ -10,7 +10,7 @@ jobs:
   test:
     name: Smoke tests (not pytest)
     runs-on: ubuntu-latest
-    container: afmspm/topostats:wip
+    container: afmspm/topostats:x
     steps:
       - uses: actions/checkout@v2
       - name: Install topostats
@@ -18,4 +18,4 @@ jobs:
           pip install -e .
       - name: Smoke Test
         run: |
-          xvfb-run python -m topostats
+          python -m topostats
