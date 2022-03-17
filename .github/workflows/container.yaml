@@ -23,6 +23,7 @@ jobs:
           push: true
           tags: afmspm/topostats:x
   test:
+    needs: docker
     name: Smoke tests (not pytest)
     runs-on: ubuntu-latest
     container: afmspm/topostats:x
