@@ -1,4 +1,4 @@
-name: Container build and test
+name: Container build, push, pull and test
 
 on:
   pull_request:
