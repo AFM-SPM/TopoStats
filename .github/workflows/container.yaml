@@ -28,9 +28,9 @@ jobs:
   test:
     name: Smoke tests (not pytest)
     runs-on: ubuntu-latest
-    container: afmspm/topostats:x
     steps:
       - uses: actions/checkout@v2
+      - uses: docker://afmspm/topostats:x
       - name: Install topostats
         run: |
           pip install -e .
