@@ -61,6 +61,14 @@ Object oriented approaches will be used where appropriate, but not seen as inher
 
 * [x] Use [`pylint`](https://pypi.org/project/pylint/) to analyse your code before submission.
 
+## Debug using docker
+
+1. Install vscode.
+2. Click "Open a Remote Window".
+3. Click "Reopen in container".
+4. Run the debugger as normal.
+
+
 ## Using pycharm and GitHub
 
 Check the issues and draft pull requests.
