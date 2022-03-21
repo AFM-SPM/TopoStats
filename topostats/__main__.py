@@ -5,4 +5,4 @@ import topotracing
 # pygwytracing.trace()
 
 # Run the new test version of topostats
-topotracing()
+topotracing

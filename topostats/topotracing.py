@@ -48,44 +48,44 @@ for root, dirs, files in os.walk(basepath):
         height = scan.get_channel("Height")
         plottingfuncs.plot_and_save(height, 'plot_data/raw_heightmap.png')
 
-# Initial processing
+        # Initial processing
 
-# Copy data into numpy array format
-data_initial_flatten = np.flipud(np.array(height.pixels))
+        # Copy data into numpy array format
+        data_initial_flatten = np.flipud(np.array(height.pixels))
 
-# Initial flattening
-logging.info('initial flattening')
-logging.info('initial align rows')
-data_initial_flatten = filters.align_rows(data_initial_flatten)
-plottingfuncs.plot_and_save(data_initial_flatten, 'plot_data/initial_align_rows.png')
-logging.info('initial x-y tilt')
-data_initial_flatten = filters.remove_x_y_tilt(data_initial_flatten)
-plottingfuncs.plot_and_save(data_initial_flatten, 'plot_data/initial_x_y_tilt.png')
+        # Initial flattening
+        logging.info('initial flattening')
+        logging.info('initial align rows')
+        data_initial_flatten = filters.align_rows(data_initial_flatten)
+        plottingfuncs.plot_and_save(data_initial_flatten, 'plot_data/initial_align_rows.png')
+        logging.info('initial x-y tilt')
+        data_initial_flatten = filters.remove_x_y_tilt(data_initial_flatten)
+        plottingfuncs.plot_and_save(data_initial_flatten, 'plot_data/initial_x_y_tilt.png')
 
-# Thresholding
-logging.info('otsu thresholding')
-threshold = filters.get_threshold(data_initial_flatten)
-logging.info(f'threshold: {threshold}')
-mask = data_initial_flatten > threshold
-plottingfuncs.plot_and_save(mask, 'plot_data/binary_mask.png')
+        # Thresholding
+        logging.info('otsu thresholding')
+        threshold = filters.get_threshold(data_initial_flatten)
+        logging.info(f'threshold: {threshold}')
+        mask = data_initial_flatten > threshold
+        plottingfuncs.plot_and_save(mask, 'plot_data/binary_mask.png')
 
-# Masked flattening
-logging.info('masked flattening')
-logging.info('masked align rows')
-data_second_flatten = filters.align_rows(data_initial_flatten, binary_mask=mask)
-plottingfuncs.plot_and_save(data_second_flatten, 'plot_data/masked_align_rows.png')
-logging.info('masked x-y tilt')
-data_second_flatten = filters.remove_x_y_tilt(data_second_flatten, binary_mask=mask)
-plottingfuncs.plot_and_save(data_second_flatten, 'plot_data/masked_x_y_tilt.png')
+        # Masked flattening
+        logging.info('masked flattening')
+        logging.info('masked align rows')
+        data_second_flatten = filters.align_rows(data_initial_flatten, binary_mask=mask)
+        plottingfuncs.plot_and_save(data_second_flatten, 'plot_data/masked_align_rows.png')
+        logging.info('masked x-y tilt')
+        data_second_flatten = filters.remove_x_y_tilt(data_second_flatten, binary_mask=mask)
+        plottingfuncs.plot_and_save(data_second_flatten, 'plot_data/masked_x_y_tilt.png')
 
-# Zero the average background
-logging.info('adjust medians')
-row_quantiles, col_quantiles = filters.row_col_quantiles(data_second_flatten, binary_mask=mask)
-for row_index in range(data_second_flatten.shape[0]):
-    row_zero_offset = row_quantiles[row_index, 1]
-    data_second_flatten[row_index, :] -= row_zero_offset
-row_quantiles, col_quantiles = filters.row_col_quantiles(data_second_flatten, binary_mask=mask)
-logging.info(f'mean row median: {np.mean(row_quantiles)}')
-plottingfuncs.plot_and_save(data_second_flatten, 'plot_data/final_output.png')
+        # Zero the average background
+        logging.info('adjust medians')
+        row_quantiles, col_quantiles = filters.row_col_quantiles(data_second_flatten, binary_mask=mask)
+        for row_index in range(data_second_flatten.shape[0]):
+            row_zero_offset = row_quantiles[row_index, 1]
+            data_second_flatten[row_index, :] -= row_zero_offset
+        row_quantiles, col_quantiles = filters.row_col_quantiles(data_second_flatten, binary_mask=mask)
+        logging.info(f'mean row median: {np.mean(row_quantiles)}')
+        plottingfuncs.plot_and_save(data_second_flatten, 'plot_data/final_output.png')
 
     
