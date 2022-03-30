@@ -891,30 +891,19 @@ if __name__ == '__main__':
                 print('Tracing took %f seconds' % (trace_end - trace_start))
                 tracing_stats.saveTraceStats(path)
 
-                #dna_traces.plotCurvature(0)
-                dna_traces.plotCurvature(1)
-                dna_traces.plotCurvature(2)
-                dna_traces.plotCurvature(3)
-                dna_traces.plotCurvature(4)
-                dna_traces.plotCurvature(5)
-                dna_traces.plotCurvature(6)
-                dna_traces.plotCurvature(7)
-                dna_traces.plotCurvature(8)
+                # dna_traces.plotCurvature(0)
+                for num in range(1, number_of_grains+1):
+                    dna_traces.plotCurvature(num)
+                    dna_traces.writeCoordinates(num)
+
                 #dna_traces.plotCurvature(101)
 
 
                 # dna_traces.plotGradient(8)
 
-                #dna_traces.writeCoordinates(0)
-                # dna_traces.writeCoordinates(1)
-                # dna_traces.writeCoordinates(2)
-                # dna_traces.writeCoordinates(3)
-                # dna_traces.writeCoordinates(4)
-                # dna_traces.writeCoordinates(5)
-                # dna_traces.writeCoordinates(6)
-                # dna_traces.writeCoordinates(7)
-                # dna_traces.writeCoordinates(8)
-                #dna_traces.writeCoordinates(101)
+                # dna_traces.writeCoordinates(0)
+
+                # dna_traces.writeCoordinates(101)
 
             if (saveCroppedFiles_option):
                 print("Saving cropped files")
