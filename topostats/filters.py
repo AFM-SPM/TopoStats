@@ -73,4 +73,36 @@ def align_rows(image: np.array, binary_mask=None) -> np.array:
     
     return image
 
+def remove_x_y_tilt(image: np.array, binary_mask=None) -> np.array:
+    """Returns the input image after removing any linear plane slant
+
+    :param image: A 2D raster image
+    :param binary_mask: (Array) Optional parameter that allows the use of a mask to ignore data.
+    :return: The same image but with any linear plane slant removed.
+    """
+
+    # Get the row and column quantiles of the data
+    row_quantiles, col_quantiles = row_col_quantiles(image, binary_mask)
+
+    # Calculate the x gradient from the left to the right
+    x_diff = row_quantiles[-1][1] - row_quantiles[0][1]
+    print(f'x_diff: {x_diff}')
+    # Calculate the gradient of brightness per pixel
+    x_grad = x_diff / image.shape[0]
+    print(f'x_grad: {x_grad}')
+
+    # Repeat for y
+    y_diff = col_quantiles[-1][1] - col_quantiles[0][1]
+    print(f'y_diff: {y_diff}')
+    y_grad = y_diff / image.shape[1]
+    print(f'y_grad: {y_grad}')
+
+    # Add corrections to the data
+    for i in range(image.shape[0]):
+        for j in range(image.shape[1]):
+            image[i, j] -= x_grad * i
+            image[i, j] -= y_grad * j
+
+    return image
+
 
