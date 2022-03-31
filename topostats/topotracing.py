@@ -88,4 +88,7 @@ for root, dirs, files in os.walk(basepath):
         logging.info(f'mean row median: {np.mean(row_quantiles)}')
         plottingfuncs.plot_and_save(data_second_flatten, 'plot_data/final_output.png')
 
+        # Remove x bowing
+        filters.remove_x_bowing(data_second_flatten, binary_mask=mask)
+
     

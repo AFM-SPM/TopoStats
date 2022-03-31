@@ -23,6 +23,8 @@ config.ini
 *.npy
 *.csv
 
+*.log
+
 # IDE
 .vscode/
 .idea/

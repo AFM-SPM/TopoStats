@@ -8,4 +8,4 @@ def plot_and_save(data, filename):
         ax.imshow(data, interpolation='nearest', cmap='afmhot')
         plt.savefig(filename)
     else:
-        data.show(ax=ax, Interpolation='nearest', cmap='afmhot')
+        data.show(ax=ax, interpolation='nearest', cmap='afmhot')

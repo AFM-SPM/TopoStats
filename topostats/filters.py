@@ -1,7 +1,9 @@
-from statistics import median
+from statistics import median, stdev
 import numpy as np
 from skimage.filters import threshold_otsu
 import logging
+from scipy.optimize import curve_fit
+
 
 """Contains filter functions that take a 2D array representing an image as an input, as well as necessary parameters, and return a 2D array of the same size representing the filtered image."""
 
@@ -121,5 +123,69 @@ def get_threshold(image: np.array) -> float:
     threshold = threshold_otsu(image)
     
     return threshold
+
+def remove_x_bowing(image: np.array, binary_mask):
+
+    def quadratic(x, a, b, c):
+        return a*x**2 + b*x + c
+    
+    # Use the mask to mask the data
+    image_masked = np.ma.masked_array(image, mask=binary_mask, fill_value=np.nan)
+
+    # Get the average row
+    average_row = np.zeros((image_masked.shape[0]))
+    for i in range(image_masked.shape[0]):
+        average_row[i] = np.mean(image_masked[:, i])
+
+        
+    print(average_row)
+    
+    # Plotting setup
+    import matplotlib.pyplot as plt
+    import matplotlib
+    fig, axes = plt.subplots(2, 1, figsize=(8, 8))
+  
+    current_cmap = matplotlib.cm.get_cmap()
+    current_cmap.set_bad(color='red')
+    # ax.imshow(average_row)
+    x_data = np.array(range(0, average_row.shape[0]))
+    print('xdata shape: ', x_data.shape)
+    print('average row shape: ', average_row.shape)
+    
+
+    # Create a quadratic fit
+    parameters, covariance = curve_fit(f=quadratic, xdata=x_data, ydata=average_row)
+    print('parameters:')
+    print(parameters)
+    print('covariance:')
+    print(covariance)
+
+    # Plot the data
+    ax = axes[0]
+    ax.scatter(x_data, average_row, s=20, color='#008080', label='data')
+    ax.plot(x_data, quadratic(x_data, *parameters), linestyle='--', linewidth=2, color='black', label='fit')
+    ax.legend()
+
+    # Calculate standard deviations
+    stdevs = np.sqrt(np.diag(covariance))
+    print('stdevs: ')
+    print(np.mean(stdevs))
+    
+    # Calculate the residuals
+    residuals = average_row - quadratic(x_data, *parameters)
+
+    # Plot the residuals
+    ax = axes[1]
+    ax.plot(x_data, residuals, color='#602020', label='residuals')
+    ax.legend()
+    plt.savefig('experiment_average_row')
+
+
+
+
+
+    
+
+
 
 
