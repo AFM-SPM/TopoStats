@@ -46,13 +46,15 @@ class dnaTrace(object):
         self.end_to_end_distance = {}
         self.mol_is_circular = {}
         self.curvature = {}
+        self.max_curvature = {}
+        self.max_curvature_location = {}
 
         self.number_of_traces = 0
         self.num_circular = 0
         self.num_linear = 0
 
         self.neighbours = 5  # The number of neighbours used for the curvature measurement
-        self.n_points = 10000
+        self.n_points = 200
         self.displacement = 0
         self.major = float(5)
         self.minor = float(1)
@@ -70,7 +72,6 @@ class dnaTrace(object):
         self.getFittedTraces()
         self.getSplinedTraces()
         self.findCurvature()
-        self.compareCurvature()
         self.saveCurvature()
         self.measureContourLength()
         self.measureEndtoEndDistance()
@@ -681,6 +682,7 @@ class dnaTrace(object):
 
     def findCurvature(self):
 
+        # Testing with a circle
         # radius = float(1)
         # self.splined_traces[0] = np.zeros([self.n_points, 2])
         # for i in range(self.n_points):
@@ -694,6 +696,7 @@ class dnaTrace(object):
         # self.splined_traces[101] = self.splined_traces[1]*5
         # self.mol_is_circular[101] = True
 
+        # Testing with an ellipse
         # self.splined_traces[0] = np.zeros([self.n_points, 2])
         # for i in range(0, self.n_points):
         #     theta = 2 * math.pi / self.n_points * i
@@ -704,8 +707,12 @@ class dnaTrace(object):
         # self.splined_traces[0] = np.roll(self.splined_traces[0], int(self.n_points * self.displacement), axis=0)
         # self.mol_is_circular[0] = True
 
-        # self.splined_traces[101] = self.splined_traces[1]*5
-        # self.mol_is_circular[101] = True
+        # Testing with a parabola
+        # x = np.linspace(-2, 2, num=self.n_points)
+        # y = x**2
+        # self.splined_traces[0] = np.column_stack((x, y))
+        # self.mol_is_circular[0] = False
+
 
         for dna_num in sorted(self.splined_traces.keys()):  # the number of molecules identified
             # splined_traces is a dictionary, where the keys are the number of the molecule, and the values are a
@@ -796,15 +803,13 @@ class dnaTrace(object):
         roc_stats.to_csv(savename + '.csv')
 
     def compareCurvature(self):
-
-        max_location_list = []
-        max_value_list = []
         for dna_num in sorted(self.curvature.keys()):
             max_value = np.amax(np.abs(self.curvature[dna_num][:, 2]))
             max_index = np.argmax(np.abs(self.curvature[dna_num][:, 2]))
             max_location = self.curvature[dna_num][max_index, 1] * self.pixel_size * 1e9
-            max_value_list.append(max_value)
-            max_location_list.append(max_location)
+            self.max_curvature[dna_num] = max_value
+            self.max_curvature_location[dna_num] = max_location
+        return self.max_curvature, self.max_curvature_location
 
     def plotCurvature(self, dna_num):
 
@@ -823,20 +828,25 @@ class dnaTrace(object):
         # if dna_num == 0:
         #     plt.ylim(0, 2)
 
-        theory = np.zeros(length)
-        for i in range(length):
-            theory[i] = self.major * self.minor * (-1 / ((self.major**2 - self.minor**2) * math.cos(math.pi * 2 / self.n_points * i) ** 2 - self.major**2)) ** 1.5
-        theory = np.roll(theory, int(self.n_points * self.displacement), axis=0)
-        # sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, theory, color='b')
-
-        sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='black', alpha=0.5)
-        plt.ticklabel_format(axis='both', style='sci', scilimits=(-2, 2))
-        plt.axvline(curvature[0][1], color="#D55E00")
-        plt.axvline(curvature[int(length / 6)][1] * self.pixel_size * 1e9, color="#E69F00")
-        plt.axvline(curvature[int(length / 6 * 2)][1] * self.pixel_size * 1e9, color="#F0E442")
-        plt.axvline(curvature[int(length / 6 * 3)][1] * self.pixel_size * 1e9, color="#009E74")
-        plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size * 1e9, color="#0071B2")
-        plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size * 1e9, color="#CC79A7")
+        if dna_num == 0:
+            theory = np.zeros(length)
+            for i in range(length):
+                # For ellipse
+                # theory[i] = self.major * self.minor * (-1 / ((self.major**2 - self.minor**2) * math.cos(math.pi * 2 / self.n_points * i) ** 2 - self.major**2)) ** 1.5
+                # theory = np.roll(theory, int(self.n_points * self.displacement), axis=0)
+                # For parabola
+                theory[i] = - 2/(1+(2*self.splined_traces[0][i][0])**2)**1.5
+            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, theory, color='b')
+            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='y')
+        else:
+            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='black')
+            plt.ticklabel_format(axis='both', style='sci', scilimits=(-2, 2))
+            plt.axvline(curvature[0][1], color="#D55E00")
+            plt.axvline(curvature[int(length / 6)][1] * self.pixel_size * 1e9, color="#E69F00")
+            plt.axvline(curvature[int(length / 6 * 2)][1] * self.pixel_size * 1e9, color="#F0E442")
+            plt.axvline(curvature[int(length / 6 * 3)][1] * self.pixel_size * 1e9, color="#009E74")
+            plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size * 1e9, color="#0071B2")
+            plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size * 1e9, color="#CC79A7")
         plt.xlabel('Length alongside molecule / nm')
         plt.ylabel('Curvature / $\mathregular{nm^{-1}}$')
         # plt.xticks(fontsize=20)

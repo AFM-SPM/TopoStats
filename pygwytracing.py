@@ -46,6 +46,7 @@ sns.set_context("notebook")
 # Set the settings for each function from the saved settings file (~/.gwyddion/settings)
 s = gwy.gwy_app_settings_get()
 
+
 # Generate a settings file - should be found at /Users/alice/.gwyddion/settings
 # a = gwy.gwy_app_settings_get_settings_filename()
 # Location of the settings file - edit to change values
@@ -326,8 +327,8 @@ def grainanalysis(appended_data, filename, datafield, grains):
     grain_data_to_save = {}
 
     for key in values_to_compute.keys():
-        # here we stave the gran stats to both a dictionary and an array in that order
-        # these are basically duplicate steps - but are both included as we arent sure which to use later
+        # here we save the grain stats to both a dictionary and an array in that order
+        # these are basically duplicate steps - but are both included as we aren't sure which to use later
         # Save grain statistics to a dictionary: grain_data_to_save
         grain_data_to_save[key] = datafield.grains_get_values(grains, values_to_compute[key])
         # Delete 0th value in all arrays - this corresponds to the background
@@ -533,7 +534,6 @@ def savefiles(data, filename, extension):
     # Save file scale option: 1 - ruler, 2 - inset scale bar, 0 - none
     s["/module/pixmap/xytype"] = savefilesScale_option
 
-
     # Get directory path and filename (including extension to avoid overwriting .000 type Bruker files)
     directory, filename = os.path.split(filename)
 
@@ -696,16 +696,21 @@ def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
     return grainstats_searched
 
 
+def updategrainstats(name, new_data, appended_data, filenumber):
+    appended_data[filenumber][name] = new_data
+    return appended_data
+
+
 # This the main script
 if __name__ == '__main__':
 
     # Test if config file exists
     # If it doesn't, create a new config file with default parameters
-    if(not os.path.isfile("config.ini")) :
+    if (not os.path.isfile("config.ini")):
         # Copy default_config.ini to config.ini
         print("No config file found named 'config.ini'")
         print("Copying default_config.ini to config.ini")
-        copyfile('default_config.ini','config.ini')
+        copyfile('default_config.ini', 'config.ini')
 
     # Read the config file
     print("Reading config file")
@@ -722,7 +727,7 @@ if __name__ == '__main__':
     # Force correct path location for MacOS
     path = os.path.abspath(path)
     print("Path: " + path)
-    sample_type = config.get("MainSection","sample_type")
+    sample_type = config.get("MainSection", "sample_type")
     print("Sample type: " + sample_type)
     # fileend = tuple(config.get("MainSection", "fileend"))
     fileend = tuple(map(str, config.get("MainSection", "fileend").split(",")))
@@ -765,9 +770,8 @@ if __name__ == '__main__':
     print("Save files scale option: " + str(savefilesScale_option))
     savefile_zscalecolour = str(config.get("ImageOutput", "savefile_zscalecolour"))
     print("Save file name: " + str(savefile_zscalecolour))
-    zbar_option = int(config.get("ImageOutput","zbar_option"))
+    zbar_option = int(config.get("ImageOutput", "zbar_option"))
     print("z bar option: " + str(zbar_option))
-
 
     # Turn colour bar on/off
     s["/module/pixmap/ztype"] = zbar_option
@@ -776,7 +780,6 @@ if __name__ == '__main__':
     s['/module/linematch/method'] = 1  # uses median
     s["/module/linematch/max_degree"] = 2
     s["/module/polylevel/col_degree"] = 2
-
 
     # Declare variables used later
     # Placed outside for loop in order that they don't overwrite data to be appended
@@ -827,9 +830,11 @@ if __name__ == '__main__':
             # Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
             median_pixel_area = find_median_pixel_area(datafield, grains)
             # Remove all large objects defined as 1.2* the median grain size (in pixel area)
-            mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, thresholdingcriteria, dx)
+            mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, thresholdingcriteria,
+                                              dx)
             # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
-            mask, grains, number_of_grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation, thresholdingcriteria, dx)
+            mask, grains, number_of_grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation,
+                                                                thresholdingcriteria, dx)
 
             # if there's no grains skip this image
             if number_of_grains == 0:
@@ -876,10 +881,11 @@ if __name__ == '__main__':
                 dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
                 trace_end = time.time()
                 # #dna_traces.showTraces()
-                if(saveTraceFigures_option):
+                if (saveTraceFigures_option):
                     print("Saving trace figures")
                     dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
-                else: print("Not saving trace figures")
+                else:
+                    print("Not saving trace figures")
                 # dna_traces.writeContourLengths(filename, channel_name)
 
                 # Update the pandas Dataframe used to monitor stats
@@ -892,18 +898,19 @@ if __name__ == '__main__':
                 tracing_stats.saveTraceStats(path)
 
                 # dna_traces.plotCurvature(0)
-                for num in range(1, number_of_grains+1):
-                    dna_traces.plotCurvature(num)
-                    dna_traces.writeCoordinates(num)
-
-                #dna_traces.plotCurvature(101)
-
+                # dna_traces.writeCoordinates(0)
+                for num in range(1, number_of_grains + 1):
+                    try:
+                        dna_traces.plotCurvature(num)
+                        dna_traces.writeCoordinates(num)
+                    except KeyError:
+                        continue
 
                 # dna_traces.plotGradient(8)
 
-                # dna_traces.writeCoordinates(0)
-
-                # dna_traces.writeCoordinates(101)
+                max_curvature, max_curvature_location = dna_traces.compareCurvature()
+                appended_data = updategrainstats("max_curvature", max_curvature, appended_data, i)
+                appended_data = updategrainstats("max_curvature_location", max_curvature_location, appended_data, i)
 
             if (saveCroppedFiles_option):
                 print("Saving cropped files")
@@ -927,8 +934,6 @@ if __name__ == '__main__':
 
         # Save modified files as gwyddion files
         # savefilesasgwy(data, filename)
-
-
 
     # Concatenate statistics form all files into one dataframe for saving and plotting statistics
     grainstats_df = getdataforallfiles(appended_data)
