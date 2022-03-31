@@ -1,6 +1,7 @@
 from statistics import median
 import numpy as np
 from skimage.filters import threshold_otsu
+import logging
 
 """Contains filter functions that take a 2D array representing an image as an input, as well as necessary parameters, and return a 2D array of the same size representing the filtered image."""
 
@@ -24,8 +25,11 @@ def row_col_quantiles(image: np.array, binary_mask=None) -> np.array:
     """
 
     # Mask the data if applicable
-    if binary_mask != None:
+    if binary_mask is not None:
         image = np.ma.masked_array(image, mask=binary_mask, fill_value=np.nan)
+        logging.info('masking enabled')
+    else:
+        logging.info('masking disabled')
 
     # Initialise arrays
     row_quantiles = np.zeros((image.shape[0], 3))
@@ -41,7 +45,7 @@ def row_col_quantiles(image: np.array, binary_mask=None) -> np.array:
     # Populate the column array with quantile tuples
     for j in range(image.shape[1]):
         col = image[:, j]
-        col_quantiles = np.array([np.quantile(col, 0.25),
+        col_quantiles[j] = np.array([np.quantile(col, 0.25),
         np.quantile(col, 0.5),
         np.quantile(col, 0.75)])
 
@@ -62,7 +66,7 @@ def align_rows(image: np.array, binary_mask=None) -> np.array:
     # Calculate median row height
     row_medians = row_quantiles[:, 1]
     median_row_height = np.quantile(row_medians, 0.5)
-    print(f'median_row_height: {median_row_height}')
+    logging.info(f'median_row_height: {median_row_height}')
     
     # Calculate the differences between the row medians and the median row height
     row_median_diffs = row_medians - median_row_height
@@ -87,16 +91,16 @@ def remove_x_y_tilt(image: np.array, binary_mask=None) -> np.array:
 
     # Calculate the x gradient from the left to the right
     x_diff = row_quantiles[-1][1] - row_quantiles[0][1]
-    print(f'x_diff: {x_diff}')
+    logging.info(f'x_diff: {x_diff}')
     # Calculate the gradient of brightness per pixel
     x_grad = x_diff / image.shape[0]
-    print(f'x_grad: {x_grad}')
+    logging.info(f'x_grad: {x_grad}')
 
     # Repeat for y
     y_diff = col_quantiles[-1][1] - col_quantiles[0][1]
-    print(f'y_diff: {y_diff}')
+    logging.info(f'y_diff: {y_diff}')
     y_grad = y_diff / image.shape[1]
-    print(f'y_grad: {y_grad}')
+    logging.info(f'y_grad: {y_grad}')
 
     # Add corrections to the data
     for i in range(image.shape[0]):
