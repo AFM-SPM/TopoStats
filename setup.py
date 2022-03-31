@@ -15,5 +15,6 @@ setup(
         'pandas',
         'scikit-image',
         'scipy',
-        'seaborn'],
+        'seaborn',
+        'pySPM'],
     )
