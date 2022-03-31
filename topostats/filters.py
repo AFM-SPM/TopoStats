@@ -46,6 +46,31 @@ def row_col_quantiles(image: np.array, binary_mask=None) -> np.array:
 
     return row_quantiles, col_quantiles
 
+def align_rows(image: np.array, binary_mask=None) -> np.array:
+    """Returns the input image with rows aligned by median height
 
+    :param image: A 2D raster image
+    :param binary_mask: (Array) Optional parameter that allows the use of a mask to ignore data.
+    :return: The same image but with the rows aligned in median height
+    """
+
+    # Get row and column height quantiles for the image. Does nothing if binary_mask = None
+    row_quantiles, col_quantiles = row_col_quantiles(image, binary_mask)
+
+    # Align row medians
+    # Calculate median row height
+    row_medians = row_quantiles[:, 1]
+    median_row_height = np.quantile(row_medians, 0.5)
+    print(f'median_row_height: {median_row_height}')
+    
+    # Calculate the differences between the row medians and the median row height
+    row_median_diffs = row_medians - median_row_height
+
+    # Adjust the row medians accordingly
+    for i in range(image.shape[0]):
+        for j in range(image.shape[1]):
+            image[i, j] -= row_median_diffs[i]
+    
+    return image
 
 
