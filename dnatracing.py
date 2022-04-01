@@ -73,6 +73,7 @@ class dnaTrace(object):
         self.getSplinedTraces()
         self.findCurvature()
         self.saveCurvature()
+        self.findMaxCurvature()
         self.measureContourLength()
         self.measureEndtoEndDistance()
         self.reportBasicStats()
@@ -802,14 +803,15 @@ class dnaTrace(object):
         roc_stats.to_json(savename + '.json')
         roc_stats.to_csv(savename + '.csv')
 
-    def compareCurvature(self):
+    def findMaxCurvature(self):
+
         for dna_num in sorted(self.curvature.keys()):
             max_value = np.amax(np.abs(self.curvature[dna_num][:, 2]))
             max_index = np.argmax(np.abs(self.curvature[dna_num][:, 2]))
             max_location = self.curvature[dna_num][max_index, 1] * self.pixel_size * 1e9
             self.max_curvature[dna_num] = max_value
             self.max_curvature_location[dna_num] = max_location
-        return self.max_curvature, self.max_curvature_location
+
 
     def plotCurvature(self, dna_num):
 
@@ -1028,6 +1030,7 @@ class traceStats(object):
                 data_dict['Contour Lengths'].append(self.trace_object.contour_lengths[dna_num])
                 data_dict['Circular'].append(self.trace_object.mol_is_circular[dna_num])
                 data_dict['End to End Distance'].append(self.trace_object.end_to_end_distance[dna_num])
+                data_dict['Max Curvature'].append(self.trace_object.max_curvature[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
                 data_dict['Image Name'] = [img_name]
@@ -1036,6 +1039,7 @@ class traceStats(object):
                 data_dict['Contour Lengths'] = [self.trace_object.contour_lengths[dna_num]]
                 data_dict['Circular'] = [self.trace_object.mol_is_circular[dna_num]]
                 data_dict['End to End Distance'] = [self.trace_object.end_to_end_distance[dna_num]]
+                data_dict['Max Curvature'] = [self.trace_object.max_curvature[dna_num]]
         self.pd_dataframe = pd.DataFrame(data=data_dict)
 
     def updateTraceStats(self, new_traces):
@@ -1057,6 +1061,7 @@ class traceStats(object):
                 data_dict['Contour Lengths'].append(new_traces.contour_lengths[dna_num])
                 data_dict['Circular'].append(new_traces.mol_is_circular[dna_num])
                 data_dict['End to End Distance'].append(new_traces.end_to_end_distance[dna_num])
+                data_dict['Max Curvature'].append(new_traces.max_curvature[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
                 data_dict['Image Name'] = [img_name]
@@ -1065,6 +1070,7 @@ class traceStats(object):
                 data_dict['Contour Lengths'] = [new_traces.contour_lengths[dna_num]]
                 data_dict['Circular'] = [new_traces.mol_is_circular[dna_num]]
                 data_dict['End to End Distance'] = [new_traces.end_to_end_distance[dna_num]]
+                data_dict['Max Curvature'] = [new_traces.max_curvature[dna_num]]
 
         pd_new_traces_dframe = pd.DataFrame(data=data_dict)
 

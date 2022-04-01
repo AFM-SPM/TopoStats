@@ -697,6 +697,7 @@ def searchgrainstats(df, dfargtosearch, searchvalue1, searchvalue2):
 
 
 def updategrainstats(name, new_data, appended_data, filenumber):
+    pass
     appended_data[filenumber][name] = new_data
     return appended_data
 
@@ -908,9 +909,9 @@ if __name__ == '__main__':
 
                 # dna_traces.plotGradient(8)
 
-                max_curvature, max_curvature_location = dna_traces.compareCurvature()
-                appended_data = updategrainstats("max_curvature", max_curvature, appended_data, i)
-                appended_data = updategrainstats("max_curvature_location", max_curvature_location, appended_data, i)
+                # max_curvature, max_curvature_location = dna_traces.compareCurvature()
+                # appended_data = updategrainstats("max_curvature", max_curvature, appended_data, i)
+                # appended_data = updategrainstats("max_curvature_location", max_curvature_location, appended_data, i)
 
             if (saveCroppedFiles_option):
                 print("Saving cropped files")
