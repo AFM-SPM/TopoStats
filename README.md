@@ -1,6 +1,7 @@
 # TopoStats
 
 [![Documentation Status](https://readthedocs.org/projects/topostats/badge/?version=dev)](https://topostats.readthedocs.io/en/dev/?badge=dev)
+[![codecov](https://codecov.io/gh/AFM-SPM/TopoStats/branch/main/graph/badge.svg)](https://codecov.io/gh/AFM-SPM/TopoStats)
 
 | [How it works](#how-it-works) | [Run using Docker](#run-using-docker) | [Parameter Configuration](#parameter-configuration) | [Licence](#licence) | [Publications](#publications) | [Contributing](contributing.md) |
 
