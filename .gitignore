@@ -28,8 +28,9 @@ config.ini
 # IDE
 .vscode/
 .idea/
+*~
 
-# Documentation 
+# Documentation
 _build/
 
 # MacOS
