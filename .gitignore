@@ -6,6 +6,9 @@ __pycache__/
 # User-Specific config file
 config.ini
 
+# Logs
+.log
+
 # Source / output data
 .dropbox
 *.png
@@ -20,11 +23,14 @@ config.ini
 *.npy
 *.csv
 
+*.log
+
 # IDE
 .vscode/
 .idea/
+*~
 
-# Documentation 
+# Documentation
 _build/
 
 # MacOS
