@@ -18,7 +18,7 @@ def amplify(image: np.array, level: float) -> np.array:
     return image * level
 
 
-def row_col_quantiles(image: np.array, binary_mask: bool = False) -> np.array:
+def row_col_quantiles(image: np.array, binary_mask: np.array = None) -> np.array:
     """Returns the height value quantiles for the rows and columns.
 
     :param image: A 2D raster image
@@ -27,7 +27,7 @@ def row_col_quantiles(image: np.array, binary_mask: bool = False) -> np.array:
     """
 
     # Mask the data if applicable
-    if binary_mask:
+    if isinstance(binary_mask, (np.ndarray)):
         image = np.ma.masked_array(image, mask=binary_mask, fill_value=np.nan)
         logging.info('masking enabled')
     else:
