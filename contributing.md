@@ -28,7 +28,8 @@ The current working plan is to move to a more modular architecture with new (and
 * `filters.py` Raster image filters (e.g. Gaussian blur).
 * `morphology.py` Morphological operations (e.g. identify connected components).
 * `curves.py` Operations on vectorised "1D" shapes (e.g. determine curvature).
-* `io.py` Input and output (e.g. load proprietory AFM data formats).
+* `file_io.py` Input and output (e.g. load proprietary AFM data formats).
+* `plottingfuncs.py` Output plot functions (e.g. generate various plots for raw and processed AFM datasets).
 
 These can then be called by a "main" routine that performs batch analysis, and functions within them tested in isolation using `pytest` and reused in arbitrary contexts.
 
