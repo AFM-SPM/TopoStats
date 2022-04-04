@@ -4,13 +4,28 @@ This document explains how, technically, to contribute to this project. A code o
 
 ## Contribution Workflow
 
-* Check the issues and draft pull requests to see if anyone is working on something similar.
-* Make a branch for your contribution.
+* Check the issues and draft pull requests to see if anyone is working on something similar, if not create an issue.
+* Make a branch for your contribution (see below on [branch nomenclature](#branch-nomenclature)).
 * Implement your feature, bug fix, documentation, etc. using commits.
 * Push your changes.
 * Make a pull request against the `master` branch of this repository for bug fixes, or the `dev` branch for new features.
 
 You are advised to make a draft pull request as soon as you start work so nobody else ends up working on the same thing.
+
+### Branch nomenclature
+
+To facilitate linking branches to who created them and what issues they are addressing the nomenclature below is proposed
+when creating a new branch.
+
+```bash
+git checkout -b <github-username>/<github-issue>-<concise-description>
+```
+
+This provide useful information on
+
+1. Who created the branch based on their GitHub username (`<github-username>`).
+2. The GitHub issue it is addressing (`<github-issue>`).
+3. Some information about the issue (`<concise-description`).
 
 ## Software Architecture
 
