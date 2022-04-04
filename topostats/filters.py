@@ -1,15 +1,9 @@
-<<<<<<< HEAD
-from statistics import median, stdev
-import numpy as np
-from skimage.filters import threshold_otsu
-=======
 """Contains filter functions that take a 2D array representing an image as an input, as well as necessary parameters,
 and return a 2D array of the same size representing the filtered image."""
->>>>>>> 8715124 (81 | Adding unit tests to filters.py)
 import logging
 from scipy.optimize import curve_fit
-
-
+=======
+from statistics import median, stdev
 import numpy as np
 from skimage.filters import threshold_otsu
 
@@ -48,6 +42,7 @@ def row_col_quantiles(image: np.array, binary_mask: bool = False) -> np.array:
     for i in range(image.shape[0]):
         row = image[i, :]
         row_quantiles[i] = np.quantile(row, [0.25, 0.5, 0.75])
+
 
     # Populate the column array with quantile tuples
     for j in range(image.shape[1]):
@@ -126,7 +121,6 @@ def calc_diff(array: np.array):
 def calc_gradient(array: np.array, shape: int) -> np.array:
     """Calculate the gradient of an array."""
     return calc_diff(array) / shape
-
 
 def get_threshold(image: np.array) -> float:
     """Returns a threshold value separating the background and foreground of a 2D heightmap.
