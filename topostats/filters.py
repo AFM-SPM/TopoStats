@@ -16,6 +16,7 @@ def amplify(image: np.array, level: float) -> np.array:
 
     return image * level
 
+
 def row_col_quantiles(image: np.array, binary_mask=None) -> np.array:
     """Returns the height value quantiles for the rows and columns.
 
@@ -51,7 +52,7 @@ def row_col_quantiles(image: np.array, binary_mask=None) -> np.array:
 
     return row_quantiles, col_quantiles
 
-<<<<<<< HEAD
+
 def align_rows(image: np.array, binary_mask=None) -> np.array:
     """Returns the input image with rows aligned by median height
 
@@ -78,9 +79,7 @@ def align_rows(image: np.array, binary_mask=None) -> np.array:
             image[i, j] -= row_median_diffs[i]
     
     return image
-=======
 
->>>>>>> 1d66b93... Add row_col_quantiles function to filters.py
 
 def remove_x_y_tilt(image: np.array, binary_mask=None) -> np.array:
     """Returns the input image after removing any linear plane slant
