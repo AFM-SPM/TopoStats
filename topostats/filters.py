@@ -50,7 +50,7 @@ def row_col_quantiles(image: np.array, binary_mask = None) -> np.array:
     return row_quantiles, col_quantiles
 
 
-def align_rows(image: np.array, binary_mask=None) -> np.array:
+def align_rows(image: np.array, binary_mask: bool=False) -> np.array:
     """Returns the input image with rows aligned by median height
 
     :param image: A 2D raster image
