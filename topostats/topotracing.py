@@ -50,7 +50,6 @@ for root, dirs, files in os.walk(basepath):
     for file in files:
         if file.endswith('.spm'):
             file_list.append(file)
-        
 
 for file in file_list:
     filename = os.path.splitext(file)[0]
@@ -65,14 +64,12 @@ for file in file_list:
         os.makedirs(data_folder + 'flattening/')
     flattening_folder = data_folder + 'flattening/'
 
-
     # Fetch the data
     scan = pySPM.Bruker(file)
     # scan.list_channels()
     height = scan.get_channel("Height")
     plottingfuncs.plot_and_save(height, flattening_folder + 'raw_heightmap.png')
 
-    # Initial processing
 
     # Copy data into numpy array format
     data_initial_flatten = np.flipud(np.array(height.pixels))
@@ -80,26 +77,26 @@ for file in file_list:
     # Initial flattening
     logging.info('initial flattening')
     logging.info('initial align rows')
-    data_initial_flatten = filters.align_rows(data_initial_flatten)
+    data_initial_flatten = filters.align_rows(data_initial_flatten, binary_mask=False)
     plottingfuncs.plot_and_save(data_initial_flatten, flattening_folder + 'initial_align_rows.png')
     logging.info('initial x-y tilt')
-    data_initial_flatten = filters.remove_x_y_tilt(data_initial_flatten)
+    data_initial_flatten = filters.remove_x_y_tilt(data_initial_flatten, binary_mask=False)
     plottingfuncs.plot_and_save(data_initial_flatten, flattening_folder + 'initial_x_y_tilt.png')
 
     # Thresholding
     logging.info('otsu thresholding')
     threshold = filters.get_threshold(data_initial_flatten)
     logging.info(f'threshold: {threshold}')
-    mask = data_initial_flatten > threshold
+    # mask = data_initial_flatten > threshold
     plottingfuncs.plot_and_save(mask, flattening_folder + 'binary_mask.png')
 
     # Masked flattening
     logging.info('masked flattening')
     logging.info('masked align rows')
-    data_second_flatten = filters.align_rows(data_initial_flatten, binary_mask=mask)
+    data_second_flatten = filters.align_rows(data_initial_flatten, binary_mask=True)
     plottingfuncs.plot_and_save(data_second_flatten, flattening_folder + 'masked_align_rows.png')
     logging.info('masked x-y tilt')
-    data_second_flatten = filters.remove_x_y_tilt(data_second_flatten, binary_mask=mask)
+    data_second_flatten = filters.remove_x_y_tilt(data_second_flatten, binary_mask=True)
     plottingfuncs.plot_and_save(data_second_flatten, flattening_folder + 'masked_x_y_tilt.png')
 
     # Zero the average background
@@ -138,7 +135,7 @@ for file in file_list:
     # Mask the data
     masked_data = np.ma.masked_array(data, mask=inverted_mask, fill_value=np.nan)
     plottingfuncs.plot_and_save(masked_data, grain_finding_folder + 'masked_data.png')
-    
+
     # Calculate the RMS
     rms_height = np.sqrt(np.mean(masked_data**2))
     logging.info('rms_height: ' + str(rms_height))
@@ -148,14 +145,13 @@ for file in file_list:
 
     threshold = 2
 
-    # Remove any data from the mask that is above a threshold value * sigma above the average height. 
+    # Remove any data from the mask that is above a threshold value * sigma above the average height.
     for i in range(masked_data.shape[0]):
         for j in range(masked_data.shape[1]):
             value = masked_data[i, j]
             if value - mean_height >= threshold * rms_height:
                 inverted_mask[i, j] = False
-    
-    
+
+
     plottingfuncs.plot_and_save(inverted_mask, grain_finding_folder + 'inverted_mask_thresholded.png')
     plottingfuncs.plot_and_save(masked_data, grain_finding_folder + 'masked_data_thresholded.png')
-
