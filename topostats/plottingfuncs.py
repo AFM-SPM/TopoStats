@@ -9,3 +9,4 @@ def plot_and_save(data, filename):
         plt.savefig(filename)
     else:
         data.show(ax=ax, interpolation='nearest', cmap='afmhot')
+    plt.close()
