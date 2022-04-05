@@ -45,16 +45,16 @@ git clone https://github.com/AFM-SPM/TopoStats.git
 
 If this does not work, then you may have to install git. Alternatively, you can just download and extract the zip file from GitHub directly.
 
-Docker conatiners provide a way to run software in a controlled environment, without having to install lots of packages on your computer. To experiment with TopoStats using Docker you will first need to install [Docker](https://docs.docker.com/get-docker/). Then, using the command line, "pull" the container image to your computer:
+Docker conatiners provide a way to run software in a controlled environment, without having to install lots of packages on your computer. To experiment with TopoStats using Docker you will first need to install [Docker](https://docs.docker.com/get-docker/). Then, using the command line, pull the container image to your computer:
 
 ```
-docker pull afmspm/topostats:wip
+docker pull afmspm/topostats:x
 ```
 
 This allows docker to know how and what to run as a virtual machine. Docker then needs to be able to access TopoStats on your operating system. This can be done by mapping the TopoStats folder on your operating system to a folder in the virtual machine. **The files that you wish to analyse will need to be in your TopoStats folder.** The following command both maps the folders and starts the virtual machine:
 
 ```
-docker run -it -v <path/to/your/topostats>:/home/TopoStats afmspm/topostats:wip
+docker run -it -v <path/to/your/topostats>:/home/TopoStats afmspm/topostats:x
 ```
 
 This should have changed the location stated in the terminal from 'C:\ 'to something like 'root@', meaning that any commands will be running in the Docker container.
@@ -74,7 +74,7 @@ pip install -e .
 Then finally run TopoStats, using the command:
 
 ```
-xvfb-run python -m topostats
+python -m topostats
 ```
 
 This should run the pygwytracing.py script for TopoStats, targetting the repository folder that was mapped on your operating system, looking for spm files.
@@ -86,7 +86,7 @@ The terminal will output information about the status of the TopoStats script. A
 To run tests:
 
 ```
-xvfb-run python -m pytest
+python -m pytest
 ```
 
 ## Parameter Configuration

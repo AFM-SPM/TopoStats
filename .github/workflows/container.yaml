@@ -1,0 +1,41 @@
+name: Container build, push, pull and test
+
+on:
+  pull_request:
+    branches:
+      - master
+      - dev
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: afmspm/topostats:x
+  test:
+    needs: docker
+    name: Smoke tests (not pytest)
+    runs-on: ubuntu-latest
+    container:
+      image: afmspm/topostats:x
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup xvfb
+        run: |
+          /opt/dummy_display.sh
+      - name: Install topostats
+        run: |
+          pip install -e .
+      - name: Smoke Test
+        run: |
+          python -m topostats
