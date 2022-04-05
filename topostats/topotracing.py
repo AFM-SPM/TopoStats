@@ -87,7 +87,7 @@ for file in file_list:
     logging.info('otsu thresholding')
     threshold = filters.get_threshold(data_initial_flatten)
     logging.info(f'threshold: {threshold}')
-    # mask = data_initial_flatten > threshold
+    mask = data_initial_flatten > threshold
     plottingfuncs.plot_and_save(mask, flattening_folder + 'binary_mask.png')
 
     # Masked flattening
