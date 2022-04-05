@@ -101,11 +101,11 @@ for file in file_list:
 
     # Zero the average background
     logging.info('adjust medians')
-    row_quantiles, col_quantiles = filters.row_col_quantiles(data_second_flatten, binary_mask=mask)
+    row_quantiles, col_quantiles = filters.row_col_quantiles(data_second_flatten, binary_mask=True)
     for row_index in range(data_second_flatten.shape[0]):
         row_zero_offset = row_quantiles[row_index, 1]
         data_second_flatten[row_index, :] -= row_zero_offset
-    row_quantiles, col_quantiles = filters.row_col_quantiles(data_second_flatten, binary_mask=mask)
+    row_quantiles, col_quantiles = filters.row_col_quantiles(data_second_flatten, binary_mask=True)
     logging.info(f'mean row median: {np.mean(row_quantiles)}')
     plottingfuncs.plot_and_save(data_second_flatten, flattening_folder + 'final_output.png')
 
