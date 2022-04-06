@@ -20,7 +20,9 @@ Steps to reproduce the behavior:
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-**Screenshots**
+**Output**
+
+If applicable please include the output error, this can be a copy and paste of the output (preferable) or a screenshot.
 If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
