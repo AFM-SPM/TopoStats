@@ -77,10 +77,10 @@ for file in file_list:
     # Initial flattening
     logging.info('initial flattening')
     logging.info('initial align rows')
-    data_initial_flatten = filters.align_rows(data_initial_flatten, binary_mask=False)
+    data_initial_flatten = filters.align_rows(data_initial_flatten, binary_mask=None)
     plottingfuncs.plot_and_save(data_initial_flatten, flattening_folder + 'initial_align_rows.png')
     logging.info('initial x-y tilt')
-    data_initial_flatten = filters.remove_x_y_tilt(data_initial_flatten, binary_mask=False)
+    data_initial_flatten = filters.remove_x_y_tilt(data_initial_flatten, binary_mask=None)
     plottingfuncs.plot_and_save(data_initial_flatten, flattening_folder + 'initial_x_y_tilt.png')
 
     # Thresholding
@@ -93,19 +93,19 @@ for file in file_list:
     # Masked flattening
     logging.info('masked flattening')
     logging.info('masked align rows')
-    data_second_flatten = filters.align_rows(data_initial_flatten, binary_mask=True)
+    data_second_flatten = filters.align_rows(data_initial_flatten, binary_mask=mask)
     plottingfuncs.plot_and_save(data_second_flatten, flattening_folder + 'masked_align_rows.png')
     logging.info('masked x-y tilt')
-    data_second_flatten = filters.remove_x_y_tilt(data_second_flatten, binary_mask=True)
+    data_second_flatten = filters.remove_x_y_tilt(data_second_flatten, binary_mask=mask)
     plottingfuncs.plot_and_save(data_second_flatten, flattening_folder + 'masked_x_y_tilt.png')
 
     # Zero the average background
     logging.info('adjust medians')
-    row_quantiles, col_quantiles = filters.row_col_quantiles(data_second_flatten, binary_mask=True)
+    row_quantiles, col_quantiles = filters.row_col_quantiles(data_second_flatten, binary_mask=mask)
     for row_index in range(data_second_flatten.shape[0]):
         row_zero_offset = row_quantiles[row_index, 1]
         data_second_flatten[row_index, :] -= row_zero_offset
-    row_quantiles, col_quantiles = filters.row_col_quantiles(data_second_flatten, binary_mask=True)
+    row_quantiles, col_quantiles = filters.row_col_quantiles(data_second_flatten, binary_mask=mask)
     logging.info(f'mean row median: {np.mean(row_quantiles)}')
     plottingfuncs.plot_and_save(data_second_flatten, flattening_folder + 'final_output.png')
 
