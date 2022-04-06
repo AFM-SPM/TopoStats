@@ -15,13 +15,13 @@ def test_amplify(image_random: np.array) -> None:
 
     np.testing.assert_array_equal(filtered, target)
 
-
+# FIXME : Add tests with masking
 def test_row_col_quantiles(image_random: np.array,
                            image_random_row_quantiles: np.array,
                            image_random_col_quantiles: np.array) -> None:
     """Test generation of quantiles for rows and columns.
     """
-    row_quantiles, col_quantiles = row_col_quantiles(image_random)
+    row_quantiles, col_quantiles = row_col_quantiles(image_random, binary_mask=None)
 
     np.testing.assert_array_equal(row_quantiles, image_random_row_quantiles)
     np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles)
@@ -31,7 +31,7 @@ def test_align_rows(image_random: np.array,
                     image_random_aligned_rows: np.array) -> None:
     """Test aligning of rows by median height.
     """
-    aligned_rows = align_rows(image_random)
+    aligned_rows = align_rows(image_random, binary_mask=None)
 
     np.testing.assert_allclose(aligned_rows, image_random_aligned_rows,
                                **TOLERANCE)
@@ -41,7 +41,7 @@ def test_remove_x_y_tilt(image_random: np.array,
                          image_random_remove_x_y_tilt: np.array) -> None:
     """Test removal of linear plane slant.
     """
-    x_y_tilt_removed = remove_x_y_tilt(image_random)
+    x_y_tilt_removed = remove_x_y_tilt(image_random, binary_mask=None)
 
     np.testing.assert_allclose(x_y_tilt_removed, image_random_remove_x_y_tilt,
                                **TOLERANCE)
