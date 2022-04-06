@@ -17,7 +17,7 @@ def amplify(image: np.array, level: float) -> np.array:
     return image * level
 
 
-def row_col_quantiles(image: np.array, binary_mask=None) -> np.array:
+def row_col_quantiles(image: np.array, binary_mask: np.array = None) -> np.array:
     """Returns the height value quantiles for the rows and columns.
 
     :param image: A 2D raster image
@@ -53,7 +53,7 @@ def row_col_quantiles(image: np.array, binary_mask=None) -> np.array:
     return row_quantiles, col_quantiles
 
 
-def align_rows(image: np.array, binary_mask=None) -> np.array:
+def align_rows(image: np.array, binary_mask: np.array = None) -> np.array:
     """Returns the input image with rows aligned by median height
 
     :param image: A 2D raster image
@@ -69,7 +69,7 @@ def align_rows(image: np.array, binary_mask=None) -> np.array:
     row_medians = row_quantiles[:, 1]
     median_row_height = np.quantile(row_medians, 0.5)
     logging.info(f'median_row_height: {median_row_height}')
-    
+
     # Calculate the differences between the row medians and the median row height
     row_median_diffs = row_medians - median_row_height
 
@@ -77,11 +77,11 @@ def align_rows(image: np.array, binary_mask=None) -> np.array:
     for i in range(image.shape[0]):
         for j in range(image.shape[1]):
             image[i, j] -= row_median_diffs[i]
-    
+
     return image
 
 
-def remove_x_y_tilt(image: np.array, binary_mask=None) -> np.array:
+def remove_x_y_tilt(image: np.array, binary_mask: np.array = None) -> np.array:
     """Returns the input image after removing any linear plane slant
 
     :param image: A 2D raster image
@@ -118,11 +118,9 @@ def get_threshold(image: np.array) -> float:
     """Returns a threshold value separating the background and foreground of a 2D heightmap.
 
     :param image: A 2D raster image
-    :return: Float - the threshold between background and foreground heights. 
+    :return: Float - the threshold between background and foreground heights.
     """
 
     threshold = threshold_otsu(image)
-    
+
     return threshold
-
-
