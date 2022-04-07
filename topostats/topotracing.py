@@ -14,6 +14,8 @@ import os
 import logging
 import plottingfuncs
 from skimage import filters as skimage_filters
+from skimage import segmentation as skimage_segmentation
+from skimage import measure as skimage_measure
 
 # Fetch base path
 basepath = os.getcwd()
@@ -126,18 +128,20 @@ for file in file_list:
         os.makedirs(data_folder + 'grain_finding')
     grain_finding_folder = data_folder + 'grain_finding/'
 
-    # Gaussian filter
     data = np.copy(data_second_flatten)
-    data = skimage_filters.gaussian(data, sigma=gaussian, output=None, mode='nearest')
-    plottingfuncs.plot_and_save(data, grain_finding_folder + 'gaussian_filter.png')
 
-    # Create inverted mask
-    inverted_mask = np.invert(mask)
-    plottingfuncs.plot_and_save(inverted_mask, grain_finding_folder + 'inverted_mask.png')
+    # # Gaussian filter
+    # data = skimage_filters.gaussian(data, sigma=gaussian, output=None, mode='nearest')
+    # plottingfuncs.plot_and_save(data, grain_finding_folder + 'gaussian_filter.png')
+
+    # Create inverted mask for the grain mask
+    grain_mask = np.invert(mask)
+    plottingfuncs.plot_and_save(grain_mask, grain_finding_folder + 'grain_mask.png')
 
     # Mask the data
-    masked_data = np.ma.masked_array(data, mask=inverted_mask, fill_value=np.nan)
+    masked_data = np.ma.masked_array(data, mask=grain_mask, fill_value=np.nan)
     plottingfuncs.plot_and_save(masked_data, grain_finding_folder + 'masked_data.png')
+    # np.savetxt('masked_data.txt', masked_data)
     
     # Calculate the RMS
     rms_height = np.sqrt(np.mean(masked_data**2))
@@ -153,9 +157,19 @@ for file in file_list:
         for j in range(masked_data.shape[1]):
             value = masked_data[i, j]
             if value - mean_height >= threshold * rms_height:
-                inverted_mask[i, j] = True
-    
-    
-    plottingfuncs.plot_and_save(inverted_mask, grain_finding_folder + 'inverted_mask_thresholded.png')
+                grain_mask[i, j] = True
+
+    # plottingfuncs.plot_and_save(masked_data, grain_finding_folder + 'masked_data_thresholded.png')
+    plottingfuncs.plot_and_save(grain_mask, grain_finding_folder + 'grain_mask_thresholded.png')
+    # Apply the mask
+    masked_data = np.ma.masked_array(masked_data, mask=grain_mask, fill_value=np.nan)
     plottingfuncs.plot_and_save(masked_data, grain_finding_folder + 'masked_data_thresholded.png')
+
+    # Remove grains touching border
+    grain_mask = np.invert(skimage_segmentation.clear_border(np.invert(grain_mask)))
+
+    plottingfuncs.plot_and_save(grain_mask, grain_finding_folder + 'grain_mask_border_cleared.png')
+    # Apply the mask
+    masked_data = np.ma.masked_array(masked_data, mask=grain_mask, fill_value=np.nan)
+    plottingfuncs.plot_and_save(masked_data, grain_finding_folder + 'masked_data_border_cleared.png')
 
