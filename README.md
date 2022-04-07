@@ -35,20 +35,15 @@ Statistical analysis and plotting is performed using the 'statsplotting' script.
 This script uses the importfromjson function to import the JSON format file exported by pygwytracing and calculates various statistical parameters for all grain quantities, e.g. length, width and saves these out as a new JSON file using the savestats function. 
 Both KDE plots and histograms are generated for any of the grain quantities using the matplotlib42 and seaborn43 libraries within the functions plotkde, plotcolumns and plothist. 
 
-## Run TopoStats using Docker
+## Run using Docker
 
-TopoStats uses the Docker platform to ensure that TopoStats runs correctly on any machine, and removes the requirement of manually installing Python and Python packages yourself. Docker is an all in one solution that downloads and installs all dependencies that you need to run TopoStats.
+Firstly, you will need to clone the TopoStats repository if you have not done so. It can be cloned by opening a terminal window and navigating to where you want to save TopoStats, then running the command:
 
-### What you will need 
-* To be an admin / have admin privileges on your computer.
-* An up-to date version of your operating system (MacOS, GNU/Linux, Windows 10/11).
-* At least 4GB of RAM available to your computer.
+```
+git clone https://github.com/AFM-SPM/TopoStats.git
+```
 
-### Downloading the TopoStats files
-
-The first step is to get the files that Docker will need to be able to run TopoStats.
-
-You can download the files directly from [GitHub] (https://github.com/AFM-SPM/TopoStats) via the 'code' button, and selecting the 'Download ZIP' button. This will download the code in a compressed format which you should extract and move to a sensible place on your computer (Eg: username/Documents/TopoStats).
+If this does not work, then you may have to install git. Alternatively, you can just download and extract the zip file from GitHub directly.
 
 Docker conatiners provide a way to run software in a controlled environment, without having to install lots of packages on your computer. To experiment with TopoStats using Docker you will first need to install [Docker](https://docs.docker.com/get-docker/). Then, using the command line, pull the container image to your computer:
 
@@ -56,7 +51,7 @@ Docker conatiners provide a way to run software in a controlled environment, wit
 docker pull afmspm/topostats:x
 ```
 
-This allows docker to know how to run TopoStats. Docker then needs to be able to access TopoStats on your operating system. This can be done by mapping the TopoStats folder on your operating system to a folder in the container. **The files that you wish to analyse will need to be in your TopoStats folder.** The following command both maps the folders and starts the virtual machine:
+This allows docker to know how and what to run as a virtual machine. Docker then needs to be able to access TopoStats on your operating system. This can be done by mapping the TopoStats folder on your operating system to a folder in the virtual machine. **The files that you wish to analyse will need to be in your TopoStats folder.** The following command both maps the folders and starts the virtual machine:
 
 ```
 docker run -it -v <path/to/your/topostats>:/home/TopoStats afmspm/topostats:x
@@ -82,7 +77,7 @@ Then finally run TopoStats, using the command:
 python -m topostats
 ```
 
-This should run the pygwytracing.py script for TopoStats, targeting the repository folder that was mapped on your operating system, looking for spm files.
+This should run the pygwytracing.py script for TopoStats, targetting the repository folder that was mapped on your operating system, looking for spm files.
 
 The terminal will output information about the status of the TopoStats script. Any results will be placed in a folder in the TopoStats folder, called 'processed'.
 
