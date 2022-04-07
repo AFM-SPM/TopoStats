@@ -146,14 +146,14 @@ for file in file_list:
     # Calculate the mean
     mean_height = np.mean(masked_data)
 
-    threshold = 2
+    threshold = 1
 
-    # Remove any data from the mask that is above a threshold value * sigma above the average height. 
+    # Mask out any data that is above a threshold value * sigma above the average height. 
     for i in range(masked_data.shape[0]):
         for j in range(masked_data.shape[1]):
             value = masked_data[i, j]
             if value - mean_height >= threshold * rms_height:
-                inverted_mask[i, j] = False
+                inverted_mask[i, j] = True
     
     
     plottingfuncs.plot_and_save(inverted_mask, grain_finding_folder + 'inverted_mask_thresholded.png')
