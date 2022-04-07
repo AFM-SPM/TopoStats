@@ -22,11 +22,13 @@ A clear and concise description of what you expected to happen.
 
 If applicable please include the output error, this can be a copy and paste of the output (preferable) or a screenshot.
 If applicable, add screenshots to help explain your problem.
+Output files can be attached to this bug report.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+**(Not required if using Docker) Your computer configuration (please complete the following information):**
+ - OS: e.g. windows, MacOS, linux; please include OS version
+ - topostats version: best way to get this at the moment is to paste the results of running `git show --oneline -s` in your topostats folder.
+ - Python version: best way to get this is to paste the results of typing `python --version`.
+ - Optionally, your installed packages: best way to get this is to paste the results of typing `pip freeze`.
 
 **Additional context**
 Add any other context about the problem here.
