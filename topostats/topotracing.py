@@ -1,9 +1,5 @@
 # Imports
 from datetime import datetime
-from operator import invert
-
-from matplotlib.cbook import flatten
-
 
 import filters
 import numpy as np
@@ -33,6 +29,8 @@ logging.getLogger('matplotlib').setLevel(logging.CRITICAL)
 logging.getLogger('skimage').setLevel(logging.CRITICAL)
 logging.getLogger('skimage_filters').setLevel(logging.CRITICAL)
 logging.getLogger('numpy').setLevel(logging.CRITICAL)
+pil_logger = logging.getLogger('PIL')
+pil_logger.setLevel(logging.CRITICAL)
 logging.info(f'pySPM version: {pySPM.__version__}')
 
 # Misc config
@@ -51,11 +49,13 @@ for root, dirs, files in os.walk(basepath):
     # Add all spm files to file list
     for file in files:
         if file.endswith('.spm'):
+            logging.info('File found: ' + os.path.join(root, file))
             file_list.append(file)
-        
 
 for file in file_list:
     filename = os.path.splitext(file)[0]
+
+    logging.info('Processing file: ' + str(filename))
 
     # Create plot data folder for each spm image
     if not os.path.exists(basepath + '/plot_data/' + filename):
@@ -92,6 +92,8 @@ for file in file_list:
     logging.info('otsu thresholding')
     threshold = filters.get_threshold(data_initial_flatten)
     logging.info(f'threshold: {threshold}')
+    
+    # Create a mask that defines what data is used
     mask = data_initial_flatten > threshold
     plottingfuncs.plot_and_save(mask, flattening_folder + 'binary_mask.png')
 
@@ -130,9 +132,9 @@ for file in file_list:
 
     data = np.copy(data_second_flatten)
 
-    # # Gaussian filter
-    # data = skimage_filters.gaussian(data, sigma=gaussian, output=None, mode='nearest')
-    # plottingfuncs.plot_and_save(data, grain_finding_folder + 'gaussian_filter.png')
+    # Gaussian filter
+    data = skimage_filters.gaussian(data, sigma=gaussian, output=None, mode='nearest')
+    plottingfuncs.plot_and_save(data, grain_finding_folder + 'gaussian_filter.png')
 
     # Create inverted mask for the grain mask
     grain_mask = np.invert(mask)
@@ -141,8 +143,7 @@ for file in file_list:
     # Mask the data
     masked_data = np.ma.masked_array(data, mask=grain_mask, fill_value=np.nan)
     plottingfuncs.plot_and_save(masked_data, grain_finding_folder + 'masked_data.png')
-    # np.savetxt('masked_data.txt', masked_data)
-    
+
     # Calculate the RMS
     rms_height = np.sqrt(np.mean(masked_data**2))
     logging.info('rms_height: ' + str(rms_height))
@@ -150,6 +151,7 @@ for file in file_list:
     # Calculate the mean
     mean_height = np.mean(masked_data)
 
+    # Set outlier threshold value TODO: Add to config file.
     threshold = 1
 
     # Mask out any data that is above a threshold value * sigma above the average height. 
@@ -162,7 +164,7 @@ for file in file_list:
     # plottingfuncs.plot_and_save(masked_data, grain_finding_folder + 'masked_data_thresholded.png')
     plottingfuncs.plot_and_save(grain_mask, grain_finding_folder + 'grain_mask_thresholded.png')
     # Apply the mask
-    masked_data = np.ma.masked_array(masked_data, mask=grain_mask, fill_value=np.nan)
+    masked_data = np.ma.masked_array(masked_data, mask=grain_mask, fill_value=0.0).filled()
     plottingfuncs.plot_and_save(masked_data, grain_finding_folder + 'masked_data_thresholded.png')
 
     # Remove grains touching border
@@ -170,6 +172,6 @@ for file in file_list:
 
     plottingfuncs.plot_and_save(grain_mask, grain_finding_folder + 'grain_mask_border_cleared.png')
     # Apply the mask
-    masked_data = np.ma.masked_array(masked_data, mask=grain_mask, fill_value=np.nan)
+    masked_data = np.ma.masked_array(masked_data, mask=grain_mask, fill_value=0.0).filled()
     plottingfuncs.plot_and_save(masked_data, grain_finding_folder + 'masked_data_border_cleared.png')
 
