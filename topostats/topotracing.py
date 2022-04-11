@@ -12,6 +12,7 @@ import plottingfuncs
 from skimage import filters as skimage_filters
 from skimage import segmentation as skimage_segmentation
 from skimage import measure as skimage_measure
+from skimage import color as skimage_color
 
 # Fetch base path
 basepath = os.getcwd()
@@ -155,7 +156,7 @@ for file in file_list:
     # Set outlier threshold value TODO: Add to config file.
     threshold = 1
 
-    # Mask out any data that is above a threshold value * sigma above the average height.
+    # Mask out any data that is above a threshold value * sigma above the average height. 
     for i in range(masked_data.shape[0]):
         for j in range(masked_data.shape[1]):
             value = masked_data[i, j]
