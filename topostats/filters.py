@@ -70,13 +70,8 @@ def align_rows(image: np.array, mask: np.array=None) -> np.array:
     :return: The same image but with the rows aligned in median height
     """
 
-<<<<<<< HEAD
-    # Get row and column height quantiles for the image. Does nothing if binary_mask = None
-    row_quantiles, col_quantiles = row_col_quantiles(image, binary_mask)
-=======
     # Get row height quantiles for the image.
     row_quantiles, _ = row_col_quantiles(image, mask)
->>>>>>> 0a835b8 (95 | Tests of masking added.)
 
     # Align row medians
     # Calculate median row height
