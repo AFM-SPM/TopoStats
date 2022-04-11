@@ -18,7 +18,7 @@ def amplify(image: np.array, level: float) -> np.array:
     return image * level
 
 
-def row_col_quantiles(image: np.array, binary_mask = None) -> np.array:
+def row_col_quantiles(image: np.array, binary_mask:np.ndarray = None) -> np.array:
     """Returns the height value quantiles for the rows and columns.
 
     :param image: A 2D raster image
