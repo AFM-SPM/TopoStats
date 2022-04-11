@@ -67,6 +67,10 @@ def test_row_col_quantiles_with_mask(image_random: np.array,
     """Test generation of quantiles for rows and columns.
     """
     row_quantiles, col_quantiles = row_col_quantiles(image_random, mask=image_random_mask)
+    print('########## ROW ')
+    print(f'row_quantiles.data : \n{row_quantiles.data}')
+    print('\n\n\n###### FROM FILE')
+    print(f'image_random_row_quantiles_masked : \n{image_random_row_quantiles_masked}')
     # Remove masked values for comparison
     row_quantiles, col_quantiles = row_quantiles.data, col_quantiles.data
 
