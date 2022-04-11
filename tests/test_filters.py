@@ -1,7 +1,7 @@
 """Tests of the filters module."""
 import numpy as np
 
-from topostats.filters import amplify, row_col_quantiles, align_rows, remove_x_y_tilt, get_threshold
+from topostats.filters import amplify, row_col_quantiles, align_rows, remove_x_y_tilt, get_threshold, get_mask
 
 # Specify the absolute and relattive tolerance for floating point comparison
 TOLERANCE = {'atol': 1e-07, 'rtol': 1e-07}
@@ -21,7 +21,7 @@ def test_row_col_quantiles(image_random: np.array,
                            image_random_col_quantiles: np.array) -> None:
     """Test generation of quantiles for rows and columns.
     """
-    row_quantiles, col_quantiles = row_col_quantiles(image_random, binary_mask=None)
+    row_quantiles, col_quantiles = row_col_quantiles(image_random, mask=None)
 
     np.testing.assert_array_equal(row_quantiles, image_random_row_quantiles)
     np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles)
@@ -31,7 +31,7 @@ def test_align_rows(image_random: np.array,
                     image_random_aligned_rows: np.array) -> None:
     """Test aligning of rows by median height.
     """
-    aligned_rows = align_rows(image_random, binary_mask=None)
+    aligned_rows = align_rows(image_random, mask=None)
 
     np.testing.assert_allclose(aligned_rows, image_random_aligned_rows,
                                **TOLERANCE)
@@ -39,18 +39,37 @@ def test_align_rows(image_random: np.array,
 
 def test_remove_x_y_tilt(image_random: np.array,
                          image_random_remove_x_y_tilt: np.array) -> None:
-    """Test removal of linear plane slant.
-    """
-    x_y_tilt_removed = remove_x_y_tilt(image_random, binary_mask=None)
+    """Test removal of linear plane slant."""
+    x_y_tilt_removed = remove_x_y_tilt(image_random, mask=None)
 
     np.testing.assert_allclose(x_y_tilt_removed, image_random_remove_x_y_tilt,
                                **TOLERANCE)
 
 
 def test_get_threshold(image_random: np.array):
-    """Test calculation of threshold
-    """
-    image_threshold = get_threshold(image_random)
+    """Test calculation of threshold."""
+    threshold = get_threshold(image_random)
     expected_threshold = 0.4980470463263117
 
-    assert image_threshold == expected_threshold
+    assert threshold == expected_threshold
+
+def test_get_mask(image_random: np.array, image_random_mask: np.array):
+    """Test generation of mask"""
+    threshold = get_threshold(image_random)
+    mask = get_mask(image_random, threshold)
+
+    np.testing.assert_array_equal(mask, image_random_mask)
+
+def test_row_col_quantiles_with_mask(image_random: np.array,
+                                     image_random_row_quantiles_masked: np.array,
+                                     image_random_col_quantiles_masked: np.array) -> None:
+    """Test generation of quantiles for rows and columns.
+    """
+    threshold = get_threshold(image_random)
+    mask = get_mask(image_random, threshold)
+    row_quantiles, col_quantiles = row_col_quantiles(image_random, mask=mask)
+    # Remove masked values for comparison
+    row_quantiles, col_quantiles = row_quantiles.data, col_quantiles.data
+
+    np.testing.assert_array_equal(row_quantiles, image_random_row_quantiles_masked)
+    np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles_masked)
