@@ -61,15 +61,15 @@ def test_get_mask(image_random: np.array, image_random_mask: np.array):
     np.testing.assert_array_equal(mask, image_random_mask)
 
 def test_row_col_quantiles_with_mask(image_random: np.array,
+                                     image_random_mask: np.array,
                                      image_random_row_quantiles_masked: np.array,
                                      image_random_col_quantiles_masked: np.array) -> None:
     """Test generation of quantiles for rows and columns.
     """
-    threshold = get_threshold(image_random)
-    mask = get_mask(image_random, threshold)
-    row_quantiles, col_quantiles = row_col_quantiles(image_random, mask=mask)
+    row_quantiles, col_quantiles = row_col_quantiles(image_random, mask=image_random_mask)
     # Remove masked values for comparison
     row_quantiles, col_quantiles = row_quantiles.data, col_quantiles.data
 
     np.testing.assert_array_equal(row_quantiles, image_random_row_quantiles_masked)
     np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles_masked)
+    assert False
