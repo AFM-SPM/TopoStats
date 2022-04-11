@@ -175,3 +175,18 @@ for file in file_list:
     masked_data = np.ma.masked_array(masked_data, mask=grain_mask, fill_value=0.0).filled()
     plottingfuncs.plot_and_save(masked_data, grain_finding_folder + 'masked_data_border_cleared.png')
 
+    # Label regions
+    labelled_image = skimage_measure.label(masked_data)
+    plottingfuncs.plot_and_save(labelled_image, grain_finding_folder + 'labelled_image.png')
+
+    # === For after labelling ===
+    
+    # # TO PUT IN CONFIGFILE
+    # minimum_grain_size_nm = 20
+
+    # # Calculate pixel are equivalent of minimum size in square nanometers 
+    # minimum_grain_size_pixels = np.round(minimum_grain_size_nm / dx)
+
+    # === ------------------- ===
+
+
