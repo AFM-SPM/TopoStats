@@ -12,6 +12,7 @@ import plottingfuncs
 from skimage import filters as skimage_filters
 from skimage import segmentation as skimage_segmentation
 from skimage import measure as skimage_measure
+from skimage import color as skimage_color
 
 # Fetch base path
 basepath = os.getcwd()
@@ -179,8 +180,12 @@ for file in file_list:
     labelled_image = skimage_measure.label(masked_data)
     plottingfuncs.plot_and_save(labelled_image, grain_finding_folder + 'labelled_image.png')
 
+    # Colour the regions 
+    labelled_image = skimage_color.label2rgb(labelled_image)
+    plottingfuncs.plot_and_save(labelled_image, grain_finding_folder + 'color_labelled_image.png')
+
     # === For after labelling ===
-    
+
     # # TO PUT IN CONFIGFILE
     # minimum_grain_size_nm = 20
 
