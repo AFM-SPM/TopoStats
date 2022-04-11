@@ -1,13 +1,9 @@
-<<<<<<< HEAD
-from statistics import median
-=======
 """Contains filter functions that take a 2D array representing an image as an input, as well as necessary parameters,
 and return a 2D array of the same size representing the filtered image."""
 from pathlib import Path
 import logging
 from scipy.optimize import curve_fit
 from statistics import median, stdev
->>>>>>> 0a835b8 (95 | Tests of masking added.)
 import numpy as np
 from skimage.filters import threshold_otsu
 import logging
