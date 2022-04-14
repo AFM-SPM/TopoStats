@@ -8,11 +8,23 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / 'tests' / 'resources'
 
 
+RNG = np.random.default_rng(seed=1000)
+SMALL_ARRAY_SIZE = (10, 10)
+
+
 @pytest.fixture
 def image_random() -> np.array:
     rng = np.random.default_rng(seed=1000)
     return rng.random((1024, 1024))
 
+
+@pytest.fixture
+def small_array() -> np.array:
+    return RNG.random(SMALL_ARRAY_SIZE)
+
+@pytest.fixture
+def small_mask() -> np.array:
+    return RNG.uniform(low=0, high=1, size=SMALL_ARRAY_SIZE) > 0.5
 
 @pytest.fixture
 def image_random_row_quantiles() -> np.array:

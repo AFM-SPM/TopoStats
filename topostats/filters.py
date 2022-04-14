@@ -32,6 +32,7 @@ def row_col_quantiles(image: np.array, mask: np.array = None) -> np.array:
 
     # Mask the data if applicable
     if mask is not None:
+        # image = np.ma.masked_array(image, mask=mask, fill_value=np.nan)
         image = np.ma.masked_array(image, mask=mask, fill_value=np.nan)
         logging.info('[row_col_quantiles] masking enabled')
     else:
@@ -44,16 +45,12 @@ def row_col_quantiles(image: np.array, mask: np.array = None) -> np.array:
     # Populate the row array with quantile tuples
     for i in range(image.shape[0]):
         row = image[i, :]
-        row_quantiles[i] = np.array([np.quantile(row, 0.25),
-        np.quantile(row, 0.5),
-        np.quantile(row, 0.75)])
+        row_quantiles[i] = np.quantile(row, [0.25, 0.5, 0.75])
 
     # Populate the column array with quantile tuples
     for j in range(image.shape[1]):
         col = image[:, j]
-        col_quantiles[j] = np.array([np.quantile(col, 0.25),
-        np.quantile(col, 0.5),
-        np.quantile(col, 0.75)])
+        col_quantiles[j] = np.quantile(col, [0.25, 0.5, 0.75])
 
     return row_quantiles, col_quantiles
 

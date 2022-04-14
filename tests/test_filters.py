@@ -15,6 +15,36 @@ def test_amplify(image_random: np.array) -> None:
 
     np.testing.assert_array_equal(filtered, target)
 
+def test_row_col_quantiles_small_array_no_mask(small_array: np.array) -> None:
+    """Test generation of quantiles for rows and columns without masking."""
+    row_quantiles, col_quantiles = row_col_quantiles(small_array, mask=None)
+
+    expected_rows = np.quantile(small_array, [0.25, 0.5, 0.75], axis=1).T
+    expected_cols = np.quantile(small_array, [0.25, 0.5, 0.75], axis=0).T
+
+    np.testing.assert_array_equal(row_quantiles, expected_rows)
+    np.testing.assert_array_equal(col_quantiles, expected_cols)
+
+def test_row_col_quantiles_small_array_mask(small_array: np.array, small_mask: np.array) -> None:
+    """Test generation of quantiles for rows and columns."""
+    row_quantiles, col_quantiles = row_col_quantiles(small_array, mask=small_mask)
+
+
+    small_array_masked = np.ma.masked_array(small_array, mask=small_mask, fill_value=np.nan)
+
+    # Test against np.quantile()
+    expected_rows = np.quantile(small_array_masked, [0.25, 0.5, 0.75], axis=1).T
+    expected_cols = np.quantile(small_array_masked, [0.25, 0.5, 0.75], axis=0).T
+    np.testing.assert_array_equal(row_quantiles, expected_rows)
+    np.testing.assert_array_equal(col_quantiles, expected_cols)
+
+    # Test against np.nanpercentile
+    expected_rows = np.nanpercentile(small_array_masked, (25, 50, 75), axis=1).T
+    expected_cols = np.nanpercentile(small_array_masked, (25, 50, 75), axis=0).T
+    np.testing.assert_array_equal(row_quantiles, expected_rows)
+    np.testing.assert_array_equal(col_quantiles, expected_cols)
+
+
 # FIXME : Add tests with masking
 def test_row_col_quantiles(image_random: np.array,
                            image_random_row_quantiles: np.array,
@@ -67,16 +97,18 @@ def test_row_col_quantiles_with_mask(image_random: np.array,
     """Test generation of quantiles for rows and columns.
     """
     row_quantiles, col_quantiles = row_col_quantiles(image_random, mask=image_random_mask)
-    print('########## ROW ')
-    print(row_quantiles.data)
-    print(f'row_quantiles.data : \n{row_quantiles.data}')
-    print('\n\n\n###### FROM FILE')
-    print(f'image_random_row_quantiles_masked : \n{image_random_row_quantiles_masked}')
+    # print('########## ROW ')
+    # print(row_quantiles.data)
+    # print(f'row_quantiles.data : \n{row_quantiles.data}')
+    # print('\n\n\n###### FROM FILE')
+    # print(f'image_random_row_quantiles_masked : \n{image_random_row_quantiles_masked}')
     # Remove masked values for comparison
-    row_quantiles = row_quantiles.data
-    col_quantiles = col_quantiles.data
+    #row_quantiles = row_quantiles.data()
+    #col_quantiles = col_quantiles.data()
+    row_quantiles = np.ma.getdata(row_quantiles)
+    col_quantiles = np.ma.getdata(col_quantiles)
     print(row_quantiles)
 
     np.testing.assert_array_equal(row_quantiles.data, image_random_row_quantiles_masked)
     np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles_masked)
-    assert False
+    # assert False
