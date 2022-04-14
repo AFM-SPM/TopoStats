@@ -61,7 +61,7 @@ def row_col_quantiles(image: np.array, mask: np.array = None) -> np.array:
     return row_quantiles, col_quantiles
 
 
-def align_rows(image: np.array, mask: np.array=None) -> np.array:
+def align_rows(image: np.array, mask: np.array = None) -> np.array:
     """Returns the input image with rows aligned by median height
 
     :param image: A 2D raster image
@@ -138,12 +138,14 @@ def get_threshold(image: np.array) -> float:
     """
     return threshold_otsu(image)
 
+
 def get_mask(image: np.array, threshold: float) -> np.array:
     """Calculate a mask for pixels that exceed the threshold
 
     :param image: A 2D raster image
     :threshold float: Threshold for masking pixels"""
     return image > threshold
+
 
 # def remove_x_bowing(image: np.array, mask: np.array) -> tuple:
 #     """Remove X bowing.
@@ -167,47 +169,60 @@ def get_mask(image: np.array, threshold: float) -> np.array:
 #                                       row_mean)
 #     return parameters, covariance
 
+
 def quadratic(x, a, b, c):
     """Calculate the result of the quadratic equation."""
     return (a * x**2) + (b * x) + c
 
 
     # Gaussian filter
-def gaussian_filter(image: np.array, gaussian_size: float = 2, dx: float = 1, mode: str = 'nearest') -> np.array:
+def gaussian_filter(image: np.array,
+                    gaussian_size: float = 2,
+                    dx: float = 1,
+                    mode: str = 'nearest') -> np.array:
     """Apply gaussian filter to data.
     :param image:
     :param gaussian_size: Gaussian glur size in nanometers (nm).
     :param dx: Pixel to nm scale.
     :param mode:"""
-    return skimage_filters.gaussian(image, sigma=(gaussian_size / dx), mode=mode)
+    return skimage_filters.gaussian(image,
+                                    sigma=(gaussian_size / dx),
+                                    mode=mode)
 
-def boolean_image(image: np.array, threshold:float) -> np.array:
+
+def boolean_image(image: np.array, threshold: float) -> np.array:
     """Create a boolean array of whether points are greater than the given threshold.
 
     :param image:
     :param threshold"""
     return np.array(np.copy(image) > threshold, dtype='bool')
 
+
 def tidy_border(image: np.array) -> np.array:
     """Remove grains touching the border"""
     return skimage_segmentation.clear_border(np.copy(image))
 
-def remove_small_objects(image: np.array, minimum_grain_size: float, dx:float) -> np.array:
+
+def remove_small_objects(image: np.array, minimum_grain_size: float,
+                         dx: float) -> np.array:
     """Remove small objects
 
     :param minimum_grain_size: Minimum grain size in nanometers (nm).
     :param dx: Pixel to nm scale.
     :return: Image with small objects removed.
     """
-    return skimage_morphology.remove_small_objects(data_boolean, min_size=(minimum_grain_size / dx))
+    return skimage_morphology.remove_small_objects(
+        data_boolean, min_size=(minimum_grain_size / dx))
 
-def label_regions(image: np.array, background: float=0.0) -> np.array:
+
+def label_regions(image: np.array, background: float = 0.0) -> np.array:
     """Label regions.
 
     :param image:
     :param background:
     """
     return skimage_morphology.label(image, brackground=background)
+
 
 def colour_regions(image: np.array) -> np.array:
     """Colour the regions.
@@ -216,11 +231,13 @@ def colour_regions(image: np.array) -> np.array:
     """
     return skimage_color.label2rgb(image)
 
+
 def region_properties(image: np.array) -> np.array:
     """
     :param image:
     """
     return skimage_measure.regionprops(image)
+
 
 def find_grains(image: np.array,
                 gaussian_size: Union[int, float] = 2,
@@ -253,7 +270,8 @@ def find_grains(image: np.array,
     boolean_image = get_boolean(np.copy(image), lower_threshold)
     border_cleared = clear_border(boolean_image)
     plot_and_save(boolean_image, outdir / 'boolean_border_clear.png')
-    small_objects_removed = remove_small_objects(border_cleared, minimum_grain_size, dx)
+    small_objects_removed = remove_small_objects(border_cleared,
+                                                 minimum_grain_size, dx)
     plot_and_save(boolean_image, outdir / 'small_objects_removed.png')
     labelled_regions = label_regions(small_objects_removed)
     plot_and_save(boolean_image, outdir / 'labelled_regions.png')
