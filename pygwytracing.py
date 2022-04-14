@@ -766,7 +766,7 @@ if __name__ == '__main__':
     saveTraceFigures_option = bool(int(config.get("ImageOutput", "saveTraceFigures_option")))
     print("Save trace figures option: " + str(saveTraceFigures_option))
     saveCroppedFiles_option = bool(int(config.get("ImageOutput", "saveCroppedFiles_option")))
-    print("Save trace figures option: " + str(saveCroppedFiles_option))
+    print("Save cropped figures option: " + str(saveCroppedFiles_option))
     savefilesScale_option = int(config.get("ImageOutput", "savefilesScale_option"))
     print("Save files scale option: " + str(savefilesScale_option))
     savefile_zscalecolour = str(config.get("ImageOutput", "savefile_zscalecolour"))
@@ -897,6 +897,14 @@ if __name__ == '__main__':
 
                 print('Tracing took %f seconds' % (trace_end - trace_start))
                 tracing_stats.saveTraceStats(path)
+
+                try:
+                    curvature_stats.updateCurvature(dna_traces)
+                except NameError:
+                    curvature_stats = dnatracing.curvatureStats(dna_traces)
+
+                curvature_stats.saveCurvatureStats(path)
+
 
                 # dna_traces.plotCurvature(0)
                 # dna_traces.writeCoordinates(0)

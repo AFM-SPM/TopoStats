@@ -48,6 +48,7 @@ class dnaTrace(object):
         self.curvature = {}
         self.max_curvature = {}
         self.max_curvature_location = {}
+        self.mean_curvature = {}
 
         self.number_of_traces = 0
         self.num_circular = 0
@@ -72,7 +73,7 @@ class dnaTrace(object):
         self.getSplinedTraces()
         self.findCurvature()
         self.saveCurvature()
-        self.findMaxCurvature()
+        self.analyseCurvature()
         self.measureContourLength()
         self.measureEndtoEndDistance()
         self.reportBasicStats()
@@ -585,7 +586,7 @@ class dnaTrace(object):
         plt.colorbar()
         for dna_num in sorted(self.splined_traces.keys()):
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=2.0)
-        plt.savefig('%s_%s_splinedtrace.tiff' % (save_file, channel_name), dpi=1000)
+        plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name), dpi=1000)
         plt.close()
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
@@ -662,7 +663,7 @@ class dnaTrace(object):
         plt.axis('equal')
         plt.xticks([])
         plt.yticks([])
-        plt.savefig('%s_%s_curvature_summary.tiff' % (save_file, channel_name), dpi=300)
+        plt.savefig('%s_%s_curvature_summary.png' % (save_file, channel_name), dpi=300)
         plt.close()
 
     def _checkForSaveDirectory(self, filename, new_directory_name):
@@ -698,22 +699,21 @@ class dnaTrace(object):
         # self.mol_is_circular[101] = True
 
         # Testing with an ellipse
-        self.splined_traces[0] = np.zeros([self.n_points, 2])
-        for i in range(0, self.n_points):
-            theta = 2 * math.pi / self.n_points * i
-            x = - math.cos(theta) * self.major
-            y = math.sin(theta) * self.minor
-            self.splined_traces[0][i][0] = x
-            self.splined_traces[0][i][1] = y
-        self.splined_traces[0] = np.roll(self.splined_traces[0], int(self.n_points * self.displacement), axis=0)
-        self.mol_is_circular[0] = True
+        # self.splined_traces[0] = np.zeros([self.n_points, 2])
+        # for i in range(0, self.n_points):
+        #     theta = 2 * math.pi / self.n_points * i
+        #     x = - math.cos(theta) * self.major
+        #     y = math.sin(theta) * self.minor
+        #     self.splined_traces[0][i][0] = x
+        #     self.splined_traces[0][i][1] = y
+        # self.splined_traces[0] = np.roll(self.splined_traces[0], int(self.n_points * self.displacement), axis=0)
+        # self.mol_is_circular[0] = True
 
         # Testing with a parabola
         # x = np.linspace(-2, 2, num=self.n_points)
         # y = x**2
         # self.splined_traces[0] = np.column_stack((x, y))
         # self.mol_is_circular[0] = False
-
 
         for dna_num in sorted(self.splined_traces.keys()):  # the number of molecules identified
             # splined_traces is a dictionary, where the keys are the number of the molecule, and the values are a
@@ -761,12 +761,12 @@ class dnaTrace(object):
             for i, (x, y) in enumerate(self.splined_traces[dna_num]):
                 # Extracts the coordinates for the required number of points and puts them in an array
                 if self.mol_is_circular[dna_num] or not self.mol_is_circular[dna_num]:
-                        # (self.neighbours < i < len(self.splined_traces[dna_num]) - self.neighbours)
+                    # (self.neighbours < i < len(self.splined_traces[dna_num]) - self.neighbours)
                     # for j in range(self.neighbours * 2 + 1):
                     #     coordinates[0][j] = self.splined_traces[dna_num][i - j][0]
                     #     coordinates[1][j] = self.splined_traces[dna_num][i - j][1]
-                        # gradients[0][j] = dx[i - j]
-                        # gradients[1][j] = dy[i - j]
+                    # gradients[0][j] = dx[i - j]
+                    # gradients[1][j] = dy[i - j]
                     # dxmean[i] = np.mean(gradients[0])
                     # dymean[i] = np.mean(gradients[1])
 
@@ -793,13 +793,13 @@ class dnaTrace(object):
                     curvature_local = (d2x[i] * dy[i] - dx[i] * d2y[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
                     curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
 
-                    if i < (length-1):
+                    if i < (length - 1):
                         contour = contour + math.hypot(
                             (self.splined_traces[dna_num][(i + 1), 0] - self.splined_traces[dna_num][i, 0]),
                             (self.splined_traces[dna_num][(i + 1), 1] - self.splined_traces[dna_num][i, 1])
                             # (coordinates[0][self.neighbours] - coordinates[0][self.neighbours - 1]),
                             # (coordinates[1][self.neighbours] - coordinates[1][self.neighbours - 1])
-                             )
+                        )
             curve = np.array(curve)
             # curvature_smoothed = scipy.ndimage.gaussian_filter(curve[:, 2], 10, mode='nearest')
             # curve[:, 2] = curvature_smoothed
@@ -810,27 +810,30 @@ class dnaTrace(object):
         for dna_num in sorted(self.curvature.keys()):
             for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(self.curvature[dna_num]):
                 try:
-                    roc_array = np.append(roc_array, np.array([[dna_num, i, contour, c, dx, dy, d2x, d2y]]), axis=0)
+                    curvature_array = np.append(curvature_array, np.array([[dna_num, i, contour, c, dx, dy, d2x, d2y]]),
+                                                axis=0)
                 except NameError:
-                    roc_array = np.array([[dna_num, i, contour, c, dx, dy, d2x, d2y]])
-        roc_stats = pd.DataFrame(roc_array)
+                    curvature_array = np.array([[dna_num, i, contour, c, dx, dy, d2x, d2y]])
+        curvature_stats = pd.DataFrame(curvature_array)
+        curvature_stats.columns = ['DNA number', 'Number', 'Contour length', 'Curvature', 'dx', 'dy', 'd2x', 'd2y']
 
         if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Curvature")):
             os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Curvature"))
         directory = os.path.join(os.path.dirname(self.afm_image_name), "Curvature")
         savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
-        roc_stats.to_json(savename + '.json')
-        roc_stats.to_csv(savename + '.csv')
+        curvature_stats.to_json(savename + '.json')
+        curvature_stats.to_csv(savename + '.csv')
 
-    def findMaxCurvature(self):
+    def analyseCurvature(self):
 
         for dna_num in sorted(self.curvature.keys()):
             max_value = np.amax(np.abs(self.curvature[dna_num][:, 2]))
             max_index = np.argmax(np.abs(self.curvature[dna_num][:, 2]))
             max_location = self.curvature[dna_num][max_index, 1] * self.pixel_size * 1e9
+            mean_value = np.average(np.abs(self.curvature[dna_num][:, 2]))
             self.max_curvature[dna_num] = max_value
             self.max_curvature_location[dna_num] = max_location
-
+            self.mean_curvature[dna_num] = mean_value
 
     def plotCurvature(self, dna_num):
 
@@ -853,7 +856,8 @@ class dnaTrace(object):
             theory = np.zeros(length)
             for i in range(length):
                 # For ellipse
-                theory[i] = self.major * self.minor * (-1 / ((self.major**2 - self.minor**2) * math.cos(math.pi * 2 / self.n_points * i) ** 2 - self.major**2)) ** 1.5
+                theory[i] = self.major * self.minor * (-1 / ((self.major ** 2 - self.minor ** 2) * math.cos(
+                    math.pi * 2 / self.n_points * i) ** 2 - self.major ** 2)) ** 1.5
                 theory = np.roll(theory, int(self.n_points * self.displacement), axis=0)
                 # For parabola
                 # theory[i] = - 2/(1+(2*self.splined_traces[0][i][0])**2)**1.5
@@ -864,15 +868,19 @@ class dnaTrace(object):
             plt.ticklabel_format(axis='both', style='sci', scilimits=(-2, 2))
             plt.axvline(curvature[0][1], color="#D55E00", linewidth=5, alpha=0.8)
             plt.axvline(curvature[int(length / 6)][1] * self.pixel_size * 1e9, color="#E69F00", linewidth=5, alpha=0.8)
-            plt.axvline(curvature[int(length / 6 * 2)][1] * self.pixel_size * 1e9, color="#F0E442", linewidth=5, alpha=0.8)
-            plt.axvline(curvature[int(length / 6 * 3)][1] * self.pixel_size * 1e9, color="#009E74", linewidth=5, alpha=0.8)
-            plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size * 1e9, color="#0071B2", linewidth=5, alpha=0.8)
-            plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size * 1e9, color="#CC79A7", linewidth=5, alpha=0.8)
+            plt.axvline(curvature[int(length / 6 * 2)][1] * self.pixel_size * 1e9, color="#F0E442", linewidth=5,
+                        alpha=0.8)
+            plt.axvline(curvature[int(length / 6 * 3)][1] * self.pixel_size * 1e9, color="#009E74", linewidth=5,
+                        alpha=0.8)
+            plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size * 1e9, color="#0071B2", linewidth=5,
+                        alpha=0.8)
+            plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size * 1e9, color="#CC79A7", linewidth=5,
+                        alpha=0.8)
         plt.xlabel('Length alongside molecule / nm')
         plt.ylabel('Curvature / $\mathregular{nm^{-1}}$')
         # plt.xticks(fontsize=20)
         # plt.yticks(fontsize=20)
-        plt.savefig('%s_%s_curvature.tiff' % (savename, dna_num))
+        plt.savefig('%s_%s_curvature.png' % (savename, dna_num))
         plt.close()
 
     def plotGradient(self, dna_num):
@@ -988,7 +996,7 @@ class dnaTrace(object):
         plt.xticks([])
         plt.yticks([])
         plt.gca().axes.get_yaxis().set_visible(False)
-        plt.savefig('%s_%s_coordinates.tiff' % (savename, dna_num))
+        plt.savefig('%s_%s_coordinates.png' % (savename, dna_num))
         plt.close()
 
         # curvature = np.array(self.curvature[dna_num])
@@ -1049,8 +1057,9 @@ class traceStats(object):
                 data_dict['Contour Lengths'].append(self.trace_object.contour_lengths[dna_num])
                 data_dict['Circular'].append(self.trace_object.mol_is_circular[dna_num])
                 data_dict['End to End Distance'].append(self.trace_object.end_to_end_distance[dna_num])
-                # data_dict['Max Curvature'].append(self.trace_object.max_curvature[dna_num])
-                # data_dict['Max Curvature Location'].append(self.trace_object.max_curvature_location[dna_num])
+                data_dict['Max Curvature'].append(self.trace_object.max_curvature[dna_num])
+                data_dict['Max Curvature Location'].append(self.trace_object.max_curvature_location[dna_num])
+                data_dict['Mean Curvature'].append(self.trace_object.mean_curvature[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
                 data_dict['Image Name'] = [img_name]
@@ -1059,8 +1068,9 @@ class traceStats(object):
                 data_dict['Contour Lengths'] = [self.trace_object.contour_lengths[dna_num]]
                 data_dict['Circular'] = [self.trace_object.mol_is_circular[dna_num]]
                 data_dict['End to End Distance'] = [self.trace_object.end_to_end_distance[dna_num]]
-                # data_dict['Max Curvature'] = [self.trace_object.max_curvature[dna_num]]
-                # data_dict['Max Curvature Location'] = [self.trace_object.max_curvature_location[dna_num]]
+                data_dict['Max Curvature'] = [self.trace_object.max_curvature[dna_num]]
+                data_dict['Max Curvature Location'] = [self.trace_object.max_curvature_location[dna_num]]
+                data_dict['Mean Curvature'] = [self.trace_object.mean_curvature[dna_num]]
         self.pd_dataframe = pd.DataFrame(data=data_dict)
 
     def updateTraceStats(self, new_traces):
@@ -1082,8 +1092,9 @@ class traceStats(object):
                 data_dict['Contour Lengths'].append(new_traces.contour_lengths[dna_num])
                 data_dict['Circular'].append(new_traces.mol_is_circular[dna_num])
                 data_dict['End to End Distance'].append(new_traces.end_to_end_distance[dna_num])
-                # data_dict['Max Curvature'].append(new_traces.max_curvature[dna_num])
-                # data_dict['Max Curvature Location'].append(new_traces.max_curvature_location[dna_num])
+                data_dict['Max Curvature'].append(new_traces.max_curvature[dna_num])
+                data_dict['Max Curvature Location'].append(new_traces.max_curvature_location[dna_num])
+                data_dict['Mean Curvature'].append(new_traces.mean_curvature[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
                 data_dict['Image Name'] = [img_name]
@@ -1092,8 +1103,9 @@ class traceStats(object):
                 data_dict['Contour Lengths'] = [new_traces.contour_lengths[dna_num]]
                 data_dict['Circular'] = [new_traces.mol_is_circular[dna_num]]
                 data_dict['End to End Distance'] = [new_traces.end_to_end_distance[dna_num]]
-                # data_dict['Max Curvature'] = [new_traces.max_curvature[dna_num]]
-                # data_dict['Max Curvature Location'] = [new_traces.max_curvature_location[dna_num]]
+                data_dict['Max Curvature'] = [new_traces.max_curvature[dna_num]]
+                data_dict['Max Curvature Location'] = [new_traces.max_curvature_location[dna_num]]
+                data_dict['Mean Curvature'] = [new_traces.mean_curvature[dna_num]]
 
         pd_new_traces_dframe = pd.DataFrame(data=data_dict)
 
@@ -1115,3 +1127,101 @@ class traceStats(object):
         self.pd_dataframe.to_csv('%stracestats.csv' % save_path)
 
         print('Saved trace info for all analysed images into: %stracestats.json' % save_path)
+
+class curvatureStats(object):
+
+    def __init__(self, trace_object):
+
+        self.trace_object = trace_object
+
+        self.curvature_dataframe = []
+
+        self.createCurvatureObject()
+
+    def createCurvatureObject(self):
+
+        '''Creates a pandas dataframe with the shape:
+
+        Directory     ImageName   dna_num Point   ContourLength  Curvature
+
+        '''
+
+        curvature_dict = {}
+
+        trace_directory_file = self.trace_object.afm_image_name
+        trace_directory = os.path.dirname(trace_directory_file)
+        basename = os.path.basename(trace_directory)
+        img_name = os.path.basename(trace_directory_file)
+
+        for mol_num, dna_num in enumerate(sorted(self.trace_object.curvature.keys())):
+            for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(self.trace_object.curvature[dna_num]):
+
+                try:
+                    curvature_dict['Molecule number'].append(mol_num)
+                    curvature_dict['Experiment Directory'].append(trace_directory)
+                    curvature_dict['Basename'].append(basename)
+                    curvature_dict['Image Name'].append(img_name)
+                    curvature_dict['Point number'].append(n)
+                    curvature_dict['Contour length'].append(contour)
+                    curvature_dict['Curvature'].append(c)
+
+                except KeyError:
+                    curvature_dict['Molecule number'] = [mol_num]
+                    curvature_dict['Experiment Directory'] = [trace_directory]
+                    curvature_dict['Basename'] = [basename]
+                    curvature_dict['Image Name'] = [img_name]
+                    curvature_dict['Point number'] = [n]
+                    curvature_dict['Contour length'] = [contour]
+                    curvature_dict['Curvature'] = [c]
+
+        self.curvature_dataframe = pd.DataFrame(data=curvature_dict)
+
+    def updateCurvature(self, new_traces):
+
+        curvature_dict = {}
+
+        trace_directory_file = new_traces.afm_image_name
+        trace_directory = os.path.dirname(trace_directory_file)
+        basename = os.path.basename(trace_directory)
+        img_name = os.path.basename(trace_directory_file)
+
+        for mol_num, dna_num in enumerate(sorted(new_traces.contour_lengths.keys())):
+            for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(new_traces.curvature[dna_num]):
+                try:
+                    curvature_dict['Molecule number'].append(mol_num)
+                    curvature_dict['Experiment Directory'].append(trace_directory)
+                    curvature_dict['Basename'].append(basename)
+                    curvature_dict['Image Name'].append(img_name)
+                    curvature_dict['Point number'].append(n)
+                    curvature_dict['Contour length'].append(contour)
+                    curvature_dict['Curvature'].append(c)
+
+                except KeyError:
+                    curvature_dict['Molecule number'] = [mol_num]
+                    curvature_dict['Experiment Directory'] = [trace_directory]
+                    curvature_dict['Basename'] = [basename]
+                    curvature_dict['Image Name'] = [img_name]
+                    curvature_dict['Point number'] = [n]
+                    curvature_dict['Contour length'] = [contour]
+                    curvature_dict['Curvature'] = [c]
+
+        pd_new_traces_dframe = pd.DataFrame(data=curvature_dict)
+
+        self.curvature_dataframe = self.curvature_dataframe.append(pd_new_traces_dframe, ignore_index=True)
+
+    def saveCurvatureStats(self, save_path):
+        save_file_name = ''
+
+        if save_path[-1] == '/':
+            pass
+        else:
+            save_path = save_path + '/'
+
+        for i in self.trace_object.afm_image_name.split('/')[:-1]:
+            save_file_name = save_file_name + i + '/'
+        print(save_file_name)
+
+        self.curvature_dataframe.to_json('%scurvaturestats.json' % save_path)
+        self.curvature_dataframe.to_csv('%scurvaturestats.csv' % save_path)
+
+        print('Saved curvature stats for all analysed images into: %scurvaturestats.json' % save_path)
