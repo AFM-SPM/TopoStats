@@ -405,6 +405,7 @@ def computeStats(data, columns, min, max):
 
 if __name__ == '__main__':
     # Path to the json file, e.g. C:\\Users\\username\\Documents\\Data\\Data.json
+
     path = ''
     path2 = ''
 
@@ -415,15 +416,18 @@ if __name__ == '__main__':
 
     # import data form the json file specified as a dataframe
     df = importfromjson(path)
-    df2 = importfromjson(path2)
+    # df2 = importfromjson(path2)
 
-    df = df[df['Circular'] == False]
-    df = df[df['Contour Lengths'] > 80]
-    df = df[df['Contour Lengths'] < 130]
+    plt.plot(df['Contour length'], df['Curvature'])
+    plt.show()
 
-    df2 = df2[df2['Circular'] == False]
-    df2 = df2[df2['Contour Lengths'] > 80]
-    df2 = df2[df2['Contour Lengths'] < 130]
+    # df = df[df['Circular'] == False]
+    # df = df[df['Contour Lengths'] > 80]
+    # df = df[df['Contour Lengths'] < 130]
+    #
+    # df2 = df2[df2['Circular'] == False]
+    # df2 = df2[df2['Contour Lengths'] > 80]
+    # df2 = df2[df2['Contour Lengths'] < 130]
 
     # Rename directory column as appropriate
     # df1 = df1.rename(columns={"directory": "Experimental Conditions"})
@@ -534,8 +538,8 @@ if __name__ == '__main__':
 # plothist(df, 'Max Curvature', xmin=0, xmax=1.5, bins=500)
 # plothist(df, 'Contour Lengths', xmin=50, xmax=150, nm=True, bins=20)
 # plotkde(df, 'Contour Lengths', xmin=0, xmax=200, nm=True)
-plotkde(df, 'Mean Curvature', xmin=0, xmax=0.4)
-plothist(df, 'Mean Curvature', xmin=0, xmax=0.4, bins=20)
+# plotkde(df, 'Mean Curvature', xmin=0, xmax=0.4)
+# plothist(df, 'Mean Curvature', xmin=0, xmax=0.4, bins=20)
 # plotkde2var(df, 'Mean Curvature', df2=df2, xmin=0, xmax=0.4)
 
 
