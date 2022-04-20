@@ -6,6 +6,7 @@ import logging
 from scipy.optimize import curve_fit
 from statistics import median, stdev
 import numpy as np
+import pySPM
 from skimage.filters import threshold_otsu
 from skimage import filters as skimage_filters
 from skimage import segmentation as skimage_segmentation
@@ -15,6 +16,27 @@ from skimage import color as skimage_color
 from scipy import ndimage
 
 from topostats.plottingfuncs import plot_and_save
+
+
+def load_scan(img_path: Union[str, Path]) -> pySPM.Bruker:
+    """Load the image from file.
+
+    :param img_path: Path to an image file."""
+    return pySPM.Bruker(Path(img_path))
+
+
+def extract_channel(scan_raw: pySPM.Bruker, channel: str = 'Height'):
+    try:
+        return scan_raw.get_channel(channel)
+    except Exception as exception:
+        exception
+
+
+def extract_pixels(extracted_channel) -> np.array:
+    """Flatten the scan to a Numpy Array.
+
+    :param extracted_channel: Channel extracted from an image."""
+    return np.flipud(np.array(extracted_channel.pixels))
 
 
 def amplify(image: np.array, level: float) -> np.array:
@@ -40,9 +62,8 @@ def row_col_quantiles(image: np.array, mask: np.array = None) -> np.array:
     if mask is not None:
         # image = np.ma.masked_array(image, mask=mask, fill_value=np.nan)
         image = np.ma.masked_array(image, mask=mask, fill_value=np.nan)
-        logging.info('[row_col_quantiles] masking enabled')
     else:
-        logging.info('[row_col_quantiles] masking disabled')
+        print('[row_col_quantiles] masking disabled')
 
     # Initialise arrays
     row_quantiles = np.zeros((image.shape[0], 3))
@@ -147,6 +168,14 @@ def get_mask(image: np.array, threshold: float) -> np.array:
     return image > threshold
 
 
+def average_background(image: np.array, mask: np.array = None) -> np.array:
+    """Zero the background
+
+    :param image: a 2D raster image"""
+    row_quantiles, _ = row_col_quantiles(image, mask)
+    return image - np.array(row_quantiles[:, 1], ndmin=2).T
+
+
 # def remove_x_bowing(image: np.array, mask: np.array) -> tuple:
 #     """Remove X bowing.
 
@@ -175,7 +204,17 @@ def quadratic(x, a, b, c):
     return (a * x**2) + (b * x) + c
 
 
-    # Gaussian filter
+# Gaussian filter
+def get_lower_threshold(image: np.array,
+                        lower_threshold_multiplier: float = 1.7) -> float:
+    """Calculate the lower threshold for filtering.
+
+    :param image:
+    :param lower_threshold_multiplier:
+    :return: Lower Threshold"""
+    return get_threshold(image) * lower_threshold_multiplier
+
+
 def gaussian_filter(image: np.array,
                     gaussian_size: float = 2,
                     dx: float = 1,
@@ -212,7 +251,7 @@ def remove_small_objects(image: np.array, minimum_grain_size: float,
     :return: Image with small objects removed.
     """
     return skimage_morphology.remove_small_objects(
-        data_boolean, min_size=(minimum_grain_size / dx))
+        image, min_size=(minimum_grain_size / dx))
 
 
 def label_regions(image: np.array, background: float = 0.0) -> np.array:
@@ -221,7 +260,7 @@ def label_regions(image: np.array, background: float = 0.0) -> np.array:
     :param image:
     :param background:
     """
-    return skimage_morphology.label(image, brackground=background)
+    return skimage_morphology.label(image, background=background)
 
 
 def colour_regions(image: np.array) -> np.array:

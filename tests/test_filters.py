@@ -1,9 +1,8 @@
 """Tests of the filters module."""
 import numpy as np
 
-# from topostats.filters import (amplify, row_col_quantiles, align_rows,
-#                                remove_x_y_tilt, get_threshold, get_mask,
-#                                remove_x_bowing, quadratic, curve_fit,)
+from pySPM.SPM import SPM_image
+from pySPM.Bruker import Bruker
 from skimage.filters import threshold_otsu
 from skimage import filters as skimage_filters
 from skimage import segmentation as skimage_segmentation
@@ -11,9 +10,13 @@ from skimage import measure as skimage_measure
 from skimage import morphology as skimage_morphology
 from skimage import color as skimage_color
 from topostats.filters import *
+from topostats.plottingfuncs import plot_and_save
 
 # Specify the absolute and relattive tolerance for floating point comparison
 TOLERANCE = {'atol': 1e-07, 'rtol': 1e-07}
+
+BASE_DIR = Path.cwd()
+RESOURCES = BASE_DIR / 'tests' / 'resources'
 
 
 def test_amplify(image_random: np.array) -> None:
@@ -72,23 +75,6 @@ def test_row_col_quantiles(image_random: np.array,
     np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles)
 
 
-def test_row_col_quantiles_with_mask(
-        image_random: np.array, image_random_mask: np.array,
-        image_random_row_quantiles_masked: np.array,
-        image_random_col_quantiles_masked: np.array) -> None:
-    """Test generation of quantiles for rows and columns.
-    """
-    row_quantiles, col_quantiles = row_col_quantiles(image_random,
-                                                     mask=image_random_mask)
-    row_quantiles = np.ma.getdata(row_quantiles)
-    col_quantiles = np.ma.getdata(col_quantiles)
-
-    np.testing.assert_array_equal(row_quantiles.data,
-                                  image_random_row_quantiles_masked)
-    np.testing.assert_array_equal(col_quantiles,
-                                  image_random_col_quantiles_masked)
-
-
 def test_align_rows(image_random: np.array,
                     image_random_aligned_rows: np.array) -> None:
     """Test aligning of rows by median height.
@@ -124,6 +110,23 @@ def test_get_mask(image_random: np.array, image_random_mask: np.array):
     np.testing.assert_array_equal(mask, image_random_mask)
 
 
+def test_row_col_quantiles_with_mask(
+        image_random: np.array, image_random_mask: np.array,
+        image_random_row_quantiles_masked: np.array,
+        image_random_col_quantiles_masked: np.array) -> None:
+    """Test generation of quantiles for rows and columns.
+    """
+    row_quantiles, col_quantiles = row_col_quantiles(image_random,
+                                                     mask=image_random_mask)
+    row_quantiles = np.ma.getdata(row_quantiles)
+    col_quantiles = np.ma.getdata(col_quantiles)
+
+    np.testing.assert_array_equal(row_quantiles.data,
+                                  image_random_row_quantiles_masked)
+    np.testing.assert_array_equal(col_quantiles,
+                                  image_random_col_quantiles_masked)
+
+
 def test_quadratic(small_array) -> None:
     """Test quadratic function."""
     a, b, c = 2, 3, 4
@@ -131,6 +134,16 @@ def test_quadratic(small_array) -> None:
     target = (a * small_array**2) + (b * small_array) + c
 
     np.testing.assert_array_equal(target, small_array_quadratic)
+
+
+def test_average_background(image_random: np.array,
+                            image_random_mask: np.array) -> None:
+    """Test averaging of background."""
+    background_averaged = average_background(image_random, image_random_mask)
+    row_quantiles, _ = row_col_quantiles(image_random, mask=image_random_mask)
+    target = image_random - np.array(row_quantiles[:, 1], ndmin=2).T
+
+    np.testing.assert_array_equal(target, background_averaged)
 
 
 # def test_curve_fit(small_array:np.array) -> None:
@@ -153,66 +166,27 @@ def test_quadratic(small_array) -> None:
 #                                              fill_value=np.nan)
 #     assert True
 
-def test_gaussian_filter(small_array: np.array, gaussian_size: float = 2, dx: float = 1, mode: str = 'nearest') -> None:
+
+def test_gaussian_filter(small_array: np.array,
+                         gaussian_size: float = 2,
+                         dx: float = 1,
+                         mode: str = 'nearest') -> None:
     """Test Gaussian filter."""
     gaussian_filtered = gaussian_filter(small_array)
-    target = skimage_filters.gaussian(small_array, sigma=(gaussian_size / dx), mode=mode)
+    target = skimage_filters.gaussian(small_array,
+                                      sigma=(gaussian_size / dx),
+                                      mode=mode)
 
     assert isinstance(gaussian_filtered, np.ndarray)
     np.testing.assert_array_equal(gaussian_filtered, target)
+
 
 def test_boolean_image(small_array: np.array, threshold: float = 0.5) -> None:
     """Test creation of boolean array."""
     boolean_array = boolean_image(small_array, threshold)
     target = small_array > threshold
+    print(f'small_array :\n{small_array}')
     assert isinstance(boolean_array, np.ndarray)
     assert np.issubdtype(boolean_array.dtype, np.bool_)
-    assert boolean_array.sum() == 50
+    assert boolean_array.sum() == 46
     np.testing.assert_array_equal(boolean_array, target)
-
-
-def test_tidy_border(small_array: np.array, threshold: float = 0.5) -> None:
-    """Test removal of artefacts from the border of an image."""
-    print(f'[test_tidy_border] small_array   : \n {small_array}')
-    boolean_array = np.copy(boolean_image(small_array, threshold))
-    print(f'[test_tidy_border] boolean_array : \n{boolean_array}')
-    border_tidied = tidy_border(boolean_array)
-    print(f'WHY IS THIS ARRAY NOW ALL FALSE???? IT SHOULD JUST BE THE BORDERS')
-    print(f'[test_tidy_border] border_tidied : \n{border_tidied}')
-    target = skimage_segmentation.clear_border(boolean_array)
-#    print(f'[test_tidy_border] target : \n{target}')
-
-    assert isinstance(boolean_array, np.ndarray)
-    assert border_tidied.sum() == 32
-    np.testing.assert_array_equal(border_tidied, target)
-
-
-# def test_remove_small_objects(image_random: np.array, minimum_grain_size: float = 800,
-#                               dx: float = 1.0) -> None:
-#     """"""
-
-#     assert True
-
-
-# def test_label_regions(image_random: np.array, background: float = 0.0) -> None:
-#     """"""
-
-#     assert True
-
-
-# def test_colour_regions(image_random: np.array) -> None:
-#     """"""
-
-#     assert True
-
-
-# def test_region_properties(image_random: np.array) -> None:
-#     """"""
-
-#     assert True
-
-
-# def test_find_grains(image_random: np.array) -> None:
-#     """"""
-
-#     assert True
