@@ -5,20 +5,17 @@ import pytest
 from pySPM.SPM import SPM_image
 from pySPM.Bruker import Bruker
 
-from topostats.filters import *
 from topostats.plottingfuncs import plot_and_save
 
 # Specify the absolute and relattive tolerance for floating point comparison
 TOLERANCE = {'atol': 1e-07, 'rtol': 1e-07}
-
-BASE_DIR = Path.cwd()
-RESOURCES = BASE_DIR / 'tests' / 'resources'
 
 
 def test_load_scan(minicircle) -> None:
     """Test loading of image"""
 
     assert isinstance(minicircle, Bruker)
+
 
 def test_extract_channel(minicircle_channel) -> None:
     """Test extraction of channel."""
@@ -30,9 +27,10 @@ def test_extract_pixels(minicircle_pixels, tmpdir) -> None:
     """Test extraction of channel."""
     assert isinstance(minicircle_pixels, np.ndarray)
     assert minicircle_pixels.shape == (1024, 1024)
-    assert minicircle_pixels.sum() ==  30695369.188316286
+    assert minicircle_pixels.sum() == 30695369.188316286
     fig, _ = plot_and_save(minicircle_pixels, tmpdir / '01-raw_heightmap.png', title='Raw Height')
     return fig
+
 
 @pytest.mark.mpl_image_compare(baseline_dir='resources/img/')
 def test_align_rows_unmasked(minicircle_initial_align: np.array, tmpdir) -> None:
@@ -40,7 +38,8 @@ def test_align_rows_unmasked(minicircle_initial_align: np.array, tmpdir) -> None
     assert isinstance(minicircle_initial_align, np.ndarray)
     assert minicircle_initial_align.shape == (1024, 1024)
     assert minicircle_initial_align.sum() == 30754588.04587935
-    fig, _ = plot_and_save(minicircle_initial_align, tmpdir / '02-initial_align_rows_unmasked.png',
+    fig, _ = plot_and_save(minicircle_initial_align,
+                           tmpdir / '02-initial_align_rows_unmasked.png',
                            title='Initial Align (Unmasked)')
     return fig
 
@@ -56,6 +55,7 @@ def test_remove_x_y_tilt_unmasked(minicircle_initial_tilt_removal: np.array, tmp
                            title='Initial Tilt Removal (Unmasked)')
     return fig
 
+
 def test_get_threshold(minicircle_threshold: np.array) -> None:
     """Test calculation of threshold."""
     assert isinstance(minicircle_threshold, float)
@@ -68,10 +68,9 @@ def test_get_mask(minicircle_mask: np.array, tmpdir) -> None:
     assert isinstance(minicircle_mask, np.ndarray)
     assert minicircle_mask.shape == (1024, 1024)
     assert minicircle_mask.sum() == 82159
-    fig, _ = plot_and_save(minicircle_mask,
-                           tmpdir / '04-binary_mask.png',
-                           title='Binary Mask')
+    fig, _ = plot_and_save(minicircle_mask, tmpdir / '04-binary_mask.png', title='Binary Mask')
     return fig
+
 
 @pytest.mark.mpl_image_compare(baseline_dir='resources/img/')
 def test_align_rows_masked(minicircle_masked_align: np.array, tmpdir) -> None:
@@ -84,6 +83,7 @@ def test_align_rows_masked(minicircle_masked_align: np.array, tmpdir) -> None:
                            title='Secondary Align (Masked)')
     return fig
 
+
 @pytest.mark.mpl_image_compare(baseline_dir='resources/img/')
 def test_remove_x_y_tilt_masked(minicircle_masked_tilt_removal: np.array, tmpdir) -> None:
     """Test removal of tilt without mask."""
@@ -94,6 +94,7 @@ def test_remove_x_y_tilt_masked(minicircle_masked_tilt_removal: np.array, tmpdir
                            tmpdir / '06-secondary_tilt_removal_masked.png',
                            title='Secondary Tilt Removal (Masked)')
     return fig
+
 
 @pytest.mark.mpl_image_compare(baseline_dir='resources/img/')
 def test_zero_average_background(minicircle_zero_average_background: np.array, tmpdir) -> None:

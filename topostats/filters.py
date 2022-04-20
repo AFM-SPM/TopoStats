@@ -1,21 +1,26 @@
 """Contains filter functions that take a 2D array representing an image as an input, as well as necessary parameters,
 and return a 2D array of the same size representing the filtered image."""
+# pylint: disable=no-name-in-module
+# pylint: disable=invalid-name
 from pathlib import Path
 from typing import Union
 import logging
-from scipy.optimize import curve_fit
-from statistics import median, stdev
+# from scipy.optimize import curve_fit
+# from scipy import ndimage
 import numpy as np
 import pySPM
-from skimage.filters import threshold_otsu
-from skimage import filters as skimage_filters
-from skimage import segmentation as skimage_segmentation
-from skimage import measure as skimage_measure
-from skimage import morphology as skimage_morphology
-from skimage import color as skimage_color
-from scipy import ndimage
+from skimage.filters import threshold_otsu, gaussian
+from skimage.segmentation import clear_border
+from skimage.morphology import remove_small_objects, label
+from skimage.measure import regionprops
+from skimage.color import label2rgb
+# from skimage import filters as skimage_filters
+# from skimage import segmentation as skimage_segmentation
+# from skimage import measure as skimage_measure
+# from skimage import morphology as skimage_morphology
+# from skimage import color as skimage_color
 
-from topostats.plottingfuncs import plot_and_save
+# from topostats.plottingfuncs import plot_and_save
 
 
 def load_scan(img_path: Union[str, Path]) -> pySPM.Bruker:
@@ -26,10 +31,11 @@ def load_scan(img_path: Union[str, Path]) -> pySPM.Bruker:
 
 
 def extract_channel(scan_raw: pySPM.Bruker, channel: str = 'Height'):
-    try:
-        return scan_raw.get_channel(channel)
-    except Exception as exception:
-        exception
+    """Extract the given channel from the image.
+
+    :param scan_raw: Raw scan loaded from filecmp
+    :param channel: Channel to extract."""
+    return scan_raw.get_channel(channel)
 
 
 def extract_pixels(extracted_channel) -> np.array:
@@ -62,6 +68,7 @@ def row_col_quantiles(image: np.array, mask: np.array = None) -> np.array:
     if mask is not None:
         # image = np.ma.masked_array(image, mask=mask, fill_value=np.nan)
         image = np.ma.masked_array(image, mask=mask, fill_value=np.nan)
+        print('[row_col_quantiles] masking enabled')
     else:
         print('[row_col_quantiles] masking disabled')
 
@@ -107,7 +114,7 @@ def align_rows(image: np.array, mask: np.array = None) -> np.array:
     # Adjust the row medians accordingly
     for i in range(image.shape[0]):
         if np.isnan(row_median_diffs[i]):
-            LOGGER.info(f'{i} row_median is nan! : {row_median_diffs[i]}')
+            logging.info(f'{i} row_median is nan! : {row_median_diffs[i]}')
         # for j in range(image.shape[1]):
         #     image[i, j] -= row_median_diffs[i]
         image[i] -= row_median_diffs[i]
@@ -204,9 +211,8 @@ def quadratic(x, a, b, c):
     return (a * x**2) + (b * x) + c
 
 
-# Gaussian filter
-def get_lower_threshold(image: np.array,
-                        lower_threshold_multiplier: float = 1.7) -> float:
+# Gaussian filtering
+def get_lower_threshold(image: np.array, lower_threshold_multiplier: float = 1.7) -> float:
     """Calculate the lower threshold for filtering.
 
     :param image:
@@ -215,18 +221,14 @@ def get_lower_threshold(image: np.array,
     return get_threshold(image) * lower_threshold_multiplier
 
 
-def gaussian_filter(image: np.array,
-                    gaussian_size: float = 2,
-                    dx: float = 1,
-                    mode: str = 'nearest') -> np.array:
+def gaussian_filter(image: np.array, gaussian_size: float = 2, dx: float = 1, mode: str = 'nearest') -> np.array:
     """Apply gaussian filter to data.
     :param image:
     :param gaussian_size: Gaussian glur size in nanometers (nm).
     :param dx: Pixel to nm scale.
     :param mode:"""
-    return skimage_filters.gaussian(image,
-                                    sigma=(gaussian_size / dx),
-                                    mode=mode)
+    # return skimage_filters.gaussian(image, sigma=(gaussian_size / dx), mode=mode)
+    return gaussian(image, sigma=(gaussian_size / dx), mode=mode)
 
 
 def boolean_image(image: np.array, threshold: float) -> np.array:
@@ -238,20 +240,22 @@ def boolean_image(image: np.array, threshold: float) -> np.array:
 
 
 def tidy_border(image: np.array) -> np.array:
-    """Remove grains touching the border"""
-    return skimage_segmentation.clear_border(np.copy(image))
+    """Remove grains touching the border
 
+    :param image: """
+#    return skimage_segmentation.clear_border(np.copy(image))
+    return clear_border(np.copy(image))
 
-def remove_small_objects(image: np.array, minimum_grain_size: float,
-                         dx: float) -> np.array:
+def remove_objects(image: np.array, minimum_grain_size: float, dx: float) -> np.array:
     """Remove small objects
 
+    :param image:
     :param minimum_grain_size: Minimum grain size in nanometers (nm).
     :param dx: Pixel to nm scale.
     :return: Image with small objects removed.
     """
-    return skimage_morphology.remove_small_objects(
-        image, min_size=(minimum_grain_size / dx))
+#    return skimage_morphology.remove_small_objects(image, min_size=(minimum_grain_size / dx))
+    return remove_small_objects(image, min_size=(minimum_grain_size / dx))
 
 
 def label_regions(image: np.array, background: float = 0.0) -> np.array:
@@ -260,7 +264,8 @@ def label_regions(image: np.array, background: float = 0.0) -> np.array:
     :param image:
     :param background:
     """
-    return skimage_morphology.label(image, background=background)
+#    return skimage_morphology.label(image, background=background)
+    return label(image, background=background)
 
 
 def colour_regions(image: np.array) -> np.array:
@@ -268,53 +273,54 @@ def colour_regions(image: np.array) -> np.array:
 
     :param image:
     """
-    return skimage_color.label2rgb(image)
+#    return skimage_color.label2rgb(image)
+    return label2rgb(image)
 
 
 def region_properties(image: np.array) -> np.array:
     """
     :param image:
     """
-    return skimage_measure.regionprops(image)
+#    return skimage_measure.regionprops(image)
+    return regionprops(image)
 
 
-def find_grains(image: np.array,
-                gaussian_size: Union[int, float] = 2,
-                dx: Union[int, float] = 1,
-                upper_height_threshold_rms_multiplier: Union[int, float] = 1,
-                lower_threshold_otsu_multiplier: Union[int, float] = 1.7,
-                minimum_grain_size: Union[int, float] = 800,
-                mode: str = 'nearest',
-                outdir: Union[str, Path] = 'grain_finding') -> np.array:
-    """Find grains within an image.
+# def find_grains(image: np.array,
+#                 gaussian_size: Union[int, float] = 2,
+#                 dx: Union[int, float] = 1,
+#                 upper_height_threshold_rms_multiplier: Union[int, float] = 1,
+#                 lower_threshold_otsu_multiplier: Union[int, float] = 1.7,
+#                 minimum_grain_size: Union[int, float] = 800,
+#                 mode: str = 'nearest',
+#                 outdir: Union[str, Path] = 'grain_finding') -> np.array:
+#     """Find grains within an image.
 
-    :param gaussian_size: Gaussian glur size in nanometers (nm).
-    :param dx: Pixel to nm scale.
-    :param upper_height_threshold_rms_multiplier: Sets the rms multiplier for high-value outlier detection. The higher
-    the value the less sensitive grain finding will be to outliers.
-    :param lower_thershold_otsu_multiplier: Otsu threshold multiplier for lower thresholding the data. Higher values
-    cull lower values around the edges of grains.
-    :param minimum_grain_size: Minimum grain size in nanometers (nm).
-    :param mode: Method for Gaussian filtering
-    :param outdir: Output directory to save images to.
-    :return:
-    """
-    if Path(outdir).is_dir() is False:
-        Path(outdir).mkdir(parents=True, exist_ok=True)
-    data = np.copy(gaussican_filtered)
-    lower_threshold = get_threshold(data) * lower_threshold_otsu_multiplier
-    logging.info(f'Lower threshold : {lower_threshold}')
-    gaussian_filtered = gaussian_filter(image, gaussian_size, dx1, mode)
-    plot_and_save(gaussian_filtered, outdir / 'gaussian_filter.png')
-    boolean_image = get_boolean(np.copy(image), lower_threshold)
-    border_cleared = clear_border(boolean_image)
-    plot_and_save(boolean_image, outdir / 'boolean_border_clear.png')
-    small_objects_removed = remove_small_objects(border_cleared,
-                                                 minimum_grain_size, dx)
-    plot_and_save(boolean_image, outdir / 'small_objects_removed.png')
-    labelled_regions = label_regions(small_objects_removed)
-    plot_and_save(boolean_image, outdir / 'labelled_regions.png')
-    coloured_regions = colour_regions(labelled_regions)
-    plot_and_save(boolean_image, outdir / 'coloured_regions.png')
-    regional_properties = region_properties(coloured_regions)
-    plot_and_save(boolean_image, outdir / 'regional_properties.png')
+#     :param gaussian_size: Gaussian glur size in nanometers (nm).
+#     :param dx: Pixel to nm scale.
+#     :param upper_height_threshold_rms_multiplier: Sets the rms multiplier for high-value outlier detection. The higher
+#     the value the less sensitive grain finding will be to outliers.
+#     :param lower_thershold_otsu_multiplier: Otsu threshold multiplier for lower thresholding the data. Higher values
+#     cull lower values around the edges of grains.
+#     :param minimum_grain_size: Minimum grain size in nanometers (nm).
+#     :param mode: Method for Gaussian filtering
+#     :param outdir: Output directory to save images to.
+#     :return:
+#     """
+#     Path(outdir).mkdir(parents=True, exist_ok=True)
+#     data = np.copy(gaussian_filtered)
+#     lower_threshold = get_threshold(data) * lower_threshold_otsu_multiplier
+#     logging.info(f'Lower threshold : {lower_threshold}')
+#     gaussian_filtered = gaussian_filter(image, gaussian_size, dx1, mode)
+#     plot_and_save(gaussian_filtered, outdir / 'gaussian_filter.png')
+#     boolean_image = get_boolean(np.copy(image), lower_threshold)
+#     border_cleared = clear_border(boolean_image)
+#     plot_and_save(boolean_image, outdir / 'boolean_border_clear.png')
+#     small_objects_removed = remove_small_objects(border_cleared, minimum_grain_size, dx)
+#     plot_and_save(boolean_image, outdir / 'small_objects_removed.png')
+#     labelled_regions = label_regions(small_objects_removed)
+#     plot_and_save(boolean_image, outdir / 'labelled_regions.png')
+#     coloured_regions = colour_regions(labelled_regions)
+#     plot_and_save(boolean_image, outdir / 'coloured_regions.png')
+#     regional_properties = region_properties(labelled_regions)
+#     plot_and_save(boolean_image, outdir / 'regional_properties.png')
+#     return labelled_regions, regional_properties

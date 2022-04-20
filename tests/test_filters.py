@@ -1,28 +1,19 @@
 """Tests of the filters module."""
+#+ pylint: disable=no-name-in-module
+#+ pylint: disable=invalid-name
 import numpy as np
 
-from pySPM.SPM import SPM_image
-from pySPM.Bruker import Bruker
-from skimage.filters import threshold_otsu
-from skimage import filters as skimage_filters
-from skimage import segmentation as skimage_segmentation
-from skimage import measure as skimage_measure
-from skimage import morphology as skimage_morphology
-from skimage import color as skimage_color
-from topostats.filters import *
-from topostats.plottingfuncs import plot_and_save
+from skimage.filters import gaussian
+from topostats.filters import (amplify, row_col_quantiles, align_rows, remove_x_y_tilt, get_threshold, get_mask,
+                               quadratic, average_background, gaussian_filter, boolean_image)
 
 # Specify the absolute and relattive tolerance for floating point comparison
 TOLERANCE = {'atol': 1e-07, 'rtol': 1e-07}
-
-BASE_DIR = Path.cwd()
-RESOURCES = BASE_DIR / 'tests' / 'resources'
 
 
 def test_amplify(image_random: np.array) -> None:
     """Test amplification filter."""
     filtered = amplify(image_random, 1.5)
-
     target = image_random * 1.5
 
     np.testing.assert_array_equal(filtered, target)
@@ -31,7 +22,6 @@ def test_amplify(image_random: np.array) -> None:
 def test_row_col_quantiles_small_array_no_mask(small_array: np.array) -> None:
     """Test generation of quantiles for rows and columns without masking."""
     row_quantiles, col_quantiles = row_col_quantiles(small_array, mask=None)
-
     expected_rows = np.quantile(small_array, [0.25, 0.5, 0.75], axis=1).T
     expected_cols = np.quantile(small_array, [0.25, 0.5, 0.75], axis=0).T
 
@@ -39,33 +29,23 @@ def test_row_col_quantiles_small_array_no_mask(small_array: np.array) -> None:
     np.testing.assert_array_equal(col_quantiles, expected_cols)
 
 
-def test_row_col_quantiles_small_array_mask(small_array: np.array,
-                                            small_mask: np.array) -> None:
+def test_row_col_quantiles_small_array_mask(small_array: np.array, small_mask: np.array) -> None:
     """Test generation of quantiles for rows and columns."""
-    row_quantiles, col_quantiles = row_col_quantiles(small_array,
-                                                     mask=small_mask)
+    row_quantiles, col_quantiles = row_col_quantiles(small_array, mask=small_mask)
+    small_array_masked = np.ma.masked_array(small_array, mask=small_mask, fill_value=np.nan)
+    expected_rows = np.quantile(small_array_masked, [0.25, 0.5, 0.75], axis=1).T
+    expected_cols = np.quantile(small_array_masked, [0.25, 0.5, 0.75], axis=0).T
 
-    small_array_masked = np.ma.masked_array(small_array,
-                                            mask=small_mask,
-                                            fill_value=np.nan)
-
-    expected_rows = np.quantile(small_array_masked, [0.25, 0.5, 0.75],
-                                axis=1).T
-    expected_cols = np.quantile(small_array_masked, [0.25, 0.5, 0.75],
-                                axis=0).T
     np.testing.assert_array_equal(row_quantiles, expected_rows)
     np.testing.assert_array_equal(col_quantiles, expected_cols)
 
-    expected_rows = np.nanpercentile(small_array_masked, (25, 50, 75),
-                                     axis=1).T
-    expected_cols = np.nanpercentile(small_array_masked, (25, 50, 75),
-                                     axis=0).T
+    expected_rows = np.nanpercentile(small_array_masked, (25, 50, 75), axis=1).T
+    expected_cols = np.nanpercentile(small_array_masked, (25, 50, 75), axis=0).T
     np.testing.assert_array_equal(row_quantiles, expected_rows)
     np.testing.assert_array_equal(col_quantiles, expected_cols)
 
 
-def test_row_col_quantiles(image_random: np.array,
-                           image_random_row_quantiles: np.array,
+def test_row_col_quantiles(image_random: np.array, image_random_row_quantiles: np.array,
                            image_random_col_quantiles: np.array) -> None:
     """Test generation of quantiles for rows and columns.
     """
@@ -75,23 +55,19 @@ def test_row_col_quantiles(image_random: np.array,
     np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles)
 
 
-def test_align_rows(image_random: np.array,
-                    image_random_aligned_rows: np.array) -> None:
+def test_align_rows(image_random: np.array, image_random_aligned_rows: np.array) -> None:
     """Test aligning of rows by median height.
     """
     aligned_rows = align_rows(image_random, mask=None)
 
-    np.testing.assert_allclose(aligned_rows, image_random_aligned_rows,
-                               **TOLERANCE)
+    np.testing.assert_allclose(aligned_rows, image_random_aligned_rows, **TOLERANCE)
 
 
-def test_remove_x_y_tilt(image_random: np.array,
-                         image_random_remove_x_y_tilt: np.array) -> None:
+def test_remove_x_y_tilt(image_random: np.array, image_random_remove_x_y_tilt: np.array) -> None:
     """Test removal of linear plane slant."""
     x_y_tilt_removed = remove_x_y_tilt(image_random, mask=None)
 
-    np.testing.assert_allclose(x_y_tilt_removed, image_random_remove_x_y_tilt,
-                               **TOLERANCE)
+    np.testing.assert_allclose(x_y_tilt_removed, image_random_remove_x_y_tilt, **TOLERANCE)
 
 
 def test_get_threshold(image_random: np.array):
@@ -110,34 +86,29 @@ def test_get_mask(image_random: np.array, image_random_mask: np.array):
     np.testing.assert_array_equal(mask, image_random_mask)
 
 
-def test_row_col_quantiles_with_mask(
-        image_random: np.array, image_random_mask: np.array,
-        image_random_row_quantiles_masked: np.array,
-        image_random_col_quantiles_masked: np.array) -> None:
+def test_row_col_quantiles_with_mask(image_random: np.array, image_random_mask: np.array,
+                                     image_random_row_quantiles_masked: np.array,
+                                     image_random_col_quantiles_masked: np.array) -> None:
     """Test generation of quantiles for rows and columns.
     """
-    row_quantiles, col_quantiles = row_col_quantiles(image_random,
-                                                     mask=image_random_mask)
+    row_quantiles, col_quantiles = row_col_quantiles(image_random, mask=image_random_mask)
     row_quantiles = np.ma.getdata(row_quantiles)
     col_quantiles = np.ma.getdata(col_quantiles)
 
-    np.testing.assert_array_equal(row_quantiles.data,
-                                  image_random_row_quantiles_masked)
-    np.testing.assert_array_equal(col_quantiles,
-                                  image_random_col_quantiles_masked)
+    np.testing.assert_array_equal(row_quantiles.data, image_random_row_quantiles_masked)
+    np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles_masked)
 
 
 def test_quadratic(small_array) -> None:
     """Test quadratic function."""
-    a, b, c = 2, 3, 4
-    small_array_quadratic = quadratic(small_array, a, b, c)
-    target = (a * small_array**2) + (b * small_array) + c
+    values = {'a': 2, 'b': 3, 'c': 4}
+    small_array_quadratic = quadratic(small_array, values['a'], values['b'], values['c'])
+    target = (values['a'] * small_array**2) + (values['b'] * small_array) + values['c']
 
     np.testing.assert_array_equal(target, small_array_quadratic)
 
 
-def test_average_background(image_random: np.array,
-                            image_random_mask: np.array) -> None:
+def test_average_background(image_random: np.array, image_random_mask: np.array) -> None:
     """Test averaging of background."""
     background_averaged = average_background(image_random, image_random_mask)
     row_quantiles, _ = row_col_quantiles(image_random, mask=image_random_mask)
@@ -167,15 +138,10 @@ def test_average_background(image_random: np.array,
 #     assert True
 
 
-def test_gaussian_filter(small_array: np.array,
-                         gaussian_size: float = 2,
-                         dx: float = 1,
-                         mode: str = 'nearest') -> None:
+def test_gaussian_filter(small_array: np.array, gaussian_size: float = 2, dx: float = 1, mode: str = 'nearest') -> None:
     """Test Gaussian filter."""
     gaussian_filtered = gaussian_filter(small_array)
-    target = skimage_filters.gaussian(small_array,
-                                      sigma=(gaussian_size / dx),
-                                      mode=mode)
+    target = gaussian(small_array, sigma=(gaussian_size / dx), mode=mode)
 
     assert isinstance(gaussian_filtered, np.ndarray)
     np.testing.assert_array_equal(gaussian_filtered, target)
@@ -185,7 +151,7 @@ def test_boolean_image(small_array: np.array, threshold: float = 0.5) -> None:
     """Test creation of boolean array."""
     boolean_array = boolean_image(small_array, threshold)
     target = small_array > threshold
-    print(f'small_array :\n{small_array}')
+
     assert isinstance(boolean_array, np.ndarray)
     assert np.issubdtype(boolean_array.dtype, np.bool_)
     assert boolean_array.sum() == 46
