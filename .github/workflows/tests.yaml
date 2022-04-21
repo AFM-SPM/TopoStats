@@ -22,10 +22,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e .
-          pip install pytest pytest-cov pytest-mpl pytest-memray
+          pip install pytest pytest-cov pytest-mpl
       - name: Test with pytest
         run: |
-          pytest --cov=topostats --mpl --memray
+          pytest --cov=topostats --mpl
       - name: Determine coverage
         run: |
           coverage xml
