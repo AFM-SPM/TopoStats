@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.8', '3.9', '3.10']
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -22,10 +22,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e .
-          pip install pytest pytest-cov pytest-mpl
+          pip install pytest pytest-cov pytest-mpl pytest-memray
       - name: Test with pytest
         run: |
-          pytest --cov=topostats --mpl
+          pytest --cov=topostats --mpl --memray
       - name: Determine coverage
         run: |
           coverage xml
