@@ -1,212 +1,145 @@
-# Imports
+import argparse as arg
+from functools import partial
+from multiprocessing import Pool
 from pathlib import Path
-from datetime import datetime
+from typing import Union, Dict
+from tqdm import tqdm
 
-import filters
-import numpy as np
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import pandas as pd
-import pySPM
-import os
-import logging
-import plottingfuncs
-from skimage import filters as skimage_filters
-from skimage import segmentation as skimage_segmentation
-from skimage import measure as skimage_measure
-from skimage import morphology as skimage_morphology
-from skimage import color as skimage_color
-from scipy import ndimage
-# Fetch base path
-basepath = os.getcwd()
+from topostats.filters import find_images, process_scan#, hello
+from topostats.io import read_yaml
+from topostats.logs.logs import setup_logger, LOGGER_NAME
 
-# ----------------- CONFIGURATION --------------------------
+LOGGER = setup_logger(LOGGER_NAME)
 
-# Configure logging functionality
-now = datetime.now()
-date_time = now.strftime("%Y-%m-%d--%H-%M-%S")
-print(date_time)
+def create_parser() -> arg.ArgumentParser:
+    """Create a parser for reading options."""
+    parser = arg.ArgumentParser(description='Process AFM images. Additional arguments over-ride those in the configuration file.')
+    parser.add_argument('-c', '--config_file', dest='config_file', required=True, help='Path to a YAML configuration file.')
+    parser.add_argument('-b', '--base_dir',
+                        dest='base_dir',
+                        type=str,
+                        required=False,
+                        help='Base directory to scan for images.')
+    parser.add_argument('-o', '--output_dir',
+                        dest='output_dir',
+                        type=str,
+                        required=False,
+                        help='Output directory to write results to.')
+    parser.add_argument('-f', '--file_ext',
+                        dest='file_ext',
+                        help='File extension to scan for')
+    parser.add_argument('-a', '--amplify_level',
+                        dest='amplify_level',
+                        type=float,
+                        required=False,
+                        help='Amplify signals by the given factor.')
+    parser.add_argument('-m', '--mask',
+                        dest='mask',
+                        type=bool,
+                        required=False,
+                        help='Mask the image.')
+    parser.add_argument('-q', '--quiet',
+                        dest='quiet',
+                        type=bool,
+                        required=False,
+                        help='Toggle verbosity.')
+    return parser
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(filename)s: %(message)s', datefmt='%a, %d %b %Y %H:%M:%S', filename=str(basepath + '/topostats/logs/' + date_time + '.log'), filemode='w')
-logging.getLogger('pySPM').setLevel(logging.CRITICAL)
-logging.getLogger('matplotlib').setLevel(logging.CRITICAL)
-logging.getLogger('skimage').setLevel(logging.CRITICAL)
-logging.getLogger('skimage_filters').setLevel(logging.CRITICAL)
-logging.getLogger('numpy').setLevel(logging.CRITICAL)
-pil_logger = logging.getLogger('PIL')
-pil_logger.setLevel(logging.CRITICAL)
-logging.info(f'pySPM version: {pySPM.__version__}')
+def update_config(config: dict, args: arg.Namespace) -> Dict:
+    """Update the configuration with any arguments
 
-# Misc config
-# Matplotlib configuration
-mpl.rcParams['figure.dpi'] = 150
-OUT_DIR = Path('/home/neil/tmp/TopoStats/tmp/original/')
-#  ------------------ MAIN -------------------------------
+    Parameters
+    ----------
+    config: dict
+        Dictionary of configuration (typically read from YAML file specified with '-c/--config <filename>')
+    args: Namespace
+        Command line arguments
+    Returns
+    -------
+    Dict
+        Dictionary updated with command arguments.
+    """
+    args = vars(args)
+    config_keys = config.keys()
+    for arg_key, arg_value in args.items():
+        if arg_key in config_keys and arg_value is not None:
+            config[arg_key] = arg_value
+    config['base_dir'] = convert_path(config['base_dir'])
+    config['output_dir'] = convert_path(config['output_dir'])
+    print(f'[update_config] output_dir : {config["output_dir"]}')
+    return config
 
-# Create main output folder
-if not os.path.exists(basepath + '/plot_data/'):
-            os.makedirs(basepath + '/plot_data')
+def convert_path(path: Union[str, Path]) -> Path:
+    """Ensure path is Path object.
 
-# Iterate through all directories searching for spm files
-file_list = []
-for root, dirs, files in os.walk(basepath):
-    # Add all spm files to file list
-    for file in files:
-        if file.endswith('.spm'):
-            logging.info('File found: ' + os.path.join(root, file))
-            file_list.append(file)
+    Parameters
+    ----------
+    path: Union[str, Path]
+        Path to be converted.
 
-for file in file_list:
-    filename = os.path.splitext(file)[0]
+    Returns
+    -------
+    Path
+        pathlib Path
+    """
+    return Path().cwd() if path == './' else Path(path)
 
-    logging.info('Processing file: ' + str(filename))
+def main():
+    """Run processing."""
 
-    # Create plot data folder for each spm image
-    if not os.path.exists(basepath + '/plot_data/' + filename):
-        os.makedirs(basepath + '/plot_data/' + filename)
-    data_folder = basepath + '/plot_data/' + filename + '/'
+    # Parse command line options, load config and update with command line options
+    parser = create_parser()
+    args = parser.parse_args()
+    config = read_yaml(args.config_file)
+    config = update_config(config, args)
 
-    # Create flattening sub folder
-    if not os.path.exists(data_folder + 'flattening/'):
-        os.makedirs(data_folder + 'flattening/')
-    flattening_folder = data_folder + 'flattening/'
+    if config['quiet']:
+        LOGGER.setLevel('ERROR')
 
-
-    # Fetch the data
-    scan = pySPM.Bruker(file)
-    # scan.list_channels()
-    height = scan.get_channel("Height")
-    plottingfuncs.plot_and_save(height, flattening_folder + 'raw_heightmap.png')
-    plottingfuncs.plot_and_save(height, OUT_DIR / '01_raw_heightmap.png')
-
-    # Initial processing
-
-    # Copy data into numpy array format
-    data_initial_flatten = np.flipud(np.array(height.pixels))
-
-    # Initial flattening
-    logging.info('initial flattening')
-    logging.info('initial align rows')
-    data_initial_flatten = filters.align_rows(data_initial_flatten)
-    plottingfuncs.plot_and_save(data_initial_flatten, flattening_folder + 'initial_align_rows.png')
-    plottingfuncs.plot_and_save(data_initial_flatten, OUT_DIR / '02_initial_align_rows.png')
-    logging.info('initial x-y tilt')
-    data_initial_flatten = filters.remove_x_y_tilt(data_initial_flatten)
-    plottingfuncs.plot_and_save(data_initial_flatten, flattening_folder + 'initial_x_y_tilt.png')
-    plottingfuncs.plot_and_save(data_initial_flatten, OUT_DIR / '03_initial_x_y_tilt.png')
-
-    # Thresholding
-    logging.info('otsu thresholding')
-    threshold = filters.get_threshold(data_initial_flatten)
-    logging.info(f'threshold: {threshold}')
-
-    # Create a mask that defines what data is used
-    mask = filters.get_mask(data_initial_flatten, threshold)
-    logging.info(f'values exceeding threshold {mask.sum()}')
-    plottingfuncs.plot_and_save(mask, flattening_folder + 'binary_mask.png')
-    plottingfuncs.plot_and_save(mask, OUT_DIR / '04_binary_mask.png')
-
-    # Masked flattening
-    logging.info('masked flattening')
-    logging.info('masked align rows')
-    data_second_flatten = filters.align_rows(data_initial_flatten, mask=mask)
-    plottingfuncs.plot_and_save(data_second_flatten, flattening_folder + 'masked_align_rows.png')
-    plottingfuncs.plot_and_save(data_second_flatten, OUT_DIR / '05_masked_align_rows.png')
-    logging.info('masked x-y tilt')
-    data_second_flatten = filters.remove_x_y_tilt(data_second_flatten, mask=mask)
-    plottingfuncs.plot_and_save(data_second_flatten, flattening_folder + 'masked_x_y_tilt.png')
-    plottingfuncs.plot_and_save(data_second_flatten, OUT_DIR / '06_masked_x_y_tilt.png')
-
-    # Zero the average background
-    logging.info('adjust medians')
-    row_quantiles, col_quantiles = filters.row_col_quantiles(data_second_flatten, mask=mask)
-    for row_index in range(data_second_flatten.shape[0]):
-        row_zero_offset = row_quantiles[row_index, 1]
-        data_second_flatten[row_index, :] -= row_zero_offset
-    row_quantiles, col_quantiles = filters.row_col_quantiles(data_second_flatten, mask=mask)
-    logging.info(f'mean row median: {np.mean(row_quantiles)}')
-    plottingfuncs.plot_and_save(data_second_flatten, flattening_folder + 'final_output.png')
-    plottingfuncs.plot_and_save(data_second_flatten, OUT_DIR / '07_final_output.png')
-
-    # Remove x bowing
-    # filters.remove_x_bowing(data_second_flatten, mask=mask)
-
-    # Grain finding
-
-    gaussian_size = 2
-    dx = 1
-    gaussian = gaussian_size / dx
-    upper_height_threshold_rms_multiplier = 1
-    lower_threshold_otsu_multiplier = 1.7
-    minimum_grain_size_nm = 800
-
-    # Create grain imaging sub folder
-    if not os.path.exists(data_folder + 'grain_finding'):
-        os.makedirs(data_folder + 'grain_finding')
-    grain_finding_folder = data_folder + 'grain_finding/'
-
-    data = np.copy(data_second_flatten)
-
-    # Lower threshold
-    lower_threshold = filters.get_threshold(data) * lower_threshold_otsu_multiplier
-    logging.info('lower threshold: ' + str(lower_threshold))
-
-    # Gaussian filter
-    gaussian = gaussian_size / dx
-    data = skimage_filters.gaussian(data, sigma=gaussian, output=None, mode='nearest')
-    plottingfuncs.plot_and_save(data, grain_finding_folder + 'gaussian_filter.png')
-    plottingfuncs.plot_and_save(data, OUT_DIR / '08_gaussian_filter.png')
-
-    # Create copy of the data of boolean type where nonzero values are True
-    data_boolean = np.copy(data)
-    data_boolean[data_boolean <= lower_threshold] = False
-    data_boolean[data_boolean > lower_threshold] = True
-    data_boolean = data_boolean.astype(bool)
-
-    # Remove grains touching border
-    data_boolean = skimage_segmentation.clear_border(data_boolean)
-    plottingfuncs.plot_and_save(data_boolean, grain_finding_folder + 'data_boolean_border_cleared.png')
-    plottingfuncs.plot_and_save(data_boolean, OUT_DIR / '09_data_boolean_border_cleared.png')
-
-    # Remove small objects
-    # Calculate pixel are equivalent of minimum size in square nanometers
-    minimum_grain_size_pixels = np.round(minimum_grain_size_nm / dx)
-    data_boolean = skimage_morphology.remove_small_objects(data_boolean, min_size=minimum_grain_size_pixels)
-    plottingfuncs.plot_and_save(data_boolean, grain_finding_folder + 'data_boolean_cull_small_objects.png')
-    plottingfuncs.plot_and_save(data_boolean, OUT_DIR / '10_data_boolean_cull_small_objects.png')
-
-    # Label regions
-    labelled_data = skimage_morphology.label(data_boolean, background=0)
-    plottingfuncs.plot_and_save(labelled_data, grain_finding_folder + 'data_boolean_labelled_image.png')
-    plottingfuncs.plot_and_save(labelled_data, OUT_DIR / '11_data_boolean_labelled_image.png')
-
-    # Colour the regions
-    labelled_data_colour_overlay = skimage_color.label2rgb(labelled_data)
-    plottingfuncs.plot_and_save(labelled_data_colour_overlay, grain_finding_folder + 'data_boolean_color_labelled_image.png')
-    plottingfuncs.plot_and_save(labelled_data, OUT_DIR / '12_data_boolean_color_labelled_image.png')
+    LOGGER.info(f'Configuration file loaded from    : {args.config_file}')
+    LOGGER.info(f'Scanning for images in            : {config["base_dir"]}')
+    LOGGER.info(f'Output directory                  : {config["output_dir"]}')
+    LOGGER.info(f'Looking for images with extension : {config["file_ext"]}')
+    img_files = find_images(config['base_dir'])
+    LOGGER.info(f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}')
+    LOGGER.debug(f'Configuration : {config}')
 
 
-     # Calculate region properties
-    region_properties = skimage_measure.regionprops(labelled_data)
+    # For debugging (as Pool makes it hard to find things when they go wrong)
+    for x in img_files:
+        process_scan(message = 'Lalalala', image=x)
+        # process_scan(x,
+        #              amplify_level=config['amplify_level'],
+        #              channel=config['channel'],
+        #              gaussian_size=config['grains']['gaussian_size'],
+        #              dx=config['grains']['dx'],
+        #              upper_height_threshold_rms_multiplier=config['grains']['upper_height_threshold_rms_multiplier'],
+        #              lower_threshold_otsu_multiplier=config['grains']['lower_threshold_otsu_multiplier'],
+        #              minimum_grain_size=config['grains']['minimum_grain_size'],
+        #              mode=config['grains']['mode'],
+        #              background=config['grains']['background'],
+        #              output_dir=config['output_dir'],
+        #              quiet=config['quiet'])
+        print('HELLLLLO?')
+        LOGGER.info(f'We made it past, where is the output?')
+    # processing_function = partial(process_scan,
+    #                               amplify_level=config['amplify_level'],
+    #                               channel=config['channel'],
+    #                               gaussian_size=config['grains']['gaussian_size'],
+    #                               dx=config['grains']['dx'],
+    #                               upper_height_threshold_rms_multiplier=config['grains']['upper_height_threshold_rms_multiplier'],
+    #                               lower_threshold_otsu_multiplier=config['grains']['lower_threshold_otsu_multiplier'],
+    #                               minimum_grain_size=config['grains']['minimum_grain_size'],
+    #                               mode=config['grains']['mode'],
+    #                               background=config['grains']['background'],
+    #                               output_dir=config['output_dir'],
+    #                               quiet=config['quiet'])
 
-    # Add bounding boxes to the grains and save their stats into a dataframe
-    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-    ax.imshow(labelled_data, interpolation='nearest', cmap='afmhot')
-    stats_array = []
-    for region in region_properties:
-        stats = {
-            'area'      : region.area,
-            'area_bbox' : region.area_bbox
-        }
-        stats_array.append(stats)
+    # with Pool(processes=config['cores']) as pool:
+    #     with tqdm(total=len(img_files), desc=f'Processing images from {config["base_dir"]}, results are under {config["output_dir"]}') as pbar:
+    #         for _ in pool.imap_unordered(processing_function, img_files):
+    #             pbar.update()
 
-        min_row, min_col, max_row, max_col = region.bbox
-        rectangle = mpl.patches.Rectangle((min_col, min_row), max_col - min_col, max_row - min_row,
-                                            fill=False, edgecolor='white', linewidth=2)
-        ax.add_patch(rectangle)
 
-    grainstats = pd.DataFrame(data=stats_array)
-    grainstats.to_csv(grain_finding_folder + 'grainstats.csv')
-
-    plt.savefig(grain_finding_folder + 'labelled_image_bboxes.png')
-    plottingfuncs.plot_and_save(labelled_data, OUT_DIR / '13_labelled_image_bboxes.png')
+if __name__ == '__main__':
+    main()
