@@ -22,7 +22,7 @@ config.ini
 *.spm
 
 # Example Data
-!minicircle.spm 
+!minicircle.spm
 
 # IDE
 .vscode/
@@ -37,3 +37,6 @@ _build/
 
 # vscode develop in container settings
 !.devcontainer/devcontainer.json
+
+# log files
+*.log

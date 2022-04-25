@@ -1,0 +1,17 @@
+base_dir: ./tests/
+output_dir: ./output
+save_plots: true
+warnings: ignore
+cores: 4
+quiet: false
+file_ext: .spm
+channel: Height
+amplify_level: 1
+grains:
+  gaussian_size: 2.0
+  dx: 1.0
+  upper_height_threshold_rms_multiplier: 1.0
+  lower_threshold_otsu_multiplier: 1.7
+  minimum_grain_size: 800
+  mode: nearest
+  background: 0.0
