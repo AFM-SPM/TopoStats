@@ -9,9 +9,14 @@ import pytest
 from pySPM.SPM import SPM_image
 from pySPM.Bruker import Bruker
 
-from topostats.filters import (load_scan, extract_channel, extract_pixels, align_rows, remove_x_y_tilt, get_threshold,
-                               get_mask, average_background, gaussian_filter, boolean_image, tidy_border,
-                               remove_objects, label_regions, colour_regions, region_properties)
+from topostats.filters import (load_scan, extract_img_name, extract_channel, extract_pixels, amplify, align_rows,
+                               remove_x_y_tilt, get_threshold, get_mask, average_background)
+from topostats.find_grains import (quadratic, get_lower_threshold, gaussian_filter, boolean_image, tidy_border,
+                                   remove_objects, label_regions, colour_regions, region_properties, get_bounding_boxes,
+                                   save_region_stats)
+# from topostats.filters import (load_scan, extract_channel, extract_pixels, align_rows, remove_x_y_tilt, get_threshold,
+#                                get_mask, average_background, gaussian_filter, boolean_image, tidy_border,
+#                                remove_objects, label_regions, colour_regions, region_properties)
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / 'tests' / 'resources'
@@ -183,8 +188,7 @@ def minicircle_grain_clear_border(minicircle_grain_boolean: np.array) -> np.arra
 
 
 @pytest.fixture
-def minicircle_grain_small_objects_removed(minicircle_grain_clear_border: np.array,
-                                              grain_config: dict) -> np.array:
+def minicircle_grain_small_objects_removed(minicircle_grain_clear_border: np.array, grain_config: dict) -> np.array:
     """Small objects removed."""
     return remove_objects(minicircle_grain_clear_border,
                           minimum_grain_size=grain_config['minimum_grain_size'],

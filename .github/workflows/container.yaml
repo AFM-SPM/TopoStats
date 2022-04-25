@@ -13,7 +13,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
@@ -33,6 +33,9 @@ jobs:
       - name: Setup xvfb
         run: |
           /opt/dummy_display.sh
+      - name: Install setuptools
+        run: |
+          pip install setuptools
       - name: Install topostats
         run: |
           pip install -e .

@@ -3,86 +3,175 @@ from functools import partial
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Union, Dict
+import warnings
+
 from tqdm import tqdm
 
-from topostats.filters import find_images, process_scan#, hello
+from topostats.filters import (load_scan, extract_img_name, extract_channel, extract_pixels, amplify, align_rows,
+                               remove_x_y_tilt, get_threshold, get_mask, average_background)
+from topostats.find_grains import (get_lower_threshold, gaussian_filter, boolean_image, tidy_border, remove_objects,
+                                   label_regions, colour_regions, region_properties, get_bounding_boxes,
+                                   save_region_stats)
 from topostats.io import read_yaml
+from topostats.plottingfuncs import plot_and_save
 from topostats.logs.logs import setup_logger, LOGGER_NAME
+from topostats.utils import convert_path, find_images, update_config
 
 LOGGER = setup_logger(LOGGER_NAME)
 
+
 def create_parser() -> arg.ArgumentParser:
     """Create a parser for reading options."""
-    parser = arg.ArgumentParser(description='Process AFM images. Additional arguments over-ride those in the configuration file.')
-    parser.add_argument('-c', '--config_file', dest='config_file', required=True, help='Path to a YAML configuration file.')
-    parser.add_argument('-b', '--base_dir',
+    parser = arg.ArgumentParser(
+        description='Process AFM images. Additional arguments over-ride those in the configuration file.')
+    parser.add_argument('-c',
+                        '--config_file',
+                        dest='config_file',
+                        required=True,
+                        help='Path to a YAML configuration file.')
+    parser.add_argument('-b',
+                        '--base_dir',
                         dest='base_dir',
                         type=str,
                         required=False,
                         help='Base directory to scan for images.')
-    parser.add_argument('-o', '--output_dir',
+    parser.add_argument('-o',
+                        '--output_dir',
                         dest='output_dir',
                         type=str,
                         required=False,
                         help='Output directory to write results to.')
-    parser.add_argument('-f', '--file_ext',
-                        dest='file_ext',
-                        help='File extension to scan for')
-    parser.add_argument('-a', '--amplify_level',
+    parser.add_argument('-f', '--file_ext', dest='file_ext', help='File extension to scan for')
+    parser.add_argument('-a',
+                        '--amplify_level',
                         dest='amplify_level',
                         type=float,
                         required=False,
                         help='Amplify signals by the given factor.')
-    parser.add_argument('-m', '--mask',
-                        dest='mask',
-                        type=bool,
+    parser.add_argument('-m', '--mask', dest='mask', type=bool, required=False, help='Mask the image.')
+    parser.add_argument('-w',
+                        '--warnings',
+                        dest='warnings',
+                        type=str,
                         required=False,
-                        help='Mask the image.')
-    parser.add_argument('-q', '--quiet',
-                        dest='quiet',
-                        type=bool,
-                        required=False,
-                        help='Toggle verbosity.')
+                        help='Whether to ignore warnings (ignore (default); deprecation).')
+    parser.add_argument('-q', '--quiet', dest='quiet', type=bool, required=False, help='Toggle verbosity.')
     return parser
 
-def update_config(config: dict, args: arg.Namespace) -> Dict:
-    """Update the configuration with any arguments
 
-    Parameters
-    ----------
-    config: dict
-        Dictionary of configuration (typically read from YAML file specified with '-c/--config <filename>')
-    args: Namespace
-        Command line arguments
-    Returns
-    -------
-    Dict
-        Dictionary updated with command arguments.
-    """
-    args = vars(args)
-    config_keys = config.keys()
-    for arg_key, arg_value in args.items():
-        if arg_key in config_keys and arg_value is not None:
-            config[arg_key] = arg_value
-    config['base_dir'] = convert_path(config['base_dir'])
-    config['output_dir'] = convert_path(config['output_dir'])
-    print(f'[update_config] output_dir : {config["output_dir"]}')
-    return config
+def process_scan(image_path: Union[str, Path] = None,
+                 channel: str = 'Height',
+                 amplify_level: float = 1.0,
+                 gaussian_size: Union[int, float] = 2,
+                 dx: Union[int, float] = 1,
+                 mode: str = 'nearest',
+                 lower_threshold_otsu_multiplier: Union[int, float] = 1.7,
+                 minimum_grain_size: Union[int, float] = 800,
+                 background: float = 0.0,
+                 save_plots: bool = True,
+                 output_dir: Union[str, Path] = 'output') -> None:
+    LOGGER.info(f'Processing : {image_path}')
 
-def convert_path(path: Union[str, Path]) -> Path:
-    """Ensure path is Path object.
+    # Create output directory
+    img_name = extract_img_name(image_path)
+    output_dir = Path(output_dir) / f'{img_name}'
+    output_dir.mkdir(parents=True, exist_ok=True)
+    LOGGER.info(f'Created output directory : {output_dir}')
 
-    Parameters
-    ----------
-    path: Union[str, Path]
-        Path to be converted.
+    # Load image and extract channel
+    image = load_scan(image_path)
+    LOGGER.info(f'[{img_name}] : Loaded image.')
+    extracted_channel = extract_channel(image, channel)
+    LOGGER.info(f'[{img_name}] : Extracted {channel}.')
+    pixels = extract_pixels(extracted_channel)
+    LOGGER.info(f'[{img_name}] : Pixels extracted.')
 
-    Returns
-    -------
-    Path
-        pathlib Path
-    """
-    return Path().cwd() if path == './' else Path(path)
+    # Amplify image
+    if amplify_level != 1.0:
+        pixels = amplify(pixels, amplify_level)
+        LOGGER.info(f'[{img_name}] : Image amplified by {amplify_level}.')
+
+    # First pass filtering (no mask)
+    initial_align = align_rows(pixels, mask=None)
+    LOGGER.info(f'[{img_name}] : Initial alignment (unmasked) complete.')
+    initial_tilt_removal = remove_x_y_tilt(initial_align, mask=None)
+    LOGGER.info(f'[{img_name}] : Initial tilt removal (unmasked) complete.')
+
+    # Create mask
+    threshold = get_threshold(initial_tilt_removal)
+    mask = get_mask(initial_tilt_removal, threshold)
+    LOGGER.info(f'[{img_name}] : Mask created.')
+
+    # Second pass filtering (with mask based on threshold)
+    second_align = align_rows(initial_tilt_removal, mask=mask)
+    LOGGER.info(f'[{img_name}] : Secondary alignent (masked) complete.')
+    second_tilt_removal = remove_x_y_tilt(second_align, mask=mask)
+    LOGGER.info(f'[{img_name}] : Secondary tilt removal (masked) complete.')
+
+    # Average background
+    averaged_background = average_background(second_tilt_removal, mask=mask)
+    LOGGER.info(f'[{img_name}] : Background zero-averaged.')
+
+    # Find grains, first apply a gaussian filter
+    gaussian_filtered = gaussian_filter(averaged_background, gaussian_size=gaussian_size, dx=dx, mode=mode)
+    LOGGER.info(f'[{img_name}] : Gaussian filter applied (size : {gaussian_size}; : dx {dx}; mode : {mode})')
+
+    # Create a boolean image
+    boolean_image_mask = boolean_image(gaussian_filtered, threshold=lower_threshold_otsu_multiplier)
+
+    # Tidy borders
+    tidied_borders = tidy_border(boolean_image_mask)
+    LOGGER.info(f'[{img_name}] : Borders tidied.')
+
+    # Remove objects
+    small_objects_removed = remove_objects(tidied_borders, minimum_grain_size=minimum_grain_size, dx=dx)
+    LOGGER.info(f'[{img_name}] : Small objects (< {minimum_grain_size} nm) removed.')
+
+    # Label regions
+    regions_labelled = label_regions(small_objects_removed, background=background)
+    LOGGER.info(f'[{img_name}] : Regions labelled.')
+
+    # Colour regions
+    coloured_regions = colour_regions(regions_labelled)
+    LOGGER.info(f'[{img_name}] : Regions coloured.')
+
+    # Extract region properties
+    image_region_properties = region_properties(regions_labelled)
+    LOGGER.info(f'[{img_name}] : Properties extracted for regions.')
+
+    # Derive bounding boxes and saves statistics
+    bounding_boxes = get_bounding_boxes(image_region_properties)
+    LOGGER.info(f'[{img_name}] : Extracted bounding boxes')
+    save_region_stats(bounding_boxes, output_dir=output_dir)
+    LOGGER.info(f'[{img_name}] : Saved region statistics to {str(output_dir / "grainstats.csv")}')
+
+    # Optionally save images of each stage of processing.
+    # FIXME : Improve to make plots either individual or a faceted single image.
+    if save_plots:
+        plot_and_save(pixels, output_dir / '01-raw_heightmap.png', title='Raw Height')
+        plot_and_save(initial_align, output_dir / '02-initial_align_unmasked.png', title='Initial Alignment (Unmasked)')
+        plot_and_save(initial_tilt_removal,
+                      output_dir / '03-initial_tilt_removal_unmasked.png',
+                      title='Initial Tilt Removal (Unmasked)')
+        plot_and_save(mask, output_dir / '04-binary_mask.png', title='Binary Mask')
+        plot_and_save(second_align, output_dir / '05-secondary_align_masked.png', title='Secondary Alignment (Masked)')
+        plot_and_save(second_tilt_removal,
+                      output_dir / '06-secondary_tilt_removal_masked.png',
+                      title='Secondary Tilt Removal (Masked)')
+        plot_and_save(averaged_background,
+                      output_dir / '07-zero_average_background.png',
+                      title='Zero Average Background')
+        plot_and_save(gaussian_filtered, output_dir / '08-gaussian_filtered.png', title='Gaussian Filtered')
+        plot_and_save(boolean_image_mask, output_dir / '09-boolean.png', title='Boolean Mask')
+        plot_and_save(tidied_borders, output_dir / '10-tidy_borders.png', title='Tidied Borders')
+        plot_and_save(small_objects_removed, output_dir / '11-small_objects_removed.png', title='Small Objects Removed')
+        plot_and_save(regions_labelled, output_dir / '12-labelled_regions.png', title='Labelled Regions')
+        plot_and_save(coloured_regions, output_dir / '13-coloured_regions.png', title='Coloured Regions')
+        plot_and_save(coloured_regions,
+                      output_dir / '14-bounding_boxes.png',
+                      region_properties=image_region_properties,
+                      title='Bounding Boxes')
+
 
 def main():
     """Run processing."""
@@ -93,9 +182,6 @@ def main():
     config = read_yaml(args.config_file)
     config = update_config(config, args)
 
-    if config['quiet']:
-        LOGGER.setLevel('ERROR')
-
     LOGGER.info(f'Configuration file loaded from    : {args.config_file}')
     LOGGER.info(f'Scanning for images in            : {config["base_dir"]}')
     LOGGER.info(f'Output directory                  : {config["output_dir"]}')
@@ -104,41 +190,56 @@ def main():
     LOGGER.info(f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}')
     LOGGER.debug(f'Configuration : {config}')
 
+    # Optionally ignore all warnings or just show deprecation warnings
+    if config['warnings'] == 'ignore':
+        warnings.filterwarnings('ignore')
+        LOGGER.info('NB : All warnings have been turned off for this run.')
+    elif config['warnings'] == 'deprecated':
+
+        def fxn():
+            warnings.warn("deprecated", DeprecationWarning)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            fxn()
+    if config['quiet']:
+        LOGGER.setLevel('ERROR')
 
     # For debugging (as Pool makes it hard to find things when they go wrong)
-    for x in img_files:
-        process_scan(message = 'Lalalala', image=x)
-        # process_scan(x,
-        #              amplify_level=config['amplify_level'],
-        #              channel=config['channel'],
-        #              gaussian_size=config['grains']['gaussian_size'],
-        #              dx=config['grains']['dx'],
-        #              upper_height_threshold_rms_multiplier=config['grains']['upper_height_threshold_rms_multiplier'],
-        #              lower_threshold_otsu_multiplier=config['grains']['lower_threshold_otsu_multiplier'],
-        #              minimum_grain_size=config['grains']['minimum_grain_size'],
-        #              mode=config['grains']['mode'],
-        #              background=config['grains']['background'],
-        #              output_dir=config['output_dir'],
-        #              quiet=config['quiet'])
-        print('HELLLLLO?')
-        LOGGER.info(f'We made it past, where is the output?')
-    # processing_function = partial(process_scan,
-    #                               amplify_level=config['amplify_level'],
-    #                               channel=config['channel'],
-    #                               gaussian_size=config['grains']['gaussian_size'],
-    #                               dx=config['grains']['dx'],
-    #                               upper_height_threshold_rms_multiplier=config['grains']['upper_height_threshold_rms_multiplier'],
-    #                               lower_threshold_otsu_multiplier=config['grains']['lower_threshold_otsu_multiplier'],
-    #                               minimum_grain_size=config['grains']['minimum_grain_size'],
-    #                               mode=config['grains']['mode'],
-    #                               background=config['grains']['background'],
-    #                               output_dir=config['output_dir'],
-    #                               quiet=config['quiet'])
+    # for x in img_files:
+    #     process_scan(image_path=x,
+    #                  amplify_level=config['amplify_level'],
+    #                  channel=config['channel'],
+    #                  gaussian_size=config['grains']['gaussian_size'],
+    #                  dx=config['grains']['dx'],
+    #                  mode=config['grains']['mode'],
+    #                  lower_threshold_otsu_multiplier=config['grains']['lower_threshold_otsu_multiplier'],
+    #                  minimum_grain_size=config['grains']['minimum_grain_size'],
+    #                  background=config['grains']['background'],
+    #                  save_plots=config['save_plots'],
+    #                  output_dir=config['output_dir'])
 
-    # with Pool(processes=config['cores']) as pool:
-    #     with tqdm(total=len(img_files), desc=f'Processing images from {config["base_dir"]}, results are under {config["output_dir"]}') as pbar:
-    #         for _ in pool.imap_unordered(processing_function, img_files):
-    #             pbar.update()
+    # Process all images found in parallel (constrainged by 'cores' option in config).
+    processing_function = partial(process_scan,
+                                  amplify_level=config['amplify_level'],
+                                  channel=config['channel'],
+                                  gaussian_size=config['grains']['gaussian_size'],
+                                  dx=config['grains']['dx'],
+                                  mode=config['grains']['mode'],
+                                  lower_threshold_otsu_multiplier=config['grains']['lower_threshold_otsu_multiplier'],
+                                  minimum_grain_size=config['grains']['minimum_grain_size'],
+                                  background=config['grains']['background'],
+                                  save_plots=config['save_plots'],
+                                  output_dir=config['output_dir'])
+
+    with Pool(processes=config['cores']) as pool:
+        with tqdm(
+                total=len(img_files),
+                desc=
+                f'Processing {len(img_files)} images from {config["base_dir"]}, results are under {config["output_dir"]}'
+        ) as pbar:
+            for _ in pool.imap_unordered(processing_function, img_files):
+                pbar.update()
 
 
 if __name__ == '__main__':

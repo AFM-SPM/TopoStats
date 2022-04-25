@@ -6,13 +6,16 @@ from pathlib import Path
 from datetime import datetime
 import logging
 
+# pylint: disable=assignment-from-no-return
 
 start = datetime.now()
-log_date = start.strftime('%Y-%m-%d-%H-%M-%S')
-LOG_CONFIG = logging.basicConfig(filename=str(str(Path().cwd()) + '/logs/' + log_date + '.log'), filemode='w')
-LOG_FORMATTER = logging.Formatter(fmt='[%(asctime)s] [%(levelname)-8s] [%(name)s] %(message)s', datefmt='%a, %d %b %Y %H:%M:%S')
-LOG_ERROR_FORMATTER = logging.Formatter(fmt='[%(asctime)s] [%(levelname)-8s] [%(name)s] [%(filename)s] [%(lineno)s] %(message)s',
-                                        datefmt='%a, %d %b %Y %H:%M:%S')
+LOG_CONFIG = logging.basicConfig(
+    filename=str(str(Path().cwd()) + '/logs/' + start.strftime('%Y-%m-%d-%H-%M-%S') + '.log'), filemode='w')
+LOG_FORMATTER = logging.Formatter(fmt='[%(asctime)s] [%(levelname)-8s] [%(name)s] %(message)s',
+                                  datefmt='%a, %d %b %Y %H:%M:%S')
+LOG_ERROR_FORMATTER = logging.Formatter(
+    fmt='[%(asctime)s] [%(levelname)-8s] [%(name)s] [%(filename)s] [%(lineno)s] %(message)s',
+    datefmt='%a, %d %b %Y %H:%M:%S')
 
 LOGGER_NAME = 'topostats'
 
