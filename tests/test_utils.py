@@ -18,6 +18,8 @@ def test_find_images():
 
     assert isinstance(found_images, list)
     assert len(found_images) == 1
+    assert isinstance(found_files[0], PosixPath)
+    assert 'tests/resources/minicircle.spm' in str(found_files[0])
 
 
 def test_update_config(caplog):

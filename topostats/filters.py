@@ -148,19 +148,8 @@ def row_col_quantiles(image: np.array, mask: np.array = None) -> np.array:
     else:
         LOGGER.info('[row_col_quantiles] Masking disabled')
 
-    # Initialise arrays
-    row_quantiles = np.zeros((image.shape[0], 3))
-    col_quantiles = np.zeros((image.shape[1], 3))
-
-    # Populate the row array with quantile tuples
-    for i in range(image.shape[0]):
-        row = image[i, :]
-        row_quantiles[i] = np.quantile(row, [0.25, 0.5, 0.75])
-
-    # Populate the column array with quantile tuples
-    for j in range(image.shape[1]):
-        col = image[:, j]
-        col_quantiles[j] = np.quantile(col, [0.25, 0.5, 0.75])
+    row_quantiles = np.quantile(image, [0.25, 0.5, 0.75], axis=1).T
+    col_quantiles = np.quantile(image, [0.25, 0.5, 0.75], axis=0).T
     LOGGER.info('Row and column quantiles calculated.')
     return row_quantiles, col_quantiles
 
@@ -184,11 +173,8 @@ def align_rows(image: np.array, mask: np.array = None) -> np.array:
     # Get row height quantiles for the image.
     row_quantiles, _ = row_col_quantiles(image, mask)
 
-    # Align row medians
     # Calculate median row height
-    row_medians = row_quantiles[:, 1]
-    # logging.info(row_medians)
-    median_row_height = np.quantile(row_medians, 0.5)
+    median_row_height = np.quantile(row_quantiles[:, 1], 0.5)
     LOGGER.info(f'[align_rows] median_row_height: {median_row_height}')
 
     # Calculate the differences between the row medians and the median row height
