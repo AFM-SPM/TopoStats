@@ -174,7 +174,9 @@ def align_rows(image: np.array, mask: np.array = None) -> np.array:
     row_quantiles, _ = row_col_quantiles(image, mask)
 
     # Calculate median row height
-    median_row_height = np.quantile(row_quantiles[:, 1], 0.5)
+    row_medians = row_quantiles[:, 1]
+    # Calculate median row height
+    median_row_height = np.quantile(row_medians, 0.5)
     LOGGER.info(f'[align_rows] median_row_height: {median_row_height}')
 
     # Calculate the differences between the row medians and the median row height

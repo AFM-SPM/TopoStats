@@ -77,7 +77,7 @@ def test_align_rows_masked(minicircle_masked_align: np.array, tmpdir) -> None:
     """Test alignment of rows without mask."""
     assert isinstance(minicircle_masked_align, np.ndarray)
     assert minicircle_masked_align.shape == (1024, 1024)
-    assert minicircle_masked_align.sum() == 29077328.42200638
+    assert minicircle_masked_align.sum() == 29068698.626152653  # 29077328.42200638
     fig, _ = plot_and_save(minicircle_masked_align,
                            tmpdir / '05-masked_align_rows.png',
                            title='Secondary Align (Masked)')
@@ -89,7 +89,7 @@ def test_remove_x_y_tilt_masked(minicircle_masked_tilt_removal: np.array, tmpdir
     """Test removal of tilt without mask."""
     assert isinstance(minicircle_masked_tilt_removal, np.ndarray)
     assert minicircle_masked_tilt_removal.shape == (1024, 1024)
-    assert minicircle_masked_tilt_removal.sum() == 29071857.019174993
+    assert minicircle_masked_tilt_removal.sum() == 29067389.916735478  # 29071857.019174993
     fig, _ = plot_and_save(minicircle_masked_tilt_removal,
                            tmpdir / '06-secondary_tilt_removal_masked.png',
                            title='Secondary Tilt Removal (Masked)')
@@ -101,7 +101,7 @@ def test_zero_average_background(minicircle_zero_average_background: np.array, t
     """Test zero-averaging of background."""
     assert isinstance(minicircle_zero_average_background, np.ndarray)
     assert minicircle_zero_average_background.shape == (1024, 1024)
-    assert minicircle_zero_average_background.sum() == 134343.98664183132
+    assert minicircle_zero_average_background.sum() == 134305.44906065107  # 134343.98664183132
     fig, _ = plot_and_save(minicircle_zero_average_background,
                            tmpdir / '07-zero_average_background.png',
                            title='Zero Average Background')
