@@ -27,7 +27,7 @@ def threshold(image: np.array, method: str = 'otsu', **kwargs: dict) -> float:
     return thresholder(image, **kwargs)
 
 
-def _get_threshold(method: str = 'otsu') -> np.array:
+def _get_threshold(method: str = 'otsu'):
     """Creator component which determines which threshold method to use.
 
     Parameters
@@ -37,7 +37,7 @@ def _get_threshold(method: str = 'otsu') -> np.array:
 
     Returns
     -------
-    np.array
+    function
         Returns function appropriate for the required threshold method.
 
     Raises
