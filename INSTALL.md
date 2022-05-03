@@ -1,11 +1,11 @@
 # Installing TopoStats
 
+**NB** - The package is currently undergoing heavy revision and these installation instructions apply to installing and
+workin on the the `dev` branch.
+
 Currently TopoStats should be installed from the git repository, ideally under a [Python Virtual
 Environment](https://realpython.com/python-virtual-environments-a-primer/)
 (e.g. [Miniconda](https://docs.conda.io/en/latest/miniconda.html)).
-
-**NB** - The package is currently undergoing heavy revision and this applies to the `dev` branch, the following will
-install this branch.
 
 
 ``` bash
@@ -16,6 +16,11 @@ pip install .
 ```
 
 If you wish to make changes to the code then install in editable mode, i.e. `pip install -e .`.
+
+If you wish to develop features or address an existing [issue](https://github.com/AFM-SPM/TopoStats/issues) then you
+should create a branch from `dev` and work on that before committing your changes and creating a pull request. The
+suggested nomenclature for branches is your GitHub username followed by a slash, then the issue number and a short
+description, e.g. `ns-rse/90-refactor-topostats`.
 
 ## Tests
 

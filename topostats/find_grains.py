@@ -8,7 +8,7 @@ from typing import Dict, List, Union
 import numpy as np
 import pandas as pd
 
-from skimage.filters import threshold_otsu, gaussian
+from skimage.filters import gaussian
 from skimage.segmentation import clear_border
 from skimage.morphology import remove_small_objects, label
 from skimage.measure import regionprops
@@ -22,7 +22,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 def quadratic(x, a, b, c):
     """Calculate the result of the quadratic equation."""
-    LOGGER.info(f'Calculating quadratic.')
+    LOGGER.info('Calculating quadratic.')
     return (a * x**2) + (b * x) + c
 
 
@@ -41,7 +41,7 @@ def get_lower_threshold(image: np.array, lower_threshold_multiplier: float = 1.7
     float
         Lower threshold
     """
-    LOGGER.info(f'Calculating lower threshold for grain identification.')
+    LOGGER.info('Calculating lower threshold for grain identification.')
     return get_threshold(image) * lower_threshold_multiplier
 
 
@@ -72,7 +72,6 @@ def gaussian_filter(image: np.array, gaussian_size: float = 2, dx: float = 1, mo
     return gaussian(image, sigma=(gaussian_size / dx), mode=mode)
 
 
-# FIXME : This is duplicated code and the same as the get_mask() function
 def boolean_image(image: np.array, threshold: float) -> np.array:
     """Create a boolean array of whether points are greater than the given threshold.
 
@@ -87,7 +86,7 @@ def boolean_image(image: np.array, threshold: float) -> np.array:
     np.array
         Numpy array for masking
     """
-    LOGGER.info(f'Created boolean image')
+    LOGGER.info('Created boolean image')
     return np.array(np.copy(image) > threshold, dtype='bool')
 
 
@@ -103,7 +102,7 @@ def tidy_border(image: np.array) -> np.array:
     np.array
         Numpy array of image with borders tidied.
     """
-    LOGGER.info(f'Tidying borders')
+    LOGGER.info('Tidying borders')
     return clear_border(np.copy(image))
 
 
@@ -147,7 +146,7 @@ def label_regions(image: np.array, background: float = 0.0) -> np.array:
     np.array
         Numpy array of image with objects coloured.
     """
-    LOGGER.info(f'Labelling Regions')
+    LOGGER.info('Labelling Regions')
     return label(image, background=background)
 
 
@@ -164,7 +163,7 @@ def colour_regions(image: np.array) -> np.array:
     np.array
         Numpy array of image with objects coloured.
     """
-    LOGGER.info(f'Colouring regions')
+    LOGGER.info('Colouring regions')
     return label2rgb(image)
 
 
@@ -181,16 +180,16 @@ def region_properties(image: np.array) -> List:
     List
         List of region property objects.
     """
-    LOGGER.info(f'Extracting region properties.')
+    LOGGER.info('Extracting region properties.')
     return regionprops(image)
 
 
-def get_bounding_boxes(region_properties: List) -> Dict:
+def get_bounding_boxes(region_prop: List) -> Dict:
     """Derive a list of bounding boxes for each region.
 
     Parameters
     ----------
-    region_properties : skimage
+    region_prop : skimage
         Dictionary of region properties
 
     Returns
@@ -204,8 +203,8 @@ def get_bounding_boxes(region_properties: List) -> Dict:
     FIXME: Add docs.
 
     """
-    LOGGER.info(f'Extracting bounding boxes')
-    return {region.area: region.area_bbox for region in region_properties}
+    LOGGER.info('Extracting bounding boxes')
+    return {region.area: region.area_bbox for region in region_prop}
 
 
 def save_region_stats(bounding_boxes: dict, output_dir: Union[str, Path]) -> None:

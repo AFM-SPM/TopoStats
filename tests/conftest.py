@@ -9,11 +9,10 @@ import pytest
 from pySPM.SPM import SPM_image
 from pySPM.Bruker import Bruker
 
-from topostats.filters import (load_scan, extract_img_name, extract_channel, extract_pixels, amplify, align_rows,
+from topostats.filters import (load_scan, extract_img_name, extract_channel, extract_pixels, align_rows,
                                remove_x_y_tilt, get_threshold, get_mask, average_background)
-from topostats.find_grains import (quadratic, get_lower_threshold, gaussian_filter, boolean_image, tidy_border,
-                                   remove_objects, label_regions, colour_regions, region_properties, get_bounding_boxes,
-                                   save_region_stats)
+from topostats.find_grains import (gaussian_filter, boolean_image, tidy_border, remove_objects, label_regions,
+                                   colour_regions, region_properties)
 # from topostats.filters import (load_scan, extract_channel, extract_pixels, align_rows, remove_x_y_tilt, get_threshold,
 #                                get_mask, average_background, gaussian_filter, boolean_image, tidy_border,
 #                                remove_objects, label_regions, colour_regions, region_properties)
@@ -109,6 +108,12 @@ def image_random_col_quantiles_masked() -> np.array:
 def minicircle() -> Bruker:
     """Load a file."""
     return load_scan(RESOURCES / 'minicircle.spm')
+
+
+@pytest.fixture
+def minicircle_filename() -> str:
+    """Extract the filename"""
+    return extract_img_name(RESOURCES / 'minicircle.spm')
 
 
 @pytest.fixture

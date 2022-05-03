@@ -3,9 +3,8 @@
 #+ pylint: disable=invalid-name
 import numpy as np
 
-from skimage.filters import gaussian
-from topostats.filters import (amplify, row_col_quantiles, align_rows, remove_x_y_tilt, get_threshold, get_mask,
-                               average_background)
+from topostats.filters import (amplify, row_col_quantiles, align_rows, remove_x_y_tilt, calc_diff, calc_gradient,
+                               get_threshold, get_mask, average_background)
 from topostats.find_grains import quadratic
 
 # Specify the absolute and relattive tolerance for floating point comparison
@@ -46,14 +45,27 @@ def test_row_col_quantiles_small_array_mask(small_array: np.array, small_mask: n
     np.testing.assert_array_equal(col_quantiles, expected_cols)
 
 
-def test_row_col_quantiles(image_random: np.array, image_random_row_quantiles: np.array,
-                           image_random_col_quantiles: np.array) -> None:
+def test_row_col_quantiles_random_no_mask(image_random: np.array, image_random_row_quantiles: np.array,
+                                          image_random_col_quantiles: np.array) -> None:
     """Test generation of quantiles for rows and columns.
     """
     row_quantiles, col_quantiles = row_col_quantiles(image_random, mask=None)
 
     np.testing.assert_array_equal(row_quantiles, image_random_row_quantiles)
     np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles)
+
+
+def test_row_col_quantiles_random_with_mask(image_random: np.array, image_random_mask: np.array,
+                                            image_random_row_quantiles_masked: np.array,
+                                            image_random_col_quantiles_masked: np.array) -> None:
+    """Test generation of quantiles for rows and columns.
+    """
+    row_quantiles, col_quantiles = row_col_quantiles(image_random, mask=image_random_mask)
+    row_quantiles = np.ma.getdata(row_quantiles)
+    col_quantiles = np.ma.getdata(col_quantiles)
+
+    np.testing.assert_array_equal(row_quantiles.data, image_random_row_quantiles_masked)
+    np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles_masked)
 
 
 def test_align_rows(image_random: np.array, image_random_aligned_rows: np.array) -> None:
@@ -71,6 +83,22 @@ def test_remove_x_y_tilt(image_random: np.array, image_random_remove_x_y_tilt: n
     np.testing.assert_allclose(x_y_tilt_removed, image_random_remove_x_y_tilt, **TOLERANCE)
 
 
+def test_calc_diff(small_array: np.array) -> None:
+    """Test calculation of difference"""
+    diff = calc_diff(small_array)
+    expected = small_array[-1][1] - small_array[0][1]
+
+    np.testing.assert_array_equal(diff, expected)
+
+
+def test_calc_gradient(small_array: np.array) -> None:
+    """Test calculation of gradient"""
+    gradient = calc_gradient(small_array, small_array.shape[0])
+    expected = (small_array[-1][1] - small_array[0][1]) / small_array.shape[0]
+
+    np.testing.assert_array_equal(gradient, expected)
+
+
 def test_get_threshold(image_random: np.array):
     """Test calculation of threshold."""
     threshold = get_threshold(image_random)
@@ -85,19 +113,6 @@ def test_get_mask(image_random: np.array, image_random_mask: np.array):
     mask = get_mask(image_random, threshold)
 
     np.testing.assert_array_equal(mask, image_random_mask)
-
-
-def test_row_col_quantiles_with_mask(image_random: np.array, image_random_mask: np.array,
-                                     image_random_row_quantiles_masked: np.array,
-                                     image_random_col_quantiles_masked: np.array) -> None:
-    """Test generation of quantiles for rows and columns.
-    """
-    row_quantiles, col_quantiles = row_col_quantiles(image_random, mask=image_random_mask)
-    row_quantiles = np.ma.getdata(row_quantiles)
-    col_quantiles = np.ma.getdata(col_quantiles)
-
-    np.testing.assert_array_equal(row_quantiles.data, image_random_row_quantiles_masked)
-    np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles_masked)
 
 
 def test_quadratic(small_array) -> None:

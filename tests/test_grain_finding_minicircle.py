@@ -12,7 +12,7 @@ def test_lower_threshold(minicircle_zero_average_background: np.array, grain_con
     """Test calculation of lower threshold"""
     lower_threshold = get_lower_threshold(minicircle_zero_average_background, grain_config['lower_threshold'])
     assert isinstance(lower_threshold, float)
-    assert lower_threshold == 1.7005720647153635  # 1.7041479310545495
+    assert lower_threshold == 1.7005720647153635
 
 
 @pytest.mark.mpl_image_compare(baseline_dir='resources/img/')

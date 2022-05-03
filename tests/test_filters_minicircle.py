@@ -17,6 +17,12 @@ def test_load_scan(minicircle) -> None:
     assert isinstance(minicircle, Bruker)
 
 
+def test_extract_image_name(minicircle_filename) -> None:
+    """Test extracting image name."""
+    assert isinstance(minicircle_filename, str)
+    assert minicircle_filename == 'minicircle'
+
+
 def test_extract_channel(minicircle_channel) -> None:
     """Test extraction of channel."""
     assert isinstance(minicircle_channel, SPM_image)
