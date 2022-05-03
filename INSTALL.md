@@ -26,9 +26,14 @@ description, e.g. `ns-rse/90-refactor-topostats`.
 
 One of the major changes in the refactoring is the introduction of unit tests. These require certain packages to be
 installed which are not installed to your virtual environment by
-[setuptools](https://setuptools.pypa.io/en/latest/setuptools.html). To install these and run the tests you can...
+[setuptools](https://setuptools.pypa.io/en/latest/setuptools.html) in the above steps. If you are develop and making
+changes to the code base you will likely want to be able to run the tests. Install the necessary dependencies to do so
+with...
+
 
 ``` bash
+cd TopoStats
+git checkout dev
 pip install ".[tests]"
 pytest
 ```
