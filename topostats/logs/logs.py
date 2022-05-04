@@ -21,7 +21,13 @@ LOGGER_NAME = 'topostats'
 
 
 def setup_logger(log_name: str = LOGGER_NAME) -> logging.Logger:
-    """Setup a standard logger
+    """Setup a standard logger.
+
+    The logger for the module is initialised when the module is loaded (as this functions is called from
+    __init__.py). This creates two stream handlers, one for general output and one for errors which are formatted
+    differently (there is greater information in the error formatter). To use in modules import the 'LOGGER_NAME' and
+    create a logger as shown in the Examples, it will inherit the formatting and direction of messages to the correct
+    stream.
 
     Parameters
     ----------
@@ -32,6 +38,18 @@ def setup_logger(log_name: str = LOGGER_NAME) -> logging.Logger:
     -------
     logging.Logger
         Logger object.
+
+    Examples
+    --------
+
+    To use the logger in (sub-)modules have the following.
+
+        import logging
+        from topostats.logs.logs import LOGGER_NAME
+
+        LOGGER = logging.getLogger(LOGGER_NAME)
+
+        LOGGER.info('This is a log message.')
     """
     out_stream_handler = logging.StreamHandler(sys.stdout)
     out_stream_handler.setLevel(logging.DEBUG)

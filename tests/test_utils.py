@@ -1,6 +1,9 @@
 """Test utils."""
 from pathlib import Path
-from topostats.utils import convert_path, find_images, update_config
+
+import numpy as np
+
+from topostats.utils import convert_path, find_images, update_config, get_threshold, get_mask
 
 
 def test_convert_path(tmpdir):
@@ -31,3 +34,19 @@ def test_update_config(caplog):
     assert isinstance(updated_config, dict)
     assert 'Updated config config[c] : something > something new' in caplog.text
     assert updated_config['c'] == 'something new'
+
+
+def test_get_threshold(image_random: np.array):
+    """Test calculation of threshold."""
+    threshold = get_threshold(image_random)
+    expected_threshold = 0.4980470463263117
+
+    assert threshold == expected_threshold
+
+
+def test_get_mask(image_random: np.array, image_random_mask: np.array):
+    """Test generation of mask"""
+    threshold = get_threshold(image_random)
+    mask = get_mask(image_random, threshold)
+
+    np.testing.assert_array_equal(mask, image_random_mask)

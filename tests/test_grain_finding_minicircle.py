@@ -4,13 +4,13 @@ import numpy as np
 import pytest
 from skimage.measure._regionprops import RegionProperties
 
+from topostats.utils import get_threshold
 from topostats.plottingfuncs import plot_and_save
-from topostats.find_grains import get_lower_threshold
 
 
 def test_lower_threshold(minicircle_zero_average_background: np.array, grain_config: dict) -> None:
     """Test calculation of lower threshold"""
-    lower_threshold = get_lower_threshold(minicircle_zero_average_background, grain_config['lower_threshold'])
+    lower_threshold = get_threshold(minicircle_zero_average_background) * grain_config['threshold_multiplier']
     assert isinstance(lower_threshold, float)
     assert lower_threshold == 1.7005720647153635
 

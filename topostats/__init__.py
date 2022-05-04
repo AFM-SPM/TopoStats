@@ -6,7 +6,6 @@ from topostats.logs.logs import setup_logger
 LOGGER = setup_logger()
 
 # try:
-#     print(__name__)
 # │   DIST_NAME = __name__
 # │   __version__ = get_distribution(DIST_NAME).version
 # except DistributionNotFound:

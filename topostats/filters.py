@@ -9,33 +9,10 @@ import logging
 import numpy as np
 import pySPM
 from pySPM.SPM import SPM_image
-from pySPM.Bruker import Bruker
-from skimage.filters import threshold_otsu
 
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
-
-
-def load_scan(img_path: Union[str, Path]) -> Bruker:
-    """Load the image from file.
-
-    Parameters
-    ----------
-    img_path : Union[str, Path]
-        Path to image that needs loading.
-
-    Returns
-    -------
-    Bruker
-
-    Examples
-    --------
-    FIXME: Add docs.
-
-    """
-    LOGGER.info(f'Loading image from : {img_path}')
-    return pySPM.Bruker(Path(img_path))
 
 
 def extract_img_name(img_path: Union[str, Path]) -> str:
@@ -248,7 +225,7 @@ def calc_gradient(array: np.array, shape: int) -> np.array:
     image: np.array
         Numpy array representing image.
     shape: int
-        Snape of the array.
+        Shape of the array in terms of the number of rows, typically it will be array[0].
 
     Returns
     -------
@@ -256,47 +233,6 @@ def calc_gradient(array: np.array, shape: int) -> np.array:
     """
     LOGGER.info('[calc_gradient] Calculating gradient')
     return calc_diff(array) / shape
-
-
-def get_threshold(image: np.array) -> float:
-    """Returns a threshold value separating the background and foreground of a 2D heightmap.
-
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
-
-    Returns
-    -------
-    float
-        Otsu threshold.
-
-    Notes
-    -----
-
-    The `Otsu method <https://en.wikipedia.org/wiki/Otsu%27s_method>`_ is used for threshold derivation.
-    """
-    LOGGER.info('[get_threshold] Calculating Otsu threshold.')
-    return threshold_otsu(image)
-
-
-def get_mask(image: np.array, threshold: float) -> np.array:
-    """Calculate a mask for pixels that exceed the threshold
-
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
-    threshold: float
-        Factor for defining threshold.
-
-    Returns
-    -------
-    np.array
-        Numpy array of image with objects coloured.
-    """
-    LOGGER.info('[get_mask] Deriving mask.')
-    return image > threshold
 
 
 def average_background(image: np.array, mask: np.array = None) -> np.array:

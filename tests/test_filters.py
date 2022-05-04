@@ -4,8 +4,7 @@
 import numpy as np
 
 from topostats.filters import (amplify, row_col_quantiles, align_rows, remove_x_y_tilt, calc_diff, calc_gradient,
-                               get_threshold, get_mask, average_background)
-from topostats.find_grains import quadratic
+                               average_background)
 
 # Specify the absolute and relattive tolerance for floating point comparison
 TOLERANCE = {'atol': 1e-07, 'rtol': 1e-07}
@@ -99,31 +98,6 @@ def test_calc_gradient(small_array: np.array) -> None:
     np.testing.assert_array_equal(gradient, expected)
 
 
-def test_get_threshold(image_random: np.array):
-    """Test calculation of threshold."""
-    threshold = get_threshold(image_random)
-    expected_threshold = 0.4980470463263117
-
-    assert threshold == expected_threshold
-
-
-def test_get_mask(image_random: np.array, image_random_mask: np.array):
-    """Test generation of mask"""
-    threshold = get_threshold(image_random)
-    mask = get_mask(image_random, threshold)
-
-    np.testing.assert_array_equal(mask, image_random_mask)
-
-
-def test_quadratic(small_array) -> None:
-    """Test quadratic function."""
-    values = {'a': 2, 'b': 3, 'c': 4}
-    small_array_quadratic = quadratic(small_array, values['a'], values['b'], values['c'])
-    target = (values['a'] * small_array**2) + (values['b'] * small_array) + values['c']
-
-    np.testing.assert_array_equal(target, small_array_quadratic)
-
-
 def test_average_background(image_random: np.array, image_random_mask: np.array) -> None:
     """Test averaging of background."""
     background_averaged = average_background(image_random, image_random_mask)
@@ -143,7 +117,6 @@ def test_average_background(image_random: np.array, image_random_mask: np.array)
 #     print(f'fited_curve                  :\n{fitted_curve}')
 #     print(f'target                       :\n{target}')
 #     np.testing.assert_array_equal(target, fitted_curve)
-#     assert False
 
 # def test_remove_x_bowing(image_random: np.array,
 #                          image_random_mask: np.array) -> None:

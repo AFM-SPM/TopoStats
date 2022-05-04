@@ -5,6 +5,7 @@ from topostats.io import read_yaml
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / 'tests' / 'resources'
 
+
 def test_read_yaml() -> None:
     """Test reading of YAML file."""
     sample_config = read_yaml(RESOURCES / 'sample_config.yaml')
@@ -28,8 +29,8 @@ def test_read_yaml() -> None:
     assert sample_config['grains']['dx'] == 1.0
     assert isinstance(sample_config['grains']['upper_height_threshold_rms_multiplier'], float)
     assert sample_config['grains']['upper_height_threshold_rms_multiplier'] == 1.0
-    assert isinstance(sample_config['grains']['lower_threshold_otsu_multiplier'], float)
-    assert sample_config['grains']['lower_threshold_otsu_multiplier'] == 1.7
+    assert isinstance(sample_config['grains']['threshold_multiplier'], float)
+    assert sample_config['grains']['threshold_multiplier'] == 1.7
     assert isinstance(sample_config['grains']['minimum_grain_size'], int)
     assert sample_config['grains']['minimum_grain_size'] == 800
     assert isinstance(sample_config['grains']['mode'], str)

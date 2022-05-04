@@ -14,7 +14,7 @@ from skimage.morphology import remove_small_objects, label
 from skimage.measure import regionprops
 from skimage.color import label2rgb
 
-from topostats.filters import get_threshold
+from topostats.utils import get_threshold
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -26,26 +26,11 @@ def quadratic(x, a, b, c):
     return (a * x**2) + (b * x) + c
 
 
-# Gaussian filtering
-def get_lower_threshold(image: np.array, lower_threshold_multiplier: float = 1.7) -> float:
-    """Calculate the lower threshold for filtering.
-
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
-    lower_threshold_multiplier: float
-        Factor by which threshold is to be scaled by.
-    Returns
-    -------
-    float
-        Lower threshold
-    """
-    LOGGER.info('Calculating lower threshold for grain identification.')
-    return get_threshold(image) * lower_threshold_multiplier
-
-
-def gaussian_filter(image: np.array, gaussian_size: float = 2, dx: float = 1, mode: str = 'nearest') -> np.array:
+def gaussian_filter(image: np.array,
+                    gaussian_size: float = 2,
+                    dx: float = 1,
+                    mode: str = 'nearest',
+                    **kwargs) -> np.array:
     """Apply Gaussian filter
 
     Parameters
@@ -69,28 +54,28 @@ def gaussian_filter(image: np.array, gaussian_size: float = 2, dx: float = 1, mo
     FIXME: Add docs.
     """
     LOGGER.info('Applying Gaussian filter (mode : {mode}; Gaussian blur (nm) : {gaussian_size}).')
-    return gaussian(image, sigma=(gaussian_size / dx), mode=mode)
+    return gaussian(image, sigma=(gaussian_size / dx), mode=mode, **kwargs)
 
 
-def boolean_image(image: np.array, threshold: float) -> np.array:
-    """Create a boolean array of whether points are greater than the given threshold.
+# def boolean_image(image: np.array, threshold: float) -> np.array:
+#     """Create a boolean array of whether points are greater than the given threshold.
 
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
-    threshold: float
-        Threshold for masking points in the image.
-    Returns
-    -------
-    np.array
-        Numpy array for masking
-    """
-    LOGGER.info('Created boolean image')
-    return np.array(np.copy(image) > threshold, dtype='bool')
+#     Parameters
+#     ----------
+#     image: np.array
+#         Numpy array representing image.
+#     threshold: float
+#         Threshold for masking points in the image.
+#     Returns
+#     -------
+#     np.array
+#         Numpy array for masking
+#     """
+#     LOGGER.info('Created boolean image')
+#     return np.array(np.copy(image) > threshold, dtype='bool')
 
 
-def tidy_border(image: np.array) -> np.array:
+def tidy_border(image: np.array, **kwargs) -> np.array:
     """Remove grains touching the border
     Parameters
     ----------
@@ -103,7 +88,7 @@ def tidy_border(image: np.array) -> np.array:
         Numpy array of image with borders tidied.
     """
     LOGGER.info('Tidying borders')
-    return clear_border(np.copy(image))
+    return clear_border(np.copy(image), **kwargs)
 
 
 # def calc_minimum_grain_size(minimum_grain_size: float = None, dx: float = 1) -> float:
@@ -112,7 +97,7 @@ def tidy_border(image: np.array) -> np.array:
 #     """
 
 
-def remove_objects(image: np.array, minimum_grain_size: float, dx: float) -> np.array:
+def remove_objects(image: np.array, minimum_grain_size: float, dx: float, **kwargs) -> np.array:
     """Remove small objects
 
     Parameters
@@ -129,10 +114,10 @@ def remove_objects(image: np.array, minimum_grain_size: float, dx: float) -> np.
         Numpy array of image with objects coloured.
     """
     LOGGER.info(f'Removing small objects (< {minimum_grain_size / dx})')
-    return remove_small_objects(image, min_size=(minimum_grain_size / dx))
+    return remove_small_objects(image, min_size=(minimum_grain_size / dx), **kwargs)
 
 
-def label_regions(image: np.array, background: float = 0.0) -> np.array:
+def label_regions(image: np.array, background: float = 0.0, **kwargs) -> np.array:
     """Label regions.
 
     Parameters
@@ -147,10 +132,10 @@ def label_regions(image: np.array, background: float = 0.0) -> np.array:
         Numpy array of image with objects coloured.
     """
     LOGGER.info('Labelling Regions')
-    return label(image, background=background)
+    return label(image, background=background, **kwargs)
 
 
-def colour_regions(image: np.array) -> np.array:
+def colour_regions(image: np.array, **kwargs) -> np.array:
     """Colour the regions.
 
     Parameters
@@ -164,10 +149,10 @@ def colour_regions(image: np.array) -> np.array:
         Numpy array of image with objects coloured.
     """
     LOGGER.info('Colouring regions')
-    return label2rgb(image)
+    return label2rgb(image, **kwargs)
 
 
-def region_properties(image: np.array) -> List:
+def region_properties(image: np.array, **kwargs) -> List:
     """Extract the properties of each region.
 
     Parameters
@@ -181,7 +166,7 @@ def region_properties(image: np.array) -> List:
         List of region property objects.
     """
     LOGGER.info('Extracting region properties.')
-    return regionprops(image)
+    return regionprops(image, **kwargs)
 
 
 def get_bounding_boxes(region_prop: List) -> Dict:

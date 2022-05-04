@@ -9,12 +9,15 @@ import pytest
 from pySPM.SPM import SPM_image
 from pySPM.Bruker import Bruker
 
-from topostats.filters import (load_scan, extract_img_name, extract_channel, extract_pixels, align_rows,
-                               remove_x_y_tilt, get_threshold, get_mask, average_background)
-from topostats.find_grains import (get_lower_threshold, gaussian_filter, boolean_image, tidy_border, remove_objects, label_regions, colour_regions, region_properties)
+from topostats.filters import (extract_img_name, extract_channel, extract_pixels, align_rows, remove_x_y_tilt,
+                               average_background)
+from topostats.find_grains import (gaussian_filter, tidy_border, remove_objects, label_regions, colour_regions,
+                                   region_properties)
 # from topostats.filters import (load_scan, extract_channel, extract_pixels, align_rows, remove_x_y_tilt, get_threshold,
 #                                get_mask, average_background, gaussian_filter, boolean_image, tidy_border,
 #                                remove_objects, label_regions, colour_regions, region_properties)
+from topostats.io import load_scan, read_yaml
+from topostats.utils import get_mask, get_threshold
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / 'tests' / 'resources'
@@ -26,17 +29,26 @@ CHANNEL = 'Height'
 
 
 @pytest.fixture
-def grain_config() -> dict:
+def sample_config() -> dict:
+    """Sample configuration"""
+    return read_yaml(RESOURCES / 'sample_config.yaml')
+
+
+@pytest.fixture
+def grain_config(sample_config) -> dict:
     """Configurations for grain finding."""
-    return {
-        'gaussian_size': 2,
-        'dx': 1,
-        'mode': 'nearest',
-        'upper_height_threshold_rms_multiplier': 1,
-        'lower_threshold': 1.7,
-        'minimum_grain_size': 800,
-        'background': 0
-    }
+    return sample_config['grains']
+
+
+#     return{
+#         'gaussian_size': 2,
+#         'dx': 1,
+#         'mode': 'nearest',
+#         'upper_height_threshold_rms_multiplier': 1,
+#         'lower_threshold': 1.7,
+#         'minimum_grain_size': 800,
+#         'background': 0
+#     }
 
 
 @pytest.fixture
@@ -173,6 +185,7 @@ def minicircle_zero_average_background(minicircle_masked_tilt_removal: np.array,
 @pytest.fixture
 def minicircle_grain_gaussian_filter(minicircle_zero_average_background: np.array, grain_config: dict) -> np.array:
     """Apply Gaussian filter."""
+    print(f'minicircle_zero_average_background :\n{minicircle_zero_average_background}')
     return gaussian_filter(minicircle_zero_average_background,
                            gaussian_size=grain_config['gaussian_size'],
                            dx=grain_config['dx'],
@@ -180,12 +193,11 @@ def minicircle_grain_gaussian_filter(minicircle_zero_average_background: np.arra
 
 
 @pytest.fixture
-def minicircle_grain_boolean(minicircle_zero_average_background: np.array,
-                             minicircle_grain_gaussian_filter: np.array, grain_config: dict) -> np.array:
+def minicircle_grain_boolean(minicircle_zero_average_background: np.array, minicircle_grain_gaussian_filter: np.array,
+                             grain_config: dict) -> np.array:
     """Boolean mask."""
-    threshold = get_lower_threshold(minicircle_zero_average_background, grain_config['lower_threshold'])
-    print(f'threshold : {threshold}')
-    return boolean_image(minicircle_grain_gaussian_filter, threshold=threshold)
+    threshold = get_threshold(minicircle_zero_average_background) * grain_config['threshold_multiplier']
+    return get_mask(minicircle_grain_gaussian_filter, threshold=threshold)
 
 
 @pytest.fixture

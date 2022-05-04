@@ -1,5 +1,7 @@
+"""Run Topotracing at the command line."""
 import argparse as arg
 from functools import partial
+import logging
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Union, Dict
@@ -7,17 +9,16 @@ import warnings
 
 from tqdm import tqdm
 
-from topostats.filters import (load_scan, extract_img_name, extract_channel, extract_pixels, amplify, align_rows,
-                               remove_x_y_tilt, get_threshold, get_mask, average_background)
-from topostats.find_grains import (get_lower_threshold, gaussian_filter, boolean_image, tidy_border, remove_objects,
-                                   label_regions, colour_regions, region_properties, get_bounding_boxes,
-                                   save_region_stats)
-from topostats.io import read_yaml
+from topostats.filters import (extract_img_name, extract_channel, extract_pixels, amplify, align_rows, remove_x_y_tilt,
+                               get_threshold, average_background)
+from topostats.find_grains import (gaussian_filter, tidy_border, remove_objects, label_regions, colour_regions,
+                                   region_properties, get_bounding_boxes, save_region_stats)
+from topostats.io import read_yaml, load_scan
 from topostats.plottingfuncs import plot_and_save
-from topostats.logs.logs import setup_logger, LOGGER_NAME
-from topostats.utils import convert_path, find_images, update_config
+from topostats.logs.logs import LOGGER_NAME
+from topostats.utils import convert_path, find_images, update_config, get_mask
 
-LOGGER = setup_logger(LOGGER_NAME)
+LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def create_parser() -> arg.ArgumentParser:
@@ -65,11 +66,47 @@ def process_scan(image_path: Union[str, Path] = None,
                  gaussian_size: Union[int, float] = 2,
                  dx: Union[int, float] = 1,
                  mode: str = 'nearest',
-                 lower_threshold_otsu_multiplier: Union[int, float] = 1.7,
+                 threshold_multiplier: Union[int, float] = 1.7,
                  minimum_grain_size: Union[int, float] = 800,
                  background: float = 0.0,
                  save_plots: bool = True,
                  output_dir: Union[str, Path] = 'output') -> None:
+    """Process a single image, filtering and finding grains.
+
+    Parameters
+    ----------
+    image_path : Union[str, Path]
+        Path to image to process.
+    channel : str
+        Channel to extract and process, default 'height'.
+    amplify_level : float
+        Level to amplify image prior to processing by.
+    gaussian_size : Union[int, float]
+        Minimum grain size in nanometers (nm).
+    dx : Union[int, float]
+        Pixel to nanometer scale.
+    mode : str
+        Mode for filtering (default is 'nearest').
+    threshold_multiplier : Union[int, float]
+        Factor by which lower threshold is to be scaled prior to masking.
+    minimum_grain_size : Union[int, float]
+        Minimum grain size in nanometers.
+    background : float
+    save_plots : bool
+        Flag as to whether to save plots to PNG files.
+    output_dir : Union[str, Path]
+        Path to output directory for saving results.
+
+    Examples
+    --------
+
+    from topostats.topotracing import process_scan
+
+    process_scan(image_path='minicircle.spm',
+                 save_plots=True,
+                 output_dir='output/')
+
+    """
     LOGGER.info(f'Processing : {image_path}')
 
     # Create output directory
@@ -112,12 +149,15 @@ def process_scan(image_path: Union[str, Path] = None,
     averaged_background = average_background(second_tilt_removal, mask=mask)
     LOGGER.info(f'[{img_name}] : Background zero-averaged.')
 
+    # Get threshold
+    lower_threshold = get_threshold(averaged_background) * threshold_multiplier
+
     # Find grains, first apply a gaussian filter
     gaussian_filtered = gaussian_filter(averaged_background, gaussian_size=gaussian_size, dx=dx, mode=mode)
     LOGGER.info(f'[{img_name}] : Gaussian filter applied (size : {gaussian_size}; : dx {dx}; mode : {mode})')
 
     # Create a boolean image
-    boolean_image_mask = boolean_image(gaussian_filtered, threshold=lower_threshold_otsu_multiplier)
+    boolean_image_mask = get_mask(gaussian_filtered, threshold=lower_threshold)
 
     # Tidy borders
     tidied_borders = tidy_border(boolean_image_mask)
@@ -226,7 +266,7 @@ def main():
                                   gaussian_size=config['grains']['gaussian_size'],
                                   dx=config['grains']['dx'],
                                   mode=config['grains']['mode'],
-                                  lower_threshold_otsu_multiplier=config['grains']['lower_threshold_otsu_multiplier'],
+                                  threshold_multiplier=config['grains']['threshold_multiplier'],
                                   minimum_grain_size=config['grains']['minimum_grain_size'],
                                   background=config['grains']['background'],
                                   save_plots=config['save_plots'],

@@ -4,6 +4,9 @@ import logging
 from pathlib import Path
 from typing import Union, List, Dict
 
+import numpy as np
+from skimage.filters import threshold_otsu
+
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -69,3 +72,44 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
     config['base_dir'] = convert_path(config['base_dir'])
     config['output_dir'] = convert_path(config['output_dir'])
     return config
+
+
+def get_mask(image: np.array, threshold: float) -> np.array:
+    """Calculate a mask for pixels that exceed the threshold
+
+    Parameters
+    ----------
+    image: np.array
+        Numpy array representing image.
+    threshold: float
+        Factor for defining threshold.
+
+    Returns
+    -------
+    np.array
+        Numpy array of image with objects coloured.
+    """
+    LOGGER.info('[get_mask] Deriving mask.')
+    return image > threshold
+
+
+def get_threshold(image: np.array) -> float:
+    """Returns a threshold value separating the background and foreground of a 2D heightmap.
+
+    Parameters
+    ----------
+    image: np.array
+        Numpy array representing image.
+
+    Returns
+    -------
+    float
+        Otsu threshold.
+
+    Notes
+    -----
+
+    The `Otsu method <https://en.wikipedia.org/wiki/Otsu%27s_method>`_ is used for threshold derivation.
+    """
+    LOGGER.info('[get_threshold] Calculating Otsu threshold.')
+    return threshold_otsu(image)
