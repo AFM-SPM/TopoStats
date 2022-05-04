@@ -26,5 +26,5 @@ def test_boolean_image(small_array: np.array, threshold: float = 0.5) -> None:
 
     assert isinstance(boolean_array, np.ndarray)
     assert np.issubdtype(boolean_array.dtype, np.bool_)
-    assert boolean_array.sum() == 46
+    assert boolean_array.sum() == 44
     np.testing.assert_array_equal(boolean_array, target)

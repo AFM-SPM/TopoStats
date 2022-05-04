@@ -11,8 +11,7 @@ from pySPM.Bruker import Bruker
 
 from topostats.filters import (load_scan, extract_img_name, extract_channel, extract_pixels, align_rows,
                                remove_x_y_tilt, get_threshold, get_mask, average_background)
-from topostats.find_grains import (gaussian_filter, boolean_image, tidy_border, remove_objects, label_regions,
-                                   colour_regions, region_properties)
+from topostats.find_grains import (get_lower_threshold, gaussian_filter, boolean_image, tidy_border, remove_objects, label_regions, colour_regions, region_properties)
 # from topostats.filters import (load_scan, extract_channel, extract_pixels, align_rows, remove_x_y_tilt, get_threshold,
 #                                get_mask, average_background, gaussian_filter, boolean_image, tidy_border,
 #                                remove_objects, label_regions, colour_regions, region_properties)
@@ -181,9 +180,12 @@ def minicircle_grain_gaussian_filter(minicircle_zero_average_background: np.arra
 
 
 @pytest.fixture
-def minicircle_grain_boolean(minicircle_grain_gaussian_filter: np.array, grain_config: dict) -> np.array:
+def minicircle_grain_boolean(minicircle_zero_average_background: np.array,
+                             minicircle_grain_gaussian_filter: np.array, grain_config: dict) -> np.array:
     """Boolean mask."""
-    return boolean_image(minicircle_grain_gaussian_filter, threshold=grain_config['lower_threshold'])
+    threshold = get_lower_threshold(minicircle_zero_average_background, grain_config['lower_threshold'])
+    print(f'threshold : {threshold}')
+    return boolean_image(minicircle_grain_gaussian_filter, threshold=threshold)
 
 
 @pytest.fixture
