@@ -1,0 +1,11 @@
+this: is
+a: test
+yaml: file
+numbers: 123
+logical: true
+nested:
+  something: else
+a_list:
+  - 1
+  - 2
+  - 3

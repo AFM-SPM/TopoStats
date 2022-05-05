@@ -1,9 +1,9 @@
 """Tests of the filters module."""
+#+ pylint: disable=invalid-name
 import numpy as np
 
 import pytest
 from pySPM.SPM import SPM_image
-from pySPM.Bruker import Bruker
 
 from topostats.plottingfuncs import plot_and_save
 
@@ -11,13 +11,7 @@ from topostats.plottingfuncs import plot_and_save
 TOLERANCE = {'atol': 1e-07, 'rtol': 1e-07}
 
 
-def test_load_scan(minicircle) -> None:
-    """Test loading of image"""
-
-    assert isinstance(minicircle, Bruker)
-
-
-def test_extract_image_name(minicircle_filename) -> None:
+def test_extract_img_name(minicircle_filename) -> None:
     """Test extracting image name."""
     assert isinstance(minicircle_filename, str)
     assert minicircle_filename == 'minicircle'
@@ -26,6 +20,11 @@ def test_extract_image_name(minicircle_filename) -> None:
 def test_extract_channel(minicircle_channel) -> None:
     """Test extraction of channel."""
     assert isinstance(minicircle_channel, SPM_image)
+
+
+def test_extract_pixel_to_nm_scaling(minicircle_pixel_to_nm) -> None:
+    """Test extraction of pixels to nanometer scaling."""
+    assert minicircle_pixel_to_nm == 0.4940029296875
 
 
 @pytest.mark.mpl_image_compare(baseline_dir='resources/img/')
@@ -103,7 +102,7 @@ def test_remove_x_y_tilt_masked(minicircle_masked_tilt_removal: np.array, tmpdir
 
 
 @pytest.mark.mpl_image_compare(baseline_dir='resources/img/')
-def test_zero_average_background(minicircle_zero_average_background: np.array, tmpdir) -> None:
+def test_average_background(minicircle_zero_average_background: np.array, tmpdir) -> None:
     """Test zero-averaging of background."""
     assert isinstance(minicircle_zero_average_background, np.ndarray)
     assert minicircle_zero_average_background.shape == (1024, 1024)

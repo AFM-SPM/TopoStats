@@ -57,24 +57,6 @@ def gaussian_filter(image: np.array,
     return gaussian(image, sigma=(gaussian_size / dx), mode=mode, **kwargs)
 
 
-# def boolean_image(image: np.array, threshold: float) -> np.array:
-#     """Create a boolean array of whether points are greater than the given threshold.
-
-#     Parameters
-#     ----------
-#     image: np.array
-#         Numpy array representing image.
-#     threshold: float
-#         Threshold for masking points in the image.
-#     Returns
-#     -------
-#     np.array
-#         Numpy array for masking
-#     """
-#     LOGGER.info('Created boolean image')
-#     return np.array(np.copy(image) > threshold, dtype='bool')
-
-
 def tidy_border(image: np.array, **kwargs) -> np.array:
     """Remove grains touching the border
     Parameters

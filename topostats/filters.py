@@ -62,6 +62,22 @@ def extract_channel(scan_raw: pySPM.Bruker, channel: str = 'Height') -> SPM_imag
     return scan_raw.get_channel(channel)
 
 
+def extract_pixel_to_nm_scaling(extracted_channel: SPM_image) -> float:
+    """Extract the pixel to nanometer scaling from the image metadata.
+
+    Parameters
+    ----------
+    extracted_channel : SPM_image
+        Channel extracted from an image.
+
+    Returns
+    -------
+    float
+        Scaling factor for pixels to nanometers.
+    """
+    return extracted_channel.get_extent()[1] / len(extracted_channel.pixels)
+
+
 def extract_pixels(extracted_channel: SPM_image) -> np.array:
     """Flatten the scan to a Numpy Array
 
@@ -236,7 +252,7 @@ def calc_gradient(array: np.array, shape: int) -> np.array:
 
 
 def average_background(image: np.array, mask: np.array = None) -> np.array:
-    """Zero the background
+    """Zero the background based on the median.
 
     Parameters
     ----------
@@ -249,30 +265,7 @@ def average_background(image: np.array, mask: np.array = None) -> np.array:
     -------
     np.array
         Numpy array of image zero averaged.
-    :param image: a 2D raster image"""
+    """
     row_quantiles, _ = row_col_quantiles(image, mask)
     LOGGER.info('[average_background] Zero averaging background')
     return image - np.array(row_quantiles[:, 1], ndmin=2).T
-
-
-# def remove_x_bowing(image: np.array, mask: np.array) -> tuple:
-#     """Remove X bowing.
-
-#     :param image: A 2D raster image
-#     :param binary_mask: A 2D binary array of points that should be masked.
-#     """
-#     masked_image = np.ma.masked_array(image,
-#                                       mask=mask,
-#                                       fill_value=np.nan)
-#     row_mean = np.mean(masked_image, axis=1).T
-#     parameters, covariance = curve_fit(row_mean)
-#     return parameters, covariance
-
-# def curve_fit(row_mean: np.array) -> tuple:
-#     """Fit a quadratic curve to the data.
-
-#     :param row_mean: Mean of row. """
-#     parmeters, covariance = curve_fit(quadratic,
-#                                       np.arange(0, row_mean.shape[0]),
-#                                       row_mean)
-#     return parameters, covariance

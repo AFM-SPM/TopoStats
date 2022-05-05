@@ -1,6 +1,4 @@
 """Tests of the filters module."""
-#+ pylint: disable=no-name-in-module
-#+ pylint: disable=invalid-name
 import numpy as np
 
 from topostats.filters import (amplify, row_col_quantiles, align_rows, remove_x_y_tilt, calc_diff, calc_gradient,
@@ -105,23 +103,3 @@ def test_average_background(image_random: np.array, image_random_mask: np.array)
     target = image_random - np.array(row_quantiles[:, 1], ndmin=2).T
 
     np.testing.assert_array_equal(target, background_averaged)
-
-
-# def test_curve_fit(small_array:np.array) -> None:
-#     """Test fitting of curve."""
-#     fitted_curve = curve_fit(np.mean(small_array, axis=1))
-#     target = curve_fit(f=quadratic,
-#                        xdata=np.arange(0, small_array.shape[0]),
-#                        ydata=np.mean(small_array, axis=1))
-#     print(f'np.mean(small_array, axis=1) :\n{np.mean(small_array, axis=1)}')
-#     print(f'fited_curve                  :\n{fitted_curve}')
-#     print(f'target                       :\n{target}')
-#     np.testing.assert_array_equal(target, fitted_curve)
-
-# def test_remove_x_bowing(image_random: np.array,
-#                          image_random_mask: np.array) -> None:
-#     """Test removal of x bowing."""
-#     image_random_masked = np.ma.masked_array(image_random,
-#                                              mask=image_random_mask,
-#                                              fill_value=np.nan)
-#     assert True

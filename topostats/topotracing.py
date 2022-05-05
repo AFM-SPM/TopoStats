@@ -9,14 +9,14 @@ import warnings
 
 from tqdm import tqdm
 
-from topostats.filters import (extract_img_name, extract_channel, extract_pixels, amplify, align_rows, remove_x_y_tilt,
-                               get_threshold, average_background)
+from topostats.filters import (extract_img_name, extract_channel, extract_pixels, extract_pixel_to_nm_scaling, amplify,
+                               align_rows, remove_x_y_tilt, average_background)
 from topostats.find_grains import (gaussian_filter, tidy_border, remove_objects, label_regions, colour_regions,
                                    region_properties, get_bounding_boxes, save_region_stats)
 from topostats.io import read_yaml, load_scan
 from topostats.plottingfuncs import plot_and_save
 from topostats.logs.logs import LOGGER_NAME
-from topostats.utils import convert_path, find_images, update_config, get_mask
+from topostats.utils import convert_path, find_images, update_config, get_mask, get_threshold
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -115,13 +115,15 @@ def process_scan(image_path: Union[str, Path] = None,
     output_dir.mkdir(parents=True, exist_ok=True)
     LOGGER.info(f'Created output directory : {output_dir}')
 
-    # Load image and extract channel
+    # Load image, extract channel and pixel to nm scaling
     image = load_scan(image_path)
     LOGGER.info(f'[{img_name}] : Loaded image.')
     extracted_channel = extract_channel(image, channel)
     LOGGER.info(f'[{img_name}] : Extracted {channel}.')
     pixels = extract_pixels(extracted_channel)
     LOGGER.info(f'[{img_name}] : Pixels extracted.')
+    dx = extract_pixel_to_nm_scaling(extracted_channel)
+    LOGGER.info(f'[{img_name}] : Pixel to nanometre scaling extracted from image : {dx}')
 
     # Amplify image
     if amplify_level != 1.0:
@@ -179,14 +181,16 @@ def process_scan(image_path: Union[str, Path] = None,
     image_region_properties = region_properties(regions_labelled)
     LOGGER.info(f'[{img_name}] : Properties extracted for regions.')
 
-    # Derive bounding boxes and saves statistics
+    # Derive bounding boxes and save statistics
     bounding_boxes = get_bounding_boxes(image_region_properties)
     LOGGER.info(f'[{img_name}] : Extracted bounding boxes')
     save_region_stats(bounding_boxes, output_dir=output_dir)
     LOGGER.info(f'[{img_name}] : Saved region statistics to {str(output_dir / "grainstats.csv")}')
 
     # Optionally save images of each stage of processing.
-    # FIXME : Improve to make plots either individual or a faceted single image.
+    # Could perhaps improve to make plots either individual or a faceted single image.
+    # Also saving arrays to a dictionary and having an associated dictionary with the same keys and values containing
+    # filename and title would make this considerably less code.
     if save_plots:
         plot_and_save(pixels, output_dir / '01-raw_heightmap.png', title='Raw Height')
         plot_and_save(initial_align, output_dir / '02-initial_align_unmasked.png', title='Initial Alignment (Unmasked)')

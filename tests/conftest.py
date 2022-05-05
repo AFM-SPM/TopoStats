@@ -9,8 +9,8 @@ import pytest
 from pySPM.SPM import SPM_image
 from pySPM.Bruker import Bruker
 
-from topostats.filters import (extract_img_name, extract_channel, extract_pixels, align_rows, remove_x_y_tilt,
-                               average_background)
+from topostats.filters import (extract_img_name, extract_channel, extract_pixel_to_nm_scaling, extract_pixels,
+                               align_rows, remove_x_y_tilt, average_background)
 from topostats.find_grains import (gaussian_filter, tidy_border, remove_objects, label_regions, colour_regions,
                                    region_properties)
 # from topostats.filters import (load_scan, extract_channel, extract_pixels, align_rows, remove_x_y_tilt, get_threshold,
@@ -38,17 +38,6 @@ def sample_config() -> dict:
 def grain_config(sample_config) -> dict:
     """Configurations for grain finding."""
     return sample_config['grains']
-
-
-#     return{
-#         'gaussian_size': 2,
-#         'dx': 1,
-#         'mode': 'nearest',
-#         'upper_height_threshold_rms_multiplier': 1,
-#         'lower_threshold': 1.7,
-#         'minimum_grain_size': 800,
-#         'background': 0
-#     }
 
 
 @pytest.fixture
@@ -134,6 +123,12 @@ def minicircle_channel(minicircle) -> SPM_image:
 
 
 @pytest.fixture
+def minicircle_pixel_to_nm(minicircle_channel) -> float:
+    """Extract the pixel to nanometer scaling."""
+    return extract_pixel_to_nm_scaling(minicircle_channel)
+
+
+@pytest.fixture
 def minicircle_pixels(minicircle_channel):
     """Extract Pixels"""
     return extract_pixels(minicircle_channel)
@@ -185,7 +180,6 @@ def minicircle_zero_average_background(minicircle_masked_tilt_removal: np.array,
 @pytest.fixture
 def minicircle_grain_gaussian_filter(minicircle_zero_average_background: np.array, grain_config: dict) -> np.array:
     """Apply Gaussian filter."""
-    print(f'minicircle_zero_average_background :\n{minicircle_zero_average_background}')
     return gaussian_filter(minicircle_zero_average_background,
                            gaussian_size=grain_config['gaussian_size'],
                            dx=grain_config['dx'],
