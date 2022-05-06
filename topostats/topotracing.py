@@ -11,8 +11,9 @@ from tqdm import tqdm
 
 from topostats.filters import (extract_img_name, extract_channel, extract_pixels, extract_pixel_to_nm_scaling, amplify,
                                align_rows, remove_x_y_tilt, average_background)
-from topostats.find_grains import (gaussian_filter, tidy_border, remove_objects, label_regions, colour_regions,
-                                   region_properties, get_bounding_boxes, save_region_stats)
+from topostats.find_grains import (gaussian_filter, tidy_border, remove_objects, minimum_grain_size_pixels,
+                                   label_regions, colour_regions, region_properties, get_bounding_boxes,
+                                   save_region_stats)
 from topostats.io import read_yaml, load_scan
 from topostats.plottingfuncs import plot_and_save
 from topostats.logs.logs import LOGGER_NAME
@@ -66,7 +67,6 @@ def process_scan(image_path: Union[str, Path] = None,
                  gaussian_size: Union[int, float] = 2,
                  mode: str = 'nearest',
                  threshold_multiplier: Union[int, float] = 1.7,
-                 minimum_grain_size: Union[int, float] = 800,
                  background: float = 0.0,
                  save_plots: bool = True,
                  output_dir: Union[str, Path] = 'output') -> None:
@@ -86,8 +86,6 @@ def process_scan(image_path: Union[str, Path] = None,
         Mode for filtering (default is 'nearest').
     threshold_multiplier : Union[int, float]
         Factor by which lower threshold is to be scaled prior to masking.
-    minimum_grain_size : Union[int, float]
-        Minimum grain size in nanometers.
     background : float
     save_plots : bool
         Flag as to whether to save plots to PNG files.
@@ -151,10 +149,11 @@ def process_scan(image_path: Union[str, Path] = None,
     # Get threshold
     lower_threshold = get_threshold(averaged_background) * threshold_multiplier
 
-    # Find grains, first apply a gaussian filter
+    # Find grains
+    # Apply a gaussian filter (using pySPM derived pixel_nm_scaling)
     gaussian_filtered = gaussian_filter(averaged_background,
                                         gaussian_size=gaussian_size,
-                                        pixel_nm_scaling == pixel_nm_scaling,
+                                        pixel_nm_scaling=pixel_nm_scaling,
                                         mode=mode)
     LOGGER.info(
         f'[{img_name}] : Gaussian filter applied (size : {gaussian_size}; : Pixel to Nanometer Scaling {pixel_nm_scaling}; mode : {mode})'
@@ -167,9 +166,13 @@ def process_scan(image_path: Union[str, Path] = None,
     tidied_borders = tidy_border(boolean_image_mask)
     LOGGER.info(f'[{img_name}] : Borders tidied.')
 
+    # Calculate minimum grain size (using pySPM derived pixel_nm_scaling)
+    minimum_grain_size = minimum_grain_size_pixels(tidied_borders, background=background)
+    LOGGER.info(f'[{img_name}] : Minimum grain size in pixels calculated : {minimum_grain_size}.')
+
     # Remove objects
-    small_objects_removed = remove_objects(tidied_borders, minimum_grain_size=minimum_grain_size, dx=dx)
-    LOGGER.info(f'[{img_name}] : Small objects (< {minimum_grain_size} nm) removed.')
+    small_objects_removed = remove_objects(tidied_borders, minimum_grain_size_pixels=minimum_grain_size)
+    LOGGER.info(f'[{img_name}] : Small objects (< {minimum_grain_size} pixels) removed.')
 
     # Label regions
     regions_labelled = label_regions(small_objects_removed, background=background)
@@ -270,10 +273,8 @@ def main():
                                   amplify_level=config['amplify_level'],
                                   channel=config['channel'],
                                   gaussian_size=config['grains']['gaussian_size'],
-                                  dx=config['grains']['dx'],
                                   mode=config['grains']['mode'],
                                   threshold_multiplier=config['grains']['threshold_multiplier'],
-                                  minimum_grain_size=config['grains']['minimum_grain_size'],
                                   background=config['grains']['background'],
                                   save_plots=config['save_plots'],
                                   output_dir=config['output_dir'])

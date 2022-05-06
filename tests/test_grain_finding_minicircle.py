@@ -49,7 +49,7 @@ def test_clear_border(minicircle_grain_clear_border: np.array, tmpdir) -> None:
 
 def test_get_minimum_grain_size_pixels(minicircle_minimum_grain_size_pixels: float) -> None:
     """Test minimum grain size."""
-    assert minicircle_minimum_grain_size_pixels == 856.75
+    assert minicircle_minimum_grain_size_pixels == 867.125
 
 
 @pytest.mark.mpl_image_compare(baseline_dir='resources/img/')

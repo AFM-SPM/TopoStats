@@ -200,15 +200,9 @@ def minicircle_grain_clear_border(minicircle_grain_boolean: np.array) -> np.arra
 
 
 @pytest.fixture
-def minicircle_grain_labelled_all(minicircle_grain_boolean: np.array, grain_config: dict) -> np.array:
+def minicircle_grain_labelled_all(minicircle_grain_clear_border: np.array, grain_config: dict) -> np.array:
     """Labelled regions."""
-    return label_regions(minicircle_grain_boolean, background=grain_config['background'])
-
-
-@pytest.fixture
-def minicircle_grain_region_properties_all(minicircle_grain_labelled_all: np.array) -> np.array:
-    """Region properties."""
-    return region_properties(minicircle_grain_labelled_all)
+    return label_regions(minicircle_grain_clear_border, background=grain_config['background'])
 
 
 @pytest.fixture
