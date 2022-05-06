@@ -1,0 +1,15 @@
+General: 
+  data_path : './data'
+
+Plots:
+  figure_dpi : 150
+
+Grain Finding:
+  # Blur amount
+  gaussian_size : 2
+  # Sets the rms multiplier for high-value outlier detection. Higher : Less sensitive to outliers
+  upper_height_threshold_rms_multiplier : 1
+  # Otsu threshold multiplier for lower thresholding the data. Higher : Culls lower values around the edges of grains
+  lower_threshold_otsu_multiplier : 1.7
+  # Minimum grain size in nm. Set to -1 to let the software auto detect based on the median size.
+  minimum_grain_size_nm : -1
