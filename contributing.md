@@ -5,10 +5,10 @@ This document explains how, technically, to contribute to this project. A code o
 ## Contribution Workflow
 
 * Check the issues and draft pull requests to see if anyone is working on something similar.
-* Make a branch for your contribution.
+* Make a branch for your contribution. If it is a bug fix for the current working version then you should branch from `master`. If you are working on new features then please branch from `dev`.
 * Implement your feature, bug fix, documentation, etc. using commits.
 * Push your changes.
-* Make a pull request against the `master` branch of this repository for bug fixes, or the `dev` branch for new features.
+*Make a pull request against the branch from which you originally branched from (`master` for bug fixes; `dev` for new features).
 
 You are advised to make a draft pull request as soon as you start work so nobody else ends up working on the same thing.
 
