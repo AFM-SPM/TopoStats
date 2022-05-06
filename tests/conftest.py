@@ -13,9 +13,7 @@ from topostats.filters import (extract_img_name, extract_channel, extract_pixel_
                                align_rows, remove_x_y_tilt, average_background)
 from topostats.find_grains import (gaussian_filter, tidy_border, remove_objects, label_regions, colour_regions,
                                    region_properties)
-# from topostats.filters import (load_scan, extract_channel, extract_pixels, align_rows, remove_x_y_tilt, get_threshold,
-#                                get_mask, average_background, gaussian_filter, boolean_image, tidy_border,
-#                                remove_objects, label_regions, colour_regions, region_properties)
+from topostats.grainstats import GrainStats
 from topostats.io import load_scan, read_yaml
 from topostats.utils import get_mask, get_threshold
 
@@ -224,3 +222,14 @@ def minicircle_grain_coloured(minicircle_grain_labelled: np.array) -> np.array:
 def minicircle_grain_region_properties(minicircle_grain_labelled: np.array) -> np.array:
     """Region properties."""
     return region_properties(minicircle_grain_labelled)
+
+
+## Derive fixture for grainstats
+@pytest.fixture
+def minicircle_grainstats(minicircle_zero_average_background: np.array, minicircle_grain_labelled: np.array,
+                          minicircle_pixel_to_nm: float, tmpdir: Path) -> GrainStats:
+    """GrainStats object."""
+    return GrainStats(data=minicircle_zero_average_background,
+                      labelled_data=minicircle_grain_labelled,
+                      pixel_to_nanometre_scaling=minicircle_pixel_to_nm,
+                      tmpdir)
