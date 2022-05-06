@@ -101,6 +101,51 @@ When updating TopoStats, the `Config.ini` file is ignored, so your parameters ar
 
 If no config file is found while running TopoStats, it will make a copy of the default config file.
 
+## Development
+
+Currently Topostats is undergoing heavy revision. This involves removing the dependency on Gwyddion in favour of using
+[scikit-image](https://scikit-image.org/) to perform a number of steps in identifying and isolating features and
+summarising them. In turn this allows the package to move away from relying on Python 2.7 and instead run under Python
+>= 3.8.
+
+To test the development version you should clone the repository and checkout the `dev` branch and install it in editable
+mode.
+
+``` bash
+git clone https://github.com/AFM-SPM/TopoStats.git
+cd TopoStats
+git checkout dev
+pip install -e .
+```
+
+If you want to run the tests then install their dependencies with...
+
+``` bash
+pip install ".[tests]"
+```
+
+In this development branch configuration is done through [YAML](https://yaml.org/) files. An example configuration file
+is included in the directory `config/example.yml` under the `dev` branch and you can run this to process the included
+`minicircle.spm` (found under `tests/resources/minicircle.spm`) with the following...
+
+``` bash
+python topostats/topotracing.py --config config/example.yaml
+```
+
+This version takes command line arguments, and you _have_ to include `--config path/to/valid/config.yaml` option. You
+can see what other options are available with...
+
+``` bash
+python topostats/topotracing.py --help
+```
+
+Any options specified on the command line will over-ride those in the configuration file, for example to suppress log
+messages and just have a progress bar you can over-ride the `quiet: false` option on the command line with.
+
+``` bash
+python topostats/topotracing.py --config config/example.yaml --quiet True
+```
+
 ## Licence
 
 **This software is licensed as specified by the [GPL License](COPYING) and [LGPL License](COPYING.LESSER).**
