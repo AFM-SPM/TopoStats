@@ -40,3 +40,6 @@ _build/
 
 # log files
 *.log
+
+# Tests and docs
+.coverage
