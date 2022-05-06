@@ -5,11 +5,14 @@ Welcome to TopoStats's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   topostats.pygwytracing
-   topostats.dnatracing
+   topostats.dnatracing   
+   topostats.filters   
+   topostats.find_grains
+   topostats.io
+   topostats.plottingfuncs
+   topostats.topotracing
    topostats.tracingfuncs
-   topostats.filters
-
+   topostats.utils
 
 Indices and tables
 ==================
