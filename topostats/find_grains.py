@@ -14,7 +14,7 @@ from skimage.morphology import remove_small_objects, label
 from skimage.measure import regionprops
 from skimage.color import label2rgb
 
-from topostats.utils import get_threshold
+from topostats.utils import get_threshold, get_mask
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -28,7 +28,7 @@ def quadratic(x, a, b, c):
 
 def gaussian_filter(image: np.array,
                     gaussian_size: float = 2,
-                    dx: float = 1,
+                    pixel_nm_scaling: float = 1,
                     mode: str = 'nearest',
                     **kwargs) -> np.array:
     """Apply Gaussian filter
@@ -39,7 +39,7 @@ def gaussian_filter(image: np.array,
         Numpy array of image.
     gaussian_size : float
         Gaussian blur size in nanometers (nm).
-    dx : float
+    pixel_nm_scaling : float
         Pixel to nanometer scale.
     mode : str
         Mode for filtering (default is 'nearest')
@@ -54,7 +54,7 @@ def gaussian_filter(image: np.array,
     FIXME: Add docs.
     """
     LOGGER.info('Applying Gaussian filter (mode : {mode}; Gaussian blur (nm) : {gaussian_size}).')
-    return gaussian(image, sigma=(gaussian_size / dx), mode=mode, **kwargs)
+    return gaussian(image, sigma=(gaussian_size / pixel_nm_scaling), mode=mode, **kwargs)
 
 
 def tidy_border(image: np.array, **kwargs) -> np.array:
@@ -73,32 +73,6 @@ def tidy_border(image: np.array, **kwargs) -> np.array:
     return clear_border(np.copy(image), **kwargs)
 
 
-# def calc_minimum_grain_size(minimum_grain_size: float = None, dx: float = 1) -> float:
-#     """Calculate minimum grain size in pixels.
-#
-#     """
-
-
-def remove_objects(image: np.array, minimum_grain_size: float, dx: float, **kwargs) -> np.array:
-    """Remove small objects
-
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
-    minimum_grain_size: float
-        Minimum grain size in nanometers.
-    dx: float
-        Pixel to nanometer scale.
-    Returns
-    -------
-    np.array
-        Numpy array of image with objects coloured.
-    """
-    LOGGER.info(f'Removing small objects (< {minimum_grain_size / dx})')
-    return remove_small_objects(image, min_size=(minimum_grain_size / dx), **kwargs)
-
-
 def label_regions(image: np.array, background: float = 0.0, **kwargs) -> np.array:
     """Label regions.
 
@@ -115,6 +89,50 @@ def label_regions(image: np.array, background: float = 0.0, **kwargs) -> np.arra
     """
     LOGGER.info('Labelling Regions')
     return label(image, background=background, **kwargs)
+
+
+def minimum_grain_size_pixels(image: np.array, background: float) -> float:
+    """Calculate the minimum grain size of interest in pixels.
+
+    Parameters
+    ----------
+    image : np.array
+        Numpy array of regions of interest labelled.
+    background : float
+
+    Returns
+    -------
+    float
+        Threshold for minimum grain size.
+
+    Examples
+    --------
+    FIXME: Add docs.
+
+    """
+    labelled_data = label_regions(image, background)
+    grain_areas = np.array([grain.area for grain in region_properties(labelled_data)])
+    grain_areas = grain_areas[grain_areas > get_threshold(grain_areas)]
+    return np.median(grain_areas) - (1.5 * (np.quantile(grain_areas, 0.75) - np.quantile(grain_areas, 0.25)))
+
+
+def remove_objects(image: np.array, minimum_grain_size_pixels: float, **kwargs) -> np.array:
+    """Remove small objects
+
+    Parameters
+    ----------
+    image: np.array
+        Numpy array representing image.
+    minimum_grain_size_pixels: float
+        Minimum grain size in pixels.
+
+    Returns
+    -------
+    np.array
+        Numpy array of image with objects coloured.
+    """
+    LOGGER.info(f'Removing small objects (< {minimum_grain_size_pixels})')
+    return remove_small_objects(image, min_size=minimum_grain_size_pixels, **kwargs)
 
 
 def colour_regions(image: np.array, **kwargs) -> np.array:

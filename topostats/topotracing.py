@@ -64,7 +64,6 @@ def process_scan(image_path: Union[str, Path] = None,
                  channel: str = 'Height',
                  amplify_level: float = 1.0,
                  gaussian_size: Union[int, float] = 2,
-                 dx: Union[int, float] = 1,
                  mode: str = 'nearest',
                  threshold_multiplier: Union[int, float] = 1.7,
                  minimum_grain_size: Union[int, float] = 800,
@@ -83,8 +82,6 @@ def process_scan(image_path: Union[str, Path] = None,
         Level to amplify image prior to processing by.
     gaussian_size : Union[int, float]
         Minimum grain size in nanometers (nm).
-    dx : Union[int, float]
-        Pixel to nanometer scale.
     mode : str
         Mode for filtering (default is 'nearest').
     threshold_multiplier : Union[int, float]
@@ -122,8 +119,8 @@ def process_scan(image_path: Union[str, Path] = None,
     LOGGER.info(f'[{img_name}] : Extracted {channel}.')
     pixels = extract_pixels(extracted_channel)
     LOGGER.info(f'[{img_name}] : Pixels extracted.')
-    dx = extract_pixel_to_nm_scaling(extracted_channel)
-    LOGGER.info(f'[{img_name}] : Pixel to nanometre scaling extracted from image : {dx}')
+    pixel_nm_scaling = extract_pixel_to_nm_scaling(extracted_channel)
+    LOGGER.info(f'[{img_name}] : Pixel to nanometre scaling extracted from image : {pixel_nm_scaling}')
 
     # Amplify image
     if amplify_level != 1.0:
@@ -155,8 +152,13 @@ def process_scan(image_path: Union[str, Path] = None,
     lower_threshold = get_threshold(averaged_background) * threshold_multiplier
 
     # Find grains, first apply a gaussian filter
-    gaussian_filtered = gaussian_filter(averaged_background, gaussian_size=gaussian_size, dx=dx, mode=mode)
-    LOGGER.info(f'[{img_name}] : Gaussian filter applied (size : {gaussian_size}; : dx {dx}; mode : {mode})')
+    gaussian_filtered = gaussian_filter(averaged_background,
+                                        gaussian_size=gaussian_size,
+                                        pixel_nm_scaling == pixel_nm_scaling,
+                                        mode=mode)
+    LOGGER.info(
+        f'[{img_name}] : Gaussian filter applied (size : {gaussian_size}; : Pixel to Nanometer Scaling {pixel_nm_scaling}; mode : {mode})'
+    )
 
     # Create a boolean image
     boolean_image_mask = get_mask(gaussian_filtered, threshold=lower_threshold)
