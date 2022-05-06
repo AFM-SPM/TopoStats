@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # Mock imports (things that can't be installed at do building time)
 
-autodoc_mock_imports = ['pygtk','gwy','numpy','pandas','matplotlib','seaborn','scipy','skimage']
+autodoc_mock_imports = ['pygtk','gwy','numpy','pandas','matplotlib','seaborn','scipy','skimage','pySPM']
 
 # -- Project information -----------------------------------------------------
 
