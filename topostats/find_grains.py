@@ -28,7 +28,7 @@ def quadratic(x, a, b, c):
 
 def gaussian_filter(image: np.array,
                     gaussian_size: float = 2,
-                    dx: float = 1,
+                    pixel_to_nm_scaling: float = 1,
                     mode: str = 'nearest',
                     **kwargs) -> np.array:
     """Apply Gaussian filter
@@ -39,7 +39,7 @@ def gaussian_filter(image: np.array,
         Numpy array of image.
     gaussian_size : float
         Gaussian blur size in nanometers (nm).
-    dx : float
+    pixel_to_nm_scaling : float
         Pixel to nanometer scale.
     mode : str
         Mode for filtering (default is 'nearest')
@@ -54,7 +54,7 @@ def gaussian_filter(image: np.array,
     FIXME: Add docs.
     """
     LOGGER.info('Applying Gaussian filter (mode : {mode}; Gaussian blur (nm) : {gaussian_size}).')
-    return gaussian(image, sigma=(gaussian_size / dx), mode=mode, **kwargs)
+    return gaussian(image, sigma=(gaussian_size * pixel_to_nm_scaling), mode=mode, **kwargs)
 
 
 def tidy_border(image: np.array, **kwargs) -> np.array:
@@ -73,13 +73,13 @@ def tidy_border(image: np.array, **kwargs) -> np.array:
     return clear_border(np.copy(image), **kwargs)
 
 
-# def calc_minimum_grain_size(minimum_grain_size: float = None, dx: float = 1) -> float:
+# def calc_minimum_grain_size(minimum_grain_size: float = None, pixel_to_nm_scaling: float = 1) -> float:
 #     """Calculate minimum grain size in pixels.
 #
 #     """
 
 
-def remove_objects(image: np.array, minimum_grain_size: float, dx: float, **kwargs) -> np.array:
+def remove_objects(image: np.array, minimum_grain_size: float, pixel_to_nm_scaling: float, **kwargs) -> np.array:
     """Remove small objects
 
     Parameters
@@ -88,15 +88,15 @@ def remove_objects(image: np.array, minimum_grain_size: float, dx: float, **kwar
         Numpy array representing image.
     minimum_grain_size: float
         Minimum grain size in nanometers.
-    dx: float
+    pixel_to_nm_scaling: float
         Pixel to nanometer scale.
     Returns
     -------
     np.array
         Numpy array of image with objects coloured.
     """
-    LOGGER.info(f'Removing small objects (< {minimum_grain_size / dx})')
-    return remove_small_objects(image, min_size=(minimum_grain_size / dx), **kwargs)
+    LOGGER.info(f'Removing small objects (< {minimum_grain_size * pixel_to_nm_scaling})')
+    return remove_small_objects(image, min_size=(minimum_grain_size * pixel_to_nm_scaling), **kwargs)
 
 
 def label_regions(image: np.array, background: float = 0.0, **kwargs) -> np.array:

@@ -176,12 +176,15 @@ def minicircle_zero_average_background(minicircle_masked_tilt_removal: np.array,
 
 ## Derive fixtures for grain finding
 @pytest.fixture
-def minicircle_grain_gaussian_filter(minicircle_zero_average_background: np.array, grain_config: dict) -> np.array:
+def minicircle_grain_gaussian_filter(minicircle_zero_average_background: np.array, minicircle_pixel_to_nm: float,
+                                     grain_config: dict) -> np.array:
     """Apply Gaussian filter."""
-    return gaussian_filter(minicircle_zero_average_background,
-                           gaussian_size=grain_config['gaussian_size'],
-                           dx=grain_config['dx'],
-                           mode=grain_config['mode'])
+    return gaussian_filter(
+        minicircle_zero_average_background,
+        gaussian_size=grain_config['gaussian_size'],
+        # dx=grain_config['dx'],
+        pixel_to_nm_scaling=minicircle_pixel_to_nm,
+        mode=grain_config['mode'])
 
 
 @pytest.fixture
@@ -199,11 +202,14 @@ def minicircle_grain_clear_border(minicircle_grain_boolean: np.array) -> np.arra
 
 
 @pytest.fixture
-def minicircle_grain_small_objects_removed(minicircle_grain_clear_border: np.array, grain_config: dict) -> np.array:
+def minicircle_grain_small_objects_removed(minicircle_grain_clear_border: np.array, minicircle_pixel_to_nm: float,
+                                           grain_config: dict) -> np.array:
     """Small objects removed."""
-    return remove_objects(minicircle_grain_clear_border,
-                          minimum_grain_size=grain_config['minimum_grain_size'],
-                          dx=grain_config['dx'])
+    return remove_objects(
+        minicircle_grain_clear_border,
+        minimum_grain_size=grain_config['minimum_grain_size'],
+        # pixel_to_nm_scaling=grain_config['dx'])
+        pixel_to_nm_scaling=minicircle_pixel_to_nm)
 
 
 @pytest.fixture
@@ -222,14 +228,3 @@ def minicircle_grain_coloured(minicircle_grain_labelled: np.array) -> np.array:
 def minicircle_grain_region_properties(minicircle_grain_labelled: np.array) -> np.array:
     """Region properties."""
     return region_properties(minicircle_grain_labelled)
-
-
-## Derive fixture for grainstats
-@pytest.fixture
-def minicircle_grainstats(minicircle_zero_average_background: np.array, minicircle_grain_labelled: np.array,
-                          minicircle_pixel_to_nm: float, tmpdir: Path) -> GrainStats:
-    """GrainStats object."""
-    return GrainStats(data=minicircle_zero_average_background,
-                      labelled_data=minicircle_grain_labelled,
-                      pixel_to_nanometre_scaling=minicircle_pixel_to_nm,
-                      tmpdir)
