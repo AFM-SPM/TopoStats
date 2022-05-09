@@ -73,10 +73,23 @@ def tidy_border(image: np.array, **kwargs) -> np.array:
     return clear_border(np.copy(image), **kwargs)
 
 
-# def calc_minimum_grain_size(minimum_grain_size: float = None, pixel_to_nm_scaling: float = 1) -> float:
-#     """Calculate minimum grain size in pixels.
-#
-#     """
+def calc_minimum_grain_size_pixels(image_properties, **kwargs) -> float:
+    """Calculate minimum grain size in pixels.
+
+    Parameters
+    ----------
+    image_properties: List
+        Region properties as calcualted by region_properties().
+
+    Returns
+    -------
+    float
+        Minimum size of grains in pixels.
+    """
+    grain_areas = np.array([grain.area for grain in image_properties])
+    threshold_tiny = get_threshold(grain_areas)
+    grain_areas = grain_areas[grain_areas > threshold_tiny]
+    return np.median(grain_areas) - (1.5 * (np.quantile(grain_areas, 0.75) - np.quantile(grain_areas, 0.25)))
 
 
 def remove_objects(image: np.array, minimum_grain_size: float, pixel_to_nm_scaling: float, **kwargs) -> np.array:

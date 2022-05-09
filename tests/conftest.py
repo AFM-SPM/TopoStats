@@ -12,7 +12,7 @@ from pySPM.Bruker import Bruker
 from topostats.filters import (extract_img_name, extract_channel, extract_pixel_to_nm_scaling, extract_pixels,
                                align_rows, remove_x_y_tilt, average_background)
 from topostats.find_grains import (gaussian_filter, tidy_border, remove_objects, label_regions, colour_regions,
-                                   region_properties)
+                                   calc_minimum_grain_size_pixels, region_properties)
 from topostats.grainstats import GrainStats
 from topostats.io import load_scan, read_yaml
 from topostats.utils import get_mask, get_threshold
@@ -202,14 +202,20 @@ def minicircle_grain_clear_border(minicircle_grain_boolean: np.array) -> np.arra
 
 
 @pytest.fixture
+def minicircle_grain_minimum_grain_size_pixels(minicircle_grain_clear_border) -> float:
+    """Minimum grain size in pixels."""
+    labelled_regions = label_regions(minicircle_grain_clear_border)
+    properties = region_properties(labelled_regions)
+    return calc_minimum_grain_size_pixels(properties)
+
+
+@pytest.fixture
 def minicircle_grain_small_objects_removed(minicircle_grain_clear_border: np.array, minicircle_pixel_to_nm: float,
-                                           grain_config: dict) -> np.array:
+                                           minicircle_grain_minimum_grain_size_pixels) -> np.array:
     """Small objects removed."""
-    return remove_objects(
-        minicircle_grain_clear_border,
-        minimum_grain_size=grain_config['minimum_grain_size'],
-        # pixel_to_nm_scaling=grain_config['dx'])
-        pixel_to_nm_scaling=minicircle_pixel_to_nm)
+    return remove_objects(minicircle_grain_clear_border,
+                          minimum_grain_size=minicircle_grain_minimum_grain_size_pixels,
+                          pixel_to_nm_scaling=minicircle_pixel_to_nm)
 
 
 @pytest.fixture

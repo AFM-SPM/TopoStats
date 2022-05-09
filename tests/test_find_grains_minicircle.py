@@ -47,12 +47,18 @@ def test_clear_border(minicircle_grain_clear_border: np.array, tmpdir) -> None:
     return fig
 
 
+def test_calc_minimum_grain_size_pixels(minicircle_grain_minimum_grain_size_pixels) -> None:
+    """Test calculation of minimum grain size in pixels."""
+    assert isinstance(minicircle_grain_minimum_grain_size_pixels, float)
+    assert minicircle_grain_minimum_grain_size_pixels == 1576.25
+
+
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_remove_small_objects(minicircle_grain_small_objects_removed: np.array, tmpdir) -> None:
     """Test removal of small objects."""
     assert isinstance(minicircle_grain_small_objects_removed, np.ndarray)
     assert minicircle_grain_small_objects_removed.shape == (1024, 1024)
-    assert minicircle_grain_small_objects_removed.sum() == 42166
+    assert minicircle_grain_small_objects_removed.sum() == 40831
     fig, _ = plot_and_save(
         minicircle_grain_small_objects_removed, tmpdir / "11-small_objects_removed.png", title="Small Objects Removed"
     )
@@ -64,7 +70,7 @@ def test_label_regions(minicircle_grain_labelled: np.array, tmpdir) -> None:
     """Test removal of small objects."""
     assert isinstance(minicircle_grain_labelled, np.ndarray)
     assert minicircle_grain_labelled.shape == (1024, 1024)
-    assert minicircle_grain_labelled.sum() == 517785
+    assert minicircle_grain_labelled.sum() == 467368
     fig, _ = plot_and_save(minicircle_grain_labelled, tmpdir / "12-labelled.png", title="Labelled Regions")
     return fig
 
@@ -74,7 +80,7 @@ def test_colour_regions(minicircle_grain_coloured: np.array, tmpdir) -> None:
     """Test removal of small objects."""
     assert isinstance(minicircle_grain_coloured, np.ndarray)
     assert minicircle_grain_coloured.shape == (1024, 1024, 3)
-    assert minicircle_grain_coloured.sum() == 61278.71900000004
+    assert minicircle_grain_coloured.sum() == 59558.17100000003
     fig, _ = plot_and_save(minicircle_grain_coloured, tmpdir / "14-coloured_regions.png", title="Coloured Regions")
     return fig
 
@@ -82,6 +88,6 @@ def test_colour_regions(minicircle_grain_coloured: np.array, tmpdir) -> None:
 def test_region_properties(minicircle_grain_region_properties: np.array) -> None:
     """Test removal of small objects."""
     assert isinstance(minicircle_grain_region_properties, list)
-    assert len(minicircle_grain_region_properties) == 24
+    assert len(minicircle_grain_region_properties) == 22
     for x in minicircle_grain_region_properties:
         assert isinstance(x, RegionProperties)
