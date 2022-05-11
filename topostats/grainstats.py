@@ -71,6 +71,8 @@ class GrainStats:
         angle : float
             The angle in radians between the two input vectors.
         """
+        #        print(f'point_1    : {point_1}')
+        #        print(f'point_2    : {point_2}')
         return np.arctan2(point_1[1] - point_2[1], point_1[0] - point_2[0])
 
     def is_clockwise(self, p1: tuple, p2: tuple, p3: tuple) -> bool:
@@ -133,7 +135,8 @@ class GrainStats:
                 f'[{self.img_name}] Grain {index} : cropped image saved : {str(output_grain / "grain_image.png")}')
 
             edges = self.calculate_edges(grain_mask)
-            radius_min, radius_max, radius_mean, radius_median = self.calculate_radius_stats(edges)
+            #print(f'type(edges)   :  {type(edges)}')
+            #print(f'edges         :\n{edges}')
             radius_stats = self.calculate_radius_stats(edges)
             hull, hull_indices, hull_simplexes = self.convex_hull(grain_mask, edges, output_grain)
             smallest_bounding_width, smallest_bounding_length, aspect_ratio = self.calculate_aspect_ratio(
@@ -243,7 +246,7 @@ class GrainStats:
             A tuple of the minimum, maximum, mean and median radius of the grain
         """
         # Convert the edges to the form of a numpy array
-        edges = np.array(edges)
+        # edges = np.array(edges)
         # Calculate the centroid of the grain
         centroid = self._calculate_centroid(edges)
         # Calculate the displacement
@@ -265,12 +268,14 @@ class GrainStats:
         tuple
             The co-ordinates of the centroid.
         """
-        LOGGER.info(f'type(edges) : {type(edges)}')
+        # FIXME : Remove once we have a numpy array returned by calculate_edges
+        edges = np.array(edges)
         return (sum(edges[:, 0]) / len(edges), sum(edges[:, 1] / len(edges)))
 
     def _calculate_displacement(self, edges: np.array, centroid: tuple) -> np.array:
         """Calculate the displacement between the centroid and edges"""
-        return edges - centroid
+        # FIXME : Remove once we have a numpy array returned by calculate_edges
+        return np.array(edges) - centroid
 
     def _calculate_radius(self, displacements) -> np.array:
         """Calculate the radius of each point from the centroid
@@ -346,6 +351,7 @@ class GrainStats:
         return float(delta_x**2 + delta_y**2)
 
     def sort_points(self, points: List) -> List:
+        #    def sort_points(self, points: np.array) -> List:
         """Function to sort points in counter-clockwise order of angle made with the starting point.
 
         Parameters
@@ -374,14 +380,29 @@ class GrainStats:
                 equal.append(point)
             else:
                 larger.append(point)
+        # Lets take a different approach and use arrays, we have a start point lets work out the angle of each point
+        # relative to that and _then_ sort it.
+        # pivot_angles = self.get_angle(points, self.start_point)
         # Recursively sort the arrays until each point is sorted
         sorted_points = self.sort_points(smaller) + sorted(equal, key=self.get_displacement) + self.sort_points(larger)
         # Return sorted array where equal angle points are sorted by distance
         return sorted_points
 
-    def get_start_point(self) -> int:
-        """Determine the index of the bottom most point of the hull when sorted by x-position."""
-        # FIXME : Make this an isolated method
+    def get_start_point(self, edges) -> int:
+        """Determine the index of the bottom most point of the hull when sorted by x-position.
+
+        Parameters
+        ----------
+        edges: np.array
+
+        Returns
+        -------
+        """
+        min_y_index = np.argmin(edges[:, 1])
+        self.start_point = edges[min_y_index]
+
+
+#       print(f'[][][][] self.start_point : {self.start_point}')
 
     def graham_scan(self, edges: list):
         """A function based on the Graham Scan algorithm that constructs a convex hull from points in 2D cartesian
@@ -411,9 +432,8 @@ class GrainStats:
                 min_y_index = index
             if point[1] == edges[min_y_index][1] and point[0] < edges[min_y_index][0]:
                 min_y_index = index
-
-        # Set the starting point for the hull. Reminder - this is a global variable.
-        self.start_point = edges[min_y_index]
+        # This does the same thing, but with an array
+        # self.get_start_point(edges)
         # Sort the points
         points_sorted_by_angle = self.sort_points(edges)
 

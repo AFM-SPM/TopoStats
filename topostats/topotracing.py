@@ -66,7 +66,6 @@ def process_scan(image_path: Union[str, Path] = None,
                  channel: str = 'Height',
                  amplify_level: float = 1.0,
                  gaussian_size: Union[int, float] = 2,
-                 dx: Union[int, float] = 1,
                  mode: str = 'nearest',
                  threshold_multiplier: Union[int, float] = 1.7,
                  minimum_grain_size: Union[int, float] = 800,
@@ -85,8 +84,6 @@ def process_scan(image_path: Union[str, Path] = None,
         Level to amplify image prior to processing by.
     gaussian_size : Union[int, float]
         Minimum grain size in nanometers (nm).
-    dx : Union[int, float]
-        Pixel to nanometer scale.
     mode : str
         Mode for filtering (default is 'nearest').
     threshold_multiplier : Union[int, float]
