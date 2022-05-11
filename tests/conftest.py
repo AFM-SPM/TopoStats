@@ -234,3 +234,37 @@ def minicircle_grain_coloured(minicircle_grain_labelled: np.array) -> np.array:
 def minicircle_grain_region_properties(minicircle_grain_labelled: np.array) -> np.array:
     """Region properties."""
     return region_properties(minicircle_grain_labelled)
+
+
+# Derive fixtures for grainstats
+#
+# General
+@pytest.fixture
+def grainstats(image_random: np.array, minicircle_filename: str, tmpdir) -> GrainStats:
+    gstats = GrainStats(image_random,
+                        image_random,
+                        pixel_to_nanometre_scaling=0.5,
+                        img_name=minicircle_filename,
+                        output_dir=tmpdir)
+    return gstats
+
+
+# Minicircle
+@pytest.fixture
+def minicircle_grainstats(minicircle_zero_average_background: np.array, minicircle_grain_labelled: np.array,
+                          minicircle_pixel_to_nm: float, minicircle_filename, tmpdir: Path) -> GrainStats:
+    """GrainStats object."""
+    return GrainStats(data=minicircle_zero_average_background,
+                      labelled_data=minicircle_grain_labelled,
+                      pixel_to_nanometre_scaling=minicircle_pixel_to_nm,
+                      img_name=minicircle_filename,
+                      output_dir=tmpdir)
+
+
+# Target statistics
+#
+# These are date specific as we expect statistics to change as the underlying methods used to calculate them
+# are tweaked.
+@pytest.fixture
+def minicircle_grainstats_20220509() -> pd.DataFrame:
+    return pd.read_csv(RESOURCES / 'minicircle_grainstats_20220509.csv', index_col=0)

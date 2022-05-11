@@ -12,7 +12,9 @@ from tqdm import tqdm
 from topostats.filters import (extract_img_name, extract_channel, extract_pixels, extract_pixel_to_nm_scaling, amplify,
                                align_rows, remove_x_y_tilt, average_background)
 from topostats.find_grains import (gaussian_filter, tidy_border, remove_objects, label_regions, colour_regions,
-                                   region_properties, get_bounding_boxes, save_region_stats)
+                                   calc_minimum_grain_size_pixels, region_properties, get_bounding_boxes,
+                                   save_region_stats)
+from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, load_scan
 from topostats.plottingfuncs import plot_and_save
 from topostats.logs.logs import LOGGER_NAME
@@ -122,8 +124,8 @@ def process_scan(image_path: Union[str, Path] = None,
     LOGGER.info(f'[{img_name}] : Extracted {channel}.')
     pixels = extract_pixels(extracted_channel)
     LOGGER.info(f'[{img_name}] : Pixels extracted.')
-    dx = extract_pixel_to_nm_scaling(extracted_channel)
-    LOGGER.info(f'[{img_name}] : Pixel to nanometre scaling extracted from image : {dx}')
+    pixel_to_nm_scaling = extract_pixel_to_nm_scaling(extracted_channel)
+    LOGGER.info(f'[{img_name}] : Pixel to nanometre scaling extracted from image : {pixel_to_nm_scaling}')
 
     # Amplify image
     if amplify_level != 1.0:
@@ -154,9 +156,15 @@ def process_scan(image_path: Union[str, Path] = None,
     # Get threshold
     lower_threshold = get_threshold(averaged_background) * threshold_multiplier
 
+    #
     # Find grains, first apply a gaussian filter
-    gaussian_filtered = gaussian_filter(averaged_background, gaussian_size=gaussian_size, dx=dx, mode=mode)
-    LOGGER.info(f'[{img_name}] : Gaussian filter applied (size : {gaussian_size}; : dx {dx}; mode : {mode})')
+    gaussian_filtered = gaussian_filter(averaged_background,
+                                        gaussian_size=gaussian_size,
+                                        pixel_to_nm_scaling=pixel_to_nm_scaling,
+                                        mode=mode)
+    LOGGER.info(
+        f'[{img_name}] : Gaussian filter applied (size : {gaussian_size}; : pixel_to_nm_scaling {pixel_to_nm_scaling}; mode : {mode})'
+    )
 
     # Create a boolean image
     boolean_image_mask = get_mask(gaussian_filtered, threshold=lower_threshold)
@@ -165,27 +173,43 @@ def process_scan(image_path: Union[str, Path] = None,
     tidied_borders = tidy_border(boolean_image_mask)
     LOGGER.info(f'[{img_name}] : Borders tidied.')
 
+    # Get threshold for small objects, need to first label all regions then extract properties
+    labelled_regions = label_regions(tidied_borders)
+    properties = region_properties(labelled_regions)
+    minimum_grain_size = calc_minimum_grain_size_pixels(properties)
+    LOGGER.info(f'[{img_name}] : Minimum grain size calculated ({minimum_grain_size})')
+
     # Remove objects
-    small_objects_removed = remove_objects(tidied_borders, minimum_grain_size=minimum_grain_size, dx=dx)
+    small_objects_removed = remove_objects(tidied_borders,
+                                           minimum_grain_size=minimum_grain_size,
+                                           pixel_to_nm_scaling=pixel_to_nm_scaling)
     LOGGER.info(f'[{img_name}] : Small objects (< {minimum_grain_size} nm) removed.')
 
-    # Label regions
+    # Label regions after cleaning
     regions_labelled = label_regions(small_objects_removed, background=background)
     LOGGER.info(f'[{img_name}] : Regions labelled.')
 
-    # Colour regions
+    # Colour regions after cleaning
     coloured_regions = colour_regions(regions_labelled)
     LOGGER.info(f'[{img_name}] : Regions coloured.')
 
-    # Extract region properties
+    # Extract region properties after cleaning
     image_region_properties = region_properties(regions_labelled)
     LOGGER.info(f'[{img_name}] : Properties extracted for regions.')
 
     # Derive bounding boxes and save statistics
-    bounding_boxes = get_bounding_boxes(image_region_properties)
-    LOGGER.info(f'[{img_name}] : Extracted bounding boxes')
-    save_region_stats(bounding_boxes, output_dir=output_dir)
-    LOGGER.info(f'[{img_name}] : Saved region statistics to {str(output_dir / "grainstats.csv")}')
+    # bounding_boxes = get_bounding_boxes(image_region_properties)
+    # LOGGER.info(f'[{img_name}] : Extracted bounding boxes')
+    # save_region_stats(bounding_boxes, output_dir=output_dir)
+    # LOGGER.info(f'[{img_name}] : Saved region statistics to {str(output_dir / "grainstats.csv")}')
+
+    # Find Grains
+    grainstats = GrainStats(data=averaged_background,
+                            labelled_data=labelled_regions,
+                            pixel_to_nm_scaling=pixel_to_nm_scaling,
+                            img_name=img_name,
+                            output_dir=output_dir)
+    grainstats.calculat_stats()
 
     # Optionally save images of each stage of processing.
     # Could perhaps improve to make plots either individual or a faceted single image.
@@ -255,7 +279,7 @@ def main():
     #                  amplify_level=config['amplify_level'],
     #                  channel=config['channel'],
     #                  gaussian_size=config['grains']['gaussian_size'],
-    #                  dx=config['grains']['dx'],
+    #                  pixel_to_nm_scaling=config['grains']['pixel_to_nm_scaling'],
     #                  mode=config['grains']['mode'],
     #                  lower_threshold_otsu_multiplier=config['grains']['lower_threshold_otsu_multiplier'],
     #                  minimum_grain_size=config['grains']['minimum_grain_size'],
@@ -264,17 +288,18 @@ def main():
     #                  output_dir=config['output_dir'])
 
     # Process all images found in parallel (constrainged by 'cores' option in config).
-    processing_function = partial(process_scan,
-                                  amplify_level=config['amplify_level'],
-                                  channel=config['channel'],
-                                  gaussian_size=config['grains']['gaussian_size'],
-                                  dx=config['grains']['dx'],
-                                  mode=config['grains']['mode'],
-                                  threshold_multiplier=config['grains']['threshold_multiplier'],
-                                  minimum_grain_size=config['grains']['minimum_grain_size'],
-                                  background=config['grains']['background'],
-                                  save_plots=config['save_plots'],
-                                  output_dir=config['output_dir'])
+    processing_function = partial(
+        process_scan,
+        amplify_level=config['amplify_level'],
+        channel=config['channel'],
+        gaussian_size=config['grains']['gaussian_size'],
+        #                                  dx=config['grains']['dx'],
+        mode=config['grains']['mode'],
+        threshold_multiplier=config['grains']['threshold_multiplier'],
+        minimum_grain_size=config['grains']['minimum_grain_size'],
+        background=config['grains']['background'],
+        save_plots=config['save_plots'],
+        output_dir=config['output_dir'])
 
     with Pool(processes=config['cores']) as pool:
         with tqdm(
