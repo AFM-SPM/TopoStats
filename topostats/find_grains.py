@@ -22,15 +22,13 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 def quadratic(x, a, b, c):
     """Calculate the result of the quadratic equation."""
-    LOGGER.info('Calculating quadratic.')
+    LOGGER.info("Calculating quadratic.")
     return (a * x**2) + (b * x) + c
 
 
-def gaussian_filter(image: np.array,
-                    gaussian_size: float = 2,
-                    pixel_nm_scaling: float = 1,
-                    mode: str = 'nearest',
-                    **kwargs) -> np.array:
+def gaussian_filter(
+    image: np.array, gaussian_size: float, pixel_nm_scaling: float, mode: str = "nearest", **kwargs
+) -> np.array:
     """Apply Gaussian filter
 
     Parameters
@@ -49,11 +47,8 @@ def gaussian_filter(image: np.array,
     np.array
         Numpy array of filtered image.
 
-    Examples
-    --------
-    FIXME: Add docs.
     """
-    LOGGER.info('Applying Gaussian filter (mode : {mode}; Gaussian blur (nm) : {gaussian_size}).')
+    LOGGER.info("Applying Gaussian filter (mode : {mode}; Gaussian blur (nm) : {gaussian_size}).")
     return gaussian(image, sigma=(gaussian_size / pixel_nm_scaling), mode=mode, **kwargs)
 
 
@@ -69,7 +64,7 @@ def tidy_border(image: np.array, **kwargs) -> np.array:
     np.array
         Numpy array of image with borders tidied.
     """
-    LOGGER.info('Tidying borders')
+    LOGGER.info("Tidying borders")
     return clear_border(np.copy(image), **kwargs)
 
 
@@ -87,7 +82,7 @@ def label_regions(image: np.array, background: float = 0.0, **kwargs) -> np.arra
     np.array
         Numpy array of image with objects coloured.
     """
-    LOGGER.info('Labelling Regions')
+    LOGGER.info("Labelling Regions")
     return label(image, background=background, **kwargs)
 
 
@@ -104,11 +99,6 @@ def minimum_grain_size_pixels(image: np.array, background: float) -> float:
     -------
     float
         Threshold for minimum grain size.
-
-    Examples
-    --------
-    FIXME: Add docs.
-
     """
     labelled_data = label_regions(image, background)
     grain_areas = np.array([grain.area for grain in region_properties(labelled_data)])
@@ -131,7 +121,7 @@ def remove_objects(image: np.array, minimum_grain_size_pixels: float, **kwargs) 
     np.array
         Numpy array of image with objects coloured.
     """
-    LOGGER.info(f'Removing small objects (< {minimum_grain_size_pixels})')
+    LOGGER.info(f"Removing small objects (< {minimum_grain_size_pixels})")
     return remove_small_objects(image, min_size=minimum_grain_size_pixels, **kwargs)
 
 
@@ -148,7 +138,7 @@ def colour_regions(image: np.array, **kwargs) -> np.array:
     np.array
         Numpy array of image with objects coloured.
     """
-    LOGGER.info('Colouring regions')
+    LOGGER.info("Colouring regions")
     return label2rgb(image, **kwargs)
 
 
@@ -165,7 +155,7 @@ def region_properties(image: np.array, **kwargs) -> List:
     List
         List of region property objects.
     """
-    LOGGER.info('Extracting region properties.')
+    LOGGER.info("Extracting region properties.")
     return regionprops(image, **kwargs)
 
 
@@ -181,14 +171,8 @@ def get_bounding_boxes(region_prop: List) -> Dict:
     -------
     dict
         Dictionary of bounding boxes indexed by region area.
-
-
-    Examples
-    --------
-    FIXME: Add docs.
-
     """
-    LOGGER.info('Extracting bounding boxes')
+    LOGGER.info("Extracting bounding boxes")
     return {region.area: region.area_bbox for region in region_prop}
 
 
@@ -200,6 +184,7 @@ def save_region_stats(bounding_boxes: dict, output_dir: Union[str, Path]) -> Non
     bounding_boxes: dict
         Dictionary of bounding boxes
     output_dir: Union[str, Path]
-        Where to save the statistics to as a CSV file called 'grainstats.csv'."""
-    grainstats = pd.DataFrame.from_dict(data=bounding_boxes, orient='index')
-    grainstats.to_csv(output_dir / 'grainstats.csv', index=True)
+        Where to save the statistics to as a CSV file called 'grainstats.csv'.
+    """
+    grainstats = pd.DataFrame.from_dict(data=bounding_boxes, orient="index")
+    grainstats.to_csv(output_dir / "grainstats.csv", index=True)
