@@ -2,8 +2,16 @@ Welcome to TopoStats's documentation!
 =====================================
 
 .. toctree::
+    :maxdepth: 1
+    :caption: Getting Started
+
+    introduction  
+    installation
+    configuration
+
+.. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: API
 
    topostats.dnatracing   
    topostats.filters   
