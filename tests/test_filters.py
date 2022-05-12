@@ -1,18 +1,105 @@
+"""Tests of the filters module."""
 import numpy as np
-import pytest
 
-import topostats.filters as filters
+from topostats.filters import (amplify, row_col_quantiles, align_rows, remove_x_y_tilt, calc_diff, calc_gradient,
+                               average_background)
 
-
-@pytest.fixture
-def random_image() -> np.array:
-    rng = np.random.default_rng(seed=1000)
-    return rng.random((1024, 1024))
+# Specify the absolute and relattive tolerance for floating point comparison
+TOLERANCE = {'atol': 1e-07, 'rtol': 1e-07}
 
 
-def test_amplify(random_image: np.array):
-    filtered = filters.amplify(random_image, 1.5)
-
-    target = random_image * 1.5
+def test_amplify(image_random: np.array) -> None:
+    """Test amplification filter."""
+    filtered = amplify(image_random, 1.5)
+    target = image_random * 1.5
 
     np.testing.assert_array_equal(filtered, target)
+
+
+def test_row_col_quantiles_small_array_no_mask(small_array: np.array) -> None:
+    """Test generation of quantiles for rows and columns without masking."""
+    row_quantiles, col_quantiles = row_col_quantiles(small_array, mask=None)
+    expected_rows = np.quantile(small_array, [0.25, 0.5, 0.75], axis=1).T
+    expected_cols = np.quantile(small_array, [0.25, 0.5, 0.75], axis=0).T
+
+    np.testing.assert_array_equal(row_quantiles, expected_rows)
+    np.testing.assert_array_equal(col_quantiles, expected_cols)
+
+
+def test_row_col_quantiles_small_array_mask(small_array: np.array, small_mask: np.array) -> None:
+    """Test generation of quantiles for rows and columns."""
+    row_quantiles, col_quantiles = row_col_quantiles(small_array, mask=small_mask)
+    small_array_masked = np.ma.masked_array(small_array, mask=small_mask, fill_value=np.nan)
+    expected_rows = np.quantile(small_array_masked, [0.25, 0.5, 0.75], axis=1).T
+    expected_cols = np.quantile(small_array_masked, [0.25, 0.5, 0.75], axis=0).T
+
+    np.testing.assert_array_equal(row_quantiles, expected_rows)
+    np.testing.assert_array_equal(col_quantiles, expected_cols)
+
+    expected_rows = np.nanpercentile(small_array_masked, (25, 50, 75), axis=1).T
+    expected_cols = np.nanpercentile(small_array_masked, (25, 50, 75), axis=0).T
+    np.testing.assert_array_equal(row_quantiles, expected_rows)
+    np.testing.assert_array_equal(col_quantiles, expected_cols)
+
+
+def test_row_col_quantiles_random_no_mask(image_random: np.array, image_random_row_quantiles: np.array,
+                                          image_random_col_quantiles: np.array) -> None:
+    """Test generation of quantiles for rows and columns.
+    """
+    row_quantiles, col_quantiles = row_col_quantiles(image_random, mask=None)
+
+    np.testing.assert_array_equal(row_quantiles, image_random_row_quantiles)
+    np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles)
+
+
+def test_row_col_quantiles_random_with_mask(image_random: np.array, image_random_mask: np.array,
+                                            image_random_row_quantiles_masked: np.array,
+                                            image_random_col_quantiles_masked: np.array) -> None:
+    """Test generation of quantiles for rows and columns.
+    """
+    row_quantiles, col_quantiles = row_col_quantiles(image_random, mask=image_random_mask)
+    row_quantiles = np.ma.getdata(row_quantiles)
+    col_quantiles = np.ma.getdata(col_quantiles)
+
+    np.testing.assert_array_equal(row_quantiles.data, image_random_row_quantiles_masked)
+    np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles_masked)
+
+
+def test_align_rows(image_random: np.array, image_random_aligned_rows: np.array) -> None:
+    """Test aligning of rows by median height.
+    """
+    aligned_rows = align_rows(image_random, mask=None)
+
+    np.testing.assert_allclose(aligned_rows, image_random_aligned_rows, **TOLERANCE)
+
+
+def test_remove_x_y_tilt(image_random: np.array, image_random_remove_x_y_tilt: np.array) -> None:
+    """Test removal of linear plane slant."""
+    x_y_tilt_removed = remove_x_y_tilt(image_random, mask=None)
+
+    np.testing.assert_allclose(x_y_tilt_removed, image_random_remove_x_y_tilt, **TOLERANCE)
+
+
+def test_calc_diff(small_array: np.array) -> None:
+    """Test calculation of difference"""
+    diff = calc_diff(small_array)
+    expected = small_array[-1][1] - small_array[0][1]
+
+    np.testing.assert_array_equal(diff, expected)
+
+
+def test_calc_gradient(small_array: np.array) -> None:
+    """Test calculation of gradient"""
+    gradient = calc_gradient(small_array, small_array.shape[0])
+    expected = (small_array[-1][1] - small_array[0][1]) / small_array.shape[0]
+
+    np.testing.assert_array_equal(gradient, expected)
+
+
+def test_average_background(image_random: np.array, image_random_mask: np.array) -> None:
+    """Test averaging of background."""
+    background_averaged = average_background(image_random, image_random_mask)
+    row_quantiles, _ = row_col_quantiles(image_random, mask=image_random_mask)
+    target = image_random - np.array(row_quantiles[:, 1], ndmin=2).T
+
+    np.testing.assert_array_equal(target, background_averaged)

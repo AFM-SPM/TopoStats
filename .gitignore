@@ -19,13 +19,27 @@ config.ini
 *.json
 *.npy
 *.csv
+*.spm
+
+# Example Data
+!minicircle.spm
 
 # IDE
 .vscode/
 .idea/
+*~
 
-# Documentation 
+# Documentation
 _build/
 
 # MacOS
 .DS_Store
+
+# vscode develop in container settings
+!.devcontainer/devcontainer.json
+
+# log files
+*.log
+
+# Tests and docs
+.coverage
