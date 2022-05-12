@@ -71,7 +71,7 @@ def pathman(path):
 
     directory = os.path.dirname(path)
     name = os.path.basename(path)[:-5]
-    savedir = os.path.join(directory, 'Plots')
+    savedir = os.path.join(directory, 'Plots_filtered_by_curvature')
     if not os.path.exists(savedir):
         os.makedirs(savedir)
     plotname = os.path.join(savedir, name)
@@ -243,6 +243,51 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
     plt.savefig(savename)
 
+def plothist2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, xmin=None, xmax=None, nm=False,
+                specpath=None, plotextension=defextension):
+    """Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
+    default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
+    the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
+
+    if label1 is None:
+        label1 = plotarg
+    if label2 is None:
+        label2 = plotarg2
+    if df2 is None:
+        df2 = df
+    if plotarg2 is None:
+        plotarg2 = plotarg
+
+    print 'Plotting histogram of %s and %s' % (label1, label2)
+
+    # Set the name of the file
+    if specpath is None:
+        specpath = path
+    savename = os.path.join(pathman(specpath) + '_' + label1 + '_' + label2 + '_histogram' + plotextension)
+
+    # Convert the unit of the data to nm if specified by the user
+    df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
+    df2[plotarg2] = dataunitconversion(df[plotarg2], plotarg2, nm)
+
+    # Plot figure
+    fig, ax = plt.subplots(figsize=(15, 12))
+    # Simple histogram
+    dfplot = df[plotarg]
+    dfplot2 = df2[plotarg2]
+    dfplot.plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins)
+    dfplot2.plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, histtype='barstacked')
+
+
+    # Label plot and save figure
+    plt.xlim(xmin, xmax)
+    # plt.xlabel(labelunitconversion(plotarg1, nm), alpha=1)
+    plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
+    plt.ylabel('Probability Density', alpha=1)
+    plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles, labels)
+    plt.savefig(savename)
+
 
 def plotdist(df, xmin=None, xmax=None, bins=20, nm=False, specpath=None,
              plotextension=defextension, *plotargs):
@@ -407,7 +452,6 @@ if __name__ == '__main__':
     # Path to the json file, e.g. C:\\Users\\username\\Documents\\Data\\Data.json
 
     path = ''
-    path2 = ''
 
 
     # Set the name of the json file to import here
@@ -418,16 +462,37 @@ if __name__ == '__main__':
     df = importfromjson(path)
     # df2 = importfromjson(path2)
 
-    plt.plot(df['Contour length'], df['Curvature'])
-    plt.show()
+    fig, ax = plt.subplots(figsize=(15, 12))
+    # df.set_index('Contour length')
+    # df.groupby('Basename').plot('Curvature', alpha=0.5)
+    # df1 = df[df['Basename'] == 'DNA_pure']
+    # df2 = df[df['Basename'] == 'DNA_NDP']
+    # plt.plot(df1['Contour length'], df1['Curvature'], markersize=10, marker='.', color='b', alpha=0.5, linestyle="None")
+    # plt.plot(df2['Contour length'], df2['Curvature'], markersize=10, marker='.', color='y', alpha=0.5, linestyle="None")
+    scatterplot = sns.scatterplot(data=df, x='Contour length', y='Curvature', hue='Basename', alpha=0.5)
+    scatterplot.legend(loc='upper right')
+    # plt.plot(df2['Contour length'], df2['Curvature'], color='y', alpha=0.5)
+    # plt.xlim(0, 150)
+    # plt.ylim(-5, 5)
+    # plt.show()
+    curvdir = os.path.join(os.path.dirname(path), 'Curvature_Comparison')
+    if not os.path.exists(curvdir):
+        os.makedirs(curvdir)
+    plt.savefig(os.path.join(curvdir, 'filtered.png'))
 
     # df = df[df['Circular'] == False]
     # df = df[df['Contour Lengths'] > 80]
     # df = df[df['Contour Lengths'] < 130]
+    # df = df[df['Max Curvature'] < 2]
     #
     # df2 = df2[df2['Circular'] == False]
     # df2 = df2[df2['Contour Lengths'] > 80]
     # df2 = df2[df2['Contour Lengths'] < 130]
+    # df2 = df2[df2['Max Curvature'] < 2]
+
+
+
+
 
     # Rename directory column as appropriate
     # df1 = df1.rename(columns={"directory": "Experimental Conditions"})
@@ -473,6 +538,7 @@ if __name__ == '__main__':
 # grouparg = 'Mask'
 # grouparg = 'Basename'
 # grouparg = 'directory'
+grouparg = None
 
 # Setting a continuous colour palette; useful for certain grouped plots, but can be commented out if unsuitable.
 # sns.set_palette(sns.color_palette('BuPu', n_colors=len(df.groupby(grouparg))))
@@ -532,18 +598,31 @@ if __name__ == '__main__':
 # plotkde(df, 'grain_mean_radius', specpath=path, nm=True, xmin=0, xmax=10)
 # plotkde(df, 'grain_bound_len', specpath=path, grouparg=grouparg, xmin=0, xmax=125, nm=True)
 
-# plotkde(df, 'Max Curvature Location', nm=True)
-# plothist(df, 'Max Curvature Location', nm=True, bins=50)
-# plotkde(df, 'Max Curvature', xmin=0, xmax=1.5)
-# plothist(df, 'Max Curvature', xmin=0, xmax=1.5, bins=500)
-# plothist(df, 'Contour Lengths', xmin=50, xmax=150, nm=True, bins=20)
-# plotkde(df, 'Contour Lengths', xmin=0, xmax=200, nm=True)
-# plotkde(df, 'Mean Curvature', xmin=0, xmax=0.4)
-# plothist(df, 'Mean Curvature', xmin=0, xmax=0.4, bins=20)
-# plotkde2var(df, 'Mean Curvature', df2=df2, xmin=0, xmax=0.4)
+# plotkde(df, 'Max Curvature Location', nm=True, grouparg=grouparg)
+# plothist(df, 'Max Curvature Location', nm=True, bins=50, grouparg=grouparg)
+# plotkde(df, 'Max Curvature', xmin=0, xmax=1.5, grouparg=grouparg)
+# plothist(df, 'Max Curvature', grouparg=grouparg)
+# plothist(df, 'Contour Lengths', xmin=80, xmax=130, nm=True, bins=20, grouparg=grouparg)
+# plotkde(df, 'Contour Lengths', xmin=80, xmax=130, nm=True, grouparg=grouparg)
+# plotkde(df, 'Mean Curvature', xmin=0, xmax=0.4, grouparg=grouparg)
+# plothist(df, 'Mean Curvature', xmin=0, xmax=0.4, grouparg=grouparg)
 
 
-# plotdist2var('Mean Curvature', 'Mean Curvature', df, df2=df2, xmin=0, xmax=0.3)
+
+
+
+
+# plotdist2var('Mean Curvature', 'Mean Curvature', df, df2=df2)
+# plotdist2var('End to End Distance', 'End to End Distance', df, df2=df2, nm=True)
+# plotkde2var(df, 'Mean Curvature', df2=df2)
+# plotkde(df, 'Mean Curvature')
+# plotkde(df, 'Contour Lengths', nm=True)
+# plothist(df, 'Mean Curvature', bins=50)
+
+
+
+
+
 
 # plotkde(df, 'grain_maximum', nm=True, grouparg='directory', xmin=0, xmax=5)
 # plotkde(df, 'grain_mean', nm=True, grouparg='directory', xmin=0, xmax=3)
