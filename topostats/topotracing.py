@@ -23,7 +23,7 @@ from topostats.find_grains import (
     gaussian_filter,
     tidy_border,
     remove_objects,
-    minimum_grain_size_pixels,
+    calc_minimum_grain_size,
     label_regions,
     colour_regions,
     region_properties,
@@ -167,7 +167,7 @@ def process_scan(
     # Find grains
     # Apply a gaussian filter (using pySPM derived pixel_nm_scaling)
     gaussian_filtered = gaussian_filter(
-        averaged_background, gaussian_size=gaussian_size, pixel_nm_scaling=pixel_nm_scaling, mode=mode
+        averaged_background, gaussian_size=gaussian_size, pixel_to_nm_scaling=pixel_nm_scaling, mode=mode
     )
     LOGGER.info(
         f"[{img_name}] : Gaussian filter applied (size : {gaussian_size}; : Pixel to Nanometer Scaling {pixel_nm_scaling}; mode : {mode})"
@@ -180,23 +180,27 @@ def process_scan(
     tidied_borders = tidy_border(boolean_image_mask)
     LOGGER.info(f"[{img_name}] : Borders tidied.")
 
+    # Ge threshold for small objects, need to first label all regions
     # Calculate minimum grain size in pixels
-    minimum_grain_size = minimum_grain_size_pixels(tidied_borders, background=background)
+    labelled_regions = label_regions(tidied_borders)
+    minimum_grain_size = calc_minimum_grain_size(labelled_regions, background=background)
     LOGGER.info(f"[{img_name}] : Minimum grain size in pixels calculated : {minimum_grain_size}.")
 
     # Remove objects
-    small_objects_removed = remove_objects(tidied_borders, minimum_grain_size_pixels=minimum_grain_size)
+    small_objects_removed = remove_objects(
+        tidied_borders, minimum_grain_size_pixels=minimum_grain_size, pixel_to_nm_scaling=pixel_nm_scaling
+    )
     LOGGER.info(f"[{img_name}] : Small objects (< {minimum_grain_size} pixels) removed.")
 
-    # Label regions
+    # Label regions after cleaning
     regions_labelled = label_regions(small_objects_removed, background=background)
     LOGGER.info(f"[{img_name}] : Regions labelled.")
 
-    # Colour regions
+    # Colour regions after cleaning
     coloured_regions = colour_regions(regions_labelled)
     LOGGER.info(f"[{img_name}] : Regions coloured.")
 
-    # Extract region properties
+    # Extract region properties after cleaning
     image_region_properties = region_properties(regions_labelled)
     LOGGER.info(f"[{img_name}] : Properties extracted for regions.")
 
