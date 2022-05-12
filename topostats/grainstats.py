@@ -23,13 +23,15 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 class GrainStats:
     """Class for calculating grain stats."""
 
-    def __init__(self,
-                 data: np.ndarray,
-                 labelled_data: np.ndarray,
-                 pixel_to_nanometre_scaling: float,
-                 img_name: str,
-                 output_dir: Union[str, Path],
-                 float_format: str = '.4f'):
+    def __init__(
+        self,
+        data: np.ndarray,
+        labelled_data: np.ndarray,
+        pixel_to_nanometre_scaling: float,
+        img_name: str,
+        output_dir: Union[str, Path],
+        float_format: str = ".4f",
+    ):
         """Initialise the class.
 
         Parameters
@@ -106,41 +108,45 @@ class GrainStats:
 
         # Plot labelled data
         fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-        ax.imshow(self.labelled_data, interpolation='nearest', cmap='afmhot')
+        ax.imshow(self.labelled_data, interpolation="nearest", cmap="afmhot")
 
         # Iterate over all the grains in the image
         stats_array = []
         for index, region in enumerate(region_properties):
 
             # Create directory for each grain's plots
-            output_grain = self.output_dir / f'grain_{index}'
+            output_grain = self.output_dir / f"grain_{index}"
             # Path.mkdir(output_grain, parents=True, exist_ok=True)
             output_grain.mkdir(parents=True, exist_ok=True)
 
             # Obtain and plot the cropped grain mask
             grain_mask = np.array(region.image)
-            plot_and_save(grain_mask, output_grain / 'grainmask.png')
+            plot_and_save(grain_mask, output_grain / "grainmask.png")
             LOGGER.info(
-                f'[{self.img_name}] Grain {index} : cropped image saved : {str(output_grain / "grainmask.png")}')
+                f'[{self.img_name}] Grain {index} : cropped image saved : {str(output_grain / "grainmask.png")}'
+            )
 
             # Obtain the cropped grain image
             minr, minc, maxr, maxc = region.bbox
             grain_image = self.data[minr:maxr, minc:maxc]
-            plot_and_save(grain_image, output_grain / 'grain_image_raw.png')
+            plot_and_save(grain_image, output_grain / "grain_image_raw.png")
             LOGGER.info(
-                f'[{self.img_name}] Grain {index} : cropped image saved : {str(output_grain / "grain_image_raw.png")}')
+                f'[{self.img_name}] Grain {index} : cropped image saved : {str(output_grain / "grain_image_raw.png")}'
+            )
             grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
-            plot_and_save(grain_image, output_grain / 'grain_image.png')
+            plot_and_save(grain_image, output_grain / "grain_image.png")
             LOGGER.info(
-                f'[{self.img_name}] Grain {index} : cropped image saved : {str(output_grain / "grain_image.png")}')
+                f'[{self.img_name}] Grain {index} : cropped image saved : {str(output_grain / "grain_image.png")}'
+            )
 
             edges = self.calculate_edges(grain_mask)
-            #print(f'type(edges)   :  {type(edges)}')
-            #print(f'edges         :\n{edges}')
+            # print(f'type(edges)   :  {type(edges)}')
+            # print(f'edges         :\n{edges}')
             radius_stats = self.calculate_radius_stats(edges)
             hull, hull_indices, hull_simplexes = self.convex_hull(grain_mask, edges, output_grain)
             smallest_bounding_width, smallest_bounding_length, aspect_ratio = self.calculate_aspect_ratio(
-                edges, hull, hull_indices, hull_simplexes, output_grain)
+                edges, hull, hull_indices, hull_simplexes, output_grain
+            )
 
             # save_format = '.4f'
 
@@ -148,56 +154,40 @@ class GrainStats:
             # from pixel units to nanometres.
             # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
             stats = {
-                'radius_min':
-                radius_stats['min'] * self.pixel_to_nanometre_scaling,
-                'radius_max':
-                radius_stats['max'] * self.pixel_to_nanometre_scaling,
-                'radius_mean':
-                radius_stats['mean'] * self.pixel_to_nanometre_scaling,
-                'radius_median':
-                radius_stats['median'] * self.pixel_to_nanometre_scaling,
-                'height_min':
-                np.nanmin(grain_image),
-                'height_max':
-                np.nanmax(grain_image),
-                'height_median':
-                np.nanmedian(grain_image),
-                'height_mean':
-                np.nanmean(grain_image),
-                'volume':
-                np.nansum(grain_image) * self.pixel_to_nanometre_scaling**2,
-                'area':
-                region.area * self.pixel_to_nanometre_scaling**2,
-                'area_cartesian_bbox':
-                region.area_bbox * self.pixel_to_nanometre_scaling**2,
-                'smallest_bounding_width':
-                smallest_bounding_width * self.pixel_to_nanometre_scaling,
-                'smallest_bounding_length':
-                smallest_bounding_length * self.pixel_to_nanometre_scaling,
-                'smallest_bounding_area':
-                smallest_bounding_length * smallest_bounding_width * self.pixel_to_nanometre_scaling**2,
-                'aspect_ratio':
-                aspect_ratio
+                "radius_min": radius_stats["min"] * self.pixel_to_nanometre_scaling,
+                "radius_max": radius_stats["max"] * self.pixel_to_nanometre_scaling,
+                "radius_mean": radius_stats["mean"] * self.pixel_to_nanometre_scaling,
+                "radius_median": radius_stats["median"] * self.pixel_to_nanometre_scaling,
+                "height_min": np.nanmin(grain_image),
+                "height_max": np.nanmax(grain_image),
+                "height_median": np.nanmedian(grain_image),
+                "height_mean": np.nanmean(grain_image),
+                "volume": np.nansum(grain_image) * self.pixel_to_nanometre_scaling**2,
+                "area": region.area * self.pixel_to_nanometre_scaling**2,
+                "area_cartesian_bbox": region.area_bbox * self.pixel_to_nanometre_scaling**2,
+                "smallest_bounding_width": smallest_bounding_width * self.pixel_to_nanometre_scaling,
+                "smallest_bounding_length": smallest_bounding_length * self.pixel_to_nanometre_scaling,
+                "smallest_bounding_area": smallest_bounding_length
+                * smallest_bounding_width
+                * self.pixel_to_nanometre_scaling**2,
+                "aspect_ratio": aspect_ratio,
             }
             # print(f'[{index}] statistics :\\n{stats}')
             stats_array.append(stats)
 
             # Add cartesian bounding box for the grain to the labelled image
             min_row, min_col, max_row, max_col = region.bbox
-            rectangle = mpl.patches.Rectangle((min_col, min_row),
-                                              max_col - min_col,
-                                              max_row - min_row,
-                                              fill=False,
-                                              edgecolor='white',
-                                              linewidth=2)
+            rectangle = mpl.patches.Rectangle(
+                (min_col, min_row), max_col - min_col, max_row - min_row, fill=False, edgecolor="white", linewidth=2
+            )
             ax.add_patch(rectangle)
 
         # Create pandas dataframe to hold the stats and save it to a csv file.
         grainstats = pd.DataFrame(data=stats_array)
-        grainstats.to_csv(self.output_dir / 'grainstats.csv', float_format=self.float_format)
+        grainstats.to_csv(self.output_dir / "grainstats.csv", float_format=self.float_format)
 
         # Save and close the plot
-        plt.savefig(self.output_dir / 'labelled_image_bboxes.png')
+        plt.savefig(self.output_dir / "labelled_image_bboxes.png")
         plt.close()
 
         return grainstats
@@ -253,7 +243,7 @@ class GrainStats:
         displacements = self._calculate_displacement(edges, centroid)
         # Calculate the radius of each point
         radii = self._calculate_radius(displacements)
-        return {'min': np.min(radii), 'max': np.max(radii), 'mean': np.mean(radii), 'median': np.median(radii)}
+        return {"min": np.min(radii), "max": np.max(radii), "mean": np.mean(radii), "median": np.median(radii)}
 
     def _calculate_centroid(self, edges: np.array) -> tuple:
         """Calculate the centroid of a bounding box.
@@ -288,7 +278,7 @@ class GrainStats:
         --------
         np.array
         """
-        return np.array([np.sqrt(radius[0]**2 + radius[1]**2) for radius in displacements])
+        return np.array([np.sqrt(radius[0] ** 2 + radius[1] ** 2) for radius in displacements])
 
     def convex_hull(self, grain_mask: np.ndarray, edges: list, output_dir: Path, debug: bool = False):
         """Class method that takes a grain mask and the edges of the grain and returns the grain's convex hull. Based
@@ -318,11 +308,11 @@ class GrainStats:
 
         # Debug information
         if debug:
-            self.plot(edges, hull, output_dir / '_points_hull.png')
-            print(f'points: {edges}')
-            print(f'hull: {hull}')
-            print(f'hull indexes: {hull_indices}')
-            print(f'simplexes: {simplexes}')
+            self.plot(edges, hull, output_dir / "_points_hull.png")
+            print(f"points: {edges}")
+            print(f"hull: {hull}")
+            print(f"hull indexes: {hull_indices}")
+            print(f"simplexes: {simplexes}")
 
         return hull, hull_indices, simplexes
 
@@ -401,9 +391,6 @@ class GrainStats:
         min_y_index = np.argmin(edges[:, 1])
         self.start_point = edges[min_y_index]
 
-
-#       print(f'[][][][] self.start_point : {self.start_point}')
-
     def graham_scan(self, edges: list):
         """A function based on the Graham Scan algorithm that constructs a convex hull from points in 2D cartesian
         space. Ideally this algorithm will take O( n * log(n) ) time.
@@ -432,7 +419,8 @@ class GrainStats:
                 min_y_index = index
             if point[1] == edges[min_y_index][1] and point[0] < edges[min_y_index][0]:
                 min_y_index = index
-        # This does the same thing, but with an array
+        self.start_point = edges[min_y_index]
+        # This does the same thing, but as a separate method and with Numpy Array rather than a lsit
         # self.get_start_point(edges)
         # Sort the points
         points_sorted_by_angle = self.sort_points(edges)
@@ -493,17 +481,19 @@ class GrainStats:
                 point2 = convex_hull[index]
                 point1 = convex_hull[index - 1]
                 # Plot a line between the two points
-                plt.plot((point1[0], point2[0]), (point1[1], point2[1]), '#994400')
+                plt.plot((point1[0], point2[0]), (point1[1], point2[1]), "#994400")
         plt.savefig(file_path)
         plt.close()
 
-    def calculate_aspect_ratio(self,
-                               edges: list,
-                               convex_hull: np.ndarray,
-                               hull_indices: np.ndarray,
-                               hull_simplices: np.ndarray,
-                               path: Path,
-                               debug: bool = False):
+    def calculate_aspect_ratio(
+        self,
+        edges: list,
+        convex_hull: np.ndarray,
+        hull_indices: np.ndarray,
+        hull_simplices: np.ndarray,
+        path: Path,
+        debug: bool = False,
+    ):
         """Class method that takes a list of edge points for a grain, and convex hull simplices and returns the width,
            length and aspect ratio of the smallest bounding rectangle for the grain.
 
@@ -576,19 +566,19 @@ class GrainStats:
 
                 # Draw the points and the current simplex that is being tested
                 plt.scatter(x=remapped_points[:, 0], y=remapped_points[:, 1])
-                plt.plot(remapped_points[simplex, 0], remapped_points[simplex, 1], '#444444', linewidth=4)
+                plt.plot(remapped_points[simplex, 0], remapped_points[simplex, 1], "#444444", linewidth=4)
                 plt.scatter(x=rotated_points[:, 0], y=rotated_points[:, 1])
-                plt.plot(rotated_points[simplex, 0], rotated_points[simplex, 1], 'k-', linewidth=5)
+                plt.plot(rotated_points[simplex, 0], rotated_points[simplex, 1], "k-", linewidth=5)
                 print(rotated_points[simplex, 0], rotated_points[simplex, 1])
 
                 # Draw the convex hulls
                 for simplex in hull_simplices:
-                    plt.plot(remapped_points[simplex, 0], remapped_points[simplex, 1], '#888888')
-                    plt.plot(rotated_points[simplex, 0], rotated_points[simplex, 1], '#555555')
+                    plt.plot(remapped_points[simplex, 0], remapped_points[simplex, 1], "#888888")
+                    plt.plot(rotated_points[simplex, 0], rotated_points[simplex, 1], "#555555")
 
                 # Draw bounding box
-                plt.plot([x_min, x_min, x_max, x_max, x_min], [y_min, y_max, y_max, y_min, y_min], '#994400')
-                plt.savefig(path / ('bounding_rectangle_construction_simplex_' + str(simplex_index) + '.png'))
+                plt.plot([x_min, x_min, x_max, x_max, x_min], [y_min, y_max, y_max, y_min, y_min], "#994400")
+                plt.savefig(path / ("bounding_rectangle_construction_simplex_" + str(simplex_index) + ".png"))
 
             # Calculate the area of the proposed bounding rectangle
             bounding_area = (x_max - x_min) * (y_max - y_min)
@@ -607,7 +597,8 @@ class GrainStats:
         # Unrotate the bounding box vertices
         RINVERSE = R.T
         translated_rotated_bounding_rectangle_vertices = np.array(
-            ([x_min, y_min], [x_max, y_min], [x_max, y_max], [x_min, y_max]))
+            ([x_min, y_min], [x_max, y_min], [x_max, y_max], [x_min, y_max])
+        )
         translated_bounding_rectangle_vertices = []
         for index, point in enumerate(translated_rotated_bounding_rectangle_vertices):
             newpoint = RINVERSE @ point
@@ -621,34 +612,42 @@ class GrainStats:
             fig = plt.figure(figsize=(8, 8))
             ax = fig.add_subplot(111)
             plt.scatter(x=edges[:, 0], y=edges[:, 1])
-            ax.plot(np.append(translated_rotated_bounding_rectangle_vertices[:, 0],
-                              translated_rotated_bounding_rectangle_vertices[0, 0]),
-                    np.append(translated_rotated_bounding_rectangle_vertices[:, 1],
-                              translated_rotated_bounding_rectangle_vertices[0, 1]),
-                    '#994400',
-                    label='rotated')
-            ax.plot(np.append(translated_bounding_rectangle_vertices[:, 0], translated_bounding_rectangle_vertices[0,
-                                                                                                                   0]),
-                    np.append(translated_bounding_rectangle_vertices[:, 1], translated_bounding_rectangle_vertices[0,
-                                                                                                                   1]),
-                    '#004499',
-                    label='unrotated')
-            ax.scatter(x=remapped_points[:, 0], y=remapped_points[:, 1], color='#004499', label='translated')
-            ax.scatter(x=rotated_points[:, 0], y=rotated_points[:, 1], label='rotated')
+            ax.plot(
+                np.append(
+                    translated_rotated_bounding_rectangle_vertices[:, 0],
+                    translated_rotated_bounding_rectangle_vertices[0, 0],
+                ),
+                np.append(
+                    translated_rotated_bounding_rectangle_vertices[:, 1],
+                    translated_rotated_bounding_rectangle_vertices[0, 1],
+                ),
+                "#994400",
+                label="rotated",
+            )
+            ax.plot(
+                np.append(translated_bounding_rectangle_vertices[:, 0], translated_bounding_rectangle_vertices[0, 0]),
+                np.append(translated_bounding_rectangle_vertices[:, 1], translated_bounding_rectangle_vertices[0, 1]),
+                "#004499",
+                label="unrotated",
+            )
+            ax.scatter(x=remapped_points[:, 0], y=remapped_points[:, 1], color="#004499", label="translated")
+            ax.scatter(x=rotated_points[:, 0], y=rotated_points[:, 1], label="rotated")
             ax.legend()
-            plt.savefig(path / 'hull_bounding_rectangle_extra')
+            plt.savefig(path / "hull_bounding_rectangle_extra")
 
         fig = plt.figure(figsize=(8, 8))
         ax = fig.add_subplot(111)
         bounding_rectangle_vertices = translated_bounding_rectangle_vertices + centroid
-        ax.plot(np.append(bounding_rectangle_vertices[:, 0], bounding_rectangle_vertices[0, 0]),
-                np.append(bounding_rectangle_vertices[:, 1], bounding_rectangle_vertices[0, 1]),
-                '#994400',
-                label='unrotated')
-        ax.scatter(x=edges[:, 0], y=edges[:, 1], label='original points')
+        ax.plot(
+            np.append(bounding_rectangle_vertices[:, 0], bounding_rectangle_vertices[0, 0]),
+            np.append(bounding_rectangle_vertices[:, 1], bounding_rectangle_vertices[0, 1]),
+            "#994400",
+            label="unrotated",
+        )
+        ax.scatter(x=edges[:, 0], y=edges[:, 1], label="original points")
         ax.set_aspect(1)
         ax.legend()
-        plt.savefig(path / 'minimum_bbox.png')
+        plt.savefig(path / "minimum_bbox.png")
         plt.close()
 
         return smallest_bounding_width, smallest_bounding_length, aspect_ratio
