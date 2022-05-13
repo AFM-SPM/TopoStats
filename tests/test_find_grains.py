@@ -2,7 +2,7 @@
 import numpy as np
 
 from skimage.filters import gaussian
-from topostats.find_grains import (
+from topostats.grains import (
     quadratic,
     gaussian_filter,
     tidy_border,

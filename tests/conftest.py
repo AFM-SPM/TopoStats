@@ -19,7 +19,7 @@ from topostats.filters import (
     remove_x_y_tilt,
     average_background,
 )
-from topostats.find_grains import (
+from topostats.grains import (
     gaussian_filter,
     tidy_border,
     remove_objects,
