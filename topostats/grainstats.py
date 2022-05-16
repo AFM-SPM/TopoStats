@@ -327,7 +327,7 @@ class GrainStats:
 
         return hull, hull_indices, simplexes
 
-    def get_displacement(self, point_2: tuple, point_1: tuple = None) -> float:
+    def calculate_squared_distance(self, point_2: tuple, point_1: tuple = None) -> float:
         """Function that calculates the distance squared between two points. Used for distance sorting purposes and
         therefore does not perform a square root in the interests of efficiency.
 
@@ -385,7 +385,9 @@ class GrainStats:
         # relative to that and _then_ sort it.
         # pivot_angles = self.get_angle(points, self.start_point)
         # Recursively sort the arrays until each point is sorted
-        sorted_points = self.sort_points(smaller) + sorted(equal, key=self.get_displacement) + self.sort_points(larger)
+        sorted_points = (
+            self.sort_points(smaller) + sorted(equal, key=self.calculate_squared_distance) + self.sort_points(larger)
+        )
         # Return sorted array where equal angle points are sorted by distance
         return sorted_points
 
