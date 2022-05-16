@@ -35,24 +35,6 @@ def test_is_clockwise_anti_clockwise(grainstats) -> None:
     assert not clockwise
 
 
-def test_get_displacement(grainstats) -> None:
-    """Test the calculation of displacement between two points."""
-    displacement_1_2 = grainstats.get_displacement(POINT2, POINT1)
-    displacement_1_3 = grainstats.get_displacement(POINT3, POINT1)
-    displacement_2_3 = grainstats.get_displacement(POINT3, POINT2)
-
-    target_1_2 = (POINT2[0] - POINT1[0]) ** 2 + (POINT2[1] - POINT1[1]) ** 2
-    target_1_3 = (POINT3[0] - POINT1[0]) ** 2 + (POINT3[1] - POINT1[1]) ** 2
-    target_2_3 = (POINT2[0] - POINT3[0]) ** 2 + (POINT2[1] - POINT3[1]) ** 2
-
-    assert isinstance(displacement_1_2, float)
-    assert displacement_1_2 == target_1_2
-    assert isinstance(displacement_1_3, float)
-    assert displacement_1_3 == target_1_3
-    assert isinstance(displacement_2_3, float)
-    assert displacement_2_3 == target_2_3
-
-
 def test_calculate_edges(grainstats) -> None:
     """Test calculation of edges."""
     grain_mask = np.array(
@@ -131,3 +113,21 @@ def test_calculate_radius(grainstats) -> None:
 
     assert isinstance(radii, np.ndarray)
     np.testing.assert_array_equal(radii, target)
+
+
+def test_calculate_squared_distance(grainstats) -> None:
+    """Test the calculation of displacement between two points."""
+    displacement_1_2 = grainstats.calculate_squared_distance(POINT2, POINT1)
+    displacement_1_3 = grainstats.calculate_squared_distance(POINT3, POINT1)
+    displacement_2_3 = grainstats.calculate_squared_distance(POINT3, POINT2)
+
+    target_1_2 = (POINT2[0] - POINT1[0]) ** 2 + (POINT2[1] - POINT1[1]) ** 2
+    target_1_3 = (POINT3[0] - POINT1[0]) ** 2 + (POINT3[1] - POINT1[1]) ** 2
+    target_2_3 = (POINT2[0] - POINT3[0]) ** 2 + (POINT2[1] - POINT3[1]) ** 2
+
+    assert isinstance(displacement_1_2, float)
+    assert displacement_1_2 == target_1_2
+    assert isinstance(displacement_1_3, float)
+    assert displacement_1_3 == target_1_3
+    assert isinstance(displacement_2_3, float)
+    assert displacement_2_3 == target_2_3
