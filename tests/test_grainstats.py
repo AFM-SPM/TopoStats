@@ -1,8 +1,7 @@
 """Testing of grainstats class"""
 import numpy as np
-import pytest
 
-from topostats.grainstats import GrainStats
+# pylint: disable=protected-access
 
 POINT1 = (0, 0)
 POINT2 = (1, 0)
@@ -54,7 +53,6 @@ def test_get_displacement(grainstats) -> None:
     assert displacement_2_3 == target_2_3
 
 
-# FIXME : How to derive a test case for this, need more than just four points I think
 def test_calculate_edges(grainstats) -> None:
     """Test calculation of edges."""
     grain_mask = np.array(

@@ -19,7 +19,7 @@ from topostats.filters import (
     remove_x_y_tilt,
     average_background,
 )
-from topostats.find_grains import (
+from topostats.grains import (
     gaussian_filter,
     tidy_border,
     remove_objects,
@@ -30,6 +30,7 @@ from topostats.find_grains import (
     get_bounding_boxes,
     save_region_stats,
 )
+from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, load_scan
 from topostats.plottingfuncs import plot_and_save
 from topostats.logs.logs import LOGGER_NAME
@@ -85,7 +86,7 @@ def process_scan(
     save_plots: bool = True,
     output_dir: Union[str, Path] = "output",
 ) -> None:
-    """Process a single image, filtering and finding grains.
+    """Process a single image, filtering, finding grains and calculating their statistics.
 
     Parameters
     ----------
@@ -158,16 +159,16 @@ def process_scan(
     LOGGER.info(f"[{img_name}] : Secondary tilt removal (masked) complete.")
 
     # Average background
-    averaged_background = average_background(second_tilt_removal, mask=mask)
+    zero_averaged_background = average_background(second_tilt_removal, mask=mask)
     LOGGER.info(f"[{img_name}] : Background zero-averaged.")
 
     # Get threshold
-    lower_threshold = get_threshold(averaged_background) * threshold_multiplier
+    lower_threshold = get_threshold(zero_averaged_background) * threshold_multiplier
 
     # Find grains
     # Apply a gaussian filter (using pySPM derived pixel_nm_scaling)
     gaussian_filtered = gaussian_filter(
-        averaged_background, gaussian_size=gaussian_size, pixel_to_nm_scaling=pixel_nm_scaling, mode=mode
+        zero_averaged_background, gaussian_size=gaussian_size, pixel_to_nm_scaling=pixel_nm_scaling, mode=mode
     )
     LOGGER.info(
         f"[{img_name}] : Gaussian filter applied (size : {gaussian_size}; : Pixel to Nanometer Scaling {pixel_nm_scaling}; mode : {mode})"
@@ -180,7 +181,7 @@ def process_scan(
     tidied_borders = tidy_border(boolean_image_mask)
     LOGGER.info(f"[{img_name}] : Borders tidied.")
 
-    # Ge threshold for small objects, need to first label all regions
+    # Get threshold for small objects, need to first label all regions
     # Calculate minimum grain size in pixels
     labelled_regions = label_regions(tidied_borders)
     minimum_grain_size = calc_minimum_grain_size(labelled_regions, background=background)
@@ -205,10 +206,19 @@ def process_scan(
     LOGGER.info(f"[{img_name}] : Properties extracted for regions.")
 
     # Derive bounding boxes and save statistics
+    # FIXME : This may well be redundant as bounding boxes are added by grainstats, which to keep?
     bounding_boxes = get_bounding_boxes(image_region_properties)
     LOGGER.info(f"[{img_name}] : Extracted bounding boxes")
-    save_region_stats(bounding_boxes, output_dir=output_dir)
-    LOGGER.info(f'[{img_name}] : Saved region statistics to {str(output_dir / "grainstats.csv")}')
+
+    # Calculate grain statistics
+    grainstats = GrainStats(
+        data=zero_averaged_background,
+        labelled_data=regions_labelled,
+        pixel_to_nanometre_scaling=pixel_nm_scaling,
+        img_name=img_name,
+        output_dir=output_dir,
+    )
+    grain_statistics = grainstats.calculate_stats()
 
     # Optionally save images of each stage of processing.
     # Could perhaps improve to make plots either individual or a faceted single image.
@@ -230,7 +240,7 @@ def process_scan(
             title="Secondary Tilt Removal (Masked)",
         )
         plot_and_save(
-            averaged_background, output_dir / "07-zero_average_background.png", title="Zero Average Background"
+            zero_averaged_background, output_dir / "07-zero_average_background.png", title="Zero Average Background"
         )
         plot_and_save(gaussian_filtered, output_dir / "08-gaussian_filtered.png", title="Gaussian Filtered")
         plot_and_save(boolean_image_mask, output_dir / "09-boolean.png", title="Boolean Mask")
@@ -243,6 +253,11 @@ def process_scan(
             output_dir / "14-bounding_boxes.png",
             region_properties=image_region_properties,
             title="Bounding Boxes",
+        )
+        grainstats.save_plot(
+            grain_statistics["plot"],
+            title="Labelled Image with Bounding Boxes",
+            filename="15-labelled_image_bboxes.png",
         )
 
 

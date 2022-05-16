@@ -2,7 +2,6 @@
 # pylint: disable=no-name-in-module
 # pylint: disable=redefined-outer-name
 from pathlib import Path
-from typing import List
 import numpy as np
 import pandas as pd
 import pytest
@@ -272,10 +271,9 @@ def minicircle_grain_coloured(minicircle_grain_labelled_post_removal: np.array) 
 
 
 # Derive fixture for grainstats
-#
-# General
 @pytest.fixture
 def grainstats(image_random: np.array, minicircle_filename: str, tmpdir) -> GrainStats:
+    """Grainstats class for testing functions."""
     gstats = GrainStats(
         image_random, image_random, pixel_to_nanometre_scaling=0.5, img_name=minicircle_filename, output_dir=tmpdir
     )
@@ -307,4 +305,5 @@ def minicircle_grainstats(
 # are tweaked.
 @pytest.fixture
 def minicircle_grainstats_20220509() -> pd.DataFrame:
+    """Statistics for minicircle for comparison."""
     return pd.read_csv(RESOURCES / "minicircle_grainstats_20220509.csv", index_col=0)

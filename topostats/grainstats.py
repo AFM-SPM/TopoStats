@@ -2,20 +2,29 @@
 import logging
 from pathlib import Path
 from random import randint
-from statistics import mean
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, Dict
 
 import numpy as np
-import skimage.filters as skimage_filters
 import skimage.measure as skimage_measure
 import skimage.feature as skimage_feature
 import scipy.ndimage
+from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
 
 from topostats.plottingfuncs import plot_and_save
 from topostats.logs.logs import LOGGER_NAME
+
+# pylint: disable=line-too-long
+# pylint: disable=fixme
+# FIXME : The calculate_stats() and calculate_aspect_ratio() raise this error when linting, could consider putting
+#         variables into dictionar, see example of breaking code out to staticmethod extremes() and returning a
+#         dictionary of x_min/x_max/y_min/y_max
+# pylint: disable=too-many-locals
+# FIXME : calculate_aspect_ratio raises this error when linting it has 65 statements, recommended not to exceed 50.
+#         Could break some out to small functions such as the lines that calculate the samllest bounding rectangle
+# pylint: disable=too-many-statements
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -30,7 +39,6 @@ class GrainStats:
         pixel_to_nanometre_scaling: float,
         img_name: str,
         output_dir: Union[str, Path],
-        float_format: str = ".4f",
     ):
         """Initialise the class.
 
@@ -44,8 +52,6 @@ class GrainStats:
             Floating point value that defines the scaling factor between nanometres and pixels.
         output_dir : Path
             Path to the folder that will store the grain stats output images and data.
-        float_format: str
-            Formatter for saving floats.
         """
 
         self.data = data
@@ -53,12 +59,10 @@ class GrainStats:
         self.pixel_to_nanometre_scaling = pixel_to_nanometre_scaling
         self.img_name = img_name
         self.output_dir = Path(output_dir)
-        self.float_format = float_format
         self.start_point = None
-        # Calculate grain stats.
-        # self.calculate_stats()
 
-    def get_angle(self, point_1: tuple, point_2: tuple) -> float:
+    @staticmethod
+    def get_angle(point_1: tuple, point_2: tuple) -> float:
         """Function that calculates the angle in radians between two points.
 
         Parameters
@@ -77,16 +81,17 @@ class GrainStats:
         #        print(f'point_2    : {point_2}')
         return np.arctan2(point_1[1] - point_2[1], point_1[0] - point_2[0])
 
-    def is_clockwise(self, p1: tuple, p2: tuple, p3: tuple) -> bool:
+    @staticmethod
+    def is_clockwise(p_1: tuple, p_2: tuple, p_3: tuple) -> bool:
         """Function to determine if three points make a clockwise or counter-clockwise turn.
 
         Parameters
         ----------
-        p1: tuple
+        p_1: tuple
             First point to be used to calculate turn.
-        p2: tuple
+        p_2: tuple
             Second point to be used to calculate turn.
-        p3: tuple
+        p_3: tuple
             Third point to be used to calculate turn.
 
         Returns
@@ -97,8 +102,8 @@ class GrainStats:
         # Determine if three points form a clockwise or counter-clockwise turn.
         # I use the method of calculating the determinant of the following rotation matrix here. If the determinant
         # is > 0 then the rotation is counter-clockwise.
-        M = np.array(((p1[0], p1[1], 1), (p2[0], p2[1], 1), (p3[0], p3[1], 1)))
-        return False if np.linalg.det(M) > 0 else True
+        rotation_matrix = np.array(((p_1[0], p_1[1], 1), (p_2[0], p_2[1], 1), (p_3[0], p_3[1], 1)))
+        return not np.linalg.det(rotation_matrix) > 0
 
     def calculate_stats(self):
         """Calculate the stats of grains in the labelled image"""
@@ -107,7 +112,7 @@ class GrainStats:
         region_properties = skimage_measure.regionprops(self.labelled_data)
 
         # Plot labelled data
-        fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+        _, ax = plt.subplots(1, 1, figsize=(8, 8))
         ax.imshow(self.labelled_data, interpolation="nearest", cmap="afmhot")
 
         # Iterate over all the grains in the image
@@ -140,12 +145,13 @@ class GrainStats:
             )
 
             edges = self.calculate_edges(grain_mask)
-            # print(f'type(edges)   :  {type(edges)}')
-            # print(f'edges         :\n{edges}')
             radius_stats = self.calculate_radius_stats(edges)
-            hull, hull_indices, hull_simplexes = self.convex_hull(grain_mask, edges, output_grain)
+            # hull, hull_indices, hull_simplexes = self.convex_hull(edges, output_grain)
+            _, _, hull_simplexes = self.convex_hull(edges, output_grain)
             smallest_bounding_width, smallest_bounding_length, aspect_ratio = self.calculate_aspect_ratio(
-                edges, hull, hull_indices, hull_simplexes, output_grain
+                edges=edges,
+                hull_simplices=hull_simplexes,
+                path=output_grain,
             )
 
             # save_format = '.4f'
@@ -182,17 +188,23 @@ class GrainStats:
             )
             ax.add_patch(rectangle)
 
-        # Create pandas dataframe to hold the stats and save it to a csv file.
         grainstats = pd.DataFrame(data=stats_array)
-        grainstats.to_csv(self.output_dir / "grainstats.csv", float_format=self.float_format)
+        grainstats.to_csv(self.output_dir / "grainstats.csv")
 
-        # Save and close the plot
-        plt.savefig(self.output_dir / "labelled_image_bboxes.png")
+        # plt.savefig(self.output_dir / "labelled_image_bboxes.png")
+        # plt.close()
+
+        return {"statistics": grainstats, "plot": ax}
+
+    def save_plot(self, img: Axes, title: str = None, filename: str = "15-labelled_image_bboxes.png") -> None:
+        """Save the image adding a title if specified."""
+        title = title if title is not None else "Labelled Image with Bounding Boxes"
+        plt.title(title)
+        plt.savefig(self.output_dir / filename)
         plt.close()
 
-        return grainstats
-
-    def calculate_edges(self, grain_mask: np.ndarray):
+    @staticmethod
+    def calculate_edges(grain_mask: np.ndarray):
         """Class method that takes a 2D boolean numpy array image of a grain and returns a python list of the
         coordinates of the edges of the grain.
 
@@ -235,8 +247,6 @@ class GrainStats:
         Tuple[float]
             A tuple of the minimum, maximum, mean and median radius of the grain
         """
-        # Convert the edges to the form of a numpy array
-        # edges = np.array(edges)
         # Calculate the centroid of the grain
         centroid = self._calculate_centroid(edges)
         # Calculate the displacement
@@ -245,7 +255,8 @@ class GrainStats:
         radii = self._calculate_radius(displacements)
         return {"min": np.min(radii), "max": np.max(radii), "mean": np.mean(radii), "median": np.median(radii)}
 
-    def _calculate_centroid(self, edges: np.array) -> tuple:
+    @staticmethod
+    def _calculate_centroid(edges: np.array) -> tuple:
         """Calculate the centroid of a bounding box.
 
         Parameters
@@ -262,12 +273,14 @@ class GrainStats:
         edges = np.array(edges)
         return (sum(edges[:, 0]) / len(edges), sum(edges[:, 1] / len(edges)))
 
-    def _calculate_displacement(self, edges: np.array, centroid: tuple) -> np.array:
+    @staticmethod
+    def _calculate_displacement(edges: np.array, centroid: tuple) -> np.array:
         """Calculate the displacement between the centroid and edges"""
         # FIXME : Remove once we have a numpy array returned by calculate_edges
         return np.array(edges) - centroid
 
-    def _calculate_radius(self, displacements) -> np.array:
+    @staticmethod
+    def _calculate_radius(displacements) -> np.array:
         """Calculate the radius of each point from the centroid
 
         Parameters
@@ -280,14 +293,12 @@ class GrainStats:
         """
         return np.array([np.sqrt(radius[0] ** 2 + radius[1] ** 2) for radius in displacements])
 
-    def convex_hull(self, grain_mask: np.ndarray, edges: list, output_dir: Path, debug: bool = False):
+    def convex_hull(self, edges: list, output_dir: Path, debug: bool = False):
         """Class method that takes a grain mask and the edges of the grain and returns the grain's convex hull. Based
         off of the Graham Scan algorithm and should ideally scale in time with O(nlog(n)).
 
         Parameters
         ----------
-        grain_mask : np.ndarray
-            A 2D numpy array containing the boolean grain mask for the grain.
         edges : list
             A python list contianing the coordinates of the edges of the grain.
         output_dir : Union[str, Path]
@@ -334,7 +345,7 @@ class GrainStats:
             The squared distance between the two points.
         """
         # Get the distance squared between two points. If the second point is not provided, use the starting point.
-        point_1 = self.start_point if point_1 == None else point_1
+        point_1 = self.start_point if point_1 is None else point_1
         delta_x = point_2[0] - point_1[0]
         delta_y = point_2[1] - point_1[1]
         # Don't need the sqrt since just sorting for dist
@@ -415,7 +426,7 @@ class GrainStats:
         # Find a point guaranteed to be on the hull. I find the bottom most point(s) and sort by x-position.
         min_y_index = None
         for index, point in enumerate(edges):
-            if min_y_index == None or point[1] < edges[min_y_index][1]:
+            if min_y_index is None or point[1] < edges[min_y_index][1]:
                 min_y_index = index
             if point[1] == edges[min_y_index][1] and point[0] < edges[min_y_index][0]:
                 min_y_index = index
@@ -435,7 +446,7 @@ class GrainStats:
         # if so, backtracking.
         for index, point in enumerate(points_sorted_by_angle[1:]):
             # Determine if the proposed point demands a clockwise rotation
-            while self.is_clockwise(hull[-2], hull[-1], point) == True:
+            while self.is_clockwise(hull[-2], hull[-1], point) is True:
                 # Delete the failed point
                 del hull[-1]
                 if len(hull) < 2:
@@ -450,12 +461,13 @@ class GrainStats:
 
         # Create simplices from the hull points
         simplices = []
-        for i in range(len(hull_indices)):
-            simplices.append((hull_indices[i - 1], hull_indices[i]))
+        for index, value in enumerate(hull_indices):
+            simplices.append((hull_indices[index - 1], value))
 
         return hull, hull_indices, simplices
 
-    def plot(self, edges: list, convex_hull: list = None, file_path: Path = None):
+    @staticmethod
+    def plot(edges: list, convex_hull: list = None, file_path: Path = None):
         """A function that plots and saves the coordinates of the edges in the grain and optionally the hull. The
         plot is saved as the file name that is provided.
 
@@ -470,10 +482,10 @@ class GrainStats:
             Path of the file to save the plot as.
         """
 
-        fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-        xs, ys = zip(*edges)
-        ax.scatter(xs, ys)
-        if convex_hull != None:
+        _, ax = plt.subplots(1, 1, figsize=(8, 8))
+        x_s, y_s = zip(*edges)
+        ax.scatter(x_s, y_s)
+        if convex_hull is not None:
             for index in range(1, len(convex_hull) + 1):
                 # Loop on the final simplex of the hull to join the last and first points together.
                 if len(convex_hull) == index:
@@ -485,15 +497,7 @@ class GrainStats:
         plt.savefig(file_path)
         plt.close()
 
-    def calculate_aspect_ratio(
-        self,
-        edges: list,
-        convex_hull: np.ndarray,
-        hull_indices: np.ndarray,
-        hull_simplices: np.ndarray,
-        path: Path,
-        debug: bool = False,
-    ):
+    def calculate_aspect_ratio(self, edges: list, hull_simplices: np.ndarray, path: Path, debug: bool = False) -> tuple:
         """Class method that takes a list of edge points for a grain, and convex hull simplices and returns the width,
            length and aspect ratio of the smallest bounding rectangle for the grain.
 
@@ -523,15 +527,15 @@ class GrainStats:
 
         # Create a variable to store the smallest area in - this is to be able to compare whilst iterating
         smallest_bounding_area = None
-        smallest_bounding_rectangle = None
+        # FIXME : pylint complains that this is unused which looks like a false positive to me as it is used.
+        #         Probably does not need initiating here though (and code runs fine when doing so)
+        # smallest_bounding_rectangle = None
 
         # Iterate through the simplices
         for simplex_index, simplex in enumerate(hull_simplices):
-            p1 = edges[simplex[0]]
-            p1_index = simplex[0]
-            p2 = edges[simplex[1]]
-            p2_index = simplex[1]
-            delta = p1 - p2
+            p_1 = edges[simplex[0]]
+            p_2 = edges[simplex[1]]
+            delta = p_1 - p_2
             angle = np.arctan2(delta[0], delta[1])
 
             # Find the centroid of the points
@@ -542,25 +546,22 @@ class GrainStats:
             remapped_points = edges - centroid
 
             # Rotate the coordinates using a rotation matrix
-            R = np.array(((np.cos(angle), -np.sin(angle)), (np.sin(angle), np.cos(angle))))
+            rotated_coordinates = np.array(((np.cos(angle), -np.sin(angle)), (np.sin(angle), np.cos(angle))))
 
             # For each point in the set, rotate it using the above rotation matrix.
             rotated_points = []
-            for index, point in enumerate(remapped_points):
-                newpoint = R @ point
+            for _, point in enumerate(remapped_points):
+                newpoint = rotated_coordinates @ point
                 # FIXME : Can probably use np.append() here to append arrays directly, something like
-                # np.append(rotated_points, newpoint, axis=0)
+                # np.append(rotated_points, newpoint, axis=0) but doing so requires other areas to be modified
                 rotated_points.append(newpoint)
             rotated_points = np.array(rotated_points)
             # Find the cartesian extremities
-            x_min = np.min(rotated_points[:, 0])
-            x_max = np.max(rotated_points[:, 0])
-            y_min = np.min(rotated_points[:, 1])
-            y_max = np.max(rotated_points[:, 1])
+            extremes = self.find_cartesian_extremes(rotated_points)
 
             if debug:
                 # Create plot
-                # FIXME : Make this a private method
+                # FIXME : Make this a method
                 fig = plt.figure(figsize=(8, 8))
                 ax = fig.add_subplot(111)
 
@@ -569,7 +570,7 @@ class GrainStats:
                 plt.plot(remapped_points[simplex, 0], remapped_points[simplex, 1], "#444444", linewidth=4)
                 plt.scatter(x=rotated_points[:, 0], y=rotated_points[:, 1])
                 plt.plot(rotated_points[simplex, 0], rotated_points[simplex, 1], "k-", linewidth=5)
-                print(rotated_points[simplex, 0], rotated_points[simplex, 1])
+                LOGGER.info(rotated_points[simplex, 0], rotated_points[simplex, 1])
 
                 # Draw the convex hulls
                 for simplex in hull_simplices:
@@ -577,31 +578,49 @@ class GrainStats:
                     plt.plot(rotated_points[simplex, 0], rotated_points[simplex, 1], "#555555")
 
                 # Draw bounding box
-                plt.plot([x_min, x_min, x_max, x_max, x_min], [y_min, y_max, y_max, y_min, y_min], "#994400")
+                plt.plot(
+                    [extremes["x_min"], extremes["x_min"], extremes["x_max"], extremes["x_max"], extremes["x_min"]],
+                    [extremes["y_min"], extremes["y_max"], extremes["y_max"], extremes["y_min"], extremes["y_min"]],
+                    "#994400",
+                )
                 plt.savefig(path / ("bounding_rectangle_construction_simplex_" + str(simplex_index) + ".png"))
 
             # Calculate the area of the proposed bounding rectangle
-            bounding_area = (x_max - x_min) * (y_max - y_min)
+            bounding_area = (extremes["x_max"] - extremes["x_min"]) * (extremes["y_max"] - extremes["y_min"])
 
             # If current bounding rectangle is the smallest so far
-            if smallest_bounding_area == None or bounding_area < smallest_bounding_area:
+            if smallest_bounding_area is None or bounding_area < smallest_bounding_area:
                 smallest_bounding_area = bounding_area
-                smallest_bounding_rectangle = (x_min, x_max, y_min, y_max)
-                aspect_ratio = (x_max - x_min) / (y_max - y_min)
-                smallest_bounding_width = min((x_max - x_min), (y_max - y_min))
-                smallest_bounding_length = max((x_max - x_min), (y_max - y_min))
+                # smallest_bounding_rectangle = (
+                #     extremes["x_min"],
+                #     extremes["x_max"],
+                #     extremes["y_min"],
+                #     extremes["y_max"],
+                # )
+                aspect_ratio = (extremes["x_max"] - extremes["x_min"]) / (extremes["y_max"] - extremes["y_min"])
+                smallest_bounding_width = min(
+                    (extremes["x_max"] - extremes["x_min"]), (extremes["y_max"] - extremes["y_min"])
+                )
+                smallest_bounding_length = max(
+                    (extremes["x_max"] - extremes["x_min"]), (extremes["y_max"] - extremes["y_min"])
+                )
                 # Enforce >= 1 aspect ratio
                 if aspect_ratio < 1.0:
                     aspect_ratio = 1 / aspect_ratio
 
         # Unrotate the bounding box vertices
-        RINVERSE = R.T
+        r_inverse = rotated_coordinates.T
         translated_rotated_bounding_rectangle_vertices = np.array(
-            ([x_min, y_min], [x_max, y_min], [x_max, y_max], [x_min, y_max])
+            (
+                [extremes["x_min"], extremes["y_min"]],
+                [extremes["x_max"], extremes["y_min"]],
+                [extremes["x_max"], extremes["y_max"]],
+                [extremes["x_min"], extremes["y_max"]],
+            )
         )
         translated_bounding_rectangle_vertices = []
-        for index, point in enumerate(translated_rotated_bounding_rectangle_vertices):
-            newpoint = RINVERSE @ point
+        for _, point in enumerate(translated_rotated_bounding_rectangle_vertices):
+            newpoint = r_inverse @ point
             # FIXME : As above can likely use np.append(, axis=0) here
             translated_bounding_rectangle_vertices.append(newpoint)
         translated_bounding_rectangle_vertices = np.array(translated_bounding_rectangle_vertices)
@@ -651,3 +670,24 @@ class GrainStats:
         plt.close()
 
         return smallest_bounding_width, smallest_bounding_length, aspect_ratio
+
+    @staticmethod
+    def find_cartesian_extremes(rotated_points: np.ndarray) -> Dict:
+        """Find the limits of x and y of rotated points.
+
+        Parameters
+        ----------
+        rotated_points: np.ndarray
+            2-D array of rotated points.
+
+        Returns
+        -------
+        Dict
+            Dictionary of the x and y min and max.__annotations__
+        """
+        extremes = {}
+        extremes["x_min"] = np.min(rotated_points[:, 0])
+        extremes["x_max"] = np.max(rotated_points[:, 0])
+        extremes["y_min"] = np.min(rotated_points[:, 1])
+        extremes["y_max"] = np.max(rotated_points[:, 1])
+        return extremes

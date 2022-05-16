@@ -27,7 +27,7 @@ def quadratic(x, a, b, c):
 
 
 def gaussian_filter(
-    image: np.array, gaussian_size: float = 2, pixel_to_nm_scaling: float = 1, mode: str = "nearest", **kwargs
+    image: np.array, pixel_to_nm_scaling: float, gaussian_size: float = 2, mode: str = "nearest", **kwargs
 ) -> np.array:
     """Apply Gaussian filter
 

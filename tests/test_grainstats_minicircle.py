@@ -1,7 +1,7 @@
 """Tests for the grainstats module."""
 from pathlib import Path
+
 import pandas as pd
-import numpy as np
 
 from topostats.grainstats import GrainStats
 
