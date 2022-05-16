@@ -16,4 +16,4 @@ def test_grainstats(minicircle_grainstats: GrainStats, minicircle_grainstats_202
     """Test the overall GrainStats class."""
     statistics = minicircle_grainstats.calculate_stats()
 
-    pd.testing.assert_frame_equal(statistics, minicircle_grainstats_20220509)
+    pd.testing.assert_frame_equal(statistics["statistics"], minicircle_grainstats_20220509)

@@ -105,7 +105,7 @@ class GrainStats:
         rotation_matrix = np.array(((p_1[0], p_1[1], 1), (p_2[0], p_2[1], 1), (p_3[0], p_3[1], 1)))
         return not np.linalg.det(rotation_matrix) > 0
 
-    def calculate_stats(self):
+    def calculate_stats(self) -> Dict:
         """Calculate the stats of grains in the labelled image"""
 
         # Calculate region properties
@@ -190,9 +190,6 @@ class GrainStats:
 
         grainstats = pd.DataFrame(data=stats_array)
         grainstats.to_csv(self.output_dir / "grainstats.csv")
-
-        # plt.savefig(self.output_dir / "labelled_image_bboxes.png")
-        # plt.close()
 
         return {"statistics": grainstats, "plot": ax}
 
