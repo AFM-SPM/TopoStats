@@ -1,3 +1,3 @@
-import topostats.pygwytracing as pygwytracing
+import topostats.topotracing as topotracing
 
-pygwytracing.trace()
+topotracing.main()
