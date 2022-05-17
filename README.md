@@ -6,8 +6,7 @@
 [![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/release/python-390/)
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-360/)
 
-
-| [How it works](#how-it-works) | [Run using Docker](#run-using-docker) | [Parameter Configuration](#parameter-configuration) | [Licence](#licence) | [Publications](#publications) | [Contributing](contributing.md) |
+| [How to use](#How-to-use) | [Installation](#installation) | [Tutorials and Examples](#tutorials-and-Examples) | [Contributing](contributing.md) | [Licence](#licence) | [Citation](#citation) |  |
 
 An AFM image analysis program to batch process data and obtain statistics from images.
 
