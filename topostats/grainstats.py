@@ -144,8 +144,9 @@ class GrainStats:
                 f'[{self.img_name}] Grain {index} : cropped image saved : {str(output_grain / "grain_image.png")}'
             )
 
+            points = self.calculate_points(grain_mask)
             edges = self.calculate_edges(grain_mask)
-            radius_stats = self.calculate_radius_stats(edges)
+            radius_stats = self.calculate_radius_stats(edges, points)
             # hull, hull_indices, hull_simplexes = self.convex_hull(edges, output_grain)
             _, _, hull_simplexes = self.convex_hull(edges, output_grain)
             smallest_bounding_width, smallest_bounding_length, aspect_ratio = self.calculate_aspect_ratio(
@@ -249,7 +250,7 @@ class GrainStats:
         # return edges
         return [list(vector) for vector in np.transpose(nonzero_coordinates)]
 
-    def calculate_radius_stats(self, edges: list) -> Tuple:
+    def calculate_radius_stats(self, edges: list, points: list) -> Tuple:
         """Class method that calculates the statistics relating to the radius. The radius in this context
         is the distance from the centroid to points on the edge of the grain.
 
@@ -257,6 +258,8 @@ class GrainStats:
         ----------
         edges: list
             A 2D python list containing the coordinates of the edges of a grain.
+        points: list
+            A 2D python list containing the coordinates of the points in a grain.
 
         Returns
         -------
@@ -264,7 +267,7 @@ class GrainStats:
             A tuple of the minimum, maximum, mean and median radius of the grain
         """
         # Calculate the centroid of the grain
-        centroid = self._calculate_centroid(edges)
+        centroid = self._calculate_centroid(points)
         # Calculate the displacement
         displacements = self._calculate_displacement(edges, centroid)
         # Calculate the radius of each point
@@ -272,13 +275,13 @@ class GrainStats:
         return {"min": np.min(radii), "max": np.max(radii), "mean": np.mean(radii), "median": np.median(radii)}
 
     @staticmethod
-    def _calculate_centroid(edges: np.array) -> tuple:
+    def _calculate_centroid(points: np.array) -> tuple:
         """Calculate the centroid of a bounding box.
 
         Parameters
         ----------
-        edges: list
-            A 2D python list containing the co-ordinates of the edges of a grain.
+        points: list
+            A 2D python list containing the co-ordinates of the points in a grain.
 
         Returns
         -------
@@ -286,8 +289,8 @@ class GrainStats:
             The co-ordinates of the centroid.
         """
         # FIXME : Remove once we have a numpy array returned by calculate_edges
-        edges = np.array(edges)
-        return (sum(edges[:, 0]) / len(edges), sum(edges[:, 1] / len(edges)))
+        points = np.array(points)
+        return (np.mean(points[:, 0]), np.mean(points[:, 1]))
 
     @staticmethod
     def _calculate_displacement(edges: np.array, centroid: tuple) -> np.array:
