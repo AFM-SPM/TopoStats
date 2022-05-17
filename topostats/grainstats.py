@@ -149,6 +149,10 @@ class GrainStats:
             radius_stats = self.calculate_radius_stats(edges, points)
             # hull, hull_indices, hull_simplexes = self.convex_hull(edges, output_grain)
             _, _, hull_simplexes = self.convex_hull(edges, output_grain)
+            centroid = self._calculate_centroid(points)
+            # Centroids for the grains (minc and minr added because centroid returns values local to the cropped grain images)
+            centre_x = centroid[0] + minc
+            centre_y = centroid[1] + minr
             smallest_bounding_width, smallest_bounding_length, aspect_ratio = self.calculate_aspect_ratio(
                 edges=edges,
                 hull_simplices=hull_simplexes,
@@ -161,6 +165,8 @@ class GrainStats:
             # from pixel units to nanometres.
             # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
             stats = {
+                'centre_x': centre_x * self.pixel_to_nanometre_scaling,
+                'centre_y': centre_y * self.pixel_to_nanometre_scaling,
                 "radius_min": radius_stats["min"] * self.pixel_to_nanometre_scaling,
                 "radius_max": radius_stats["max"] * self.pixel_to_nanometre_scaling,
                 "radius_mean": radius_stats["mean"] * self.pixel_to_nanometre_scaling,
