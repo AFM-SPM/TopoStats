@@ -1,6 +1,6 @@
 ## How it works
 
-Image progessing is performed using the 'pygwytracing' script
+Image processing is performed using the 'pygwytracing' script
 
 The algorithm searches recursively for files within a user-defined directory.
 This search also excludes any files of the format ‘_cs’ which are cropped files exported by the Nanoscope Analysis software.
