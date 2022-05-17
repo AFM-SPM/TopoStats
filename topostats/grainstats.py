@@ -201,6 +201,25 @@ class GrainStats:
         plt.close()
 
     @staticmethod
+    def calculate_points(grain_mask: np.ndarray):
+        """Class method that takes a 2D boolean numpy array image of a grain and retursn a python list containing the corrdinates of the points in the grain.
+        
+            Parameters:
+                grain_mask : np.ndarray
+                    A 2D numpy array image of a grain. Data in the array must be boolean.
+                    
+            Returns:
+                edges : list
+                    A python list containing the coordinates of the pixels in the grain. """
+
+        nonzero_coordinates = grain_mask.nonzero()
+        points = []
+        for point in np.transpose(nonzero_coordinates):
+            points.append(list(point))
+
+        return points
+
+    @staticmethod
     def calculate_edges(grain_mask: np.ndarray):
         """Class method that takes a 2D boolean numpy array image of a grain and returns a python list of the
         coordinates of the edges of the grain.
