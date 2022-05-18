@@ -58,6 +58,12 @@ Object oriented approaches will be used where appropriate, but not seen as inher
 * [x] The [`pytest`](https://docs.pytest.org/en/stable/) framework is used and tests are encouraged.
 * [ ] Code must be covered by unit tests. The `pytest` framework is used.
 
+To run tests:
+
+```
+python -m pytest
+```
+
 ## Static Analysis
 
 * [x] Use [`pylint`](https://pypi.org/project/pylint/) to analyse your code before submission.
