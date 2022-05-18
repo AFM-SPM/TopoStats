@@ -283,7 +283,7 @@ def grainstats(image_random: np.array, minicircle_filename: str, tmpdir) -> Grai
 # Minicircle
 @pytest.fixture
 def minicircle_grainstats(
-    minicircle_zero_average_background: np.array,
+    minicircle_grain_gaussian_filter: np.array,
     minicircle_grain_labelled_post_removal: np.array,
     minicircle_pixel_to_nm: float,
     minicircle_filename,
@@ -291,7 +291,7 @@ def minicircle_grainstats(
 ) -> GrainStats:
     """GrainStats object."""
     return GrainStats(
-        data=minicircle_zero_average_background,
+        data=minicircle_grain_gaussian_filter,
         labelled_data=minicircle_grain_labelled_post_removal,
         pixel_to_nanometre_scaling=minicircle_pixel_to_nm,
         img_name=minicircle_filename,
