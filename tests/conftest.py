@@ -283,7 +283,7 @@ def grainstats(image_random: np.array, minicircle_filename: str, tmpdir) -> Grai
 # Minicircle
 @pytest.fixture
 def minicircle_grainstats(
-    minicircle_zero_average_background: np.array,
+    minicircle_grain_gaussian_filter: np.array,
     minicircle_grain_labelled_post_removal: np.array,
     minicircle_pixel_to_nm: float,
     minicircle_filename,
@@ -291,7 +291,7 @@ def minicircle_grainstats(
 ) -> GrainStats:
     """GrainStats object."""
     return GrainStats(
-        data=minicircle_zero_average_background,
+        data=minicircle_grain_gaussian_filter,
         labelled_data=minicircle_grain_labelled_post_removal,
         pixel_to_nanometre_scaling=minicircle_pixel_to_nm,
         img_name=minicircle_filename,
@@ -304,6 +304,6 @@ def minicircle_grainstats(
 # These are date specific as we expect statistics to change as the underlying methods used to calculate them
 # are tweaked.
 @pytest.fixture
-def minicircle_grainstats_20220509() -> pd.DataFrame:
+def minicircle_grainstats_20220517() -> pd.DataFrame:
     """Statistics for minicircle for comparison."""
-    return pd.read_csv(RESOURCES / "minicircle_grainstats_20220509.csv", index_col=0)
+    return pd.read_csv(RESOURCES / "minicircle_grainstats_20220517.csv", index_col=0)

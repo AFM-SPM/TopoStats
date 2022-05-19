@@ -212,7 +212,7 @@ def process_scan(
 
     # Calculate grain statistics
     grainstats = GrainStats(
-        data=zero_averaged_background,
+        data=gaussian_filtered,
         labelled_data=regions_labelled,
         pixel_to_nanometre_scaling=pixel_nm_scaling,
         img_name=img_name,
