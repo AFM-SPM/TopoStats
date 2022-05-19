@@ -1,271 +1,340 @@
 """Contains filter functions that take a 2D array representing an image as an input, as well as necessary parameters,
 and return a 2D array of the same size representing the filtered image."""
-# pylint: disable=no-name-in-module
-# pylint: disable=invalid-name
-# pylint: disable=fixme
+import logging
 from pathlib import Path
 from typing import Union
-import logging
-import numpy as np
-import pySPM
-from pySPM.SPM import SPM_image
 
+import numpy as np
+
+from topostats.io import load_scan
+from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
+from topostats.utils import get_mask
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-
-def extract_img_name(img_path: Union[str, Path]) -> str:
-    """Extract the image name from the image path.
-
-    Parameters
-    ----------
-    img_path : Union[str, Path]
-        Path to image being processed.
-
-    Returns
-    -------
-    str
-        Filename of processed image.
-
-    Examples
-    --------
-    FIXME: Add docs.
-
-    """
-    LOGGER.info(f'Extracting filename from : {img_path}')
-    return Path(img_path).stem
+# pylint: disable=fixme
+# pylint: disable=broad-except
 
 
-def extract_channel(scan_raw: pySPM.Bruker, channel: str = 'Height') -> SPM_image:
-    """Extract the given channel from the image.
+class Filters:
+    """Class for filtering scans."""
 
-    Parameters
-    ----------
-    scan_raw : pySPM.Bruker
-        Raw scan loaded by pySPM.
-    channel : str
-        Channel to extract (default is 'Height').
-    filename: str
-        File being processed.
+    def __init__(
+        self,
+        img_path: Union[str, Path],
+        channel: str = "Height",
+        amplify_level: float = None,
+        threshold_method: str = "otsu",
+        output_dir: Union[str, Path] = None,
+        quiet: bool = False,
+    ):
+        """Initialise the class.
 
-    Returns
-    -------
-    SPM_image
-        SPM image.
+        Parameters
+        ----------
+        img_path: Union[str, Path]
+            Path to a valid image to load.
+        channel: str
+            Channel to extract from the image.
+        amplify_level: float
+            Factor by which to amplify the image.
+        threshold_method: str
+            Method for thresholding, default 'otsu'.
+        quiet: bool
+            Whether to silence output.
+        output_dir: Union[str, Path]
+            Directory to save output to, if it does not exist it will be created.
 
-    Examples
-    --------
-    FIXME: Add docs.
+        Notes
+        -----
 
-    """
-    return scan_raw.get_channel(channel)
+        A directory under the 'outdir' will be created using the
+        """
+        self.img_path = Path(img_path)
+        self.channel = channel
+        self.amplify_level = amplify_level
+        self.threshold_method = threshold_method
+        self.filename = self.extract_filename()
+        self.output_dir = Path(output_dir) if output_dir else Path("./output")
+        self.images = {
+            "scan_raw": None,
+            "extracted_channel": None,
+            "pixels": None,
+            "initial_align": None,
+            "initial_tilt_removal": None,
+            "masked_align": None,
+            "masked_tilt_removal": None,
+            "zero_averaged_background": None,
+            "mask": None,
+        }
+        self.threshold = None
+        self.pixel_to_nm_scaling = None
+        self.quantiles = {"rows": None, "cols": None}
+        LOGGER.info(f"Filename : {self.filename}")
+        # self.scan_channel = self.images['scan_raw'].get_channel(channel)
+        #        self.images['scan_raw'] = None
+        self.results = {
+            "diff": None,
+            "amplify": self.amplify_level,
+            "median_row_height": None,
+            "x_gradient": None,
+            "y_gradient": None,
+            "threshold": None,
+        }
+        self.load_scan()
 
+        if quiet:
+            LOGGER.setLevel("ERROR")
 
-def extract_pixel_to_nm_scaling(extracted_channel: SPM_image) -> float:
-    """Extract the pixel to nanometer scaling from the image metadata.
+    def extract_filename(self) -> str:
+        """Extract the filename from the img_path"""
+        LOGGER.info(f"Extracting filename from : {self.img_path}")
+        return self.img_path.stem
 
-    Parameters
-    ----------
-    extracted_channel : SPM_image
-        Channel extracted from an image.
+    def load_scan(self) -> None:
+        """Load the scan."""
+        self.images["scan_raw"] = load_scan(self.img_path)
+        LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
+        # LOGGER.info(f'Loaded file : {self.img_path}')
+        # FIXME : Get this working, needs to include additional except for image in incorrect format.
+        # try:
+        #     self.images['scan_raw'] = load_scan(self.img_path)
+        # except FileNotFoundError as error:
+        #     LOGGER.error(f'File not found : {self.img_path}')
+        #     pass
+        # sys.exit(1)
 
-    Returns
-    -------
-    float
-        Scaling factor for pixels to nanometers.
-    """
-    return extracted_channel.get_extent()[1] / len(extracted_channel.pixels)
+    def make_output_directory(self) -> None:
+        """Create the output directory for saving files to."""
+        self.output_dir = self.output_dir / self.filename
+        self.output_dir.mkdir(exist_ok=True, parents=True)
+        LOGGER.info(f"[{self.filename}] : Created directory : {self.output_dir}")
 
+    def extract_channel(self):
+        """Extract the channel"""
+        try:
+            self.images["extracted_channel"] = self.images["scan_raw"].get_channel(self.channel)
+            LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
+        except Exception as exception:
+            LOGGER.error(f"[{self.filename}] : {exception}")
 
-def extract_pixels(extracted_channel: SPM_image) -> np.array:
-    """Flatten the scan to a Numpy Array
+    def extract_pixel_to_nm_scaling(self) -> float:
+        """Extract the pixel to nanometer scaling from the image metadata."""
+        self.pixel_to_nm_scaling = self.images["extracted_channel"].get_extent()[1] / len(
+            self.images["extracted_channel"].pixels
+        )
+        LOGGER.info(f"[{self.filename}] : Pixels to nm scaling : {self.pixel_to_nm_scaling}")
 
-    Parameters
-    ----------
-    extracted_channel : SPM_image
-        Channel extracted from an image.
+    def extract_pixels(self) -> None:
+        """Flatten the scan to a Numpy Array."""
+        self.images["pixels"] = np.flipud(np.array(self.images["extracted_channel"].pixels))
+        LOGGER.info(f"[{self.filename}] : Pixels extracted")
 
-    Returns
-    -------
-    np.array
-        Numpy array representation of the channel of interest.
+    def amplify(self) -> None:
+        """The amplify filter mulitplies the value of all extracted pixels by the `level` argument."""
+        self.images["pixels"] = self.images["pixels"] * self.amplify_level
+        LOGGER.info(f"[{self.filename}] : Image amplified (x {self.amplify_level})")
 
-    Examples
-    --------
-    FIXME: Add docs.
+    def flatten_image(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
+        """Flatten an image.
 
-    """
-    return np.flipud(np.array(extracted_channel.pixels))
+        Flattening an image involves first aligining rows and then removing tilt, with a mask optionally applied to both
+        stages. These methods could be called independently but this method is provided as a convenience.
 
+        Parameters
+        ----------
+        image: np.ndarray
+            2-D mage to be flattened.
+        mask: np.ndarray
+            2-D mask to apply to image, should be the same dimensions as iamge.
+        stage: str
+            Indicator of the stage of flattneing.
 
-def amplify(image: np.array, level: float) -> np.array:
-    """The amplify filter mulitplies the value of all pixels by the `level` argument.
+        Returns
+        -------
+        np.ndarray
+            2-D flattened image.all
+        """
+        image = self.align_rows(image, mask)
+        image = self.remove_tilt(image, mask)
+        return image
 
-     Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
-    level: np.array
-        Factor by which to amplify the array.
+    def row_col_quantiles(self, image: np.array, mask: np.array = None) -> np.array:
+        """Returns the height value quantiles for the rows and columns.
 
-    Returns
-    -------
-    np.array
-        Numpy array of image amplified by level.
-    """
-    LOGGER.info(f'[amplify] Level : {level}')
-    return image * level
+        Returns
+        -------
 
+        Returns two Numpy arrays, the first is the row height value quantiles, the second the column height value
+        quantiles.
+        """
+        if mask is not None:
+            image = np.ma.masked_array(image, mask=mask, fill_value=np.nan)
+            LOGGER.info(f"[{self.filename}] : Masking enabled")
+        else:
+            LOGGER.info(f"[{self.filename}] : Masking disabled")
+        quantiles = {}
+        quantiles["rows"] = np.quantile(image, [0.25, 0.5, 0.75], axis=1).T
+        quantiles["cols"] = np.quantile(image, [0.25, 0.5, 0.75], axis=0).T
+        LOGGER.info(f"[{self.filename}] : Row and column quantiles calculated.")
+        return quantiles
 
-def row_col_quantiles(image: np.array, mask: np.array = None) -> np.array:
-    """Returns the height value quantiles for the rows and columns.
+    def align_rows(self, image: np.array, mask=None) -> np.array:
+        """Returns the input image with rows aligned by median height"""
+        quantiles = self.row_col_quantiles(image, mask)
+        row_medians = self._extract_medians(quantiles["rows"])
+        median_row_height = self._median_row_height(row_medians)
+        LOGGER.info(f"[{self.filename}] : Median Row Height: {median_row_height}")
 
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
-    mask: np.array
-        Mask array to apply.
+        # Calculate the differences between the row medians and the median row height
+        row_median_diffs = self._row_median_diffs(row_medians, median_row_height)
 
-    Returns
-    -------
-    np.array
-        Numpy array of image but with any linear plane slant removed.
-    """
+        # Adjust the row medians accordingly
+        # FIXME : I think this can be done using arrays directly, no need to loop.
+        for i in range(image.shape[0]):
+            if np.isnan(row_median_diffs[i]):
+                LOGGER.info(f"{i} Row_median is nan! : {row_median_diffs[i]}")
+            # for j in range(image.shape[1]):
+            #     image[i, j] -= row_median_diffs[i]
+            image[i] -= row_median_diffs[i]
+        LOGGER.info(f"[{self.filename}] : Rows aligned")
+        return image
 
-    # Mask the data if applicable
-    if mask is not None:
-        image = np.ma.masked_array(image, mask=mask, fill_value=np.nan)
-        LOGGER.info('[row_col_quantiles] Masking enabled')
-    else:
-        LOGGER.info('[row_col_quantiles] Masking disabled')
+    @staticmethod
+    def _extract_medians(array: np.array) -> np.array:
+        """Extract medians"""
+        return array[:, 1]
 
-    row_quantiles = np.quantile(image, [0.25, 0.5, 0.75], axis=1).T
-    col_quantiles = np.quantile(image, [0.25, 0.5, 0.75], axis=0).T
-    LOGGER.info('Row and column quantiles calculated.')
-    return row_quantiles, col_quantiles
+    @staticmethod
+    def _median_row_height(array: np.array) -> float:
+        """Calculate median of row medians"""
+        return np.quantile(array, 0.5)
+        # return np.quantile(self.extract_medians(array), 0.5)
 
+    @staticmethod
+    def _row_median_diffs(row_medians: np.array, median_row_height: float) -> np.array:
+        """Calculate difference of row medians from the median row height"""
+        return row_medians - median_row_height
 
-def align_rows(image: np.array, mask: np.array = None) -> np.array:
-    """Returns the input image with rows aligned by median height
+    def remove_tilt(self, image: np.array, mask=None) -> np.array:
+        """Returns the input image after removing any linear plane slant"""
+        quantiles = self.row_col_quantiles(image, mask)
+        gradient = {}
+        gradient["x"] = self.calc_gradient(quantiles["rows"], quantiles["rows"].shape[0])
+        gradient["y"] = self.calc_gradient(quantiles["cols"], quantiles["cols"].shape[0])
+        LOGGER.info(f'[{self.filename}] X-gradient: {gradient["x"]}')
+        LOGGER.info(f'[{self.filename}] Y-gradient: {gradient["y"]}')
 
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
-    mask: np.array
-        Mask array to apply.
+        for i in range(image.shape[0]):
+            for j in range(image.shape[1]):
+                image[i, j] -= gradient["x"] * i
+                image[i, j] -= gradient["y"] * j
+        LOGGER.info(f"[{self.filename}] : X/Y tilt removed")
+        return image
 
-    Returns
-    -------
-    np.array
-        Numpy array of image but with any linear plane slant removed.
-    """
+    @staticmethod
+    def calc_diff(array: np.array) -> np.array:
+        """Calculate the difference of an array."""
+        return array[-1][1] - array[0][1]
 
-    # Get row height quantiles for the image.
-    row_quantiles, _ = row_col_quantiles(image, mask)
+    def calc_gradient(self, array: np.array, shape: int) -> np.array:
+        """Calculate the gradient of an array."""
+        return self.calc_diff(array) / shape
 
-    # Calculate median row height
-    row_medians = row_quantiles[:, 1]
-    # Calculate median row height
-    median_row_height = np.quantile(row_medians, 0.5)
-    LOGGER.info(f'[align_rows] median_row_height: {median_row_height}')
+    def get_threshold(self, image: np.array, **kwargs) -> float:
+        """Returns a threshold value separating the background and foreground of a 2D heightmap.
 
-    # Calculate the differences between the row medians and the median row height
-    row_median_diffs = row_medians - median_row_height
+        Parameters
+        ----------
+        image: np.array
+            Image to derive threshold from.
+        method: str
+            Method for deriving threshold options are 'otsu' (default), minimum, mean, yen and triangle
 
-    # Adjust the row medians accordingly
-    for i in range(image.shape[0]):
-        if np.isnan(row_median_diffs[i]):
-            logging.info(f'{i} row_median is nan! : {row_median_diffs[i]}')
-        image[i] -= row_median_diffs[i]
-    return image
+        Returns
+        -------
+        float
+            Threshold of image intensity for subsequent masking.
+        """
+        self.threshold = threshold(image, **kwargs)
+        LOGGER.info(f"[{self.filename}] : Threshold       : {self.threshold}")
 
+    def get_mask(self, image: np.array) -> None:
+        """Derive mask.
 
-def remove_x_y_tilt(image: np.array, mask: np.array = None) -> np.array:
-    """Returns the input image after removing any linear plane slant
+        Parameters
+        ----------
+        image: np.array
+            Image to derive mask for (typically after initial flattening).
+        threshold: float
+            Threshold above which pixels are masked.
 
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
-    mask: np.array
-        Mask array to apply.
+        Returns
+        -------
+        np.array
+            Array of booleans indicating whether a pixel is to be masked.
+        """
+        self.images["mask"] = get_mask(image, self.threshold, self.filename)
+        LOGGER.info(f'[{self.filename}] : Mask derived, values exceeding threshold : {self.images["mask"].sum()}')
 
-    Returns
-    -------
-    np.array
-        Numpy array of image but with any linear plane slant removed.
-    """
+    def average_background(self, image: np.array, mask: np.array = None) -> np.array:
+        """Zero the background
 
-    # Get the row and column quantiles of the data
-    row_quantiles, col_quantiles = row_col_quantiles(image, mask)
+        Parameters
+        ----------
+        image: np.array
+            Numpy array representing image.
+        mask: np.array
+            Mask of the array, should have the same dimensions as image.
 
-    # Calculate the x and y gradient from the left to the right
-    x_grad = calc_gradient(row_quantiles, row_quantiles.shape[0])
-    logging.info(f'[remove_x_y_tilt] x_grad: {x_grad}')
-    y_grad = calc_gradient(col_quantiles, col_quantiles.shape[0])
-    logging.info(f'[remove_x_y_tilt] y_grad: {y_grad}')
+        Returns
+        -------
+        np.array
+            Numpy array of image zero averaged.
+        """
+        quantiles = self.row_col_quantiles(image, mask)
+        LOGGER.info(f"[{self.filename}] : Zero averaging background")
+        return image - np.array(quantiles["rows"][:, 1], ndmin=2).T
 
-    # Add corrections to the data
-    for i in range(image.shape[0]):
-        for j in range(image.shape[1]):
-            image[i, j] -= x_grad * i
-            image[i, j] -= y_grad * j
-    LOGGER.info('[remove_x_y_tilt] Linear plane slant removed')
-    return image
+    def filter_image(
+        self,
+    ) -> None:
+        """Process a single image, filtering, finding grains and calculating their statistics.
 
+        Example
+        -------
 
-def calc_diff(array: np.array) -> np.array:
-    """Calculate the difference of an array.
+        from topostats.topotracing import Filter, process_scan
 
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
+        filter = Filter(image_path='minicircle.spm',
+                        channel='Height',
+                        amplify_level=1.0,
+                        threshold_method='otsu')
+        filter.filter_image()
+        """
+        self.extract_filename()
+        self.load_scan()
+        self.make_output_directory()
+        self.extract_channel()
+        self.extract_pixels()
+        self.extract_pixel_to_nm_scaling()
+        if self.amplify_level != 1.0:
+            self.amplify()
+        # Flatten images in two steps, could call flatte_image() method which combines align_rows() and remove_tilt()
+        # but lose access to intermediary image.
+        self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)
+        self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
 
-    Returns
-    -------
-    np.array
-    """
-    LOGGER.info('[calc_diff] Calculating difference in array.')
-    return array[-1][1] - array[0][1]
+        # Create Mask
+        self.get_threshold(self.images["initial_tilt_removal"], method=self.threshold_method)
+        self.get_mask(self.images["initial_tilt_removal"])
 
+        # Second pass filtering (with mask based on threshold)
+        self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], mask=self.images["mask"])
+        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], mask=self.images["mask"])
 
-def calc_gradient(array: np.array, shape: int) -> np.array:
-    """Calculate the gradient of an array.
-
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
-    shape: int
-        Shape of the array in terms of the number of rows, typically it will be array[0].
-
-    Returns
-    -------
-    np.array
-    """
-    LOGGER.info('[calc_gradient] Calculating gradient')
-    return calc_diff(array) / shape
-
-
-def average_background(image: np.array, mask: np.array = None) -> np.array:
-    """Zero the background based on the median.
-
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
-    mask: np.array
-        Mask of the array, should have the same dimensions as image.
-
-    Returns
-    -------
-    np.array
-        Numpy array of image zero averaged.
-    """
-    row_quantiles, _ = row_col_quantiles(image, mask)
-    LOGGER.info('[average_background] Zero averaging background')
-    return image - np.array(row_quantiles[:, 1], ndmin=2).T
+        # Average Background
+        self.images["zero_averaged_background"] = self.average_background(
+            self.images["masked_tilt_removal"], mask=self.images["mask"]
+        )

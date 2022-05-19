@@ -120,29 +120,20 @@ class GrainStats:
         for index, region in enumerate(region_properties):
 
             # Create directory for each grain's plots
-            output_grain = self.output_dir / f"grain_{index}"
+            output_grain = self.output_dir / self.img_name / f"grain_{index}"
             # Path.mkdir(output_grain, parents=True, exist_ok=True)
             output_grain.mkdir(parents=True, exist_ok=True)
 
             # Obtain and plot the cropped grain mask
             grain_mask = np.array(region.image)
-            plot_and_save(grain_mask, output_grain / "grainmask.png")
-            LOGGER.info(
-                f'[{self.img_name}] Grain {index} : cropped image saved : {str(output_grain / "grainmask.png")}'
-            )
+            plot_and_save(grain_mask, output_grain, "grainmask.png")
 
             # Obtain the cropped grain image
             minr, minc, maxr, maxc = region.bbox
             grain_image = self.data[minr:maxr, minc:maxc]
-            plot_and_save(grain_image, output_grain / "grain_image_raw.png")
-            LOGGER.info(
-                f'[{self.img_name}] Grain {index} : cropped image saved : {str(output_grain / "grain_image_raw.png")}'
-            )
+            plot_and_save(grain_image, output_grain, "grain_image_raw.png")
             grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
-            plot_and_save(grain_image, output_grain / "grain_image.png")
-            LOGGER.info(
-                f'[{self.img_name}] Grain {index} : cropped image saved : {str(output_grain / "grain_image.png")}'
-            )
+            plot_and_save(grain_image, output_grain, "grain_image.png")
 
             edges = self.calculate_edges(grain_mask)
             radius_stats = self.calculate_radius_stats(edges)
@@ -193,12 +184,12 @@ class GrainStats:
 
         return {"statistics": grainstats, "plot": ax}
 
-    def save_plot(self, img: Axes, title: str = None, filename: str = "15-labelled_image_bboxes.png") -> None:
-        """Save the image adding a title if specified."""
-        title = title if title is not None else "Labelled Image with Bounding Boxes"
-        plt.title(title)
-        plt.savefig(self.output_dir / filename)
-        plt.close()
+    # def save_plot(self, img: Axes, title: str = None, filename: str = "15-labelled_image_bboxes.png") -> None:
+    #     """Save the image adding a title if specified."""
+    #     title = title if title is not None else "Labelled Image with Bounding Boxes"
+    #     plt.title(title)
+    #     plt.savefig(self.output_dir / filename)
+    #     plt.close()
 
     @staticmethod
     def calculate_edges(grain_mask: np.ndarray):

@@ -1,42 +1,45 @@
-"""Run Topotracing at the command line."""
+"""Topotracing"""
 import argparse as arg
 from functools import partial
-import logging
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Union, Dict
-import warnings
-
 from tqdm import tqdm
 
-from topostats.filters import (
-    extract_img_name,
-    extract_channel,
-    extract_pixels,
-    extract_pixel_to_nm_scaling,
-    amplify,
-    align_rows,
-    remove_x_y_tilt,
-    average_background,
-)
-from topostats.grains import (
-    gaussian_filter,
-    tidy_border,
-    remove_objects,
-    calc_minimum_grain_size,
-    label_regions,
-    colour_regions,
-    region_properties,
-    get_bounding_boxes,
-    save_region_stats,
-)
+from topostats.filters import Filters
+from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import read_yaml, load_scan
+from topostats.io import read_yaml
+from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import plot_and_save
-from topostats.logs.logs import LOGGER_NAME
-from topostats.utils import convert_path, find_images, update_config, get_mask, get_threshold
+from topostats.thresholds import threshold
+from topostats.utils import convert_path, find_images, update_config
 
-LOGGER = logging.getLogger(LOGGER_NAME)
+LOGGER = setup_logger(LOGGER_NAME)
+
+PLOT_DICT = {
+    "pixels": {"filename": "01-raw_heightmap.png", "title": "Raw Height"},
+    "initial_align": {"filename": "02-initial_align_unmasked.png", "title": "Initial Alignment (Unmasked)"},
+    "initial_tilt_removal": {
+        "filename": "03-initial_tilt_removal_unmasked.png",
+        "title": "Initial Tilt Removal (Unmasked)",
+    },
+    "mask": {"filename": "04-binary_mask.png", "title": "Binary Mask"},
+    "masked_align": {"filename": "05-secondary_align_masked.png", "title": "Secondary Alignment (Masked)"},
+    "masked_tilt_removal": {
+        "filename": "06-secondary_tilt_removal_masked.png",
+        "title": "Secondary Tilt Removal (Masked)",
+    },
+    "zero_averaged_background": {"filename": "07-zero_average_background.png", "title": "Zero Average Background"},
+    "gaussian_filtered": {"filename": "08-gaussian_filtered.png", "title": "Gaussian Filtered"},
+    "mask_grains": {"filename": "09-mask_grains.png", "title": "Mask for Grains"},
+    "tidied_border": {"filename": "10-tidy_borders.png", "title": "Tidied Borders"},
+    "objects_removed": {"filename": "11-small_objects_removed.png", "title": "Small Objects Removed"},
+    "labelled_regions": {"filename": "12-labelled_regions.png", "title": "Labelled Regions"},
+    "coloured_regions": {"filename": "13-coloured_regions.png", "title": "Coloured Regions"},
+    "bounding_boxes": {"filename": "14-bounding_boxes.png", "title": "Bounding Boxes"},
+    "coloured_boxes": {"filename": "15-labelled_image_bboxes.png", "title": "Labelled Image with Bounding Boxes"},
+}
 
 
 def create_parser() -> arg.ArgumentParser:
@@ -51,9 +54,15 @@ def create_parser() -> arg.ArgumentParser:
         "-b", "--base_dir", dest="base_dir", type=str, required=False, help="Base directory to scan for images."
     )
     parser.add_argument(
+        "-f", "--file_ext", dest="file_ext", type=str, required=False, help="File extension to scan for."
+    )
+    parser.add_argument("--channel", dest="channel", type=str, required=False, help="Channel to extract.")
+    parser.add_argument(
         "-o", "--output_dir", dest="output_dir", type=str, required=False, help="Output directory to write results to."
     )
-    parser.add_argument("-f", "--file_ext", dest="file_ext", help="File extension to scan for")
+    parser.add_argument(
+        "-s", "--save_plots", dest="save_plots", type=bool, required=False, help="Whether to save plots."
+    )
     parser.add_argument(
         "-a",
         "--amplify_level",
@@ -62,16 +71,18 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Amplify signals by the given factor.",
     )
-    parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
     parser.add_argument(
-        "-w",
-        "--warnings",
-        dest="warnings",
-        type=str,
-        required=False,
-        help="Whether to ignore warnings (ignore (default); deprecation).",
+        "-t", "--threshold_method", dest="threshold_method", required=False, help="Method used for thresholding."
     )
+    parser.add_argument(
+        "--threshold_multiplier",
+        dest="threshold_multiplier",
+        required=False,
+        help="Factor to scale threshold during grain finding.",
+    )
+    parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
     parser.add_argument("-q", "--quiet", dest="quiet", type=bool, required=False, help="Toggle verbosity.")
+    parser.add_argument("-w", "--warnings", dest="quiet", type=str, required=False, help="Whether to ignore warnings.")
     return parser
 
 
@@ -79,9 +90,10 @@ def process_scan(
     image_path: Union[str, Path] = None,
     channel: str = "Height",
     amplify_level: float = 1.0,
-    gaussian_size: Union[int, float] = 2,
-    mode: str = "nearest",
+    threshold_method: str = "otsu",
     threshold_multiplier: Union[int, float] = 1.7,
+    gaussian_size: Union[int, float] = 2,
+    gaussian_mode: str = "nearest",
     background: float = 0.0,
     save_plots: bool = True,
     output_dir: Union[str, Path] = "output",
@@ -96,6 +108,8 @@ def process_scan(
         Channel to extract and process, default 'height'.
     amplify_level : float
         Level to amplify image prior to processing by.
+    threshold_method: str
+        Method for determining threshold to mask values, default is 'otsu'.
     gaussian_size : Union[int, float]
         Minimum grain size in nanometers (nm).
     mode : str
@@ -119,146 +133,66 @@ def process_scan(
 
     """
     LOGGER.info(f"Processing : {image_path}")
+    # Filter Image :
+    #
+    # The Filters class has a convenience method that runs the instantiated class in full.
+    filtered_image = Filters(image_path, channel, amplify_level, threshold_method, output_dir)
+    filtered_image.filter_image()
 
-    # Create output directory
-    img_name = extract_img_name(image_path)
-    output_dir = Path(output_dir) / f"{img_name}"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    LOGGER.info(f"Created output directory : {output_dir}")
-
-    # Load image, extract channel and pixel to nm scaling
-    image = load_scan(image_path)
-    LOGGER.info(f"[{img_name}] : Loaded image.")
-    extracted_channel = extract_channel(image, channel)
-    LOGGER.info(f"[{img_name}] : Extracted {channel}.")
-    pixels = extract_pixels(extracted_channel)
-    LOGGER.info(f"[{img_name}] : Pixels extracted.")
-    pixel_nm_scaling = extract_pixel_to_nm_scaling(extracted_channel)
-    LOGGER.info(f"[{img_name}] : Pixel to nanometre scaling extracted from image : {pixel_nm_scaling}")
-
-    # Amplify image
-    if amplify_level != 1.0:
-        pixels = amplify(pixels, amplify_level)
-        LOGGER.info(f"[{img_name}] : Image amplified by {amplify_level}.")
-
-    # First pass filtering (no mask)
-    initial_align = align_rows(pixels, mask=None)
-    LOGGER.info(f"[{img_name}] : Initial alignment (unmasked) complete.")
-    initial_tilt_removal = remove_x_y_tilt(initial_align, mask=None)
-    LOGGER.info(f"[{img_name}] : Initial tilt removal (unmasked) complete.")
-
-    # Create mask
-    threshold = get_threshold(initial_tilt_removal)
-    mask = get_mask(initial_tilt_removal, threshold)
-    LOGGER.info(f"[{img_name}] : Mask created.")
-
-    # Second pass filtering (with mask based on threshold)
-    second_align = align_rows(initial_tilt_removal, mask=mask)
-    LOGGER.info(f"[{img_name}] : Secondary alignent (masked) complete.")
-    second_tilt_removal = remove_x_y_tilt(second_align, mask=mask)
-    LOGGER.info(f"[{img_name}] : Secondary tilt removal (masked) complete.")
-
-    # Average background
-    zero_averaged_background = average_background(second_tilt_removal, mask=mask)
-    LOGGER.info(f"[{img_name}] : Background zero-averaged.")
-
-    # Get threshold
-    lower_threshold = get_threshold(zero_averaged_background) * threshold_multiplier
-
-    # Find grains
-    # Apply a gaussian filter (using pySPM derived pixel_nm_scaling)
-    gaussian_filtered = gaussian_filter(
-        zero_averaged_background, gaussian_size=gaussian_size, pixel_to_nm_scaling=pixel_nm_scaling, mode=mode
+    # Find Grains :
+    #
+    # The Grains class also has a convenience method that runs the instantiated class in full.
+    grains = Grains(
+        image=filtered_image.images["zero_averaged_background"],
+        filename=filtered_image.filename,
+        pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
+        threshold_method=threshold_method,
+        gaussian_size=gaussian_size,
+        gaussian_mode=gaussian_mode,
+        threshold_multiplier=threshold_multiplier,
+        background=background,
     )
-    LOGGER.info(
-        f"[{img_name}] : Gaussian filter applied (size : {gaussian_size}; : Pixel to Nanometer Scaling {pixel_nm_scaling}; mode : {mode})"
-    )
+    grains.find_grains()
 
-    # Create a boolean image
-    boolean_image_mask = get_mask(gaussian_filtered, threshold=lower_threshold)
-
-    # Tidy borders
-    tidied_borders = tidy_border(boolean_image_mask)
-    LOGGER.info(f"[{img_name}] : Borders tidied.")
-
-    # Get threshold for small objects, need to first label all regions
-    # Calculate minimum grain size in pixels
-    labelled_regions = label_regions(tidied_borders)
-    minimum_grain_size = calc_minimum_grain_size(labelled_regions, background=background)
-    LOGGER.info(f"[{img_name}] : Minimum grain size in pixels calculated : {minimum_grain_size}.")
-
-    # Remove objects
-    small_objects_removed = remove_objects(
-        tidied_borders, minimum_grain_size_pixels=minimum_grain_size, pixel_to_nm_scaling=pixel_nm_scaling
-    )
-    LOGGER.info(f"[{img_name}] : Small objects (< {minimum_grain_size} pixels) removed.")
-
-    # Label regions after cleaning
-    regions_labelled = label_regions(small_objects_removed, background=background)
-    LOGGER.info(f"[{img_name}] : Regions labelled.")
-
-    # Colour regions after cleaning
-    coloured_regions = colour_regions(regions_labelled)
-    LOGGER.info(f"[{img_name}] : Regions coloured.")
-
-    # Extract region properties after cleaning
-    image_region_properties = region_properties(regions_labelled)
-    LOGGER.info(f"[{img_name}] : Properties extracted for regions.")
-
-    # Derive bounding boxes and save statistics
-    # FIXME : This may well be redundant as bounding boxes are added by grainstats, which to keep?
-    bounding_boxes = get_bounding_boxes(image_region_properties)
-    LOGGER.info(f"[{img_name}] : Extracted bounding boxes")
-
-    # Calculate grain statistics
+    # Grain Statistics :
+    #
+    # Ditto for the GrainStats class.
     grainstats = GrainStats(
-        data=zero_averaged_background,
-        labelled_data=regions_labelled,
-        pixel_to_nanometre_scaling=pixel_nm_scaling,
-        img_name=img_name,
+        data=grains.images["gaussian_filtered"],
+        labelled_data=grains.images["labelled_regions"],
+        pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+        img_name=filtered_image.filename,
         output_dir=output_dir,
     )
     grain_statistics = grainstats.calculate_stats()
 
-    # Optionally save images of each stage of processing.
-    # Could perhaps improve to make plots either individual or a faceted single image.
-    # Also saving arrays to a dictionary and having an associated dictionary with the same keys and values containing
-    # filename and title would make this considerably less code.
+    # Optionally plot all stages
     if save_plots:
-        plot_and_save(pixels, output_dir / "01-raw_heightmap.png", title="Raw Height")
-        plot_and_save(initial_align, output_dir / "02-initial_align_unmasked.png", title="Initial Alignment (Unmasked)")
-        plot_and_save(
-            initial_tilt_removal,
-            output_dir / "03-initial_tilt_removal_unmasked.png",
-            title="Initial Tilt Removal (Unmasked)",
-        )
-        plot_and_save(mask, output_dir / "04-binary_mask.png", title="Binary Mask")
-        plot_and_save(second_align, output_dir / "05-secondary_align_masked.png", title="Secondary Alignment (Masked)")
-        plot_and_save(
-            second_tilt_removal,
-            output_dir / "06-secondary_tilt_removal_masked.png",
-            title="Secondary Tilt Removal (Masked)",
-        )
-        plot_and_save(
-            zero_averaged_background, output_dir / "07-zero_average_background.png", title="Zero Average Background"
-        )
-        plot_and_save(gaussian_filtered, output_dir / "08-gaussian_filtered.png", title="Gaussian Filtered")
-        plot_and_save(boolean_image_mask, output_dir / "09-boolean.png", title="Boolean Mask")
-        plot_and_save(tidied_borders, output_dir / "10-tidy_borders.png", title="Tidied Borders")
-        plot_and_save(small_objects_removed, output_dir / "11-small_objects_removed.png", title="Small Objects Removed")
-        plot_and_save(regions_labelled, output_dir / "12-labelled_regions.png", title="Labelled Regions")
-        plot_and_save(coloured_regions, output_dir / "13-coloured_regions.png", title="Coloured Regions")
-        plot_and_save(
-            coloured_regions,
-            output_dir / "14-bounding_boxes.png",
-            region_properties=image_region_properties,
-            title="Bounding Boxes",
-        )
-        grainstats.save_plot(
-            grain_statistics["plot"],
-            title="Labelled Image with Bounding Boxes",
-            filename="15-labelled_image_bboxes.png",
-        )
+        # Filtering stage
+        for plot_name, array in filtered_image.images.items():
+            if plot_name not in ["scan_raw", "extracted_channel"]:
+                PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
+                plot_and_save(array, **PLOT_DICT[plot_name])
+        # Grain stage - only if we have grains
+        if len(grains.region_properties) > 0:
+            for plot_name, array in grains.images.items():
+                PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
+                plot_and_save(array, **PLOT_DICT[plot_name])
+            # Make a plot of coloured regions with bounding boxes
+            plot_and_save(
+                grains.images["coloured_regions"],
+                Path(output_dir) / filtered_image.filename,
+                **PLOT_DICT["bounding_boxes"],
+                region_properties=grains.region_properties,
+            )
+            plot_and_save(
+                grains.images["labelled_regions"],
+                Path(output_dir) / filtered_image.filename,
+                **PLOT_DICT["coloured_boxes"],
+                region_properties=grains.region_properties,
+            )
+        # Grainstats
+        # FIXME : Include this
 
 
 def main():
@@ -276,54 +210,38 @@ def main():
     LOGGER.info(f'Looking for images with extension : {config["file_ext"]}')
     img_files = find_images(config["base_dir"])
     LOGGER.info(f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}')
-    LOGGER.debug(f"Configuration : {config}")
 
-    # Optionally ignore all warnings or just show deprecation warnings
-    if config["warnings"] == "ignore":
-        warnings.filterwarnings("ignore")
-        LOGGER.info("NB : All warnings have been turned off for this run.")
-    elif config["warnings"] == "deprecated":
-
-        def fxn():
-            warnings.warn("deprecated", DeprecationWarning)
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            fxn()
     if config["quiet"]:
         LOGGER.setLevel("ERROR")
-
     # For debugging (as Pool makes it hard to find things when they go wrong)
     # for x in img_files:
-    #     process_scan(image_path=x,
-    #                  amplify_level=config['amplify_level'],
-    #                  channel=config['channel'],
-    #                  gaussian_size=config['grains']['gaussian_size'],
-    #                  dx=config['grains']['dx'],
-    #                  mode=config['grains']['mode'],
-    #                  lower_threshold_otsu_multiplier=config['grains']['lower_threshold_otsu_multiplier'],
-    #                  minimum_grain_size=config['grains']['minimum_grain_size'],
-    #                  background=config['grains']['background'],
-    #                  save_plots=config['save_plots'],
-    #                  output_dir=config['output_dir'])
-
-    # Process all images found in parallel (constrainged by 'cores' option in config).
+    #     process_scan(
+    #         image_path=x,
+    #         channel=config["channel"],
+    #         amplify_level=config["amplify_level"],
+    #         threshold_method=config["threshold_method"],
+    #         threshold_multiplier=config["grains"]["threshold_multiplier"],
+    #         gaussian_size=config["grains"]["gaussian_size"],
+    #         gaussian_mode=config["grains"]["gaussian_mode"],
+    #         background=config["grains"]["background"],
+    #         output_dir=config["output_dir"],
+    #     )
     processing_function = partial(
         process_scan,
-        amplify_level=config["amplify_level"],
         channel=config["channel"],
-        gaussian_size=config["grains"]["gaussian_size"],
-        mode=config["grains"]["mode"],
+        amplify_level=config["amplify_level"],
+        threshold_method=config["threshold_method"],
         threshold_multiplier=config["grains"]["threshold_multiplier"],
+        gaussian_size=config["grains"]["gaussian_size"],
+        gaussian_mode=config["grains"]["gaussian_mode"],
         background=config["grains"]["background"],
-        save_plots=config["save_plots"],
         output_dir=config["output_dir"],
     )
 
     with Pool(processes=config["cores"]) as pool:
         with tqdm(
             total=len(img_files),
-            desc=f'Processing {len(img_files)} images from {config["base_dir"]}, results are under {config["output_dir"]}',
+            desc=f'Processing images from {config["base_dir"]}, results are under {config["output_dir"]}',
         ) as pbar:
             for _ in pool.imap_unordered(processing_function, img_files):
                 pbar.update()

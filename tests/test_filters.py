@@ -1,105 +1,182 @@
 """Tests of the filters module."""
+from pathlib import Path
 import numpy as np
+import pytest
+from pySPM.SPM import SPM_image
+from pySPM.Bruker import Bruker
 
-from topostats.filters import (amplify, row_col_quantiles, align_rows, remove_x_y_tilt, calc_diff, calc_gradient,
-                               average_background)
+from topostats.filters import Filters
+
+# pylint: disable=protected-access
 
 # Specify the absolute and relattive tolerance for floating point comparison
-TOLERANCE = {'atol': 1e-07, 'rtol': 1e-07}
+TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
+
+BASE_DIR = Path.cwd()
+RESOURCES = BASE_DIR / "tests" / "resources"
 
 
-def test_amplify(image_random: np.array) -> None:
-    """Test amplification filter."""
-    filtered = amplify(image_random, 1.5)
-    target = image_random * 1.5
-
-    np.testing.assert_array_equal(filtered, target)
-
-
-def test_row_col_quantiles_small_array_no_mask(small_array: np.array) -> None:
-    """Test generation of quantiles for rows and columns without masking."""
-    row_quantiles, col_quantiles = row_col_quantiles(small_array, mask=None)
-    expected_rows = np.quantile(small_array, [0.25, 0.5, 0.75], axis=1).T
-    expected_cols = np.quantile(small_array, [0.25, 0.5, 0.75], axis=0).T
-
-    np.testing.assert_array_equal(row_quantiles, expected_rows)
-    np.testing.assert_array_equal(col_quantiles, expected_cols)
+def test_load_image(test_filters: Filters) -> None:
+    """Test loading of image."""
+    filters = Filters(RESOURCES / "minicircle.spm", amplify_level=1.5)
+    filters.load_scan()
+    assert isinstance(test_filters.images["scan_raw"], Bruker)
 
 
-def test_row_col_quantiles_small_array_mask(small_array: np.array, small_mask: np.array) -> None:
-    """Test generation of quantiles for rows and columns."""
-    row_quantiles, col_quantiles = row_col_quantiles(small_array, mask=small_mask)
-    small_array_masked = np.ma.masked_array(small_array, mask=small_mask, fill_value=np.nan)
-    expected_rows = np.quantile(small_array_masked, [0.25, 0.5, 0.75], axis=1).T
-    expected_cols = np.quantile(small_array_masked, [0.25, 0.5, 0.75], axis=0).T
-
-    np.testing.assert_array_equal(row_quantiles, expected_rows)
-    np.testing.assert_array_equal(col_quantiles, expected_cols)
-
-    expected_rows = np.nanpercentile(small_array_masked, (25, 50, 75), axis=1).T
-    expected_cols = np.nanpercentile(small_array_masked, (25, 50, 75), axis=0).T
-    np.testing.assert_array_equal(row_quantiles, expected_rows)
-    np.testing.assert_array_equal(col_quantiles, expected_cols)
+def test_extract_filename(test_filters: Filters) -> None:
+    """Test extraction of filename."""
+    test_filters.extract_filename()
+    assert test_filters.filename == "minicircle"
 
 
-def test_row_col_quantiles_random_no_mask(image_random: np.array, image_random_row_quantiles: np.array,
-                                          image_random_col_quantiles: np.array) -> None:
-    """Test generation of quantiles for rows and columns.
-    """
-    row_quantiles, col_quantiles = row_col_quantiles(image_random, mask=None)
-
-    np.testing.assert_array_equal(row_quantiles, image_random_row_quantiles)
-    np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles)
+def test_make_output_directory(test_filters: Filters, tmpdir: Path) -> None:
+    """Test creation of output directory"""
+    test_filters.make_output_directory()
+    assert tmpdir.exists()
 
 
-def test_row_col_quantiles_random_with_mask(image_random: np.array, image_random_mask: np.array,
-                                            image_random_row_quantiles_masked: np.array,
-                                            image_random_col_quantiles_masked: np.array) -> None:
-    """Test generation of quantiles for rows and columns.
-    """
-    row_quantiles, col_quantiles = row_col_quantiles(image_random, mask=image_random_mask)
-    row_quantiles = np.ma.getdata(row_quantiles)
-    col_quantiles = np.ma.getdata(col_quantiles)
+# def test_load_image_that_does_not_exist() -> None:
+#     """Test logging and exceptions when file does not exist."""
+#     filters = Filters('nothing')
 
-    np.testing.assert_array_equal(row_quantiles.data, image_random_row_quantiles_masked)
-    np.testing.assert_array_equal(col_quantiles, image_random_col_quantiles_masked)
+#     assert True
 
 
-def test_align_rows(image_random: np.array, image_random_aligned_rows: np.array) -> None:
-    """Test aligning of rows by median height.
-    """
-    aligned_rows = align_rows(image_random, mask=None)
+def test_extract_channel(test_filters: Filters) -> None:
+    """Test extraction of channel."""
+    test_filters.extract_channel()
+    assert isinstance(test_filters.images["extracted_channel"], SPM_image)
 
+
+def test_extract_channel_exception(test_filters_random: Filters) -> None:
+    """Test extraction of channel exceptions when not an SPM image."""
+    test_filters_random.extracted_channel = test_filters_random.pixels
+    with pytest.raises(Exception):
+        assert isinstance(test_filters_random.images["pixels"], SPM_image)
+
+
+def test_extract_pixels(test_filters: Filters) -> None:
+    """Test extraction of channel."""
+    test_filters.extract_channel()
+    test_filters.extract_pixels()
+    assert isinstance(test_filters.images["pixels"], np.ndarray)
+    assert test_filters.images["pixels"].shape == (1024, 1024)
+
+
+def test_row_col_quantiles_no_mask(
+    test_filters_random: Filters, image_random_row_quantiles: np.array, image_random_col_quantiles: np.array
+) -> None:
+    """Test calculation of row and column quantiles without masking."""
+    quantiles = test_filters_random.row_col_quantiles(test_filters_random.pixels, mask=None)
+
+    assert isinstance(quantiles, dict)
+    assert list(quantiles.keys()) == ["rows", "cols"]
+    assert isinstance(quantiles["rows"], np.ndarray)
+    assert isinstance(quantiles["cols"], np.ndarray)
+    np.testing.assert_array_equal(quantiles["rows"], image_random_row_quantiles)
+    np.testing.assert_array_equal(quantiles["cols"], image_random_col_quantiles)
+
+
+def test_align_rows_no_mask(test_filters_random: Filters, image_random_aligned_rows: np.array) -> None:
+    """Test aligning of rows by median height."""
+    aligned_rows = test_filters_random.align_rows(test_filters_random.pixels, mask=None)
+
+    assert isinstance(aligned_rows, np.ndarray)
+    assert aligned_rows.shape == (1024, 1024)
     np.testing.assert_allclose(aligned_rows, image_random_aligned_rows, **TOLERANCE)
 
 
-def test_remove_x_y_tilt(image_random: np.array, image_random_remove_x_y_tilt: np.array) -> None:
-    """Test removal of linear plane slant."""
-    x_y_tilt_removed = remove_x_y_tilt(image_random, mask=None)
+def test_remove_tilt_no_mask(test_filters_random: Filters, image_random_remove_x_y_tilt: np.array) -> None:
+    """Test removal of x/y tilt."""
+    tilt_removed = test_filters_random.remove_tilt(test_filters_random.pixels, mask=None)
 
-    np.testing.assert_allclose(x_y_tilt_removed, image_random_remove_x_y_tilt, **TOLERANCE)
-
-
-def test_calc_diff(small_array: np.array) -> None:
-    """Test calculation of difference"""
-    diff = calc_diff(small_array)
-    expected = small_array[-1][1] - small_array[0][1]
-
-    np.testing.assert_array_equal(diff, expected)
+    assert isinstance(tilt_removed, np.ndarray)
+    assert tilt_removed.shape == (1024, 1024)
+    np.testing.assert_allclose(tilt_removed, image_random_remove_x_y_tilt, **TOLERANCE)
 
 
-def test_calc_gradient(small_array: np.array) -> None:
-    """Test calculation of gradient"""
-    gradient = calc_gradient(small_array, small_array.shape[0])
-    expected = (small_array[-1][1] - small_array[0][1]) / small_array.shape[0]
+def test_extract_medians(test_filters_random: Filters):
+    """Test extraction of medians"""
+    quantiles = test_filters_random.row_col_quantiles(test_filters_random.pixels, mask=None)
+    row_medians = test_filters_random._extract_medians(quantiles["rows"])
+    target = np.quantile(test_filters_random.pixels, 0.5, axis=1)
 
-    np.testing.assert_array_equal(gradient, expected)
+    np.testing.assert_equal(row_medians, target)
 
 
-def test_average_background(image_random: np.array, image_random_mask: np.array) -> None:
-    """Test averaging of background."""
-    background_averaged = average_background(image_random, image_random_mask)
-    row_quantiles, _ = row_col_quantiles(image_random, mask=image_random_mask)
-    target = image_random - np.array(row_quantiles[:, 1], ndmin=2).T
+def test_median_row_height(test_filters_random: Filters):
+    """Test calculation of median row height."""
+    quantiles = test_filters_random.row_col_quantiles(test_filters_random.pixels, mask=None)
+    row_medians = test_filters_random._extract_medians(quantiles["rows"])
+    median_row_height = test_filters_random._median_row_height(row_medians)
+    target = np.quantile(quantiles["rows"][:, 1], 0.5)
 
-    np.testing.assert_array_equal(target, background_averaged)
+    assert median_row_height == target
+
+
+def test_row_median_diffs(test_filters_random: Filters):
+    """Test calculation of median row differences."""
+    quantiles = test_filters_random.row_col_quantiles(test_filters_random.pixels, mask=None)
+    row_medians = test_filters_random._extract_medians(quantiles["rows"])
+    median_row_height = test_filters_random._median_row_height(row_medians)
+    row_median_diffs = test_filters_random._row_median_diffs(row_medians, median_row_height)
+    target = quantiles["rows"][:, 1] - np.quantile(quantiles["rows"][:, 1], 0.5)
+
+    np.testing.assert_equal(row_median_diffs, target)
+
+
+def test_amplify(test_filters_random: Filters) -> None:
+    """Test amplification filter of extracted pixels."""
+    target = test_filters_random.images["pixels"] * 1.0
+    test_filters_random.amplify()
+
+    np.testing.assert_array_equal(test_filters_random.images["pixels"], target)
+
+
+def test_calc_diff(test_filters_random: Filters, image_random: np.ndarray) -> None:
+    """Test calculation of difference in array."""
+    target = image_random[-1][1] - image_random[0][1]
+    calculated = test_filters_random.calc_diff(test_filters_random.pixels)
+    assert calculated == target
+
+
+def test_calc_gradient(test_filters_random: Filters, image_random: np.ndarray) -> None:
+    """Test calculation of gradient."""
+    target = (image_random[-1][1] - image_random[0][1]) / image_random.shape[0]
+    calculated = test_filters_random.calc_gradient(test_filters_random.pixels, test_filters_random.pixels.shape[0])
+    assert calculated == target
+
+
+def test_get_threshold(test_filters_random: float) -> None:
+    """Test calculation of threshold."""
+    test_filters_random.get_threshold(test_filters_random.pixels)
+    expected_threshold = 0.4980470463263117
+    assert test_filters_random.threshold == expected_threshold
+
+
+def test_get_mask(test_filters_random) -> None:
+    """Test derivation of mask"""
+    test_filters_random.get_threshold(test_filters_random.pixels)
+    test_filters_random.get_mask(test_filters_random.pixels)
+
+    assert isinstance(test_filters_random.images["mask"], np.ndarray)
+    assert test_filters_random.images["mask"].any()
+    assert test_filters_random.images["mask"].sum() == 526107
+
+
+def test_row_col_quantiles_with_mask(
+    test_filters_random_with_mask: Filters,
+    image_random_row_quantiles_masked: np.array,
+    image_random_col_quantiles_masked: np.array,
+) -> None:
+    """Test calculation of row and column quantiles without masking."""
+    quantiles = test_filters_random_with_mask.row_col_quantiles(
+        test_filters_random_with_mask.images["pixels"], mask=test_filters_random_with_mask.images["mask"]
+    )
+
+    assert isinstance(quantiles, dict)
+    assert list(quantiles.keys()) == ["rows", "cols"]
+    assert isinstance(quantiles["rows"], np.ndarray)
+    assert isinstance(quantiles["cols"], np.ndarray)
+    np.testing.assert_array_equal(quantiles["rows"], image_random_row_quantiles_masked)
+    np.testing.assert_array_equal(quantiles["cols"], image_random_col_quantiles_masked)
