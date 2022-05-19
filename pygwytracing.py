@@ -663,7 +663,7 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
         # select each channel fo the file in turn
         gwy.gwy_app_data_browser_select_data_field(data, i)
         # change the colour map for all channels (k) in the image:
-        palette = data.set_string_by_name("/" + str(i) + "/base/palette", "Nanoscope.txt")
+        palette = data.set_string_by_name("/" + str(i) + "/base/palette", savefile_zscalecolour)
         # Set the image display to fixed range and the colour scale for the images
         maximum_disp_value = data.set_int32_by_name("/" + str(i) + "/base/range-type", int(1))
         minimum_disp_value = data.set_double_by_name("/" + str(i) + "/base/min", float(minheightscale))
@@ -759,6 +759,8 @@ if __name__ == '__main__':
     print("\nImage Output options")
     saveTraceFigures_option = bool(int(config.get("ImageOutput", "saveTraceFigures_option")))
     print("Save trace figures option: " + str(saveTraceFigures_option))
+    saveCroppedFigures_option = bool(int(config.get("ImageOutput", "saveCroppedFigures_option")))
+    print("Save cropped figures option: " + str(saveCroppedFigures_option))
     savefilesScale_option = int(config.get("ImageOutput", "savefilesScale_option"))
     print("Save files scale option: " + str(savefilesScale_option))
     savefile_zscalecolour = str(config.get("ImageOutput", "savefile_zscalecolour"))
@@ -891,8 +893,11 @@ if __name__ == '__main__':
 
 
             # Save out cropped files as images with no scales to a subfolder
-            # savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
-
+            if(saveCroppedFigures_option):
+                print("Saving cropped figures")
+                savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            else: print("Not saving cropped figures")
+            
             # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)
 
