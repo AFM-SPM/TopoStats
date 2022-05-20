@@ -1173,8 +1173,8 @@ class curvatureStats(object):
 
         for mol_num, dna_num in enumerate(sorted(new_traces.contour_lengths.keys())):
             try:
-                if self.trace_object.mol_is_circular[dna_num] == False and 80 < self.trace_object.contour_lengths[
-                    dna_num] < 130 and self.trace_object.max_curvature[dna_num] < 2:
+                if new_traces.mol_is_circular[dna_num] == False and 80 < new_traces.contour_lengths[
+                    dna_num] < 130 and new_traces.max_curvature[dna_num] < 2:
                     for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(new_traces.curvature[dna_num]):
                         try:
                             curvature_dict['Molecule number'].append(mol_num)
