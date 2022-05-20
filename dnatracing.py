@@ -49,6 +49,7 @@ class dnaTrace(object):
         self.max_curvature = {}
         self.max_curvature_location = {}
         self.mean_curvature = {}
+        self.curvature_variance = {}
 
         self.number_of_traces = 0
         self.num_circular = 0
@@ -805,9 +806,11 @@ class dnaTrace(object):
             max_index = np.argmax(np.abs(self.curvature[dna_num][:, 2]))
             max_location = self.curvature[dna_num][max_index, 1] * self.pixel_size * 1e9
             mean_value = np.average(np.abs(self.curvature[dna_num][:, 2]))
+            variance = np.var(self.curvature[dna_num][:, 2])
             self.max_curvature[dna_num] = max_value
             self.max_curvature_location[dna_num] = max_location
             self.mean_curvature[dna_num] = mean_value
+            self.curvature_variance[dna_num] = variance
 
     def plotCurvature(self, dna_num):
 
@@ -1034,6 +1037,7 @@ class traceStats(object):
                 data_dict['Max Curvature'].append(self.trace_object.max_curvature[dna_num])
                 data_dict['Max Curvature Location'].append(self.trace_object.max_curvature_location[dna_num])
                 data_dict['Mean Curvature'].append(self.trace_object.mean_curvature[dna_num])
+                data_dict['Variance of Curvature'].append(self.trace_object.curvature_variance[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
                 data_dict['Image Name'] = [img_name]
@@ -1045,6 +1049,7 @@ class traceStats(object):
                 data_dict['Max Curvature'] = [self.trace_object.max_curvature[dna_num]]
                 data_dict['Max Curvature Location'] = [self.trace_object.max_curvature_location[dna_num]]
                 data_dict['Mean Curvature'] = [self.trace_object.mean_curvature[dna_num]]
+                data_dict['Variance of Curvature'] = [self.trace_object.curvature_variance[dna_num]]
         self.pd_dataframe = pd.DataFrame(data=data_dict)
 
     def updateTraceStats(self, new_traces):
@@ -1069,6 +1074,7 @@ class traceStats(object):
                 data_dict['Max Curvature'].append(new_traces.max_curvature[dna_num])
                 data_dict['Max Curvature Location'].append(new_traces.max_curvature_location[dna_num])
                 data_dict['Mean Curvature'].append(new_traces.mean_curvature[dna_num])
+                data_dict['Variance of Curvature'].append(new_traces.curvature_variance[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
                 data_dict['Image Name'] = [img_name]
@@ -1080,6 +1086,7 @@ class traceStats(object):
                 data_dict['Max Curvature'] = [new_traces.max_curvature[dna_num]]
                 data_dict['Max Curvature Location'] = [new_traces.max_curvature_location[dna_num]]
                 data_dict['Mean Curvature'] = [new_traces.mean_curvature[dna_num]]
+                data_dict['Variance of Curvature'] = [new_traces.curvature_variance[dna_num]]
 
         pd_new_traces_dframe = pd.DataFrame(data=data_dict)
 
