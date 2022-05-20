@@ -379,8 +379,6 @@ def minicircle_grainstats(
     tmpdir: Path,
 ) -> GrainStats:
     """GrainStats object."""
-    print("#####")
-    print(minicircle_extract_pixel_to_nm_scaling)
     return GrainStats(
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         labelled_data=minicircle_grain_labelled_post_removal.images["labelled_regions"],
