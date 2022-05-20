@@ -382,7 +382,7 @@ def minicircle_grainstats(
     print("#####")
     print(minicircle_extract_pixel_to_nm_scaling)
     return GrainStats(
-        data=minicircle_grain_gaussian_filter["gaussian_filtered"],
+        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         labelled_data=minicircle_grain_labelled_post_removal.images["labelled_regions"],
         pixel_to_nanometre_scaling=minicircle_extract_pixel_to_nm_scaling.pixel_to_nm_scaling,
         img_name=minicircle_filename.filename,
