@@ -1,12 +1,8 @@
-"""Find grains in images."""
-# pylint: disable=no-name-in-module
-# pylint: disable=invalid-name
-from pathlib import Path
+"""Find grains in an image."""
 import logging
-from typing import Dict, List, Union
-
+from pathlib import Path
+from typing import Union, List, Dict
 import numpy as np
-import pandas as pd
 
 from skimage.filters import gaussian
 from skimage.segmentation import clear_border
@@ -14,185 +10,189 @@ from skimage.morphology import remove_small_objects, label
 from skimage.measure import regionprops
 from skimage.color import label2rgb
 
-from topostats.utils import get_threshold, get_mask
+from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
+from topostats.utils import get_mask
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-def quadratic(x, a, b, c):
-    """Calculate the result of the quadratic equation."""
-    LOGGER.info("Calculating quadratic.")
-    return (a * x**2) + (b * x) + c
+class Grains:
+    """Find grains in an image."""
 
+    def __init__(
+        self,
+        image: np.array,
+        filename: str,
+        pixel_to_nm_scaling: float,
+        gaussian_size: float = 2,
+        gaussian_mode: str = "nearest",
+        threshold_method: str = "otsu",
+        threshold_multiplier: float = 1.7,
+        background: float = 0.0,
+        output_dir: Union[str, Path] = None,
+    ):
+        self.image = image
+        self.filename = filename
+        self.pixel_to_nm_scaling = pixel_to_nm_scaling
+        self.threshold_method = threshold_method
+        self.threshold_multiplier = threshold_multiplier
+        self.gaussian_size = gaussian_size
+        self.gaussian_mode = gaussian_mode
+        self.background = background
+        self.output_dir = output_dir
+        self.threshold = None
+        self.images = {
+            "gaussian_filtered": None,
+            "mask_grains": None,
+            "tidied_border": None,
+            "objects_removed": None,
+            "labelled_regions": None,
+            "coloured_regions": None,
+        }
+        self.minimum_grain_size = None
+        self.region_properties = None
+        self.bounding_boxes = None
+        self.grainstats = None
 
-def gaussian_filter(
-    image: np.array, pixel_to_nm_scaling: float, gaussian_size: float = 2, mode: str = "nearest", **kwargs
-) -> np.array:
-    """Apply Gaussian filter
+    def get_threshold(self, **kwargs) -> float:
+        """Returns a threshold value based on the stated method multiplied by the threshold multiplier."""
+        self.threshold = threshold(self.image, self.threshold_method, **kwargs) * self.threshold_multiplier
+        LOGGER.info(f"[{self.filename}] Threshold       : {self.threshold}")
 
-    Parameters
-    ----------
-    image : np.array
-        Numpy array of image.
-    gaussian_size : float
-        Gaussian blur size in nanometers (nm).
-    pixel_to_nm_scaling : float
-        Pixel to nanometer scale.
-    mode : str
-        Mode for filtering (default is 'nearest')
+    def gaussian_filter(self, **kwargs) -> np.array:
+        """Apply Gaussian filter"""
+        LOGGER.info(
+            f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (nm) : {self.gaussian_size})."
+        )
+        self.images["gaussian_filtered"] = gaussian(
+            self.image, sigma=(self.gaussian_size * self.pixel_to_nm_scaling), mode=self.gaussian_mode, **kwargs
+        )
 
-    Returns
-    -------
-    np.array
-        Numpy array of filtered image.
+    def get_mask(self):
+        """Create a boolean array of whether points are greater than the given threshold."""
+        self.images["mask_grains"] = get_mask(self.images["gaussian_filtered"], self.threshold, self.filename)
+        LOGGER.info(f"[{self.filename}] : Created boolean image")
 
-    Examples
-    --------
-    FIXME: Add docs.
-    """
-    LOGGER.info(f"Applying Gaussian filter (mode : {mode}; Gaussian blur (nm) : {gaussian_size}).")
-    return gaussian(image, sigma=(gaussian_size * pixel_to_nm_scaling), mode=mode, **kwargs)
+    def tidy_border(self, **kwargs) -> np.array:
+        """Remove grains touching the border
 
+        Parameters
+        ----------
+        image: np.array
+            Numpy array representing image.
 
-def tidy_border(image: np.array, **kwargs) -> np.array:
-    """Remove grains touching the border
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
+        Returns
+        -------
+        np.array
+            Numpy array of image with borders tidied.
+        """
+        LOGGER.info(f"[{self.filename}] : Tidying borders")
+        self.images["tidied_border"] = clear_border(self.images["mask_grains"], **kwargs)
 
-    Returns
-    -------
-    np.array
-        Numpy array of image with borders tidied.
-    """
-    LOGGER.info("Tidying borders")
-    return clear_border(np.copy(image), **kwargs)
+    def label_regions(self, image: np.array) -> np.array:
+        """Label regions.
 
+        This method is used twice, once prior to removal of small regions, and again afterwards, hence requiring and
+        argument of what image to label.
 
-def label_regions(image: np.array, background: float = 0.0, **kwargs) -> np.array:
-    """Label regions.
+        Parameters
+        ----------
+        image: np.array
+            Numpy array representing image.
 
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
-    background: float
+        Returns
+        -------
+        np.array
+            Numpy array of image with objects coloured.
+        """
+        LOGGER.info(f"[{self.filename}] : Labelling Regions")
+        self.images["labelled_regions"] = label(image, background=self.background)
 
-    Returns
-    -------
-    np.array
-        Numpy array of image with objects coloured.
-    """
-    LOGGER.info("Labelling Regions")
-    return label(image, background=background, **kwargs)
+    def calc_minimum_grain_size(self, image: np.array) -> float:
+        """Calculate the minimum grain size.
 
+        Very small objects are first removed via thresholding before calculating the lower extreme.
 
-def calc_minimum_grain_size(image: np.array, background: float) -> float:
-    """Calculate the minimum grain size.
+        Parameters
+        ----------
+        image : np.array
+            Numpy array of regions of interest after labelling.
 
-    Parameters
-    ----------
-    image : np.array
-        Numpy array of regions of interest after labelling.
-    background : float
+        Returns
+        -------
+        float
+            Threshold for minimum grain size.
+        """
+        self.get_region_properties()
+        grain_areas = np.array([grain.area for grain in self.region_properties])
+        grain_areas = grain_areas[grain_areas > threshold(grain_areas, method=self.threshold_method)]
+        self.minimum_grain_size = np.median(grain_areas) - (
+            1.5 * (np.quantile(grain_areas, 0.75) - np.quantile(grain_areas, 0.25))
+        )
 
-    Returns
-    -------
-    float
-        Threshold for minimum grain size.
-    """
-    grain_areas = np.array([grain.area for grain in region_properties(image)])
-    grain_areas = grain_areas[grain_areas > get_threshold(grain_areas)]
-    return np.median(grain_areas) - (1.5 * (np.quantile(grain_areas, 0.75) - np.quantile(grain_areas, 0.25)))
+    def remove_small_objects(self, **kwargs):
+        """Remove small objects."""
+        self.images["objects_removed"] = remove_small_objects(
+            self.images["tidied_border"], min_size=(self.minimum_grain_size * self.pixel_to_nm_scaling), **kwargs
+        )
+        LOGGER.info(
+            f"[{self.filename}] : Removed small objects (< {self.minimum_grain_size * self.pixel_to_nm_scaling})"
+        )
 
+    def colour_regions(self, **kwargs) -> np.array:
+        """Colour the regions.
 
-def remove_objects(image: np.array, minimum_grain_size_pixels: float, pixel_to_nm_scaling: float, **kwargs) -> np.array:
-    """Remove small objects
+        Parameters
+        ----------
+        image: np.array
+            Numpy array representing image.
 
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
-    minimum_grain_size_pixels: float
-        Minimum grain size in pixels.
-    pixel_to_nm_scaling: float
-        Pixel to nanometer scale.
-    Returns
-    -------
-    np.array
-        Numpy array of image with objects coloured.
-    """
-    LOGGER.info(f"Removing small objects (< {minimum_grain_size_pixels})")
-    return remove_small_objects(image, min_size=minimum_grain_size_pixels * pixel_to_nm_scaling, **kwargs)
+        Returns
+        -------
+        np.array
+            Numpy array of image with objects coloured.
+        """
+        self.images["coloured_regions"] = label2rgb(self.images["labelled_regions"], **kwargs)
+        LOGGER.info(f"[{self.filename}] : Coloured regions")
 
+    def get_region_properties(self, **kwargs) -> List:
+        """Extract the properties of each region.
 
-def colour_regions(image: np.array, **kwargs) -> np.array:
-    """Colour the regions.
+        Parameters
+        ----------
+        image: np.array
+            Numpy array representing image
 
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
+        Returns
+        -------
+        List
+            List of region property objects.
+        """
+        self.region_properties = regionprops(self.images["labelled_regions"], **kwargs)
+        LOGGER.info(f"[{self.filename}] : Region properties calculated")
 
-    Returns
-    -------
-    np.array
-        Numpy array of image with objects coloured.
-    """
-    LOGGER.info("Colouring regions")
-    return label2rgb(image, **kwargs)
+    def get_bounding_boxes(self) -> Dict:
+        """Derive a list of bounding boxes for each region from the derived region_properties
 
+        Returns
+        -------
+        dict
+            Dictionary of bounding boxes indexed by region area.
+        """
+        LOGGER.info(f"[{self.filename}] : Extracting bounding boxes")
+        self.bounding_boxes = {region.area: region.area_bbox for region in self.region_properties}
 
-def region_properties(image: np.array, **kwargs) -> List:
-    """Extract the properties of each region.
-
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image
-
-    Returns
-    -------
-    List
-        List of region property objects.
-    """
-    LOGGER.info("Extracting region properties.")
-    return regionprops(image, **kwargs)
-
-
-def get_bounding_boxes(region_prop: List) -> Dict:
-    """Derive a list of bounding boxes for each region.
-
-    Parameters
-    ----------
-    region_prop : skimage
-        Dictionary of region properties
-
-    Returns
-    -------
-    dict
-        Dictionary of bounding boxes indexed by region area.
-
-
-    Examples
-    --------
-    FIXME: Add docs.
-
-    """
-    LOGGER.info("Extracting bounding boxes")
-    return {region.area: region.area_bbox for region in region_prop}
-
-
-def save_region_stats(bounding_boxes: dict, output_dir: Union[str, Path]) -> None:
-    """Save the bounding box statistics.
-
-    Parameters
-    ----------
-    bounding_boxes: dict
-        Dictionary of bounding boxes
-    output_dir: Union[str, Path]
-        Where to save the statistics to as a CSV file called 'grainstats.csv'."""
-    grainstats = pd.DataFrame.from_dict(data=bounding_boxes, orient="index")
-    grainstats.to_csv(output_dir / "grainstats.csv", index=True)
+    def find_grains(self):
+        """Find grains."""
+        self.get_threshold()
+        self.gaussian_filter()
+        self.get_mask()
+        self.tidy_border()
+        self.label_regions(self.images["tidied_border"])
+        self.calc_minimum_grain_size(image=self.images["labelled_regions"])
+        self.remove_small_objects()
+        self.label_regions(self.images["objects_removed"])
+        self.get_region_properties()
+        self.colour_regions()
+        self.get_bounding_boxes()

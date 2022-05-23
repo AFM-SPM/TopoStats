@@ -25,10 +25,10 @@ def convert_path(path: Union[str, Path]) -> Path:
     Path
         pathlib Path
     """
-    return Path().cwd() if path == './' else Path(path)
+    return Path().cwd() if path == "./" else Path(path)
 
 
-def find_images(base_dir: Union[str, Path] = None, file_ext: str = '.spm') -> List:
+def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> List:
     """Scan the specified directory for images with the given file extension.
 
     Parameters
@@ -43,8 +43,8 @@ def find_images(base_dir: Union[str, Path] = None, file_ext: str = '.spm') -> Li
     List
         List of files found with the extension in the given directory.
     """
-    base_dir = Path('./') if base_dir is None else Path(base_dir)
-    return list(base_dir.glob('**/*' + file_ext))
+    base_dir = Path("./") if base_dir is None else Path(base_dir)
+    return list(base_dir.glob("**/*" + file_ext))
 
 
 def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
@@ -68,13 +68,13 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
         if arg_key in config_keys and arg_value is not None:
             original_value = config[arg_key]
             config[arg_key] = arg_value
-            LOGGER.info(f'Updated config config[{arg_key}] : {original_value} > {arg_value} ')
-    config['base_dir'] = convert_path(config['base_dir'])
-    config['output_dir'] = convert_path(config['output_dir'])
+            LOGGER.info(f"Updated config config[{arg_key}] : {original_value} > {arg_value} ")
+    config["base_dir"] = convert_path(config["base_dir"])
+    config["output_dir"] = convert_path(config["output_dir"])
     return config
 
 
-def get_mask(image: np.array, threshold: float) -> np.array:
+def get_mask(image: np.array, threshold: float, img_name: str = None) -> np.array:
     """Calculate a mask for pixels that exceed the threshold
 
     Parameters
@@ -83,33 +83,13 @@ def get_mask(image: np.array, threshold: float) -> np.array:
         Numpy array representing image.
     threshold: float
         Factor for defining threshold.
+    img_name: str
+        Name of image being processed
 
     Returns
     -------
     np.array
         Numpy array of image with objects coloured.
     """
-    LOGGER.info('[get_mask] Deriving mask.')
+    LOGGER.info(f"[{img_name}] Deriving mask.")
     return image > threshold
-
-
-def get_threshold(image: np.array) -> float:
-    """Returns a threshold value separating the background and foreground of a 2D heightmap.
-
-    Parameters
-    ----------
-    image: np.array
-        Numpy array representing image.
-
-    Returns
-    -------
-    float
-        Otsu threshold.
-
-    Notes
-    -----
-
-    The `Otsu method <https://en.wikipedia.org/wiki/Otsu%27s_method>`_ is used for threshold derivation.
-    """
-    LOGGER.info('[get_threshold] Calculating Otsu threshold.')
-    return threshold_otsu(image)
