@@ -29,7 +29,7 @@ is included in the directory `config/example.yml` under the `dev` branch and you
 `minicircle.spm` (found under `tests/resources/minicircle.spm`) with the following...
 
 ``` bash
-./run_topostats.py --config config/example.yaml
+./run_topostats --config config/example.yaml
 ```
 
 This version takes command line arguments, and you _have_ to include `--config path/to/valid/config.yaml` option. You
