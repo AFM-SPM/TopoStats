@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Topotracing"""
 import argparse as arg
 from asyncio.log import logger
@@ -12,6 +13,7 @@ from typing import Union, Dict
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+import numpy as np
 
 from topostats.filters import Filters
 from topostats.grains import Grains
@@ -20,9 +22,11 @@ from topostats.io import read_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import plot_and_save
 from topostats.thresholds import threshold
+from topostats.tracing.dnatracing import dnaTrace
 from topostats.utils import convert_path, find_images, update_config
 
 LOGGER = setup_logger(LOGGER_NAME)
+
 
 def create_parser() -> arg.ArgumentParser:
     """Create a parser for reading options."""
@@ -96,9 +100,7 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Factor to scale threshold during grain finding.",
     )
-    parser.add_argument(
-        "-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image."
-    )
+    parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
     parser.add_argument(
         "-q",
         "--quiet",
@@ -211,26 +213,62 @@ def process_scan(
 
     # Grainstats :
     #
-    # There are two layers to process those above the given threshold and those below, use dictionary comprehension
-    # to pass over these.
-    grainstats = {
-        direction: GrainStats(
-            data=grains.images["gaussian_filtered"],
-            labelled_data=grains.directions[direction]["labelled_regions_02"],
-            pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
-            direction=f"{direction}",
-            base_output_dir=output_dir / filtered_image.filename / "grainstats",
-        ).calculate_stats()
-        for direction in grains.directions
-    }
-    # If there are both upper and lower grainstats, then join them
-    if "lower" in grainstats.keys() and "upper" in grainstats.keys():
-        grainstats["lower"]["statistics"]["threshold"] = "lower"
-        grainstats["upper"]["statistics"]["threshold"] = "upper"
-        grainstats_df = pd.concat(
-            [grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]]
-        )
-        grainstats_df.to_csv(output_dir / filtered_image.filename / "grainstats.csv")
+    # Ditto for the GrainStats class.
+    grainstats = GrainStats(
+        data=grains.images["gaussian_filtered"],
+        labelled_data=grains.images["labelled_regions"],
+        pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+        img_name=filtered_image.filename,
+        output_dir=output_dir,
+    )
+    grain_statistics = grainstats.calculate_stats()
+
+    # Run dnatracing
+    # np.savetxt(Path("/home/neil/tmp/TopoStats/TOPOSTATS_PIXELS.csv"), filtered_image.images["pixels"], delimiter=",")
+    # np.savetxt(Path("/home/neil/tmp/TopoStats/TOPOSTATS_GRAINS.csv"), grains.images["labelled_regions"], delimiter=",")
+    # np.savetxt(
+    #     Path("/home/neil/tmp/TopoStats/TOPOSTATS_GAUSSIAN_FILTERED.csv"),
+    #     grains.images["gaussian_filtered"],
+    #     delimiter=",",
+    # )
+    print(f"FROM run_topostats : {grains.images['labelled_regions']}")
+    #    print(f"FROM run_topostats : {grains.images['labelled_regions'].tolist()}")
+    dna_traces = dnaTrace(
+        full_image_data=grains.images["gaussian_filtered"].T,
+        grains=grains.images["labelled_regions"],
+        afm_image_name=filtered_image.filename,
+        pixel_size=filtered_image.pixel_to_nm_scaling,
+        number_of_columns=grains.images["labelled_regions"].shape[0],
+        number_of_rows=grains.images["labelled_regions"].shape[1],
+    )
+
+    # Optionally plot all stages
+    if save_plots:
+        # Filtering stage
+        for plot_name, array in filtered_image.images.items():
+            if plot_name not in ["scan_raw", "extracted_channel"]:
+                PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
+                plot_and_save(array, **PLOT_DICT[plot_name])
+        # Grain stage - only if we have grains
+        if len(grains.region_properties) > 0:
+            for plot_name, array in grains.images.items():
+                PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
+                plot_and_save(array, **PLOT_DICT[plot_name])
+            # Make a plot of coloured regions with bounding boxes
+            plot_and_save(
+                grains.images["coloured_regions"],
+                Path(output_dir) / filtered_image.filename,
+                **PLOT_DICT["bounding_boxes"],
+                region_properties=grains.region_properties,
+            )
+            plot_and_save(
+                grains.images["labelled_regions"],
+                Path(output_dir) / filtered_image.filename,
+                **PLOT_DICT["coloured_boxes"],
+                region_properties=grains.region_properties,
+            )
+        # Grainstats
+        # FIXME : Include this
 
 
 def main():
@@ -247,9 +285,7 @@ def main():
     LOGGER.info(f'Output directory                  : {config["output_dir"]}')
     LOGGER.info(f'Looking for images with extension : {config["file_ext"]}')
     img_files = find_images(config["base_dir"])
-    LOGGER.info(
-        f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}'
-    )
+    LOGGER.info(f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}')
 
     if config["quiet"]:
         LOGGER.setLevel("ERROR")
