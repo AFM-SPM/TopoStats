@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Topotracing"""
 import argparse as arg
 from functools import partial
@@ -5,6 +6,7 @@ from multiprocessing import Pool
 from pathlib import Path
 from typing import Union, Dict
 from tqdm import tqdm
+import numpy as np
 
 from topostats.filters import Filters
 from topostats.grains import Grains
@@ -13,6 +15,7 @@ from topostats.io import read_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import plot_and_save
 from topostats.thresholds import threshold
+from topostats.tracing.dnatracing import dnaTrace
 from topostats.utils import convert_path, find_images, update_config
 
 LOGGER = setup_logger(LOGGER_NAME)
@@ -165,6 +168,25 @@ def process_scan(
         output_dir=output_dir,
     )
     grain_statistics = grainstats.calculate_stats()
+
+    # Run dnatracing
+    # np.savetxt(Path("/home/neil/tmp/TopoStats/TOPOSTATS_PIXELS.csv"), filtered_image.images["pixels"], delimiter=",")
+    # np.savetxt(Path("/home/neil/tmp/TopoStats/TOPOSTATS_GRAINS.csv"), grains.images["labelled_regions"], delimiter=",")
+    # np.savetxt(
+    #     Path("/home/neil/tmp/TopoStats/TOPOSTATS_GAUSSIAN_FILTERED.csv"),
+    #     grains.images["gaussian_filtered"],
+    #     delimiter=",",
+    # )
+    print(f"FROM run_topostats : {grains.images['labelled_regions']}")
+    #    print(f"FROM run_topostats : {grains.images['labelled_regions'].tolist()}")
+    dna_traces = dnaTrace(
+        full_image_data=grains.images["gaussian_filtered"].T,
+        grains=grains.images["labelled_regions"],
+        afm_image_name=filtered_image.filename,
+        pixel_size=filtered_image.pixel_to_nm_scaling,
+        number_of_columns=grains.images["labelled_regions"].shape[0],
+        number_of_rows=grains.images["labelled_regions"].shape[1],
+    )
 
     # Optionally plot all stages
     if save_plots:
