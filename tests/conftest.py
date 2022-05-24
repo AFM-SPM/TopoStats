@@ -393,6 +393,6 @@ def minicircle_grainstats(
 # These are date specific as we expect statistics to change as the underlying methods used to calculate them
 # are tweaked.
 @pytest.fixture
-def minicircle_grainstats_20220517() -> pd.DataFrame:
+def minicircle_grainstats_20220524() -> pd.DataFrame:
     """Statistics for minicircle for comparison."""
-    return pd.read_csv(RESOURCES / "minicircle_grainstats_20220517.csv", index_col=0)
+    return pd.read_csv(RESOURCES / "minicircle_grainstats_20220524.csv", index_col=0)

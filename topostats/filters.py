@@ -170,13 +170,13 @@ class Filters:
         quantiles.
         """
         if mask is not None:
-            image = np.ma.masked_array(image, mask=mask, fill_value=np.nan)
+            image = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
             LOGGER.info(f"[{self.filename}] : Masking enabled")
         else:
             LOGGER.info(f"[{self.filename}] : Masking disabled")
         quantiles = {}
-        quantiles["rows"] = np.quantile(image, [0.25, 0.5, 0.75], axis=1).T
-        quantiles["cols"] = np.quantile(image, [0.25, 0.5, 0.75], axis=0).T
+        quantiles["rows"] = np.nanquantile(image, [0.25, 0.5, 0.75], axis=1).T
+        quantiles["cols"] = np.nanquantile(image, [0.25, 0.5, 0.75], axis=0).T
         LOGGER.info(f"[{self.filename}] : Row and column quantiles calculated.")
         return quantiles
 
