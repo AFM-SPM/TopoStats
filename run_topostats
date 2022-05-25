@@ -170,15 +170,6 @@ def process_scan(
     grain_statistics = grainstats.calculate_stats()
 
     # Run dnatracing
-    # np.savetxt(Path("/home/neil/tmp/TopoStats/TOPOSTATS_PIXELS.csv"), filtered_image.images["pixels"], delimiter=",")
-    # np.savetxt(Path("/home/neil/tmp/TopoStats/TOPOSTATS_GRAINS.csv"), grains.images["labelled_regions"], delimiter=",")
-    # np.savetxt(
-    #     Path("/home/neil/tmp/TopoStats/TOPOSTATS_GAUSSIAN_FILTERED.csv"),
-    #     grains.images["gaussian_filtered"],
-    #     delimiter=",",
-    # )
-    print(f"FROM run_topostats : {grains.images['labelled_regions']}")
-    #    print(f"FROM run_topostats : {grains.images['labelled_regions'].tolist()}")
     dna_traces = dnaTrace(
         full_image_data=grains.images["gaussian_filtered"].T,
         grains=grains.images["labelled_regions"],
@@ -226,10 +217,10 @@ def main():
     config = read_yaml(args.config_file)
     config = update_config(config, args)
 
-    LOGGER.info(f"Configuration file loaded from    : {args.config_file}")
-    LOGGER.info(f'Scanning for images in            : {config["base_dir"]}')
-    LOGGER.info(f'Output directory                  : {config["output_dir"]}')
-    LOGGER.info(f'Looking for images with extension : {config["file_ext"]}')
+    LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
+    LOGGER.info(f'Scanning for images in              : {config["base_dir"]}')
+    LOGGER.info(f'Output directory                    : {config["output_dir"]}')
+    LOGGER.info(f'Looking for images with extension   : {config["file_ext"]}')
     img_files = find_images(config["base_dir"])
     LOGGER.info(f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}')
 
