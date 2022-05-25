@@ -1,7 +1,9 @@
 """Perform DNA Tracing"""
 import logging
+from pathlib import Path
 import math
 import os
+from typing import Union
 import warnings
 
 import numpy as np
@@ -524,19 +526,23 @@ class dnaTrace(object):
         plt.show()
         plt.close()
 
-    def saveTraceFigures(self, filename_with_ext, channel_name, vmaxval, vminval, directory_name=None):
+    # def saveTraceFigures(self, filename_with_ext, channel_name, vmaxval, vminval, directory_name=None):
+    def saveTraceFigures(
+        self, filename: Union[str, Path], channel_name: str, vmaxval, vminval, output_dir: Union[str, Path] = None
+    ):
 
-        if directory_name:
-            filename_with_ext = self._checkForSaveDirectory(filename_with_ext, directory_name)
+        # if directory_name:
+        #     filename_with_ext = self._checkForSaveDirectory(filename_with_ext, directory_name)
 
-        save_file = filename_with_ext[:-4]
+        # save_file = filename_with_ext[:-4]
 
         # vmaxval = 20e-9
         # vminval = -10e-9
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
-        plt.savefig("%s_%s_originalImage.png" % (save_file, channel_name))
+        # plt.savefig("%s_%s_originalImage.png" % (save_file, channel_name))
+        plt.savefig(output_dir / filename / f"{channel_name}_original.png")
         plt.close()
 
         # plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
@@ -575,7 +581,9 @@ class dnaTrace(object):
         plt.colorbar()
         for dna_num in sorted(self.splined_traces.keys()):
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color="c", linewidth=1.0)
-        plt.savefig("%s_%s_splinedtrace.png" % (save_file, channel_name))
+        # plt.savefig("%s_%s_splinedtrace.png" % (save_file, channel_name))
+        plt.savefig(output_dir / filename / f"{channel_name}_splinedtrace.png")
+        LOGGER.info(f"Splined Trace image saved to : {str(output_dir / filename / f'{channel_name}_splinedtrace.png')}")
         plt.close()
 
         """
@@ -601,16 +609,22 @@ class dnaTrace(object):
                 markersize=0.5,
                 color="c",
             )
-        plt.savefig("%s_%s_disorderedtrace.png" % (save_file, channel_name))
+        # plt.savefig("%s_%s_disorderedtrace.png" % (save_file, channel_name))
+        plt.savefig(output_dir / filename / f"{channel_name}_disordered_trace.png")
         plt.close()
+        LOGGER.info(
+            f"Disordered trace image saved to : {str(output_dir / filename / f'{channel_name}_disordered_trace.png')}"
+        )
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.grains.keys()):
             grain_plt = np.argwhere(self.grains[dna_num] == 1)
             plt.plot(grain_plt[:, 0], grain_plt[:, 1], "o", markersize=2, color="c")
-        plt.savefig("%s_%s_grains.png" % (save_file, channel_name))
+        # plt.savefig("%s_%s_grains.png" % (save_file, channel_name))
+        plt.savefig(output_dir / filename / f"{channel_name}_grains.png")
         plt.close()
+        LOGGER.info(f"Grains image saved to : {str(output_dir / filename / f'{channel_name}_grains.png')}")
 
     # FIXME : Replace with Path() (.mkdir(parent=True, exists=True) negate need to handle errors.)
     def _checkForSaveDirectory(self, filename, new_directory_name):

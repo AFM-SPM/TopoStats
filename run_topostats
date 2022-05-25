@@ -232,7 +232,7 @@ def process_scan(
         number_of_columns=grains.images["labelled_regions"].shape[0],
         number_of_rows=grains.images["labelled_regions"].shape[1],
     )
-
+    # dna_traces.updateTraceStats()
     # Optionally plot all stages
     if save_plots:
         # Filtering stage
@@ -260,6 +260,13 @@ def process_scan(
             )
         # Grainstats
         # FIXME : Include this
+        dna_traces.saveTraceFigures(
+            filename=filtered_image.filename,
+            channel_name=channel,
+            minheightscale=-0e-9,
+            maxheightscale=3e-9,
+            directory_name=Path(output_dir) / filtered_image.filename,
+        )
 
 
 def main():
