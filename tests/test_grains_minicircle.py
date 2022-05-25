@@ -14,7 +14,7 @@ TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
 def test_threshold(minicircle_grain_threshold: Grains) -> None:
     """Test threshold calculation"""
     assert isinstance(minicircle_grain_threshold.threshold, float)
-    assert minicircle_grain_threshold.threshold == 1.7005720647153635
+    assert minicircle_grain_threshold.threshold == 1.7571747098841917
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
@@ -22,7 +22,7 @@ def test_gaussian_filter_minicircle(minicircle_grain_gaussian_filter: Grains, tm
     """Test Gaussian filter."""
     assert isinstance(minicircle_grain_gaussian_filter.images["gaussian_filtered"], np.ndarray)
     assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].shape == (1024, 1024)
-    assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].sum() == 134302.64285896524
+    assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].sum() == 169373.26937961997
     fig, _ = plot_and_save(
         minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         tmpdir,
@@ -37,7 +37,7 @@ def test_mask_minicircle(minicircle_grain_mask: np.array, tmpdir) -> None:
     """Test creation of boolean array for clearing borders."""
     assert isinstance(minicircle_grain_mask.images["mask_grains"], np.ndarray)
     assert minicircle_grain_mask.images["mask_grains"].shape == (1024, 1024)
-    assert minicircle_grain_mask.images["mask_grains"].sum() == 53197
+    assert minicircle_grain_mask.images["mask_grains"].sum() == 52659
     fig, _ = plot_and_save(minicircle_grain_mask.images["mask_grains"], tmpdir, "09-boolean.png", title="Boolean Mask")
     return fig
 
@@ -47,7 +47,7 @@ def test_clear_border(minicircle_grain_clear_border: np.array, tmpdir) -> None:
     """Test creation of boolean array for clearing borders."""
     assert isinstance(minicircle_grain_clear_border.images["tidied_border"], np.ndarray)
     assert minicircle_grain_clear_border.images["tidied_border"].shape == (1024, 1024)
-    assert minicircle_grain_clear_border.images["tidied_border"].sum() == 49195
+    assert minicircle_grain_clear_border.images["tidied_border"].sum() == 48686
     fig, _ = plot_and_save(
         minicircle_grain_clear_border.images["tidied_border"], tmpdir, "10-clear_border.png", title="Clear Borders"
     )
@@ -57,7 +57,7 @@ def test_clear_border(minicircle_grain_clear_border: np.array, tmpdir) -> None:
 def test_calc_minimum_grain_size_pixels(minicircle_minimum_grain_size) -> None:
     """Test calculation of minimum grain size in pixels."""
     assert isinstance(minicircle_minimum_grain_size.minimum_grain_size, float)
-    assert minicircle_minimum_grain_size.minimum_grain_size == 1576.25
+    assert minicircle_minimum_grain_size.minimum_grain_size == 1555.125
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
@@ -65,7 +65,7 @@ def test_remove_small_objects(minicircle_small_objects_removed: np.array, tmpdir
     """Test removal of small objects."""
     assert isinstance(minicircle_small_objects_removed.images["objects_removed"], np.ndarray)
     assert minicircle_small_objects_removed.images["objects_removed"].shape == (1024, 1024)
-    assert minicircle_small_objects_removed.images["objects_removed"].sum() == 40831
+    assert minicircle_small_objects_removed.images["objects_removed"].sum() == 40559
     fig, _ = plot_and_save(
         minicircle_small_objects_removed.images["objects_removed"],
         tmpdir,
@@ -80,7 +80,7 @@ def test_label_regions(minicircle_grain_labelled_post_removal: np.array, tmpdir)
     """Test removal of small objects."""
     assert isinstance(minicircle_grain_labelled_post_removal.images["labelled_regions"], np.ndarray)
     assert minicircle_grain_labelled_post_removal.images["labelled_regions"].shape == (1024, 1024)
-    assert minicircle_grain_labelled_post_removal.images["labelled_regions"].sum() == 467368
+    assert minicircle_grain_labelled_post_removal.images["labelled_regions"].sum() == 465501
     fig, _ = plot_and_save(
         minicircle_grain_labelled_post_removal.images["labelled_regions"],
         tmpdir,
@@ -103,7 +103,7 @@ def test_colour_regions(minicircle_grain_coloured: np.array, tmpdir) -> None:
     """Test removal of small objects."""
     assert isinstance(minicircle_grain_coloured.images["coloured_regions"], np.ndarray)
     assert minicircle_grain_coloured.images["coloured_regions"].shape == (1024, 1024, 3)
-    assert minicircle_grain_coloured.images["coloured_regions"].sum() == 59558.17100000003
+    assert minicircle_grain_coloured.images["coloured_regions"].sum() == 59162.239
     fig, _ = plot_and_save(
         minicircle_grain_coloured.images["coloured_regions"],
         tmpdir,

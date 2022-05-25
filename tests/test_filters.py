@@ -63,18 +63,22 @@ def test_extract_pixels(test_filters: Filters) -> None:
     assert test_filters.images["pixels"].shape == (1024, 1024)
 
 
-def test_row_col_quantiles_no_mask(
-    test_filters_random: Filters, image_random_row_quantiles: np.array, image_random_col_quantiles: np.array
+def test_row_col_medians_no_mask(
+    test_filters_random: Filters, image_random_row_medians: np.array, image_random_col_medians: np.array
 ) -> None:
-    """Test calculation of row and column quantiles without masking."""
-    quantiles = test_filters_random.row_col_quantiles(test_filters_random.pixels, mask=None)
+    """Test calculation of row and column medians without masking."""
+    medians = test_filters_random.row_col_medians(test_filters_random.pixels, mask=None)
 
-    assert isinstance(quantiles, dict)
-    assert list(quantiles.keys()) == ["rows", "cols"]
-    assert isinstance(quantiles["rows"], np.ndarray)
-    assert isinstance(quantiles["cols"], np.ndarray)
-    np.testing.assert_array_equal(quantiles["rows"], image_random_row_quantiles)
-    np.testing.assert_array_equal(quantiles["cols"], image_random_col_quantiles)
+    assert isinstance(medians, dict)
+    assert list(medians.keys()) == ["rows", "cols"]
+    assert isinstance(medians["rows"], np.ndarray)
+    assert isinstance(medians["cols"], np.ndarray)
+
+    np.savetxt('./tests/resources/image_random_row_medians.csv', medians["rows"], delimiter=',')
+    np.savetxt('./tests/resources/image_random_col_medians.csv', medians["cols"], delimiter=',')
+
+    np.testing.assert_array_equal(medians["rows"], image_random_row_medians)
+    np.testing.assert_array_equal(medians["cols"], image_random_col_medians)
 
 
 def test_align_rows_no_mask(test_filters_random: Filters, image_random_aligned_rows: np.array) -> None:
@@ -95,32 +99,32 @@ def test_remove_tilt_no_mask(test_filters_random: Filters, image_random_remove_x
     np.testing.assert_allclose(tilt_removed, image_random_remove_x_y_tilt, **TOLERANCE)
 
 
-def test_extract_medians(test_filters_random: Filters):
-    """Test extraction of medians"""
-    quantiles = test_filters_random.row_col_quantiles(test_filters_random.pixels, mask=None)
-    row_medians = test_filters_random._extract_medians(quantiles["rows"])
-    target = np.quantile(test_filters_random.pixels, 0.5, axis=1)
+# def test_extract_medians(test_filters_random: Filters):
+#     """Test extraction of medians"""
+#     quantiles = test_filters_random.row_col_quantiles(test_filters_random.pixels, mask=None)
+#     row_medians = test_filters_random._extract_medians(quantiles["rows"])
+#     target = np.quantile(test_filters_random.pixels, 0.5, axis=1)
 
-    np.testing.assert_equal(row_medians, target)
+#     np.testing.assert_equal(row_medians, target)
 
 
 def test_median_row_height(test_filters_random: Filters):
     """Test calculation of median row height."""
-    quantiles = test_filters_random.row_col_quantiles(test_filters_random.pixels, mask=None)
-    row_medians = test_filters_random._extract_medians(quantiles["rows"])
+    medians = test_filters_random.row_col_medians(test_filters_random.pixels, mask=None)
+    row_medians = medians["rows"]
     median_row_height = test_filters_random._median_row_height(row_medians)
-    target = np.quantile(quantiles["rows"][:, 1], 0.5)
+    target = np.nanmedian(medians["rows"])
 
     assert median_row_height == target
 
 
 def test_row_median_diffs(test_filters_random: Filters):
     """Test calculation of median row differences."""
-    quantiles = test_filters_random.row_col_quantiles(test_filters_random.pixels, mask=None)
-    row_medians = test_filters_random._extract_medians(quantiles["rows"])
+    medians = test_filters_random.row_col_medians(test_filters_random.pixels, mask=None)
+    row_medians = medians["rows"]
     median_row_height = test_filters_random._median_row_height(row_medians)
     row_median_diffs = test_filters_random._row_median_diffs(row_medians, median_row_height)
-    target = quantiles["rows"][:, 1] - np.quantile(quantiles["rows"][:, 1], 0.5)
+    target = medians["rows"] - np.nanmedian(medians["rows"])
 
     np.testing.assert_equal(row_median_diffs, target)
 
@@ -136,7 +140,9 @@ def test_amplify(test_filters_random: Filters) -> None:
 def test_calc_diff(test_filters_random: Filters, image_random: np.ndarray) -> None:
     """Test calculation of difference in array."""
     target = image_random[-1][1] - image_random[0][1]
+    print(f'TARGET: {target}')
     calculated = test_filters_random.calc_diff(test_filters_random.pixels)
+    print(f'CALCULATED: {calculated}')
     assert calculated == target
 
 
@@ -164,19 +170,22 @@ def test_get_mask(test_filters_random) -> None:
     assert test_filters_random.images["mask"].sum() == 526107
 
 
-def test_row_col_quantiles_with_mask(
+def test_row_col_medians_with_mask(
     test_filters_random_with_mask: Filters,
-    image_random_row_quantiles_masked: np.array,
-    image_random_col_quantiles_masked: np.array,
+    image_random_row_medians_masked: np.array,
+    image_random_col_medians_masked: np.array,
 ) -> None:
-    """Test calculation of row and column quantiles without masking."""
-    quantiles = test_filters_random_with_mask.row_col_quantiles(
+    """Test calculation of row and column medians without masking."""
+    medians = test_filters_random_with_mask.row_col_medians(
         test_filters_random_with_mask.images["pixels"], mask=test_filters_random_with_mask.images["mask"]
     )
 
-    assert isinstance(quantiles, dict)
-    assert list(quantiles.keys()) == ["rows", "cols"]
-    assert isinstance(quantiles["rows"], np.ndarray)
-    assert isinstance(quantiles["cols"], np.ndarray)
-    np.testing.assert_array_equal(quantiles["rows"], image_random_row_quantiles_masked)
-    np.testing.assert_array_equal(quantiles["cols"], image_random_col_quantiles_masked)
+    # np.savetxt('./tests/resources/image_random_row_medians_masked.csv', medians["rows"], delimiter=',')
+    # np.savetxt('./tests/resources/image_random_col_medians_masked.csv', medians["cols"], delimiter=',')
+
+    assert isinstance(medians, dict)
+    assert list(medians.keys()) == ["rows", "cols"]
+    assert isinstance(medians["rows"], np.ndarray)
+    assert isinstance(medians["cols"], np.ndarray)
+    np.testing.assert_array_equal(medians["rows"], image_random_row_medians_masked)
+    np.testing.assert_array_equal(medians["cols"], image_random_col_medians_masked)

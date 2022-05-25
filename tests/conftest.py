@@ -54,15 +54,15 @@ def small_mask() -> np.ndarray:
 
 
 @pytest.fixture
-def image_random_row_quantiles() -> np.array:
-    """Expected row quantiles (unmasked)."""
-    return np.loadtxt(RESOURCES / "image_random_row_quantiles.csv", delimiter=",")
+def image_random_row_medians() -> np.array:
+    """Expected row medians (unmasked)."""
+    return np.loadtxt(RESOURCES / "image_random_row_medians.csv", delimiter=",")
 
 
 @pytest.fixture
-def image_random_col_quantiles() -> np.array:
-    """Expected column quantiles (unmasked)."""
-    return np.loadtxt(RESOURCES / "image_random_col_quantiles.csv", delimiter=",")
+def image_random_col_medians() -> np.array:
+    """Expected column medians (unmasked)."""
+    return np.loadtxt(RESOURCES / "image_random_col_medians.csv", delimiter=",")
 
 
 @pytest.fixture
@@ -87,15 +87,15 @@ def image_random_mask() -> np.array:
 
 
 @pytest.fixture
-def image_random_row_quantiles_masked() -> np.array:
-    """Expected row quantiles (masked)."""
-    return np.loadtxt(RESOURCES / "image_random_row_quantiles_masked.csv", delimiter=",")
+def image_random_row_medians_masked() -> np.array:
+    """Expected row medians (masked)."""
+    return np.loadtxt(RESOURCES / "image_random_row_medians_masked.csv", delimiter=",")
 
 
 @pytest.fixture
-def image_random_col_quantiles_masked() -> np.array:
-    """Expected column quantiles (masked)."""
-    return np.loadtxt(RESOURCES / "image_random_col_quantiles_masked.csv", delimiter=",")
+def image_random_col_medians_masked() -> np.array:
+    """Expected column medians (masked)."""
+    return np.loadtxt(RESOURCES / "image_random_col_medians_masked.csv", delimiter=",")
 
 
 @pytest.fixture
