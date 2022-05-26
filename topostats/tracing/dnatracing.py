@@ -73,7 +73,7 @@ class dnaTrace(object):
         # supresses scipy splining warnings
         warnings.filterwarnings("ignore")
 
-        LOGGER.info("Processing.....................................")
+        LOGGER.info("Performing DNA Tracing")
 
         self.getNumpyArraysfromGwyddion()
         self.getDisorderedTrace()
@@ -213,7 +213,9 @@ class dnaTrace(object):
 
     def reportBasicStats(self):
         # self.determineLinearOrCircular()
-        print(f"There are {self.num_circular} circular and {self.num_linear} linear DNA molecules found in the image")
+        LOGGER.info(
+            f"There are {self.num_circular} circular and {self.num_linear} linear DNA molecules found in the image"
+        )
 
     def getFittedTraces(self):
         """
@@ -905,19 +907,10 @@ class traceStats(object):
 
         self.pd_dataframe = self.pd_dataframe.append(pd_new_traces_dframe, ignore_index=True)
 
-    def saveTraceStats(self, save_path):
-        save_file_name = ""
-        # FIXME : Replace with Path()
-        if save_path[-1] == "/":
-            pass
-        else:
-            save_path = save_path + "/"
-
-        for i in self.trace_object.afm_image_name.split("/")[:-1]:
-            save_file_name = save_file_name + i + "/"
-        print(save_file_name)
-
-        self.pd_dataframe.to_json("%stracestats.json" % save_path)
-        self.pd_dataframe.to_csv("%stracestats.csv" % save_path)
-
-        print("Saved trace info for all analysed images into: %stracestats.json" % save_path)
+    def saveTraceStats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True):
+        if json:
+            self.pd_dataframe.to_json(save_path / "tracestats.json")
+            LOGGER.info(f"Saved trace info for all analysed images to: {str(save_path / 'tracestats.json')}")
+        if csv:
+            self.pd_dataframe.to_csv(save_path / "tracestats.csv")
+            LOGGER.info(f"Saved trace info for all analysed images to: {str(save_path / 'tracestats.csv')}")

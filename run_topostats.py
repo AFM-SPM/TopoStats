@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Topotracing"""
 import argparse as arg
 from functools import partial
@@ -15,7 +14,7 @@ from topostats.io import read_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import plot_and_save
 from topostats.thresholds import threshold
-from topostats.tracing.dnatracing import dnaTrace
+from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import convert_path, find_images, update_config
 
 LOGGER = setup_logger(LOGGER_NAME)
@@ -178,7 +177,10 @@ def process_scan(
         number_of_columns=grains.images["labelled_regions"].shape[0],
         number_of_rows=grains.images["labelled_regions"].shape[1],
     )
-    # dna_traces.updateTraceStats()
+    tracing_stats = traceStats(dna_traces)
+    # tracing_stats
+    tracing_stats.saveTraceStats(Path(output_dir) / filtered_image.filename)
+
     # Optionally plot all stages
     if save_plots:
         # Filtering stage
@@ -206,13 +208,13 @@ def process_scan(
             )
         # Grainstats
         # FIXME : Include this
-        dna_traces.saveTraceFigures(
-            filename=filtered_image.filename,
-            channel_name=channel,
-            minheightscale=-0e-9,
-            maxheightscale=3e-9,
-            directory_name=Path(output_dir) / filtered_image.filename,
-        )
+        # dna_traces.saveTraceFigures(
+        #     filename=filtered_image.filename,
+        #     channel_name=channel,
+        #     minheightscale=-0e-9,
+        #     maxheightscale=3e-9,
+        #     directory_name=Path(output_dir) / filtered_image.filename,
+        # )
 
 
 def main():
