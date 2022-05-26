@@ -12,8 +12,8 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
 
-def test_grainstats(minicircle_grainstats: GrainStats, minicircle_grainstats_20220517: pd.DataFrame) -> None:
+def test_grainstats(minicircle_grainstats: GrainStats, minicircle_grainstats_20220526: pd.DataFrame) -> None:
     """Test the overall GrainStats class."""
     statistics = minicircle_grainstats.calculate_stats()
 
-    pd.testing.assert_frame_equal(statistics["statistics"], minicircle_grainstats_20220517)
+    pd.testing.assert_frame_equal(statistics["statistics"], minicircle_grainstats_20220526)
