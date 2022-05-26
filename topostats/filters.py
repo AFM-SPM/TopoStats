@@ -215,7 +215,7 @@ class Filters:
         """Returns the input image after removing any linear plane slant"""
         medians = self.row_col_medians(image, mask)
         gradient = {}
-        gradient["x"] = self.calc_gradient(medians["rows"], medians["rows"].shape[0])
+        gradient["x"] = self.calc_gradient(array=medians["rows"], shape=medians["rows"].shape[0])
         gradient["y"] = self.calc_gradient(medians["cols"], medians["cols"].shape[0])
         LOGGER.info(f'[{self.filename}] X-gradient: {gradient["x"]}')
         LOGGER.info(f'[{self.filename}] Y-gradient: {gradient["y"]}')
@@ -232,6 +232,7 @@ class Filters:
         """Calculate the difference of an array."""
         return array[-1] - array[0]
 
+    @classmethod
     def calc_gradient(self, array: np.array, shape: int) -> np.array:
         """Calculate the gradient of an array."""
         return self.calc_diff(array) / shape

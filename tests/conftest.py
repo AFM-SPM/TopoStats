@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import topostats.filters
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
@@ -130,6 +131,7 @@ def test_filters_random_with_mask(sample_config: dict, tmpdir, image_random: np.
     filters.extract_channel()
     filters.extract_pixels()
     filters.images["pixels"] = image_random
+    print(f"filters.filename : {filters.filename}")
     filters.get_threshold(filters.images["pixels"])
     filters.get_mask(filters.images["pixels"])
     return filters

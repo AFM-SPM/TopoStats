@@ -16,6 +16,13 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
 
+# def test_save_medians(image_random, image_random_mask):
+#     medians = Filters.row_col_medians(image=image_random, mask=image_random_mask)
+#     np.savetxt(RESOURCES / "image_random_row_medians_masked.csv", medians["rows"], delimiter=",")
+#     np.savetxt(RESOURCES / "image_random_col_medians_masked.csv", medians["cols"], delimiter=",")
+#     assert False
+
+
 def test_load_image(test_filters: Filters) -> None:
     """Test loading of image."""
     filters = Filters(RESOURCES / "minicircle.spm", amplify_level=1.5)
@@ -73,9 +80,6 @@ def test_row_col_medians_no_mask(
     assert list(medians.keys()) == ["rows", "cols"]
     assert isinstance(medians["rows"], np.ndarray)
     assert isinstance(medians["cols"], np.ndarray)
-
-    np.savetxt('./tests/resources/image_random_row_medians.csv', medians["rows"], delimiter=',')
-    np.savetxt('./tests/resources/image_random_col_medians.csv', medians["cols"], delimiter=',')
 
     np.testing.assert_array_equal(medians["rows"], image_random_row_medians)
     np.testing.assert_array_equal(medians["cols"], image_random_col_medians)
@@ -139,18 +143,18 @@ def test_amplify(test_filters_random: Filters) -> None:
 
 def test_calc_diff(test_filters_random: Filters, image_random: np.ndarray) -> None:
     """Test calculation of difference in array."""
-    target = image_random[-1][1] - image_random[0][1]
-    print(f'TARGET: {target}')
+    target = image_random[-1] - image_random[0]
     calculated = test_filters_random.calc_diff(test_filters_random.pixels)
-    print(f'CALCULATED: {calculated}')
-    assert calculated == target
+
+    np.testing.assert_array_equal(target, calculated)
 
 
 def test_calc_gradient(test_filters_random: Filters, image_random: np.ndarray) -> None:
     """Test calculation of gradient."""
-    target = (image_random[-1][1] - image_random[0][1]) / image_random.shape[0]
+    target = (image_random[-1] - image_random[0]) / image_random.shape[0]
     calculated = test_filters_random.calc_gradient(test_filters_random.pixels, test_filters_random.pixels.shape[0])
-    assert calculated == target
+
+    np.testing.assert_array_equal(target, calculated)
 
 
 def test_get_threshold(test_filters_random: float) -> None:
