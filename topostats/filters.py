@@ -175,8 +175,8 @@ class Filters:
         else:
             LOGGER.info(f"[{self.filename}] : Masking disabled")
         medians = {}
-        medians["rows"] = np.nanmedian(image, axis=1).T
-        medians["cols"] = np.nanmedian(image, axis=0).T
+        medians["rows"] = np.nanmedian(image, axis=1)
+        medians["cols"] = np.nanmedian(image, axis=0)
         LOGGER.info(f"[{self.filename}] : Row and column medians calculated.")
         return medians
 
