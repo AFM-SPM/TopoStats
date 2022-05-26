@@ -9,15 +9,7 @@ Topotracing loads images from `.spm` files and extracts the specified channel, p
 (`Filters()` class) before finding grains (`Grains()` class) and then calculating statistics for each grain
 (`GrainStats()` class). The Gaussian filtered image and labelling of grains is then passed onto DNA Tracing.
 
-```mermaid
-x%%{INIT: { 'theme': 'base',
-     'themeVariables':
-         {'primaryColor': '#ffcccc',
-          'secondaryColor': '#27e686',
-          'tertiaryColor': 'e67c27'
-         }
-    }
-}%%
+```{mermaid}
 graph TD;
 
   subgraph Background Flattening
