@@ -131,7 +131,6 @@ def test_filters_random_with_mask(sample_config: dict, tmpdir, image_random: np.
     filters.extract_channel()
     filters.extract_pixels()
     filters.images["pixels"] = image_random
-    print(f"filters.filename : {filters.filename}")
     filters.get_threshold(filters.images["pixels"])
     filters.get_mask(filters.images["pixels"])
     return filters
