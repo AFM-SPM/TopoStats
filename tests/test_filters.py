@@ -16,13 +16,6 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
 
-# def test_save_medians(image_random, image_random_mask):
-#     medians = Filters.row_col_medians(image=image_random, mask=image_random_mask)
-#     np.savetxt(RESOURCES / "image_random_row_medians_masked.csv", medians["rows"], delimiter=",")
-#     np.savetxt(RESOURCES / "image_random_col_medians_masked.csv", medians["cols"], delimiter=",")
-#     assert False
-
-
 def test_load_image(test_filters: Filters) -> None:
     """Test loading of image."""
     filters = Filters(RESOURCES / "minicircle.spm", amplify_level=1.5)
@@ -101,15 +94,6 @@ def test_remove_tilt_no_mask(test_filters_random: Filters, image_random_remove_x
     assert isinstance(tilt_removed, np.ndarray)
     assert tilt_removed.shape == (1024, 1024)
     np.testing.assert_allclose(tilt_removed, image_random_remove_x_y_tilt, **TOLERANCE)
-
-
-# def test_extract_medians(test_filters_random: Filters):
-#     """Test extraction of medians"""
-#     quantiles = test_filters_random.row_col_quantiles(test_filters_random.pixels, mask=None)
-#     row_medians = test_filters_random._extract_medians(quantiles["rows"])
-#     target = np.quantile(test_filters_random.pixels, 0.5, axis=1)
-
-#     np.testing.assert_equal(row_medians, target)
 
 
 def test_median_row_height(test_filters_random: Filters):
