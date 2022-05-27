@@ -47,30 +47,30 @@ graph TD;
   B2 --> D1([More Analysis])
   B5 --> D1
   end
-  style A1 fill:#914800,stroke:#000000
-  style A2 fill:#914800,stroke:#000000
-  style A3 fill:#914800,stroke:#000000
-  style A4 fill:#914800,stroke:#000000
-  style A5 fill:#914800,stroke:#000000
-  style A6 fill:#914800,stroke:#000000
-  style A7 fill:#914800,stroke:#000000
-  style A8 fill:#914800,stroke:#000000
-  style A9 fill:#914800,stroke:#000000
-  style A10 fill:#914800,stroke:#000000
-  style B1 fill:#009110,stroke:#000000
-  style B2 fill:#009110,stroke:#000000
-  style B3 fill:#009110,stroke:#000000
-  style B4 fill:#009110,stroke:#000000
-  style B5 fill:#009110,stroke:#000000
-  style B6 fill:#009110,stroke:#000000
-  style C2 fill:#910007,stroke:#000000
-  style C3 fill:#910007,stroke:#000000
-  style C4 fill:#910007,stroke:#000000
-  style C5 fill:#910007,stroke:#000000
-  style C6 fill:#910007,stroke:#000000
-  style C7 fill:#910007,stroke:#000000
-  style C8 fill:#910007,stroke:#000000
-  style D1 fill:#ba26f0,stroke:#000000
+  style A1 fill:#648FFF,stroke:#000000
+  style A2 fill:#648FFF,stroke:#000000
+  style A3 fill:#648FFF,stroke:#000000
+  style A4 fill:#648FFF,stroke:#000000
+  style A5 fill:#648FFF,stroke:#000000
+  style A6 fill:#648FFF,stroke:#000000
+  style A7 fill:#648FFF,stroke:#000000
+  style A8 fill:#648FFF,stroke:#000000
+  style A9 fill:#648FFF,stroke:#000000
+  style A10 fill:#648FFF,stroke:#000000
+  style B1 fill:#DC267F,stroke:#000000
+  style B2 fill:#DC267F,stroke:#000000
+  style B3 fill:#DC267F,stroke:#000000
+  style B4 fill:#DC267F,stroke:#000000
+  style B5 fill:#DC267F,stroke:#000000
+  style B6 fill:#DC267F,stroke:#000000
+  style C2 fill:#FE6100,stroke:#000000
+  style C3 fill:#FE6100,stroke:#000000
+  style C4 fill:#FE6100,stroke:#000000
+  style C5 fill:#FE6100,stroke:#000000
+  style C6 fill:#FE6100,stroke:#000000
+  style C7 fill:#FE6100,stroke:#000000
+  style C8 fill:#FE6100,stroke:#000000
+  style D1 fill:#785EF0,stroke:#000000
 ```
 
 ## DNA Tracing : Processing a single grain
