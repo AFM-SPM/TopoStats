@@ -12,7 +12,6 @@ from typing import Union, Dict
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-import numpy as np
 
 from topostats.filters import Filters
 from topostats.grains import Grains
@@ -218,7 +217,7 @@ def process_scan(
         labelled_data=grains.images["labelled_regions"],
         pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
         img_name=filtered_image.filename,
-        output_dir=output_dir,
+        output_dir=output_dir / filtered_image.filename,
     )
     grain_statistics = grainstats.calculate_stats()
 
@@ -231,9 +230,12 @@ def process_scan(
         number_of_columns=grains.images["labelled_regions"].shape[0],
         number_of_rows=grains.images["labelled_regions"].shape[1],
     )
-    tracing_stats = traceStats(dna_traces)
-    # tracing_stats
+    tracing_stats = traceStats(trace_object=dna_traces, image_path=image_path)
     tracing_stats.saveTraceStats(Path(output_dir) / filtered_image.filename)
+
+    # Combine grainstats and tracingstats
+    results = grain_statistics["statistics"].merge(tracing_stats.pd_dataframe, on="Molecule Number", indicator=True)
+    results.to_csv(output_dir / filtered_image.filename / "all_statistics.csv")
 
     # Optionally plot all stages
     if save_plots:
@@ -269,6 +271,7 @@ def process_scan(
         #     maxheightscale=3e-9,
         #     directory_name=Path(output_dir) / filtered_image.filename,
         # )
+    return results
 
 
 def main():
@@ -330,6 +333,10 @@ def main():
         ) as pbar:
             for _ in pool.imap_unordered(processing_function, img_files):
                 pbar.update()
+    results = pool.join()
+
+    print("ALL RESULTS :\n{results}")
+    results.to_csv()
 
 
 if __name__ == "__main__":

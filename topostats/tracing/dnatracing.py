@@ -1,4 +1,5 @@
 """Perform DNA Tracing"""
+from collections import OrderedDict
 import logging
 from pathlib import Path
 import math
@@ -75,22 +76,22 @@ class dnaTrace(object):
 
         LOGGER.info("Performing DNA Tracing")
 
-        self.getNumpyArraysfromGwyddion()
-        self.getDisorderedTrace()
+        self.get_numpy_arrays()
+        self.get_disordered_trace()
         # self.isMolLooped()
-        self.purgeObviousCrap()
-        self.determineLinearOrCircular(self.disordered_trace)
+        self.purge_obvious_crap()
+        self.linear_or_circular(self.disordered_trace)
         self.getOrderedTraces()
-        self.determineLinearOrCircular(self.ordered_traces)
-        self.getFittedTraces()
-        self.getSplinedTraces()
-        # self.findCurvature()
+        self.linear_or_circular(self.ordered_traces)
+        self.get_fitted_traces()
+        self.get_splined_traces()
+        # self.find_curvature()
         # self.saveCurvature()
-        self.measureContourLength()
-        self.measureEndtoEndDistance()
+        self.measure_contour_length()
+        self.measure_end_to_end_distance()
         self.reportBasicStats()
 
-    def getNumpyArraysfromGwyddion(self):
+    def get_numpy_arrays(self):
 
         """Function to get each grain as a numpy array which is stored in a
         dictionary
@@ -115,13 +116,12 @@ class dnaTrace(object):
 
         # FIXME : This should be a method of its own, but strange that apparently Gaussian filtered image is filtered again
         # Get a 7 A gauss filtered version of the original image
-        # used in refining the pixel positions in getFittedTraces()
+        # used in refining the pixel positions in fitted_traces()
         sigma = 0.7 / (self.pixel_size * 1e9)
         self.gauss_image = filters.gaussian(self.full_image_data, sigma)
 
-    def getDisorderedTrace(self):
-
-        """Function to make a skeleton for each of the grains in the image
+    def get_disordered_trace(self):
+        """Create a skeleton for each of the grains in the image.
 
         Uses my own skeletonisation function from tracingfuncs module. I will
         eventually get round to editing this function to try to reduce the branching
@@ -148,14 +148,14 @@ class dnaTrace(object):
             # skel = morphology.skeletonize(self.grains[grain_num])
             # self.skeletons[grain_num] = np.argwhere(skel == 1)
 
-    def purgeObviousCrap(self):
+    def purge_obvious_crap(self):
 
         for dna_num in sorted(self.disordered_trace.keys()):
 
             if len(self.disordered_trace[dna_num]) < 10:
                 self.disordered_trace.pop(dna_num, None)
 
-    def determineLinearOrCircular(self, traces):
+    def linear_or_circular(self, traces):
 
         """Determines whether each molecule is circular or linear based on the
         local environment of each pixel from the trace
@@ -212,12 +212,12 @@ class dnaTrace(object):
                 self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
 
     def reportBasicStats(self):
-        # self.determineLinearOrCircular()
+        # self.linear_or_circular()
         LOGGER.info(
             f"There are {self.num_circular} circular and {self.num_linear} linear DNA molecules found in the image"
         )
 
-    def getFittedTraces(self):
+    def get_fitted_traces(self):
         """
         Create self.fitted_traces dictonary which contains trace
         coordinates (for each identified molecule) that are adjusted to lie
@@ -363,7 +363,7 @@ class dnaTrace(object):
             self.fitted_traces[dna_num] = fitted_coordinate_array
             del fitted_coordinate_array  # cleaned up by python anyway?
 
-    def getSplinedTraces(self):
+    def get_splined_traces(self):
         """Gets a splined version of the fitted trace - useful for finding the radius of gyration etc
 
         This function actually calculates the average of several splines which is important for getting a good fit on
@@ -645,7 +645,7 @@ class dnaTrace(object):
     def findWrithe(self):
         pass
 
-    def findCurvature(self):
+    def find_curvature(self):
 
         # FIXME : Iterate directly over self.splined_traces.values() or self.splined_traces.items()
         for dna_num in sorted(self.splined_traces.keys()):  # the number of molecules identified
@@ -741,7 +741,7 @@ class dnaTrace(object):
         plt.savefig("%s_%s_curvature.png" % (savename, dna_num))
         plt.close()
 
-    def measureContourLength(self):
+    def measure_contour_length(self):
 
         """Measures the contour length for each of the splined traces taking into
         account whether the molecule is circular or linear
@@ -785,15 +785,15 @@ class dnaTrace(object):
     def writeContourLengths(self, filename, channel_name):
 
         if not self.contour_lengths:
-            self.measureContourLength()
+            self.measure_contour_length()
 
         with open(f"{filename}_{channel_name}_contours.txt", "w") as writing_file:
             writing_file.write("#units: nm\n")
             for dna_num in sorted(self.contour_lengths.keys()):
                 writing_file.write("%f \n" % self.contour_lengths[dna_num])
 
+    # FIXME : This method doesn't appear to be used here nor within pygwytracing, can it be removed?
     def writeCoordinates(self, dna_num):
-
         # FIXME: Replace with Path()
         if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Coordinates")):
             os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Coordinates"))
@@ -811,7 +811,7 @@ class dnaTrace(object):
         plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], "ko")
         plt.savefig("%s_%s_coordinates.png" % (savename, dna_num))
 
-    def measureEndtoEndDistance(self):
+    def measure_end_to_end_distance(self):
 
         for dna_num in sorted(self.splined_traces.keys()):
             if self.mol_is_circular[dna_num]:
@@ -828,9 +828,10 @@ class traceStats(object):
     """Class used to report on the stats for all the traced molecules in the
     given directory"""
 
-    def __init__(self, trace_object):
+    def __init__(self, trace_object: dnaTrace, image_path: Union[str, Path]):
 
         self.trace_object = trace_object
+        self.image_path = Path(image_path)
         self.pd_dataframe = []
         self.createTraceStatsObject()
 
@@ -838,76 +839,24 @@ class traceStats(object):
     #         and improve the way this is done (avoiding need to try: ... except KeyError: e.g. pre-populate dictionary keys).
 
     def createTraceStatsObject(self):
-
-        """Creates a pandas dataframe with the shape:
-
-        dna_num     directory       ImageName   contourLength   Circular
-        1           exp_dir         img1_name   200             True
-        2           exp_dir         img2_name   210             False
-        3           exp_dir2        img3_name   100             True
+        """Creates a pandas dataframe of the contour length, whether its circular and end to end distance
+        combined with details of the working directory, directory images were found in and the image name.
         """
-
-        data_dict = {}
-
-        # FIXME : Replace with Path()
-        trace_directory_file = self.trace_object.afm_image_name
-        trace_directory = os.path.dirname(trace_directory_file)
-        basename = os.path.basename(trace_directory)
-        img_name = os.path.basename(trace_directory_file)
-
-        for mol_num, dna_num in enumerate(sorted(self.trace_object.ordered_traces.keys())):
-
-            try:
-                data_dict["Molecule number"].append(mol_num)
-                data_dict["Image Name"].append(img_name)
-                data_dict["Experiment Directory"].append(trace_directory)
-                data_dict["Basename"].append(basename)
-                data_dict["Contour Lengths"].append(self.trace_object.contour_lengths[dna_num])
-                data_dict["Circular"].append(self.trace_object.mol_is_circular[dna_num])
-                data_dict["End to End Distance"].append(self.trace_object.end_to_end_distance[dna_num])
-            except KeyError:
-                data_dict["Molecule number"] = [mol_num]
-                data_dict["Image Name"] = [img_name]
-                data_dict["Experiment Directory"] = [trace_directory]
-                data_dict["Basename"] = [basename]
-                data_dict["Contour Lengths"] = [self.trace_object.contour_lengths[dna_num]]
-                data_dict["Circular"] = [self.trace_object.mol_is_circular[dna_num]]
-                data_dict["End to End Distance"] = [self.trace_object.end_to_end_distance[dna_num]]
-        self.pd_dataframe = pd.DataFrame(data=data_dict)
-
-    def updateTraceStats(self, new_traces):
-
-        data_dict = {}
-
-        trace_directory_file = new_traces.afm_image_name
-        trace_directory = os.path.dirname(trace_directory_file)
-        basename = os.path.basename(trace_directory)
-        img_name = os.path.basename(trace_directory_file)
-
-        for mol_num, dna_num in enumerate(sorted(new_traces.contour_lengths.keys())):
-
-            try:
-                data_dict["Molecule number"].append(mol_num)
-                data_dict["Image Name"].append(img_name)
-                data_dict["Experiment Directory"].append(trace_directory)
-                data_dict["Basename"].append(basename)
-                data_dict["Contour Lengths"].append(new_traces.contour_lengths[dna_num])
-                data_dict["Circular"].append(new_traces.mol_is_circular[dna_num])
-                data_dict["End to End Distance"].append(new_traces.end_to_end_distance[dna_num])
-            except KeyError:
-                data_dict["Molecule number"] = [mol_num]
-                data_dict["Image Name"] = [img_name]
-                data_dict["Experiment Directory"] = [trace_directory]
-                data_dict["Basename"] = [basename]
-                data_dict["Contour Lengths"] = [new_traces.contour_lengths[dna_num]]
-                data_dict["Circular"] = [new_traces.mol_is_circular[dna_num]]
-                data_dict["End to End Distance"] = [new_traces.end_to_end_distance[dna_num]]
-
-        pd_new_traces_dframe = pd.DataFrame(data=data_dict)
-
-        self.pd_dataframe = self.pd_dataframe.append(pd_new_traces_dframe, ignore_index=True)
+        stats = OrderedDict()
+        for mol_num, _ in self.trace_object.ordered_traces.items():
+            stats[mol_num] = {}
+            stats[mol_num]["Contour Lengths"] = self.trace_object.contour_lengths[mol_num]
+            stats[mol_num]["Circular"] = self.trace_object.mol_is_circular[mol_num]
+            stats[mol_num]["End to End Distance"] = self.trace_object.end_to_end_distance[mol_num]
+        self.pd_dataframe = pd.DataFrame.from_dict(data=stats, orient="index")
+        self.pd_dataframe.reset_index(drop=True)
+        self.pd_dataframe.index.name = "Molecule Number"
+        self.pd_dataframe["Experiment Directory"] = str(Path().cwd())
+        self.pd_dataframe["Image Name"] = self.image_path.name
+        self.pd_dataframe["Basename"] = str(self.image_path)
 
     def saveTraceStats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True):
+        """Write trace statistics to JSON and/or CSV."""
         if json:
             self.pd_dataframe.to_json(save_path / "tracestats.json")
             LOGGER.info(f"Saved trace info for all analysed images to: {str(save_path / 'tracestats.json')}")

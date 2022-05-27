@@ -10,7 +10,7 @@ import logging
 
 start = datetime.now()
 LOG_CONFIG = logging.basicConfig(
-    filename=str(str(Path().cwd()) + "-" + start.strftime("%Y-%m-%d-%H-%M-%S") + ".log"), filemode="w"
+    filename=Path().cwd().stem + f"-{start.strftime('%Y-%m-%d-%H-%M-%S')}.log", filemode="w"
 )
 LOG_FORMATTER = logging.Formatter(
     fmt="[%(asctime)s] [%(levelname)-8s] [%(name)s] %(message)s", datefmt="%a, %d %b %Y %H:%M:%S"

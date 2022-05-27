@@ -194,9 +194,9 @@ class GrainStats:
             ax.add_patch(rectangle)
 
         grainstats = pd.DataFrame(data=stats_array)
-        csv_save_path = self.base_output_dir / self.direction
-        Path.mkdir(csv_save_path, exist_ok=True, parents=True)
-        grainstats.to_csv(csv_save_path / f"grainstats_{self.direction}.csv")
+        Path.mkdir(self.base_output_dir / self.direction, exist_ok=True, parents=True)
+        grainstats.index.name = "Molecule Number"
+        grainstats.to_csv(self.output_dir / self.direction / "grainstats.csv")
 
         return {"statistics": grainstats, "plot": ax}
 
