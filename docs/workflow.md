@@ -30,21 +30,22 @@ graph TD;
   A10 --> B1([Lower Thresholding])
   B1 --> B2([Guassian Filtering])
   B2 --> B3([Tidy Edges])
-  B2 --> D1([DNA Tracing])
   B3 --> B4([Preliminary Statistics])
   B4 --> B5([Size Thresholding])
-  B5 --> C1([Label Regions])
-  B5 --> D1
+  B5 --> B6([Label Regions])
   end
   subgraph Grain Statistics
-  C1 --> C2([Calculate Points])
+  B6 --> C2([Calculate Points])
+  C2 --> C8([Height & Volume Statistics])
   C2 --> C3([Calculate Edges])
   C2 --> C4([Calculate Centroid])
   C3 --> C5([Calculate Radius Statistics])
   C3 --> C6([Convex Hull / Graham Scan])
+  C6 --> C7([Minimum Bounding Box Statistics])
   end
   subgraph DNA Tracing
-  D1 --> D2([More Analysis])
+  B2 --> D1([More Analysis])
+  B5 --> D1
   end
   style A1 fill:#914800,stroke:#000000
   style A2 fill:#914800,stroke:#000000
@@ -61,14 +62,15 @@ graph TD;
   style B3 fill:#009110,stroke:#000000
   style B4 fill:#009110,stroke:#000000
   style B5 fill:#009110,stroke:#000000
-  style C1 fill:#910007,stroke:#000000
+  style B6 fill:#009110,stroke:#000000
   style C2 fill:#910007,stroke:#000000
   style C3 fill:#910007,stroke:#000000
   style C4 fill:#910007,stroke:#000000
   style C5 fill:#910007,stroke:#000000
   style C6 fill:#910007,stroke:#000000
+  style C7 fill:#910007,stroke:#000000
+  style C8 fill:#910007,stroke:#000000
   style D1 fill:#ba26f0,stroke:#000000
-  style D2 fill:#ba26f0,stroke:#000000
 ```
 
 ## DNA Tracing : Processing a single grain
