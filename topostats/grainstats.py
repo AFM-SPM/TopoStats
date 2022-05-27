@@ -156,8 +156,8 @@ class GrainStats:
             # from pixel units to nanometres.
             # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
             stats = {
-                'centre_x': centre_x * self.pixel_to_nanometre_scaling,
-                'centre_y': centre_y * self.pixel_to_nanometre_scaling,
+                "centre_x": centre_x * self.pixel_to_nanometre_scaling,
+                "centre_y": centre_y * self.pixel_to_nanometre_scaling,
                 "radius_min": radius_stats["min"] * self.pixel_to_nanometre_scaling,
                 "radius_max": radius_stats["max"] * self.pixel_to_nanometre_scaling,
                 "radius_mean": radius_stats["mean"] * self.pixel_to_nanometre_scaling,
@@ -187,6 +187,7 @@ class GrainStats:
             ax.add_patch(rectangle)
 
         grainstats = pd.DataFrame(data=stats_array)
+        grainstats.index.name = "Molecule Number"
         grainstats.to_csv(self.output_dir / "grainstats.csv")
 
         return {"statistics": grainstats, "plot": ax}
@@ -201,14 +202,14 @@ class GrainStats:
     @staticmethod
     def calculate_points(grain_mask: np.ndarray):
         """Class method that takes a 2D boolean numpy array image of a grain and returns a list containing the co-ordinates of the points in the grain.
-        
-            Parameters:
-                grain_mask : np.ndarray
-                    A 2D numpy array image of a grain. Data in the array must be boolean.
-                    
-            Returns:
-                edges : list
-                    A python list containing the coordinates of the pixels in the grain. """
+
+        Parameters:
+            grain_mask : np.ndarray
+                A 2D numpy array image of a grain. Data in the array must be boolean.
+
+        Returns:
+            edges : list
+                A python list containing the coordinates of the pixels in the grain."""
 
         nonzero_coordinates = grain_mask.nonzero()
         points = []
