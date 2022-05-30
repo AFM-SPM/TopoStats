@@ -70,7 +70,7 @@ class Filters:
         }
         self.threshold = None
         self.pixel_to_nm_scaling = None
-        self.quantiles = {"rows": None, "cols": None}
+        self.medians = {"rows": None, "cols": None}
         LOGGER.info(f"Filename : {self.filename}")
         # self.scan_channel = self.images['scan_raw'].get_channel(channel)
         #        self.images['scan_raw'] = None
@@ -160,30 +160,30 @@ class Filters:
         image = self.remove_tilt(image, mask)
         return image
 
-    def row_col_quantiles(self, image: np.array, mask: np.array = None) -> np.array:
-        """Returns the height value quantiles for the rows and columns.
+    def row_col_medians(self, image: np.array, mask: np.array = None) -> np.array:
+        """Returns the height value medians for the rows and columns.
 
         Returns
         -------
 
-        Returns two Numpy arrays, the first is the row height value quantiles, the second the column height value
-        quantiles.
+        Returns two Numpy arrays, the first is the row height value medians, the second the column height value
+        medians.
         """
         if mask is not None:
-            image = np.ma.masked_array(image, mask=mask, fill_value=np.nan)
+            image = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
             LOGGER.info(f"[{self.filename}] : Masking enabled")
         else:
             LOGGER.info(f"[{self.filename}] : Masking disabled")
-        quantiles = {}
-        quantiles["rows"] = np.quantile(image, [0.25, 0.5, 0.75], axis=1).T
-        quantiles["cols"] = np.quantile(image, [0.25, 0.5, 0.75], axis=0).T
-        LOGGER.info(f"[{self.filename}] : Row and column quantiles calculated.")
-        return quantiles
+        medians = {}
+        medians["rows"] = np.nanmedian(image, axis=1)
+        medians["cols"] = np.nanmedian(image, axis=0)
+        LOGGER.info(f"[{self.filename}] : Row and column medians calculated.")
+        return medians
 
     def align_rows(self, image: np.array, mask=None) -> np.array:
         """Returns the input image with rows aligned by median height"""
-        quantiles = self.row_col_quantiles(image, mask)
-        row_medians = self._extract_medians(quantiles["rows"])
+        medians = self.row_col_medians(image, mask)
+        row_medians = medians["rows"]
         median_row_height = self._median_row_height(row_medians)
         LOGGER.info(f"[{self.filename}] : Median Row Height: {median_row_height}")
 
@@ -202,15 +202,9 @@ class Filters:
         return image
 
     @staticmethod
-    def _extract_medians(array: np.array) -> np.array:
-        """Extract medians"""
-        return array[:, 1]
-
-    @staticmethod
     def _median_row_height(array: np.array) -> float:
         """Calculate median of row medians"""
-        return np.quantile(array, 0.5)
-        # return np.quantile(self.extract_medians(array), 0.5)
+        return np.nanmedian(array)
 
     @staticmethod
     def _row_median_diffs(row_medians: np.array, median_row_height: float) -> np.array:
@@ -219,10 +213,10 @@ class Filters:
 
     def remove_tilt(self, image: np.array, mask=None) -> np.array:
         """Returns the input image after removing any linear plane slant"""
-        quantiles = self.row_col_quantiles(image, mask)
+        medians = self.row_col_medians(image, mask)
         gradient = {}
-        gradient["x"] = self.calc_gradient(quantiles["rows"], quantiles["rows"].shape[0])
-        gradient["y"] = self.calc_gradient(quantiles["cols"], quantiles["cols"].shape[0])
+        gradient["x"] = self.calc_gradient(array=medians["rows"], shape=medians["rows"].shape[0])
+        gradient["y"] = self.calc_gradient(medians["cols"], medians["cols"].shape[0])
         LOGGER.info(f'[{self.filename}] X-gradient: {gradient["x"]}')
         LOGGER.info(f'[{self.filename}] Y-gradient: {gradient["y"]}')
 
@@ -236,8 +230,9 @@ class Filters:
     @staticmethod
     def calc_diff(array: np.array) -> np.array:
         """Calculate the difference of an array."""
-        return array[-1][1] - array[0][1]
+        return array[-1] - array[0]
 
+    @classmethod
     def calc_gradient(self, array: np.array, shape: int) -> np.array:
         """Calculate the gradient of an array."""
         return self.calc_diff(array) / shape
@@ -293,9 +288,9 @@ class Filters:
         np.array
             Numpy array of image zero averaged.
         """
-        quantiles = self.row_col_quantiles(image, mask)
+        medians = self.row_col_medians(image, mask)
         LOGGER.info(f"[{self.filename}] : Zero averaging background")
-        return image - np.array(quantiles["rows"][:, 1], ndmin=2).T
+        return image - np.array(medians["rows"], ndmin=1).T
 
     def filter_image(
         self,

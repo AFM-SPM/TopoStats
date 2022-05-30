@@ -5,16 +5,17 @@ Welcome to TopoStats's documentation!
     :maxdepth: 1
     :caption: Getting Started
 
-    introduction  
+    introduction
     installation
     configuration
+    workflow
 
 .. toctree::
    :maxdepth: 2
    :caption: API
 
-   topostats.dnatracing   
-   topostats.filters   
+   topostats.dnatracing
+   topostats.filters
    topostats.find_grains
    topostats.io
    topostats.plottingfuncs
