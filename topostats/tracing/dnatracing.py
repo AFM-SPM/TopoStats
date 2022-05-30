@@ -155,11 +155,9 @@ class dnaTrace(object):
 
     def linear_or_circular(self, traces):
 
-        """Determines whether each molecule is circular or linear based on the
-        local environment of each pixel from the trace
+        """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace
 
-        This function is sensitive to branches from the skeleton so might need
-        to implement a function to remove them"""
+        This function is sensitive to branches from the skeleton so might need to implement a function to remove them"""
 
         self.num_circular = 0
         self.num_linear = 0
@@ -210,23 +208,14 @@ class dnaTrace(object):
                 self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
 
     def report_basic_stats(self):
-        # self.linear_or_circular()
+        """Report number of circular and linear DNA molecules detected."""
         LOGGER.info(
             f"There are {self.num_circular} circular and {self.num_linear} linear DNA molecules found in the image"
         )
 
     def get_fitted_traces(self):
-        """
-        Create self.fitted_traces dictonary which contains trace
-        coordinates (for each identified molecule) that are adjusted to lie
+        """Create trace coordinates (for each identified molecule) that are adjusted to lie
         along the highest points of each traced molecule
-
-        :param self.ordered_traces: the unadjusted skeleton traces
-        :param self.gauss_image: gaussian filtered AFM image of the original molecules
-        :param index_width: 1/2th the width of the height profile indexed from self.gauss_image at each coordinate (e.g. 2*index_width pixels are indexed)
-
-        :return: no direct output but instance variable self.fitted_traces
-                is populated with adjusted x,y coordinates
         """
 
         for dna_num in sorted(self.ordered_traces.keys()):
