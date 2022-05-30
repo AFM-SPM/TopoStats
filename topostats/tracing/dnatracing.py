@@ -44,8 +44,6 @@ class dnaTrace(object):
         convert_nm_to_m: bool = True,
     ):
         self.full_image_data = full_image_data * 1e-9 if convert_nm_to_m else full_image_data
-        # FIXME: Gwyddion returned a list, we now have a 2D numpy array, flatten to a single list to fit workflow
-        #        look to replace with array based functions.
         self.grains_orig = [x for row in grains for x in row]
         self.afm_image_name = afm_image_name
         self.pixel_size = pixel_size * 1e-9 if convert_nm_to_m else pixel_size
@@ -81,7 +79,7 @@ class dnaTrace(object):
         # self.isMolLooped()
         self.purge_obvious_crap()
         self.linear_or_circular(self.disordered_trace)
-        self.getOrderedTraces()
+        self.get_ordered_traces()
         self.linear_or_circular(self.ordered_traces)
         self.get_fitted_traces()
         self.get_splined_traces()
@@ -89,7 +87,7 @@ class dnaTrace(object):
         # self.saveCurvature()
         self.measure_contour_length()
         self.measure_end_to_end_distance()
-        self.reportBasicStats()
+        self.report_basic_stats()
 
     def get_numpy_arrays(self):
 
@@ -186,7 +184,7 @@ class dnaTrace(object):
                 self.mol_is_circular[dna_num] = False
                 self.num_linear += 1
 
-    def getOrderedTraces(self):
+    def get_ordered_traces(self):
 
         for dna_num in sorted(self.disordered_trace.keys()):
 
@@ -211,7 +209,7 @@ class dnaTrace(object):
             elif not self.mol_is_circular[dna_num]:
                 self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
 
-    def reportBasicStats(self):
+    def report_basic_stats(self):
         # self.linear_or_circular()
         LOGGER.info(
             f"There are {self.num_circular} circular and {self.num_linear} linear DNA molecules found in the image"
@@ -369,7 +367,6 @@ class dnaTrace(object):
         This function actually calculates the average of several splines which is important for getting a good fit on
         the lower res data"""
 
-        # FIXME : Don't understand this 3nm is 3e-9 m so why is 7 used here?
         step_size = int(7e-9 / (self.pixel_size))  # 3 nm step size
         interp_step = int(1e-10 / self.pixel_size)
         # Lets see if we just got with the pixel_to_nm_scaling
@@ -514,7 +511,7 @@ class dnaTrace(object):
                 # can't get splining of linear molecules to work yet
                 self.splined_traces[dna_num] = self.fitted_traces[dna_num]
 
-    def showTraces(self):
+    def show_traces(self):
 
         plt.pcolormesh(self.gauss_image, vmax=-3e-9, vmin=3e-9)
         plt.colorbar()
@@ -528,7 +525,6 @@ class dnaTrace(object):
         plt.show()
         plt.close()
 
-    # def saveTraceFigures(self, filename_with_ext, channel_name, vmaxval, vminval, directory_name=None):
     def saveTraceFigures(
         self, filename: Union[str, Path], channel_name: str, vmaxval, vminval, output_dir: Union[str, Path] = None
     ):
@@ -833,12 +829,12 @@ class traceStats(object):
         self.trace_object = trace_object
         self.image_path = Path(image_path)
         self.pd_dataframe = []
-        self.createTraceStatsObject()
+        self.create_trace_stats()
 
     # FIXME : createTraceStatsObject and updateTraceStats are duplicating code, can probably combine into one function
     #         and improve the way this is done (avoiding need to try: ... except KeyError: e.g. pre-populate dictionary keys).
 
-    def createTraceStatsObject(self):
+    def create_trace_stats(self):
         """Creates a pandas dataframe of the contour length, whether its circular and end to end distance
         combined with details of the working directory, directory images were found in and the image name.
         """
@@ -855,7 +851,7 @@ class traceStats(object):
         self.pd_dataframe["Image Name"] = self.image_path.name
         self.pd_dataframe["Basename"] = str(self.image_path)
 
-    def saveTraceStats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True):
+    def save_trace_stats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True):
         """Write trace statistics to JSON and/or CSV."""
         if json:
             self.pd_dataframe.to_json(save_path / "tracestats.json")
