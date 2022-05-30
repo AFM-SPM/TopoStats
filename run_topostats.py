@@ -1,5 +1,6 @@
 """Topotracing"""
 import argparse as arg
+from collections import defaultdict
 from functools import partial
 from multiprocessing import Pool
 from pathlib import Path
@@ -183,11 +184,12 @@ def process_scan(
     tracing_stats.saveTraceStats(Path(output_dir) / filtered_image.filename)
 
     # Combine grainstats and tracingstats
-    results = grain_statistics["statistics"].merge(tracing_stats.pd_dataframe, on="Molecule Number", indicator=True)
+    results = grain_statistics["statistics"].merge(tracing_stats.pd_dataframe, on="Molecule Number")
     results.to_csv(output_dir / filtered_image.filename / "all_statistics.csv")
 
     # Optionally plot all stages
     if save_plots:
+        LOGGER.info("Saving plots of images at all stages of processing.")
         # Filtering stage
         for plot_name, array in filtered_image.images.items():
             if plot_name not in ["scan_raw", "extracted_channel"]:
@@ -195,6 +197,7 @@ def process_scan(
                 plot_and_save(array, **PLOT_DICT[plot_name])
         # Grain stage - only if we have grains
         if len(grains.region_properties) > 0:
+            LOGGER.info("Grains found, saving individual images and bounding boxes.")
             for plot_name, array in grains.images.items():
                 PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
                 plot_and_save(array, **PLOT_DICT[plot_name])
@@ -220,7 +223,7 @@ def process_scan(
         #     maxheightscale=3e-9,
         #     directory_name=Path(output_dir) / filtered_image.filename,
         # )
-    return results
+    return image_path, results
 
 
 def main():
@@ -267,16 +270,21 @@ def main():
     )
 
     with Pool(processes=config["cores"]) as pool:
+        results = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f'Processing images from {config["base_dir"]}, results are under {config["output_dir"]}',
         ) as pbar:
-            for _ in pool.imap_unordered(processing_function, img_files):
+            for img, result in pool.imap_unordered(processing_function, img_files):
+                results[str(img)] = result
                 pbar.update()
-    results = pool.join()
 
-    print("ALL RESULTS :\n{results}")
-    results.to_csv()
+    results = pd.concat(results.values())
+    results.reset_index()
+    results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)
+    LOGGER.info(
+        f"All statistics combined for {len(img_files)} are saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
+    )
 
 
 if __name__ == "__main__":
