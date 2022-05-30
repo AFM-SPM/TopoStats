@@ -587,7 +587,7 @@ def saveunknownfiles(data, filename, extension):
     # Data is exported with the string '_processed' added to the end of its filename
     gwy.gwy_app_data_browser_select_data_field(data, k)
     # change the colour map for all channels (k) in the image:
-    palette = data.set_string_by_name("/" + str(k) + "/base/palette", "Nanoscope.txt")
+    palette = data.set_string_by_name("/" + str(k) + "/base/palette", savefile_zscalecolour)
     # Generate a filename to save to by removing the extension to the file, adding the suffix '_processed'
     # and an extension set in the main file
     savename = os.path.join(savedir, filename) + str(k) + '_' + '_processed' + str(extension)
@@ -622,7 +622,7 @@ def savefilesasgwy(data, filename):
     # Data is exported with the string '_processed' added to the end of its filename
     gwy.gwy_app_data_browser_select_data_field(data, k)
     # change the colour map for all channels (k) in the image:
-    palette = data.set_string_by_name("/" + str(k) + "/base/palette", "Nanoscope.txt")
+    palette = data.set_string_by_name("/" + str(k) + "/base/palette", savefile_zscalecolour)
     # Determine the title of each channel
     # title = data["/%d/data/title" % k]
     # if not title:
@@ -663,7 +663,7 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
         # select each channel fo the file in turn
         gwy.gwy_app_data_browser_select_data_field(data, i)
         # change the colour map for all channels (k) in the image:
-        palette = data.set_string_by_name("/" + str(i) + "/base/palette", "Nanoscope.txt")
+        palette = data.set_string_by_name("/" + str(i) + "/base/palette", savefile_zscalecolour)
         # Set the image display to fixed range and the colour scale for the images
         maximum_disp_value = data.set_int32_by_name("/" + str(i) + "/base/range-type", int(1))
         minimum_disp_value = data.set_double_by_name("/" + str(i) + "/base/min", float(minheightscale))
@@ -855,7 +855,8 @@ if __name__ == '__main__':
             print('Image correction took %f seconds' % (data_edit_end - data_edit_start))
             print('Molecule identification took %f seconds' % (mol_find_end - mol_find_start))
 
-            if sample_type == 'DNA':
+            if (saveTraceFigures_option):
+                print("Tracing identified molecules")
                 trace_start = time.time()
 
                 # Export the channels data and mask as numpy arrays
@@ -882,11 +883,9 @@ if __name__ == '__main__':
                 dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
                 trace_end = time.time()
                 # #dna_traces.showTraces()
-                if (saveTraceFigures_option):
-                    print("Saving trace figures")
-                    dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
-                else:
-                    print("Not saving trace figures")
+                print("Saving trace figures")
+                dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
+
                 # dna_traces.writeContourLengths(filename, channel_name)
 
                 # Update the pandas Dataframe used to monitor stats
@@ -916,6 +915,8 @@ if __name__ == '__main__':
                         continue
 
                 # dna_traces.plotGradient(8)
+            else:
+                print("Not tracing identified molecules")
 
             if (saveCroppedFiles_option):
                 print("Saving cropped files")

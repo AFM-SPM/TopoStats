@@ -50,6 +50,7 @@ class dnaTrace(object):
         self.max_curvature_location = {}
         self.mean_curvature = {}
         self.curvature_variance = {}
+        self.curvature_variance_abs = {}
 
         self.number_of_traces = 0
         self.num_circular = 0
@@ -485,7 +486,7 @@ class dnaTrace(object):
                                           range(i, len(self.fitted_traces[dna_num][:, 1]), step_size_px)])
 
                     try:
-                        tck, u = interp.splprep([x_sampled, y_sampled], s=2, per=0, quiet=1, k=3)
+                        tck, u = interp.splprep([x_sampled, y_sampled], s=5, per=0, quiet=1, k=3)
                         out = interp.splev(ev_array, tck)
                         splined_trace = np.column_stack((out[0], out[1]))
                     except ValueError:
@@ -497,7 +498,7 @@ class dnaTrace(object):
                                       range(i, len(self.ordered_traces[dna_num][:, 1]), step_size_px)])
 
                         try:
-                            tck, u = interp.splprep([x, y], s=2, per=0, quiet=1)
+                            tck, u = interp.splprep([x, y], s=5, per=0, quiet=1)
                             out = interp.splev(np.linspace(0, 1, nbr * step_size_px), tck)
                             splined_trace = np.column_stack((out[0], out[1]))
                         except ValueError:  # sometimes even the ordered_traces are too bugged out so just delete these traces
@@ -583,7 +584,7 @@ class dnaTrace(object):
                      color='#009E74', markersize=3.0, marker=5)
             plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 0],
                      self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 1],
-                     color='#0071B2', markersize=3.0, marker=5)
+                     color='#56B4E9', markersize=3.0, marker=5)
             plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 0],
                      self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 1],
                      color='#CC79A7', markersize=3.0, marker=5)
@@ -807,10 +808,12 @@ class dnaTrace(object):
             max_location = self.curvature[dna_num][max_index, 1] * self.pixel_size * 1e9
             mean_value = np.average(np.abs(self.curvature[dna_num][:, 2]))
             variance = np.var(self.curvature[dna_num][:, 2])
+            variance_absolute = np.var(np.abs(self.curvature[dna_num][:, 2]))
             self.max_curvature[dna_num] = max_value
             self.max_curvature_location[dna_num] = max_location
             self.mean_curvature[dna_num] = mean_value
             self.curvature_variance[dna_num] = variance
+            self.curvature_variance_abs[dna_num] = variance_absolute
 
     def plotCurvature(self, dna_num):
 
@@ -841,6 +844,8 @@ class dnaTrace(object):
             sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, theory, color='b')
             sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='y')
         else:
+            plt.xlim(0, 105)
+            plt.ylim(-0.1, 0.2)
             sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='black', linewidth=5)
             plt.ticklabel_format(axis='both', style='sci', scilimits=(-2, 2))
             plt.axvline(curvature[0][1], color="#D55E00", linewidth=5, alpha=0.8)
@@ -1038,6 +1043,7 @@ class traceStats(object):
                 data_dict['Max Curvature Location'].append(self.trace_object.max_curvature_location[dna_num])
                 data_dict['Mean Curvature'].append(self.trace_object.mean_curvature[dna_num])
                 data_dict['Variance of Curvature'].append(self.trace_object.curvature_variance[dna_num])
+                data_dict['Variance of Absolute Curvature'].append(self.trace_object.curvature_variance_abs[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
                 data_dict['Image Name'] = [img_name]
@@ -1050,6 +1056,7 @@ class traceStats(object):
                 data_dict['Max Curvature Location'] = [self.trace_object.max_curvature_location[dna_num]]
                 data_dict['Mean Curvature'] = [self.trace_object.mean_curvature[dna_num]]
                 data_dict['Variance of Curvature'] = [self.trace_object.curvature_variance[dna_num]]
+                data_dict['Variance of Absolute Curvature'] = [self.trace_object.curvature_variance_abs[dna_num]]
         self.pd_dataframe = pd.DataFrame(data=data_dict)
 
     def updateTraceStats(self, new_traces):
@@ -1075,6 +1082,7 @@ class traceStats(object):
                 data_dict['Max Curvature Location'].append(new_traces.max_curvature_location[dna_num])
                 data_dict['Mean Curvature'].append(new_traces.mean_curvature[dna_num])
                 data_dict['Variance of Curvature'].append(new_traces.curvature_variance[dna_num])
+                data_dict['Variance of Absolute Curvature'].append(new_traces.curvature_variance_abs[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
                 data_dict['Image Name'] = [img_name]
@@ -1087,6 +1095,7 @@ class traceStats(object):
                 data_dict['Max Curvature Location'] = [new_traces.max_curvature_location[dna_num]]
                 data_dict['Mean Curvature'] = [new_traces.mean_curvature[dna_num]]
                 data_dict['Variance of Curvature'] = [new_traces.curvature_variance[dna_num]]
+                data_dict['Variance of Absolute Curvature'] = [new_traces.curvature_variance_abs[dna_num]]
 
         pd_new_traces_dframe = pd.DataFrame(data=data_dict)
 

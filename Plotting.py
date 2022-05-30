@@ -71,7 +71,7 @@ def pathman(path):
 
     directory = os.path.dirname(path)
     name = os.path.basename(path)[:-5]
-    savedir = os.path.join(directory, 'Plots_filtered_by_curvature')
+    savedir = os.path.join(directory, 'Plots')
     if not os.path.exists(savedir):
         os.makedirs(savedir)
     plotname = os.path.join(savedir, name)
@@ -135,21 +135,22 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath
     savename = os.path.join(pathman(specpath) + '_' + plotarg + '_KDE' + plotextension)
 
     # Convert the unit of the data to nm if specified by the user
-    df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
+    dfnew = df.copy()
+    dfnew[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
 
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
     # Simple KDE plot
     if grouparg is None:
-        df = df[plotarg]
-        df.plot.kde(ax=ax, alpha=1, linewidth=7.0)
+        dfnew[plotarg].plot.kde(ax=ax, alpha=1, linewidth=7.0)
 
     # Grouped KDE plots
     else:
-        df = df[[grouparg, plotarg]]
-        df.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=1, linewidth=7.0)
+        dfnew = dfnew[[grouparg, plotarg]]
+        dfnew.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=1, linewidth=7.0)
         handles, labels = ax.get_legend_handles_labels()
-        ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
+        # ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
+        ax.legend(handles, labels, title=grouparg, loc='upper right')
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
@@ -177,9 +178,12 @@ def plotkde2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, 
         specpath = path
     savename = os.path.join(pathman(specpath) + '_' + plotarg + '_' + plotarg2 + '_KDE' + plotextension)
 
+    dfnew = df.copy()
+    dfnew2 = df2.copy()
+
     # Convert the unit of the data to nm if specified by the user
-    df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
-    df2[plotarg2] = dataunitconversion(df[plotarg2], plotarg2, nm)
+    dfnew[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
+    dfnew2[plotarg2] = dataunitconversion(df[plotarg2], plotarg2, nm)
 
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
@@ -189,10 +193,8 @@ def plotkde2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, 
     # df = df[[plotarg, plotarg2]]
     # df.plot.kde(ax=ax, alpha=1, linewidth=7.0)
 
-    dfplot = df[plotarg]
-    dfplot2 = df2[plotarg2]
-    dfplot.plot.kde(ax=ax, alpha=1, linewidth=7.0)
-    dfplot2.plot.kde(ax=ax, alpha=1, linewidth=7.0)
+    dfnew[plotarg].plot.kde(ax=ax, alpha=1, linewidth=7.0)
+    dfnew2[plotarg2].plot.kde(ax=ax, alpha=1, linewidth=7.0)
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
@@ -219,22 +221,23 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     savename = os.path.join(pathman(specpath) + '_' + plotarg + '_histogram' + plotextension)
 
     # Convert the unit of the data to nm if specified by the user
-    df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
+    dfnew = df.copy()
+    dfnew[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
 
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
     # Simple histogram
     if grouparg is None:
-        df = df[plotarg]
-        df.plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins)
+        dfnew[plotarg].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins)
     # Grouped histogram
     else:
-        df = df[[grouparg, plotarg]]
-        df = df.pivot(columns=grouparg, values=plotarg)
-        df.plot.hist(ax=ax, legend=True, bins=bins, alpha=1, linewidth=3.0, stacked=True)
-        # df.groupby(grouparg)[plotarg].plot.hist(ax=ax, legend=True, alpha=1, linewidth=7.0, bins=bins, stacked=True)
+        dfnew = dfnew[[grouparg, plotarg]]
+        dfnew = dfnew.pivot(columns=grouparg, values=plotarg)
+        dfnew.plot.hist(ax=ax, legend=True, bins=bins, alpha=1, linewidth=3.0, stacked=True)
+        # dfnew.groupby(grouparg)[plotarg].plot.hist(ax=ax, legend=True, alpha=1, linewidth=7.0, bins=bins, stacked=True)
         handles, labels = ax.get_legend_handles_labels()
-        ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
+        # ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
+        ax.legend(handles, labels, title=grouparg, loc='upper right')
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
@@ -266,21 +269,18 @@ def plothist2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None,
     savename = os.path.join(pathman(specpath) + '_' + label1 + '_' + label2 + '_histogram' + plotextension)
 
     # Convert the unit of the data to nm if specified by the user
-    df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
-    df2[plotarg2] = dataunitconversion(df[plotarg2], plotarg2, nm)
+    dfnew = df.copy()
+    dfnew2 = df2.copy()
+    dfnew[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
+    dfnew2[plotarg2] = dataunitconversion(df[plotarg2], plotarg2, nm)
 
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
-    # Simple histogram
-    dfplot = df[plotarg]
-    dfplot2 = df2[plotarg2]
-    dfplot.plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins)
-    dfplot2.plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, histtype='barstacked')
-
+    dfnew[plotarg].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins)
+    dfnew2[plotarg2].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, histtype='barstacked')
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
-    # plt.xlabel(labelunitconversion(plotarg1, nm), alpha=1)
     plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.ylabel('Probability Density', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
@@ -318,35 +318,32 @@ def plotdist(df, xmin=None, xmax=None, bins=20, nm=False, specpath=None,
     pass
 
 
-def plotdist2var(plotarg1, plotarg2, df1, df2=None, xmin=None, xmax=None, bins=20, nm=False,
+def plotdist2var(plotarg, plotarg2, df, df2=None, xmin=None, xmax=None, bins=20, nm=False,
                  specpath=None,
                  plotextension=defextension, plotname=None, c1=None, c2=None):
     """Dist plot for 2 variables"""
 
-    print 'Plotting dist plot of %s and %s' % (plotarg1, plotarg2)
+    print 'Plotting dist plot of %s and %s' % (plotarg, plotarg2)
 
     if plotname is None:
-        plotname = plotarg1 + '_and_' + plotarg2
+        plotname = plotarg + '_and_' + plotarg2
 
-    # Set  the name of the file
+    # Set the name of the file
     if specpath is None:
         specpath = path
     savename = os.path.join(pathman(specpath) + '_' + plotname + '_dist' + plotextension)
 
     if df2 is None:
-        df2 = df1
+        df2 = df
 
     # Convert the unit of the data to nm if specified by the user
-
-    dfa = dataunitconversion(df1[plotarg1], plotarg1, nm)
-    dfb = dataunitconversion(df2[plotarg2], plotarg2, nm)
+    dfnew = dataunitconversion(df[plotarg], plotarg, nm)
+    dfnew2 = dataunitconversion(df2[plotarg2], plotarg2, nm)
 
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
-    # Simple dist plot
-
-    sns.distplot(dfa, ax=ax, bins=bins, color=c1)
-    sns.distplot(dfb, ax=ax, bins=bins, color=c2)
+    sns.distplot(dfnew, ax=ax, bins=bins, color=c1)
+    sns.distplot(dfnew2, ax=ax, bins=bins, color=c2)
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
@@ -372,17 +369,19 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specp
         specpath = path
     savename = os.path.join(pathman(specpath) + '_' + plotarg + '_violin' + plotextension)
 
+    # Convert the unit of the data to nm if specified by the user
+    dfnew = df.copy()
+    dfnew[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
+
     # Plot and save figures
-    df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
     fig, ax = plt.subplots(figsize=(15, 12))
     # Single violin plot
     if grouparg is None:
-        df = df[plotarg]
-        ax = sns.violinplot(data=df)
+        ax = sns.violinplot(data=dfnew[plotarg])
     # Grouped violin plot
     else:
-        df = df[[grouparg, plotarg]]
-        ax = sns.violinplot(x=grouparg, y=plotarg, data=df)
+        dfnew = dfnew[[grouparg, plotarg]]
+        ax = sns.violinplot(x=grouparg, y=plotarg, data=dfnew)
         ax.invert_xaxis()  # Useful for topoisomers with negative writhe
 
     # Label plot and save figure
@@ -405,11 +404,13 @@ def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=Fal
         specpath = path
     savename = os.path.join(pathman(specpath) + '_' + arg1 + '_and_' + arg2 + plotextension)
 
-    df[arg1] = dataunitconversion(df[arg1], arg1, nm)
-    df[arg2] = dataunitconversion(df[arg2], arg2, nm)
+    # Convert the unit of the data to nm if specified by the user
+    dfnew = df.copy()
+    dfnew[arg1] = dataunitconversion(df[arg1], arg1, nm)
+    dfnew[arg2] = dataunitconversion(df[arg2], arg2, nm)
 
     # Plot data using seaborn
-    sns.jointplot(arg1, arg2, data=df, kind='reg', height=15)
+    sns.jointplot(arg1, arg2, data=dfnew, kind='reg', height=15)
     plt.xlim(xmin, xmax)
     plt.ylim(ymin, ymax)
     plt.xlabel(labelunitconversion(arg1, nm), alpha=1)
@@ -453,7 +454,6 @@ if __name__ == '__main__':
 
     path = ''
 
-
     # Set the name of the json file to import here
     # name = 'Non-incubation'
     bins = 50
@@ -462,29 +462,31 @@ if __name__ == '__main__':
     df = importfromjson(path)
     # df2 = importfromjson(path2)
 
-    fig, ax = plt.subplots(figsize=(15, 12))
-    # df.set_index('Contour length')
-    # df.groupby('Basename').plot('Curvature', alpha=0.5)
+    # fig, ax = plt.subplots(figsize=(15, 12))
+    # # df.set_index('Contour length')
+    # # df.groupby('Basename').plot('Curvature', alpha=0.5)
+    #
     # df1 = df[df['Basename'] == 'DNA_pure']
     # df2 = df[df['Basename'] == 'DNA_NDP']
     # plt.plot(df1['Contour length'], df1['Curvature'], markersize=10, marker='.', color='b', alpha=0.5, linestyle="None")
     # plt.plot(df2['Contour length'], df2['Curvature'], markersize=10, marker='.', color='y', alpha=0.5, linestyle="None")
-    scatterplot = sns.scatterplot(data=df, x='Contour length', y='Curvature', hue='Basename', alpha=0.5)
-    scatterplot.legend(loc='upper right')
-    # plt.plot(df2['Contour length'], df2['Curvature'], color='y', alpha=0.5)
-    # plt.xlim(0, 150)
-    # plt.ylim(-5, 5)
-    # plt.show()
-    curvdir = os.path.join(os.path.dirname(path), 'Curvature_Comparison')
-    if not os.path.exists(curvdir):
-        os.makedirs(curvdir)
-    plt.savefig(os.path.join(curvdir, 'filtered.png'))
+    #
+    # # scatterplot = sns.scatterplot(data=df, x='Contour length', y='Curvature', hue='Basename', alpha=0.5)
+    # # scatterplot.legend(loc='upper right')
+    # # plt.plot(df2['Contour length'], df2['Curvature'], color='y', alpha=0.5)
+    # # plt.xlim(0, 150)
+    # # plt.ylim(-5, 5)
+    # # plt.show()
+    # curvdir = os.path.join(os.path.dirname(path), 'Curvature_Comparison')
+    # if not os.path.exists(curvdir):
+    #     os.makedirs(curvdir)
+    # plt.savefig(os.path.join(curvdir, 'filtered.png'))
 
     # df = df[df['Circular'] == False]
     # df = df[df['Contour Lengths'] > 80]
     # df = df[df['Contour Lengths'] < 130]
     # df = df[df['Max Curvature'] < 2]
-    #
+
     # df2 = df2[df2['Circular'] == False]
     # df2 = df2[df2['Contour Lengths'] > 80]
     # df2 = df2[df2['Contour Lengths'] < 130]
@@ -537,8 +539,8 @@ if __name__ == '__main__':
 # grouparg = 'Was there incubation?'
 # grouparg = 'Mask'
 # grouparg = 'Basename'
-# grouparg = 'directory'
-grouparg = None
+grouparg = 'directory'
+# grouparg = None
 
 # Setting a continuous colour palette; useful for certain grouped plots, but can be commented out if unsuitable.
 # sns.set_palette(sns.color_palette('BuPu', n_colors=len(df.groupby(grouparg))))
@@ -553,7 +555,12 @@ grouparg = None
 
 # plotkde(df, 'grain_maximum', xmin=0, xmax=5, nm=True)
 # plothist(df, 'grain_maximum', nm=True)
-# plotkde(df, 'grain_max_bound_size', xmin=0, xmax=50, nm=True)
+
+plothist(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
+plothist(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
+plotkde(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
+plotkde(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
+
 
 # plotkde(df, 'grain_min_bound_size', xmin=0, xmax=40, nm=True)
 # plotkde2var(df, 'grain_min_bound_size', 'grain_max_bound_size', xmin=0, xmax=40, nm=True)
@@ -584,10 +591,19 @@ grouparg = None
 # computeStats(data, columns, 0, 50)
 
 
-# * plotkde(df, 'End to End Distance', xmin=0, xmax=1.5e2, grouparg=grouparg)
-# * plotkde(df, 'Contour Lengths', xmin=0, xmax=250, grouparg=grouparg)
-# * plothist(df, 'End to End Distance', bins=20, xmin=0, xmax=2e2, grouparg=grouparg)
-# * plothist(df, 'Contour Lengths', bins=20, xmin=0, xmax=250, grouparg=grouparg)
+# plotkde(df, 'End to End Distance', grouparg=grouparg, nm=True)
+# plotkde(df, 'Contour Lengths', grouparg=grouparg, nm=True)
+# plotkde(df, 'Variance of Curvature', grouparg=grouparg, nm=True)
+# plotkde(df, 'Variance of Absolute Curvature', grouparg=grouparg, nm=True)
+# plotkde(df, 'Mean Curvature', grouparg=grouparg, nm=True)
+# plotkde(df, 'Max Curvature', grouparg=grouparg, nm=True)
+# plothist(df, 'End to End Distance', grouparg=grouparg, nm=True)
+# plothist(df, 'Contour Lengths', grouparg=grouparg, nm=True)
+# plothist(df, 'Variance of Curvature', grouparg=grouparg, nm=True)
+# plothist(df, 'Variance of Absolute Curvature', grouparg=grouparg, nm=True)
+# plothist(df, 'Mean Curvature', grouparg=grouparg, nm=True)
+# plothist(df, 'Max Curvature', grouparg=grouparg, nm=True)
+
 # plotkde (df, 'aspectratio')
 
 # plotkde2var(df, 'grain_min_bound_size', 'grain_max_bound_size', nm=True)
