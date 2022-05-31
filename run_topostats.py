@@ -261,15 +261,6 @@ def process_scan(
                 **PLOT_DICT["coloured_boxes"],
                 region_properties=grains.region_properties,
             )
-        # Grainstats
-        # FIXME : Include this
-        # dna_traces.saveTraceFigures(
-        #     filename=filtered_image.filename,
-        #     channel_name=channel,
-        #     minheightscale=-0e-9,
-        #     maxheightscale=3e-9,
-        #     directory_name=Path(output_dir) / filtered_image.filename,
-        # )
     return image_path, results
 
 
