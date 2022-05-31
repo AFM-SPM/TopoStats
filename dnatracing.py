@@ -42,6 +42,7 @@ class dnaTrace(object):
         self.ordered_traces = {}
         self.fitted_traces = {}
         self.splined_traces = {}
+        self.simplified_splined_traces = {}
         self.contour_lengths = {}
         self.end_to_end_distance = {}
         self.mol_is_circular = {}
@@ -524,6 +525,7 @@ class dnaTrace(object):
                 spline_average = np.divide(spline_running_total, [step_size_px, step_size_px])
                 del spline_running_total
                 self.splined_traces[dna_num] = spline_average
+            self.simplified_splined_traces[dna_num] = self.splined_traces[dna_num][::20]
 
     def showTraces(self):
 
@@ -626,15 +628,11 @@ class dnaTrace(object):
         plt.close()
 
         for dna_num in sorted(self.ordered_traces.keys()):
-            plt.scatter(x=self.splined_traces[dna_num][:, 0],
-                        y=self.splined_traces[dna_num][:, 1],
+            plt.scatter(x=self.simplified_splined_traces[dna_num][:, 0],
+                        y=self.simplified_splined_traces[dna_num][:, 1],
                         c=self.curvature[dna_num][:, 2],
                         s=1)
 
-            # plt.scatter(x=self.splined_traces[dna_num][self.neighbours: -self.neighbours - 1, 0],
-            #             y=self.splined_traces[dna_num][self.neighbours: -self.neighbours - 1, 1],
-            #             c=self.curvature[dna_num][:, 2],
-            #             s=1)
         plt.colorbar()
         plt.axis('equal')
         plt.xticks([])
@@ -691,10 +689,10 @@ class dnaTrace(object):
         # self.splined_traces[0] = np.column_stack((x, y))
         # self.mol_is_circular[0] = False
 
-        for dna_num in sorted(self.splined_traces.keys()):  # the number of molecules identified
+        for dna_num in sorted(self.simplified_splined_traces.keys()):  # the number of molecules identified
             # splined_traces is a dictionary, where the keys are the number of the molecule, and the values are a
             # list of coordinates, in a numpy.ndarray
-            length = len(self.splined_traces[dna_num])
+            length = len(self.simplified_splined_traces[dna_num])
             curve = []
             contour = 0
             # coordinates = np.zeros([2, self.neighbours * 2 + 1])
@@ -702,8 +700,9 @@ class dnaTrace(object):
             # dymean = np.zeros(length)
             # gradients = np.zeros([2, self.neighbours * 2 + 1])
             if self.mol_is_circular[dna_num]:
-                longlist = np.concatenate(
-                    [self.splined_traces[dna_num], self.splined_traces[dna_num], self.splined_traces[dna_num]])
+                longlist = np.concatenate([self.simplified_splined_traces[dna_num],
+                                           self.simplified_splined_traces[dna_num],
+                                           self.simplified_splined_traces[dna_num]])
                 dx = np.gradient(longlist, axis=0)[:, 0]
                 dy = np.gradient(longlist, axis=0)[:, 1]
                 d2x = np.gradient(dx)
@@ -729,12 +728,12 @@ class dnaTrace(object):
                 # d2x = d2x[length:2 * length]
                 # d2y = d2y[length:2 * length]
 
-                dx = np.gradient(self.splined_traces[dna_num], axis=0, edge_order=2)[:, 0]
-                dy = np.gradient(self.splined_traces[dna_num], axis=0, edge_order=2)[:, 1]
+                dx = np.gradient(self.simplified_splined_traces[dna_num], axis=0, edge_order=2)[:, 0]
+                dy = np.gradient(self.simplified_splined_traces[dna_num], axis=0, edge_order=2)[:, 1]
                 d2x = np.gradient(dx)
                 d2y = np.gradient(dy)
 
-            for i, (x, y) in enumerate(self.splined_traces[dna_num]):
+            for i, (x, y) in enumerate(self.simplified_splined_traces[dna_num]):
                 # Extracts the coordinates for the required number of points and puts them in an array
                 if self.mol_is_circular[dna_num] or not self.mol_is_circular[dna_num]:
                     # (self.neighbours < i < len(self.splined_traces[dna_num]) - self.neighbours)
@@ -771,8 +770,8 @@ class dnaTrace(object):
 
                     if i < (length - 1):
                         contour = contour + math.hypot(
-                            (self.splined_traces[dna_num][(i + 1), 0] - self.splined_traces[dna_num][i, 0]),
-                            (self.splined_traces[dna_num][(i + 1), 1] - self.splined_traces[dna_num][i, 1])
+                            (self.simplified_splined_traces[dna_num][(i + 1), 0] - self.simplified_splined_traces[dna_num][i, 0]),
+                            (self.simplified_splined_traces[dna_num][(i + 1), 1] - self.simplified_splined_traces[dna_num][i, 1])
                             # (coordinates[0][self.neighbours] - coordinates[0][self.neighbours - 1]),
                             # (coordinates[1][self.neighbours] - coordinates[1][self.neighbours - 1])
                         )
