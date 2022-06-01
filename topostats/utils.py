@@ -74,7 +74,7 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
     return config
 
 
-def get_mask(image: np.array, threshold: float, img_name: str = None) -> np.array:
+def get_mask(image: np.array, threshold: tuple, img_name: str = None) -> np.array:
     """Calculate a mask for pixels that exceed the threshold
 
     Parameters
@@ -92,4 +92,16 @@ def get_mask(image: np.array, threshold: float, img_name: str = None) -> np.arra
         Numpy array of image with objects coloured.
     """
     LOGGER.info(f"[{img_name}] Deriving mask.")
-    return image > threshold
+    lower_threshold = threshold[0]
+    upper_threshold = threshold[1]
+    if lower_threshold != None and upper_threshold != None:
+        mask = (image < lower_threshold) and (image > upper_threshold)
+    elif lower_threshold == None and upper_threshold != None:
+        mask = image > upper_threshold
+    elif lower_threshold != None and upper_threshold == None:
+        mask = image < lower_threshold
+    else: 
+        LOGGER.fatal('Both thresholds are None')
+        exit
+    # TODO: Add custom error for when both are None.
+    return mask
