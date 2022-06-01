@@ -170,17 +170,11 @@ def process_scan(
     image_path: Union[str, Path] = None,
     channel: str = "Height",
     amplify_level: float = 1.0,
-<<<<<<< HEAD
     filter_threshold_method: str = "otsu",
     filter_otsu_threshold_multiplier: Union[int, float] = 1.7,
     filter_threshold_std_dev=1.0,
     filter_threshold_abs_lower=None,
     filter_threshold_abs_upper=None,
-=======
-    minimum_grain_size: float = 500,
-    threshold_method: str = "otsu",
-    threshold_multiplier: Union[int, float] = 1.7,
->>>>>>> 3f9001f (186 | Fail gracefully when no grains found)
     gaussian_size: Union[int, float] = 2,
     gaussian_mode: str = "nearest",
     absolute_smallest_grain_size=None,
@@ -242,10 +236,14 @@ def process_scan(
         output_dir=output_dir / image_path.stem / "filters",
     )
     filtered_image.filter_image()
-
     # Find Grains :
-    try:
-        LOGGER.info(f"[{filtered_image.filename}] : Grain Finding")
+    # The Grains class also has a convenience method that runs the instantiated class in full.
+
+    if threshold_method == "otsu":
+
+        filtered_image = Filters(image_path, channel, amplify_level, threshold_method, output_dir)
+        filtered_image.filter_image()
+
         grains = Grains(
             image=filtered_image.images["zero_averaged_background"],
             filename=filtered_image.filename,
@@ -257,47 +255,62 @@ def process_scan(
             background=background,
         )
         grains.find_grains()
-    except IndexError as index_exception:
-        LOGGER.info(
-            f"[{filtered_image.filename}] : No grains were detected, skipping Grain Statistics and DNA Tracing."
+
+        grainstats = GrainStats(
+            data=grains.images["gaussian_filtered"],
+            labelled_data=grains.images["labelled_regions"],
+            pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+            img_name=filtered_image.filename,
+            output_dir=output_dir,
         )
+        grain_statistics = grainstats.calculate_stats()
 
-    if len(grains.region_properties) > 0:
-        # Grain Statistics :
-        try:
-            LOGGER.info(f"[{filtered_image.filename}] : Grain Statistics")
-            grainstats = GrainStats(
-                data=grains.images["gaussian_filtered"],
-                labelled_data=grains.images["labelled_regions"],
-                pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
-                img_name=filtered_image.filename,
-                output_dir=output_dir / filtered_image.filename,
-            )
-            grain_statistics = grainstats.calculate_stats()
+    elif threshold_method == "std_dev":
 
-            # Run dnatracing
-            LOGGER.info(f"[{filtered_image.filename}] : DNA Tracing")
-            dna_traces = dnaTrace(
-                full_image_data=grains.images["gaussian_filtered"].T,
-                grains=grains.images["labelled_regions"],
-                filename=filtered_image.filename,
-                pixel_size=filtered_image.pixel_to_nm_scaling,
-            )
-            dna_traces.trace_dna()
+        filtered_image = Filters(image_path, threshold_method, threshold_multiplier, channel, amplify_level, output_dir)
+        filtered_image.filter_image()
 
-            tracing_stats = traceStats(trace_object=dna_traces, image_path=image_path)
-            tracing_stats.save_trace_stats(Path(output_dir) / filtered_image.filename)
+        lower_grains = Grains(
+            image=filtered_image.images["zero_averaged_background"],
+            filename=filtered_image.filename + str("_lower"),
+            pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
+            threshold_method="std_dev_lower",
+            gaussian_size=gaussian_size,
+            gaussian_mode=gaussian_mode,
+            threshold_multiplier=threshold_std_dev_multiplier_lower,
+            background=background,
+        )
+        lower_grains.find_grains()
 
-            # Combine grainstats and tracingstats
-            LOGGER.info(f"[{filtered_image.filename}] : Combining grain statistics and dnatracing statistics")
-            results = grain_statistics["statistics"].merge(tracing_stats.df, on="Molecule Number")
-            results.to_csv(output_dir / filtered_image.filename / "all_statistics.csv")
-        # Possible exceptions
-        # ValueError : Arises when lots of small grains with small areas
-        except Exception as broad_exception:
-            # If no results we need a dummy dataframe to return.
-            LOGGER.info("Errors occurred attempting to calculate grain statistics and DNA tracing statistics.")
-            results = pd.DataFrame([np.repeat(np.nan, len(ALL_STATISTICS_COLUMNS))], columns=ALL_STATISTICS_COLUMNS)
+        lower_grainstats = GrainStats(
+            data=lower_grains.images["gaussian_filtered"],
+            labelled_data=lower_grains.images["labelled_regions"],
+            pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+            img_name=filtered_image.filename + str("_lower"),
+            output_dir=output_dir,
+        )
+        grain_statistics = lower_grainstats.calculate_stats()
+
+        upper_grains = Grains(
+            image=filtered_image.images["zero_averaged_background"],
+            filename=filtered_image.filename + str("_upper"),
+            pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
+            threshold_method="std_dev_upper",
+            gaussian_size=gaussian_size,
+            gaussian_mode=gaussian_mode,
+            threshold_multiplier=threshold_std_dev_multiplier_upper,
+            background=background,
+        )
+        upper_grains.find_grains()
+
+        upper_grainstats = GrainStats(
+            data=upper_grains.images["gaussian_filtered"],
+            labelled_data=upper_grains.images["labelled_regions"],
+            pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+            img_name=filtered_image.filename + str("_upper"),
+            output_dir=output_dir,
+        )
+        grain_statistics = upper_grainstats.calculate_stats()
 
     # Optionally plot all stages
     if save_plots:
