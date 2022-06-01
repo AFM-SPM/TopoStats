@@ -92,6 +92,8 @@ def process_scan(
     amplify_level: float = 1.0,
     threshold_method: str = "otsu",
     threshold_multiplier: Union[int, float] = 1.7,
+    threshold_std_dev_multiplier_lower = 1.0,
+    threshold_std_dev_multiplier_upper = 1.0,
     gaussian_size: Union[int, float] = 2,
     gaussian_mode: str = "nearest",
     background: float = 0.0,
@@ -136,35 +138,83 @@ def process_scan(
     # Filter Image :
     #
     # The Filters class has a convenience method that runs the instantiated class in full.
-    filtered_image = Filters(image_path, channel, amplify_level, threshold_method, output_dir)
-    filtered_image.filter_image()
-
+    
     # Find Grains :
     #
     # The Grains class also has a convenience method that runs the instantiated class in full.
-    grains = Grains(
-        image=filtered_image.images["zero_averaged_background"],
-        filename=filtered_image.filename,
-        pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
-        threshold_method=threshold_method,
-        gaussian_size=gaussian_size,
-        gaussian_mode=gaussian_mode,
-        threshold_multiplier=threshold_multiplier,
-        background=background,
-    )
-    grains.find_grains()
+    
+    if threshold_method == 'otsu':
 
-    # Grain Statistics :
-    #
-    # Ditto for the GrainStats class.
-    grainstats = GrainStats(
+        filtered_image = Filters(image_path, channel, amplify_level, threshold_method, output_dir)
+        filtered_image.filter_image()
+
+        grains = Grains(
+            image=filtered_image.images["zero_averaged_background"],
+            filename=filtered_image.filename,
+            pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
+            threshold_method=threshold_method,
+            gaussian_size=gaussian_size,
+            gaussian_mode=gaussian_mode,
+            threshold_multiplier=threshold_multiplier,
+            background=background,
+        )
+        grains.find_grains()
+
+        grainstats = GrainStats(
         data=grains.images["gaussian_filtered"],
         labelled_data=grains.images["labelled_regions"],
         pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
         img_name=filtered_image.filename,
         output_dir=output_dir,
     )
-    grain_statistics = grainstats.calculate_stats()
+        grain_statistics = grainstats.calculate_stats()
+
+    elif threshold_method == 'std_dev':
+
+        filtered_image = Filters(image_path, threshold_method, threshold_multiplier, channel, amplify_level, output_dir)
+        filtered_image.filter_image()
+
+        lower_grains = Grains(
+            image=filtered_image.images["zero_averaged_background"],
+            filename=filtered_image.filename + str('_lower'),
+            pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
+            threshold_method='std_dev_lower',
+            gaussian_size=gaussian_size,
+            gaussian_mode=gaussian_mode,
+            threshold_multiplier=threshold_std_dev_multiplier_lower,
+            background=background,
+        )
+        lower_grains.find_grains()
+
+        lower_grainstats = GrainStats(
+        data=lower_grains.images["gaussian_filtered"],
+        labelled_data=lower_grains.images["labelled_regions"],
+        pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+        img_name=filtered_image.filename + str('_lower'),
+        output_dir=output_dir,
+        )
+        grain_statistics = lower_grainstats.calculate_stats()
+
+        upper_grains = Grains(
+            image=filtered_image.images["zero_averaged_background"],
+            filename=filtered_image.filename + str('_upper'),
+            pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
+            threshold_method='std_dev_upper',
+            gaussian_size=gaussian_size,
+            gaussian_mode=gaussian_mode,
+            threshold_multiplier=threshold_std_dev_multiplier_upper,
+            background=background,
+        )
+        upper_grains.find_grains()
+
+        upper_grainstats = GrainStats(
+        data=upper_grains.images["gaussian_filtered"],
+        labelled_data=upper_grains.images["labelled_regions"],
+        pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+        img_name=filtered_image.filename + str('_upper'),
+        output_dir=output_dir,
+        )
+        grain_statistics = upper_grainstats.calculate_stats()
 
     # Optionally plot all stages
     if save_plots:
@@ -230,8 +280,10 @@ def main():
         process_scan,
         channel=config["channel"],
         amplify_level=config["amplify_level"],
-        threshold_method=config["threshold_method"],
-        threshold_multiplier=config["grains"]["threshold_multiplier"],
+        threshold_method=config["grains"]["threshold_method"],
+        threshold_multiplier=config["grains"]["thresholding_methods"]["otsu"]["threshold_otsu_multiplier"],
+        threshold_std_dev_multiplier_lower=config["grains"]["thresholding_methods"]["std_dev"]["threshold_std_dev_multiplier_lower"],
+        threshold_std_dev_multiplier_upper=config["grains"]["thresholding_methods"]["std_dev"]["threshold_std_dev_multiplier_upper"],
         gaussian_size=config["grains"]["gaussian_size"],
         gaussian_mode=config["grains"]["gaussian_mode"],
         background=config["grains"]["background"],
