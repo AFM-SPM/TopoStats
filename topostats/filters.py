@@ -23,9 +23,11 @@ class Filters:
     def __init__(
         self,
         img_path: Union[str, Path],
+        threshold_method: str = "otsu",
+        std_dev_multiplier_lower: float = None,
+        std_dev_multiplier_upper: float = None,
         channel: str = "Height",
         amplify_level: float = None,
-        threshold_method: str = "otsu",
         output_dir: Union[str, Path] = None,
         quiet: bool = False,
     ):
@@ -55,6 +57,8 @@ class Filters:
         self.channel = channel
         self.amplify_level = amplify_level
         self.threshold_method = threshold_method
+        self.std_dev_multiplier_lower = std_dev_multiplier_lower
+        self.std_dev_multiplier_upper = std_dev_multiplier_upper
         self.filename = self.extract_filename()
         self.output_dir = Path(output_dir) if output_dir else Path("./output")
         self.images = {
@@ -237,7 +241,7 @@ class Filters:
         """Calculate the gradient of an array."""
         return self.calc_diff(array) / shape
 
-    def get_threshold(self, image: np.array, **kwargs) -> float:
+    def get_threshold(self, image: np.array, threshold_method: str, **kwargs) -> float:
         """Returns a threshold value separating the background and foreground of a 2D heightmap.
 
         Parameters
@@ -252,7 +256,16 @@ class Filters:
         float
             Threshold of image intensity for subsequent masking.
         """
-        self.threshold = threshold(image, **kwargs)
+        if self.threshold_metod == 'otsu':
+            self.threshold = threshold(image, threshold_method, **kwargs)
+        elif threshold_method == 'std_dev_lower':
+            self.thresold = threshold(image, method='std_dev_lower')
+        elif threshold_method == 'std_dev_upper':
+            self.threshold = threshold(image, method='std_dev_upper')
+        elif threshold_method == 'std_dev_both':
+            self.threshold = (threshold(image, method='std_dev_lower'), threshold(image, method='std_dev_upper'))
+        else: 
+            raise ValueError(threshold_method)
         LOGGER.info(f"[{self.filename}] : Threshold       : {self.threshold}")
 
     def get_mask(self, image: np.array) -> None:
@@ -321,15 +334,27 @@ class Filters:
         self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
 
-        # Create Mask
-        self.get_threshold(self.images["initial_tilt_removal"], method=self.threshold_method)
-        self.get_mask(self.images["initial_tilt_removal"])
+        if self.threshold_method == 'otsu':
+            # Create Mask
+            self.get_threshold(self.images["initial_tilt_removal"], method=self.threshold_method)
+            self.get_mask(self.images["initial_tilt_removal"])
 
-        # Second pass filtering (with mask based on threshold)
-        self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], mask=self.images["mask"])
-        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], mask=self.images["mask"])
+            # Second pass filtering (with mask based on threshold)
+            self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], mask=self.images["mask"])
+            self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], mask=self.images["mask"])
 
-        # Average Background
-        self.images["zero_averaged_background"] = self.average_background(
+            # Average Background
+            self.images["zero_averaged_background"] = self.average_background(
             self.images["masked_tilt_removal"], mask=self.images["mask"]
-        )
+            )
+        elif self.threshold_method =='std_dev':
+            # If using both upper and lower
+            if self.std_dev_multiplier_lower != None and self.std_dev_multiplier_upper != None:
+                self.get_threshold(self.images["initial_tilt_removal"], method='std_dev_both')
+                self.get_mask(self.images["initial_tilt_removal"])
+            elif self.std_dev_multiplier_lower != None:
+                pass
+            elif self.std_dev_multiplier_upper != None:
+                pass
+            
+        
