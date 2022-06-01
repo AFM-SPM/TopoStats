@@ -250,7 +250,7 @@ class Filters:
         """Calculate the gradient of an array."""
         return self.calc_diff(array) / shape
 
-    def average_background(self, image: np.array, mask: np.array = None) -> np.array:
+    def average_background(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Zero the background
 
         Parameters
