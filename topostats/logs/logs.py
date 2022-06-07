@@ -9,15 +9,18 @@ import logging
 # pylint: disable=assignment-from-no-return
 
 start = datetime.now()
-LOG_CONFIG = logging.basicConfig(filename=str(str(Path().cwd()) + start.strftime('%Y-%m-%d-%H-%M-%S') + '.log'),
-                                 filemode='w')
-LOG_FORMATTER = logging.Formatter(fmt='[%(asctime)s] [%(levelname)-8s] [%(name)s] %(message)s',
-                                  datefmt='%a, %d %b %Y %H:%M:%S')
+LOG_CONFIG = logging.basicConfig(
+    filename=Path().cwd().stem + f"-{start.strftime('%Y-%m-%d-%H-%M-%S')}.log", filemode="w"
+)
+LOG_FORMATTER = logging.Formatter(
+    fmt="[%(asctime)s] [%(levelname)-8s] [%(name)s] %(message)s", datefmt="%a, %d %b %Y %H:%M:%S"
+)
 LOG_ERROR_FORMATTER = logging.Formatter(
-    fmt='[%(asctime)s] [%(levelname)-8s] [%(name)s] [%(filename)s] [%(lineno)s] %(message)s',
-    datefmt='%a, %d %b %Y %H:%M:%S')
+    fmt="[%(asctime)s] [%(levelname)-8s] [%(name)s] [%(filename)s] [%(lineno)s] %(message)s",
+    datefmt="%a, %d %b %Y %H:%M:%S",
+)
 
-LOGGER_NAME = 'topostats'
+LOGGER_NAME = "topostats"
 
 
 def setup_logger(log_name: str = LOGGER_NAME) -> logging.Logger:

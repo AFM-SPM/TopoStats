@@ -1,9 +1,13 @@
 """Topotracing"""
 import argparse as arg
+from collections import defaultdict
 from functools import partial
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Union, Dict
+
+import numpy as np
+import pandas as pd
 from tqdm import tqdm
 
 from topostats.filters import Filters
@@ -13,6 +17,7 @@ from topostats.io import read_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import plot_and_save
 from topostats.thresholds import threshold
+from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import convert_path, find_images, update_config
 
 LOGGER = setup_logger(LOGGER_NAME)
@@ -162,12 +167,29 @@ def process_scan(
         labelled_data=grains.images["labelled_regions"],
         pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
         img_name=filtered_image.filename,
-        output_dir=output_dir,
+        output_dir=output_dir / filtered_image.filename,
     )
     grain_statistics = grainstats.calculate_stats()
 
+    # Run dnatracing
+    dna_traces = dnaTrace(
+        full_image_data=grains.images["gaussian_filtered"].T,
+        grains=grains.images["labelled_regions"],
+        afm_image_name=filtered_image.filename,
+        pixel_size=filtered_image.pixel_to_nm_scaling,
+        number_of_columns=grains.images["labelled_regions"].shape[0],
+        number_of_rows=grains.images["labelled_regions"].shape[1],
+    )
+    tracing_stats = traceStats(trace_object=dna_traces, image_path=image_path)
+    tracing_stats.save_trace_stats(Path(output_dir) / filtered_image.filename)
+
+    # Combine grainstats and tracingstats
+    results = grain_statistics["statistics"].merge(tracing_stats.pd_dataframe, on="Molecule Number")
+    results.to_csv(output_dir / filtered_image.filename / "all_statistics.csv")
+
     # Optionally plot all stages
     if save_plots:
+        LOGGER.info("Saving plots of images at all stages of processing.")
         # Filtering stage
         for plot_name, array in filtered_image.images.items():
             if plot_name not in ["scan_raw", "extracted_channel"]:
@@ -175,6 +197,7 @@ def process_scan(
                 plot_and_save(array, **PLOT_DICT[plot_name])
         # Grain stage - only if we have grains
         if len(grains.region_properties) > 0:
+            LOGGER.info("Grains found, saving individual images and bounding boxes.")
             for plot_name, array in grains.images.items():
                 PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
                 plot_and_save(array, **PLOT_DICT[plot_name])
@@ -191,8 +214,7 @@ def process_scan(
                 **PLOT_DICT["coloured_boxes"],
                 region_properties=grains.region_properties,
             )
-        # Grainstats
-        # FIXME : Include this
+    return image_path, results
 
 
 def main():
@@ -204,10 +226,10 @@ def main():
     config = read_yaml(args.config_file)
     config = update_config(config, args)
 
-    LOGGER.info(f"Configuration file loaded from    : {args.config_file}")
-    LOGGER.info(f'Scanning for images in            : {config["base_dir"]}')
-    LOGGER.info(f'Output directory                  : {config["output_dir"]}')
-    LOGGER.info(f'Looking for images with extension : {config["file_ext"]}')
+    LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
+    LOGGER.info(f'Scanning for images in              : {config["base_dir"]}')
+    LOGGER.info(f'Output directory                    : {config["output_dir"]}')
+    LOGGER.info(f'Looking for images with extension   : {config["file_ext"]}')
     img_files = find_images(config["base_dir"])
     LOGGER.info(f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}')
 
@@ -239,12 +261,21 @@ def main():
     )
 
     with Pool(processes=config["cores"]) as pool:
+        results = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f'Processing images from {config["base_dir"]}, results are under {config["output_dir"]}',
         ) as pbar:
-            for _ in pool.imap_unordered(processing_function, img_files):
+            for img, result in pool.imap_unordered(processing_function, img_files):
+                results[str(img)] = result
                 pbar.update()
+
+    results = pd.concat(results.values())
+    results.reset_index()
+    results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)
+    LOGGER.info(
+        f"All statistics combined for {len(img_files)} are saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
+    )
 
 
 if __name__ == "__main__":
