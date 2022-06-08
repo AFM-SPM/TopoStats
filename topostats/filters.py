@@ -118,6 +118,7 @@ class Filters:
     def extract_channel(self):
         """Extract the channel"""
         try:
+            print('channel: ', self.channel)
             self.images["extracted_channel"] = self.images["scan_raw"].get_channel(self.channel)
             LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
         except Exception as exception:
@@ -256,17 +257,18 @@ class Filters:
         float
             Threshold of image intensity for subsequent masking.
         """
-        if self.threshold_metod == 'otsu':
-            self.threshold = threshold(image, threshold_method, **kwargs)
+        if self.threshold_method == 'otsu':
+            self.threshold = (None, threshold(image, method='otsu', threshold_multiplier=1.0, **kwargs))
         elif threshold_method == 'std_dev_lower':
-            self.thresold = threshold(image, method='std_dev_lower')
+            self.threshold = (threshold(image, method='std_dev_lower', threshold_multiplier=self.std_dev_multiplier_lower), None)
         elif threshold_method == 'std_dev_upper':
-            self.threshold = threshold(image, method='std_dev_upper')
+            self.threshold = (None, threshold(image, method='std_dev_upper', threshold_multiplier=self.std_dev_multiplier_upper))
         elif threshold_method == 'std_dev_both':
-            self.threshold = (threshold(image, method='std_dev_lower'), threshold(image, method='std_dev_upper'))
+            self.threshold = (threshold(image, method='std_dev_lower', threshold_multiplier=self.std_dev_multiplier_lower), threshold(image, method='std_dev_upper', threshold_multiplier=self.std_dev_multiplier_upper))
         else: 
             raise ValueError(threshold_method)
-        LOGGER.info(f"[{self.filename}] : Threshold       : {self.threshold}")
+        LOGGER.info(f"[{self.filename}] : Threshold method: {threshold_method}")
+        LOGGER.info(f"[{self.filename}] : --Threshold       : {self.threshold}")
 
     def get_mask(self, image: np.array) -> None:
         """Derive mask.
@@ -336,7 +338,7 @@ class Filters:
 
         if self.threshold_method == 'otsu':
             # Create Mask
-            self.get_threshold(self.images["initial_tilt_removal"], method=self.threshold_method)
+            self.get_threshold(self.images["initial_tilt_removal"], threshold_method=self.threshold_method)
             self.get_mask(self.images["initial_tilt_removal"])
 
             # Second pass filtering (with mask based on threshold)
@@ -345,16 +347,49 @@ class Filters:
 
             # Average Background
             self.images["zero_averaged_background"] = self.average_background(
-            self.images["masked_tilt_removal"], mask=self.images["mask"]
+                self.images["masked_tilt_removal"], 
+                mask=self.images["mask"]
             )
         elif self.threshold_method =='std_dev':
             # If using both upper and lower
-            if self.std_dev_multiplier_lower != None and self.std_dev_multiplier_upper != None:
-                self.get_threshold(self.images["initial_tilt_removal"], method='std_dev_both')
+            if self.std_dev_multiplier_lower != 'None' and self.std_dev_multiplier_upper != 'None':
+                self.get_threshold(self.images["initial_tilt_removal"], threshold_method='std_dev_both')
                 self.get_mask(self.images["initial_tilt_removal"])
-            elif self.std_dev_multiplier_lower != None:
-                pass
-            elif self.std_dev_multiplier_upper != None:
-                pass
+
+                # Second filtering
+                self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], mask=self.images["mask"])
+                self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], mask=self.images["mask"])
+
+                # Average background zero setting
+                self.images["zero_averaged_background"] = self.average_background(
+                    self.images["masked_tilt_removal"],
+                    mask=self.images["mask"]
+                )
+            elif self.std_dev_multiplier_lower != 'None':
+                self.get_threshold(self.images["initial_tilt_removal"], threshold_method='std_dev_lower')
+                self.get_mask(self.images['initial_tilt_removal'])
+
+                # Second filtering
+                self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], mask=self.images["mask"])
+                self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], mask=self.images["mask"])
+
+                # Average background zero setting
+                self.images["zero_averaged_background"] = self.average_background(
+                    self.images["masked_tilt_removal"],
+                    mask=self.images["mask"]
+                )
+            elif self.std_dev_multiplier_upper != 'None':
+                self.get_threshold(self.images["initial_tilt_removal"], threshold_method='std_dev_upper')
+                self.get_mask(self.images['initial_tilt_removal'])
+
+                # Second filtering
+                self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], mask=self.images["mask"])
+                self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], mask=self.images["mask"])
+
+                # Average background zero setting
+                self.images["zero_averaged_background"] = self.average_background(
+                    self.images["masked_tilt_removal"],
+                    mask=self.images["mask"]
+                )
             
         

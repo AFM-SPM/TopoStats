@@ -1,9 +1,11 @@
 """Functions for calculating thresholds."""
 import numpy as np
 from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, threshold_yen, threshold_triangle
+import logging
+from topostats.logs.logs import LOGGER_NAME
+LOGGER = logging.getLogger(LOGGER_NAME)
 
-
-def threshold(image: np.array, method: str = 'otsu', threshold_multiplier: float = '1.0', **kwargs: dict) -> float:
+def threshold(image: np.array, method: str = 'otsu', threshold_multiplier: float = None, **kwargs: dict) -> float:
     """Factory method for thresholding.
 
     Parameters
@@ -90,7 +92,11 @@ def _threshold_triangle(image: np.array, **kwargs) -> float:
 def _threshold_std_dev_lower(image: np.array, threshold_multiplier: float, **kwargs) -> float:
     mean = np.nanmean(image)
     std_dev = np.nanstd(image)
-    return mean - float(threshold_multiplier) * std_dev
+    LOGGER.info(f"THRESHOLDING LOWER THRESHOLD MULTIPLIER: {threshold_multiplier}")
+    LOGGER.info('THRESHOLDING : mean, std dev: ' + str(mean) + ' ' + str(std_dev))
+    threshold = mean - (float(threshold_multiplier) * std_dev)
+    LOGGER.info(f'-threshold: {threshold}')
+    return threshold
 
 def _threshold_std_dev_upper(image: np.array, threshold_multiplier: float, **kwargs) -> float:
     mean = np.nanmean(image)

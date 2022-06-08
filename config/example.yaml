@@ -1,18 +1,16 @@
-base_dir: ./tests/
+base_dir: ./data/
 output_dir: ./output
 save_plots: true
 warnings: ignore
 cores: 4
 quiet: false
 file_ext: .spm
-channel: Height
+channel: Height Sensor
 amplify_level: 1.0
-threshold_method: otsu
-
 grains:
   gaussian_size: 2.0
   gaussian_mode: nearest
-  minimum_grain_size: 800
+  absolute_smallest_grain_size: 100
   background: 0.0
   # Thresholding methods
   threshold_method: std_dev
@@ -20,9 +18,10 @@ grains:
     otsu:
       threshold_otsu_multiplier: 1.7
     std_dev:
-      threshold_std_dev_multiplier_lower: 1.0
-      threshold_std_dev_multiplier_upper: 1.0
-    absolute_value:
-      threshold_abs_upper: 2
-      threshold_abs_lower: -2
+      threshold_std_dev_multiplier_lower: 1
+      threshold_std_dev_multiplier_upper: 1
+    # Absolute threshold - the upper and lower cut-off points
+    # absolute_value:
+    #   threshold_abs_upper: 2
+    #   threshold_abs_lower: -2
   

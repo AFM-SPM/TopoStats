@@ -92,14 +92,20 @@ def get_mask(image: np.array, threshold: tuple, img_name: str = None) -> np.arra
         Numpy array of image with objects coloured.
     """
     LOGGER.info(f"[{img_name}] Deriving mask.")
+    print('threshold: ', threshold)
     lower_threshold = threshold[0]
     upper_threshold = threshold[1]
     if lower_threshold != None and upper_threshold != None:
-        mask = (image < lower_threshold) and (image > upper_threshold)
+        mask = np.logical_and(image < lower_threshold, image > upper_threshold)
+        LOGGER.info('masking - lower and upper')
+        LOGGER.info(f'masking | threshold: {lower_threshold} {upper_threshold}, mean: {np.nanmean(image)}')
     elif lower_threshold == None and upper_threshold != None:
         mask = image > upper_threshold
+        LOGGER.info('masking - upper')
     elif lower_threshold != None and upper_threshold == None:
+        LOGGER.info(f'masking | threshold: {lower_threshold}, mean: {np.nanmean(image)}')
         mask = image < lower_threshold
+        LOGGER.info('masking - lower')
     else: 
         LOGGER.fatal('Both thresholds are None')
         exit
