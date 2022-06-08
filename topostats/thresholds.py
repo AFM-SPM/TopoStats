@@ -35,7 +35,7 @@ def _get_threshold(method: str = 'otsu'):
     Parameters
     ----------
     method : str
-        Threshold method to use, currently supports otsu (default), minimum, mean and yen.
+        Threshold method to use, currently supports otsu (default), std_dev_lower, std_dev_upper, minimum, mean and yen.
 
     Returns
     -------
@@ -92,11 +92,7 @@ def _threshold_triangle(image: np.array, **kwargs) -> float:
 def _threshold_std_dev_lower(image: np.array, threshold_multiplier: float, **kwargs) -> float:
     mean = np.nanmean(image)
     std_dev = np.nanstd(image)
-    LOGGER.info(f"THRESHOLDING LOWER THRESHOLD MULTIPLIER: {threshold_multiplier}")
-    LOGGER.info('THRESHOLDING : mean, std dev: ' + str(mean) + ' ' + str(std_dev))
-    threshold = mean - (float(threshold_multiplier) * std_dev)
-    LOGGER.info(f'-threshold: {threshold}')
-    return threshold
+    return mean - (float(threshold_multiplier) * std_dev)
 
 def _threshold_std_dev_upper(image: np.array, threshold_multiplier: float, **kwargs) -> float:
     mean = np.nanmean(image)

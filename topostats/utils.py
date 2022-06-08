@@ -81,8 +81,8 @@ def get_mask(image: np.array, threshold: tuple, img_name: str = None) -> np.arra
     ----------
     image: np.array
         Numpy array representing image.
-    threshold: float
-        Factor for defining threshold.
+    threshold: tuple
+        A tuple containing two floats representing the lower and upper thresholds respectively. Thresholds can also be set to None if the respective threshold is not to be applied.
     img_name: str
         Name of image being processed
 

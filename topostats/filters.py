@@ -243,19 +243,16 @@ class Filters:
         return self.calc_diff(array) / shape
 
     def get_threshold(self, image: np.array, threshold_method: str, **kwargs) -> float:
-        """Returns a threshold value separating the background and foreground of a 2D heightmap.
+        """Sets the value self.threshold that separating the background data out from the data of interest of a 2D heightmap. This data can be either below or above the background data, or both.
+        The threshold value that is set, is a tuple, where the first value in the tuple is the lower threshold, and the second value is the upper threshold. If there is not supposed to be a lower or upper threshold, then they are set to be None.
 
         Parameters
         ----------
         image: np.array
             Image to derive threshold from.
-        method: str
-            Method for deriving threshold options are 'otsu' (default), minimum, mean, yen and triangle
+        threshold_method: str
+            Method for deriving threshold options are 'otsu' (default), std_dev_lower, std_dev_upper, minimum, mean, yen and triangle
 
-        Returns
-        -------
-        float
-            Threshold of image intensity for subsequent masking.
         """
         if self.threshold_method == 'otsu':
             self.threshold = (None, threshold(image, method='otsu', threshold_multiplier=1.0, **kwargs))
@@ -365,6 +362,7 @@ class Filters:
                     self.images["masked_tilt_removal"],
                     mask=self.images["mask"]
                 )
+            # If using only lower thresholding
             elif self.std_dev_multiplier_lower != 'None':
                 self.get_threshold(self.images["initial_tilt_removal"], threshold_method='std_dev_lower')
                 self.get_mask(self.images['initial_tilt_removal'])
@@ -378,6 +376,7 @@ class Filters:
                     self.images["masked_tilt_removal"],
                     mask=self.images["mask"]
                 )
+            # If using only upper thresholding
             elif self.std_dev_multiplier_upper != 'None':
                 self.get_threshold(self.images["initial_tilt_removal"], threshold_method='std_dev_upper')
                 self.get_mask(self.images['initial_tilt_removal'])
@@ -391,5 +390,8 @@ class Filters:
                     self.images["masked_tilt_removal"],
                     mask=self.images["mask"]
                 )
+            elif self.std_dev_multiplier_lower == 'None' and self.std_dev_multiplier_upper == 'None':
+                # TODO: create custom exception for this
+                exit
             
         

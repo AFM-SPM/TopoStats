@@ -62,7 +62,7 @@ class Grains:
         Path.mkdir(self.output_dir / self.filename, parents=True, exist_ok=True)
 
     def get_threshold(self, **kwargs) -> float:
-        """Returns a threshold value based on the stated method multiplied by the threshold multiplier."""
+        """Sets the self.threshold value based on the stated method. The self.threshold value is a tuple with the first value representing the lower threshold and the 2nd representing the upper threshold. None can be assigned to either value to prevent thresholding"""
         if self.threshold_method == 'otsu':
             print('getting otsu threshold')
             self.threshold = (None, threshold(self.image, method=self.threshold_method, threshold_multiplier=self.threshold_multiplier, **kwargs))
@@ -87,22 +87,8 @@ class Grains:
         )
         plot_and_save(self.images["gaussian_filtered"], self.output_dir / self.filename, 'gaussian_filtered')
 
-
-
     def get_mask(self):
         """Create a boolean array of whether points are greater than the given threshold."""
-        # if self.threshold_method == 'otsu':
-        #     print('otsu')
-        #     self.images["mask_grains"] = get_mask(self.images["gaussian_filtered"], (None, self.threshold_multiplier), self.filename)
-        #     plot_and_save(self.images['mask_grains'], self.output_dir / self.filename, 'binary_mask_upper')
-        # elif self.threshold_method == 'std_dev_lower':
-        #     print('std dev lower')
-        #     self.images["mask_grains"] = get_mask(self.images["gaussian_filtered"], (self.threshold_multiplier, None), self.filename)
-        #     plot_and_save(self.images['mask_grains'], self.output_dir / self.filename, 'binary_mask_lower')
-        # elif self.threshold_method == 'std_dev_upper':
-        #     print('std dev upper')
-        #     self.images["mask_grains"] = get_mask(self.images["gaussian_filtered"], (None, self.threshold_multiplier), self.filename)
-        #     plot_and_save(self.images['mask_grains'], self.output_dir / self.filename, 'binary_mask_upper')
         self.images["mask_grains"] = get_mask(self.images["gaussian_filtered"], self.threshold, self.filename)
         plot_and_save(self.images['mask_grains'], self.output_dir / self.filename, 'grain_binary_mask')
         LOGGER.info(f"[{self.filename}] : Created boolean image")
@@ -165,7 +151,7 @@ class Grains:
         )
 
     def remove_tiny_objects(self):
-        """Removes tiny objects, size set by the config file"""
+        """Removes tiny objects, size set by the config file. This is really important to ensure that the smallest objects ~1px are removed regardless of the size distribution of the grains"""
         self.images["tiny_objects_removed"] = remove_small_objects(self.images["tidied_border"], min_size=self.absolute_smallest_grain_size)
         LOGGER.info(f"[{self.filename}] : Removed tiny objects (< {self.absolute_smallest_grain_size}")
 
