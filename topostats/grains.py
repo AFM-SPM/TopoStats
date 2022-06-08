@@ -1,4 +1,5 @@
 """Find grains in an image."""
+from collections import defaultdict
 import logging
 from os import remove
 from pathlib import Path
@@ -13,13 +14,9 @@ from skimage.color import label2rgb
 
 from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
-
-# from topostats.utils import get_grains_thresholds
-# from topostats.utils import get_grains_mask
 from topostats.utils import _get_mask, get_thresholds
 from topostats.plottingfuncs import plot_and_save
 
-from collections import defaultdict
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -111,6 +108,7 @@ class Grains:
             self.base_output_dir,
             "gaussian_filtered",
         )
+        plot_and_save(self.images["gaussian_filtered"], self.output_dir / self.filename, "gaussian_filtered")
 
     def tidy_border(self, image: np.array, **kwargs) -> np.array:
         """Remove grains touching the border
@@ -253,8 +251,6 @@ class Grains:
             deviation_from_mean=self.threshold_std_dev,
             absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
         )
-
-        #
         try:
             for direction, threshold in self.thresholds.items():
 

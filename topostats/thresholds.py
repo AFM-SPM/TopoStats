@@ -2,6 +2,7 @@
 # pylint: disable=no-name-in-module
 from typing import Callable
 import numpy as np
+<<<<<<< HEAD
 from skimage.filters import (
     threshold_mean,
     threshold_minimum,
@@ -9,13 +10,20 @@ from skimage.filters import (
     threshold_yen,
     threshold_triangle,
 )
+=======
+from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, threshold_yen, threshold_triangle
+>>>>>>> aea1962 (Add support for upper and lower thresholding)
 import logging
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
+<<<<<<< HEAD
 def threshold(image: np.array, method: str, threshold_multiplier: float = "1.0", **kwargs: dict) -> float:
+=======
+def threshold(image: np.array, method: str = "otsu", threshold_multiplier: float = None, **kwargs: dict) -> float:
+>>>>>>> aea1962 (Add support for upper and lower thresholding)
     """Factory method for thresholding.
 
     Parameters

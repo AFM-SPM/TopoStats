@@ -1,4 +1,4 @@
-base_dir: ./tests/
+base_dir: ./data/
 output_dir: ./output
 save_plots: true
 warnings: ignore
