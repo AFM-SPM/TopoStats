@@ -250,64 +250,6 @@ class Filters:
         """Calculate the gradient of an array."""
         return self.calc_diff(array) / shape
 
-<<<<<<< HEAD
-=======
-    def get_threshold(self, image: np.array, threshold_method: str, **kwargs) -> float:
-        """Returns a threshold value separating the background and foreground of a 2D heightmap.
-
-        Parameters
-        ----------
-        image: np.array
-            Image to derive threshold from.
-        method: str
-            Method for deriving threshold options are 'otsu' (default), minimum, mean, yen and triangle
-
-        Returns
-        -------
-        float
-            Threshold of image intensity for subsequent masking.
-        """
-        if self.threshold_method == "otsu":
-            self.threshold = (None, threshold(image, method="otsu", threshold_multiplier=1.0, **kwargs))
-        elif threshold_method == "std_dev_lower":
-            self.threshold = (
-                threshold(image, method="std_dev_lower", threshold_multiplier=self.std_dev_multiplier_lower),
-                None,
-            )
-        elif threshold_method == "std_dev_upper":
-            self.threshold = (
-                None,
-                threshold(image, method="std_dev_upper", threshold_multiplier=self.std_dev_multiplier_upper),
-            )
-        elif threshold_method == "std_dev_both":
-            self.threshold = (
-                threshold(image, method="std_dev_lower", threshold_multiplier=self.std_dev_multiplier_lower),
-                threshold(image, method="std_dev_upper", threshold_multiplier=self.std_dev_multiplier_upper),
-            )
-        else:
-            raise ValueError(threshold_method)
-        LOGGER.info(f"[{self.filename}] : Threshold method: {threshold_method}")
-        LOGGER.info(f"[{self.filename}] : --Threshold       : {self.threshold}")
-
-    def get_mask(self, image: np.array) -> None:
-        """Derive mask.
-
-        Parameters
-        ----------
-        image: np.array
-            Image to derive mask for (typically after initial flattening).
-        threshold: float
-            Threshold above which pixels are masked.
-
-        Returns
-        -------
-        np.array
-            Array of booleans indicating whether a pixel is to be masked.
-        """
-        self.images["mask"] = get_mask(image, self.threshold, self.filename)
-        LOGGER.info(f'[{self.filename}] : Mask derived, values exceeding threshold : {self.images["mask"].sum()}')
-
->>>>>>> aea1962 (Add support for upper and lower thresholding)
     def average_background(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Zero the background
 
