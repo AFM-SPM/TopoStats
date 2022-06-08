@@ -29,14 +29,14 @@ is included in the directory `config/example.yml` under the `dev` branch and you
 `minicircle.spm` (found under `tests/resources/minicircle.spm`) with the following...
 
 ``` bash
-python ./run_topostats.py --config config/example.yaml
+run_topostats.py --config config/example.yaml
 ```
 
 This version takes command line arguments, and you _have_ to include `--config path/to/valid/config.yaml` option. You
 can see what other options are available with...
 
 ``` bash
-python ./run_topostats.py --help
+run_topostats.py --help
 ```
 
 Any options specified on the command line will over-ride those in the configuration file, for example to suppress log
