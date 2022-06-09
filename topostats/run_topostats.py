@@ -240,11 +240,19 @@ def process_scan(
     # Find Grains :
     # The Grains class also has a convenience method that runs the instantiated class in full.
 
-    print('channel: ', channel)
-    filtered_image = Filters(image_path, threshold_method, threshold_std_dev_multiplier_lower, threshold_std_dev_multiplier_upper, channel, amplify_level, output_dir)
+    print("channel: ", channel)
+    filtered_image = Filters(
+        image_path,
+        threshold_method,
+        threshold_std_dev_multiplier_lower,
+        threshold_std_dev_multiplier_upper,
+        channel,
+        amplify_level,
+        output_dir,
+    )
     filtered_image.filter_image()
 
-    if threshold_method == 'otsu':
+    if threshold_method == "otsu":
 
         grains = Grains(
             image=filtered_image.images["zero_averaged_background"],
@@ -254,9 +262,11 @@ def process_scan(
             gaussian_size=gaussian_size,
             gaussian_mode=gaussian_mode,
             threshold_multiplier=threshold_multiplier,
+            threshold_multiplier_lower=threshold_std_dev_multiplier_lower,
+            threshold_multiplier_upper=threshold_std_dev_multiplier_upper,
             absolute_smallest_grain_size=absolute_smallest_grain_size,
             background=background,
-            output_dir=output_dir
+            output_dir=output_dir,
         )
         grains.find_grains()
 
@@ -269,59 +279,61 @@ def process_scan(
         )
         grain_statistics = grainstats.calculate_stats()
 
-    elif threshold_method == "std_dev":
+    elif "std_dev" in threshold_method:
 
-        if threshold_std_dev_multiplier_lower != 'None':
+        if threshold_method == "std_dev_lower" or threshold_method == "std_dev_both":
             lower_grains = Grains(
                 image=filtered_image.images["zero_averaged_background"],
-                filename=filtered_image.filename + str('_lower'),
+                filename=filtered_image.filename + str("_lower"),
                 pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
-                threshold_method='std_dev_lower',
+                threshold_method="std_dev_lower",
                 gaussian_size=gaussian_size,
                 gaussian_mode=gaussian_mode,
-                threshold_multiplier=threshold_std_dev_multiplier_lower,
+                threshold_multiplier=None,
+                threshold_multiplier_lower=threshold_std_dev_multiplier_lower,
+                threshold_multiplier_upper=threshold_std_dev_multiplier_upper,
                 absolute_smallest_grain_size=absolute_smallest_grain_size,
                 background=background,
-                output_dir=output_dir
+                output_dir=output_dir,
             )
-            print('finding grains')
+            print("finding grains")
             lower_grains.find_grains()
 
             lower_grainstats = GrainStats(
-            data=lower_grains.images["gaussian_filtered"],
-            labelled_data=lower_grains.images["labelled_regions"],
-            pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
-            img_name=filtered_image.filename + str('_lower'),
-            output_dir=output_dir,
+                data=lower_grains.images["gaussian_filtered"],
+                labelled_data=lower_grains.images["labelled_regions"],
+                pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+                img_name=filtered_image.filename + str("_lower"),
+                output_dir=output_dir,
             )
             grain_statistics = lower_grainstats.calculate_stats()
 
             # Just for plotting purposes
             grains = lower_grains
 
-
-
-        if threshold_std_dev_multiplier_upper != 'None':
+        if threshold_method == "std_dev_upper" or threshold_method == "std_dev_both":
             upper_grains = Grains(
                 image=filtered_image.images["zero_averaged_background"],
-                filename=filtered_image.filename + str('_upper'),
+                filename=filtered_image.filename + str("_upper"),
                 pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
-                threshold_method='std_dev_upper',
+                threshold_method="std_dev_upper",
                 gaussian_size=gaussian_size,
                 gaussian_mode=gaussian_mode,
-                threshold_multiplier=threshold_std_dev_multiplier_upper,
+                threshold_multiplier=None,
+                threshold_multiplier_lower=threshold_std_dev_multiplier_lower,
+                threshold_multiplier_upper=threshold_std_dev_multiplier_upper,
                 absolute_smallest_grain_size=absolute_smallest_grain_size,
                 background=background,
-                output_dir=output_dir
+                output_dir=output_dir,
             )
             upper_grains.find_grains()
 
             upper_grainstats = GrainStats(
-            data=upper_grains.images["gaussian_filtered"],
-            labelled_data=upper_grains.images["labelled_regions"],
-            pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
-            img_name=filtered_image.filename + str('_upper'),
-            output_dir=output_dir,
+                data=upper_grains.images["gaussian_filtered"],
+                labelled_data=upper_grains.images["labelled_regions"],
+                pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+                img_name=filtered_image.filename + str("_upper"),
+                output_dir=output_dir,
             )
             grain_statistics = upper_grainstats.calculate_stats()
 
@@ -400,23 +412,11 @@ def main():
         process_scan,
         channel=config["channel"],
         amplify_level=config["amplify_level"],
-<<<<<<< HEAD
         filter_threshold_method=config["filter"]["threshold"]["method"],
         filter_otsu_threshold_multiplier=config["filter"]["threshold"]["otsu_multiplier"],
         filter_threshold_std_dev=config["filter"]["threshold"]["std_dev"],
         filter_threshold_abs_lower=config["filter"]["threshold"]["absolute"][0],
         filter_threshold_abs_upper=config["filter"]["threshold"]["absolute"][1],
-=======
-        threshold_method=config["grains"]["threshold_method"],
-        absolute_smallest_grain_size=config["grains"]["absolute_smallest_grain_size"],
-        threshold_multiplier=config["grains"]["thresholding_methods"]["otsu"]["threshold_otsu_multiplier"],
-        threshold_std_dev_multiplier_lower=config["grains"]["thresholding_methods"]["std_dev"][
-            "threshold_std_dev_multiplier_lower"
-        ],
-        threshold_std_dev_multiplier_upper=config["grains"]["thresholding_methods"]["std_dev"][
-            "threshold_std_dev_multiplier_upper"
-        ],
->>>>>>> aea1962 (Add support for upper and lower thresholding)
         gaussian_size=config["grains"]["gaussian_size"],
         gaussian_mode=config["grains"]["gaussian_mode"],
         absolute_smallest_grain_size=config["grains"]["absolute_smallest_grain_size"],
