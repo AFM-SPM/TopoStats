@@ -12,8 +12,8 @@ grains:
   gaussian_mode: nearest
   absolute_smallest_grain_size: 100
   background: 0.0
-  # Thresholding methods
-  threshold_method: std_dev_both
+  # Thresholding methods: 'otsu', 'std_dev_lower', 'std_dev_upper', 'std_dev_both', 'absolute_lower', 'absolute_upper', 'absolute_both'
+  threshold_method: absolute_both
   thresholding_methods:
     otsu:
       threshold_otsu_multiplier: 1.7
@@ -21,7 +21,7 @@ grains:
       threshold_std_dev_multiplier_lower: 1
       threshold_std_dev_multiplier_upper: 1
     # Absolute threshold - the upper and lower absolute thresholds
-    # absolute_value:
-    #   threshold_abs_upper: 2
-    #   threshold_abs_lower: -2
+    absolute_value:
+      threshold_abs_upper: 1
+      threshold_abs_lower: -1
   

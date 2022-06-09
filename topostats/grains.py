@@ -33,6 +33,8 @@ class Grains:
         threshold_multiplier: float = None,
         threshold_multiplier_lower: float = None,
         threshold_multiplier_upper: float = None,
+        threshold_absolute_lower: float = None,
+        threshold_absolute_upper: float = None,
         absolute_smallest_grain_size: float = None,
         background: float = 0.0,
         output_dir: Union[str, Path] = None,
@@ -44,6 +46,8 @@ class Grains:
         self.threshold_multiplier = threshold_multiplier
         self.threshold_multiplier_lower = threshold_multiplier_lower
         self.threshold_multiplier_upper = threshold_multiplier_upper
+        self.threshold_absolute_lower = threshold_absolute_lower
+        self.threshold_absolute_upper = threshold_absolute_upper
         self.gaussian_size = gaussian_size
         self.gaussian_mode = gaussian_mode
         self.background = background
@@ -83,6 +87,11 @@ class Grains:
                 thresh = threshold(image, method='mean', **kwargs) - self.threshold_multiplier_lower * np.nanstd(image)
             elif threshold_method == "std_dev_upper":
                 thresh = threshold(image, method='mean', **kwargs) + self.threshold_multiplier_upper * np.nanstd(image)
+        if "absolute" in threshold_method:
+            if threshold_method == "absolute_lower":
+                thresh = self.threshold_absolute_lower
+            elif threshold_method == "absolute_upper":
+                thresh = self.threshold_absolute_upper
         elif threshold_method == "otsu":
             thresh = threshold(image, method='otsu', **kwargs) * self.threshold_multiplier
 
@@ -102,13 +111,21 @@ class Grains:
 
     def get_mask(self):
         """Create a boolean array of whether points are greater than the given threshold."""
+
+        # Perhaps I should add a condition that instead checks for 'upper' or 'lower' in the thresholding name to condense this? - Sylvia
         if "std_dev" in self.threshold_method:
             if self.threshold_method == "std_dev_lower":
                 mask = get_mask(self.images["gaussian_filtered"], self.threshold, threshold_direction='below', img_name=self.filename)
             elif self.threshold_method == "std_dev_upper":
                 mask = get_mask(self.images["gaussian_filtered"], self.threshold, threshold_direction='above', img_name=self.filename)
+        elif "absolute" in self.threshold_method:
+            if self.threshold_method == "absolute_lower":
+                mask = get_mask(self.images["gaussian_filtered"], self.threshold, threshold_direction='below', img_name=self.filename)
+            elif self.threshold_method == "absolute_upper":
+                mask = get_mask(self.images["gaussian_filtered"], self.threshold, threshold_direction='above', img_name=self.filename)
         elif self.threshold_method == "otsu":
             mask = get_mask(self.images["gaussian_filtered"], self.threshold, threshold_direction='above', img_name=self.filename)
+        
         plot_and_save(mask, self.output_dir / self.filename, 'grain_binary_mask')
         LOGGER.info(f"[{self.filename}] : Created boolean image")
         return mask

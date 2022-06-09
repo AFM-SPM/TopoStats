@@ -89,6 +89,7 @@ def _threshold_yen(image: np.array, **kwargs) -> float:
 def _threshold_triangle(image: np.array, **kwargs) -> float:
     return threshold_triangle(image, **kwargs)
 
+
 # def _threshold_std_dev_lower(image: np.array, threshold_multiplier: float, **kwargs) -> float:
 #     mean = np.nanmean(image)
 #     std_dev = np.nanstd(image)

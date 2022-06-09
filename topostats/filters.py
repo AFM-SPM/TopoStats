@@ -26,6 +26,8 @@ class Filters:
         threshold_method: str = "otsu",
         std_dev_multiplier_lower: float = None,
         std_dev_multiplier_upper: float = None,
+        threshold_absolute_lower: float = None,
+        threshold_absolute_upper: float = None,
         channel: str = "Height",
         amplify_level: float = None,
         output_dir: Union[str, Path] = None,
@@ -59,6 +61,8 @@ class Filters:
         self.threshold_method = threshold_method
         self.std_dev_multiplier_lower = std_dev_multiplier_lower
         self.std_dev_multiplier_upper = std_dev_multiplier_upper
+        self.threshold_absolute_lower = threshold_absolute_lower
+        self.threshold_absolute_upper = threshold_absolute_upper
         self.filename = self.extract_filename()
         self.output_dir = Path(output_dir) if output_dir else Path("./output")
         self.images = {
@@ -328,7 +332,7 @@ class Filters:
         self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
 
-        if self.threshold_method is 'otsu':
+        if self.threshold_method == 'otsu':
             # Create Mask
             threshold = self.get_threshold(self.images["initial_tilt_removal"], threshold_method='otsu')
             self.images["mask"] = get_mask(self.images["initial_tilt_removal"], threshold=threshold, threshold_direction='above')
@@ -384,13 +388,51 @@ class Filters:
                     self.images["masked_tilt_removal"],
                     mask=self.images["mask"]
                 )
-            elif self.threshold_method == "None":
-                # TODO: Add script for no masking in the processing.
-                LOGGER.fatal(f'No method yet avialable for thresholding method: {self.threshold_method}')
-                exit
-            else:
-                # TODO: create custom exception for this
-                LOGGER.fatal(f'No method corresponding to: {self.threshold_method}')
-                exit
+        elif self.threshold_method == "absolute_both":
+            upper_threshold = self.threshold_absolute_upper
+            upper_mask = self.get_mask(self.images["initial_tilt_removal"], threshold=upper_threshold, threshold_direction="above")
+            lower_threshold = self.threshold_absolute_lower
+            lower_mask = self.get_mask(self.images["initial_tilt_removal"], threshold=lower_threshold, threshold_direction="below")
+            self.images["mask"] = np.logical_and(lower_mask, upper_mask)
+            # Second filtering
+            self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], mask=self.images["mask"])
+            self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], mask=self.images["mask"])
+            # Average background zero setting
+            self.images["zero_averaged_background"] = self.average_background(
+                self.images["masked_tilt_removal"],
+                mask=self.images["mask"]
+            )
+        elif self.threshold_method == "absolute_lower":
+            lower_threshold = self.threshold_absolute_lower
+            lower_mask = self.get_mask(self.images["initial_tilt_removal"], threshold=lower_threshold, threshold_direction="below")
+            self.images["mask"] = lower_mask
+            # Second filtering
+            self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], mask=self.images["mask"])
+            self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], mask=self.images["mask"])
+            # Average background zero setting
+            self.images["zero_averaged_background"] = self.average_background(
+                self.images["masked_tilt_removal"],
+                mask=self.images["mask"]
+            )
+        elif self.threshold_method == "absolute_upper":
+            upper_threshold = self.threshold_absolute_upper
+            upper_mask = self.get_mask(self.images["initial_tilt_removal"], threshold=upper_threshold, threshold_direction="above")
+            self.images["mask"] = upper_mask
+            # Second filtering
+            self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], mask=self.images["mask"])
+            self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], mask=self.images["mask"])
+            # Average background zero setting
+            self.images["zero_averaged_background"] = self.average_background(
+                self.images["masked_tilt_removal"],
+                mask=self.images["mask"]
+            )
+        elif self.threshold_method == "None":
+            # TODO: Add script for no masking in the processing.
+            LOGGER.fatal(f'No method yet avialable for thresholding method: {self.threshold_method}')
+            exit
+        else:
+            # TODO: create custom exception for this
+            LOGGER.fatal(f'No method corresponding to: {self.threshold_method}')
+            exit
             
         
