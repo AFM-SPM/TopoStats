@@ -91,6 +91,11 @@ def _threshold_triangle(image: np.array, otsu_threshold_multiplier: float = None
 #     std_dev = np.nanstd(image)
 #     return mean - (float(threshold_multiplier) * std_dev)
 
+# def _threshold_std_dev_lower(image: np.array, threshold_multiplier: float, **kwargs) -> float:
+#     mean = np.nanmean(image)
+#     std_dev = np.nanstd(image)
+#     return mean - (float(threshold_multiplier) * std_dev)
+
 # def _threshold_std_dev_upper(image: np.array, threshold_multiplier: float, **kwargs) -> float:
 #     mean = np.nanmean(image)
 #     std_dev = np.nanstd(image)
