@@ -31,7 +31,7 @@ the mean time you have to clone the repository from GitHub and install it. Work 
 to test that you need to "checkout" this branch prior to installing it.
 
 ``` bash
-git clone git@github.com:AFM-SPM/TopoStats.git
+git clone -b dev https://github.com/AFM-SPM/TopoStats.git
 cd TopoStats
 git checkout dev
 pip install .
