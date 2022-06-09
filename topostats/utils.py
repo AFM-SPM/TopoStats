@@ -74,15 +74,17 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
     return config
 
 
-def get_mask(image: np.array, threshold: tuple, img_name: str = None) -> np.array:
+def get_mask(image: np.array, threshold: float, threshold_direction: str, img_name: str = None) -> np.array:
     """Calculate a mask for pixels that exceed the threshold
 
     Parameters
     ----------
     image: np.array
         Numpy array representing image.
-    threshold: tuple
-        A tuple containing two floats representing the lower and upper thresholds respectively. Thresholds can also be set to None if the respective threshold is not to be applied.
+    threshold: float
+        A float representing the threshold
+    threshold_direction: str
+        A string representing the direction that should be thresholded. ("above", "below")
     img_name: str
         Name of image being processed
 
@@ -93,21 +95,16 @@ def get_mask(image: np.array, threshold: tuple, img_name: str = None) -> np.arra
     """
     LOGGER.info(f"[{img_name}] Deriving mask.")
     print('threshold: ', threshold)
-    lower_threshold = threshold[0]
-    upper_threshold = threshold[1]
-    if lower_threshold != None and upper_threshold != None:
-        mask = np.logical_and(image < lower_threshold, image > upper_threshold)
-        LOGGER.info('masking - lower and upper')
-        LOGGER.info(f'masking | threshold: {lower_threshold} {upper_threshold}, mean: {np.nanmean(image)}')
-    elif lower_threshold == None and upper_threshold != None:
-        mask = image > upper_threshold
-        LOGGER.info('masking - upper')
-    elif lower_threshold != None and upper_threshold == None:
-        LOGGER.info(f'masking | threshold: {lower_threshold}, mean: {np.nanmean(image)}')
-        mask = image < lower_threshold
+    if threshold_direction == "above":
+        LOGGER.info(f'masking | threshold: {threshold}, mean: {np.nanmean(image)}')
+        mask = image > threshold
+        LOGGER.info('masking - above')
+    elif threshold_direction == "below":
+        LOGGER.info(f'masking | threshold: {threshold}, mean: {np.nanmean(image)}')
+        mask = image < threshold
         LOGGER.info('masking - lower')
     else: 
-        LOGGER.fatal('Both thresholds are None')
+        LOGGER.fatal(f'Threshold direction invalid: {threshold_direction}')
         exit
     # TODO: Add custom error for when both are None.
     return mask
