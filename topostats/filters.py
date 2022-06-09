@@ -254,20 +254,14 @@ class Filters:
             Method for deriving threshold options are 'otsu' (default), std_dev_lower, std_dev_upper, minimum, mean, yen and triangle
 
         """
-        if self.threshold_method == 'otsu':
-            self.threshold = (None, threshold(image, method='otsu', threshold_multiplier=1.0, **kwargs))
-        elif threshold_method == 'std_dev_lower':
-            self.threshold = (threshold(image, method='std_dev_lower', threshold_multiplier=self.std_dev_multiplier_lower), None)
-        elif threshold_method == 'std_dev_upper':
-            self.threshold = (None, threshold(image, method='std_dev_upper', threshold_multiplier=self.std_dev_multiplier_upper))
-        elif threshold_method == 'std_dev_both':
-            self.threshold = (threshold(image, method='std_dev_lower', threshold_multiplier=self.std_dev_multiplier_lower), threshold(image, method='std_dev_upper', threshold_multiplier=self.std_dev_multiplier_upper))
-        else: 
-            raise ValueError(threshold_method)
-        LOGGER.info(f"[{self.filename}] : Threshold method: {threshold_method}")
-        LOGGER.info(f"[{self.filename}] : --Threshold       : {self.threshold}")
 
-    def get_mask(self, image: np.array) -> None:
+        thresh = threshold(image, method=threshold_method, **kwargs)
+        
+        LOGGER.info(f"[{self.filename}] : Threshold method: {threshold_method}")
+        LOGGER.info(f"[{self.filename}] : Threshold       : {thresh}")
+        return thresh
+
+    def get_mask(self, image: np.array, threshold: float, threshold_direction: str) -> None:
         """Derive mask.
 
         Parameters
@@ -282,8 +276,9 @@ class Filters:
         np.array
             Array of booleans indicating whether a pixel is to be masked.
         """
-        self.images["mask"] = get_mask(image, self.threshold, self.filename)
-        LOGGER.info(f'[{self.filename}] : Mask derived, values exceeding threshold : {self.images["mask"].sum()}')
+        mask = get_mask(image, threshold, threshold_direction=threshold_direction, img_name=self.filename)
+        LOGGER.info(f'[{self.filename}] : Mask derived, values exceeding threshold : {mask.sum()}')
+        return mask
 
     def average_background(self, image: np.array, mask: np.array = None) -> np.array:
         """Zero the background
@@ -333,65 +328,69 @@ class Filters:
         self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
 
-        if self.threshold_method == 'otsu':
+        if self.threshold_method is 'otsu':
             # Create Mask
-            self.get_threshold(self.images["initial_tilt_removal"], threshold_method=self.threshold_method)
-            self.get_mask(self.images["initial_tilt_removal"])
-
+            threshold = self.get_threshold(self.images["initial_tilt_removal"], threshold_method='otsu')
+            self.images["mask"] = get_mask(self.images["initial_tilt_removal"], threshold=threshold, threshold_direction='above')
             # Second pass filtering (with mask based on threshold)
             self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], mask=self.images["mask"])
             self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], mask=self.images["mask"])
-
             # Average Background
             self.images["zero_averaged_background"] = self.average_background(
                 self.images["masked_tilt_removal"], 
                 mask=self.images["mask"]
             )
-        elif self.threshold_method =='std_dev':
+        
+        elif "std_dev" in self.threshold_method:
             # If using both upper and lower
-            if self.std_dev_multiplier_lower != 'None' and self.std_dev_multiplier_upper != 'None':
-                self.get_threshold(self.images["initial_tilt_removal"], threshold_method='std_dev_both')
-                self.get_mask(self.images["initial_tilt_removal"])
-
+            if self.threshold_method == "std_dev_both":
+                lower_threshold = self.get_threshold(self.images["initial_tilt_removal"], threshold_method='mean') - self.std_dev_multiplier_lower * np.nanstd(self.images["initial_tilt_removal"])
+                lower_mask = self.get_mask(self.images["initial_tilt_removal"], threshold=lower_threshold, threshold_direction="below")
+                upper_threshold = self.get_threshold(self.images["initial_tilt_removal"], threshold_method='mean') + self.std_dev_multiplier_upper * np.nanstd(self.images["initial_tilt_removal"])
+                upper_mask = self.get_mask(self.images["initial_tilt_removal"], threshold=upper_threshold, threshold_direction="above")
+                self.images["mask"] = np.logical_and(lower_mask, upper_mask)
                 # Second filtering
                 self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], mask=self.images["mask"])
                 self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], mask=self.images["mask"])
-
                 # Average background zero setting
                 self.images["zero_averaged_background"] = self.average_background(
                     self.images["masked_tilt_removal"],
                     mask=self.images["mask"]
                 )
-            # If using only lower thresholding
-            elif self.std_dev_multiplier_lower != 'None':
-                self.get_threshold(self.images["initial_tilt_removal"], threshold_method='std_dev_lower')
-                self.get_mask(self.images['initial_tilt_removal'])
 
+            # If using only lower thresholding
+            elif self.threshold_method == "std_dev_lower":
+                lower_threshold = self.get_threshold(self.images["initial_tilt_removal"], threshold_method='mean') - self.std_dev_multiplier_lower * np.nanstd(self.images["initial_tilt_removal"])
+                lower_mask = self.get_mask(self.images["initial_tilt_removal"], threshold=lower_threshold, threshold_direction="below")
+                self.images["mask"] = lower_mask
                 # Second filtering
                 self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], mask=self.images["mask"])
                 self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], mask=self.images["mask"])
-
                 # Average background zero setting
                 self.images["zero_averaged_background"] = self.average_background(
                     self.images["masked_tilt_removal"],
                     mask=self.images["mask"]
                 )
             # If using only upper thresholding
-            elif self.std_dev_multiplier_upper != 'None':
-                self.get_threshold(self.images["initial_tilt_removal"], threshold_method='std_dev_upper')
-                self.get_mask(self.images['initial_tilt_removal'])
-
+            elif self.threshold_method == "std_dev_upper":
+                upper_threshold = self.get_threshold(self.images["initial_tilt_removal"], threshold_method='mean') + self.std_dev_multiplier_upper * np.nanstd(self.images["initial_tilt_removal"])
+                upper_mask = self.get_mask(self.images["initial_tilt_removal"], threshold=upper_threshold, threshold_direction="above")
+                self.images["mask"] = upper_mask
                 # Second filtering
                 self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], mask=self.images["mask"])
                 self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], mask=self.images["mask"])
-
                 # Average background zero setting
                 self.images["zero_averaged_background"] = self.average_background(
                     self.images["masked_tilt_removal"],
                     mask=self.images["mask"]
                 )
-            elif self.std_dev_multiplier_lower == 'None' and self.std_dev_multiplier_upper == 'None':
+            elif self.threshold_method == "None":
+                # TODO: Add script for no masking in the processing.
+                LOGGER.fatal(f'No method yet avialable for thresholding method: {self.threshold_method}')
+                exit
+            else:
                 # TODO: create custom exception for this
+                LOGGER.fatal(f'No method corresponding to: {self.threshold_method}')
                 exit
             
         
