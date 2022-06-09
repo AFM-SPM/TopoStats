@@ -14,9 +14,7 @@ An AFM image analysis program to batch process data and obtain statistics from i
 
 ### Installation
 
-This section will contain simple install instructions.
-
-For now, please refer to the installation guide (*todo: link*).
+Please see the [installation instructions](docs/installation.md).
 
 ### Tutorials and Examples
 
