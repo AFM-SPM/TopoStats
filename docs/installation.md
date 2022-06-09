@@ -27,7 +27,8 @@ You are now ready to clone and install TopoStats.
 ## Cloning and Installing
 
 Currently TopoStats has not been released to the [PyPi](https://pypi.org) repository (although a release is planned). In
-the mean time you have to clone the repository from GitHub and install it. Work is on-going on the `dev` branch and so
+the mean time you have to clone the repository from GitHub and install it. If you do not have Git already installed
+please see [Git](#git). Work is on-going on the `dev` branch and so
 to test that you need to "checkout" this branch prior to installing it.
 
 ``` bash
@@ -59,3 +60,10 @@ git checkout dev
 pip install ".[tests]"
 pytest
 ```
+
+
+# Git
+
+[Git](https://git.vc) is a version control system for managing software development and is required to be installed on
+your computer in order to clone the TopoStats repository. Instructions on installing Git can be found at [Git Guides -
+install git](https://github.com/git-guides/install-git).
