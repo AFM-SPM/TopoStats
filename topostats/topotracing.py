@@ -159,6 +159,8 @@ def process_scan(
             gaussian_size=gaussian_size,
             gaussian_mode=gaussian_mode,
             threshold_multiplier=threshold_multiplier,
+            threshold_multiplier_lower=threshold_std_dev_multiplier_lower,
+            threshold_multiplier_upper=threshold_std_dev_multiplier_upper,
             absolute_smallest_grain_size=absolute_smallest_grain_size,
             background=background,
             output_dir=output_dir
@@ -174,9 +176,9 @@ def process_scan(
     )
         grain_statistics = grainstats.calculate_stats()
 
-    elif threshold_method == 'std_dev':
+    elif "std_dev" in threshold_method:
 
-        if threshold_std_dev_multiplier_lower != 'None':
+        if threshold_method == "std_dev_lower" or threshold_method == "std_dev_both":
             lower_grains = Grains(
                 image=filtered_image.images["zero_averaged_background"],
                 filename=filtered_image.filename + str('_lower'),
@@ -184,7 +186,9 @@ def process_scan(
                 threshold_method='std_dev_lower',
                 gaussian_size=gaussian_size,
                 gaussian_mode=gaussian_mode,
-                threshold_multiplier=threshold_std_dev_multiplier_lower,
+                threshold_multiplier=None,
+                threshold_multiplier_lower=threshold_std_dev_multiplier_lower,
+                threshold_multiplier_upper=threshold_std_dev_multiplier_upper,
                 absolute_smallest_grain_size=absolute_smallest_grain_size,
                 background=background,
                 output_dir=output_dir
@@ -204,9 +208,7 @@ def process_scan(
             # Just for plotting purposes
             grains = lower_grains
 
-
-
-        if threshold_std_dev_multiplier_upper != 'None':
+        if threshold_method == "std_dev_upper" or threshold_method == "std_dev_both":
             upper_grains = Grains(
                 image=filtered_image.images["zero_averaged_background"],
                 filename=filtered_image.filename + str('_upper'),
@@ -214,7 +216,9 @@ def process_scan(
                 threshold_method='std_dev_upper',
                 gaussian_size=gaussian_size,
                 gaussian_mode=gaussian_mode,
-                threshold_multiplier=threshold_std_dev_multiplier_upper,
+                threshold_multiplier=None,
+                threshold_multiplier_lower=threshold_std_dev_multiplier_lower,
+                threshold_multiplier_upper=threshold_std_dev_multiplier_upper,
                 absolute_smallest_grain_size=absolute_smallest_grain_size,
                 background=background,
                 output_dir=output_dir
