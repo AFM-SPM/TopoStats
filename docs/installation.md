@@ -7,7 +7,7 @@ TopoStats is a [Python](https://www.python.org) package designed to run at the c
 installed on your system but should use a [Python Virtual
 Environment](https://realpython.com/python-virtual-environments-a-primer/) such as
 [Miniconda](https://docs.conda.io/en/latest/miniconda.html) and install it under the Virtual Environment. The versions
-of Python supported is Python >=3.8 and so when creating your virtual environment you should specify this `3.8` as the
+of Python supported are Python >=3.8 and so when creating your virtual environment you should specify this `3.8` as the
 minimum.
 
 ## Setting up Conda
