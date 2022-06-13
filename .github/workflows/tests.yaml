@@ -31,3 +31,7 @@ jobs:
           coverage xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
+      - name: Checking CLI entry-point works
+        run: |
+          pip install -e .
+          run_topostats --config config/example.yaml
