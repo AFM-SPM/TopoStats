@@ -396,7 +396,7 @@ class Filters:
                     threshold=upper_threshold,
                     threshold_direction="above",
                 )
-                self.images["mask"] = np.logical_and(lower_mask, upper_mask)
+                self.images["mask"] = lower_mask + upper_mask
                 # Second filtering
                 self.images["masked_align"] = self.align_rows(
                     self.images["initial_tilt_removal"], mask=self.images["mask"]
@@ -470,7 +470,7 @@ class Filters:
                 threshold=lower_threshold,
                 threshold_direction="below",
             )
-            self.images["mask"] = np.logical_and(lower_mask, upper_mask)
+            self.images["mask"] = lower_mask + upper_mask
             # Second filtering
             self.images["masked_align"] = self.align_rows(
                 self.images["initial_tilt_removal"], mask=self.images["mask"]
