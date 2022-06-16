@@ -13,7 +13,7 @@ from tqdm import tqdm
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import read_yaml
+from topostats.io import read_yaml, write_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import plot_and_save
 from topostats.thresholds import threshold
@@ -23,7 +23,8 @@ from topostats.utils import convert_path, find_images, update_config
 LOGGER = setup_logger(LOGGER_NAME)
 
 PLOT_DICT = {
-    "pixels": {"filename": "01-raw_heightmap.png", "title": "Raw Height"},
+    "extracted_channel": {"filename": "00-raw_heightmap.png", "title": "Raw Height"},
+    "pixels": {"filename": "01-pixels.png", "title": "Pixels"},
     "initial_align": {"filename": "02-initial_align_unmasked.png", "title": "Initial Alignment (Unmasked)"},
     "initial_tilt_removal": {
         "filename": "03-initial_tilt_removal_unmasked.png",
@@ -192,7 +193,9 @@ def process_scan(
         LOGGER.info("Saving plots of images at all stages of processing.")
         # Filtering stage
         for plot_name, array in filtered_image.images.items():
-            if plot_name not in ["scan_raw", "extracted_channel"]:
+            if plot_name not in ["scan_raw"]:
+                if plot_name == "extracted_channel":
+                    array = np.flipud(array.pixels)
                 PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
                 plot_and_save(array, **PLOT_DICT[plot_name])
         # Grain stage - only if we have grains
@@ -276,6 +279,10 @@ def main():
     LOGGER.info(
         f"All statistics combined for {len(img_files)} are saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
     )
+
+    # Write config to file
+    LOGGER.info(f"Writing configuration to : {config['output_dir']}/config.yaml")
+    write_yaml(config, output_dir=config["output_dir"])
 
 
 if __name__ == "__main__":
