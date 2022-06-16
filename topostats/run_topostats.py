@@ -14,6 +14,8 @@ from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats, get_grainstats
 from topostats.io import read_yaml
+from topostats.grainstats import GrainStats
+from topostats.io import read_yaml, write_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import plot_and_save
 from topostats.thresholds import threshold
@@ -21,6 +23,31 @@ from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import convert_path, find_images, update_config
 
 LOGGER = setup_logger(LOGGER_NAME)
+
+PLOT_DICT = {
+    "extracted_channel": {"filename": "00-raw_heightmap.png", "title": "Raw Height"},
+    "pixels": {"filename": "01-pixels.png", "title": "Pixels"},
+    "initial_align": {"filename": "02-initial_align_unmasked.png", "title": "Initial Alignment (Unmasked)"},
+    "initial_tilt_removal": {
+        "filename": "03-initial_tilt_removal_unmasked.png",
+        "title": "Initial Tilt Removal (Unmasked)",
+    },
+    "mask": {"filename": "04-binary_mask.png", "title": "Binary Mask"},
+    "masked_align": {"filename": "05-secondary_align_masked.png", "title": "Secondary Alignment (Masked)"},
+    "masked_tilt_removal": {
+        "filename": "06-secondary_tilt_removal_masked.png",
+        "title": "Secondary Tilt Removal (Masked)",
+    },
+    "zero_averaged_background": {"filename": "07-zero_average_background.png", "title": "Zero Average Background"},
+    "gaussian_filtered": {"filename": "08-gaussian_filtered.png", "title": "Gaussian Filtered"},
+    "mask_grains": {"filename": "09-mask_grains.png", "title": "Mask for Grains"},
+    "tidied_border": {"filename": "10-tidy_borders.png", "title": "Tidied Borders"},
+    "objects_removed": {"filename": "11-small_objects_removed.png", "title": "Small Objects Removed"},
+    "labelled_regions": {"filename": "12-labelled_regions.png", "title": "Labelled Regions"},
+    "coloured_regions": {"filename": "13-coloured_regions.png", "title": "Coloured Regions"},
+    "bounding_boxes": {"filename": "14-bounding_boxes.png", "title": "Bounding Boxes"},
+    "coloured_boxes": {"filename": "15-labelled_image_bboxes.png", "title": "Labelled Image with Bounding Boxes"},
+}
 
 
 def create_parser() -> arg.ArgumentParser:
@@ -239,7 +266,9 @@ def process_scan(
         LOGGER.info("Saving plots of images at all stages of processing.")
         # Filtering stage
         for plot_name, array in filtered_image.images.items():
-            if plot_name not in ["scan_raw", "extracted_channel"]:
+            if plot_name not in ["scan_raw"]:
+                if plot_name is "extracted_channel":
+                    array = np.flipud(array.pixels)
                 PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
                 plot_and_save(array, **PLOT_DICT[plot_name])
         # Grain stage - only if we have grains
@@ -332,6 +361,10 @@ def main():
     LOGGER.info(
         f"All statistics combined for {len(img_files)} are saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
     )
+
+    # Write config to file
+    LOGGER.info(f"Writing configuration to : {config['output_dir']}/config.yaml")
+    write_yaml(config, output_dir=config["output_dir"])
 
 
 if __name__ == "__main__":
