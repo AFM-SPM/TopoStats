@@ -267,7 +267,7 @@ def process_scan(
         # Filtering stage
         for plot_name, array in filtered_image.images.items():
             if plot_name not in ["scan_raw"]:
-                if plot_name is "extracted_channel":
+                if plot_name == "extracted_channel":
                     array = np.flipud(array.pixels)
                 PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
                 plot_and_save(array, **PLOT_DICT[plot_name])
