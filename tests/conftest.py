@@ -12,6 +12,7 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import read_yaml
 from topostats.utils import get_thresholds, get_mask
+from topostats.tracing.dnatracing import dnaTrace, traceStats
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
@@ -35,10 +36,12 @@ def grain_config(sample_config) -> dict:
     """Configurations for grain finding."""
     return sample_config["grains"]
 
+
 @pytest.fixture
 def filter_config(sample_config) -> dict:
     """Configurations for filtering"""
     return sample_config["filter"]
+
 
 @pytest.fixture
 def image_random() -> np.ndarray:
@@ -140,7 +143,7 @@ def test_filters_random_with_mask(sample_config: dict, tmpdir, image_random: np.
     thresholds = get_thresholds(
         image=filters.images["pixels"],
         threshold_method=sample_config["filter"]["threshold"]["method"],
-        otsu_threshold_multiplier=sample_config["filter"]["threshold"]["otsu_multiplier"]
+        otsu_threshold_multiplier=sample_config["filter"]["threshold"]["otsu_multiplier"],
     )
     # filters.get_mask(filters.images["pixels"])
     filters.images["mask"] = get_mask(image=filters.images["pixels"], thresholds=thresholds)
@@ -232,10 +235,12 @@ def minicircle_initial_tilt_removal(minicircle_initial_align: np.array) -> Filte
 def minicircle_threshold(minicircle_initial_tilt_removal: np.array, sample_config: dict) -> Filters:
     """Calculate threshold."""
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
-        minicircle_initial_tilt_removal.images["initial_tilt_removal"], method=sample_config["filter"]["threshold"]["method"],
-        otsu_threshold_multiplier=sample_config["filter"]["threshold"]["otsu_multiplier"]
+        minicircle_initial_tilt_removal.images["initial_tilt_removal"],
+        method=sample_config["filter"]["threshold"]["method"],
+        otsu_threshold_multiplier=sample_config["filter"]["threshold"]["otsu_multiplier"],
     )
     return minicircle_initial_tilt_removal
+
 
 @pytest.fixture
 def minicircle_mask(minicircle_threshold: np.array) -> Filters:
@@ -383,7 +388,11 @@ def minicircle_grain_coloured(minicircle_grain_labelled_post_removal: np.array) 
 def grainstats(image_random: np.array, minicircle_filename: str, tmpdir) -> GrainStats:
     """Grainstats class for testing functions."""
     gstats = GrainStats(
-        image_random, image_random, pixel_to_nanometre_scaling=0.5, direction=minicircle_filename, base_output_dir=tmpdir
+        image_random,
+        image_random,
+        pixel_to_nanometre_scaling=0.5,
+        direction=minicircle_filename,
+        base_output_dir=tmpdir,
     )
     return gstats
 
@@ -415,3 +424,27 @@ def minicircle_grainstats(
 def minicircle_grainstats_20220526() -> pd.DataFrame:
     """Statistics for minicircle for comparison."""
     return pd.read_csv(RESOURCES / "minicircle_grainstats_20220526.csv", index_col=0)
+
+
+# Derive fixtures for DNA Tracing
+@pytest.fixture
+def minicircle_dnatracing(
+    minicircle_grain_labelled_post_removal, minicircle_zero_average_background, tmpdir
+) -> pd.DataFrame:
+    """DNA Tracing Statistics"""
+    dna_traces = dnaTrace(
+        full_image_data=minicircle_grain_labelled_post_removal.images["gaussian_filtered"].T,
+        grains=minicircle_grain_labelled_post_removal.images["labelled_regions"],
+        afm_image_name=minicircle_zero_average_background.filename,
+        pixel_size=minicircle_zero_average_background.pixel_to_nm_scaling,
+        number_of_columns=minicircle_grain_labelled_post_removal.images["labelled_regions"].shape[0],
+        number_of_rows=minicircle_grain_labelled_post_removal.images["labelled_regions"].shape[1],
+    )
+    tracing_stats = traceStats(trace_object=dna_traces, image_path=tmpdir)
+    return tracing_stats.df
+
+
+@pytest.fixture
+def minicircle_dnastats() -> pd.DataFrame:
+    """DNA Statistics for minicircle for comparison."""
+    return pd.read_csv(RESOURCES / "dna_tracing.csv", index_col=0)
