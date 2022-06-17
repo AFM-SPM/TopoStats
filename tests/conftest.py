@@ -11,6 +11,7 @@ from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import read_yaml
+from topostats.tracing.dnatracing import dnaTrace, traceStats
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
@@ -397,3 +398,27 @@ def minicircle_grainstats(
 def minicircle_grainstats_20220526() -> pd.DataFrame:
     """Statistics for minicircle for comparison."""
     return pd.read_csv(RESOURCES / "minicircle_grainstats_20220526.csv", index_col=0)
+
+
+# Derive fixtures for DNA Tracing
+@pytest.fixture
+def minicircle_dnatracing(
+    minicircle_grain_labelled_post_removal, minicircle_zero_average_background, tmpdir
+) -> pd.DataFrame:
+    """DNA Tracing Statistics"""
+    dna_traces = dnaTrace(
+        full_image_data=minicircle_grain_labelled_post_removal.images["gaussian_filtered"].T,
+        grains=minicircle_grain_labelled_post_removal.images["labelled_regions"],
+        afm_image_name=minicircle_zero_average_background.filename,
+        pixel_size=minicircle_zero_average_background.pixel_to_nm_scaling,
+        number_of_columns=minicircle_grain_labelled_post_removal.images["labelled_regions"].shape[0],
+        number_of_rows=minicircle_grain_labelled_post_removal.images["labelled_regions"].shape[1],
+    )
+    tracing_stats = traceStats(trace_object=dna_traces, image_path=tmpdir)
+    return tracing_stats.df
+
+
+@pytest.fixture
+def minicircle_dnastats() -> pd.DataFrame:
+    """DNA Statistics for minicircle for comparison."""
+    return pd.read_csv(RESOURCES / "dna_tracing.csv", index_col=0)
