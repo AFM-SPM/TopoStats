@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 import math
 import os
-from typing import Union
+from typing import Union, Tuple
 import warnings
 
 import numpy as np
@@ -797,6 +797,11 @@ class dnaTrace(object):
         plt.savefig("%s_%s_coordinates.png" % (savename, dna_num))
 
     def measure_end_to_end_distance(self):
+        """Calculate the Euclidean distance between the start and end of linear molecules.
+
+        The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
+        molecules. If the molecule is circular then the distance is set to zero (0).
+        """
 
         for dna_num in sorted(self.splined_traces.keys()):
             if self.mol_is_circular[dna_num]:
@@ -807,21 +812,36 @@ class dnaTrace(object):
                 x2 = self.splined_traces[dna_num][-1, 0]
                 y2 = self.splined_traces[dna_num][-1, 1]
                 self.end_to_end_distance[dna_num] = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_size * 1e9
+        # self.end_to_end_distance = {
+        #     dna_num: math.hypot((trace[0, 0] - trace[-1, 0]), (trace[0, 1] - trace[-1, 1]))
+        #     if self.mol_is_circular[dna_num]
+        #     else 0
+        #     for dna_num, trace in self.splined_traces.items()
+        # }
 
 
 class traceStats(object):
-    """Class used to report on the stats for all the traced molecules in the
-    given directory"""
+    """Combine and save trace statistics."""
 
-    def __init__(self, trace_object: dnaTrace, image_path: Union[str, Path]):
+    def __init__(self, trace_object: dnaTrace, image_path: Union[str, Path]) -> None:
+        """Initialise the class.
+
+        Parameters
+        ----------
+        trace_object: dnaTrace
+            Object produced from tracing.
+        image_path: Union[str, Path]
+            Path for saving images to.
+
+        Returns
+        -------
+        None
+        """
 
         self.trace_object = trace_object
         self.image_path = Path(image_path)
-        self.pd_dataframe = []
+        self.df = []
         self.create_trace_stats()
-
-    # FIXME : createTraceStatsObject and updateTraceStats are duplicating code, can probably combine into one function
-    #         and improve the way this is done (avoiding need to try: ... except KeyError: e.g. pre-populate dictionary keys).
 
     def create_trace_stats(self):
         """Creates a pandas dataframe of the contour length, whether its circular and end to end distance
@@ -833,18 +853,28 @@ class traceStats(object):
             stats[mol_num]["Contour Lengths"] = self.trace_object.contour_lengths[mol_num]
             stats[mol_num]["Circular"] = self.trace_object.mol_is_circular[mol_num]
             stats[mol_num]["End to End Distance"] = self.trace_object.end_to_end_distance[mol_num]
-        self.pd_dataframe = pd.DataFrame.from_dict(data=stats, orient="index")
-        self.pd_dataframe.reset_index(drop=True)
-        self.pd_dataframe.index.name = "Molecule Number"
-        self.pd_dataframe["Experiment Directory"] = str(Path().cwd())
-        self.pd_dataframe["Image Name"] = self.image_path.name
-        self.pd_dataframe["Basename"] = str(self.image_path)
+        self.df = pd.DataFrame.from_dict(data=stats, orient="index")
+        self.df.reset_index(drop=True)
+        self.df.index.name = "Molecule Number"
+        self.df["Experiment Directory"] = str(Path().cwd())
+        self.df["Image Name"] = self.image_path.name
+        self.df["Basename"] = str(self.image_path)
 
-    def save_trace_stats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True):
-        """Write trace statistics to JSON and/or CSV."""
+    def save_trace_stats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True) -> None:
+        """Write trace statistics to JSON and/or CSV.
+
+        Parameters
+        ----------
+        save_path: Union[str, Path]
+            Directory to save results to.
+        json: bool
+            Whether to save a JSON version of statistics.
+        csv: bool
+            Whether to save a CSV version of statistics.
+        """
         if json:
-            self.pd_dataframe.to_json(save_path / "tracestats.json")
+            self.df.to_json(save_path / "tracestats.json")
             LOGGER.info(f"Saved trace info for all analysed images to: {str(save_path / 'tracestats.json')}")
         if csv:
-            self.pd_dataframe.to_csv(save_path / "tracestats.csv")
+            self.df.to_csv(save_path / "tracestats.csv")
             LOGGER.info(f"Saved trace info for all analysed images to: {str(save_path / 'tracestats.csv')}")
