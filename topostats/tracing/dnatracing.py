@@ -856,7 +856,7 @@ class traceStats(object):
         self.df = pd.DataFrame.from_dict(data=stats, orient="index")
         self.df.reset_index(drop=True)
         self.df.index.name = "Molecule Number"
-        self.df["Experiment Directory"] = str(Path().cwd())
+        # self.df["Experiment Directory"] = str(Path().cwd())
         self.df["Image Name"] = self.image_path.name
         self.df["Basename"] = str(self.image_path)
 
