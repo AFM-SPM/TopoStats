@@ -440,7 +440,8 @@ def minicircle_dnatracing(
         number_of_columns=minicircle_grain_labelled_post_removal.images["labelled_regions"].shape[0],
         number_of_rows=minicircle_grain_labelled_post_removal.images["labelled_regions"].shape[1],
     )
-    tracing_stats = traceStats(trace_object=dna_traces, image_path=tmpdir)
+    tracing_stats = traceStats(trace_object=dna_traces, image_path="/tmp/")
+
     return tracing_stats.df
 
 
