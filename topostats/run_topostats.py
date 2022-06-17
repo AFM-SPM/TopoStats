@@ -185,7 +185,7 @@ def process_scan(
     tracing_stats.save_trace_stats(Path(output_dir) / filtered_image.filename)
 
     # Combine grainstats and tracingstats
-    results = grain_statistics["statistics"].merge(tracing_stats.pd_dataframe, on="Molecule Number")
+    results = grain_statistics["statistics"].merge(tracing_stats.df, on="Molecule Number")
     results.to_csv(output_dir / filtered_image.filename / "all_statistics.csv")
 
     # Optionally plot all stages
