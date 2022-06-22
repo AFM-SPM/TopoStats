@@ -427,6 +427,28 @@ def minicircle_grainstats_20220526() -> pd.DataFrame:
 
 
 # Derive fixtures for DNA Tracing
+GRAINS = np.array(
+    [
+        [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2],
+        [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 2],
+        [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 2],
+        [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+        [0, 0, 3, 3, 3, 3, 3, 0, 0, 0, 2],
+        [0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 2],
+        [0, 0, 3, 3, 3, 3, 3, 0, 0, 0, 2],
+        [0, 0, 4, 4, 4, 4, 4, 0, 0, 0, 2],
+    ]
+)
+FULL_IMAGE = RNG.random((GRAINS.shape[0], GRAINS.shape[1]))
+
+
+@pytest.fixture
+def test_dnatracing() -> dnaTrace:
+    """Instantiate a dnaTrace object."""
+    return dnaTrace(full_image_data=FULL_IMAGE, grains=GRAINS, filename="Test", pixel_size=1.0)
+
+
 @pytest.fixture
 def minicircle_dnatracing(
     minicircle_grain_labelled_post_removal, minicircle_zero_average_background, tmpdir
@@ -435,13 +457,11 @@ def minicircle_dnatracing(
     dna_traces = dnaTrace(
         full_image_data=minicircle_grain_labelled_post_removal.images["gaussian_filtered"].T,
         grains=minicircle_grain_labelled_post_removal.images["labelled_regions"],
-        afm_image_name=minicircle_zero_average_background.filename,
+        filename=minicircle_zero_average_background.filename,
         pixel_size=minicircle_zero_average_background.pixel_to_nm_scaling,
-        number_of_columns=minicircle_grain_labelled_post_removal.images["labelled_regions"].shape[0],
-        number_of_rows=minicircle_grain_labelled_post_removal.images["labelled_regions"].shape[1],
     )
+    dna_traces.trace_dna()
     tracing_stats = traceStats(trace_object=dna_traces, image_path="tmp")
-    tracing_stats.df.to_csv(RESOURCES / "dna_tracing.csv")
     return tracing_stats.df
 
 
