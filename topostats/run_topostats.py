@@ -176,16 +176,16 @@ def process_scan(
     dna_traces = dnaTrace(
         full_image_data=grains.images["gaussian_filtered"].T,
         grains=grains.images["labelled_regions"],
-        afm_image_name=filtered_image.filename,
+        filename=filtered_image.filename,
         pixel_size=filtered_image.pixel_to_nm_scaling,
-        number_of_columns=grains.images["labelled_regions"].shape[0],
-        number_of_rows=grains.images["labelled_regions"].shape[1],
     )
+    dna_traces.trace_dna()
+
     tracing_stats = traceStats(trace_object=dna_traces, image_path=image_path)
     tracing_stats.save_trace_stats(Path(output_dir) / filtered_image.filename)
 
     # Combine grainstats and tracingstats
-    results = grain_statistics["statistics"].merge(tracing_stats.pd_dataframe, on="Molecule Number")
+    results = grain_statistics["statistics"].merge(tracing_stats.df, on="Molecule Number")
     results.to_csv(output_dir / filtered_image.filename / "all_statistics.csv")
 
     # Optionally plot all stages

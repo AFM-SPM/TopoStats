@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 import math
 import os
-from typing import Union
+from typing import Union, Tuple
 import warnings
 
 import numpy as np
@@ -12,7 +12,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import ndimage, spatial, interpolate as interp
-from skimage import morphology, filters
+from skimage import morphology
+from skimage.filters import gaussian
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import genTracingFuncs, getSkeleton, reorderTrace
@@ -37,18 +38,20 @@ class dnaTrace(object):
         self,
         full_image_data,
         grains,
-        afm_image_name,
+        filename,
         pixel_size,
-        number_of_columns,
-        number_of_rows,
         convert_nm_to_m: bool = True,
     ):
         self.full_image_data = full_image_data * 1e-9 if convert_nm_to_m else full_image_data
-        self.grains_orig = [x for row in grains for x in row]
-        self.afm_image_name = afm_image_name
+        # self.grains_orig = [x for row in grains for x in row]
+        self.grains_orig = grains
+        self.filename = filename
         self.pixel_size = pixel_size * 1e-9 if convert_nm_to_m else pixel_size
-        self.number_of_columns = number_of_columns
-        self.number_of_rows = number_of_rows
+        # self.number_of_columns = number_of_columns
+        # self.number_of_rows = number_of_rows
+        self.number_of_rows = self.full_image_data.shape[0]
+        self.number_of_columns = self.full_image_data.shape[1]
+        self.sigma = 0.7 / (self.pixel_size * 1e9)
 
         self.gauss_image = []
         self.grains = {}
@@ -74,7 +77,10 @@ class dnaTrace(object):
 
         LOGGER.info("Performing DNA Tracing")
 
+    def trace_dna(self):
+        """Perform DNA tracing."""
         self.get_numpy_arrays()
+        self.gaussian_filter()
         self.get_disordered_trace()
         # self.isMolLooped()
         self.purge_obvious_crap()
@@ -103,20 +109,58 @@ class dnaTrace(object):
         There is some kind of discrepency between the ordering of arrays from
         gwyddion and how they're usually handled in np arrays meaning you need
         to be careful when indexing from gwyddion derived numpy arrays"""
-        for grain_num in set(self.grains_orig):
+        for grain_num in set(self.grains_orig.flatten()):
             # Skip the background
-            if grain_num == 0:
-                continue
-
-            # Saves each grain as a multidim numpy array
-            single_grain_1d = np.array([1 if i == grain_num else 0 for i in self.grains_orig])
-            self.grains[int(grain_num)] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
-
+            if grain_num != 0:
+                # Saves each grain as a multidim numpy array
+                # single_grain_1d = np.array([1 if i == grain_num else 0 for i in self.grains_orig])
+                # self.grains[int(grain_num)] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
+                self.grains[int(grain_num)] = self._get_grain_array(grain_num)
         # FIXME : This should be a method of its own, but strange that apparently Gaussian filtered image is filtered again
         # Get a 7 A gauss filtered version of the original image
         # used in refining the pixel positions in fitted_traces()
-        sigma = 0.7 / (self.pixel_size * 1e9)
-        self.gauss_image = filters.gaussian(self.full_image_data, sigma)
+        # sigma = 0.7 / (self.pixel_size * 1e9)
+        # self.gauss_image = filters.gaussian(self.full_image_data, sigma)
+
+    def _get_grain_array(self, grain_number: int) -> np.ndarray:
+        """Extract a single grains."""
+        return np.where(self.grains_orig == grain_number, 1, 0)
+
+    # FIXME : It is straight-forward to get bounding boxes for grains, need to then have a dictionary of original image
+    #         and label for each grain to then be processed.
+    def _get_bounding_box(array: np.ndarray) -> np.ndarray:
+        """Calculate bounding box for each grain."""
+        rows = grain_array.any(axis=1)
+        LOGGER.info(f"[{self.filename}] : Cropping grain")
+        if rows.any():
+            m, n = grain_array.shape
+            cols = grain_array.any(0)
+            return (rows.argmax(), m - rows[::-1].argmax(), cols.argmax(), n - cols[::-1].argmax())
+            return grain_array[rows.argmax() : m - rows[::-1].argmax(), cols.argmax() : n - cols[::-1].argmax()]
+        return np.empty((0, 0), dtype=bool)
+
+    def _crop_array(array: np.ndarray, bounding_box: Tuple) -> np.ndarray:
+        """Crop an array.
+
+        Parameters
+        ----------
+        array: np.ndarray
+            2D Numpy array to be cropped.
+        bounding_box: Tuple
+            Tuple of co-ordinates to crop, should be of form (max_x, min_x, max_y, min_y) as returned by
+        _get_bounding_box().
+
+        Returns
+        -------
+        np.ndarray()
+            Cropped array
+        """
+        return array[bounding_box[0] : bounding_box[1], bounding_box[2] : bounding_box[3]]
+
+    def gaussian_filter(self, **kwargs) -> np.array:
+        """Apply Gaussian filter"""
+        self.gauss_image = gaussian(self.full_image_data, sigma=self.sigma, **kwargs)
+        LOGGER.info(f"[{self.filename}] : Gaussian filter applied.")
 
     def get_disordered_trace(self):
         """Create a skeleton for each of the grains in the image.
@@ -694,10 +738,10 @@ class dnaTrace(object):
         # roc_array = np.delete(roc_array, 0, 0)
         roc_stats = pd.DataFrame(roc_array)
 
-        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Curvature")):
-            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Curvature"))
-        directory = os.path.join(os.path.dirname(self.afm_image_name), "Curvature")
-        savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
+        if not os.path.exists(os.path.join(os.path.dirname(self.filename), "Curvature")):
+            os.mkdir(os.path.join(os.path.dirname(self.filename), "Curvature"))
+        directory = os.path.join(os.path.dirname(self.filename), "Curvature")
+        savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
         roc_stats.to_json(savename + ".json")
         roc_stats.to_csv(savename + ".csv")
 
@@ -708,10 +752,10 @@ class dnaTrace(object):
         curvature = np.array(self.curvature[dna_num])
         length = len(curvature)
         # FIXME : Replace with Path()
-        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Curvature")):
-            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Curvature"))
-        directory = os.path.join(os.path.dirname(self.afm_image_name), "Curvature")
-        savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
+        if not os.path.exists(os.path.join(os.path.dirname(self.filename), "Curvature")):
+            os.mkdir(os.path.join(os.path.dirname(self.filename), "Curvature"))
+        directory = os.path.join(os.path.dirname(self.filename), "Curvature")
+        savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
 
         plt.figure()
         sns.lineplot(curvature[:, 1] * self.pixel_size, curvature[:, 2], color="k")
@@ -780,10 +824,10 @@ class dnaTrace(object):
     # FIXME : This method doesn't appear to be used here nor within pygwytracing, can it be removed?
     def writeCoordinates(self, dna_num):
         # FIXME: Replace with Path()
-        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Coordinates")):
-            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Coordinates"))
-        directory = os.path.join(os.path.dirname(self.afm_image_name), "Coordinates")
-        savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
+        if not os.path.exists(os.path.join(os.path.dirname(self.filename), "Coordinates")):
+            os.mkdir(os.path.join(os.path.dirname(self.filename), "Coordinates"))
+        directory = os.path.join(os.path.dirname(self.filename), "Coordinates")
+        savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
         for i, (x, y) in enumerate(self.splined_traces[dna_num]):
             try:
                 coordinates_array = np.append(coordinates_array, np.array([[x, y]]), axis=0)
@@ -797,6 +841,11 @@ class dnaTrace(object):
         plt.savefig("%s_%s_coordinates.png" % (savename, dna_num))
 
     def measure_end_to_end_distance(self):
+        """Calculate the Euclidean distance between the start and end of linear molecules.
+
+        The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
+        molecules. If the molecule is circular then the distance is set to zero (0).
+        """
 
         for dna_num in sorted(self.splined_traces.keys()):
             if self.mol_is_circular[dna_num]:
@@ -807,21 +856,36 @@ class dnaTrace(object):
                 x2 = self.splined_traces[dna_num][-1, 0]
                 y2 = self.splined_traces[dna_num][-1, 1]
                 self.end_to_end_distance[dna_num] = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_size * 1e9
+        # self.end_to_end_distance = {
+        #     dna_num: math.hypot((trace[0, 0] - trace[-1, 0]), (trace[0, 1] - trace[-1, 1]))
+        #     if self.mol_is_circular[dna_num]
+        #     else 0
+        #     for dna_num, trace in self.splined_traces.items()
+        # }
 
 
 class traceStats(object):
-    """Class used to report on the stats for all the traced molecules in the
-    given directory"""
+    """Combine and save trace statistics."""
 
-    def __init__(self, trace_object: dnaTrace, image_path: Union[str, Path]):
+    def __init__(self, trace_object: dnaTrace, image_path: Union[str, Path]) -> None:
+        """Initialise the class.
+
+        Parameters
+        ----------
+        trace_object: dnaTrace
+            Object produced from tracing.
+        image_path: Union[str, Path]
+            Path for saving images to.
+
+        Returns
+        -------
+        None
+        """
 
         self.trace_object = trace_object
         self.image_path = Path(image_path)
-        self.pd_dataframe = []
+        self.df = []
         self.create_trace_stats()
-
-    # FIXME : createTraceStatsObject and updateTraceStats are duplicating code, can probably combine into one function
-    #         and improve the way this is done (avoiding need to try: ... except KeyError: e.g. pre-populate dictionary keys).
 
     def create_trace_stats(self):
         """Creates a pandas dataframe of the contour length, whether its circular and end to end distance
@@ -833,18 +897,28 @@ class traceStats(object):
             stats[mol_num]["Contour Lengths"] = self.trace_object.contour_lengths[mol_num]
             stats[mol_num]["Circular"] = self.trace_object.mol_is_circular[mol_num]
             stats[mol_num]["End to End Distance"] = self.trace_object.end_to_end_distance[mol_num]
-        self.pd_dataframe = pd.DataFrame.from_dict(data=stats, orient="index")
-        self.pd_dataframe.reset_index(drop=True)
-        self.pd_dataframe.index.name = "Molecule Number"
-        self.pd_dataframe["Experiment Directory"] = str(Path().cwd())
-        self.pd_dataframe["Image Name"] = self.image_path.name
-        self.pd_dataframe["Basename"] = str(self.image_path)
+        self.df = pd.DataFrame.from_dict(data=stats, orient="index")
+        self.df.reset_index(drop=True)
+        self.df.index.name = "Molecule Number"
+        # self.df["Experiment Directory"] = str(Path().cwd())
+        self.df["Image Name"] = self.image_path.name
+        self.df["Basename"] = str(self.image_path)
 
-    def save_trace_stats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True):
-        """Write trace statistics to JSON and/or CSV."""
+    def save_trace_stats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True) -> None:
+        """Write trace statistics to JSON and/or CSV.
+
+        Parameters
+        ----------
+        save_path: Union[str, Path]
+            Directory to save results to.
+        json: bool
+            Whether to save a JSON version of statistics.
+        csv: bool
+            Whether to save a CSV version of statistics.
+        """
         if json:
-            self.pd_dataframe.to_json(save_path / "tracestats.json")
+            self.df.to_json(save_path / "tracestats.json")
             LOGGER.info(f"Saved trace info for all analysed images to: {str(save_path / 'tracestats.json')}")
         if csv:
-            self.pd_dataframe.to_csv(save_path / "tracestats.csv")
+            self.df.to_csv(save_path / "tracestats.csv")
             LOGGER.info(f"Saved trace info for all analysed images to: {str(save_path / 'tracestats.csv')}")

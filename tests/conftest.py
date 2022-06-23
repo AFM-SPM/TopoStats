@@ -11,6 +11,7 @@ from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import read_yaml
+from topostats.tracing.dnatracing import dnaTrace, traceStats
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
@@ -397,3 +398,48 @@ def minicircle_grainstats(
 def minicircle_grainstats_20220526() -> pd.DataFrame:
     """Statistics for minicircle for comparison."""
     return pd.read_csv(RESOURCES / "minicircle_grainstats_20220526.csv", index_col=0)
+
+
+# Derive fixtures for DNA Tracing
+GRAINS = np.array(
+    [
+        [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2],
+        [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 2],
+        [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 2],
+        [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+        [0, 0, 3, 3, 3, 3, 3, 0, 0, 0, 2],
+        [0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 2],
+        [0, 0, 3, 3, 3, 3, 3, 0, 0, 0, 2],
+        [0, 0, 4, 4, 4, 4, 4, 0, 0, 0, 2],
+    ]
+)
+FULL_IMAGE = RNG.random((GRAINS.shape[0], GRAINS.shape[1]))
+
+
+@pytest.fixture
+def test_dnatracing() -> dnaTrace:
+    """Instantiate a dnaTrace object."""
+    return dnaTrace(full_image_data=FULL_IMAGE, grains=GRAINS, filename="Test", pixel_size=1.0)
+
+
+@pytest.fixture
+def minicircle_dnatracing(
+    minicircle_grain_labelled_post_removal, minicircle_zero_average_background, tmpdir
+) -> pd.DataFrame:
+    """DNA Tracing Statistics"""
+    dna_traces = dnaTrace(
+        full_image_data=minicircle_grain_labelled_post_removal.images["gaussian_filtered"].T,
+        grains=minicircle_grain_labelled_post_removal.images["labelled_regions"],
+        filename=minicircle_zero_average_background.filename,
+        pixel_size=minicircle_zero_average_background.pixel_to_nm_scaling,
+    )
+    dna_traces.trace_dna()
+    tracing_stats = traceStats(trace_object=dna_traces, image_path="tmp")
+    return tracing_stats.df
+
+
+@pytest.fixture
+def minicircle_dnastats() -> pd.DataFrame:
+    """DNA Statistics for minicircle for comparison."""
+    return pd.read_csv(RESOURCES / "dna_tracing.csv", index_col=0)
