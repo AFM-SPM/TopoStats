@@ -126,7 +126,10 @@ class Grains:
         """
         self.get_region_properties()
         grain_areas = np.array([grain.area for grain in self.region_properties])
-        grain_areas = grain_areas[grain_areas > threshold(grain_areas, method=self.threshold_method)]
+        print(
+            f"threshold(grain_areas, method=self.threshold_method) : {threshold(grain_areas, method=self.threshold_method)}"
+        )
+        grain_areas = grain_areas[grain_areas >= threshold(grain_areas, method=self.threshold_method)]
         self.minimum_grain_size = np.median(grain_areas) - (
             1.5 * (np.quantile(grain_areas, 0.75) - np.quantile(grain_areas, 0.25))
         )
