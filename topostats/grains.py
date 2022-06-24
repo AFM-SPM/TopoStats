@@ -241,7 +241,6 @@ class Grains:
             deviation_from_mean=self.threshold_std_dev,
             absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
         )
-        
 
         #
         for direction, threshold in self.thresholds.items():
