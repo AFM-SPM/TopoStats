@@ -93,7 +93,7 @@ class Grains:
     def label_regions(self, image: np.array) -> np.array:
         """Label regions.
 
-        This method is used twice, once prior to removal of small regions, and again afterwards, hence requiring and
+        This method is used twice, once prior to removal of small regions, and again afterwards, hence requiring an
         argument of what image to label.
 
         Parameters
@@ -190,9 +190,14 @@ class Grains:
         self.get_mask()
         self.tidy_border()
         self.label_regions(self.images["tidied_border"])
-        self.calc_minimum_grain_size(image=self.images["labelled_regions"])
-        self.remove_small_objects()
-        self.label_regions(self.images["objects_removed"])
-        self.get_region_properties()
-        self.colour_regions()
-        self.get_bounding_boxes()
+        try:
+            self.calc_minimum_grain_size(image=self.images["labelled_regions"])
+            self.remove_small_objects()
+            self.label_regions(self.images["objects_removed"])
+            self.get_region_properties()
+            self.colour_regions()
+            self.get_bounding_boxes()
+        # FIXME : Identify what exception is raised with images without grains and replace broad except
+        except Exception as e:
+            LOGGER.info(f"[{self.filename}] : No grains found.")
+            pass
