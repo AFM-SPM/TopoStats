@@ -109,7 +109,7 @@ class Grains:
     def label_regions(self, image: np.array) -> np.array:
         """Label regions.
 
-        This method is used twice, once prior to removal of small regions, and again afterwards, hence requiring and
+        This method is used twice, once prior to removal of small regions, and again afterwards, hence requiring an
         argument of what image to label.
 
         Parameters
@@ -243,77 +243,81 @@ class Grains:
         )
 
         #
-        for direction, threshold in self.thresholds.items():
+        try:
+            for direction, threshold in self.thresholds.items():
 
-            # Create sub-directory for the upper / lower grains
-            self.output_dir = self.base_output_dir / str(direction)
-            Path.mkdir(self.output_dir, parents=True, exist_ok=True)
+                # Create sub-directory for the upper / lower grains
+                self.output_dir = self.base_output_dir / str(direction)
+                Path.mkdir(self.output_dir, parents=True, exist_ok=True)
+                LOGGER.info(f"Output dir: {self.output_dir}")
+                self.directions[direction] = defaultdict()
+                self.gaussian_filter()
 
-            LOGGER.info(f"Output dir: {self.output_dir}")
+                self.directions[direction]["mask"] = _get_mask(
+                    self.images["gaussian_filtered"], threshold=threshold, threshold_direction=direction
+                )
 
-            self.directions[direction] = defaultdict()
+                plot_and_save(
+                    data=self.directions[direction]["mask"],
+                    output_dir=self.output_dir,
+                    filename=f"grain_binary_mask_{direction}.png",
+                )
+                self.directions[direction]["tidied_border"] = self.tidy_border(self.directions[direction]["mask"])
+                self.directions[direction]["removed_noise"] = self.remove_noise(
+                    self.directions[direction]["tidied_border"]
+                )
 
-            self.gaussian_filter()
+                plot_and_save(
+                    data=self.directions[direction]["removed_noise"],
+                    output_dir=self.output_dir,
+                    filename=f"removed_tiny_objects_{direction}.png",
+                )
 
-            self.directions[direction]["mask"] = _get_mask(
-                self.images["gaussian_filtered"], threshold=threshold, threshold_direction=direction
-            )
+                self.directions[direction]["labelled_regions_01"] = self.label_regions(
+                    self.directions[direction]["removed_noise"]
+                )
 
-            plot_and_save(
-                data=self.directions[direction]["mask"],
-                output_dir=self.output_dir,
-                filename=f"grain_binary_mask_{direction}.png",
-            )
-            self.directions[direction]["tidied_border"] = self.tidy_border(self.directions[direction]["mask"])
-            self.directions[direction]["removed_noise"] = self.remove_noise(self.directions[direction]["tidied_border"])
+                plot_and_save(
+                    data=self.directions[direction]["labelled_regions_01"],
+                    output_dir=self.output_dir,
+                    filename=f"labelled_regions_01_{direction}.png",
+                )
 
-            plot_and_save(
-                data=self.directions[direction]["removed_noise"],
-                output_dir=self.output_dir,
-                filename=f"removed_tiny_objects_{direction}.png",
-            )
+                self.calc_minimum_grain_size(self.directions[direction]["labelled_regions_01"])
 
-            self.directions[direction]["labelled_regions_01"] = self.label_regions(
-                self.directions[direction]["removed_noise"]
-            )
+                self.directions[direction]["removed_small_objects"] = self.remove_small_objects(
+                    self.directions[direction]["labelled_regions_01"]
+                )
 
-            plot_and_save(
-                data=self.directions[direction]["labelled_regions_01"],
-                output_dir=self.output_dir,
-                filename=f"labelled_regions_01_{direction}.png",
-            )
+                plot_and_save(
+                    data=self.directions[direction]["removed_small_objects"],
+                    output_dir=self.output_dir,
+                    filename=f"removed_small_objects_{direction}.png",
+                )
 
-            self.calc_minimum_grain_size(self.directions[direction]["labelled_regions_01"])
+                self.directions[direction]["labelled_regions_02"] = self.label_regions(
+                    self.directions[direction]["removed_small_objects"]
+                )
 
-            self.directions[direction]["removed_small_objects"] = self.remove_small_objects(
-                self.directions[direction]["labelled_regions_01"]
-            )
+                plot_and_save(
+                    data=self.directions[direction]["labelled_regions_02"],
+                    output_dir=self.output_dir,
+                    filename=f"labelled_regions_02_{direction}.png",
+                )
 
-            plot_and_save(
-                data=self.directions[direction]["removed_small_objects"],
-                output_dir=self.output_dir,
-                filename=f"removed_small_objects_{direction}.png",
-            )
+                self.get_region_properties(self.directions[direction]["labelled_regions_02"])
 
-            self.directions[direction]["labelled_regions_02"] = self.label_regions(
-                self.directions[direction]["removed_small_objects"]
-            )
+                self.directions[direction]["coloured_regions"] = self.colour_regions(
+                    self.directions[direction]["labelled_regions_02"]
+                )
 
-            plot_and_save(
-                data=self.directions[direction]["labelled_regions_02"],
-                output_dir=self.output_dir,
-                filename=f"labelled_regions_02_{direction}.png",
-            )
-
-            self.get_region_properties(self.directions[direction]["labelled_regions_02"])
-
-            self.directions[direction]["coloured_regions"] = self.colour_regions(
-                self.directions[direction]["labelled_regions_02"]
-            )
-
-            plot_and_save(
-                data=self.directions[direction]["coloured_regions"],
-                output_dir=self.output_dir,
-                filename=f"removed_small_objects_{direction}.png",
-            )
-            self.get_bounding_boxes()
+                plot_and_save(
+                    data=self.directions[direction]["coloured_regions"],
+                    output_dir=self.output_dir,
+                    filename=f"removed_small_objects_{direction}.png",
+                )
+                self.get_bounding_boxes()
+        # FIXME : Identify what exception is raised with images without grains and replace broad except
+        except Exception as e:
+            LOGGER.info(f"[{self.filename}] : No grains found.")
+            pass
