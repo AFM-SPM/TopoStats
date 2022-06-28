@@ -233,7 +233,7 @@ def grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx):
     # Calculate pixel width in nm
     # dx = datafield.get_dx()
     # Calculate minimum feature size in pixels (integer) from a real size specified in the main
-    minsize = int(minarea / dx)
+    minsize = int(minarea / dx**2)
     # Remove grains smaller than the minimum size in integer pixels
     mask.grains_remove_by_size(minsize)
 
@@ -678,7 +678,6 @@ def savecroppedfiles(directory, data, filename, extension, orig_ids, crop_ids, m
         # Print the name of the file you're saving to the command line
         # print 'Saving file: ' + str((os.path.splitext(os.path.basename(savename))[0]))
 
-
 def getdataforallfiles(appended_data):
     # Get dataframe of all files within folder from appended_data list file
     grainstats_df = pd.concat(appended_data, ignore_index=True)
@@ -884,7 +883,7 @@ if __name__ == '__main__':
                 trace_end = time.time()
                 # #dna_traces.showTraces()
                 print("Saving trace figures")
-                dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'processed')
+                dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'Processed')
 
                 # dna_traces.writeContourLengths(filename, channel_name)
 

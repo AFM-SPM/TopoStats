@@ -525,7 +525,7 @@ class dnaTrace(object):
                 spline_average = np.divide(spline_running_total, [step_size_px, step_size_px])
                 del spline_running_total
                 self.splined_traces[dna_num] = spline_average
-            self.simplified_splined_traces[dna_num] = self.splined_traces[dna_num][::20]
+            self.simplified_splined_traces[dna_num] = self.splined_traces[dna_num][::1]
 
     def showTraces(self):
 
@@ -843,8 +843,8 @@ class dnaTrace(object):
             sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, theory, color='b')
             sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='y')
         else:
-            plt.xlim(0, 105)
-            plt.ylim(-0.1, 0.2)
+            # plt.xlim(0, 105)
+            # plt.ylim(-0.1, 0.2)
             sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='black', linewidth=5)
             plt.ticklabel_format(axis='both', style='sci', scilimits=(-2, 2))
             plt.axvline(curvature[0][1], color="#D55E00", linewidth=5, alpha=0.8)
@@ -853,7 +853,7 @@ class dnaTrace(object):
                         alpha=0.8)
             plt.axvline(curvature[int(length / 6 * 3)][1] * self.pixel_size * 1e9, color="#009E74", linewidth=5,
                         alpha=0.8)
-            plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size * 1e9, color="#0071B2", linewidth=5,
+            plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size * 1e9, color="#56B4E9", linewidth=5,
                         alpha=0.8)
             plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size * 1e9, color="#CC79A7", linewidth=5,
                         alpha=0.8)
@@ -974,8 +974,8 @@ class dnaTrace(object):
         plt.plot(coordinates_array[int(length / 6 * 5), 0],
                  coordinates_array[int(length / 6 * 5), 1],
                  color='#CC79A7', markersize=10, marker='o')
-        # plt.xticks([])
-        # plt.yticks([])
+        plt.xticks([])
+        plt.yticks([])
 
         plt.savefig('%s_%s_coordinates.png' % (savename, dna_num))
         plt.close()
