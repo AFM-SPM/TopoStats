@@ -64,6 +64,7 @@ def setup_logger(log_name: str = LOGGER_NAME) -> logging.Logger:
 
     logger = logging.getLogger(log_name)
     logger.setLevel(logging.INFO)
+    logger.propagate = True
     if not logger.handlers:
         logger.addHandler(out_stream_handler)
         logger.addHandler(err_stream_handler)

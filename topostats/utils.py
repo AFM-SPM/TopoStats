@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Union, List, Dict
 
 import numpy as np
-from skimage.filters import threshold_otsu
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -65,10 +64,13 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
 
     config_keys = config.keys()
     for arg_key, arg_value in args.items():
-        if arg_key in config_keys and arg_value is not None:
-            original_value = config[arg_key]
-            config[arg_key] = arg_value
-            LOGGER.info(f"Updated config config[{arg_key}] : {original_value} > {arg_value} ")
+        if isinstance(arg_value, dict):
+            update_config(arg_value)
+        else:
+            if arg_key in config_keys and arg_value is not None:
+                original_value = config[arg_key]
+                config[arg_key] = arg_value
+                LOGGER.info(f"Updated config config[{arg_key}] : {original_value} > {arg_value} ")
     config["base_dir"] = convert_path(config["base_dir"])
     config["output_dir"] = convert_path(config["output_dir"])
     return config
@@ -91,5 +93,5 @@ def get_mask(image: np.array, threshold: float, img_name: str = None) -> np.arra
     np.array
         Numpy array of image with objects coloured.
     """
-    LOGGER.info(f"[{img_name}] Deriving mask.")
+    LOGGER.info(f"[{img_name}] : Deriving mask.")
     return image > threshold

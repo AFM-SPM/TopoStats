@@ -1,5 +1,9 @@
 """Testing of grainstats class"""
+import logging
 import numpy as np
+
+from topostats.grainstats import GrainStats
+from topostats.logs.logs import LOGGER_NAME
 
 # pylint: disable=protected-access
 
@@ -131,3 +135,14 @@ def test_calculate_squared_distance(grainstats) -> None:
     assert displacement_1_3 == target_1_3
     assert isinstance(displacement_2_3, float)
     assert displacement_2_3 == target_2_3
+
+
+def test_random_grain_stats(caplog, tmpdir) -> None:
+    """Test GrainStats raises error when passed zero grains."""
+    caplog.set_level(logging.DEBUG, logger=LOGGER_NAME)
+    grainstats = GrainStats(
+        data=None, labelled_data=None, pixel_to_nanometre_scaling=0.5, img_name="random", output_dir=tmpdir
+    )
+    grainstats.calculate_stats()
+
+    assert "No labelled regions for this image, grain statistics can not be calculated." in caplog.text
