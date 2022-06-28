@@ -29,7 +29,7 @@ class Grains:
 
     def __init__(
         self,
-        image: np.array,
+        image: np.ndarray,
         filename: str,
         pixel_to_nm_scaling: float,
         gaussian_size: float = 2,
@@ -43,6 +43,28 @@ class Grains:
         background: float = 0.0,
         base_output_dir: Union[str, Path] = None,
     ):
+        """Initialise the class.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            2D Numpy array of image
+        filename: str
+            File being processed
+        pixel_to_nm_scaling: float
+            Sacling of pixels to nanometre.
+        gaussian_size : Union[int, float]
+            Minimum grain size in nanometers (nm).
+        gaussian_mode : str
+            Mode for filtering (default is 'nearest').
+        threshold_multiplier : Union[int, float]
+            Factor by which lower threshold is to be scaled prior to masking.
+        threshold_method: str
+            Method for determining threshold to mask values, default is 'otsu'.
+        background : float
+        output_dir : Union[str, Path]
+            Output directory.
+        """
         self.image = image
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
@@ -125,20 +147,10 @@ class Grains:
         LOGGER.info(f"[{self.filename}] : Labelling Regions")
         return label(image, background=self.background)
 
-    def calc_minimum_grain_size(self, image: np.array) -> float:
+    def calc_minimum_grain_size(self) -> float:
         """Calculate the minimum grain size.
 
         Very small objects are first removed via thresholding before calculating the lower extreme.
-
-        Parameters
-        ----------
-        image : np.array
-            Numpy array of regions of interest after labelling.
-
-        Returns
-        -------
-        float
-            Threshold for minimum grain size.
         """
         self.get_region_properties(image)
         grain_areas = np.array([grain.area for grain in self.region_properties])
@@ -318,6 +330,5 @@ class Grains:
                 )
                 self.get_bounding_boxes()
         # FIXME : Identify what exception is raised with images without grains and replace broad except
-        except Exception as e:
+        except:
             LOGGER.info(f"[{self.filename}] : No grains found.")
-            pass

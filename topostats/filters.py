@@ -44,7 +44,7 @@ class Filters:
             Path to a valid image to load.
         channel: str
             Channel to extract from the image.
-        amplify_level: float
+        amplify_level : float
             Factor by which to amplify the image.
         threshold_method: str
             Method for thresholding, default 'otsu'.
@@ -56,7 +56,7 @@ class Filters:
         Notes
         -----
 
-        A directory under the 'outdir' will be created using the
+        A directory under the 'outdir' will be created using the filename.
         """
         self.img_path = Path(img_path)
         self.channel = channel
@@ -170,7 +170,7 @@ class Filters:
         image = self.remove_tilt(image, mask)
         return image
 
-    def row_col_medians(self, image: np.array, mask: np.array = None) -> np.array:
+    def row_col_medians(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Returns the height value medians for the rows and columns.
 
         Returns
@@ -190,11 +190,13 @@ class Filters:
         LOGGER.info(f"[{self.filename}] : Row and column medians calculated.")
         return medians
 
-    def align_rows(self, image: np.array, mask=None) -> np.array:
+    def align_rows(self, image: np.ndarray, mask=None) -> np.ndarray:
         """Returns the input image with rows aligned by median height"""
         if mask is not None:
             if mask.all():
-                sys.exit("Filtering mask takes up entire image - there will be no image left to process. Try adjusting the flattening thresholds.")
+                sys.exit(
+                    "Filtering mask takes up entire image - there will be no image left to process. Try adjusting the flattening thresholds."
+                )
         medians = self.row_col_medians(image, mask)
         row_medians = medians["rows"]
         median_row_height = self._median_row_height(row_medians)
@@ -213,7 +215,7 @@ class Filters:
         return image
 
     @staticmethod
-    def _median_row_height(array: np.array) -> float:
+    def _median_row_height(array: np.ndarray) -> float:
         """Calculate median of row medians"""
         return np.nanmedian(array)
 
@@ -222,7 +224,7 @@ class Filters:
         """Calculate difference of row medians from the median row height"""
         return row_medians - median_row_height
 
-    def remove_tilt(self, image: np.array, mask=None) -> np.array:
+    def remove_tilt(self, image: np.ndarray, mask=None) -> np.ndarray:
         """Returns the input image after removing any linear plane slant"""
         medians = self.row_col_medians(image, mask)
         gradient = {}
@@ -239,12 +241,12 @@ class Filters:
         return image
 
     @staticmethod
-    def calc_diff(array: np.array) -> np.array:
+    def calc_diff(array: np.ndarray) -> np.ndarray:
         """Calculate the difference of an array."""
         return array[-1] - array[0]
 
     @classmethod
-    def calc_gradient(self, array: np.array, shape: int) -> np.array:
+    def calc_gradient(self, array: np.ndarray, shape: int) -> np.ndarray:
         """Calculate the gradient of an array."""
         return self.calc_diff(array) / shape
 
@@ -302,7 +304,7 @@ class Filters:
             deviation_from_mean=self.threshold_std_dev,
             absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
         )
-        print(f'THRESHOLDS: {self.thresholds}')
+        print(f"THRESHOLDS: {self.thresholds}")
         self.images["mask"] = get_mask(image=self.images["initial_tilt_removal"], thresholds=self.thresholds)
         plot_and_save(self.images["mask"], self.output_dir, "filtering_mask.png")
         self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], self.images["mask"])

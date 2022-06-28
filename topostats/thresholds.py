@@ -1,4 +1,5 @@
 """Functions for calculating thresholds."""
+# pylint: disable=no-name-in-module
 import numpy as np
 from skimage.filters import (
     threshold_mean,
@@ -13,7 +14,7 @@ from topostats.logs.logs import LOGGER_NAME
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-def threshold(image: np.array, method: str = None, otsu_threshold_multiplier: float = None, **kwargs: dict) -> float:
+def threshold(image: np.array, method: str, otsu_threshold_multiplier: float = None, **kwargs: dict) -> float:
     """Factory method for thresholding.
 
     Parameters
@@ -27,14 +28,9 @@ def threshold(image: np.array, method: str = None, otsu_threshold_multiplier: fl
     -------
     float
         Threshold of image using specified method.
-
-    Examples
-    --------
-    FIXME: Add docs.
-
     """
     thresholder = _get_threshold(method)
-    print(f'THRESHOLD() OTSU MULTIPLIER: {otsu_threshold_multiplier}')
+    print(f"THRESHOLD() OTSU MULTIPLIER: {otsu_threshold_multiplier}")
     return thresholder(image, otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs)
 
 
@@ -55,11 +51,6 @@ def _get_threshold(method: str = "otsu"):
     ------
     ValueError
         Unsupported methods result in ValueError.
-
-    Examples
-    --------
-    FIXME: Add docs.
-
     """
     if method == "otsu":
         return _threshold_otsu
@@ -80,7 +71,7 @@ def _get_threshold(method: str = "otsu"):
 
 
 def _threshold_otsu(image: np.array, otsu_threshold_multiplier: float = None, **kwargs) -> float:
-    print(f'MULTIPLIER THRESHOLD OTSU: {otsu_threshold_multiplier}')
+    print(f"MULTIPLIER THRESHOLD OTSU: {otsu_threshold_multiplier}")
     return threshold_otsu(image, **kwargs) * otsu_threshold_multiplier
 
 

@@ -9,7 +9,6 @@ from collections import defaultdict
 from topostats.thresholds import threshold
 
 import numpy as np
-from skimage.filters import threshold_otsu
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -69,10 +68,13 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
 
     config_keys = config.keys()
     for arg_key, arg_value in args.items():
-        if arg_key in config_keys and arg_value is not None:
-            original_value = config[arg_key]
-            config[arg_key] = arg_value
-            LOGGER.info(f"Updated config config[{arg_key}] : {original_value} > {arg_value} ")
+        if isinstance(arg_value, dict):
+            update_config(arg_value)
+        else:
+            if arg_key in config_keys and arg_value is not None:
+                original_value = config[arg_key]
+                config[arg_key] = arg_value
+                LOGGER.info(f"Updated config config[{arg_key}] : {original_value} > {arg_value} ")
     config["base_dir"] = convert_path(config["base_dir"])
     config["output_dir"] = convert_path(config["output_dir"])
     return config
@@ -110,48 +112,6 @@ def _get_mask(image: np.array, threshold: float, threshold_direction: str, img_n
         exit
     # TODO: Add custom error for when both are None.
     return mask
-
-
-# I think we can split this into get_thresholds() and use the logic of get_grains_thresholds(), it reduces duplication
-# of code and by passing in the thresholds we calculate minimises having to pass around things.
-# def get_filter_mask(
-#     image: np.ndarray,
-#     threshold_method: str,
-#     deviation_from_mean: float = None,
-#     absolute: tuple = None,
-#     **kwargs,
-# ):
-#     """Obtain the mask for the data that should not be included in the flattening"""
-
-#     mask = None
-#     threshold_above = None
-#     threshold_below = None
-
-#     if threshold_method == "otsu":
-#         threshold_above = threshold(image, method="otsu", **kwargs)
-#     elif threshold_method == "std_dev":
-#         threshold_below = threshold(image, method="mean", **kwargs) - deviation_from_mean * np.nanstd(image)
-#         threshold_above = threshold(image, method="mean", **kwargs) + deviation_from_mean * np.nanstd(image)
-#     elif threshold_method == "absolute":
-#         threshold_below = absolute[0]
-#         threshold_above = absolute[1]
-
-#     if threshold_below != None and threshold_above != None:
-#         # Both thresholds are applicable
-#         mask_above = get_mask(image, threshold=threshold_above, threshold_direction="above")
-#         mask_below = get_mask(image, threshold=threshold_below, threshold_direction="below")
-#         # Combine the masks because we want to remove both the extreme high and extreme
-#         # low data points.
-#         mask = mask_above + mask_below
-#         return mask
-#     elif threshold_below != None:
-#         # Only lower threshold is applicable
-#         mask = get_mask(image, threshold=threshold_below, threshold_direction="below")
-#         return mask
-#     elif threshold_above != None:
-#         # Only upper threshold id applicable
-#         mask = get_mask(image, threshold=threshold_above, threshold_direction="above")
-#         return mask
 
 
 def get_mask(image: np.ndarray, thresholds: dict, **kwargs) -> np.ndarray:
@@ -215,58 +175,23 @@ def get_thresholds(
         Dictionary of thresholds, contains keys 'lower' and optionally 'upper'.
     """
     thresholds = defaultdict()
-    print(f'OTSU MULTIPLIER UNTILS.PY {otsu_threshold_multiplier}')
+    print(f"OTSU MULTIPLIER UNTILS.PY {otsu_threshold_multiplier}")
 
     if threshold_method == "otsu":
-        thresholds["upper"] = threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs)
+        thresholds["upper"] = threshold(
+            image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs
+        )
     elif threshold_method == "std_dev":
-        thresholds["lower"] = threshold(image, method="mean", otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs) - deviation_from_mean * np.nanstd(image)
-        thresholds["upper"] = threshold(image, method="mean", otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs) + deviation_from_mean * np.nanstd(image)
+        thresholds["lower"] = threshold(image, method="mean", **kwargs) - deviation_from_mean * np.nanstd(image)
+        thresholds["upper"] = threshold(image, method="mean", **kwargs) + deviation_from_mean * np.nanstd(image)
     elif threshold_method == "absolute":
         if absolute[0] != "none":
             thresholds["lower"] = absolute[0]
-        else: thresholds["lower"] = None
+        else:
+            thresholds["lower"] = None
         if absolute[1] != "none":
             thresholds["upper"] = absolute[1]
-        else: thresholds["upper"] = None
+        else:
+            thresholds["upper"] = None
 
     return thresholds
-
-
-# def get_grains_thresholds(
-#     image: np.ndarray,
-#     threshold_method: str,
-#     deviation_from_mean: float = None,
-#     absolute: tuple = None,
-#     # thresholds: tuple = None, No need to describe this as an argument
-#     img_name: str = None,
-#     **kwargs,
-# ):
-#     """Obtain threshold and mask image"""
-
-#     print(f"THRESHOLD AND MASK")
-#     print(f"THRESHOLD METHOD: {threshold_method}")
-#     print(f"")
-
-#     thresholds = defaultdict()
-
-#     if threshold_method == "otsu":
-#         thresholds["below"] = threshold(image, method="otsu", **kwargs)
-#     elif threshold_method == "std_dev":
-#         thresholds["below"] = threshold(image, method="mean", **kwargs) - deviation_from_mean * np.nanstd(image)
-#         thresholds["above"] = threshold(image, method="mean", **kwargs) + deviation_from_mean * np.nanstd(image)
-#     elif threshold_method == "absolute":
-#         thresholds["below"] = absolute[0]
-#         thresholds["above"] = absolute[1]
-
-#     return thresholds
-
-
-# I think we can remove this function since its just a direct call to get_mask()
-# def get_grains_mask(
-#     image: np.ndarray,
-#     thresh: float,
-#     direction: str,
-# ):
-
-#     return get_mask(image, threshold=thresh, threshold_direction=direction)

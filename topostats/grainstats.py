@@ -8,7 +8,6 @@ import numpy as np
 import skimage.measure as skimage_measure
 import skimage.feature as skimage_feature
 import scipy.ndimage
-from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
@@ -27,6 +26,28 @@ from topostats.logs.logs import LOGGER_NAME
 # pylint: disable=too-many-statements
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+
+
+GRAIN_STATS_COLUMNS = [
+    "Molecule Number",
+    "centre_x",
+    "centre_y",
+    "radius_min",
+    "radius_max",
+    "radius_mean",
+    "radius_median",
+    "height_min",
+    "height_max",
+    "height_median",
+    "height_mean",
+    "volume",
+    "area",
+    "area_cartesian_bbox",
+    "smallest_bounding_width",
+    "smallest_bounding_length",
+    "smallest_bounding_area",
+    "aspect_ratio",
+]
 
 
 class GrainStats:
@@ -106,6 +127,12 @@ class GrainStats:
 
     def calculate_stats(self) -> Dict:
         """Calculate the stats of grains in the labelled image"""
+
+        if self.labelled_data is None:
+            LOGGER.info(
+                f"[{self.img_name}] : No labelled regions for this image, grain statistics can not be calculated."
+            )
+            return {"statistics": pd.DataFrame(columns=GRAIN_STATS_COLUMNS), "plot": None}
 
         # Calculate region properties
         region_properties = skimage_measure.regionprops(self.labelled_data)
@@ -362,11 +389,11 @@ class GrainStats:
         Returns
         -------
         hull : list
-            A python list containing coordinates of the points in the hull.
+            Coordinates of the points in the hull.
         hull_indices : list
-            A python list containing the hull points indices inside the edges list. In other words, this provides a way to find the points from the hull inside the edges list that was passed.
+            The hull points indices inside the edges list. In other words, this provides a way to find the points from the hull inside the edges list that was passed.
         simplices : list
-            A python list of tuples, each tuple representing a simplex of the convex hull. These simplices are sorted such that they follow each other in counterclockwise order.
+            List of tuples, each tuple representing a simplex of the convex hull. These simplices are sorted such that they follow each other in counterclockwise order.
         """
         hull, hull_indices, simplexes = self.graham_scan(edges)
 
@@ -638,17 +665,9 @@ class GrainStats:
                 LOGGER.info(rotated_points[simplex, 0], rotated_points[simplex, 1])
 
                 # Draw the convex hulls
-                for simplex in hull_simplices:
-                    plt.plot(
-                        remapped_points[simplex, 0],
-                        remapped_points[simplex, 1],
-                        "#888888",
-                    )
-                    plt.plot(
-                        rotated_points[simplex, 0],
-                        rotated_points[simplex, 1],
-                        "#555555",
-                    )
+                for _simplex in hull_simplices:
+                    plt.plot(remapped_points[simplex, 0], remapped_points[_simplex, 1], "#888888")
+                    plt.plot(rotated_points[simplex, 0], rotated_points[_simplex, 1], "#555555")
 
                 # Draw bounding box
                 plt.plot(
