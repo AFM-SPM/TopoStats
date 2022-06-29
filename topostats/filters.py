@@ -10,9 +10,15 @@ import numpy as np
 from topostats.io import load_scan
 from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
+<<<<<<< HEAD
 from topostats.utils import get_thresholds, get_mask
 
 from topostats.plottingfuncs import plot_and_save
+=======
+from topostats.utils import get_mask
+from topostats.utils import get_filter_mask
+from plottingfuncs import plot_and_save
+>>>>>>> dba3c0d (Refactor and cleanup)
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 

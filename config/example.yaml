@@ -20,6 +20,7 @@ grains:
   gaussian_mode: nearest
   absolute_smallest_grain_size: 100
   background: 0.0
+<<<<<<< HEAD
   threshold:
     method: otsu # 'otsu', 'std_dev', 'absolute'
     otsu_multiplier: 1.7
@@ -27,3 +28,17 @@ grains:
     absolute:
       - 1
       - -1
+=======
+  # Thresholding methods: 'otsu', 'std_dev', 'absolute'
+  threshold_method: std_dev
+  thresholding_methods:
+    otsu:
+      threshold_otsu_multiplier: 1.7
+    std_dev:
+      threshold_std_dev: 1.0
+    # Absolute threshold - the upper and lower absolute thresholds
+    absolute_value:
+      threshold_abs_upper: 1
+      threshold_abs_lower: -1
+  
+>>>>>>> dba3c0d (Refactor and cleanup)

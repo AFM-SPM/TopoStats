@@ -241,7 +241,19 @@ class GrainStats:
 
     @staticmethod
     def calculate_points(grain_mask: np.ndarray):
-        """Class method that takes a 2D boolean numpy array image of a grain and returns a list containing the co-ordinates of the points in the grain."""
+        """Class method that takes a 2D boolean numpy array image of a grain and returns a list containing the
+        co-ordinates of the points in the grain.
+
+
+        Parameters
+        ----------
+        grain_mask : np.ndarray
+            A 2D numpy array image of a grain. Data in the array must be boolean.
+
+        Returns
+        -------
+        edges : list
+            A python list containing the coordinates of the pixels in the grain."""
         print("calculating points : shape of grain_mask: ", grain_mask.shape)
 
         nonzero_coordinates = grain_mask.nonzero()
@@ -325,10 +337,10 @@ class GrainStats:
         # Calculate the radius of each point
         radii = self._calculate_radius(displacements)
         return {
-            "min": np.nanmin(radii),
-            "max": np.nanmax(radii),
-            "mean": np.nanmean(radii),
-            "median": np.nanmedian(radii),
+            "min": np.min(radii),
+            "max": np.max(radii),
+            "mean": np.mean(radii),
+            "median": np.median(radii),
         }
 
     @staticmethod
@@ -661,9 +673,17 @@ class GrainStats:
                 LOGGER.info(rotated_points[simplex, 0], rotated_points[simplex, 1])
 
                 # Draw the convex hulls
-                for _simplex in hull_simplices:
-                    plt.plot(remapped_points[simplex, 0], remapped_points[_simplex, 1], "#888888")
-                    plt.plot(rotated_points[simplex, 0], rotated_points[_simplex, 1], "#555555")
+                for simplex in hull_simplices:
+                    plt.plot(
+                        remapped_points[simplex, 0],
+                        remapped_points[simplex, 1],
+                        "#888888",
+                    )
+                    plt.plot(
+                        rotated_points[simplex, 0],
+                        rotated_points[simplex, 1],
+                        "#555555",
+                    )
 
                 # Draw bounding box
                 plt.plot(
