@@ -13,8 +13,11 @@ from skimage.color import label2rgb
 
 from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
-from topostats.utils import get_mask
+from topostats.utils import get_grains_thresholds
+from topostats.utils import get_grains_mask
 from topostats.plottingfuncs import plot_and_save
+
+from collections import defaultdict
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -31,8 +34,7 @@ class Grains:
         gaussian_mode: str = "nearest",
         threshold_method: str = None,
         threshold_multiplier: float = None,
-        threshold_multiplier_lower: float = None,
-        threshold_multiplier_upper: float = None,
+        threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
         absolute_smallest_grain_size: float = None,
@@ -40,12 +42,12 @@ class Grains:
         output_dir: Union[str, Path] = None,
     ):
         self.image = image
+        print(f"image: {image}")
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.threshold_method = threshold_method
         self.threshold_multiplier = threshold_multiplier
-        self.threshold_multiplier_lower = threshold_multiplier_lower
-        self.threshold_multiplier_upper = threshold_multiplier_upper
+        self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
         self.gaussian_size = gaussian_size
@@ -69,35 +71,35 @@ class Grains:
         self.grainstats = None
         Path.mkdir(self.output_dir / self.filename, parents=True, exist_ok=True)
 
-    def get_threshold(self, image: np.array, threshold_method: str, **kwargs) -> float:
-        """Sets the value self.threshold that separating the background data out from the data of interest of a 2D heightmap. This data can be either below or above the background data, or both.
-        The threshold value that is set, is a tuple, where the first value in the tuple is the lower threshold, and the second value is the upper threshold. If there is not supposed to be a lower or upper threshold, then they are set to be None.
+    # def get_threshold(self, image: np.array, threshold_method: str, **kwargs) -> float:
+    #     """Sets the value self.threshold that separating the background data out from the data of interest of a 2D heightmap. This data can be either below or above the background data, or both.
+    #     The threshold value that is set, is a tuple, where the first value in the tuple is the lower threshold, and the second value is the upper threshold. If there is not supposed to be a lower or upper threshold, then they are set to be None.
 
-        Parameters
-        ----------
-        image: np.array
-            Image to derive threshold from.
-        threshold_method: str
-            Method for deriving threshold options are 'otsu' (default), std_dev_lower, std_dev_upper, minimum, mean, yen and triangle
+    #     Parameters
+    #     ----------
+    #     image: np.array
+    #         Image to derive threshold from.
+    #     threshold_method: str
+    #         Method for deriving threshold options are 'otsu' (default), std_dev_lower, std_dev_upper, minimum, mean, yen and triangle
 
-        """
+    #     """
 
-        if "std_dev" in threshold_method:
-            if threshold_method == "std_dev_lower":
-                thresh = threshold(image, method='mean', **kwargs) - self.threshold_multiplier_lower * np.nanstd(image)
-            elif threshold_method == "std_dev_upper":
-                thresh = threshold(image, method='mean', **kwargs) + self.threshold_multiplier_upper * np.nanstd(image)
-        if "absolute" in threshold_method:
-            if threshold_method == "absolute_lower":
-                thresh = self.threshold_absolute_lower
-            elif threshold_method == "absolute_upper":
-                thresh = self.threshold_absolute_upper
-        elif threshold_method == "otsu":
-            thresh = threshold(image, method='otsu', **kwargs) * self.threshold_multiplier
+    # if "std_dev" in threshold_method:
+    #     if threshold_method == "std_dev_lower":
+    #         thresh = threshold(image, method='mean', **kwargs) - self.threshold_multiplier_lower * np.nanstd(image)
+    #     elif threshold_method == "std_dev_upper":
+    #         thresh = threshold(image, method='mean', **kwargs) + self.threshold_multiplier_upper * np.nanstd(image)
+    # if "absolute" in threshold_method:
+    #     if threshold_method == "absolute_lower":
+    #         thresh = self.threshold_absolute_lower
+    #     elif threshold_method == "absolute_upper":
+    #         thresh = self.threshold_absolute_upper
+    # elif threshold_method == "otsu":
+    #     thresh = threshold(image, method='otsu', **kwargs) * self.threshold_multiplier
 
-        LOGGER.info(f"[{self.filename}] : Threshold method: {threshold_method}")
-        LOGGER.info(f"[{self.filename}] : Threshold       : {thresh}")
-        return thresh
+    # LOGGER.info(f"[{self.filename}] : Threshold method: {threshold_method}")
+    # LOGGER.info(f"[{self.filename}] : Threshold       : {thresh}")
+    # return thresh
 
     def gaussian_filter(self, **kwargs) -> np.array:
         """Apply Gaussian filter"""
@@ -105,32 +107,64 @@ class Grains:
             f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (nm) : {self.gaussian_size})."
         )
         self.images["gaussian_filtered"] = gaussian(
-            self.image, sigma=(self.gaussian_size * self.pixel_to_nm_scaling), mode=self.gaussian_mode, **kwargs
+            self.image,
+            sigma=(self.gaussian_size * self.pixel_to_nm_scaling),
+            mode=self.gaussian_mode,
+            **kwargs,
         )
-        plot_and_save(self.images["gaussian_filtered"], self.output_dir / self.filename, 'gaussian_filtered')
+        plot_and_save(
+            self.images["gaussian_filtered"],
+            self.output_dir / self.filename,
+            "gaussian_filtered",
+        )
 
-    def get_mask(self):
-        """Create a boolean array of whether points are greater than the given threshold."""
+    # def get_mask(self):
+    #     """Create a boolean array of whether points are greater than the given threshold."""
 
-        # Perhaps I should add a condition that instead checks for 'upper' or 'lower' in the thresholding name to condense this? - Sylvia
-        if "std_dev" in self.threshold_method:
-            if self.threshold_method == "std_dev_lower":
-                mask = get_mask(self.images["gaussian_filtered"], self.threshold, threshold_direction='below', img_name=self.filename)
-            elif self.threshold_method == "std_dev_upper":
-                mask = get_mask(self.images["gaussian_filtered"], self.threshold, threshold_direction='above', img_name=self.filename)
-        elif "absolute" in self.threshold_method:
-            if self.threshold_method == "absolute_lower":
-                mask = get_mask(self.images["gaussian_filtered"], self.threshold, threshold_direction='below', img_name=self.filename)
-            elif self.threshold_method == "absolute_upper":
-                mask = get_mask(self.images["gaussian_filtered"], self.threshold, threshold_direction='above', img_name=self.filename)
-        elif self.threshold_method == "otsu":
-            mask = get_mask(self.images["gaussian_filtered"], self.threshold, threshold_direction='above', img_name=self.filename)
-        
-        plot_and_save(mask, self.output_dir / self.filename, 'grain_binary_mask')
-        LOGGER.info(f"[{self.filename}] : Created boolean image")
-        return mask
+    #     # Perhaps I should add a condition that instead checks for 'upper' or 'lower' in the thresholding name to condense this? - Sylvia
+    #     if "std_dev" in self.threshold_method:
+    #         if self.threshold_method == "std_dev_lower":
+    #             mask = get_mask(
+    #                 self.images["gaussian_filtered"],
+    #                 self.threshold,
+    #                 threshold_direction="below",
+    #                 img_name=self.filename,
+    #             )
+    #         elif self.threshold_method == "std_dev_upper":
+    #             mask = get_mask(
+    #                 self.images["gaussian_filtered"],
+    #                 self.threshold,
+    #                 threshold_direction="above",
+    #                 img_name=self.filename,
+    #             )
+    #     elif "absolute" in self.threshold_method:
+    #         if self.threshold_method == "absolute_lower":
+    #             mask = get_mask(
+    #                 self.images["gaussian_filtered"],
+    #                 self.threshold,
+    #                 threshold_direction="below",
+    #                 img_name=self.filename,
+    #             )
+    #         elif self.threshold_method == "absolute_upper":
+    #             mask = get_mask(
+    #                 self.images["gaussian_filtered"],
+    #                 self.threshold,
+    #                 threshold_direction="above",
+    #                 img_name=self.filename,
+    #             )
+    #     elif self.threshold_method == "otsu":
+    #         mask = get_mask(
+    #             self.images["gaussian_filtered"],
+    #             self.threshold,
+    #             threshold_direction="above",
+    #             img_name=self.filename,
+    #         )
 
-    def tidy_border(self, **kwargs) -> np.array:
+    #     plot_and_save(mask, self.output_dir / self.filename, "grain_binary_mask")
+    #     LOGGER.info(f"[{self.filename}] : Created boolean image")
+    #     return mask
+
+    def tidy_border(self, image: np.array, **kwargs) -> np.array:
         """Remove grains touching the border
 
         Parameters
@@ -144,7 +178,7 @@ class Grains:
             Numpy array of image with borders tidied.
         """
         LOGGER.info(f"[{self.filename}] : Tidying borders")
-        self.images["tidied_border"] = clear_border(self.images["mask_grains"], **kwargs)
+        return clear_border(image, **kwargs)
 
     def label_regions(self, image: np.array) -> np.array:
         """Label regions.
@@ -163,7 +197,7 @@ class Grains:
             Numpy array of image with objects coloured.
         """
         LOGGER.info(f"[{self.filename}] : Labelling Regions")
-        self.images["labelled_regions"] = label(image, background=self.background)
+        return label(image, background=self.background)
 
     def calc_minimum_grain_size(self, image: np.array) -> float:
         """Calculate the minimum grain size.
@@ -180,28 +214,36 @@ class Grains:
         float
             Threshold for minimum grain size.
         """
-        self.get_region_properties()
+        self.get_region_properties(image)
         grain_areas = np.array([grain.area for grain in self.region_properties])
         # grain_areas = grain_areas[grain_areas > threshold(grain_areas, method=self.threshold_method)]
         self.minimum_grain_size = np.median(grain_areas) - (
             1.5 * (np.quantile(grain_areas, 0.75) - np.quantile(grain_areas, 0.25))
         )
 
-    def remove_tiny_objects(self):
+    def remove_tiny_objects(self, image: np.array) -> np.array:
         """Removes tiny objects, size set by the config file. This is really important to ensure that the smallest objects ~1px are removed regardless of the size distribution of the grains"""
-        self.images["tiny_objects_removed"] = remove_small_objects(self.images["tidied_border"], min_size=self.absolute_smallest_grain_size)
-        LOGGER.info(f"[{self.filename}] : Removed tiny objects (< {self.absolute_smallest_grain_size}")
+        tiny_objects_removed = remove_small_objects(
+            image, min_size=self.absolute_smallest_grain_size
+        )
+        LOGGER.info(
+            f"[{self.filename}] : Removed tiny objects (< {self.absolute_smallest_grain_size}"
+        )
+        return tiny_objects_removed
 
-    def remove_small_objects(self, **kwargs):
+    def remove_small_objects(self, image: np.array, **kwargs):
         """Remove small objects."""
-        self.images["objects_removed"] = remove_small_objects(
-            self.images["tiny_objects_removed"], min_size=(self.minimum_grain_size * self.pixel_to_nm_scaling), **kwargs
+        small_objects_removed = remove_small_objects(
+            image,
+            min_size=(self.minimum_grain_size * self.pixel_to_nm_scaling),
+            **kwargs,
         )
         LOGGER.info(
             f"[{self.filename}] : Removed small objects (< {self.minimum_grain_size * self.pixel_to_nm_scaling})"
         )
+        return small_objects_removed
 
-    def colour_regions(self, **kwargs) -> np.array:
+    def colour_regions(self, image: np.array, **kwargs) -> np.array:
         """Colour the regions.
 
         Parameters
@@ -214,10 +256,12 @@ class Grains:
         np.array
             Numpy array of image with objects coloured.
         """
-        self.images["coloured_regions"] = label2rgb(self.images["labelled_regions"], **kwargs)
-        LOGGER.info(f"[{self.filename}] : Coloured regions")
 
-    def get_region_properties(self, **kwargs) -> List:
+        coloured_regions = label2rgb(image, **kwargs)
+        LOGGER.info(f"[{self.filename}] : Coloured regions")
+        return coloured_regions
+
+    def get_region_properties(self, image: np.array, **kwargs) -> List:
         """Extract the properties of each region.
 
         Parameters
@@ -230,7 +274,7 @@ class Grains:
         List
             List of region property objects.
         """
-        self.region_properties = regionprops(self.images["labelled_regions"], **kwargs)
+        self.region_properties = regionprops(image, **kwargs)
         LOGGER.info(f"[{self.filename}] : Region properties calculated")
 
     def get_bounding_boxes(self) -> Dict:
@@ -242,20 +286,147 @@ class Grains:
             Dictionary of bounding boxes indexed by region area.
         """
         LOGGER.info(f"[{self.filename}] : Extracting bounding boxes")
-        self.bounding_boxes = {region.area: region.area_bbox for region in self.region_properties}
+        self.bounding_boxes = {
+            region.area: region.area_bbox for region in self.region_properties
+        }
 
     def find_grains(self):
         """Find grains."""
-        LOGGER.info(f'thresholding method: {self.threshold_method}')
-        self.threshold = self.get_threshold(self.image, self.threshold_method)
+        LOGGER.info(f"thresholding method: {self.threshold_method}")
+        # self.threshold = self.get_threshold(self.image, self.threshold_method)
+        self.thresholds_dict = get_grains_thresholds(
+            image=self.image,
+            threshold_method=self.threshold_method,
+            deviation_from_mean=self.threshold_std_dev,
+            absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
+        )
         self.gaussian_filter()
-        self.images["mask_grains"] = self.get_mask()
-        self.tidy_border()
-        self.label_regions(self.images["tidied_border"])
-        self.calc_minimum_grain_size(image=self.images["labelled_regions"])
-        self.remove_tiny_objects()
-        self.remove_small_objects()
-        self.label_regions(self.images["objects_removed"])
-        self.get_region_properties()
-        self.colour_regions()
-        self.get_bounding_boxes()
+        # self.images["mask_grains"] = self.get_mask()
+
+        self.directions = defaultdict()
+        for direction, threshold in self.thresholds_dict.items():
+            self.directions[direction] = defaultdict()
+
+            self.directions[direction]["mask"] = get_grains_mask(
+                self.images["gaussian_filtered"],
+                thresh=threshold,
+                direction=direction,
+            )
+
+            plot_and_save(
+                self.directions[direction]["mask"],
+                self.output_dir / self.filename,
+                "grain_binary_mask_" + str(direction),
+            )
+
+            self.directions[direction]["tidied_border"] = self.tidy_border(
+                self.directions[direction]["mask"]
+            )
+
+            self.directions[direction][
+                "removed_tiny_objects"
+            ] = self.remove_tiny_objects(self.directions[direction]["tidied_border"])
+
+            plot_and_save(
+                self.directions[direction]["removed_tiny_objects"],
+                self.output_dir / self.filename,
+                "removed_tiny_objects_" + str(direction),
+            )
+
+            self.directions[direction]["labelled_regions_01"] = self.label_regions(
+                self.directions[direction]["removed_tiny_objects"]
+            )
+
+            plot_and_save(
+                self.directions[direction]["labelled_regions_01"],
+                self.output_dir / self.filename,
+                "labelled_regions_01_" + str(direction),
+            )
+
+            self.calc_minimum_grain_size(
+                self.directions[direction]["labelled_regions_01"]
+            )
+
+            self.directions[direction][
+                "removed_small_objects"
+            ] = self.remove_small_objects(
+                self.directions[direction]["labelled_regions_01"]
+            )
+
+            plot_and_save(
+                self.directions[direction]["removed_small_objects"],
+                self.output_dir / self.filename,
+                "removed_small_objects_" + str(direction),
+            )
+
+            self.directions[direction]["labelled_regions_02"] = self.label_regions(
+                self.directions[direction]["removed_small_objects"]
+            )
+
+            self.get_region_properties(
+                self.directions[direction]["labelled_regions_02"]
+            )
+
+            self.directions[direction]["coloured_regions"] = self.colour_regions(
+                self.directions[direction]["labelled_regions_02"]
+            )
+
+            plot_and_save(
+                self.directions[direction]["coloured_regions"],
+                self.output_dir / self.filename,
+                "removed_small_objects_" + str(direction),
+            )
+
+            self.get_bounding_boxes()
+
+        # mask_dict = get_grains_masks(
+        #     image=self.images["gaussian_filtered"], thresholds=self.thresholds_dict
+        # )
+
+        # # Plot the masks
+        # for direction, mask in mask_dict.items():
+        #     plot_and_save(
+        #         mask,
+        #         self.output_dir / self.filename,
+        #         "grain_binary_mask_" + str(direction),
+        #     )
+
+        # print(f"!!!!!! MASK DICT {mask_dict}")
+        # self.images["mask_grains"] = mask_dict["above"]
+
+        # plot_and_save(
+        #     self.images["mask_grains"],
+        #     self.output_dir / self.filename,
+        #     "grain_binary_mask",
+        # )
+
+        # self.tidy_border()
+
+        # plot_and_save(
+        #     self.images["tidied_border"],
+        #     self.output_dir / self.filename,
+        #     "tidy_border.png",
+        # )
+
+        # self.label_regions(self.images["tidied_border"])
+
+        # plot_and_save(
+        #     self.images["labelled_regions"],
+        #     self.output_dir / self.filename,
+        #     "labelled_regions.png",
+        # )
+
+        # self.calc_minimum_grain_size(image=self.images["labelled_regions"])
+        # self.remove_tiny_objects(self.images["tidied_border"])
+
+        # plot_and_save(
+        #     self.images["tiny_objects_removed"],
+        #     self.output_dir / self.filename,
+        #     "tiny_objects_removed.png",
+        # )
+
+        # self.remove_small_objects()
+        # self.label_regions(self.images["objects_removed"])
+        # self.get_region_properties()
+        # self.colour_regions()
+        # self.get_bounding_boxes()

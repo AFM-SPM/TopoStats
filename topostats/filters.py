@@ -10,6 +10,8 @@ from topostats.io import load_scan
 from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import get_mask
+from topostats.utils import get_filter_mask
+from plottingfuncs import plot_and_save
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -24,8 +26,7 @@ class Filters:
         self,
         img_path: Union[str, Path],
         threshold_method: str = "otsu",
-        std_dev_multiplier_lower: float = None,
-        std_dev_multiplier_upper: float = None,
+        threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
         channel: str = "Height",
@@ -59,8 +60,7 @@ class Filters:
         self.channel = channel
         self.amplify_level = amplify_level
         self.threshold_method = threshold_method
-        self.std_dev_multiplier_lower = std_dev_multiplier_lower
-        self.std_dev_multiplier_upper = std_dev_multiplier_upper
+        self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
         self.filename = self.extract_filename()
@@ -254,53 +254,6 @@ class Filters:
         """Calculate the gradient of an array."""
         return self.calc_diff(array) / shape
 
-    def get_threshold(self, image: np.array, threshold_method: str, **kwargs) -> float:
-        """Sets the value self.threshold that separating the background data out from the data of interest of a 2D heightmap. This data can be either below or above the background data, or both.
-        The threshold value that is set, is a tuple, where the first value in the tuple is the lower threshold, and the second value is the upper threshold. If there is not supposed to be a lower or upper threshold, then they are set to be None.
-
-        Parameters
-        ----------
-        image: np.array
-            Image to derive threshold from.
-        threshold_method: str
-            Method for deriving threshold options are 'otsu' (default), std_dev_lower, std_dev_upper, minimum, mean, yen and triangle
-
-        """
-
-        thresh = threshold(image, method=threshold_method, **kwargs)
-
-        LOGGER.info(f"[{self.filename}] : Threshold method: {threshold_method}")
-        LOGGER.info(f"[{self.filename}] : Threshold       : {thresh}")
-        return thresh
-
-    def get_mask(
-        self, image: np.array, threshold: float, threshold_direction: str
-    ) -> None:
-        """Derive mask.
-
-        Parameters
-        ----------
-        image: np.array
-            Image to derive mask for (typically after initial flattening).
-        threshold: float
-            Threshold above which pixels are masked.
-
-        Returns
-        -------
-        np.array
-            Array of booleans indicating whether a pixel is to be masked.
-        """
-        mask = get_mask(
-            image,
-            threshold,
-            threshold_direction=threshold_direction,
-            img_name=self.filename,
-        )
-        LOGGER.info(
-            f"[{self.filename}] : Mask derived, values exceeding threshold : {mask.sum()}"
-        )
-        return mask
-
     def average_background(self, image: np.array, mask: np.array = None) -> np.array:
         """Zero the background
 
@@ -341,192 +294,67 @@ class Filters:
         self.make_output_directory()
         self.extract_channel()
         self.extract_pixels()
+        plot_and_save(self.images["pixels"], self.output_dir, "raw_heightmap.png")
         self.extract_pixel_to_nm_scaling()
         if self.amplify_level != 1.0:
             self.amplify()
-        # Flatten images in two steps, could call flatte_image() method which combines align_rows() and remove_tilt()
-        # but lose access to intermediary image.
+
         self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)
+
+        plot_and_save(
+            self.images["initial_align"],
+            self.output_dir,
+            "initial_align.png",
+        )
+
         self.images["initial_tilt_removal"] = self.remove_tilt(
             self.images["initial_align"], mask=None
         )
 
-        if self.threshold_method == "otsu":
-            # Create Mask
-            threshold = self.get_threshold(
-                self.images["initial_tilt_removal"], threshold_method="otsu"
-            )
-            self.images["mask"] = get_mask(
-                self.images["initial_tilt_removal"],
-                threshold=threshold,
-                threshold_direction="above",
-            )
-            # Second pass filtering (with mask based on threshold)
-            self.images["masked_align"] = self.align_rows(
-                self.images["initial_tilt_removal"], mask=self.images["mask"]
-            )
-            self.images["masked_tilt_removal"] = self.remove_tilt(
-                self.images["masked_align"], mask=self.images["mask"]
-            )
-            # Average Background
-            self.images["zero_averaged_background"] = self.average_background(
-                self.images["masked_tilt_removal"], mask=self.images["mask"]
-            )
+        plot_and_save(
+            self.images["initial_tilt_removal"],
+            self.output_dir,
+            "initial_remove_tilt.png",
+        )
 
-        elif "std_dev" in self.threshold_method:
-            # If using both upper and lower
-            if self.threshold_method == "std_dev_both":
-                lower_threshold = self.get_threshold(
-                    self.images["initial_tilt_removal"], threshold_method="mean"
-                ) - self.std_dev_multiplier_lower * np.nanstd(
-                    self.images["initial_tilt_removal"]
-                )
-                lower_mask = self.get_mask(
-                    self.images["initial_tilt_removal"],
-                    threshold=lower_threshold,
-                    threshold_direction="below",
-                )
-                upper_threshold = self.get_threshold(
-                    self.images["initial_tilt_removal"], threshold_method="mean"
-                ) + self.std_dev_multiplier_upper * np.nanstd(
-                    self.images["initial_tilt_removal"]
-                )
-                upper_mask = self.get_mask(
-                    self.images["initial_tilt_removal"],
-                    threshold=upper_threshold,
-                    threshold_direction="above",
-                )
-                self.images["mask"] = lower_mask + upper_mask
-                # Second filtering
-                self.images["masked_align"] = self.align_rows(
-                    self.images["initial_tilt_removal"], mask=self.images["mask"]
-                )
-                self.images["masked_tilt_removal"] = self.remove_tilt(
-                    self.images["masked_align"], mask=self.images["mask"]
-                )
-                # Average background zero setting
-                self.images["zero_averaged_background"] = self.average_background(
-                    self.images["masked_tilt_removal"], mask=self.images["mask"]
-                )
+        self.images["mask"] = get_filter_mask(
+            self.images["initial_tilt_removal"],
+            threshold_method=self.threshold_method,
+            deviation_from_mean=self.threshold_std_dev,
+            absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
+        )
 
-            # If using only lower thresholding
-            elif self.threshold_method == "std_dev_lower":
-                lower_threshold = self.get_threshold(
-                    self.images["initial_tilt_removal"], threshold_method="mean"
-                ) - self.std_dev_multiplier_lower * np.nanstd(
-                    self.images["initial_tilt_removal"]
-                )
-                lower_mask = self.get_mask(
-                    self.images["initial_tilt_removal"],
-                    threshold=lower_threshold,
-                    threshold_direction="below",
-                )
-                self.images["mask"] = lower_mask
-                # Second filtering
-                self.images["masked_align"] = self.align_rows(
-                    self.images["initial_tilt_removal"], mask=self.images["mask"]
-                )
-                self.images["masked_tilt_removal"] = self.remove_tilt(
-                    self.images["masked_align"], mask=self.images["mask"]
-                )
-                # Average background zero setting
-                self.images["zero_averaged_background"] = self.average_background(
-                    self.images["masked_tilt_removal"], mask=self.images["mask"]
-                )
-            # If using only upper thresholding
-            elif self.threshold_method == "std_dev_upper":
-                upper_threshold = self.get_threshold(
-                    self.images["initial_tilt_removal"], threshold_method="mean"
-                ) + self.std_dev_multiplier_upper * np.nanstd(
-                    self.images["initial_tilt_removal"]
-                )
-                upper_mask = self.get_mask(
-                    self.images["initial_tilt_removal"],
-                    threshold=upper_threshold,
-                    threshold_direction="above",
-                )
-                self.images["mask"] = upper_mask
-                # Second filtering
-                self.images["masked_align"] = self.align_rows(
-                    self.images["initial_tilt_removal"], mask=self.images["mask"]
-                )
-                self.images["masked_tilt_removal"] = self.remove_tilt(
-                    self.images["masked_align"], mask=self.images["mask"]
-                )
-                # Average background zero setting
-                self.images["zero_averaged_background"] = self.average_background(
-                    self.images["masked_tilt_removal"], mask=self.images["mask"]
-                )
-        elif self.threshold_method == "absolute_both":
-            upper_threshold = self.threshold_absolute_upper
-            upper_mask = self.get_mask(
-                self.images["initial_tilt_removal"],
-                threshold=upper_threshold,
-                threshold_direction="above",
-            )
-            lower_threshold = self.threshold_absolute_lower
-            lower_mask = self.get_mask(
-                self.images["initial_tilt_removal"],
-                threshold=lower_threshold,
-                threshold_direction="below",
-            )
-            self.images["mask"] = lower_mask + upper_mask
-            # Second filtering
-            self.images["masked_align"] = self.align_rows(
-                self.images["initial_tilt_removal"], mask=self.images["mask"]
-            )
-            self.images["masked_tilt_removal"] = self.remove_tilt(
-                self.images["masked_align"], mask=self.images["mask"]
-            )
-            # Average background zero setting
-            self.images["zero_averaged_background"] = self.average_background(
-                self.images["masked_tilt_removal"], mask=self.images["mask"]
-            )
-        elif self.threshold_method == "absolute_lower":
-            lower_threshold = self.threshold_absolute_lower
-            lower_mask = self.get_mask(
-                self.images["initial_tilt_removal"],
-                threshold=lower_threshold,
-                threshold_direction="below",
-            )
-            self.images["mask"] = lower_mask
-            # Second filtering
-            self.images["masked_align"] = self.align_rows(
-                self.images["initial_tilt_removal"], mask=self.images["mask"]
-            )
-            self.images["masked_tilt_removal"] = self.remove_tilt(
-                self.images["masked_align"], mask=self.images["mask"]
-            )
-            # Average background zero setting
-            self.images["zero_averaged_background"] = self.average_background(
-                self.images["masked_tilt_removal"], mask=self.images["mask"]
-            )
-        elif self.threshold_method == "absolute_upper":
-            upper_threshold = self.threshold_absolute_upper
-            upper_mask = self.get_mask(
-                self.images["initial_tilt_removal"],
-                threshold=upper_threshold,
-                threshold_direction="above",
-            )
-            self.images["mask"] = upper_mask
-            # Second filtering
-            self.images["masked_align"] = self.align_rows(
-                self.images["initial_tilt_removal"], mask=self.images["mask"]
-            )
-            self.images["masked_tilt_removal"] = self.remove_tilt(
-                self.images["masked_align"], mask=self.images["mask"]
-            )
-            # Average background zero setting
-            self.images["zero_averaged_background"] = self.average_background(
-                self.images["masked_tilt_removal"], mask=self.images["mask"]
-            )
-        elif self.threshold_method == "None":
-            # TODO: Add script for no masking in the processing.
-            LOGGER.fatal(
-                f"No method yet avialable for thresholding method: {self.threshold_method}"
-            )
-            exit
-        else:
-            # TODO: create custom exception for this
-            LOGGER.fatal(f"No method corresponding to: {self.threshold_method}")
-            exit
+        print(f" FILTERS THRESHOLDS : {self.threshold}")
+        print(f'FILTERS MASKS : {self.images["mask"]}')
+
+        self.images["masked_align"] = self.align_rows(
+            self.images["initial_tilt_removal"], self.images["mask"]
+        )
+
+        plot_and_save(
+            self.images["masked_align"],
+            self.output_dir,
+            "masked_align.png",
+        )
+
+        self.images["masked_tilt_removal"] = self.remove_tilt(
+            self.images["masked_align"], self.images["mask"]
+        )
+
+        plot_and_save(
+            self.images["masked_tilt_removal"],
+            self.output_dir,
+            "masked_tilt_removal.png",
+        )
+
+        print(f' masked tilt removal: {self.images["masked_tilt_removal"]}')
+
+        self.images["zero_averaged_background"] = self.average_background(
+            self.images["masked_tilt_removal"], self.images["mask"]
+        )
+
+        plot_and_save(
+            self.images["zero_averaged_background"],
+            self.output_dir,
+            "zero_averaged_background.png",
+        )
