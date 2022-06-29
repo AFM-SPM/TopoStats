@@ -94,20 +94,6 @@ def create_parser() -> arg.ArgumentParser:
         "-s", "--save_plots", dest="save_plots", type=bool, required=False, help="Whether to save plots."
     )
     parser.add_argument(
-        "--type_of_sample",
-        dest="type_of_sample",
-        type=str,
-        required=False,
-        help="Type of sample being processed.",
-    )
-    parser.add_argument(
-        "--minimum_grain_size",
-        dest="minimum_grain_size",
-        type=str,
-        required=False,
-        help="Minimum size of grains.",
-    )
-    parser.add_argument(
         "-a",
         "--amplify_level",
         dest="amplify_level",
@@ -237,7 +223,7 @@ def process_scan(
         # ValueError : Arises when lots of small grains with small areas
         except Exception as broad_exception:
             # If no results we need a dummy dataframe to return.
-            LOGGER.info("Errors occurred attempting to calculate grain statistics and dnnatracing statistics.")
+            LOGGER.info("Errors occurred attempting to calculate grain statistics and DNA tracing statistics.")
             results = pd.DataFrame([np.repeat(np.nan, len(ALL_STATISTICS_COLUMNS))], columns=ALL_STATISTICS_COLUMNS)
 
     # Optionally plot all stages
@@ -252,6 +238,7 @@ def process_scan(
                 try:
                     plot_and_save(array, **PLOT_DICT[plot_name])
                 except AttributeError:
+                    LOGGER.info(f"[{filter_image.filename}] Unable to generate plot : {plot_name}")
                     pass
         # Grain stage - only if we have grains
         if len(grains.region_properties) > 0:

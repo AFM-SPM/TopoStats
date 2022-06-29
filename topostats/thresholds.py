@@ -1,5 +1,6 @@
 """Functions for calculating thresholds."""
 # pylint: disable=no-name-in-module
+from typing import Callable
 import numpy as np
 from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, threshold_yen, threshold_triangle
 
@@ -23,7 +24,7 @@ def threshold(image: np.array, method: str = "otsu", **kwargs: dict) -> float:
     return thresholder(image, **kwargs)
 
 
-def _get_threshold(method: str = "otsu"):
+def _get_threshold(method: str = "otsu") -> Callable:
     """Creator component which determines which threshold method to use.
 
     Parameters
