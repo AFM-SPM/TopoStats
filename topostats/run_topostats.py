@@ -311,7 +311,7 @@ def process_scan(
         except Exception as broad_exception:
             # If no results we need a dummy dataframe to return.
             LOGGER.info("Errors occurred attempting to calculate grain statistics and dnnatracing statistics.")
-            results = pd.DataFrame(columns=ALL_STATISTICS_COLUMNS)
+            results = pd.DataFrame([np.repeat(np.nan, len(ALL_STATISTICS_COLUMNS))], columns=ALL_STATISTICS_COLUMNS)
 
     # Optionally plot all stages
     if save_plots:
