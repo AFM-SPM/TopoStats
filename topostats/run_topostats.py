@@ -4,7 +4,7 @@ from collections import defaultdict
 from functools import partial
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Union, Dict
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -16,9 +16,8 @@ from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, write_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import plot_and_save
-from topostats.thresholds import threshold
 from topostats.tracing.dnatracing import dnaTrace, traceStats
-from topostats.utils import convert_path, find_images, update_config
+from topostats.utils import find_images, update_config
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -46,6 +45,31 @@ PLOT_DICT = {
     "bounding_boxes": {"filename": "14-bounding_boxes.png", "title": "Bounding Boxes"},
     "coloured_boxes": {"filename": "15-labelled_image_bboxes.png", "title": "Labelled Image with Bounding Boxes"},
 }
+ALL_STATISTICS_COLUMNS = [
+    "Molecule Number",
+    "centre_x",
+    "centre_y",
+    "radius_min",
+    "radius_max",
+    "radius_mean",
+    "radius_median",
+    "height_min",
+    "height_max",
+    "height_median",
+    "height_mean",
+    "volume",
+    "area",
+    "area_cartesian_bbox",
+    "smallest_bounding_width",
+    "smallest_bounding_length",
+    "smallest_bounding_area",
+    "aspect_ratio",
+    "Contour Lengths",
+    "Circular",
+    "End to End Distance",
+    "Image Name",
+    "Basename",
+]
 
 
 def create_parser() -> arg.ArgumentParser:
@@ -96,6 +120,7 @@ def process_scan(
     image_path: Union[str, Path] = None,
     channel: str = "Height",
     amplify_level: float = 1.0,
+    minimum_grain_size: float = 500,
     threshold_method: str = "otsu",
     threshold_multiplier: Union[int, float] = 1.7,
     gaussian_size: Union[int, float] = 2,
@@ -118,7 +143,7 @@ def process_scan(
         Method for determining threshold to mask values, default is 'otsu'.
     gaussian_size : Union[int, float]
         Minimum grain size in nanometers (nm).
-    mode : str
+    gaussian_mode : str
         Mode for filtering (default is 'nearest').
     threshold_multiplier : Union[int, float]
         Factor by which lower threshold is to be scaled prior to masking.
@@ -146,61 +171,78 @@ def process_scan(
     filtered_image.filter_image()
 
     # Find Grains :
-    #
-    # The Grains class also has a convenience method that runs the instantiated class in full.
-    grains = Grains(
-        image=filtered_image.images["zero_averaged_background"],
-        filename=filtered_image.filename,
-        pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
-        threshold_method=threshold_method,
-        gaussian_size=gaussian_size,
-        gaussian_mode=gaussian_mode,
-        threshold_multiplier=threshold_multiplier,
-        background=background,
-    )
-    grains.find_grains()
+    try:
+        LOGGER.info(f"[{filtered_image.filename}] : Grain Finding")
+        grains = Grains(
+            image=filtered_image.images["zero_averaged_background"],
+            filename=filtered_image.filename,
+            pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
+            threshold_method=threshold_method,
+            gaussian_size=gaussian_size,
+            gaussian_mode=gaussian_mode,
+            threshold_multiplier=threshold_multiplier,
+            background=background,
+        )
+        grains.find_grains()
+    except IndexError as index_exception:
+        LOGGER.info(
+            f"[{filtered_image.filename}] : No grains were detected, skipping Grain Statistics and DNA Tracing."
+        )
 
-    # Grain Statistics :
-    #
-    # Ditto for the GrainStats class.
-    grainstats = GrainStats(
-        data=grains.images["gaussian_filtered"],
-        labelled_data=grains.images["labelled_regions"],
-        pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
-        img_name=filtered_image.filename,
-        output_dir=output_dir / filtered_image.filename,
-    )
-    grain_statistics = grainstats.calculate_stats()
+    if len(grains.region_properties) > 0:
+        # Grain Statistics :
+        try:
+            LOGGER.info(f"[{filtered_image.filename}] : Grain Statistics")
+            grainstats = GrainStats(
+                data=grains.images["gaussian_filtered"],
+                labelled_data=grains.images["labelled_regions"],
+                pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+                img_name=filtered_image.filename,
+                output_dir=output_dir / filtered_image.filename,
+            )
+            grain_statistics = grainstats.calculate_stats()
 
-    # Run dnatracing
-    dna_traces = dnaTrace(
-        full_image_data=grains.images["gaussian_filtered"].T,
-        grains=grains.images["labelled_regions"],
-        filename=filtered_image.filename,
-        pixel_size=filtered_image.pixel_to_nm_scaling,
-    )
-    dna_traces.trace_dna()
+            # Run dnatracing
+            LOGGER.info(f"[{filtered_image.filename}] : DNA Tracing")
+            dna_traces = dnaTrace(
+                full_image_data=grains.images["gaussian_filtered"].T,
+                grains=grains.images["labelled_regions"],
+                filename=filtered_image.filename,
+                pixel_size=filtered_image.pixel_to_nm_scaling,
+            )
+            dna_traces.trace_dna()
 
-    tracing_stats = traceStats(trace_object=dna_traces, image_path=image_path)
-    tracing_stats.save_trace_stats(Path(output_dir) / filtered_image.filename)
+            tracing_stats = traceStats(trace_object=dna_traces, image_path=image_path)
+            tracing_stats.save_trace_stats(Path(output_dir) / filtered_image.filename)
 
-    # Combine grainstats and tracingstats
-    results = grain_statistics["statistics"].merge(tracing_stats.df, on="Molecule Number")
-    results.to_csv(output_dir / filtered_image.filename / "all_statistics.csv")
+            # Combine grainstats and tracingstats
+            LOGGER.info(f"[{filtered_image.filename}] : Combining grain statistics and dnatracing statistics")
+            results = grain_statistics["statistics"].merge(tracing_stats.df, on="Molecule Number")
+            results.to_csv(output_dir / filtered_image.filename / "all_statistics.csv")
+        # Possible exceptions
+        # ValueError : Arises when lots of small grains with small areas
+        except Exception as broad_exception:
+            # If no results we need a dummy dataframe to return.
+            LOGGER.info("Errors occurred attempting to calculate grain statistics and DNA tracing statistics.")
+            results = pd.DataFrame([np.repeat(np.nan, len(ALL_STATISTICS_COLUMNS))], columns=ALL_STATISTICS_COLUMNS)
 
     # Optionally plot all stages
     if save_plots:
-        LOGGER.info("Saving plots of images at all stages of processing.")
+        LOGGER.info(f"[{filtered_image.filename}] : Plotting Filtering Images")
         # Filtering stage
         for plot_name, array in filtered_image.images.items():
             if plot_name not in ["scan_raw"]:
                 if plot_name == "extracted_channel":
                     array = np.flipud(array.pixels)
                 PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
-                plot_and_save(array, **PLOT_DICT[plot_name])
+                try:
+                    plot_and_save(array, **PLOT_DICT[plot_name])
+                except AttributeError:
+                    LOGGER.info(f"[{filter_image.filename}] Unable to generate plot : {plot_name}")
+                    pass
         # Grain stage - only if we have grains
         if len(grains.region_properties) > 0:
-            LOGGER.info("Grains found, saving individual images and bounding boxes.")
+            LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
             for plot_name, array in grains.images.items():
                 PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
                 plot_and_save(array, **PLOT_DICT[plot_name])
@@ -217,6 +259,7 @@ def process_scan(
                 **PLOT_DICT["coloured_boxes"],
                 region_properties=grains.region_properties,
             )
+
     return image_path, results
 
 
@@ -277,7 +320,7 @@ def main():
     results.reset_index()
     results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)
     LOGGER.info(
-        f"All statistics combined for {len(img_files)} are saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
+        f"All statistics combined for {len(img_files)} images(s) are saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
     )
 
     # Write config to file

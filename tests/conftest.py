@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-import topostats.filters
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
@@ -135,6 +134,45 @@ def test_filters_random_with_mask(sample_config: dict, tmpdir, image_random: np.
     filters.get_threshold(filters.images["pixels"])
     filters.get_mask(filters.images["pixels"])
     return filters
+
+
+@pytest.fixture
+def random_filters(test_filters_random_with_mask: Filters) -> Filters:
+    """Process random with filters, for use in grains fixture."""
+    test_filters_random_with_mask.images["initial_align"] = test_filters_random_with_mask.align_rows(
+        test_filters_random_with_mask.images["pixels"], mask=None
+    )
+    test_filters_random_with_mask.images["initial_tilt_removal"] = test_filters_random_with_mask.remove_tilt(
+        test_filters_random_with_mask.images["initial_align"], mask=None
+    )
+    test_filters_random_with_mask.images["masked_align"] = test_filters_random_with_mask.align_rows(
+        test_filters_random_with_mask.images["initial_tilt_removal"], mask=test_filters_random_with_mask.images["mask"]
+    )
+    test_filters_random_with_mask.images["masked_tilt_removal"] = test_filters_random_with_mask.remove_tilt(
+        test_filters_random_with_mask.images["masked_align"], mask=test_filters_random_with_mask.images["mask"]
+    )
+
+    test_filters_random_with_mask.images["zero_averaged_background"] = test_filters_random_with_mask.average_background(
+        test_filters_random_with_mask.images["masked_tilt_removal"], mask=test_filters_random_with_mask.images["mask"]
+    )
+    return test_filters_random_with_mask
+
+
+@pytest.fixture
+def random_grains(grain_config: dict, random_filters: Filters) -> Grains:
+    """Grains object based on random image which has no grains."""
+    grains = Grains(
+        image=random_filters.images["zero_averaged_background"],
+        filename="random",
+        pixel_to_nm_scaling=0.5,
+        threshold_method=grain_config["threshold_method"],
+        gaussian_size=grain_config["gaussian_size"],
+        gaussian_mode=grain_config["gaussian_mode"],
+        threshold_multiplier=grain_config["threshold_multiplier"],
+        background=grain_config["threshold_multiplier"],
+    )
+    grains.find_grains()
+    return grains
 
 
 ## Minicircle fixtures
@@ -327,9 +365,7 @@ def minicircle_grain_labelled_all(minicircle_grain_clear_border: np.array) -> Gr
 @pytest.fixture
 def minicircle_minimum_grain_size(minicircle_grain_labelled_all: np.array) -> float:
     """Minimum grain size."""
-    minicircle_grain_labelled_all.calc_minimum_grain_size(
-        image=minicircle_grain_labelled_all.images["labelled_regions"]
-    )
+    minicircle_grain_labelled_all.calc_minimum_grain_size()
     return minicircle_grain_labelled_all
 
 
@@ -424,9 +460,7 @@ def test_dnatracing() -> dnaTrace:
 
 
 @pytest.fixture
-def minicircle_dnatracing(
-    minicircle_grain_labelled_post_removal, minicircle_zero_average_background, tmpdir
-) -> pd.DataFrame:
+def minicircle_dnatracing(minicircle_grain_labelled_post_removal, minicircle_zero_average_background) -> pd.DataFrame:
     """DNA Tracing Statistics"""
     dna_traces = dnaTrace(
         full_image_data=minicircle_grain_labelled_post_removal.images["gaussian_filtered"].T,

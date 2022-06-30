@@ -1,9 +1,11 @@
 """Functions for calculating thresholds."""
+# pylint: disable=no-name-in-module
+from typing import Callable
 import numpy as np
 from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, threshold_yen, threshold_triangle
 
 
-def threshold(image: np.array, method: str = 'otsu', **kwargs: dict) -> float:
+def threshold(image: np.array, method: str = "otsu", **kwargs: dict) -> float:
     """Factory method for thresholding.
 
     Parameters
@@ -17,17 +19,12 @@ def threshold(image: np.array, method: str = 'otsu', **kwargs: dict) -> float:
     -------
     float
         Threshold of image using specified method.
-
-    Examples
-    --------
-    FIXME: Add docs.
-
     """
     thresholder = _get_threshold(method)
     return thresholder(image, **kwargs)
 
 
-def _get_threshold(method: str = 'otsu'):
+def _get_threshold(method: str = "otsu") -> Callable:
     """Creator component which determines which threshold method to use.
 
     Parameters
@@ -44,21 +41,16 @@ def _get_threshold(method: str = 'otsu'):
     ------
     ValueError
         Unsupported methods result in ValueError.
-
-    Examples
-    --------
-    FIXME: Add docs.
-
     """
-    if method == 'otsu':
+    if method == "otsu":
         return _threshold_otsu
-    elif method == 'mean':
+    elif method == "mean":
         return _threshold_mean
-    elif method == 'minimum':
+    elif method == "minimum":
         return _threshold_minimum
-    elif method == 'yen':
+    elif method == "yen":
         return _threshold_yen
-    elif method == 'triangle':
+    elif method == "triangle":
         return _threshold_triangle
     else:
         raise ValueError(method)
