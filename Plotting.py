@@ -170,40 +170,38 @@ def plotkde2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, 
         df2 = df
     if plotarg2 is None:
         plotarg2 = plotarg
+    if label1 is None:
+        label1 = plotarg
+    if label2 is None:
+        label2 = plotarg2
 
-    print 'Plotting kde of %s and %s' % (plotarg, plotarg2)
+
+    print 'Plotting KDE of %s for %s and %s' % (plotarg, label1, label2)
 
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_' + plotarg2 + '_KDE' + plotextension)
-
-    dfnew = df.copy()
-    dfnew2 = df2.copy()
+    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_' + label1 + '_' + label2 + '_KDE' + plotextension)
 
     # Convert the unit of the data to nm if specified by the user
-    dfnew[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
-    dfnew2[plotarg2] = dataunitconversion(df[plotarg2], plotarg2, nm)
+    dfnew = df.copy()
+    dfnew2 = df2.copy()
+    dfnew[plotarg] = dataunitconversion(dfnew[plotarg], plotarg, nm)
+    dfnew2[plotarg2] = dataunitconversion(dfnew2[plotarg2], plotarg2, nm)
+    dfplot = pd.concat([dfnew[plotarg], dfnew2[plotarg2]], axis=1)
+    dfplot.columns = [label1, label2]
 
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
-    # Simple KDE plot
-
-    # dfplot = pd.merge(df[plotarg], df2[plotarg2])
-    # df = df[[plotarg, plotarg2]]
-    # df.plot.kde(ax=ax, alpha=1, linewidth=7.0)
-
-    dfnew[plotarg].plot.kde(ax=ax, alpha=1, linewidth=7.0)
-    dfnew2[plotarg2].plot.kde(ax=ax, alpha=1, linewidth=7.0)
+    # dfnew[plotarg].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, color='orange')
+    # dfnew2[plotarg2].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, histtype='barstacked', color='blue')
+    dfplot.plot.kde(ax=ax, alpha=1, linewidth=7.0)
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
-    # plt.xlabel(labelunitconversion(plotarg1, nm), alpha=1)
     plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.ylabel('Probability Density', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles, labels)
     plt.savefig(savename)
 
 
@@ -252,40 +250,42 @@ def plothist2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None,
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
     the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
 
-    if label1 is None:
-        label1 = plotarg
-    if label2 is None:
-        label2 = plotarg2
     if df2 is None:
         df2 = df
     if plotarg2 is None:
         plotarg2 = plotarg
+    if label1 is None:
+        label1 = plotarg
+    if label2 is None:
+        label2 = plotarg2
 
-    print 'Plotting histogram of %s and %s' % (label1, label2)
+
+    print 'Plotting histogram of %s for %s and %s' % (plotarg, label1, label2)
 
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + '_' + label1 + '_' + label2 + '_histogram' + plotextension)
+    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_' + label1 + '_' + label2 + '_histogram' + plotextension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
     dfnew2 = df2.copy()
-    dfnew[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
-    dfnew2[plotarg2] = dataunitconversion(df[plotarg2], plotarg2, nm)
+    dfnew[plotarg] = dataunitconversion(dfnew[plotarg], plotarg, nm)
+    dfnew2[plotarg2] = dataunitconversion(dfnew2[plotarg2], plotarg2, nm)
+    dfplot = pd.concat([dfnew[plotarg], dfnew2[plotarg2]], axis=1)
+    dfplot.columns = [label1, label2]
 
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
-    dfnew[plotarg].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins)
-    dfnew2[plotarg2].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, histtype='barstacked')
+    # dfnew[plotarg].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, color='orange')
+    # dfnew2[plotarg2].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, histtype='barstacked', color='blue')
+    dfplot.plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, stacked=True)
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
     plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
-    plt.ylabel('Probability Density', alpha=1)
+    plt.ylabel('Count', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles, labels)
     plt.savefig(savename)
 
 
@@ -556,10 +556,10 @@ grouparg = 'directory'
 # plotkde(df, 'grain_maximum', xmin=0, xmax=5, nm=True)
 # plothist(df, 'grain_maximum', nm=True)
 
-plothist(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
-plothist(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
-plotkde(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
-plotkde(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
+# plothist(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
+# plothist(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
+# plotkde(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
+# plotkde(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
 
 
 # plotkde(df, 'grain_min_bound_size', xmin=0, xmax=40, nm=True)
@@ -580,8 +580,18 @@ plotkde(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
 #              plotname='Mininmum Bound Size for Full Protein and Maximum Bound Size for CTD', nm=True, xmin=0, xmax=50,
 #              c1='#0b5394', c2='#f9cb9c', plotextension='.tiff')
 #
+plothist2var(df, 'grain_maximum', df2=df2, label1='CTD', label2='FL', xmax=10, nm=True)
+plothist2var(df, 'grain_mean', df2=df2, label1='CTD', label2='FL', xmax=4, nm=True)
+plothist2var(df, 'grain_median', df2=df2, label1='CTD', label2='FL', xmax=4, nm=True)
+# plothist2var('grain_mean', 'grain_mean', df, df2=df2, xmin=0, xmax=10, nm=True)
+# plothist2var('grain_median', 'grain_median', df, df2=df2, xmin=0, xmax=10, nm=True)
+
+plotkde(df, 'grain_mean', xmin=0, xmax=4, nm=True)
 #
 #
+plotkde2var(df, 'grain_maximum', df2=df2, label1='CTD', label2='FL', xmin=0, xmax=10, nm=True)
+plotkde2var(df, 'grain_mean', df2=df2, label1='CTD', label2='FL', xmin=0, xmax=4, nm=True)
+plotkde2var(df, 'grain_median', df2=df2, label1='CTD', label2='FL', xmin=0, xmax=4, nm=True)
 #
 # data = [df['grain_min_bound_size'], df['grain_max_bound_size'], df2['grain_min_bound_size'],
 #             df2['grain_max_bound_size']]
