@@ -288,10 +288,6 @@ def process_scan(
     # )
 
     # # Note that there is a dictionary of zero_averaged_background images
-    # print(f"ZERO AVERAGED BACKGROUND DICT:")
-    # for item in filtered_image.images["zero_averaged_background"].items():
-    #     print(f"item: {item}")
-    # print(f"---")
     # grains_dict = {
     #     direction: grains_wrapper(image)
     #     for direction, image in filtered_image.images[
@@ -299,7 +295,7 @@ def process_scan(
     #     ].items()
     # }
 
-    # Reasons we can't easily use dictionary comprehension for this:
+    # Reasons we can't easily use dictionary comprehension for grains:
     # RAM usage?
     # The plots need to be saved, and therefore each instance of grainstats needs to know what the 'direction' variable is.
 
@@ -320,23 +316,6 @@ def process_scan(
     )
 
     grains.find_grains()
-
-    # Considerations to be made
-    # grainstats will need to know what direction the grains are in (above, below) since it will need to save the grainstats.csv file with the direction
-    # in the name.
-
-    # grainstats = {direction: stats}
-
-    # for direction in grains.directions:
-    #     LOGGER.info(f"Processing grainstats for direction: {direction}")
-
-    # grainstats = GrainStats(
-    #     data=grains.images["gaussian_filtered"],
-    #     labelled_data=grains.images["labelled_regions"],
-    #     pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
-    #     img_name=filtered_image.filename,
-    #     output_dir=output_dir,
-    # )
 
     def get_grainstats(
         data: np.ndarray,
@@ -372,201 +351,6 @@ def process_scan(
         )
         for direction in grains.directions
     }
-
-    # # Collect grainstats for each of the upper and lower images for the file if they exist
-    # grainstats = defaultdict()
-    # # for direction in grains.images["gaussian_filtered"].keys():
-    # for direction in grains_dict.keys():
-    #     grainstats[direction] = grainstats_wrapper(
-    #         grains_dict[direction].images["gaussian_filtered"][direction],
-    #         grains_dict[direction].images["labelled_regions"][direction],
-    #     )
-
-    # if threshold_method == "otsu":
-
-    #     grains = Grains(
-    #         image=filtered_image.images["zero_averaged_background"],
-    #         filename=filtered_image.filename,
-    #         pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
-    #         threshold_method=threshold_method,
-    #         gaussian_size=gaussian_size,
-    #         gaussian_mode=gaussian_mode,
-    #         threshold_multiplier=threshold_multiplier,
-    #         threshold_std_dev=threshold_std_dev,
-    #         threshold_absolute_lower=threshold_abs_lower,
-    #         threshold_absolute_upper=threshold_abs_upper,
-    #         absolute_smallest_grain_size=absolute_smallest_grain_size,
-    #         background=background,
-    #         output_dir=output_dir,
-    #     )
-    #     grains.find_grains()
-
-    #     grainstats = GrainStats(
-    #         data=grains.images["gaussian_filtered"],
-    #         labelled_data=grains.images["labelled_regions"],
-    #         pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
-    #         img_name=filtered_image.filename,
-    #         output_dir=output_dir,
-    #     )
-    #     grain_statistics = grainstats.calculate_stats()
-
-    # elif "std_dev" in threshold_method:
-
-    #     if threshold_method == "std_dev_lower" or threshold_method == "std_dev_both":
-    #         lower_grains = Grains(
-    #             image=filtered_image.images["zero_averaged_background"],
-    #             filename=filtered_image.filename + str("_lower"),
-    #             pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
-    #             threshold_method="std_dev_lower",
-    #             gaussian_size=gaussian_size,
-    #             gaussian_mode=gaussian_mode,
-    #             threshold_multiplier=None,
-    #             threshold_std_dev=threshold_std_dev,
-    #             threshold_absolute_lower=threshold_abs_lower,
-    #             threshold_absolute_upper=threshold_abs_upper,
-    #             absolute_smallest_grain_size=absolute_smallest_grain_size,
-    #             background=background,
-    #             output_dir=output_dir,
-    #         )
-    #         print("finding grains")
-    #         lower_grains.find_grains()
-
-    #         lower_grainstats = GrainStats(
-    #             data=lower_grains.images["gaussian_filtered"],
-    #             labelled_data=lower_grains.images["labelled_regions"],
-    #             pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
-    #             img_name=filtered_image.filename + str("_lower"),
-    #             output_dir=output_dir,
-    #         )
-    #         grain_statistics = lower_grainstats.calculate_stats()
-
-    #         # Just for plotting purposes
-    #         grains = lower_grains
-
-    #     if threshold_method == "std_dev_upper" or threshold_method == "std_dev_both":
-    #         upper_grains = Grains(
-    #             image=filtered_image.images["zero_averaged_background"],
-    #             filename=filtered_image.filename + str("_upper"),
-    #             pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
-    #             threshold_method="std_dev_upper",
-    #             gaussian_size=gaussian_size,
-    #             gaussian_mode=gaussian_mode,
-    #             threshold_multiplier=None,
-    #             threshold_std_dev=threshold_std_dev,
-    #             threshold_absolute_lower=threshold_abs_lower,
-    #             threshold_absolute_upper=threshold_abs_upper,
-    #             absolute_smallest_grain_size=absolute_smallest_grain_size,
-    #             background=background,
-    #             output_dir=output_dir,
-    #         )
-    #         upper_grains.find_grains()
-
-    #         upper_grainstats = GrainStats(
-    #             data=upper_grains.images["gaussian_filtered"],
-    #             labelled_data=upper_grains.images["labelled_regions"],
-    #             pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
-    #             img_name=filtered_image.filename + str("_upper"),
-    #             output_dir=output_dir,
-    #         )
-    #         grain_statistics = upper_grainstats.calculate_stats()
-
-    #         # Just for plotting purposes
-    #         grains = upper_grains
-
-    # elif "absolute" in threshold_method:
-    #     if threshold_method == "absolute_lower" or threshold_method == "absolute_both":
-    #         lower_grains = Grains(
-    #             image=filtered_image.images["zero_averaged_background"],
-    #             filename=filtered_image.filename + str("_lower"),
-    #             pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
-    #             threshold_method="absolute_lower",
-    #             gaussian_size=gaussian_size,
-    #             gaussian_mode=gaussian_mode,
-    #             threshold_multiplier=None,
-    #             threshold_std_dev=threshold_std_dev,
-    #             threshold_absolute_lower=threshold_abs_lower,
-    #             threshold_absolute_upper=threshold_abs_upper,
-    #             absolute_smallest_grain_size=absolute_smallest_grain_size,
-    #             background=background,
-    #             output_dir=output_dir,
-    #         )
-    #         print("finding grains")
-    #         lower_grains.find_grains()
-
-    #         lower_grainstats = GrainStats(
-    #             data=lower_grains.images["gaussian_filtered"],
-    #             labelled_data=lower_grains.images["labelled_regions"],
-    #             pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
-    #             img_name=filtered_image.filename + str("_lower"),
-    #             output_dir=output_dir,
-    #         )
-    #         grain_statistics = lower_grainstats.calculate_stats()
-
-    #         # Just for plotting purposes
-    #         grains = lower_grains
-
-    #     if threshold_method == "absolute_upper" or threshold_method == "absolute_both":
-
-    #         upper_grains = Grains(
-    #             image=filtered_image.images["zero_averaged_background"],
-    #             filename=filtered_image.filename + str("_upper"),
-    #             pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
-    #             threshold_method="absolute_upper",
-    #             gaussian_size=gaussian_size,
-    #             gaussian_mode=gaussian_mode,
-    #             threshold_multiplier=None,
-    #             threshold_std_dev=threshold_std_dev,
-    #             threshold_absolute_lower=threshold_abs_lower,
-    #             threshold_absolute_upper=threshold_abs_upper,
-    #             absolute_smallest_grain_size=absolute_smallest_grain_size,
-    #             background=background,
-    #             output_dir=output_dir,
-    #         )
-    #         upper_grains.find_grains()
-
-    #         upper_grainstats = GrainStats(
-    #             data=upper_grains.images["gaussian_filtered"],
-    #             labelled_data=upper_grains.images["labelled_regions"],
-    #             pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
-    #             img_name=filtered_image.filename + str("_upper"),
-    #             output_dir=output_dir,
-    #         )
-    #         grain_statistics = upper_grainstats.calculate_stats()
-
-    #         # Just for plotting purposes
-    #         grains = upper_grains
-
-    # # Optionally plot all stages
-    # if save_plots:
-    #     # Filtering stage
-    #     for plot_name, array in filtered_image.images.items():
-    #         if plot_name not in ["scan_raw", "extracted_channel"]:
-    #             PLOT_DICT[plot_name]["output_dir"] = (
-    #                 Path(output_dir) / filtered_image.filename
-    #             )
-    #             plot_and_save(array, **PLOT_DICT[plot_name])
-    #     # Grain stage - only if we have grains
-    #     if len(grains.region_properties) > 0:
-    #         for plot_name, array in grains.images.items():
-    #             PLOT_DICT[plot_name]["output_dir"] = (
-    #                 Path(output_dir) / filtered_image.filename
-    #             )
-    #             plot_and_save(array, **PLOT_DICT[plot_name])
-    #         # Make a plot of coloured regions with bounding boxes
-    #         plot_and_save(
-    #             grains.images["coloured_regions"],
-    #             Path(output_dir) / filtered_image.filename,
-    #             **PLOT_DICT["bounding_boxes"],
-    #             region_properties=grains.region_properties,
-    #         )
-    #         plot_and_save(
-    #             grains.images["labelled_regions"],
-    #             Path(output_dir) / filtered_image.filename,
-    #             **PLOT_DICT["coloured_boxes"],
-    #             region_properties=grains.region_properties,
-    #         )
-    #     # Grainstats
-    #     # FIXME : Include this
 
 
 def main():

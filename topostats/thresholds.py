@@ -1,11 +1,19 @@
 """Functions for calculating thresholds."""
 import numpy as np
-from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, threshold_yen, threshold_triangle
+from skimage.filters import (
+    threshold_mean,
+    threshold_minimum,
+    threshold_otsu,
+    threshold_yen,
+    threshold_triangle,
+)
 import logging
 from topostats.logs.logs import LOGGER_NAME
+
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-def threshold(image: np.array, method: str = 'otsu', **kwargs: dict) -> float:
+
+def threshold(image: np.array, method: str = "otsu", **kwargs: dict) -> float:
     """Factory method for thresholding.
 
     Parameters
@@ -29,7 +37,7 @@ def threshold(image: np.array, method: str = 'otsu', **kwargs: dict) -> float:
     return thresholder(image, **kwargs)
 
 
-def _get_threshold(method: str = 'otsu'):
+def _get_threshold(method: str = "otsu"):
     """Creator component which determines which threshold method to use.
 
     Parameters
@@ -52,15 +60,15 @@ def _get_threshold(method: str = 'otsu'):
     FIXME: Add docs.
 
     """
-    if method == 'otsu':
+    if method == "otsu":
         return _threshold_otsu
-    elif method == 'mean':
+    elif method == "mean":
         return _threshold_mean
-    elif method == 'minimum':
+    elif method == "minimum":
         return _threshold_minimum
-    elif method == 'yen':
+    elif method == "yen":
         return _threshold_yen
-    elif method == 'triangle':
+    elif method == "triangle":
         return _threshold_triangle
     # elif method == 'std_dev_lower':
     #     return _threshold_std_dev_lower

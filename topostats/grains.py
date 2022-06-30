@@ -71,36 +71,6 @@ class Grains:
         self.grainstats = None
         Path.mkdir(self.output_dir / self.filename, parents=True, exist_ok=True)
 
-    # def get_threshold(self, image: np.array, threshold_method: str, **kwargs) -> float:
-    #     """Sets the value self.threshold that separating the background data out from the data of interest of a 2D heightmap. This data can be either below or above the background data, or both.
-    #     The threshold value that is set, is a tuple, where the first value in the tuple is the lower threshold, and the second value is the upper threshold. If there is not supposed to be a lower or upper threshold, then they are set to be None.
-
-    #     Parameters
-    #     ----------
-    #     image: np.array
-    #         Image to derive threshold from.
-    #     threshold_method: str
-    #         Method for deriving threshold options are 'otsu' (default), std_dev_lower, std_dev_upper, minimum, mean, yen and triangle
-
-    #     """
-
-    # if "std_dev" in threshold_method:
-    #     if threshold_method == "std_dev_lower":
-    #         thresh = threshold(image, method='mean', **kwargs) - self.threshold_multiplier_lower * np.nanstd(image)
-    #     elif threshold_method == "std_dev_upper":
-    #         thresh = threshold(image, method='mean', **kwargs) + self.threshold_multiplier_upper * np.nanstd(image)
-    # if "absolute" in threshold_method:
-    #     if threshold_method == "absolute_lower":
-    #         thresh = self.threshold_absolute_lower
-    #     elif threshold_method == "absolute_upper":
-    #         thresh = self.threshold_absolute_upper
-    # elif threshold_method == "otsu":
-    #     thresh = threshold(image, method='otsu', **kwargs) * self.threshold_multiplier
-
-    # LOGGER.info(f"[{self.filename}] : Threshold method: {threshold_method}")
-    # LOGGER.info(f"[{self.filename}] : Threshold       : {thresh}")
-    # return thresh
-
     def gaussian_filter(self, **kwargs) -> np.array:
         """Apply Gaussian filter"""
         LOGGER.info(
@@ -117,52 +87,6 @@ class Grains:
             self.output_dir / self.filename,
             "gaussian_filtered",
         )
-
-    # def get_mask(self):
-    #     """Create a boolean array of whether points are greater than the given threshold."""
-
-    #     # Perhaps I should add a condition that instead checks for 'upper' or 'lower' in the thresholding name to condense this? - Sylvia
-    #     if "std_dev" in self.threshold_method:
-    #         if self.threshold_method == "std_dev_lower":
-    #             mask = get_mask(
-    #                 self.images["gaussian_filtered"],
-    #                 self.threshold,
-    #                 threshold_direction="below",
-    #                 img_name=self.filename,
-    #             )
-    #         elif self.threshold_method == "std_dev_upper":
-    #             mask = get_mask(
-    #                 self.images["gaussian_filtered"],
-    #                 self.threshold,
-    #                 threshold_direction="above",
-    #                 img_name=self.filename,
-    #             )
-    #     elif "absolute" in self.threshold_method:
-    #         if self.threshold_method == "absolute_lower":
-    #             mask = get_mask(
-    #                 self.images["gaussian_filtered"],
-    #                 self.threshold,
-    #                 threshold_direction="below",
-    #                 img_name=self.filename,
-    #             )
-    #         elif self.threshold_method == "absolute_upper":
-    #             mask = get_mask(
-    #                 self.images["gaussian_filtered"],
-    #                 self.threshold,
-    #                 threshold_direction="above",
-    #                 img_name=self.filename,
-    #             )
-    #     elif self.threshold_method == "otsu":
-    #         mask = get_mask(
-    #             self.images["gaussian_filtered"],
-    #             self.threshold,
-    #             threshold_direction="above",
-    #             img_name=self.filename,
-    #         )
-
-    #     plot_and_save(mask, self.output_dir / self.filename, "grain_binary_mask")
-    #     LOGGER.info(f"[{self.filename}] : Created boolean image")
-    #     return mask
 
     def tidy_border(self, image: np.array, **kwargs) -> np.array:
         """Remove grains touching the border
@@ -378,55 +302,3 @@ class Grains:
             )
 
             self.get_bounding_boxes()
-
-        # mask_dict = get_grains_masks(
-        #     image=self.images["gaussian_filtered"], thresholds=self.thresholds_dict
-        # )
-
-        # # Plot the masks
-        # for direction, mask in mask_dict.items():
-        #     plot_and_save(
-        #         mask,
-        #         self.output_dir / self.filename,
-        #         "grain_binary_mask_" + str(direction),
-        #     )
-
-        # print(f"!!!!!! MASK DICT {mask_dict}")
-        # self.images["mask_grains"] = mask_dict["above"]
-
-        # plot_and_save(
-        #     self.images["mask_grains"],
-        #     self.output_dir / self.filename,
-        #     "grain_binary_mask",
-        # )
-
-        # self.tidy_border()
-
-        # plot_and_save(
-        #     self.images["tidied_border"],
-        #     self.output_dir / self.filename,
-        #     "tidy_border.png",
-        # )
-
-        # self.label_regions(self.images["tidied_border"])
-
-        # plot_and_save(
-        #     self.images["labelled_regions"],
-        #     self.output_dir / self.filename,
-        #     "labelled_regions.png",
-        # )
-
-        # self.calc_minimum_grain_size(image=self.images["labelled_regions"])
-        # self.remove_tiny_objects(self.images["tidied_border"])
-
-        # plot_and_save(
-        #     self.images["tiny_objects_removed"],
-        #     self.output_dir / self.filename,
-        #     "tiny_objects_removed.png",
-        # )
-
-        # self.remove_small_objects()
-        # self.label_regions(self.images["objects_removed"])
-        # self.get_region_properties()
-        # self.colour_regions()
-        # self.get_bounding_boxes()
