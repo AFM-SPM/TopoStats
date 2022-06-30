@@ -77,8 +77,7 @@ class GrainStats:
         angle : float
             The angle in radians between the two input vectors.
         """
-        #        print(f'point_1    : {point_1}')
-        #        print(f'point_2    : {point_2}')
+
         return np.arctan2(point_1[1] - point_2[1], point_1[0] - point_2[0])
 
     @staticmethod
@@ -119,7 +118,7 @@ class GrainStats:
         stats_array = []
         for index, region in enumerate(region_properties):
 
-            print("processing grain: ", index)
+            LOGGER.info("processing grain: ", index)
             # Create directory for each grain's plots
             output_grain = self.output_dir / self.img_name / f"grain_{index}"
             # Path.mkdir(output_grain, parents=True, exist_ok=True)
@@ -128,8 +127,6 @@ class GrainStats:
             # Obtain and plot the cropped grain mask
             grain_mask = np.array(region.image)
             plot_and_save(grain_mask, output_grain, "grainmask.png")
-            print("saved grain mask", index)
-            print("grain mask shape: ", grain_mask.shape)
 
             # Obtain the cropped grain image
             minr, minc, maxr, maxc = region.bbox
@@ -138,12 +135,10 @@ class GrainStats:
             grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
             plot_and_save(grain_image, output_grain, "grain_image.png")
 
-            print("saved grain image", index)
+            LOGGER.info("saved grain image", index)
 
             points = self.calculate_points(grain_mask)
-            print("points size: " + str(len(points[0])) + " " + str(len(points[1])))
             edges = self.calculate_edges(grain_mask)
-            print("edges size: " + str(len(edges[0])) + " " + str(len(edges[1])))
             radius_stats = self.calculate_radius_stats(edges, points)
             # hull, hull_indices, hull_simplexes = self.convex_hull(edges, output_grain)
             _, _, hull_simplexes = self.convex_hull(edges, output_grain)
@@ -183,7 +178,7 @@ class GrainStats:
                 * self.pixel_to_nanometre_scaling**2,
                 "aspect_ratio": aspect_ratio,
             }
-            # print(f'[{index}] statistics :\\n{stats}')
+
             stats_array.append(stats)
 
             # Add cartesian bounding box for the grain to the labelled image
@@ -221,8 +216,6 @@ class GrainStats:
         Returns:
             edges : list
                 A python list containing the coordinates of the pixels in the grain."""
-
-        print("calculating points : shape of grain_mask: ", grain_mask.shape)
 
         nonzero_coordinates = grain_mask.nonzero()
         points = []
@@ -355,10 +348,10 @@ class GrainStats:
         # Debug information
         if debug:
             self.plot(edges, hull, output_dir / "_points_hull.png")
-            print(f"points: {edges}")
-            print(f"hull: {hull}")
-            print(f"hull indexes: {hull_indices}")
-            print(f"simplexes: {simplexes}")
+            LOGGER.info(f"points: {edges}")
+            LOGGER.info(f"hull: {hull}")
+            LOGGER.info(f"hull indexes: {hull_indices}")
+            LOGGER.info(f"simplexes: {simplexes}")
 
         return hull, hull_indices, simplexes
 
