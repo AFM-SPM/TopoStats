@@ -211,7 +211,7 @@ class GrainStats:
             ax.add_patch(rectangle)
 
         grainstats = pd.DataFrame(data=stats_array)
-        grainstats.to_csv(self.output_dir / "grainstats.csv")
+        grainstats.to_csv(self.output_dir / f"grainstats_{self.img_name}.csv")
 
         return {"statistics": grainstats, "plot": ax}
 
