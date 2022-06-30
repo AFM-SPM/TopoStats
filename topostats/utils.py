@@ -157,7 +157,6 @@ def get_thresholds(
 
     Parameters
     ----------
-
     image : np.ndarray
         2D Numpy array of image to be masked
     threshold_method : str
@@ -194,3 +193,43 @@ def get_thresholds(
             thresholds["upper"] = None
 
     return thresholds
+
+
+# def get_grains_thresholds(
+#     image: np.ndarray,
+#     threshold_method: str,
+#     deviation_from_mean: float = None,
+#     absolute: tuple = None,
+#     # thresholds: tuple = None, No need to describe this as an argument
+#     img_name: str = None,
+#     **kwargs,
+# ):
+#     """Obtain threshold and mask image"""
+
+#     print(f"THRESHOLD AND MASK")
+#     print(f"THRESHOLD METHOD: {threshold_method}")
+#     print(f"")
+
+#     thresholds = defaultdict()
+
+#     if threshold_method == "otsu":
+#         thresholds["below"] = threshold(image, method="otsu", **kwargs)
+#     elif threshold_method == "std_dev":
+#         thresholds["below"] = threshold(image, method="mean", **kwargs) - deviation_from_mean * np.nanstd(image)
+#         thresholds["above"] = threshold(image, method="mean", **kwargs) + deviation_from_mean * np.nanstd(image)
+#     elif threshold_method == "absolute":
+#         thresholds["below"] = absolute[0]
+#         thresholds["above"] = absolute[1]
+
+#     return thresholds
+
+
+# I think we can remove this function since its just a direct call to get_mask()
+# def get_grains_mask(
+#     image: np.ndarray,
+#     thresh: float,
+#     direction: str,
+# ):
+
+#     return get_mask(image, threshold=thresh, threshold_direction=direction)
+>>>>>>> 73df085 (165 | Checkpoint 1)

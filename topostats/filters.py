@@ -11,12 +11,18 @@ from topostats.io import load_scan
 from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
 <<<<<<< HEAD
+<<<<<<< HEAD
 from topostats.utils import get_thresholds, get_mask
 
 from topostats.plottingfuncs import plot_and_save
 =======
 from topostats.utils import get_mask
 from topostats.utils import get_filter_mask
+=======
+from topostats.utils import get_thresholds, get_mask
+
+# from topostats.utils import get_filter_mask
+>>>>>>> 73df085 (165 | Checkpoint 1)
 from plottingfuncs import plot_and_save
 >>>>>>> dba3c0d (Refactor and cleanup)
 
@@ -303,16 +309,34 @@ class Filters:
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
         plot_and_save(self.images["initial_tilt_removal"], self.output_dir, "initial_remove_tilt.png")
         # Get the thresholds
+<<<<<<< HEAD
         self.thresholds = get_thresholds(
+=======
+        thresholds = get_thresholds(
+>>>>>>> 73df085 (165 | Checkpoint 1)
             image=self.images["initial_tilt_removal"],
             threshold_method=self.threshold_method,
             otsu_threshold_multiplier=self.otsu_threshold_multiplier,
             deviation_from_mean=self.threshold_std_dev,
             absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
         )
+<<<<<<< HEAD
         print(f"THRESHOLDS: {self.thresholds}")
         self.images["mask"] = get_mask(image=self.images["initial_tilt_removal"], thresholds=self.thresholds)
         plot_and_save(self.images["mask"], self.output_dir, "filtering_mask.png")
+=======
+        self.images["mask"] = get_mask(image=self.images["initial_tilt_removal"], thresholds=thresholds)
+        # self.images["mask"] = get_filter_mask(
+        #     self.images["initial_tilt_removal"],
+        #     threshold_method=self.threshold_method,
+        #     deviation_from_mean=self.threshold_std_dev,
+        #     absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
+        # )
+
+        print(f" FILTERS THRESHOLDS : {self.threshold}")
+        print(f'FILTERS MASKS : {self.images["mask"]}')
+
+>>>>>>> 73df085 (165 | Checkpoint 1)
         self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], self.images["mask"])
         plot_and_save(self.images["masked_align"], self.output_dir, "masked_align.png")
         self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], self.images["mask"])

@@ -1,12 +1,6 @@
 """Topotracing"""
 import argparse as arg
-<<<<<<< HEAD:topostats/run_topostats.py
 from collections import defaultdict
-=======
-from asyncio.log import logger
-from collections import defaultdict
-from email.policy import default
->>>>>>> e9efade (Refactor and cleanup):topostats/topotracing.py
 from functools import partial
 from multiprocessing import Pool
 from pathlib import Path
@@ -154,13 +148,7 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Factor to scale threshold during grain finding.",
     )
-<<<<<<< HEAD
     parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
-=======
-    parser.add_argument(
-        "-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image."
-    )
->>>>>>> dba3c0d (Refactor and cleanup)
     parser.add_argument(
         "-q",
         "--quiet",
@@ -184,21 +172,11 @@ def process_scan(
     image_path: Union[str, Path] = None,
     channel: str = "Height",
     amplify_level: float = 1.0,
-<<<<<<< HEAD
     filter_threshold_method: str = "otsu",
     filter_otsu_threshold_multiplier: Union[int, float] = 1.7,
     filter_threshold_std_dev=1.0,
     filter_threshold_abs_lower=None,
     filter_threshold_abs_upper=None,
-=======
-    minimum_grain_size: float = 500,
-    threshold_method: str = "otsu",
-    threshold_multiplier: Union[int, float] = 1.7,
-    threshold_std_dev=1.0,
-    threshold_abs_lower=None,
-    threshold_abs_upper=None,
-    absolute_smallest_grain_size=None,
->>>>>>> dba3c0d (Refactor and cleanup)
     gaussian_size: Union[int, float] = 2,
     gaussian_mode: str = "nearest",
     absolute_smallest_grain_size=None,
@@ -269,7 +247,6 @@ def process_scan(
         gaussian_size=gaussian_size,
         gaussian_mode=gaussian_mode,
         threshold_method=threshold_method,
-        threshold_multiplier=threshold_multiplier,
         threshold_std_dev=threshold_std_dev,
         threshold_absolute_lower=threshold_abs_lower,
         threshold_absolute_upper=threshold_abs_upper,
@@ -330,9 +307,7 @@ def main():
     LOGGER.info(f'Output directory                    : {config["output_dir"]}')
     LOGGER.info(f'Looking for images with extension   : {config["file_ext"]}')
     img_files = find_images(config["base_dir"])
-    LOGGER.info(
-        f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}'
-    )
+    LOGGER.info(f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}')
 
     if config["quiet"]:
         LOGGER.setLevel("ERROR")

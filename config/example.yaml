@@ -7,6 +7,7 @@ quiet: false
 file_ext: .spm
 channel: Height Sensor
 amplify_level: 1.0
+<<<<<<< HEAD
 filter:
   threshold:
     method: otsu # 'otsu', 'std_dev', 'absolute'
@@ -15,11 +16,21 @@ filter:
     absolute:
       - 1
       - -1
+=======
+# filters:
+threshold:
+  method: std_dev # 'otsu', 'std_dev', 'absolute'
+  std_dev: 1.0
+  absolute:
+    - 1
+    - -1
+>>>>>>> 73df085 (165 | Checkpoint 1)
 grains:
   gaussian_size: 2.0
   gaussian_mode: nearest
   absolute_smallest_grain_size: 100
   background: 0.0
+<<<<<<< HEAD
 <<<<<<< HEAD
   threshold:
     method: otsu # 'otsu', 'std_dev', 'absolute'
@@ -42,3 +53,5 @@ grains:
       threshold_abs_lower: -1
   
 >>>>>>> dba3c0d (Refactor and cleanup)
+=======
+>>>>>>> 73df085 (165 | Checkpoint 1)
