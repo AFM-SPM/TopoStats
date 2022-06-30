@@ -11,8 +11,7 @@ from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import get_thresholds, get_mask
 
-# from topostats.utils import get_filter_mask
-from plottingfuncs import plot_and_save
+from topostats.plottingfuncs import plot_and_save
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -27,6 +26,7 @@ class Filters:
         self,
         img_path: Union[str, Path],
         threshold_method: str = "otsu",
+        threshold_multiplier: float = 1.7,
         threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
@@ -61,6 +61,7 @@ class Filters:
         self.channel = channel
         self.amplify_level = amplify_level
         self.threshold_method = threshold_method
+        self.threshold_multiplier = threshold_multiplier
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
@@ -81,8 +82,6 @@ class Filters:
         self.pixel_to_nm_scaling = None
         self.medians = {"rows": None, "cols": None}
         LOGGER.info(f"Filename : {self.filename}")
-        # self.scan_channel = self.images['scan_raw'].get_channel(channel)
-        #        self.images['scan_raw'] = None
         self.results = {
             "diff": None,
             "amplify": self.amplify_level,
@@ -205,8 +204,6 @@ class Filters:
         for i in range(image.shape[0]):
             if np.isnan(row_median_diffs[i]):
                 LOGGER.info(f"{i} Row_median is nan! : {row_median_diffs[i]}")
-            # for j in range(image.shape[1]):
-            #     image[i, j] -= row_median_diffs[i]
             image[i] -= row_median_diffs[i]
         LOGGER.info(f"[{self.filename}] : Rows aligned")
         return image
@@ -301,16 +298,6 @@ class Filters:
             absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
         )
         self.images["mask"] = get_mask(image=self.images["initial_tilt_removal"], thresholds=thresholds)
-        # self.images["mask"] = get_filter_mask(
-        #     self.images["initial_tilt_removal"],
-        #     threshold_method=self.threshold_method,
-        #     deviation_from_mean=self.threshold_std_dev,
-        #     absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
-        # )
-
-        print(f" FILTERS THRESHOLDS : {self.threshold}")
-        print(f'FILTERS MASKS : {self.images["mask"]}')
-
         self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], self.images["mask"])
         plot_and_save(self.images["masked_align"], self.output_dir, "masked_align.png")
         self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], self.images["mask"])

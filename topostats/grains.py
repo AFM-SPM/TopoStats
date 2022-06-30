@@ -35,7 +35,7 @@ class Grains:
         gaussian_size: float = 2,
         gaussian_mode: str = "nearest",
         threshold_method: str = None,
-        # threshold_multiplier: float = None,
+        threshold_multiplier: float = None,
         threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
@@ -48,7 +48,7 @@ class Grains:
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.threshold_method = threshold_method
-        # self.threshold_multiplier = threshold_multiplier
+        self.threshold_multiplier = threshold_multiplier
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
@@ -148,8 +148,21 @@ class Grains:
             1.5 * (np.quantile(grain_areas, 0.75) - np.quantile(grain_areas, 0.25))
         )
 
-    def remove_noise(self, image: np.array) -> np.array:
-        """Removes tiny objects, size set by the config file. This is really important to ensure that the smallest objects ~1px are removed regardless of the size distribution of the grains"""
+    def remove_noise(self, image: np.ndarray) -> np.ndarray:
+        """Removes noise which are objects smaller than the 'absolute_smallest_grain_size'.
+
+        This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            2D Numpy image to be cleaned.
+
+        Returns
+        -------
+        np.ndarray
+            2D Numpy array of image with objects > absolute_smallest_grain_size removed.
+        """
         LOGGER.info(f"[{self.filename}] : Removing noise (< {self.absolute_smallest_grain_size}")
         return remove_small_objects(image, min_size=self.absolute_smallest_grain_size)
 
@@ -228,7 +241,6 @@ class Grains:
         for direction, threshold in self.thresholds.items():
             self.directions[direction] = defaultdict()
 
-            # self.directions[direction]["mask"] = get_grains_mask(
             self.directions[direction]["mask"] = _get_mask(
                 self.images["gaussian_filtered"], threshold=threshold, threshold_direction=direction
             )
@@ -236,7 +248,6 @@ class Grains:
             plot_and_save(
                 data=self.directions[direction]["mask"],
                 output_dir=self.output_dir / self.filename,
-                # "grain_binary_mask_" + str(direction),
                 filename=f"grain_binary_mask_{direction}.png",
             )
             self.directions[direction]["tidied_border"] = self.tidy_border(self.directions[direction]["mask"])
@@ -245,7 +256,6 @@ class Grains:
             plot_and_save(
                 data=self.directions[direction]["removed_noise"],
                 output_dir=self.output_dir / self.filename,
-                # "removed_tiny_objects_" + str(direction),
                 filename=f"removed_tiny_objects_{direction}.png",
             )
 
@@ -256,7 +266,6 @@ class Grains:
             plot_and_save(
                 data=self.directions[direction]["labelled_regions_01"],
                 output_dir=self.output_dir / self.filename,
-                # "labelled_regions_01_" + str(direction),
                 filename=f"labelled_regions_01_{direction}.png",
             )
 
@@ -279,7 +288,6 @@ class Grains:
             plot_and_save(
                 data=self.directions[direction]["labelled_regions_02"],
                 output_dir=self.output_dir / self.filename,
-                # "labelled_regions_01_" + str(direction),
                 filename=f"labelled_regions_02_{direction}.png",
             )
 
@@ -292,8 +300,6 @@ class Grains:
             plot_and_save(
                 data=self.directions[direction]["coloured_regions"],
                 output_dir=self.output_dir / self.filename,
-                # "removed_small_objects_" + str(direction),
                 filename=f"removed_small_objects_{direction}.png",
             )
-
             self.get_bounding_boxes()

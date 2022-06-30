@@ -2,17 +2,20 @@
 import argparse as arg
 from asyncio.log import logger
 from collections import defaultdict
-from email.policy import default
+
+# from email.policy import default
 from functools import partial
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Union, Dict
-from tqdm import tqdm
+
+import pandas as pd
 import numpy as np
+from tqdm import tqdm
 
 from topostats.filters import Filters
 from topostats.grains import Grains
-from topostats.grainstats import GrainStats
+from topostats.grainstats import GrainStats, get_grainstats
 from topostats.io import read_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import plot_and_save
@@ -170,15 +173,20 @@ def process_scan(
     image_path: Union[str, Path] = None,
     channel: str = "Height",
     amplify_level: float = 1.0,
-    threshold_method: str = "otsu",
-    threshold_multiplier: Union[int, float] = 1.7,
-    threshold_std_dev=1.0,
-    threshold_abs_lower=None,
-    threshold_abs_upper=None,
-    absolute_smallest_grain_size=None,
+    filter_threshold_method: str = "otsu",
+    filter_threshold_multiplier: Union[int, float] = 1.7,
+    filter_threshold_std_dev=1.0,
+    filter_threshold_abs_lower=None,
+    filter_threshold_abs_upper=None,
     gaussian_size: Union[int, float] = 2,
     gaussian_mode: str = "nearest",
+    absolute_smallest_grain_size=None,
     background: float = 0.0,
+    grains_threshold_method: str = "otsu",
+    grains_threshold_multiplier: Union[int, float] = 1.7,
+    grains_threshold_std_dev=1.0,
+    grains_threshold_abs_lower=None,
+    grains_threshold_abs_upper=None,
     save_plots: bool = True,
     output_dir: Union[str, Path] = "output",
 ) -> None:
@@ -220,134 +228,55 @@ def process_scan(
     # Filter Image :
     #
     # The Filters class has a convenience method that runs the instantiated class in full.
-
-    # Find Grains :
-    #
-    # The Grains class also has a convenience method that runs the instantiated class in full.
-
-    print("channel: ", channel)
     filtered_image = Filters(
         image_path,
-        threshold_method,
-        threshold_std_dev,
-        threshold_absolute_lower=threshold_abs_lower,
-        threshold_absolute_upper=threshold_abs_upper,
+        threshold_method=filter_threshold_method,
+        threshold_std_dev=filter_threshold_std_dev,
+        threshold_absolute_lower=filter_threshold_abs_lower,
+        threshold_absolute_upper=filter_threshold_abs_upper,
         channel=channel,
         amplify_level=amplify_level,
         output_dir=output_dir,
     )
     filtered_image.filter_image()
 
-    # def get_grains(
-    #     image: np.ndarray,
-    #     filename: str,
-    #     pixel_to_nm_scaling: float,
-    #     gaussian_size: float,
-    #     threshold_method: str,
-    #     threshold_multiplier: float,
-    #     threshold_std_dev: float,
-    #     threshold_absolute_lower: float,
-    #     threshold_absolute_upper: float,
-    #     background: float,
-    #     output_dir: Union[str, Path],
-    # ):
-    #     """Wrapper function to instantiate a Grains() class and run it with the options on a single image"""
-    #     grains = Grains(
-    #         image=image,
-    #         filename=filename,
-    #         pixel_to_nm_scaling=pixel_to_nm_scaling,
-    #         gaussian_size=gaussian_size,
-    #         gaussian_mode=gaussian_mode,
-    #         threshold_method=threshold_method,
-    #         threshold_multiplier=threshold_multiplier,
-    #         threshold_std_dev=threshold_std_dev,
-    #         threshold_absolute_lower=threshold_absolute_lower,
-    #         threshold_absolute_upper=threshold_absolute_upper,
-    #         absolute_smallest_grain_size=absolute_smallest_grain_size,
-    #         background=background,
-    #         output_dir=output_dir,
-    #     )
-    #     grains.find_grains()
-
-    #     return grains
-
-    # grains_wrapper = partial(
-    #     get_grains,
-    #     filename=filtered_image.filename,
-    #     pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
-    #     gaussian_size=gaussian_size,
-    #     threshold_method=threshold_method,
-    #     threshold_multiplier=threshold_multiplier,
-    #     threshold_std_dev=threshold_std_dev,
-    #     threshold_absolute_lower=threshold_abs_lower,
-    #     threshold_absolute_upper=threshold_abs_upper,
-    #     background=background,
-    #     output_dir=output_dir,
-    # )
-
-    # # Note that there is a dictionary of zero_averaged_background images
-    # grains_dict = {
-    #     direction: grains_wrapper(image)
-    #     for direction, image in filtered_image.images[
-    #         "zero_averaged_background"
-    #     ].items()
-    # }
-
-    # Reasons we can't easily use dictionary comprehension for grains:
-    # RAM usage?
-    # The plots need to be saved, and therefore each instance of grainstats needs to know what the 'direction' variable is.
-
+    # Find Grains :
+    #
+    # The Grains class also has a convenience method that runs the instantiated class in full.
     grains = Grains(
         image=filtered_image.images["zero_averaged_background"],
         filename=filtered_image.filename,
         pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
         gaussian_size=gaussian_size,
         gaussian_mode=gaussian_mode,
-        threshold_method=threshold_method,
-        threshold_std_dev=threshold_std_dev,
-        threshold_absolute_lower=threshold_abs_lower,
-        threshold_absolute_upper=threshold_abs_upper,
+        threshold_method=grains_threshold_method,
+        threshold_std_dev=grains_threshold_std_dev,
+        threshold_absolute_lower=grains_threshold_abs_lower,
+        threshold_absolute_upper=grains_threshold_abs_upper,
         absolute_smallest_grain_size=absolute_smallest_grain_size,
         background=background,
         output_dir=output_dir,
     )
-
     grains.find_grains()
 
-    def get_grainstats(
-        data: np.ndarray,
-        labelled_data: np.ndarray,
-        pixel_to_nanometre_scaling,
-        img_name: str,
-        output_dir: Union[str, Path],
-    ):
-        """Wrapper function to instantiate a GrainStats() class and run it with the options on a single image"""
-        grainstats = GrainStats(
-            data=data,
-            labelled_data=labelled_data,
-            pixel_to_nanometre_scaling=pixel_to_nanometre_scaling,
-            img_name=img_name,
-            output_dir=output_dir,
-        ).calculate_stats()
-
-    #     grainstats.calculate_stats()
-
-    #     return grainstats
-
-    grainstats_wrapper = partial(
-        get_grainstats,
-        pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
-        output_dir=output_dir,
-    )
-
+    # Grainstats :
+    #
+    # There are two layers to process those above the given threshold and those below, use dictionary comprehension
+    # to pass over these.
     grainstats = {
-        direction: grainstats_wrapper(
+        direction: GrainStats(
             data=grains.images["gaussian_filtered"],
             labelled_data=grains.directions[direction]["labelled_regions_02"],
-            img_name=filtered_image.filename + str(direction),
-        )
+            pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+            img_name=f"{filtered_image.filename}/{direction}",
+            output_dir=output_dir,
+        ).calculate_stats()
         for direction in grains.directions
     }
+    grainstats["lower"]["statistics"]["threshold"] = "lower"
+    grainstats["upper"]["statistics"]["threshold"] = "upper"
+    grainstats_df = pd.concat([grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]])
+    grainstats_df.to_csv(output_dir / filtered_image.filename / "grainstats.csv")
 
 
 def main():
@@ -385,15 +314,21 @@ def main():
         process_scan,
         channel=config["channel"],
         amplify_level=config["amplify_level"],
-        threshold_method=config["threshold"]["method"],
-        absolute_smallest_grain_size=config["grains"]["absolute_smallest_grain_size"],
-        threshold_std_dev=config["threshold"]["std_dev"],
-        threshold_abs_lower=config["threshold"]["absolute"][0],
-        threshold_abs_upper=config["threshold"]["absolute"][1],
+        filter_threshold_method=config["filter"]["threshold"]["method"],
+        filter_threshold_multiplier=config["filter"]["threshold"]["multiplier"],
+        filter_threshold_std_dev=config["filter"]["threshold"]["std_dev"],
+        filter_threshold_abs_lower=config["filter"]["threshold"]["absolute"][0],
+        filter_threshold_abs_upper=config["filter"]["threshold"]["absolute"][1],
         gaussian_size=config["grains"]["gaussian_size"],
         gaussian_mode=config["grains"]["gaussian_mode"],
+        absolute_smallest_grain_size=config["grains"]["absolute_smallest_grain_size"],
         background=config["grains"]["background"],
         output_dir=config["output_dir"],
+        grains_threshold_method=config["grains"]["threshold"]["method"],
+        grains_threshold_multiplier=config["grains"]["threshold"]["multiplier"],
+        grains_threshold_std_dev=config["grains"]["threshold"]["std_dev"],
+        grains_threshold_abs_lower=config["grains"]["threshold"]["absolute"][0],
+        grains_threshold_abs_upper=config["grains"]["threshold"]["absolute"][1],
     )
 
     with Pool(processes=config["cores"]) as pool:
