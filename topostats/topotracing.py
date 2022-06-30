@@ -146,9 +146,7 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Factor to scale threshold during grain finding.",
     )
-    parser.add_argument(
-        "-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image."
-    )
+    parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
     parser.add_argument(
         "-q",
         "--quiet",
@@ -306,7 +304,6 @@ def process_scan(
         gaussian_size=gaussian_size,
         gaussian_mode=gaussian_mode,
         threshold_method=threshold_method,
-        threshold_multiplier=threshold_multiplier,
         threshold_std_dev=threshold_std_dev,
         threshold_absolute_lower=threshold_abs_lower,
         threshold_absolute_upper=threshold_abs_upper,
@@ -367,9 +364,7 @@ def main():
     LOGGER.info(f'Output directory                  : {config["output_dir"]}')
     LOGGER.info(f'Looking for images with extension : {config["file_ext"]}')
     img_files = find_images(config["base_dir"])
-    LOGGER.info(
-        f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}'
-    )
+    LOGGER.info(f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}')
 
     if config["quiet"]:
         LOGGER.setLevel("ERROR")
@@ -390,20 +385,11 @@ def main():
         process_scan,
         channel=config["channel"],
         amplify_level=config["amplify_level"],
-        threshold_method=config["grains"]["threshold_method"],
+        threshold_method=config["threshold"]["method"],
         absolute_smallest_grain_size=config["grains"]["absolute_smallest_grain_size"],
-        threshold_multiplier=config["grains"]["thresholding_methods"]["otsu"][
-            "threshold_otsu_multiplier"
-        ],
-        threshold_std_dev=config["grains"]["thresholding_methods"]["std_dev"][
-            "threshold_std_dev"
-        ],
-        threshold_abs_lower=config["grains"]["thresholding_methods"]["absolute_value"][
-            "threshold_abs_lower"
-        ],
-        threshold_abs_upper=config["grains"]["thresholding_methods"]["absolute_value"][
-            "threshold_abs_upper"
-        ],
+        threshold_std_dev=config["threshold"]["std_dev"],
+        threshold_abs_lower=config["threshold"]["absolute"][0],
+        threshold_abs_upper=config["threshold"]["absolute"][1],
         gaussian_size=config["grains"]["gaussian_size"],
         gaussian_mode=config["grains"]["gaussian_mode"],
         background=config["grains"]["background"],

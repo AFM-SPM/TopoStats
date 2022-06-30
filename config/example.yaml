@@ -7,20 +7,15 @@ quiet: false
 file_ext: .spm
 channel: Height Sensor
 amplify_level: 1.0
+# filters:
+threshold:
+  method: std_dev # 'otsu', 'std_dev', 'absolute'
+  std_dev: 1.0
+  absolute:
+    - 1
+    - -1
 grains:
   gaussian_size: 2.0
   gaussian_mode: nearest
   absolute_smallest_grain_size: 100
   background: 0.0
-  # Thresholding methods: 'otsu', 'std_dev', 'absolute'
-  threshold_method: std_dev
-  thresholding_methods:
-    otsu:
-      threshold_otsu_multiplier: 1.7
-    std_dev:
-      threshold_std_dev: 1.0
-    # Absolute threshold - the upper and lower absolute thresholds
-    absolute_value:
-      threshold_abs_upper: 1
-      threshold_abs_lower: -1
-  
