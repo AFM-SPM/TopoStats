@@ -102,7 +102,7 @@ def get_mask(
         Numpy array of image with objects coloured.
     """
     LOGGER.info(f"[{img_name}] Deriving mask.")
-    print("threshold: ", threshold)
+    LOGGER.info("threshold: ", threshold)
     if threshold_direction == "above":
         LOGGER.info(f"masking | threshold: {threshold}, mean: {np.nanmean(image)}")
         mask = image > threshold
@@ -176,10 +176,6 @@ def get_grains_thresholds(
     **kwargs,
 ):
     """Obtain threshold and mask image"""
-
-    print(f"THRESHOLD AND MASK")
-    print(f"THRESHOLD METHOD: {threshold_method}")
-    print(f"")
 
     thresholds = defaultdict()
 

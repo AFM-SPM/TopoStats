@@ -298,7 +298,7 @@ class Grains:
             plot_and_save(
                 self.directions[direction]["coloured_regions"],
                 self.output_dir / self.filename,
-                "removed_small_objects_" + str(direction),
+                "coloured_regions" + str(direction),
             )
 
             self.get_bounding_boxes()
