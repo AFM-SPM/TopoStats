@@ -108,7 +108,10 @@ class Grains:
             self.base_output_dir,
             "gaussian_filtered",
         )
+<<<<<<< HEAD
         plot_and_save(self.images["gaussian_filtered"], self.output_dir / self.filename, "gaussian_filtered")
+=======
+>>>>>>> 6649b91 (Clean up commented-out code)
 
     def tidy_border(self, image: np.array, **kwargs) -> np.array:
         """Remove grains touching the border

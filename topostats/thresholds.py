@@ -2,7 +2,13 @@
 # pylint: disable=no-name-in-module
 from typing import Callable
 import numpy as np
-from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, threshold_yen, threshold_triangle
+from skimage.filters import (
+    threshold_mean,
+    threshold_minimum,
+    threshold_otsu,
+    threshold_yen,
+    threshold_triangle,
+)
 import logging
 from topostats.logs.logs import LOGGER_NAME
 
