@@ -102,6 +102,8 @@ def _get_mask(image: np.array, threshold: float, threshold_direction: str, img_n
     LOGGER.info(f"[{img_name}] Deriving mask (Threhold : {threshold})")
     if threshold_direction == "upper":
         LOGGER.info(f"[{img_name}] Masking (upper)| threshold: {threshold}")
+    if threshold_direction == "above":
+        LOGGER.info(f"masking | threshold: {threshold}, mean: {np.nanmean(image)}")
         mask = image > threshold
     elif threshold_direction == "lower":
         LOGGER.info(f"[{img_name}] Masking (lower)| threshold: {threshold}")
@@ -172,6 +174,48 @@ def get_thresholds(
     Dict
         Dictionary of thresholds, contains keys 'lower' and optionally 'upper'.
     """
+    mask = None
+    threshold_above = None
+    threshold_below = None
+
+    if threshold_method == "otsu":
+        threshold_above = threshold(image, method="otsu", **kwargs)
+    elif threshold_method == "std_dev":
+        threshold_below = threshold(image, method="mean", **kwargs) - deviation_from_mean * np.nanstd(image)
+        threshold_above = threshold(image, method="mean", **kwargs) + deviation_from_mean * np.nanstd(image)
+    elif threshold_method == "absolute":
+        threshold_below = absolute[0]
+        threshold_above = absolute[1]
+
+    if threshold_below != None and threshold_above != None:
+        # Both thresholds are applicable
+        mask_above = get_mask(image, threshold=threshold_above, threshold_direction="above")
+        mask_below = get_mask(image, threshold=threshold_below, threshold_direction="below")
+        # Combine the masks because we want to remove both the extreme high and extreme
+        # low data points.
+        mask = mask_above + mask_below
+        return mask
+    elif threshold_below != None:
+        # Only lower threshold is applicable
+        mask = get_mask(image, threshold=threshold_below, threshold_direction="below")
+        return mask
+    elif threshold_above != None:
+        # Only upper threshold id applicable
+        mask = get_mask(image, threshold=threshold_above, threshold_direction="above")
+        return mask
+
+
+def get_grains_thresholds(
+    image: np.ndarray,
+    threshold_method: str,
+    deviation_from_mean: float = None,
+    absolute: tuple = None,
+    thresholds: tuple = None,
+    img_name: str = None,
+    **kwargs,
+):
+    """Obtain threshold and mask image"""
+
     thresholds = defaultdict()
     print(f"OTSU MULTIPLIER UNTILS.PY {otsu_threshold_multiplier}")
 
@@ -232,4 +276,3 @@ def get_thresholds(
 # ):
 
 #     return get_mask(image, threshold=thresh, threshold_direction=direction)
->>>>>>> 73df085 (165 | Checkpoint 1)

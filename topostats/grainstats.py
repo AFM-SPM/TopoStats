@@ -155,8 +155,6 @@ class GrainStats:
             # Obtain and plot the cropped grain mask
             grain_mask = np.array(region.image)
             plot_and_save(grain_mask, output_grain, "grainmask.png")
-            print("saved grain mask", index)
-            print("grain mask shape: ", grain_mask.shape)
 
             # Obtain the cropped grain image
             minr, minc, maxr, maxc = region.bbox
@@ -168,9 +166,7 @@ class GrainStats:
             LOGGER.info(f"saved grain image: {index}")
 
             points = self.calculate_points(grain_mask)
-            print("points size: " + str(len(points[0])) + " " + str(len(points[1])))
             edges = self.calculate_edges(grain_mask)
-            print("edges size: " + str(len(edges[0])) + " " + str(len(edges[1])))
             radius_stats = self.calculate_radius_stats(edges, points)
             # hull, hull_indices, hull_simplexes = self.convex_hull(edges, output_grain)
             _, _, hull_simplexes = self.convex_hull(edges, output_grain)
@@ -252,10 +248,8 @@ class GrainStats:
 
         Returns
         -------
-        edges : list
+        points : list
             A python list containing the coordinates of the pixels in the grain."""
-        print("calculating points : shape of grain_mask: ", grain_mask.shape)
-
         nonzero_coordinates = grain_mask.nonzero()
         points = []
         for point in np.transpose(nonzero_coordinates):
