@@ -9,13 +9,20 @@ from typing import Union
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+
+# from email.policy import default
+from functools import partial
+from multiprocessing import Pool
+from pathlib import Path
+from typing import Union, Dict
+
+import pandas as pd
 import numpy as np
+from tqdm import tqdm
 
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats, get_grainstats
-from topostats.io import read_yaml
-from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, write_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import plot_and_save
@@ -136,11 +143,7 @@ def create_parser() -> arg.ArgumentParser:
         help="Amplify signals by the given factor.",
     )
     parser.add_argument(
-        "-t",
-        "--threshold_method",
-        dest="threshold_method",
-        required=False,
-        help="Method used for thresholding.",
+        "-t", "--threshold_method", dest="threshold_method", required=False, help="Method used for thresholding."
     )
     parser.add_argument(
         "--otsu_threshold_multiplier",
@@ -149,14 +152,7 @@ def create_parser() -> arg.ArgumentParser:
         help="Factor to scale threshold during grain finding.",
     )
     parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
-    parser.add_argument(
-        "-q",
-        "--quiet",
-        dest="quiet",
-        type=bool,
-        required=False,
-        help="Toggle verbosity.",
-    )
+    parser.add_argument("-q", "--quiet", dest="quiet", type=bool, required=False, help="Toggle verbosity.")
     parser.add_argument(
         "-w",
         "--warnings",
@@ -246,51 +242,34 @@ def process_scan(
         pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
         gaussian_size=gaussian_size,
         gaussian_mode=gaussian_mode,
-        threshold_method=threshold_method,
-        threshold_std_dev=threshold_std_dev,
-        threshold_absolute_lower=threshold_abs_lower,
-        threshold_absolute_upper=threshold_abs_upper,
+        threshold_method=grains_threshold_method,
+        threshold_std_dev=grains_threshold_std_dev,
+        threshold_absolute_lower=grains_threshold_abs_lower,
+        threshold_absolute_upper=grains_threshold_abs_upper,
         absolute_smallest_grain_size=absolute_smallest_grain_size,
         background=background,
         output_dir=output_dir,
     )
-
     grains.find_grains()
 
-    def get_grainstats(
-        data: np.ndarray,
-        labelled_data: np.ndarray,
-        pixel_to_nanometre_scaling,
-        img_name: str,
-        output_dir: Union[str, Path],
-    ):
-        """Wrapper function to instantiate a GrainStats() class and run it with the options on a single image"""
-        grainstats = GrainStats(
-            data=data,
-            labelled_data=labelled_data,
-            pixel_to_nanometre_scaling=pixel_to_nanometre_scaling,
-            img_name=img_name,
-            output_dir=output_dir,
-        ).calculate_stats()
-
-    #     grainstats.calculate_stats()
-
-    #     return grainstats
-
-    grainstats_wrapper = partial(
-        get_grainstats,
-        pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
-        output_dir=output_dir,
-    )
-
+    # Grainstats :
+    #
+    # There are two layers to process those above the given threshold and those below, use dictionary comprehension
+    # to pass over these.
     grainstats = {
-        direction: grainstats_wrapper(
+        direction: GrainStats(
             data=grains.images["gaussian_filtered"],
             labelled_data=grains.directions[direction]["labelled_regions_02"],
-            img_name=filtered_image.filename + str(direction),
-        )
+            pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+            img_name=f"{filtered_image.filename}/{direction}",
+            output_dir=output_dir,
+        ).calculate_stats()
         for direction in grains.directions
     }
+    grainstats["lower"]["statistics"]["threshold"] = "lower"
+    grainstats["upper"]["statistics"]["threshold"] = "upper"
+    grainstats_df = pd.concat([grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]])
+    grainstats_df.to_csv(output_dir / filtered_image.filename / "grainstats.csv")
 
 
 def main():
