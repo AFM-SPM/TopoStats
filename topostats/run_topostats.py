@@ -128,6 +128,7 @@ def process_scan(
     background: float = 0.0,
     save_plots: bool = True,
     output_dir: Union[str, Path] = "output",
+    cmap: str = "nanoscope",
 ) -> None:
     """Process a single image, filtering, finding grains and calculating their statistics.
 
@@ -152,6 +153,8 @@ def process_scan(
         Flag as to whether to save plots to PNG files.
     output_dir : Union[str, Path]
         Path to output directory for saving results.
+    colormap : str
+        Name of a TopoStats or Matplotlib colormap.
 
     Examples
     --------
@@ -236,7 +239,7 @@ def process_scan(
                     array = np.flipud(array.pixels)
                 PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
                 try:
-                    plot_and_save(array, **PLOT_DICT[plot_name])
+                    plot_and_save(array, **PLOT_DICT[plot_name], cmap=cmap)
                 except AttributeError:
                     LOGGER.info(f"[{filter_image.filename}] Unable to generate plot : {plot_name}")
                     pass
@@ -245,19 +248,21 @@ def process_scan(
             LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
             for plot_name, array in grains.images.items():
                 PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
-                plot_and_save(array, **PLOT_DICT[plot_name])
+                plot_and_save(array, **PLOT_DICT[plot_name], cmap=cmap)
             # Make a plot of coloured regions with bounding boxes
             plot_and_save(
                 grains.images["coloured_regions"],
                 Path(output_dir) / filtered_image.filename,
                 **PLOT_DICT["bounding_boxes"],
                 region_properties=grains.region_properties,
+                cmap="nanoscope"
             )
             plot_and_save(
                 grains.images["labelled_regions"],
                 Path(output_dir) / filtered_image.filename,
                 **PLOT_DICT["coloured_boxes"],
                 region_properties=grains.region_properties,
+                cmap=cmap
             )
 
     return image_path, results
@@ -304,6 +309,7 @@ def main():
         gaussian_mode=config["grains"]["gaussian_mode"],
         background=config["grains"]["background"],
         output_dir=config["output_dir"],
+        cmap=config["colormap"],
     )
 
     with Pool(processes=config["cores"]) as pool:

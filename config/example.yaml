@@ -8,6 +8,7 @@ file_ext: .spm
 channel: Height
 amplify_level: 1.0
 threshold_method: otsu
+colormap: afmhot
 grains:
   gaussian_size: 2.0
   gaussian_mode: nearest

@@ -12,6 +12,7 @@ from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+from theme import Colormap
 
 def plot_and_save(
     data: np.array,
@@ -19,7 +20,7 @@ def plot_and_save(
     filename: str,
     title: str = None,
     interpolation: str = "nearest",
-    cmap: str = "afmhot",
+    cmap: str = "nanoscope",
     region_properties: dict = None,
 ):
     """Plot and save an image.
@@ -37,18 +38,21 @@ def plot_and_save(
     interpolation: str
         Interpolation to use (default 'nearest').
     cmap : str
-        Colour map to use (default 'afmhot')
+        Colour map to use (default 'nanoscope')
 
     """
+    # Get the TopoStats colormap
+    color_map = Colormap(cmap).get_cmap()
+
     fig, ax = plt.subplots(1, 1, figsize=(8, 8))
     if isinstance(data, np.ndarray):
-        ax.imshow(data, interpolation=interpolation, cmap=cmap)
+        ax.imshow(data, interpolation=interpolation, cmap=color_map)
         if region_properties:
             fig, ax = add_bounding_boxes_to_plot(fig, ax, region_properties)
         plt.title(title)
         plt.savefig(output_dir / filename)
     else:
-        data.show(ax=ax, interpolation=interpolation, cmap=cmap)
+        data.show(ax=ax, interpolation=interpolation, cmap=color_map)
     plt.close()
     LOGGER.info(f"[{Path(output_dir).parts[1]}] : Image saved to : {str(output_dir / filename)}")
     return fig, ax
