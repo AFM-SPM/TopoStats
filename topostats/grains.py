@@ -63,7 +63,6 @@ class Grains:
             Output directory.
         """
         self.image = image
-        print(f"image: {image}")
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.threshold_method = threshold_method
