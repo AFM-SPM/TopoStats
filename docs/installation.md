@@ -22,7 +22,12 @@ conda create --name topostats python=3.10
 conda activate topostats
 ```
 
+
+
 You are now ready to clone and install TopoStats.
+
+**NB** If you are using an Apple M1 Macbook then you need to install Anaconda >=
+[2022.05](https://www.anaconda.com/blog/new-release-anaconda-distribution-now-supporting-m1).
 
 ## Cloning and Installing
 
