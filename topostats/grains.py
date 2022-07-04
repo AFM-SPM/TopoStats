@@ -3,6 +3,7 @@ from collections import defaultdict
 import logging
 from os import remove
 from pathlib import Path
+from types import NoneType
 from typing import Union, List, Dict
 import numpy as np
 

@@ -248,7 +248,7 @@ def process_scan(
         threshold_absolute_upper=grains_threshold_abs_upper,
         absolute_smallest_grain_size=absolute_smallest_grain_size,
         background=background,
-        output_dir=output_dir,
+        base_output_dir=output_dir / filtered_image.filename / "grains",
     )
     grains.find_grains()
 
@@ -261,8 +261,8 @@ def process_scan(
             data=grains.images["gaussian_filtered"],
             labelled_data=grains.directions[direction]["labelled_regions_02"],
             pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
-            img_name=f"{filtered_image.filename}/{direction}",
-            output_dir=output_dir,
+            direction=f"{direction}",
+            base_output_dir=output_dir / filtered_image.filename / "grainstats",
         ).calculate_stats()
         for direction in grains.directions
     }

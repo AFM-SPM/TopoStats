@@ -102,8 +102,6 @@ def _get_mask(image: np.array, threshold: float, threshold_direction: str, img_n
     LOGGER.info(f"[{img_name}] Deriving mask (Threhold : {threshold})")
     if threshold_direction == "upper":
         LOGGER.info(f"[{img_name}] Masking (upper)| threshold: {threshold}")
-    if threshold_direction == "above":
-        LOGGER.info(f"masking | threshold: {threshold}, mean: {np.nanmean(image)}")
         mask = image > threshold
     elif threshold_direction == "lower":
         LOGGER.info(f"[{img_name}] Masking (lower)| threshold: {threshold}")
