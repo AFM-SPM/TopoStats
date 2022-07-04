@@ -221,8 +221,12 @@ def get_thresholds(
         thresholds["lower"] = threshold(image, method="mean", **kwargs) - deviation_from_mean * np.nanstd(image)
         thresholds["upper"] = threshold(image, method="mean", **kwargs) + deviation_from_mean * np.nanstd(image)
     elif threshold_method == "absolute":
-        thresholds["lower"] = absolute[0]
-        thresholds["upper"] = absolute[1]
+        if absolute[0] != "none":
+            thresholds["lower"] = absolute[0]
+        else: thresholds["lower"] = None
+        if absolute[1] != "none":
+            thresholds["upper"] = absolute[1]
+        else: thresholds["upper"] = None
 
     return thresholds
 

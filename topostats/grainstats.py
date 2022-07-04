@@ -37,8 +37,8 @@ class GrainStats:
         data: np.ndarray,
         labelled_data: np.ndarray,
         pixel_to_nanometre_scaling: float,
-        img_name: str,
-        output_dir: Union[str, Path],
+        direction: str,
+        base_output_dir: Union[str, Path],
     ):
         """Initialise the class.
 
@@ -57,8 +57,8 @@ class GrainStats:
         self.data = data
         self.labelled_data = labelled_data
         self.pixel_to_nanometre_scaling = pixel_to_nanometre_scaling
-        self.img_name = img_name
-        self.output_dir = Path(output_dir)
+        self.direction = direction
+        self.base_output_dir = Path(base_output_dir)
         self.start_point = None
 
     @staticmethod
@@ -120,7 +120,7 @@ class GrainStats:
 
             LOGGER.info("processing grain: ", index)
             # Create directory for each grain's plots
-            output_grain = self.output_dir / self.img_name / f"grain_{index}"
+            output_grain = self.base_output_dir / self.direction / f"grain_{index}"
             # Path.mkdir(output_grain, parents=True, exist_ok=True)
             output_grain.mkdir(parents=True, exist_ok=True)
 
@@ -194,7 +194,9 @@ class GrainStats:
             ax.add_patch(rectangle)
 
         grainstats = pd.DataFrame(data=stats_array)
-        grainstats.to_csv(self.output_dir / self.img_name / f"grainstats.csv")
+        csv_save_path = self.base_output_dir / self.direction
+        Path.mkdir(csv_save_path, exist_ok=True, parents=True)
+        grainstats.to_csv(csv_save_path / f"grainstats_{self.direction}.csv")
 
         return {"statistics": grainstats, "plot": ax}
 
@@ -798,6 +800,6 @@ def get_grainstats(
         data=data,
         labelled_data=labelled_data,
         pixel_to_nanometre_scaling=pixel_to_nanometre_scaling,
-        img_name=img_name,
-        output_dir=output_dir,
+        direction=img_name,
+        base_output_dir=output_dir,
     ).calculate_stats()

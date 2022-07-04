@@ -365,7 +365,7 @@ def minicircle_grain_coloured(minicircle_grain_labelled_post_removal: np.array) 
 def grainstats(image_random: np.array, minicircle_filename: str, tmpdir) -> GrainStats:
     """Grainstats class for testing functions."""
     gstats = GrainStats(
-        image_random, image_random, pixel_to_nanometre_scaling=0.5, img_name=minicircle_filename, output_dir=tmpdir
+        image_random, image_random, pixel_to_nanometre_scaling=0.5, direction=minicircle_filename, base_output_dir=tmpdir
     )
     return gstats
 
@@ -384,8 +384,8 @@ def minicircle_grainstats(
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         labelled_data=minicircle_grain_labelled_post_removal.images["labelled_regions"],
         pixel_to_nanometre_scaling=minicircle_extract_pixel_to_nm_scaling.pixel_to_nm_scaling,
-        img_name=minicircle_filename.filename,
-        output_dir=tmpdir,
+        direction=minicircle_filename.filename,
+        base_output_dir=tmpdir,
     )
 
 
