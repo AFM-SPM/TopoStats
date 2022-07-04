@@ -24,59 +24,6 @@ from topostats.utils import convert_path, find_images, update_config
 
 LOGGER = setup_logger(LOGGER_NAME)
 
-# PLOT_DICT = {
-#     "pixels": {"filename": "01-raw_heightmap.png", "title": "Raw Height"},
-#     "initial_align": {
-#         "filename": "02-initial_align_unmasked.png",
-#         "title": "Initial Alignment (Unmasked)",
-#     },
-#     "initial_tilt_removal": {
-#         "filename": "03-initial_tilt_removal_unmasked.png",
-#         "title": "Initial Tilt Removal (Unmasked)",
-#     },
-#     "mask": {"filename": "04-binary_mask.png", "title": "Binary Mask"},
-#     "masked_align": {
-#         "filename": "05-secondary_align_masked.png",
-#         "title": "Secondary Alignment (Masked)",
-#     },
-#     "masked_tilt_removal": {
-#         "filename": "06-secondary_tilt_removal_masked.png",
-#         "title": "Secondary Tilt Removal (Masked)",
-#     },
-#     "zero_averaged_background": {
-#         "filename": "07-zero_average_background.png",
-#         "title": "Zero Average Background",
-#     },
-#     "gaussian_filtered": {
-#         "filename": "08-gaussian_filtered.png",
-#         "title": "Gaussian Filtered",
-#     },
-#     "mask_grains": {"filename": "09-mask_grains.png", "title": "Mask for Grains"},
-#     "tidied_border": {"filename": "10-tidy_borders.png", "title": "Tidied Borders"},
-#     "tiny_objects_removed": {
-#         "filename": "11a-tiny_objects_removed.png",
-#         "title": "Tiny objects removed",
-#     },
-#     "objects_removed": {
-#         "filename": "11-small_objects_removed.png",
-#         "title": "Small Objects Removed",
-#     },
-#     "labelled_regions": {
-#         "filename": "12-labelled_regions.png",
-#         "title": "Labelled Regions",
-#     },
-#     "coloured_regions": {
-#         "filename": "13-coloured_regions.png",
-#         "title": "Coloured Regions",
-#     },
-#     "bounding_boxes": {"filename": "14-bounding_boxes.png", "title": "Bounding Boxes"},
-#     "coloured_boxes": {
-#         "filename": "15-labelled_image_bboxes.png",
-#         "title": "Labelled Image with Bounding Boxes",
-#     },
-# }
-
-
 def create_parser() -> arg.ArgumentParser:
     """Create a parser for reading options."""
     parser = arg.ArgumentParser(

@@ -118,7 +118,7 @@ class GrainStats:
         stats_array = []
         for index, region in enumerate(region_properties):
 
-            LOGGER.info("processing grain: ", index)
+            LOGGER.info(f"processing grain: {index}")
             # Create directory for each grain's plots
             output_grain = self.base_output_dir / self.direction / f"grain_{index}"
             # Path.mkdir(output_grain, parents=True, exist_ok=True)
@@ -135,7 +135,7 @@ class GrainStats:
             grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
             plot_and_save(grain_image, output_grain, "grain_image.png")
 
-            LOGGER.info("saved grain image", index)
+            LOGGER.info(f"saved grain image: {index}")
 
             points = self.calculate_points(grain_mask)
             edges = self.calculate_edges(grain_mask)
