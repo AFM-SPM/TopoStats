@@ -12,7 +12,7 @@ from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-from theme import Colormap
+from topostats.theme import Colormap
 
 def plot_and_save(
     data: np.array,

@@ -255,7 +255,7 @@ def process_scan(
                 Path(output_dir) / filtered_image.filename,
                 **PLOT_DICT["bounding_boxes"],
                 region_properties=grains.region_properties,
-                cmap="nanoscope"
+                cmap=cmap
             )
             plot_and_save(
                 grains.images["labelled_regions"],
