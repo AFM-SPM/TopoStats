@@ -10,6 +10,7 @@ from topostats.plottingfuncs import plot_and_save
 
 # Specify the absolute and relattive tolerance for floating point comparison
 TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
+CMAP = "afmhot"
 
 
 def test_extract_img_name(minicircle_filename: Filters) -> None:
@@ -48,7 +49,9 @@ def test_extract_pixels(minicircle_pixels, tmpdir) -> None:
     assert isinstance(minicircle_pixels.images["pixels"], np.ndarray)
     assert minicircle_pixels.images["pixels"].shape == (1024, 1024)
     assert minicircle_pixels.images["pixels"].sum() == 30695369.188316286
-    fig, _ = plot_and_save(minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", title="Raw Height")
+    fig, _ = plot_and_save(
+        minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", title="Raw Height", cmap=CMAP
+    )
     return fig
 
 
@@ -63,6 +66,7 @@ def test_align_rows_unmasked(minicircle_initial_align: np.array, tmpdir) -> None
         tmpdir,
         "02-initial_align_rows_unmasked.png",
         title="Initial Align (Unmasked)",
+        cmap=CMAP,
     )
     return fig
 
@@ -78,6 +82,7 @@ def test_remove_x_y_tilt_unmasked(minicircle_initial_tilt_removal: np.array, tmp
         tmpdir,
         "03-initial_tilt_removal_unmasked.png",
         title="Initial Tilt Removal (Unmasked)",
+        cmap=CMAP,
     )
     return fig
 
@@ -94,7 +99,7 @@ def test_get_mask(minicircle_mask: np.array, tmpdir) -> None:
     assert isinstance(minicircle_mask.images["mask"], np.ndarray)
     assert minicircle_mask.images["mask"].shape == (1024, 1024)
     assert minicircle_mask.images["mask"].sum() == 82159
-    fig, _ = plot_and_save(minicircle_mask.images["mask"], tmpdir, "04-binary_mask.png", title="Binary Mask")
+    fig, _ = plot_and_save(minicircle_mask.images["mask"], tmpdir, "04-binary_mask.png", title="Binary Mask", cmap=CMAP)
     return fig
 
 
@@ -109,6 +114,7 @@ def test_align_rows_masked(minicircle_masked_align: np.array, tmpdir) -> None:
         tmpdir,
         "05-masked_align_rows.png",
         title="Secondary Align (Masked)",
+        cmap=CMAP,
     )
     return fig
 
@@ -124,6 +130,7 @@ def test_remove_x_y_tilt_masked(minicircle_masked_tilt_removal: np.array, tmpdir
         tmpdir,
         "06-secondary_tilt_removal_masked.png",
         title="Secondary Tilt Removal (Masked)",
+        cmap=CMAP,
     )
     return fig
 
@@ -139,5 +146,6 @@ def test_average_background(minicircle_zero_average_background: np.array, tmpdir
         tmpdir,
         "07-zero_average_background.png",
         title="Zero Average Background",
+        cmap=CMAP,
     )
     return fig

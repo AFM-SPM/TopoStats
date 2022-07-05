@@ -9,6 +9,7 @@ from topostats.plottingfuncs import plot_and_save
 
 # Specify the absolute and relattive tolerance for floating point comparison
 TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
+CMAP = "afmhot"
 
 
 def test_threshold(minicircle_grain_threshold: Grains) -> None:
@@ -28,6 +29,7 @@ def test_gaussian_filter_minicircle(minicircle_grain_gaussian_filter: Grains, tm
         tmpdir,
         "08-gaussian-filtered.png",
         title="Gaussian Filter",
+        cmap=CMAP,
     )
     return fig
 
@@ -38,7 +40,9 @@ def test_mask_minicircle(minicircle_grain_mask: np.array, tmpdir) -> None:
     assert isinstance(minicircle_grain_mask.images["mask_grains"], np.ndarray)
     assert minicircle_grain_mask.images["mask_grains"].shape == (1024, 1024)
     assert minicircle_grain_mask.images["mask_grains"].sum() == 52674
-    fig, _ = plot_and_save(minicircle_grain_mask.images["mask_grains"], tmpdir, "09-boolean.png", title="Boolean Mask")
+    fig, _ = plot_and_save(
+        minicircle_grain_mask.images["mask_grains"], tmpdir, "09-boolean.png", title="Boolean Mask", cmap=CMAP
+    )
     return fig
 
 
@@ -49,7 +53,11 @@ def test_clear_border(minicircle_grain_clear_border: np.array, tmpdir) -> None:
     assert minicircle_grain_clear_border.images["tidied_border"].shape == (1024, 1024)
     assert minicircle_grain_clear_border.images["tidied_border"].sum() == 48700
     fig, _ = plot_and_save(
-        minicircle_grain_clear_border.images["tidied_border"], tmpdir, "10-clear_border.png", title="Clear Borders"
+        minicircle_grain_clear_border.images["tidied_border"],
+        tmpdir,
+        "10-clear_border.png",
+        title="Clear Borders",
+        cmap=CMAP,
     )
     return fig
 
@@ -71,6 +79,7 @@ def test_remove_small_objects(minicircle_small_objects_removed: np.array, tmpdir
         tmpdir,
         "11-small_objects_removed.png",
         title="Small Objects Removed",
+        cmap=CMAP,
     )
     return fig
 
@@ -86,6 +95,7 @@ def test_label_regions(minicircle_grain_labelled_post_removal: np.array, tmpdir)
         tmpdir,
         "12-labelled.png",
         title="Labelled Regions",
+        cmap=CMAP,
     )
     return fig
 
@@ -109,5 +119,6 @@ def test_colour_regions(minicircle_grain_coloured: np.array, tmpdir) -> None:
         tmpdir,
         "14-coloured_regions.png",
         title="Coloured Regions",
+        cmap=CMAP,
     )
     return fig
