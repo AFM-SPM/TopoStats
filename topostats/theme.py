@@ -1,22 +1,20 @@
 from matplotlib import cm
-from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 
 
 class Colormap:
-    def __init__(self, name: str = 'nanoscope'):
-        
+    def __init__(self, name: str = "nanoscope"):
         self.name = name
         self.cmap = None
         self.set(self.name)
-        
-
     def __str__(self):
-        print(f"TopoStats Colormap: {self.name}")
-    
+        return f"TopoStats Colormap: {self.name}"
 
     def set(self, name: str):
-        # This function could probably do with some better string comparisons to ensure the correct colormap is picked up 
+        """ Set the colormap to the defined colormap with name = name """
+        # This function could probably do with some better string comparisons to ensure the correct
+        # colormap is picked up
         if name.lower() == "nanoscope":
             #print("Using the Nanoscope colormap for plotting")
             self.cmap = self.nanoscope()
@@ -25,9 +23,8 @@ class Colormap:
             self.cmap = cm.get_cmap(name)
 
     def get_cmap(self):
+        """ Return the matplotlib.cm colormap object """
         return self.cmap
-
-
 
     def nanoscope(self):
         """
@@ -53,24 +50,17 @@ class Colormap:
             1 1 1 1 1
 
             return colormap
-
-
         """
 
-        N = 9 # Number of values
-        vals = np.ones((N, 4)) # Initialise the array to be full of 1.0
-        vals[0] = [0., 0., 0., 1]
+        n = 8 # Number of values
+        vals = np.ones((n, 4)) # Initialise the array to be full of 1.0
+        vals[0] = [0., 0., 0., 1] # Lowest value colour => black
         vals[1] = [0.0670103, 0., 0., 1.]
         vals[2] = [0.07, 0.01, 0.01, 1.]
         vals[3] = [0.14, 0.02, 0., 1.]
         vals[4] = [0.38, 0.1, 0., 1.]
         vals[5] = [0.51, 0.30, 0.11, 1.]
         vals[6] = [0.78, 0.56, 0.42, 1.]
-        vals[7] = [0.88, 0.87, 0.69, 1.]
-        vals[8] = [1., 1., 1., 1.]
-
-        colormap = LinearSegmentedColormap.from_list("nanoscope", vals, N=256)       
+        vals[7] = [1., 1., 1., 1.] # Highest value colour => white
+        colormap = LinearSegmentedColormap.from_list("nanoscope", vals, N=256)
         return colormap
-
-
-
