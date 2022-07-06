@@ -296,15 +296,15 @@ class Filters:
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
         plot_and_save(self.images["initial_tilt_removal"], self.output_dir, "initial_remove_tilt.png")
         # Get the thresholds
-        thresholds = get_thresholds(
+        self.thresholds = get_thresholds(
             image=self.images["initial_tilt_removal"],
             threshold_method=self.threshold_method,
             otsu_threshold_multiplier=self.otsu_threshold_multiplier,
             deviation_from_mean=self.threshold_std_dev,
             absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
         )
-        print(f'THRESHOLDS: {thresholds}')
-        self.images["mask"] = get_mask(image=self.images["initial_tilt_removal"], thresholds=thresholds)
+        print(f'THRESHOLDS: {self.thresholds}')
+        self.images["mask"] = get_mask(image=self.images["initial_tilt_removal"], thresholds=self.thresholds)
         plot_and_save(self.images["mask"], self.output_dir, "filtering_mask.png")
         self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], self.images["mask"])
         plot_and_save(self.images["masked_align"], self.output_dir, "masked_align.png")

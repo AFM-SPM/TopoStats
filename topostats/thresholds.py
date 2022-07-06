@@ -34,6 +34,7 @@ def threshold(image: np.array, method: str = None, otsu_threshold_multiplier: fl
 
     """
     thresholder = _get_threshold(method)
+    print(f'THRESHOLD() OTSU MULTIPLIER: {otsu_threshold_multiplier}')
     return thresholder(image, otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs)
 
 

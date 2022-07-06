@@ -30,7 +30,7 @@ def test_threshold_otsu(image_random: np.array) -> None:
     image_random : np.array
         Numpy array representing an image.
     """
-    _threshold = threshold(image_random, method='otsu')
+    _threshold = threshold(image_random, method='otsu', otsu_threshold_multiplier=1.7)
 
     assert isinstance(_threshold, float)
     assert _threshold == threshold_otsu(image_random)
@@ -44,7 +44,7 @@ def test_threshold_otsu_keywords(image_random: np.array) -> None:
     image_random : np.array
         Numpy array representing an image.
     """
-    _threshold = threshold(image_random, method='otsu', **OPTIONS)
+    _threshold = threshold(image_random, method='otsu', otsu_threshold_multiplier=1.7, **OPTIONS)
 
     assert isinstance(_threshold, float)
     assert _threshold == threshold_otsu(image_random, **OPTIONS)

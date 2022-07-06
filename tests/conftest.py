@@ -11,6 +11,7 @@ from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import read_yaml
+from topostats.utils import get_thresholds, get_mask
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
@@ -34,6 +35,10 @@ def grain_config(sample_config) -> dict:
     """Configurations for grain finding."""
     return sample_config["grains"]
 
+@pytest.fixture
+def filter_config(sample_config) -> dict:
+    """Configurations for filtering"""
+    return sample_config["filter"]
 
 @pytest.fixture
 def image_random() -> np.ndarray:
@@ -100,12 +105,12 @@ def image_random_col_medians_masked() -> np.array:
 
 
 @pytest.fixture
-def test_filters(sample_config: dict, tmpdir) -> Filters:
+def test_filters(filter_config: dict, sample_config: dict, tmpdir) -> Filters:
     """Filters class for testing."""
     filters = Filters(
         RESOURCES / "minicircle.spm",
         amplify_level=sample_config["amplify_level"],
-        threshold_method=sample_config["threshold_method"],
+        threshold_method=filter_config["threshold"]["method"],
         output_dir=tmpdir,
     )
     filters.load_scan()
@@ -131,8 +136,14 @@ def test_filters_random_with_mask(sample_config: dict, tmpdir, image_random: np.
     filters.extract_channel()
     filters.extract_pixels()
     filters.images["pixels"] = image_random
-    filters.get_threshold(filters.images["pixels"])
-    filters.get_mask(filters.images["pixels"])
+    # filters.get_threshold(filters.images["pixels"])
+    thresholds = get_thresholds(
+        image=filters.images["pixels"],
+        threshold_method=sample_config["filter"]["threshold"]["method"],
+        otsu_threshold_multiplier=sample_config["filter"]["threshold"]["otsu_multiplier"]
+    )
+    # filters.get_mask(filters.images["pixels"])
+    filters.images["mask"] = get_mask(image=filters.images["pixels"], thresholds=thresholds)
     return filters
 
 
@@ -210,14 +221,21 @@ def minicircle_initial_tilt_removal(minicircle_initial_align: np.array) -> Filte
     return minicircle_initial_align
 
 
+# @pytest.fixture
+# def minicircle_threshold(minicircle_initial_tilt_removal: np.array, sample_config: dict) -> Filters:
+#     """Calculate threshold."""
+#     minicircle_initial_tilt_removal.get_threshold(
+#         minicircle_initial_tilt_removal.images["initial_tilt_removal"], method=sample_config["filter"]["threshold"]["method"]
+#     )
+#     return minicircle_initial_tilt_removal
 @pytest.fixture
 def minicircle_threshold(minicircle_initial_tilt_removal: np.array, sample_config: dict) -> Filters:
     """Calculate threshold."""
-    minicircle_initial_tilt_removal.get_threshold(
-        minicircle_initial_tilt_removal.images["initial_tilt_removal"], method=sample_config["threshold_method"]
+    minicircle_initial_tilt_removal.thresholds = get_thresholds(
+        minicircle_initial_tilt_removal.images["initial_tilt_removal"], method=sample_config["filter"]["threshold"]["method"],
+        otsu_threshold_multiplier=sample_config["filter"]["threshold"]["otsu_multiplier"]
     )
     return minicircle_initial_tilt_removal
-
 
 @pytest.fixture
 def minicircle_mask(minicircle_threshold: np.array) -> Filters:
