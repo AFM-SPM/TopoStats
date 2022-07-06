@@ -266,7 +266,7 @@ def small_array_grains(small_array: np.ndarray, grain_config: dict) -> Grains:
         gaussian_size=grain_config["gaussian_size"],
         gaussian_mode=grain_config["gaussian_mode"],
         threshold_method=grain_config["threshold_method"],
-        threshold_multiplier=grain_config["threshold_multiplier"],
+        otsu_threshold_multiplier=grain_config["threshold_multiplier"],
         background=grain_config["background"],
     )
     return grains
@@ -282,7 +282,7 @@ def minicircle_grains(minicircle_zero_average_background: Filters, grain_config:
         gaussian_size=grain_config["gaussian_size"],
         gaussian_mode=grain_config["gaussian_mode"],
         threshold_method=grain_config["threshold_method"],
-        threshold_multiplier=grain_config["threshold_multiplier"],
+        otsu_threshold_multiplier=grain_config["threshold_multiplier"],
         background=grain_config["background"],
     )
     return grains

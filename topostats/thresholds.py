@@ -13,7 +13,7 @@ from topostats.logs.logs import LOGGER_NAME
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-def threshold(image: np.array, method: str = "otsu", **kwargs: dict) -> float:
+def threshold(image: np.array, method: str = None, otsu_threshold_multiplier: float = None, **kwargs: dict) -> float:
     """Factory method for thresholding.
 
     Parameters
@@ -34,7 +34,7 @@ def threshold(image: np.array, method: str = "otsu", **kwargs: dict) -> float:
 
     """
     thresholder = _get_threshold(method)
-    return thresholder(image, **kwargs)
+    return thresholder(image, otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs)
 
 
 def _get_threshold(method: str = "otsu"):
@@ -78,23 +78,24 @@ def _get_threshold(method: str = "otsu"):
         raise ValueError(method)
 
 
-def _threshold_otsu(image: np.array, threshold_multiplier: float, **kwargs) -> float:
-    return threshold_otsu(image, **kwargs)
+def _threshold_otsu(image: np.array, otsu_threshold_multiplier: float = None, **kwargs) -> float:
+    print(f'MULTIPLIER THRESHOLD OTSU: {otsu_threshold_multiplier}')
+    return threshold_otsu(image, **kwargs) * otsu_threshold_multiplier
 
 
-def _threshold_mean(image: np.array) -> float:
+def _threshold_mean(image: np.array, otsu_threshold_multiplier: float = None, **kwargs) -> float:
     return threshold_mean(image)
 
 
-def _threshold_minimum(image: np.array, **kwargs) -> float:
+def _threshold_minimum(image: np.array, otsu_threshold_multiplier: float = None, **kwargs) -> float:
     return threshold_minimum(image, **kwargs)
 
 
-def _threshold_yen(image: np.array, **kwargs) -> float:
+def _threshold_yen(image: np.array, otsu_threshold_multiplier: float = None, **kwargs) -> float:
     return threshold_yen(image, **kwargs)
 
 
-def _threshold_triangle(image: np.array, **kwargs) -> float:
+def _threshold_triangle(image: np.array, otsu_threshold_multiplier: float = None, **kwargs) -> float:
     return threshold_triangle(image, **kwargs)
 
 

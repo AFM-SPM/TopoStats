@@ -9,8 +9,8 @@ channel: Height Sensor
 amplify_level: 1.0
 filter:
   threshold:
-    method: std_dev # 'otsu', 'std_dev', 'absolute'
-    multiplier: 1.7
+    method: otsu # 'otsu', 'std_dev', 'absolute'
+    otsu_multiplier: 1.7
     std_dev: 1.0
     absolute:
       - 1
@@ -21,8 +21,8 @@ grains:
   absolute_smallest_grain_size: 100
   background: 0.0
   threshold:
-    method: std_dev # 'otsu', 'std_dev', 'absolute'
-    multiplier: 1.7
+    method: otsu # 'otsu', 'std_dev', 'absolute'
+    otsu_multiplier: 1.7
     std_dev: 1.0
     absolute:
       - 1

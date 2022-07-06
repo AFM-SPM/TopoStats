@@ -141,21 +141,21 @@ def test_calc_gradient(test_filters_random: Filters, image_random: np.ndarray) -
     np.testing.assert_array_equal(target, calculated)
 
 
-def test_get_threshold(test_filters_random: float) -> None:
-    """Test calculation of threshold."""
-    test_filters_random.get_threshold(test_filters_random.pixels)
-    expected_threshold = 0.4980470463263117
-    assert test_filters_random.threshold == expected_threshold
+# def test_get_threshold(test_filters_random: float) -> None:
+#     """Test calculation of threshold."""
+#     test_filters_random.get_threshold(test_filters_random.pixels)
+#     expected_threshold = 0.4980470463263117
+#     assert test_filters_random.threshold == expected_threshold
 
 
-def test_get_mask(test_filters_random) -> None:
-    """Test derivation of mask"""
-    test_filters_random.get_threshold(test_filters_random.pixels)
-    test_filters_random.get_mask(test_filters_random.pixels)
+# def test_get_mask(test_filters_random) -> None:
+#     """Test derivation of mask"""
+#     test_filters_random.get_threshold(test_filters_random.pixels)
+#     test_filters_random.get_mask(test_filters_random.pixels)
 
-    assert isinstance(test_filters_random.images["mask"], np.ndarray)
-    assert test_filters_random.images["mask"].any()
-    assert test_filters_random.images["mask"].sum() == 526107
+#     assert isinstance(test_filters_random.images["mask"], np.ndarray)
+#     assert test_filters_random.images["mask"].any()
+#     assert test_filters_random.images["mask"].sum() == 526107
 
 
 def test_row_col_medians_with_mask(

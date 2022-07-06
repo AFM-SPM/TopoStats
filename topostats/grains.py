@@ -36,7 +36,7 @@ class Grains:
         gaussian_size: float = 2,
         gaussian_mode: str = "nearest",
         threshold_method: str = None,
-        threshold_multiplier: float = None,
+        otsu_threshold_multiplier: float = None,
         threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
@@ -48,7 +48,7 @@ class Grains:
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.threshold_method = threshold_method
-        self.threshold_multiplier = threshold_multiplier
+        self.otsu_threshold_multiplier = otsu_threshold_multiplier
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
@@ -238,6 +238,7 @@ class Grains:
         self.thresholds = get_thresholds(
             image=self.image,
             threshold_method=self.threshold_method,
+            otsu_threshold_multiplier=self.otsu_threshold_multiplier,
             deviation_from_mean=self.threshold_std_dev,
             absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
         )

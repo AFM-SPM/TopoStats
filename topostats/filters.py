@@ -2,7 +2,9 @@
 and return a 2D array of the same size representing the filtered image."""
 import logging
 from pathlib import Path
+from types import NoneType
 from typing import Union
+import sys
 
 import numpy as np
 
@@ -26,7 +28,7 @@ class Filters:
         self,
         img_path: Union[str, Path],
         threshold_method: str = "otsu",
-        threshold_multiplier: float = 1.7,
+        otsu_threshold_multiplier: float = 1.7,
         threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
@@ -61,7 +63,7 @@ class Filters:
         self.channel = channel
         self.amplify_level = amplify_level
         self.threshold_method = threshold_method
-        self.threshold_multiplier = threshold_multiplier
+        self.otsu_threshold_multiplier = otsu_threshold_multiplier
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
@@ -191,6 +193,9 @@ class Filters:
 
     def align_rows(self, image: np.array, mask=None) -> np.array:
         """Returns the input image with rows aligned by median height"""
+        if type(mask) is not NoneType:
+            if mask.all():
+                sys.exit("Filtering mask takes up entire image - there will be no image left to process. Try adjusting the flattening thresholds.")
         medians = self.row_col_medians(image, mask)
         row_medians = medians["rows"]
         median_row_height = self._median_row_height(row_medians)
@@ -202,8 +207,8 @@ class Filters:
         # Adjust the row medians accordingly
         # FIXME : I think this can be done using arrays directly, no need to loop.
         for i in range(image.shape[0]):
-            if np.isnan(row_median_diffs[i]):
-                LOGGER.info(f"{i} Row_median is nan! : {row_median_diffs[i]}")
+            # if np.isnan(row_median_diffs[i]):
+            #     LOGGER.info(f"{i} Row_median is nan! : {row_median_diffs[i]}")
             image[i] -= row_median_diffs[i]
         LOGGER.info(f"[{self.filename}] : Rows aligned")
         return image
@@ -294,10 +299,13 @@ class Filters:
         thresholds = get_thresholds(
             image=self.images["initial_tilt_removal"],
             threshold_method=self.threshold_method,
+            otsu_threshold_multiplier=self.otsu_threshold_multiplier,
             deviation_from_mean=self.threshold_std_dev,
             absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
         )
+        print(f'THRESHOLDS: {thresholds}')
         self.images["mask"] = get_mask(image=self.images["initial_tilt_removal"], thresholds=thresholds)
+        plot_and_save(self.images["mask"], self.output_dir, "filtering_mask.png")
         self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], self.images["mask"])
         plot_and_save(self.images["masked_align"], self.output_dir, "masked_align.png")
         self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], self.images["mask"])

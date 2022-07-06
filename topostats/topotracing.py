@@ -91,8 +91,8 @@ def create_parser() -> arg.ArgumentParser:
         help="Method used for thresholding.",
     )
     parser.add_argument(
-        "--threshold_multiplier",
-        dest="threshold_multiplier",
+        "--otsu_threshold_multiplier",
+        dest="otsu_threshold_multiplier",
         required=False,
         help="Factor to scale threshold during grain finding.",
     )
@@ -123,7 +123,7 @@ def process_scan(
     channel: str = "Height",
     amplify_level: float = 1.0,
     filter_threshold_method: str = "otsu",
-    filter_threshold_multiplier: Union[int, float] = 1.7,
+    filter_otsu_threshold_multiplier: Union[int, float] = 1.7,
     filter_threshold_std_dev=1.0,
     filter_threshold_abs_lower=None,
     filter_threshold_abs_upper=None,
@@ -132,7 +132,7 @@ def process_scan(
     absolute_smallest_grain_size=None,
     background: float = 0.0,
     grains_threshold_method: str = "otsu",
-    grains_threshold_multiplier: Union[int, float] = 1.7,
+    grains_otsu_threshold_multiplier: Union[int, float] = 1.7,
     grains_threshold_std_dev=1.0,
     grains_threshold_abs_lower=None,
     grains_threshold_abs_upper=None,
@@ -155,7 +155,7 @@ def process_scan(
         Minimum grain size in nanometers (nm).
     mode : str
         Mode for filtering (default is 'nearest').
-    threshold_multiplier : Union[int, float]
+    otsu_threshold_multiplier : Union[int, float]
         Factor by which lower threshold is to be scaled prior to masking.
     background : float
     save_plots : bool
@@ -199,6 +199,7 @@ def process_scan(
         gaussian_size=gaussian_size,
         gaussian_mode=gaussian_mode,
         threshold_method=grains_threshold_method,
+        otsu_threshold_multiplier=grains_otsu_threshold_multiplier,
         threshold_std_dev=grains_threshold_std_dev,
         threshold_absolute_lower=grains_threshold_abs_lower,
         threshold_absolute_upper=grains_threshold_abs_upper,
@@ -257,7 +258,7 @@ def main():
     #         channel=config["channel"],
     #         amplify_level=config["amplify_level"],
     #         threshold_method=config["threshold_method"],
-    #         threshold_multiplier=config["grains"]["threshold_multiplier"],
+    #         otsu_threshold_multiplier=config["grains"]["otsu_threshold_multiplier"],
     #         gaussian_size=config["grains"]["gaussian_size"],
     #         gaussian_mode=config["grains"]["gaussian_mode"],
     #         background=config["grains"]["background"],
@@ -268,7 +269,7 @@ def main():
         channel=config["channel"],
         amplify_level=config["amplify_level"],
         filter_threshold_method=config["filter"]["threshold"]["method"],
-        filter_threshold_multiplier=config["filter"]["threshold"]["multiplier"],
+        filter_otsu_threshold_multiplier=config["filter"]["threshold"]["otsu_multiplier"],
         filter_threshold_std_dev=config["filter"]["threshold"]["std_dev"],
         filter_threshold_abs_lower=config["filter"]["threshold"]["absolute"][0],
         filter_threshold_abs_upper=config["filter"]["threshold"]["absolute"][1],
@@ -278,7 +279,7 @@ def main():
         background=config["grains"]["background"],
         output_dir=config["output_dir"],
         grains_threshold_method=config["grains"]["threshold"]["method"],
-        grains_threshold_multiplier=config["grains"]["threshold"]["multiplier"],
+        grains_otsu_threshold_multiplier=config["grains"]["threshold"]["otsu_multiplier"],
         grains_threshold_std_dev=config["grains"]["threshold"]["std_dev"],
         grains_threshold_abs_lower=config["grains"]["threshold"]["absolute"][0],
         grains_threshold_abs_upper=config["grains"]["threshold"]["absolute"][1],

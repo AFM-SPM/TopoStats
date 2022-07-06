@@ -173,22 +173,23 @@ def get_mask(image: np.ndarray, thresholds: dict, **kwargs) -> np.ndarray:
         2D Numpy boolean array of points to mask.
     """
     # Both thresholds are applicable
-    if thresholds["lower"] != None and thresholds["upper"] != None:
+    if "lower" in thresholds and "upper" in thresholds:
         mask_upper = _get_mask(image, threshold=thresholds["upper"], threshold_direction="upper")
         mask_lower = _get_mask(image, threshold=thresholds["lower"], threshold_direction="lower")
         # Masks are combined to remove both the extreme high and extreme low data points.
         return mask_upper + mask_lower
     # Only lower threshold is applicable
-    elif thresholds["lower"] != None:
+    elif "lower" in thresholds:
         return _get_mask(image, threshold=thresholds["lower"], threshold_direction="lower")
     # Only upper threshold id applicable
-    elif threshold["upper"] != None:
+    elif "upper" in thresholds:
         return _get_mask(image, threshold=thresholds["upper"], threshold_direction="upper")
 
 
 def get_thresholds(
     image: np.ndarray,
     threshold_method: str,
+    otsu_threshold_multiplier: float = None,
     deviation_from_mean: float = None,
     absolute: tuple = None,
     **kwargs,
@@ -214,12 +215,13 @@ def get_thresholds(
         Dictionary of thresholds, contains keys 'lower' and optionally 'upper'.
     """
     thresholds = defaultdict()
+    print(f'OTSU MULTIPLIER UNTILS.PY {otsu_threshold_multiplier}')
 
     if threshold_method == "otsu":
-        thresholds["lower"] = threshold(image, method="otsu", **kwargs)
+        thresholds["upper"] = threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs)
     elif threshold_method == "std_dev":
-        thresholds["lower"] = threshold(image, method="mean", **kwargs) - deviation_from_mean * np.nanstd(image)
-        thresholds["upper"] = threshold(image, method="mean", **kwargs) + deviation_from_mean * np.nanstd(image)
+        thresholds["lower"] = threshold(image, method="mean", otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs) - deviation_from_mean * np.nanstd(image)
+        thresholds["upper"] = threshold(image, method="mean", otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs) + deviation_from_mean * np.nanstd(image)
     elif threshold_method == "absolute":
         if absolute[0] != "none":
             thresholds["lower"] = absolute[0]
