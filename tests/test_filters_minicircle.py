@@ -47,7 +47,7 @@ def test_extract_pixels(minicircle_pixels, tmpdir) -> None:
     """Test extraction of channel."""
     assert isinstance(minicircle_pixels.images["pixels"], np.ndarray)
     assert minicircle_pixels.images["pixels"].shape == (1024, 1024)
-    assert minicircle_pixels.images["pixels"].sum() == 30695369.188316286
+    assert minicircle_pixels.images["pixels"].sum() == 149782939.79099995
     fig, _ = plot_and_save(minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", title="Raw Height")
     return fig
 
