@@ -243,6 +243,7 @@ def process_scan(
         gaussian_size=gaussian_size,
         gaussian_mode=gaussian_mode,
         threshold_method=grains_threshold_method,
+        otsu_threshold_multiplier=grains_otsu_threshold_multiplier,
         threshold_std_dev=grains_threshold_std_dev,
         threshold_absolute_lower=grains_threshold_abs_lower,
         threshold_absolute_upper=grains_threshold_abs_upper,

@@ -2,6 +2,7 @@
 and return a 2D array of the same size representing the filtered image."""
 import logging
 from pathlib import Path
+from types import NoneType
 from typing import Union
 import sys
 
@@ -308,6 +309,7 @@ class Filters:
         self.images["mask"] = get_mask(image=self.images["initial_tilt_removal"], thresholds=self.thresholds)
         plot_and_save(self.images["mask"], self.output_dir, "filtering_mask.png")
         self.images["mask"] = get_mask(image=self.images["initial_tilt_removal"], thresholds=thresholds)
+        plot_and_save(self.images["mask"], self.output_dir, "filtering_mask.png")
         self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], self.images["mask"])
         plot_and_save(self.images["masked_align"], self.output_dir, "masked_align.png")
         self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], self.images["mask"])

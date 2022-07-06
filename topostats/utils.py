@@ -222,8 +222,12 @@ def get_grains_thresholds(
             image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs
         )
     elif threshold_method == "std_dev":
-        thresholds["lower"] = threshold(image, method="mean", **kwargs) - deviation_from_mean * np.nanstd(image)
-        thresholds["upper"] = threshold(image, method="mean", **kwargs) + deviation_from_mean * np.nanstd(image)
+        thresholds["lower"] = threshold(
+            image, method="mean", otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs
+        ) - deviation_from_mean * np.nanstd(image)
+        thresholds["upper"] = threshold(
+            image, method="mean", otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs
+        ) + deviation_from_mean * np.nanstd(image)
     elif threshold_method == "absolute":
         if absolute[0] != "none":
             thresholds["lower"] = absolute[0]

@@ -15,7 +15,7 @@ from topostats.logs.logs import LOGGER_NAME
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-def threshold(image: np.array, method: str, threshold_multiplier: float = None, **kwargs: dict) -> float:
+def threshold(image: np.array, method: str = None, otsu_threshold_multiplier: float = None, **kwargs: dict) -> float:
     """Factory method for thresholding.
 
     Parameters
@@ -31,7 +31,6 @@ def threshold(image: np.array, method: str, threshold_multiplier: float = None, 
         Threshold of image using specified method.
     """
     thresholder = _get_threshold(method)
-    print(f"THRESHOLD() OTSU MULTIPLIER: {otsu_threshold_multiplier}")
     return thresholder(image, otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs)
 
 
