@@ -223,12 +223,14 @@ def process_scan(
         ).calculate_stats()
         for direction in grains.directions
     }
-    grainstats["lower"]["statistics"]["threshold"] = "lower"
-    grainstats["upper"]["statistics"]["threshold"] = "upper"
-    grainstats_df = pd.concat(
-        [grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]]
-    )
-    grainstats_df.to_csv(output_dir / filtered_image.filename / "grainstats.csv")
+    # If there are both upper and lower grainstats, then join them
+    if "lower" in grainstats.keys() and "upper" in grainstats.keys():
+        grainstats["lower"]["statistics"]["threshold"] = "lower"
+        grainstats["upper"]["statistics"]["threshold"] = "upper"
+        grainstats_df = pd.concat(
+            [grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]]
+        )
+        grainstats_df.to_csv(output_dir / filtered_image.filename / "grainstats.csv")
 
 
 def main():
