@@ -5,7 +5,7 @@ warnings: ignore
 cores: 4
 quiet: false
 file_ext: .spm
-channel: Height
+channel: Height Sensor
 amplify_level: 1.0
 filter:
   threshold:

@@ -12,6 +12,7 @@ from topostats.grainstats import GrainStats
 from topostats.io import read_yaml
 from topostats.utils import get_thresholds, get_mask
 from topostats.tracing.dnatracing import dnaTrace, traceStats
+from topostats.utils import get_thresholds, get_mask
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
