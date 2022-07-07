@@ -929,6 +929,14 @@ if __name__ == '__main__':
 
             # Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
+            # plt.hist(npdata)
+            # plt.show()
+            try:
+                full_data = np.append(full_npdata, npdata)
+            except NameError:
+                full_npdata = npdata
+                plt.hist(full_npdata)
+                plt.show()
 
             # Save data as 2 images, with and without mask
             savefiles(data, filename, extension)
@@ -947,3 +955,6 @@ if __name__ == '__main__':
 
     # Saving stats to text and JSON files named by master path
     savestats(path, grainstats_df)
+
+    plt.hist(full_npdata, bins=20)
+    plt.show()

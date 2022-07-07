@@ -50,11 +50,15 @@ colname2label = {
 }
 
 
-def importfromjson(path):
+def importfromfile(path):
     """Importing the data needed from the json file specified by the user"""
 
     print (path)
-    importeddata = pd.read_json(path)
+    filename, filextension = os.path.splitext(path)
+    if filextension == '.json':
+        importeddata = pd.read_json(path)
+    elif filextension == '.csv':
+        importeddata = pd.read_csv(path)
 
     return importeddata
 
@@ -279,7 +283,7 @@ def plothist2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None,
     fig, ax = plt.subplots(figsize=(15, 12))
     # dfnew[plotarg].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, color='orange')
     # dfnew2[plotarg2].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, histtype='barstacked', color='blue')
-    dfplot.plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, stacked=True)
+    dfplot.plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, stacked=False)
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
@@ -456,11 +460,11 @@ if __name__ == '__main__':
 
     # Set the name of the json file to import here
     # name = 'Non-incubation'
-    bins = 50
+    bins = 20
 
     # import data form the json file specified as a dataframe
-    df = importfromjson(path)
-    # df2 = importfromjson(path2)
+    df = importfromfile(path)
+    # df2 = importfromfile(path2)
 
     # fig, ax = plt.subplots(figsize=(15, 12))
     # # df.set_index('Contour length')
@@ -492,7 +496,16 @@ if __name__ == '__main__':
     # df2 = df2[df2['Contour Lengths'] < 130]
     # df2 = df2[df2['Max Curvature'] < 2]
 
+    # df.loc[df['directory'] == 'DNA_20220601', 'directory'] = 'DNA'
 
+
+    # df = df[df['grain_max_bound_size'] <= 115e-9]
+    # df = df[df['grain_max_bound_size'] >= 50e-9]
+
+    # dfDNA = df[df['directory'] == 'DNA_pure']
+    # print len(dfDNA)
+    # dfDNANDP = df[df['directory'] == 'DNA_NDP']
+    # print len(dfDNANDP)
 
 
 
@@ -535,12 +548,14 @@ if __name__ == '__main__':
     # Set palette for all plots with length number of topoisomers and reverse
     # # palette = sns.color_palette('PuBu', n_colors=len(topos))
 
+print len(df)
 # Setting group argument
 # grouparg = 'Was there incubation?'
 # grouparg = 'Mask'
 # grouparg = 'Basename'
-grouparg = 'directory'
-# grouparg = None
+# grouparg = 'directory'
+grouparg = None
+# grouparg = 'Domain'
 
 # Setting a continuous colour palette; useful for certain grouped plots, but can be commented out if unsuitable.
 # sns.set_palette(sns.color_palette('BuPu', n_colors=len(df.groupby(grouparg))))
@@ -553,18 +568,38 @@ grouparg = 'directory'
 # m; add "nm=True" to change from m to nm.
 
 
-# plotkde(df, 'grain_maximum', xmin=0, xmax=5, nm=True)
-# plothist(df, 'grain_maximum', nm=True)
+# plothist(df, 'Height', grouparg=grouparg)
+
+# plothist(df, 'grain_maximum', xmin=1, xmax=6, nm=True)
+
 
 # plothist(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
 # plothist(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
+# plothist(df, 'aspectratio', nm=True, grouparg=grouparg)
 # plotkde(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
 # plotkde(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
+# plotkde(df, 'aspectratio', nm=True, grouparg=grouparg)
+
+# plothist(df, 'grain_maximum', xmin=0, xmax=9, nm=True, grouparg=grouparg)
+# plothist(df, 'grain_mean', nm=True, grouparg=grouparg)
+# plothist(df, 'grain_median', nm=True, grouparg=grouparg)
+# # plothist(df, 'grain_proj_area', nm=True, grouparg=grouparg)
+# # plothist(df, 'grain_min_volume', nm=True, grouparg=grouparg)
+#
+#
+# plotkde(df, 'grain_maximum', xmin=0, xmax=9, nm=True, grouparg=grouparg)
+# plotkde(df, 'grain_mean', xmin=0, xmax=5, nm=True, grouparg=grouparg)
+# plotkde(df, 'grain_median', xmin=0, xmax=5, nm=True, grouparg=grouparg)
+
+# plotkde(df, 'grain_proj_area', nm=True, grouparg=grouparg)
+# plotkde(df, 'grain_min_volume', nm=True, grouparg=grouparg)
 
 
 # plotkde(df, 'grain_min_bound_size', xmin=0, xmax=40, nm=True)
 # plotkde2var(df, 'grain_min_bound_size', 'grain_max_bound_size', xmin=0, xmax=40, nm=True)
 
+
+plothist2var(df, 'grain_maximum', df2=df2, plotarg2='Height', label1='TopoStats', label2='Manual Measurements', nm=True)
 
 # plotdist2var('grain_min_bound_size', 'grain_max_bound_size', df2, plotname='Bound Size for Full Protein', nm=True,
 #              xmin=0, xmax=50, c1='#f9cb9c', c2='#b45f06', plotextension='.tiff')
@@ -580,19 +615,19 @@ grouparg = 'directory'
 #              plotname='Mininmum Bound Size for Full Protein and Maximum Bound Size for CTD', nm=True, xmin=0, xmax=50,
 #              c1='#0b5394', c2='#f9cb9c', plotextension='.tiff')
 #
-plothist2var(df, 'grain_maximum', df2=df2, label1='CTD', label2='FL', xmax=10, nm=True)
-plothist2var(df, 'grain_mean', df2=df2, label1='CTD', label2='FL', xmax=4, nm=True)
-plothist2var(df, 'grain_median', df2=df2, label1='CTD', label2='FL', xmax=4, nm=True)
-# plothist2var('grain_mean', 'grain_mean', df, df2=df2, xmin=0, xmax=10, nm=True)
-# plothist2var('grain_median', 'grain_median', df, df2=df2, xmin=0, xmax=10, nm=True)
-
-plotkde(df, 'grain_mean', xmin=0, xmax=4, nm=True)
+# plothist2var(df, 'grain_maximum', df2=df2, label1='CTD', label2='FL', xmax=10, nm=True)
+# plothist2var(df, 'grain_mean', df2=df2, label1='CTD', label2='FL', xmax=4, nm=True)
+# plothist2var(df, 'grain_median', df2=df2, label1='CTD', label2='FL', xmax=4, nm=True)
+# # plothist2var('grain_mean', 'grain_mean', df, df2=df2, xmin=0, xmax=10, nm=True)
+# # plothist2var('grain_median', 'grain_median', df, df2=df2, xmin=0, xmax=10, nm=True)
 #
-#
-plotkde2var(df, 'grain_maximum', df2=df2, label1='CTD', label2='FL', xmin=0, xmax=10, nm=True)
-plotkde2var(df, 'grain_mean', df2=df2, label1='CTD', label2='FL', xmin=0, xmax=4, nm=True)
-plotkde2var(df, 'grain_median', df2=df2, label1='CTD', label2='FL', xmin=0, xmax=4, nm=True)
-#
+# plotkde(df, 'grain_mean', xmin=0, xmax=4, nm=True)
+# #
+# #
+# plotkde2var(df, 'grain_maximum', df2=df2, label1='CTD', label2='FL', xmin=0, xmax=10, nm=True)
+# plotkde2var(df, 'grain_mean', df2=df2, label1='CTD', label2='FL', xmin=0, xmax=4, nm=True)
+# plotkde2var(df, 'grain_median', df2=df2, label1='CTD', label2='FL', xmin=0, xmax=4, nm=True)
+# #
 # data = [df['grain_min_bound_size'], df['grain_max_bound_size'], df2['grain_min_bound_size'],
 #             df2['grain_max_bound_size']]
 # columns = ['Min for CTD / nm', 'Max for CTD / nm',
