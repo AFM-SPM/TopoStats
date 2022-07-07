@@ -219,7 +219,8 @@ def process_scan(
 
     """
     LOGGER.info(f"Processing : {image_path}")
-    output_dir.mkdir(parents=True, exist_ok=True)
+    OUTPUT_DIR = output_dir
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     # Filter Image :
     #
     # The Filters class has a convenience method that runs the instantiated class in full.
@@ -232,11 +233,11 @@ def process_scan(
         threshold_absolute_upper=filter_threshold_abs_upper,
         channel=channel,
         amplify_level=amplify_level,
-        output_dir=output_dir / image_path.stem / "filters",
+        output_dir=OUTPUT_DIR / image_path.stem / "filters",
     )
     filtered_image.filter_image()
-    Path.mkdir(output_dir / filtered_image.filename / "upper", parents=True, exist_ok=True)
-    Path.mkdir(output_dir / filtered_image.filename / "lower", parents=True, exist_ok=True)
+    Path.mkdir(OUTPUT_DIR / filtered_image.filename / "upper", parents=True, exist_ok=True)
+    Path.mkdir(OUTPUT_DIR / filtered_image.filename / "lower", parents=True, exist_ok=True)
 
     # Find Grains :
     # The Grains class also has a convenience method that runs the instantiated class in full.
@@ -255,7 +256,7 @@ def process_scan(
         threshold_absolute_upper=grains_threshold_abs_upper,
         absolute_smallest_grain_size=absolute_smallest_grain_size,
         background=background,
-        base_output_dir=output_dir / filtered_image.filename / "grains",
+        base_output_dir=OUTPUT_DIR / filtered_image.filename / "grains",
     )
     grains.find_grains()
     # except IndexError as index_exception:
@@ -276,7 +277,7 @@ def process_scan(
                     labelled_data=grains.directions[direction]["labelled_regions_02"],
                     pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
                     direction=f"{direction}",
-                    output_dir=output_dir / filtered_image.filename,
+                    output_dir=OUTPUT_DIR / filtered_image.filename,
                     image_name=filtered_image.filename,
                 ).calculate_stats()
                 for direction in grains.directions
@@ -288,7 +289,7 @@ def process_scan(
                 grainstats_df = pd.concat([grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]])
             else:
                 grainstats_df = grainstats["upper"]["statistics"]
-            grainstats_df.to_csv(output_dir / filtered_image.filename / "grainstats.csv")
+            grainstats_df.to_csv(OUTPUT_DIR / filtered_image.filename / "grainstats.csv")
 
             # Run dnatracing
             LOGGER.info(f"[{filtered_image.filename}] : DNA Tracing")
@@ -303,14 +304,14 @@ def process_scan(
                 )
                 dna_traces[direction].trace_dna()
                 tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
-                tracing_stats[direction].save_trace_stats(output_dir / filtered_image.filename / direction)
+                tracing_stats[direction].save_trace_stats(OUTPUT_DIR / filtered_image.filename / direction)
 
             for direction, grainstat in grainstats.items():
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Combining {direction} grain statistics and dnatracing statistics"
                 )
                 results = grainstat["statistics"].merge(tracing_stats[direction].df, on="Molecule Number")
-                results.to_csv(output_dir / filtered_image.filename / direction / "all_statistics.csv")
+                results.to_csv(OUTPUT_DIR / filtered_image.filename / direction / "all_statistics.csv")
 
         except Exception:
             # If no results we need a dummy dataframe to return.
@@ -325,7 +326,7 @@ def process_scan(
             if plot_name not in ["scan_raw"]:
                 if plot_name == "extracted_channel":
                     array = np.flipud(array.pixels)
-                PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
+                PLOT_DICT[plot_name]["output_dir"] = Path(OUTPUT_DIR) / filtered_image.filename
                 try:
                     plot_and_save(array, **PLOT_DICT[plot_name])
                 except AttributeError:
@@ -335,11 +336,10 @@ def process_scan(
         if len(grains.region_properties) > 0:
             LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
             plot_name = "gaussian_filtered"
-            PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
+            PLOT_DICT[plot_name]["output_dir"] = Path(OUTPUT_DIR) / filtered_image.filename
             plot_and_save(grains.images["gaussian_filtered"], **PLOT_DICT[plot_name])
             for direction, image_arrays in grains.directions.items():
-                output_dir = Path(output_dir) / filtered_image.filename / f"{direction}"
-                output_dir.mkdir(parents=True, exist_ok=True)
+                output_dir = Path(OUTPUT_DIR) / filtered_image.filename / f"{direction}"
                 for plot_name, array in image_arrays.items():
                     PLOT_DICT[plot_name]["output_dir"] = output_dir
                     plot_and_save(array, **PLOT_DICT[plot_name])

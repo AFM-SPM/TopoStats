@@ -67,17 +67,17 @@ def _threshold_otsu(image: np.array, otsu_threshold_multiplier: float = None, **
     return threshold_otsu(image, **kwargs) * otsu_threshold_multiplier
 
 
-def _threshold_mean(image: np.array, **kwargs) -> float:
+def _threshold_mean(image: np.array, otsu_threshold_multiplier: float = None, **kwargs) -> float:
     return threshold_mean(image, **kwargs)
 
 
-def _threshold_minimum(image: np.array, **kwargs) -> float:
+def _threshold_minimum(image: np.array, otsu_threshold_multiplier: float = None, **kwargs) -> float:
     return threshold_minimum(image, **kwargs)
 
 
-def _threshold_yen(image: np.array, **kwargs) -> float:
+def _threshold_yen(image: np.array, otsu_threshold_multiplier: float = None, **kwargs) -> float:
     return threshold_yen(image, **kwargs)
 
 
-def _threshold_triangle(image: np.array, **kwargs) -> float:
+def _threshold_triangle(image: np.array, otsu_threshold_multiplier: float = None, **kwargs) -> float:
     return threshold_triangle(image, **kwargs)
