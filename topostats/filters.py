@@ -2,18 +2,14 @@
 and return a 2D array of the same size representing the filtered image."""
 import logging
 from pathlib import Path
-from types import NoneType
 from typing import Union
 import sys
 
 import numpy as np
 
 from topostats.io import load_scan
-from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import get_thresholds, get_mask
-
-from topostats.plottingfuncs import plot_and_save
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -80,7 +76,7 @@ class Filters:
             "zero_averaged_background": None,
             "mask": None,
         }
-        self.threshold = None
+        self.thresholds = None
         self.pixel_to_nm_scaling = None
         self.medians = {"rows": None, "cols": None}
         LOGGER.info(f"Filename : {self.filename}")
@@ -124,7 +120,6 @@ class Filters:
     def extract_channel(self):
         """Extract the channel"""
         try:
-            print("channel: ", self.channel)
             self.images["extracted_channel"] = self.images["scan_raw"].get_channel(self.channel)
             LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
         except Exception as exception:
@@ -195,9 +190,7 @@ class Filters:
         """Returns the input image with rows aligned by median height"""
         if mask is not None:
             if mask.all():
-                sys.exit(
-                    "Filtering mask takes up entire image - there will be no image left to process. Try adjusting the flattening thresholds."
-                )
+                sys.exit("Mask covers entire image - no image left to process. Adjust filtering thresholds/method.")
         medians = self.row_col_medians(image, mask)
         row_medians = medians["rows"]
         median_row_height = self._median_row_height(row_medians)
@@ -246,7 +239,6 @@ class Filters:
         """Calculate the difference of an array."""
         return array[-1] - array[0]
 
-    @classmethod
     def calc_gradient(self, array: np.ndarray, shape: int) -> np.ndarray:
         """Calculate the gradient of an array."""
         return self.calc_diff(array) / shape
@@ -289,31 +281,27 @@ class Filters:
         self.make_output_directory()
         self.extract_channel()
         self.extract_pixels()
-        plot_and_save(self.images["pixels"], self.output_dir, "raw_heightmap.png")
         self.extract_pixel_to_nm_scaling()
         if self.amplify_level != 1.0:
             self.amplify()
         self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)
-        plot_and_save(self.images["initial_align"], self.output_dir, "initial_align.png")
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
-        plot_and_save(self.images["initial_tilt_removal"], self.output_dir, "initial_remove_tilt.png")
         # Get the thresholds
-        self.thresholds = get_thresholds(
-            image=self.images["initial_tilt_removal"],
-            threshold_method=self.threshold_method,
-            otsu_threshold_multiplier=self.otsu_threshold_multiplier,
-            deviation_from_mean=self.threshold_std_dev,
-            absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
+        try:
+            self.thresholds = get_thresholds(
+                image=self.images["initial_tilt_removal"],
+                threshold_method=self.threshold_method,
+                otsu_threshold_multiplier=self.otsu_threshold_multiplier,
+                deviation_from_mean=self.threshold_std_dev,
+                absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
+            )
+        except TypeError as type_error:
+            raise type_error
+        self.images["mask"] = get_mask(
+            image=self.images["initial_tilt_removal"], thresholds=self.thresholds, img_name=self.filename
         )
-        print(f"THRESHOLDS: {self.thresholds}")
-        self.images["mask"] = get_mask(image=self.images["initial_tilt_removal"], thresholds=self.thresholds)
-        plot_and_save(self.images["mask"], self.output_dir, "filtering_mask.png")
         self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], self.images["mask"])
-        plot_and_save(self.images["masked_align"], self.output_dir, "masked_align.png")
         self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], self.images["mask"])
-        plot_and_save(self.images["masked_tilt_removal"], self.output_dir, "masked_tilt_removal.png")
-        print(f' masked tilt removal: {self.images["masked_tilt_removal"]}')
         self.images["zero_averaged_background"] = self.average_background(
             self.images["masked_tilt_removal"], self.images["mask"]
         )
-        plot_and_save(self.images["zero_averaged_background"], self.output_dir, "zero_averaged_background.png")

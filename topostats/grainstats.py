@@ -59,7 +59,8 @@ class GrainStats:
         labelled_data: np.ndarray,
         pixel_to_nanometre_scaling: float,
         direction: str,
-        base_output_dir: Union[str, Path],
+        output_dir: Union[str, Path],
+        image_name: str = None,
     ):
         """Initialise the class.
 
@@ -79,8 +80,9 @@ class GrainStats:
         self.labelled_data = labelled_data
         self.pixel_to_nanometre_scaling = pixel_to_nanometre_scaling
         self.direction = direction
-        self.base_output_dir = Path(base_output_dir)
+        self.output_dir = Path(output_dir)
         self.start_point = None
+        self.image_name = image_name
 
     @staticmethod
     def get_angle(point_1: tuple, point_2: tuple) -> float:
@@ -130,7 +132,7 @@ class GrainStats:
 
         if self.labelled_data is None:
             LOGGER.info(
-                f"[{self.img_name}] : No labelled regions for this image, grain statistics can not be calculated."
+                f"[{self.image_name}] : No labelled regions for this image, grain statistics can not be calculated."
             )
             return {"statistics": pd.DataFrame(columns=GRAIN_STATS_COLUMNS), "plot": None}
 
@@ -146,9 +148,9 @@ class GrainStats:
         for index, region in enumerate(region_properties):
 
             # FIXME : Get [{self.image_name}] included in LOGGER
-            LOGGER.info(f" Processing grain: {index}")
+            LOGGER.info(f"[{self.image_name}] : Processing grain: {index}")
             # Create directory for each grain's plots
-            output_grain = self.base_output_dir / self.direction / f"grain_{index}"
+            output_grain = self.output_dir / self.direction / f"grain_{index}"
             # Path.mkdir(output_grain, parents=True, exist_ok=True)
             output_grain.mkdir(parents=True, exist_ok=True)
 
@@ -162,8 +164,6 @@ class GrainStats:
             plot_and_save(grain_image, output_grain, "grain_image_raw.png")
             grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
             plot_and_save(grain_image, output_grain, "grain_image.png")
-
-            LOGGER.info(f"saved grain image: {index}")
 
             points = self.calculate_points(grain_mask)
             edges = self.calculate_edges(grain_mask)
@@ -221,7 +221,7 @@ class GrainStats:
             )
             ax.add_patch(rectangle)
 
-        Path.mkdir(self.base_output_dir / self.direction, exist_ok=True, parents=True)
+        Path.mkdir(self.output_dir / self.direction, exist_ok=True, parents=True)
         grainstats = pd.DataFrame(data=stats_array)
         grainstats.index.name = "Molecule Number"
         grainstats.to_csv(self.output_dir / self.direction / "grainstats.csv")
@@ -250,27 +250,6 @@ class GrainStats:
         -------
         points : list
             A python list containing the coordinates of the pixels in the grain."""
-        nonzero_coordinates = grain_mask.nonzero()
-        points = []
-        for point in np.transpose(nonzero_coordinates):
-            points.append(list(point))
-
-        return points
-
-    @staticmethod
-    def calculate_points(grain_mask: np.ndarray):
-        """Class method that takes a 2D boolean numpy array image of a grain and returns a list containing the co-ordinates of the points in the grain.
-
-        Parameters
-        ----------
-        grain_mask : np.ndarray
-            A 2D numpy array image of a grain. Data in the array must be boolean.
-
-        Returns
-        -------
-        points : list
-            A python list containing the coordinates of the pixels in the grain."""
-
         nonzero_coordinates = grain_mask.nonzero()
         points = []
         for point in np.transpose(nonzero_coordinates):
@@ -667,15 +646,15 @@ class GrainStats:
                 LOGGER.info(rotated_points[simplex, 0], rotated_points[simplex, 1])
 
                 # Draw the convex hulls
-                for simplex in hull_simplices:
+                for _simplex in hull_simplices:
                     plt.plot(
-                        remapped_points[simplex, 0],
-                        remapped_points[simplex, 1],
+                        remapped_points[_simplex, 0],
+                        remapped_points[_simplex, 1],
                         "#888888",
                     )
                     plt.plot(
-                        rotated_points[simplex, 0],
-                        rotated_points[simplex, 1],
+                        rotated_points[_simplex, 0],
+                        rotated_points[_simplex, 1],
                         "#555555",
                     )
 
@@ -853,5 +832,5 @@ def get_grainstats(
         labelled_data=labelled_data,
         pixel_to_nanometre_scaling=pixel_to_nanometre_scaling,
         direction=img_name,
-        base_output_dir=output_dir,
+        output_dir=output_dir,
     ).calculate_stats()

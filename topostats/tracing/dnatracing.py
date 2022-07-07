@@ -881,7 +881,6 @@ class traceStats(object):
         -------
         None
         """
-
         self.trace_object = trace_object
         self.image_path = Path(image_path)
         self.df = []

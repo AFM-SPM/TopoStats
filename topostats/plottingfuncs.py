@@ -50,7 +50,6 @@ def plot_and_save(
     else:
         data.show(ax=ax, interpolation=interpolation, cmap=cmap)
     plt.close()
-    LOGGER.info(f"[{Path(output_dir).parts}]")
     LOGGER.info(f"[{Path(output_dir).parts[1]}] : Image saved to : {str(output_dir / filename)}")
     return fig, ax
 
