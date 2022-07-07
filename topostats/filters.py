@@ -2,7 +2,6 @@
 and return a 2D array of the same size representing the filtered image."""
 import logging
 from pathlib import Path
-from types import NoneType
 from typing import Union
 import sys
 
