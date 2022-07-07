@@ -149,7 +149,9 @@ class Grains:
         self.get_region_properties(image)
         grain_areas = np.array([grain.area for grain in self.region_properties])
         if len(grain_areas > 0):
-            # grain_areas = grain_areas[grain_areas > threshold(grain_areas, method=self.threshold_method)]
+            # FIXME : May need this line to handle single grains, but need to reconcile with new threshold methods
+            #         possible use thresholds._get_threshold()
+            # grain_areas = grain_areas[grain_areas >= threshold(grain_areas, method=self.threshold_method)]
             self.minimum_grain_size = np.median(grain_areas) - (
                 1.5 * (np.quantile(grain_areas, 0.75) - np.quantile(grain_areas, 0.25))
             )
