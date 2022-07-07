@@ -192,7 +192,7 @@ class Filters:
 
     def align_rows(self, image: np.array, mask=None) -> np.array:
         """Returns the input image with rows aligned by median height"""
-        if type(mask) is not NoneType:
+        if mask is not None:
             if mask.all():
                 sys.exit("Filtering mask takes up entire image - there will be no image left to process. Try adjusting the flattening thresholds.")
         medians = self.row_col_medians(image, mask)
