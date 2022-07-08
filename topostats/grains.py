@@ -173,7 +173,7 @@ class Grains:
         np.ndarray
             2D Numpy array of image with objects > absolute_smallest_grain_size removed.
         """
-        LOGGER.info(f"[{self.filename}] : Removing noise (< {self.absolute_smallest_grain_size}")
+        LOGGER.info(f"[{self.filename}] : Removing noise (< {self.absolute_smallest_grain_size})")
         return remove_small_objects(image, min_size=self.absolute_smallest_grain_size)
 
     def remove_small_objects(self, image: np.array, **kwargs):
