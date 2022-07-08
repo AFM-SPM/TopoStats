@@ -190,7 +190,10 @@ class Filters:
         """Returns the input image with rows aligned by median height"""
         if mask is not None:
             if mask.all():
-                sys.exit("Mask covers entire image - no image left to process. Adjust filtering thresholds/method.")
+                LOGGER.error(
+                    f"[{self.filename}] : Mask covers entire image - no image left to process. Adjust filtering thresholds/method."
+                )
+
         medians = self.row_col_medians(image, mask)
         row_medians = medians["rows"]
         median_row_height = self._median_row_height(row_medians)

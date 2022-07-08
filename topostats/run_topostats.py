@@ -17,7 +17,7 @@ from topostats.io import read_yaml, write_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import plot_and_save
 from topostats.tracing.dnatracing import dnaTrace, traceStats
-from topostats.utils import find_images, update_config, convert_path
+from topostats.utils import find_images, update_config, convert_path, create_empty_dataframe
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -55,31 +55,6 @@ PLOT_DICT = {
     "bounding_boxes": {"filename": "16-bounding_boxes.png", "title": "Bounding Boxes"},
     "coloured_boxes": {"filename": "17-labelled_image_bboxes.png", "title": "Labelled Image with Bounding Boxes"},
 }
-ALL_STATISTICS_COLUMNS = [
-    "Molecule Number",
-    "centre_x",
-    "centre_y",
-    "radius_min",
-    "radius_max",
-    "radius_mean",
-    "radius_median",
-    "height_min",
-    "height_max",
-    "height_median",
-    "height_mean",
-    "volume",
-    "area",
-    "area_cartesian_bbox",
-    "smallest_bounding_width",
-    "smallest_bounding_length",
-    "smallest_bounding_area",
-    "aspect_ratio",
-    "Contour Lengths",
-    "Circular",
-    "End to End Distance",
-    "Image Name",
-    "Basename",
-]
 
 
 def create_parser() -> arg.ArgumentParser:
@@ -241,33 +216,37 @@ def process_scan(
 
     # Find Grains :
     # The Grains class also has a convenience method that runs the instantiated class in full.
-    # try:
-    LOGGER.info(f"[{filtered_image.filename}] : Grain Finding")
-    grains = Grains(
-        image=filtered_image.images["zero_averaged_background"],
-        filename=filtered_image.filename,
-        pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
-        gaussian_size=gaussian_size,
-        gaussian_mode=gaussian_mode,
-        threshold_method=grains_threshold_method,
-        otsu_threshold_multiplier=grains_otsu_threshold_multiplier,
-        threshold_std_dev=grains_threshold_std_dev,
-        threshold_absolute_lower=grains_threshold_abs_lower,
-        threshold_absolute_upper=grains_threshold_abs_upper,
-        absolute_smallest_grain_size=absolute_smallest_grain_size,
-        background=background,
-        base_output_dir=OUTPUT_DIR / filtered_image.filename / "grains",
-    )
-    grains.find_grains()
-    # except IndexError as index_exception:
-    #     LOGGER.info(
-    #         f"[{filtered_image.filename}] : No grains were detected, skipping Grain Statistics and DNA Tracing."
-    #     )
+    try:
+        LOGGER.info(f"[{filtered_image.filename}] : Grain Finding")
+        grains = Grains(
+            image=filtered_image.images["zero_averaged_background"],
+            filename=filtered_image.filename,
+            pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
+            gaussian_size=gaussian_size,
+            gaussian_mode=gaussian_mode,
+            threshold_method=grains_threshold_method,
+            otsu_threshold_multiplier=grains_otsu_threshold_multiplier,
+            threshold_std_dev=grains_threshold_std_dev,
+            threshold_absolute_lower=grains_threshold_abs_lower,
+            threshold_absolute_upper=grains_threshold_abs_upper,
+            absolute_smallest_grain_size=absolute_smallest_grain_size,
+            background=background,
+            base_output_dir=OUTPUT_DIR / filtered_image.filename / "grains",
+        )
+        grains.find_grains()
+    except IndexError as index_exception:
+        LOGGER.info(
+            f"[{filtered_image.filename}] : No grains were detected, skipping Grain Statistics and DNA Tracing."
+        )
+    except ValueError as value_error:
+        LOGGER.info(f"[{filtered_image.filename}] : No image, it is all masked.")
+        results = create_empty_dataframe()
+
     # Grainstats :
     #
     # There are two layers to process those above the given threshold and those below, use dictionary comprehension
     # to pass over these.
-    if len(grains.region_properties) > 0:
+    if grains.region_properties is not None:
         # Grain Statistics :
         try:
             LOGGER.info(f"[{filtered_image.filename}] : Grain Statistics")
@@ -316,7 +295,7 @@ def process_scan(
         except Exception:
             # If no results we need a dummy dataframe to return.
             LOGGER.info("Errors occurred attempting to calculate grain statistics and DNA tracing statistics.")
-            results = pd.DataFrame([np.repeat(np.nan, len(ALL_STATISTICS_COLUMNS))], columns=ALL_STATISTICS_COLUMNS)
+            results = create_empty_dataframe()
 
     # Optionally plot all stages
     if save_plots:
@@ -333,7 +312,7 @@ def process_scan(
                     LOGGER.info(f"[{filtered_image.filename}] Unable to generate plot : {plot_name}")
 
         # Grain stage - only if we have grains
-        if len(grains.region_properties) > 0:
+        if grains.region_properties is not None:
             LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
             plot_name = "gaussian_filtered"
             PLOT_DICT[plot_name]["output_dir"] = Path(OUTPUT_DIR) / filtered_image.filename

@@ -6,11 +6,39 @@ from typing import Union, List, Dict
 from collections import defaultdict
 
 import numpy as np
+import pandas as pd
 
 from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+
+
+ALL_STATISTICS_COLUMNS = [
+    "Molecule Number",
+    "centre_x",
+    "centre_y",
+    "radius_min",
+    "radius_max",
+    "radius_mean",
+    "radius_median",
+    "height_min",
+    "height_max",
+    "height_median",
+    "height_mean",
+    "volume",
+    "area",
+    "area_cartesian_bbox",
+    "smallest_bounding_width",
+    "smallest_bounding_length",
+    "smallest_bounding_area",
+    "aspect_ratio",
+    "Contour Lengths",
+    "Circular",
+    "End to End Distance",
+    "Image Name",
+    "Basename",
+]
 
 
 def convert_path(path: Union[str, Path]) -> Path:
@@ -185,3 +213,19 @@ def get_thresholds(
             thresholds["upper"] = None
 
     return thresholds
+
+
+def create_empty_dataframe(columns: list = ALL_STATISTICS_COLUMNS) -> pd.DataFrame:
+    """Create an empty data frame for returning when no results are found.
+
+    Parameters
+    ----------
+    columns: list
+        Columns of the empty dataframe.
+
+    Returns
+    -------
+    pd.DataFrame
+        Empty Pandas DataFrame.
+    """
+    return pd.DataFrame([np.repeat(np.nan, len(columns))], columns=columns)

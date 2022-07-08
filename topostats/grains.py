@@ -240,7 +240,6 @@ class Grains:
         """Find grains."""
         LOGGER.info(f"[{self.filename}] : Thresholding method (grains) : {self.threshold_method}")
         # self.threshold = self.get_threshold(self.image, self.threshold_method)
-        # self.thresholds_dict = get_grains_thresholds(
         self.thresholds = get_thresholds(
             image=self.image,
             threshold_method=self.threshold_method,
