@@ -17,17 +17,16 @@ def test_threshold_otsu(minicircle_grain_threshold_otsu: Grains) -> None:
     assert minicircle_grain_threshold_otsu.thresholds["upper"] == 1.7566312251807688
 
 
-# FIXME : Add these tests.
-# def test_threshold_stddev(minicircle_grain_threshold_stddev: Grains) -> None:
-#     """Test threshold calculation"""
-#     assert isinstance(minicircle_grain_threshold_stddev.threshold, dict)
-#     assert minicircle_grain_threshold_stddev.thresholds["upper"] == 1.7566312251807688
-#     assert minicircle_grain_threshold_stddev.thresholds["lower"] == 1.7566312251807688
-# def test_threshold_abs(minicircle_grain_threshold_abs: Grains) -> None:
-#     """Test threshold calculation"""
-#     assert isinstance(minicircle_grain_threshold_abs.threshold, dict)
-#     assert minicircle_grain_threshold_abs.thresholds["upper"] == 1.0
-#     assert minicircle_grain_threshold_abs.thresholds["lower"] == -1.0
+def test_threshold_stddev(minicircle_grain_threshold_stddev: Grains) -> None:
+    """Test threshold calculation"""
+    assert isinstance(minicircle_grain_threshold_stddev.thresholds, dict)
+    assert minicircle_grain_threshold_stddev.thresholds == {"upper": 0.8323036290677261, "lower": -0.5092456579760813}
+
+
+def test_threshold_abs(minicircle_grain_threshold_abs: Grains) -> None:
+    """Test threshold calculation"""
+    assert isinstance(minicircle_grain_threshold_abs.thresholds, dict)
+    assert minicircle_grain_threshold_abs.thresholds == {"upper": 1.0, "lower": -1.0}
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")

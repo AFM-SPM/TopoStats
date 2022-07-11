@@ -88,7 +88,16 @@ def test_get_threshold_otsu(minicircle_threshold_otsu: np.array) -> None:
     assert minicircle_threshold_otsu.thresholds["upper"] == 28.58495414588038
 
 
-# FIXME : Add test_get_threshold_stddev() and test_get_threshold_abs()
+def test_get_threshold_stddev(minicircle_threshold_stddev: np.array) -> None:
+    """Test calculation of threshold."""
+    assert isinstance(minicircle_threshold_stddev.thresholds, dict)
+    assert minicircle_threshold_stddev.thresholds == {"upper": 28.382985321353974, "lower": 27.045051324866566}
+
+
+def test_get_threshold_abs(minicircle_threshold_abs: np.array) -> None:
+    """Test calculation of threshold."""
+    assert isinstance(minicircle_threshold_abs.thresholds, dict)
+    assert minicircle_threshold_abs.thresholds == {"upper": 1.5, "lower": -1.5}
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
@@ -144,3 +153,6 @@ def test_average_background(minicircle_zero_average_background: np.array, tmpdir
         title="Zero Average Background",
     )
     return fig
+
+
+# FIXME (2022-07-11): More tests of alignment/tilt removal and average background when methods other than otsu are used

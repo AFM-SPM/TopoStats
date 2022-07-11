@@ -274,29 +274,28 @@ def minicircle_threshold_otsu(minicircle_initial_tilt_removal: np.array, sample_
     return minicircle_initial_tilt_removal
 
 
-# FIXME : Add minicircle_threshold_stddev() and minicircle_threshold_abs() fixtures
+@pytest.fixture
+def minicircle_threshold_stddev(minicircle_initial_tilt_removal: np.array) -> Filters:
+    """Calculate threshold."""
+    minicircle_initial_tilt_removal.thresholds = get_thresholds(
+        minicircle_initial_tilt_removal.images["initial_tilt_removal"],
+        threshold_method="std_dev",
+        otsu_threshold_multiplier=None,
+        deviation_from_mean=1.0,
+    )
+    return minicircle_initial_tilt_removal
 
-# @pytest.fixture
-# def minicircle_threshold_stddev(minicircle_initial_tilt_removal: np.array, sample_config: dict) -> Filters:
-#     """Calculate threshold."""
-#     minicircle_initial_tilt_removal.thresholds = get_thresholds(
-#         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
-#         threshold_method="std_dev",
-#         otsu_threshold_multiplier=None,
-#         threshold_std_dev=1.0
-#     )
-#     return minicircle_initial_tilt_removal
-# @pytest.fixture
-# def minicircle_threshold_abs(minicircle_initial_tilt_removal: np.array, sample_config: dict) -> Filters:
-#     """Calculate threshold."""
-#     minicircle_initial_tilt_removal.thresholds = get_thresholds(
-#         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
-#         threshold_method="abs",
-#         otsu_threshold_multiplier=None,
-#         threshold_absolute_lower=-1.0,
-#         threshold_absolute_upper=-1.0,
-#     )
-#     return minicircle_initial_tilt_removal
+
+@pytest.fixture
+def minicircle_threshold_abs(minicircle_initial_tilt_removal: np.array) -> Filters:
+    """Calculate threshold."""
+    minicircle_initial_tilt_removal.thresholds = get_thresholds(
+        minicircle_initial_tilt_removal.images["initial_tilt_removal"],
+        threshold_method="absolute",
+        otsu_threshold_multiplier=None,
+        absolute=(-1.5, 1.5),
+    )
+    return minicircle_initial_tilt_removal
 
 
 @pytest.fixture
@@ -355,9 +354,6 @@ def small_array_grains(small_array: np.ndarray, grain_config: dict, tmpdir) -> G
     return grains
 
 
-# FIXME : Add small_array_grains_stddev() and small_array_grains_abs()
-
-
 @pytest.fixture
 def minicircle_grains(minicircle_zero_average_background: Filters, grain_config: dict, tmpdir) -> Grains:
     """Grains object based on filtered minicircle."""
@@ -377,7 +373,7 @@ def minicircle_grains(minicircle_zero_average_background: Filters, grain_config:
 
 
 @pytest.fixture
-def minicircle_grain_threshold_otsu(minicircle_grains: np.array, grain_config: dict) -> Grains:
+def minicircle_grain_threshold_otsu(minicircle_grains: np.array) -> Grains:
     """Calculate threshold."""
     minicircle_grains.thresholds = get_thresholds(
         image=minicircle_grains.image,
@@ -387,28 +383,25 @@ def minicircle_grain_threshold_otsu(minicircle_grains: np.array, grain_config: d
     return minicircle_grains
 
 
-# FIXME : Add minicircle_grains_stddev() and minicircle_grains_abs()
-# @pytest.fixture
-# def minicircle_grain_threshold_stddev(minicircle_grains: np.array, grain_config: dict) -> Grains:
-#     """Calculate threshold."""
-#     minicircle_grains.thresholds = get_thresholds(
-#         image=minicircle_grainsotsu.image,
-#         threshold_method="stddev",
-#         otsu_threshold_multiplier=None,
-#         threshold_std_dev=1.0
-#     )
-#     return minicircle_grains
-# @pytest.fixture
-# def minicircle_grain_threshold_abs(minicircle_grains: np.array, grain_config: dict) -> Grains:
-#     """Calculate threshold."""
-#     minicircle_grains.thresholds = get_thresholds(
-#         image=minicircle_grainsotsu.image,
-#         threshold_method="abs",
-#         otsu_threshold_multiplier=None,
-#         threshold_absolute_lower=-1.0,
-#         threshold_absolute_upper=-1.0,
-#     )
-#     return minicircle_grains
+@pytest.fixture
+def minicircle_grain_threshold_stddev(minicircle_grains: np.array) -> Grains:
+    """Calculate threshold."""
+    minicircle_grains.thresholds = get_thresholds(
+        image=minicircle_grains.image,
+        threshold_method="std_dev",
+        otsu_threshold_multiplier=None,
+        deviation_from_mean=1.0,
+    )
+    return minicircle_grains
+
+
+@pytest.fixture
+def minicircle_grain_threshold_abs(minicircle_grains: np.array) -> Grains:
+    """Calculate threshold."""
+    minicircle_grains.thresholds = get_thresholds(
+        image=minicircle_grains.image, threshold_method="absolute", otsu_threshold_multiplier=None, absolute=(-1.0, 1.0)
+    )
+    return minicircle_grains
 
 
 @pytest.fixture

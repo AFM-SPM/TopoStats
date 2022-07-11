@@ -199,14 +199,25 @@ def get_thresholds(
             image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs
         )
     elif threshold_method == "std_dev":
-        thresholds["lower"] = threshold(image, method="mean") - deviation_from_mean * np.nanstd(image)
-        thresholds["upper"] = threshold(image, method="mean") + deviation_from_mean * np.nanstd(image)
+        try:
+            thresholds["lower"] = threshold(image, method="mean") - deviation_from_mean * np.nanstd(image)
+            thresholds["upper"] = threshold(image, method="mean") + deviation_from_mean * np.nanstd(image)
+        except TypeError as typeerror:
+            raise typeerror
     elif threshold_method == "absolute":
         if absolute[0] is not None:
             thresholds["lower"] = absolute[0]
         if absolute[1] is not None:
             thresholds["upper"] = absolute[1]
-
+    else:
+        if not isinstance(threshold_method, str):
+            raise TypeError(
+                f"threshold_method ({threshold_method}) should be a string. Valid values : 'otsu' 'std_dev' 'absolute'"
+            )
+        if threshold_method not in ["otsu", "std_dev", "absolute"]:
+            raise ValueError(
+                f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute'"
+            )
     return thresholds
 
 

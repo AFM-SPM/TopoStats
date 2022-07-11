@@ -35,11 +35,11 @@ def test_make_output_directory(test_filters: Filters, tmpdir: Path) -> None:
     assert tmpdir.exists()
 
 
-# def test_load_image_that_does_not_exist() -> None:
-#     """Test logging and exceptions when file does not exist."""
-#     filters = Filters('nothing')
+def test_load_image_that_does_not_exist(caplog) -> None:
+    """Test logging and exceptions when file does not exist."""
+    Filters("nothing")
 
-#     assert True
+    assert "File not found : nothing" in caplog.text
 
 
 def test_extract_channel(test_filters: Filters) -> None:
@@ -141,23 +141,6 @@ def test_calc_gradient(test_filters_random: Filters, image_random: np.ndarray) -
     np.testing.assert_array_equal(target, calculated)
 
 
-# def test_get_threshold(test_filters_random: float) -> None:
-#     """Test calculation of threshold."""
-#     test_filters_random.get_threshold(test_filters_random.pixels)
-#     expected_threshold = 0.4980470463263117
-#     assert test_filters_random.threshold == expected_threshold
-
-
-# def test_get_mask(test_filters_random) -> None:
-#     """Test derivation of mask"""
-#     test_filters_random.get_threshold(test_filters_random.pixels)
-#     test_filters_random.get_mask(test_filters_random.pixels)
-
-#     assert isinstance(test_filters_random.images["mask"], np.ndarray)
-#     assert test_filters_random.images["mask"].any()
-#     assert test_filters_random.images["mask"].sum() == 526107
-
-
 def test_row_col_medians_with_mask(
     test_filters_random_with_mask: Filters,
     image_random_row_medians_masked: np.array,
@@ -167,9 +150,6 @@ def test_row_col_medians_with_mask(
     medians = test_filters_random_with_mask.row_col_medians(
         test_filters_random_with_mask.images["pixels"], mask=test_filters_random_with_mask.images["mask"]
     )
-
-    # np.savetxt('./tests/resources/image_random_row_medians_masked.csv', medians["rows"], delimiter=',')
-    # np.savetxt('./tests/resources/image_random_col_medians_masked.csv', medians["cols"], delimiter=',')
 
     assert isinstance(medians, dict)
     assert list(medians.keys()) == ["rows", "cols"]

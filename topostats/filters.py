@@ -3,7 +3,6 @@ and return a 2D array of the same size representing the filtered image."""
 import logging
 from pathlib import Path
 from typing import Union
-import sys
 
 import numpy as np
 
@@ -100,16 +99,11 @@ class Filters:
 
     def load_scan(self) -> None:
         """Load the scan."""
-        self.images["scan_raw"] = load_scan(self.img_path)
-        LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
-        # LOGGER.info(f'Loaded file : {self.img_path}')
-        # FIXME : Get this working, needs to include additional except for image in incorrect format.
-        # try:
-        #     self.images['scan_raw'] = load_scan(self.img_path)
-        # except FileNotFoundError as error:
-        #     LOGGER.error(f'File not found : {self.img_path}')
-        #     pass
-        # sys.exit(1)
+        try:
+            self.images["scan_raw"] = load_scan(self.img_path)
+            LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
+        except FileNotFoundError:
+            LOGGER.info(f"File not found : {self.img_path}")
 
     def make_output_directory(self) -> None:
         """Create the output directory for saving files to."""
@@ -190,9 +184,7 @@ class Filters:
         """Returns the input image with rows aligned by median height"""
         if mask is not None:
             if mask.all():
-                LOGGER.error(
-                    f"[{self.filename}] : Mask covers entire image - no image left to process. Adjust filtering thresholds/method."
-                )
+                LOGGER.error(f"[{self.filename}] : Mask covers entire image. Adjust filtering thresholds/method.")
 
         medians = self.row_col_medians(image, mask)
         row_medians = medians["rows"]

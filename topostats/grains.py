@@ -250,14 +250,14 @@ class Grains:
             absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
         )
         try:
-            for direction, threshold in self.thresholds.items():
+            for direction, _threshold in self.thresholds.items():
 
                 # Create sub-directory for the upper / lower grains
                 self.directions[direction] = defaultdict()
                 self.gaussian_filter()
                 self.directions[direction]["mask_grains"] = _get_mask(
                     self.images["gaussian_filtered"],
-                    threshold=threshold,
+                    threshold=_threshold,
                     threshold_direction=direction,
                     img_name=self.filename,
                 )

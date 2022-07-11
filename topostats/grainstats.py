@@ -832,5 +832,5 @@ def get_grainstats(
         labelled_data=labelled_data,
         pixel_to_nanometre_scaling=pixel_to_nanometre_scaling,
         direction=img_name,
-        base_output_dir=output_dir,
+        base_output_dir=base_output_dir,
     ).calculate_stats()
