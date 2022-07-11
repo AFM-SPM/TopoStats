@@ -225,6 +225,9 @@ class GrainStats:
         grainstats = pd.DataFrame(data=stats_array)
         grainstats.index.name = "Molecule Number"
         grainstats.to_csv(self.base_output_dir / self.direction / "grainstats.csv")
+        LOGGER.info(
+            f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/grainstats.csv"
+        )
 
         return {"statistics": grainstats, "plot": ax}
 
