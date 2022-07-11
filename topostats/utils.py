@@ -54,7 +54,7 @@ def convert_path(path: Union[str, Path]) -> Path:
     Path
         pathlib Path
     """
-    return Path().cwd() if path == "./" else Path(path)
+    return Path().cwd() if path == "./" else Path(path).expanduser()
 
 
 def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> List:

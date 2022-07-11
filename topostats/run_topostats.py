@@ -294,11 +294,14 @@ def process_scan(
                 )
                 results = grainstat["statistics"].merge(tracing_stats[direction].df, on="Molecule Number")
                 results.to_csv(_output_dir / filtered_image.filename / direction / "all_statistics.csv")
+                LOGGER.info(
+                    f"[{filtered_image.filename}] : Combined statistics saved to {str(_output_dir)}/{filtered_image.filename}/{direction}/all_statistics.csv"
+                )
 
         except Exception:
             # If no results we need a dummy dataframe to return.
             LOGGER.info(
-                f"[{filter_image.filename}] : Errors occurred attempting to calculate grain statistics and DNA tracing statistics."
+                f"[{filtered_image.filename}] : Errors occurred attempting to calculate grain statistics and DNA tracing statistics."
             )
             results = create_empty_dataframe()
 
@@ -353,6 +356,7 @@ def main():
     config = read_yaml(args.config_file)
     config = update_config(config, args)
     config["output_dir"] = convert_path(config["output_dir"])
+    config["output_dir"].mkdir(parents=True, exist_ok=True)
 
     LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
     LOGGER.info(f'Scanning for images in              : {config["base_dir"]}')
