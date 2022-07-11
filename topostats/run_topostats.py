@@ -297,7 +297,9 @@ def process_scan(
 
         except Exception:
             # If no results we need a dummy dataframe to return.
-            LOGGER.info("Errors occurred attempting to calculate grain statistics and DNA tracing statistics.")
+            LOGGER.info(
+                f"[{filter_image.filename}] : Errors occurred attempting to calculate grain statistics and DNA tracing statistics."
+            )
             results = create_empty_dataframe()
 
     # Optionally plot all stages
