@@ -842,15 +842,6 @@ class dnaTrace(object):
 
     def measure_end_to_end_distance(self):
         """Calculate the Euclidean distance between the start and end of linear molecules.
-
-
-        plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], "ko")
-        plt.savefig("%s_%s_coordinates.png" % (savename, dna_num))
-
-    def measure_end_to_end_distance(self):
-        """Calculate the Euclidean distance between the start and end of linear molecules.
-
-
         The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
         molecules. If the molecule is circular then the distance is set to zero (0).
         """
