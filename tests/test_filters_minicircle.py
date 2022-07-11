@@ -82,10 +82,13 @@ def test_remove_x_y_tilt_unmasked(minicircle_initial_tilt_removal: np.array, tmp
     return fig
 
 
-def test_get_threshold(minicircle_threshold: np.array) -> None:
+def test_get_threshold_otsu(minicircle_threshold_otsu: np.array) -> None:
     """Test calculation of threshold."""
-    assert isinstance(minicircle_threshold.threshold, float)
-    assert minicircle_threshold.threshold == 28.58495414588038
+    assert isinstance(minicircle_threshold_otsu.thresholds, dict)
+    assert minicircle_threshold_otsu.thresholds["upper"] == 28.58495414588038
+
+
+# FIXME : Add test_get_threshold_stddev() and test_get_threshold_abs()
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")

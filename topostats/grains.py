@@ -13,6 +13,7 @@ from skimage.measure import regionprops
 from skimage.color import label2rgb
 
 from topostats.logs.logs import LOGGER_NAME
+from topostats.thresholds import threshold
 from topostats.utils import _get_mask, get_thresholds
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -149,9 +150,10 @@ class Grains:
         self.get_region_properties(image)
         grain_areas = np.array([grain.area for grain in self.region_properties])
         if len(grain_areas > 0):
-            # FIXME : May need this line to handle single grains, but need to reconcile with new threshold methods
-            #         possible use thresholds._get_threshold()
-            # grain_areas = grain_areas[grain_areas >= threshold(grain_areas, method=self.threshold_method)]
+            # Exclude small objects less than a given threshold first
+            grain_areas = grain_areas[
+                grain_areas >= threshold(grain_areas, method=self.threshold_method, otsu_threshold_multiplier=1.0)
+            ]
             self.minimum_grain_size = np.median(grain_areas) - (
                 1.5 * (np.quantile(grain_areas, 0.75) - np.quantile(grain_areas, 0.25))
             )
@@ -188,7 +190,7 @@ class Grains:
             LOGGER.info(
                 f"[{self.filename}] : Removed small objects (< {self.minimum_grain_size * self.pixel_to_nm_scaling})"
             )
-            return small_objects_removed
+            return small_objects_removed > 0.0
         return image
 
     def colour_regions(self, image: np.array, **kwargs) -> np.array:

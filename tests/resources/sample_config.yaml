@@ -5,7 +5,7 @@ warnings: ignore
 cores: 4
 quiet: false
 file_ext: .spm
-channel: Height Sensor
+channel: Height
 amplify_level: 1.0
 filter:
   threshold:
@@ -22,7 +22,7 @@ grains:
   background: 0.0
   threshold:
     method: otsu # 'otsu', 'std_dev', 'absolute'
-    otsu_multiplier: 1.0
+    otsu_multiplier: 1.7
     std_dev: 1.0
     absolute:
       - 1

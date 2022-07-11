@@ -59,7 +59,7 @@ class GrainStats:
         labelled_data: np.ndarray,
         pixel_to_nanometre_scaling: float,
         direction: str,
-        output_dir: Union[str, Path],
+        base_output_dir: Union[str, Path],
         image_name: str = None,
     ):
         """Initialise the class.
@@ -72,7 +72,7 @@ class GrainStats:
             2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.
         pixel_to_nanometre_scaling: float
             Floating point value that defines the scaling factor between nanometres and pixels.
-        output_dir : Path
+        base_output_dir : Path
             Path to the folder that will store the grain stats output images and data.
         """
 
@@ -80,7 +80,7 @@ class GrainStats:
         self.labelled_data = labelled_data
         self.pixel_to_nanometre_scaling = pixel_to_nanometre_scaling
         self.direction = direction
-        self.output_dir = Path(output_dir)
+        self.base_output_dir = Path(base_output_dir)
         self.start_point = None
         self.image_name = image_name
 
@@ -150,7 +150,7 @@ class GrainStats:
             # FIXME : Get [{self.image_name}] included in LOGGER
             LOGGER.info(f"[{self.image_name}] : Processing grain: {index}")
             # Create directory for each grain's plots
-            output_grain = self.output_dir / self.direction / f"grain_{index}"
+            output_grain = self.base_output_dir / self.direction / f"grain_{index}"
             # Path.mkdir(output_grain, parents=True, exist_ok=True)
             output_grain.mkdir(parents=True, exist_ok=True)
 
@@ -221,10 +221,10 @@ class GrainStats:
             )
             ax.add_patch(rectangle)
 
-        Path.mkdir(self.output_dir / self.direction, exist_ok=True, parents=True)
+        Path.mkdir(self.base_output_dir / self.direction, exist_ok=True, parents=True)
         grainstats = pd.DataFrame(data=stats_array)
         grainstats.index.name = "Molecule Number"
-        grainstats.to_csv(self.output_dir / self.direction / "grainstats.csv")
+        grainstats.to_csv(self.base_output_dir / self.direction / "grainstats.csv")
 
         return {"statistics": grainstats, "plot": ax}
 
@@ -232,7 +232,7 @@ class GrainStats:
     #     """Save the image adding a title if specified."""
     #     title = title if title is not None else "Labelled Image with Bounding Boxes"
     #     plt.title(title)
-    #     plt.savefig(self.output_dir / filename)
+    #     plt.savefig(self.base_output_dir / filename)
     #     plt.close()
 
     @staticmethod
@@ -354,7 +354,7 @@ class GrainStats:
         """
         return np.array([np.sqrt(radius[0] ** 2 + radius[1] ** 2) for radius in displacements])
 
-    def convex_hull(self, edges: list, output_dir: Path, debug: bool = False):
+    def convex_hull(self, edges: list, base_output_dir: Path, debug: bool = False):
         """Class method that takes a grain mask and the edges of the grain and returns the grain's convex hull. Based
         off of the Graham Scan algorithm and should ideally scale in time with O(nlog(n)).
 
@@ -362,7 +362,7 @@ class GrainStats:
         ----------
         edges : list
             A python list contianing the coordinates of the edges of the grain.
-        output_dir : Union[str, Path]
+        base_output_dir : Union[str, Path]
             Directory to save output to.
         debug : bool
             Default false. If true, debug information will be displayed to the terminal and plots for the convex hulls and edges will be saved.
@@ -380,7 +380,7 @@ class GrainStats:
 
         # Debug information
         if debug:
-            self.plot(edges, hull, output_dir / "_points_hull.png")
+            self.plot(edges, hull, base_output_dir / "_points_hull.png")
             LOGGER.info(f"points: {edges}")
             LOGGER.info(f"hull: {hull}")
             LOGGER.info(f"hull indexes: {hull_indices}")
@@ -804,7 +804,7 @@ def get_grainstats(
     labelled_data: np.ndarray,
     pixel_to_nanometre_scaling: float,
     img_name: str,
-    output_dir: Union[str, Path],
+    base_output_dir: Union[str, Path],
 ) -> Dict:
     """Wrapper function to instantiate a GrainStats() class and run it with the options on a single image.
 
@@ -818,7 +818,7 @@ def get_grainstats(
         Scaling of pixels to nanometres
     img_name: str
         Image being processed.
-    output_dir: Union[str, Path]
+    base_output_dir: Union[str, Path]
         Output directory.
 
     Returns
@@ -832,5 +832,5 @@ def get_grainstats(
         labelled_data=labelled_data,
         pixel_to_nanometre_scaling=pixel_to_nanometre_scaling,
         direction=img_name,
-        output_dir=output_dir,
+        base_output_dir=output_dir,
     ).calculate_stats()

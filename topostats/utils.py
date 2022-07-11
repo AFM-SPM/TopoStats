@@ -106,7 +106,7 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
     return config
 
 
-def _get_mask(image: np.array, threshold: float, threshold_direction: str, img_name: str = None) -> np.array:
+def _get_mask(image: np.ndarray, threshold: float, threshold_direction: str, img_name: str = None) -> np.ndarray:
     """Calculate a mask for pixels that exceed the threshold
 
     Parameters
@@ -125,13 +125,11 @@ def _get_mask(image: np.array, threshold: float, threshold_direction: str, img_n
     np.array
         Numpy array of image with objects coloured.
     """
-    
-    LOGGER.info(f"[{img_name}] : Deriving mask (Threshold : {threshold})")
     if threshold_direction == "upper":
-        LOGGER.info(f"[{img_name}] : Masking (upper)| Threshold: {threshold}")
+        LOGGER.info(f"[{img_name}] : Masking (upper) Threshold: {threshold}")
         return image > threshold
     elif threshold_direction == "lower":
-        LOGGER.info(f"[{img_name}] : Masking (lower)| Threshold: {threshold}")
+        LOGGER.info(f"[{img_name}] : Masking (lower) Threshold: {threshold}")
         return image < threshold
     LOGGER.fatal(f"[{img_name}] : Threshold direction invalid: {threshold_direction}")
 
@@ -204,14 +202,10 @@ def get_thresholds(
         thresholds["lower"] = threshold(image, method="mean") - deviation_from_mean * np.nanstd(image)
         thresholds["upper"] = threshold(image, method="mean") + deviation_from_mean * np.nanstd(image)
     elif threshold_method == "absolute":
-        if absolute[0] != "none":
+        if absolute[0] is not None:
             thresholds["lower"] = absolute[0]
-        else:
-            thresholds["lower"] = None
-        if absolute[1] != "none":
+        if absolute[1] is not None:
             thresholds["upper"] = absolute[1]
-        else:
-            thresholds["upper"] = None
 
     return thresholds
 

@@ -7,7 +7,7 @@ from topostats.thresholds import threshold
 from topostats.utils import convert_path, find_images, update_config, get_mask, get_thresholds
 
 
-THRESHOLD_OPTIONS = {"otsu_threshold_multiplier": 1.7, "deviation_from_mean": 1, "absolute": 1.5}
+THRESHOLD_OPTIONS = {"otsu_threshold_multiplier": 1.7, "deviation_from_mean": 1, "absolute": (1.5, -1.5)}
 
 
 def test_convert_path(tmpdir) -> None:
