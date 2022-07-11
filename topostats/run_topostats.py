@@ -5,9 +5,9 @@ from functools import partial
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Union
-
 import pandas as pd
 import numpy as np
+
 from tqdm import tqdm
 
 from topostats.filters import Filters
@@ -28,6 +28,7 @@ LOGGER = setup_logger(LOGGER_NAME)
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
+
 
 PLOT_DICT = {
     "extracted_channel": {"filename": "00-raw_heightmap.png", "title": "Raw Height"},
@@ -55,6 +56,7 @@ PLOT_DICT = {
     "bounding_boxes": {"filename": "16-bounding_boxes.png", "title": "Bounding Boxes"},
     "coloured_boxes": {"filename": "17-labelled_image_bboxes.png", "title": "Labelled Image with Bounding Boxes"},
 }
+
 
 
 def create_parser() -> arg.ArgumentParser:
@@ -176,6 +178,7 @@ def process_scan(
     gaussian_mode : str
         Mode for filtering (default is 'nearest').
     otsu_threshold_multiplier : Union[int, float]
+
         Factor by which lower threshold is to be scaled prior to masking.
     background : float
     save_plots : bool
@@ -194,6 +197,7 @@ def process_scan(
 
     """
     LOGGER.info(f"Processing : {image_path}")
+
     OUTPUT_DIR = output_dir
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     # Filter Image :
@@ -222,6 +226,7 @@ def process_scan(
             image=filtered_image.images["zero_averaged_background"],
             filename=filtered_image.filename,
             pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
+
             gaussian_size=gaussian_size,
             gaussian_mode=gaussian_mode,
             threshold_method=grains_threshold_method,
@@ -368,6 +373,7 @@ def main():
     #         amplify_level=config["amplify_level"],
     #         threshold_method=config["threshold_method"],
     #         otsu_threshold_multiplier=config["grains"]["otsu_threshold_multiplier"],
+
     #         gaussian_size=config["grains"]["gaussian_size"],
     #         gaussian_mode=config["grains"]["gaussian_mode"],
     #         background=config["grains"]["background"],
