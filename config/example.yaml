@@ -10,7 +10,7 @@ amplify_level: 1.0
 filter:
   threshold:
     method: otsu # 'otsu', 'std_dev', 'absolute'
-    otsu_multiplier: 1.7
+    otsu_multiplier: 1.0
     std_dev: 1.0
     absolute:
       - 1
@@ -22,7 +22,7 @@ grains:
   background: 0.0
   threshold:
     method: otsu # 'otsu', 'std_dev', 'absolute'
-    otsu_multiplier: 1.7
+    otsu_multiplier: 1.0
     std_dev: 1.0
     absolute:
       - 1
