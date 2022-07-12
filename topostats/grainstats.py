@@ -801,39 +801,3 @@ class GrainStats:
         extremes["y_max"] = np.max(rotated_points[:, 1])
         return extremes
 
-
-def get_grainstats(
-    data: np.ndarray,
-    labelled_data: np.ndarray,
-    pixel_to_nanometre_scaling: float,
-    img_name: str,
-    base_output_dir: Union[str, Path],
-) -> Dict:
-    """Wrapper function to instantiate a GrainStats() class and run it with the options on a single image.
-
-    Parameters
-    ----------
-    data: np.ndarray
-        2D Numpy image to be processed.
-    labelled_data: np.ndarray
-        2D Numpy image of labelled regions of data.
-    pixel_to_nanometre_scaling: float
-        Scaling of pixels to nanometres
-    img_name: str
-        Image being processed.
-    base_output_dir: Union[str, Path]
-        Output directory.
-
-    Returns
-    -------
-    Dict
-        Returns a dictionary with "statsitics" the calculated statistics for the grains and "ax" a plot image
-        with bounding boxes.
-    """
-    return GrainStats(
-        data=data,
-        labelled_data=labelled_data,
-        pixel_to_nanometre_scaling=pixel_to_nanometre_scaling,
-        direction=img_name,
-        base_output_dir=base_output_dir,
-    ).calculate_stats()
