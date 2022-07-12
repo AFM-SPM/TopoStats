@@ -141,7 +141,12 @@ def test_random_grain_stats(caplog, tmpdir) -> None:
     """Test GrainStats raises error when passed zero grains."""
     caplog.set_level(logging.DEBUG, logger=LOGGER_NAME)
     grainstats = GrainStats(
-        data=None, labelled_data=None, pixel_to_nanometre_scaling=0.5, img_name="random", output_dir=tmpdir
+        data=None,
+        labelled_data=None,
+        pixel_to_nanometre_scaling=0.5,
+        image_name="random",
+        direction="upper",
+        base_output_dir=tmpdir,
     )
     grainstats.calculate_stats()
 

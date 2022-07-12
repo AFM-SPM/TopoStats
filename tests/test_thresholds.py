@@ -1,4 +1,5 @@
 """Test of thresholds"""
+# pylint: disable=no-name-in-module
 import pytest
 import numpy as np
 from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, threshold_yen, threshold_triangle
@@ -6,8 +7,9 @@ from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, t
 from topostats.thresholds import threshold
 
 OPTIONS = {
-    'nbins': 10,
+    "nbins": 10,
 }
+OTSU_THRESHOLD_MULTIPLIER = 1.7
 
 
 def test_threshold_invalid_method(image_random: np.array) -> None:
@@ -19,7 +21,7 @@ def test_threshold_invalid_method(image_random: np.array) -> None:
         Numpy array representing an image.
     """
     with pytest.raises(ValueError):
-        threshold_invalid = threshold(image_random, method='shoes')
+        threshold(image_random, method="shoes")
 
 
 def test_threshold_otsu(image_random: np.array) -> None:
@@ -30,10 +32,10 @@ def test_threshold_otsu(image_random: np.array) -> None:
     image_random : np.array
         Numpy array representing an image.
     """
-    _threshold = threshold(image_random, method='otsu')
+    _threshold = threshold(image_random, method="otsu", otsu_threshold_multiplier=OTSU_THRESHOLD_MULTIPLIER)
 
     assert isinstance(_threshold, float)
-    assert _threshold == threshold_otsu(image_random)
+    assert _threshold == threshold_otsu(image_random) * OTSU_THRESHOLD_MULTIPLIER
 
 
 def test_threshold_otsu_keywords(image_random: np.array) -> None:
@@ -44,10 +46,10 @@ def test_threshold_otsu_keywords(image_random: np.array) -> None:
     image_random : np.array
         Numpy array representing an image.
     """
-    _threshold = threshold(image_random, method='otsu', **OPTIONS)
+    _threshold = threshold(image_random, method="otsu", otsu_threshold_multiplier=1.7, **OPTIONS)
 
     assert isinstance(_threshold, float)
-    assert _threshold == threshold_otsu(image_random, **OPTIONS)
+    assert _threshold == threshold_otsu(image_random, **OPTIONS) * OTSU_THRESHOLD_MULTIPLIER
 
 
 def test_threshold_minimum(image_random: np.array) -> None:
@@ -58,7 +60,7 @@ def test_threshold_minimum(image_random: np.array) -> None:
     image_random : np.array
         Numpy array representing an image.
     """
-    _threshold = threshold(image_random, method='minimum')
+    _threshold = threshold(image_random, method="minimum")
 
     assert isinstance(_threshold, float)
     assert _threshold == threshold_minimum(image_random)
@@ -86,7 +88,7 @@ def test_threshold_mean(image_random: np.array) -> None:
     image_random : np.array
         Numpy array representing an image.
     """
-    _threshold = threshold(image_random, method='mean')
+    _threshold = threshold(image_random, method="mean")
 
     assert isinstance(_threshold, float)
     assert _threshold == threshold_mean(image_random)
@@ -100,7 +102,7 @@ def test_threshold_yen(image_random: np.array) -> None:
     image_random : np.array
         Numpy array representing an image.
     """
-    _threshold = threshold(image_random, method='yen')
+    _threshold = threshold(image_random, method="yen")
 
     assert isinstance(_threshold, float)
     assert _threshold == threshold_yen(image_random)
@@ -114,7 +116,7 @@ def test_threshold_yen_keywords(image_random: np.array) -> None:
     image_random : np.array
         Numpy array representing an image.
     """
-    _threshold = threshold(image_random, method='yen', **OPTIONS)
+    _threshold = threshold(image_random, method="yen", **OPTIONS)
 
     assert isinstance(_threshold, float)
     assert _threshold == threshold_yen(image_random, **OPTIONS)
@@ -128,7 +130,7 @@ def test_threshold_triangle(image_random: np.array) -> None:
     image_random : np.array
         Numpy array representing an image.
     """
-    _threshold = threshold(image_random, method='triangle')
+    _threshold = threshold(image_random, method="triangle")
 
     assert isinstance(_threshold, float)
     assert _threshold == threshold_triangle(image_random)
@@ -142,7 +144,7 @@ def test_threshold_triangle_keywords(image_random: np.array) -> None:
     image_random : np.array
         Numpy array representing an image.
     """
-    _threshold = threshold(image_random, method='triangle', **OPTIONS)
+    _threshold = threshold(image_random, method="triangle", **OPTIONS)
 
     assert isinstance(_threshold, float)
     assert _threshold == threshold_triangle(image_random, **OPTIONS)
