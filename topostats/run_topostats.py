@@ -158,6 +158,7 @@ def process_scan(
     grains_threshold_abs_lower=None,
     grains_threshold_abs_upper=None,
     save_plots: bool = True,
+    colorbar: bool = True,
     output_dir: Union[str, Path] = "output",
 ) -> None:
     """Process a single image, filtering, finding grains and calculating their statistics.
@@ -182,6 +183,8 @@ def process_scan(
     background : float
     save_plots : bool
         Flag as to whether to save plots to PNG files.
+    colorbar : bool
+        Flag as to whether to include a colorbar scale in scan plots.
     output_dir : Union[str, Path]
         Path to output directory for saving results.
 
@@ -315,7 +318,7 @@ def process_scan(
                     array = np.flipud(array.pixels)
                 PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
                 try:
-                    plot_and_save(array, **PLOT_DICT[plot_name])
+                    plot_and_save(array, colorbar=colorbar, **PLOT_DICT[plot_name])
                 except AttributeError:
                     LOGGER.info(f"[{filtered_image.filename}] Unable to generate plot : {plot_name}")
 
@@ -335,12 +338,14 @@ def process_scan(
                 plot_and_save(
                     grains.directions[direction]["coloured_regions"],
                     **PLOT_DICT["bounding_boxes"],
+                    colorbar=colorbar,
                     region_properties=grains.region_properties,
                 )
                 PLOT_DICT["coloured_boxes"]["output_dir"] = output_dir
                 plot_and_save(
                     grains.directions[direction]["labelled_regions_02"],
                     **PLOT_DICT["coloured_boxes"],
+                    colorbar=colorbar,
                     region_properties=grains.region_properties,
                 )
 
@@ -381,6 +386,8 @@ def main():
     #         gaussian_size=config["grains"]["gaussian_size"],
     #         gaussian_mode=config["grains"]["gaussian_mode"],
     #         background=config["grains"]["background"],
+    #         save_plots=config["plotting"]["save"],
+    #         colorbar=config["plotting"]["colorbar"],
     #         output_dir=config["output_dir"],
     #     )
     processing_function = partial(
@@ -396,6 +403,8 @@ def main():
         gaussian_mode=config["grains"]["gaussian_mode"],
         absolute_smallest_grain_size=config["grains"]["absolute_smallest_grain_size"],
         background=config["grains"]["background"],
+        save_plots=config["plotting"]["save"],
+        colorbar=config["plotting"]["colorbar"],
         output_dir=config["output_dir"],
         grains_threshold_method=config["grains"]["threshold"]["method"],
         grains_otsu_threshold_multiplier=config["grains"]["threshold"]["otsu_multiplier"],

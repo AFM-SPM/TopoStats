@@ -27,3 +27,6 @@ grains:
     absolute:
       - 1
       - -1
+plotting:
+  save: True
+  colorbar: False

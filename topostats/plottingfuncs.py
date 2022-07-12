@@ -4,6 +4,7 @@ from typing import Union
 import logging
 from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 
 
@@ -20,6 +21,7 @@ def plot_and_save(
     interpolation: str = "nearest",
     cmap: str = "afmhot",
     region_properties: dict = None,
+    colorbar: bool = False,
 ):
     """Plot and save an image.
 
@@ -37,14 +39,21 @@ def plot_and_save(
         Interpolation to use (default 'nearest').
     cmap : str
         Colour map to use (default 'afmhot')
-
+    region_properties: dict
+        Dictionary of region properties, adds bounding boxes if specified.
+    colorbar: bool
+        Optionally add a colorbar to plots, default is False.
     """
     fig, ax = plt.subplots(1, 1, figsize=(8, 8))
     if isinstance(data, np.ndarray):
-        ax.imshow(data, interpolation=interpolation, cmap=cmap)
+        im = ax.imshow(data, interpolation=interpolation, cmap=cmap)
+        plt.title(title)
+        if colorbar:
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="5%", pad=0.05)
+            plt.colorbar(im, cax=cax)
         if region_properties:
             fig, ax = add_bounding_boxes_to_plot(fig, ax, region_properties)
-        plt.title(title)
         plt.savefig(output_dir / filename)
     else:
         data.show(ax=ax, interpolation=interpolation, cmap=cmap)
