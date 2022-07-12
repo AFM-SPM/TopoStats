@@ -1,4 +1,6 @@
 """Find grains in an image."""
+# pylint: disable=no-name-in-module
+from collections import defaultdict
 import logging
 from pathlib import Path
 from typing import Union, List, Dict
@@ -10,11 +12,16 @@ from skimage.morphology import remove_small_objects, label
 from skimage.measure import regionprops
 from skimage.color import label2rgb
 
-from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
-from topostats.utils import get_mask
+from topostats.thresholds import threshold
+from topostats.utils import _get_mask, get_thresholds
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+
+# pylint: disable=fixme
+# pylint: disable=line-too-long
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=bare-except
 
 
 class Grains:
@@ -27,10 +34,14 @@ class Grains:
         pixel_to_nm_scaling: float,
         gaussian_size: float = 2,
         gaussian_mode: str = "nearest",
-        threshold_method: str = "otsu",
-        threshold_multiplier: float = 1.7,
+        threshold_method: str = None,
+        otsu_threshold_multiplier: float = None,
+        threshold_std_dev: float = None,
+        threshold_absolute_lower: float = None,
+        threshold_absolute_upper: float = None,
+        absolute_smallest_grain_size: float = None,
         background: float = 0.0,
-        output_dir: Union[str, Path] = None,
+        base_output_dir: Union[str, Path] = None,
     ):
         """Initialise the class.
 
@@ -58,29 +69,31 @@ class Grains:
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.threshold_method = threshold_method
-        self.threshold_multiplier = threshold_multiplier
+        self.otsu_threshold_multiplier = otsu_threshold_multiplier
+        self.threshold_std_dev = threshold_std_dev
+        self.threshold_absolute_lower = threshold_absolute_lower
+        self.threshold_absolute_upper = threshold_absolute_upper
         self.gaussian_size = gaussian_size
         self.gaussian_mode = gaussian_mode
         self.background = background
-        self.output_dir = output_dir
-        self.threshold = None
+        self.base_output_dir = base_output_dir
+        self.absolute_smallest_grain_size = absolute_smallest_grain_size
+        self.thresholds = None
         self.images = {
             "gaussian_filtered": None,
             "mask_grains": None,
             "tidied_border": None,
+            "tiny_objects_removed": None,
             "objects_removed": None,
-            "labelled_regions": None,
-            "coloured_regions": None,
+            # "labelled_regions": None,
+            # "coloured_regions": None,
         }
+        self.directions = defaultdict()
         self.minimum_grain_size = None
         self.region_properties = None
         self.bounding_boxes = None
         self.grainstats = None
-
-    def get_threshold(self, **kwargs) -> float:
-        """Returns a threshold value based on the stated method multiplied by the threshold multiplier."""
-        self.threshold = threshold(self.image, self.threshold_method, **kwargs) * self.threshold_multiplier
-        LOGGER.info(f"[{self.filename}] Threshold       : {self.threshold}")
+        Path.mkdir(self.base_output_dir, parents=True, exist_ok=True)
 
     def gaussian_filter(self, **kwargs) -> np.array:
         """Apply Gaussian filter"""
@@ -88,15 +101,13 @@ class Grains:
             f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (nm) : {self.gaussian_size})."
         )
         self.images["gaussian_filtered"] = gaussian(
-            self.image, sigma=(self.gaussian_size * self.pixel_to_nm_scaling), mode=self.gaussian_mode, **kwargs
+            self.image,
+            sigma=(self.gaussian_size * self.pixel_to_nm_scaling),
+            mode=self.gaussian_mode,
+            **kwargs,
         )
 
-    def get_mask(self):
-        """Create a boolean array of whether points are greater than the given threshold."""
-        self.images["mask_grains"] = get_mask(self.images["gaussian_filtered"], self.threshold, self.filename)
-        LOGGER.info(f"[{self.filename}] : Created boolean image")
-
-    def tidy_border(self, **kwargs) -> np.array:
+    def tidy_border(self, image: np.array, **kwargs) -> np.array:
         """Remove grains touching the border
 
         Parameters
@@ -110,7 +121,7 @@ class Grains:
             Numpy array of image with borders tidied.
         """
         LOGGER.info(f"[{self.filename}] : Tidying borders")
-        self.images["tidied_border"] = clear_border(self.images["mask_grains"], **kwargs)
+        return clear_border(image, **kwargs)
 
     def label_regions(self, image: np.array) -> np.array:
         """Label regions.
@@ -129,30 +140,60 @@ class Grains:
             Numpy array of image with objects coloured.
         """
         LOGGER.info(f"[{self.filename}] : Labelling Regions")
-        self.images["labelled_regions"] = label(image, background=self.background)
+        return label(image, background=self.background)
 
-    def calc_minimum_grain_size(self) -> float:
+    def calc_minimum_grain_size(self, image: np.ndarray) -> float:
         """Calculate the minimum grain size.
 
         Very small objects are first removed via thresholding before calculating the lower extreme.
         """
-        self.get_region_properties()
+        self.get_region_properties(image)
         grain_areas = np.array([grain.area for grain in self.region_properties])
-        grain_areas = grain_areas[grain_areas >= threshold(grain_areas, method=self.threshold_method)]
-        self.minimum_grain_size = np.median(grain_areas) - (
-            1.5 * (np.quantile(grain_areas, 0.75) - np.quantile(grain_areas, 0.25))
-        )
+        if len(grain_areas > 0):
+            # Exclude small objects less than a given threshold first
+            grain_areas = grain_areas[
+                grain_areas >= threshold(grain_areas, method=self.threshold_method, otsu_threshold_multiplier=1.0)
+            ]
+            self.minimum_grain_size = np.median(grain_areas) - (
+                1.5 * (np.quantile(grain_areas, 0.75) - np.quantile(grain_areas, 0.25))
+            )
+        else:
+            self.minimum_grain_size = -1
 
-    def remove_small_objects(self, **kwargs):
+    def remove_noise(self, image: np.ndarray) -> np.ndarray:
+        """Removes noise which are objects smaller than the 'absolute_smallest_grain_size'.
+
+        This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            2D Numpy image to be cleaned.
+
+        Returns
+        -------
+        np.ndarray
+            2D Numpy array of image with objects > absolute_smallest_grain_size removed.
+        """
+        LOGGER.info(f"[{self.filename}] : Removing noise (< {self.absolute_smallest_grain_size})")
+        return remove_small_objects(image, min_size=self.absolute_smallest_grain_size)
+
+    def remove_small_objects(self, image: np.array, **kwargs):
         """Remove small objects."""
-        self.images["objects_removed"] = remove_small_objects(
-            self.images["tidied_border"], min_size=(self.minimum_grain_size * self.pixel_to_nm_scaling), **kwargs
-        )
-        LOGGER.info(
-            f"[{self.filename}] : Removed small objects (< {self.minimum_grain_size * self.pixel_to_nm_scaling})"
-        )
+        # If self.minimum_grain_size is -1, then this means that there were no grains to calculate the minimum grian size from.
+        if self.minimum_grain_size != -1:
+            small_objects_removed = remove_small_objects(
+                image,
+                min_size=(self.minimum_grain_size * self.pixel_to_nm_scaling),
+                **kwargs,
+            )
+            LOGGER.info(
+                f"[{self.filename}] : Removed small objects (< {self.minimum_grain_size * self.pixel_to_nm_scaling})"
+            )
+            return small_objects_removed > 0.0
+        return image
 
-    def colour_regions(self, **kwargs) -> np.array:
+    def colour_regions(self, image: np.array, **kwargs) -> np.array:
         """Colour the regions.
 
         Parameters
@@ -165,10 +206,12 @@ class Grains:
         np.array
             Numpy array of image with objects coloured.
         """
-        self.images["coloured_regions"] = label2rgb(self.images["labelled_regions"], **kwargs)
-        LOGGER.info(f"[{self.filename}] : Coloured regions")
 
-    def get_region_properties(self, **kwargs) -> List:
+        coloured_regions = label2rgb(image, **kwargs)
+        LOGGER.info(f"[{self.filename}] : Coloured regions")
+        return coloured_regions
+
+    def get_region_properties(self, image: np.array, **kwargs) -> List:
         """Extract the properties of each region.
 
         Parameters
@@ -181,7 +224,7 @@ class Grains:
         List
             List of region property objects.
         """
-        self.region_properties = regionprops(self.images["labelled_regions"], **kwargs)
+        self.region_properties = regionprops(image, **kwargs)
         LOGGER.info(f"[{self.filename}] : Region properties calculated")
 
     def get_bounding_boxes(self) -> Dict:
@@ -197,18 +240,49 @@ class Grains:
 
     def find_grains(self):
         """Find grains."""
-        self.get_threshold()
-        self.gaussian_filter()
-        self.get_mask()
-        self.tidy_border()
-        self.label_regions(self.images["tidied_border"])
+        LOGGER.info(f"[{self.filename}] : Thresholding method (grains) : {self.threshold_method}")
+        # self.threshold = self.get_threshold(self.image, self.threshold_method)
+        self.thresholds = get_thresholds(
+            image=self.image,
+            threshold_method=self.threshold_method,
+            otsu_threshold_multiplier=self.otsu_threshold_multiplier,
+            deviation_from_mean=self.threshold_std_dev,
+            absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
+        )
         try:
-            self.calc_minimum_grain_size()
-            self.remove_small_objects()
-            self.label_regions(self.images["objects_removed"])
-            self.get_region_properties()
-            self.colour_regions()
-            self.get_bounding_boxes()
-        # FIXME : Identify what exceptions are raised with images without grains and replace broad except
+            for direction, _threshold in self.thresholds.items():
+
+                # Create sub-directory for the upper / lower grains
+                self.directions[direction] = defaultdict()
+                self.gaussian_filter()
+                self.directions[direction]["mask_grains"] = _get_mask(
+                    self.images["gaussian_filtered"],
+                    threshold=_threshold,
+                    threshold_direction=direction,
+                    img_name=self.filename,
+                )
+                self.directions[direction]["tidied_border"] = self.tidy_border(
+                    self.directions[direction]["mask_grains"]
+                )
+                self.directions[direction]["removed_noise"] = self.remove_noise(
+                    self.directions[direction]["tidied_border"]
+                )
+                self.directions[direction]["labelled_regions_01"] = self.label_regions(
+                    self.directions[direction]["removed_noise"]
+                )
+                self.calc_minimum_grain_size(self.directions[direction]["labelled_regions_01"])
+                self.directions[direction]["removed_small_objects"] = self.remove_small_objects(
+                    self.directions[direction]["labelled_regions_01"]
+                )
+                self.directions[direction]["labelled_regions_02"] = self.label_regions(
+                    self.directions[direction]["removed_small_objects"]
+                )
+                self.get_region_properties(self.directions[direction]["labelled_regions_02"])
+
+                self.directions[direction]["coloured_regions"] = self.colour_regions(
+                    self.directions[direction]["labelled_regions_02"]
+                )
+                self.get_bounding_boxes()
+        # FIXME : Identify what exception is raised with images without grains and replace broad except
         except:
             LOGGER.info(f"[{self.filename}] : No grains found.")

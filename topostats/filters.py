@@ -7,9 +7,8 @@ from typing import Union
 import numpy as np
 
 from topostats.io import load_scan
-from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
-from topostats.utils import get_mask
+from topostats.utils import get_thresholds, get_mask
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -23,9 +22,13 @@ class Filters:
     def __init__(
         self,
         img_path: Union[str, Path],
+        threshold_method: str = "otsu",
+        otsu_threshold_multiplier: float = 1.7,
+        threshold_std_dev: float = None,
+        threshold_absolute_lower: float = None,
+        threshold_absolute_upper: float = None,
         channel: str = "Height",
         amplify_level: float = None,
-        threshold_method: str = "otsu",
         output_dir: Union[str, Path] = None,
         quiet: bool = False,
     ):
@@ -55,6 +58,10 @@ class Filters:
         self.channel = channel
         self.amplify_level = amplify_level
         self.threshold_method = threshold_method
+        self.otsu_threshold_multiplier = otsu_threshold_multiplier
+        self.threshold_std_dev = threshold_std_dev
+        self.threshold_absolute_lower = threshold_absolute_lower
+        self.threshold_absolute_upper = threshold_absolute_upper
         self.filename = self.extract_filename()
         self.output_dir = Path(output_dir) if output_dir else Path("./output")
         self.images = {
@@ -68,12 +75,10 @@ class Filters:
             "zero_averaged_background": None,
             "mask": None,
         }
-        self.threshold = None
+        self.thresholds = None
         self.pixel_to_nm_scaling = None
         self.medians = {"rows": None, "cols": None}
         LOGGER.info(f"Filename : {self.filename}")
-        # self.scan_channel = self.images['scan_raw'].get_channel(channel)
-        #        self.images['scan_raw'] = None
         self.results = {
             "diff": None,
             "amplify": self.amplify_level,
@@ -94,16 +99,11 @@ class Filters:
 
     def load_scan(self) -> None:
         """Load the scan."""
-        self.images["scan_raw"] = load_scan(self.img_path)
-        LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
-        # LOGGER.info(f'Loaded file : {self.img_path}')
-        # FIXME : Get this working, needs to include additional except for image in incorrect format.
-        # try:
-        #     self.images['scan_raw'] = load_scan(self.img_path)
-        # except FileNotFoundError as error:
-        #     LOGGER.error(f'File not found : {self.img_path}')
-        #     pass
-        # sys.exit(1)
+        try:
+            self.images["scan_raw"] = load_scan(self.img_path)
+            LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
+        except FileNotFoundError:
+            LOGGER.info(f"File not found : {self.img_path}")
 
     def make_output_directory(self) -> None:
         """Create the output directory for saving files to."""
@@ -182,6 +182,10 @@ class Filters:
 
     def align_rows(self, image: np.ndarray, mask=None) -> np.ndarray:
         """Returns the input image with rows aligned by median height"""
+        if mask is not None:
+            if mask.all():
+                LOGGER.error(f"[{self.filename}] : Mask covers entire image. Adjust filtering thresholds/method.")
+
         medians = self.row_col_medians(image, mask)
         row_medians = medians["rows"]
         median_row_height = self._median_row_height(row_medians)
@@ -193,10 +197,8 @@ class Filters:
         # Adjust the row medians accordingly
         # FIXME : I think this can be done using arrays directly, no need to loop.
         for i in range(image.shape[0]):
-            if np.isnan(row_median_diffs[i]):
-                LOGGER.info(f"{i} Row_median is nan! : {row_median_diffs[i]}")
-            # for j in range(image.shape[1]):
-            #     image[i, j] -= row_median_diffs[i]
+            # if np.isnan(row_median_diffs[i]):
+            #     LOGGER.info(f"{i} Row_median is nan! : {row_median_diffs[i]}")
             image[i] -= row_median_diffs[i]
         LOGGER.info(f"[{self.filename}] : Rows aligned")
         return image
@@ -232,46 +234,9 @@ class Filters:
         """Calculate the difference of an array."""
         return array[-1] - array[0]
 
-    @classmethod
     def calc_gradient(self, array: np.ndarray, shape: int) -> np.ndarray:
         """Calculate the gradient of an array."""
         return self.calc_diff(array) / shape
-
-    def get_threshold(self, image: np.ndarray, **kwargs) -> float:
-        """Returns a threshold value separating the background and foreground of a 2D heightmap.
-
-        Parameters
-        ----------
-        image: np.array
-            Image to derive threshold from.
-        method: str
-            Method for deriving threshold options are 'otsu' (default), minimum, mean, yen and triangle
-
-        Returns
-        -------
-        float
-            Threshold of image intensity for subsequent masking.
-        """
-        self.threshold = threshold(image, **kwargs)
-        LOGGER.info(f"[{self.filename}] : Threshold       : {self.threshold}")
-
-    def get_mask(self, image: np.array) -> None:
-        """Derive mask.
-
-        Parameters
-        ----------
-        image: np.array
-            Image to derive mask for (typically after initial flattening).
-        threshold: float
-            Threshold above which pixels are masked.
-
-        Returns
-        -------
-        np.array
-            Array of booleans indicating whether a pixel is to be masked.
-        """
-        self.images["mask"] = get_mask(image, self.threshold, self.filename)
-        LOGGER.info(f'[{self.filename}] : Mask derived, values exceeding threshold : {self.images["mask"].sum()}')
 
     def average_background(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Zero the background
@@ -292,9 +257,7 @@ class Filters:
         LOGGER.info(f"[{self.filename}] : Zero averaging background")
         return image - np.array(medians["rows"], ndmin=1).T
 
-    def filter_image(
-        self,
-    ) -> None:
+    def filter_image(self) -> None:
         """Process a single image, filtering, finding grains and calculating their statistics.
 
         Example
@@ -316,20 +279,24 @@ class Filters:
         self.extract_pixel_to_nm_scaling()
         if self.amplify_level != 1.0:
             self.amplify()
-        # Flatten images in two steps, could call flatte_image() method which combines align_rows() and remove_tilt()
-        # but lose access to intermediary image.
         self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
-
-        # Create Mask
-        self.get_threshold(self.images["initial_tilt_removal"], method=self.threshold_method)
-        self.get_mask(self.images["initial_tilt_removal"])
-
-        # Second pass filtering (with mask based on threshold)
-        self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], mask=self.images["mask"])
-        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], mask=self.images["mask"])
-
-        # Average Background
+        # Get the thresholds
+        try:
+            self.thresholds = get_thresholds(
+                image=self.images["initial_tilt_removal"],
+                threshold_method=self.threshold_method,
+                otsu_threshold_multiplier=self.otsu_threshold_multiplier,
+                deviation_from_mean=self.threshold_std_dev,
+                absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
+            )
+        except TypeError as type_error:
+            raise type_error
+        self.images["mask"] = get_mask(
+            image=self.images["initial_tilt_removal"], thresholds=self.thresholds, img_name=self.filename
+        )
+        self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], self.images["mask"])
+        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], self.images["mask"])
         self.images["zero_averaged_background"] = self.average_background(
-            self.images["masked_tilt_removal"], mask=self.images["mask"]
+            self.images["masked_tilt_removal"], self.images["mask"]
         )

@@ -38,8 +38,14 @@ to test that you need to "checkout" this branch prior to installing it.
 
 ``` bash
 git clone -b dev https://github.com/AFM-SPM/TopoStats.git
+```
+``` bash
 cd TopoStats
+```
+``` bash
 git checkout dev
+```
+``` bash
 pip install .
 ```
 
@@ -61,8 +67,14 @@ with...
 
 ``` bash
 cd TopoStats
+```
+``` bash
 git checkout dev
+```
+``` bash
 pip install ".[tests]"
+```
+``` bash
 pytest
 ```
 

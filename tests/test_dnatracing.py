@@ -1,11 +1,12 @@
 """Tests of dnatracing methods."""
 import numpy as np
-import pytest
+
+# pylint: disable=protected-access
 
 
 def test_get_grain_array(test_dnatracing) -> None:
     """Test extraction of grain array."""
-    TARGET = {
+    target = {
         1: np.array(
             [
                 [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
@@ -60,4 +61,4 @@ def test_get_grain_array(test_dnatracing) -> None:
         ),
     }
     for x in range(1, 4):
-        np.testing.assert_array_equal(test_dnatracing._get_grain_array(x), TARGET[x])
+        np.testing.assert_array_equal(test_dnatracing._get_grain_array(x), target[x])

@@ -2,7 +2,6 @@
 from pathlib import Path
 from typing import Union
 import logging
-from configparser import Interpolation
 from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 import numpy as np

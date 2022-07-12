@@ -173,35 +173,41 @@ def plotkde2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, 
         df2 = df
     if plotarg2 is None:
         plotarg2 = plotarg
-    if label1 is None:
-        label1 = plotarg
-    if label2 is None:
-        label2 = plotarg2
 
-    print('Plotting KDE of %s for %s and %s' % (plotarg, label1, label2))
+    print 'Plotting kde of %s and %s' % (plotarg, plotarg2)
 
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_' + label1 + '_' + label2 + '_KDE' + plotextension)
+    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_' + plotarg2 + '_KDE' + plotextension)
 
-    # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
     dfnew2 = df2.copy()
-    dfnew[plotarg] = dataunitconversion(dfnew[plotarg], plotarg, nm)
-    dfnew2[plotarg2] = dataunitconversion(dfnew2[plotarg2], plotarg2, nm)
-    dfplot = pd.concat([dfnew[plotarg], dfnew2[plotarg2]], axis=1)
-    dfplot.columns = [label1, label2]
+
+    # Convert the unit of the data to nm if specified by the user
+    dfnew[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
+    dfnew2[plotarg2] = dataunitconversion(df[plotarg2], plotarg2, nm)
 
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
-    dfplot.plot.kde(ax=ax, alpha=1, linewidth=7.0)
+    # Simple KDE plot
+
+    # dfplot = pd.merge(df[plotarg], df2[plotarg2])
+    # df = df[[plotarg, plotarg2]]
+    # df.plot.kde(ax=ax, alpha=1, linewidth=7.0)
+
+    dfnew[plotarg].plot.kde(ax=ax, alpha=1, linewidth=7.0)
+    dfnew2[plotarg2].plot.kde(ax=ax, alpha=1, linewidth=7.0)
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
+    # plt.xlabel(labelunitconversion(plotarg1, nm), alpha=1)
     plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.ylabel('Probability Density', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
+    handles, labels = ax.get_legend_handles_labels()
+    # ax.legend(reversed(handles), reversed(labels), , title=grouparg, loc='upper right')
+    ax.legend(handles, labels, title=grouparg, loc='upper right')
     plt.savefig(savename)
 
 
@@ -244,49 +250,46 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
     plt.savefig(savename)
 
-
 def plothist2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, xmin=None, xmax=None, nm=False,
                 specpath=None, plotextension=defextension):
     """Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
     the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
 
-    if df2 is None:
-        df2 = df
-    if plotarg2 is None:
-        plotarg2 = plotarg
     if label1 is None:
         label1 = plotarg
     if label2 is None:
         label2 = plotarg2
+    if df2 is None:
+        df2 = df
+    if plotarg2 is None:
+        plotarg2 = plotarg
 
-    print('Plotting histogram of %s for %s and %s' % (plotarg, label1, label2))
+    print 'Plotting histogram of %s and %s' % (label1, label2)
 
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(
-        pathman(specpath) + '_' + plotarg + '_' + label1 + '_' + label2 + '_histogram' + plotextension)
+    savename = os.path.join(pathman(specpath) + '_' + label1 + '_' + label2 + '_histogram' + plotextension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
     dfnew2 = df2.copy()
-    dfnew[plotarg] = dataunitconversion(dfnew[plotarg], plotarg, nm)
-    dfnew2[plotarg2] = dataunitconversion(dfnew2[plotarg2], plotarg2, nm)
-    dfplot = pd.concat([dfnew[plotarg], dfnew2[plotarg2]], axis=1)
-    dfplot.columns = [label1, label2]
+    dfnew[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
+    dfnew2[plotarg2] = dataunitconversion(df[plotarg2], plotarg2, nm)
 
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
-    # dfnew[plotarg].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, color='orange')
-    # dfnew2[plotarg2].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, histtype='barstacked', color='blue')
-    dfplot.plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, stacked=False)
+    dfnew[plotarg].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins)
+    dfnew2[plotarg2].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, histtype='barstacked')
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
     plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
-    plt.ylabel('Count', alpha=1)
+    plt.ylabel('Probability Density', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles, labels)
     plt.savefig(savename)
 
 
@@ -324,7 +327,7 @@ def plotdist2var(plotarg, plotarg2, df, df2=None, xmin=None, xmax=None, bins=20,
                  plotextension=defextension, plotname=None, c1=None, c2=None):
     """Dist plot for 2 variables"""
 
-    print('Plotting dist plot of %s and %s' % (plotarg, plotarg2))
+    print 'Plotting dist plot of %s and %s' % (plotarg, plotarg2)
 
     if plotname is None:
         plotname = plotarg + '_and_' + plotarg2
@@ -514,7 +517,7 @@ if __name__ == '__main__':
 # grouparg = 'Experiment Directory'
 # grouparg = 'Basename'
 # grouparg = 'directory'
-grouparg = None
+# grouparg = None
 
 # Setting a continuous colour palette; useful for certain grouped plots, but can be commented out if unsuitable.
 # sns.set_palette(sns.color_palette('BuPu', n_colors=len(df.groupby(grouparg))))
