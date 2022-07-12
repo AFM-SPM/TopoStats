@@ -127,6 +127,7 @@ def process_scan(
     gaussian_mode: str = "nearest",
     background: float = 0.0,
     save_plots: bool = True,
+    colorbar: bool = True,
     output_dir: Union[str, Path] = "output",
 ) -> None:
     """Process a single image, filtering, finding grains and calculating their statistics.
@@ -150,6 +151,8 @@ def process_scan(
     background : float
     save_plots : bool
         Flag as to whether to save plots to PNG files.
+    colorbar : bool
+        Flag as to whether to include a colorbar scale in scan plots.
     output_dir : Union[str, Path]
         Path to output directory for saving results.
 
@@ -236,7 +239,7 @@ def process_scan(
                     array = np.flipud(array.pixels)
                 PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
                 try:
-                    plot_and_save(array, **PLOT_DICT[plot_name])
+                    plot_and_save(array, colorbar=colorbar, **PLOT_DICT[plot_name])
                 except AttributeError:
                     LOGGER.info(f"[{filter_image.filename}] Unable to generate plot : {plot_name}")
                     pass
@@ -245,17 +248,19 @@ def process_scan(
             LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
             for plot_name, array in grains.images.items():
                 PLOT_DICT[plot_name]["output_dir"] = Path(output_dir) / filtered_image.filename
-                plot_and_save(array, **PLOT_DICT[plot_name])
+                plot_and_save(array, colorbar=colorbar, **PLOT_DICT[plot_name])
             # Make a plot of coloured regions with bounding boxes
             plot_and_save(
                 grains.images["coloured_regions"],
                 Path(output_dir) / filtered_image.filename,
+                colorbar=colorbar,
                 **PLOT_DICT["bounding_boxes"],
                 region_properties=grains.region_properties,
             )
             plot_and_save(
                 grains.images["labelled_regions"],
                 Path(output_dir) / filtered_image.filename,
+                colorbar=colorbar,
                 **PLOT_DICT["coloured_boxes"],
                 region_properties=grains.region_properties,
             )
@@ -292,6 +297,8 @@ def main():
     #         gaussian_size=config["grains"]["gaussian_size"],
     #         gaussian_mode=config["grains"]["gaussian_mode"],
     #         background=config["grains"]["background"],
+    #         save_plots=config["plotting"]["save"],
+    #         colorbar=config["plotting"]["colorbar"],
     #         output_dir=config["output_dir"],
     #     )
     processing_function = partial(
@@ -303,6 +310,8 @@ def main():
         gaussian_size=config["grains"]["gaussian_size"],
         gaussian_mode=config["grains"]["gaussian_mode"],
         background=config["grains"]["background"],
+        save_plots=config["plotting"]["save"],
+        colorbar=config["plotting"]["colorbar"],
         output_dir=config["output_dir"],
     )
 

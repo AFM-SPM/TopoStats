@@ -15,3 +15,6 @@ grains:
   threshold_multiplier: 1.7
   minimum_grain_size: 800
   background: 0.0
+plotting:
+  save: True
+  colorbar: False
