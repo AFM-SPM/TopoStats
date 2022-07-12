@@ -147,7 +147,6 @@ class GrainStats:
         stats_array = []
         for index, region in enumerate(region_properties):
 
-            # FIXME : Get [{self.image_name}] included in LOGGER
             LOGGER.info(f"[{self.image_name}] : Processing grain: {index}")
             # Create directory for each grain's plots
             output_grain = self.base_output_dir / self.direction / f"grain_{index}"
