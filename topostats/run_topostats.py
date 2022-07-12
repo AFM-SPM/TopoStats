@@ -252,7 +252,7 @@ def process_scan(
     if grains.region_properties is not None:
         # Grain Statistics :
         try:
-            LOGGER.info(f"[{filtered_image.filename}] : Grain Statistics")
+            LOGGER.info(f"[{filtered_image.filename}] : *** Grain Statistics ***")
             grainstats = {
                 direction: GrainStats(
                     data=grains.images["gaussian_filtered"],
@@ -277,7 +277,7 @@ def process_scan(
             LOGGER.info(f"[{filtered_image.filename}] : DNA Tracing")
             dna_traces = defaultdict()
             tracing_stats = defaultdict()
-            for direction in grainstats.keys():
+            for direction, grainstat in grainstats.keys():
                 dna_traces[direction] = dnaTrace(
                     full_image_data=grains.images["gaussian_filtered"].T,
                     grains=grains.directions[direction]["labelled_regions_02"],
@@ -288,11 +288,10 @@ def process_scan(
                 tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
                 tracing_stats[direction].save_trace_stats(_output_dir / filtered_image.filename / direction)
 
-            for direction, grainstat in grainstats.items():
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Combining {direction} grain statistics and dnatracing statistics"
                 )
-                results = grainstat["statistics"].merge(tracing_stats[direction].df, on="Molecule Number")
+                results = grainstat[direction]["statistics"].merge(tracing_stats[direction].df, on="Molecule Number")
                 results.to_csv(_output_dir / filtered_image.filename / direction / "all_statistics.csv")
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Combined statistics saved to {str(_output_dir)}/{filtered_image.filename}/{direction}/all_statistics.csv"
@@ -335,13 +334,13 @@ def process_scan(
                 plot_and_save(
                     grains.directions[direction]["coloured_regions"],
                     **PLOT_DICT["bounding_boxes"],
-                    region_properties=grains.region_properties,
+                    region_properties=grains.region_properties[direction],
                 )
                 PLOT_DICT["coloured_boxes"]["output_dir"] = output_dir
                 plot_and_save(
                     grains.directions[direction]["labelled_regions_02"],
                     **PLOT_DICT["coloured_boxes"],
-                    region_properties=grains.region_properties,
+                    region_properties=grains.region_properties[direction],
                 )
 
     return image_path, results

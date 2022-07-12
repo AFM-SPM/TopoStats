@@ -90,8 +90,8 @@ class Grains:
         }
         self.directions = defaultdict()
         self.minimum_grain_size = None
-        self.region_properties = None
-        self.bounding_boxes = None
+        self.region_properties = defaultdict()
+        self.bounding_boxes = defaultdict()
         self.grainstats = None
         Path.mkdir(self.base_output_dir, parents=True, exist_ok=True)
 
@@ -147,12 +147,12 @@ class Grains:
 
         Very small objects are first removed via thresholding before calculating the lower extreme.
         """
-        self.get_region_properties(image)
-        grain_areas = np.array([grain.area for grain in self.region_properties])
+        region_properties = self.get_region_properties(image)
+        grain_areas = np.array([grain.area for grain in region_properties])
         if len(grain_areas > 0):
             # Exclude small objects less than a given threshold first
             grain_areas = grain_areas[
-                grain_areas >= threshold(grain_areas, method=self.threshold_method, otsu_threshold_multiplier=1.0)
+                grain_areas >= threshold(grain_areas, method="otsu", otsu_threshold_multiplier=1.0)
             ]
             self.minimum_grain_size = np.median(grain_areas) - (
                 1.5 * (np.quantile(grain_areas, 0.75) - np.quantile(grain_areas, 0.25))
@@ -211,7 +211,8 @@ class Grains:
         LOGGER.info(f"[{self.filename}] : Coloured regions")
         return coloured_regions
 
-    def get_region_properties(self, image: np.array, **kwargs) -> List:
+    @staticmethod
+    def get_region_properties(image: np.array, **kwargs) -> List:
         """Extract the properties of each region.
 
         Parameters
@@ -224,24 +225,26 @@ class Grains:
         List
             List of region property objects.
         """
-        self.region_properties = regionprops(image, **kwargs)
-        LOGGER.info(f"[{self.filename}] : Region properties calculated")
+        return regionprops(image, **kwargs)
 
-    def get_bounding_boxes(self) -> Dict:
+    def get_bounding_boxes(self, direction) -> Dict:
         """Derive a list of bounding boxes for each region from the derived region_properties
+
+        Parameters
+        ----------
+        direction: str
+            Direction of threshold for which bounding boxes are being calculated.
 
         Returns
         -------
         dict
             Dictionary of bounding boxes indexed by region area.
         """
-        LOGGER.info(f"[{self.filename}] : Extracting bounding boxes")
-        self.bounding_boxes = {region.area: region.area_bbox for region in self.region_properties}
+        return {region.area: region.area_bbox for region in self.region_properties[direction]}
 
     def find_grains(self):
         """Find grains."""
         LOGGER.info(f"[{self.filename}] : Thresholding method (grains) : {self.threshold_method}")
-        # self.threshold = self.get_threshold(self.image, self.threshold_method)
         self.thresholds = get_thresholds(
             image=self.image,
             threshold_method=self.threshold_method,
@@ -251,8 +254,7 @@ class Grains:
         )
         try:
             for direction, _threshold in self.thresholds.items():
-
-                # Create sub-directory for the upper / lower grains
+                LOGGER.info(f"[{self.filename}] : Processing {direction} threshold ({_threshold})")
                 self.directions[direction] = defaultdict()
                 self.gaussian_filter()
                 self.directions[direction]["mask_grains"] = _get_mask(
@@ -277,12 +279,16 @@ class Grains:
                 self.directions[direction]["labelled_regions_02"] = self.label_regions(
                     self.directions[direction]["removed_small_objects"]
                 )
-                self.get_region_properties(self.directions[direction]["labelled_regions_02"])
-
+                self.region_properties[direction] = self.get_region_properties(
+                    self.directions[direction]["labelled_regions_02"]
+                )
+                LOGGER.info(f"[{self.filename}] : Region properties calculated ({direction})")
+                print(f"#### {direction} region_properties : {self.region_properties[direction]}")
                 self.directions[direction]["coloured_regions"] = self.colour_regions(
                     self.directions[direction]["labelled_regions_02"]
                 )
-                self.get_bounding_boxes()
+                self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
+                LOGGER.info(f"[{self.filename}] : Extracted bounding boxes ({direction})")
         # FIXME : Identify what exception is raised with images without grains and replace broad except
         except:
             LOGGER.info(f"[{self.filename}] : No grains found.")
