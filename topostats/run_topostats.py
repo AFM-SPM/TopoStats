@@ -327,7 +327,7 @@ def process_scan(
             LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
             plot_name = "gaussian_filtered"
             PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
-            plot_and_save(grains.images["gaussian_filtered"], pixel_to_nm_scaling_factor=filtered_image.pixel_to_nm_scaling, **PLOT_DICT[plot_name])
+            plot_and_save(grains.images["gaussian_filtered"], pixel_to_nm_scaling_factor=filtered_image.pixel_to_nm_scaling, colorbar=colorbar,**PLOT_DICT[plot_name])
             for direction, image_arrays in grains.directions.items():
                 output_dir = Path(_output_dir) / filtered_image.filename / f"{direction}"
                 for plot_name, array in image_arrays.items():
