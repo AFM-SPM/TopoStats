@@ -234,12 +234,6 @@ def minicircle_channel(minicircle) -> Filters:
 def minicircle_pixels(minicircle_channel) -> Filters:
     """Extract Pixels"""
     minicircle_channel.extract_pixels()
-    return minicircle_channel
-
-
-@pytest.fixture
-def minicircle_extract_pixel_to_nm_scaling(minicircle_channel) -> Filters:
-    """Extract the pixel to nm scaling"""
     minicircle_channel.extract_pixel_to_nm_scaling()
     return minicircle_channel
 
@@ -521,7 +515,7 @@ def grainstats(image_random: np.array, minicircle_filename: str, tmpdir) -> Grai
 def minicircle_grainstats(
     minicircle_grain_gaussian_filter: np.array,
     minicircle_grain_labelled_post_removal: np.array,
-    minicircle_extract_pixel_to_nm_scaling: float,
+    minicircle_pixels: float,
     minicircle_filename,
     tmpdir: Path,
 ) -> GrainStats:
@@ -529,7 +523,7 @@ def minicircle_grainstats(
     return GrainStats(
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         labelled_data=minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"],
-        pixel_to_nanometre_scaling=minicircle_extract_pixel_to_nm_scaling.pixel_to_nm_scaling,
+        pixel_to_nanometre_scaling=minicircle_pixels.pixel_to_nm_scaling,
         direction=minicircle_filename.filename,
         base_output_dir=tmpdir,
     )

@@ -36,10 +36,10 @@ def test_extract_channel(minicircle_channel: Filters) -> None:
     assert isinstance(minicircle_channel.images["extracted_channel"], SPM_image)
 
 
-def test_extract_pixel_to_nm_scaling(minicircle_extract_pixel_to_nm_scaling: Filters) -> None:
+def test_extract_pixel_to_nm_scaling(minicircle_pixels: Filters) -> None:
     """Test extraction of pixels to nanometer scaling."""
-    assert isinstance(minicircle_extract_pixel_to_nm_scaling, Filters)
-    assert minicircle_extract_pixel_to_nm_scaling.pixel_to_nm_scaling == 0.4940029296875
+    assert isinstance(minicircle_pixels, Filters)
+    assert minicircle_pixels.pixel_to_nm_scaling == 0.4940029296875
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
@@ -48,7 +48,7 @@ def test_extract_pixels(minicircle_pixels, tmpdir) -> None:
     assert isinstance(minicircle_pixels.images["pixels"], np.ndarray)
     assert minicircle_pixels.images["pixels"].shape == (1024, 1024)
     assert minicircle_pixels.images["pixels"].sum() == 30695369.188316286
-    fig, _ = plot_and_save(minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", title="Raw Height")
+    fig, _ = plot_and_save(minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,title="Raw Height")
     return fig
 
 
@@ -63,6 +63,7 @@ def test_align_rows_unmasked(minicircle_initial_align: np.array, tmpdir) -> None
         tmpdir,
         "02-initial_align_rows_unmasked.png",
         title="Initial Align (Unmasked)",
+        pixel_to_nm_scaling_factor=minicircle_initial_align.pixel_to_nm_scaling,
     )
     return fig
 
@@ -78,6 +79,7 @@ def test_remove_x_y_tilt_unmasked(minicircle_initial_tilt_removal: np.array, tmp
         tmpdir,
         "03-initial_tilt_removal_unmasked.png",
         title="Initial Tilt Removal (Unmasked)",
+        pixel_to_nm_scaling_factor=minicircle_initial_tilt_removal.pixel_to_nm_scaling,
     )
     return fig
 
@@ -106,7 +108,7 @@ def test_get_mask(minicircle_mask: np.array, tmpdir) -> None:
     assert isinstance(minicircle_mask.images["mask"], np.ndarray)
     assert minicircle_mask.images["mask"].shape == (1024, 1024)
     assert minicircle_mask.images["mask"].sum() == 82159
-    fig, _ = plot_and_save(minicircle_mask.images["mask"], tmpdir, "04-binary_mask.png", title="Binary Mask")
+    fig, _ = plot_and_save(minicircle_mask.images["mask"], tmpdir, "04-binary_mask.png", title="Binary Mask", pixel_to_nm_scaling_factor=minicircle_mask.pixel_to_nm_scaling,)
     return fig
 
 
@@ -121,6 +123,7 @@ def test_align_rows_masked(minicircle_masked_align: np.array, tmpdir) -> None:
         tmpdir,
         "05-masked_align_rows.png",
         title="Secondary Align (Masked)",
+        pixel_to_nm_scaling_factor=minicircle_masked_align.pixel_to_nm_scaling,
     )
     return fig
 
@@ -136,6 +139,7 @@ def test_remove_x_y_tilt_masked(minicircle_masked_tilt_removal: np.array, tmpdir
         tmpdir,
         "06-secondary_tilt_removal_masked.png",
         title="Secondary Tilt Removal (Masked)",
+        pixel_to_nm_scaling_factor=minicircle_masked_tilt_removal.pixel_to_nm_scaling,
     )
     return fig
 
@@ -151,6 +155,7 @@ def test_average_background(minicircle_zero_average_background: np.array, tmpdir
         tmpdir,
         "07-zero_average_background.png",
         title="Zero Average Background",
+        pixel_to_nm_scaling_factor=minicircle_zero_average_background.pixel_to_nm_scaling,
     )
     return fig
 

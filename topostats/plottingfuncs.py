@@ -17,6 +17,7 @@ def plot_and_save(
     data: np.array,
     output_dir: Union[str, Path],
     filename: str,
+    pixel_to_nm_scaling_factor: float,
     title: str = None,
     interpolation: str = "nearest",
     cmap: str = "afmhot",
@@ -45,9 +46,12 @@ def plot_and_save(
         Optionally add a colorbar to plots, default is False.
     """
     fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+    shape = data.shape
     if isinstance(data, np.ndarray):
-        im = ax.imshow(data, interpolation=interpolation, cmap=cmap)
+        im = ax.imshow(data, extent=(0, shape[0] * pixel_to_nm_scaling_factor, 0, shape[1] * pixel_to_nm_scaling_factor), interpolation=interpolation, cmap=cmap)
         plt.title(title)
+        plt.xlabel("Nanometres")
+        plt.ylabel("Nanometres")
         if colorbar:
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.05)
@@ -56,7 +60,9 @@ def plot_and_save(
             fig, ax = add_bounding_boxes_to_plot(fig, ax, region_properties)
         plt.savefig(output_dir / filename)
     else:
-        data.show(ax=ax, interpolation=interpolation, cmap=cmap)
+        plt.xlabel("Nanometres")
+        plt.ylabel("Nanometres")
+        data.show(ax=ax, extent=(0, shape[0] * pixel_to_nm_scaling_factor, 0, shape[1] * pixel_to_nm_scaling_factor), interpolation=interpolation, cmap=cmap)
     plt.close()
     LOGGER.info(f"[{Path(output_dir).parts[1]}] : Image saved to : {str(output_dir / filename)}")
     return fig, ax
