@@ -786,7 +786,6 @@ if __name__ == '__main__':
     appended_data = []
 
     # Look through the current directory and all subdirectories for files ending in .spm and add to flist
-    # spmfiles = traversedirectories(fileend, filetype, path)
     spmfiles = traversedirectories(fileend, filetype, path)
 
     if len(spmfiles) == 0:
@@ -929,14 +928,18 @@ if __name__ == '__main__':
 
             # Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
-            # plt.hist(npdata)
-            # plt.show()
-            try:
-                full_data = np.append(full_npdata, npdata)
-            except NameError:
-                full_npdata = npdata
-                plt.hist(full_npdata)
-                plt.show()
+
+            directory = os.path.basename(os.path.dirname(filename))
+            if directory == 'DNA_pure':
+                try:
+                    dna_pure_all = np.append(dna_pure_all, npdata)
+                except NameError:
+                    dna_pure_all = npdata
+            elif directory == 'DNA_NDP':
+                try:
+                    dna_ndp_all = np.append(dna_ndp_all, npdata)
+                except NameError:
+                    dna_ndp_all = npdata
 
             # Save data as 2 images, with and without mask
             savefiles(data, filename, extension)
@@ -955,6 +958,6 @@ if __name__ == '__main__':
 
     # Saving stats to text and JSON files named by master path
     savestats(path, grainstats_df)
-
-    plt.hist(full_npdata, bins=20)
-    plt.show()
+    plt.hist(dna_pure_all, bins=100, color='b', edgecolor='k', density=True, alpha=0.5)
+    plt.hist(dna_ndp_all, bins=100, color='orange', edgecolor='k', density=True, stacked=False, alpha=0.5)
+    plt.savefig(os.path.join(path, 'Height_histograms.png'))
