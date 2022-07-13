@@ -40,6 +40,7 @@ def test_gaussian_filter_minicircle(minicircle_grain_gaussian_filter: Grains, tm
         tmpdir,
         "08-gaussian-filtered.png",
         title="Gaussian Filter",
+        pixel_to_nm_scaling_factor=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
     )
     return fig
 
@@ -51,7 +52,7 @@ def test_mask_minicircle(minicircle_grain_mask: np.array, tmpdir) -> None:
     assert minicircle_grain_mask.directions["upper"]["mask_grains"].shape == (1024, 1024)
     assert minicircle_grain_mask.directions["upper"]["mask_grains"].sum() == 52674
     fig, _ = plot_and_save(
-        minicircle_grain_mask.directions["upper"]["mask_grains"], tmpdir, "09-boolean.png", title="Boolean Mask"
+        minicircle_grain_mask.directions["upper"]["mask_grains"], tmpdir, "09-boolean.png", title="Boolean Mask", pixel_to_nm_scaling_factor=minicircle_grain_mask.pixel_to_nm_scaling,
     )
     return fig
 
@@ -67,6 +68,7 @@ def test_clear_border(minicircle_grain_clear_border: np.array, tmpdir) -> None:
         tmpdir,
         "10-clear_border.png",
         title="Clear Borders",
+        pixel_to_nm_scaling_factor=minicircle_grain_clear_border.pixel_to_nm_scaling,
     )
     return fig
 
@@ -82,6 +84,7 @@ def test_remove_noise(minicircle_grain_remove_noise: np.array, tmpdir) -> None:
         tmpdir,
         "11-remove_noise.png",
         title="Noise Removed",
+        pixel_to_nm_scaling_factor=minicircle_grain_remove_noise.pixel_to_nm_scaling,
     )
     return fig
 
@@ -103,6 +106,7 @@ def test_remove_small_objects(minicircle_small_objects_removed: np.array, tmpdir
         tmpdir,
         "11-small_objects_removed.png",
         title="Small Objects Removed",
+        pixel_to_nm_scaling_factor=minicircle_small_objects_removed.pixel_to_nm_scaling,
     )
     return fig
 
@@ -118,6 +122,7 @@ def test_label_regions(minicircle_grain_labelled_post_removal: np.array, tmpdir)
         tmpdir,
         "12-labelled.png",
         title="Labelled Regions",
+        pixel_to_nm_scaling_factor=minicircle_grain_labelled_post_removal.pixel_to_nm_scaling,
     )
     return fig
 
@@ -141,5 +146,6 @@ def test_colour_regions(minicircle_grain_coloured: np.array, tmpdir) -> None:
         tmpdir,
         "14-coloured_regions.png",
         title="Coloured Regions",
+        pixel_to_nm_scaling_factor=minicircle_grain_coloured.pixel_to_nm_scaling,
     )
     return fig
