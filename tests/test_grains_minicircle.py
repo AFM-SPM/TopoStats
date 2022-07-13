@@ -30,7 +30,7 @@ def test_threshold_abs(minicircle_grain_threshold_abs: Grains) -> None:
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_gaussian_filter_minicircle(minicircle_grain_gaussian_filter: Grains, tmpdir) -> None:
+def test_gaussian_filter_minicircle(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmpdir) -> None:
     """Test Gaussian filter."""
     assert isinstance(minicircle_grain_gaussian_filter.images["gaussian_filtered"], np.ndarray)
     assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].shape == (1024, 1024)
@@ -40,25 +40,29 @@ def test_gaussian_filter_minicircle(minicircle_grain_gaussian_filter: Grains, tm
         tmpdir,
         "08-gaussian-filtered.png",
         title="Gaussian Filter",
-        pixel_to_nm_scaling_factor=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
+        **plotting_config
     )
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_mask_minicircle(minicircle_grain_mask: np.array, tmpdir) -> None:
+def test_mask_minicircle(minicircle_grain_mask: Grains, plotting_config: dict, tmpdir) -> None:
     """Test creation of boolean array for clearing borders."""
     assert isinstance(minicircle_grain_mask.directions["upper"]["mask_grains"], np.ndarray)
     assert minicircle_grain_mask.directions["upper"]["mask_grains"].shape == (1024, 1024)
     assert minicircle_grain_mask.directions["upper"]["mask_grains"].sum() == 52674
     fig, _ = plot_and_save(
-        minicircle_grain_mask.directions["upper"]["mask_grains"], tmpdir, "09-boolean.png", title="Boolean Mask", pixel_to_nm_scaling_factor=minicircle_grain_mask.pixel_to_nm_scaling,
+        minicircle_grain_mask.directions["upper"]["mask_grains"],
+        tmpdir,
+        "09-boolean.png",
+        title="Boolean Mask",
+        **plotting_config
     )
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_clear_border(minicircle_grain_clear_border: np.array, tmpdir) -> None:
+def test_clear_border(minicircle_grain_clear_border: Grains, plotting_config: dict, tmpdir) -> None:
     """Test creation of boolean array for clearing borders."""
     assert isinstance(minicircle_grain_clear_border.directions["upper"]["tidied_border"], np.ndarray)
     assert minicircle_grain_clear_border.directions["upper"]["tidied_border"].shape == (1024, 1024)
@@ -68,13 +72,13 @@ def test_clear_border(minicircle_grain_clear_border: np.array, tmpdir) -> None:
         tmpdir,
         "10-clear_border.png",
         title="Clear Borders",
-        pixel_to_nm_scaling_factor=minicircle_grain_clear_border.pixel_to_nm_scaling,
+        **plotting_config
     )
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_remove_noise(minicircle_grain_remove_noise: np.array, tmpdir) -> None:
+def test_remove_noise(minicircle_grain_remove_noise: Grains, plotting_config: dict, tmpdir) -> None:
     """Test creation of boolean array for clearing borders."""
     assert isinstance(minicircle_grain_remove_noise.directions["upper"]["removed_noise"], np.ndarray)
     assert minicircle_grain_remove_noise.directions["upper"]["removed_noise"].shape == (1024, 1024)
@@ -84,7 +88,7 @@ def test_remove_noise(minicircle_grain_remove_noise: np.array, tmpdir) -> None:
         tmpdir,
         "11-remove_noise.png",
         title="Noise Removed",
-        pixel_to_nm_scaling_factor=minicircle_grain_remove_noise.pixel_to_nm_scaling,
+        **plotting_config
     )
     return fig
 
@@ -96,7 +100,7 @@ def test_calc_minimum_grain_size_pixels(minicircle_minimum_grain_size) -> None:
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_remove_small_objects(minicircle_small_objects_removed: np.array, tmpdir) -> None:
+def test_remove_small_objects(minicircle_small_objects_removed: Grains, plotting_config: dict, tmpdir) -> None:
     """Test removal of small objects."""
     assert isinstance(minicircle_small_objects_removed.directions["upper"]["removed_small_objects"], np.ndarray)
     assert minicircle_small_objects_removed.directions["upper"]["removed_small_objects"].shape == (1024, 1024)
@@ -106,13 +110,13 @@ def test_remove_small_objects(minicircle_small_objects_removed: np.array, tmpdir
         tmpdir,
         "11-small_objects_removed.png",
         title="Small Objects Removed",
-        pixel_to_nm_scaling_factor=minicircle_small_objects_removed.pixel_to_nm_scaling,
+        **plotting_config
     )
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_label_regions(minicircle_grain_labelled_post_removal: np.array, tmpdir) -> None:
+def test_label_regions(minicircle_grain_labelled_post_removal: Grains, plotting_config: dict, tmpdir) -> None:
     """Test removal of small objects."""
     assert isinstance(minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"], np.ndarray)
     assert minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"].shape == (1024, 1024)
@@ -122,7 +126,7 @@ def test_label_regions(minicircle_grain_labelled_post_removal: np.array, tmpdir)
         tmpdir,
         "12-labelled.png",
         title="Labelled Regions",
-        pixel_to_nm_scaling_factor=minicircle_grain_labelled_post_removal.pixel_to_nm_scaling,
+        **plotting_config
     )
     return fig
 
@@ -136,7 +140,7 @@ def test_region_properties(minicircle_grain_region_properties_post_removal: np.a
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_colour_regions(minicircle_grain_coloured: np.array, tmpdir) -> None:
+def test_colour_regions(minicircle_grain_coloured: Grains, plotting_config: dict, tmpdir) -> None:
     """Test removal of small objects."""
     assert isinstance(minicircle_grain_coloured.directions["upper"]["coloured_regions"], np.ndarray)
     assert minicircle_grain_coloured.directions["upper"]["coloured_regions"].shape == (1024, 1024, 3)
@@ -146,6 +150,6 @@ def test_colour_regions(minicircle_grain_coloured: np.array, tmpdir) -> None:
         tmpdir,
         "14-coloured_regions.png",
         title="Coloured Regions",
-        pixel_to_nm_scaling_factor=minicircle_grain_coloured.pixel_to_nm_scaling,
+        **plotting_config
     )
     return fig

@@ -9,6 +9,7 @@ import numpy as np
 
 
 from topostats.logs.logs import LOGGER_NAME
+from topostats.theme import Colormap
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -20,9 +21,10 @@ def plot_and_save(
     pixel_to_nm_scaling_factor: float,
     title: str = None,
     interpolation: str = "nearest",
-    cmap: str = "afmhot",
+    cmap: str = "nanoscope",
     region_properties: dict = None,
-    colorbar: bool = False,
+    colorbar: bool = True,
+    save: bool = True,
 ):
     """Plot and save an image.
 
@@ -39,16 +41,23 @@ def plot_and_save(
     interpolation: str
         Interpolation to use (default 'nearest').
     cmap : str
-        Colour map to use (default 'afmhot')
+        Colour map to use (default 'nanoscope', 'afmhot' also available)
     region_properties: dict
         Dictionary of region properties, adds bounding boxes if specified.
     colorbar: bool
         Optionally add a colorbar to plots, default is False.
+    save: bool
+        Whether to save the image.
     """
     fig, ax = plt.subplots(1, 1, figsize=(8, 8))
     shape = data.shape
     if isinstance(data, np.ndarray):
-        im = ax.imshow(data, extent=(0, shape[0] * pixel_to_nm_scaling_factor, 0, shape[1] * pixel_to_nm_scaling_factor), interpolation=interpolation, cmap=cmap)
+        im = ax.imshow(
+            data,
+            extent=(0, shape[0] * pixel_to_nm_scaling_factor, 0, shape[1] * pixel_to_nm_scaling_factor),
+            interpolation=interpolation,
+            cmap=Colormap(cmap).get_cmap(),
+        )
         plt.title(title)
         plt.xlabel("Nanometres")
         plt.ylabel("Nanometres")
@@ -58,11 +67,18 @@ def plot_and_save(
             plt.colorbar(im, cax=cax)
         if region_properties:
             fig, ax = add_bounding_boxes_to_plot(fig, ax, region_properties)
-        plt.savefig(output_dir / filename)
+
+        if save:
+            plt.savefig(output_dir / filename)
     else:
         plt.xlabel("Nanometres")
         plt.ylabel("Nanometres")
-        data.show(ax=ax, extent=(0, shape[0] * pixel_to_nm_scaling_factor, 0, shape[1] * pixel_to_nm_scaling_factor), interpolation=interpolation, cmap=cmap)
+        data.show(
+            ax=ax,
+            extent=(0, shape[0] * pixel_to_nm_scaling_factor, 0, shape[1] * pixel_to_nm_scaling_factor),
+            interpolation=interpolation,
+            cmap=Colormap(cmap).get_cmap(),
+        )
     plt.close()
     LOGGER.info(f"[{Path(output_dir).parts[1]}] : Image saved to : {str(output_dir / filename)}")
     return fig, ax

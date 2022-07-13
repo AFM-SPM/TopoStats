@@ -43,17 +43,24 @@ def test_extract_pixel_to_nm_scaling(minicircle_pixels: Filters) -> None:
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_extract_pixels(minicircle_pixels, tmpdir) -> None:
+def test_extract_pixels(minicircle_pixels: Filters, plotting_config: dict, tmpdir) -> None:
     """Test extraction of channel."""
+    print(f"######### plotting_config : {plotting_config}")
     assert isinstance(minicircle_pixels.images["pixels"], np.ndarray)
     assert minicircle_pixels.images["pixels"].shape == (1024, 1024)
     assert minicircle_pixels.images["pixels"].sum() == 30695369.188316286
-    fig, _ = plot_and_save(minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,title="Raw Height")
+    fig, _ = plot_and_save(
+        minicircle_pixels.images["pixels"],
+        tmpdir,
+        "01-raw_heightmap.png",
+        title="Raw Height",
+        **plotting_config,
+    )
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_align_rows_unmasked(minicircle_initial_align: np.array, tmpdir) -> None:
+def test_align_rows_unmasked(minicircle_initial_align: Filters, plotting_config: dict, tmpdir) -> None:
     """Test initial alignment of rows without mask."""
     assert isinstance(minicircle_initial_align.images["initial_align"], np.ndarray)
     assert minicircle_initial_align.images["initial_align"].shape == (1024, 1024)
@@ -63,13 +70,13 @@ def test_align_rows_unmasked(minicircle_initial_align: np.array, tmpdir) -> None
         tmpdir,
         "02-initial_align_rows_unmasked.png",
         title="Initial Align (Unmasked)",
-        pixel_to_nm_scaling_factor=minicircle_initial_align.pixel_to_nm_scaling,
+        **plotting_config,
     )
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_remove_x_y_tilt_unmasked(minicircle_initial_tilt_removal: np.array, tmpdir) -> None:
+def test_remove_x_y_tilt_unmasked(minicircle_initial_tilt_removal: Filters, plotting_config: dict, tmpdir) -> None:
     """Test removal of tilt without mask."""
     assert isinstance(minicircle_initial_tilt_removal.images["initial_tilt_removal"], np.ndarray)
     assert minicircle_initial_tilt_removal.images["initial_tilt_removal"].shape == (1024, 1024)
@@ -79,7 +86,7 @@ def test_remove_x_y_tilt_unmasked(minicircle_initial_tilt_removal: np.array, tmp
         tmpdir,
         "03-initial_tilt_removal_unmasked.png",
         title="Initial Tilt Removal (Unmasked)",
-        pixel_to_nm_scaling_factor=minicircle_initial_tilt_removal.pixel_to_nm_scaling,
+        **plotting_config,
     )
     return fig
 
@@ -103,17 +110,19 @@ def test_get_threshold_abs(minicircle_threshold_abs: np.array) -> None:
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_get_mask(minicircle_mask: np.array, tmpdir) -> None:
+def test_get_mask(minicircle_mask: Filters, plotting_config: dict, tmpdir) -> None:
     """Test derivation of mask."""
     assert isinstance(minicircle_mask.images["mask"], np.ndarray)
     assert minicircle_mask.images["mask"].shape == (1024, 1024)
     assert minicircle_mask.images["mask"].sum() == 82159
-    fig, _ = plot_and_save(minicircle_mask.images["mask"], tmpdir, "04-binary_mask.png", title="Binary Mask", pixel_to_nm_scaling_factor=minicircle_mask.pixel_to_nm_scaling,)
+    fig, _ = plot_and_save(
+        minicircle_mask.images["mask"], tmpdir, "04-binary_mask.png", title="Binary Mask", **plotting_config
+    )
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_align_rows_masked(minicircle_masked_align: np.array, tmpdir) -> None:
+def test_align_rows_masked(minicircle_masked_align: Filters, plotting_config: dict, tmpdir) -> None:
     """Test alignment of rows without mask."""
     assert isinstance(minicircle_masked_align.images["masked_align"], np.ndarray)
     assert minicircle_masked_align.images["masked_align"].shape == (1024, 1024)
@@ -123,13 +132,13 @@ def test_align_rows_masked(minicircle_masked_align: np.array, tmpdir) -> None:
         tmpdir,
         "05-masked_align_rows.png",
         title="Secondary Align (Masked)",
-        pixel_to_nm_scaling_factor=minicircle_masked_align.pixel_to_nm_scaling,
+        **plotting_config,
     )
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_remove_x_y_tilt_masked(minicircle_masked_tilt_removal: np.array, tmpdir) -> None:
+def test_remove_x_y_tilt_masked(minicircle_masked_tilt_removal: Filters, plotting_config: dict, tmpdir) -> None:
     """Test removal of tilt without mask."""
     assert isinstance(minicircle_masked_tilt_removal.images["masked_tilt_removal"], np.ndarray)
     assert minicircle_masked_tilt_removal.images["masked_tilt_removal"].shape == (1024, 1024)
@@ -139,13 +148,13 @@ def test_remove_x_y_tilt_masked(minicircle_masked_tilt_removal: np.array, tmpdir
         tmpdir,
         "06-secondary_tilt_removal_masked.png",
         title="Secondary Tilt Removal (Masked)",
-        pixel_to_nm_scaling_factor=minicircle_masked_tilt_removal.pixel_to_nm_scaling,
+        **plotting_config,
     )
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_average_background(minicircle_zero_average_background: np.array, tmpdir) -> None:
+def test_average_background(minicircle_zero_average_background: Filters, plotting_config: dict, tmpdir) -> None:
     """Test zero-averaging of background."""
     assert isinstance(minicircle_zero_average_background.images["zero_averaged_background"], np.ndarray)
     assert minicircle_zero_average_background.images["zero_averaged_background"].shape == (1024, 1024)
@@ -155,7 +164,7 @@ def test_average_background(minicircle_zero_average_background: np.array, tmpdir
         tmpdir,
         "07-zero_average_background.png",
         title="Zero Average Background",
-        pixel_to_nm_scaling_factor=minicircle_zero_average_background.pixel_to_nm_scaling,
+        **plotting_config,
     )
     return fig
 
