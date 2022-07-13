@@ -283,7 +283,6 @@ class Grains:
                     self.directions[direction]["labelled_regions_02"]
                 )
                 LOGGER.info(f"[{self.filename}] : Region properties calculated ({direction})")
-                print(f"#### {direction} region_properties : {self.region_properties[direction]}")
                 self.directions[direction]["coloured_regions"] = self.colour_regions(
                     self.directions[direction]["labelled_regions_02"]
                 )

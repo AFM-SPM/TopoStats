@@ -223,7 +223,7 @@ def process_scan(
     # Find Grains :
     # The Grains class also has a convenience method that runs the instantiated class in full.
     try:
-        LOGGER.info(f"[{filtered_image.filename}] : Grain Finding")
+        LOGGER.info(f"[{filtered_image.filename}] : *** Grain Finding ***")
         grains = Grains(
             image=filtered_image.images["zero_averaged_background"],
             filename=filtered_image.filename,
@@ -277,7 +277,7 @@ def process_scan(
             grainstats_df.to_csv(_output_dir / filtered_image.filename / "grainstats.csv")
 
             # Run dnatracing
-            LOGGER.info(f"[{filtered_image.filename}] : DNA Tracing")
+            LOGGER.info(f"[{filtered_image.filename}] : *** DNA Tracing ***")
             dna_traces = defaultdict()
             tracing_stats = defaultdict()
             for direction, grainstat in grainstats.keys():
