@@ -8,7 +8,7 @@ from topostats.plottingfuncs import plot_and_save
 def test_plot_and_save_no_colorbar(minicircle_pixels, tmpdir) -> None:
     """Test plotting without colorbar"""
     fig, _ = plot_and_save(
-        minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", title="Raw Height", colorbar=False
+        minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling, title="Raw Height",colorbar=False
     )
     return fig
 
@@ -17,6 +17,6 @@ def test_plot_and_save_no_colorbar(minicircle_pixels, tmpdir) -> None:
 def test_plot_and_save_colorbar(minicircle_pixels, tmpdir) -> None:
     """Test plotting with colorbar"""
     fig, _ = plot_and_save(
-        minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", title="Raw Height", colorbar=True
+        minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling, title="Raw Height",colorbar=True
     )
     return fig

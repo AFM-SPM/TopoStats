@@ -1,4 +1,5 @@
 """Contains class for calculating the statistics of grains - 2d raster images"""
+from cmath import pi
 import logging
 from pathlib import Path
 from random import randint
@@ -155,14 +156,14 @@ class GrainStats:
 
             # Obtain and plot the cropped grain mask
             grain_mask = np.array(region.image)
-            plot_and_save(grain_mask, output_grain, "grainmask.png")
+            plot_and_save(grain_mask, output_grain, "grainmask.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling)
 
             # Obtain the cropped grain image
             minr, minc, maxr, maxc = region.bbox
             grain_image = self.data[minr:maxr, minc:maxc]
-            plot_and_save(grain_image, output_grain, "grain_image_raw.png")
+            plot_and_save(grain_image, output_grain, "grain_image_raw.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling)
             grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
-            plot_and_save(grain_image, output_grain, "grain_image.png")
+            plot_and_save(grain_image, output_grain, "grain_image.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling)
 
             points = self.calculate_points(grain_mask)
             edges = self.calculate_edges(grain_mask)
