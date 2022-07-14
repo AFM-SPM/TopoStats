@@ -9,7 +9,7 @@ channel: Height
 amplify_level: 1.0
 filter:
   threshold:
-    method: otsu # 'otsu', 'std_dev', 'absolute'
+    method: otsu # Options : otsu, std_dev, absolute
     otsu_multiplier: 1.0
     std_dev: 1.0
     absolute:
@@ -21,7 +21,7 @@ grains:
   absolute_smallest_grain_size: 100
   background: 0.0
   threshold:
-    method: otsu # 'otsu', 'std_dev', 'absolute'
+    method: otsu # Options : otsu, std_dev, absolute
     otsu_multiplier: 1.0
     std_dev: 1.0
     absolute:
@@ -30,3 +30,4 @@ grains:
 plotting:
   save: True
   colorbar: True
+  cmap: nanoscope # Options : nanoscope, afmhot

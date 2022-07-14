@@ -239,9 +239,15 @@ def minicircle_pixels(minicircle_channel) -> Filters:
 
 
 @pytest.fixture
+def plotting_config(sample_config: dict, minicircle_pixels: Filters) -> dict:
+    """Configuration for plotting"""
+    sample_config["plotting"]["pixel_to_nm_scaling_factor"] = minicircle_pixels.pixel_to_nm_scaling
+    return sample_config["plotting"]
+
+
+@pytest.fixture
 def minicircle_initial_align(minicircle_pixels: np.array) -> Filters:
     """Initial align on unmasked data."""
-    minicircle_pixels.extract_pixel_to_nm_scaling()
     minicircle_pixels.images["initial_align"] = minicircle_pixels.align_rows(
         minicircle_pixels.images["pixels"], mask=None
     )

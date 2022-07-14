@@ -310,6 +310,11 @@ def process_scan(
     # Optionally plot all stages
     if save_plots:
         LOGGER.info(f"[{filtered_image.filename}] : Plotting Filtering Images")
+        # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
+        plot_opts = {"pixel_to_nm_scaling_factor": filtered_image.pixel_to_nm_scaling}
+        for image, options in PLOT_DICT.items():
+            PLOT_DICT[image] = {**options, **plot_opts}
+
         # Filtering stage
         for plot_name, array in filtered_image.images.items():
             if plot_name not in ["scan_raw"]:
@@ -317,7 +322,7 @@ def process_scan(
                     array = np.flipud(array.pixels)
                 PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
                 try:
-                    plot_and_save(array, pixel_to_nm_scaling_factor=filtered_image.pixel_to_nm_scaling,colorbar=colorbar, **PLOT_DICT[plot_name])
+                    plot_and_save(array, **PLOT_DICT[plot_name])
                 except AttributeError:
                     LOGGER.info(f"[{filtered_image.filename}] Unable to generate plot : {plot_name}")
 
@@ -326,27 +331,24 @@ def process_scan(
             LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
             plot_name = "gaussian_filtered"
             PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
-            plot_and_save(grains.images["gaussian_filtered"], pixel_to_nm_scaling_factor=filtered_image.pixel_to_nm_scaling, colorbar=colorbar,**PLOT_DICT[plot_name])
+            plot_and_save(grains.images["gaussian_filtered"], **PLOT_DICT[plot_name])
+
             for direction, image_arrays in grains.directions.items():
                 output_dir = Path(_output_dir) / filtered_image.filename / f"{direction}"
                 for plot_name, array in image_arrays.items():
                     PLOT_DICT[plot_name]["output_dir"] = output_dir
-                    plot_and_save(array, pixel_to_nm_scaling_factor=filtered_image.pixel_to_nm_scaling, **PLOT_DICT[plot_name])
+                    plot_and_save(array, **PLOT_DICT[plot_name])
                 # Make a plot of coloured regions with bounding boxes
                 PLOT_DICT["bounding_boxes"]["output_dir"] = output_dir
                 plot_and_save(
                     grains.directions[direction]["coloured_regions"],
-                    pixel_to_nm_scaling_factor=filtered_image.pixel_to_nm_scaling,
                     **PLOT_DICT["bounding_boxes"],
-                    colorbar=colorbar,
                     region_properties=grains.region_properties[direction],
                 )
                 PLOT_DICT["coloured_boxes"]["output_dir"] = output_dir
                 plot_and_save(
                     grains.directions[direction]["labelled_regions_02"],
-                    pixel_to_nm_scaling_factor=filtered_image.pixel_to_nm_scaling,
                     **PLOT_DICT["coloured_boxes"],
-                    colorbar=colorbar,
                     region_properties=grains.region_properties[direction],
                 )
 
@@ -363,6 +365,10 @@ def main():
     config = update_config(config, args)
     config["output_dir"] = convert_path(config["output_dir"])
     config["output_dir"].mkdir(parents=True, exist_ok=True)
+
+    # Update the PLOT_DICT with plotting options
+    for image, options in PLOT_DICT.items():
+        PLOT_DICT[image] = {**options, **config["plotting"]}
 
     LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
     LOGGER.info(f'Scanning for images in              : {config["base_dir"]}')
