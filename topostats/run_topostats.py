@@ -31,30 +31,32 @@ LOGGER = setup_logger(LOGGER_NAME)
 # pylint: disable=unnecessary-dict-index-lookup
 
 PLOT_DICT = {
-    "extracted_channel": {"filename": "00-raw_heightmap.png", "title": "Raw Height"},
-    "pixels": {"filename": "01-pixels.png", "title": "Pixels"},
-    "initial_align": {"filename": "02-initial_align_unmasked.png", "title": "Initial Alignment (Unmasked)"},
+    "extracted_channel": {"filename": "00-raw_heightmap.png", "title": "Raw Height", "type": "non-binary"},
+    "pixels": {"filename": "01-pixels.png", "title": "Pixels", "type": "non-binary"},
+    "initial_align": {"filename": "02-initial_align_unmasked.png", "title": "Initial Alignment (Unmasked)", "type": "non-binary"},
     "initial_tilt_removal": {
         "filename": "03-initial_tilt_removal_unmasked.png",
         "title": "Initial Tilt Removal (Unmasked)",
+        "type": "non-binary",
     },
-    "mask": {"filename": "04-binary_mask.png", "title": "Binary Mask"},
-    "masked_align": {"filename": "05-secondary_align_masked.png", "title": "Secondary Alignment (Masked)"},
+    "mask": {"filename": "04-binary_mask.png", "title": "Binary Mask", "type": "binary"},
+    "masked_align": {"filename": "05-secondary_align_masked.png", "title": "Secondary Alignment (Masked)", "type": "non-binary"},
     "masked_tilt_removal": {
         "filename": "06-secondary_tilt_removal_masked.png",
         "title": "Secondary Tilt Removal (Masked)",
+        "type": "non-binary",
     },
     "zero_averaged_background": {"filename": "07-zero_average_background.png", "title": "Zero Average Background"},
     "gaussian_filtered": {"filename": "08-gaussian_filtered.png", "title": "Gaussian Filtered"},
-    "mask_grains": {"filename": "09-mask_grains.png", "title": "Mask for Grains"},
-    "tidied_border": {"filename": "10-tidy_borders.png", "title": "Tidied Borders"},
-    "removed_noise": {"filename": "11-noise_removed.png", "title": "Noise removed"},
-    "labelled_regions_01": {"filename": "12-labelled_regions.png", "title": "Labelled Regions"},
-    "removed_small_objects": {"filename": "13-small_objects_removed.png", "title": "Small Objects Removed"},
-    "labelled_regions_02": {"filename": "14-labelled_regions.png", "title": "Labelled Regions"},
-    "coloured_regions": {"filename": "15-coloured_regions.png", "title": "Coloured Regions"},
-    "bounding_boxes": {"filename": "16-bounding_boxes.png", "title": "Bounding Boxes"},
-    "coloured_boxes": {"filename": "17-labelled_image_bboxes.png", "title": "Labelled Image with Bounding Boxes"},
+    "mask_grains": {"filename": "09-mask_grains.png", "title": "Mask for Grains", "type": "binary"},
+    "tidied_border": {"filename": "10-tidy_borders.png", "title": "Tidied Borders", "type": "binary"},
+    "removed_noise": {"filename": "11-noise_removed.png", "title": "Noise removed", "type": "binary"},
+    "labelled_regions_01": {"filename": "12-labelled_regions.png", "title": "Labelled Regions", "type": "binary"},
+    "removed_small_objects": {"filename": "13-small_objects_removed.png", "title": "Small Objects Removed", "type": "binary"},
+    "labelled_regions_02": {"filename": "14-labelled_regions.png", "title": "Labelled Regions", "type": "binary"},
+    "coloured_regions": {"filename": "15-coloured_regions.png", "title": "Coloured Regions", "type": "binary"},
+    "bounding_boxes": {"filename": "16-bounding_boxes.png", "title": "Bounding Boxes", "type": "binary"},
+    "coloured_boxes": {"filename": "17-labelled_image_bboxes.png", "title": "Labelled Image with Bounding Boxes", "type": "binary"},
 }
 
 

@@ -112,6 +112,7 @@ def test_get_threshold_abs(minicircle_threshold_abs: np.array) -> None:
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_get_mask(minicircle_mask: Filters, plotting_config: dict, tmpdir) -> None:
     """Test derivation of mask."""
+    plotting_config["type"] = "binary"
     assert isinstance(minicircle_mask.images["mask"], np.ndarray)
     assert minicircle_mask.images["mask"].shape == (1024, 1024)
     assert minicircle_mask.images["mask"].sum() == 82159

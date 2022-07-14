@@ -155,7 +155,7 @@ class GrainStats:
 
             # Obtain and plot the cropped grain mask
             grain_mask = np.array(region.image)
-            plot_and_save(grain_mask, output_grain, "grainmask.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling)
+            plot_and_save(grain_mask, output_grain, "grainmask.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="binary")
 
             # Obtain the cropped grain image
             minr, minc, maxr, maxc = region.bbox
@@ -774,6 +774,8 @@ class GrainStats:
         ax.scatter(x=edges[:, 0], y=edges[:, 1], label="original points")
         ax.set_aspect(1)
         ax.legend()
+        plt.xlabel("Grain Length (nm)")
+        plt.ylabel("Grain Width (nm)")
         plt.savefig(path / "minimum_bbox.png")
         plt.close()
 
