@@ -223,7 +223,7 @@ def process_scan(
     # Find Grains :
     # The Grains class also has a convenience method that runs the instantiated class in full.
     try:
-        LOGGER.info(f"[{filtered_image.filename}] : Grain Finding")
+        LOGGER.info(f"[{filtered_image.filename}] : *** Grain Finding ***")
         grains = Grains(
             image=filtered_image.images["zero_averaged_background"],
             filename=filtered_image.filename,
@@ -255,7 +255,7 @@ def process_scan(
     if grains.region_properties is not None:
         # Grain Statistics :
         try:
-            LOGGER.info(f"[{filtered_image.filename}] : Grain Statistics")
+            LOGGER.info(f"[{filtered_image.filename}] : *** Grain Statistics ***")
             grainstats = {
                 direction: GrainStats(
                     data=grains.images["gaussian_filtered"],
@@ -277,10 +277,10 @@ def process_scan(
             grainstats_df.to_csv(_output_dir / filtered_image.filename / "grainstats.csv")
 
             # Run dnatracing
-            LOGGER.info(f"[{filtered_image.filename}] : DNA Tracing")
+            LOGGER.info(f"[{filtered_image.filename}] : *** DNA Tracing ***")
             dna_traces = defaultdict()
             tracing_stats = defaultdict()
-            for direction in grainstats.keys():
+            for direction, grainstat in grainstats.keys():
                 dna_traces[direction] = dnaTrace(
                     full_image_data=grains.images["gaussian_filtered"].T,
                     grains=grains.directions[direction]["labelled_regions_02"],
@@ -291,11 +291,10 @@ def process_scan(
                 tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
                 tracing_stats[direction].save_trace_stats(_output_dir / filtered_image.filename / direction)
 
-            for direction, grainstat in grainstats.items():
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Combining {direction} grain statistics and dnatracing statistics"
                 )
-                results = grainstat["statistics"].merge(tracing_stats[direction].df, on="Molecule Number")
+                results = grainstat[direction]["statistics"].merge(tracing_stats[direction].df, on="Molecule Number")
                 results.to_csv(_output_dir / filtered_image.filename / direction / "all_statistics.csv")
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Combined statistics saved to {str(_output_dir)}/{filtered_image.filename}/{direction}/all_statistics.csv"
@@ -340,7 +339,7 @@ def process_scan(
                     pixel_to_nm_scaling_factor=filtered_image.pixel_to_nm_scaling,
                     **PLOT_DICT["bounding_boxes"],
                     colorbar=colorbar,
-                    region_properties=grains.region_properties,
+                    region_properties=grains.region_properties[direction],
                 )
                 PLOT_DICT["coloured_boxes"]["output_dir"] = output_dir
                 plot_and_save(
@@ -348,7 +347,7 @@ def process_scan(
                     pixel_to_nm_scaling_factor=filtered_image.pixel_to_nm_scaling,
                     **PLOT_DICT["coloured_boxes"],
                     colorbar=colorbar,
-                    region_properties=grains.region_properties,
+                    region_properties=grains.region_properties[direction],
                 )
 
     return image_path, results

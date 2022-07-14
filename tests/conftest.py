@@ -479,10 +479,9 @@ def minicircle_grain_labelled_post_removal(minicircle_small_objects_removed: np.
 @pytest.fixture
 def minicircle_grain_region_properties_post_removal(minicircle_grain_labelled_post_removal: np.array) -> np.array:
     """Region properties."""
-    minicircle_grain_labelled_post_removal.get_region_properties(
+    return minicircle_grain_labelled_post_removal.get_region_properties(
         minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"]
     )
-    return minicircle_grain_labelled_post_removal
 
 
 @pytest.fixture
