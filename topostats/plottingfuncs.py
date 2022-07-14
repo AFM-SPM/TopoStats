@@ -72,8 +72,8 @@ def plot_and_save(
         if save:
             plt.savefig(output_dir / filename)
     else:
-        plt.xlabel("Nanometres")
-        plt.ylabel("Nanometres")
+        plt.xlabel("Scan Length (nm)")
+        plt.ylabel("Scan Width (nm)")
         data.show(
             ax=ax,
             extent=(0, shape[0] * pixel_to_nm_scaling_factor, 0, shape[1] * pixel_to_nm_scaling_factor),
