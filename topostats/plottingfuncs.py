@@ -20,6 +20,7 @@ def plot_and_save(
     filename: str,
     pixel_to_nm_scaling_factor: float,
     title: str = None,
+    type: str = "non-binary",
     interpolation: str = "nearest",
     cmap: str = "nanoscope",
     region_properties: dict = None,
@@ -61,7 +62,7 @@ def plot_and_save(
         plt.title(title)
         plt.xlabel("Scan Length (nm)")
         plt.ylabel("Scan Width (nm)")
-        if colorbar:
+        if colorbar and type == "non-binary":
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.05)
             plt.colorbar(im, cax=cax, label="Height (nm)")
