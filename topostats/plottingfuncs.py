@@ -60,20 +60,20 @@ def plot_and_save(
             cmap=Colormap(cmap).get_cmap(),
         )
         plt.title(title)
-        plt.xlabel("Scan Length (nm)")
-        plt.ylabel("Scan Width (nm)")
+        plt.xlabel("Nanometres")
+        plt.ylabel("Nanometres")
         if colorbar and type == "non-binary":
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.05)
-            plt.colorbar(im, cax=cax, label="Height (nm)")
+            plt.colorbar(im, cax=cax, label="Height (Nanometres)")
         if region_properties:
             fig, ax = add_bounding_boxes_to_plot(fig, ax, region_properties)
 
         if save:
             plt.savefig(output_dir / filename)
     else:
-        plt.xlabel("Scan Length (nm)")
-        plt.ylabel("Scan Width (nm)")
+        plt.xlabel("Nanometres")
+        plt.ylabel("Nanometres")
         data.show(
             ax=ax,
             extent=(0, shape[0] * pixel_to_nm_scaling_factor, 0, shape[1] * pixel_to_nm_scaling_factor),
