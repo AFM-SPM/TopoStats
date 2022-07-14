@@ -2,11 +2,11 @@
 from pathlib import Path
 from typing import Union
 import logging
+
 from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
-
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
@@ -67,7 +67,7 @@ def plot_and_save(
             cax = divider.append_axes("right", size="5%", pad=0.05)
             plt.colorbar(im, cax=cax, label="Height (Nanometres)")
         if region_properties:
-            fig, ax = add_bounding_boxes_to_plot(fig, ax, region_properties)
+            fig, ax = add_bounding_boxes_to_plot(fig, ax, region_properties, pixel_to_nm_scaling_factor)
 
         if save:
             plt.savefig(output_dir / filename)
@@ -85,7 +85,7 @@ def plot_and_save(
     return fig, ax
 
 
-def add_bounding_boxes_to_plot(fig, ax, region_properties) -> None:
+def add_bounding_boxes_to_plot(fig, ax, region_properties: list, pixel_to_nm_scaling_factor: float) -> None:
     """Add the bounding boxes to a plot.
 
     Parameters
@@ -95,11 +95,13 @@ def add_bounding_boxes_to_plot(fig, ax, region_properties) -> None:
     ax :
     region_properties:
         Region properties to add bounding boxes from.
+    pixel_to_nm_scaling_factor: float
     """
     for region in region_properties:
-        min_row, min_col, max_row, max_col = region.bbox
-        rectangle = Rectangle(
-            (min_col, min_row), max_col - min_col, max_row - min_row, fill=False, edgecolor="white", linewidth=2
-        )
+        min_y, min_x, max_y, max_x = [x * pixel_to_nm_scaling_factor for x in region.bbox]
+        # Correct y-axis
+        min_y = (1024 * pixel_to_nm_scaling_factor) - min_y
+        max_y = (1024 * pixel_to_nm_scaling_factor) - max_y
+        rectangle = Rectangle((min_x, min_y), max_x - min_x, max_y - min_y, fill=False, edgecolor="white", linewidth=2)
         ax.add_patch(rectangle)
     return fig, ax
