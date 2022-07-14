@@ -133,9 +133,9 @@ def test_label_regions(minicircle_grain_labelled_post_removal: Grains, plotting_
 
 def test_region_properties(minicircle_grain_region_properties_post_removal: np.array) -> None:
     """Test removal of small objects."""
-    assert isinstance(minicircle_grain_region_properties_post_removal.region_properties, list)
-    assert len(minicircle_grain_region_properties_post_removal.region_properties) == 22
-    for x in minicircle_grain_region_properties_post_removal.region_properties:
+    assert isinstance(minicircle_grain_region_properties_post_removal, list)
+    assert len(minicircle_grain_region_properties_post_removal) == 22
+    for x in minicircle_grain_region_properties_post_removal:
         assert isinstance(x, RegionProperties)
 
 
