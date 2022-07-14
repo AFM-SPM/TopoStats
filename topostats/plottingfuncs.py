@@ -64,7 +64,7 @@ def plot_and_save(
         if colorbar:
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.05)
-            plt.colorbar(im, cax=cax)
+            plt.colorbar(im, cax=cax, label="Height (Nanometres)")
         if region_properties:
             fig, ax = add_bounding_boxes_to_plot(fig, ax, region_properties)
 
