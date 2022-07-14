@@ -774,6 +774,8 @@ class GrainStats:
         ax.scatter(x=edges[:, 0], y=edges[:, 1], label="original points")
         ax.set_aspect(1)
         ax.legend()
+        plt.xlabel("Grain Length (nm)")
+        plt.ylabel("Grain Width (nm)")
         plt.savefig(path / "minimum_bbox.png")
         plt.close()
 
