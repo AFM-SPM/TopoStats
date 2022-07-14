@@ -343,14 +343,12 @@ def process_scan(
                 plot_and_save(
                     grains.directions[direction]["coloured_regions"],
                     **PLOT_DICT["bounding_boxes"],
-                    colorbar=colorbar,
                     region_properties=grains.region_properties[direction],
                 )
                 PLOT_DICT["coloured_boxes"]["output_dir"] = output_dir
                 plot_and_save(
                     grains.directions[direction]["labelled_regions_02"],
                     **PLOT_DICT["coloured_boxes"],
-                    colorbar=colorbar,
                     region_properties=grains.region_properties[direction],
                 )
 
