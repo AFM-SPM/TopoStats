@@ -280,7 +280,7 @@ def process_scan(
             LOGGER.info(f"[{filtered_image.filename}] : *** DNA Tracing ***")
             dna_traces = defaultdict()
             tracing_stats = defaultdict()
-            for direction, grainstat in grainstats.keys():
+            for direction, grainstat in grainstats.items():
                 dna_traces[direction] = dnaTrace(
                     full_image_data=grains.images["gaussian_filtered"].T,
                     grains=grains.directions[direction]["labelled_regions_02"],
@@ -294,7 +294,7 @@ def process_scan(
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Combining {direction} grain statistics and dnatracing statistics"
                 )
-                results = grainstat[direction]["statistics"].merge(tracing_stats[direction].df, on="Molecule Number")
+                results = grainstat["statistics"].merge(tracing_stats[direction].df, on="Molecule Number")
                 results.to_csv(_output_dir / filtered_image.filename / direction / "all_statistics.csv")
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Combined statistics saved to {str(_output_dir)}/{filtered_image.filename}/{direction}/all_statistics.csv"
