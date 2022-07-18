@@ -341,7 +341,6 @@ def process_scan(
             plot_and_save(grains.images["gaussian_filtered"], **PLOT_DICT[plot_name])
 
             if zrange is not None:
-                LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
                 plot_name = "z_threshed"
                 PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
                 plot_and_save(grains.images["z_threshed"], **PLOT_DICT[plot_name])
@@ -423,7 +422,7 @@ def main():
         gaussian_mode=config["grains"]["gaussian_mode"],
         absolute_smallest_grain_size=config["grains"]["absolute_smallest_grain_size"],
         background=config["grains"]["background"],
-        zrange=config["plotting"]["zrange"],
+        zrange=config["grains"]["zrange"],
         save_plots=config["plotting"]["save"],
         colorbar=config["plotting"]["colorbar"],
         output_dir=config["output_dir"],
