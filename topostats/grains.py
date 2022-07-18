@@ -111,7 +111,6 @@ class Grains:
         )
     
     def z_thresholding(self, **kwargs) -> np.array:
-        
         """Apply Z Thresholding"""
         LOGGER.info(
             f"[{self.filename}] : Applying Z-axis thresholds (min : {self.zrange[0]}nm; max : {self.zrange[1]}nm)."
