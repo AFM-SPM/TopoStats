@@ -412,6 +412,13 @@ def minicircle_grain_gaussian_filter(minicircle_grain_threshold_otsu: np.array) 
 
 
 @pytest.fixture
+def minicircle_grain_z_threshold(minicircle_grain_gaussian_filter: np.array) -> Grains:
+    """Apply Z-scale thresholding."""
+    minicircle_grain_gaussian_filter.z_thresholding()
+    return minicircle_grain_gaussian_filter
+
+
+@pytest.fixture
 def minicircle_grain_mask(minicircle_grain_gaussian_filter: np.array) -> Grains:
     """Boolean mask."""
     minicircle_grain_gaussian_filter.directions["upper"] = {}
