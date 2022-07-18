@@ -75,7 +75,7 @@ def pathman(path):
 
     directory = os.path.dirname(path)
     name = os.path.basename(path)[:-5]
-    savedir = os.path.join(directory, 'Plots')
+    savedir = os.path.join(directory, 'Plots_non_clusters')
     if not os.path.exists(savedir):
         os.makedirs(savedir)
     plotname = os.path.join(savedir, name)
@@ -235,7 +235,7 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     else:
         dfnew = dfnew[[grouparg, plotarg]]
         dfnew = dfnew.pivot(columns=grouparg, values=plotarg)
-        dfnew.plot.hist(ax=ax, legend=True, bins=bins, alpha=1, linewidth=3.0, stacked=True)
+        dfnew.plot.hist(ax=ax, legend=True, bins=bins, alpha=0.5, linewidth=3.0, stacked=False)
         # dfnew.groupby(grouparg)[plotarg].plot.hist(ax=ax, legend=True, alpha=1, linewidth=7.0, bins=bins, stacked=True)
         handles, labels = ax.get_legend_handles_labels()
         # ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
@@ -366,7 +366,7 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specp
     The default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path
     under the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
 
-    print 'Plotting violin of %s' % plotarg
+    print ('Plotting violin of %s' % plotarg)
 
     # Set the name of the file
     if specpath is None:
@@ -391,8 +391,53 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specp
     # Label plot and save figure
     plt.ylim(ymin, ymax)
     plt.ylabel(labelunitconversion(plotarg, nm), alpha=1)
+    plt.ticklabel_format(axis='y', style='sci', scilimits=(-3, 3))
+    ax.tick_params(direction='out', bottom=True, left=True)
     plt.xlabel(grouparg)
     plt.savefig(savename)
+
+def plotviolin2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, ymin=None, ymax=None, nm=False,
+                specpath=None, plotextension=defextension):
+    """Creating a violin plot for two sets of data. Grouping optional. The y axis range can be defined by the user. The
+    default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
+    the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
+
+    if df2 is None:
+        df2 = df
+    if plotarg2 is None:
+        plotarg2 = plotarg
+    if label1 is None:
+        label1 = plotarg
+    if label2 is None:
+        label2 = plotarg2
+
+
+    print ('Plotting violin plot of %s for %s and %s' % (plotarg, label1, label2))
+
+    # Set the name of the file
+    if specpath is None:
+        specpath = path
+    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_' + label1 + '_violin' + plotextension)
+    # savename = os.path.join(pathman(specpath) + '_' + plotarg + '_' + label1 + '_' + label2 + '_violin' + plotextension)
+
+    # Convert the unit of the data to nm if specified by the user
+    dfnew = df.copy()
+    dfnew2 = df2.copy()
+    dfnew[plotarg] = dataunitconversion(dfnew[plotarg], plotarg, nm)
+    dfnew2[plotarg2] = dataunitconversion(dfnew2[plotarg2], plotarg2, nm)
+    dfplot = pd.concat([dfnew[plotarg], dfnew2[plotarg2]], axis=1)
+    dfplot.columns = [label1, label2]
+
+    # Plot figure
+    fig, ax = plt.subplots(figsize=(15, 12))
+    ax = sns.violinplot(data=dfplot, bw=.25)
+
+    # Label plot and save figure
+    plt.ylim(ymin, ymax)
+    plt.ylabel(labelunitconversion(plotarg, nm), alpha=1)
+    plt.ticklabel_format(axis='y', style='sci', scilimits=(-3, 3))
+    plt.savefig(savename)
+
 
 
 def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=False, specpath=None,
@@ -499,7 +544,7 @@ if __name__ == '__main__':
     # df.loc[df['directory'] == 'DNA_20220601', 'directory'] = 'DNA'
 
 
-    # df = df[df['grain_max_bound_size'] <= 115e-9]
+    df = df[df['grain_max_bound_size'] <= 115e-9]
     # df = df[df['grain_max_bound_size'] >= 50e-9]
 
     # dfDNA = df[df['directory'] == 'DNA_pure']
@@ -553,8 +598,8 @@ print len(df)
 # grouparg = 'Was there incubation?'
 # grouparg = 'Mask'
 # grouparg = 'Basename'
-# grouparg = 'directory'
-grouparg = None
+grouparg = 'directory'
+# grouparg = None
 # grouparg = 'Domain'
 
 # Setting a continuous colour palette; useful for certain grouped plots, but can be commented out if unsuitable.
@@ -573,7 +618,7 @@ grouparg = None
 # plothist(df, 'grain_maximum', xmin=1, xmax=6, nm=True)
 
 
-# plothist(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
+plothist(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
 # plothist(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
 # plothist(df, 'aspectratio', nm=True, grouparg=grouparg)
 # plotkde(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
@@ -598,8 +643,9 @@ grouparg = None
 # plotkde(df, 'grain_min_bound_size', xmin=0, xmax=40, nm=True)
 # plotkde2var(df, 'grain_min_bound_size', 'grain_max_bound_size', xmin=0, xmax=40, nm=True)
 
-
-plothist2var(df, 'grain_maximum', df2=df2, plotarg2='Height', label1='TopoStats', label2='Manual Measurements', nm=True)
+# plotviolin2var(df, 'grain_maximum', df2=df2, plotarg2=['CTD', 'NTD'], label1='TopoStats', label2=['CTD', 'NTD'], nm=True)
+# plotviolin(df, 'Height', grouparg='Source')
+# plothist2var(df, 'grain_maximum', df2=df2, plotarg2='Height', label1='TopoStats', label2='Manual Measurements', nm=True)
 
 # plotdist2var('grain_min_bound_size', 'grain_max_bound_size', df2, plotname='Bound Size for Full Protein', nm=True,
 #              xmin=0, xmax=50, c1='#f9cb9c', c2='#b45f06', plotextension='.tiff')
