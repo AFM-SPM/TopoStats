@@ -51,7 +51,6 @@ def test_z_threshold_minicircle(minicircle_grain_z_threshold: Grains, plotting_c
     assert isinstance(minicircle_grain_z_threshold.images["z_threshed"], np.ndarray)
     assert minicircle_grain_z_threshold.images["z_threshed"].shape == (1024, 1024)
     assert minicircle_grain_z_threshold.images["z_threshed"].sum() == 255794.52478913686
-    plotting_config["zrange"] = [0, 3]
     fig, _ = plot_and_save(
         minicircle_grain_z_threshold.images["z_threshed"],
         tmpdir,
