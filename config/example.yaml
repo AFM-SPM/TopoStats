@@ -20,6 +20,7 @@ grains:
   gaussian_mode: nearest
   absolute_smallest_grain_size: 100
   background: 0.0
+  zrange: [0, 3] # low and high height range
   threshold:
     method: otsu # Options : otsu, std_dev, absolute
     otsu_multiplier: 1.0
@@ -31,4 +32,3 @@ plotting:
   save: True
   colorbar: True
   cmap: nanoscope # Options : nanoscope, afmhot
-  zrange: [0, 3] # confined Z-scale range in nm
