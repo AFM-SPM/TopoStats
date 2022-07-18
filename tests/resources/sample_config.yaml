@@ -31,3 +31,4 @@ plotting:
   save: True
   colorbar: True
   cmap: nanoscope # Options : nanoscope, afmhot
+  zrange: [0, 3] # List of low value, high value
