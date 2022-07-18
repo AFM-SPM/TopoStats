@@ -42,6 +42,7 @@ class Grains:
         absolute_smallest_grain_size: float = None,
         background: float = 0.0,
         base_output_dir: Union[str, Path] = None,
+        zrange: list = None
     ):
         """Initialise the class.
 
@@ -77,10 +78,12 @@ class Grains:
         self.gaussian_mode = gaussian_mode
         self.background = background
         self.base_output_dir = base_output_dir
+        self.zrange = zrange
         self.absolute_smallest_grain_size = absolute_smallest_grain_size
         self.thresholds = None
         self.images = {
             "gaussian_filtered": None,
+            "z_threshed": None,
             "mask_grains": None,
             "tidied_border": None,
             "tiny_objects_removed": None,
@@ -106,6 +109,17 @@ class Grains:
             mode=self.gaussian_mode,
             **kwargs,
         )
+    
+    def z_thresholding(self, **kwargs) -> np.array:
+        
+        """Apply Z Thresholding"""
+        LOGGER.info(
+            f"[{self.filename}] : Applying Z-axis thresholds (min : {self.zrange[0]}nm; max : {self.zrange[1]}nm)."
+        )
+        gaussian_cp = self.images["gaussian_filtered"].copy()
+        gaussian_cp[gaussian_cp < self.zrange[0]] = self.zrange[0]
+        gaussian_cp[gaussian_cp > self.zrange[1]] = self.zrange[1]
+        self.images["z_threshed"] = gaussian_cp
 
     def tidy_border(self, image: np.array, **kwargs) -> np.array:
         """Remove grains touching the border
@@ -257,6 +271,7 @@ class Grains:
                 LOGGER.info(f"[{self.filename}] : Processing {direction} threshold ({_threshold})")
                 self.directions[direction] = defaultdict()
                 self.gaussian_filter()
+                self.z_thresholding()
                 self.directions[direction]["mask_grains"] = _get_mask(
                     self.images["gaussian_filtered"],
                     threshold=_threshold,
