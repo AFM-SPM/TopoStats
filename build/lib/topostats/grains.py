@@ -63,9 +63,6 @@ class Grains:
         threshold_method: str
             Method for determining threshold to mask values, default is 'otsu'.
         background : float
-            The value to average the background around.
-        zrange : list
-            Lower and upper limits for the Z-range.
         output_dir : Union[str, Path]
             Output directory.
         """
@@ -114,7 +111,7 @@ class Grains:
         )
     
     def z_thresholding(self, **kwargs) -> np.array:
-        """Apply height thresholding so outliers are clipped at config values"""
+        """Apply height thresholding so outliers are capped at config values"""
         LOGGER.info(
             f"[{self.filename}] : Applying Z-axis thresholds (min : {self.zrange[0]}nm; max : {self.zrange[1]}nm)."
         )
