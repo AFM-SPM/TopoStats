@@ -46,11 +46,13 @@ def test_gaussian_filter_minicircle(minicircle_grain_gaussian_filter: Grains, pl
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_z_threshold_minicircle(minicircle_grain_z_threshold: Grains, plotting_config: dict, tmpdir) -> None:
+def test_z_threshold_minicircle(minicircle_grain_z_threshold: Grains, plotting_config: dict, grain_config: dict, tmpdir) -> None:
     """Test Z threshold filter."""
     assert isinstance(minicircle_grain_z_threshold.images["z_threshed"], np.ndarray)
     assert minicircle_grain_z_threshold.images["z_threshed"].shape == (1024, 1024)
     assert minicircle_grain_z_threshold.images["z_threshed"].sum() == 255794.52478913686
+    assert minicircle_grain_z_threshold.images["z_threshed"].min() >= grain_config["zrange"][0]
+    assert minicircle_grain_z_threshold.images["z_threshed"].max() <= grain_config["zrange"][1]
     fig, _ = plot_and_save(
         minicircle_grain_z_threshold.images["z_threshed"],
         tmpdir,
