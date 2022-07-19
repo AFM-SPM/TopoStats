@@ -46,8 +46,9 @@ PLOT_DICT = {
         "title": "Secondary Tilt Removal (Masked)",
         "type": "non-binary",
     },
-    "zero_averaged_background": {"filename": "07-zero_average_background.png", "title": "Zero Average Background"},
-    "gaussian_filtered": {"filename": "08-gaussian_filtered.png", "title": "Gaussian Filtered"},
+    "zero_averaged_background": {"filename": "07-zero_average_background.png", "title": "Zero Average Background", "type": "non-binary"},
+    "gaussian_filtered": {"filename": "08-gaussian_filtered.png", "title": "Gaussian Filtered", "type": "non-binary"},
+    "z_threshed": {"filename": "08_5-z_thresholded.png", "title": "Height Thresholded", "type": "non-binary"},
     "mask_grains": {"filename": "09-mask_grains.png", "title": "Mask for Grains", "type": "binary"},
     "tidied_border": {"filename": "10-tidy_borders.png", "title": "Tidied Borders", "type": "binary"},
     "removed_noise": {"filename": "11-noise_removed.png", "title": "Noise removed", "type": "binary"},
@@ -159,6 +160,7 @@ def process_scan(
     grains_threshold_std_dev=1.0,
     grains_threshold_abs_lower=None,
     grains_threshold_abs_upper=None,
+    zrange = None,
     save_plots: bool = True,
     colorbar: bool = True,
     output_dir: Union[str, Path] = "output",
@@ -180,9 +182,11 @@ def process_scan(
     gaussian_mode : str
         Mode for filtering (default is 'nearest').
     otsu_threshold_multiplier : Union[int, float]
-
         Factor by which lower threshold is to be scaled prior to masking.
     background : float
+        The value to average the background around.
+    zrange : list
+        Lower and upper limits for the Z-range.
     save_plots : bool
         Flag as to whether to save plots to PNG files.
     colorbar : bool
@@ -240,6 +244,7 @@ def process_scan(
             absolute_smallest_grain_size=absolute_smallest_grain_size,
             background=background,
             base_output_dir=_output_dir / filtered_image.filename / "grains",
+            zrange=zrange,
         )
         grains.find_grains()
     except IndexError:
@@ -335,6 +340,11 @@ def process_scan(
             PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
             plot_and_save(grains.images["gaussian_filtered"], **PLOT_DICT[plot_name])
 
+            if zrange is not None:
+                plot_name = "z_threshed"
+                PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
+                plot_and_save(grains.images["z_threshed"], **PLOT_DICT[plot_name])
+
             for direction, image_arrays in grains.directions.items():
                 output_dir = Path(_output_dir) / filtered_image.filename / f"{direction}"
                 for plot_name, array in image_arrays.items():
@@ -412,6 +422,7 @@ def main():
         gaussian_mode=config["grains"]["gaussian_mode"],
         absolute_smallest_grain_size=config["grains"]["absolute_smallest_grain_size"],
         background=config["grains"]["background"],
+        zrange=config["grains"]["zrange"],
         save_plots=config["plotting"]["save"],
         colorbar=config["plotting"]["colorbar"],
         output_dir=config["output_dir"],
