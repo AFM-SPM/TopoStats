@@ -368,6 +368,7 @@ def minicircle_grains(minicircle_zero_average_background: Filters, grain_config:
         background=grain_config["background"],
         base_output_dir=Path(tmpdir),
         absolute_smallest_grain_size=grain_config["absolute_smallest_grain_size"],
+        zrange = grain_config["zrange"]
     )
     return grains
 
@@ -414,7 +415,6 @@ def minicircle_grain_gaussian_filter(minicircle_grain_threshold_otsu: np.array) 
 @pytest.fixture
 def minicircle_grain_z_threshold(minicircle_grain_gaussian_filter: np.array) -> Grains:
     """Apply Z-scale thresholding."""
-    minicircle_grain_gaussian_filter.zrange = [0, 3]
     minicircle_grain_gaussian_filter.z_thresholding()
     return minicircle_grain_gaussian_filter
 
