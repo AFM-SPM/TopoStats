@@ -111,7 +111,7 @@ class Grains:
         )
     
     def z_thresholding(self, **kwargs) -> np.array:
-        """Apply height thresholding so outliers are capped at config values"""
+        """Apply height thresholding so outliers are clipped at config values"""
         LOGGER.info(
             f"[{self.filename}] : Applying Z-axis thresholds (min : {self.zrange[0]}nm; max : {self.zrange[1]}nm)."
         )
