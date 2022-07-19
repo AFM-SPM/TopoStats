@@ -313,7 +313,7 @@ def process_scan(
     if save_plots:
         LOGGER.info(f"[{filtered_image.filename}] : Plotting Filtering Images")
         # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
-        plot_opts = {"pixel_to_nm_scaling_factor": filtered_image.pixel_to_nm_scaling}
+        plot_opts = {"pixel_to_nm_scaling_factor": filtered_image.pixel_to_nm_scaling, "colorbar": colorbar}
         for image, options in PLOT_DICT.items():
             PLOT_DICT[image] = {**options, **plot_opts}
 
