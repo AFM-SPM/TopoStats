@@ -44,6 +44,21 @@ colname2label = {
     'grain_laplace_volume': 'Laplacian Volume / $\mathregular{%s^3}$',
     'End to End Distance': 'End to End Distance / nm',
     'Contour Lengths': 'Contour Lengths / nm',
+    'raidus_min': 'Minimum Radius / nm',
+    'radius_max': 'Maximum Radius / nm',
+    'radius_mean': 'Mean Radius / nm',
+    'radius_median': 'Median Radius / nm',
+    'height_min': 'Minimum Height / nm',
+    'height_max': 'Maximum Height / nm',
+    'height_median': 'Median Height / nm',
+    'height_mean': 'Mean Height / nm',
+    'volume': 'Volume / $\mathregular{nm^3}$',
+    'area': 'Area / $\mathregular{nm^2}$',
+    'area_cartesian_bbox': 'Cartesian Bounding Box Area / $\mathregular{nm^2}$',
+    'smallest_bounding_width': 'Smallest Bounding Width / nm',
+    'smallest_bounding_length': 'Smallest Bounding Length / nm',
+    'smallest_bounding_area': 'Smallest Bounding Area / $\mathregular{nm^2}$',
+    'aspect_ratio': 'Aspect Ratio',
 }
 
 
@@ -94,9 +109,9 @@ def labelunitconversion(plotarg, nm):
             label = label % 'nm'
         else:
             label = label % 'm'
-    elif '/ nm' in label:
+    elif 'nm' in label:
         if nm is False:
-            label = label[:-2] + 'm'
+            label = label.replace('nm', 'm')
 
     return label
 
@@ -121,6 +136,10 @@ def dataunitconversion(data, plotarg, nm):
     else:
         if '/ nm' in label:
             data_new = data * 1e-9
+        elif 'nm^2' in label:
+            data_new = data * 1e-18
+        elif 'nm^3' in label:
+            data_new = data * 1e-27
 
     return data_new
 
@@ -174,7 +193,7 @@ def plotkde2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, 
     if plotarg2 is None:
         plotarg2 = plotarg
 
-    print 'Plotting kde of %s and %s' % (plotarg, plotarg2)
+    print ('Plotting kde of %s and %s' % (plotarg, plotarg2))
 
     # Set the name of the file
     if specpath is None:
@@ -265,7 +284,7 @@ def plothist2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None,
     if plotarg2 is None:
         plotarg2 = plotarg
 
-    print 'Plotting histogram of %s and %s' % (label1, label2)
+    print('Plotting histogram of %s and %s' % (label1, label2))
 
     # Set the name of the file
     if specpath is None:
@@ -327,7 +346,7 @@ def plotdist2var(plotarg, plotarg2, df, df2=None, xmin=None, xmax=None, bins=20,
                  plotextension=defextension, plotname=None, c1=None, c2=None):
     """Dist plot for 2 variables"""
 
-    print 'Plotting dist plot of %s and %s' % (plotarg, plotarg2)
+    print('Plotting dist plot of %s and %s' % (plotarg, plotarg2))
 
     if plotname is None:
         plotname = plotarg + '_and_' + plotarg2
@@ -456,7 +475,7 @@ def computeStats(data, columns, min, max):
 
 
 if __name__ == '__main__':
-    # Path to the json file, e.g. C:\\Users\\username\\Documents\\Data\\Data.json
+    # Path to the json file, e.g. C:\\Users\\username\\Documents\\Data\\Data.csv
 
     path = ''
     # path2 = ''
@@ -469,6 +488,7 @@ if __name__ == '__main__':
     df = importfromfile(path)
     # df2 = importfromfile(path2)
 
+    # Filter data based on the need of specific projects
     # df = df[df['End to End Distance'] != 0]
     # df = df[df['Contour Lengths'] > 100]
     # df = df[df['Contour Lengths'] < 120]
@@ -529,6 +549,8 @@ if __name__ == '__main__':
 # ymin and ymax can be specified for plotviolin and plotjoint; bins can be speficied for plothist. The default unit is
 # m; add "nm=True" to change from m to nm.
 
-
+# Examples of possible plots
+plotkde(df, 'area', nm=True)
+plothist(df, 'Contour Lengths', nm=False)
 
 
