@@ -54,7 +54,7 @@ PLOT_DICT = {
     "removed_noise": {"filename": "11-noise_removed.png", "title": "Noise removed", "type": "binary"},
     "labelled_regions_01": {"filename": "12-labelled_regions.png", "title": "Labelled Regions", "type": "binary"},
     "removed_small_objects": {"filename": "13-small_objects_removed.png", "title": "Small Objects Removed", "type": "binary"},
-    "mask_overlay": {"filename": "13_5-mask_overlay.png", "title": "Hight Thresholded with Molecule Mask", "type": "non-binary"},
+    "mask_overlay": {"filename": "13_5-mask_overlay.png", "title": "Hight Thresholded with Mask", "type": "non-binary"},
     "labelled_regions_02": {"filename": "14-labelled_regions.png", "title": "Labelled Regions", "type": "binary"},
     "coloured_regions": {"filename": "15-coloured_regions.png", "title": "Coloured Regions", "type": "binary"},
     "bounding_boxes": {"filename": "16-bounding_boxes.png", "title": "Bounding Boxes", "type": "binary"},
