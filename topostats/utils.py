@@ -95,12 +95,7 @@ def get_out_path(image_path: Union[str, Path] = None, base_dir: Union[str, Path]
     """
     pathparts = list(image_path.parts)
     inparts = list(base_dir.parts)
-
-    for inpart in inparts:
-        for pathpart in pathparts:
-            if inpart == pathpart:
-                pathparts.remove(inpart)
-    return output_dir / Path(*pathparts)
+    return output_dir / Path(*pathparts[len(inparts):])
 
 def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
     """Update the configuration with any arguments
