@@ -172,6 +172,8 @@ def process_scan(
     ----------
     image_path : Union[str, Path]
         Path to image to process.
+    base_dir : Union[str, Path]
+        Directory to recursively search for files, if not specified the current directory is scanned.
     channel : str
         Channel to extract and process, default 'height'.
     amplify_level : float

@@ -84,7 +84,7 @@ def get_out_path(image_path: Union[str, Path] = None, base_dir: Union[str, Path]
     image_path: Union[str, Path]
         The path of the current image.
     base_dir: Union[str, Path]
-        The directory which recursively searched for files.
+        Directory to recursively search for files, if not specified the current directory is scanned.
     output_dir: Union[str, Path]
         The output directory specified in the configuration file.
 
