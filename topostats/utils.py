@@ -76,6 +76,32 @@ def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> Li
     return list(base_dir.glob("**/*" + file_ext))
 
 
+def get_out_path(image_path: Union[str, Path] = None, base_dir: Union[str, Path] = None, output_dir: Union[str, Path] = None):
+    """Replaces the base directory part of the image path with the output directory.
+
+    Parameters
+    ----------
+    image_path: Union[str, Path]
+        The path of the current image.
+    base_dir: Union[str, Path]
+        The directory which recursively searched for files.
+    output_dir: Union[str, Path]
+        The output directory specified in the configuration file.
+
+    Returns
+    -------
+    Path
+        The output path that mirrors the input path structure.
+    """
+    pathparts = list(image_path.parts)
+    inparts = list(base_dir.parts)
+
+    for inpart in inparts:
+        for pathpart in pathparts:
+            if inpart == pathpart:
+                pathparts.remove(inpart)
+    return output_dir / Path(*pathparts)
+
 def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
     """Update the configuration with any arguments
 
