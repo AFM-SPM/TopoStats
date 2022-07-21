@@ -206,7 +206,9 @@ def process_scan(
     """
     LOGGER.info(f"Processing : {image_path}")
 
-    _output_dir = output_dir
+    parts = list(image_path.parts)
+    parts[0] = output_dir
+    _output_dir = Path(*parts).parent
     _output_dir.mkdir(parents=True, exist_ok=True)
     # Filter Image :
     #
