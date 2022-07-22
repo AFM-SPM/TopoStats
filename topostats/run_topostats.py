@@ -231,8 +231,8 @@ def process_scan(
         output_dir=_output_dir / image_path.stem / "filters",
     )
     filtered_image.filter_image()
-    Path.mkdir(_output_dir / filtered_image.filename / "upper", parents=True, exist_ok=True)
-    Path.mkdir(_output_dir / filtered_image.filename / "lower", parents=True, exist_ok=True)
+    Path.mkdir(_output_dir / filtered_image.filename / "grains" / "upper", parents=True, exist_ok=True)
+    Path.mkdir(_output_dir / filtered_image.filename / "grains" / "lower", parents=True, exist_ok=True)
 
     # Find Grains :
     # The Grains class also has a convenience method that runs the instantiated class in full.
@@ -277,7 +277,7 @@ def process_scan(
                     labelled_data=grains.directions[direction]["labelled_regions_02"],
                     pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
                     direction=f"{direction}",
-                    base_output_dir=_output_dir / filtered_image.filename,
+                    base_output_dir=_output_dir / filtered_image.filename / "grains",
                     image_name=filtered_image.filename,
                 ).calculate_stats()
                 for direction in grains.directions
