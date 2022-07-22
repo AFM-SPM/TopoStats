@@ -31,5 +31,6 @@ grains:
       - -1
 plotting:
   save: True
+  image_set: core # Options : all, core
   colorbar: True
   cmap: nanoscope # Options : nanoscope, afmhot
