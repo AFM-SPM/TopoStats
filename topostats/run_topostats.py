@@ -17,7 +17,7 @@ from topostats.io import read_yaml, write_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import plot_and_save
 from topostats.tracing.dnatracing import dnaTrace, traceStats
-from topostats.utils import find_images, update_config, convert_path, create_empty_dataframe
+from topostats.utils import find_images, get_out_path, update_config, convert_path, create_empty_dataframe
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -145,6 +145,7 @@ def create_parser() -> arg.ArgumentParser:
 
 def process_scan(
     image_path: Union[str, Path] = None,
+    base_dir: Union[str, Path] = None,
     channel: str = "Height",
     amplify_level: float = 1.0,
     filter_threshold_method: str = "otsu",
@@ -173,6 +174,8 @@ def process_scan(
     ----------
     image_path : Union[str, Path]
         Path to image to process.
+    base_dir : Union[str, Path]
+        Directory to recursively search for files, if not specified the current directory is scanned.
     channel : str
         Channel to extract and process, default 'height'.
     amplify_level : float
@@ -208,7 +211,7 @@ def process_scan(
     """
     LOGGER.info(f"Processing : {image_path}")
 
-    _output_dir = output_dir
+    _output_dir = get_out_path(image_path, base_dir, output_dir).parent
     _output_dir.mkdir(parents=True, exist_ok=True)
     # Filter Image :
     #
@@ -421,6 +424,7 @@ def main():
     #     )
     processing_function = partial(
         process_scan,
+        base_dir=config["base_dir"],
         channel=config["channel"],
         amplify_level=config["amplify_level"],
         filter_threshold_method=config["filter"]["threshold"]["method"],

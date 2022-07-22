@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from topostats.utils import convert_path, find_images, update_config, get_thresholds
+from topostats.utils import convert_path, find_images, get_out_path, update_config, get_thresholds
 
 
 THRESHOLD_OPTIONS = {"otsu_threshold_multiplier": 1.7, "deviation_from_mean": 1, "absolute": (-1.5, 1.5)}
@@ -27,6 +27,16 @@ def test_find_images() -> None:
     assert len(found_images) == 1
     assert isinstance(found_images[0], Path)
     assert "minicircle.spm" in str(found_images[0])
+
+
+def test_get_out_path() -> None:
+    """Test output directories"""
+    image_path = Path('heres/some/rand/path/test.spm')
+    base_dir = Path('heres/some/rand')
+    output_dir = Path('output/here')
+    out_path = get_out_path(image_path, base_dir, output_dir)
+    assert isinstance(out_path, Path)
+    assert out_path == Path("output/here/path/test.spm")
 
 
 def test_update_config(caplog) -> None:
