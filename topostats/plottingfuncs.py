@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Union
 import logging
 
-from matplotlib.patches import Rectangle
+from matplotlib.patches import Rectangle, Patch
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
@@ -19,6 +19,7 @@ def plot_and_save(
     output_dir: Union[str, Path],
     filename: str,
     pixel_to_nm_scaling_factor: float,
+    data2: np.array = None,
     title: str = None,
     type: str = "non-binary",
     interpolation: str = "nearest",
@@ -59,6 +60,16 @@ def plot_and_save(
             interpolation=interpolation,
             cmap=Colormap(cmap).get_cmap(),
         )
+        if isinstance(data2, np.ndarray):
+            mask = np.ma.masked_where(data2==0, data2)
+            ax.imshow(mask,
+             'jet_r',
+             extent=(0, shape[0] * pixel_to_nm_scaling_factor, 0, shape[1] * pixel_to_nm_scaling_factor),
+             interpolation=interpolation,
+             alpha=0.7)
+            patch = [Patch(color=plt.get_cmap('jet_r')(1, 0.7), label='Mask')]
+            plt.legend(handles=patch)
+
         plt.title(title)
         plt.xlabel("Nanometres")
         plt.ylabel("Nanometres")

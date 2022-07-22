@@ -7,6 +7,7 @@ quiet: false
 file_ext: .spm
 channel: Height
 amplify_level: 1.0
+mask_direction: upper # Options: upper, lower (currently only applied to thresh+mask image)
 filter:
   threshold:
     method: otsu # Options : otsu, std_dev, absolute
