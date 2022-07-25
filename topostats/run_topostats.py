@@ -214,8 +214,16 @@ def process_scan(
     """
     LOGGER.info(f"Processing : {image_path}")
 
-    _output_dir = get_out_path(image_path, base_dir, output_dir).parent / "processed"
+    _output_dir = get_out_path(image_path, base_dir, output_dir).parent / "Processed"
     _output_dir.mkdir(parents=True, exist_ok=True)
+
+    if image_set == "core":
+        filter_out_path = _output_dir 
+        grain_out_path = _output_dir
+    else:
+        filter_out_path = _output_dir / image_path.stem / "filters"
+        grain_out_path = _output_dir / filtered_image.filename / "grains"
+
     # Filter Image :
     #
     # The Filters class has a convenience method that runs the instantiated class in full.
@@ -228,7 +236,7 @@ def process_scan(
         threshold_absolute_upper=filter_threshold_abs_upper,
         channel=channel,
         amplify_level=amplify_level,
-        output_dir=_output_dir / image_path.stem / "filters",
+        output_dir=filter_out_path,
     )
     filtered_image.filter_image()
 
@@ -253,7 +261,7 @@ def process_scan(
             threshold_absolute_upper=grains_threshold_abs_upper,
             absolute_smallest_grain_size=absolute_smallest_grain_size,
             background=background,
-            base_output_dir=_output_dir / filtered_image.filename / "grains", #does this do anything other than make the dirs?
+            base_output_dir=grain_out_path,
             zrange=zrange,
         )
         grains.find_grains()
@@ -291,7 +299,7 @@ def process_scan(
                 grainstats_df = pd.concat([grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]])
             else:
                 grainstats_df = grainstats["upper"]["statistics"]
-            grainstats_df.to_csv(_output_dir / filtered_image.filename / "grainstats.csv")
+            grainstats_df.to_csv(_output_dir / f"{filtered_image.filename}_grainstats.csv")
 
             # Run dnatracing
             LOGGER.info(f"[{filtered_image.filename}] : *** DNA Tracing ***")
