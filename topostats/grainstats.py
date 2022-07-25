@@ -78,6 +78,8 @@ class GrainStats:
             Path to the folder that will store the grain stats output images and data.
         image_name : str
             The name of the file being processed.
+        image_set : str
+            The 'core' or 'all' set of images to output.
         save_cropped_grains : bool
             Option wether to save the cropped grain images.
         """
