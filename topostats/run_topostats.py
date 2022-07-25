@@ -214,7 +214,7 @@ def process_scan(
     """
     LOGGER.info(f"Processing : {image_path}")
 
-    _output_dir = get_out_path(image_path, base_dir, output_dir).parent
+    _output_dir = get_out_path(image_path, base_dir, output_dir).parent / "processed"
     _output_dir.mkdir(parents=True, exist_ok=True)
     # Filter Image :
     #
@@ -231,8 +231,10 @@ def process_scan(
         output_dir=_output_dir / image_path.stem / "filters",
     )
     filtered_image.filter_image()
-    Path.mkdir(_output_dir / filtered_image.filename / "grains" / "upper", parents=True, exist_ok=True)
-    Path.mkdir(_output_dir / filtered_image.filename / "grains" / "lower", parents=True, exist_ok=True)
+
+    if image_set == "all":
+        Path.mkdir(_output_dir / filtered_image.filename / "grains" / "upper", parents=True, exist_ok=True)
+        Path.mkdir(_output_dir / filtered_image.filename / "grains" / "lower", parents=True, exist_ok=True)
 
     # Find Grains :
     # The Grains class also has a convenience method that runs the instantiated class in full.
@@ -251,7 +253,7 @@ def process_scan(
             threshold_absolute_upper=grains_threshold_abs_upper,
             absolute_smallest_grain_size=absolute_smallest_grain_size,
             background=background,
-            base_output_dir=_output_dir / filtered_image.filename / "grains",
+            base_output_dir=_output_dir / filtered_image.filename / "grains", #does this do anything other than make the dirs?
             zrange=zrange,
         )
         grains.find_grains()
@@ -277,7 +279,7 @@ def process_scan(
                     labelled_data=grains.directions[direction]["labelled_regions_02"],
                     pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
                     direction=f"{direction}",
-                    base_output_dir=_output_dir / filtered_image.filename / "grains",
+                    base_output_dir=_output_dir / "grains",
                     image_name=filtered_image.filename,
                 ).calculate_stats()
                 for direction in grains.directions
@@ -354,7 +356,7 @@ def process_scan(
                 plot_and_save(grains.images["z_threshed"], filename=filtered_image.filename+'_processed', **PLOT_DICT[plot_name])
 
             for direction, image_arrays in grains.directions.items():
-                output_dir = Path(_output_dir) / filtered_image.filename / f"{direction}"
+                output_dir = Path(_output_dir) / "grains" / f"{direction}"
                 for plot_name, array in image_arrays.items():
                     PLOT_DICT[plot_name]["output_dir"] = output_dir
                     plot_and_save(array, **PLOT_DICT[plot_name])
