@@ -1,4 +1,4 @@
-base_dir: ./tests/
+base_dir: ./data/
 output_dir: ./output
 save_plots: true
 warnings: ignore
@@ -22,6 +22,7 @@ grains:
   background: 0.0
   zrange: [0, 3] # low and high height range
   mask_direction: upper # Options: upper, lower (currently only applied to thresh+mask image)
+  save_cropped_grains: False
   threshold:
     method: std_dev # Options : otsu, std_dev, absolute
     otsu_multiplier: 1.0

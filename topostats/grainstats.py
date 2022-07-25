@@ -61,6 +61,8 @@ class GrainStats:
         direction: str,
         base_output_dir: Union[str, Path],
         image_name: str = None,
+        image_set: str = "core",
+        save_cropped_grains: bool = False,
     ):
         """Initialise the class.
 
@@ -74,6 +76,10 @@ class GrainStats:
             Floating point value that defines the scaling factor between nanometres and pixels.
         base_output_dir : Path
             Path to the folder that will store the grain stats output images and data.
+        image_name : str
+            The name of the file being processed.
+        save_cropped_grains : bool
+            Option wether to save the cropped grain images.
         """
 
         self.data = data
@@ -83,6 +89,8 @@ class GrainStats:
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
         self.image_name = image_name
+        self.image_set = image_set
+        self.save_cropped_grains = save_cropped_grains
 
     @staticmethod
     def get_angle(point_1: tuple, point_2: tuple) -> float:
@@ -153,17 +161,20 @@ class GrainStats:
             # Path.mkdir(output_grain, parents=True, exist_ok=True)
             output_grain.mkdir(parents=True, exist_ok=True)
 
-            # Obtain and plot the cropped grain mask
-            grain_mask = np.array(region.image)
-            plot_and_save(grain_mask, output_grain, "grainmask.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="binary", core_set=False)
-
-            # Obtain the cropped grain image
+            # Obtain cropped grain mask and image
             minr, minc, maxr, maxc = region.bbox
+            grain_mask = np.array(region.image)
             grain_image = self.data[minr:maxr, minc:maxc]
-            fname = f"{self.image_name}_grain_{index}.png"
-            plot_and_save(grain_image, output_grain, fname, pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", core_set=True)
-            grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
-            plot_and_save(grain_image, output_grain, "grain_image.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", core_set=False)
+            masked_grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
+            
+            if self.save_cropped_grains:
+                # Plot the cropped grain mask
+                plot_and_save(grain_mask, output_grain, f"{self.image_name}_grainmask_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="binary", image_set=self.image_set, core_set=False)
+
+                # Plot the cropped grain image
+                plot_and_save(grain_image, output_grain, f"{self.image_name}_grain_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=True)
+                plot_and_save(masked_grain_image, output_grain, f"{self.image_name}_grain_image_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=False)
+
 
             points = self.calculate_points(grain_mask)
             edges = self.calculate_edges(grain_mask)
@@ -178,7 +189,6 @@ class GrainStats:
                 edges=edges,
                 hull_simplices=hull_simplexes,
                 path=output_grain,
-                debug=False
             )
 
             # save_format = '.4f'
@@ -225,9 +235,10 @@ class GrainStats:
         Path.mkdir(self.base_output_dir / self.direction, exist_ok=True, parents=True)
         grainstats = pd.DataFrame(data=stats_array)
         grainstats.index.name = "Molecule Number"
-        grainstats.to_csv(self.base_output_dir / self.direction / "grainstats.csv")
+        savename = f"{self.image_name}_{self.direction}_grainstats.csv"
+        grainstats.to_csv(self.base_output_dir / self.direction / savename)
         LOGGER.info(
-            f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/grainstats.csv"
+            f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/{savename}"
         )
 
         return {"statistics": grainstats, "plot": ax}

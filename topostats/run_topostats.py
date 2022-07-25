@@ -166,6 +166,7 @@ def process_scan(
     grains_threshold_abs_upper=None,
     zrange = None,
     mask_direction = None,
+    save_cropped_grains = False,
     save_plots: bool = True,
     image_set: str = "core",
     colorbar: bool = True,
@@ -195,6 +196,8 @@ def process_scan(
         The value to average the background around.
     zrange : list
         Lower and upper limits for the Z-range.
+    save_grains : bool
+        Option to have cropped grain outputs.
     save_plots : bool
         Flag as to whether to save plots to PNG files.
     colorbar : bool
@@ -222,7 +225,7 @@ def process_scan(
         grain_out_path = _output_dir
     else:
         filter_out_path = _output_dir / image_path.stem / "filters"
-        grain_out_path = _output_dir / filtered_image.filename / "grains"
+        grain_out_path = _output_dir / image_path.stem / "grains"
 
     # Filter Image :
     #
@@ -289,6 +292,8 @@ def process_scan(
                     direction=f"{direction}",
                     base_output_dir=_output_dir / "grains",
                     image_name=filtered_image.filename,
+                    save_cropped_grains = save_cropped_grains,
+                    image_set = image_set,
                 ).calculate_stats()
                 for direction in grains.directions
             }
@@ -345,7 +350,7 @@ def process_scan(
             if plot_name not in ["scan_raw"]:
                 if plot_name == "extracted_channel":
                     array = np.flipud(array.pixels)
-                PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
+                PLOT_DICT[plot_name]["output_dir"] = filter_out_path
                 try:
                     plot_and_save(array, **PLOT_DICT[plot_name])
                 except AttributeError:
@@ -355,7 +360,7 @@ def process_scan(
         if grains.region_properties is not None:
             LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
             plot_name = "gaussian_filtered"
-            PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
+            PLOT_DICT[plot_name]["output_dir"] = filter_out_path
             plot_and_save(grains.images["gaussian_filtered"], **PLOT_DICT[plot_name])
 
             if zrange is not None:
@@ -364,7 +369,7 @@ def process_scan(
                 plot_and_save(grains.images["z_threshed"], filename=filtered_image.filename+'_processed', **PLOT_DICT[plot_name])
 
             for direction, image_arrays in grains.directions.items():
-                output_dir = Path(_output_dir) / "grains" / f"{direction}"
+                output_dir = Path(_output_dir) / filtered_image.filename / "grains" / f"{direction}"
                 for plot_name, array in image_arrays.items():
                     PLOT_DICT[plot_name]["output_dir"] = output_dir
                     plot_and_save(array, **PLOT_DICT[plot_name])
@@ -452,6 +457,7 @@ def main():
         background=config["grains"]["background"],
         zrange=config["grains"]["zrange"],
         mask_direction=config["grains"]["mask_direction"],
+        save_cropped_grains=config["grains"]["save_cropped_grains"],
         save_plots=config["plotting"]["save"],
         image_set=config["plotting"]["image_set"],
         colorbar=config["plotting"]["colorbar"],
