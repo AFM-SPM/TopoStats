@@ -319,13 +319,13 @@ def process_scan(
                 )
                 dna_traces[direction].trace_dna()
                 tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
-                tracing_stats[direction].save_trace_stats(_output_dir / filtered_image.filename / direction)
+                #tracing_stats[direction].save_trace_stats(_output_dir / filtered_image.filename / direction)
 
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Combining {direction} grain statistics and dnatracing statistics"
                 )
                 results = grainstat["statistics"].merge(tracing_stats[direction].df, on="Molecule Number")
-                results.to_csv(_output_dir / filtered_image.filename / direction / "all_statistics.csv")
+                #results.to_csv(_output_dir / filtered_image.filename / direction / "all_statistics.csv")
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Combined statistics saved to {str(_output_dir)}/{filtered_image.filename}/{direction}/all_statistics.csv"
                 )
@@ -335,6 +335,7 @@ def process_scan(
             LOGGER.info(
                 f"[{filtered_image.filename}] : Errors occurred attempting to calculate grain statistics and DNA tracing statistics."
             )
+            print("-----EXEPTION-----")
             results = create_empty_dataframe()
 
     # Optionally plot all stages
