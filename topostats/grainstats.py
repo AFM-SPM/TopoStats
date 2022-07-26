@@ -238,7 +238,6 @@ class GrainStats:
         grainstats = pd.DataFrame(data=stats_array)
         grainstats.index.name = "Molecule Number"
         if self.save_cropped_grains:
-            Path.mkdir(self.base_output_dir / self.direction, exist_ok=True, parents=True)
             savename = f"{self.image_name}_{self.direction}_grainstats.csv"
             grainstats.to_csv(self.base_output_dir / self.direction / savename)
             LOGGER.info(
