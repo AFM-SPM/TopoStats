@@ -161,7 +161,7 @@ class GrainStats:
             # Create directory for each grain's plots
             output_grain = self.base_output_dir / self.direction
             # Path.mkdir(output_grain, parents=True, exist_ok=True)
-            output_grain.mkdir(parents=True, exist_ok=True)
+            #output_grain.mkdir(parents=True, exist_ok=True)
 
             # Obtain cropped grain mask and image
             minr, minc, maxr, maxc = region.bbox
@@ -170,6 +170,7 @@ class GrainStats:
             masked_grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
             
             if self.save_cropped_grains:
+                output_grain.mkdir(parents=True, exist_ok=True)
                 # Plot the cropped grain mask
                 plot_and_save(grain_mask, output_grain, f"{self.image_name}_grainmask_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="binary", image_set=self.image_set, core_set=False)
 
@@ -234,14 +235,15 @@ class GrainStats:
             )
             ax.add_patch(rectangle)
 
-        Path.mkdir(self.base_output_dir / self.direction, exist_ok=True, parents=True)
         grainstats = pd.DataFrame(data=stats_array)
         grainstats.index.name = "Molecule Number"
-        savename = f"{self.image_name}_{self.direction}_grainstats.csv"
-        grainstats.to_csv(self.base_output_dir / self.direction / savename)
-        LOGGER.info(
-            f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/{savename}"
-        )
+        if self.save_cropped_grains:
+            #Path.mkdir(self.base_output_dir / self.direction, exist_ok=True, parents=True)
+            savename = f"{self.image_name}_{self.direction}_grainstats.csv"
+            grainstats.to_csv(self.base_output_dir / self.direction / savename)
+            LOGGER.info(
+                f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/{savename}"
+            )
 
         return {"statistics": grainstats, "plot": ax}
 
@@ -397,6 +399,7 @@ class GrainStats:
 
         # Debug information
         if debug:
+            base_output_dir.mkdir(parents=True, exist_ok=True)
             self.plot(edges, hull, base_output_dir / "_points_hull.png")
             LOGGER.info(f"points: {edges}")
             LOGGER.info(f"hull: {hull}")
@@ -640,6 +643,9 @@ class GrainStats:
             extremes = self.find_cartesian_extremes(rotated_points)
 
             if debug:
+                # Ensure directory is there
+                path.mkdir(parents=True, exist_ok=True)
+
                 # Create plot
                 # FIXME : Make this a method
                 fig = plt.figure(figsize=(8, 8))
