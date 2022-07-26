@@ -7,7 +7,6 @@ quiet: false
 file_ext: .spm
 channel: Height
 amplify_level: 1.0
-mask_direction: upper # Options: upper, lower (currently only applied to thresh+mask image)
 filter:
   threshold:
     method: otsu # Options : otsu, std_dev, absolute
@@ -22,6 +21,8 @@ grains:
   absolute_smallest_grain_size: 100
   background: 0.0
   zrange: [0, 3] # List of low value, high value
+  mask_direction: upper # Options: upper, lower (currently only applied to thresh+mask image)
+  save_cropped_grains: True
   threshold:
     method: otsu # Options : otsu, std_dev, absolute
     otsu_multiplier: 1.7
@@ -31,5 +32,6 @@ grains:
       - -1
 plotting:
   save: True
+  image_set: core # Options : all, core
   colorbar: True
   cmap: nanoscope # Options : nanoscope, afmhot
