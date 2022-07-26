@@ -304,7 +304,7 @@ def process_scan(
                 grainstats_df = pd.concat([grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]])
             else:
                 grainstats_df = grainstats["upper"]["statistics"]
-            grainstats_df.to_csv(_output_dir / f"{filtered_image.filename}_grainstats.csv")
+            #grainstats_df.to_csv(_output_dir / f"{filtered_image.filename}_grainstats.csv")
 
             # Run dnatracing
             LOGGER.info(f"[{filtered_image.filename}] : *** DNA Tracing ***")
@@ -326,16 +326,15 @@ def process_scan(
                 )
                 results = grainstat["statistics"].merge(tracing_stats[direction].df, on="Molecule Number")
                 #results.to_csv(_output_dir / filtered_image.filename / direction / "all_statistics.csv")
-                LOGGER.info(
-                    f"[{filtered_image.filename}] : Combined statistics saved to {str(_output_dir)}/{filtered_image.filename}/{direction}/all_statistics.csv"
-                )
+                #LOGGER.info(
+                #    f"[{filtered_image.filename}] : Combined statistics saved to {str(_output_dir)}/{filtered_image.filename}/{direction}/all_statistics.csv"
+                #)
 
         except Exception:
             # If no results we need a dummy dataframe to return.
             LOGGER.info(
                 f"[{filtered_image.filename}] : Errors occurred attempting to calculate grain statistics and DNA tracing statistics."
             )
-            print("-----EXEPTION-----")
             results = create_empty_dataframe()
 
     # Optionally plot all stages
