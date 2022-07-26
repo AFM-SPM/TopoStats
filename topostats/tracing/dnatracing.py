@@ -901,7 +901,7 @@ class traceStats(object):
         self.df.index.name = "Molecule Number"
         # self.df["Experiment Directory"] = str(Path().cwd())
         self.df["Image Name"] = self.image_path.name
-        self.df["Basename"] = str(self.image_path)
+        self.df["Basename"] = str(self.image_path.parent)
 
     def save_trace_stats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True) -> None:
         """Write trace statistics to JSON and/or CSV.

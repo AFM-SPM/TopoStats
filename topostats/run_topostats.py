@@ -17,7 +17,7 @@ from topostats.io import read_yaml, write_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import plot_and_save
 from topostats.tracing.dnatracing import dnaTrace, traceStats
-from topostats.utils import find_images, get_out_path, update_config, convert_path, create_empty_dataframe
+from topostats.utils import find_images, get_out_path, update_config, convert_path, create_empty_dataframe, folder_grainstats
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -486,6 +486,7 @@ def main():
     LOGGER.info(
         f"All statistics combined for {len(img_files)} images(s) are saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
     )
+    folder_grainstats(config["output_dir"], config["base_dir"], results)
 
     # Write config to file
     LOGGER.info(f"Writing configuration to : {config['output_dir']}/config.yaml")
