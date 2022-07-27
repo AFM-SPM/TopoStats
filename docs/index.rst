@@ -9,6 +9,7 @@ Welcome to TopoStats's documentation!
     installation
     configuration
     workflow
+    data_dictionary
 
 .. toctree::
    :maxdepth: 2
