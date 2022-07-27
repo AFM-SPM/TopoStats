@@ -85,7 +85,8 @@ def plot_and_save(
         if save:
             if image_set=="all" or core_set:
                 plt.savefig(output_dir / filename)
-                LOGGER.info(f"[{Path(output_dir).parts[1]}] : Image saved to : {str(output_dir / filename)}")
+                if '_processed' in filename:
+                    LOGGER.info(f"[{filename.split('_processed')[0]}] : Image saved to : {str(output_dir / filename)}")
     else:
         plt.xlabel("Nanometres")
         plt.ylabel("Nanometres")
