@@ -14,12 +14,12 @@ warnings: ignore
 cores: 4
 quiet: false
 file_ext: .spm
-channel: Height Sensor
+channel: Height
 amplify_level: 1.0
 filter:
   threshold:
-    method: otsu # 'otsu', 'std_dev', 'absolute'
-    otsu_multiplier: 1.7
+    method: std_dev # Options : otsu, std_dev, absolute
+    otsu_multiplier: 1.0
     std_dev: 1.0
     absolute:
       - 1
@@ -29,13 +29,19 @@ grains:
   gaussian_mode: nearest
   absolute_smallest_grain_size: 100
   background: 0.0
+  zrange: [0, 3] # low and high height range
+  mask_direction: upper # Options: upper, lower (currently only applied to thresh+mask image)
   threshold:
-    method: otsu # 'otsu', 'std_dev', 'absolute'
-    otsu_multiplier: 1.7
+    method: std_dev # Options : otsu, std_dev, absolute
+    otsu_multiplier: 1.0
     std_dev: 1.0
     absolute:
       - 1
       - -1
+plotting:
+  save: True
+  colorbar: True
+  cmap: nanoscope # Options : nanoscope, afmhot
 ```
 
 ### Core parameters
