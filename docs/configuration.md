@@ -79,9 +79,9 @@ The filter block contains one [threshold block](#threshold).
 | Parameter | Description | Example | Allowable |
 | --- | --- | --- | --- |
 | `method` | Thresholding method. | `otsu` | `otsu`, `std_dev`, `absolute` |
-| `otsu_multiplier` | | `1.7` | |
-| `std_dev` | | `1.0` | |
-| `absolute` | List of... | `1` <br/> `-1` | |
+| `otsu_multiplier` | *TBD* | `1.7` | Positive real number. |
+| `std_dev` | *TBD* | `1.0` | Positive real number. |
+| `absolute` | List of *TBD* | `1` <br/> `-1` | *TBD* |
 
 ### Plotting
 
