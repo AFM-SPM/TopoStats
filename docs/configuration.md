@@ -4,8 +4,6 @@ The parameters that the software uses for analysis of the data can be configured
 
 If no configuration YAML file is found while running TopoStats, it will generate a default file.
 
-Parameters passed via command line arguments (*docs TBD*) take precidence over those in the YAML configuration file.
-
 ### Example
 
 ```{yaml}
