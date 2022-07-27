@@ -69,7 +69,9 @@ The filter block contains one [threshold block](#threshold).
 | `gaussian_size` | The standard deviation of the Gaussian kernel used to filter grain sizes | 2.0 | Any positive real number. |
 | `gaussian_mode` | *TBD* | nearest | *TBD* |
 | `absolute_smallest_grain_size` | The smallest grain size for analysis (pixels?). | 100 | Positive integer. |
-| `background` | *TBD* | 0.0 | *TBD* |
+| `background` | *TBD* | `0.0` | *TBD* |
+| `zrange` | The height of the the highest and lowest objects under analysis. | [0, 3] | A list of two real numbers. |
+| `mask_direction` | *TBD* | `upper` | String `upper` or `lower`. |
 | `threshold` | One [threshold block](#threshold) | | |
 
 ### Threshold
@@ -80,3 +82,11 @@ The filter block contains one [threshold block](#threshold).
 | `otsu_multiplier` | | `1.7` | |
 | `std_dev` | | `1.0` | |
 | `absolute` | List of... | `1` <br/> `-1` | |
+
+### Plotting
+
+| Parameter | Description | Example | Allowable |
+| --- | --- | --- | --- |
+| `save` | Save plots. | `True` | Boolean. |
+| `colorbar` | Include a colour bar on plots. | `True` | Boolean. |
+| `cmap` | Colour map to use for Z scale. | `nanoscope` | String `nanoscope` or `afmhot`. |
