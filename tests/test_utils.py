@@ -3,8 +3,9 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+import pandas as pd
 
-from topostats.utils import convert_path, find_images, get_out_path, update_config, get_thresholds
+from topostats.utils import convert_path, find_images, get_out_path, update_config, get_thresholds, folder_grainstats
 
 
 THRESHOLD_OPTIONS = {"otsu_threshold_multiplier": 1.7, "deviation_from_mean": 1, "absolute": (-1.5, 1.5)}
@@ -85,3 +86,13 @@ def test_get_thresholds_value_error(image_random: np.ndarray) -> None:
     """Test a ValueError is raised if an invalid value is passed to get_thresholds()"""
     with pytest.raises(ValueError):
         get_thresholds(image=image_random, threshold_method="mean", **THRESHOLD_OPTIONS)
+
+
+def test_folder_grainstats(tmpdir, minicircle_dnatracing: pd.DataFrame) -> None:
+    """Test a folder-wide grainstats file is made"""
+    input_path = Path(tmpdir) / 'minicircle'
+    minicircle_dnatracing['Basename'] = input_path / "subfolder"
+    true_out_path = Path(tmpdir) / 'subfolder' / 'Processed'
+    Path.mkdir(true_out_path, parents=True)
+    folder_grainstats(Path(tmpdir), input_path, minicircle_dnatracing)
+    assert Path(true_out_path / 'folder_grainstats.csv').exists()
