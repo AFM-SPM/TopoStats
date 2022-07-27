@@ -1,9 +1,11 @@
 ## Data Dictionary
 
+ToDo - define cartesian origin.
+
 | Column / field / feature | Description | Units |
 | --- | --- | --- |
-| centre_x | | |
-| centre_y | | |
+| centre_x | x co-ordinate of object centre. | m |
+| centre_y | y co-ordinate of object centre. | m |
 | radius_min | | |
 | radius_max | | |
 | radius_mean | | |
