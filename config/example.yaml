@@ -1,4 +1,4 @@
-base_dir: ./data/
+base_dir: ./tests/
 output_dir: ./output
 save_plots: true
 warnings: ignore
@@ -16,7 +16,7 @@ filter:
       - 1
       - -1
 grains:
-  gaussian_size: 2.0
+  gaussian_size: 2.0 
   gaussian_mode: nearest
   absolute_smallest_grain_size: 100
   background: 0.0
@@ -32,6 +32,6 @@ grains:
       - -1
 plotting:
   save: True
-  image_set: all # Options : all, core
+  image_set: core # Options : all, core
   colorbar: True
   cmap: nanoscope # Options : nanoscope, afmhot
