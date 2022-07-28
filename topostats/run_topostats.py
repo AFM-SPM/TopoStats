@@ -226,6 +226,8 @@ def process_scan(
     else:
         filter_out_path = _output_dir / image_path.stem / "filters"
         grain_out_path = _output_dir / image_path.stem / "grains"
+        Path.mkdir(_output_dir / image_path.stem / "grains" / "upper", parents=True, exist_ok=True)
+        Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
 
     # Filter Image :
     #
@@ -242,10 +244,6 @@ def process_scan(
         output_dir=filter_out_path,
     )
     filtered_image.filter_image()
-
-    if image_set == "all":
-        Path.mkdir(_output_dir / filtered_image.filename / "grains" / "upper", parents=True, exist_ok=True)
-        Path.mkdir(_output_dir / filtered_image.filename / "grains" / "lower", parents=True, exist_ok=True)
 
     # Find Grains :
     # The Grains class also has a convenience method that runs the instantiated class in full.
