@@ -519,6 +519,8 @@ def grainstats(image_random: np.array, minicircle_filename: str, tmpdir) -> Grai
         pixel_to_nanometre_scaling=0.5,
         direction=minicircle_filename,
         base_output_dir=tmpdir,
+        save_cropped_grains=True,
+        image_set='all',
     )
     return gstats
 
@@ -539,6 +541,8 @@ def minicircle_grainstats(
         pixel_to_nanometre_scaling=minicircle_pixels.pixel_to_nm_scaling,
         direction=minicircle_filename.filename,
         base_output_dir=tmpdir,
+        save_cropped_grains=True,
+        image_set='all',
     )
 
 

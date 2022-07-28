@@ -2,7 +2,7 @@
 from pathlib import Path
 
 import pandas as pd
-
+import pytest
 from topostats.grainstats import GrainStats
 
 # Specify the absolute and relattive tolerance for floating point comparison
@@ -17,3 +17,15 @@ def test_grainstats(minicircle_grainstats: GrainStats, minicircle_grainstats_202
     statistics = minicircle_grainstats.calculate_stats()
 
     pd.testing.assert_frame_equal(statistics["statistics"], minicircle_grainstats_20220526)
+
+
+@pytest.mark.parametrize("value", [
+(True),
+(False),
+])
+def test_save_cropped_grains(minicircle_grainstats: GrainStats, value, tmpdir):
+    # need to run grainstats with config option True and see if it is there.
+    minicircle_grainstats.save_cropped_grains = value
+    minicircle_grainstats.base_output_dir = Path(tmpdir) / "grains"
+    minicircle_grainstats.calculate_stats()
+    assert Path.exists(Path(tmpdir) / "grains") == value
