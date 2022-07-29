@@ -25,6 +25,7 @@ def plot_and_save(
     interpolation: str = "nearest",
     cmap: str = "nanoscope",
     region_properties: dict = None,
+    zrange: list = [None, None],
     colorbar: bool = True,
     save: bool = True,
 ):
@@ -59,6 +60,8 @@ def plot_and_save(
             extent=(0, shape[0] * pixel_to_nm_scaling_factor, 0, shape[1] * pixel_to_nm_scaling_factor),
             interpolation=interpolation,
             cmap=Colormap(cmap).get_cmap(),
+            vmin=zrange[0], 
+            vmax=zrange[1],
         )
         if isinstance(data2, np.ndarray):
             mask = np.ma.masked_where(data2==0, data2)

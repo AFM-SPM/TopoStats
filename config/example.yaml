@@ -20,7 +20,6 @@ grains:
   gaussian_mode: nearest
   absolute_smallest_grain_size: 100
   background: 0.0
-  zrange: [0, 3] # low and high height range
   mask_direction: upper # Options: upper, lower (currently only applied to thresh+mask image)
   threshold:
     method: std_dev # Options : otsu, std_dev, absolute
@@ -31,5 +30,6 @@ grains:
       - -1
 plotting:
   save: True
+  zrange: [-10, 10] # low and high height range for core images
   colorbar: True
   cmap: nanoscope # Options : nanoscope, afmhot
