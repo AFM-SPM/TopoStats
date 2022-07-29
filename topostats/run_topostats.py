@@ -249,7 +249,6 @@ def process_scan(
             absolute_smallest_grain_size=absolute_smallest_grain_size,
             background=background,
             base_output_dir=_output_dir / filtered_image.filename / "grains",
-            zrange=zrange,
         )
         grains.find_grains()
     except IndexError:
@@ -276,6 +275,7 @@ def process_scan(
                     direction=f"{direction}",
                     base_output_dir=_output_dir / filtered_image.filename,
                     image_name=filtered_image.filename,
+                    zrange=zrange,
                 ).calculate_stats()
                 for direction in grains.directions
             }
@@ -372,7 +372,7 @@ def process_scan(
             plot_name = "mask_overlay"
             PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
             plot_and_save(
-                grains.images["z_threshed"], 
+                grains.images["gaussian_filtered"], 
                 data2=grains.directions[mask_direction]["removed_small_objects"], 
                 zrange=zrange,
                 **PLOT_DICT[plot_name]

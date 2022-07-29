@@ -61,6 +61,7 @@ class GrainStats:
         direction: str,
         base_output_dir: Union[str, Path],
         image_name: str = None,
+        zrange: list = [None, None],
     ):
         """Initialise the class.
 
@@ -83,6 +84,7 @@ class GrainStats:
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
         self.image_name = image_name
+        self.zrange = zrange
 
     @staticmethod
     def get_angle(point_1: tuple, point_2: tuple) -> float:
@@ -160,7 +162,7 @@ class GrainStats:
             # Obtain the cropped grain image
             minr, minc, maxr, maxc = region.bbox
             grain_image = self.data[minr:maxr, minc:maxc]
-            plot_and_save(grain_image, output_grain, "grain_image_raw.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling)
+            plot_and_save(grain_image, output_grain, "grain_image_raw.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, zrange=self.zrange)
             grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
             plot_and_save(grain_image, output_grain, "grain_image.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling)
 
