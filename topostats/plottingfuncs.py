@@ -68,7 +68,7 @@ def plot_and_save(
              interpolation=interpolation,
              alpha=0.7)
             patch = [Patch(color=plt.get_cmap('jet_r')(1, 0.7), label='Mask')]
-            plt.legend(handles=patch)
+            plt.legend(handles=patch, loc='upper right', bbox_to_anchor=(1,1.06))
 
         plt.title(title)
         plt.xlabel("Nanometres")
