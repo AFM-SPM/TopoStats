@@ -44,7 +44,7 @@ def test_gaussian_filter_minicircle(minicircle_grain_gaussian_filter: Grains, pl
     )
     return fig
 
-
+'''
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_z_threshold_minicircle(minicircle_grain_z_threshold: Grains, plotting_config: dict, tmpdir) -> None:
     """Test Z threshold filter."""
@@ -61,7 +61,7 @@ def test_z_threshold_minicircle(minicircle_grain_z_threshold: Grains, plotting_c
         **plotting_config
     )
     return fig
-
+'''
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_mask_minicircle(minicircle_grain_mask: Grains, plotting_config: dict, tmpdir) -> None:
@@ -135,7 +135,7 @@ def test_remove_small_objects(minicircle_small_objects_removed: Grains, plotting
     )
     return fig
 
-
+'''
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_mask_overlay(minicircle_small_objects_removed: Grains, minicircle_grain_z_threshold: Grains, plotting_config: dict, tmpdir) -> None:
     """Test mask overlay image."""
@@ -148,7 +148,7 @@ def test_mask_overlay(minicircle_small_objects_removed: Grains, minicircle_grain
         **plotting_config
     )
     return fig
-
+'''
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_label_regions(minicircle_grain_labelled_post_removal: Grains, plotting_config: dict, tmpdir) -> None:

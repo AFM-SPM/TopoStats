@@ -21,7 +21,6 @@ grains:
   gaussian_mode: nearest
   absolute_smallest_grain_size: 100
   background: 0.0
-  zrange: [0, 3] # List of low value, high value
   threshold:
     method: otsu # Options : otsu, std_dev, absolute
     otsu_multiplier: 1.7
@@ -31,5 +30,6 @@ grains:
       - -1
 plotting:
   save: True
+  zrange: [0, 3] # List of low value, high value
   colorbar: True
   cmap: nanoscope # Options : nanoscope, afmhot
