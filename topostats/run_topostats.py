@@ -17,7 +17,7 @@ from topostats.io import read_yaml, write_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import plot_and_save
 from topostats.tracing.dnatracing import dnaTrace, traceStats
-from topostats.utils import find_images, get_out_path, update_config, convert_path, create_empty_dataframe
+from topostats.utils import find_images, get_out_path, update_config, convert_path, create_empty_dataframe, folder_grainstats
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -31,34 +31,36 @@ LOGGER = setup_logger(LOGGER_NAME)
 # pylint: disable=unnecessary-dict-index-lookup
 
 PLOT_DICT = {
-    "extracted_channel": {"filename": "00-raw_heightmap.png", "title": "Raw Height", "type": "non-binary"},
-    "pixels": {"filename": "01-pixels.png", "title": "Pixels", "type": "non-binary"},
-    "initial_align": {"filename": "02-initial_align_unmasked.png", "title": "Initial Alignment (Unmasked)", "type": "non-binary"},
+    "extracted_channel": {"filename": "00-raw_heightmap.png", "title": "Raw Height", "type": "non-binary", "core_set": False},
+    "pixels": {"filename": "01-pixels.png", "title": "Pixels", "type": "non-binary", "core_set": False},
+    "initial_align": {"filename": "02-initial_align_unmasked.png", "title": "Initial Alignment (Unmasked)", "type": "non-binary", "core_set": False},
     "initial_tilt_removal": {
         "filename": "03-initial_tilt_removal_unmasked.png",
         "title": "Initial Tilt Removal (Unmasked)",
         "type": "non-binary",
+        "core_set": False,
     },
-    "mask": {"filename": "04-binary_mask.png", "title": "Binary Mask", "type": "binary"},
-    "masked_align": {"filename": "05-secondary_align_masked.png", "title": "Secondary Alignment (Masked)", "type": "non-binary"},
+    "mask": {"filename": "04-binary_mask.png", "title": "Binary Mask", "type": "binary", "core_set": False},
+    "masked_align": {"filename": "05-secondary_align_masked.png", "title": "Secondary Alignment (Masked)", "type": "non-binary", "core_set": False},
     "masked_tilt_removal": {
         "filename": "06-secondary_tilt_removal_masked.png",
         "title": "Secondary Tilt Removal (Masked)",
         "type": "non-binary",
+        "core_set": False
     },
-    "zero_averaged_background": {"filename": "07-zero_average_background.png", "title": "Zero Average Background", "type": "non-binary"},
-    "gaussian_filtered": {"filename": "08-gaussian_filtered.png", "title": "Gaussian Filtered", "type": "non-binary"},
-    "z_threshed": {"filename": "08_5-z_thresholded.png", "title": "Height Thresholded", "type": "non-binary"},
-    "mask_grains": {"filename": "09-mask_grains.png", "title": "Mask for Grains", "type": "binary"},
-    "tidied_border": {"filename": "10-tidy_borders.png", "title": "Tidied Borders", "type": "binary"},
-    "removed_noise": {"filename": "11-noise_removed.png", "title": "Noise removed", "type": "binary"},
-    "labelled_regions_01": {"filename": "12-labelled_regions.png", "title": "Labelled Regions", "type": "binary"},
-    "removed_small_objects": {"filename": "13-small_objects_removed.png", "title": "Small Objects Removed", "type": "binary"},
-    "mask_overlay": {"filename": "13_5-mask_overlay.png", "title": "Height Thresholded with Mask", "type": "non-binary"},
-    "labelled_regions_02": {"filename": "14-labelled_regions.png", "title": "Labelled Regions", "type": "binary"},
-    "coloured_regions": {"filename": "15-coloured_regions.png", "title": "Coloured Regions", "type": "binary"},
-    "bounding_boxes": {"filename": "16-bounding_boxes.png", "title": "Bounding Boxes", "type": "binary"},
-    "coloured_boxes": {"filename": "17-labelled_image_bboxes.png", "title": "Labelled Image with Bounding Boxes", "type": "binary"},
+    "zero_averaged_background": {"filename": "07-zero_average_background.png", "title": "Zero Average Background", "type": "non-binary", "core_set": False},
+    "gaussian_filtered": {"filename": "08-gaussian_filtered.png", "title": "Gaussian Filtered", "type": "non-binary", "core_set": False},
+    "z_threshed": {"title": "Height Thresholded", "type": "non-binary", "core_set": True},
+    "mask_grains": {"filename": "09-mask_grains.png", "title": "Mask for Grains", "type": "binary", "core_set": False},
+    "tidied_border": {"filename": "10-tidy_borders.png", "title": "Tidied Borders", "type": "binary", "core_set": False},
+    "removed_noise": {"filename": "11-noise_removed.png", "title": "Noise removed", "type": "binary", "core_set": False},
+    "labelled_regions_01": {"filename": "12-labelled_regions.png", "title": "Labelled Regions", "type": "binary", "core_set": False},
+    "removed_small_objects": {"filename": "13-small_objects_removed.png", "title": "Small Objects Removed", "type": "binary", "core_set": False},
+    "mask_overlay": {"title": "Height Thresholded with Mask", "type": "non-binary", "core_set": True},
+    "labelled_regions_02": {"filename": "14-labelled_regions.png", "title": "Labelled Regions", "type": "binary", "core_set": False},
+    "coloured_regions": {"filename": "15-coloured_regions.png", "title": "Coloured Regions", "type": "binary", "core_set": False},
+    "bounding_boxes": {"filename": "16-bounding_boxes.png", "title": "Bounding Boxes", "type": "binary", "core_set": False},
+    "coloured_boxes": {"filename": "17-labelled_image_bboxes.png", "title": "Labelled Image with Bounding Boxes", "type": "binary", "core_set": False},
 }
 
 
@@ -164,7 +166,9 @@ def process_scan(
     grains_threshold_abs_upper=None,
     zrange = None,
     mask_direction = None,
+    save_cropped_grains = False,
     save_plots: bool = True,
+    image_set: str = "core",
     colorbar: bool = True,
     output_dir: Union[str, Path] = "output",
 ) -> None:
@@ -192,6 +196,8 @@ def process_scan(
         The value to average the background around.
     zrange : list
         Lower and upper limits for the Z-range.
+    save_grains : bool
+        Option to have cropped grain outputs.
     save_plots : bool
         Flag as to whether to save plots to PNG files.
     colorbar : bool
@@ -211,8 +217,18 @@ def process_scan(
     """
     LOGGER.info(f"Processing : {image_path}")
 
-    _output_dir = get_out_path(image_path, base_dir, output_dir).parent
+    _output_dir = get_out_path(image_path, base_dir, output_dir).parent / "Processed"
     _output_dir.mkdir(parents=True, exist_ok=True)
+
+    if image_set == "core":
+        filter_out_path = _output_dir 
+        grain_out_path = _output_dir
+    else:
+        filter_out_path = _output_dir / image_path.stem / "filters"
+        grain_out_path = _output_dir / image_path.stem / "grains"
+        Path.mkdir(_output_dir / image_path.stem / "grains" / "upper", parents=True, exist_ok=True)
+        Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
+
     # Filter Image :
     #
     # The Filters class has a convenience method that runs the instantiated class in full.
@@ -225,11 +241,9 @@ def process_scan(
         threshold_absolute_upper=filter_threshold_abs_upper,
         channel=channel,
         amplify_level=amplify_level,
-        output_dir=_output_dir / image_path.stem / "filters",
+        output_dir=filter_out_path,
     )
     filtered_image.filter_image()
-    Path.mkdir(_output_dir / filtered_image.filename / "upper", parents=True, exist_ok=True)
-    Path.mkdir(_output_dir / filtered_image.filename / "lower", parents=True, exist_ok=True)
 
     # Find Grains :
     # The Grains class also has a convenience method that runs the instantiated class in full.
@@ -248,7 +262,7 @@ def process_scan(
             threshold_absolute_upper=grains_threshold_abs_upper,
             absolute_smallest_grain_size=absolute_smallest_grain_size,
             background=background,
-            base_output_dir=_output_dir / filtered_image.filename / "grains",
+            base_output_dir=grain_out_path,
             zrange=zrange,
         )
         grains.find_grains()
@@ -274,8 +288,10 @@ def process_scan(
                     labelled_data=grains.directions[direction]["labelled_regions_02"],
                     pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
                     direction=f"{direction}",
-                    base_output_dir=_output_dir / filtered_image.filename,
+                    base_output_dir=_output_dir / "grains",
                     image_name=filtered_image.filename,
+                    save_cropped_grains = save_cropped_grains,
+                    image_set = image_set,
                 ).calculate_stats()
                 for direction in grains.directions
             }
@@ -286,7 +302,7 @@ def process_scan(
                 grainstats_df = pd.concat([grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]])
             else:
                 grainstats_df = grainstats["upper"]["statistics"]
-            grainstats_df.to_csv(_output_dir / filtered_image.filename / "grainstats.csv")
+            #grainstats_df.to_csv(_output_dir / f"{filtered_image.filename}_grainstats.csv")
 
             # Run dnatracing
             LOGGER.info(f"[{filtered_image.filename}] : *** DNA Tracing ***")
@@ -301,16 +317,16 @@ def process_scan(
                 )
                 dna_traces[direction].trace_dna()
                 tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
-                tracing_stats[direction].save_trace_stats(_output_dir / filtered_image.filename / direction)
+                #tracing_stats[direction].save_trace_stats(_output_dir / filtered_image.filename / direction)
 
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Combining {direction} grain statistics and dnatracing statistics"
                 )
                 results = grainstat["statistics"].merge(tracing_stats[direction].df, on="Molecule Number")
-                results.to_csv(_output_dir / filtered_image.filename / direction / "all_statistics.csv")
-                LOGGER.info(
-                    f"[{filtered_image.filename}] : Combined statistics saved to {str(_output_dir)}/{filtered_image.filename}/{direction}/all_statistics.csv"
-                )
+                #results.to_csv(_output_dir / filtered_image.filename / direction / "all_statistics.csv")
+                #LOGGER.info(
+                #    f"[{filtered_image.filename}] : Combined statistics saved to {str(_output_dir)}/{filtered_image.filename}/{direction}/all_statistics.csv"
+                #)
 
         except Exception:
             # If no results we need a dummy dataframe to return.
@@ -323,7 +339,7 @@ def process_scan(
     if save_plots:
         LOGGER.info(f"[{filtered_image.filename}] : Plotting Filtering Images")
         # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
-        plot_opts = {"pixel_to_nm_scaling_factor": filtered_image.pixel_to_nm_scaling, "colorbar": colorbar}
+        plot_opts = {"pixel_to_nm_scaling_factor": filtered_image.pixel_to_nm_scaling, "colorbar": colorbar, "image_set": image_set}
         for image, options in PLOT_DICT.items():
             PLOT_DICT[image] = {**options, **plot_opts}
 
@@ -332,7 +348,7 @@ def process_scan(
             if plot_name not in ["scan_raw"]:
                 if plot_name == "extracted_channel":
                     array = np.flipud(array.pixels)
-                PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
+                PLOT_DICT[plot_name]["output_dir"] = filter_out_path
                 try:
                     plot_and_save(array, **PLOT_DICT[plot_name])
                 except AttributeError:
@@ -342,16 +358,16 @@ def process_scan(
         if grains.region_properties is not None:
             LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
             plot_name = "gaussian_filtered"
-            PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
+            PLOT_DICT[plot_name]["output_dir"] = filter_out_path
             plot_and_save(grains.images["gaussian_filtered"], **PLOT_DICT[plot_name])
 
             if zrange is not None:
                 plot_name = "z_threshed"
-                PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
-                plot_and_save(grains.images["z_threshed"], **PLOT_DICT[plot_name])
+                PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir)
+                plot_and_save(grains.images["z_threshed"], filename=filtered_image.filename+'_processed', **PLOT_DICT[plot_name])
 
             for direction, image_arrays in grains.directions.items():
-                output_dir = Path(_output_dir) / filtered_image.filename / f"{direction}"
+                output_dir = Path(_output_dir) / filtered_image.filename / "grains" / f"{direction}"
                 for plot_name, array in image_arrays.items():
                     PLOT_DICT[plot_name]["output_dir"] = output_dir
                     plot_and_save(array, **PLOT_DICT[plot_name])
@@ -370,9 +386,10 @@ def process_scan(
                 )
 
             plot_name = "mask_overlay"
-            PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
+            PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir)
             plot_and_save(
-                grains.images["z_threshed"], 
+                grains.images["z_threshed"],
+                filename=filtered_image.filename+'_processed_masked',
                 data2=grains.directions[mask_direction]["removed_small_objects"], 
                 **PLOT_DICT[plot_name]
             )
@@ -438,7 +455,9 @@ def main():
         background=config["grains"]["background"],
         zrange=config["grains"]["zrange"],
         mask_direction=config["grains"]["mask_direction"],
+        save_cropped_grains=config["grains"]["save_cropped_grains"],
         save_plots=config["plotting"]["save"],
+        image_set=config["plotting"]["image_set"],
         colorbar=config["plotting"]["colorbar"],
         output_dir=config["output_dir"],
         grains_threshold_method=config["grains"]["threshold"]["method"],
@@ -464,6 +483,7 @@ def main():
     LOGGER.info(
         f"All statistics combined for {len(img_files)} images(s) are saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
     )
+    folder_grainstats(config["output_dir"], config["base_dir"], results)
 
     # Write config to file
     LOGGER.info(f"Writing configuration to : {config['output_dir']}/config.yaml")

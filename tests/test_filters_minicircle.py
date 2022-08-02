@@ -24,10 +24,9 @@ def test_load_scan(minicircle_load_scan: Filters) -> None:
     assert isinstance(minicircle_load_scan, Filters)
 
 
-def test_make_output_directory(minicircle_make_output_directory: Filters, tmpdir) -> None:
+def test_make_output_directory(tmpdir) -> None:
     """Test loading of scan."""
-    target_dir = tmpdir / minicircle_make_output_directory.filename
-    assert target_dir.exists()
+    assert tmpdir.exists()
 
 
 def test_extract_channel(minicircle_channel: Filters) -> None:
