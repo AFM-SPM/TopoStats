@@ -76,7 +76,9 @@ def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> Li
     return list(base_dir.glob("**/*" + file_ext))
 
 
-def get_out_path(image_path: Union[str, Path] = None, base_dir: Union[str, Path] = None, output_dir: Union[str, Path] = None) -> Path:
+def get_out_path(
+    image_path: Union[str, Path] = None, base_dir: Union[str, Path] = None, output_dir: Union[str, Path] = None
+) -> Path:
     """Replaces the base directory part of the image path with the output directory.
 
     Parameters
@@ -95,7 +97,8 @@ def get_out_path(image_path: Union[str, Path] = None, base_dir: Union[str, Path]
     """
     pathparts = list(image_path.parts)
     inparts = list(base_dir.parts)
-    return output_dir / Path(*pathparts[len(inparts):])
+    return output_dir / Path(*pathparts[len(inparts) :])
+
 
 def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
     """Update the configuration with any arguments
@@ -257,6 +260,7 @@ def create_empty_dataframe(columns: list = ALL_STATISTICS_COLUMNS) -> pd.DataFra
     """
     return pd.DataFrame([np.repeat(np.nan, len(columns))], columns=columns)
 
+
 def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], all_stats_df: pd.DataFrame) -> None:
     """Creates saves a data frame of grain and tracing statictics at the folder level.
 
@@ -277,9 +281,6 @@ def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], 
     dirs = set(all_stats_df["Basename"].values)
     for dir in dirs:
         out_path = get_out_path(Path(dir), base_dir, output_dir)
-        all_stats_df[all_stats_df["Basename"]==dir].to_csv(out_path / "Processed" / "folder_grainstats.csv")
-        LOGGER.info(
-        f"Folder-wise statistics saved to: {str(out_path / 'folder_grainstats.csv')}"
-    )
+        all_stats_df[all_stats_df["Basename"] == dir].to_csv(out_path / "Processed" / "folder_grainstats.csv")
+        LOGGER.info(f"Folder-wise statistics saved to: {str(out_path / 'folder_grainstats.csv')}")
     return None
-        
