@@ -30,6 +30,6 @@ grains:
       - -1
 plotting:
   save: True
-  zrange: [0, 3] # List of low value, high value
+  zrange: [null, null] # List of low value, high value (or null)
   colorbar: True
   cmap: nanoscope # Options : nanoscope, afmhot
