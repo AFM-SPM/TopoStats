@@ -345,10 +345,9 @@ def process_scan(
             PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
             plot_and_save(grains.images["gaussian_filtered"], **PLOT_DICT[plot_name])
 
-            if zrange is not None:
-                plot_name = "z_threshed"
-                PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
-                plot_and_save(grains.images["gaussian_filtered"], zrange=zrange, **PLOT_DICT[plot_name])
+            plot_name = "z_threshed"
+            PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
+            plot_and_save(grains.images["gaussian_filtered"], zrange=zrange, **PLOT_DICT[plot_name])
 
             for direction, image_arrays in grains.directions.items():
                 output_dir = Path(_output_dir) / filtered_image.filename / f"{direction}"
