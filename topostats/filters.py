@@ -107,7 +107,6 @@ class Filters:
 
     def make_output_directory(self) -> None:
         """Create the output directory for saving files to."""
-        self.output_dir = self.output_dir / self.filename
         self.output_dir.mkdir(exist_ok=True, parents=True)
         LOGGER.info(f"[{self.filename}] : Created directory : {self.output_dir}")
 

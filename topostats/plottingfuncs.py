@@ -22,6 +22,8 @@ def plot_and_save(
     data2: np.array = None,
     title: str = None,
     type: str = "non-binary",
+    image_set: str = "core",
+    core_set: bool = False,
     interpolation: str = "nearest",
     cmap: str = "nanoscope",
     region_properties: dict = None,
@@ -84,7 +86,10 @@ def plot_and_save(
             fig, ax = add_bounding_boxes_to_plot(fig, ax, region_properties, pixel_to_nm_scaling_factor)
 
         if save:
-            plt.savefig(output_dir / filename)
+            if image_set=="all" or core_set:
+                plt.savefig(output_dir / filename)
+                if '_processed' in filename:
+                    LOGGER.info(f"[{filename.split('_processed')[0]}] : Image saved to : {str(output_dir / filename)}")
     else:
         plt.xlabel("Nanometres")
         plt.ylabel("Nanometres")
@@ -95,7 +100,6 @@ def plot_and_save(
             cmap=Colormap(cmap).get_cmap(),
         )
     plt.close()
-    LOGGER.info(f"[{Path(output_dir).parts[1]}] : Image saved to : {str(output_dir / filename)}")
     return fig, ax
 
 

@@ -256,3 +256,30 @@ def create_empty_dataframe(columns: list = ALL_STATISTICS_COLUMNS) -> pd.DataFra
         Empty Pandas DataFrame.
     """
     return pd.DataFrame([np.repeat(np.nan, len(columns))], columns=columns)
+
+def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], all_stats_df: pd.DataFrame) -> None:
+    """Creates saves a data frame of grain and tracing statictics at the folder level.
+
+    Parameters
+    ----------
+    output_dir: Union[str, Path]
+        Path of the output directory head.
+    base_dir: Union[str, Path]
+        Path of the base directory where files were found.
+    all_stats_df: pd.DataFrame
+        The dataframe containing all sample statistics run.
+
+    Returns
+    -------
+    None
+        This only saves the dataframes and does not retain them.
+    """
+    dirs = set(all_stats_df["Basename"].values)
+    for dir in dirs:
+        out_path = get_out_path(Path(dir), base_dir, output_dir)
+        all_stats_df[all_stats_df["Basename"]==dir].to_csv(out_path / "Processed" / "folder_grainstats.csv")
+        LOGGER.info(
+        f"Folder-wise statistics saved to: {str(out_path / 'folder_grainstats.csv')}"
+    )
+    return None
+        

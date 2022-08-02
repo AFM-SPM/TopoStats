@@ -62,6 +62,8 @@ class GrainStats:
         base_output_dir: Union[str, Path],
         image_name: str = None,
         zrange: list = [None, None],
+        image_set: str = "core",
+        save_cropped_grains: bool = False,
     ):
         """Initialise the class.
 
@@ -75,6 +77,14 @@ class GrainStats:
             Floating point value that defines the scaling factor between nanometres and pixels.
         base_output_dir : Path
             Path to the folder that will store the grain stats output images and data.
+        image_name : str
+            The name of the file being processed.
+        zrange : list
+            Low and high height values for the cropped grain zscale.
+        image_set : str
+            The 'core' or 'all' set of images to output.
+        save_cropped_grains : bool
+            Option wether to save the cropped grain images.
         """
 
         self.data = data
@@ -85,6 +95,8 @@ class GrainStats:
         self.start_point = None
         self.image_name = image_name
         self.zrange = zrange
+        self.image_set = image_set
+        self.save_cropped_grains = save_cropped_grains
 
     @staticmethod
     def get_angle(point_1: tuple, point_2: tuple) -> float:
@@ -151,20 +163,24 @@ class GrainStats:
 
             LOGGER.info(f"[{self.image_name}] : Processing grain: {index}")
             # Create directory for each grain's plots
-            output_grain = self.base_output_dir / self.direction / f"grain_{index}"
+            output_grain = self.base_output_dir / self.direction
             # Path.mkdir(output_grain, parents=True, exist_ok=True)
-            output_grain.mkdir(parents=True, exist_ok=True)
+            #output_grain.mkdir(parents=True, exist_ok=True)
 
-            # Obtain and plot the cropped grain mask
-            grain_mask = np.array(region.image)
-            plot_and_save(grain_mask, output_grain, "grainmask.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="binary")
-
-            # Obtain the cropped grain image
+            # Obtain cropped grain mask and image
             minr, minc, maxr, maxc = region.bbox
+            grain_mask = np.array(region.image)
             grain_image = self.data[minr:maxr, minc:maxc]
-            plot_and_save(grain_image, output_grain, "grain_image_raw.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, zrange=self.zrange)
-            grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
-            plot_and_save(grain_image, output_grain, "grain_image.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling)
+            masked_grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
+            
+            if self.save_cropped_grains:
+                output_grain.mkdir(parents=True, exist_ok=True)
+                # Plot the cropped grain mask
+                plot_and_save(grain_mask, output_grain, f"{self.image_name}_grainmask_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="binary", image_set=self.image_set, core_set=False)
+
+                # Plot the cropped grain image
+                plot_and_save(grain_image, output_grain, f"{self.image_name}_processed_grain_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=True, , zrange=self.zrange)
+                plot_and_save(masked_grain_image, output_grain, f"{self.image_name}_grain_image_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=False)
 
             points = self.calculate_points(grain_mask)
             edges = self.calculate_edges(grain_mask)
@@ -193,11 +209,11 @@ class GrainStats:
                 "radius_max": radius_stats["max"] * self.pixel_to_nanometre_scaling,
                 "radius_mean": radius_stats["mean"] * self.pixel_to_nanometre_scaling,
                 "radius_median": radius_stats["median"] * self.pixel_to_nanometre_scaling,
-                "height_min": np.nanmin(grain_image),
-                "height_max": np.nanmax(grain_image),
-                "height_median": np.nanmedian(grain_image),
-                "height_mean": np.nanmean(grain_image),
-                "volume": np.nansum(grain_image) * self.pixel_to_nanometre_scaling**2,
+                "height_min": np.nanmin(masked_grain_image),
+                "height_max": np.nanmax(masked_grain_image),
+                "height_median": np.nanmedian(masked_grain_image),
+                "height_mean": np.nanmean(masked_grain_image),
+                "volume": np.nansum(masked_grain_image) * self.pixel_to_nanometre_scaling**2,
                 "area": region.area * self.pixel_to_nanometre_scaling**2,
                 "area_cartesian_bbox": region.area_bbox * self.pixel_to_nanometre_scaling**2,
                 "smallest_bounding_width": smallest_bounding_width * self.pixel_to_nanometre_scaling,
@@ -222,13 +238,15 @@ class GrainStats:
             )
             ax.add_patch(rectangle)
 
-        Path.mkdir(self.base_output_dir / self.direction, exist_ok=True, parents=True)
         grainstats = pd.DataFrame(data=stats_array)
         grainstats.index.name = "Molecule Number"
-        grainstats.to_csv(self.base_output_dir / self.direction / "grainstats.csv")
-        LOGGER.info(
-            f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/grainstats.csv"
-        )
+        
+        #if self.save_cropped_grains:
+            #savename = f"{self.image_name}_{self.direction}_grainstats.csv"
+            #grainstats.to_csv(self.base_output_dir / self.direction / savename)
+            #LOGGER.info(
+            #    f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/{savename}"
+            #)
 
         return {"statistics": grainstats, "plot": ax}
 
@@ -384,6 +402,7 @@ class GrainStats:
 
         # Debug information
         if debug:
+            base_output_dir.mkdir(parents=True, exist_ok=True)
             self.plot(edges, hull, base_output_dir / "_points_hull.png")
             LOGGER.info(f"points: {edges}")
             LOGGER.info(f"hull: {hull}")
@@ -627,6 +646,9 @@ class GrainStats:
             extremes = self.find_cartesian_extremes(rotated_points)
 
             if debug:
+                # Ensure directory is there
+                path.mkdir(parents=True, exist_ok=True)
+
                 # Create plot
                 # FIXME : Make this a method
                 fig = plt.figure(figsize=(8, 8))
@@ -778,7 +800,7 @@ class GrainStats:
         ax.legend()
         plt.xlabel("Grain Length (nm)")
         plt.ylabel("Grain Width (nm)")
-        plt.savefig(path / "minimum_bbox.png")
+        #plt.savefig(path / "minimum_bbox.png")
         plt.close()
 
         return smallest_bounding_width, smallest_bounding_length, aspect_ratio

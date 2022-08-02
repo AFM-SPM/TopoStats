@@ -16,11 +16,12 @@ filter:
       - 1
       - -1
 grains:
-  gaussian_size: 2.0
+  gaussian_size: 2.0 
   gaussian_mode: nearest
   absolute_smallest_grain_size: 100
   background: 0.0
   mask_direction: upper # Options: upper, lower (currently only applied to thresh+mask image)
+  save_cropped_grains: True
   threshold:
     method: std_dev # Options : otsu, std_dev, absolute
     otsu_multiplier: 1.0
@@ -31,5 +32,6 @@ grains:
 plotting:
   save: True
   zrange: [0, 3] # low and high height range for core images (can take [null, null])
+  image_set: core # Options : all, core
   colorbar: True
   cmap: nanoscope # Options : nanoscope, afmhot
