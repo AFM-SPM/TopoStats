@@ -371,8 +371,8 @@ def process_scan(
             plot_name = "mask_overlay"
             PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir) / filtered_image.filename
             plot_and_save(
-                grains.images["gaussian_filtered"], 
-                data2=grains.directions[mask_direction]["removed_small_objects"], 
+                grains.images["gaussian_filtered"],
+                data2=grains.directions[mask_direction]["removed_small_objects"],
                 zrange=zrange,
                 **PLOT_DICT[plot_name]
             )
