@@ -57,12 +57,12 @@ def test_plot_and_save_bounding_box(
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: np.array, plotting_config: dict, tmpdir) -> None:
+def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmpdir) -> None:
     """Test plotting with colorbar"""
     plotting_config["zrange"] = [-10, 10]
     fig, _ = plot_and_save(
-        minicircle_grain_gaussian_filter,
-         tmpdir, "08_5-z_thresholded.png",
+        minicircle_grain_gaussian_filter.images["gaussian_filtered"],
+         tmpdir, "08_5-z_threshold.png",
          title="Raw Height", 
          **plotting_config
     )
