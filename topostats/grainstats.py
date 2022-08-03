@@ -961,7 +961,7 @@ class GrainStats:
         # plt.plot(min_pair[:, 0], min_pair[:, 1], '--', color='red', label='min-feret', linewidth=5)
         plt.scatter(x=edge_points[:, 0],y=edge_points[:, 1], label='grain_points', s=50)
         plt.legend()
-        plt.show()
+        # plt.show()
         plt.savefig(path / './ferets.png')
 
         return min_feret, max_feret
