@@ -241,7 +241,6 @@ def process_scan(
     save_cropped_grains=False,
     save_plots: bool = True,
     image_set: str = "core",
-    colorbar: bool = True,
     output_dir: Union[str, Path] = "output",
 ) -> None:
     """Process a single image, filtering, finding grains and calculating their statistics.
@@ -288,8 +287,6 @@ def process_scan(
 
     """
     LOGGER.info(f"Processing : {image_path}")
-    for image, output in PLOT_DICT.items():
-        print(f"START OF process_scan() {image} :\n {output}")
     _output_dir = get_out_path(image_path, base_dir, output_dir).parent / "Processed"
     _output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -417,7 +414,6 @@ def process_scan(
         }
         for image, options in PLOT_DICT.items():
             PLOT_DICT[image] = {**options, **plot_opts}
-            print(f"[process_scan] PLOT_DICT {image} : {PLOT_DICT[image]}")
 
         # Filtering stage
         for plot_name, array in filtered_image.images.items():
@@ -434,12 +430,10 @@ def process_scan(
         if grains.region_properties is not None:
             LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
             plot_name = "gaussian_filtered"
-            print(f"#### GAUSSIAN : {PLOT_DICT[plot_name]}")
             PLOT_DICT[plot_name]["output_dir"] = filter_out_path
             plot_and_save(grains.images["gaussian_filtered"], **PLOT_DICT[plot_name])
 
             plot_name = "z_threshed"
-            print(f"#### Z THRESHOLD : {PLOT_DICT[plot_name]}")
             PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir)
             plot_and_save(
                 grains.images["gaussian_filtered"],

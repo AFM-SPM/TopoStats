@@ -57,25 +57,25 @@ def plot_and_save(
     fig, ax = plt.subplots(1, 1, figsize=(8, 8))
     shape = data.shape
     if isinstance(data, np.ndarray):
-        if not core_set:
-            zrange=[None,None]
         im = ax.imshow(
             data,
             extent=(0, shape[0] * pixel_to_nm_scaling_factor, 0, shape[1] * pixel_to_nm_scaling_factor),
             interpolation=interpolation,
             cmap=Colormap(cmap).get_cmap(),
-            vmin=zrange[0], 
+            vmin=zrange[0],
             vmax=zrange[1],
         )
         if isinstance(data2, np.ndarray):
-            mask = np.ma.masked_where(data2==0, data2)
-            ax.imshow(mask,
-             'jet_r',
-             extent=(0, shape[0] * pixel_to_nm_scaling_factor, 0, shape[1] * pixel_to_nm_scaling_factor),
-             interpolation=interpolation,
-             alpha=0.7)
-            patch = [Patch(color=plt.get_cmap('jet_r')(1, 0.7), label='Mask')]
-            plt.legend(handles=patch, loc='upper right', bbox_to_anchor=(1,1.06))
+            mask = np.ma.masked_where(data2 == 0, data2)
+            ax.imshow(
+                mask,
+                "jet_r",
+                extent=(0, shape[0] * pixel_to_nm_scaling_factor, 0, shape[1] * pixel_to_nm_scaling_factor),
+                interpolation=interpolation,
+                alpha=0.7,
+            )
+            patch = [Patch(color=plt.get_cmap("jet_r")(1, 0.7), label="Mask")]
+            plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
 
         plt.title(title)
         plt.xlabel("Nanometres")
@@ -88,9 +88,9 @@ def plot_and_save(
             fig, ax = add_bounding_boxes_to_plot(fig, ax, region_properties, pixel_to_nm_scaling_factor)
 
         if save:
-            if image_set=="all" or core_set:
+            if image_set == "all" or core_set:
                 plt.savefig(output_dir / filename)
-                if '_processed' in filename:
+                if "_processed" in filename:
                     LOGGER.info(f"[{filename.split('_processed')[0]}] : Image saved to : {str(output_dir / filename)}")
     else:
         plt.xlabel("Nanometres")
