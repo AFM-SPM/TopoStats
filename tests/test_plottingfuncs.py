@@ -60,6 +60,7 @@ def test_plot_and_save_bounding_box(
 def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmpdir) -> None:
     """Test plotting with colorbar"""
     plotting_config["zrange"] = [-10, 10]
+    plotting_config["core_set"] = True
     fig, _ = plot_and_save(
         minicircle_grain_gaussian_filter.images["gaussian_filtered"],
          tmpdir, "08_5-z_threshold.png",
