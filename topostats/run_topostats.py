@@ -438,7 +438,7 @@ def process_scan(
             plot_and_save(grains.images["gaussian_filtered"], **PLOT_DICT[plot_name])
 
             plot_name = "z_threshed"
-            print(f"[z_threshed] : \n {PLOT_DICT{plot_name}}")
+            print(f"[z_threshed] : \n {PLOT_DICT[plot_name]}")
             PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir)
             plot_and_save(
                 grains.images["gaussian_filtered"],
@@ -467,7 +467,7 @@ def process_scan(
 
             plot_name = "mask_overlay"
             PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir)
-            print(f"[mask_overlay] : \n {PLOT_DICT{plot_name}}")
+            print(f"[mask_overlay] : \n {PLOT_DICT[plot_name]}")
             plot_and_save(
                 grains.images["gaussian_filtered"],
                 filename=filtered_image.filename + "_processed_masked",
@@ -543,7 +543,6 @@ def main():
         save_plots=config["plotting"]["save"],
         zrange=config["plotting"]["zrange"],
         image_set=config["plotting"]["image_set"],
-        colorbar=config["plotting"]["colorbar"],
         output_dir=config["output_dir"],
         grains_threshold_method=config["grains"]["threshold"]["method"],
         grains_otsu_threshold_multiplier=config["grains"]["threshold"]["otsu_multiplier"],
