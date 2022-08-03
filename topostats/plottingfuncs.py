@@ -57,6 +57,8 @@ def plot_and_save(
     fig, ax = plt.subplots(1, 1, figsize=(8, 8))
     shape = data.shape
     if isinstance(data, np.ndarray):
+        if not core_set:
+            zrange=[None,None]
         im = ax.imshow(
             data,
             extent=(0, shape[0] * pixel_to_nm_scaling_factor, 0, shape[1] * pixel_to_nm_scaling_factor),
