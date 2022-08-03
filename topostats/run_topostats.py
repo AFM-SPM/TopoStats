@@ -288,7 +288,7 @@ def process_scan(
     """
     LOGGER.info(f"Processing : {image_path}")
     for image, options in PLOT_DICT.items():
-        print(f"[process_scan] {image} : \n {PLOT_DICT{image}}")
+        print(f"[process_scan] {image} : \n {PLOT_DICT[image]}")
     _output_dir = get_out_path(image_path, base_dir, output_dir).parent / "Processed"
     _output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -415,9 +415,9 @@ def process_scan(
             "pixel_to_nm_scaling_factor": filtered_image.pixel_to_nm_scaling,
         }
         for image, options in PLOT_DICT.items():
-            print(f"[process_scan] BEFORE {image} : \n {PLOT_DICT{image}}")
+            print(f"[process_scan] BEFORE {image} : \n {PLOT_DICT[image]}")
             PLOT_DICT[image] = {**options, **plot_opts}
-            print(f"[process_scan] AFTER  {image} : \n {PLOT_DICT{image}}")
+            print(f"[process_scan] AFTER  {image} : \n {PLOT_DICT[image]}")
 
         # Filtering stage
         for plot_name, array in filtered_image.images.items():
@@ -491,11 +491,11 @@ def main():
 
     # Update the PLOT_DICT with plotting options
     for image, options in PLOT_DICT.items():
-        print(f"[main] BEFORE {image} : \n {PLOT_DICT{image}}")
+        print(f"[main] BEFORE {image} : \n {PLOT_DICT[image]}")
         PLOT_DICT[image] = {**options, **config["plotting"]}
         if image not in ["z_threshed", "mask_overlay"]:
             PLOT_DICT[image].pop("zrange")
-        print(f"[main] AFTER {image} : \n {PLOT_DICT{image}}")
+        print(f"[main] AFTER {image} : \n {PLOT_DICT[image]}")
 
     LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
     LOGGER.info(f'Scanning for images in              : {config["base_dir"]}')
