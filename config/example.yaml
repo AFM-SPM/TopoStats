@@ -21,6 +21,7 @@ grains:
   absolute_smallest_grain_size: 100
   background: 0.0
   zrange: [0, 3] # List of low and high height range
+  cropped_size: 40
   mask_direction: upper # Options: upper, lower (currently only applied to thresh+mask image)
   save_cropped_grains: True
   threshold:
