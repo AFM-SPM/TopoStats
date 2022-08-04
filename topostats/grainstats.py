@@ -168,7 +168,6 @@ class GrainStats:
             # Obtain cropped grain mask and image
             minr, minc, maxr, maxc = region.bbox
             grain_mask = np.array(region.image)
-            print(grain_mask.shape, np.unique(grain_mask))
             grain_image = self.data[minr:maxr, minc:maxc]
             masked_grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
             
@@ -181,10 +180,21 @@ class GrainStats:
                     plot_and_save(grain_mask, output_grain, f"{self.image_name}_grainmask_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="binary", image_set=self.image_set, core_set=False)
                     plot_and_save(masked_grain_image, output_grain, f"{self.image_name}_grain_image_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=False)
                 else:
+                    # Get cropped image and mask
                     grain_centre = int((minr+maxr)/2) , int((minc+maxc)/2)
                     length = int(self.cropped_size/(2*self.pixel_to_nanometre_scaling))
+                    solo_mask = self.labelled_data.copy()
+                    solo_mask[solo_mask!=index+1] = 0
+                    solo_mask[solo_mask==index+1] = 1
+                    cropped_grain_image = self.get_cropped_region(self.data, length, np.asarray(grain_centre))
+                    cropped_grain_mask = self.get_cropped_region(solo_mask, length, np.asarray(grain_centre)).astype(bool)
+                    print(cropped_grain_mask.shape, cropped_grain_image.shape)
+                    cropped_masked_grain_image = np.ma.masked_array(cropped_grain_image, mask=np.invert(cropped_grain_mask), fill_value=np.nan).filled()
                     # Plot the cropped grain image
-                    plot_and_save(self.get_cropped_region(self.data, length, np.asarray(grain_centre)), output_grain, f"{self.image_name}_processed_grain_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=True)
+                    plot_and_save(cropped_grain_image, output_grain, f"{self.image_name}_processed_grain_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=True)
+                    # Plot the cropped grain mask
+                    plot_and_save(cropped_grain_mask, output_grain, f"{self.image_name}_grainmask_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="binary", image_set=self.image_set, core_set=False)
+                    plot_and_save(cropped_masked_grain_image, output_grain, f"{self.image_name}_grain_image_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=False)
 
             points = self.calculate_points(grain_mask)
             edges = self.calculate_edges(grain_mask)

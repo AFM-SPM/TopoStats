@@ -329,14 +329,14 @@ def process_scan(
                 #LOGGER.info(
                 #    f"[{filtered_image.filename}] : Combined statistics saved to {str(_output_dir)}/{filtered_image.filename}/{direction}/all_statistics.csv"
                 #)
-
+        
         except Exception:
             # If no results we need a dummy dataframe to return.
             LOGGER.info(
                 f"[{filtered_image.filename}] : Errors occurred attempting to calculate grain statistics and DNA tracing statistics."
             )
             results = create_empty_dataframe()
-
+        
     # Optionally plot all stages
     if save_plots:
         LOGGER.info(f"[{filtered_image.filename}] : Plotting Filtering Images")
