@@ -172,16 +172,18 @@ class GrainStats:
             masked_grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
             
             if self.save_cropped_grains:
-                grain_centre = int((minr+maxr)/2) , int((minc+maxc)/2)
-                length = int(self.cropped_size/(2*self.pixel_to_nanometre_scaling))
                 output_grain.mkdir(parents=True, exist_ok=True)
-                # Plot the cropped grain mask
-                plot_and_save(grain_mask, output_grain, f"{self.image_name}_grainmask_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="binary", image_set=self.image_set, core_set=False)
-
-                # Plot the cropped grain image
-                plot_and_save(self.get_cropped_region(length, np.asarray(grain_centre)), output_grain, f"{self.image_name}_processed_grain_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=True)
-                plot_and_save(masked_grain_image, output_grain, f"{self.image_name}_grain_image_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=False)
-
+                if self.cropped_size == -1:
+                    # Plot the cropped grain image
+                    plot_and_save(grain_image, output_grain, f"{self.image_name}_processed_grain_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=True)
+                    # Plot the cropped grain mask
+                    plot_and_save(grain_mask, output_grain, f"{self.image_name}_grainmask_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="binary", image_set=self.image_set, core_set=False)
+                    plot_and_save(masked_grain_image, output_grain, f"{self.image_name}_grain_image_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=False)
+                else:
+                    grain_centre = int((minr+maxr)/2) , int((minc+maxc)/2)
+                    length = int(self.cropped_size/(2*self.pixel_to_nanometre_scaling))
+                    # Plot the cropped grain image
+                    plot_and_save(self.get_cropped_region(self.data, length, np.asarray(grain_centre)), output_grain, f"{self.image_name}_processed_grain_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=True)
 
             points = self.calculate_points(grain_mask)
             edges = self.calculate_edges(grain_mask)
@@ -828,7 +830,7 @@ class GrainStats:
         return extremes
 
     @staticmethod
-    def get_shift(coords: np.ndarray, shape: np.ndarray):
+    def get_shift(coords: np.ndarray, shape: np.ndarray) -> int:
         """Obtains the coordinate shift to reflect the cropped image box for molecules near the edges of the image.
 
         Parameters
@@ -851,26 +853,28 @@ class GrainStats:
             max_index = np.argmax(abs(shift))
             return shift[max_index]
 
-    def get_cropped_region(self, length: int, centre: np.ndarray):
+    def get_cropped_region(self, image: np.ndarray, length: int, centre: np.ndarray) -> np.ndarray:
         """Crops the image with respect to a given pixel length around the centre coordinates.
 
         Parameters
         ----------
-        coords: np.ndarray
-            Value representing integer coordinates which may be outside of the image.
-        shape: np.ndarray
-            Array of the shape of an image.
+        image: np.ndarray
+            The image array.
+        length: int
+            The length (in pixels) of the resultant cropped image.
+        centre: np.ndarray
+            The centre of the object to crop.
 
         Returns
         -------
         np.ndarray
             Cropped array of the image.
         """  
-        shape = self.data.shape
+        shape = image.shape
         xy1 = shape - (centre + length+1)
         xy2 = shape - (centre - length)
         xy = np.stack((xy1,xy2))
         print(xy[:,0],shape[0])
         shiftx = self.get_shift(xy[:,0],shape[0])
         shifty = self.get_shift(xy[:,1],shape[1])
-        return self.data.copy()[centre[0]-length-shiftx:centre[0]+length+1-shiftx, centre[1]-length-shifty:centre[1]+length+1-shifty]
+        return image.copy()[centre[0]-length-shiftx:centre[0]+length+1-shiftx, centre[1]-length-shifty:centre[1]+length+1-shifty]

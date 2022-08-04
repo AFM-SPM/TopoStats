@@ -169,8 +169,8 @@ def test_get_shift(coords, shape, expected):
     (8,np.asarray([18,6]),21,[14,6])
     ])
 def test_get_cropped_region(grainstats, length, centre, img_len, expected):
-    grainstats.data = np.random.rand(img_len, img_len)
-    grainstats.data[centre[0],centre[1]] = 5
-    output = grainstats.get_cropped_region(length, centre)
+    image = np.random.rand(img_len, img_len)
+    image[centre[0],centre[1]] = 5
+    output = grainstats.get_cropped_region(image, length, centre)
     assert output.shape == (2*length+1,2*length+1)
     assert output[expected[0],expected[1]] == 5
