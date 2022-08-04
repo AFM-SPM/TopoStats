@@ -168,6 +168,7 @@ class GrainStats:
             # Obtain cropped grain mask and image
             minr, minc, maxr, maxc = region.bbox
             grain_mask = np.array(region.image)
+            print(grain_mask.shape, np.unique(grain_mask))
             grain_image = self.data[minr:maxr, minc:maxc]
             masked_grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
             
@@ -874,7 +875,6 @@ class GrainStats:
         xy1 = shape - (centre + length+1)
         xy2 = shape - (centre - length)
         xy = np.stack((xy1,xy2))
-        print(xy[:,0],shape[0])
         shiftx = self.get_shift(xy[:,0],shape[0])
         shifty = self.get_shift(xy[:,1],shape[1])
         return image.copy()[centre[0]-length-shiftx:centre[0]+length+1-shiftx, centre[1]-length-shifty:centre[1]+length+1-shifty]
