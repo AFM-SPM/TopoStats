@@ -12,17 +12,19 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
 
-def test_grainstats(minicircle_grainstats: GrainStats, minicircle_grainstats_20220526: pd.DataFrame) -> None:
-    """Test the overall GrainStats class."""
+def test_grainstats_regression(regtest, minicircle_grainstats: GrainStats) -> None:
+    """Regression tests for grainstats."""
     statistics = minicircle_grainstats.calculate_stats()
+    print(statistics["statistics"].to_string(), file=regtest)
 
-    pd.testing.assert_frame_equal(statistics["statistics"], minicircle_grainstats_20220526)
 
-
-@pytest.mark.parametrize("value", [
-(True),
-(False),
-])
+@pytest.mark.parametrize(
+    "value",
+    [
+        (True),
+        (False),
+    ],
+)
 def test_save_cropped_grains(minicircle_grainstats: GrainStats, tmpdir, value):
     # need to run grainstats with config option True and see if it is there.
     minicircle_grainstats.save_cropped_grains = value
@@ -30,10 +32,14 @@ def test_save_cropped_grains(minicircle_grainstats: GrainStats, tmpdir, value):
     minicircle_grainstats.calculate_stats()
     assert Path.exists(Path(tmpdir) / "grains") == value
 
-@pytest.mark.parametrize("value, expected", [
-("core", False),
-("all", True),
-])
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        ("core", False),
+        ("all", True),
+    ],
+)
 def test_image_set(minicircle_grainstats: GrainStats, tmpdir, value, expected):
     # need to run grainstats with config option True and see if it is there.
     minicircle_grainstats.save_cropped_grains = True
