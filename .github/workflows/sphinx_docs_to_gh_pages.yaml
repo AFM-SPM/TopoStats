@@ -29,9 +29,7 @@ jobs:
         with:
           # When testing set this branch to your branch, when working switch to master or dev. It WILL fail if not
           # defined as it defaults to 'main'.
-          branch:
-            - dev
-            - ns-rse/236-gh-pages
+          branch: ns-rse/236-gh-pages
           dir_docs: docs
           sphinxapiexclude: '../*setup* ../*tests* ../*.ipynb ../demo.py ../make_baseline.py ../jupyter_notebook_config.py ../demo_ftrs.py'
           sphinxapiopts: '--separate -o . ../'
