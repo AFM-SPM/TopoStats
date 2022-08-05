@@ -42,7 +42,7 @@ class Grains:
         absolute_smallest_grain_size: float = None,
         background: float = 0.0,
         base_output_dir: Union[str, Path] = None,
-        zrange: list = None
+        zrange: list = None,
     ):
         """Initialise the class.
 
@@ -112,7 +112,7 @@ class Grains:
             mode=self.gaussian_mode,
             **kwargs,
         )
-    
+
     def z_thresholding(self, **kwargs) -> np.array:
         """Apply height thresholding so outliers are clipped at config values"""
         LOGGER.info(

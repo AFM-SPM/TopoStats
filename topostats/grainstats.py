@@ -163,14 +163,14 @@ class GrainStats:
             # Create directory for each grain's plots
             output_grain = self.base_output_dir / self.direction
             # Path.mkdir(output_grain, parents=True, exist_ok=True)
-            #output_grain.mkdir(parents=True, exist_ok=True)
+            # output_grain.mkdir(parents=True, exist_ok=True)
 
             # Obtain cropped grain mask and image
             minr, minc, maxr, maxc = region.bbox
             grain_mask = np.array(region.image)
             grain_image = self.data[minr:maxr, minc:maxc]
             masked_grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
-            
+
             if self.save_cropped_grains:
                 output_grain.mkdir(parents=True, exist_ok=True)
                 if self.cropped_size == -1:
@@ -253,13 +253,13 @@ class GrainStats:
 
         grainstats = pd.DataFrame(data=stats_array)
         grainstats.index.name = "Molecule Number"
-        
-        #if self.save_cropped_grains:
-            #savename = f"{self.image_name}_{self.direction}_grainstats.csv"
-            #grainstats.to_csv(self.base_output_dir / self.direction / savename)
-            #LOGGER.info(
-            #    f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/{savename}"
-            #)
+
+        # if self.save_cropped_grains:
+        # savename = f"{self.image_name}_{self.direction}_grainstats.csv"
+        # grainstats.to_csv(self.base_output_dir / self.direction / savename)
+        # LOGGER.info(
+        #    f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/{savename}"
+        # )
 
         return {"statistics": grainstats, "plot": ax}
 
@@ -813,7 +813,7 @@ class GrainStats:
         ax.legend()
         plt.xlabel("Grain Length (nm)")
         plt.ylabel("Grain Width (nm)")
-        #plt.savefig(path / "minimum_bbox.png")
+        # plt.savefig(path / "minimum_bbox.png")
         plt.close()
 
         return smallest_bounding_width, smallest_bounding_length, aspect_ratio
