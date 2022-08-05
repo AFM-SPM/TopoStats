@@ -236,10 +236,10 @@ def process_scan(
     grains_threshold_std_dev=1.0,
     grains_threshold_abs_lower=None,
     grains_threshold_abs_upper=None,
-    zrange = None,
-    cropped_size = -1,
-    mask_direction = None,
-    save_cropped_grains = False,
+    zrange=None,
+    cropped_size=-1,
+    mask_direction=None,
+    save_cropped_grains=False,
     save_plots: bool = True,
     image_set: str = "core",
     colorbar: bool = True,
@@ -363,8 +363,8 @@ def process_scan(
                     direction=f"{direction}",
                     base_output_dir=_output_dir / "grains",
                     image_name=filtered_image.filename,
-                    save_cropped_grains = save_cropped_grains,
-                    image_set = image_set,
+                    save_cropped_grains=save_cropped_grains,
+                    image_set=image_set,
                     cropped_size=cropped_size,
                 ).calculate_stats()
                 for direction in grains.directions
@@ -556,7 +556,6 @@ def main():
         grains_threshold_std_dev=config["grains"]["threshold"]["std_dev"],
         grains_threshold_abs_lower=config["grains"]["threshold"]["absolute"][0],
         grains_threshold_abs_upper=config["grains"]["threshold"]["absolute"][1],
-        dnatracing_config=config["dnatracing"],
     )
 
     with Pool(processes=config["cores"]) as pool:
