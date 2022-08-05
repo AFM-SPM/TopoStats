@@ -160,6 +160,7 @@ def test_random_grain_stats(caplog, tmpdir) -> None:
     (np.asarray([-3,14]),10,-4)
     ])
 def test_get_shift(coords, shape, expected):
+    """Tests the Grainstats.get_shift function against known expected outcomes."""
     assert GrainStats.get_shift(coords, shape) == expected
     
 
@@ -169,6 +170,7 @@ def test_get_shift(coords, shape, expected):
     (8,np.asarray([18,6]),21,[14,6])
     ])
 def test_get_cropped_region(grainstats, length, centre, img_len, expected):
+    """Tests the Grainstats.get_cropped_region function's shape and center postition are correct."""
     image = np.random.rand(img_len, img_len)
     image[centre[0],centre[1]] = 5
     output = grainstats.get_cropped_region(image, length, centre)
