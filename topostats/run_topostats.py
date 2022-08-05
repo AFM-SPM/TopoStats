@@ -391,12 +391,19 @@ def process_scan(
                     )
                     dna_traces[direction].trace_dna()
                     tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
+                    tracing_stats[direction].df["threshold"] = direction
                     # tracing_stats[direction].save_trace_stats(_output_dir / filtered_image.filename / direction)
 
-                    LOGGER.info(
-                        f"[{filtered_image.filename}] : Combining {direction} grain statistics and dnatracing statistics"
-                    )
-                    results = grainstats_df.merge(tracing_stats[direction].df, on="Molecule Number")
+                if "lower" in grainstats.keys():
+                    tracing_stats_df = pd.concat([tracing_stats["lower"].df, tracing_stats["upper"].df])
+                else:
+                    tracing_stats_df = tracing_stats["upper"].df
+                LOGGER.info(
+                    f"[{filtered_image.filename}] : Combining {direction} grain statistics and dnatracing statistics"
+                )
+                results = grainstats_df.merge(
+                    tracing_stats_df, on=["Molecule Number", "threshold"], how="outer", indicator=True
+                )
             else:
                 results = grainstats_df
                 results["Image Name"] = filtered_image.filename
