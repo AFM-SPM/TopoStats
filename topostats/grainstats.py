@@ -188,7 +188,6 @@ class GrainStats:
                     solo_mask[solo_mask==index+1] = 1
                     cropped_grain_image = self.get_cropped_region(self.data, length, np.asarray(grain_centre))
                     cropped_grain_mask = self.get_cropped_region(solo_mask, length, np.asarray(grain_centre)).astype(bool)
-                    print(cropped_grain_mask.shape, cropped_grain_image.shape)
                     cropped_masked_grain_image = np.ma.masked_array(cropped_grain_image, mask=np.invert(cropped_grain_mask), fill_value=np.nan).filled()
                     # Plot the cropped grain image
                     plot_and_save(cropped_grain_image, output_grain, f"{self.image_name}_processed_grain_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=True)
