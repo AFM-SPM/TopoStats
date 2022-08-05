@@ -1,6 +1,7 @@
 """Testing of grainstats class"""
 import logging
 import numpy as np
+import pytest
 
 from topostats.grainstats import GrainStats
 from topostats.logs.logs import LOGGER_NAME
@@ -151,3 +152,27 @@ def test_random_grain_stats(caplog, tmpdir) -> None:
     grainstats.calculate_stats()
 
     assert "No labelled regions for this image, grain statistics can not be calculated." in caplog.text
+
+
+@pytest.mark.parametrize("coords, shape, expected", [
+    (np.asarray([5,5]),10,0),
+    (np.asarray([-3,12]),10,3),
+    (np.asarray([-3,14]),10,-4)
+    ])
+def test_get_shift(coords, shape, expected):
+    """Tests the Grainstats.get_shift function against known expected outcomes."""
+    assert GrainStats.get_shift(coords, shape) == expected
+    
+
+@pytest.mark.parametrize("length, centre, img_len, expected", [
+    (5,np.asarray([10,10]),21,[5,5]),
+    (3,np.asarray([1,20]),21,[1,6]),
+    (8,np.asarray([18,6]),21,[14,6])
+    ])
+def test_get_cropped_region(grainstats, length, centre, img_len, expected):
+    """Tests the Grainstats.get_cropped_region function's shape and center postition are correct."""
+    image = np.random.rand(img_len, img_len)
+    image[centre[0],centre[1]] = 5
+    output = grainstats.get_cropped_region(image, length, centre)
+    assert output.shape == (2*length+1,2*length+1)
+    assert output[expected[0],expected[1]] == 5

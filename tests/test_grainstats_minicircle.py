@@ -3,7 +3,10 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+import numpy as np
+
 from topostats.grainstats import GrainStats
+from topostats.plottingfuncs import plot_and_save
 
 # Specify the absolute and relattive tolerance for floating point comparison
 TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
@@ -43,5 +46,24 @@ def test_image_set(minicircle_grainstats: GrainStats, tmpdir, value, expected):
     assert Path.exists(Path(tmpdir) / "grains/minicircle" / "None_processed_grain_0.png") == True
     assert Path.exists(Path(tmpdir) / "grains/minicircle" / "None_grain_image_0.png") == expected
     assert Path.exists(Path(tmpdir) / "grains/minicircle" / "None_grainmask_0.png") == expected
-    assert Path.exists(Path(tmpdir) / "grains/minicircle" / "None_grain_image_0.png") == expected
-    assert Path.exists(Path(tmpdir) / "grains/minicircle" / "None_grain_image_0.png") == expected
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_cropped_image(minicircle_grainstats: GrainStats, tmpdir):
+    "Tests that produced cropped images have not changed."
+    grain_centre = 547, 794 # centre of grain 7
+    length = int(minicircle_grainstats.cropped_size/(2*minicircle_grainstats.pixel_to_nanometre_scaling))
+    cropped_grain_image = minicircle_grainstats.get_cropped_region(
+        minicircle_grainstats.data, 
+        length, 
+        np.asarray(grain_centre))
+    assert cropped_grain_image.shape == (81, 81)
+    fig, _ = plot_and_save(
+        cropped_grain_image,
+        tmpdir,
+        "cropped_grain_7.png",
+        pixel_to_nm_scaling_factor=minicircle_grainstats.pixel_to_nanometre_scaling,
+        type="non-binary",
+        image_set=minicircle_grainstats.image_set,
+        core_set=True)
+    return fig
