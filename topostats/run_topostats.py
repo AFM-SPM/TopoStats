@@ -401,9 +401,7 @@ def process_scan(
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Combining {direction} grain statistics and dnatracing statistics"
                 )
-                results = grainstats_df.merge(
-                    tracing_stats_df, on=["Molecule Number", "threshold"], how="outer", indicator=True
-                )
+                results = grainstats_df.merge(tracing_stats_df, on=["Molecule Number", "threshold"])
             else:
                 results = grainstats_df
                 results["Image Name"] = filtered_image.filename
