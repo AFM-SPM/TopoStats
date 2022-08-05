@@ -239,6 +239,7 @@ def process_scan(
     zrange=None,
     cropped_size=-1,
     mask_direction=None,
+    dnatracing_config=None,
     save_cropped_grains=False,
     save_plots: bool = True,
     image_set: str = "core",
@@ -556,6 +557,7 @@ def main():
         grains_threshold_std_dev=config["grains"]["threshold"]["std_dev"],
         grains_threshold_abs_lower=config["grains"]["threshold"]["absolute"][0],
         grains_threshold_abs_upper=config["grains"]["threshold"]["absolute"][1],
+        dnatracing_config=config["dnatracing"],
     )
 
     with Pool(processes=config["cores"]) as pool:
