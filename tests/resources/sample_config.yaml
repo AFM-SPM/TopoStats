@@ -30,6 +30,8 @@ grains:
     absolute:
       - 1
       - -1
+dnatracing:
+  run: true
 plotting:
   save: True
   image_set: core # Options : all, core

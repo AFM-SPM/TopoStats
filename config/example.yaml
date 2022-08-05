@@ -16,7 +16,7 @@ filter:
       - 1
       - -1
 grains:
-  gaussian_size: 2.0 
+  gaussian_size: 2.0
   gaussian_mode: nearest
   absolute_smallest_grain_size: 100
   background: 0.0
@@ -30,6 +30,8 @@ grains:
     absolute:
       - 1
       - -1
+dnatracing:
+  run: true
 plotting:
   save: True
   image_set: core # Options : all, core
