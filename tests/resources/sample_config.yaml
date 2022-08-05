@@ -31,7 +31,7 @@ grains:
       - 1
       - -1
 dnatracing:
-  run: true
+  run: true # Whether to run DNA Tracing. Options : true, false
 plotting:
   save: True
   image_set: core # Options : all, core
