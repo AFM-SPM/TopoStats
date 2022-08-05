@@ -161,23 +161,46 @@ class GrainStats:
             # Create directory for each grain's plots
             output_grain = self.base_output_dir / self.direction
             # Path.mkdir(output_grain, parents=True, exist_ok=True)
-            #output_grain.mkdir(parents=True, exist_ok=True)
+            # output_grain.mkdir(parents=True, exist_ok=True)
 
             # Obtain cropped grain mask and image
             minr, minc, maxr, maxc = region.bbox
             grain_mask = np.array(region.image)
             grain_image = self.data[minr:maxr, minc:maxc]
             masked_grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
-            
+
             if self.save_cropped_grains:
                 output_grain.mkdir(parents=True, exist_ok=True)
                 # Plot the cropped grain mask
-                plot_and_save(grain_mask, output_grain, f"{self.image_name}_grainmask_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="binary", image_set=self.image_set, core_set=False)
+                plot_and_save(
+                    grain_mask,
+                    output_grain,
+                    f"{self.image_name}_grainmask_{index}.png",
+                    pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
+                    type="binary",
+                    image_set=self.image_set,
+                    core_set=False,
+                )
 
                 # Plot the cropped grain image
-                plot_and_save(grain_image, output_grain, f"{self.image_name}_processed_grain_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=True)
-                plot_and_save(masked_grain_image, output_grain, f"{self.image_name}_grain_image_{index}.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="non-binary", image_set=self.image_set, core_set=False)
-
+                plot_and_save(
+                    grain_image,
+                    output_grain,
+                    f"{self.image_name}_processed_grain_{index}.png",
+                    pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
+                    type="non-binary",
+                    image_set=self.image_set,
+                    core_set=True,
+                )
+                plot_and_save(
+                    masked_grain_image,
+                    output_grain,
+                    f"{self.image_name}_grain_image_{index}.png",
+                    pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
+                    type="non-binary",
+                    image_set=self.image_set,
+                    core_set=False,
+                )
 
             points = self.calculate_points(grain_mask)
             edges = self.calculate_edges(grain_mask)
@@ -237,13 +260,13 @@ class GrainStats:
 
         grainstats = pd.DataFrame(data=stats_array)
         grainstats.index.name = "Molecule Number"
-        
-        #if self.save_cropped_grains:
-            #savename = f"{self.image_name}_{self.direction}_grainstats.csv"
-            #grainstats.to_csv(self.base_output_dir / self.direction / savename)
-            #LOGGER.info(
-            #    f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/{savename}"
-            #)
+
+        # if self.save_cropped_grains:
+        # savename = f"{self.image_name}_{self.direction}_grainstats.csv"
+        # grainstats.to_csv(self.base_output_dir / self.direction / savename)
+        # LOGGER.info(
+        #    f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/{savename}"
+        # )
 
         return {"statistics": grainstats, "plot": ax}
 
@@ -797,7 +820,7 @@ class GrainStats:
         ax.legend()
         plt.xlabel("Grain Length (nm)")
         plt.ylabel("Grain Width (nm)")
-        #plt.savefig(path / "minimum_bbox.png")
+        # plt.savefig(path / "minimum_bbox.png")
         plt.close()
 
         return smallest_bounding_width, smallest_bounding_length, aspect_ratio
@@ -822,4 +845,3 @@ class GrainStats:
         extremes["y_min"] = np.min(rotated_points[:, 1])
         extremes["y_max"] = np.max(rotated_points[:, 1])
         return extremes
-
