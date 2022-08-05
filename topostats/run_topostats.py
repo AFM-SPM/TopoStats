@@ -236,9 +236,10 @@ def process_scan(
     grains_threshold_std_dev=1.0,
     grains_threshold_abs_lower=None,
     grains_threshold_abs_upper=None,
-    zrange=None,
-    mask_direction=None,
-    save_cropped_grains=False,
+    zrange = None,
+    cropped_size = -1,
+    mask_direction = None,
+    save_cropped_grains = False,
     save_plots: bool = True,
     image_set: str = "core",
     colorbar: bool = True,
@@ -362,8 +363,9 @@ def process_scan(
                     direction=f"{direction}",
                     base_output_dir=_output_dir / "grains",
                     image_name=filtered_image.filename,
-                    save_cropped_grains=save_cropped_grains,
-                    image_set=image_set,
+                    save_cropped_grains = save_cropped_grains,
+                    image_set = image_set,
+                    cropped_size=cropped_size,
                 ).calculate_stats()
                 for direction in grains.directions
             }
@@ -532,6 +534,7 @@ def main():
         absolute_smallest_grain_size=config["grains"]["absolute_smallest_grain_size"],
         background=config["grains"]["background"],
         zrange=config["grains"]["zrange"],
+        cropped_size=config["grains"]["cropped_size"],
         mask_direction=config["grains"]["mask_direction"],
         save_cropped_grains=config["grains"]["save_cropped_grains"],
         save_plots=config["plotting"]["save"],
