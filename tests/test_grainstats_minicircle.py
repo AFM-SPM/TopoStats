@@ -46,8 +46,6 @@ def test_image_set(minicircle_grainstats: GrainStats, tmpdir, value, expected):
     assert Path.exists(Path(tmpdir) / "grains/minicircle" / "None_processed_grain_0.png") == True
     assert Path.exists(Path(tmpdir) / "grains/minicircle" / "None_grain_image_0.png") == expected
     assert Path.exists(Path(tmpdir) / "grains/minicircle" / "None_grainmask_0.png") == expected
-    assert Path.exists(Path(tmpdir) / "grains/minicircle" / "None_grain_image_0.png") == expected
-    assert Path.exists(Path(tmpdir) / "grains/minicircle" / "None_grain_image_0.png") == expected
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
