@@ -219,6 +219,7 @@ def create_parser() -> arg.ArgumentParser:
 
 def process_scan(
     image_path: Union[str, Path] = None,
+    PLOT_DICT: dict = PLOT_DICT,
     base_dir: Union[str, Path] = None,
     channel: str = "Height",
     amplify_level: float = 1.0,
@@ -287,8 +288,6 @@ def process_scan(
 
     """
     LOGGER.info(f"Processing : {image_path}")
-    for image, options in PLOT_DICT.items():
-        print(f"[process_scan] {image} : \n {PLOT_DICT[image]}")
     _output_dir = get_out_path(image_path, base_dir, output_dir).parent / "Processed"
     _output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -415,9 +414,7 @@ def process_scan(
             "pixel_to_nm_scaling_factor": filtered_image.pixel_to_nm_scaling,
         }
         for image, options in PLOT_DICT.items():
-            print(f"[process_scan] BEFORE {image} : \n {PLOT_DICT[image]}")
             PLOT_DICT[image] = {**options, **plot_opts}
-            print(f"[process_scan] AFTER  {image} : \n {PLOT_DICT[image]}")
 
         # Filtering stage
         for plot_name, array in filtered_image.images.items():
@@ -438,7 +435,6 @@ def process_scan(
             plot_and_save(grains.images["gaussian_filtered"], **PLOT_DICT[plot_name])
 
             plot_name = "z_threshed"
-            print(f"[z_threshed] : \n {PLOT_DICT[plot_name]}")
             PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir)
             plot_and_save(
                 grains.images["gaussian_filtered"],
@@ -467,7 +463,6 @@ def process_scan(
 
             plot_name = "mask_overlay"
             PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir)
-            print(f"[mask_overlay] : \n {PLOT_DICT[plot_name]}")
             plot_and_save(
                 grains.images["gaussian_filtered"],
                 filename=filtered_image.filename + "_processed_masked",
@@ -491,11 +486,9 @@ def main():
 
     # Update the PLOT_DICT with plotting options
     for image, options in PLOT_DICT.items():
-        print(f"[main] BEFORE {image} : \n {PLOT_DICT[image]}")
         PLOT_DICT[image] = {**options, **config["plotting"]}
         if image not in ["z_threshed", "mask_overlay"]:
             PLOT_DICT[image].pop("zrange")
-        print(f"[main] AFTER {image} : \n {PLOT_DICT[image]}")
 
     LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
     LOGGER.info(f'Scanning for images in              : {config["base_dir"]}')
@@ -526,6 +519,7 @@ def main():
     #     )
     processing_function = partial(
         process_scan,
+        PLOT_DICT=PLOT_DICT,
         base_dir=config["base_dir"],
         channel=config["channel"],
         amplify_level=config["amplify_level"],
@@ -560,7 +554,7 @@ def main():
             for img, result in pool.imap_unordered(processing_function, img_files):
                 results[str(img)] = result
                 pbar.update()
-
+    
     results = pd.concat(results.values())
     results.reset_index()
     results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)
