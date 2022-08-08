@@ -542,6 +542,7 @@ def minicircle_grainstats(
         base_output_dir=tmpdir,
         save_cropped_grains=True,
         image_set='all',
+        cropped_size=40, 
     )
 
 

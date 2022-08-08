@@ -37,16 +37,12 @@ def read_yaml(filename: Union[str, Path]) -> Dict:
 def write_yaml(config: dict, output_dir: Union[str, Path]) -> None:
     """Write a configuration (stored as a dictionary) to a YAML file.
 
-    Paraemeters
-    -----------
+    Parameters
+    ----------
     config: dict
         Configuration dictionary.
     output_dir: Union[str, Path]
         Path to save the dictionary to as a YAML file (it will be called 'config.yaml').
-
-    Returns
-    -------
-    None
     """
     # Save the configuration to output directory
     output_config = Path(output_dir) / "config.yaml"
@@ -78,8 +74,6 @@ def load_scan(img_path: Union[str, Path]) -> Bruker:
 
     Examples
     --------
-    FIXME: Add docs.
-
     """
     LOGGER.info(f"Loading image from : {img_path}")
     return Bruker(Path(img_path))
