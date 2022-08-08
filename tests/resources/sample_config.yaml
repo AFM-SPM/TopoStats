@@ -23,7 +23,7 @@ grains:
   zrange: [0, 3] # List of low value, high value
   cropped_size: 40 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
   mask_direction: upper # Options: upper, lower (currently only applied to thresh+mask image)
-  save_cropped_grains: True
+  save_cropped_grains: true
   threshold:
     method: otsu # Options : otsu, std_dev, absolute
     otsu_multiplier: 1.7
@@ -31,8 +31,10 @@ grains:
     absolute:
       - 1
       - -1
+dnatracing:
+  run: true # Whether to run DNA Tracing. Options : true, false
 plotting:
-  save: True
+  save: true
   image_set: core # Options : all, core
-  colorbar: True
+  colorbar: true
   cmap: nanoscope # Options : nanoscope, afmhot

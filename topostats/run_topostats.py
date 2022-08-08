@@ -236,10 +236,11 @@ def process_scan(
     grains_threshold_std_dev=1.0,
     grains_threshold_abs_lower=None,
     grains_threshold_abs_upper=None,
-    zrange = None,
-    cropped_size = -1,
-    mask_direction = None,
-    save_cropped_grains = False,
+    zrange=None,
+    cropped_size=-1,
+    mask_direction=None,
+    dnatracing_config=None,
+    save_cropped_grains=False,
     save_plots: bool = True,
     image_set: str = "core",
     colorbar: bool = True,
@@ -363,8 +364,8 @@ def process_scan(
                     direction=f"{direction}",
                     base_output_dir=_output_dir / "grains",
                     image_name=filtered_image.filename,
-                    save_cropped_grains = save_cropped_grains,
-                    image_set = image_set,
+                    save_cropped_grains=save_cropped_grains,
+                    image_set=image_set,
                     cropped_size=cropped_size,
                 ).calculate_stats()
                 for direction in grains.directions
@@ -379,24 +380,34 @@ def process_scan(
             # grainstats_df.to_csv(_output_dir / f"{filtered_image.filename}_grainstats.csv")
 
             # Run dnatracing
-            LOGGER.info(f"[{filtered_image.filename}] : *** DNA Tracing ***")
-            dna_traces = defaultdict()
-            tracing_stats = defaultdict()
-            for direction, grainstat in grainstats.items():
-                dna_traces[direction] = dnaTrace(
-                    full_image_data=grains.images["gaussian_filtered"].T,
-                    grains=grains.directions[direction]["labelled_regions_02"],
-                    filename=filtered_image.filename,
-                    pixel_size=filtered_image.pixel_to_nm_scaling,
-                )
-                dna_traces[direction].trace_dna()
-                tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
-                # tracing_stats[direction].save_trace_stats(_output_dir / filtered_image.filename / direction)
+            if dnatracing_config["run"]:
+                LOGGER.info(f"[{filtered_image.filename}] : *** DNA Tracing ***")
+                dna_traces = defaultdict()
+                tracing_stats = defaultdict()
+                for direction, _ in grainstats.items():
+                    dna_traces[direction] = dnaTrace(
+                        full_image_data=grains.images["gaussian_filtered"].T,
+                        grains=grains.directions[direction]["labelled_regions_02"],
+                        filename=filtered_image.filename,
+                        pixel_size=filtered_image.pixel_to_nm_scaling,
+                    )
+                    dna_traces[direction].trace_dna()
+                    tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
+                    tracing_stats[direction].df["threshold"] = direction
+                    # tracing_stats[direction].save_trace_stats(_output_dir / filtered_image.filename / direction)
 
+                if "lower" in grainstats.keys():
+                    tracing_stats_df = pd.concat([tracing_stats["lower"].df, tracing_stats["upper"].df])
+                else:
+                    tracing_stats_df = tracing_stats["upper"].df
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Combining {direction} grain statistics and dnatracing statistics"
                 )
-                results = grainstat["statistics"].merge(tracing_stats[direction].df, on="Molecule Number")
+                results = grainstats_df.merge(tracing_stats_df, on=["Molecule Number", "threshold"])
+            else:
+                results = grainstats_df
+                results["Image Name"] = filtered_image.filename
+                results["Basename"] = image_path.parent
                 # results.to_csv(_output_dir / filtered_image.filename / direction / "all_statistics.csv")
                 # LOGGER.info(
                 #    f"[{filtered_image.filename}] : Combined statistics saved to {str(_output_dir)}/{filtered_image.filename}/{direction}/all_statistics.csv"
@@ -546,6 +557,7 @@ def main():
         grains_threshold_std_dev=config["grains"]["threshold"]["std_dev"],
         grains_threshold_abs_lower=config["grains"]["threshold"]["absolute"][0],
         grains_threshold_abs_upper=config["grains"]["threshold"]["absolute"][1],
+        dnatracing_config=config["dnatracing"],
     )
 
     with Pool(processes=config["cores"]) as pool:
