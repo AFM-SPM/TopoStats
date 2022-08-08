@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.abspath(".."))
 # Mock imports (things that can't be installed at do building time)
 
 autodoc_mock_imports = ["pygtk", "gwy", "numpy", "pandas", "matplotlib", "seaborn", "scipy", "skimage", "pySPM"]
+import matplotlib
 
 # -- Project information -----------------------------------------------------
 
@@ -73,7 +74,7 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

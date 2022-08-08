@@ -15,13 +15,13 @@ Welcome to TopoStats's documentation!
    :maxdepth: 2
    :caption: API
 
-   topostats.dnatracing
    topostats.filters
-   topostats.find_grains
+   topostats.grains
+   topostats.grainstats
    topostats.io
    topostats.plottingfuncs
-   topostats.topotracing
-   topostats.tracingfuncs
+   topostats.run_topostats
+   topostats.tracing
    topostats.utils
 
 Indices and tables

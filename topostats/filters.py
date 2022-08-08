@@ -261,14 +261,13 @@ class Filters:
 
         Example
         -------
-
         from topostats.topotracing import Filter, process_scan
-
         filter = Filter(image_path='minicircle.spm',
-                        channel='Height',
-                        amplify_level=1.0,
-                        threshold_method='otsu')
+        ...             channel='Height',
+        ...             amplify_level=1.0,
+        ...             threshold_method='otsu')
         filter.filter_image()
+
         """
         self.extract_filename()
         self.load_scan()
