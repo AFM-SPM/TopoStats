@@ -120,14 +120,22 @@ class Filters:
 
     def extract_pixel_to_nm_scaling(self) -> float:
         """Extract the pixel to nanometer scaling from the image metadata."""
-        self.pixel_to_nm_scaling = self.images["extracted_channel"].get_extent()[1] / len(
-            self.images["extracted_channel"].pixels
-        )
+        unit_dict = {
+            'nm' : 1,
+            'um' : 1e3,
+        }
+        px_to_real = self.images["extracted_channel"].pxs()
+        # Has potential for non-square images but not yet implimented
+        self.pixel_to_nm_scaling = (
+            px_to_real[0][0]*unit_dict[px_to_real[0][1]],
+            px_to_real[1][0]*unit_dict[px_to_real[1][1]],
+        )[0]
         LOGGER.info(f"[{self.filename}] : Pixels to nm scaling : {self.pixel_to_nm_scaling}")
 
     def extract_pixels(self) -> None:
         """Flatten the scan to a Numpy Array."""
         self.images["pixels"] = np.flipud(np.array(self.images["extracted_channel"].pixels))
+        print(self.images['pixels'])
         LOGGER.info(f"[{self.filename}] : Pixels extracted")
 
     def amplify(self) -> None:
