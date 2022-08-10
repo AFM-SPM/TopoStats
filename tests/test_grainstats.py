@@ -15,7 +15,7 @@ POINT4 = (0, 1)
 EDGES = np.array([POINT1, POINT2, POINT3, POINT4])
 
 
-def test_get_angle(grainstats) -> None:
+def test_get_angle(grainstats: GrainStats) -> None:
     """Test calculation of angle."""
     angle = grainstats.get_angle(POINT1, POINT3)
     target = np.arctan2(POINT1[1] - POINT3[1], POINT1[0] - POINT3[0])
@@ -24,7 +24,7 @@ def test_get_angle(grainstats) -> None:
     assert angle == target
 
 
-def test_is_clockwise_clockwise(grainstats) -> None:
+def test_is_clockwise_clockwise(grainstats: GrainStats) -> None:
     """Test calculation of whether three points make a clockwise turn"""
     clockwise = grainstats.is_clockwise(POINT3, POINT2, POINT1)
 
@@ -32,7 +32,7 @@ def test_is_clockwise_clockwise(grainstats) -> None:
     assert clockwise
 
 
-def test_is_clockwise_anti_clockwise(grainstats) -> None:
+def test_is_clockwise_anti_clockwise(grainstats: GrainStats) -> None:
     """Test calculation of whether three points make a clockwise turn"""
     clockwise = grainstats.is_clockwise(POINT1, POINT2, POINT3)
 
@@ -40,7 +40,7 @@ def test_is_clockwise_anti_clockwise(grainstats) -> None:
     assert not clockwise
 
 
-def test_calculate_edges(grainstats) -> None:
+def test_calculate_edges(grainstats: GrainStats) -> None:
     """Test calculation of edges."""
     grain_mask = np.array(
         [
@@ -88,7 +88,7 @@ def test_calculate_edges(grainstats) -> None:
     np.testing.assert_array_equal(edges, target)
 
 
-def test_calculate_centroid(grainstats) -> None:
+def test_calculate_centroid(grainstats: GrainStats) -> None:
     """Test calculation of centroid."""
     centroid = grainstats._calculate_centroid(EDGES)
     target = (0.5, 0.5)
@@ -97,7 +97,7 @@ def test_calculate_centroid(grainstats) -> None:
     assert centroid == target
 
 
-def test_calculate_displacement(grainstats) -> None:
+def test_calculate_displacement(grainstats: GrainStats) -> None:
     """Test calculation of displacement of points from centroid."""
     centroid = grainstats._calculate_centroid(EDGES)
     displacement = grainstats._calculate_displacement(EDGES, centroid)
@@ -108,7 +108,7 @@ def test_calculate_displacement(grainstats) -> None:
     np.testing.assert_array_equal(displacement, target)
 
 
-def test_calculate_radius(grainstats) -> None:
+def test_calculate_radius(grainstats: GrainStats) -> None:
     """Calculate the radius of each point from the centroid."""
     centroid = grainstats._calculate_centroid(EDGES)
     displacement = grainstats._calculate_displacement(EDGES, centroid)
@@ -120,7 +120,7 @@ def test_calculate_radius(grainstats) -> None:
     np.testing.assert_array_equal(radii, target)
 
 
-def test_calculate_squared_distance(grainstats) -> None:
+def test_calculate_squared_distance(grainstats: GrainStats) -> None:
     """Test the calculation of displacement between two points."""
     displacement_1_2 = grainstats.calculate_squared_distance(POINT2, POINT1)
     displacement_1_3 = grainstats.calculate_squared_distance(POINT3, POINT1)
@@ -169,7 +169,7 @@ def test_get_shift(coords, shape, expected):
     (3,np.asarray([1,20]),21,[1,6]),
     (8,np.asarray([18,6]),21,[14,6])
     ])
-def test_get_cropped_region(grainstats, length, centre, img_len, expected):
+def test_get_cropped_region(grainstats: GrainStats, length, centre, img_len, expected):
     """Tests the Grainstats.get_cropped_region function's shape and center postition are correct."""
     image = np.random.rand(img_len, img_len)
     image[centre[0],centre[1]] = 5
