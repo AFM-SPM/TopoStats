@@ -135,7 +135,6 @@ class Filters:
     def extract_pixels(self) -> None:
         """Flatten the scan to a Numpy Array."""
         self.images["pixels"] = np.flipud(np.array(self.images["extracted_channel"].pixels))
-        print(self.images['pixels'])
         LOGGER.info(f"[{self.filename}] : Pixels extracted")
 
     def amplify(self) -> None:
