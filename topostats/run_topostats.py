@@ -219,6 +219,7 @@ def create_parser() -> arg.ArgumentParser:
 
 def process_scan(
     image_path: Union[str, Path] = None,
+    PLOT_DICT: dict = PLOT_DICT,
     base_dir: Union[str, Path] = None,
     channel: str = "Height",
     amplify_level: float = 1.0,
@@ -243,7 +244,6 @@ def process_scan(
     save_cropped_grains=False,
     save_plots: bool = True,
     image_set: str = "core",
-    colorbar: bool = True,
     output_dir: Union[str, Path] = "output",
 ) -> None:
     """Process a single image, filtering, finding grains and calculating their statistics.
@@ -290,7 +290,6 @@ def process_scan(
 
     """
     LOGGER.info(f"Processing : {image_path}")
-
     _output_dir = get_out_path(image_path, base_dir, output_dir).parent / "Processed"
     _output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -337,7 +336,6 @@ def process_scan(
             absolute_smallest_grain_size=absolute_smallest_grain_size,
             background=background,
             base_output_dir=grain_out_path,
-            zrange=zrange,
         )
         grains.find_grains()
     except IndexError:
@@ -364,6 +362,7 @@ def process_scan(
                     direction=f"{direction}",
                     base_output_dir=_output_dir / "grains",
                     image_name=filtered_image.filename,
+                    zrange=zrange,
                     save_cropped_grains=save_cropped_grains,
                     image_set=image_set,
                     cropped_size=cropped_size,
@@ -426,8 +425,6 @@ def process_scan(
         # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
         plot_opts = {
             "pixel_to_nm_scaling_factor": filtered_image.pixel_to_nm_scaling,
-            "colorbar": colorbar,
-            "image_set": image_set,
         }
         for image, options in PLOT_DICT.items():
             PLOT_DICT[image] = {**options, **plot_opts}
@@ -450,12 +447,13 @@ def process_scan(
             PLOT_DICT[plot_name]["output_dir"] = filter_out_path
             plot_and_save(grains.images["gaussian_filtered"], **PLOT_DICT[plot_name])
 
-            if zrange is not None:
-                plot_name = "z_threshed"
-                PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir)
-                plot_and_save(
-                    grains.images["z_threshed"], filename=filtered_image.filename + "_processed", **PLOT_DICT[plot_name]
-                )
+            plot_name = "z_threshed"
+            PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir)
+            plot_and_save(
+                grains.images["gaussian_filtered"],
+                filename=filtered_image.filename + "_processed",
+                **PLOT_DICT[plot_name],
+            )
 
             for direction, image_arrays in grains.directions.items():
                 output_dir = Path(_output_dir) / filtered_image.filename / "grains" / f"{direction}"
@@ -479,7 +477,7 @@ def process_scan(
             plot_name = "mask_overlay"
             PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir)
             plot_and_save(
-                grains.images["z_threshed"],
+                grains.images["gaussian_filtered"],
                 filename=filtered_image.filename + "_processed_masked",
                 data2=grains.directions[mask_direction]["removed_small_objects"],
                 **PLOT_DICT[plot_name],
@@ -502,6 +500,8 @@ def main():
     # Update the PLOT_DICT with plotting options
     for image, options in PLOT_DICT.items():
         PLOT_DICT[image] = {**options, **config["plotting"]}
+        if image not in ["z_threshed", "mask_overlay"]:
+            PLOT_DICT[image].pop("zrange")
 
     LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
     LOGGER.info(f'Scanning for images in              : {config["base_dir"]}')
@@ -532,6 +532,7 @@ def main():
     #     )
     processing_function = partial(
         process_scan,
+        PLOT_DICT=PLOT_DICT,
         base_dir=config["base_dir"],
         channel=config["channel"],
         amplify_level=config["amplify_level"],
@@ -544,13 +545,12 @@ def main():
         gaussian_mode=config["grains"]["gaussian_mode"],
         absolute_smallest_grain_size=config["grains"]["absolute_smallest_grain_size"],
         background=config["grains"]["background"],
-        zrange=config["grains"]["zrange"],
         cropped_size=config["grains"]["cropped_size"],
         mask_direction=config["grains"]["mask_direction"],
         save_cropped_grains=config["grains"]["save_cropped_grains"],
         save_plots=config["plotting"]["save"],
+        zrange=config["plotting"]["zrange"],
         image_set=config["plotting"]["image_set"],
-        colorbar=config["plotting"]["colorbar"],
         output_dir=config["output_dir"],
         grains_threshold_method=config["grains"]["threshold"]["method"],
         grains_otsu_threshold_multiplier=config["grains"]["threshold"]["otsu_multiplier"],
@@ -569,7 +569,7 @@ def main():
             for img, result in pool.imap_unordered(processing_function, img_files):
                 results[str(img)] = result
                 pbar.update()
-
+    
     results = pd.concat(results.values())
     results.reset_index()
     results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)

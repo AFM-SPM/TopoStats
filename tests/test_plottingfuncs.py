@@ -1,5 +1,6 @@
 """Tests of plotting functions."""
 import pytest
+import numpy as np
 
 from topostats.filters import Filters
 from topostats.grains import Grains
@@ -51,5 +52,19 @@ def test_plot_and_save_bounding_box(
         title="Coloured Regions",
         **plotting_config,
         region_properties=minicircle_grain_region_properties_post_removal
+    )
+    return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmpdir) -> None:
+    """Test plotting with colorbar"""
+    plotting_config["zrange"] = [-10, 10]
+    plotting_config["core_set"] = True
+    fig, _ = plot_and_save(
+        minicircle_grain_gaussian_filter.images["gaussian_filtered"],
+         tmpdir, "08_5-z_threshold.png",
+         title="Raw Height", 
+         **plotting_config
     )
     return fig

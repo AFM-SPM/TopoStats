@@ -368,7 +368,6 @@ def minicircle_grains(minicircle_zero_average_background: Filters, grain_config:
         background=grain_config["background"],
         base_output_dir=Path(tmpdir),
         absolute_smallest_grain_size=grain_config["absolute_smallest_grain_size"],
-        zrange = grain_config["zrange"]
     )
     return grains
 
