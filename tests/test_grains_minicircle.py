@@ -117,20 +117,6 @@ def test_remove_small_objects(minicircle_small_objects_removed: Grains, plotting
     )
     return fig
 
-'''
-@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_mask_overlay(minicircle_small_objects_removed: Grains, minicircle_grain_z_threshold: Grains, plotting_config: dict, tmpdir) -> None:
-    """Test mask overlay image."""
-    fig, _ = plot_and_save(
-        minicircle_grain_z_threshold.images["z_threshed"],
-        tmpdir,
-        "13_5-mask_overlay.png",
-        data2=minicircle_small_objects_removed.directions["upper"]["removed_small_objects"],
-        title="Hight Thresholded with Mask",
-        **plotting_config
-    )
-    return fig
-'''
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_label_regions(minicircle_grain_labelled_post_removal: Grains, plotting_config: dict, tmpdir) -> None:
