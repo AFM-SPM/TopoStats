@@ -886,7 +886,7 @@ class GrainStats:
                 print(f'feret: {small_feret}')
                 if min_feret is None or small_feret < min_feret:
                     min_feret = small_feret
-                    min_triangle = np.array(np.array(lower_hull[lower_index+1, :]), np.array(lower_hull[lower_index, :]), np.array(upper_hull[upper_index, :]))
+                    min_triangle = np.array([np.array(lower_hull[lower_index+1, :]), np.array(lower_hull[lower_index, :]), np.array(upper_hull[upper_index, :])])
             # If we have reached the end of the lower hull, continue iterating over the upper hull
             elif lower_index == 0:
                 upper_index += 1
