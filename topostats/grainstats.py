@@ -65,6 +65,7 @@ class GrainStats:
         image_set: str = "core",
         save_cropped_grains: bool = False,
         cropped_size: float = -1,
+        plot_opts: dict = None,
     ):
         """Initialise the class.
 
@@ -101,6 +102,7 @@ class GrainStats:
         self.image_set = image_set
         self.save_cropped_grains = save_cropped_grains
         self.cropped_size = cropped_size
+        self.plot_opts = plot_opts
 
     @staticmethod
     def get_angle(point_1: tuple, point_2: tuple) -> float:
@@ -179,7 +181,6 @@ class GrainStats:
 
             if self.save_cropped_grains:
                 output_grain.mkdir(parents=True, exist_ok=True)
-
                 if self.cropped_size == -1:
                     # Plot the cropped grain image
                     plot_and_save(
@@ -187,10 +188,7 @@ class GrainStats:
                         output_grain,
                         f"{self.image_name}_processed_grain_{index}.png",
                         pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
-                        type="non-binary",
-                        image_set=self.image_set,
-                        zrange=self.zrange,
-                        core_set=True,
+                        **self.plot_opts["grain_image"],
                     )
                     # Plot the cropped grain mask
                     plot_and_save(
@@ -198,20 +196,14 @@ class GrainStats:
                         output_grain,
                         f"{self.image_name}_grainmask_{index}.png",
                         pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
-                        type="binary",
-                        image_set=self.image_set,
-                        zrange=self.zrange,
-                        core_set=False,
+                        **self.plot_opts["grain_mask"],
                     )
                     plot_and_save(
                         masked_grain_image,
                         output_grain,
                         f"{self.image_name}_grain_image_{index}.png",
                         pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
-                        type="non-binary",
-                        image_set=self.image_set,
-                        zrange=self.zrange,
-                        core_set=False,
+                        **self.plot_opts["grain_mask_image"],
                     )
                 else:
                     # Get cropped image and mask
@@ -233,10 +225,7 @@ class GrainStats:
                         output_grain,
                         f"{self.image_name}_processed_grain_{index}.png",
                         pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
-                        type="non-binary",
-                        image_set=self.image_set,
-                        zrange=self.zrange,
-                        core_set=True,
+                        **self.plot_opts["grain_image"],
                     )
                     # Plot the cropped grain mask
                     plot_and_save(
@@ -244,19 +233,14 @@ class GrainStats:
                         output_grain,
                         f"{self.image_name}_grainmask_{index}.png",
                         pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
-                        type="binary",
-                        image_set=self.image_set,
-                        core_set=False,
+                        **self.plot_opts["grain_mask"],
                     )
                     plot_and_save(
                         cropped_masked_grain_image,
                         output_grain,
                         f"{self.image_name}_grain_image_{index}.png",
                         pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
-                        type="non-binary",
-                        image_set=self.image_set,
-                        zrange=self.zrange,
-                        core_set=False,
+                        **self.plot_opts["grain_mask_image"],
                     )
 
             points = self.calculate_points(grain_mask)

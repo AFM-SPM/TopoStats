@@ -35,8 +35,8 @@ dnatracing:
 plotting:
   zrange: [0, 3] # low and high height range for core images. Options : [null, null])
   save: true
-  save_format: tiff # Options: those found in plt.savefig()
-  image_set: all # Options : all, core
-  colorbar: false
+  save_format: png # Options: those found in plt.savefig()
+  image_set: core # Options : all, core
+  colorbar: true
   axes: false # Options : true, false (due to off being a bool when parsed)
   cmap: nanoscope # Options : nanoscope, afmhot

@@ -95,8 +95,14 @@ def plot_and_save(
                 if not axes and not colorbar:
                     plt.title('')
                     fig.frameon=False
-                plt.savefig((output_dir / filename).with_suffix('.'+save_format), format=save_format,bbox_inches='tight',pad_inches = 0)
-                #plt.savefig((output_dir / filename).with_suffix('.'+save_format), format=save_format)
+                    plt.savefig(
+                        (output_dir / filename).with_suffix('.'+save_format), 
+                        format=save_format, 
+                        bbox_inches='tight', 
+                        pad_inches = 0
+                    )
+                else:
+                    plt.savefig((output_dir / filename).with_suffix('.'+save_format), format=save_format)
                 if "_processed" in filename:
                     LOGGER.info(f"[{filename.split('_processed')[0]}] : Image saved to : {str(output_dir / filename)}")
     else:

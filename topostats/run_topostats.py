@@ -133,6 +133,18 @@ PLOT_DICT = {
         "type": "binary",
         "core_set": False,
     },
+    "grain_image": { 
+        "type": "non-binary",
+        "core_set": True,
+    },
+    "grain_mask": { 
+        "type": "binary",
+        "core_set": False,
+    },
+    "grain_mask_image": { 
+        "type": "non-binary",
+        "core_set": False,
+    }
 }
 
 
@@ -237,7 +249,6 @@ def process_scan(
     grains_threshold_std_dev=1.0,
     grains_threshold_abs_lower=None,
     grains_threshold_abs_upper=None,
-    zrange=None,
     cropped_size=-1,
     mask_direction=None,
     dnatracing_config=None,
@@ -351,6 +362,7 @@ def process_scan(
     # There are two layers to process those above the given threshold and those below, use dictionary comprehension
     # to pass over these.
     if grains.region_properties is not None:
+        grain_plot_dict = {key:value for key, value in PLOT_DICT.items() if key in ["grain_image","grain_mask", "grain_mask_image"]}
         # Grain Statistics :
         try:
             LOGGER.info(f"[{filtered_image.filename}] : *** Grain Statistics ***")
@@ -362,10 +374,9 @@ def process_scan(
                     direction=f"{direction}",
                     base_output_dir=_output_dir / "grains",
                     image_name=filtered_image.filename,
-                    zrange=zrange,
                     save_cropped_grains=save_cropped_grains,
-                    image_set=image_set,
                     cropped_size=cropped_size,
+                    plot_opts=grain_plot_dict,
                 ).calculate_stats()
                 for direction in grains.directions
             }
@@ -500,7 +511,7 @@ def main():
     # Update the PLOT_DICT with plotting options
     for image, options in PLOT_DICT.items():
         PLOT_DICT[image] = {**options, **config["plotting"]}
-        if image not in ["z_threshed", "mask_overlay"]:
+        if image not in ["z_threshed", "mask_overlay", "grain_image", "grain_mask_image"]:
             PLOT_DICT[image].pop("zrange")
 
     LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
@@ -549,7 +560,6 @@ def main():
         mask_direction=config["grains"]["mask_direction"],
         save_cropped_grains=config["grains"]["save_cropped_grains"],
         save_plots=config["plotting"]["save"],
-        zrange=config["plotting"]["zrange"],
         image_set=config["plotting"]["image_set"],
         output_dir=config["output_dir"],
         grains_threshold_method=config["grains"]["threshold"]["method"],

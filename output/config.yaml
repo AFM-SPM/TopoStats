@@ -1,0 +1,45 @@
+# Configuration from TopoStats run completed : 2022-08-16 19:18:11
+base_dir: tests
+output_dir: output
+save_plots: true
+warnings: ignore
+cores: 4
+quiet: false
+file_ext: .spm
+channel: Height
+amplify_level: 1.0
+filter:
+  threshold:
+    method: std_dev
+    otsu_multiplier: 1.0
+    std_dev: 1.0
+    absolute:
+    - 1
+    - -1
+grains:
+  gaussian_size: 2.0
+  gaussian_mode: nearest
+  absolute_smallest_grain_size: 100
+  background: 0.0
+  cropped_size: 40
+  mask_direction: upper
+  save_cropped_grains: true
+  threshold:
+    method: std_dev
+    otsu_multiplier: 1.0
+    std_dev: 1.0
+    absolute:
+    - 1
+    - -1
+dnatracing:
+  run: true
+plotting:
+  zrange:
+  - 0
+  - 3
+  save: true
+  save_format: png
+  image_set: core
+  colorbar: true
+  axes: false
+  cmap: nanoscope
