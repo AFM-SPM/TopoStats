@@ -991,12 +991,12 @@ class GrainStats:
         TODO: Add more description
         """
 
-        plt.figure(figsize=(10,10))
+        # plt.figure(figsize=(10,10))
 
         # Sort the vectors by their x coordinate and then by their y coordinate.
         # The conversion between list and numpy array can be removed, though it would be harder
         # to read.
-        print(f'edge_points: {edge_points}')
+        # print(f'edge_points: {edge_points}')
         edge_points.sort()
         edge_points = np.array(edge_points)
 
@@ -1016,8 +1016,8 @@ class GrainStats:
         upper_hull = np.array(upper_hull)
         lower_hull = np.array(lower_hull)
 
-        plt.plot(upper_hull[:, 0], upper_hull[:, 1], linewidth=6, label='upper_hull')
-        plt.plot(lower_hull[:, 0], lower_hull[:, 1], linewidth=6, label='lower_hull')
+        # plt.plot(upper_hull[:, 0], upper_hull[:, 1], linewidth=6, label='upper_hull')
+        # plt.plot(lower_hull[:, 0], lower_hull[:, 1], linewidth=6, label='lower_hull')
 
         # Create list of contact vertices for calipers on the antipodal hulls
         contact_points = []
@@ -1031,30 +1031,30 @@ class GrainStats:
             # If we have reached the end of the upper hull, continute iterating over the lower hull
             if upper_index == len(upper_hull) - 1:
                 lower_index -= 1
-                print(f'lower triangle: {lower_index+1},{lower_index} > {upper_index}')
+                # print(f'lower triangle: {lower_index+1},{lower_index} > {upper_index}')
                 small_feret = self.get_triangle_height(np.array(lower_hull[lower_index+1, :]), np.array(lower_hull[lower_index, :]), np.array(upper_hull[upper_index, :]))
-                plt.plot((lower_hull[lower_index+1,0],lower_hull[lower_index,0]),(lower_hull[lower_index+1,1], lower_hull[lower_index,1]), color='yellow', linewidth=10)
-                plt.plot((lower_hull[lower_index+1,0],upper_hull[upper_index,0]),(lower_hull[lower_index+1,1],upper_hull[upper_index,1]), color='yellow', linewidth=10)
-                plt.plot((lower_hull[lower_index,0],upper_hull[upper_index,0]),(lower_hull[lower_index,1],upper_hull[upper_index,1]), color='yellow', linewidth=10)
-                print(f'feret: {small_feret}')
+                # plt.plot((lower_hull[lower_index+1,0],lower_hull[lower_index,0]),(lower_hull[lower_index+1,1], lower_hull[lower_index,1]), color='yellow', linewidth=10)
+                # plt.plot((lower_hull[lower_index+1,0],upper_hull[upper_index,0]),(lower_hull[lower_index+1,1],upper_hull[upper_index,1]), color='yellow', linewidth=10)
+                # plt.plot((lower_hull[lower_index,0],upper_hull[upper_index,0]),(lower_hull[lower_index,1],upper_hull[upper_index,1]), color='yellow', linewidth=10)
+                # print(f'feret: {small_feret}')
                 if min_feret is None or small_feret < min_feret:
                     min_feret = small_feret
                     min_triangle = np.array([np.array(lower_hull[lower_index+1, :]), np.array(lower_hull[lower_index, :]), np.array(upper_hull[upper_index, :])])
             # If we have reached the end of the lower hull, continue iterating over the upper hull
             elif lower_index == 0:
                 upper_index += 1
-                print(f'upper triangle: {upper_index-1},{upper_index} > {lower_index}')
+                # print(f'upper triangle: {upper_index-1},{upper_index} > {lower_index}')
                 small_feret = self.get_triangle_height(np.array(upper_hull[upper_index-1, :]), np.array(upper_hull[upper_index, :]), np.array(lower_hull[lower_index, :]))
-                plt.plot((upper_hull[upper_index-1,0],lower_hull[lower_index,0]),(upper_hull[upper_index-1,1],lower_hull[lower_index,1]), color='pink', linewidth=12)
-                plt.plot((upper_hull[upper_index,0],lower_hull[lower_index,0]),(upper_hull[upper_index,1],lower_hull[lower_index,1]), color='pink', linewidth=12)
-                plt.plot((upper_hull[upper_index,0],upper_hull[upper_index-1,0]),(upper_hull[upper_index,1],upper_hull[upper_index-1,1]), color='pink', linewidth=12)
-                print(f'feret: {small_feret}')
+                # plt.plot((upper_hull[upper_index-1,0],lower_hull[lower_index,0]),(upper_hull[upper_index-1,1],lower_hull[lower_index,1]), color='pink', linewidth=12)
+                # plt.plot((upper_hull[upper_index,0],lower_hull[lower_index,0]),(upper_hull[upper_index,1],lower_hull[lower_index,1]), color='pink', linewidth=12)
+                # plt.plot((upper_hull[upper_index,0],upper_hull[upper_index-1,0]),(upper_hull[upper_index,1],upper_hull[upper_index-1,1]), color='pink', linewidth=12)
+                # print(f'feret: {small_feret}')
                 if min_feret is None or small_feret < min_feret:
                     min_feret = small_feret
                     min_triangle = np.array([np.array(upper_hull[upper_index-1, :]), np.array(upper_hull[upper_index, :]), np.array(lower_hull[lower_index, :])])
             # Check if the gradient of the last point and the proposed next point in the upper hull is greater than the gradient
             # of the two corresponding points in the lower hull, if so, this means that the next point in the upper hull
-            # will be encountered before the next point in the lower hull and vice versa. 
+            # will be encountered before the next point in the lower hull and vice versa.
             # Note that the calcualtion here for gradients is the simple delta upper_y / delta upper_x > delta lower_y / delta lower_x
             # however I have multiplied through the denominators such that there are no instances of division by zero. The
             # inequality still holds and provides what is needed.
@@ -1062,12 +1062,12 @@ class GrainStats:
                 # If the upper hull is encoutnered first, increment the iteration index for the upper hull
                 # Also consider the triangle that is made as the two upper hull vertices are colinear with the caliper
                 upper_index += 1
-                print(f'upper triangle: {upper_index-1},{upper_index} > {lower_index}')
+                # print(f'upper triangle: {upper_index-1},{upper_index} > {lower_index}')
                 small_feret = self.get_triangle_height(np.array(upper_hull[upper_index-1, :]), np.array(upper_hull[upper_index, :]), np.array(lower_hull[lower_index, :]))
-                plt.plot((upper_hull[upper_index-1,0],lower_hull[lower_index,0]),(upper_hull[upper_index-1,1],lower_hull[lower_index,1]), color='red', linewidth=10)
-                plt.plot((upper_hull[upper_index,0],lower_hull[lower_index,0]),(upper_hull[upper_index,1],lower_hull[lower_index,1]), color='red', linewidth=10)
-                plt.plot((upper_hull[upper_index,0],upper_hull[upper_index-1,0]),(upper_hull[upper_index,1],upper_hull[upper_index-1,1]), color='red', linewidth=10)
-                print(f'feret: {small_feret}')
+                # plt.plot((upper_hull[upper_index-1,0],lower_hull[lower_index,0]),(upper_hull[upper_index-1,1],lower_hull[lower_index,1]), color='red', linewidth=10)
+                # plt.plot((upper_hull[upper_index,0],lower_hull[lower_index,0]),(upper_hull[upper_index,1],lower_hull[lower_index,1]), color='red', linewidth=10)
+                # plt.plot((upper_hull[upper_index,0],upper_hull[upper_index-1,0]),(upper_hull[upper_index,1],upper_hull[upper_index-1,1]), color='red', linewidth=10)
+                # print(f'feret: {small_feret}')
                 if min_feret is None or small_feret < min_feret:
                     min_feret = small_feret
                     min_triangle = np.array([np.array(upper_hull[upper_index-1, :]), np.array(upper_hull[upper_index, :]), np.array(lower_hull[lower_index, :])])
@@ -1075,12 +1075,12 @@ class GrainStats:
             else:
                 # The next point in the lower hull will be encountered first, so increment the lower hull iteration index.
                 lower_index -= 1
-                print(f'lower triangle: {lower_index+1},{lower_index} > {upper_index}')
+                # print(f'lower triangle: {lower_index+1},{lower_index} > {upper_index}')
                 small_feret = self.get_triangle_height(np.array(lower_hull[lower_index+1, :]), np.array(lower_hull[lower_index, :]), np.array(upper_hull[upper_index, :]))
-                plt.plot((lower_hull[lower_index+1,0],lower_hull[lower_index,0]),(lower_hull[lower_index+1,1], lower_hull[lower_index,1]), color='yellow', linewidth=12)
-                plt.plot((lower_hull[lower_index+1,0],upper_hull[upper_index,0]),(lower_hull[lower_index+1,1],upper_hull[upper_index,1]), color='yellow', linewidth=12)
-                plt.plot((lower_hull[lower_index,0],upper_hull[upper_index,0]),(lower_hull[lower_index,1],upper_hull[upper_index,1]), color='yellow', linewidth=12)
-                print(f'feret: {small_feret}')
+                # plt.plot((lower_hull[lower_index+1,0],lower_hull[lower_index,0]),(lower_hull[lower_index+1,1], lower_hull[lower_index,1]), color='yellow', linewidth=12)
+                # plt.plot((lower_hull[lower_index+1,0],upper_hull[upper_index,0]),(lower_hull[lower_index+1,1],upper_hull[upper_index,1]), color='yellow', linewidth=12)
+                # plt.plot((lower_hull[lower_index,0],upper_hull[upper_index,0]),(lower_hull[lower_index,1],upper_hull[upper_index,1]), color='yellow', linewidth=12)
+                # print(f'feret: {small_feret}')
                 if min_feret is None or small_feret < min_feret:
                     min_feret = small_feret
                     min_triangle = np.array([np.array(lower_hull[lower_index+1, :]), np.array(lower_hull[lower_index, :]), np.array(upper_hull[upper_index, :])])
@@ -1089,9 +1089,9 @@ class GrainStats:
         # print('contact point pairs: ')
         # print(contact_points)
 
-        for point_pair in contact_points:
+        # for point_pair in contact_points:
             # print(point_pair)
-            plt.plot(point_pair[:, 0], point_pair[:, 1], color='black', label='contact_pairs')
+            # plt.plot(point_pair[:, 0], point_pair[:, 1], color='black', label='contact_pairs')
 
         # Find the minimum and maximum distance in the contact points
         max_feret = None
@@ -1102,19 +1102,19 @@ class GrainStats:
                 max_feret = dist
                 max_pair = point_pair
 
-        print(f"min feret: {min_feret}")
+        # print(f"min feret: {min_feret}")
         # Plot minimum feret triangle
-        plt.plot(min_triangle[0:2, 0], min_triangle[0:2, 1], color='pink', linewidth=15)
-        plt.plot(min_triangle[1:3, 0], min_triangle[1:3, 1], color='purple', linewidth=15)
-        plt.plot([min_triangle[2, 0],min_triangle[0, 0]], [min_triangle[2, 1],min_triangle[0, 1]], color='purple', linewidth=15)
+        # plt.plot(min_triangle[0:2, 0], min_triangle[0:2, 1], color='pink', linewidth=15)
+        # plt.plot(min_triangle[1:3, 0], min_triangle[1:3, 1], color='purple', linewidth=15)
+        # plt.plot([min_triangle[2, 0],min_triangle[0, 0]], [min_triangle[2, 1],min_triangle[0, 1]], color='purple', linewidth=15)
 
-        print(f'max feret diameter: {max_feret} | points: {max_pair}')
-        print(f'min feret diameter: {min_feret}')
+        # print(f'max feret diameter: {max_feret} | points: {max_pair}')
+        # print(f'min feret diameter: {min_feret}')
         # plt.plot(max_pair[:, 0], max_pair[:, 1], ':',color='green', label='max_feret', linewidth=5)
         # plt.plot(min_pair[:, 0], min_pair[:, 1], '--', color='red', label='min-feret', linewidth=5)
-        plt.scatter(x=edge_points[:, 0],y=edge_points[:, 1], label='grain_points', s=50)
-        plt.legend()
+        # plt.scatter(x=edge_points[:, 0],y=edge_points[:, 1], label='grain_points', s=50)
+        # plt.legend()
         # plt.show()
-        plt.savefig(path / './ferets.png')
+        # plt.savefig(path / './ferets.png')
 
         return min_feret, max_feret
