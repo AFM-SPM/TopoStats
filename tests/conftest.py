@@ -541,8 +541,11 @@ def minicircle_grainstats(
         direction=minicircle_filename.filename,
         base_output_dir=tmpdir,
         save_cropped_grains=True,
-        image_set='all',
-        cropped_size=40, 
+        image_set="all",
+        cropped_size=40,
+        plot_opts={"grain_image": {"core_set": True},
+                   "grain_mask": {"core_set": False}, 
+                   "grain_mask_image": {"core_set": False}}
     )
 
 

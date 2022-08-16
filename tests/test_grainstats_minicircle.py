@@ -40,7 +40,9 @@ def test_save_cropped_grains(minicircle_grainstats: GrainStats, tmpdir, value):
 def test_image_set(minicircle_grainstats: GrainStats, tmpdir, value, expected):
     # need to run grainstats with config option True and see if it is there.
     minicircle_grainstats.save_cropped_grains = True
-    minicircle_grainstats.image_set = value
+    minicircle_grainstats.plot_opts['grain_image']['image_set'] = value
+    minicircle_grainstats.plot_opts['grain_mask']['image_set'] = value
+    minicircle_grainstats.plot_opts['grain_mask_image']['image_set'] = value
     minicircle_grainstats.base_output_dir = Path(tmpdir) / "grains"
     minicircle_grainstats.calculate_stats()
     assert Path.exists(Path(tmpdir) / "grains/minicircle" / "None_processed_grain_0.png") == True
@@ -60,7 +62,7 @@ def test_cropped_image(minicircle_grainstats: GrainStats, tmpdir):
     assert cropped_grain_image.shape == (81, 81)
     fig, _ = plot_and_save(
         cropped_grain_image,
-        tmpdir,
+        Path(tmpdir),
         "cropped_grain_7.png",
         pixel_to_nm_scaling_factor=minicircle_grainstats.pixel_to_nanometre_scaling,
         type="non-binary",

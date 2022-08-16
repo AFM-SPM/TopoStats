@@ -1,6 +1,7 @@
 """Tests of plotting functions."""
 import pytest
 import numpy as np
+from pathlib import Path
 
 from topostats.filters import Filters
 from topostats.grains import Grains
@@ -63,8 +64,9 @@ def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting
     plotting_config["core_set"] = True
     fig, _ = plot_and_save(
         minicircle_grain_gaussian_filter.images["gaussian_filtered"],
-         tmpdir, "08_5-z_threshold.png",
-         title="Raw Height", 
+         Path(tmpdir),
+         "08_5-z_threshold.png",
+         title="Raw Height",
          **plotting_config
     )
     return fig
