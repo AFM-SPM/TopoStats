@@ -63,6 +63,21 @@ def test_extract_pixels(test_filters: Filters) -> None:
     assert test_filters.images["pixels"].shape == (1024, 1024)
 
 
+@pytest.mark.parametrize("unit, x, y, expected", [
+    ('um', 100, 100, 97.65625),
+    ('nm', 50, 50, 0.048828125),
+    ])
+def test_extract_pixel_to_nm_scaling(test_filters_random: Filters, unit, x, y , expected) -> None:
+    """Test extraction of pixels to nanometer scaling."""
+    test_filters_random.images["extracted_channel"].size['real'] = {
+    'unit': unit,
+    'x': x,
+    'y': y
+    }
+    test_filters_random.extract_pixel_to_nm_scaling()
+    assert test_filters_random.pixel_to_nm_scaling == expected
+
+
 def test_row_col_medians_no_mask(
     test_filters_random: Filters, image_random_row_medians: np.array, image_random_col_medians: np.array
 ) -> None:
