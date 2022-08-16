@@ -21,7 +21,7 @@ grains:
   absolute_smallest_grain_size: 100
   background: 0.0
   cropped_size: 40 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
-  mask_direction: upper # Options: upper, lower (currently only applied to thresh+mask image)
+  mask_direction: upper # Options : upper, lower (currently only applied to thresh+mask image)
   save_cropped_grains: true
   threshold:
     method: std_dev # Options : otsu, std_dev, absolute
@@ -33,8 +33,10 @@ grains:
 dnatracing:
   run: true # Whether to run DNA Tracing. Options : true, false
 plotting:
-  zrange: [0, 3] # low and high height range for core images (can take [null, null])
+  zrange: [0, 3] # low and high height range for core images. Options : [null, null])
   save: true
+  save_format: tiff # Options: those found in plt.savefig()
   image_set: all # Options : all, core
-  colorbar: true
+  colorbar: false
+  axes: false # Options : true, false (due to off being a bool when parsed)
   cmap: nanoscope # Options : nanoscope, afmhot

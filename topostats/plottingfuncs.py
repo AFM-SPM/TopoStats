@@ -29,7 +29,9 @@ def plot_and_save(
     region_properties: dict = None,
     zrange: list = [None, None],
     colorbar: bool = True,
+    axes: bool = 'on',
     save: bool = True,
+    save_format: str = 'png'
 ):
     """Plot and save an image.
 
@@ -76,10 +78,11 @@ def plot_and_save(
             )
             patch = [Patch(color=plt.get_cmap("jet_r")(1, 0.7), label="Mask")]
             plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
-
+        
         plt.title(title)
         plt.xlabel("Nanometres")
         plt.ylabel("Nanometres")
+        plt.axis(axes)
         if colorbar and type == "non-binary":
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.05)
@@ -89,7 +92,11 @@ def plot_and_save(
 
         if save:
             if image_set == "all" or core_set:
-                plt.savefig(output_dir / filename)
+                if not axes and not colorbar:
+                    plt.title('')
+                    fig.frameon=False
+                plt.savefig((output_dir / filename).with_suffix('.'+save_format), format=save_format,bbox_inches='tight',pad_inches = 0)
+                #plt.savefig((output_dir / filename).with_suffix('.'+save_format), format=save_format)
                 if "_processed" in filename:
                     LOGGER.info(f"[{filename.split('_processed')[0]}] : Image saved to : {str(output_dir / filename)}")
     else:
