@@ -908,8 +908,6 @@ class GrainStats:
         extremes["y_max"] = np.max(rotated_points[:, 1])
         return extremes
 
-    def get_triangle_height(self, base_point_1: np.array, base_point_2: np.array, top_point: np.array) -> float:
-        """Returns the height of a triangle defined by the input point vectors.
     @staticmethod
     def get_shift(coords: np.ndarray, shape: np.ndarray) -> int:
         """Obtains the coordinate shift to reflect the cropped image box for molecules near the edges of the image.
@@ -962,6 +960,9 @@ class GrainStats:
             centre[1] - length - shifty : centre[1] + length + 1 - shifty,
         ]
 
+
+    def get_triangle_height(self, base_point_1: np.array, base_point_2: np.array, top_point: np.array) -> float:
+        """Returns the height of a triangle defined by the input point vectors.
         Parameters
         ----------
         base_point_1: np.ndarray
