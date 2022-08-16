@@ -74,7 +74,6 @@ def test_extract_pixel_to_nm_scaling(test_filters_random: Filters, unit, x, y , 
     'x': x,
     'y': y
     }
-    #test_filters_random.images["extracted_channel"].pxs()
     test_filters_random.extract_pixel_to_nm_scaling()
     assert test_filters_random.pixel_to_nm_scaling == expected
 
