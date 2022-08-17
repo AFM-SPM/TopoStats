@@ -960,8 +960,8 @@ class GrainStats:
             centre[1] - length - shifty : centre[1] + length + 1 - shifty,
         ]
 
-
-    def get_triangle_height(self, base_point_1: np.array, base_point_2: np.array, top_point: np.array) -> float:
+    @staticmethod
+    def get_triangle_height(base_point_1: np.array, base_point_2: np.array, top_point: np.array) -> float:
         """Returns the height of a triangle defined by the input point vectors.
         Parameters
         ----------
@@ -1032,7 +1032,7 @@ class GrainStats:
             if upper_index == len(upper_hull) - 1:
                 lower_index -= 1
                 # print(f'lower triangle: {lower_index+1},{lower_index} > {upper_index}')
-                small_feret = self.get_triangle_height(np.array(lower_hull[lower_index+1, :]), np.array(lower_hull[lower_index, :]), np.array(upper_hull[upper_index, :]))
+                small_feret = GrainStats.get_triangle_height(np.array(lower_hull[lower_index+1, :]), np.array(lower_hull[lower_index, :]), np.array(upper_hull[upper_index, :]))
                 # plt.plot((lower_hull[lower_index+1,0],lower_hull[lower_index,0]),(lower_hull[lower_index+1,1], lower_hull[lower_index,1]), color='yellow', linewidth=10)
                 # plt.plot((lower_hull[lower_index+1,0],upper_hull[upper_index,0]),(lower_hull[lower_index+1,1],upper_hull[upper_index,1]), color='yellow', linewidth=10)
                 # plt.plot((lower_hull[lower_index,0],upper_hull[upper_index,0]),(lower_hull[lower_index,1],upper_hull[upper_index,1]), color='yellow', linewidth=10)
@@ -1044,7 +1044,7 @@ class GrainStats:
             elif lower_index == 0:
                 upper_index += 1
                 # print(f'upper triangle: {upper_index-1},{upper_index} > {lower_index}')
-                small_feret = self.get_triangle_height(np.array(upper_hull[upper_index-1, :]), np.array(upper_hull[upper_index, :]), np.array(lower_hull[lower_index, :]))
+                small_feret = GrainStats.get_triangle_height(np.array(upper_hull[upper_index-1, :]), np.array(upper_hull[upper_index, :]), np.array(lower_hull[lower_index, :]))
                 # plt.plot((upper_hull[upper_index-1,0],lower_hull[lower_index,0]),(upper_hull[upper_index-1,1],lower_hull[lower_index,1]), color='pink', linewidth=12)
                 # plt.plot((upper_hull[upper_index,0],lower_hull[lower_index,0]),(upper_hull[upper_index,1],lower_hull[lower_index,1]), color='pink', linewidth=12)
                 # plt.plot((upper_hull[upper_index,0],upper_hull[upper_index-1,0]),(upper_hull[upper_index,1],upper_hull[upper_index-1,1]), color='pink', linewidth=12)
@@ -1063,7 +1063,7 @@ class GrainStats:
                 # Also consider the triangle that is made as the two upper hull vertices are colinear with the caliper
                 upper_index += 1
                 # print(f'upper triangle: {upper_index-1},{upper_index} > {lower_index}')
-                small_feret = self.get_triangle_height(np.array(upper_hull[upper_index-1, :]), np.array(upper_hull[upper_index, :]), np.array(lower_hull[lower_index, :]))
+                small_feret = GrainStats.get_triangle_height(np.array(upper_hull[upper_index-1, :]), np.array(upper_hull[upper_index, :]), np.array(lower_hull[lower_index, :]))
                 # plt.plot((upper_hull[upper_index-1,0],lower_hull[lower_index,0]),(upper_hull[upper_index-1,1],lower_hull[lower_index,1]), color='red', linewidth=10)
                 # plt.plot((upper_hull[upper_index,0],lower_hull[lower_index,0]),(upper_hull[upper_index,1],lower_hull[lower_index,1]), color='red', linewidth=10)
                 # plt.plot((upper_hull[upper_index,0],upper_hull[upper_index-1,0]),(upper_hull[upper_index,1],upper_hull[upper_index-1,1]), color='red', linewidth=10)
@@ -1076,7 +1076,7 @@ class GrainStats:
                 # The next point in the lower hull will be encountered first, so increment the lower hull iteration index.
                 lower_index -= 1
                 # print(f'lower triangle: {lower_index+1},{lower_index} > {upper_index}')
-                small_feret = self.get_triangle_height(np.array(lower_hull[lower_index+1, :]), np.array(lower_hull[lower_index, :]), np.array(upper_hull[upper_index, :]))
+                small_feret = GrainStats.get_triangle_height(np.array(lower_hull[lower_index+1, :]), np.array(lower_hull[lower_index, :]), np.array(upper_hull[upper_index, :]))
                 # plt.plot((lower_hull[lower_index+1,0],lower_hull[lower_index,0]),(lower_hull[lower_index+1,1], lower_hull[lower_index,1]), color='yellow', linewidth=12)
                 # plt.plot((lower_hull[lower_index+1,0],upper_hull[upper_index,0]),(lower_hull[lower_index+1,1],upper_hull[upper_index,1]), color='yellow', linewidth=12)
                 # plt.plot((lower_hull[lower_index,0],upper_hull[upper_index,0]),(lower_hull[lower_index,1],upper_hull[upper_index,1]), color='yellow', linewidth=12)
