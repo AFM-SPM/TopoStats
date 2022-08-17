@@ -3,6 +3,7 @@ from genericpath import exists
 import pytest
 import numpy as np
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 from topostats.filters import Filters
 from topostats.grains import Grains
@@ -40,7 +41,7 @@ def test_plot_and_save_axes(minicircle_pixels: Filters, plotting_config: dict, t
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_no_axes_no_colorbar(minicircle_pixels: Filters, plotting_config: dict, tmpdir) -> None:
-    """Test plotting without axes"""
+    """Test plotting without axes and without the colourbar"""
     plotting_config["axes"] = False
     plotting_config["colorbar"] = False
     plotting_config["image_set"] = "all"
@@ -82,7 +83,7 @@ def test_plot_and_save_bounding_box(
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmpdir) -> None:
-    """Test plotting with colorbar"""
+    """Tests plotting of the zrange scaled image"""
     plotting_config["zrange"] = [-10, 10]
     plotting_config["core_set"] = True
     fig, _ = plot_and_save(
@@ -92,19 +93,4 @@ def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting
          title="Raw Height",
          **plotting_config
     )
-    return fig
-
-@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_format(minicircle_pixels: Filters, plotting_config: dict, tmpdir) -> None:
-    """Test plotting with colorbar"""
-    plotting_config["save_format"] = "tiff"
-    print(plotting_config)
-    fig, _ = plot_and_save(
-        minicircle_pixels.images["pixels"],
-        Path(tmpdir),
-        "01-raw_heightmap",
-        title="Raw Height",
-        **plotting_config
-    )
-    #assert Path.exists(Path(tmpdir) / "result.tiff")
     return fig

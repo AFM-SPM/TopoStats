@@ -27,7 +27,7 @@ def test_grainstats(minicircle_grainstats: GrainStats, minicircle_grainstats_202
 (False),
 ])
 def test_save_cropped_grains(minicircle_grainstats: GrainStats, tmpdir, value):
-    # need to run grainstats with config option True and see if it is there.
+    "Tests if save_cropped_grains option only creates the grains dir when True"
     minicircle_grainstats.save_cropped_grains = value
     minicircle_grainstats.base_output_dir = Path(tmpdir) / "grains"
     minicircle_grainstats.calculate_stats()
@@ -38,7 +38,7 @@ def test_save_cropped_grains(minicircle_grainstats: GrainStats, tmpdir, value):
 ("all", True),
 ])
 def test_image_set(minicircle_grainstats: GrainStats, tmpdir, value, expected):
-    # need to run grainstats with config option True and see if it is there.
+    "Tests for the correct outputs when image_set is varied"
     minicircle_grainstats.save_cropped_grains = True
     minicircle_grainstats.plot_opts['grain_image']['image_set'] = value
     minicircle_grainstats.plot_opts['grain_mask']['image_set'] = value
@@ -69,3 +69,11 @@ def test_cropped_image(minicircle_grainstats: GrainStats, tmpdir):
         image_set=minicircle_grainstats.image_set,
         core_set=True)
     return fig
+
+def test_save_format(minicircle_grainstats: GrainStats, tmpdir):
+    "Tests if save format applied to cropped images"
+    minicircle_grainstats.save_cropped_grains = True
+    minicircle_grainstats.plot_opts['grain_image']['save_format'] = "tiff"
+    minicircle_grainstats.base_output_dir = Path(tmpdir)
+    minicircle_grainstats.calculate_stats()
+    assert Path.exists(Path(tmpdir) / "minicircle" / "None_processed_grain_0.tiff")
