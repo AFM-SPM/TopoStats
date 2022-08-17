@@ -1007,10 +1007,10 @@ class GrainStats:
         upper_hull = []
         lower_hull = []
         for point in edge_points:
-            while len(lower_hull) > 1 and self.is_clockwise(lower_hull[-2], lower_hull[-1], point):
+            while len(lower_hull) > 1 and GrainStats.is_clockwise(lower_hull[-2], lower_hull[-1], point):
                 lower_hull.pop()
             lower_hull.append(point)
-            while len(upper_hull) > 1 and not self.is_clockwise(upper_hull[-2], upper_hull[-1], point):
+            while len(upper_hull) > 1 and not GrainStats.is_clockwise(upper_hull[-2], upper_hull[-1], point):
                 upper_hull.pop()
             upper_hull.append(point)
 
