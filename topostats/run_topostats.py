@@ -279,8 +279,6 @@ def process_scan(
         Factor by which lower threshold is to be scaled prior to masking.
     background : float
         The value to average the background around.
-    zrange : list
-        Lower and upper limits for the Z-range.
     save_grains : bool
         Option to have cropped grain outputs.
     save_plots : bool

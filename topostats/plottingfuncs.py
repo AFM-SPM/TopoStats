@@ -39,22 +39,38 @@ def plot_and_save(
     ----------
     data : np.array
         Numpy array to plot.
-    output_dir: Union[str, Path]
-        Output directory to save the file to,
+    output_dir : Union[str, Path]
+        Output directory to save the file to.
     filename : Union[str, Path]
         Filename to save image as.
+    pixel_to_nm_scaling_factor : float
+        The scaling factor showing the real length of 1 pixel, in nm.
+    data2 : np.ndarray
+        Optional mask array to overlay onto an image.
     title : str
         Title for plot.
+    type : str
+        The image data type - binary or non-binary.
+    image_set : str
+        The set of images to process - core or all.
+    core_set : bool
+        Flag to identify image as part of the core image set or not.
     interpolation: str
         Interpolation to use (default 'nearest').
     cmap : str
         Colour map to use (default 'nanoscope', 'afmhot' also available)
     region_properties: dict
         Dictionary of region properties, adds bounding boxes if specified.
+    zrange : list
+        Lower and upper bound to clip core images to.
     colorbar: bool
         Optionally add a colorbar to plots, default is False.
+    axes: bool
+        Optionally add/remove axes from the image.
     save: bool
         Whether to save the image.
+    save_format: str
+        Format to save the image as.
     """
     fig, ax = plt.subplots(1, 1, figsize=(8, 8))
     shape = data.shape
