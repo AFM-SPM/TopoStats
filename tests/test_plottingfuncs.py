@@ -1,4 +1,5 @@
 """Tests of plotting functions."""
+from genericpath import exists
 import pytest
 import numpy as np
 from pathlib import Path
@@ -23,6 +24,28 @@ def test_plot_and_save_colorbar(minicircle_pixels: Filters, plotting_config: dic
     """Test plotting with colorbar"""
     fig, _ = plot_and_save(
         minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", title="Raw Height", **plotting_config
+    )
+    return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_plot_and_save_axes(minicircle_pixels: Filters, plotting_config: dict, tmpdir) -> None:
+    """Test plotting without axes"""
+    plotting_config["axes"] = False
+    fig, _ = plot_and_save(
+        minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", title="Raw Height", **plotting_config
+    )
+    return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_plot_and_save_no_axes_no_colorbar(minicircle_pixels: Filters, plotting_config: dict, tmpdir) -> None:
+    """Test plotting without axes"""
+    plotting_config["axes"] = False
+    plotting_config["colorbar"] = False
+    plotting_config["image_set"] = "all"
+    fig, _ = plot_and_save(
+        minicircle_pixels.images["pixels"], Path(tmpdir), "01-raw_heightmap.png", title="Raw Height", **plotting_config
     )
     return fig
 
@@ -69,4 +92,19 @@ def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting
          title="Raw Height",
          **plotting_config
     )
+    return fig
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_plot_and_save_format(minicircle_pixels: Filters, plotting_config: dict, tmpdir) -> None:
+    """Test plotting with colorbar"""
+    plotting_config["save_format"] = "tiff"
+    print(plotting_config)
+    fig, _ = plot_and_save(
+        minicircle_pixels.images["pixels"],
+        Path(tmpdir),
+        "01-raw_heightmap",
+        title="Raw Height",
+        **plotting_config
+    )
+    #assert Path.exists(Path(tmpdir) / "result.tiff")
     return fig
