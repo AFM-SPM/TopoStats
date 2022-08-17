@@ -121,14 +121,14 @@ class Filters:
     def extract_pixel_to_nm_scaling(self) -> float:
         """Extract the pixel to nanometer scaling from the image metadata."""
         unit_dict = {
-            'nm' : 1,
-            'um' : 1e3,
+            "nm": 1,
+            "um": 1e3,
         }
         px_to_real = self.images["extracted_channel"].pxs()
         # Has potential for non-square images but not yet implimented
         self.pixel_to_nm_scaling = (
-            px_to_real[0][0]*unit_dict[px_to_real[0][1]],
-            px_to_real[1][0]*unit_dict[px_to_real[1][1]],
+            px_to_real[0][0] * unit_dict[px_to_real[0][1]],
+            px_to_real[1][0] * unit_dict[px_to_real[1][1]],
         )[0]
         LOGGER.info(f"[{self.filename}] : Pixels to nm scaling : {self.pixel_to_nm_scaling}")
 
@@ -225,8 +225,8 @@ class Filters:
         gradient = {}
         gradient["x"] = self.calc_gradient(array=medians["rows"], shape=medians["rows"].shape[0])
         gradient["y"] = self.calc_gradient(medians["cols"], medians["cols"].shape[0])
-        LOGGER.info(f'[{self.filename}] X-gradient: {gradient["x"]}')
-        LOGGER.info(f'[{self.filename}] Y-gradient: {gradient["y"]}')
+        LOGGER.info(f'[{self.filename}] : X-gradient: {gradient["x"]}')
+        LOGGER.info(f'[{self.filename}] : Y-gradient: {gradient["y"]}')
 
         for i in range(image.shape[0]):
             for j in range(image.shape[1]):
