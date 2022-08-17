@@ -29,7 +29,7 @@ def plot_and_save(
     region_properties: dict = None,
     zrange: list = [None, None],
     colorbar: bool = True,
-    axes: bool = 'on',
+    axes: bool = True,
     save: bool = True,
     save_format: str = 'png'
 ):
