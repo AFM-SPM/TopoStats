@@ -61,8 +61,6 @@ class GrainStats:
         direction: str,
         base_output_dir: Union[str, Path],
         image_name: str = None,
-        zrange: list = [None, None],
-        image_set: str = "core",
         save_cropped_grains: bool = False,
         cropped_size: float = -1,
         plot_opts: dict = None,
@@ -81,10 +79,6 @@ class GrainStats:
             Path to the folder that will store the grain stats output images and data.
         image_name : str
             The name of the file being processed.
-        zrange : list
-            Low and high height values for the cropped grain zscale.
-        image_set : str
-            The 'core' or 'all' set of images to output.
         save_cropped_grains : bool
             Option wether to save the cropped grain images.
         cropped_size: float()
@@ -98,8 +92,6 @@ class GrainStats:
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
         self.image_name = image_name
-        self.zrange = zrange
-        self.image_set = image_set
         self.save_cropped_grains = save_cropped_grains
         self.cropped_size = cropped_size
         self.plot_opts = plot_opts
