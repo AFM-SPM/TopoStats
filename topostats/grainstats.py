@@ -986,7 +986,8 @@ class GrainStats:
         height = np.linalg.norm(np.cross(a_b, a_c)) / np.linalg.norm(a_b)
         return height
 
-    def get_max_min_ferets(self, edge_points: list, path: Path):
+    @staticmethod
+    def get_max_min_ferets(edge_points: list):
         """Returns the minimum and maximum feret diameters for a grain.
         TODO: Add more description
         """
