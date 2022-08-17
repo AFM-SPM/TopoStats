@@ -66,7 +66,7 @@ def test_cropped_image(minicircle_grainstats: GrainStats, tmpdir):
         "cropped_grain_7.png",
         pixel_to_nm_scaling_factor=minicircle_grainstats.pixel_to_nanometre_scaling,
         type="non-binary",
-        image_set=minicircle_grainstats.image_set,
+        image_set='all',
         core_set=True)
     return fig
 
