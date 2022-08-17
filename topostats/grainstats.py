@@ -275,7 +275,7 @@ class GrainStats:
             )
 
             # Calculate minimum and maximum feret diameters
-            min_feret, max_feret = self.get_max_min_ferets(edge_points = edges, path=output_grain)
+            min_feret, max_feret = self.get_max_min_ferets(edge_points = edges)
 
             # save_format = '.4f'
 
