@@ -32,38 +32,41 @@ def sample_config() -> Dict:
 @pytest.fixture
 def filter_config(sample_config) -> dict:
     """Configurations for filtering"""
-    filter_config = sample_config["filter"]
-    filter_config.pop("run")
-    return filter_config
+    config = sample_config["filter"]
+    config.pop("run")
+    return config
 
 
 @pytest.fixture
 def grains_config(sample_config) -> dict:
     """Configurations for grain finding."""
-    grains_config = sample_config["grains"]
-    grains_config.pop("run")
-    return grains_config
+    config = sample_config["grains"]
+    config.pop("run")
+    return config
 
 
 @pytest.fixture
 def grainstats_config(sample_config) -> dict:
     """Configurations for grainstats"""
-    grainstats_config = sample_config["grainstats"]
-    grainstats_config.pop("run")
-    return grainstats_config
+    config = sample_config["grainstats"]
+    config.pop("run")
+    return config
 
 
 @pytest.fixture
 def dnatracing_config(sample_config) -> dict:
     """Configurations for dnatracing"""
-    dnatracing_config = sample_config["dnatracing"]
-    dnatracing_config.pop("run")
-    return dnatracing_config
+    config = sample_config["dnatracing"]
+    config.pop("run")
+    return config
 
 @pytest.fixture
 def plotting_config(sample_config) -> dict:
     """Configurations for filtering"""
-    return sample_config["plotting"]
+    config = sample_config["plotting"]
+    config.pop("run")
+    config.pop("plot_dict")
+    return config
 
 @pytest.fixture
 def image_random() -> np.ndarray:
@@ -255,11 +258,11 @@ def minicircle_pixels(minicircle_channel) -> Filters:
     return minicircle_channel
 
 
-@pytest.fixture
-def plotting_config(sample_config: dict, minicircle_pixels: Filters) -> dict:
-    """Configuration for plotting"""
-#    sample_config["plotting"]["pixel_to_nm_scaling_factor"] = minicircle_pixels.pixel_to_nm_scaling
-    return sample_config["plotting"]
+# @pytest.fixture
+# def plotting_config(plotting_config: dict, minicircle_pixels: Filters) -> dict:
+#     """Configuration for plotting"""
+#     plotting_config["plotting"]["pixel_to_nm_scaling_factor"] = minicircle_pixels.pixel_to_nm_scaling
+#     return plotting_config["plotting"]
 
 
 @pytest.fixture
