@@ -71,9 +71,9 @@ class GrainStats:
         ----------
         data : np.ndarray
             2D Numpy array containing the flattened afm image. Data in this 2D array is floating point.
-        labelled_data: np.ndarray
+        labelled_data : np.ndarray
             2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.
-        pixel_to_nanometre_scaling: float
+        pixel_to_nanometre_scaling : float
             Floating point value that defines the scaling factor between nanometres and pixels.
         base_output_dir : Path
             Path to the folder that will store the grain stats output images and data.
@@ -81,8 +81,10 @@ class GrainStats:
             The name of the file being processed.
         save_cropped_grains : bool
             Option wether to save the cropped grain images.
-        cropped_size: float()
+        cropped_size : float
             Length of square side (in nm) to crop grains to.
+        plot_opts : dict
+            Plotting options dictionary for the cropped grains
         """
 
         self.data = data
