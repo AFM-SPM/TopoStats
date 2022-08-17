@@ -1,9 +1,6 @@
 """Tests of plotting functions."""
-from genericpath import exists
 import pytest
-import numpy as np
 from pathlib import Path
-import matplotlib.pyplot as plt
 
 from topostats.filters import Filters
 from topostats.grains import Grains
