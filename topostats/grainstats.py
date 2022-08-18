@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
 
-from topostats.plottingfuncs import plot_and_save
+from topostats.plottingfuncs import Images
 from topostats.logs.logs import LOGGER_NAME
 
 # pylint: disable=line-too-long
@@ -176,29 +176,14 @@ class GrainStats:
             if self.save_cropped_grains:
                 output_grain.mkdir(parents=True, exist_ok=True)
                 if self.cropped_size == -1:
-                    # Plot the cropped grain image
-                    plot_and_save(
-                        grain_image,
-                        output_grain,
-                        f"{self.image_name}_processed_grain_{index}.png",
-                        pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
-                        **self.plot_opts["grain_image"],
-                    )
-                    # Plot the cropped grain mask
-                    plot_and_save(
-                        grain_mask,
-                        output_grain,
-                        f"{self.image_name}_grainmask_{index}.png",
-                        pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
-                        **self.plot_opts["grain_mask"],
-                    )
-                    plot_and_save(
-                        masked_grain_image,
-                        output_grain,
-                        f"{self.image_name}_grain_image_{index}.png",
-                        pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
-                        **self.plot_opts["grain_mask_image"],
-                    )
+                    for name, image in {'grain_image': grain_image, 'grain_mask': grain_mask, 'grain_mask_image': masked_grain_image}.items():
+                        Images(
+                            data=image,
+                            output_dir=output_grain,
+                            filename=f"{self.image_name}_{name}_{index}",
+                            pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
+                            **self.plot_opts[name],
+                        ).plot_and_save()
                 else:
                     # Get cropped image and mask
                     grain_centre = int((minr + maxr) / 2), int((minc + maxc) / 2)
@@ -210,32 +195,17 @@ class GrainStats:
                     cropped_grain_mask = self.get_cropped_region(solo_mask, length, np.asarray(grain_centre)).astype(
                         bool
                     )
-                    cropped_masked_grain_image = np.ma.masked_array(
+                    cropped_grain_mask_image = np.ma.masked_array(
                         cropped_grain_image, mask=np.invert(cropped_grain_mask), fill_value=np.nan
                     ).filled()
-                    # Plot the cropped grain image
-                    plot_and_save(
-                        cropped_grain_image,
-                        output_grain,
-                        f"{self.image_name}_processed_grain_{index}.png",
-                        pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
-                        **self.plot_opts["grain_image"],
-                    )
-                    # Plot the cropped grain mask
-                    plot_and_save(
-                        cropped_grain_mask,
-                        output_grain,
-                        f"{self.image_name}_grainmask_{index}.png",
-                        pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
-                        **self.plot_opts["grain_mask"],
-                    )
-                    plot_and_save(
-                        cropped_masked_grain_image,
-                        output_grain,
-                        f"{self.image_name}_grain_image_{index}.png",
-                        pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
-                        **self.plot_opts["grain_mask_image"],
-                    )
+                    for name, image in {'grain_image': cropped_grain_image, 'grain_mask': cropped_grain_mask, 'grain_mask_image': cropped_grain_mask_image}.items():
+                        Images(
+                            data=image,
+                            output_dir=output_grain,
+                            filename=f"{self.image_name}_{name}_{index}",
+                            pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
+                            **self.plot_opts[name],
+                        ).plot_and_save()
 
             points = self.calculate_points(grain_mask)
             edges = self.calculate_edges(grain_mask)

@@ -15,7 +15,7 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, write_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
-from topostats.plottingfuncs import plot_and_save
+from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import (
     find_images,
@@ -445,7 +445,7 @@ def process_scan(
                     array = np.flipud(array.pixels)
                 PLOT_DICT[plot_name]["output_dir"] = filter_out_path
                 try:
-                    plot_and_save(array, **PLOT_DICT[plot_name])
+                    Images(data=array, **PLOT_DICT[plot_name]).plot_and_save()
                 except AttributeError:
                     LOGGER.info(f"[{filtered_image.filename}] Unable to generate plot : {plot_name}")
 
@@ -454,43 +454,43 @@ def process_scan(
             LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
             plot_name = "gaussian_filtered"
             PLOT_DICT[plot_name]["output_dir"] = filter_out_path
-            plot_and_save(grains.images["gaussian_filtered"], **PLOT_DICT[plot_name])
+            Images(grains.images["gaussian_filtered"], **PLOT_DICT[plot_name]).plot_and_save()
 
             plot_name = "z_threshed"
             PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir)
-            plot_and_save(
+            Images(
                 grains.images["gaussian_filtered"],
                 filename=filtered_image.filename + "_processed",
                 **PLOT_DICT[plot_name],
-            )
+            ).plot_and_save()
 
             for direction, image_arrays in grains.directions.items():
                 output_dir = Path(_output_dir) / filtered_image.filename / "grains" / f"{direction}"
                 for plot_name, array in image_arrays.items():
                     PLOT_DICT[plot_name]["output_dir"] = output_dir
-                    plot_and_save(array, **PLOT_DICT[plot_name])
+                    Images(array, **PLOT_DICT[plot_name]).plot_and_save()
                 # Make a plot of coloured regions with bounding boxes
                 PLOT_DICT["bounding_boxes"]["output_dir"] = output_dir
-                plot_and_save(
+                Images(
                     grains.directions[direction]["coloured_regions"],
                     **PLOT_DICT["bounding_boxes"],
                     region_properties=grains.region_properties[direction],
-                )
+                ).plot_and_save()
                 PLOT_DICT["coloured_boxes"]["output_dir"] = output_dir
-                plot_and_save(
+                Images(
                     grains.directions[direction]["labelled_regions_02"],
                     **PLOT_DICT["coloured_boxes"],
                     region_properties=grains.region_properties[direction],
-                )
+                ).plot_and_save()
 
             plot_name = "mask_overlay"
             PLOT_DICT[plot_name]["output_dir"] = Path(_output_dir)
-            plot_and_save(
+            Images(
                 grains.images["gaussian_filtered"],
                 filename=filtered_image.filename + "_processed_masked",
                 data2=grains.directions[mask_direction]["removed_small_objects"],
                 **PLOT_DICT[plot_name],
-            )
+            ).plot_and_save()
 
     return image_path, results
 
@@ -513,13 +513,13 @@ def main():
             PLOT_DICT[image].pop("zrange")
 
     LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
-    LOGGER.info(f'Scanning for images in              : {config["base_dir"]}')
-    LOGGER.info(f'Output directory                    : {str(config["output_dir"])}')
-    LOGGER.info(f'Looking for images with extension   : {config["file_ext"]}')
+    LOGGER.info(f"Scanning for images in              : {config['base_dir']}")
+    LOGGER.info(f"Output directory                    : {str(config['output_dir'])}")
+    LOGGER.info(f"Looking for images with extension   : {config['file_ext']}")
     img_files = find_images(config["base_dir"])
-    LOGGER.info(f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}')
-    LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold"]["method"]}')
-    LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold"]["method"]}')
+    LOGGER.info(f"Images with extension {config['file_ext']} in {config['base_dir']} : {len(img_files)}")
+    LOGGER.info(f"Thresholding method (Filtering)     : {config['filter']['threshold']['method']}")
+    LOGGER.info(f"Thresholding method (Grains)        : {config['grains']['threshold']['method']}")
 
     if config["quiet"]:
         LOGGER.setLevel("ERROR")
@@ -572,7 +572,7 @@ def main():
         results = defaultdict()
         with tqdm(
             total=len(img_files),
-            desc=f'Processing images from {config["base_dir"]}, results are under {config["output_dir"]}',
+            desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
             for img, result in pool.imap_unordered(processing_function, img_files):
                 results[str(img)] = result
