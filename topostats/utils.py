@@ -97,7 +97,7 @@ def get_out_path(
     """
     pathparts = list(image_path.parts)
     inparts = list(base_dir.parts)
-    return output_dir / Path(*pathparts[len(inparts) :])
+    return Path(output_dir / Path(*pathparts[len(inparts) :]))
 
 
 def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:

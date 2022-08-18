@@ -251,7 +251,7 @@ class Grains:
             image=self.image,
             threshold_method=self.threshold_method,
             otsu_threshold_multiplier=self.otsu_threshold_multiplier,
-            deviation_from_mean=self.threshold_std_dev,
+            threshold_std_dev=self.threshold_std_dev,
             absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
         )
         try:

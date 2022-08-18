@@ -49,20 +49,19 @@ def test_image_set(minicircle_grainstats: GrainStats, tmpdir, value, expected):
     minicircle_grainstats.image_set = value
     minicircle_grainstats.base_output_dir = Path(tmpdir) / "grains"
     minicircle_grainstats.calculate_stats()
-    assert Path.exists(Path(tmpdir) / "grains/minicircle" / "None_processed_grain_0.png") == True
-    assert Path.exists(Path(tmpdir) / "grains/minicircle" / "None_grain_image_0.png") == expected
-    assert Path.exists(Path(tmpdir) / "grains/minicircle" / "None_grainmask_0.png") == expected
+    assert Path.exists(Path(tmpdir) / "grains/upper/" / "None_processed_grain_0.png") == True
+    assert Path.exists(Path(tmpdir) / "grains/upper/" / "None_grain_image_0.png") == expected
+    assert Path.exists(Path(tmpdir) / "grains/upper/" / "None_grainmask_0.png") == expected
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_cropped_image(minicircle_grainstats: GrainStats, tmpdir):
     "Tests that produced cropped images have not changed."
-    grain_centre = 547, 794 # centre of grain 7
-    length = int(minicircle_grainstats.cropped_size/(2*minicircle_grainstats.pixel_to_nanometre_scaling))
+    grain_centre = 547, 794  # centre of grain 7
+    length = int(minicircle_grainstats.cropped_size / (2 * minicircle_grainstats.pixel_to_nanometre_scaling))
     cropped_grain_image = minicircle_grainstats.get_cropped_region(
-        minicircle_grainstats.data, 
-        length, 
-        np.asarray(grain_centre))
+        minicircle_grainstats.data, length, np.asarray(grain_centre)
+    )
     assert cropped_grain_image.shape == (81, 81)
     fig, _ = plot_and_save(
         cropped_grain_image,
@@ -71,5 +70,6 @@ def test_cropped_image(minicircle_grainstats: GrainStats, tmpdir):
         pixel_to_nm_scaling_factor=minicircle_grainstats.pixel_to_nanometre_scaling,
         type="non-binary",
         image_set=minicircle_grainstats.image_set,
-        core_set=True)
+        core_set=True,
+    )
     return fig

@@ -145,9 +145,9 @@ def test_filters(filter_config: dict, sample_config: dict, tmpdir) -> Filters:
 
 
 @pytest.fixture
-def test_filters_random(sample_config: dict, tmpdir, image_random: np.array) -> Filters:
+def test_filters_random(filter_config: dict, tmpdir, image_random: np.array) -> Filters:
     """Filters class for testing with pixels replaced by random image."""
-    filters = Filters(RESOURCES / "minicircle.spm", amplify_level=sample_config["amplify_level"], output_dir=tmpdir)
+    filters = Filters(RESOURCES / "minicircle.spm", amplify_level=filter_config["amplify_level"], output_dir=tmpdir)
     filters.load_scan()
     filters.extract_channel()
     filters.extract_pixels()
@@ -156,9 +156,9 @@ def test_filters_random(sample_config: dict, tmpdir, image_random: np.array) -> 
 
 
 @pytest.fixture
-def test_filters_random_with_mask(sample_config: dict, tmpdir, image_random: np.array) -> Filters:
+def test_filters_random_with_mask(filter_config: dict, tmpdir, image_random: np.array) -> Filters:
     """Filters class for testing with pixels replaced by random image."""
-    filters = Filters(RESOURCES / "minicircle.spm", amplify_level=sample_config["amplify_level"], output_dir=tmpdir)
+    filters = Filters(RESOURCES / "minicircle.spm", amplify_level=filter_config["amplify_level"], output_dir=tmpdir)
     filters.load_scan()
     filters.extract_channel()
     filters.extract_pixels()
@@ -166,8 +166,8 @@ def test_filters_random_with_mask(sample_config: dict, tmpdir, image_random: np.
     # filters.get_threshold(filters.images["pixels"])
     thresholds = get_thresholds(
         image=filters.images["pixels"],
-        threshold_method=sample_config["filter"]["threshold"]["method"],
-        otsu_threshold_multiplier=sample_config["filter"]["threshold"]["otsu_multiplier"],
+        threshold_method=filter_config["threshold_method"],
+        otsu_threshold_multiplier=filter_config["otsu_threshold_multiplier"],
     )
     # filters.get_mask(filters.images["pixels"])
     filters.images["mask"] = get_mask(image=filters.images["pixels"], thresholds=thresholds)
@@ -302,7 +302,7 @@ def minicircle_threshold_stddev(minicircle_initial_tilt_removal: np.array) -> Fi
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        deviation_from_mean=1.0,
+        threshold_std_dev=1.0,
     )
     return minicircle_initial_tilt_removal
 
@@ -399,6 +399,7 @@ def minicircle_grain_threshold_otsu(minicircle_grains: np.array, grains_config: 
 @pytest.fixture
 def minicircle_grain_threshold_stddev(minicircle_grains: np.array, grains_config: dict) -> Grains:
     """Calculate threshold."""
+    grains_config["threshold_method"] = "std_dev"
     minicircle_grains.thresholds = get_thresholds(
         image=minicircle_grains.image,
         **grains_config,
@@ -527,7 +528,6 @@ def grainstats(image_random: np.array, minicircle_filename: str, grainstats_conf
         image_random,
         image_random,
         pixel_to_nanometre_scaling=0.5,
-        direction=minicircle_filename,
         base_output_dir=tmpdir,
         **grainstats_config,
     )
@@ -550,9 +550,7 @@ def minicircle_grainstats(
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         labelled_data=minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"],
         pixel_to_nanometre_scaling=minicircle_pixels.pixel_to_nm_scaling,
-        direction=minicircle_filename.filename,
         base_output_dir=tmpdir,
-        save_cropped_grains=True,
         image_set=plotting_config["image_set"],
         **grainstats_config,
     )

@@ -161,7 +161,7 @@ def test_remove_x_y_tilt_masked(minicircle_masked_tilt_removal: Filters, plottin
         data=minicircle_masked_tilt_removal.images["masked_tilt_removal"],
         output_dir=tmpdir,
         filename="06-secondary_tilt_removal_masked.png",
-        pixel_to_nm_scaling_factor=minicircle_tilt_removal.pixel_to_nm_scaling,
+        pixel_to_nm_scaling_factor=minicircle_masked_tilt_removal.pixel_to_nm_scaling,
         title="Secondary Tilt Removal (Masked)",
         **plotting_config,
     )

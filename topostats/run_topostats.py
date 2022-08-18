@@ -335,7 +335,7 @@ def process_scan(
                     data2=grains.directions[direction]["removed_small_objects"],
                     **plotting_config["plot_dict"][plot_name],
                 )
-
+    print(f"!!!!!!!RESULTS!!!!!!!\n{results}")
     return image_path, results
 
 
