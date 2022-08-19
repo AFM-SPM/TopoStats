@@ -290,8 +290,6 @@ def minicircle_threshold_otsu(minicircle_initial_tilt_removal: np.array, filter_
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         **filter_config
-        # threshold_method=sample_config["filter"]["threshold_method"],
-        # otsu_threshold_multiplier=sample_config["filter"]["otsu_threshold_multiplier"],
     )
     return minicircle_initial_tilt_removal
 
