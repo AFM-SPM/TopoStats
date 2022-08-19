@@ -1,5 +1,4 @@
 """Tests of plotting functions."""
-from types import NoneType
 import pytest
 from pathlib import Path
 import numpy as np
@@ -33,8 +32,8 @@ def test_save_figure(
         region_properties=region_properties,
     ).save_figure()
     assert Path(tmp_path / "result.png").exists()
-    assert not isinstance(fig, type(None))
-    assert not  isinstance(ax, type(None))
+    assert fig is not None
+    assert ax is not None
 
 
 def test_save_array_figure(tmp_path: Path):
