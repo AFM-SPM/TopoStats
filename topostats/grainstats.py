@@ -168,8 +168,6 @@ class GrainStats:
             LOGGER.info(f"[{self.image_name}] : Processing grain: {index}")
             # Create directory for each grain's plots
             output_grain = self.base_output_dir / self.direction
-            # Path.mkdir(output_grain, parents=True, exist_ok=True)
-            # output_grain.mkdir(parents=True, exist_ok=True)
 
             # Obtain cropped grain mask and image
             minr, minc, maxr, maxc = region.bbox
@@ -299,6 +297,7 @@ class GrainStats:
                 * smallest_bounding_width
                 * self.pixel_to_nanometre_scaling**2,
                 "aspect_ratio": aspect_ratio,
+                "threshold": self.direction,
             }
 
             stats_array.append(stats)

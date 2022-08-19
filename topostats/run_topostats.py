@@ -211,27 +211,26 @@ def process_scan(
             # Grain Statistics :
             try:
                 LOGGER.info(f"[{filtered_image.filename}] : *** Grain Statistics ***")
-                grainstats = {
-                    direction: GrainStats(
+                grainstats = {}
+                for direction in grains.directions.keys():
+                    grainstats[direction] = GrainStats(
                         data=grains.images["gaussian_filtered"],
                         labelled_data=grains.directions[direction]["labelled_regions_02"],
                         pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+                        direction=direction,
                         base_output_dir=_output_dir / "grains",
                         image_name=filtered_image.filename,
                         image_set=plotting_config["image_set"],
                         **grainstats_config,
                     ).calculate_stats()
-                    for direction in grains.directions
-                }
-                # If there are both upper and lower grainstats, then join them, else otherwise we always have upper
-                if "lower" in grainstats.keys():
-                    grainstats["lower"]["statistics"]["threshold"] = "lower"
-                    grainstats["upper"]["statistics"]["threshold"] = "upper"
+                    grainstats[direction]["statistics"]["threshold"] = direction
+                # Set tracing_stats_df in light of direction
+                if grains_config["direction"] == "both":
                     grainstats_df = pd.concat([grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]])
-                else:
+                elif grains_config["direction"] == "upper":
                     grainstats_df = grainstats["upper"]["statistics"]
-                    # grainstats_df.to_csv(_output_dir / f"{filtered_image.filename}_grainstats.csv")
-
+                elif grains_config["direction"] == "lower":
+                    grainstats_df = grainstats["lower"]["statistics"]
                 # Run dnatracing
                 if dnatracing_config["run"]:
                     dnatracing_config.pop("run")
@@ -249,12 +248,13 @@ def process_scan(
                         dna_traces[direction].trace_dna()
                         tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
                         tracing_stats[direction].df["threshold"] = direction
-                        # tracing_stats[direction].save_trace_stats(_output_dir / filtered_image.filename / direction)
-
-                    if "lower" in grainstats.keys():
+                    # Set tracing_stats_df in light of direction
+                    if grains_config["direction"] == "both":
                         tracing_stats_df = pd.concat([tracing_stats["lower"].df, tracing_stats["upper"].df])
-                    else:
+                    elif grains_config["direction"] == "upper":
                         tracing_stats_df = tracing_stats["upper"].df
+                    elif grains_config["direction"] == "lower":
+                        tracing_stats_df = tracing_stats["lower"].df
                     LOGGER.info(
                         f"[{filtered_image.filename}] : Combining {direction} grain statistics and dnatracing statistics"
                     )
@@ -327,15 +327,14 @@ def process_scan(
                     region_properties=grains.region_properties[direction],
                 )
 
-            plot_name = "mask_overlay"
-            direction = grainstats_config["direction"]
-            plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
-            plot_and_save(
-                grains.images["gaussian_filtered"],
-                filename=filtered_image.filename + "_processed_masked",
-                data2=grains.directions[direction]["removed_small_objects"],
-                **plotting_config["plot_dict"][plot_name],
-            )
+                plot_name = "mask_overlay"
+                plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
+                plot_and_save(
+                    grains.images["gaussian_filtered"],
+                    filename=filtered_image.filename + "_processed_masked",
+                    data2=grains.directions[direction]["removed_small_objects"],
+                    **plotting_config["plot_dict"][plot_name],
+                )
     return image_path, results
 
 
