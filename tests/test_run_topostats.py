@@ -34,4 +34,7 @@ def test_process_scan(
         plotting_config=config["plotting"],
         output_dir=tmpdir,
     )
+    # Remove the Basename column as this differs on CI
+    results.drop(["Basename"], axis=1, inplace=True)
+    print(f"Back in test_run_topostats we have returned : \n{results}")
     print(results.to_string(), file=regtest)
