@@ -8,6 +8,9 @@ from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.plottingfuncs import Images
 
+def test_save_figure():
+    """Tests """
+
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_no_colorbar(minicircle_pixels: Filters, plotting_config: dict, tmp_path) -> None:
@@ -63,6 +66,7 @@ def test_plot_and_save_no_axes_no_colorbar(minicircle_pixels: Filters, plotting_
     ).plot_and_save()
     img = io.imread(tmp_path/"01-raw_heightmap.png")
     assert np.sum(img) == 448788105
+    assert img.shape == (1024,1024)
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
