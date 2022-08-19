@@ -48,7 +48,7 @@ def test_save_array_figure(tmp_path: Path):
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_no_colorbar(minicircle_pixels: Filters, plotting_config: dict, tmp_path) -> None:
+def test_plot_and_save_no_colorbar(minicircle_pixels: Filters, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without colorbar"""
     plotting_config["colorbar"] = False
     fig, _ = Images(
@@ -62,7 +62,7 @@ def test_plot_and_save_no_colorbar(minicircle_pixels: Filters, plotting_config: 
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_colorbar(minicircle_pixels: Filters, plotting_config: dict, tmp_path) -> None:
+def test_plot_and_save_colorbar(minicircle_pixels: Filters, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting with colorbar"""
     fig, _ = Images(
         data=minicircle_pixels.images["pixels"],
@@ -75,7 +75,7 @@ def test_plot_and_save_colorbar(minicircle_pixels: Filters, plotting_config: dic
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_axes(minicircle_pixels: Filters, plotting_config: dict, tmp_path) -> None:
+def test_plot_and_save_axes(minicircle_pixels: Filters, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes"""
     plotting_config["axes"] = False
     fig, _ = Images(
@@ -88,7 +88,7 @@ def test_plot_and_save_axes(minicircle_pixels: Filters, plotting_config: dict, t
     return fig
 
 
-def test_plot_and_save_no_axes_no_colorbar(minicircle_pixels: Filters, plotting_config: dict, tmp_path) -> None:
+def test_plot_and_save_no_axes_no_colorbar(minicircle_pixels: Filters, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes and without the colourbar."""
     plotting_config["axes"] = False
     plotting_config["colorbar"] = False
@@ -105,7 +105,11 @@ def test_plot_and_save_no_axes_no_colorbar(minicircle_pixels: Filters, plotting_
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_colorbar_afmhot(minicircle_pixels: Filters, plotting_config: dict, tmp_path) -> None:
+def test_plot_and_save_colorbar_afmhot(
+    minicircle_pixels: Filters,
+    plotting_config: dict,
+    tmp_path: Path
+    ) -> None:
     """Test plotting with colorbar"""
     plotting_config["cmap"] = "afmhot"
     fig, _ = Images(
@@ -123,7 +127,7 @@ def test_plot_and_save_bounding_box(
     minicircle_grain_coloured: Grains,
     minicircle_grain_region_properties_post_removal: Grains,
     plotting_config: dict,
-    tmp_path,
+    tmp_path: Path,
 ) -> None:
     """Test plotting bounding boxes"""
     plotting_config["type"] = "binary"
@@ -139,7 +143,7 @@ def test_plot_and_save_bounding_box(
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmp_path) -> None:
+def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmp_path: Path) -> None:
     """Tests plotting of the zrange scaled image"""
     plotting_config["zrange"] = [-10, 10]
     plotting_config["core_set"] = True

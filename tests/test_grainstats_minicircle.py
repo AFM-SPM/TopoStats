@@ -25,7 +25,7 @@ def test_grainstats(minicircle_grainstats: GrainStats, minicircle_grainstats_202
 (True),
 (False),
 ])
-def test_save_cropped_grains(minicircle_grainstats: GrainStats, tmp_path, value):
+def test_save_cropped_grains(minicircle_grainstats: GrainStats, tmp_path: Path, value):
     """Tests if save_cropped_grains option only creates the grains dir when True"""
     minicircle_grainstats.save_cropped_grains = value
     minicircle_grainstats.base_output_dir = tmp_path / "grains"
@@ -36,7 +36,7 @@ def test_save_cropped_grains(minicircle_grainstats: GrainStats, tmp_path, value)
 ("core", False),
 ("all", True),
 ])
-def test_image_set(minicircle_grainstats: GrainStats, tmp_path, value, expected):
+def test_image_set(minicircle_grainstats: GrainStats, tmp_path: Path, value, expected):
     """Tests for the correct outputs when image_set is varied"""
     minicircle_grainstats.save_cropped_grains = True
     minicircle_grainstats.plot_opts['grain_image']['image_set'] = value
@@ -50,7 +50,7 @@ def test_image_set(minicircle_grainstats: GrainStats, tmp_path, value, expected)
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_cropped_image(minicircle_grainstats: GrainStats, plotting_config: dict, tmp_path):
+def test_cropped_image(minicircle_grainstats: GrainStats, plotting_config: dict, tmp_path: Path):
     """Tests that produced cropped images have not changed."""
     grain_centre = 547, 794 # centre of grain 7
     length = int(minicircle_grainstats.cropped_size/(2*minicircle_grainstats.pixel_to_nanometre_scaling))
@@ -66,7 +66,7 @@ def test_cropped_image(minicircle_grainstats: GrainStats, plotting_config: dict,
         **plotting_config).plot_and_save()
     return fig
 
-def test_save_format(minicircle_grainstats: GrainStats, tmp_path):
+def test_save_format(minicircle_grainstats: GrainStats, tmp_path: Path):
     "Tests if save format applied to cropped images"
     minicircle_grainstats.save_cropped_grains = True
     minicircle_grainstats.plot_opts['grain_image']['save_format'] = "tiff"

@@ -11,13 +11,13 @@ from topostats.utils import convert_path, find_images, get_out_path, update_conf
 THRESHOLD_OPTIONS = {"otsu_threshold_multiplier": 1.7, "deviation_from_mean": 1, "absolute": (-1.5, 1.5)}
 
 
-def test_convert_path(tmpdir) -> None:
+def test_convert_path(tmp_path: Path) -> None:
     """Test path conversion."""
-    test_dir = str(tmpdir)
+    test_dir = str(tmp_path)
     converted_path = convert_path(test_dir)
 
     assert isinstance(converted_path, Path)
-    assert tmpdir == converted_path
+    assert tmp_path == converted_path
 
 
 def test_find_images() -> None:
@@ -88,11 +88,11 @@ def test_get_thresholds_value_error(image_random: np.ndarray) -> None:
         get_thresholds(image=image_random, threshold_method="mean", **THRESHOLD_OPTIONS)
 
 
-def test_folder_grainstats(tmpdir, minicircle_dnatracing: pd.DataFrame) -> None:
+def test_folder_grainstats(tmp_path: Path, minicircle_dnatracing: pd.DataFrame) -> None:
     """Test a folder-wide grainstats file is made"""
-    input_path = Path(tmpdir) / 'minicircle'
+    input_path = Path(tmp_path) / 'minicircle'
     minicircle_dnatracing['Basename'] = input_path / "subfolder"
-    true_out_path = Path(tmpdir) / 'subfolder' / 'Processed'
+    true_out_path = Path(tmp_path) / 'subfolder' / 'Processed'
     Path.mkdir(true_out_path, parents=True)
-    folder_grainstats(Path(tmpdir), input_path, minicircle_dnatracing)
+    folder_grainstats(Path(tmp_path), input_path, minicircle_dnatracing)
     assert Path(true_out_path / 'folder_grainstats.csv').exists()

@@ -29,10 +29,10 @@ def test_extract_filename(test_filters: Filters) -> None:
     assert test_filters.filename == "minicircle"
 
 
-def test_make_output_directory(test_filters: Filters, tmpdir: Path) -> None:
+def test_make_output_directory(test_filters: Filters, tmp_path: Path) -> None:
     """Test creation of output directory"""
     test_filters.make_output_directory()
-    assert tmpdir.exists()
+    assert tmp_path.exists()
 
 
 def test_load_image_that_does_not_exist(caplog) -> None:
