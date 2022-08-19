@@ -17,12 +17,8 @@ def test_process_scan(
     dnatracing_config: dict,
     plotting_config: dict,
 ) -> None:
-    """Regression test the process_scan function correctly"""
-    config = read_yaml(RESOURCES / "sample_config.yaml")
-    # Tweak configuration
-    config["filter"]["threshold_method"] = "std_dev"
-    config["grains"]["threshold_method"] = "std_dev"
-    config["grains"]["otsu_threshold_multiplier"] = 1.0
+    """Regression test for checking the process_scan functions correctly"""
+    config = read_yaml(RESOURCES / "process_scan_config.yaml")
 
     _, results = process_scan(
         image_path=RESOURCES / "minicircle.spm",

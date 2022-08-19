@@ -327,15 +327,15 @@ def process_scan(
                     region_properties=grains.region_properties[direction],
                 )
 
-                plot_name = "mask_overlay"
-                plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
-                plot_and_save(
-                    grains.images["gaussian_filtered"],
-                    filename=filtered_image.filename + "_processed_masked",
-                    data2=grains.directions[direction]["removed_small_objects"],
-                    **plotting_config["plot_dict"][plot_name],
-                )
-    print(f"!!!!!!!RESULTS!!!!!!!\n{results}")
+            plot_name = "mask_overlay"
+            direction = grainstats_config["direction"]
+            plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
+            plot_and_save(
+                grains.images["gaussian_filtered"],
+                filename=filtered_image.filename + "_processed_masked",
+                data2=grains.directions[direction]["removed_small_objects"],
+                **plotting_config["plot_dict"][plot_name],
+            )
     return image_path, results
 
 

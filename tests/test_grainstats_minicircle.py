@@ -49,9 +49,9 @@ def test_image_set(minicircle_grainstats: GrainStats, tmpdir, value, expected):
     minicircle_grainstats.image_set = value
     minicircle_grainstats.base_output_dir = Path(tmpdir) / "grains"
     minicircle_grainstats.calculate_stats()
-    assert Path.exists(Path(tmpdir) / "grains/upper/" / "None_processed_grain_0.png") == True
-    assert Path.exists(Path(tmpdir) / "grains/upper/" / "None_grain_image_0.png") == expected
-    assert Path.exists(Path(tmpdir) / "grains/upper/" / "None_grainmask_0.png") == expected
+    assert Path.exists(Path(tmpdir) / "grains/upper/None_processed_grain_0.png") == True
+    assert Path.exists(Path(tmpdir) / "grains/upper/None_grain_image_0.png") == expected
+    assert Path.exists(Path(tmpdir) / "grains/upper/None_grainmask_0.png") == expected
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")

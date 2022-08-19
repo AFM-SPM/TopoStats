@@ -30,7 +30,13 @@ def sample_config() -> Dict:
     return read_yaml(RESOURCES / "sample_config.yaml")
 
 @pytest.fixture
-def filter_config(sample_config) -> dict:
+def plot_dict() -> Dict:
+    """Extract the plot_dict dictionary"""
+    config = read_yaml(RESOURCES / "sample_config.yaml")
+    return config["plotting"]["plot_dict"]
+
+@pytest.fixture
+def filter_config(sample_config: Dict) -> Dict:
     """Configurations for filtering"""
     config = sample_config["filter"]
     config.pop("run")
@@ -38,7 +44,7 @@ def filter_config(sample_config) -> dict:
 
 
 @pytest.fixture
-def grains_config(sample_config) -> dict:
+def grains_config(sample_config: Dict) -> Dict:
     """Configurations for grain finding."""
     config = sample_config["grains"]
     config.pop("run")
@@ -46,7 +52,7 @@ def grains_config(sample_config) -> dict:
 
 
 @pytest.fixture
-def grainstats_config(sample_config) -> dict:
+def grainstats_config(sample_config: Dict) -> Dict:
     """Configurations for grainstats"""
     config = sample_config["grainstats"]
     config.pop("run")
@@ -54,19 +60,21 @@ def grainstats_config(sample_config) -> dict:
 
 
 @pytest.fixture
-def dnatracing_config(sample_config) -> dict:
+def dnatracing_config(sample_config: Dict) -> Dict:
     """Configurations for dnatracing"""
     config = sample_config["dnatracing"]
     config.pop("run")
     return config
 
+
 @pytest.fixture
-def plotting_config(sample_config) -> dict:
+def plotting_config(sample_config: Dict) -> Dict:
     """Configurations for filtering"""
     config = sample_config["plotting"]
     config.pop("run")
     config.pop("plot_dict")
     return config
+
 
 @pytest.fixture
 def image_random() -> np.ndarray:
@@ -256,13 +264,6 @@ def minicircle_pixels(minicircle_channel) -> Filters:
     minicircle_channel.extract_pixels()
     minicircle_channel.extract_pixel_to_nm_scaling()
     return minicircle_channel
-
-
-# @pytest.fixture
-# def plotting_config(plotting_config: dict, minicircle_pixels: Filters) -> dict:
-#     """Configuration for plotting"""
-#     plotting_config["plotting"]["pixel_to_nm_scaling_factor"] = minicircle_pixels.pixel_to_nm_scaling
-#     return plotting_config["plotting"]
 
 
 @pytest.fixture
