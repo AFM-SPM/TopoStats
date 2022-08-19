@@ -113,7 +113,16 @@ class Images:
         return fig, ax
 
     def save_figure(self) -> None:
-        """This function saves figures as plt.savefig objects"""
+        """
+        This function saves figures as plt.savefig objects
+        
+        Returns
+        -------
+        fig: plt.figure.Figure
+            Matplotlib.pyplot figure object
+        ax: plt.axes._subplots.AxesSubplot
+            Matplotlib.pyplot axes object
+        """
         fig, ax = plt.subplots(1, 1, figsize=(8, 8))
         shape = self.data.shape
         if isinstance(self.data, np.ndarray):
