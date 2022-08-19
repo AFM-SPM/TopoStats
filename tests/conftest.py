@@ -547,14 +547,6 @@ def minicircle_grainstats(
     )
 
 
-# Target statistics
-#
-# These are date specific as we expect statistics to change as the underlying methods used to calculate them
-# are tweaked.
-@pytest.fixture
-def minicircle_grainstats_20220526() -> pd.DataFrame:
-    """Statistics for minicircle for comparison."""
-    return pd.read_csv(RESOURCES / "minicircle_grainstats_20220526.csv", index_col=0)
 
 
 # Derive fixtures for DNA Tracing
@@ -592,9 +584,3 @@ def minicircle_dnatracing(minicircle_grain_coloured, minicircle_zero_average_bac
     dna_traces.trace_dna()
     tracing_stats = traceStats(trace_object=dna_traces, image_path="tmp")
     return tracing_stats.df
-
-
-@pytest.fixture
-def minicircle_dnastats() -> pd.DataFrame:
-    """DNA Statistics for minicircle for comparison."""
-    return pd.read_csv(RESOURCES / "dna_tracing.csv", index_col=0)

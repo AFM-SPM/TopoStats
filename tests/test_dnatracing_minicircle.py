@@ -1,6 +1,7 @@
 """Tests the dnatracing module"""
-import pandas as pd
+from topostats.tracing.dnatracing import dnaTrace
 
 
-def test_dnatracing_minicircle(minicircle_dnatracing: pd.DataFrame, minicircle_dnastats: pd.DataFrame) -> None:
-    pd.testing.assert_frame_equal(minicircle_dnatracing, minicircle_dnastats)
+def test_dnatracing_regression(regtest, minicircle_dnatracing: dnaTrace) -> None:
+    """Regression test for dnatracing."""
+    print(minicircle_dnatracing.to_string(), file=regtest)
