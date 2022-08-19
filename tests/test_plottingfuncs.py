@@ -1,4 +1,5 @@
 """Tests of plotting functions."""
+from types import NoneType
 import pytest
 from pathlib import Path
 import numpy as np
@@ -8,8 +9,42 @@ from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.plottingfuncs import Images
 
-def test_save_figure():
-    """Tests """
+@pytest.mark.parametrize("data2, axes_colorbar, region_properties", [
+(np.random.rand(10,10), True, None),
+(None, True, None),
+(None, False, True)
+])
+def test_save_figure(
+    data2: np.ndarray,
+    axes_colorbar: bool,
+    region_properties: bool,
+    minicircle_grain_region_properties_post_removal: Grains,
+    tmp_path: Path):
+    """Tests that an image is saved and a figure returned"""
+    if region_properties:
+        region_properties=minicircle_grain_region_properties_post_removal
+    fig, ax = Images(
+        data=np.random.rand(10,10),
+        output_dir=tmp_path,
+        filename="result.png",
+        data2=data2,
+        colorbar=axes_colorbar,
+        axes=axes_colorbar,
+        region_properties=region_properties,
+    ).save_figure()
+    assert Path(tmp_path / "result.png").exists()
+    assert not isinstance(fig, type(None))
+    assert not  isinstance(ax, type(None))
+
+
+def test_save_array_figure(tmp_path: Path):
+    """Tests that the image array is saved"""
+    Images(
+        data=np.random.rand(10,10),
+        output_dir=tmp_path,
+        filename="result.png",
+    ).save_array_figure()
+    assert Path(tmp_path / "result.png").exists()
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
@@ -66,7 +101,7 @@ def test_plot_and_save_no_axes_no_colorbar(minicircle_pixels: Filters, plotting_
     ).plot_and_save()
     img = io.imread(tmp_path/"01-raw_heightmap.png")
     assert np.sum(img) == 448788105
-    assert img.shape == (1024,1024)
+    assert img.shape == (1024,1024,4)
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
