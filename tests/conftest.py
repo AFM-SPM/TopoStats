@@ -107,22 +107,22 @@ def image_random_col_medians_masked() -> np.array:
 
 
 @pytest.fixture
-def test_filters(filter_config: dict, sample_config: dict, tmpdir) -> Filters:
+def test_filters(filter_config: dict, sample_config: dict, tmp_path) -> Filters:
     """Filters class for testing."""
     filters = Filters(
         RESOURCES / "minicircle.spm",
         amplify_level=sample_config["amplify_level"],
         threshold_method=filter_config["threshold"]["method"],
-        output_dir=tmpdir,
+        output_dir=tmp_path,
     )
     filters.load_scan()
     return filters
 
 
 @pytest.fixture
-def test_filters_random(sample_config: dict, tmpdir, image_random: np.array) -> Filters:
+def test_filters_random(sample_config: dict, tmp_path, image_random: np.array) -> Filters:
     """Filters class for testing with pixels replaced by random image."""
-    filters = Filters(RESOURCES / "minicircle.spm", amplify_level=sample_config["amplify_level"], output_dir=tmpdir)
+    filters = Filters(RESOURCES / "minicircle.spm", amplify_level=sample_config["amplify_level"], output_dir=tmp_path)
     filters.load_scan()
     filters.extract_channel()
     filters.extract_pixels()
@@ -131,9 +131,9 @@ def test_filters_random(sample_config: dict, tmpdir, image_random: np.array) -> 
 
 
 @pytest.fixture
-def test_filters_random_with_mask(sample_config: dict, tmpdir, image_random: np.array) -> Filters:
+def test_filters_random_with_mask(sample_config: dict, tmp_path, image_random: np.array) -> Filters:
     """Filters class for testing with pixels replaced by random image."""
-    filters = Filters(RESOURCES / "minicircle.spm", amplify_level=sample_config["amplify_level"], output_dir=tmpdir)
+    filters = Filters(RESOURCES / "minicircle.spm", amplify_level=sample_config["amplify_level"], output_dir=tmp_path)
     filters.load_scan()
     filters.extract_channel()
     filters.extract_pixels()
@@ -172,7 +172,7 @@ def random_filters(test_filters_random_with_mask: Filters) -> Filters:
 
 
 @pytest.fixture
-def random_grains(grain_config: dict, random_filters: Filters, tmpdir) -> Grains:
+def random_grains(grain_config: dict, random_filters: Filters, tmp_path) -> Grains:
     """Grains object based on random image which has no grains."""
     grains = Grains(
         image=random_filters.images["zero_averaged_background"],
@@ -183,7 +183,7 @@ def random_grains(grain_config: dict, random_filters: Filters, tmpdir) -> Grains
         threshold_method=grain_config["threshold"]["method"],
         otsu_threshold_multiplier=grain_config["threshold"]["otsu_multiplier"],
         background=grain_config["background"],
-        base_output_dir=Path(tmpdir),
+        base_output_dir=Path(tmp_path),
     )
     grains.find_grains()
     return grains
@@ -191,13 +191,13 @@ def random_grains(grain_config: dict, random_filters: Filters, tmpdir) -> Grains
 
 ## Minicircle fixtures
 @pytest.fixture
-def minicircle(sample_config: dict, tmpdir) -> Filters:
+def minicircle(sample_config: dict, tmp_path) -> Filters:
     """Instantiate a Filters object, creates the output directory and loads the image."""
     filters = Filters(
         img_path=RESOURCES / "minicircle.spm",
         channel=sample_config["channel"],
         amplify_level=sample_config["amplify_level"],
-        output_dir=tmpdir,
+        output_dir=tmp_path,
     )
     return filters
 
@@ -338,7 +338,7 @@ def minicircle_zero_average_background(minicircle_masked_tilt_removal: np.array)
 
 ## Derive fixtures for grain finding
 @pytest.fixture
-def small_array_grains(small_array: np.ndarray, grain_config: dict, tmpdir) -> Grains:
+def small_array_grains(small_array: np.ndarray, grain_config: dict, tmp_path) -> Grains:
     """Grains object based on small_array."""
     grains = Grains(
         image=small_array,
@@ -349,13 +349,13 @@ def small_array_grains(small_array: np.ndarray, grain_config: dict, tmpdir) -> G
         threshold_method=grain_config["threshold"]["method"],
         otsu_threshold_multiplier=grain_config["threshold"]["otsu_multiplier"],
         background=grain_config["background"],
-        base_output_dir=Path(tmpdir),
+        base_output_dir=Path(tmp_path),
     )
     return grains
 
 
 @pytest.fixture
-def minicircle_grains(minicircle_zero_average_background: Filters, grain_config: dict, tmpdir) -> Grains:
+def minicircle_grains(minicircle_zero_average_background: Filters, grain_config: dict, tmp_path) -> Grains:
     """Grains object based on filtered minicircle."""
     grains = Grains(
         image=minicircle_zero_average_background.images["zero_averaged_background"],
@@ -366,7 +366,7 @@ def minicircle_grains(minicircle_zero_average_background: Filters, grain_config:
         threshold_method=grain_config["threshold"]["method"],
         otsu_threshold_multiplier=grain_config["threshold"]["otsu_multiplier"],
         background=grain_config["background"],
-        base_output_dir=Path(tmpdir),
+        base_output_dir=Path(tmp_path),
         absolute_smallest_grain_size=grain_config["absolute_smallest_grain_size"],
     )
     return grains
@@ -510,14 +510,14 @@ def minicircle_grain_coloured(minicircle_grain_labelled_post_removal: np.array) 
 
 # Derive fixture for grainstats
 @pytest.fixture
-def grainstats(image_random: np.array, minicircle_filename: str, tmpdir) -> GrainStats:
+def grainstats(image_random: np.array, minicircle_filename: str, tmp_path) -> GrainStats:
     """Grainstats class for testing functions."""
     gstats = GrainStats(
         image_random,
         image_random,
         pixel_to_nanometre_scaling=0.5,
         direction=minicircle_filename,
-        base_output_dir=tmpdir,
+        base_output_dir=tmp_path,
         save_cropped_grains=True,
     )
     return gstats
@@ -530,7 +530,7 @@ def minicircle_grainstats(
     minicircle_grain_labelled_post_removal: np.array,
     minicircle_pixels: float,
     minicircle_filename,
-    tmpdir: Path,
+    tmp_path: Path,
 ) -> GrainStats:
     """GrainStats object."""
     return GrainStats(
@@ -538,7 +538,7 @@ def minicircle_grainstats(
         labelled_data=minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"],
         pixel_to_nanometre_scaling=minicircle_pixels.pixel_to_nm_scaling,
         direction=minicircle_filename.filename,
-        base_output_dir=tmpdir,
+        base_output_dir=tmp_path,
         save_cropped_grains=True,
         cropped_size=40,
         plot_opts={"grain_image": {"core_set": True},

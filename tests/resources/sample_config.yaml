@@ -36,7 +36,7 @@ plotting:
   zrange: [null, null] # List of low value, high value (or null)
   save: true
   save_format: png # Options: those found in plt.savefig()
-  image_set: core # Options : all, core
+  image_set: all # Options : all, core
   colorbar: true
   axes: true # Options : true, false (due to off being a bool when parsed)
   cmap: nanoscope # Options : nanoscope, afmhot

@@ -98,17 +98,19 @@ class Images:
 
     def plot_and_save(self) -> None:
         """Plot and save the images with savefig or imsave depending on config file parameters"""
+        fig, ax = None, None
         if self.save:
             if self.image_set == "all" or self.core_set:
                 if self.axes or self.colorbar:
-                    self.save_figure()
+                    fig, ax = self.save_figure()
                 else:
                     if isinstance(self.data2,np.ndarray) or self.region_properties:
-                        self.save_figure()
+                        fig, ax = self.save_figure()
                     else:
                         self.save_array_figure()
         if "_processed" in self.filename:
             LOGGER.info(f"[{self.filename.split('_processed')[0]}] : Image saved to : {str(self.output_dir / self.filename)}")
+        return fig, ax
 
     def save_figure(self) -> None:
         """This function saves figures as plt.savefig objects"""
@@ -166,9 +168,10 @@ class Images:
                 cmap=Colormap(self.cmap).get_cmap(),
             )
         plt.close()
+        return fig, ax
 
     def save_array_figure(self):
-
+        """This function saves only the image array as an image using plt.imsave"""
         plt.imsave(
             (self.output_dir / self.filename).with_suffix(f".{self.save_format}"), 
             self.data,
