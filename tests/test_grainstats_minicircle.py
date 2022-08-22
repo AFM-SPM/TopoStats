@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 import numpy as np
+import imghdr
 
 from topostats.grainstats import GrainStats
 from topostats.plottingfuncs import Images
@@ -73,11 +74,15 @@ def test_cropped_image(minicircle_grainstats: GrainStats, plotting_config: dict,
         **plotting_config).plot_and_save()
     return fig
 
-def test_save_format(minicircle_grainstats: GrainStats, tmp_path: Path):
+@pytest.mark.parametrize("extension", [
+    ("png"),
+    ("tiff")
+])
+def test_save_format(minicircle_grainstats: GrainStats, tmp_path: Path, extension: str):
     "Tests if save format applied to cropped images"
     minicircle_grainstats.save_cropped_grains = True
-    minicircle_grainstats.plot_opts['grain_image']['save_format'] = "tiff"
+    minicircle_grainstats.plot_opts['grain_image']['save_format'] = extension
     minicircle_grainstats.base_output_dir = tmp_path
     minicircle_grainstats.calculate_stats()
-    assert Path.exists(tmp_path / "minicircle" / "None_grain_image_0.tiff")
+    assert imghdr.what(tmp_path / f"minicircle/None_grain_image_0.{extension}") == extension
     
