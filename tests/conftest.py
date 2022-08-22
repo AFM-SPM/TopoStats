@@ -596,5 +596,4 @@ def minicircle_dnatracing(
     )
     dna_traces.trace_dna()
     tracing_stats = traceStats(trace_object=dna_traces, image_path="tmp")
-    print(f"tracing_stats : {tracing_stats.df}")
     return tracing_stats.df
