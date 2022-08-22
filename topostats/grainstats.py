@@ -275,7 +275,7 @@ class GrainStats:
             )
 
             # Calculate minimum and maximum feret diameters
-            min_feret, max_feret = self.get_max_min_ferets(edge_points = edges)
+            min_feret, max_feret = self.get_max_min_ferets(edge_points=edges)
 
             # save_format = '.4f'
 
@@ -1023,13 +1023,21 @@ class GrainStats:
             # If we have reached the end of the upper hull, continute iterating over the lower hull
             if upper_index == len(upper_hull) - 1:
                 lower_index -= 1
-                small_feret = GrainStats.get_triangle_height(np.array(lower_hull[lower_index+1, :]), np.array(lower_hull[lower_index, :]), np.array(upper_hull[upper_index, :]))
+                small_feret = GrainStats.get_triangle_height(
+                    np.array(lower_hull[lower_index + 1, :]),
+                    np.array(lower_hull[lower_index, :]),
+                    np.array(upper_hull[upper_index, :]),
+                )
                 if min_feret is None or small_feret < min_feret:
                     min_feret = small_feret
             # If we have reached the end of the lower hull, continue iterating over the upper hull
             elif lower_index == 0:
                 upper_index += 1
-                small_feret = GrainStats.get_triangle_height(np.array(upper_hull[upper_index-1, :]), np.array(upper_hull[upper_index, :]), np.array(lower_hull[lower_index, :]))
+                small_feret = GrainStats.get_triangle_height(
+                    np.array(upper_hull[upper_index - 1, :]),
+                    np.array(upper_hull[upper_index, :]),
+                    np.array(lower_hull[lower_index, :]),
+                )
                 if min_feret is None or small_feret < min_feret:
                     min_feret = small_feret
             # Check if the gradient of the last point and the proposed next point in the upper hull is greater than the gradient
@@ -1038,17 +1046,29 @@ class GrainStats:
             # Note that the calcualtion here for gradients is the simple delta upper_y / delta upper_x > delta lower_y / delta lower_x
             # however I have multiplied through the denominators such that there are no instances of division by zero. The
             # inequality still holds and provides what is needed.
-            elif (upper_hull[upper_index+1, 1]-upper_hull[upper_index, 1]) * (lower_hull[lower_index, 0] - lower_hull[lower_index-1, 0]) > (lower_hull[lower_index, 1] - lower_hull[lower_index-1, 1]) * (upper_hull[upper_index+1, 0] - upper_hull[upper_index, 0]):
+            elif (upper_hull[upper_index + 1, 1] - upper_hull[upper_index, 1]) * (
+                lower_hull[lower_index, 0] - lower_hull[lower_index - 1, 0]
+            ) > (lower_hull[lower_index, 1] - lower_hull[lower_index - 1, 1]) * (
+                upper_hull[upper_index + 1, 0] - upper_hull[upper_index, 0]
+            ):
                 # If the upper hull is encoutnered first, increment the iteration index for the upper hull
                 # Also consider the triangle that is made as the two upper hull vertices are colinear with the caliper
                 upper_index += 1
-                small_feret = GrainStats.get_triangle_height(np.array(upper_hull[upper_index-1, :]), np.array(upper_hull[upper_index, :]), np.array(lower_hull[lower_index, :]))
+                small_feret = GrainStats.get_triangle_height(
+                    np.array(upper_hull[upper_index - 1, :]),
+                    np.array(upper_hull[upper_index, :]),
+                    np.array(lower_hull[lower_index, :]),
+                )
                 if min_feret is None or small_feret < min_feret:
                     min_feret = small_feret
             else:
                 # The next point in the lower hull will be encountered first, so increment the lower hull iteration index.
                 lower_index -= 1
-                small_feret = GrainStats.get_triangle_height(np.array(lower_hull[lower_index+1, :]), np.array(lower_hull[lower_index, :]), np.array(upper_hull[upper_index, :]))
+                small_feret = GrainStats.get_triangle_height(
+                    np.array(lower_hull[lower_index + 1, :]),
+                    np.array(lower_hull[lower_index, :]),
+                    np.array(upper_hull[upper_index, :]),
+                )
 
                 if min_feret is None or small_feret < min_feret:
                     min_feret = small_feret
@@ -1058,7 +1078,7 @@ class GrainStats:
         # Find the minimum and maximum distance in the contact points
         max_feret = None
         for point_pair in contact_points:
-            dist = np.sqrt((point_pair[0, 0] - point_pair[1, 0])**2 + (point_pair[0, 1] - point_pair[1, 1])**2)
+            dist = np.sqrt((point_pair[0, 0] - point_pair[1, 0]) ** 2 + (point_pair[0, 1] - point_pair[1, 1]) ** 2)
             if max_feret is None or max_feret < dist:
                 max_feret = dist
 
