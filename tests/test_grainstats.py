@@ -154,25 +154,46 @@ def test_random_grain_stats(caplog, tmpdir) -> None:
     assert "No labelled regions for this image, grain statistics can not be calculated." in caplog.text
 
 
-@pytest.mark.parametrize("coords, shape, expected", [
-    (np.asarray([5,5]),10,0),
-    (np.asarray([-3,12]),10,3),
-    (np.asarray([-3,14]),10,-4)
-    ])
+@pytest.mark.parametrize(
+    "coords, shape, expected",
+    [(np.asarray([5, 5]), 10, 0), (np.asarray([-3, 12]), 10, 3), (np.asarray([-3, 14]), 10, -4)],
+)
 def test_get_shift(coords, shape, expected):
     """Tests the Grainstats.get_shift function against known expected outcomes."""
     assert GrainStats.get_shift(coords, shape) == expected
-    
 
-@pytest.mark.parametrize("length, centre, img_len, expected", [
-    (5,np.asarray([10,10]),21,[5,5]),
-    (3,np.asarray([1,20]),21,[1,6]),
-    (8,np.asarray([18,6]),21,[14,6])
-    ])
+
+@pytest.mark.parametrize(
+    "length, centre, img_len, expected",
+    [
+        (5, np.asarray([10, 10]), 21, [5, 5]),
+        (3, np.asarray([1, 20]), 21, [1, 6]),
+        (8, np.asarray([18, 6]), 21, [14, 6]),
+    ],
+)
 def test_get_cropped_region(grainstats: GrainStats, length, centre, img_len, expected):
     """Tests the Grainstats.get_cropped_region function's shape and center postition are correct."""
     image = np.random.rand(img_len, img_len)
-    image[centre[0],centre[1]] = 5
+    image[centre[0], centre[1]] = 5
     output = grainstats.get_cropped_region(image, length, centre)
-    assert output.shape == (2*length+1,2*length+1)
-    assert output[expected[0],expected[1]] == 5
+    assert output.shape == (2 * length + 1, 2 * length + 1)
+    assert output[expected[0], expected[1]] == 5
+
+
+@pytest.mark.parametrize(
+    "base_point_1, base_point_2, top_point, expected",
+    [
+        (np.array([0, 0]), np.array([1, 0]), np.array([1, 1]), 1),
+        (np.array([0, 0]), np.array([5, 0]), np.array([2, 5]), 5),
+        (np.array([0, 0]), np.array([1, 0]), np.array([1, -1]), 1),
+    ],
+)
+def test_grainstats_get_triangle_height(base_point_1, base_point_2, top_point, expected) -> None:
+    """Tests the Grainstats.get_triangle_height method"""
+    assert GrainStats.get_triangle_height(base_point_1, base_point_2, top_point) == expected
+
+
+@pytest.mark.parametrize("edge_points, expected", [([[0, 0], [0, 1], [1, 0], [1, 1]], (1.0, 1.4142135623730951))])
+def test_get_min_max_ferets(edge_points, expected) -> None:
+    """Tests the Grainstats.get_min_max_ferets method"""
+    assert GrainStats.get_max_min_ferets(edge_points) == expected
