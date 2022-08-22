@@ -176,7 +176,11 @@ class GrainStats:
             if self.save_cropped_grains:
                 output_grain.mkdir(parents=True, exist_ok=True)
                 if self.cropped_size == -1:
-                    for name, image in {'grain_image': grain_image, 'grain_mask': grain_mask, 'grain_mask_image': masked_grain_image}.items():
+                    for name, image in {
+                        'grain_image': grain_image,
+                        'grain_mask': grain_mask,
+                        'grain_mask_image': masked_grain_image
+                        }.items():
                         Images(
                             data=image,
                             output_dir=output_grain,
@@ -198,7 +202,11 @@ class GrainStats:
                     cropped_grain_mask_image = np.ma.masked_array(
                         cropped_grain_image, mask=np.invert(cropped_grain_mask), fill_value=np.nan
                     ).filled()
-                    for name, image in {'grain_image': cropped_grain_image, 'grain_mask': cropped_grain_mask, 'grain_mask_image': cropped_grain_mask_image}.items():
+                    for name, image in {
+                        'grain_image': cropped_grain_image,
+                        'grain_mask': cropped_grain_mask,
+                        'grain_mask_image': cropped_grain_mask_image
+                        }.items():
                         Images(
                             data=image,
                             output_dir=output_grain,
