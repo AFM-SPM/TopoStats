@@ -14,13 +14,13 @@ LOGGER.propagate = True
 TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
 
 
-def test_gaussian_filter(small_array_grains: Grains, grain_config: dict) -> None:
+def test_gaussian_filter(small_array_grains: Grains, grains_config: dict) -> None:
     """Test Gaussian filter."""
     small_array_grains.gaussian_filter()
     target = gaussian(
         small_array_grains.image,
-        sigma=(grain_config["gaussian_size"] * 0.5),
-        mode=grain_config["gaussian_mode"],
+        sigma=(grains_config["gaussian_size"] * 0.5),
+        mode=grains_config["gaussian_mode"],
     )
 
     assert isinstance(small_array_grains.images["gaussian_filtered"], np.ndarray)

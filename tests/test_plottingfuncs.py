@@ -10,9 +10,13 @@ from topostats.plottingfuncs import plot_and_save
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_no_colorbar(minicircle_pixels: Filters, plotting_config: dict, tmpdir) -> None:
     """Test plotting without colorbar"""
-    plotting_config["colorbar"] = False
     fig, _ = plot_and_save(
-        minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", title="Raw Height", **plotting_config
+        data=minicircle_pixels.images["pixels"],
+        output_dir=tmpdir,
+        filename="01-raw_heightmap.png",
+        pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
+        title="Raw Height",
+        colorbar=False,
     )
     return fig
 
@@ -21,7 +25,12 @@ def test_plot_and_save_no_colorbar(minicircle_pixels: Filters, plotting_config: 
 def test_plot_and_save_colorbar(minicircle_pixels: Filters, plotting_config: dict, tmpdir) -> None:
     """Test plotting with colorbar"""
     fig, _ = plot_and_save(
-        minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", title="Raw Height", **plotting_config
+        data=minicircle_pixels.images["pixels"],
+        output_dir=tmpdir,
+        filename="01-raw_heightmap.png",
+        pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
+        title="Raw Height",
+        colorbar=True,
     )
     return fig
 
@@ -31,7 +40,13 @@ def test_plot_and_save_colorbar_afmhot(minicircle_pixels: Filters, plotting_conf
     """Test plotting with colorbar"""
     plotting_config["cmap"] = "afmhot"
     fig, _ = plot_and_save(
-        minicircle_pixels.images["pixels"], tmpdir, "01-raw_heightmap.png", title="Raw Height", **plotting_config
+        data=minicircle_pixels.images["pixels"],
+        output_dir=tmpdir,
+        filename="01-raw_heightmap.png",
+        pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
+        title="Raw Height",
+        colorbar=True,
+        cmap="afmhot",
     )
     return fig
 
@@ -46,12 +61,13 @@ def test_plot_and_save_bounding_box(
     """Test plotting bounding boxes"""
     plotting_config["type"] = "binary"
     fig, _ = plot_and_save(
-        minicircle_grain_coloured.directions["upper"]["coloured_regions"],
-        tmpdir,
-        "15-coloured_regions.png",
+        data=minicircle_grain_coloured.directions["upper"]["coloured_regions"],
+        output_dir=tmpdir,
+        filename="15-coloured_regions.png",
+        pixel_to_nm_scaling_factor=minicircle_grain_coloured.pixel_to_nm_scaling,
         title="Coloured Regions",
         **plotting_config,
-        region_properties=minicircle_grain_region_properties_post_removal
+        region_properties=minicircle_grain_region_properties_post_removal,
     )
     return fig
 
@@ -62,9 +78,11 @@ def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting
     plotting_config["zrange"] = [-10, 10]
     plotting_config["core_set"] = True
     fig, _ = plot_and_save(
-        minicircle_grain_gaussian_filter.images["gaussian_filtered"],
-         tmpdir, "08_5-z_threshold.png",
-         title="Raw Height", 
-         **plotting_config
+        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
+        output_dir=tmpdir,
+        filename="08_5-z_threshold.png",
+        pixel_to_nm_scaling_factor=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
+        title="Raw Height",
+        **plotting_config,
     )
     return fig

@@ -39,6 +39,7 @@ class Grains:
         threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
+        direction: str = None,
         absolute_smallest_grain_size: float = None,
         background: float = 0.0,
         base_output_dir: Union[str, Path] = None,
@@ -61,6 +62,14 @@ class Grains:
             Factor by which lower threshold is to be scaled prior to masking.
         threshold_method: str
             Method for determining threshold to mask values, default is 'otsu'.
+        threshold_std_dev: float
+            Factor by which standard deviation is multiplied to derive the threshold if threshold_method is 'std_dev'.
+        threshold_absolute_lower: float
+            Lower absolute threshold.
+        threshold_absolute_upper: float
+            Upper absolute threshold.
+        direction: str
+            Direction for which grains are to be detected, valid values are upper, lower and both.
         background : float
             The value to average the background around.
         output_dir : Union[str, Path]
@@ -74,6 +83,8 @@ class Grains:
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
+        # Only detect grains for the desired direction
+        self.direction = [direction] if direction != "both" else ["upper", "lower"]
         self.gaussian_size = gaussian_size
         self.gaussian_mode = gaussian_mode
         self.background = background
@@ -251,17 +262,17 @@ class Grains:
             image=self.image,
             threshold_method=self.threshold_method,
             otsu_threshold_multiplier=self.otsu_threshold_multiplier,
-            deviation_from_mean=self.threshold_std_dev,
+            threshold_std_dev=self.threshold_std_dev,
             absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
         )
         try:
-            for direction, _threshold in self.thresholds.items():
-                LOGGER.info(f"[{self.filename}] : Processing {direction} threshold ({_threshold})")
+            for direction in self.direction:
+                LOGGER.info(f"[{self.filename}] : Processing {direction} threshold ({self.thresholds[direction]})")
                 self.directions[direction] = defaultdict()
                 self.gaussian_filter()
                 self.directions[direction]["mask_grains"] = _get_mask(
                     self.images["gaussian_filtered"],
-                    threshold=_threshold,
+                    threshold=self.thresholds[direction],
                     threshold_direction=direction,
                     img_name=self.filename,
                 )
@@ -290,6 +301,7 @@ class Grains:
                 )
                 self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
                 LOGGER.info(f"[{self.filename}] : Extracted bounding boxes ({direction})")
+
         # FIXME : Identify what exception is raised with images without grains and replace broad except
         except:
             LOGGER.info(f"[{self.filename}] : No grains found.")

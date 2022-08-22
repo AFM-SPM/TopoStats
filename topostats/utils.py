@@ -97,7 +97,7 @@ def get_out_path(
     """
     pathparts = list(image_path.parts)
     inparts = list(base_dir.parts)
-    return output_dir / Path(*pathparts[len(inparts) :])
+    return Path(output_dir / Path(*pathparts[len(inparts) :]))
 
 
 def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
@@ -194,7 +194,7 @@ def get_thresholds(
     image: np.ndarray,
     threshold_method: str,
     otsu_threshold_multiplier: float = None,
-    deviation_from_mean: float = None,
+    threshold_std_dev: float = None,
     absolute: tuple = None,
     **kwargs,
 ) -> Dict:
@@ -206,7 +206,7 @@ def get_thresholds(
         2D Numpy array of image to be masked
     threshold_method : str
         Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
-    deviation_from_mean : float
+    threshold_std_dev : float
         Scaling of standard deviation from the mean for lower and upper thresholds.
     absolute : tuple
         Tuple of lower and upper thresholds.
@@ -219,13 +219,11 @@ def get_thresholds(
     """
     thresholds = defaultdict()
     if threshold_method == "otsu":
-        thresholds["upper"] = threshold(
-            image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier, **kwargs
-        )
+        thresholds["upper"] = threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)
     elif threshold_method == "std_dev":
         try:
-            thresholds["lower"] = threshold(image, method="mean") - deviation_from_mean * np.nanstd(image)
-            thresholds["upper"] = threshold(image, method="mean") + deviation_from_mean * np.nanstd(image)
+            thresholds["lower"] = threshold(image, method="mean") - threshold_std_dev * np.nanstd(image)
+            thresholds["upper"] = threshold(image, method="mean") + threshold_std_dev * np.nanstd(image)
         except TypeError as typeerror:
             raise typeerror
     elif threshold_method == "absolute":
@@ -283,4 +281,3 @@ def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], 
         out_path = get_out_path(Path(_dir), base_dir, output_dir)
         all_stats_df[all_stats_df["Basename"] == _dir].to_csv(out_path / "Processed" / "folder_grainstats.csv")
         LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/Processed/folder_grainstats.csv")
-
