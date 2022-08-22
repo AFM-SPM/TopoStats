@@ -987,12 +987,16 @@ class GrainStats:
 
     @staticmethod
     def get_max_min_ferets(edge_points: list):
-        """Returns the minimum and maximum feret diameters for a grain. These are defined as the smallest and greatest distances between a pair of callipers that are rotating around a 2d object, maintaining contact at all times.
+        """Returns the minimum and maximum feret diameters for a grain.
+        These are defined as the smallest and greatest distances between
+        a pair of callipers that are rotating around a 2d object, maintaining
+        contact at all times.
 
         Parameters
         ----------
         edge_points: list
-            a list of the vector positions of the pixels comprising the edge of the grain. Eg: [[0, 0], [1, 0], [2, 1]]
+            a list of the vector positions of the pixels comprising the edge of the
+            grain. Eg: [[0, 0], [1, 0], [2, 1]]
         Returns
         -------
         min_feret: float
@@ -1002,11 +1006,29 @@ class GrainStats:
 
         Notes
         -----
-        The method starts out by calculating the upper and lower convex hulls using an algorithm based on the Graham Scan Algorithm [1]_. Using these upper and lower hulls, the callipers are simulated as rotating clockwise around the grain. We determine the order in which vertices are encountered by comparing the gradients of the slopes between vertices. An array of pairs of points that are in contact with either calliper at a given time is created in order to be able to calculate the maximum feret diameter. The minimum diameter is a little tricky, since it won't simply be the shortest distance between two contact points, but it will occur somewhere during the rotation around a pair of contact points. It turns out that the point will always be such that two points are in contact with one calliper while the other calliper is in contact with another point. We can use this fact to be sure of finding the smallest feret diameter, simply by testing each triangle of 3 contact points as we iterate, finding the height of the triangle that is formed between the three aforementioned points, as this will be the perpendicular distance between the callipers.
+        The method starts out by calculating the upper and lower convex hulls using
+        an algorithm based on the Graham Scan Algorithm [1]_. Using these upper and
+        lower hulls, the callipers are simulated as rotating clockwise around the grain.
+        We determine the order in which vertices are encountered by comparing the
+        gradients of the slopes between vertices. An array of pairs of points that
+        are in contact with either calliper at a given time is created in order to
+        be able to calculate the maximum feret diameter. The minimum diameter is a
+        little tricky, since it won't simply be the shortest distance between two
+        contact points, but it will occur somewhere during the rotation around a
+        pair of contact points. It turns out that the point will always be such
+        that two points are in contact with one calliper while the other calliper
+        is in contact with another point. We can use this fact to be sure of finding
+        the smallest feret diameter, simply by testing each triangle of 3 contact points
+        as we iterate, finding the height of the triangle that is formed between the
+        three aforementioned points, as this will be the perpendicular distance between
+        the callipers.
 
         References
         ----------
-        [1] Graham, R.L. (1972). "An Efficient Algorithm for Determining the Convex Hull of a Finite Planar Set". Information Processing Letters. 1 (4): 132-133. doi:10.1016/0020-0190(72)90045-2.
+        [1] Graham, R.L. (1972).
+            "An Efficient Algorithm for Determining the Convex Hull of a Finite Planar Set".
+            Information Processing Letters. 1 (4): 132-133.
+            doi:10.1016/0020-0190(72)90045-2.
         """
 
         # Sort the vectors by their x coordinate and then by their y coordinate.
