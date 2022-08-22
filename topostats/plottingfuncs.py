@@ -96,8 +96,17 @@ class Images:
         self.save=save
         self.save_format=save_format
 
-    def plot_and_save(self) -> None:
-        """Plot and save the images with savefig or imsave depending on config file parameters"""
+    def plot_and_save(self):
+        """
+        Plot and save the images with savefig or imsave depending on config file parameters.
+        
+        Returns
+        -------
+        fig: plt.figure.Figure
+            Matplotlib.pyplot figure object
+        ax: plt.axes._subplots.AxesSubplot
+            Matplotlib.pyplot axes object
+        """
         fig, ax = None, None
         if self.save:
             if self.image_set == "all" or self.core_set:
@@ -112,9 +121,9 @@ class Images:
             LOGGER.info(f"[{self.filename.split('_processed')[0]}] : Image saved to : {str(self.output_dir / self.filename)}")
         return fig, ax
 
-    def save_figure(self) -> None:
+    def save_figure(self):
         """
-        This function saves figures as plt.savefig objects
+        This function saves figures as plt.savefig objects.
         
         Returns
         -------
@@ -179,7 +188,7 @@ class Images:
         plt.close()
         return fig, ax
 
-    def save_array_figure(self):
+    def save_array_figure(self) -> None:
         """This function saves only the image array as an image using plt.imsave"""
         plt.imsave(
             (self.output_dir / self.filename).with_suffix(f".{self.save_format}"), 
@@ -196,12 +205,21 @@ def add_bounding_boxes_to_plot(fig, ax, region_properties: list, pixel_to_nm_sca
 
     Parameters
     ----------
-    fig :
-
-    ax :
+    fig: plt.figure.Figure
+        Matplotlib.pyplot figure object
+    ax: plt.axes._subplots.AxesSubplot
+        Matplotlib.pyplot axes object
     region_properties:
         Region properties to add bounding boxes from.
     pixel_to_nm_scaling_factor: float
+        The scaling factor from px to nm.
+    
+    Returns
+    -------
+    fig: plt.figure.Figure
+        Matplotlib.pyplot figure object
+    ax: plt.axes._subplots.AxesSubplot
+        Matplotlib.pyplot axes object
     """
     for region in region_properties:
         min_y, min_x, max_y, max_x = [x * pixel_to_nm_scaling_factor for x in region.bbox]
