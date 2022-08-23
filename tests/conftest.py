@@ -550,7 +550,6 @@ def minicircle_grainstats(
         labelled_data=minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"],
         pixel_to_nanometre_scaling=minicircle_pixels.pixel_to_nm_scaling,
         base_output_dir=tmp_path,
-        image_set=plotting_config["image_set"],
         plot_opts={"grain_image": {"core_set": True},
                    "grain_mask": {"core_set": False}, 
                    "grain_mask_image": {"core_set": False}},
