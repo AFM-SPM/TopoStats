@@ -538,7 +538,7 @@ def savefiles(data, filename, extension):
     directory, filename = os.path.split(filename)
 
     # Create a saving name format/directory
-    savedir = os.path.join(directory, 'Processed_non_clusters')
+    savedir = os.path.join(directory, 'Processed')
 
     # If the folder Processed doest exist make it here
     if not os.path.exists(savedir):
@@ -958,7 +958,8 @@ if __name__ == '__main__':
 
     # Saving stats to text and JSON files named by master path
     savestats(path, grainstats_df)
-    plt.hist(dna_pure_all, bins=np.linspace(-1, 4, 100)*1e-9, color='b', edgecolor='k', density=True, alpha=0.9)
-    plt.hist(dna_ndp_all, bins=np.linspace(-1, 4, 100)*1e-9, color='orange', edgecolor='k', density=True, stacked=False, alpha=0.5)
-    plt.ylim(0, 0.5e-9)
-    plt.savefig(os.path.join(path, 'Height_histograms.png'))
+
+    # plt.hist(dna_pure_all, bins=np.linspace(-1, 4, 100)*1e-9, color='b', edgecolor='k', density=True, alpha=0.9)
+    # plt.hist(dna_ndp_all, bins=np.linspace(-1, 4, 100)*1e-9, color='orange', edgecolor='k', density=True, stacked=False, alpha=0.5)
+    # plt.ylim(0, 0.5e-9)
+    # plt.savefig(os.path.join(path, 'Height_histograms.png'))

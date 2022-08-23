@@ -10,6 +10,7 @@ import numpy as np
 import scipy
 import glob
 from scipy import stats
+import scipy.signal as sig
 from cycler import cycler
 
 # Set seaborn to override matplotlib for plot output
@@ -75,7 +76,7 @@ def pathman(path):
 
     directory = os.path.dirname(path)
     name = os.path.basename(path)[:-5]
-    savedir = os.path.join(directory, 'Plots_non_clusters')
+    savedir = os.path.join(directory, 'Plots_dimers')
     if not os.path.exists(savedir):
         os.makedirs(savedir)
     plotname = os.path.join(savedir, name)
@@ -179,7 +180,6 @@ def plotkde2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, 
     if label2 is None:
         label2 = plotarg2
 
-
     print 'Plotting KDE of %s for %s and %s' % (plotarg, label1, label2)
 
     # Set the name of the file
@@ -235,21 +235,24 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     else:
         dfnew = dfnew[[grouparg, plotarg]]
         dfnew = dfnew.pivot(columns=grouparg, values=plotarg)
-        dfnew.plot.hist(ax=ax, legend=True, bins=bins, alpha=0.5, linewidth=3.0, stacked=False)
-        # dfnew.groupby(grouparg)[plotarg].plot.hist(ax=ax, legend=True, alpha=1, linewidth=7.0, bins=bins, stacked=True)
+        dfnew.plot.hist(ax=ax, legend=True, bins=bins, alpha=0.5, linewidth=3.0, stacked=False, density=True,
+                        color=['#0B5394', '#B45F06'])
         handles, labels = ax.get_legend_handles_labels()
+        ax.get_legend().remove()
         # ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
-        ax.legend(handles, labels, title=grouparg, loc='upper right')
+        # ax.legend(handles, labels, title=grouparg, loc='upper right')
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
     plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.ylabel('Count', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
+    ax.tick_params(direction='out', bottom=True, left=True)
     plt.savefig(savename)
 
+
 def plothist2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, xmin=None, xmax=None, nm=False,
-                specpath=None, plotextension=defextension):
+                 specpath=None, plotextension=defextension):
     """Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
     the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
@@ -263,13 +266,13 @@ def plothist2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None,
     if label2 is None:
         label2 = plotarg2
 
-
     print 'Plotting histogram of %s for %s and %s' % (plotarg, label1, label2)
 
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_' + label1 + '_' + label2 + '_histogram' + plotextension)
+    savename = os.path.join(
+        pathman(specpath) + '_' + plotarg + '_' + label1 + '_' + label2 + '_histogram' + plotextension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -283,13 +286,26 @@ def plothist2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None,
     fig, ax = plt.subplots(figsize=(15, 12))
     # dfnew[plotarg].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, color='orange')
     # dfnew2[plotarg2].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, histtype='barstacked', color='blue')
-    dfplot.plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, stacked=False)
+
+    # dfplot.plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, stacked=False)
+
+    # dfnew[plotarg].plot.hist(ax=ax, bins=np.linspace(41, 112, 21), alpha=0.8, linewidth=3.0, stacked=False,
+    #                          density=True,
+    #                          color='#B45F06')
+    # dfnew2[plotarg2].plot.hist(ax=ax, bins=np.linspace(41, 112, 21), alpha=0.6, linewidth=3.0, stacked=False,
+    #                            density=True, color='#0B5394')
+
+    dfnew[plotarg].plot.hist(ax=ax, bins=np.linspace(10, 80, 21), alpha=1, linewidth=3.0, stacked=False,
+                             color='#0B5394')
+    dfnew2[plotarg2].plot.hist(ax=ax, bins=np.linspace(10, 80, 21), alpha=1, linewidth=3.0, stacked=False,
+                               color='#76719F')
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
     plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.ylabel('Count', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
+    ax.tick_params(direction='out', bottom=True, left=True)
     plt.savefig(savename)
 
 
@@ -385,7 +401,8 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specp
     # Grouped violin plot
     else:
         dfnew = dfnew[[grouparg, plotarg]]
-        ax = sns.violinplot(x=grouparg, y=plotarg, data=dfnew)
+        ax = sns.violinplot(x=grouparg, y=plotarg, data=dfnew,
+                            palette={"SKICH": '#3E96CD', "Zinc fingers": '#64B761', "TopoStats": '#76719F'})
         ax.invert_xaxis()  # Useful for topoisomers with negative writhe
 
     # Label plot and save figure
@@ -396,8 +413,9 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specp
     plt.xlabel(grouparg)
     plt.savefig(savename)
 
+
 def plotviolin2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, ymin=None, ymax=None, nm=False,
-                specpath=None, plotextension=defextension):
+                   specpath=None, plotextension=defextension):
     """Creating a violin plot for two sets of data. Grouping optional. The y axis range can be defined by the user. The
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
     the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
@@ -410,7 +428,6 @@ def plotviolin2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=Non
         label1 = plotarg
     if label2 is None:
         label2 = plotarg2
-
 
     print ('Plotting violin plot of %s for %s and %s' % (plotarg, label1, label2))
 
@@ -437,7 +454,6 @@ def plotviolin2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=Non
     plt.ylabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.ticklabel_format(axis='y', style='sci', scilimits=(-3, 3))
     plt.savefig(savename)
-
 
 
 def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=False, specpath=None,
@@ -474,7 +490,7 @@ def plotLinearVsCircular(contour_lengths_df):
 def computeStats(data, columns, min, max):
     """Prints out a table of stats, including the standard deviation, standard error, N value, and peak position"""
 
-    xs = np.linspace(min, max, 1000)
+    xs = np.linspace(min, max, 6000)
 
     a = {}
     b = {}
@@ -486,37 +502,43 @@ def computeStats(data, columns, min, max):
     }
 
     for i, x in enumerate(data):
-        x = x * 1e9
+        # x = x * 1e9
         a[i] = scipy.stats.gaussian_kde(x)
         b[i] = a[i].pdf(xs)
+        peaks = sig.find_peaks(b[i], height=0.3)
+        extrema = sig.argrelmax(b[i])
+        print (extrema)
         table['std'][i] = np.std(x)
         table['ste'][i] = stats.sem(x)
         table['max'][i] = xs[np.argmax(b[i])]
         table['N'][i] = len(x)
 
     dfmax = pd.DataFrame.from_dict(table, orient='index', columns=columns)
-    dfmax.to_csv(pathman(path) + '.csv')
+    dfmax.to_csv(pathman(path) + '_test.csv')
 
 
 if __name__ == '__main__':
     # Path to the json file, e.g. C:\\Users\\username\\Documents\\Data\\Data.json
 
-    path = ''
-
+    # path = 'G:\\My Drive\\PhD\\Data\\NDP52-New\\20220617_test_parameters\\20220617_test_parameters.json'
+    # path = 'G:\\My Drive\\PhD\\Data\\NDP52\\Curated_data_new\\Jean_FL_No_HEPES\\TRIS_PLL\\Selected\\Selected_test.csv'
+    # path2 = 'G:\\My Drive\\PhD\\Data\\NDP52\\Curated_data_new\\Jean_FL_No_HEPES\\TRIS_PLL\\Selected\\Selected_maskdimers.csv'
+    path = 'G:\\Shared drives\\Pyne group\\Papers\\NDP52_2021\\Data\\Original Data\\Curated data\\Selected_NDP_PLL\\Selected_NDP_PLL_maskall.csv'
+    path2 = 'G:\\Shared drives\\Pyne group\\Papers\\NDP52_2021\\Data\\Original Data\\Curated data\\Selected_NDP_PLL\\Selected_NDP_PLL_maskoligomers.csv'
+    # path = 'G:\\My Drive\\PhD\\Data\\NDP52\\Curated_data_new\\Jean_FL_No_HEPES\\TRIS_PLL\\Selected\\combined.csv'
     # Set the name of the json file to import here
     # name = 'Non-incubation'
     bins = 20
 
     # import data form the json file specified as a dataframe
     df = importfromfile(path)
-    # df2 = importfromfile(path2)
+    df2 = importfromfile(path2)
 
     # fig, ax = plt.subplots(figsize=(15, 12))
     # # df.set_index('Contour length')
     # # df.groupby('Basename').plot('Curvature', alpha=0.5)
     #
-    # df1 = df[df['Basename'] == 'DNA_pure']
-    # df2 = df[df['Basename'] == 'DNA_NDP']
+
     # plt.plot(df1['Contour length'], df1['Curvature'], markersize=10, marker='.', color='b', alpha=0.5, linestyle="None")
     # plt.plot(df2['Contour length'], df2['Curvature'], markersize=10, marker='.', color='y', alpha=0.5, linestyle="None")
     #
@@ -543,16 +565,16 @@ if __name__ == '__main__':
 
     # df.loc[df['directory'] == 'DNA_20220601', 'directory'] = 'DNA'
 
-
-    df = df[df['grain_max_bound_size'] <= 115e-9]
+    # df = df[df['grain_max_bound_size'] <= 115e-9]
     # df = df[df['grain_max_bound_size'] >= 50e-9]
+
+    # df1 = df[df['directory'] == 'DNA_pure']
+    # df2 = df[df['directory'] == 'DNA_NDP']
 
     # dfDNA = df[df['directory'] == 'DNA_pure']
     # print len(dfDNA)
     # dfDNANDP = df[df['directory'] == 'DNA_NDP']
     # print len(dfDNANDP)
-
-
 
     # Rename directory column as appropriate
     # df1 = df1.rename(columns={"directory": "Experimental Conditions"})
@@ -594,12 +616,13 @@ if __name__ == '__main__':
     # # palette = sns.color_palette('PuBu', n_colors=len(topos))
 
 print len(df)
+print len(df2)
 # Setting group argument
 # grouparg = 'Was there incubation?'
 # grouparg = 'Mask'
 # grouparg = 'Basename'
-grouparg = 'directory'
-# grouparg = None
+# grouparg = 'directory'
+grouparg = None
 # grouparg = 'Domain'
 
 # Setting a continuous colour palette; useful for certain grouped plots, but can be commented out if unsuitable.
@@ -618,7 +641,10 @@ grouparg = 'directory'
 # plothist(df, 'grain_maximum', xmin=1, xmax=6, nm=True)
 
 
-plothist(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
+# plothist(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
+# plothist2var(df1, 'grain_max_bound_size', df2=df2, nm=True)
+
+
 # plothist(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
 # plothist(df, 'aspectratio', nm=True, grouparg=grouparg)
 # plotkde(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
@@ -639,12 +665,16 @@ plothist(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
 # plotkde(df, 'grain_proj_area', nm=True, grouparg=grouparg)
 # plotkde(df, 'grain_min_volume', nm=True, grouparg=grouparg)
 
+plothist2var(df, 'grain_max_bound_size', df2=df2, label1='All', label2='Oligomers', nm=True)
 
 # plotkde(df, 'grain_min_bound_size', xmin=0, xmax=40, nm=True)
 # plotkde2var(df, 'grain_min_bound_size', 'grain_max_bound_size', xmin=0, xmax=40, nm=True)
 
+# plotkde(df, 'grain_min_bound_size', xmin=0, xmax=40, nm=True)
+
 # plotviolin2var(df, 'grain_maximum', df2=df2, plotarg2=['CTD', 'NTD'], label1='TopoStats', label2=['CTD', 'NTD'], nm=True)
 # plotviolin(df, 'Height', grouparg='Source')
+# plotkde(df, 'Height', xmin=0, xmax=6, nm=True)
 # plothist2var(df, 'grain_maximum', df2=df2, plotarg2='Height', label1='TopoStats', label2='Manual Measurements', nm=True)
 
 # plotdist2var('grain_min_bound_size', 'grain_max_bound_size', df2, plotname='Bound Size for Full Protein', nm=True,
@@ -678,9 +708,13 @@ plothist(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
 #             df2['grain_max_bound_size']]
 # columns = ['Min for CTD / nm', 'Max for CTD / nm',
 #                'Min for FL / nm', 'Max for FL / nm']
-#
-# computeStats(data, columns, 0, 50)
 
+# data = [df[df['Source'] == 'SKICH']['Height'], df[df['Source'] == 'Zinc fingers']['Height'],
+#         df[df['Source'] == 'TopoStats']['Height']]
+# columns = ['SKICH', 'Zinc fingers', 'TopoStats']
+#
+#
+# computeStats(data, columns, 0, 6)
 
 # plotkde(df, 'End to End Distance', grouparg=grouparg, nm=True)
 # plotkde(df, 'Contour Lengths', grouparg=grouparg, nm=True)
@@ -715,10 +749,6 @@ plothist(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
 # plothist(df, 'Mean Curvature', xmin=0, xmax=0.4, grouparg=grouparg)
 
 
-
-
-
-
 # plotdist2var('Mean Curvature', 'Mean Curvature', df, df2=df2)
 # plotdist2var('End to End Distance', 'End to End Distance', df, df2=df2, nm=True)
 # plotkde2var(df, 'Mean Curvature', df2=df2)
@@ -727,11 +757,6 @@ plothist(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
 # plothist(df, 'Mean Curvature', bins=50)
 
 
-
-
-
-
 # plotkde(df, 'grain_maximum', nm=True, grouparg='directory', xmin=0, xmax=5)
 # plotkde(df, 'grain_mean', nm=True, grouparg='directory', xmin=0, xmax=3)
 # plotkde(df, 'grain_median', nm=True, grouparg='directory', xmin=0, xmax=4)
-
