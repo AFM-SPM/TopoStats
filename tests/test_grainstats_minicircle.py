@@ -52,9 +52,9 @@ def test_image_set(minicircle_grainstats: GrainStats, tmp_path: Path, value, exp
     minicircle_grainstats.plot_opts['grain_mask_image']['image_set'] = value
     minicircle_grainstats.base_output_dir = tmp_path / "grains"
     minicircle_grainstats.calculate_stats()
-    assert Path.exists(tmp_path / "grains/minicircle" / "None_grain_image_0.png") == True
-    assert Path.exists(tmp_path / "grains/minicircle" / "None_grain_mask_0.png") == expected
-    assert Path.exists(tmp_path / "grains/minicircle" / "None_grain_mask_image_0.png") == expected
+    assert Path.exists(tmp_path / "grains/upper" / "None_grain_image_0.png") == True
+    assert Path.exists(tmp_path / "grains/upper" / "None_grain_mask_0.png") == expected
+    assert Path.exists(tmp_path / "grains/upper" / "None_grain_mask_image_0.png") == expected
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
@@ -73,7 +73,7 @@ def test_cropped_image(minicircle_grainstats: GrainStats, tmp_path: Path):
         filename="cropped_grain_7.png",
         pixel_to_nm_scaling_factor=minicircle_grainstats.pixel_to_nanometre_scaling,
         type="non-binary",
-        image_set=minicircle_grainstats.image_set,
+        image_set="all",
         core_set=True,
     ).plot_and_save()
     return fig
@@ -88,5 +88,5 @@ def test_save_format(minicircle_grainstats: GrainStats, tmp_path: Path, extensio
     minicircle_grainstats.plot_opts['grain_image']['save_format'] = extension
     minicircle_grainstats.base_output_dir = tmp_path
     minicircle_grainstats.calculate_stats()
-    assert imghdr.what(tmp_path / f"minicircle/None_grain_image_0.{extension}") == extension
+    assert imghdr.what(tmp_path / f"upper/None_grain_image_0.{extension}") == extension
     
