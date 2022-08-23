@@ -47,28 +47,29 @@ def test_save_array_figure(tmp_path: Path):
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_no_colorbar(minicircle_pixels: Filters, plotting_config: dict, tmp_path: Path) -> None:
+def test_plot_and_save_no_colorbar(minicircle_pixels: Filters, tmp_path: Path) -> None:
     """Test plotting without colorbar"""
-    plotting_config["colorbar"] = False
     fig, _ = Images(
         data=minicircle_pixels.images["pixels"],
         output_dir=tmp_path,
         filename="01-raw_heightmap.png",
+        pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
         title="Raw Height",
-        **plotting_config
+        colorbar=False,
     ).plot_and_save()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_colorbar(minicircle_pixels: Filters, plotting_config: dict, tmp_path: Path) -> None:
+def test_plot_and_save_colorbar(minicircle_pixels: Filters, tmp_path: Path) -> None:
     """Test plotting with colorbar"""
     fig, _ = Images(
         data=minicircle_pixels.images["pixels"],
         output_dir=tmp_path,
         filename="01-raw_heightmap.png",
+        pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
         title="Raw Height",
-        **plotting_config
+        colorbar=True,
     ).plot_and_save()
     return fig
 
@@ -104,10 +105,7 @@ def test_plot_and_save_no_axes_no_colorbar(minicircle_pixels: Filters, plotting_
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_colorbar_afmhot(
-    minicircle_pixels: Filters,
-    plotting_config: dict,
-    tmp_path: Path
+def test_plot_and_save_colorbar_afmhot(minicircle_pixels: Filters, tmp_path: Path
     ) -> None:
     """Test plotting with colorbar"""
     plotting_config["cmap"] = "afmhot"
@@ -115,8 +113,10 @@ def test_plot_and_save_colorbar_afmhot(
         data=minicircle_pixels.images["pixels"],
         output_dir=tmp_path,
         filename="01-raw_heightmap.png",
+        pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
         title="Raw Height",
-        **plotting_config
+        colorbar=True,
+        cmap="afmhot",
     ).plot_and_save()
     return fig
 
@@ -134,9 +134,10 @@ def test_plot_and_save_bounding_box(
         data=minicircle_grain_coloured.directions["upper"]["coloured_regions"],
         output_dir=tmp_path,
         filename="15-coloured_regions.png",
+        pixel_to_nm_scaling_factor=minicircle_grain_coloured.pixel_to_nm_scaling,
         title="Coloured Regions",
         **plotting_config,
-        region_properties=minicircle_grain_region_properties_post_removal
+        region_properties=minicircle_grain_region_properties_post_removal,
     ).plot_and_save()
     return fig
 
@@ -150,7 +151,8 @@ def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         output_dir=tmp_path,
         filename="08_5-z_threshold.png",
+        pixel_to_nm_scaling_factor=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
         title="Raw Height",
-        **plotting_config
+        **plotting_config,
     ).plot_and_save()
     return fig

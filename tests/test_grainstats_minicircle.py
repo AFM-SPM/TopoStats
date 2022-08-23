@@ -58,10 +58,10 @@ def test_image_set(minicircle_grainstats: GrainStats, tmp_path: Path, value, exp
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_cropped_image(minicircle_grainstats: GrainStats, plotting_config: dict, tmp_path: Path):
+def test_cropped_image(minicircle_grainstats: GrainStats, tmp_path: Path):
     """Tests that produced cropped images have not changed."""
     grain_centre = 547, 794 # centre of grain 7
-    length = int(minicircle_grainstats.cropped_size/(2*minicircle_grainstats.pixel_to_nanometre_scaling))
+    length = int(minicircle_grainstats.cropped_size / (2 * minicircle_grainstats.pixel_to_nanometre_scaling))
     cropped_grain_image = minicircle_grainstats.get_cropped_region(
         image=minicircle_grainstats.data, 
         length=length, 
@@ -71,7 +71,11 @@ def test_cropped_image(minicircle_grainstats: GrainStats, plotting_config: dict,
         data=cropped_grain_image,
         output_dir=tmp_path,
         filename="cropped_grain_7.png",
-        **plotting_config).plot_and_save()
+        pixel_to_nm_scaling_factor=minicircle_grainstats.pixel_to_nanometre_scaling,
+        type="non-binary",
+        image_set=minicircle_grainstats.image_set,
+        core_set=True,
+    ).plot_and_save()
     return fig
 
 @pytest.mark.parametrize("extension", [
