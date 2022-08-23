@@ -2,6 +2,7 @@
 from argparse import Namespace
 import logging
 from pathlib import Path
+import re
 from typing import Union, List, Dict
 from collections import defaultdict
 
@@ -74,6 +75,22 @@ def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> Li
     """
     base_dir = Path("./") if base_dir is None else Path(base_dir)
     return list(base_dir.glob("**/*" + file_ext))
+
+
+def clean_filename(filename: str):
+    """Removes multiple periods from filenames leaving just the final extensions. Replaces '.' with '_'.
+
+    Parameters
+    ----------
+    file_list: list
+        List of Path objects to be cleaned.
+
+    Returns
+    -------
+    list
+        List of file Path objects with all but the last '.' replaced with '_'.
+    """
+    return re.sub("\.", "_", str(filename))
 
 
 def get_out_path(

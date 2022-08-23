@@ -1,5 +1,6 @@
 """Plotting data."""
 from pathlib import Path
+import re
 from typing import Union
 import logging
 
@@ -10,6 +11,7 @@ import numpy as np
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
+from topostats.utils import clean_filename
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -89,9 +91,10 @@ def plot_and_save(
 
         if save:
             if image_set == "all" or core_set:
-                plt.savefig(output_dir / filename)
+                outfile = clean_filename(filename)
+                plt.savefig(output_dir / outfile)
                 if "_processed" in filename:
-                    LOGGER.info(f"[{filename.split('_processed')[0]}] : Image saved to : {str(output_dir / filename)}")
+                    LOGGER.info(f"[{filename.split('_processed')[0]}] : Image saved to : {outfile}")
     else:
         plt.xlabel("Nanometres")
         plt.ylabel("Nanometres")

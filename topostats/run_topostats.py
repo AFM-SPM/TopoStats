@@ -299,7 +299,6 @@ def process_scan(
             plot_name = "gaussian_filtered"
             plotting_config["plot_dict"][plot_name]["output_dir"] = filter_out_path
             plot_and_save(grains.images["gaussian_filtered"], **plotting_config["plot_dict"][plot_name])
-
             plot_name = "z_threshed"
             plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
             plot_and_save(
