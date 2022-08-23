@@ -56,6 +56,8 @@ def test_plot_and_save_no_colorbar(minicircle_pixels: Filters, tmp_path: Path) -
         pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=False,
+        axes=True,
+        image_set="all",
     ).plot_and_save()
     return fig
 
@@ -70,6 +72,8 @@ def test_plot_and_save_colorbar(minicircle_pixels: Filters, tmp_path: Path) -> N
         pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=True,
+        axes=True,
+        image_set="all",
     ).plot_and_save()
     return fig
 
@@ -105,7 +109,7 @@ def test_plot_and_save_no_axes_no_colorbar(minicircle_pixels: Filters, plotting_
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_colorbar_afmhot(minicircle_pixels: Filters, tmp_path: Path
+def test_plot_and_save_colorbar_afmhot(minicircle_pixels: Filters, tmp_path: Path, plotting_config: dict
     ) -> None:
     """Test plotting with colorbar"""
     plotting_config["cmap"] = "afmhot"
@@ -116,7 +120,9 @@ def test_plot_and_save_colorbar_afmhot(minicircle_pixels: Filters, tmp_path: Pat
         pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=True,
+        axes=True,
         cmap="afmhot",
+        image_set="all"
     ).plot_and_save()
     return fig
 
