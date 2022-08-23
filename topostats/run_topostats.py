@@ -356,8 +356,10 @@ def main():
     for image, options in config["plotting"]["plot_dict"].items():
         config["plotting"]["plot_dict"][image] = {
             **options,
+            "save_format": config["plotting"]["save_format"],
             "image_set": config["plotting"]["image_set"],
             "colorbar": config["plotting"]["colorbar"],
+            "axes": config["plotting"]["axes"],
             "cmap": config["plotting"]["cmap"],
             "zrange": config["plotting"]["zrange"],
         }
