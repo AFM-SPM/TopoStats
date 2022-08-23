@@ -12,7 +12,7 @@ RESOURCES = BASE_DIR / "tests" / "resources"
 # so instead we run three regression tests.
 def test_process_scan_lower(
     regtest,
-    tmpdir,
+    tmp_path,
     filter_config: dict,
     grains_config: dict,
     grainstats_config: dict,
@@ -30,7 +30,7 @@ def test_process_scan_lower(
         grainstats_config=config["grainstats"],
         dnatracing_config=config["dnatracing"],
         plotting_config=config["plotting"],
-        output_dir=tmpdir,
+        output_dir=tmp_path,
     )
     # Remove the Basename column as this differs on CI
     results.drop(["Basename"], axis=1, inplace=True)
@@ -39,7 +39,7 @@ def test_process_scan_lower(
 
 def test_process_scan_upper(
     regtest,
-    tmpdir,
+    tmp_path,
     filter_config: dict,
     grains_config: dict,
     grainstats_config: dict,
@@ -57,7 +57,7 @@ def test_process_scan_upper(
         grainstats_config=config["grainstats"],
         dnatracing_config=config["dnatracing"],
         plotting_config=config["plotting"],
-        output_dir=tmpdir,
+        output_dir=tmp_path,
     )
     # Remove the Basename column as this differs on CI
     results.drop(["Basename"], axis=1, inplace=True)
@@ -66,7 +66,7 @@ def test_process_scan_upper(
 
 def test_process_scan_both(
     regtest,
-    tmpdir,
+    tmp_path,
     filter_config: dict,
     grains_config: dict,
     grainstats_config: dict,
@@ -84,7 +84,7 @@ def test_process_scan_both(
         grainstats_config=config["grainstats"],
         dnatracing_config=config["dnatracing"],
         plotting_config=config["plotting"],
-        output_dir=tmpdir,
+        output_dir=tmp_path,
     )
     # Remove the Basename column as this differs on CI
     results.drop(["Basename"], axis=1, inplace=True)

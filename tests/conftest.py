@@ -145,7 +145,7 @@ def test_filters(filter_config: dict, sample_config: dict, tmp_path) -> Filters:
     """Filters class for testing."""
     filters = Filters(
         RESOURCES / "minicircle.spm",
-        output_dir=tmpdir,
+        output_dir=tmp_path,
         **filter_config
     )
     filters.load_scan()
