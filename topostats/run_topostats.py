@@ -208,10 +208,10 @@ def process_scan(
         # to pass over these.
         if grainstats_config["run"] and grains.region_properties is not None:
             grainstats_config.pop("run")
-            grain_plot_dict = {key:value for key, value in plotting_config["plot_dict"].items() if key in ["grain_image","grain_mask", "grain_mask_image"]}
             # Grain Statistics :
             try:
                 LOGGER.info(f"[{filtered_image.filename}] : *** Grain Statistics ***")
+                grain_plot_dict = {key:value for key, value in plotting_config["plot_dict"].items() if key in ["grain_image","grain_mask", "grain_mask_image"]}
                 grainstats = {}
                 for direction in grains.directions.keys():
                     grainstats[direction] = GrainStats(
@@ -221,7 +221,6 @@ def process_scan(
                         direction=direction,
                         base_output_dir=_output_dir / "grains",
                         image_name=filtered_image.filename,
-                        image_set=plotting_config["image_set"],
                         plot_opts=grain_plot_dict,
                         **grainstats_config,
                     ).calculate_stats()
@@ -265,13 +264,14 @@ def process_scan(
                     results = grainstats_df
                     results["Image Name"] = filtered_image.filename
                     results["Basename"] = image_path.parent
-
+            
             except Exception:
                 # If no results we need a dummy dataframe to return.
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Errors occurred attempting to calculate grain statistics and DNA tracing statistics."
                 )
                 results = create_empty_dataframe()
+            
 
     # Optionally plot all stages
     if plotting_config["run"]:
