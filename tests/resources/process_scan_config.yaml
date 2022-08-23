@@ -33,7 +33,7 @@ dnatracing:
   run: true # Options : true, false
 plotting:
   run: true # Options : true, false
-  save_format: tiff # Options: those found in plt.savefig()
+  save_format: png # Options: those found in plt.savefig()
   image_set: core  # Options : all, core
   zrange: [0, 3] # low and high height range for core images. Options : [null, null])
   colorbar: true  # Options : true, false
