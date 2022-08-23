@@ -60,7 +60,7 @@ class GrainStats:
         pixel_to_nanometre_scaling: float,
         direction: str,
         base_output_dir: Union[str, Path],
-        image_name: str = None,
+        filename: str = None,
         zrange: list = [None, None],
         image_set: str = "core",
         save_cropped_grains: bool = False,
@@ -78,7 +78,7 @@ class GrainStats:
             Floating point value that defines the scaling factor between nanometres and pixels.
         base_output_dir : Path
             Path to the folder that will store the grain stats output images and data.
-        image_name : str
+        filename : str
             The name of the file being processed.
         zrange : list
             Low and high height values for the cropped grain zscale.
@@ -96,7 +96,7 @@ class GrainStats:
         self.direction = direction
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
-        self.image_name = image_name
+        self.filename = filename
         self.zrange = zrange
         self.image_set = image_set
         self.save_cropped_grains = save_cropped_grains
@@ -138,10 +138,13 @@ class GrainStats:
         -------
         boolean
             Indicator of whether turn is clockwise.
+
+        Notes
+        -----
+
+        If the determinant of the rotation matrix is > 0 then the rotation is counter-clockwise, otherwise it is
+        clockwise.
         """
-        # Determine if three points form a clockwise or counter-clockwise turn.
-        # I use the method of calculating the determinant of the following rotation matrix here. If the determinant
-        # is > 0 then the rotation is counter-clockwise.
         rotation_matrix = np.array(((p_1[0], p_1[1], 1), (p_2[0], p_2[1], 1), (p_3[0], p_3[1], 1)))
         return not np.linalg.det(rotation_matrix) > 0
 
@@ -150,7 +153,7 @@ class GrainStats:
 
         if self.labelled_data is None:
             LOGGER.info(
-                f"[{self.image_name}] : No labelled regions for this image, grain statistics can not be calculated."
+                f"[{self.filename}] : No labelled regions for this image, grain statistics can not be calculated."
             )
             return {"statistics": pd.DataFrame(columns=GRAIN_STATS_COLUMNS), "plot": None}
 
@@ -165,7 +168,7 @@ class GrainStats:
         stats_array = []
         for index, region in enumerate(region_properties):
 
-            LOGGER.info(f"[{self.image_name}] : Processing grain: {index}")
+            LOGGER.info(f"[{self.filename}] : Processing grain: {index}")
             # Create directory for each grain's plots
             output_grain = self.base_output_dir / self.direction
 
@@ -183,7 +186,7 @@ class GrainStats:
                     plot_and_save(
                         grain_image,
                         output_grain,
-                        f"{self.image_name}_processed_grain_{index}.png",
+                        f"{self.filename}_processed_grain_{index}",
                         pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
                         type="non-binary",
                         image_set=self.image_set,
@@ -194,7 +197,7 @@ class GrainStats:
                     plot_and_save(
                         grain_mask,
                         output_grain,
-                        f"{self.image_name}_grainmask_{index}.png",
+                        f"{self.filename}_grainmask_{index}",
                         pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
                         type="binary",
                         image_set=self.image_set,
@@ -204,7 +207,7 @@ class GrainStats:
                     plot_and_save(
                         masked_grain_image,
                         output_grain,
-                        f"{self.image_name}_grain_image_{index}.png",
+                        f"{self.filename}_grain_image_{index}",
                         pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
                         type="non-binary",
                         image_set=self.image_set,
@@ -229,7 +232,7 @@ class GrainStats:
                     plot_and_save(
                         cropped_grain_image,
                         output_grain,
-                        f"{self.image_name}_processed_grain_{index}.png",
+                        f"{self.filename}_processed_grain_{index}",
                         pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
                         type="non-binary",
                         image_set=self.image_set,
@@ -240,7 +243,7 @@ class GrainStats:
                     plot_and_save(
                         cropped_grain_mask,
                         output_grain,
-                        f"{self.image_name}_grainmask_{index}.png",
+                        f"{self.filename}_grainmask_{index}",
                         pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
                         type="binary",
                         image_set=self.image_set,
@@ -249,7 +252,7 @@ class GrainStats:
                     plot_and_save(
                         cropped_masked_grain_image,
                         output_grain,
-                        f"{self.image_name}_grain_image_{index}.png",
+                        f"{self.filename}_grain_image_{index}",
                         pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
                         type="non-binary",
                         image_set=self.image_set,
@@ -323,10 +326,10 @@ class GrainStats:
         grainstats.index.name = "Molecule Number"
 
         # if self.save_cropped_grains:
-        # savename = f"{self.image_name}_{self.direction}_grainstats.csv"
+        # savename = f"{self.filename}_{self.direction}_grainstats.csv"
         # grainstats.to_csv(self.base_output_dir / self.direction / savename)
         # LOGGER.info(
-        #    f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/{savename}"
+        #    f"[{self.filename}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/{savename}"
         # )
 
         return {"statistics": grainstats, "plot": ax}

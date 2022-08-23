@@ -551,6 +551,7 @@ def minicircle_grainstats(
         pixel_to_nanometre_scaling=minicircle_pixels.pixel_to_nm_scaling,
         base_output_dir=tmpdir,
         image_set=plotting_config["image_set"],
+        filename=minicircle_filename.filename,
         **grainstats_config,
     )
 

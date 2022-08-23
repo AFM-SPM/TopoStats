@@ -18,7 +18,6 @@ RESOURCES = BASE_DIR / "tests" / "resources"
 def test_grainstats_regression(regtest, minicircle_grainstats: GrainStats) -> None:
     """Regression tests for grainstats."""
     statistics = minicircle_grainstats.calculate_stats()
-    print(statistics["statistics"].to_string(), file=regtest)
 
 
 @pytest.mark.parametrize(
@@ -29,7 +28,7 @@ def test_grainstats_regression(regtest, minicircle_grainstats: GrainStats) -> No
     ],
 )
 def test_save_cropped_grains(minicircle_grainstats: GrainStats, tmpdir, value):
-    # need to run grainstats with config option True and see if it is there.
+    """Test if save_cropped_grains option creates target directory."""
     minicircle_grainstats.save_cropped_grains = value
     minicircle_grainstats.base_output_dir = Path(tmpdir) / "grains"
     minicircle_grainstats.calculate_stats()
@@ -44,19 +43,19 @@ def test_save_cropped_grains(minicircle_grainstats: GrainStats, tmpdir, value):
     ],
 )
 def test_image_set(minicircle_grainstats: GrainStats, tmpdir, value, expected):
-    # need to run grainstats with config option True and see if it is there.
+    """Test saving of cropped grains based on the image need to run grainstats with config option True and see if it is there."""
     minicircle_grainstats.save_cropped_grains = True
     minicircle_grainstats.image_set = value
     minicircle_grainstats.base_output_dir = Path(tmpdir) / "grains"
     minicircle_grainstats.calculate_stats()
-    assert Path.exists(Path(tmpdir) / "grains/upper/None_processed_grain_0.png") == True
-    assert Path.exists(Path(tmpdir) / "grains/upper/None_grain_image_0.png") == expected
-    assert Path.exists(Path(tmpdir) / "grains/upper/None_grainmask_0.png") == expected
+    assert Path.exists(Path(tmpdir) / "grains/upper/minicircle_processed_grain_0.png") == True
+    assert Path.exists(Path(tmpdir) / "grains/upper/minicircle_grain_image_0.png") == expected
+    assert Path.exists(Path(tmpdir) / "grains/upper/minicircle_grainmask_0.png") == expected
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_cropped_image(minicircle_grainstats: GrainStats, tmpdir):
-    "Tests that produced cropped images have not changed."
+    """Tests that produced cropped images have not changed."""
     grain_centre = 547, 794  # centre of grain 7
     length = int(minicircle_grainstats.cropped_size / (2 * minicircle_grainstats.pixel_to_nanometre_scaling))
     cropped_grain_image = minicircle_grainstats.get_cropped_region(

@@ -219,7 +219,7 @@ def process_scan(
                         pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
                         direction=direction,
                         base_output_dir=_output_dir / "grains",
-                        image_name=filtered_image.filename,
+                        filename=filtered_image.filename,
                         image_set=plotting_config["image_set"],
                         **grainstats_config,
                     ).calculate_stats()
