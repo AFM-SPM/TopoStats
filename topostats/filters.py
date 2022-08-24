@@ -261,7 +261,7 @@ class Filters:
         """
         medians = self.row_col_medians(image, mask)
         LOGGER.info(f"[{self.filename}] : Zero averaging background")
-        return image - np.array(medians["rows"], ndmin=1).T
+        return (image.T - np.array(medians["rows"], ndmin=1)).T
 
     def filter_image(self) -> None:
         """Process a single image, filtering, finding grains and calculating their statistics.
