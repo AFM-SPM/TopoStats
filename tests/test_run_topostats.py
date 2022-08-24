@@ -11,7 +11,7 @@ RESOURCES = BASE_DIR / "tests" / "resources"
 
 # Can't see a way of paramterising with pytest-regtest as it writes to a file based on the file/function
 # so instead we run three regression tests.
-def test_process_scan_lower(regtest, tmpdir, process_scan_config: dict) -> None:
+def test_process_scan_lower(regtest, tmp_path, process_scan_config: dict) -> None:
     """Regression test for checking the process_scan functions correctly"""
     config = read_yaml(RESOURCES / "process_scan_config.yaml")
     process_scan_config["grains"]["direction"] = "lower"
@@ -23,14 +23,14 @@ def test_process_scan_lower(regtest, tmpdir, process_scan_config: dict) -> None:
         grainstats_config=process_scan_config["grainstats"],
         dnatracing_config=process_scan_config["dnatracing"],
         plotting_config=process_scan_config["plotting"],
-        output_dir=tmpdir,
+        output_dir=tmp_path,
     )
     # Remove the Basename column as this differs on CI
     results.drop(["Basename"], axis=1, inplace=True)
     print(results.to_string(), file=regtest)
 
 
-def test_process_scan_upper(regtest, tmpdir, process_scan_config: dict) -> None:
+def test_process_scan_upper(regtest, tmp_path, process_scan_config: dict) -> None:
     """Regression test for checking the process_scan functions correctly"""
     _, results = process_scan(
         image_path=RESOURCES / "minicircle.spm",
@@ -40,14 +40,14 @@ def test_process_scan_upper(regtest, tmpdir, process_scan_config: dict) -> None:
         grainstats_config=process_scan_config["grainstats"],
         dnatracing_config=process_scan_config["dnatracing"],
         plotting_config=process_scan_config["plotting"],
-        output_dir=tmpdir,
+        output_dir=tmp_path,
     )
     # Remove the Basename column as this differs on CI
     results.drop(["Basename"], axis=1, inplace=True)
     print(results.to_string(), file=regtest)
 
 
-def test_process_scan_both(regtest, tmpdir, process_scan_config: dict) -> None:
+def test_process_scan_both(regtest, tmp_path, process_scan_config: dict) -> None:
     """Regression test for checking the process_scan functions correctly"""
     process_scan_config["grains"]["direction"] = "both"
     _, results = process_scan(
@@ -58,7 +58,7 @@ def test_process_scan_both(regtest, tmpdir, process_scan_config: dict) -> None:
         grainstats_config=process_scan_config["grainstats"],
         dnatracing_config=process_scan_config["dnatracing"],
         plotting_config=process_scan_config["plotting"],
-        output_dir=tmpdir,
+        output_dir=tmp_path,
     )
     # Remove the Basename column as this differs on CI
     results.drop(["Basename"], axis=1, inplace=True)
