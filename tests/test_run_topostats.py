@@ -32,8 +32,6 @@ def test_process_scan_lower(regtest, tmpdir, process_scan_config: dict) -> None:
 
 def test_process_scan_upper(regtest, tmpdir, process_scan_config: dict) -> None:
     """Regression test for checking the process_scan functions correctly"""
-    config = read_yaml(RESOURCES / "process_scan_config.yaml")
-
     _, results = process_scan(
         image_path=RESOURCES / "minicircle.spm",
         base_dir=BASE_DIR,

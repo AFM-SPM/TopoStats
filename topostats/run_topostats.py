@@ -17,7 +17,7 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, write_yaml
 from topostats.logs.logs import setup_logger, LOGGER_NAME
-from topostats.plottingfuncs import plot_and_save
+from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import (
     find_images,
@@ -213,6 +213,7 @@ def process_scan(
             # Grain Statistics :
             try:
                 LOGGER.info(f"[{filtered_image.filename}] : *** Grain Statistics ***")
+                grain_plot_dict = {key:value for key, value in plotting_config["plot_dict"].items() if key in ["grain_image","grain_mask", "grain_mask_image"]}
                 grainstats = {}
                 for direction in grains.directions.keys():
                     grainstats[direction] = GrainStats(
@@ -222,7 +223,7 @@ def process_scan(
                         direction=direction,
                         base_output_dir=_output_dir / "grains",
                         image_name=filtered_image.filename,
-                        image_set=plotting_config["image_set"],
+                        plot_opts=grain_plot_dict,
                         **grainstats_config,
                     ).calculate_stats()
                     grainstats[direction]["statistics"]["threshold"] = direction
@@ -265,13 +266,14 @@ def process_scan(
                     results = grainstats_df
                     results["Image Name"] = filtered_image.filename
                     results["Basename"] = image_path.parent
-
+            
             except Exception:
                 # If no results we need a dummy dataframe to return.
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Errors occurred attempting to calculate grain statistics and DNA tracing statistics."
                 )
                 results = create_empty_dataframe()
+            
 
     # Optionally plot all stages
     if plotting_config["run"]:
@@ -291,7 +293,7 @@ def process_scan(
                     array = np.flipud(array.pixels)
                 plotting_config["plot_dict"][plot_name]["output_dir"] = filter_out_path
                 try:
-                    plot_and_save(array, **plotting_config["plot_dict"][plot_name])
+                    Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
                 except AttributeError:
                     LOGGER.info(f"[{filtered_image.filename}] Unable to generate plot : {plot_name}")
 
@@ -300,43 +302,43 @@ def process_scan(
             LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
             plot_name = "gaussian_filtered"
             plotting_config["plot_dict"][plot_name]["output_dir"] = filter_out_path
-            plot_and_save(grains.images["gaussian_filtered"], **plotting_config["plot_dict"][plot_name])
+            Images(grains.images["gaussian_filtered"], **plotting_config["plot_dict"][plot_name]).plot_and_save()
 
             plot_name = "z_threshed"
             plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
-            plot_and_save(
+            Images(
                 grains.images["gaussian_filtered"],
                 filename=filtered_image.filename + "_processed",
                 **plotting_config["plot_dict"][plot_name],
-            )
+            ).plot_and_save()
 
             for direction, image_arrays in grains.directions.items():
                 output_dir = Path(_output_dir) / filtered_image.filename / "grains" / f"{direction}"
                 for plot_name, array in image_arrays.items():
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
-                    plot_and_save(array, **plotting_config["plot_dict"][plot_name])
+                    Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
                 # Make a plot of coloured regions with bounding boxes
                 plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = output_dir
-                plot_and_save(
+                Images(
                     grains.directions[direction]["coloured_regions"],
                     **plotting_config["plot_dict"]["bounding_boxes"],
                     region_properties=grains.region_properties[direction],
-                )
+                ).plot_and_save()
                 plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = output_dir
-                plot_and_save(
+                Images(
                     grains.directions[direction]["labelled_regions_02"],
                     **plotting_config["plot_dict"]["coloured_boxes"],
                     region_properties=grains.region_properties[direction],
-                )
+                ).plot_and_save()
 
                 plot_name = "mask_overlay"
                 plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
-                plot_and_save(
+                Images(
                     grains.images["gaussian_filtered"],
                     filename=filtered_image.filename + "_processed_masked",
                     data2=grains.directions[direction]["removed_small_objects"],
                     **plotting_config["plot_dict"][plot_name],
-                )
+                ).plot_and_save()
     return image_path, results
 
 
@@ -364,18 +366,20 @@ def main():
     for image, options in config["plotting"]["plot_dict"].items():
         config["plotting"]["plot_dict"][image] = {
             **options,
+            "save_format": config["plotting"]["save_format"],
             "image_set": config["plotting"]["image_set"],
             "colorbar": config["plotting"]["colorbar"],
+            "axes": config["plotting"]["axes"],
             "cmap": config["plotting"]["cmap"],
             "zrange": config["plotting"]["zrange"],
         }
-        if image not in ["z_threshed", "mask_overlay"]:
+        if image not in ["z_threshed", "mask_overlay", "grain_image", "grain_mask_image"]:
             config["plotting"]["plot_dict"][image].pop("zrange")
 
     LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
-    LOGGER.info(f'Scanning for images in              : {config["base_dir"]}')
-    LOGGER.info(f'Output directory                    : {str(config["output_dir"])}')
-    LOGGER.info(f'Looking for images with extension   : {config["file_ext"]}')
+    LOGGER.info(f"Scanning for images in              : {config['base_dir']}")
+    LOGGER.info(f"Output directory                    : {str(config['output_dir'])}")
+    LOGGER.info(f"Looking for images with extension   : {config['file_ext']}")
     img_files = find_images(config["base_dir"])
     LOGGER.info(f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}')
     LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
@@ -399,7 +403,7 @@ def main():
         results = defaultdict()
         with tqdm(
             total=len(img_files),
-            desc=f'Processing images from {config["base_dir"]}, results are under {config["output_dir"]}',
+            desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
             for img, result in pool.imap_unordered(processing_function, img_files):
                 results[str(img)] = result

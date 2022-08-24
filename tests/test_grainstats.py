@@ -2,6 +2,7 @@
 import logging
 import numpy as np
 import pytest
+from pathlib import Path
 
 from topostats.grainstats import GrainStats
 from topostats.logs.logs import LOGGER_NAME
@@ -138,7 +139,7 @@ def test_calculate_squared_distance(grainstats: GrainStats) -> None:
     assert displacement_2_3 == target_2_3
 
 
-def test_random_grain_stats(caplog, tmpdir) -> None:
+def test_random_grain_stats(caplog, tmp_path: Path) -> None:
     """Test GrainStats raises error when passed zero grains."""
     caplog.set_level(logging.DEBUG, logger=LOGGER_NAME)
     grainstats = GrainStats(
@@ -147,7 +148,7 @@ def test_random_grain_stats(caplog, tmpdir) -> None:
         pixel_to_nanometre_scaling=0.5,
         image_name="random",
         direction="upper",
-        base_output_dir=tmpdir,
+        base_output_dir=tmp_path,
     )
     grainstats.calculate_stats()
 

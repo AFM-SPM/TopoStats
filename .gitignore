@@ -7,7 +7,7 @@ __pycache__/
 build/*
 
 # User-Specific config file
-config.ini
+output/config.yaml
 
 # Source / output data
 .dropbox
