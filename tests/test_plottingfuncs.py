@@ -79,7 +79,7 @@ def test_plot_and_save_colorbar(minicircle_pixels: Filters, tmp_path: Path) -> N
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_axes(minicircle_pixels: Filters, plotting_config: dict, tmp_path: Path) -> None:
+def test_plot_and_no_save_axes(minicircle_pixels: Filters, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes"""
     plotting_config["axes"] = False
     fig, _ = Images(
