@@ -270,7 +270,19 @@ class Filters:
         return image - np.array(medians["rows"], ndmin=1).T
 
     def gaussian_filter(self, image: np.ndarray, **kwargs) -> np.array:
-        """Apply Gaussian filter"""
+        """Apply Gaussian filter
+        
+        Parameters
+        ----------
+        image: np.array
+            Numpy array representing image.
+        
+        Returns
+        -------
+        np.array
+            Numpy array of blurred image.
+
+        """
         LOGGER.info(
             f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (nm) : {self.gaussian_size})."
         )
