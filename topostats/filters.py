@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from typing import Union
 
+from skimage.filters import gaussian
 import numpy as np
 
 from topostats.io import load_scan
@@ -29,6 +30,8 @@ class Filters:
         threshold_absolute_upper: float = None,
         channel: str = "Height",
         amplify_level: float = None,
+        gaussian_size: float = None,
+        gaussian_mode: str = "nearest",
         output_dir: Union[str, Path] = None,
         quiet: bool = False,
     ):
@@ -57,6 +60,8 @@ class Filters:
         self.img_path = Path(img_path)
         self.channel = channel
         self.amplify_level = amplify_level
+        self.gaussian_size = gaussian_size
+        self.gaussian_mode = gaussian_mode
         self.threshold_method = threshold_method
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
         self.threshold_std_dev = threshold_std_dev
@@ -74,6 +79,7 @@ class Filters:
             "masked_tilt_removal": None,
             "zero_averaged_background": None,
             "mask": None,
+            "gaussian_filtered": None,
         }
         self.thresholds = None
         self.pixel_to_nm_scaling = None
@@ -263,6 +269,18 @@ class Filters:
         LOGGER.info(f"[{self.filename}] : Zero averaging background")
         return image - np.array(medians["rows"], ndmin=1).T
 
+    def gaussian_filter(self, image: np.ndarray, **kwargs) -> np.array:
+        """Apply Gaussian filter"""
+        LOGGER.info(
+            f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (nm) : {self.gaussian_size})."
+        )
+        return gaussian(
+            image,
+            sigma=(self.gaussian_size * self.pixel_to_nm_scaling),
+            mode=self.gaussian_mode,
+            **kwargs,
+        )
+
     def filter_image(self) -> None:
         """Process a single image, filtering, finding grains and calculating their statistics.
 
@@ -305,3 +323,4 @@ class Filters:
         self.images["zero_averaged_background"] = self.average_background(
             self.images["masked_tilt_removal"], self.images["mask"]
         )
+        self.images["gaussian_filtered"] = self.gaussian_filter(self.images["zero_averaged_background"])

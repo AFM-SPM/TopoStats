@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Union, List, Dict
 import numpy as np
 
-from skimage.filters import gaussian
 from skimage.segmentation import clear_border
 from skimage.morphology import remove_small_objects, label
 from skimage.measure import regionprops
@@ -32,8 +31,6 @@ class Grains:
         image: np.ndarray,
         filename: str,
         pixel_to_nm_scaling: float,
-        gaussian_size: float = 2,
-        gaussian_mode: str = "nearest",
         threshold_method: str = None,
         otsu_threshold_multiplier: float = None,
         threshold_std_dev: float = None,
@@ -54,10 +51,6 @@ class Grains:
             File being processed
         pixel_to_nm_scaling: float
             Sacling of pixels to nanometre.
-        gaussian_size : Union[int, float]
-            Minimum grain size in nanometers (nm).
-        gaussian_mode : str
-            Mode for filtering (default is 'nearest').
         threshold_multiplier : Union[int, float]
             Factor by which lower threshold is to be scaled prior to masking.
         threshold_method: str
@@ -85,14 +78,11 @@ class Grains:
         self.threshold_absolute_upper = threshold_absolute_upper
         # Only detect grains for the desired direction
         self.direction = [direction] if direction != "both" else ["upper", "lower"]
-        self.gaussian_size = gaussian_size
-        self.gaussian_mode = gaussian_mode
         self.background = background
         self.base_output_dir = base_output_dir
         self.absolute_smallest_grain_size = absolute_smallest_grain_size
         self.thresholds = None
         self.images = {
-            "gaussian_filtered": None,
             "z_threshed": None,
             "mask_grains": None,
             "tidied_border": None,
@@ -107,18 +97,6 @@ class Grains:
         self.bounding_boxes = defaultdict()
         self.grainstats = None
         Path.mkdir(self.base_output_dir, parents=True, exist_ok=True)
-
-    def gaussian_filter(self, **kwargs) -> np.array:
-        """Apply Gaussian filter"""
-        LOGGER.info(
-            f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (nm) : {self.gaussian_size})."
-        )
-        self.images["gaussian_filtered"] = gaussian(
-            self.image,
-            sigma=(self.gaussian_size * self.pixel_to_nm_scaling),
-            mode=self.gaussian_mode,
-            **kwargs,
-        )
 
     def tidy_border(self, image: np.array, **kwargs) -> np.array:
         """Remove grains touching the border
@@ -269,9 +247,8 @@ class Grains:
             for direction in self.direction:
                 LOGGER.info(f"[{self.filename}] : Processing {direction} threshold ({self.thresholds[direction]})")
                 self.directions[direction] = defaultdict()
-                self.gaussian_filter()
                 self.directions[direction]["mask_grains"] = _get_mask(
-                    self.images["gaussian_filtered"],
+                    self.image,
                     threshold=self.thresholds[direction],
                     threshold_direction=direction,
                     img_name=self.filename,

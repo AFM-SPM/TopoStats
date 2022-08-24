@@ -187,7 +187,7 @@ def process_scan(
         try:
             LOGGER.info(f"[{filtered_image.filename}] : *** Grain Finding ***")
             grains = Grains(
-                image=filtered_image.images["zero_averaged_background"],
+                image=filtered_image.images["gaussian_filtered"],
                 filename=filtered_image.filename,
                 pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
                 base_output_dir=grain_out_path,
@@ -215,7 +215,7 @@ def process_scan(
                 grainstats = {}
                 for direction in grains.directions.keys():
                     grainstats[direction] = GrainStats(
-                        data=grains.images["gaussian_filtered"],
+                        data=filtered_image.images["gaussian_filtered"],
                         labelled_data=grains.directions[direction]["labelled_regions_02"],
                         pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
                         direction=direction,
@@ -240,7 +240,7 @@ def process_scan(
                     tracing_stats = defaultdict()
                     for direction, _ in grainstats.items():
                         dna_traces[direction] = dnaTrace(
-                            full_image_data=grains.images["gaussian_filtered"].T,
+                            full_image_data=filtered_image.images["gaussian_filtered"].T,
                             grains=grains.directions[direction]["labelled_regions_02"],
                             filename=filtered_image.filename,
                             pixel_size=filtered_image.pixel_to_nm_scaling,
@@ -294,22 +294,17 @@ def process_scan(
                     Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
                 except AttributeError:
                     LOGGER.info(f"[{filtered_image.filename}] Unable to generate plot : {plot_name}")
+        
+        plot_name = "z_threshed"
+        plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
+        Images(
+            filtered_image.images["gaussian_filtered"],
+            filename=filtered_image.filename + "_processed",
+            **plotting_config["plot_dict"][plot_name],
+        ).plot_and_save()
 
         # Grain stage - only if we have grains
         if grains.region_properties is not None:
-            LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
-            plot_name = "gaussian_filtered"
-            plotting_config["plot_dict"][plot_name]["output_dir"] = filter_out_path
-            Images(grains.images["gaussian_filtered"], **plotting_config["plot_dict"][plot_name]).plot_and_save()
-
-            plot_name = "z_threshed"
-            plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
-            Images(
-                grains.images["gaussian_filtered"],
-                filename=filtered_image.filename + "_processed",
-                **plotting_config["plot_dict"][plot_name],
-            ).plot_and_save()
-
             for direction, image_arrays in grains.directions.items():
                 output_dir = Path(_output_dir) / filtered_image.filename / "grains" / f"{direction}"
                 for plot_name, array in image_arrays.items():
@@ -332,7 +327,7 @@ def process_scan(
                 plot_name = "mask_overlay"
                 plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
                 Images(
-                    grains.images["gaussian_filtered"],
+                    filtered_image.images["gaussian_filtered"],
                     filename=filtered_image.filename + "_processed_masked",
                     data2=grains.directions[direction]["removed_small_objects"],
                     **plotting_config["plot_dict"][plot_name],
