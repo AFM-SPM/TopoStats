@@ -17,13 +17,14 @@ def test_save_figure(
     data2: np.ndarray,
     axes_colorbar: bool,
     region_properties: bool,
+    image_random: np.ndarray,
     minicircle_grain_region_properties_post_removal: Grains,
     tmp_path: Path):
     """Tests that an image is saved and a figure returned"""
     if region_properties:
         region_properties=minicircle_grain_region_properties_post_removal
     fig, ax = Images(
-        data=np.random.rand(10,10),
+        data=image_random,
         output_dir=tmp_path,
         filename="result.png",
         data2=data2,
