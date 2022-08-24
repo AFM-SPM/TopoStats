@@ -2,12 +2,14 @@
 import argparse as arg
 from collections import defaultdict
 from functools import partial
+import importlib.resources as pkg_resources
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Union
+import yaml
+
 import pandas as pd
 import numpy as np
-
 from tqdm import tqdm
 
 from topostats.filters import Filters
@@ -47,7 +49,7 @@ def create_parser() -> arg.ArgumentParser:
         "-c",
         "--config_file",
         dest="config_file",
-        required=True,
+        required=False,
         help="Path to a YAML configuration file.",
     )
     parser.add_argument(
@@ -341,13 +343,21 @@ def process_scan(
 def main():
     """Run processing."""
 
-    # Parse command line options, load config and update with command line options
+    # Parse command line options, load config (or default) and update with command line options
     parser = create_parser()
     args = parser.parse_args()
-    config = read_yaml(args.config_file)
+    if args.config_file is not None:
+        config = read_yaml(args.config_file)
+    else:
+        default_config = pkg_resources.open_text(__package__, "default_config.yaml")
+        config = yaml.safe_load(default_config.read())
     config = update_config(config, args)
     config["output_dir"] = convert_path(config["output_dir"])
     config["output_dir"].mkdir(parents=True, exist_ok=True)
+
+    # Load plotting_dictionary
+    plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
+    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
 
     # FIXME : Make this a function and from topostats.utils import update_plot_dict and write tests
     # Update the config["plotting"]["plot_dict"] with plotting options
