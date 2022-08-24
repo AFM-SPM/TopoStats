@@ -71,6 +71,7 @@ def grains_config(sample_config: Dict) -> Dict:
 def grainstats_config(sample_config: Dict) -> Dict:
     """Configurations for grainstats"""
     config = sample_config["grainstats"]
+    config["direction"] = "upper"
     config.pop("run")
     return config
 
@@ -567,7 +568,7 @@ def minicircle_grainstats(
         pixel_to_nanometre_scaling=minicircle_pixels.pixel_to_nm_scaling,
         base_output_dir=tmp_path,
         plot_opts={"grain_image": {"core_set": True},
-                   "grain_mask": {"core_set": False}, 
+                   "grain_mask": {"core_set": False},
                    "grain_mask_image": {"core_set": False}},
         **grainstats_config,
     )

@@ -75,6 +75,8 @@ class GrainStats:
             2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.
         pixel_to_nanometre_scaling : float
             Floating point value that defines the scaling factor between nanometres and pixels.
+        direction: str
+            Direction for which grains have been detected ("upper" or "lower").
         base_output_dir : Path
             Path to the folder that will store the grain stats output images and data.
         image_name : str
@@ -175,10 +177,10 @@ class GrainStats:
                 output_grain.mkdir(parents=True, exist_ok=True)
                 if self.cropped_size == -1:
                     for name, image in {
-                        'grain_image': grain_image,
-                        'grain_mask': grain_mask,
-                        'grain_mask_image': masked_grain_image
-                        }.items():
+                        "grain_image": grain_image,
+                        "grain_mask": grain_mask,
+                        "grain_mask_image": masked_grain_image,
+                    }.items():
                         Images(
                             data=image,
                             output_dir=output_grain,
@@ -201,10 +203,10 @@ class GrainStats:
                         cropped_grain_image, mask=np.invert(cropped_grain_mask), fill_value=np.nan
                     ).filled()
                     for name, image in {
-                        'grain_image': cropped_grain_image,
-                        'grain_mask': cropped_grain_mask,
-                        'grain_mask_image': cropped_grain_mask_image
-                        }.items():
+                        "grain_image": cropped_grain_image,
+                        "grain_mask": cropped_grain_mask,
+                        "grain_mask_image": cropped_grain_mask_image,
+                    }.items():
                         Images(
                             data=image,
                             output_dir=output_grain,

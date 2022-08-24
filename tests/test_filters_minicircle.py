@@ -59,7 +59,9 @@ def test_extract_pixels(minicircle_pixels: Filters, plotting_config: dict, plot_
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_align_rows_unmasked(minicircle_initial_align: Filters, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
+def test_align_rows_unmasked(
+    minicircle_initial_align: Filters, plotting_config: dict, plot_dict: dict, tmp_path
+) -> None:
     """Test initial alignment of rows without mask."""
     assert isinstance(minicircle_initial_align.images["initial_align"], np.ndarray)
     assert minicircle_initial_align.images["initial_align"].shape == (1024, 1024)
