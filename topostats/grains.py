@@ -83,7 +83,6 @@ class Grains:
         self.absolute_smallest_grain_size = absolute_smallest_grain_size
         self.thresholds = None
         self.images = {
-            "z_threshed": None,
             "mask_grains": None,
             "tidied_border": None,
             "tiny_objects_removed": None,
@@ -93,7 +92,7 @@ class Grains:
         }
         self.directions = defaultdict()
         self.minimum_grain_size = None
-        self.region_properties = defaultdict()
+        self.region_properties = None
         self.bounding_boxes = defaultdict()
         self.grainstats = None
         Path.mkdir(self.base_output_dir, parents=True, exist_ok=True)

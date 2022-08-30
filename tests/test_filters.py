@@ -175,16 +175,18 @@ def test_row_col_medians_with_mask(
     np.testing.assert_array_equal(medians["cols"], image_random_col_medians_masked)
 
 
-def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> None:
+def test_gaussian_filter(small_array_filters: Filters, filter_config: dict, small_array: np.ndarray) -> None:
     """Test Gaussian filter."""
-    small_array_filters.gaussian_filter(
-        image=small_array_filters.image["gaussian_filtered"]
+    small_array_filters.images["gaussian_filtered"] = small_array_filters.gaussian_filter(
+        image=small_array_filters.images["zero_averaged_background"]
     )
     target = gaussian(
-        small_array_filters.image,
+        small_array,
         sigma=(filter_config["gaussian_size"] * 0.5),
         mode=filter_config["gaussian_mode"],
     )
 
+    print(small_array_filters.images["zero_averaged_background"])
+    print(small_array)
     assert isinstance(small_array_filters.images["gaussian_filtered"], np.ndarray)
     np.testing.assert_array_equal(small_array_filters.images["gaussian_filtered"], target)

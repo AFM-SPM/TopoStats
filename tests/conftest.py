@@ -222,10 +222,11 @@ def random_grains(grains_config: dict, random_filters: Filters, tmp_path) -> Gra
 def small_array_filters(small_array: np.ndarray, filter_config: dict, tmp_path) -> Grains:
     """Grains object based on small_array."""
     filter_obj = Filters(
-        img_path=None,
+        img_path=tmp_path / 'abc.spm',
         **filter_config,
     )
-    filter_obj.images["gaussian_filtered"] = filter_obj.gaussian_filter(
+    filter_obj.pixel_to_nm_scaling = 0.5
+    filter_obj.images["zero_averaged_background"] = filter_obj.gaussian_filter(
         image=small_array
     )
     return filter_obj
