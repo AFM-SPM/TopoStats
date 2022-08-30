@@ -168,7 +168,7 @@ def test_average_background(
     """Test zero-averaging of background."""
     assert isinstance(minicircle_zero_average_background.images["zero_averaged_background"], np.ndarray)
     assert minicircle_zero_average_background.images["zero_averaged_background"].shape == (1024, 1024)
-    assert minicircle_zero_average_background.images["zero_averaged_background"].sum() == 169375.41754769627
+    assert minicircle_zero_average_background.images["zero_averaged_background"].sum() == 169375.4175476962
     plotting_config = {**plotting_config, **plot_dict["zero_averaged_background"]}
     fig, _ = Images(
         data=minicircle_zero_average_background.images["zero_averaged_background"],
