@@ -54,7 +54,6 @@ def test_extract_pixels(minicircle_pixels: Filters, plotting_config: dict, plot_
         pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
-    print(fig)
     return fig
 
 

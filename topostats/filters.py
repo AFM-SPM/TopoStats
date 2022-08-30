@@ -281,7 +281,7 @@ class Filters:
         -------
         np.array
             Numpy array of blurred image.
-
+            
         """
         LOGGER.info(
             f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (nm) : {self.gaussian_size})."
