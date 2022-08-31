@@ -171,6 +171,7 @@ def process_scan(
         Path.mkdir(_output_dir / image_path.stem / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
 
+
     # Filter Image :
     if filter_config["run"]:
         filter_config.pop("run")
@@ -266,6 +267,7 @@ def process_scan(
                     **plotting_config["plot_dict"][plot_name],
                 ).plot_and_save()
             plotting_config["run"] = True
+
 
         # Grainstats :
         #
