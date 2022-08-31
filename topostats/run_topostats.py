@@ -201,7 +201,8 @@ def process_scan(
         except ValueError:
             LOGGER.info(f"[{filtered_image.filename}] : No image, it is all masked.")
             results = create_empty_dataframe()
-
+        if grains.region_properties is None:
+            results = create_empty_dataframe()
         # Grainstats :
         #
         # There are two layers to process those above the given threshold and those below, use dictionary comprehension
