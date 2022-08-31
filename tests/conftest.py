@@ -1,11 +1,14 @@
 """Fixtures for testing"""
+import importlib.resources as pkg_resources
 from pathlib import Path
 from typing import Dict
+import yaml
 
 import numpy as np
 import pandas as pd
 import pytest
 
+import topostats
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
@@ -27,13 +30,26 @@ CHANNEL = "Height"
 @pytest.fixture
 def sample_config() -> Dict:
     """Sample configuration"""
-    return read_yaml(RESOURCES / "sample_config.yaml")
+    config = read_yaml(RESOURCES / "sample_config.yaml")
+    plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
+    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    print(config["plotting"]["plot_dict"])
+    return config
 
 @pytest.fixture
-def plot_dict() -> Dict:
-    """Extract the plot_dict dictionary"""
-    config = read_yaml(RESOURCES / "sample_config.yaml")
-    return config["plotting"]["plot_dict"]
+def process_scan_config() -> Dict:
+    """Sample configuration"""
+    config = read_yaml(RESOURCES / "process_scan_config.yaml")
+    plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
+    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    return config
+
+@pytest.fixture
+def plot_dict(sample_config: Dict) -> Dict:
+    """Load the plot_dict dictionary. This is required because the above configs have the 'plot_dict' key/value
+    popped."""
+    plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
+    return yaml.safe_load(plotting_dictionary.read())
 
 @pytest.fixture
 def filter_config(sample_config: Dict) -> Dict:
@@ -55,6 +71,7 @@ def grains_config(sample_config: Dict) -> Dict:
 def grainstats_config(sample_config: Dict) -> Dict:
     """Configurations for grainstats"""
     config = sample_config["grainstats"]
+    config["direction"] = "upper"
     config.pop("run")
     return config
 
@@ -551,7 +568,7 @@ def minicircle_grainstats(
         pixel_to_nanometre_scaling=minicircle_pixels.pixel_to_nm_scaling,
         base_output_dir=tmp_path,
         plot_opts={"grain_image": {"core_set": True},
-                   "grain_mask": {"core_set": False}, 
+                   "grain_mask": {"core_set": False},
                    "grain_mask_image": {"core_set": False}},
         **grainstats_config,
     )
