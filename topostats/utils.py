@@ -277,7 +277,10 @@ def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], 
         This only saves the dataframes and does not retain them.
     """
     dirs = set(all_stats_df["Basename"].values)
-    for _dir in dirs:
-        out_path = get_out_path(Path(_dir), base_dir, output_dir)
-        all_stats_df[all_stats_df["Basename"] == _dir].to_csv(out_path / "Processed" / "folder_grainstats.csv")
-        LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/Processed/folder_grainstats.csv")
+    try:
+        for _dir in dirs:
+            out_path = get_out_path(Path(_dir), base_dir, output_dir)
+            all_stats_df[all_stats_df["Basename"]==_dir].to_csv(out_path / "Processed" / "folder_grainstats.csv")
+            LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/Processed/folder_grainstats.csv")
+    except TypeError:
+        LOGGER.info(f"Unable to generate folderwise statistics as 'all_statistics.csv' is empty")
