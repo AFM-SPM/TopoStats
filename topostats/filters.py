@@ -288,7 +288,7 @@ class Filters:
         )
         return gaussian(
             image,
-            sigma=(self.gaussian_size * self.pixel_to_nm_scaling),
+            sigma=(self.gaussian_size / self.pixel_to_nm_scaling),
             mode=self.gaussian_mode,
             **kwargs,
         )
