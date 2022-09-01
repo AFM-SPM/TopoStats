@@ -157,7 +157,7 @@ class Filters:
         Parameters
         ----------
         image: np.ndarray
-            2-D mage to be flattened.
+            2-D image to be flattened.
         mask: np.ndarray
             2-D mask to apply to image, should be the same dimensions as iamge.
         stage: str
@@ -172,14 +172,18 @@ class Filters:
         image = self.remove_tilt(image, mask)
         return image
 
-    def row_col_medians(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
+    def row_col_medians(self, image: np.ndarray, mask: np.ndarray = None) -> dict:
         """Returns the height value medians for the rows and columns.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            2-D image to calculate row and column medians.
 
         Returns
         -------
-
-        Returns two Numpy arrays, the first is the row height value medians, the second the column height value
-        medians.
+        dict
+            Dict of two Numpy arrays corresponding to row height value medians and column height value medians.
         """
         if mask is not None:
             image = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
@@ -193,12 +197,24 @@ class Filters:
         return medians
 
     def align_rows(self, image: np.ndarray, mask=None) -> np.ndarray:
-        """Returns the input image with rows aligned by median height"""
+        """Returns a copy of the input image with rows aligned by median height.
+        
+        Parameters
+        ----------
+        image: np.ndarray
+            2-D image to align rows.
+
+        Returns
+        -------
+        np.ndarray
+            Returns a copy of the input image with rows aligned by median height.
+        """
+        image_cp = image.copy()
         if mask is not None:
             if mask.all():
                 LOGGER.error(f"[{self.filename}] : Mask covers entire image. Adjust filtering thresholds/method.")
 
-        medians = self.row_col_medians(image, mask)
+        medians = self.row_col_medians(image_cp, mask)
         row_medians = medians["rows"]
         median_row_height = self._median_row_height(row_medians)
         LOGGER.info(f"[{self.filename}] : Median Row Height: {median_row_height}")
@@ -208,12 +224,12 @@ class Filters:
 
         # Adjust the row medians accordingly
         # FIXME : I think this can be done using arrays directly, no need to loop.
-        for i in range(image.shape[0]):
+        for i in range(image_cp.shape[0]):
             # if np.isnan(row_median_diffs[i]):
             #     LOGGER.info(f"{i} Row_median is nan! : {row_median_diffs[i]}")
-            image[i] -= row_median_diffs[i]
+            image_cp[i] -= row_median_diffs[i]
         LOGGER.info(f"[{self.filename}] : Rows aligned")
-        return image
+        return image_cp
 
     @staticmethod
     def _median_row_height(array: np.ndarray) -> float:
@@ -226,20 +242,32 @@ class Filters:
         return row_medians - median_row_height
 
     def remove_tilt(self, image: np.ndarray, mask=None) -> np.ndarray:
-        """Returns the input image after removing any linear plane slant"""
-        medians = self.row_col_medians(image, mask)
+        """Returns a copy of the input image after removing any linear plane slant.
+    
+        Parameters
+        ----------
+        image: np.ndarray
+            2-D image to align rows.
+
+        Returns
+        -------
+        np.ndarray
+            Returns a copy of the input image after removing any linear plane slant.
+        """
+        image_cp = image.copy()
+        medians = self.row_col_medians(image_cp, mask)
         gradient = {}
         gradient["x"] = self.calc_gradient(array=medians["rows"], shape=medians["rows"].shape[0])
         gradient["y"] = self.calc_gradient(medians["cols"], medians["cols"].shape[0])
         LOGGER.info(f'[{self.filename}] : X-gradient: {gradient["x"]}')
         LOGGER.info(f'[{self.filename}] : Y-gradient: {gradient["y"]}')
 
-        for i in range(image.shape[0]):
-            for j in range(image.shape[1]):
-                image[i, j] -= gradient["x"] * i
-                image[i, j] -= gradient["y"] * j
+        for i in range(image_cp.shape[0]):
+            for j in range(image_cp.shape[1]):
+                image_cp[i, j] -= gradient["x"] * i
+                image_cp[i, j] -= gradient["y"] * j
         LOGGER.info(f"[{self.filename}] : X/Y tilt removed")
-        return image
+        return image_cp
 
     @staticmethod
     def calc_diff(array: np.ndarray) -> np.ndarray:
@@ -262,7 +290,7 @@ class Filters:
 
         Returns
         -------
-        np.array
+        np.ndarray
             Numpy array of image zero averaged.
         """
         medians = self.row_col_medians(image, mask)
@@ -270,7 +298,7 @@ class Filters:
         return image - np.array(medians["rows"], ndmin=1).T
 
     def gaussian_filter(self, image: np.ndarray, **kwargs) -> np.array:
-        """Apply Gaussian filter
+        """Apply Gaussian filter to an image.
         
         Parameters
         ----------
@@ -280,7 +308,7 @@ class Filters:
         Returns
         -------
         np.array
-            Numpy array of blurred image.
+            Numpy array of gaussian blurred image.
             
         """
         LOGGER.info(
