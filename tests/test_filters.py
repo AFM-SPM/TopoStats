@@ -182,7 +182,7 @@ def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> N
     )
     target = gaussian(
         small_array_filters.images['zero_averaged_background'],
-        sigma=(filter_config["gaussian_size"] * 0.5),
+        sigma=(filter_config["gaussian_size"] / 0.5),
         mode=filter_config["gaussian_mode"],
     )
     assert isinstance(small_array_filters.images["gaussian_filtered"], np.ndarray)
