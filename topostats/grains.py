@@ -40,6 +40,8 @@ class Grains:
         absolute_smallest_grain_size: float = None,
         background: float = 0.0,
         base_output_dir: Union[str, Path] = None,
+        area_absolute_threshold_upper: float = None,
+        area_absolute_threshold_lower: float = None,
     ):
         """Initialise the class.
 
@@ -76,6 +78,8 @@ class Grains:
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
+        self.area_absolute_threshold_upper = area_absolute_threshold_upper
+        self.area_absolute_threshold_lower = area_absolute_threshold_lower
         # Only detect grains for the desired direction
         self.direction = [direction] if direction != "both" else ["upper", "lower"]
         self.background = background
@@ -163,7 +167,7 @@ class Grains:
         Returns
         -------
         np.ndarray
-            2D Numpy array of image with objects > absolute_smallest_grain_size removed.
+            2D Numpy array of image with objects < absolute_smallest_grain_size removed.
         """
         LOGGER.info(f"[{self.filename}] : Removing noise (< {self.absolute_smallest_grain_size})")
         return remove_small_objects(image, min_size=self.absolute_smallest_grain_size)
@@ -182,6 +186,29 @@ class Grains:
             )
             return small_objects_removed > 0.0
         return image
+
+    def area_thresholding(self, image: np.ndarray):
+        """Removes objects larger and smaller than the specified thresholds.
+        
+        Parameters
+        ----------
+        image: np.ndarray
+            Image array where the background == 0 and grains are labelled as integers > 0.
+        
+        Returns
+        -------
+        np.ndarray
+            Image where grains outside the thresholds have been removed, now as a binary image.
+
+        """
+        image_cp = image.copy()
+        for grain_no in range(1,np.max(image_cp)+1):
+            grain_area = len(image_cp[image_cp==grain_no]) * (self.pixel_to_nm_scaling ** 2)
+            if grain_area > self.area_absolute_threshold_upper or grain_area < self.area_absolute_threshold_lower:
+                image_cp[image_cp==grain_no] = 0
+        LOGGER.info(f"[{self.filename}] : Final grains found: {len(np.unique(image_cp))-1}")
+        image_cp[image_cp!=0] = 1
+        return image_cp
 
     def colour_regions(self, image: np.array, **kwargs) -> np.array:
         """Colour the regions.
@@ -262,8 +289,8 @@ class Grains:
                 self.directions[direction]["labelled_regions_01"] = self.label_regions(
                     self.directions[direction]["removed_noise"]
                 )
-                self.calc_minimum_grain_size(self.directions[direction]["labelled_regions_01"])
-                self.directions[direction]["removed_small_objects"] = self.remove_small_objects(
+                #self.calc_minimum_grain_size(self.directions[direction]["labelled_regions_01"])
+                self.directions[direction]["removed_small_objects"] = self.area_thresholding(
                     self.directions[direction]["labelled_regions_01"]
                 )
                 self.directions[direction]["labelled_regions_02"] = self.label_regions(
