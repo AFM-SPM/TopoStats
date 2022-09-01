@@ -13,7 +13,7 @@ filter:
   threshold_std_dev: 1.0
   threshold_absolute_lower: -1.0
   threshold_absolute_upper: 1.0
-  gaussian_size: 1.0
+  gaussian_size: 0.5
   gaussian_mode: nearest
 grains:
   run: true # Options : true, false
