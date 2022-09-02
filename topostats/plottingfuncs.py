@@ -79,7 +79,7 @@ class Images:
         """
 
         self.data=data
-        self.output_dir=output_dir
+        self.output_dir=Path(output_dir)
         self.filename=filename
         self.pixel_to_nm_scaling_factor=pixel_to_nm_scaling_factor
         self.data2=data2
