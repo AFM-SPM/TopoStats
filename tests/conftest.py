@@ -220,7 +220,7 @@ def random_grains(grains_config: dict, random_filters: Filters, tmp_path) -> Gra
 
 @pytest.fixture
 def small_array_filters(small_array: np.ndarray, filter_config: dict, tmp_path) -> Grains:
-    """Grains object based on small_array."""
+    """Filters object based on small_array."""
     filter_obj = Filters(
         img_path=tmp_path / 'abc.spm',
         **filter_config,
