@@ -203,7 +203,8 @@ class Filters:
         ----------
         image: np.ndarray
             2-D image to align rows.
-
+        mask: np.ndarray
+            Boolean array of points to mask.
         Returns
         -------
         np.ndarray
