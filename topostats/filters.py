@@ -179,7 +179,8 @@ class Filters:
         ----------
         image: np.ndarray
             2-D image to calculate row and column medians.
-
+        mask: np.ndarray
+            Boolean array of points to mask.
         Returns
         -------
         dict
