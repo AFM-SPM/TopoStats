@@ -196,7 +196,7 @@ class Filters:
         LOGGER.info(f"[{self.filename}] : Row and column medians calculated.")
         return medians
 
-    def align_rows(self, image: np.ndarray, mask=None) -> np.ndarray:
+    def align_rows(self, image: np.ndarray, mask: np.ndarray=None) -> np.ndarray:
         """Returns a copy of the input image with rows aligned by median height.
         
         Parameters
