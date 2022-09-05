@@ -179,7 +179,8 @@ class Filters:
         ----------
         image: np.ndarray
             2-D image to calculate row and column medians.
-
+        mask: np.ndarray
+            Boolean array of points to mask.
         Returns
         -------
         dict
@@ -242,14 +243,15 @@ class Filters:
         """Calculate difference of row medians from the median row height"""
         return row_medians - median_row_height
 
-    def remove_tilt(self, image: np.ndarray, mask=None) -> np.ndarray:
+    def remove_tilt(self, image: np.ndarray, mask: np.ndarray=None) -> np.ndarray:
         """Returns a copy of the input image after removing any linear plane slant.
     
         Parameters
         ----------
         image: np.ndarray
             2-D image to align rows.
-
+        mask: np.ndarray
+            Boolean array of points to mask.
         Returns
         -------
         np.ndarray
