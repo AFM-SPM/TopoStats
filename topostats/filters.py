@@ -242,7 +242,7 @@ class Filters:
         """Calculate difference of row medians from the median row height"""
         return row_medians - median_row_height
 
-    def remove_tilt(self, image: np.ndarray, mask=None) -> np.ndarray:
+    def remove_tilt(self, image: np.ndarray, mask: np.ndarray=None) -> np.ndarray:
         """Returns a copy of the input image after removing any linear plane slant.
     
         Parameters
