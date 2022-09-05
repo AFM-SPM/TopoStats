@@ -178,7 +178,8 @@ def test_row_col_medians_with_mask(
 def test_non_square_img(test_filters_random: Filters):
     test_filters_random.images["pixels"]=test_filters_random.images["pixels"][:,0:512]
     test_filters_random.images["zero_averaged_background"] = test_filters_random.average_background(
-        test_filters_random.images["pixels"], test_filters_random.images["pixels"]
+        image=test_filters_random.images["pixels"], mask=None
     )
     assert isinstance(test_filters_random.images["zero_averaged_background"], np.ndarray)
     assert test_filters_random.images["zero_averaged_background"].shape==(1024, 512)
+    assert np.sum(test_filters_random.images["zero_averaged_background"]) == 44426.48188033322
