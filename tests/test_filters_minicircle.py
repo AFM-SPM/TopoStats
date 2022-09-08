@@ -54,7 +54,6 @@ def test_extract_pixels(minicircle_pixels: Filters, plotting_config: dict, plot_
         pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
-    print(fig)
     return fig
 
 
@@ -180,5 +179,21 @@ def test_average_background(
     ).plot_and_save()
     return fig
 
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_gaussian_filter(
+    minicircle_grain_gaussian_filter: Filters, plotting_config: dict, plot_dict: dict, tmp_path
+) -> None:
+    """Test gaussian filter applied to background."""
+    assert isinstance(minicircle_grain_gaussian_filter.images["gaussian_filtered"], np.ndarray)
+    assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].shape == (1024, 1024)
+    assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].sum() == 169373.05336999873
+    plotting_config = {**plotting_config, **plot_dict["gaussian_filtered"]}
+    fig, _ = Images(
+        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
+        output_dir=tmp_path,
+        pixel_to_nm_scaling_factor=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
+        **plotting_config,
+    ).plot_and_save()
+    return fig
 
 # FIXME (2022-07-11): More tests of alignment/tilt removal and average background when methods other than otsu are used

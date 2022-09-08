@@ -185,7 +185,6 @@ class GrainStats:
                             data=image,
                             output_dir=output_grain,
                             filename=f"{self.image_name}_{name}_{index}",
-                            pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
                             **self.plot_opts[name],
                         ).plot_and_save()
                 else:
@@ -211,7 +210,6 @@ class GrainStats:
                             data=image,
                             output_dir=output_grain,
                             filename=f"{self.image_name}_{name}_{index}",
-                            pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling,
                             **self.plot_opts[name],
                         ).plot_and_save()
 

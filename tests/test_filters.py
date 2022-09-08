@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from pySPM.SPM import SPM_image
 from pySPM.Bruker import Bruker
+from skimage.filters import gaussian
 
 from topostats.filters import Filters
 
@@ -172,3 +173,17 @@ def test_row_col_medians_with_mask(
     assert isinstance(medians["cols"], np.ndarray)
     np.testing.assert_array_equal(medians["rows"], image_random_row_medians_masked)
     np.testing.assert_array_equal(medians["cols"], image_random_col_medians_masked)
+
+
+def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> None:
+    """Test Gaussian filter."""
+    small_array_filters.images["gaussian_filtered"] = small_array_filters.gaussian_filter(
+        image=small_array_filters.images['zero_averaged_background']
+    )
+    target = gaussian(
+        small_array_filters.images['zero_averaged_background'],
+        sigma=(filter_config["gaussian_size"] / 0.5),
+        mode=filter_config["gaussian_mode"],
+    )
+    assert isinstance(small_array_filters.images["gaussian_filtered"], np.ndarray)
+    np.testing.assert_array_equal(small_array_filters.images["gaussian_filtered"], target)

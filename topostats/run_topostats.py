@@ -173,6 +173,7 @@ def process_scan(
         Path.mkdir(_output_dir / image_path.stem / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
 
+
     # Filter Image :
     if filter_config["run"]:
         filter_config.pop("run")
@@ -183,13 +184,43 @@ def process_scan(
         )
         filtered_image.filter_image()
 
+        # Optionally plot filter stage
+        if plotting_config["run"]:
+            plotting_config.pop("run")
+            LOGGER.info(f"[{filtered_image.filename}] : Plotting Filtering Images")
+            # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
+            plot_opts = {
+                "pixel_to_nm_scaling_factor": filtered_image.pixel_to_nm_scaling,
+            }
+            for image, options in plotting_config["plot_dict"].items():
+                plotting_config["plot_dict"][image] = {**options, **plot_opts}
+            # Generate plots
+            for plot_name, array in filtered_image.images.items():
+                if plot_name not in ["scan_raw"]:
+                    if plot_name == "extracted_channel":
+                        array = np.flipud(array.pixels)
+                    plotting_config["plot_dict"][plot_name]["output_dir"] = filter_out_path
+                    try:
+                        Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
+                    except AttributeError:
+                        LOGGER.info(f"[{filtered_image.filename}] Unable to generate plot : {plot_name}")
+            plot_name = "z_threshed"
+            plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
+            Images(
+                filtered_image.images["gaussian_filtered"],
+                filename=filtered_image.filename + "_processed",
+                **plotting_config["plot_dict"][plot_name],
+            ).plot_and_save()
+            plotting_config["run"] = True
+
+
     # Find Grains :
     if grains_config["run"]:
         grains_config.pop("run")
         try:
             LOGGER.info(f"[{filtered_image.filename}] : *** Grain Finding ***")
             grains = Grains(
-                image=filtered_image.images["zero_averaged_background"],
+                image=filtered_image.images["gaussian_filtered"],
                 filename=filtered_image.filename,
                 pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
                 base_output_dir=grain_out_path,
@@ -203,6 +234,42 @@ def process_scan(
         except ValueError:
             LOGGER.info(f"[{filtered_image.filename}] : No image, it is all masked.")
             results = create_empty_dataframe()
+        if grains.region_properties is None:
+            results = create_empty_dataframe()
+
+        # Optionally plot grain finding stage
+        if plotting_config["run"] and grains.region_properties is not None:
+            plotting_config.pop("run")
+            LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Finding Images")
+            for direction, image_arrays in grains.directions.items():
+                output_dir = Path(_output_dir) / filtered_image.filename / "grains" / f"{direction}"
+                for plot_name, array in image_arrays.items():
+                    plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
+                    Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
+                # Make a plot of coloured regions with bounding boxes
+                plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = output_dir
+                Images(
+                    grains.directions[direction]["coloured_regions"],
+                    **plotting_config["plot_dict"]["bounding_boxes"],
+                    region_properties=grains.region_properties[direction],
+                ).plot_and_save()
+                plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = output_dir
+                Images(
+                    grains.directions[direction]["labelled_regions_02"],
+                    **plotting_config["plot_dict"]["coloured_boxes"],
+                    region_properties=grains.region_properties[direction],
+                ).plot_and_save()
+
+                plot_name = "mask_overlay"
+                plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
+                Images(
+                    filtered_image.images["gaussian_filtered"],
+                    filename=filtered_image.filename + "_processed_masked",
+                    data2=grains.directions[direction]["removed_small_objects"],
+                    **plotting_config["plot_dict"][plot_name],
+                ).plot_and_save()
+            plotting_config["run"] = True
+
 
         # Grainstats :
         #
@@ -217,7 +284,7 @@ def process_scan(
                 grainstats = {}
                 for direction in grains.directions.keys():
                     grainstats[direction] = GrainStats(
-                        data=grains.images["gaussian_filtered"],
+                        data=filtered_image.images["gaussian_filtered"],
                         labelled_data=grains.directions[direction]["labelled_regions_02"],
                         pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
                         direction=direction,
@@ -242,7 +309,7 @@ def process_scan(
                     tracing_stats = defaultdict()
                     for direction, _ in grainstats.items():
                         dna_traces[direction] = dnaTrace(
-                            full_image_data=grains.images["gaussian_filtered"].T,
+                            full_image_data=filtered_image.images["gaussian_filtered"].T,
                             grains=grains.directions[direction]["labelled_regions_02"],
                             filename=filtered_image.filename,
                             pixel_size=filtered_image.pixel_to_nm_scaling,
@@ -273,72 +340,7 @@ def process_scan(
                     f"[{filtered_image.filename}] : Errors occurred attempting to calculate grain statistics and DNA tracing statistics."
                 )
                 results = create_empty_dataframe()
-            
 
-    # Optionally plot all stages
-    if plotting_config["run"]:
-        plotting_config.pop("run")
-        LOGGER.info(f"[{filtered_image.filename}] : Plotting Filtering Images")
-        # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
-        plot_opts = {
-            "pixel_to_nm_scaling_factor": filtered_image.pixel_to_nm_scaling,
-        }
-        for image, options in plotting_config["plot_dict"].items():
-            plotting_config["plot_dict"][image] = {**options, **plot_opts}
-
-        # Filtering stage
-        for plot_name, array in filtered_image.images.items():
-            if plot_name not in ["scan_raw"]:
-                if plot_name == "extracted_channel":
-                    array = np.flipud(array.pixels)
-                plotting_config["plot_dict"][plot_name]["output_dir"] = filter_out_path
-                try:
-                    Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
-                except AttributeError:
-                    LOGGER.info(f"[{filtered_image.filename}] Unable to generate plot : {plot_name}")
-
-        # Grain stage - only if we have grains
-        if grains.region_properties is not None:
-            LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Images")
-            plot_name = "gaussian_filtered"
-            plotting_config["plot_dict"][plot_name]["output_dir"] = filter_out_path
-            Images(grains.images["gaussian_filtered"], **plotting_config["plot_dict"][plot_name]).plot_and_save()
-
-            plot_name = "z_threshed"
-            plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
-            Images(
-                grains.images["gaussian_filtered"],
-                filename=filtered_image.filename + "_processed",
-                **plotting_config["plot_dict"][plot_name],
-            ).plot_and_save()
-
-            for direction, image_arrays in grains.directions.items():
-                output_dir = Path(_output_dir) / filtered_image.filename / "grains" / f"{direction}"
-                for plot_name, array in image_arrays.items():
-                    plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
-                    Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
-                # Make a plot of coloured regions with bounding boxes
-                plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = output_dir
-                Images(
-                    grains.directions[direction]["coloured_regions"],
-                    **plotting_config["plot_dict"]["bounding_boxes"],
-                    region_properties=grains.region_properties[direction],
-                ).plot_and_save()
-                plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = output_dir
-                Images(
-                    grains.directions[direction]["labelled_regions_02"],
-                    **plotting_config["plot_dict"]["coloured_boxes"],
-                    region_properties=grains.region_properties[direction],
-                ).plot_and_save()
-
-                plot_name = "mask_overlay"
-                plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
-                Images(
-                    grains.images["gaussian_filtered"],
-                    filename=filtered_image.filename + "_processed_masked",
-                    data2=grains.directions[direction]["removed_small_objects"],
-                    **plotting_config["plot_dict"][plot_name],
-                ).plot_and_save()
     return image_path, results
 
 
