@@ -79,7 +79,7 @@ class Images:
         """
 
         self.data=data
-        self.output_dir=output_dir
+        self.output_dir=Path(output_dir)
         self.filename=filename
         self.pixel_to_nm_scaling_factor=pixel_to_nm_scaling_factor
         self.data2=data2
@@ -169,13 +169,13 @@ class Images:
                         plt.title("")
                         fig.frameon=False
                         plt.savefig(
-                            (self.output_dir / self.filename).with_suffix(f".{self.save_format}"), 
+                            (self.output_dir / f"{self.filename}.{self.save_format}"), 
                             format=self.save_format, 
                             bbox_inches="tight", 
                             pad_inches = 0
                         )
             else:
-                plt.savefig((self.output_dir / self.filename).with_suffix(f".{self.save_format}"), format=self.save_format)
+                plt.savefig((self.output_dir / f"{self.filename}.{self.save_format}"), format=self.save_format)
         else:
             plt.xlabel("Nanometres")
             plt.ylabel("Nanometres")
@@ -191,7 +191,7 @@ class Images:
     def save_array_figure(self) -> None:
         """This function saves only the image array as an image using plt.imsave"""
         plt.imsave(
-            (self.output_dir / self.filename).with_suffix(f".{self.save_format}"), 
+            (self.output_dir / f"{self.filename}.{self.save_format}"),
             self.data,
             cmap=Colormap(self.cmap).get_cmap(),
             vmin=self.zrange[0],

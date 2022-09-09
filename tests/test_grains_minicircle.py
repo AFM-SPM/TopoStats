@@ -29,25 +29,7 @@ def test_threshold_abs(minicircle_grain_threshold_abs: Grains) -> None:
     assert minicircle_grain_threshold_abs.thresholds == {"upper": 1.0, "lower": -1.0}
 
 
-#@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_gaussian_filter_minicircle(
-    minicircle_grain_gaussian_filter: Grains, plotting_config: dict, plot_dict: dict, tmp_path
-) -> None:
-    """Test Gaussian filter."""
-    assert isinstance(minicircle_grain_gaussian_filter.images["gaussian_filtered"], np.ndarray)
-    assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].shape == (1024, 1024)
-    assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].sum() == 169373.26937961997
-    plotting_config = {**plotting_config, **plot_dict["gaussian_filtered"]}
-    fig, _ = Images(
-        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
-        output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
-        **plotting_config,
-    ).plot_and_save()
-    return fig
-
-
-#@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_mask_minicircle(minicircle_grain_mask: Grains, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
     """Test creation of boolean array for clearing borders."""
     plotting_config["type"] = "binary"

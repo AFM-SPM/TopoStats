@@ -1,11 +1,14 @@
 """Fixtures for testing"""
+import importlib.resources as pkg_resources
 from pathlib import Path
 from typing import Dict
+import yaml
 
 import numpy as np
 import pandas as pd
 import pytest
 
+import topostats
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
@@ -27,13 +30,26 @@ CHANNEL = "Height"
 @pytest.fixture
 def sample_config() -> Dict:
     """Sample configuration"""
-    return read_yaml(RESOURCES / "sample_config.yaml")
+    config = read_yaml(RESOURCES / "sample_config.yaml")
+    plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
+    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    print(config["plotting"]["plot_dict"])
+    return config
 
 @pytest.fixture
-def plot_dict() -> Dict:
-    """Extract the plot_dict dictionary"""
-    config = read_yaml(RESOURCES / "sample_config.yaml")
-    return config["plotting"]["plot_dict"]
+def process_scan_config() -> Dict:
+    """Sample configuration"""
+    config = read_yaml(RESOURCES / "process_scan_config.yaml")
+    plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
+    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    return config
+
+@pytest.fixture
+def plot_dict(sample_config: Dict) -> Dict:
+    """Load the plot_dict dictionary. This is required because the above configs have the 'plot_dict' key/value
+    popped."""
+    plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
+    return yaml.safe_load(plotting_dictionary.read())
 
 @pytest.fixture
 def filter_config(sample_config: Dict) -> Dict:
@@ -55,6 +71,7 @@ def grains_config(sample_config: Dict) -> Dict:
 def grainstats_config(sample_config: Dict) -> Dict:
     """Configurations for grainstats"""
     config = sample_config["grainstats"]
+    config["direction"] = "upper"
     config.pop("run")
     return config
 
@@ -218,6 +235,20 @@ def random_grains(grains_config: dict, random_filters: Filters, tmp_path) -> Gra
     return grains
 
 
+@pytest.fixture
+def small_array_filters(small_array: np.ndarray, filter_config: dict, tmp_path) -> Grains:
+    """Filters object based on small_array."""
+    filter_obj = Filters(
+        img_path=tmp_path / 'abc.spm',
+        **filter_config,
+    )
+    filter_obj.pixel_to_nm_scaling = 0.5
+    filter_obj.images["zero_averaged_background"] = filter_obj.gaussian_filter(
+        image=small_array
+    )
+    return filter_obj
+
+
 ## Minicircle fixtures
 @pytest.fixture
 def minicircle(filter_config: dict, tmp_path) -> Filters:
@@ -267,7 +298,7 @@ def minicircle_pixels(minicircle_channel) -> Filters:
 
 
 @pytest.fixture
-def minicircle_initial_align(minicircle_pixels: np.array) -> Filters:
+def minicircle_initial_align(minicircle_pixels: Filters) -> Filters:
     """Initial align on unmasked data."""
     minicircle_pixels.images["initial_align"] = minicircle_pixels.align_rows(
         minicircle_pixels.images["pixels"], mask=None
@@ -276,7 +307,7 @@ def minicircle_initial_align(minicircle_pixels: np.array) -> Filters:
 
 
 @pytest.fixture
-def minicircle_initial_tilt_removal(minicircle_initial_align: np.array) -> Filters:
+def minicircle_initial_tilt_removal(minicircle_initial_align: Filters) -> Filters:
     """Initial x/y tilt removal on unmasked data."""
     minicircle_initial_align.images["initial_tilt_removal"] = minicircle_initial_align.remove_tilt(
         minicircle_initial_align.images["initial_align"], mask=None
@@ -285,7 +316,7 @@ def minicircle_initial_tilt_removal(minicircle_initial_align: np.array) -> Filte
 
 
 @pytest.fixture
-def minicircle_threshold_otsu(minicircle_initial_tilt_removal: np.array, filter_config: dict) -> Filters:
+def minicircle_threshold_otsu(minicircle_initial_tilt_removal: Filters, filter_config: dict) -> Filters:
     """Calculate threshold."""
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
@@ -295,7 +326,7 @@ def minicircle_threshold_otsu(minicircle_initial_tilt_removal: np.array, filter_
 
 
 @pytest.fixture
-def minicircle_threshold_stddev(minicircle_initial_tilt_removal: np.array) -> Filters:
+def minicircle_threshold_stddev(minicircle_initial_tilt_removal: Filters) -> Filters:
     """Calculate threshold."""
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
@@ -307,7 +338,7 @@ def minicircle_threshold_stddev(minicircle_initial_tilt_removal: np.array) -> Fi
 
 
 @pytest.fixture
-def minicircle_threshold_abs(minicircle_initial_tilt_removal: np.array) -> Filters:
+def minicircle_threshold_abs(minicircle_initial_tilt_removal: Filters) -> Filters:
     """Calculate threshold."""
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
@@ -319,7 +350,7 @@ def minicircle_threshold_abs(minicircle_initial_tilt_removal: np.array) -> Filte
 
 
 @pytest.fixture
-def minicircle_mask(minicircle_threshold_otsu: np.array) -> Filters:
+def minicircle_mask(minicircle_threshold_otsu: Filters) -> Filters:
     """Derive mask based on threshold."""
     minicircle_threshold_otsu.images["mask"] = get_mask(
         image=minicircle_threshold_otsu.images["initial_tilt_removal"], thresholds=minicircle_threshold_otsu.thresholds
@@ -328,7 +359,7 @@ def minicircle_mask(minicircle_threshold_otsu: np.array) -> Filters:
 
 
 @pytest.fixture
-def minicircle_masked_align(minicircle_mask: np.array) -> np.array:
+def minicircle_masked_align(minicircle_mask: Filters) -> Filters:
     """Secondary alignment using mask."""
     minicircle_mask.images["masked_align"] = minicircle_mask.align_rows(
         minicircle_mask.images["initial_tilt_removal"], mask=minicircle_mask.images["mask"]
@@ -337,7 +368,7 @@ def minicircle_masked_align(minicircle_mask: np.array) -> np.array:
 
 
 @pytest.fixture
-def minicircle_masked_tilt_removal(minicircle_masked_align: np.array) -> np.array:
+def minicircle_masked_tilt_removal(minicircle_masked_align: Filters) -> Filters:
     """Secondary x/y tilt removal using mask."""
     minicircle_masked_align.images["masked_tilt_removal"] = minicircle_masked_align.remove_tilt(
         minicircle_masked_align.images["masked_align"], mask=minicircle_masked_align.images["mask"]
@@ -346,7 +377,7 @@ def minicircle_masked_tilt_removal(minicircle_masked_align: np.array) -> np.arra
 
 
 @pytest.fixture
-def minicircle_zero_average_background(minicircle_masked_tilt_removal: np.array) -> np.array:
+def minicircle_zero_average_background(minicircle_masked_tilt_removal: Filters) -> Filters:
     """Zero average background"""
     minicircle_masked_tilt_removal.images[
         "zero_averaged_background"
@@ -356,27 +387,25 @@ def minicircle_zero_average_background(minicircle_masked_tilt_removal: np.array)
     return minicircle_masked_tilt_removal
 
 
+@pytest.fixture
+def minicircle_grain_gaussian_filter(minicircle_zero_average_background: Filters) -> Filters:
+    """Apply Gaussian filter."""
+    minicircle_zero_average_background.images[
+        "gaussian_filtered"
+        ] = minicircle_zero_average_background.gaussian_filter(
+        image=minicircle_zero_average_background.images["zero_averaged_background"]
+    )
+    return minicircle_zero_average_background
+
+
 ## Derive fixtures for grain finding
 @pytest.fixture
-def small_array_grains(small_array: np.ndarray, grains_config: dict, tmp_path) -> Grains:
-    """Grains object based on small_array."""
-    grains = Grains(
-        image=small_array,
-        filename="small_array",
-        pixel_to_nm_scaling=0.5,
-        base_output_dir=Path(tmp_path),
-        **grains_config,
-    )
-    return grains
-
-
-@pytest.fixture
-def minicircle_grains(minicircle_zero_average_background: Filters, grains_config: dict, tmp_path) -> Grains:
+def minicircle_grains(minicircle_grain_gaussian_filter: Filters, grains_config: dict, tmp_path) -> Grains:
     """Grains object based on filtered minicircle."""
     grains = Grains(
-        image=minicircle_zero_average_background.images["zero_averaged_background"],
-        filename=minicircle_zero_average_background.filename,
-        pixel_to_nm_scaling=minicircle_zero_average_background.pixel_to_nm_scaling,
+        image=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
+        filename=minicircle_grain_gaussian_filter.filename,
+        pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
         base_output_dir=Path(tmp_path),
         **grains_config
     )
@@ -416,30 +445,16 @@ def minicircle_grain_threshold_abs(minicircle_grains: np.array) -> Grains:
 
 
 @pytest.fixture
-def minicircle_grain_gaussian_filter(minicircle_grain_threshold_otsu: np.array) -> Grains:
-    """Apply Gaussian filter."""
-    minicircle_grain_threshold_otsu.gaussian_filter()
-    return minicircle_grain_threshold_otsu
-
-
-@pytest.fixture
-def minicircle_grain_z_threshold(minicircle_grain_gaussian_filter: np.array) -> Grains:
-    """Apply Z-scale thresholding."""
-    minicircle_grain_gaussian_filter.z_thresholding()
-    return minicircle_grain_gaussian_filter
-
-
-@pytest.fixture
-def minicircle_grain_mask(minicircle_grain_gaussian_filter: np.array) -> Grains:
+def minicircle_grain_mask(minicircle_grain_threshold_otsu: Grains) -> Grains:
     """Boolean mask."""
-    minicircle_grain_gaussian_filter.directions["upper"] = {}
-    minicircle_grain_gaussian_filter.directions["upper"]["mask_grains"] = _get_mask(
-        image=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
-        threshold=minicircle_grain_gaussian_filter.thresholds["upper"],
+    minicircle_grain_threshold_otsu.directions["upper"] = {}
+    minicircle_grain_threshold_otsu.directions["upper"]["mask_grains"] = _get_mask(
+        image=minicircle_grain_threshold_otsu.image,
+        threshold=minicircle_grain_threshold_otsu.thresholds["upper"],
         threshold_direction="upper",
-        img_name=minicircle_grain_gaussian_filter.filename,
+        img_name=minicircle_grain_threshold_otsu.filename,
     )
-    return minicircle_grain_gaussian_filter
+    return minicircle_grain_threshold_otsu
 
 
 @pytest.fixture
@@ -536,8 +551,8 @@ def grainstats(image_random: np.array, minicircle_filename: str, grainstats_conf
 # Minicircle
 @pytest.fixture
 def minicircle_grainstats(
-    minicircle_grain_gaussian_filter: np.array,
-    minicircle_grain_labelled_post_removal: np.array,
+    minicircle_grain_gaussian_filter: Filters,
+    minicircle_grain_labelled_post_removal: Grains,
     minicircle_pixels: float,
     minicircle_filename: str,
     grainstats_config: dict,
@@ -551,7 +566,7 @@ def minicircle_grainstats(
         pixel_to_nanometre_scaling=minicircle_pixels.pixel_to_nm_scaling,
         base_output_dir=tmp_path,
         plot_opts={"grain_image": {"core_set": True},
-                   "grain_mask": {"core_set": False}, 
+                   "grain_mask": {"core_set": False},
                    "grain_mask_image": {"core_set": False}},
         **grainstats_config,
     )
@@ -584,16 +599,16 @@ def test_dnatracing() -> dnaTrace:
 
 @pytest.fixture
 def minicircle_dnatracing(
-        minicircle_grain_coloured: np.ndarray,
-        minicircle_zero_average_background: np.ndarray,
+        minicircle_grain_gaussian_filter: Filters,
+        minicircle_grain_coloured: Grains,
         dnatracing_config: dict
     ) -> pd.DataFrame:
     """DNA Tracing Statistics"""
     dna_traces = dnaTrace(
-        full_image_data=minicircle_grain_coloured.images["gaussian_filtered"].T,
+        full_image_data=minicircle_grain_coloured.image.T,
         grains=minicircle_grain_coloured.directions["upper"]["labelled_regions_02"],
-        filename=minicircle_zero_average_background.filename,
-        pixel_size=minicircle_zero_average_background.pixel_to_nm_scaling,
+        filename=minicircle_grain_gaussian_filter.filename,
+        pixel_size=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
         **dnatracing_config,
     )
     dna_traces.trace_dna()
