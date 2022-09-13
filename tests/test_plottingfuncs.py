@@ -83,7 +83,6 @@ def test_plot_and_save_colorbar(minicircle_pixels: Filters, tmp_path: Path) -> N
 def test_plot_and_save_no_axes(minicircle_pixels: Filters, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes"""
     plotting_config["axes"] = False
-    print(plotting_config)
     fig, _ = Images(
         data=minicircle_pixels.images["pixels"],
         output_dir=tmp_path,
@@ -174,7 +173,6 @@ def test_plot_and_save_non_square_bounding_box(
     tmp_path: Path,
 ) -> None:
     """Test plotting bounding boxes"""
-    print(minicircle_grain_region_properties_post_removal)
     plotting_config["type"] = "binary"
     fig, _ = Images(
         data=minicircle_grain_coloured.image[:,0:512],
