@@ -183,7 +183,7 @@ def test_non_square_img(test_filters_random: Filters):
     )
     assert isinstance(test_filters_random.images["zero_averaged_background"], np.ndarray)
     assert test_filters_random.images["zero_averaged_background"].shape==(1024, 512)
-    assert np.sum(test_filters_random.images["zero_averaged_background"]) == 44426.48188033322
+    assert test_filters_random.images["zero_averaged_background"].sum() == 44426.48188033322
 
 
 def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> None:
