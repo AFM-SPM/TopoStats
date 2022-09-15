@@ -46,7 +46,7 @@ def test_mask_minicircle(minicircle_grain_mask: Grains, plotting_config: dict, p
     return fig
 
 
-#@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_clear_border(minicircle_grain_clear_border: Grains, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
     """Test creation of boolean array for clearing borders."""
     plotting_config["type"] = "binary"
@@ -63,7 +63,7 @@ def test_clear_border(minicircle_grain_clear_border: Grains, plotting_config: di
     return fig
 
 
-#@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_remove_noise(minicircle_grain_remove_noise: Grains, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
     """Test creation of boolean array for clearing borders."""
     plotting_config["type"] = "binary"
@@ -86,7 +86,7 @@ def test_calc_minimum_grain_size_pixels(minicircle_minimum_grain_size) -> None:
     assert minicircle_minimum_grain_size.minimum_grain_size == 1570.25
 
 
-#@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_remove_small_objects(
     minicircle_small_objects_removed: Grains, plotting_config: dict, plot_dict: dict, tmp_path
 ) -> None:
@@ -105,7 +105,7 @@ def test_remove_small_objects(
     return fig
 
 
-#@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_label_regions(
     minicircle_grain_labelled_post_removal: Grains, plotting_config: dict, plot_dict: dict, tmp_path
 ) -> None:
@@ -132,7 +132,7 @@ def test_region_properties(minicircle_grain_region_properties_post_removal: np.a
         assert isinstance(x, RegionProperties)
 
 
-#@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_colour_regions(minicircle_grain_coloured: Grains, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
     """Test removal of small objects."""
     plotting_config["type"] = "binary"
