@@ -83,7 +83,6 @@ def test_plot_and_save_colorbar(minicircle_pixels: Filters, tmp_path: Path) -> N
 def test_plot_and_save_no_axes(minicircle_pixels: Filters, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes"""
     plotting_config["axes"] = False
-    print(plotting_config)
     fig, _ = Images(
         data=minicircle_pixels.images["pixels"],
         output_dir=tmp_path,
@@ -162,5 +161,26 @@ def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting
         pixel_to_nm_scaling_factor=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
         title="Raw Height",
         **plotting_config,
+    ).plot_and_save()
+    return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_plot_and_save_non_square_bounding_box(
+    minicircle_grain_coloured: Grains,
+    minicircle_grain_region_properties_post_removal: Grains,
+    plotting_config: dict,
+    tmp_path: Path,
+) -> None:
+    """Test plotting bounding boxes"""
+    plotting_config["type"] = "binary"
+    fig, _ = Images(
+        data=minicircle_grain_coloured.image[:,0:512],
+        output_dir=tmp_path,
+        filename="15-coloured_regions.png",
+        pixel_to_nm_scaling_factor=minicircle_grain_coloured.pixel_to_nm_scaling,
+        title="Coloured Regions",
+        **plotting_config,
+        region_properties=minicircle_grain_region_properties_post_removal,
     ).plot_and_save()
     return fig

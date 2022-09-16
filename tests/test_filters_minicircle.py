@@ -169,7 +169,7 @@ def test_average_background(
     """Test zero-averaging of background."""
     assert isinstance(minicircle_zero_average_background.images["zero_averaged_background"], np.ndarray)
     assert minicircle_zero_average_background.images["zero_averaged_background"].shape == (1024, 1024)
-    assert minicircle_zero_average_background.images["zero_averaged_background"].sum() == 169375.41754769627
+    assert minicircle_zero_average_background.images["zero_averaged_background"].sum() == 169375.4175476962
     plotting_config = {**plotting_config, **plot_dict["zero_averaged_background"]}
     fig, _ = Images(
         data=minicircle_zero_average_background.images["zero_averaged_background"],
@@ -186,7 +186,7 @@ def test_gaussian_filter(
     """Test gaussian filter applied to background."""
     assert isinstance(minicircle_grain_gaussian_filter.images["gaussian_filtered"], np.ndarray)
     assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].shape == (1024, 1024)
-    assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].sum() == 169373.05336999873
+    assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].sum() == 169373.05336999876
     plotting_config = {**plotting_config, **plot_dict["gaussian_filtered"]}
     fig, _ = Images(
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],

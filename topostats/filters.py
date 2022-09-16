@@ -298,7 +298,7 @@ class Filters:
         """
         medians = self.row_col_medians(image, mask)
         LOGGER.info(f"[{self.filename}] : Zero averaging background")
-        return image - np.array(medians["rows"], ndmin=1).T
+        return (image.T - np.array(medians["rows"], ndmin=1)).T
 
     def gaussian_filter(self, image: np.ndarray, **kwargs) -> np.array:
         """Apply Gaussian filter to an image.

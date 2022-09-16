@@ -14,13 +14,13 @@ TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
 def test_threshold_otsu(minicircle_grain_threshold_otsu: Grains) -> None:
     """Test threshold calculation"""
     assert isinstance(minicircle_grain_threshold_otsu.thresholds, dict)
-    assert minicircle_grain_threshold_otsu.thresholds["upper"] == 1.677727698399513
+    assert minicircle_grain_threshold_otsu.thresholds["upper"] == 1.6774424068410074
 
 
 def test_threshold_stddev(minicircle_grain_threshold_stddev: Grains) -> None:
     """Test threshold calculation"""
     assert isinstance(minicircle_grain_threshold_stddev.thresholds, dict)
-    assert minicircle_grain_threshold_stddev.thresholds == {"upper": 0.7712659633644356, "lower": -0.44821250158389003}
+    assert minicircle_grain_threshold_stddev.thresholds == {"upper": 0.7712698500699151, "lower": -0.4482163882893693}
 
 
 def test_threshold_abs(minicircle_grain_threshold_abs: Grains) -> None:
@@ -35,7 +35,7 @@ def test_mask_minicircle(minicircle_grain_mask: Grains, plotting_config: dict, p
     plotting_config["type"] = "binary"
     assert isinstance(minicircle_grain_mask.directions["upper"]["mask_grains"], np.ndarray)
     assert minicircle_grain_mask.directions["upper"]["mask_grains"].shape == (1024, 1024)
-    assert minicircle_grain_mask.directions["upper"]["mask_grains"].sum() == 55643
+    assert minicircle_grain_mask.directions["upper"]["mask_grains"].sum() == 55648
     plotting_config = {**plotting_config, **plot_dict["mask_grains"]}
     fig, _ = Images(
         data=minicircle_grain_mask.directions["upper"]["mask_grains"],
@@ -52,7 +52,7 @@ def test_clear_border(minicircle_grain_clear_border: Grains, plotting_config: di
     plotting_config["type"] = "binary"
     assert isinstance(minicircle_grain_clear_border.directions["upper"]["tidied_border"], np.ndarray)
     assert minicircle_grain_clear_border.directions["upper"]["tidied_border"].shape == (1024, 1024)
-    assert minicircle_grain_clear_border.directions["upper"]["tidied_border"].sum() == 51452
+    assert minicircle_grain_clear_border.directions["upper"]["tidied_border"].sum() == 51457
     plotting_config = {**plotting_config, **plot_dict["tidied_border"]}
     fig, _ = Images(
         data=minicircle_grain_clear_border.directions["upper"]["tidied_border"],
@@ -69,7 +69,7 @@ def test_remove_noise(minicircle_grain_remove_noise: Grains, plotting_config: di
     plotting_config["type"] = "binary"
     assert isinstance(minicircle_grain_remove_noise.directions["upper"]["removed_noise"], np.ndarray)
     assert minicircle_grain_remove_noise.directions["upper"]["removed_noise"].shape == (1024, 1024)
-    assert minicircle_grain_remove_noise.directions["upper"]["removed_noise"].sum() == 46481
+    assert minicircle_grain_remove_noise.directions["upper"]["removed_noise"].sum() == 46484
     plotting_config = {**plotting_config, **plot_dict["removed_noise"]}
     fig, _ = Images(
         data=minicircle_grain_remove_noise.directions["upper"]["removed_noise"],
@@ -83,7 +83,7 @@ def test_remove_noise(minicircle_grain_remove_noise: Grains, plotting_config: di
 def test_calc_minimum_grain_size_pixels(minicircle_minimum_grain_size) -> None:
     """Test calculation of minimum grain size in pixels."""
     assert isinstance(minicircle_minimum_grain_size.minimum_grain_size, float)
-    assert minicircle_minimum_grain_size.minimum_grain_size == 1571.75
+    assert minicircle_minimum_grain_size.minimum_grain_size == 1570.25
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
@@ -94,7 +94,7 @@ def test_remove_small_objects(
     plotting_config["type"] = "binary"
     assert isinstance(minicircle_small_objects_removed.directions["upper"]["removed_small_objects"], np.ndarray)
     assert minicircle_small_objects_removed.directions["upper"]["removed_small_objects"].shape == (1024, 1024)
-    assert minicircle_small_objects_removed.directions["upper"]["removed_small_objects"].sum() == 42375
+    assert minicircle_small_objects_removed.directions["upper"]["removed_small_objects"].sum() == 42378
     plotting_config = {**plotting_config, **plot_dict["removed_small_objects"]}
     fig, _ = Images(
         data=minicircle_small_objects_removed.directions["upper"]["removed_small_objects"],
@@ -113,7 +113,7 @@ def test_label_regions(
     plotting_config["type"] = "binary"
     assert isinstance(minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"], np.ndarray)
     assert minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"].shape == (1024, 1024)
-    assert minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"].sum() == 484780
+    assert minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"].sum() == 484819
     plotting_config = {**plotting_config, **plot_dict["labelled_regions_02"]}
     fig, _ = Images(
         data=minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"],
@@ -138,7 +138,7 @@ def test_colour_regions(minicircle_grain_coloured: Grains, plotting_config: dict
     plotting_config["type"] = "binary"
     assert isinstance(minicircle_grain_coloured.directions["upper"]["coloured_regions"], np.ndarray)
     assert minicircle_grain_coloured.directions["upper"]["coloured_regions"].shape == (1024, 1024, 3)
-    assert minicircle_grain_coloured.directions["upper"]["coloured_regions"].sum() == 61707.17300000001
+    assert minicircle_grain_coloured.directions["upper"]["coloured_regions"].sum() == 61714.27500000001
     plotting_config = {**plotting_config, **plot_dict["coloured_regions"]}
     fig, _ = Images(
         data=minicircle_grain_coloured.directions["upper"]["coloured_regions"],
