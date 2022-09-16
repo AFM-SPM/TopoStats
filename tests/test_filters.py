@@ -4,8 +4,10 @@ import numpy as np
 import pytest
 from pySPM.SPM import SPM_image
 from pySPM.Bruker import Bruker
+from skimage.filters import gaussian
 
 from topostats.filters import Filters
+from topostats.utils import get_thresholds, get_mask
 
 # pylint: disable=protected-access
 
@@ -29,10 +31,10 @@ def test_extract_filename(test_filters: Filters) -> None:
     assert test_filters.filename == "minicircle"
 
 
-def test_make_output_directory(test_filters: Filters, tmpdir: Path) -> None:
+def test_make_output_directory(test_filters: Filters, tmp_path: Path) -> None:
     """Test creation of output directory"""
     test_filters.make_output_directory()
-    assert tmpdir.exists()
+    assert tmp_path.exists()
 
 
 def test_load_image_that_does_not_exist(caplog) -> None:
@@ -61,6 +63,21 @@ def test_extract_pixels(test_filters: Filters) -> None:
     test_filters.extract_pixels()
     assert isinstance(test_filters.images["pixels"], np.ndarray)
     assert test_filters.images["pixels"].shape == (1024, 1024)
+
+
+@pytest.mark.parametrize("unit, x, y, expected", [
+    ('um', 100, 100, 97.65625),
+    ('nm', 50, 50, 0.048828125),
+    ])
+def test_extract_pixel_to_nm_scaling(test_filters_random: Filters, unit, x, y , expected) -> None:
+    """Test extraction of pixels to nanometer scaling."""
+    test_filters_random.images["extracted_channel"].size['real'] = {
+    'unit': unit,
+    'x': x,
+    'y': y
+    }
+    test_filters_random.extract_pixel_to_nm_scaling()
+    assert test_filters_random.pixel_to_nm_scaling == expected
 
 
 def test_row_col_medians_no_mask(
@@ -157,3 +174,27 @@ def test_row_col_medians_with_mask(
     assert isinstance(medians["cols"], np.ndarray)
     np.testing.assert_array_equal(medians["rows"], image_random_row_medians_masked)
     np.testing.assert_array_equal(medians["cols"], image_random_col_medians_masked)
+
+
+def test_non_square_img(test_filters_random: Filters):
+    test_filters_random.images["pixels"]=test_filters_random.images["pixels"][:,0:512]
+    test_filters_random.images["zero_averaged_background"] = test_filters_random.average_background(
+        image=test_filters_random.images["pixels"], mask=None
+    )
+    assert isinstance(test_filters_random.images["zero_averaged_background"], np.ndarray)
+    assert test_filters_random.images["zero_averaged_background"].shape==(1024, 512)
+    assert test_filters_random.images["zero_averaged_background"].sum() == 44426.48188033322
+
+
+def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> None:
+    """Test Gaussian filter."""
+    small_array_filters.images["gaussian_filtered"] = small_array_filters.gaussian_filter(
+        image=small_array_filters.images['zero_averaged_background']
+    )
+    target = gaussian(
+        small_array_filters.images['zero_averaged_background'],
+        sigma=(filter_config["gaussian_size"] / 0.5),
+        mode=filter_config["gaussian_mode"],
+    )
+    assert isinstance(small_array_filters.images["gaussian_filtered"], np.ndarray)
+    np.testing.assert_array_equal(small_array_filters.images["gaussian_filtered"], target)

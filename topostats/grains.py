@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Union, List, Dict
 import numpy as np
 
-from skimage.filters import gaussian
 from skimage.segmentation import clear_border
 from skimage.morphology import remove_small_objects, label
 from skimage.measure import regionprops
@@ -32,17 +31,15 @@ class Grains:
         image: np.ndarray,
         filename: str,
         pixel_to_nm_scaling: float,
-        gaussian_size: float = 2,
-        gaussian_mode: str = "nearest",
         threshold_method: str = None,
         otsu_threshold_multiplier: float = None,
         threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
+        direction: str = None,
         absolute_smallest_grain_size: float = None,
         background: float = 0.0,
         base_output_dir: Union[str, Path] = None,
-        zrange: list = None
     ):
         """Initialise the class.
 
@@ -54,18 +51,20 @@ class Grains:
             File being processed
         pixel_to_nm_scaling: float
             Sacling of pixels to nanometre.
-        gaussian_size : Union[int, float]
-            Minimum grain size in nanometers (nm).
-        gaussian_mode : str
-            Mode for filtering (default is 'nearest').
         threshold_multiplier : Union[int, float]
             Factor by which lower threshold is to be scaled prior to masking.
         threshold_method: str
             Method for determining threshold to mask values, default is 'otsu'.
+        threshold_std_dev: float
+            Factor by which standard deviation is multiplied to derive the threshold if threshold_method is 'std_dev'.
+        threshold_absolute_lower: float
+            Lower absolute threshold.
+        threshold_absolute_upper: float
+            Upper absolute threshold.
+        direction: str
+            Direction for which grains are to be detected, valid values are upper, lower and both.
         background : float
             The value to average the background around.
-        zrange : list
-            Lower and upper limits for the Z-range.
         output_dir : Union[str, Path]
             Output directory.
         """
@@ -77,16 +76,13 @@ class Grains:
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
-        self.gaussian_size = gaussian_size
-        self.gaussian_mode = gaussian_mode
+        # Only detect grains for the desired direction
+        self.direction = [direction] if direction != "both" else ["upper", "lower"]
         self.background = background
         self.base_output_dir = base_output_dir
-        self.zrange = zrange
         self.absolute_smallest_grain_size = absolute_smallest_grain_size
         self.thresholds = None
         self.images = {
-            "gaussian_filtered": None,
-            "z_threshed": None,
             "mask_grains": None,
             "tidied_border": None,
             "tiny_objects_removed": None,
@@ -100,28 +96,6 @@ class Grains:
         self.bounding_boxes = defaultdict()
         self.grainstats = None
         Path.mkdir(self.base_output_dir, parents=True, exist_ok=True)
-
-    def gaussian_filter(self, **kwargs) -> np.array:
-        """Apply Gaussian filter"""
-        LOGGER.info(
-            f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (nm) : {self.gaussian_size})."
-        )
-        self.images["gaussian_filtered"] = gaussian(
-            self.image,
-            sigma=(self.gaussian_size * self.pixel_to_nm_scaling),
-            mode=self.gaussian_mode,
-            **kwargs,
-        )
-    
-    def z_thresholding(self, **kwargs) -> np.array:
-        """Apply height thresholding so outliers are clipped at config values"""
-        LOGGER.info(
-            f"[{self.filename}] : Applying Z-axis thresholds (min : {self.zrange[0]}nm; max : {self.zrange[1]}nm)."
-        )
-        gaussian_cp = self.images["gaussian_filtered"].copy()
-        gaussian_cp[gaussian_cp < self.zrange[0]] = self.zrange[0]
-        gaussian_cp[gaussian_cp > self.zrange[1]] = self.zrange[1]
-        self.images["z_threshed"] = gaussian_cp
 
     def tidy_border(self, image: np.array, **kwargs) -> np.array:
         """Remove grains touching the border
@@ -265,18 +239,17 @@ class Grains:
             image=self.image,
             threshold_method=self.threshold_method,
             otsu_threshold_multiplier=self.otsu_threshold_multiplier,
-            deviation_from_mean=self.threshold_std_dev,
+            threshold_std_dev=self.threshold_std_dev,
             absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
         )
         try:
-            for direction, _threshold in self.thresholds.items():
-                LOGGER.info(f"[{self.filename}] : Processing {direction} threshold ({_threshold})")
+            region_props_count = 0
+            for direction in self.direction:
+                LOGGER.info(f"[{self.filename}] : Processing {direction} threshold ({self.thresholds[direction]})")
                 self.directions[direction] = defaultdict()
-                self.gaussian_filter()
-                self.z_thresholding()
                 self.directions[direction]["mask_grains"] = _get_mask(
-                    self.images["gaussian_filtered"],
-                    threshold=_threshold,
+                    self.image,
+                    threshold=self.thresholds[direction],
                     threshold_direction=direction,
                     img_name=self.filename,
                 )
@@ -305,6 +278,8 @@ class Grains:
                 )
                 self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
                 LOGGER.info(f"[{self.filename}] : Extracted bounding boxes ({direction})")
+                region_props_count += len(self.region_properties[direction])
+            if region_props_count == 0: self.region_properties =  None
         # FIXME : Identify what exception is raised with images without grains and replace broad except
         except:
             LOGGER.info(f"[{self.filename}] : No grains found.")

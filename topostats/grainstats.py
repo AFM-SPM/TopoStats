@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
 
-from topostats.plottingfuncs import plot_and_save
+from topostats.plottingfuncs import Images
 from topostats.logs.logs import LOGGER_NAME
 
 # pylint: disable=line-too-long
@@ -61,6 +61,9 @@ class GrainStats:
         direction: str,
         base_output_dir: Union[str, Path],
         image_name: str = None,
+        save_cropped_grains: bool = False,
+        cropped_size: float = -1,
+        plot_opts: dict = None,
     ):
         """Initialise the class.
 
@@ -68,12 +71,22 @@ class GrainStats:
         ----------
         data : np.ndarray
             2D Numpy array containing the flattened afm image. Data in this 2D array is floating point.
-        labelled_data: np.ndarray
+        labelled_data : np.ndarray
             2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.
-        pixel_to_nanometre_scaling: float
+        pixel_to_nanometre_scaling : float
             Floating point value that defines the scaling factor between nanometres and pixels.
+        direction: str
+            Direction for which grains have been detected ("upper" or "lower").
         base_output_dir : Path
             Path to the folder that will store the grain stats output images and data.
+        image_name : str
+            The name of the file being processed.
+        save_cropped_grains : bool
+            Option wether to save the cropped grain images.
+        cropped_size : float
+            Length of square side (in nm) to crop grains to.
+        plot_opts : dict
+            Plotting options dictionary for the cropped grains
         """
 
         self.data = data
@@ -83,6 +96,9 @@ class GrainStats:
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
         self.image_name = image_name
+        self.save_cropped_grains = save_cropped_grains
+        self.cropped_size = cropped_size
+        self.plot_opts = plot_opts
 
     @staticmethod
     def get_angle(point_1: tuple, point_2: tuple) -> float:
@@ -149,20 +165,53 @@ class GrainStats:
 
             LOGGER.info(f"[{self.image_name}] : Processing grain: {index}")
             # Create directory for each grain's plots
-            output_grain = self.base_output_dir / self.direction / f"grain_{index}"
-            # Path.mkdir(output_grain, parents=True, exist_ok=True)
-            output_grain.mkdir(parents=True, exist_ok=True)
+            output_grain = self.base_output_dir / self.direction
 
-            # Obtain and plot the cropped grain mask
-            grain_mask = np.array(region.image)
-            plot_and_save(grain_mask, output_grain, "grainmask.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling, type="binary")
-
-            # Obtain the cropped grain image
+            # Obtain cropped grain mask and image
             minr, minc, maxr, maxc = region.bbox
+            grain_mask = np.array(region.image)
             grain_image = self.data[minr:maxr, minc:maxc]
-            plot_and_save(grain_image, output_grain, "grain_image_raw.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling)
-            grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
-            plot_and_save(grain_image, output_grain, "grain_image.png", pixel_to_nm_scaling_factor=self.pixel_to_nanometre_scaling)
+            masked_grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
+
+            if self.save_cropped_grains:
+                output_grain.mkdir(parents=True, exist_ok=True)
+                if self.cropped_size == -1:
+                    for name, image in {
+                        "grain_image": grain_image,
+                        "grain_mask": grain_mask,
+                        "grain_mask_image": masked_grain_image,
+                    }.items():
+                        Images(
+                            data=image,
+                            output_dir=output_grain,
+                            filename=f"{self.image_name}_{name}_{index}",
+                            **self.plot_opts[name],
+                        ).plot_and_save()
+                else:
+                    # Get cropped image and mask
+                    grain_centre = int((minr + maxr) / 2), int((minc + maxc) / 2)
+                    length = int(self.cropped_size / (2 * self.pixel_to_nanometre_scaling))
+                    solo_mask = self.labelled_data.copy()
+                    solo_mask[solo_mask != index + 1] = 0
+                    solo_mask[solo_mask == index + 1] = 1
+                    cropped_grain_image = self.get_cropped_region(self.data, length, np.asarray(grain_centre))
+                    cropped_grain_mask = self.get_cropped_region(solo_mask, length, np.asarray(grain_centre)).astype(
+                        bool
+                    )
+                    cropped_grain_mask_image = np.ma.masked_array(
+                        cropped_grain_image, mask=np.invert(cropped_grain_mask), fill_value=np.nan
+                    ).filled()
+                    for name, image in {
+                        "grain_image": cropped_grain_image,
+                        "grain_mask": cropped_grain_mask,
+                        "grain_mask_image": cropped_grain_mask_image,
+                    }.items():
+                        Images(
+                            data=image,
+                            output_dir=output_grain,
+                            filename=f"{self.image_name}_{name}_{index}",
+                            **self.plot_opts[name],
+                        ).plot_and_save()
 
             points = self.calculate_points(grain_mask)
             edges = self.calculate_edges(grain_mask)
@@ -179,6 +228,9 @@ class GrainStats:
                 path=output_grain,
             )
 
+            # Calculate minimum and maximum feret diameters
+            min_feret, max_feret = self.get_max_min_ferets(edge_points=edges)
+
             # save_format = '.4f'
 
             # Save the stats to csv file. Note that many of the stats are multiplied by a scaling factor to convert
@@ -191,11 +243,11 @@ class GrainStats:
                 "radius_max": radius_stats["max"] * self.pixel_to_nanometre_scaling,
                 "radius_mean": radius_stats["mean"] * self.pixel_to_nanometre_scaling,
                 "radius_median": radius_stats["median"] * self.pixel_to_nanometre_scaling,
-                "height_min": np.nanmin(grain_image),
-                "height_max": np.nanmax(grain_image),
-                "height_median": np.nanmedian(grain_image),
-                "height_mean": np.nanmean(grain_image),
-                "volume": np.nansum(grain_image) * self.pixel_to_nanometre_scaling**2,
+                "height_min": np.nanmin(masked_grain_image),
+                "height_max": np.nanmax(masked_grain_image),
+                "height_median": np.nanmedian(masked_grain_image),
+                "height_mean": np.nanmean(masked_grain_image),
+                "volume": np.nansum(masked_grain_image) * self.pixel_to_nanometre_scaling**2,
                 "area": region.area * self.pixel_to_nanometre_scaling**2,
                 "area_cartesian_bbox": region.area_bbox * self.pixel_to_nanometre_scaling**2,
                 "smallest_bounding_width": smallest_bounding_width * self.pixel_to_nanometre_scaling,
@@ -204,6 +256,9 @@ class GrainStats:
                 * smallest_bounding_width
                 * self.pixel_to_nanometre_scaling**2,
                 "aspect_ratio": aspect_ratio,
+                "threshold": self.direction,
+                "max_feret": max_feret * self.pixel_to_nanometre_scaling,
+                "min_feret": min_feret * self.pixel_to_nanometre_scaling,
             }
 
             stats_array.append(stats)
@@ -220,13 +275,15 @@ class GrainStats:
             )
             ax.add_patch(rectangle)
 
-        Path.mkdir(self.base_output_dir / self.direction, exist_ok=True, parents=True)
         grainstats = pd.DataFrame(data=stats_array)
         grainstats.index.name = "Molecule Number"
-        grainstats.to_csv(self.base_output_dir / self.direction / "grainstats.csv")
-        LOGGER.info(
-            f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/grainstats.csv"
-        )
+
+        # if self.save_cropped_grains:
+        # savename = f"{self.image_name}_{self.direction}_grainstats.csv"
+        # grainstats.to_csv(self.base_output_dir / self.direction / savename)
+        # LOGGER.info(
+        #    f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/{savename}"
+        # )
 
         return {"statistics": grainstats, "plot": ax}
 
@@ -382,6 +439,7 @@ class GrainStats:
 
         # Debug information
         if debug:
+            base_output_dir.mkdir(parents=True, exist_ok=True)
             self.plot(edges, hull, base_output_dir / "_points_hull.png")
             LOGGER.info(f"points: {edges}")
             LOGGER.info(f"hull: {hull}")
@@ -625,6 +683,9 @@ class GrainStats:
             extremes = self.find_cartesian_extremes(rotated_points)
 
             if debug:
+                # Ensure directory is there
+                path.mkdir(parents=True, exist_ok=True)
+
                 # Create plot
                 # FIXME : Make this a method
                 fig = plt.figure(figsize=(8, 8))
@@ -776,7 +837,7 @@ class GrainStats:
         ax.legend()
         plt.xlabel("Grain Length (nm)")
         plt.ylabel("Grain Width (nm)")
-        plt.savefig(path / "minimum_bbox.png")
+        # plt.savefig(path / "minimum_bbox.png")
         plt.close()
 
         return smallest_bounding_width, smallest_bounding_length, aspect_ratio
@@ -802,3 +863,218 @@ class GrainStats:
         extremes["y_max"] = np.max(rotated_points[:, 1])
         return extremes
 
+    @staticmethod
+    def get_shift(coords: np.ndarray, shape: np.ndarray) -> int:
+        """Obtains the coordinate shift to reflect the cropped image box for molecules near the edges of the image.
+
+        Parameters
+        ----------
+        coords: np.ndarray
+            Value representing integer coordinates which may be outside of the image.
+        shape: np.ndarray
+            Array of the shape of an image.
+
+        Returns
+        -------
+        np.int64
+            Max value of the shift to reflect the croped region so it stays within the image.
+        """
+        shift = shape - coords[np.where(coords > shape)]
+        shift = np.hstack((shift, -coords[np.where(coords < 0)]))
+        if len(shift) == 0:
+            return 0
+        else:
+            max_index = np.argmax(abs(shift))
+            return shift[max_index]
+
+    def get_cropped_region(self, image: np.ndarray, length: int, centre: np.ndarray) -> np.ndarray:
+        """Crops the image with respect to a given pixel length around the centre coordinates.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            The image array.
+        length: int
+            The length (in pixels) of the resultant cropped image.
+        centre: np.ndarray
+            The centre of the object to crop.
+
+        Returns
+        -------
+        np.ndarray
+            Cropped array of the image.
+        """
+        shape = image.shape
+        xy1 = shape - (centre + length + 1)
+        xy2 = shape - (centre - length)
+        xy = np.stack((xy1, xy2))
+        shiftx = self.get_shift(xy[:, 0], shape[0])
+        shifty = self.get_shift(xy[:, 1], shape[1])
+        return image.copy()[
+            centre[0] - length - shiftx : centre[0] + length + 1 - shiftx,
+            centre[1] - length - shifty : centre[1] + length + 1 - shifty,
+        ]
+
+    @staticmethod
+    def get_triangle_height(base_point_1: np.array, base_point_2: np.array, top_point: np.array) -> float:
+        """Returns the height of a triangle defined by the input point vectors.
+        Parameters
+        ----------
+        base_point_1: np.ndarray
+            a base point of the triangle, eg: [5, 3].
+
+        base_point_2: np.ndarray
+            a base point of the triangle, eg: [8, 3].
+
+        top_point: np.ndarray
+            the top point of the triangle, defining the height from the line between the two base points, eg: [6,10].
+
+        Returns
+        -------
+        Float
+            The height of the triangle - ie the shortest distance between the top point and the line between the two base points.
+        """
+
+        # Height of triangle = A/b = ||AB X AC|| / ||AB||
+        a_b = base_point_1 - base_point_2
+        a_c = base_point_1 - top_point
+        return np.linalg.norm(np.cross(a_b, a_c)) / np.linalg.norm(a_b)
+
+    @staticmethod
+    def get_max_min_ferets(edge_points: list):
+        """Returns the minimum and maximum feret diameters for a grain.
+        These are defined as the smallest and greatest distances between
+        a pair of callipers that are rotating around a 2d object, maintaining
+        contact at all times.
+
+        Parameters
+        ----------
+        edge_points: list
+            a list of the vector positions of the pixels comprising the edge of the
+            grain. Eg: [[0, 0], [1, 0], [2, 1]]
+        Returns
+        -------
+        min_feret: float
+            the minimum feret diameter of the grain
+        max_feret: float
+            the maximum feret diameter of the grain
+
+        Notes
+        -----
+        The method starts out by calculating the upper and lower convex hulls using
+        an algorithm based on the Graham Scan Algorithm [1]_. Using these upper and
+        lower hulls, the callipers are simulated as rotating clockwise around the grain.
+        We determine the order in which vertices are encountered by comparing the
+        gradients of the slopes between vertices. An array of pairs of points that
+        are in contact with either calliper at a given time is created in order to
+        be able to calculate the maximum feret diameter. The minimum diameter is a
+        little tricky, since it won't simply be the shortest distance between two
+        contact points, but it will occur somewhere during the rotation around a
+        pair of contact points. It turns out that the point will always be such
+        that two points are in contact with one calliper while the other calliper
+        is in contact with another point. We can use this fact to be sure of finding
+        the smallest feret diameter, simply by testing each triangle of 3 contact points
+        as we iterate, finding the height of the triangle that is formed between the
+        three aforementioned points, as this will be the perpendicular distance between
+        the callipers.
+
+        References
+        ----------
+        [1] Graham, R.L. (1972).
+            "An Efficient Algorithm for Determining the Convex Hull of a Finite Planar Set".
+            Information Processing Letters. 1 (4): 132-133.
+            doi:10.1016/0020-0190(72)90045-2.
+        """
+
+        # Sort the vectors by their x coordinate and then by their y coordinate.
+        # The conversion between list and numpy array can be removed, though it would be harder
+        # to read.
+        edge_points.sort()
+        edge_points = np.array(edge_points)
+
+        # Construct upper and lower hulls for the edge points. Sadly we can't just use the standard hull
+        # that graham_scan() returns, since we need to separate the upper and lower hulls. I might streamline
+        # these two into one method later.
+        upper_hull = []
+        lower_hull = []
+        for point in edge_points:
+            while len(lower_hull) > 1 and GrainStats.is_clockwise(lower_hull[-2], lower_hull[-1], point):
+                lower_hull.pop()
+            lower_hull.append(point)
+            while len(upper_hull) > 1 and not GrainStats.is_clockwise(upper_hull[-2], upper_hull[-1], point):
+                upper_hull.pop()
+            upper_hull.append(point)
+
+        upper_hull = np.array(upper_hull)
+        lower_hull = np.array(lower_hull)
+
+        # Create list of contact vertices for calipers on the antipodal hulls
+        contact_points = []
+        upper_index = 0
+        lower_index = len(lower_hull) - 1
+        min_feret = None
+        while upper_index < len(upper_hull) - 1 or lower_index > 0:
+            contact_points.append([lower_hull[lower_index, :], upper_hull[upper_index, :]])
+            # If we have reached the end of the upper hull, continute iterating over the lower hull
+            if upper_index == len(upper_hull) - 1:
+                lower_index -= 1
+                small_feret = GrainStats.get_triangle_height(
+                    np.array(lower_hull[lower_index + 1, :]),
+                    np.array(lower_hull[lower_index, :]),
+                    np.array(upper_hull[upper_index, :]),
+                )
+                if min_feret is None or small_feret < min_feret:
+                    min_feret = small_feret
+            # If we have reached the end of the lower hull, continue iterating over the upper hull
+            elif lower_index == 0:
+                upper_index += 1
+                small_feret = GrainStats.get_triangle_height(
+                    np.array(upper_hull[upper_index - 1, :]),
+                    np.array(upper_hull[upper_index, :]),
+                    np.array(lower_hull[lower_index, :]),
+                )
+                if min_feret is None or small_feret < min_feret:
+                    min_feret = small_feret
+            # Check if the gradient of the last point and the proposed next point in the upper hull is greater than the gradient
+            # of the two corresponding points in the lower hull, if so, this means that the next point in the upper hull
+            # will be encountered before the next point in the lower hull and vice versa.
+            # Note that the calculation here for gradients is the simple delta upper_y / delta upper_x > delta lower_y / delta lower_x
+            # however I have multiplied through the denominators such that there are no instances of division by zero. The
+            # inequality still holds and provides what is needed.
+            elif (upper_hull[upper_index + 1, 1] - upper_hull[upper_index, 1]) * (
+                lower_hull[lower_index, 0] - lower_hull[lower_index - 1, 0]
+            ) > (lower_hull[lower_index, 1] - lower_hull[lower_index - 1, 1]) * (
+                upper_hull[upper_index + 1, 0] - upper_hull[upper_index, 0]
+            ):
+                # If the upper hull is encoutnered first, increment the iteration index for the upper hull
+                # Also consider the triangle that is made as the two upper hull vertices are colinear with the caliper
+                upper_index += 1
+                small_feret = GrainStats.get_triangle_height(
+                    np.array(upper_hull[upper_index - 1, :]),
+                    np.array(upper_hull[upper_index, :]),
+                    np.array(lower_hull[lower_index, :]),
+                )
+                if min_feret is None or small_feret < min_feret:
+                    min_feret = small_feret
+            else:
+                # The next point in the lower hull will be encountered first, so increment the lower hull iteration index.
+                lower_index -= 1
+                small_feret = GrainStats.get_triangle_height(
+                    np.array(lower_hull[lower_index + 1, :]),
+                    np.array(lower_hull[lower_index, :]),
+                    np.array(upper_hull[upper_index, :]),
+                )
+
+                if min_feret is None or small_feret < min_feret:
+                    min_feret = small_feret
+
+        contact_points = np.array(contact_points)
+
+        # Find the minimum and maximum distance in the contact points
+        max_feret = None
+        for point_pair in contact_points:
+            dist = np.sqrt((point_pair[0, 0] - point_pair[1, 0]) ** 2 + (point_pair[0, 1] - point_pair[1, 1]) ** 2)
+            if max_feret is None or max_feret < dist:
+                max_feret = dist
+
+        return min_feret, max_feret

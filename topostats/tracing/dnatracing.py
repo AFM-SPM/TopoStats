@@ -897,11 +897,11 @@ class traceStats(object):
             stats[mol_num]["Circular"] = self.trace_object.mol_is_circular[mol_num]
             stats[mol_num]["End to End Distance"] = self.trace_object.end_to_end_distance[mol_num]
         self.df = pd.DataFrame.from_dict(data=stats, orient="index")
-        self.df.reset_index(drop=True)
+        self.df.reset_index(drop=True, inplace=True)
         self.df.index.name = "Molecule Number"
         # self.df["Experiment Directory"] = str(Path().cwd())
         self.df["Image Name"] = self.image_path.name
-        self.df["Basename"] = str(self.image_path)
+        self.df["Basename"] = str(self.image_path.parent)
 
     def save_trace_stats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True) -> None:
         """Write trace statistics to JSON and/or CSV.

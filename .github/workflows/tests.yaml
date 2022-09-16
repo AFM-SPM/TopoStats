@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e .
-          pip install pytest pytest-cov pytest-mpl
+          pip install -e .[tests]
       - name: Test with pytest
         run: |
           pytest --cov=topostats --mpl
@@ -31,7 +31,3 @@ jobs:
           coverage xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
-      - name: Checking CLI entry-point works
-        run: |
-          pip install -e .
-          run_topostats --config config/example.yaml

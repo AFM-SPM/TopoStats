@@ -2,8 +2,12 @@
 from pathlib import Path
 
 import pandas as pd
+import pytest
+import numpy as np
+import imghdr
 
 from topostats.grainstats import GrainStats
+from topostats.plottingfuncs import Images
 
 # Specify the absolute and relattive tolerance for floating point comparison
 TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
@@ -12,8 +16,77 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
 
-def test_grainstats(minicircle_grainstats: GrainStats, minicircle_grainstats_20220526: pd.DataFrame) -> None:
-    """Test the overall GrainStats class."""
+def test_grainstats_regression(regtest, minicircle_grainstats: GrainStats) -> None:
+    """Regression tests for grainstats."""
     statistics = minicircle_grainstats.calculate_stats()
+    print(statistics["statistics"].to_string(), file=regtest)
 
-    pd.testing.assert_frame_equal(statistics["statistics"], minicircle_grainstats_20220526)
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        (True),
+        (False),
+    ],
+)
+def test_save_cropped_grains(minicircle_grainstats: GrainStats, tmp_path: Path, value):
+    """Tests if save_cropped_grains option only creates the grains dir when True"""
+    minicircle_grainstats.save_cropped_grains = value
+    minicircle_grainstats.base_output_dir = tmp_path / "grains"
+    minicircle_grainstats.calculate_stats()
+    assert Path.exists(tmp_path / "grains") == value
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        ("core", False),
+        ("all", True),
+    ],
+)
+def test_image_set(minicircle_grainstats: GrainStats, tmp_path: Path, value, expected):
+    """Tests for the correct outputs when image_set is varied"""
+    minicircle_grainstats.save_cropped_grains = True
+    minicircle_grainstats.plot_opts['grain_image']['image_set'] = value
+    minicircle_grainstats.plot_opts['grain_mask']['image_set'] = value
+    minicircle_grainstats.plot_opts['grain_mask_image']['image_set'] = value
+    minicircle_grainstats.base_output_dir = tmp_path / "grains"
+    minicircle_grainstats.calculate_stats()
+    assert Path.exists(tmp_path / "grains/upper" / "None_grain_image_0.png") == True
+    assert Path.exists(tmp_path / "grains/upper" / "None_grain_mask_0.png") == expected
+    assert Path.exists(tmp_path / "grains/upper" / "None_grain_mask_image_0.png") == expected
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_cropped_image(minicircle_grainstats: GrainStats, tmp_path: Path):
+    """Tests that produced cropped images have not changed."""
+    grain_centre = 547, 794 # centre of grain 7
+    length = int(minicircle_grainstats.cropped_size / (2 * minicircle_grainstats.pixel_to_nanometre_scaling))
+    cropped_grain_image = minicircle_grainstats.get_cropped_region(
+        image=minicircle_grainstats.data, 
+        length=length, 
+        centre=np.asarray(grain_centre))
+    assert cropped_grain_image.shape == (81, 81)
+    fig, _ = Images(
+        data=cropped_grain_image,
+        output_dir=tmp_path,
+        filename="cropped_grain_7.png",
+        pixel_to_nm_scaling_factor=minicircle_grainstats.pixel_to_nanometre_scaling,
+        type="non-binary",
+        image_set="all",
+        core_set=True,
+    ).plot_and_save()
+    return fig
+
+@pytest.mark.parametrize("extension", [
+    ("png"),
+    ("tiff")
+])
+def test_save_format(minicircle_grainstats: GrainStats, tmp_path: Path, extension: str):
+    "Tests if save format applied to cropped images"
+    minicircle_grainstats.save_cropped_grains = True
+    minicircle_grainstats.plot_opts['grain_image']['save_format'] = extension
+    minicircle_grainstats.base_output_dir = tmp_path
+    minicircle_grainstats.calculate_stats()
+    assert imghdr.what(tmp_path / f"upper/None_grain_image_0.{extension}") == extension
+    
