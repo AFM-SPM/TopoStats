@@ -36,6 +36,7 @@ def sample_config() -> Dict:
     print(config["plotting"]["plot_dict"])
     return config
 
+
 @pytest.fixture
 def process_scan_config() -> Dict:
     """Sample configuration"""
@@ -44,12 +45,14 @@ def process_scan_config() -> Dict:
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
     return config
 
+
 @pytest.fixture
 def plot_dict(sample_config: Dict) -> Dict:
     """Load the plot_dict dictionary. This is required because the above configs have the 'plot_dict' key/value
     popped."""
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
     return yaml.safe_load(plotting_dictionary.read())
+
 
 @pytest.fixture
 def filter_config(sample_config: Dict) -> Dict:
@@ -160,11 +163,7 @@ def image_random_col_medians_masked() -> np.array:
 @pytest.fixture
 def test_filters(filter_config: dict, sample_config: dict, tmp_path) -> Filters:
     """Filters class for testing."""
-    filters = Filters(
-        RESOURCES / "minicircle.spm",
-        output_dir=tmp_path,
-        **filter_config
-    )
+    filters = Filters(RESOURCES / "minicircle.spm", output_dir=tmp_path, **filter_config)
     filters.load_scan()
     return filters
 
@@ -239,13 +238,11 @@ def random_grains(grains_config: dict, random_filters: Filters, tmp_path) -> Gra
 def small_array_filters(small_array: np.ndarray, filter_config: dict, tmp_path) -> Grains:
     """Filters object based on small_array."""
     filter_obj = Filters(
-        img_path=tmp_path / 'abc.spm',
+        img_path=tmp_path / "abc.spm",
         **filter_config,
     )
     filter_obj.pixel_to_nm_scaling = 0.5
-    filter_obj.images["zero_averaged_background"] = filter_obj.gaussian_filter(
-        image=small_array
-    )
+    filter_obj.images["zero_averaged_background"] = filter_obj.gaussian_filter(image=small_array)
     return filter_obj
 
 
@@ -253,11 +250,7 @@ def small_array_filters(small_array: np.ndarray, filter_config: dict, tmp_path) 
 @pytest.fixture
 def minicircle(filter_config: dict, tmp_path) -> Filters:
     """Instantiate a Filters object, creates the output directory and loads the image."""
-    filters = Filters(
-        img_path=RESOURCES / "minicircle.spm",
-        output_dir=tmp_path,
-        **filter_config
-    )
+    filters = Filters(img_path=RESOURCES / "minicircle.spm", output_dir=tmp_path, **filter_config)
     return filters
 
 
@@ -319,8 +312,7 @@ def minicircle_initial_tilt_removal(minicircle_initial_align: Filters) -> Filter
 def minicircle_threshold_otsu(minicircle_initial_tilt_removal: Filters, filter_config: dict) -> Filters:
     """Calculate threshold."""
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
-        minicircle_initial_tilt_removal.images["initial_tilt_removal"],
-        **filter_config
+        minicircle_initial_tilt_removal.images["initial_tilt_removal"], **filter_config
     )
     return minicircle_initial_tilt_removal
 
@@ -390,9 +382,7 @@ def minicircle_zero_average_background(minicircle_masked_tilt_removal: Filters) 
 @pytest.fixture
 def minicircle_grain_gaussian_filter(minicircle_zero_average_background: Filters) -> Filters:
     """Apply Gaussian filter."""
-    minicircle_zero_average_background.images[
-        "gaussian_filtered"
-        ] = minicircle_zero_average_background.gaussian_filter(
+    minicircle_zero_average_background.images["gaussian_filtered"] = minicircle_zero_average_background.gaussian_filter(
         image=minicircle_zero_average_background.images["zero_averaged_background"]
     )
     return minicircle_zero_average_background
@@ -407,7 +397,7 @@ def minicircle_grains(minicircle_grain_gaussian_filter: Filters, grains_config: 
         filename=minicircle_grain_gaussian_filter.filename,
         pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
         base_output_dir=Path(tmp_path),
-        **grains_config
+        **grains_config,
     )
     return grains
 
@@ -565,13 +555,13 @@ def minicircle_grainstats(
         labelled_data=minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"],
         pixel_to_nanometre_scaling=minicircle_pixels.pixel_to_nm_scaling,
         base_output_dir=tmp_path,
-        plot_opts={"grain_image": {"core_set": True},
-                   "grain_mask": {"core_set": False},
-                   "grain_mask_image": {"core_set": False}},
+        plot_opts={
+            "grain_image": {"core_set": True},
+            "grain_mask": {"core_set": False},
+            "grain_mask_image": {"core_set": False},
+        },
         **grainstats_config,
     )
-
-
 
 
 # Derive fixtures for DNA Tracing
@@ -599,10 +589,8 @@ def test_dnatracing() -> dnaTrace:
 
 @pytest.fixture
 def minicircle_dnatracing(
-        minicircle_grain_gaussian_filter: Filters,
-        minicircle_grain_coloured: Grains,
-        dnatracing_config: dict
-    ) -> pd.DataFrame:
+    minicircle_grain_gaussian_filter: Filters, minicircle_grain_coloured: Grains, dnatracing_config: dict
+) -> pd.DataFrame:
     """DNA Tracing Statistics"""
     dna_traces = dnaTrace(
         full_image_data=minicircle_grain_coloured.image.T,
@@ -614,3 +602,79 @@ def minicircle_dnatracing(
     dna_traces.trace_dna()
     tracing_stats = traceStats(trace_object=dna_traces, image_path="tmp")
     return tracing_stats.df
+
+
+# DNA Tracing Fixtures
+
+# Skeletonizing Fixtures
+@pytest.fixture
+def skeletonize_circular() -> np.ndarray:
+    """A circular molecule for testing skeletonizing."""
+    return np.array(
+        [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+            [0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 2, 2, 2, 2, 2, 2, 2, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 2, 1, 1, 1, 1, 1, 2, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 2, 1, 1, 1, 1, 1, 2, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 2, 2, 2, 2, 2, 2, 2, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ]
+    )
+
+@pytest.fixture
+def skeletonize_circular_bool_int(skeletonize_circular: np.ndarray) -> np.ndarray:
+    """A circular molecule for testing skeletonizing as a boolean integer array."""
+    return np.array(skeletonize_circular, dtype='bool').astype(int)
+
+
+@pytest.fixture
+def skeletonize_linear() -> np.ndarray:
+    """A linear molecule for testing skeletonizing."""
+    return np.array(
+        [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 2, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 3, 2, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 3, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 3, 4, 4, 3, 2, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 3, 4, 4, 3, 3, 2, 1, 0, 0],
+            [0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 3, 3, 2, 2, 1, 0, 0],
+            [0, 0, 0, 0, 1, 2, 2, 2, 3, 3, 3, 4, 4, 3, 2, 1, 1, 1, 0, 0],
+            [0, 0, 0, 0, 1, 2, 3, 3, 3, 4, 4, 4, 3, 3, 2, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 2, 3, 4, 4, 4, 3, 3, 3, 2, 2, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 2, 3, 4, 4, 3, 3, 2, 2, 2, 1, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 2, 3, 4, 3, 3, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 2, 3, 4, 3, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 1, 1, 2, 3, 4, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 2, 2, 2, 3, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 2, 3, 3, 3, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 2, 3, 4, 4, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ]
+    )
+
+@pytest.fixture
+def skeletonize_linear_bool_int(skeletonize_linear) -> np.ndarray:
+    """A linear molecule for testing skeletonizing as a boolean integer array."""
+    return np.array(skeletonize_linear, dtype="bool").astype(int)
