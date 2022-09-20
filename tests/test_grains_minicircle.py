@@ -106,6 +106,25 @@ def test_remove_small_objects(
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_area_thresholding(
+    minicircle_area_thresholding: Grains, plotting_config: dict, plot_dict: dict, tmp_path
+) -> None:
+    """Test removal of small objects via absolute area thresholding."""
+    plotting_config["type"] = "binary"
+    assert isinstance(minicircle_area_thresholding.directions["upper"]["removed_small_objects"], np.ndarray)
+    assert minicircle_area_thresholding.directions["upper"]["removed_small_objects"].shape == (1024, 1024)
+    assert minicircle_area_thresholding.directions["upper"]["removed_small_objects"].sum() == 42378
+    plotting_config = {**plotting_config, **plot_dict["removed_small_objects"]}
+    fig, _ = Images(
+        data=minicircle_area_thresholding.directions["upper"]["removed_small_objects"],
+        output_dir=tmp_path,
+        pixel_to_nm_scaling_factor=minicircle_area_thresholding.pixel_to_nm_scaling,
+        **plotting_config,
+    ).plot_and_save()
+    return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_label_regions(
     minicircle_grain_labelled_post_removal: Grains, plotting_config: dict, plot_dict: dict, tmp_path
 ) -> None:

@@ -33,7 +33,6 @@ def sample_config() -> Dict:
     config = read_yaml(RESOURCES / "sample_config.yaml")
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
-    print(config["plotting"]["plot_dict"])
     return config
 
 
@@ -492,6 +491,20 @@ def minicircle_small_objects_removed(minicircle_minimum_grain_size: np.array) ->
         minicircle_minimum_grain_size.directions["upper"]["labelled_regions_01"]
     )
     return minicircle_minimum_grain_size
+
+
+@pytest.fixture
+def minicircle_area_thresholding(minicircle_grain_labelled_all: np.array, grains_config: dict) -> Grains:
+    """Small objects removed."""
+    minicircle_grain_labelled_all.directions["upper"][
+        "removed_small_objects"
+    ] = minicircle_grain_labelled_all.area_thresholding(
+        minicircle_grain_labelled_all.directions["upper"]["labelled_regions_01"],
+        grains_config["area_absolute_threshold_upper"],
+        grains_config["area_absolute_threshold_lower"]
+    )
+    # for some reason this is returning an image with most molecules gone
+    return minicircle_grain_labelled_all
 
 
 @pytest.fixture

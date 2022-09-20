@@ -187,13 +187,17 @@ class Grains:
             return small_objects_removed > 0.0
         return image
 
-    def area_thresholding(self, image: np.ndarray):
+    def area_thresholding(self, image: np.ndarray, upper: float, lower: float):
         """Removes objects larger and smaller than the specified thresholds.
         
         Parameters
         ----------
         image: np.ndarray
             Image array where the background == 0 and grains are labelled as integers > 0.
+        upper: float
+            Upper threshold area.
+        lower: float
+            Lower threshold area.
         
         Returns
         -------
@@ -202,9 +206,15 @@ class Grains:
 
         """
         image_cp = image.copy()
+        # if one value is None adjust for comparison
+        if upper is None:
+            upper = image.size * self.pixel_to_nm_scaling ** 2
+        if lower is None:
+            lower = 0
+
         for grain_no in range(1,np.max(image_cp)+1):
             grain_area = len(image_cp[image_cp==grain_no]) * (self.pixel_to_nm_scaling ** 2)
-            if grain_area > self.area_absolute_threshold_upper or grain_area < self.area_absolute_threshold_lower:
+            if grain_area > upper or grain_area < lower:
                 image_cp[image_cp==grain_no] = 0
         LOGGER.info(f"[{self.filename}] : Final grains found: {len(np.unique(image_cp))-1}")
         image_cp[image_cp!=0] = 1
@@ -289,10 +299,17 @@ class Grains:
                 self.directions[direction]["labelled_regions_01"] = self.label_regions(
                     self.directions[direction]["removed_noise"]
                 )
-                #self.calc_minimum_grain_size(self.directions[direction]["labelled_regions_01"])
-                self.directions[direction]["removed_small_objects"] = self.area_thresholding(
-                    self.directions[direction]["labelled_regions_01"]
-                )
+                if self.area_absolute_threshold_lower is None and self.area_absolute_threshold_upper is None:
+                    self.calc_minimum_grain_size(self.directions[direction]["labelled_regions_01"])
+                    self.directions[direction]["removed_small_objects"] = self.remove_small_objects(
+                        self.directions[direction]["labelled_regions_01"]
+                    )
+                else:
+                    self.directions[direction]["removed_small_objects"] = self.area_thresholding(
+                        self.directions[direction]["labelled_regions_01"],
+                        self.area_absolute_threshold_upper,
+                        self.area_absolute_threshold_lower,
+                    )
                 self.directions[direction]["labelled_regions_02"] = self.label_regions(
                     self.directions[direction]["removed_small_objects"]
                 )
