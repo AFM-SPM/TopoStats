@@ -17,15 +17,16 @@ def test_save_figure(
     data2: np.ndarray,
     axes_colorbar: bool,
     region_properties: bool,
+    image_random: np.ndarray,
     minicircle_grain_region_properties_post_removal: Grains,
     tmp_path: Path):
     """Tests that an image is saved and a figure returned"""
     if region_properties:
         region_properties=minicircle_grain_region_properties_post_removal
     fig, ax = Images(
-        data=np.random.rand(10,10),
+        data=image_random,
         output_dir=tmp_path,
-        filename="result.png",
+        filename="result",
         data2=data2,
         colorbar=axes_colorbar,
         axes=axes_colorbar,
@@ -41,7 +42,7 @@ def test_save_array_figure(tmp_path: Path):
     Images(
         data=np.random.rand(10,10),
         output_dir=tmp_path,
-        filename="result.png",
+        filename="result",
     ).save_array_figure()
     assert Path(tmp_path / "result.png").exists()
 
@@ -52,7 +53,7 @@ def test_plot_and_save_no_colorbar(minicircle_pixels: Filters, tmp_path: Path) -
     fig, _ = Images(
         data=minicircle_pixels.images["pixels"],
         output_dir=tmp_path,
-        filename="01-raw_heightmap.png",
+        filename="01-raw_heightmap",
         pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=False,
@@ -68,7 +69,7 @@ def test_plot_and_save_colorbar(minicircle_pixels: Filters, tmp_path: Path) -> N
     fig, _ = Images(
         data=minicircle_pixels.images["pixels"],
         output_dir=tmp_path,
-        filename="01-raw_heightmap.png",
+        filename="01-raw_heightmap",
         pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=True,
@@ -79,13 +80,13 @@ def test_plot_and_save_colorbar(minicircle_pixels: Filters, tmp_path: Path) -> N
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_axes(minicircle_pixels: Filters, plotting_config: dict, tmp_path: Path) -> None:
+def test_plot_and_save_no_axes(minicircle_pixels: Filters, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes"""
     plotting_config["axes"] = False
     fig, _ = Images(
         data=minicircle_pixels.images["pixels"],
         output_dir=tmp_path,
-        filename="01-raw_heightmap.png",
+        filename="01-raw_heightmap",
         title="Raw Height", 
         **plotting_config
     ).plot_and_save()
@@ -99,7 +100,7 @@ def test_plot_and_save_no_axes_no_colorbar(minicircle_pixels: Filters, plotting_
     Images(
         data=minicircle_pixels.images["pixels"],
         output_dir=tmp_path,
-        filename="01-raw_heightmap.png",
+        filename="01-raw_heightmap",
         title="Raw Height",
         **plotting_config
     ).plot_and_save()
@@ -116,7 +117,7 @@ def test_plot_and_save_colorbar_afmhot(minicircle_pixels: Filters, tmp_path: Pat
     fig, _ = Images(
         data=minicircle_pixels.images["pixels"],
         output_dir=tmp_path,
-        filename="01-raw_heightmap.png",
+        filename="01-raw_heightmap",
         pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=True,
@@ -139,7 +140,7 @@ def test_plot_and_save_bounding_box(
     fig, _ = Images(
         data=minicircle_grain_coloured.directions["upper"]["coloured_regions"],
         output_dir=tmp_path,
-        filename="15-coloured_regions.png",
+        filename="15-coloured_regions",
         pixel_to_nm_scaling_factor=minicircle_grain_coloured.pixel_to_nm_scaling,
         title="Coloured Regions",
         **plotting_config,
@@ -156,9 +157,30 @@ def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting
     fig, _ = Images(
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         output_dir=tmp_path,
-        filename="08_5-z_threshold.png",
+        filename="08_5-z_threshold",
         pixel_to_nm_scaling_factor=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
         title="Raw Height",
         **plotting_config,
+    ).plot_and_save()
+    return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_plot_and_save_non_square_bounding_box(
+    minicircle_grain_coloured: Grains,
+    minicircle_grain_region_properties_post_removal: Grains,
+    plotting_config: dict,
+    tmp_path: Path,
+) -> None:
+    """Test plotting bounding boxes"""
+    plotting_config["type"] = "binary"
+    fig, _ = Images(
+        data=minicircle_grain_coloured.image[:,0:512],
+        output_dir=tmp_path,
+        filename="15-coloured_regions.png",
+        pixel_to_nm_scaling_factor=minicircle_grain_coloured.pixel_to_nm_scaling,
+        title="Coloured Regions",
+        **plotting_config,
+        region_properties=minicircle_grain_region_properties_post_removal,
     ).plot_and_save()
     return fig

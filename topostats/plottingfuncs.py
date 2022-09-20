@@ -79,7 +79,7 @@ class Images:
         """
 
         self.data=data
-        self.output_dir=output_dir
+        self.output_dir=Path(output_dir)
         self.filename=filename
         self.pixel_to_nm_scaling_factor=pixel_to_nm_scaling_factor
         self.data2=data2
@@ -137,7 +137,7 @@ class Images:
         if isinstance(self.data, np.ndarray):
             im = ax.imshow(
                 self.data,
-                extent=(0, shape[0] * self.pixel_to_nm_scaling_factor, 0, shape[1] * self.pixel_to_nm_scaling_factor),
+                extent=(0, shape[1] * self.pixel_to_nm_scaling_factor, 0, shape[0] * self.pixel_to_nm_scaling_factor),
                 interpolation=self.interpolation,
                 cmap=Colormap(self.cmap).get_cmap(),
                 vmin=self.zrange[0],
@@ -148,7 +148,7 @@ class Images:
                 ax.imshow(
                     mask,
                     "jet_r",
-                    extent=(0, shape[0] * self.pixel_to_nm_scaling_factor, 0, shape[1] * self.pixel_to_nm_scaling_factor),
+                    extent=(0, shape[1] * self.pixel_to_nm_scaling_factor, 0, shape[0] * self.pixel_to_nm_scaling_factor),
                     interpolation=self.interpolation,
                     alpha=0.7,
                 )
@@ -164,24 +164,24 @@ class Images:
                 cax = divider.append_axes("right", size="5%", pad=0.05)
                 plt.colorbar(im, cax=cax, label="Height (Nanometres)")
             if self.region_properties:
-                fig, ax = add_bounding_boxes_to_plot(fig, ax, self.region_properties, self.pixel_to_nm_scaling_factor)
+                fig, ax = add_bounding_boxes_to_plot(fig, ax, shape, self.region_properties, self.pixel_to_nm_scaling_factor)
             if not self.axes and not self.colorbar:
                         plt.title("")
                         fig.frameon=False
                         plt.savefig(
-                            (self.output_dir / self.filename).with_suffix(f".{self.save_format}"), 
+                            (self.output_dir / f"{self.filename}.{self.save_format}"), 
                             format=self.save_format, 
                             bbox_inches="tight", 
                             pad_inches = 0
                         )
             else:
-                plt.savefig((self.output_dir / self.filename).with_suffix(f".{self.save_format}"), format=self.save_format)
+                plt.savefig((self.output_dir / f"{self.filename}.{self.save_format}"), format=self.save_format)
         else:
             plt.xlabel("Nanometres")
             plt.ylabel("Nanometres")
             self.data.show(
                 ax=ax,
-                extent=(0, shape[0] * self.pixel_to_nm_scaling_factor, 0, shape[1] * self.pixel_to_nm_scaling_factor),
+                extent=(0, shape[1] * self.pixel_to_nm_scaling_factor, 0, shape[0] * self.pixel_to_nm_scaling_factor),
                 interpolation=self.interpolation,
                 cmap=Colormap(self.cmap).get_cmap(),
             )
@@ -191,7 +191,7 @@ class Images:
     def save_array_figure(self) -> None:
         """This function saves only the image array as an image using plt.imsave"""
         plt.imsave(
-            (self.output_dir / self.filename).with_suffix(f".{self.save_format}"), 
+            (self.output_dir / f"{self.filename}.{self.save_format}"),
             self.data,
             cmap=Colormap(self.cmap).get_cmap(),
             vmin=self.zrange[0],
@@ -200,15 +200,17 @@ class Images:
         )
         plt.close()
 
-def add_bounding_boxes_to_plot(fig, ax, region_properties: list, pixel_to_nm_scaling_factor: float) -> None:
+def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to_nm_scaling_factor: float) -> None:
     """Add the bounding boxes to a plot.
 
     Parameters
     ----------
     fig: plt.figure.Figure
         Matplotlib.pyplot figure object
-    ax: plt.axes._subplots.AxesSubplot
+    ax: plt.axes._subplots.AxesSubplot.
         Matplotlib.pyplot axes object
+    shape: tuple
+        Tuple of the image-to-be-plot's shape.
     region_properties:
         Region properties to add bounding boxes from.
     pixel_to_nm_scaling_factor: float
@@ -217,15 +219,15 @@ def add_bounding_boxes_to_plot(fig, ax, region_properties: list, pixel_to_nm_sca
     Returns
     -------
     fig: plt.figure.Figure
-        Matplotlib.pyplot figure object
+        Matplotlib.pyplot figure object.
     ax: plt.axes._subplots.AxesSubplot
-        Matplotlib.pyplot axes object
+        Matplotlib.pyplot axes object.
     """
     for region in region_properties:
         min_y, min_x, max_y, max_x = [x * pixel_to_nm_scaling_factor for x in region.bbox]
         # Correct y-axis
-        min_y = (1024 * pixel_to_nm_scaling_factor) - min_y
-        max_y = (1024 * pixel_to_nm_scaling_factor) - max_y
+        min_y = (shape[0] * pixel_to_nm_scaling_factor) - min_y
+        max_y = (shape[0] * pixel_to_nm_scaling_factor) - max_y
         rectangle = Rectangle((min_x, min_y), max_x - min_x, max_y - min_y, fill=False, edgecolor="white", linewidth=2)
         ax.add_patch(rectangle)
     return fig, ax

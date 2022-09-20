@@ -7,6 +7,7 @@ from pySPM.Bruker import Bruker
 from skimage.filters import gaussian
 
 from topostats.filters import Filters
+from topostats.utils import get_thresholds, get_mask
 
 # pylint: disable=protected-access
 
@@ -173,6 +174,16 @@ def test_row_col_medians_with_mask(
     assert isinstance(medians["cols"], np.ndarray)
     np.testing.assert_array_equal(medians["rows"], image_random_row_medians_masked)
     np.testing.assert_array_equal(medians["cols"], image_random_col_medians_masked)
+
+
+def test_non_square_img(test_filters_random: Filters):
+    test_filters_random.images["pixels"]=test_filters_random.images["pixels"][:,0:512]
+    test_filters_random.images["zero_averaged_background"] = test_filters_random.average_background(
+        image=test_filters_random.images["pixels"], mask=None
+    )
+    assert isinstance(test_filters_random.images["zero_averaged_background"], np.ndarray)
+    assert test_filters_random.images["zero_averaged_background"].shape==(1024, 512)
+    assert test_filters_random.images["zero_averaged_background"].sum() == 44426.48188033322
 
 
 def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> None:

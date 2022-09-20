@@ -58,7 +58,9 @@ def test_extract_pixels(minicircle_pixels: Filters, plotting_config: dict, plot_
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_align_rows_unmasked(minicircle_initial_align: Filters, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
+def test_align_rows_unmasked(
+    minicircle_initial_align: Filters, plotting_config: dict, plot_dict: dict, tmp_path
+) -> None:
     """Test initial alignment of rows without mask."""
     assert isinstance(minicircle_initial_align.images["initial_align"], np.ndarray)
     assert minicircle_initial_align.images["initial_align"].shape == (1024, 1024)
@@ -167,7 +169,7 @@ def test_average_background(
     """Test zero-averaging of background."""
     assert isinstance(minicircle_zero_average_background.images["zero_averaged_background"], np.ndarray)
     assert minicircle_zero_average_background.images["zero_averaged_background"].shape == (1024, 1024)
-    assert minicircle_zero_average_background.images["zero_averaged_background"].sum() == 169375.41754769627
+    assert minicircle_zero_average_background.images["zero_averaged_background"].sum() == 169375.4175476962
     plotting_config = {**plotting_config, **plot_dict["zero_averaged_background"]}
     fig, _ = Images(
         data=minicircle_zero_average_background.images["zero_averaged_background"],
@@ -177,5 +179,21 @@ def test_average_background(
     ).plot_and_save()
     return fig
 
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_gaussian_filter(
+    minicircle_grain_gaussian_filter: Filters, plotting_config: dict, plot_dict: dict, tmp_path
+) -> None:
+    """Test gaussian filter applied to background."""
+    assert isinstance(minicircle_grain_gaussian_filter.images["gaussian_filtered"], np.ndarray)
+    assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].shape == (1024, 1024)
+    assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].sum() == 169373.05336999876
+    plotting_config = {**plotting_config, **plot_dict["gaussian_filtered"]}
+    fig, _ = Images(
+        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
+        output_dir=tmp_path,
+        pixel_to_nm_scaling_factor=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
+        **plotting_config,
+    ).plot_and_save()
+    return fig
 
 # FIXME (2022-07-11): More tests of alignment/tilt removal and average background when methods other than otsu are used
