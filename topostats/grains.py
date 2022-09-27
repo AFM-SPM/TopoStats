@@ -216,7 +216,6 @@ class Grains:
             grain_area = len(image_cp[image_cp==grain_no]) * (self.pixel_to_nm_scaling ** 2)
             if grain_area > upper or grain_area < lower:
                 image_cp[image_cp==grain_no] = 0
-        LOGGER.info(f"[{self.filename}] : Final grains found: {len(np.unique(image_cp))-1}")
         image_cp[image_cp!=0] = 1
         return image_cp
 

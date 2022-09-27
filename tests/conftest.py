@@ -457,7 +457,7 @@ def minicircle_grain_clear_border(minicircle_grain_mask: np.array) -> Grains:
 
 @pytest.fixture
 def minicircle_grain_remove_noise(minicircle_grain_clear_border: np.array) -> Grains:
-    """Cleared borders."""
+    """Remove Noise."""
     minicircle_grain_clear_border.directions["upper"]["removed_noise"] = minicircle_grain_clear_border.remove_noise(
         minicircle_grain_clear_border.directions["upper"]["tidied_border"]
     )
@@ -498,12 +498,11 @@ def minicircle_area_thresholding(minicircle_grain_labelled_all: np.array, grains
     """Small objects removed."""
     minicircle_grain_labelled_all.directions["upper"][
         "removed_small_objects"
-    ] = minicircle_grain_labelled_all.area_thresholding(
+        ] = minicircle_grain_labelled_all.area_thresholding(
         minicircle_grain_labelled_all.directions["upper"]["labelled_regions_01"],
         grains_config["area_absolute_threshold_upper"],
         grains_config["area_absolute_threshold_lower"]
     )
-    # for some reason this is returning an image with most molecules gone
     return minicircle_grain_labelled_all
 
 
