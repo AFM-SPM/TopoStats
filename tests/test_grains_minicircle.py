@@ -113,7 +113,7 @@ def test_area_thresholding(
     plotting_config["type"] = "binary"
     assert isinstance(minicircle_area_thresholding.directions["upper"]["removed_small_objects"], np.ndarray)
     assert minicircle_area_thresholding.directions["upper"]["removed_small_objects"].shape == (1024, 1024)
-    assert minicircle_area_thresholding.directions["upper"]["removed_small_objects"].sum() == 42378
+    assert minicircle_area_thresholding.directions["upper"]["removed_small_objects"].sum() == 39519
     plotting_config = {**plotting_config, **plot_dict["removed_small_objects"]}
     fig, _ = Images(
         data=minicircle_area_thresholding.directions["upper"]["removed_small_objects"],
