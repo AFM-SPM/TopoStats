@@ -22,9 +22,9 @@ grains:
   otsu_threshold_multiplier: 1.0
   threshold_std_dev: 1.0
   threshold_absolute_lower: 1.0
-  threshold_absolute_upper: 1.0 
-  area_absolute_threshold_upper: 800 # in nm
-  area_absolute_threshold_lower: 500 # in nm
+  threshold_absolute_upper: 1.0
+  area_absolute_threshold_upper: 800 # in nm^2
+  area_absolute_threshold_lower: 500 # in nm^2
   direction: upper # Options: upper, lower, both (defines whether to look for grains above or below thresholds or both)
   background: 0.0
 grainstats:
