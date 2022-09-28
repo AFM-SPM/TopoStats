@@ -56,7 +56,7 @@ class Filters:
         amplify_level : float
             Factor by which to amplify pixel values within the image.
         gaussian_size: float
-            Size of the gaussian to blur the image in nm.
+            Size of the gaussian to blur the image in m.
         gaussian_mode: str
             Method of gaussian interpolation.
         output_dir: Union[str, Path]
@@ -94,7 +94,7 @@ class Filters:
             "gaussian_filtered": None,
         }
         self.thresholds = None
-        self.pixel_to_nm_scaling = None
+        self.pixel_to_m_scaling = None
         self.medians = {"rows": None, "cols": None}
         LOGGER.info(f"Filename : {self.filename}")
         self.results = {
@@ -136,19 +136,20 @@ class Filters:
         except Exception as exception:
             LOGGER.error(f"[{self.filename}] : {exception}")
 
-    def extract_pixel_to_nm_scaling(self) -> float:
-        """Extract the pixel to nanometer scaling from the image metadata."""
+    def extract_pixel_to_m_scaling(self) -> float:
+        """Extract the pixel to meter scaling from the image metadata."""
         unit_dict = {
-            "nm": 1,
-            "um": 1e3,
+            "nm": 1e-9,
+            "um": 1e-6,
+            "mm": 1e-3,
         }
         px_to_real = self.images["extracted_channel"].pxs()
         # Has potential for non-square images but not yet implimented
-        self.pixel_to_nm_scaling = (
+        self.pixel_to_m_scaling = (
             px_to_real[0][0] * unit_dict[px_to_real[0][1]],
             px_to_real[1][0] * unit_dict[px_to_real[1][1]],
         )[0]
-        LOGGER.info(f"[{self.filename}] : Pixels to nm scaling : {self.pixel_to_nm_scaling}")
+        LOGGER.info(f"[{self.filename}] : Pixels to m scaling : {self.pixel_to_m_scaling}")
 
     def extract_pixels(self) -> None:
         """Flatten the scan to a Numpy Array."""
@@ -331,7 +332,7 @@ class Filters:
         )
         return gaussian(
             image,
-            sigma=(self.gaussian_size / self.pixel_to_nm_scaling),
+            sigma=(self.gaussian_size / self.pixel_to_m_scaling),
             mode=self.gaussian_mode,
             **kwargs,
         )
@@ -354,7 +355,7 @@ class Filters:
         self.make_output_directory()
         self.extract_channel()
         self.extract_pixels()
-        self.extract_pixel_to_nm_scaling()
+        self.extract_pixel_to_m_scaling()
         if self.amplify_level != 1.0:
             self.amplify()
         self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)

@@ -188,9 +188,9 @@ def process_scan(
         if plotting_config["run"]:
             plotting_config.pop("run")
             LOGGER.info(f"[{filtered_image.filename}] : Plotting Filtering Images")
-            # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
+            # Update PLOT_DICT with pixel_to_m_scaling (can't add _output_dir since it changes)
             plot_opts = {
-                "pixel_to_nm_scaling_factor": filtered_image.pixel_to_nm_scaling,
+                "pixel_to_m_scaling_factor": filtered_image.pixel_to_m_scaling,
             }
             for image, options in plotting_config["plot_dict"].items():
                 plotting_config["plot_dict"][image] = {**options, **plot_opts}
@@ -222,7 +222,7 @@ def process_scan(
             grains = Grains(
                 image=filtered_image.images["gaussian_filtered"],
                 filename=filtered_image.filename,
-                pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
+                pixel_to_nm_scaling=filtered_image.pixel_to_m_scaling,
                 base_output_dir=grain_out_path,
                 **grains_config,
             )
@@ -286,7 +286,7 @@ def process_scan(
                     grainstats[direction] = GrainStats(
                         data=filtered_image.images["gaussian_filtered"],
                         labelled_data=grains.directions[direction]["labelled_regions_02"],
-                        pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+                        pixel_to_nanometre_scaling=filtered_image.pixel_to_m_scaling,
                         direction=direction,
                         base_output_dir=_output_dir / "grains",
                         image_name=filtered_image.filename,
@@ -312,7 +312,7 @@ def process_scan(
                             full_image_data=filtered_image.images["gaussian_filtered"].T,
                             grains=grains.directions[direction]["labelled_regions_02"],
                             filename=filtered_image.filename,
-                            pixel_size=filtered_image.pixel_to_nm_scaling,
+                            pixel_size=filtered_image.pixel_to_m_scaling,
                             **dnatracing_config,
                         )
                         dna_traces[direction].trace_dna()
