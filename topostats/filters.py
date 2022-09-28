@@ -23,12 +23,12 @@ class Filters:
     def __init__(
         self,
         img_path: Union[str, Path],
+        channel: str = "Height",
         threshold_method: str = "otsu",
         otsu_threshold_multiplier: float = 1.7,
         threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
-        channel: str = "Height",
         amplify_level: float = None,
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
@@ -42,15 +42,27 @@ class Filters:
         img_path: Union[str, Path]
             Path to a valid image to load.
         channel: str
-            Channel to extract from the image.
-        amplify_level : float
-            Factor by which to amplify the image.
+            Channel to extract from the image. Must match that in the AFM file.
         threshold_method: str
             Method for thresholding, default 'otsu'.
-        quiet: bool
-            Whether to silence output.
+        otsu_threshold_multiplier: float
+            Value to used to shift the threshold obtained by otsu for masking.
+        threshold_std_dev: float
+            The number of standard deviations away from the mean pixel value to use as a threshold for masking.
+        threshold_absolute_lower:
+            Absolute value to use as a lower threshold for masking.
+        threshold_absolute_upper: float
+            Absolute value to use as a lower threshold for masking.
+        amplify_level : float
+            Factor by which to amplify pixel values within the image.
+        gaussian_size: float
+            Size of the gaussian to blur the image in nm.
+        gaussian_mode: str
+            Method of gaussian interpolation.
         output_dir: Union[str, Path]
             Directory to save output to, if it does not exist it will be created.
+        quiet: bool
+            Whether to silence output.
 
         Notes
         -----
