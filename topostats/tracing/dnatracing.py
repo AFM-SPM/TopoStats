@@ -40,7 +40,7 @@ class dnaTrace(object):
         grains,
         filename,
         pixel_size,
-        convert_nm_to_m: bool = True,
+        convert_nm_to_m: bool = False,
     ):
         self.full_image_data = full_image_data * 1e-9 if convert_nm_to_m else full_image_data
         # self.grains_orig = [x for row in grains for x in row]
