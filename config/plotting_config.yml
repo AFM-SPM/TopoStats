@@ -1,0 +1,30 @@
+file: ./output/all_statistics.csv
+output_dir: ./plots
+plots:
+  plot_1:
+    data:
+    group: None
+    parameter: 'area'
+    # Available parameters:
+    plottype: histogram
+    # Available types: KDE, histogram, violin, dist
+    color: blue
+    nm: True
+  plot_2:
+    data:
+    group:
+    parameter: 'height_max'
+    plottype: KDE
+    color: red
+    nm: True
+
+
+# In python:
+#for plot in plots:
+#  if plot.color == None :
+#    color = plot.color
+
+# plotting_config = Path('./config/plotting_config.yml')
+
+
+

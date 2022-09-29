@@ -11,6 +11,10 @@ import scipy
 import glob
 from scipy import stats
 from cycler import cycler
+from pathlib import Path
+from topostats.io import read_yaml
+
+plotting_config = read_yaml(Path('./config/plotting_config.yml'))
 
 # Set seaborn to override matplotlib for plot output
 sns.set()
@@ -475,18 +479,24 @@ def computeStats(data, columns, min, max):
 
 
 if __name__ == '__main__':
-    # Path to the json file, e.g. C:\\Users\\username\\Documents\\Data\\Data.csv
 
-    path = ''
-    # path2 = ''
-
-    # Set the name of the json file to import here
-    # name = 'Non-incubation'
     bins = 20
 
-    # import data form the json file specified as a dataframe
+    # import data from the csv file
+    path = plotting_config['file']
     df = importfromfile(path)
-    # df2 = importfromfile(path2)
+
+    for plot in plotting_config['plots']:
+        plottype = plotting_config['plots'][plot]['plottype']
+        parameter = plotting_config['plots'][plot]['parameter']
+        nm = plotting_config['plots'][plot]['nm']
+        if plottype == 'histogram':
+            plothist(df, parameter, nm=nm)
+        elif plottype == 'KDE':
+            plotkde(df, parameter, nm=nm)
+
+
+
 
     # Filter data based on the need of specific projects
     # df = df[df['End to End Distance'] != 0]
@@ -550,7 +560,7 @@ if __name__ == '__main__':
 # m; add "nm=True" to change from m to nm.
 
 # Examples of possible plots
-plotkde(df, 'area', nm=True)
-plothist(df, 'Contour Lengths', nm=False)
+# plotkde(df, 'area', nm=True)
+# plothist(df, 'Contour Lengths', nm=False)
 
 
