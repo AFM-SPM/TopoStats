@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from typing import Union
 
-from skimage.filters import gaussian
+import os
 import numpy as np
 
 from topostats.io import load_scan
@@ -93,7 +93,10 @@ class Filters:
             "y_gradient": None,
             "threshold": None,
         }
-        self.load_scan()
+        self.file_type = os.path.splitext(self.img_path)[1]
+        print(f'file ext: {self.file_type}')
+        if self.file_type != '.png':
+            self.load_scan()
 
         if quiet:
             LOGGER.setLevel("ERROR")
@@ -105,6 +108,7 @@ class Filters:
 
     def load_scan(self) -> None:
         """Load the scan."""
+        print('file type: spm')
         try:
             self.images["scan_raw"] = load_scan(self.img_path)
             LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
@@ -337,14 +341,26 @@ class Filters:
         filter.filter_image()
 
         """
-        self.extract_filename()
-        self.load_scan()
-        self.make_output_directory()
-        self.extract_channel()
-        self.extract_pixels()
-        self.extract_pixel_to_nm_scaling()
+        if self.file_type != '.png':
+            self.extract_filename()
+            self.load_scan()
+            self.make_output_directory()
+            self.extract_channel()
+            self.extract_pixels()
+            self.extract_pixel_to_nm_scaling()
+        else:
+            print('  skipping initial stuff due to loading png')
+            print('file type: png')
+            from PIL import Image
+            im = Image.open(self.img_path)
+            print(im.format)
+            im_array = np.array(im, dtype=np.float64)
+            # plt.imshow(im_array)
+            print('assigning im_array to pixels')
+            self.images["pixels"] = im_array[:, :, 0]
         if self.amplify_level != 1.0:
             self.amplify()
+        print('  initial aligning')
         self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
         # Get the thresholds
