@@ -47,7 +47,7 @@ colname2label = {
     'Contour Lengths': 'Contour Lengths / nm',
     'Max Curvature': 'Maximum Curvature',
     'Max Curvature Location': 'Maximum Curvature Location / nm',
-    'Mean Curvature': 'Mean Curvature',
+    'Mean Curvature': 'Mean Curvature / $\ nm^{-1}$',
 }
 
 
@@ -76,7 +76,7 @@ def pathman(path):
 
     directory = os.path.dirname(path)
     name = os.path.basename(path)[:-5]
-    savedir = os.path.join(directory, 'Plots_dimers')
+    savedir = os.path.join(directory, 'Plots')
     if not os.path.exists(savedir):
         os.makedirs(savedir)
     plotname = os.path.join(savedir, name)
@@ -152,7 +152,8 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath
     # Grouped KDE plots
     else:
         dfnew = dfnew[[grouparg, plotarg]]
-        dfnew.groupby(grouparg)[plotarg].plot.kde(ax=ax, legend=True, alpha=1, linewidth=7.0)
+        dfnew = dfnew.pivot(columns=grouparg, values=plotarg)
+        dfnew.plot.kde(ax=ax, legend=True, alpha=0.7, linewidth=7.0, color=['#B45F06', '#0B5394'])
         handles, labels = ax.get_legend_handles_labels()
         # ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
         ax.legend(handles, labels, title=grouparg, loc='upper right')
@@ -199,7 +200,7 @@ def plotkde2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, 
     fig, ax = plt.subplots(figsize=(15, 12))
     # dfnew[plotarg].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, color='orange')
     # dfnew2[plotarg2].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, histtype='barstacked', color='blue')
-    dfplot.plot.kde(ax=ax, alpha=1, linewidth=7.0)
+    dfplot.plot.kde(ax=ax, alpha=1, linewidth=7.0, legend=False)
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
@@ -235,17 +236,17 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     else:
         dfnew = dfnew[[grouparg, plotarg]]
         dfnew = dfnew.pivot(columns=grouparg, values=plotarg)
-        dfnew.plot.hist(ax=ax, legend=True, bins=bins, alpha=0.5, linewidth=3.0, stacked=False, density=True,
-                        color=['#0B5394', '#B45F06'])
+        dfnew.plot.hist(ax=ax, legend=True, bins=bins, alpha=0.7, linewidth=3.0, stacked=False, density=True,
+                        color=['#B45F06', '#0B5394'])
         handles, labels = ax.get_legend_handles_labels()
-        ax.get_legend().remove()
+        # ax.get_legend().remove()
         # ax.legend(reversed(handles), reversed(labels), title=grouparg, loc='upper right')
         # ax.legend(handles, labels, title=grouparg, loc='upper right')
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
     plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
-    plt.ylabel('Count', alpha=1)
+    plt.ylabel('Probability Density', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
     ax.tick_params(direction='out', bottom=True, left=True)
     plt.savefig(savename)
@@ -289,16 +290,16 @@ def plothist2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None,
 
     # dfplot.plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, stacked=False)
 
-    # dfnew[plotarg].plot.hist(ax=ax, bins=np.linspace(41, 112, 21), alpha=0.8, linewidth=3.0, stacked=False,
-    #                          density=True,
-    #                          color='#B45F06')
-    # dfnew2[plotarg2].plot.hist(ax=ax, bins=np.linspace(41, 112, 21), alpha=0.6, linewidth=3.0, stacked=False,
-    #                            density=True, color='#0B5394')
+    dfnew[plotarg].plot.hist(ax=ax, bins=np.linspace(41, 112, 21), alpha=0.8, linewidth=3.0, stacked=False,
+                             density=True,
+                             color='#B45F06')
+    dfnew2[plotarg2].plot.hist(ax=ax, bins=np.linspace(41, 112, 21), alpha=0.6, linewidth=3.0, stacked=False,
+                               density=True, color='#0B5394')
 
-    dfnew[plotarg].plot.hist(ax=ax, bins=np.linspace(10, 80, 21), alpha=1, linewidth=3.0, stacked=False,
-                             color='#0B5394')
-    dfnew2[plotarg2].plot.hist(ax=ax, bins=np.linspace(10, 80, 21), alpha=1, linewidth=3.0, stacked=False,
-                               color='#76719F')
+    # dfnew[plotarg].plot.hist(ax=ax, bins=np.linspace(10, 80, 21), alpha=1, linewidth=3.0, stacked=False,
+    #                          color='#0B5394')
+    # dfnew2[plotarg2].plot.hist(ax=ax, bins=np.linspace(10, 80, 21), alpha=1, linewidth=3.0, stacked=False,
+    #                            color='#76719F')
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
@@ -338,12 +339,15 @@ def plotdist(df, xmin=None, xmax=None, bins=20, nm=False, specpath=None,
     pass
 
 
-def plotdist2var(plotarg, plotarg2, df, df2=None, xmin=None, xmax=None, bins=20, nm=False,
+def plotdist2var(df, plotarg, plotarg2=None, df2=None, xmin=None, xmax=None, bins=20, nm=False,
                  specpath=None,
                  plotextension=defextension, plotname=None, c1=None, c2=None):
     """Dist plot for 2 variables"""
 
     print 'Plotting dist plot of %s and %s' % (plotarg, plotarg2)
+
+    if plotarg2 is None:
+        plotarg2 = plotarg
 
     if plotname is None:
         plotname = plotarg + '_and_' + plotarg2
@@ -361,13 +365,13 @@ def plotdist2var(plotarg, plotarg2, df, df2=None, xmin=None, xmax=None, bins=20,
     dfnew2 = dataunitconversion(df2[plotarg2], plotarg2, nm)
 
     # Plot figure
-    fig, ax = plt.subplots(figsize=(15, 12))
+    fig, ax = plt.subplots(figsize=(14.5, 12))
     sns.distplot(dfnew, ax=ax, bins=bins, color=c1)
     sns.distplot(dfnew2, ax=ax, bins=bins, color=c2)
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
-    plt.xlabel(plotname)
+    plt.xlabel('Length / nm')
     # plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.ylabel('Probability Density', alpha=1)
     plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
@@ -487,7 +491,7 @@ def plotLinearVsCircular(contour_lengths_df):
     pass
 
 
-def computeStats(data, columns, min, max):
+def computeStats(data, columns, min, max, savename=None):
     """Prints out a table of stats, including the standard deviation, standard error, N value, and peak position"""
 
     xs = np.linspace(min, max, 6000)
@@ -499,6 +503,7 @@ def computeStats(data, columns, min, max):
         'std': [0] * len(data),
         'ste': [0] * len(data),
         'N': [0] * len(data),
+        'ave': [0] * len(data),
     }
 
     for i, x in enumerate(data):
@@ -512,27 +517,21 @@ def computeStats(data, columns, min, max):
         table['ste'][i] = stats.sem(x)
         table['max'][i] = xs[np.argmax(b[i])]
         table['N'][i] = len(x)
-
+        table['ave'][i] = np.average(x)
     dfmax = pd.DataFrame.from_dict(table, orient='index', columns=columns)
-    dfmax.to_csv(pathman(path) + '_test.csv')
+    dfmax.to_csv(pathman(path) + savename +'.csv')
 
 
 if __name__ == '__main__':
-    # Path to the json file, e.g. C:\\Users\\username\\Documents\\Data\\Data.json
 
-    # path = 'G:\\My Drive\\PhD\\Data\\NDP52-New\\20220617_test_parameters\\20220617_test_parameters.json'
-    # path = 'G:\\My Drive\\PhD\\Data\\NDP52\\Curated_data_new\\Jean_FL_No_HEPES\\TRIS_PLL\\Selected\\Selected_test.csv'
-    # path2 = 'G:\\My Drive\\PhD\\Data\\NDP52\\Curated_data_new\\Jean_FL_No_HEPES\\TRIS_PLL\\Selected\\Selected_maskdimers.csv'
-    path = 'G:\\Shared drives\\Pyne group\\Papers\\NDP52_2021\\Data\\Original Data\\Curated data\\Selected_NDP_PLL\\Selected_NDP_PLL_maskall.csv'
-    path2 = 'G:\\Shared drives\\Pyne group\\Papers\\NDP52_2021\\Data\\Original Data\\Curated data\\Selected_NDP_PLL\\Selected_NDP_PLL_maskoligomers.csv'
-    # path = 'G:\\My Drive\\PhD\\Data\\NDP52\\Curated_data_new\\Jean_FL_No_HEPES\\TRIS_PLL\\Selected\\combined.csv'
-    # Set the name of the json file to import here
-    # name = 'Non-incubation'
+    # Path to the json file, e.g. C:\\Users\\username\\Documents\\Data\\Data.json
+    path = ''
+
     bins = 20
 
     # import data form the json file specified as a dataframe
     df = importfromfile(path)
-    df2 = importfromfile(path2)
+    # df2 = importfromfile(path2)
 
     # fig, ax = plt.subplots(figsize=(15, 12))
     # # df.set_index('Contour length')
@@ -581,6 +580,8 @@ if __name__ == '__main__':
     # df2 = df2.rename(columns={"directory": "Experimental Conditions"})
     # df = df.rename(columns={"grain_min_bound_size": "Minimum Bound Size"})
     # df = df.rename(columns={"directory": "Experimental Conditions"})
+    df = df.rename(columns={"Basename": "Immobilisation\ntechnique"})
+
 
     # Calculate the aspect ratio for each grain
     # df['aspectratio'] = df['grain_min_bound_size'] / df['grain_max_bound_size']
@@ -615,14 +616,14 @@ if __name__ == '__main__':
     # Set palette for all plots with length number of topoisomers and reverse
     # # palette = sns.color_palette('PuBu', n_colors=len(topos))
 
-print len(df)
-print len(df2)
+# print len(df)
+# print len(df2)
 # Setting group argument
-# grouparg = 'Was there incubation?'
+grouparg = 'Immobilisation\ntechnique'
 # grouparg = 'Mask'
 # grouparg = 'Basename'
 # grouparg = 'directory'
-grouparg = None
+# grouparg = None
 # grouparg = 'Domain'
 
 # Setting a continuous colour palette; useful for certain grouped plots, but can be commented out if unsuitable.
@@ -642,14 +643,29 @@ grouparg = None
 
 
 # plothist(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
+
 # plothist2var(df1, 'grain_max_bound_size', df2=df2, nm=True)
+# plotkde2var(df2, 'grain_max_bound_size', df2=df1, nm=True, xmin=35, xmax=115)
+#
+# plotdist2var(df1, 'grain_max_bound_size', df2=df2, nm=True, c1='#B45F06', c2='#0B5394', plotname='Length', xmin=40, xmax=120)
 
 
+# columns = ['height', 'length', 'width', 'area']
+# data = [df['grain_maximum'], df['grain_max_bound_size'], df['grain_min_bound_size'], df['grain_proj_area']]
 # plothist(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
 # plothist(df, 'aspectratio', nm=True, grouparg=grouparg)
-# plotkde(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
-# plotkde(df, 'grain_min_bound_size', nm=True, grouparg=grouparg)
+# plotkde(df, 'grain_max_bound_size', xmin=0, xmax=80, nm=True, grouparg=grouparg)
+# plotkde(df, 'grain_min_bound_size', xmin=0, xmax=40, nm=True, grouparg=grouparg)
+# plotkde(df, 'grain_maximum', nm=True, xmin=0, xmax=6, grouparg=grouparg)
+# plotkde(df, 'grain_proj_area', nm=True, xmin=0, xmax=1000, grouparg=grouparg)
+#
+
+# computeStats(data, columns, 0, 1e-15)
+# plotkde(df, 'grain_maximum', nm=True, grouparg=grouparg)
+# plotkde(df, 'grain_maximum', nm=True, grouparg=grouparg)
 # plotkde(df, 'aspectratio', nm=True, grouparg=grouparg)
+
+
 
 # plothist(df, 'grain_maximum', xmin=0, xmax=9, nm=True, grouparg=grouparg)
 # plothist(df, 'grain_mean', nm=True, grouparg=grouparg)
@@ -658,14 +674,35 @@ grouparg = None
 # # plothist(df, 'grain_min_volume', nm=True, grouparg=grouparg)
 #
 #
-# plotkde(df, 'grain_maximum', xmin=0, xmax=9, nm=True, grouparg=grouparg)
+# plotkde(df, 'grain_maximum', xmin=1, xmax=5, nm=True, grouparg=grouparg)
 # plotkde(df, 'grain_mean', xmin=0, xmax=5, nm=True, grouparg=grouparg)
 # plotkde(df, 'grain_median', xmin=0, xmax=5, nm=True, grouparg=grouparg)
+
+dfplo= df[df['Immobilisation\ntechnique'] == 'PLO']
+dfNi= df[df['Immobilisation\ntechnique'] == 'NiCl2']
+columns = ['ete', 'cl', 'meancurvature', 'maxcurvature']
+plodata = [dfplo['End to End Distance'], dfplo['Contour Lengths'], dfplo['Mean Curvature'], dfplo['Max Curvature']]
+Nidata = [dfNi['End to End Distance'], dfNi['Contour Lengths'], dfNi['Mean Curvature'], dfNi['Max Curvature']]
+computeStats(plodata, columns, 0, 200, savename='PLO_ete_cl')
+computeStats(plodata, columns, 0, 0.2, savename='PLO_curvature')
+computeStats(Nidata, columns, 0, 200, savename='Ni_ete_cl')
+computeStats(Nidata, columns, 0, 0.2, savename='Ni_curvature')
+#
+plotkde(df[df['Circular'] == False], 'End to End Distance', nm=True, xmin=0, xmax=150, grouparg=grouparg)
+plotkde(df, 'Contour Lengths', nm=True, xmin=0, xmax=250, grouparg=grouparg)
+# plotkde(df, 'Mean Curvature', nm=True, grouparg=grouparg, xmin=0, xmax=0.25)
+plotkde(df, 'Mean Curvature', nm=True, grouparg=grouparg, xmin=-0.5, xmax=0.75)
+
+plothist(df[df['Circular'] == False], 'End to End Distance', nm=True, xmin=0, xmax=150, grouparg=grouparg, bins=np.linspace(0, 150, 21))
+plothist(df, 'Contour Lengths', nm=True, xmin=0, xmax=250, grouparg=grouparg, bins=np.linspace(0, 250, 21))
+# plothist(df, 'Mean Curvature', nm=True, grouparg=grouparg, xmin=0, xmax=0.25)
+plothist(df, 'Mean Curvature', nm=True, grouparg=grouparg, bins=np.linspace(0.0, 0.6, 21))
+
 
 # plotkde(df, 'grain_proj_area', nm=True, grouparg=grouparg)
 # plotkde(df, 'grain_min_volume', nm=True, grouparg=grouparg)
 
-plothist2var(df, 'grain_max_bound_size', df2=df2, label1='All', label2='Oligomers', nm=True)
+# plothist2var(df, 'grain_max_bound_size', df2=df2, label1='All', label2='Oligomers', nm=True)
 
 # plotkde(df, 'grain_min_bound_size', xmin=0, xmax=40, nm=True)
 # plotkde2var(df, 'grain_min_bound_size', 'grain_max_bound_size', xmin=0, xmax=40, nm=True)
@@ -688,8 +725,8 @@ plothist2var(df, 'grain_max_bound_size', df2=df2, label1='All', label2='Oligomer
 #              plotname='Maximum Bound Size for CTD and Full Protein', nm=True, xmin=0, xmax=50, c1='#0b5394',
 #              c2='#b45f06', plotextension='.tiff')
 # plotdist2var('grain_max_bound_size', 'grain_min_bound_size', df, df2=df2,
-#              plotname='Mininmum Bound Size for Full Protein and Maximum Bound Size for CTD', nm=True, xmin=0, xmax=50,
-#              c1='#0b5394', c2='#f9cb9c', plotextension='.tiff')
+#               plotname='Mininmum Bound Size for Full Protein and Maximum Bound Size for CTD', nm=True, xmin=0, xmax=50,
+#               c1='#0b5394', c2='#f9cb9c', plotextension='.tiff')
 #
 # plothist2var(df, 'grain_maximum', df2=df2, label1='CTD', label2='FL', xmax=10, nm=True)
 # plothist2var(df, 'grain_mean', df2=df2, label1='CTD', label2='FL', xmax=4, nm=True)
@@ -713,8 +750,10 @@ plothist2var(df, 'grain_max_bound_size', df2=df2, label1='All', label2='Oligomer
 #         df[df['Source'] == 'TopoStats']['Height']]
 # columns = ['SKICH', 'Zinc fingers', 'TopoStats']
 #
-#
+
 # computeStats(data, columns, 0, 6)
+
+
 
 # plotkde(df, 'End to End Distance', grouparg=grouparg, nm=True)
 # plotkde(df, 'Contour Lengths', grouparg=grouparg, nm=True)
@@ -760,3 +799,5 @@ plothist2var(df, 'grain_max_bound_size', df2=df2, label1='All', label2='Oligomer
 # plotkde(df, 'grain_maximum', nm=True, grouparg='directory', xmin=0, xmax=5)
 # plotkde(df, 'grain_mean', nm=True, grouparg='directory', xmin=0, xmax=3)
 # plotkde(df, 'grain_median', nm=True, grouparg='directory', xmin=0, xmax=4)
+
+# plotkde(df, 'grain_maximum', nm=True, xmin=1, xmax=5)
