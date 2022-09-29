@@ -40,8 +40,8 @@ class Grains:
         absolute_smallest_grain_size: float = None,
         background: float = 0.0,
         base_output_dir: Union[str, Path] = None,
-        area_absolute_threshold_upper: float = None,
-        area_absolute_threshold_lower: float = None,
+        upper_absolute_area_threshold: list = [None,None],
+        lower_absolute_area_threshold: list = [None,None],
     ):
         """Initialise the class.
 
@@ -78,8 +78,10 @@ class Grains:
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
-        self.area_absolute_threshold_upper = area_absolute_threshold_upper
-        self.area_absolute_threshold_lower = area_absolute_threshold_lower
+        self.absolute_area_threshold_dict = {
+            "upper":upper_absolute_area_threshold, 
+            "lower":lower_absolute_area_threshold
+            }
         # Only detect grains for the desired direction
         self.direction = [direction] if direction != "both" else ["upper", "lower"]
         self.background = background
@@ -102,7 +104,7 @@ class Grains:
         Path.mkdir(self.base_output_dir, parents=True, exist_ok=True)
 
     def tidy_border(self, image: np.array, **kwargs) -> np.array:
-        """Remove grains touching the border
+        """Remove grains touching the border.
 
         Parameters
         ----------
@@ -187,7 +189,7 @@ class Grains:
             return small_objects_removed > 0.0
         return image
 
-    def area_thresholding(self, image: np.ndarray, upper: float, lower: float):
+    def area_thresholding(self, image: np.ndarray, area_thresh_list: list):
         """Removes objects larger and smaller than the specified thresholds.
         
         Parameters
@@ -206,6 +208,8 @@ class Grains:
 
         """
         image_cp = image.copy()
+        upper = area_thresh_list[1]
+        lower = area_thresh_list[0]
         # if one value is None adjust for comparison
         if upper is None:
             upper = image.size * self.pixel_to_nm_scaling ** 2
@@ -213,7 +217,7 @@ class Grains:
             lower = 0
 
         for grain_no in range(1,np.max(image_cp)+1):
-            grain_area = len(image_cp[image_cp==grain_no]) * (self.pixel_to_nm_scaling ** 2)
+            grain_area = np.sum(image_cp==grain_no) * (self.pixel_to_nm_scaling ** 2)
             if grain_area > upper or grain_area < lower:
                 image_cp[image_cp==grain_no] = 0
         image_cp[image_cp!=0] = 1
@@ -292,13 +296,15 @@ class Grains:
                 self.directions[direction]["tidied_border"] = self.tidy_border(
                     self.directions[direction]["mask_grains"]
                 )
-                self.directions[direction]["removed_noise"] = self.remove_noise(
-                    self.directions[direction]["tidied_border"]
-                )
                 self.directions[direction]["labelled_regions_01"] = self.label_regions(
-                    self.directions[direction]["removed_noise"]
+                    self.directions[direction]["mask_grains"]
                 )
-                if self.area_absolute_threshold_lower is None and self.area_absolute_threshold_upper is None:
+                self.directions[direction]["removed_noise"] = self.area_thresholding(
+                    self.directions[direction]["labelled_regions_01"],
+                    [self.absolute_smallest_grain_size * self.pixel_to_nm_scaling, None],
+                )
+
+                if self.absolute_area_threshold_dict[direction].count(None) == 2:
                     self.calc_minimum_grain_size(self.directions[direction]["labelled_regions_01"])
                     self.directions[direction]["removed_small_objects"] = self.remove_small_objects(
                         self.directions[direction]["labelled_regions_01"]
@@ -306,9 +312,9 @@ class Grains:
                 else:
                     self.directions[direction]["removed_small_objects"] = self.area_thresholding(
                         self.directions[direction]["labelled_regions_01"],
-                        self.area_absolute_threshold_upper,
-                        self.area_absolute_threshold_lower,
+                        self.absolute_area_threshold_dict[direction],
                     )
+
                 self.directions[direction]["labelled_regions_02"] = self.label_regions(
                     self.directions[direction]["removed_small_objects"]
                 )
