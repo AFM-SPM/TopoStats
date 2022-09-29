@@ -64,19 +64,19 @@ mask_grains:
   title: "Mask for Grains"
   type: "binary"
   core_set: false
+labelled_regions_01:
+  filename: "10-labelled_regions"
+  title: "Labelled Regions"
+  type: "binary"
+  core_set: false
 tidied_border:
-  filename: "10-tidy_borders"
+  filename: "11-tidy_borders"
   title: "Tidied Borders"
   type: "binary"
   core_set: false
 removed_noise:
-  filename: "11-noise_removed"
+  filename: "12-noise_removed"
   title: "Noise removed"
-  type: "binary"
-  core_set: false
-labelled_regions_01:
-  filename: "12-labelled_regions"
-  title: "Labelled Regions"
   type: "binary"
   core_set: false
 removed_small_objects:

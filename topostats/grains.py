@@ -204,7 +204,7 @@ class Grains:
         Returns
         -------
         np.ndarray
-            Image where grains outside the thresholds have been removed, now as a binary image.
+            Image where grains outside the thresholds have been removed, as a re-numbered labeled image.
 
         """
         image_cp = image.copy()
@@ -216,11 +216,15 @@ class Grains:
         if lower is None:
             lower = 0
 
-        for grain_no in range(1,np.max(image_cp)+1):
+        uniq = np.delete(np.unique(image),0)
+        grain_count = 0
+        for grain_no in uniq:
             grain_area = np.sum(image_cp==grain_no) * (self.pixel_to_nm_scaling ** 2)
             if grain_area > upper or grain_area < lower:
                 image_cp[image_cp==grain_no] = 0
-        image_cp[image_cp!=0] = 1
+            else:
+                grain_count += 1
+                image_cp[image_cp==grain_no] = grain_count
         return image_cp
 
     def colour_regions(self, image: np.array, **kwargs) -> np.array:
@@ -293,25 +297,25 @@ class Grains:
                     threshold_direction=direction,
                     img_name=self.filename,
                 )
-                self.directions[direction]["tidied_border"] = self.tidy_border(
-                    self.directions[direction]["mask_grains"]
-                )
                 self.directions[direction]["labelled_regions_01"] = self.label_regions(
                     self.directions[direction]["mask_grains"]
                 )
+                self.directions[direction]["tidied_border"] = self.tidy_border(
+                    self.directions[direction]["labelled_regions_01"]
+                )
                 self.directions[direction]["removed_noise"] = self.area_thresholding(
-                    self.directions[direction]["labelled_regions_01"],
+                    self.directions[direction]["tidied_border"],
                     [self.absolute_smallest_grain_size * self.pixel_to_nm_scaling, None],
                 )
-
+                # if no area thresholds specified, use otsu
                 if self.absolute_area_threshold_dict[direction].count(None) == 2:
-                    self.calc_minimum_grain_size(self.directions[direction]["labelled_regions_01"])
+                    self.calc_minimum_grain_size(self.directions[direction]["removed_noise"])
                     self.directions[direction]["removed_small_objects"] = self.remove_small_objects(
-                        self.directions[direction]["labelled_regions_01"]
+                        self.directions[direction]["removed_noise"]
                     )
                 else:
                     self.directions[direction]["removed_small_objects"] = self.area_thresholding(
-                        self.directions[direction]["labelled_regions_01"],
+                        self.directions[direction]["removed_noise"],
                         self.absolute_area_threshold_dict[direction],
                     )
 
