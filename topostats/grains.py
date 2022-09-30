@@ -39,7 +39,7 @@ class Grains:
         direction: str = None,
         absolute_smallest_grain_size: float = None,
         background: float = 0.0,
-        base_output_dir: Union[str, Path] = None,
+        base_output_dir: Union[str, Path] = '.',
         upper_absolute_area_threshold: list = [None,None],
         lower_absolute_area_threshold: list = [None,None],
     ):
@@ -85,7 +85,7 @@ class Grains:
         # Only detect grains for the desired direction
         self.direction = [direction] if direction != "both" else ["upper", "lower"]
         self.background = background
-        self.base_output_dir = base_output_dir
+        self.base_output_dir = Path(base_output_dir)
         self.absolute_smallest_grain_size = absolute_smallest_grain_size
         self.thresholds = None
         self.images = {
