@@ -144,6 +144,7 @@ class Images:
                 vmax=self.zrange[1],
             )
             if isinstance(self.data2, np.ndarray):
+                self.data2[self.data2 != 0] = 1
                 mask = np.ma.masked_where(self.data2 == 0, self.data2)
                 ax.imshow(
                     mask,
