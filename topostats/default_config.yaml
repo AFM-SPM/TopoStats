@@ -23,6 +23,8 @@ grains:
   threshold_std_dev: 1.0
   threshold_absolute_lower: -1.0
   threshold_absolute_upper: 1.0
+  upper_absolute_area_threshold: [500,800] # above surface [Low, High] in nm^2 (also takes null)
+  lower_absolute_area_threshold: [null, null] # below surface [Low, High] in nm^2 (also takes null)
   direction: upper # Options: upper, lower, both (defines whether to look for grains above or below thresholds or both)
   background: 0.0
 grainstats:
