@@ -500,8 +500,7 @@ def minicircle_area_thresholding(minicircle_grain_labelled_all: np.array, grains
         "removed_small_objects"
         ] = minicircle_grain_labelled_all.area_thresholding(
         minicircle_grain_labelled_all.directions["upper"]["labelled_regions_01"],
-        grains_config["area_absolute_threshold_upper"],
-        grains_config["area_absolute_threshold_lower"]
+        grains_config["upper_absolute_area_threshold"],
     )
     return minicircle_grain_labelled_all
 
