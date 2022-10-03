@@ -30,7 +30,7 @@ class Grains:
         self,
         image: np.ndarray,
         filename: str,
-        pixel_to_nm_scaling: float,
+        pixel_to_m_scaling: float,
         threshold_method: str = None,
         otsu_threshold_multiplier: float = None,
         threshold_std_dev: float = None,
@@ -49,7 +49,7 @@ class Grains:
             2D Numpy array of image
         filename: str
             File being processed
-        pixel_to_nm_scaling: float
+        pixel_to_m_scaling: float
             Sacling of pixels to nanometre.
         threshold_multiplier : Union[int, float]
             Factor by which lower threshold is to be scaled prior to masking.
@@ -70,7 +70,7 @@ class Grains:
         """
         self.image = image
         self.filename = filename
-        self.pixel_to_nm_scaling = pixel_to_nm_scaling
+        self.pixel_to_m_scaling = pixel_to_m_scaling
         self.threshold_method = threshold_method
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
         self.threshold_std_dev = threshold_std_dev
@@ -174,11 +174,11 @@ class Grains:
         if self.minimum_grain_size != -1:
             small_objects_removed = remove_small_objects(
                 image,
-                min_size=(self.minimum_grain_size * self.pixel_to_nm_scaling),
+                min_size=(self.minimum_grain_size),
                 **kwargs,
             )
             LOGGER.info(
-                f"[{self.filename}] : Removed small objects (< {self.minimum_grain_size * self.pixel_to_nm_scaling})"
+                f"[{self.filename}] : Removed small objects (< {self.minimum_grain_size * (self.pixel_to_m_scaling**2)}m^2)"
             )
             return small_objects_removed > 0.0
         return image
