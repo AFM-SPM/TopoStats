@@ -36,12 +36,14 @@ class Grains:
         threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
+        absolute_area_threshold: dict = {
+            "upper": [None,None],
+            "lower": [None,None],
+            },
         direction: str = None,
         absolute_smallest_grain_size: float = None,
         background: float = 0.0,
-        base_output_dir: Union[str, Path] = '.',
-        upper_absolute_area_threshold: list = [None,None],
-        lower_absolute_area_threshold: list = [None,None],
+        base_output_dir: Union[str, Path] = ".",
     ):
         """Initialise the class.
 
@@ -63,6 +65,8 @@ class Grains:
             Lower absolute threshold.
         threshold_absolute_upper: float
             Upper absolute threshold.
+        absolute_area_threshold: dict
+            Dictionary of upper and lower grain's area thresholds
         direction: str
             Direction for which grains are to be detected, valid values are upper, lower and both.
         background : float
@@ -78,10 +82,7 @@ class Grains:
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
-        self.absolute_area_threshold_dict = {
-            "upper":upper_absolute_area_threshold, 
-            "lower":lower_absolute_area_threshold
-            }
+        self.absolute_area_threshold = absolute_area_threshold
         # Only detect grains for the desired direction
         self.direction = [direction] if direction != "both" else ["upper", "lower"]
         self.background = background
@@ -215,7 +216,6 @@ class Grains:
             upper = image.size * self.pixel_to_nm_scaling ** 2
         if lower is None:
             lower = 0
-
         uniq = np.delete(np.unique(image),0)
         grain_count = 0
         for grain_no in uniq:
@@ -308,7 +308,7 @@ class Grains:
                     [self.absolute_smallest_grain_size * self.pixel_to_nm_scaling, None],
                 )
                 # if no area thresholds specified, use otsu
-                if self.absolute_area_threshold_dict[direction].count(None) == 2:
+                if self.absolute_area_threshold[direction].count(None) == 2:
                     self.calc_minimum_grain_size(self.directions[direction]["removed_noise"])
                     self.directions[direction]["removed_small_objects"] = self.remove_small_objects(
                         self.directions[direction]["removed_noise"]
@@ -316,7 +316,7 @@ class Grains:
                 else:
                     self.directions[direction]["removed_small_objects"] = self.area_thresholding(
                         self.directions[direction]["removed_noise"],
-                        self.absolute_area_threshold_dict[direction],
+                        self.absolute_area_threshold[direction],
                     )
 
                 self.directions[direction]["labelled_regions_02"] = self.label_regions(
