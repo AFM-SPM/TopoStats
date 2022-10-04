@@ -284,3 +284,41 @@ def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], 
             LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/Processed/folder_grainstats.csv")
     except TypeError:
         LOGGER.info(f"Unable to generate folderwise statistics as 'all_statistics.csv' is empty")
+
+def units(number):
+    """Takes a number and finds the most appropriate units for that number.
+
+    Parameters
+    ----------
+    number: float
+        A number
+
+    Returns
+    -------
+    number/unit_val: float
+        The number scaled to the non-SI unit.
+    unit: str
+        The string representing the unit value.
+    unit_val: float
+        The SI value of the unit.
+    """
+    # breaks when number >4 digets due to compression at pm
+    unit_dict = {
+        "m": 1,
+        "mm": 1e-3,
+        "um": 1e-6,
+        "nm": 1e-9,
+        "pm": 1e-12,
+        }
+    sig_figs = []
+    for value in unit_dict.values():
+        val = number/value
+        sig_figs.append(len(str(val).split('.')[0]))
+    arr = np.asarray(sig_figs)
+    arr[arr > 3] = 0
+    if arr.sum() == 0:
+        unit = 'm'
+    else:
+        unit = list(unit_dict.keys())[np.argmax(arr)]
+    unit_value = unit_dict[unit]
+    return number/unit_value, unit, unit_value        

@@ -10,6 +10,7 @@ import numpy as np
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
+from topostats.utils import units
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -90,7 +91,7 @@ class Images:
         self.interpolation=interpolation
         self.cmap=cmap
         self.region_properties=region_properties
-        self.zrange=zrange
+        self.zrange = zrange/1e-9 if zrange[0] is not None and zrange[1] is not None # Linked to hard 1e-9 in Filters
         self.colorbar=colorbar
         self.axes=axes
         self.save=save
@@ -134,13 +135,17 @@ class Images:
         """
         fig, ax = plt.subplots(1, 1, figsize=(8, 8))
         shape = self.data.shape
+        extent1 = shape[1] * self.pixel_to_m_scaling_factor
+        extent2 = shape[0] * self.pixel_to_m_scaling_factor
+        _, unit, unit_scale = units(max(extent1, extent2))
         if isinstance(self.data, np.ndarray):
+            LOGGER.info(f"Zrange = {self.zrange}")
             im = ax.imshow(
-                self.data,
-                extent=(0, shape[1] * self.pixel_to_m_scaling_factor, 0, shape[0] * self.pixel_to_m_scaling_factor),
+                self.data / 1e-9, # Linked to hard 1e-9 in Filters
+                extent=(0, extent1/unit_scale, 0, extent2/unit_scale),
                 interpolation=self.interpolation,
                 cmap=Colormap(self.cmap).get_cmap(),
-                vmin=self.zrange[0],
+                vmin=self.zrange[0], 
                 vmax=self.zrange[1],
             )
             if isinstance(self.data2, np.ndarray):
@@ -148,7 +153,7 @@ class Images:
                 ax.imshow(
                     mask,
                     "jet_r",
-                    extent=(0, shape[1] * self.pixel_to_m_scaling_factor, 0, shape[0] * self.pixel_to_m_scaling_factor),
+                    extent=(0, extent1/unit_scale, 0, extent2/unit_scale),
                     interpolation=self.interpolation,
                     alpha=0.7,
                 )
@@ -156,13 +161,13 @@ class Images:
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
 
             plt.title(self.title)
-            plt.xlabel("Metres")
-            plt.ylabel("Metres")
+            plt.xlabel(f"{unit}")
+            plt.ylabel(f"{unit}")
             plt.axis(self.axes)
             if self.colorbar and self.type == "non-binary":
                 divider = make_axes_locatable(ax)
                 cax = divider.append_axes("right", size="5%", pad=0.05)
-                plt.colorbar(im, cax=cax, label="Height (Nanometres)")
+                plt.colorbar(im, cax=cax, label=f"Height (Nanometres)")
             if self.region_properties:
                 fig, ax = add_bounding_boxes_to_plot(fig, ax, shape, self.region_properties, self.pixel_to_m_scaling_factor)
             if not self.axes and not self.colorbar:
@@ -177,11 +182,11 @@ class Images:
             else:
                 plt.savefig((self.output_dir / f"{self.filename}.{self.save_format}"), format=self.save_format)
         else:
-            plt.xlabel("Nanometres")
-            plt.ylabel("Nanometres")
+            plt.xlabel(f"{unit}")
+            plt.ylabel(f"{unit}")
             self.data.show(
                 ax=ax,
-                extent=(0, shape[1] * self.pixel_to_m_scaling_factor, 0, shape[0] * self.pixel_to_m_scaling_factor),
+                extent=(0, extent1/unit_scale, 0, extent2/unit_scale),
                 interpolation=self.interpolation,
                 cmap=Colormap(self.cmap).get_cmap(),
             )
