@@ -57,7 +57,7 @@ class GrainStats:
         self,
         data: np.ndarray,
         labelled_data: np.ndarray,
-        pixel_to_nanometre_scaling: float,
+        pixel_to_m_scaling: float,
         direction: str,
         base_output_dir: Union[str, Path],
         image_name: str = None,
@@ -73,8 +73,8 @@ class GrainStats:
             2D Numpy array containing the flattened afm image. Data in this 2D array is floating point.
         labelled_data : np.ndarray
             2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.
-        pixel_to_nanometre_scaling : float
-            Floating point value that defines the scaling factor between nanometres and pixels.
+        pixel_to_m_scaling : float
+            Floating point value that defines the scaling factor between metres and pixels.
         direction: str
             Direction for which grains have been detected ("upper" or "lower").
         base_output_dir : Path
@@ -91,7 +91,7 @@ class GrainStats:
 
         self.data = data
         self.labelled_data = labelled_data
-        self.pixel_to_nanometre_scaling = pixel_to_nanometre_scaling
+        self.pixel_to_m_scaling = pixel_to_m_scaling
         self.direction = direction
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
@@ -190,7 +190,7 @@ class GrainStats:
                 else:
                     # Get cropped image and mask
                     grain_centre = int((minr + maxr) / 2), int((minc + maxc) / 2)
-                    length = int(self.cropped_size / (2 * self.pixel_to_nanometre_scaling))
+                    length = int(self.cropped_size / (2 * self.pixel_to_m_scaling))
                     solo_mask = self.labelled_data.copy()
                     solo_mask[solo_mask != index + 1] = 0
                     solo_mask[solo_mask == index + 1] = 1
@@ -237,28 +237,28 @@ class GrainStats:
             # from pixel units to nanometres.
             # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
             stats = {
-                "centre_x": centre_x * self.pixel_to_nanometre_scaling,
-                "centre_y": centre_y * self.pixel_to_nanometre_scaling,
-                "radius_min": radius_stats["min"] * self.pixel_to_nanometre_scaling,
-                "radius_max": radius_stats["max"] * self.pixel_to_nanometre_scaling,
-                "radius_mean": radius_stats["mean"] * self.pixel_to_nanometre_scaling,
-                "radius_median": radius_stats["median"] * self.pixel_to_nanometre_scaling,
+                "centre_x": centre_x * self.pixel_to_m_scaling,
+                "centre_y": centre_y * self.pixel_to_m_scaling,
+                "radius_min": radius_stats["min"] * self.pixel_to_m_scaling,
+                "radius_max": radius_stats["max"] * self.pixel_to_m_scaling,
+                "radius_mean": radius_stats["mean"] * self.pixel_to_m_scaling,
+                "radius_median": radius_stats["median"] * self.pixel_to_m_scaling,
                 "height_min": np.nanmin(masked_grain_image),
                 "height_max": np.nanmax(masked_grain_image),
                 "height_median": np.nanmedian(masked_grain_image),
                 "height_mean": np.nanmean(masked_grain_image),
-                "volume": np.nansum(masked_grain_image) * self.pixel_to_nanometre_scaling**2,
-                "area": region.area * self.pixel_to_nanometre_scaling**2,
-                "area_cartesian_bbox": region.area_bbox * self.pixel_to_nanometre_scaling**2,
-                "smallest_bounding_width": smallest_bounding_width * self.pixel_to_nanometre_scaling,
-                "smallest_bounding_length": smallest_bounding_length * self.pixel_to_nanometre_scaling,
+                "volume": np.nansum(masked_grain_image) * self.pixel_to_m_scaling**2,
+                "area": region.area * self.pixel_to_m_scaling**2,
+                "area_cartesian_bbox": region.area_bbox * self.pixel_to_m_scaling**2,
+                "smallest_bounding_width": smallest_bounding_width * self.pixel_to_m_scaling,
+                "smallest_bounding_length": smallest_bounding_length * self.pixel_to_m_scaling,
                 "smallest_bounding_area": smallest_bounding_length
                 * smallest_bounding_width
-                * self.pixel_to_nanometre_scaling**2,
+                * self.pixel_to_m_scaling**2,
                 "aspect_ratio": aspect_ratio,
                 "threshold": self.direction,
-                "max_feret": max_feret * self.pixel_to_nanometre_scaling,
-                "min_feret": min_feret * self.pixel_to_nanometre_scaling,
+                "max_feret": max_feret * self.pixel_to_m_scaling,
+                "min_feret": min_feret * self.pixel_to_m_scaling,
             }
 
             stats_array.append(stats)
