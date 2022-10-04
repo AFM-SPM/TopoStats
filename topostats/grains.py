@@ -163,10 +163,10 @@ class Grains:
         Returns
         -------
         np.ndarray
-            2D Numpy array of image with objects > absolute_smallest_grain_size removed.
+            2D Numpy array of image with objects < absolute_smallest_grain_size removed.
         """
-        LOGGER.info(f"[{self.filename}] : Removing noise (< {self.absolute_smallest_grain_size})")
-        return remove_small_objects(image, min_size=self.absolute_smallest_grain_size)
+        LOGGER.info(f"[{self.filename}] : Removing noise (< {self.absolute_smallest_grain_size}m^2)")
+        return remove_small_objects(image, min_size=self.absolute_smallest_grain_size / (self.pixel_to_m_scaling ** 2))
 
     def remove_small_objects(self, image: np.array, **kwargs):
         """Remove small objects."""
@@ -178,7 +178,7 @@ class Grains:
                 **kwargs,
             )
             LOGGER.info(
-                f"[{self.filename}] : Removed small objects (< {self.minimum_grain_size * (self.pixel_to_m_scaling**2)}m^2)"
+                f"[{self.filename}] : Removed small objects (< {self.minimum_grain_size * (self.pixel_to_m_scaling ** 2)}m^2)"
             )
             return small_objects_removed > 0.0
         return image
@@ -245,7 +245,7 @@ class Grains:
         try:
             region_props_count = 0
             for direction in self.direction:
-                LOGGER.info(f"[{self.filename}] : Processing {direction} threshold ({self.thresholds[direction]})")
+                LOGGER.info(f"[{self.filename}] : Processing {direction} threshold")
                 self.directions[direction] = defaultdict()
                 self.directions[direction]["mask_grains"] = _get_mask(
                     self.image,
