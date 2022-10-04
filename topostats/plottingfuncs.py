@@ -91,7 +91,10 @@ class Images:
         self.interpolation=interpolation
         self.cmap=cmap
         self.region_properties=region_properties
-        self.zrange = zrange/1e-9 if zrange[0] is not None and zrange[1] is not None # Linked to hard 1e-9 in Filters
+        if zrange[0] is None and zrange[1] is None:
+            self.zrange=zrange
+        else:
+            self.zrange = [i/1e-9 for i in zrange] # Linked to hard 1e-9 in Filters
         self.colorbar=colorbar
         self.axes=axes
         self.save=save
@@ -139,7 +142,6 @@ class Images:
         extent2 = shape[0] * self.pixel_to_m_scaling_factor
         _, unit, unit_scale = units(max(extent1, extent2))
         if isinstance(self.data, np.ndarray):
-            LOGGER.info(f"Zrange = {self.zrange}")
             im = ax.imshow(
                 self.data / 1e-9, # Linked to hard 1e-9 in Filters
                 extent=(0, extent1/unit_scale, 0, extent2/unit_scale),
@@ -167,7 +169,7 @@ class Images:
             if self.colorbar and self.type == "non-binary":
                 divider = make_axes_locatable(ax)
                 cax = divider.append_axes("right", size="5%", pad=0.05)
-                plt.colorbar(im, cax=cax, label=f"Height (Nanometres)")
+                plt.colorbar(im, cax=cax, label=f"Height (nm)") # also linked to hard-coded filters value
             if self.region_properties:
                 fig, ax = add_bounding_boxes_to_plot(fig, ax, shape, self.region_properties, self.pixel_to_m_scaling_factor)
             if not self.axes and not self.colorbar:
