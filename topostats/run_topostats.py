@@ -1,4 +1,7 @@
-"""Topotracing"""
+"""Run TopoStats
+
+This provides an entry point for running TopoStats as a command line programme.
+"""
 import argparse as arg
 from collections import defaultdict
 from functools import partial
@@ -27,6 +30,7 @@ from topostats.utils import (
     create_empty_dataframe,
     folder_grainstats,
 )
+from topostats.validation import validate_config
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -173,7 +177,6 @@ def process_scan(
         Path.mkdir(_output_dir / image_path.stem / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
 
-
     # Filter Image :
     if filter_config["run"]:
         filter_config.pop("run")
@@ -212,7 +215,6 @@ def process_scan(
                 **plotting_config["plot_dict"][plot_name],
             ).plot_and_save()
             plotting_config["run"] = True
-
 
     # Find Grains :
     if grains_config["run"]:
@@ -270,7 +272,6 @@ def process_scan(
                 ).plot_and_save()
             plotting_config["run"] = True
 
-
         # Grainstats :
         #
         # There are two layers to process those above the given threshold and those below, use dictionary comprehension
@@ -280,7 +281,11 @@ def process_scan(
             # Grain Statistics :
             try:
                 LOGGER.info(f"[{filtered_image.filename}] : *** Grain Statistics ***")
-                grain_plot_dict = {key:value for key, value in plotting_config["plot_dict"].items() if key in ["grain_image","grain_mask", "grain_mask_image"]}
+                grain_plot_dict = {
+                    key: value
+                    for key, value in plotting_config["plot_dict"].items()
+                    if key in ["grain_image", "grain_mask", "grain_mask_image"]
+                }
                 grainstats = {}
                 for direction in grains.directions.keys():
                     grainstats[direction] = GrainStats(
@@ -333,7 +338,7 @@ def process_scan(
                     results = grainstats_df
                     results["Image Name"] = filtered_image.filename
                     results["Basename"] = image_path.parent
-            
+
             except Exception:
                 # If no results we need a dummy dataframe to return.
                 LOGGER.info(
@@ -358,6 +363,9 @@ def main():
     config = update_config(config, args)
     config["output_dir"] = convert_path(config["output_dir"])
     config["output_dir"].mkdir(parents=True, exist_ok=True)
+
+    # Validate configuration
+    validate_config(config)
 
     # Load plotting_dictionary
     plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
