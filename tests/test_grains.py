@@ -64,7 +64,7 @@ grain_array4 = np.array(
     ]
 )
 def test_known_array_threshold(area_thresh, expected) -> None:
-    "Tests that arrays the thresholded on size as expected"
+    "Tests that arrays are thresholded on size as expected."
     grains = Grains(image=np.zeros((10,6)), filename="xyz", pixel_to_nm_scaling=1)
     assert (grains.area_thresholding(grain_array, area_thresh) == expected).all()
 
