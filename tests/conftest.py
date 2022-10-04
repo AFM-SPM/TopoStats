@@ -457,7 +457,7 @@ def minicircle_grain_clear_border(minicircle_grain_mask: np.array) -> Grains:
 
 @pytest.fixture
 def minicircle_grain_remove_noise(minicircle_grain_clear_border: np.array) -> Grains:
-    """Remove Noise."""
+    """Fixture to test removing noise."""
     minicircle_grain_clear_border.directions["upper"]["removed_noise"] = minicircle_grain_clear_border.remove_noise(
         minicircle_grain_clear_border.directions["upper"]["tidied_border"]
     )
