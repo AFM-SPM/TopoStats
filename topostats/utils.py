@@ -150,10 +150,10 @@ def _get_mask(image: np.ndarray, threshold: float, threshold_direction: str, img
         Numpy array of image with objects coloured.
     """
     if threshold_direction == "upper":
-        LOGGER.info(f"[{img_name}] : Masking (upper) Threshold: {threshold}")
+        LOGGER.info(f"[{img_name}] : Masking Upper Threshold (m): {threshold}")
         return image > threshold
     if threshold_direction == "lower":
-        LOGGER.info(f"[{img_name}] : Masking (lower) Threshold: {threshold}")
+        LOGGER.info(f"[{img_name}] : Masking Lower Threshold (m): {threshold}")
         return image < threshold
     # LOGGER.fatal(f"[{img_name}] : Threshold direction invalid: {threshold_direction}")
 

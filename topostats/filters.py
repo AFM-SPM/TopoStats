@@ -233,7 +233,7 @@ class Filters:
         medians = self.row_col_medians(image_cp, mask)
         row_medians = medians["rows"]
         median_row_height = self._median_row_height(row_medians)
-        LOGGER.info(f"[{self.filename}] : Median Row Height: {median_row_height}")
+        LOGGER.info(f"[{self.filename}] : Median Row Height (m): {median_row_height}")
 
         # Calculate the differences between the row medians and the median row height
         row_median_diffs = self._row_median_diffs(row_medians, median_row_height)
@@ -329,7 +329,7 @@ class Filters:
             
         """
         LOGGER.info(
-            f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (nm) : {self.gaussian_size})."
+            f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (m) : {self.gaussian_size})."
         )
         return gaussian(
             image,
