@@ -29,21 +29,31 @@ def validate_config(config: dict):
                 "channel": Or("Height"),
                 "amplify_level": float,
                 "threshold_method": Or(
-                    "absolute", "otsu", "std_dev", error="Invalid value for filter.threshold_method"
+                    "absolute",
+                    "otsu",
+                    "std_dev",
+                    error="Invalid value for filter.threshold_method, valid values are 'absolute', 'otsu' or 'std_dev'",
                 ),
                 "otsu_threshold_multiplier": float,
-                "threshold_std_dev": float,
+                "threshold_std_dev": lambda n: 0 < n <= 6,
                 "threshold_absolute_lower": float,
                 "threshold_absolute_upper": float,
                 "gaussian_size": float,
-                "gaussian_mode": str,
+                "gaussian_mode": Or(
+                    "nearest", error="Invalid value for filter.gaussian_mode, valid values are 'nearest'"
+                ),
             },
             "grains": {
                 "run": Or(True, False, error="Invalid value for grains.run, valid values are True or False"),
                 "absolute_smallest_grain_size": int,
-                "threshold_method": str,
+                "threshold_method": Or(
+                    "absolute",
+                    "otsu",
+                    "std_dev",
+                    error="Invalid value for filter.threshold_method, valid values are 'absolute', 'otsu' or 'std_dev'",
+                ),
                 "otsu_threshold_multiplier": float,
-                "threshold_std_dev": float,
+                "threshold_std_dev": lambda n: 0 < n <= 6,
                 "threshold_absolute_lower": float,
                 "threshold_absolute_upper": float,
                 "absolute_area_threshold": {
