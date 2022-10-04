@@ -13,11 +13,11 @@ filter:
   threshold_std_dev: 1.0
   threshold_absolute_lower: -1.0
   threshold_absolute_upper: 1.0
-  gaussian_size: 0.5
+  gaussian_size: 0.5e-9 # extent of blurring in m
   gaussian_mode: nearest
 grains:
   run: true # Options : true, false
-  absolute_smallest_grain_size: 100
+  absolute_smallest_grain_size: 50e-18 # in m^2
   threshold_method: std_dev # Options : otsu, std_dev, absolute
   otsu_threshold_multiplier: 1.0
   threshold_std_dev: 1.0
@@ -27,7 +27,7 @@ grains:
   background: 0.0
 grainstats:
   run: true # Options : true, false
-  cropped_size: 40 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
+  cropped_size: 40e-9 # Length (in m) of square cropped images (can take -1 for grain-sized box)
   save_cropped_grains: true # Options : true, false
 dnatracing:
   run: true # Options : true, false
@@ -35,7 +35,7 @@ plotting:
   run: true # Options : true, false
   save_format: png # Options : see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
   image_set: all  # Options : all, core
-  zrange: [0, 3] # low and high height range for core images (can take [null, null])
+  zrange: [0, 3e-9] # low and high height range for core images (can take [null, null])
   colorbar: true  # Options : true, false
   axes: true # Options : true, false (due to off being a bool when parsed)
   cmap: nanoscope # Options : nanoscope, afmhot
