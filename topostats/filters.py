@@ -153,7 +153,8 @@ class Filters:
 
     def extract_pixels(self) -> None:
         """Flatten the scan to a Numpy Array."""
-        self.images["pixels"] = np.flipud(np.array(self.images["extracted_channel"].pixels))
+        # I have assumed all AFM image pixels are in nm. But maybe this should be in io.py?
+        self.images["pixels"] = np.flipud(np.array(self.images["extracted_channel"].pixels * 1e-9))
         LOGGER.info(f"[{self.filename}] : Pixels extracted")
 
     def amplify(self) -> None:
