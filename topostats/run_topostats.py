@@ -264,7 +264,7 @@ def process_scan(
                 plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
                 Images(
                     filtered_image.images["gaussian_filtered"],
-                    filename=filtered_image.filename + "_processed_masked",
+                    filename=f"{filtered_image.filename}_{direction}_processed_masked",
                     data2=grains.directions[direction]["removed_small_objects"],
                     **plotting_config["plot_dict"][plot_name],
                 ).plot_and_save()
