@@ -25,7 +25,6 @@ sns.set_style("white", {'font.family': ['sans-serif']})
 sns.set_context("poster", font_scale=1.4)
 # plt.style.use("dark_background")
 sns.set_palette(sns.color_palette('bright'))
-defextension = '.png'
 
 colname2label = {
     'grain_bound_len': 'Circumference / %s',
@@ -148,7 +147,7 @@ def dataunitconversion(data, plotarg, nm):
     return data_new
 
 
-def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath=None, plotextension=defextension):
+def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath=None):
     """Creating a KDE plot for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
     the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
@@ -158,7 +157,7 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_KDE' + plotextension)
+    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_KDE' + extension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -187,7 +186,7 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath
 
 
 def plotkde2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, xmin=None, xmax=None, nm=False,
-                specpath=None, plotextension=defextension):
+                specpath=None):
     """Creating a KDE plot for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
     the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
@@ -202,7 +201,7 @@ def plotkde2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, 
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_' + plotarg2 + '_KDE' + plotextension)
+    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_' + plotarg2 + '_KDE' + extension)
 
     dfnew = df.copy()
     dfnew2 = df2.copy()
@@ -234,8 +233,7 @@ def plotkde2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, 
     plt.savefig(savename)
 
 
-def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None,
-             plotextension=defextension):
+def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None):
     """Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
     the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
@@ -245,7 +243,7 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     # Set  the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_histogram' + plotextension)
+    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_histogram' + extension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -274,7 +272,7 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     plt.savefig(savename)
 
 def plothist2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, xmin=None, xmax=None, nm=False,
-                specpath=None, plotextension=defextension):
+                specpath=None):
     """Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
     the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
@@ -293,7 +291,7 @@ def plothist2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None,
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + '_' + label1 + '_' + label2 + '_histogram' + plotextension)
+    savename = os.path.join(pathman(specpath) + '_' + label1 + '_' + label2 + '_histogram' + extension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -316,38 +314,42 @@ def plothist2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None,
     plt.savefig(savename)
 
 
-def plotdist(df, xmin=None, xmax=None, bins=20, nm=False, specpath=None,
-             plotextension=defextension, *plotargs):
-    """An attempt to make dist plots for a customisable number of arguments, but this doesn't work yet"""
+def plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None, plotname=None):
 
-    # # Set  the name of the file
-    # if specpath is None:
-    #     specpath = path
-    # savename = os.path.join(pathman(specpath) + '_dist' + plotextension)
-    #
-    # # Convert the unit of the data to nm if specified by the user
-    # for plotarg in plotargs:
-    #     df[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
-    #
-    # # Plot figure
-    # fig, ax = plt.subplots(figsize=(15, 12))
-    # # Simple dist plot
-    #
-    # for plotarg in plotargs:
-    #     sns.distplot(df[plotarg], ax=ax, bins=bins)
-    #
-    # # Label plot and save figure
-    # plt.xlim(xmin, xmax)
-    # # plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
-    # plt.ylabel('Probability Density', alpha=1)
-    # # plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
-    # plt.savefig(savename)
-    pass
+    """Creating a dist plot, which is the combination of a histogram and a KDE plot; doesn't support grouped plots
+    yet """
+
+    print('Plotting dist plot of %s and %s' % plotarg)
+
+    # Set the name of the file
+    if plotname is None:
+        plotname = labelunitconversion(plotarg, nm)
+
+    if specpath is None:
+        specpath = path
+    savename = os.path.join(pathman(specpath) + '_' + plotname + '_dist' + extension)
+
+    # Convert the unit of the data to nm if specified by the user
+    dfnew = df.copy()
+    dfnew[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
+
+    # Plot figure
+    fig, ax = plt.subplots(figsize=(15, 12))
+    sns.distplot(dfnew[plotarg], ax=ax, bins=bins)
+
+    # Label plot and save figure
+    plt.xlim(xmin, xmax)
+    plt.xlabel(plotname)
+    plt.ylabel('Probability Density', alpha=1)
+    plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
+    ax.tick_params(direction='out', bottom=True, left=True)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    plt.savefig(savename)
 
 
 def plotdist2var(plotarg, plotarg2, df, df2=None, xmin=None, xmax=None, bins=20, nm=False,
-                 specpath=None,
-                 plotextension=defextension, plotname=None, c1=None, c2=None):
+                 specpath=None, plotname=None, c1=None, c2=None):
     """Dist plot for 2 variables"""
 
     print('Plotting dist plot of %s and %s' % (plotarg, plotarg2))
@@ -358,7 +360,7 @@ def plotdist2var(plotarg, plotarg2, df, df2=None, xmin=None, xmax=None, bins=20,
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + '_' + plotname + '_dist' + plotextension)
+    savename = os.path.join(pathman(specpath) + '_' + plotname + '_dist' + extension)
 
     if df2 is None:
         df2 = df
@@ -386,7 +388,7 @@ def plotdist2var(plotarg, plotarg2, df, df2=None, xmin=None, xmax=None, bins=20,
     plt.savefig(savename)
 
 
-def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specpath=None, plotextension=defextension):
+def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specpath=None):
     """Creating a violin plot for the chosen variable. Grouping optional. The y axis range can be defined by the user.
     The default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path
     under the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
@@ -396,7 +398,7 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specp
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_violin' + plotextension)
+    savename = os.path.join(pathman(specpath) + '_' + plotarg + '_violin' + extension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -420,8 +422,7 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specp
     plt.savefig(savename)
 
 
-def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=False, specpath=None,
-              plotextension=defextension):
+def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=False, specpath=None):
     """Creating a joint plot for two chosen variables. The range for both axes can be defined by the user.
     The default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path
     under the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
@@ -431,7 +432,7 @@ def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=Fal
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + '_' + arg1 + '_and_' + arg2 + plotextension)
+    savename = os.path.join(pathman(specpath) + '_' + arg1 + '_and_' + arg2 + extension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -485,15 +486,27 @@ if __name__ == '__main__':
     # import data from the csv file
     path = plotting_config['file']
     df = importfromfile(path)
+    extension = plotting_config['extension']
 
     for plot in plotting_config['plots']:
         plottype = plotting_config['plots'][plot]['plottype']
         parameter = plotting_config['plots'][plot]['parameter']
         nm = plotting_config['plots'][plot]['nm']
+        grouparg = plotting_config['plots'][plot]['group']
+        xmin = plotting_config['plots'][plot]['xmin']
+        xmax = plotting_config['plots'][plot]['xmax']
+        ymin = plotting_config['plots'][plot]['ymin']
+        ymax = plotting_config['plots'][plot]['ymax']
         if plottype == 'histogram':
-            plothist(df, parameter, nm=nm)
+            plothist(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
         elif plottype == 'KDE':
-            plotkde(df, parameter, nm=nm)
+            plotkde(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
+        elif plottype == 'violin':
+            plotviolin(df, parameter, nm=nm, grouparg=grouparg, ymin=ymin, ymax=ymax)
+        elif plottype == 'dist':
+            plotdist(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
+        elif plottype == 'joint':
+            plotjoint(df, parameter, nm=nm)
 
 
 
@@ -543,11 +556,6 @@ if __name__ == '__main__':
     # Set palette for all plots with length number of topoisomers and reverse
     # # palette = sns.color_palette('PuBu', n_colors=len(topos))
 
-# Setting group argument
-# grouparg = 'Experiment Directory'
-# grouparg = 'Basename'
-# grouparg = 'directory'
-# grouparg = None
 
 # Setting a continuous colour palette; useful for certain grouped plots, but can be commented out if unsuitable.
 # sns.set_palette(sns.color_palette('BuPu', n_colors=len(df.groupby(grouparg))))
