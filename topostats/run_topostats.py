@@ -286,7 +286,7 @@ def process_scan(
                     grainstats[direction] = GrainStats(
                         data=filtered_image.images["gaussian_filtered"],
                         labelled_data=grains.directions[direction]["labelled_regions_02"],
-                        pixel_to_nanometre_scaling=filtered_image.pixel_to_m_scaling,
+                        pixel_to_m_scaling=filtered_image.pixel_to_m_scaling,
                         direction=direction,
                         base_output_dir=_output_dir / "grains",
                         image_name=filtered_image.filename,
