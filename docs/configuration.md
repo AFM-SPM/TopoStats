@@ -2,8 +2,60 @@
 
 *todo: document YAML config.*
 
-The parameters that the software uses for analysis of the data can be configured in `Config.ini` by simply opening the file in a text editor and changing the variables. You do not need to edit the code to change the parameters.
+Configuration for TopoStats is done using a [YAML](https://yaml.org/) configuration that is specified on the command line when
+invoking. A default configuration file is provided in the TopoStats repository at
+[`config/example.yaml`](https://github.com/AFM-SPM/TopoStats/blob/dev/config/example.yaml). The file contains comments
+indicating valid values for many of the fields. If this is saved to your current working directory it can be used as
+shown below. If no configuration file is provided a default configuration is loaded automatically and used. On
+completion a copy of the configuration that was used is written to the output directory.
 
-When updating TopoStats, the `Config.ini` file is ignored, so your parameters are maintained. Different sets of parameters can be saved for different sample types in the config file, and the sections for the different sample types are labelled in square brackets.
+``` bash
+run_topostats -c example.yaml
+```
 
-If no config file is found while running TopoStats, it will make a copy of the default config file.
+The configuration file is validated against a Schema before any processing is done. This will capture any errors in the
+supplied configuration file and exit rather than trying to run any processing.
+
+### Configuration Options
+
+| Section      | Sub-Section                    | Data Type  | Default        | Description                                                                                                                         |
+|:-------------|:-------------------------------|:-----------|:---------------|:------------------------------------------------------------------------------------------------------------------------------------|
+|              | `base_dir`                     | string     | `./`           |                                                                                                                                     |
+|              | `output_dir`                   | string     | `./output`     | Directory that output should be saved to.                                                                                           |
+|              | `warnings`                     | string     | `ignore`       | Turns of warnings being shown.                                                                                                      |
+|              | `cores`                        | integer    | `4`            |                                                                                                                                     |
+|              | `quiet`                        | false      |                |                                                                                                                                     |
+|              | `file_ext`                     | string     | `.spm`         |                                                                                                                                     |
+| `filter`     | `run`                          | boolean    | `true`         |                                                                                                                                     |
+|              | `channel`                      | string     | `Height`       |                                                                                                                                     |
+|              | `amplify_level`                | float      | `1.0`          |                                                                                                                                     |
+|              | `threshold_method`             | str        | `std_dev`      | Threshold method for filtering, options are `ostu`, `std_dev` or `absolute`.                                                        |
+|              | `otsu_threshold_multiplier`    | float      | `1.0`          |                                                                                                                                     |
+|              | `threshold_std_dev`            | float      | ` 1.0`         |                                                                                                                                     |
+|              | `threshold_absolute_lower`     | float      | `-1.0`         |                                                                                                                                     |
+|              | `threshold_absolute_upper`     | float      | `1.0`          |                                                                                                                                     |
+|              | `gaussian_size`                | float      | `0.5`          |                                                                                                                                     |
+|              | `gaussian_mode`                | string     | `nearest`      |                                                                                                                                     |
+| `grains`     | `run`                            | boolean    | `true`         | Whether to run grain finding. Options `true`, `false`                                                                               |
+|              | `absolute_smallest_grain_size` | int        | `100`          | The smallest size of grains to be included (in pixels), anything smaller than this is considered noise and removed.                 |
+|              | `threshold_method`             | float      | `std_dev`      | Threshold method for grain finding.  Options : `otsu`, `std_dev`, `absolute`                                                        |
+|              | `otsu_threshold_multiplier`    |            | `1.0`          | Factor by which the derived Otsu Threshold should be scaled.                                                                        |
+|              | `threshold_std_dev`            |            | `1.0`          |                                                                                                                                     |
+|              | `  threshold_absolute_lower`   |            | `1.0`          |                                                                                                                                     |
+|              | `  threshold_absolute_upper`   |            | `1.0`          |                                                                                                                                     |
+|              | `absolute_area_threshold`      | dictionary |                |                                                                                                                                     |
+|              | `...upper`                     | list       | `[500,800]`    | Height above surface [Low, High] in nm^2 (also takes null)                                                                          |
+|              | `...lower`                     |            | `[null, null]` | Height below surface [Low, High] in nm^2 (also takes null)                                                                          |
+|              | `direction`                    |            | `upper`        | Defines whether to look for grains above or below thresholds or both. Options: `upper`, `lower`, `both`                             |
+|              | `background`                   | float      | `0.0`          |                                                                                                                                     |
+| `grainstats` | `run`                          | boolean    | `true`         | Whether to calculate grain statistics. Options : `true`, `false`                                                                    |
+|              | `cropped_size`                 | float      | `40.0`         | Force cropping of grains to this length (in nm) of square cropped images (can take `-1` for grain-sized box)                        |
+|              | `save_cropped_grains`          | boolean    | `true`         | Options : true, false                                                                                                               |
+| `dnatracing` | `run`                          | boolean    | `true`         | Whether to run DNA Tracing.  Options : true, false                                                                                  |
+| `plotting`   | `run`                          | boolean    | `true`         | Whether to run plotting. Options : `true`, `false`                                                                                  |
+|              | `save_format`                  | string     | `png`          | Format to save images in, see [matplotlib.pyplot.savefig](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html) |
+|              | `image_set`                    | string     | `all`          | Which images to plot. Options : `all`, `core`                                                                                       |
+|              | `zrange`                       | list       | `[0, 3]`       | # low and high height range for core images (can take [null, null])                                                                 |
+|              | `colorbar`                     | boolean    | `true`         | Whether to include the colorbar scale in plots. Options `true`, `false`                                                             |
+|              | `axes`                         | boolean    | `true`         | # Options : true, false (due to off being a bool when parsed)                                                                       |
+|              | `cmap`                         | string     | `nanoscope`    | Colormap to use in plotting. Options : `nanoscope`, `afmhot`                                                                        |

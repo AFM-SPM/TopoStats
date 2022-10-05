@@ -8,6 +8,7 @@ Welcome to TopoStats's documentation!
     introduction
     installation
     configuration
+    contributing
     workflow
     related_software
 
