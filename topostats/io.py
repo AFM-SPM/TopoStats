@@ -84,7 +84,7 @@ class LoadScan:
         """
         self.img_path = Path(img_path)
         self.channel = channel
-        self.filename = self.imag_path
+        self.filename = self.img_path
         self.suffix = self.img_path.suffix
         self.image = None
         self.px_to_m_scaling = None
