@@ -59,7 +59,6 @@ class Filters:
         """
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
-        self.amplify_level = amplify_level
         self.gaussian_size = gaussian_size
         self.gaussian_mode = gaussian_mode
         self.threshold_method = threshold_method
