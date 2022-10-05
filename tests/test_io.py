@@ -39,6 +39,22 @@ def test_load_scan_spm(load_scan: LoadScan) -> None:
     assert px_to_nm_scaling == 0.4940029296875
 
 
+# FIXME : Get this test working
+# @pytest.mark.parametrize(
+#     "unit, x, y, expected",
+#     [
+#         ("um", 100, 100, 97.65625),
+#         ("nm", 50, 50, 0.048828125),
+#     ],
+# )
+# def test_extract_pixel_to_nm_scaling(load_scan: LoadScan, unit, x, y, expected) -> None:
+#     """Test extraction of pixels to nanometer scaling."""
+#     load_scan.load_spm()
+#     load_scan._spm_pixel_to_nm_scaling() {"unit": unit, "x": x, "y": y}
+#     test_filters_random.extract_pixel_to_nm_scaling()
+#     assert test_filters_random.pixel_to_nm_scaling == expected
+
+
 def test_load_scan_get_data(load_scan: LoadScan) -> None:
     """Test the LoadScan.get_data() method."""
     load_scan.get_data()
