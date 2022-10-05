@@ -1,5 +1,6 @@
 """Validation of configuration."""
 import logging
+import os
 from pathlib import Path
 from schema import Or, Schema, SchemaError
 
@@ -21,7 +22,7 @@ def validate_config(config: dict):
             "base_dir": Path,
             "output_dir": Path,
             "warnings": Or("ignore", error="Invalid value in config for 'warnings', valid values are 'ignore'"),
-            "cores": lambda n: 1 <= n <= 16,
+            "cores": lambda n: 1 <= n <= os.cpu_count(),
             "quiet": Or(True, False, error="Invalid value in config for 'quiet', valid values are 'True' or 'False'"),
             "file_ext": Or(
                 ".spm", ".jpk", error="Invalid value in config for 'file_ext', valid values are '.spm' or '.jpk'"

@@ -362,10 +362,12 @@ def main():
         config = yaml.safe_load(default_config.read())
     config = update_config(config, args)
     config["output_dir"] = convert_path(config["output_dir"])
-    config["output_dir"].mkdir(parents=True, exist_ok=True)
 
     # Validate configuration
     validate_config(config)
+
+    config["output_dir"].mkdir(parents=True, exist_ok=True)
+
 
     # Load plotting_dictionary
     plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
