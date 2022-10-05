@@ -65,9 +65,9 @@ Coding Standards.
 ### Coding Standards
 
 To make the codebase easier to maintain we ask that you follow the guidelines below on coding style, linting, typing,
-documentation and ty
+documentation and testing.
 
-#### Coding Style
+#### Coding Style/Linting
 
 Using a consistent coding style has many benefits (see [Linting : What is all the fluff
 about?](https://rse.shef.ac.uk/blog/2022-04-19-linting/)). For this project we aim to adhere to [PEP8 - the style Guide
@@ -93,4 +93,20 @@ All classes, methods and functions should have [Numpy Docstrings](https://numpyd
 defining their functionality, parameters and return values and pylint will note and report the absence of docstrings
 by way of the `missing-function-docstring` condition.
 
-Further, when new methods are incorporated into the package they should be documented under the [workflow]()
+Further, when new methods are incorporated into the package that introduce changes to the configuration they should be
+documented under [Parameter Configuration](configuration)
+
+
+#### Testing
+
+New features should have unit-tests written and included under the `tests/` directory to ensure the functions work as
+expected. The [pytest](https://docs.pytest.org/en/latest/) framework is used for running tests along with a number of
+plugins ([pytest-regtest]() for regression testing; [pytest-mpl]())
+
+
+### Configuration
+
+As described in [Parameter Configuration](configuration) options are primarily passed to TopoStats via a YAML
+configuration file. When introducing new features that require configuration options you will have to ensure that both
+the default configuration file (`topostats/default.yaml`) and the example configuration (`config/example.yaml`) are
+updated to include your options.
