@@ -175,14 +175,6 @@ def test_load_scan_minicircle() -> LoadScan:
     return scan_loader
 
 
-# @pytest.fixture
-# def test_filters(filter_config: dict, sample_config: dict, tmp_path) -> Filters:
-#     """Filters class for testing."""
-#     filters = Filters(RESOURCES / "minicircle.spm", output_dir=tmp_path, **filter_config)
-#     filters.load_scan()
-#     return filters
-
-
 @pytest.fixture
 def test_filters(load_scan: LoadScan, filter_config: dict) -> Filters:
     """Filters class for testing."""
@@ -203,27 +195,10 @@ def test_filters_random(test_filters: Filters, image_random: np.ndarray) -> Filt
     return test_filters
 
 
-# @pytest.fixture
-# def test_filters_random_with_mask(filter_config: dict, tmp_path, image_random: np.array) -> Filters:
-#     """Filters class for testing with pixels replaced by random image."""
-#     filters = Filters(RESOURCES / "minicircle.spm", amplify_level=filter_config["amplify_level"], output_dir=tmp_path)
-#     filters.load_scan()
-#     filters.extract_channel()
-#     filters.extract_pixels()
-#     filters.images["pixels"] = image_random
-#     # filters.get_threshold(filters.images["pixels"])
-#     thresholds = get_thresholds(
-#         image=filters.images["pixels"],
-#         threshold_method=filter_config["threshold_method"],
-#         otsu_threshold_multiplier=filter_config["otsu_threshold_multiplier"],
-#     )
-#     # filters.get_mask(filters.images["pixels"])
-#     filters.images["mask"] = get_mask(image=filters.images["pixels"], thresholds=thresholds)
-#     return filters
 
 
 @pytest.fixture
-def test_filters_random_with_mask(filter_config: dict, test_filters: Filters, image_random: np.array) -> Filters:
+def test_filters_random_with_mask(filter_config: dict, test_filters: Filters, image_random: np.ndarray) -> Filters:
     """Filters class for testing with pixels replaced by random image."""
     test_filters.images["pixels"] = image_random
     thresholds = get_thresholds(
@@ -313,50 +288,6 @@ def minicircle(load_scan: LoadScan, filter_config: dict) -> Filters:
     )
     return filters
 
-
-# @pytest.fixture
-# def minicircle_filename(minicircle) -> Filters:
-#     """Extract the filename."""
-#     minicircle.extract_filename()
-#     return minicircle
-
-
-# @pytest.fixture
-# def minicircle_load_scan(minicircle) -> Filters:
-#     """Test loading of scan."""
-#     minicircle.load_scan()
-#     return minicircle
-
-
-# @pytest.fixture
-# def minicircle_make_output_directory(minicircle) -> Filters:
-#     """Make output directory."""
-#     minicircle.make_output_directory()
-#     return minicircle
-
-
-# @pytest.fixture
-# def minicircle_channel(minicircle) -> Filters:
-#     """Extract the image channel."""
-#     minicircle.extract_channel()
-#     return minicircle
-
-
-# @pytest.fixture
-# def minicircle_pixels(minicircle_channel) -> Filters:
-#     """Extract Pixels"""
-#     minicircle_channel.extract_pixels()
-#     minicircle_channel.extract_pixel_to_nm_scaling()
-#     return minicircle_channel
-
-
-# @pytest.fixture
-# def minicircle_initial_align(minicircle_pixels: Filters) -> Filters:
-#     """Initial align on unmasked data."""
-#     minicircle_pixels.images["initial_align"] = minicircle_pixels.align_rows(
-#         minicircle_pixels.images["pixels"], mask=None
-#     )
-#     return minicircle_pixels
 
 
 @pytest.fixture
@@ -622,8 +553,6 @@ def grainstats(image_random: np.array, grainstats_config: dict, tmp_path) -> Gra
 def minicircle_grainstats(
     minicircle_grain_gaussian_filter: Filters,
     minicircle_grain_labelled_post_removal: Grains,
-    # minicircle_pixels: float,
-    # minicircle_filename: str,
     load_scan: LoadScan,
     grainstats_config: dict,
     tmp_path: Path,
@@ -632,7 +561,6 @@ def minicircle_grainstats(
     return GrainStats(
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         labelled_data=minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"],
-        # pixel_to_nanometre_scaling=minicircle_pixels.pixel_to_nm_scaling,
         pixel_to_nanometre_scaling=load_scan.pixel_to_nm_scaling,
         base_output_dir=tmp_path,
         plot_opts={

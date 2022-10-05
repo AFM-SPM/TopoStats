@@ -182,14 +182,12 @@ def process_scan(
         Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
 
     # Extract image and image params
-    #   I don't know if this should be Load_scan(...) and
-    #   then at points of calling use Load_scan.filename etc?
     scan_loader = LoadScan(image_path, **loading_config)
     scan_loader.get_data()
     image = scan_loader.image
     pixel_to_nm_scaling = scan_loader.pixel_to_nm_scaling
     filename = scan_loader.filename
-    
+
     # Filter Image :
     if filter_config["run"]:
         filter_config.pop("run")
@@ -378,7 +376,6 @@ def main():
 
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 
-
     # Load plotting_dictionary
     plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
@@ -402,8 +399,12 @@ def main():
     LOGGER.info(f"Scanning for images in              : {config['base_dir']}")
     LOGGER.info(f"Output directory                    : {str(config['output_dir'])}")
     LOGGER.info(f"Looking for images with extension   : {config['file_ext']}")
-    img_files = find_images(config["base_dir"])
-    LOGGER.info(f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}')
+    img_files = find_images(config["base_dir"], file_ext=config["file_ext"])
+    LOGGER.info(f"Images with extension {config['file_ext']} in {config['base_dir']} : {len(img_files)}")
+    if len(img_files) == 0:
+        LOGGER.error(f"No images with extension {config['file_ext']} in {config['base_dir']}")
+        LOGGER.error("Please check your configuration and directories.")
+        exit()
     LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
     LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
 

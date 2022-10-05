@@ -42,10 +42,20 @@ class Filters:
             The raw image from the AFM.
         filename: str
             The filename (used for logging outputs only).
+        pixel_to_nm_scaling: float
+            Value for converting pixels to nanometers.
+        threshold_method: str
+            Method for thresholding, default 'otsu', valid options 'otsu', 'std_dev' and 'absolute'.
+        otsu_threshold_multiplier: float
+            Value for scaling the derived Otsu threshold (optional).
+        threshold_std_dev: float()
+            If using the 'std_dev' threshold method the number of standard deviations from the mean to threshold.
+        threshold_absolute_lower: float
+            Lower threshold if using the 'absolute' threshold method.
+        threshold_absolute_upper: float
+            Upper threshold if using the 'absolute' threshold method.
         amplify_level : float
             Factor by which to amplify the image.
-        threshold_method: str
-            Method for thresholding, default 'otsu'.
         quiet: bool
             Whether to silence output.
         """
@@ -269,8 +279,14 @@ class Filters:
 
         Example
         -------
+        from topostats.io import LoadScan
         from topostats.topotracing import Filter, process_scan
-        filter = Filter(image_path='minicircle.spm',
+
+        load_scan = LoadScan("minicircle.spm", channel="Height")
+        load_scan.get_data()
+        filter = Filter(image=load_scan.image,
+        ...             pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
+        ...             filename=load_scan.filename,
         ...             channel='Height',
         ...             amplify_level=1.0,
         ...             threshold_method='otsu')
