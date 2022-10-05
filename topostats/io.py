@@ -6,11 +6,14 @@ from typing import Union, Dict
 import numpy as np
 
 from pySPM.Bruker import Bruker
+from afmformats import load_data
 from ruamel.yaml import YAML, YAMLError
 from ruamel.yaml.main import round_trip_load as yaml_load, round_trip_dump as yaml_dump
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+
+# pylint: disable=broad-except
 
 
 def read_yaml(filename: Union[str, Path]) -> Dict:
@@ -26,7 +29,7 @@ def read_yaml(filename: Union[str, Path]) -> Dict:
     Dict
         Dictionary of the file."""
 
-    with Path(filename).open() as f:
+    with Path(filename).open(encoding="utf-8") as f:
         try:
             yaml_file = YAML(typ="safe")
             return yaml_file.load(f)
@@ -60,14 +63,15 @@ def write_yaml(config: dict, output_dir: Union[str, Path]) -> None:
         except YAMLError as exception:
             LOGGER.error(exception)
 
-class Load_scan():
+
+class LoadScan:
     """Load the image and image parameters from a file path."""
 
     def __init__(
         self,
         img_path: Union[str, Path],
         channel: str,
-        ):
+    ):
 
         """Initialise the class.
 
@@ -80,24 +84,22 @@ class Load_scan():
         """
         self.img_path = Path(img_path)
         self.channel = channel
-    
-    def extract_filename(self) -> str:
-        """Extract the filename from the image path"""
-        LOGGER.info(f"Extracting filename from : {self.img_path}")
-        self.filename = self.img_path.stem
-        return self.filename
+        self.filename = self.imag_path
+        self.suffix = self.img_path.suffix
+        self.image = None
+        self.px_to_m_scaling = None
 
-    def spm(self) -> tuple:
-        """Extract the image and px_to_nm_scaling value from the .spm file."""
+    def extract_spm(self) -> tuple:
+        """Extract image and pixel to nm scaling from the Bruker .spm file."""
         LOGGER.info(f"Loading image from : {self.img_path}")
         try:
             scan = Bruker(self.img_path)
             LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
             channel_data = scan.get_channel(self.channel)
             LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
-            self.image = np.flipud(np.array(channel_data.pixels))
+            image = np.flipud(np.array(channel_data.pixels))
         except FileNotFoundError:
-            LOGGER.info(f"File not found : {self.img_path}")
+            LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
         except Exception as exception:
             LOGGER.error(f"[{self.filename}] : {exception}")
 
@@ -107,28 +109,30 @@ class Load_scan():
         }
         px_to_real = channel_data.pxs()
         # Has potential for non-square pixels but not yet implimented
-        self.px_to_m_scaling = (
+        px_to_m_scaling = (
             px_to_real[0][0] * unit_dict[px_to_real[0][1]],
             px_to_real[1][0] * unit_dict[px_to_real[1][1]],
         )[0]
-        LOGGER.info(f"[{self.filename}] : Pixels to nm scaling : {self.px_to_m_scaling}")
-        return (self.image, self.px_to_m_scaling)
+        LOGGER.info(f"[{self.filename}] : Pixels to nm scaling : {px_to_m_scaling}")
+        return (image, px_to_m_scaling)
 
-    def get_data(self) -> tuple:
-        """The factory method using different libraries to obtain the:
-            Filename without extentions - for logging and saving plots
-            Image as an array in SI units *tbd*
-            px_to_nm_scaling in SI units *tbd*
-        """
-        filename = Load_scan.extract_filename(self)
-        suffix = self.img_path.suffix
-        if suffix == ".spm":
-            LOGGER.info(f"Using pySPM to extract image")
-            image, px_to_m_scaling = Load_scan.spm(self)
-        if suffix == ".jpk":
-            LOGGER.info(f"Using libasd to extract image")
-            #image, px_to_m_scaling = Load_scan.jpk(self)
-        if suffix == ".ibw":
-            LOGGER.info(f"Using afmformats to extract image")
-            #image, px_to_m_scaling = Load_scan.ibw(self)
-        return (filename, image, px_to_m_scaling)
+    def extract_jpk(self) -> None:
+        """Extract image and pixel to nm scaling from .jpk files."""
+        try:
+            dslist = load_data(self.img_path)
+        except FileNotFoundError:
+            LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
+        except Exception as exception:
+            LOGGER.error(f"[{self.filename}] : {exception}")
+        return (dslist, None)
+
+    def get_data(self) -> None:
+        """Method to extract image and pixel to nm scaling."""
+        LOGGER.info(f"Extracting image from {self.suffix}")
+        if self.suffix == ".spm":
+            self.image, self.px_to_m_scaling = self.extract_spm()
+        if self.suffix == ".jpk":
+            self.image, self.px_to_m_scaling = self.extract_jpk()
+        if self.suffix == ".ibw":
+            self.image, self.px_to_m_scaling = self.extract_ibw()
+        raise ValueError(self.suffix)
