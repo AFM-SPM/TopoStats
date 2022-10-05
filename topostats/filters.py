@@ -7,7 +7,6 @@ from typing import Union
 from skimage.filters import gaussian
 import numpy as np
 
-from topostats.io import load_scan
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import get_thresholds, get_mask
 
@@ -22,43 +21,36 @@ class Filters:
 
     def __init__(
         self,
-        img_path: Union[str, Path],
+        image: np.ndarray,
+        filename: str,
+        pixel_to_nm_scaling: float,
         threshold_method: str = "otsu",
         otsu_threshold_multiplier: float = 1.7,
         threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
-        channel: str = "Height",
         amplify_level: float = None,
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
-        output_dir: Union[str, Path] = None,
         quiet: bool = False,
     ):
         """Initialise the class.
 
         Parameters
         ----------
-        img_path: Union[str, Path]
-            Path to a valid image to load.
-        channel: str
-            Channel to extract from the image.
+        image: np.ndarray
+            The raw image from the AFM.
+        filename: str
+            The filename (used for logging outputs only).
         amplify_level : float
             Factor by which to amplify the image.
         threshold_method: str
             Method for thresholding, default 'otsu'.
         quiet: bool
             Whether to silence output.
-        output_dir: Union[str, Path]
-            Directory to save output to, if it does not exist it will be created.
-
-        Notes
-        -----
-
-        A directory under the 'outdir' will be created using the filename.
         """
-        self.img_path = Path(img_path)
-        self.channel = channel
+        self.filename = filename
+        self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.amplify_level = amplify_level
         self.gaussian_size = gaussian_size
         self.gaussian_mode = gaussian_mode
@@ -67,12 +59,8 @@ class Filters:
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
-        self.filename = self.extract_filename()
-        self.output_dir = Path(output_dir) if output_dir else Path("./output")
         self.images = {
-            "scan_raw": None,
-            "extracted_channel": None,
-            "pixels": None,
+            "pixels": image,
             "initial_align": None,
             "initial_tilt_removal": None,
             "masked_align": None,
@@ -82,9 +70,7 @@ class Filters:
             "gaussian_filtered": None,
         }
         self.thresholds = None
-        self.pixel_to_nm_scaling = None
         self.medians = {"rows": None, "cols": None}
-        LOGGER.info(f"Filename : {self.filename}")
         self.results = {
             "diff": None,
             "amplify": self.amplify_level,
@@ -93,55 +79,9 @@ class Filters:
             "y_gradient": None,
             "threshold": None,
         }
-        self.load_scan()
 
         if quiet:
             LOGGER.setLevel("ERROR")
-
-    def extract_filename(self) -> str:
-        """Extract the filename from the img_path"""
-        LOGGER.info(f"Extracting filename from : {self.img_path}")
-        return self.img_path.stem
-
-    def load_scan(self) -> None:
-        """Load the scan."""
-        try:
-            self.images["scan_raw"] = load_scan(self.img_path)
-            LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
-        except FileNotFoundError:
-            LOGGER.info(f"File not found : {self.img_path}")
-
-    def make_output_directory(self) -> None:
-        """Create the output directory for saving files to."""
-        self.output_dir.mkdir(exist_ok=True, parents=True)
-        LOGGER.info(f"[{self.filename}] : Created directory : {self.output_dir}")
-
-    def extract_channel(self):
-        """Extract the channel"""
-        try:
-            self.images["extracted_channel"] = self.images["scan_raw"].get_channel(self.channel)
-            LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
-        except Exception as exception:
-            LOGGER.error(f"[{self.filename}] : {exception}")
-
-    def extract_pixel_to_nm_scaling(self) -> float:
-        """Extract the pixel to nanometer scaling from the image metadata."""
-        unit_dict = {
-            "nm": 1,
-            "um": 1e3,
-        }
-        px_to_real = self.images["extracted_channel"].pxs()
-        # Has potential for non-square images but not yet implimented
-        self.pixel_to_nm_scaling = (
-            px_to_real[0][0] * unit_dict[px_to_real[0][1]],
-            px_to_real[1][0] * unit_dict[px_to_real[1][1]],
-        )[0]
-        LOGGER.info(f"[{self.filename}] : Pixels to nm scaling : {self.pixel_to_nm_scaling}")
-
-    def extract_pixels(self) -> None:
-        """Flatten the scan to a Numpy Array."""
-        self.images["pixels"] = np.flipud(np.array(self.images["extracted_channel"].pixels))
-        LOGGER.info(f"[{self.filename}] : Pixels extracted")
 
     def amplify(self) -> None:
         """The amplify filter mulitplies the value of all extracted pixels by the `level` argument."""
@@ -337,12 +277,7 @@ class Filters:
         filter.filter_image()
 
         """
-        self.extract_filename()
-        self.load_scan()
-        self.make_output_directory()
-        self.extract_channel()
-        self.extract_pixels()
-        self.extract_pixel_to_nm_scaling()
+
         if self.amplify_level != 1.0:
             self.amplify()
         self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)
