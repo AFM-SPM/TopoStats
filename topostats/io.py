@@ -7,6 +7,7 @@ import numpy as np
 
 from pySPM.Bruker import Bruker
 from afmformats import load_data
+import libasd
 from ruamel.yaml import YAML, YAMLError
 from ruamel.yaml.main import round_trip_load as yaml_load, round_trip_dump as yaml_dump
 from topostats.logs.logs import LOGGER_NAME
@@ -100,6 +101,7 @@ class LoadScan:
             image = np.flipud(np.array(channel_data.pixels))
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
+        # check exception of channel not found and return channel list
         except Exception as exception:
             LOGGER.error(f"[{self.filename}] : {exception}")
 
@@ -125,6 +127,35 @@ class LoadScan:
         except Exception as exception:
             LOGGER.error(f"[{self.filename}] : {exception}")
         return (dslist, None)
+
+    def extract_asd(self) -> tuple:
+        """Extract image and pixel to nm scaling from .asd files"""
+        # asd files are like movies so may want this outside of process scan?
+        try:
+            scan = libasd.read_asd(self.img_path)
+            LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
+            # libasd docs seem like there is only 2 channels i.e. help(scan)
+            ch1_name = str(scan.header.data_kind_1ch).split('.')[1]
+            ch2_name = str(scan.header.data_kind_2ch).split('.')[1]
+            if self.channel == ch1_name:
+                channel_data = scan.channels[0]
+            elif self.channel == ch2_name:
+                channel_data = scan.channels[1]
+            else:
+                raise ValueError
+            LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
+            image = channel_data[0].image() # 0 index is first frame of movie
+        except FileNotFoundError:
+            LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
+        except ValueError:
+            LOGGER.info(f"[{self.filename}] : Channel '{self.channel}' not found. Available channels are: '{ch1_name}' and '{ch2_name}'")
+
+        px_to_m_scaling = (
+            scan.header.x_scanning_range / scan.header.x_pixel, # scan range always in nm
+            scan.header.y_scanning_range / scan.header.y_pixel,
+        )[0]
+        return (image, px_to_nm_scaling)
+
 
     def get_data(self) -> None:
         """Method to extract image and pixel to nm scaling."""
