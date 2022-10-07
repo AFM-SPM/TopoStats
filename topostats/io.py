@@ -85,10 +85,11 @@ class LoadScan:
         """
         self.img_path = Path(img_path)
         self.channel = channel
-        self.filename = self.img_path
+        self.file_path = self.img_path
+        self.filename = self.img_path.stem
         self.suffix = self.img_path.suffix
         self.image = None
-        self.px_to_m_scaling = None
+        self.pixel_to_nm_scaling = None
 
     def load_spm(self) -> tuple:
         """Extract image and pixel to nm scaling from the Bruker .spm file."""
@@ -104,18 +105,34 @@ class LoadScan:
         except Exception as exception:
             LOGGER.error(f"[{self.filename}] : {exception}")
 
+        return (image, self._spm_pixel_to_nm_scaling(channel_data))
+
+    def _spm_pixel_to_nm_scaling(self, channel_data) -> float:
+        """Extract pixel to nm scaling from the SPM image metadata.
+
+        Parameters
+        ----------
+        channel_data:
+            Channel data
+
+        Returns
+        -------
+        float
+            Pixel to nm scaling factor.
+        """
         unit_dict = {
             "nm": 1,
             "um": 1e3,
         }
         px_to_real = channel_data.pxs()
+        # FIXME : Why are both nm and um calculated here and then only nm used?
         # Has potential for non-square pixels but not yet implimented
-        px_to_m_scaling = (
+        pixel_to_nm_scaling = (
             px_to_real[0][0] * unit_dict[px_to_real[0][1]],
             px_to_real[1][0] * unit_dict[px_to_real[1][1]],
         )[0]
-        LOGGER.info(f"[{self.filename}] : Pixels to nm scaling : {px_to_m_scaling}")
-        return (image, px_to_m_scaling)
+        LOGGER.info(f"[{self.filename}] : Pixels to nm scaling : {pixel_to_nm_scaling}")
+        return pixel_to_nm_scaling
 
     def load_jpk(self) -> None:
         """Load and extract image from .jpk files."""
@@ -139,10 +156,9 @@ class LoadScan:
     def get_data(self) -> None:
         """Method to extract image and pixel to nm scaling."""
         LOGGER.info(f"Extracting image from {self.suffix}")
-        if self.suffix == ".spm":
-            self.image, self.px_to_m_scaling = self.load_spm()
+        if self.suffix is ".spm":
+            self.image, self.pixel_to_nm_scaling = self.load_spm()
         if self.suffix == ".jpk":
-            self.image, self.px_to_m_scaling = self.load_jpk()
+            self.image, self.pixel_to_nm_scaling = self.load_jpk()
         if self.suffix == ".ibw":
-            self.image, self.px_to_m_scaling = self.load_ibw()
-        raise ValueError(self.suffix)
+            self.image, self.pixel_to_nm_scaling = self.load_ibw()

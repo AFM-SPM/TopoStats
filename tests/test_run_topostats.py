@@ -18,6 +18,7 @@ def test_process_scan_lower(regtest, tmp_path, process_scan_config: dict) -> Non
     _, results = process_scan(
         image_path=RESOURCES / "minicircle.spm",
         base_dir=BASE_DIR,
+        loading_config=process_scan_config["loading"],
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
         grainstats_config=process_scan_config["grainstats"],
@@ -35,6 +36,7 @@ def test_process_scan_upper(regtest, tmp_path, process_scan_config: dict) -> Non
     _, results = process_scan(
         image_path=RESOURCES / "minicircle.spm",
         base_dir=BASE_DIR,
+        loading_config=process_scan_config["loading"],
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
         grainstats_config=process_scan_config["grainstats"],
@@ -53,6 +55,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict) -> None
     _, results = process_scan(
         image_path=RESOURCES / "minicircle.spm",
         base_dir=BASE_DIR,
+        loading_config=process_scan_config["loading"],
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
         grainstats_config=process_scan_config["grainstats"],
