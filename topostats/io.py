@@ -126,6 +126,7 @@ class LoadScan:
             "um": 1e3,
         }
         px_to_real = channel_data.pxs()
+        # FIXME : Why are both nm and um calculated here and then only nm used?
         # Has potential for non-square pixels but not yet implimented
         pixel_to_nm_scaling = (
             px_to_real[0][0] * unit_dict[px_to_real[0][1]],
