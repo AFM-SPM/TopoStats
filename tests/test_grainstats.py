@@ -196,6 +196,6 @@ def test_grainstats_get_triangle_height(base_point_1, base_point_2, top_point, e
 
 
 @pytest.mark.parametrize("edge_points, expected", [([[0, 0], [0, 1], [1, 0], [1, 1]], (1.0, 1.4142135623730951))])
-def test_get_min_max_ferets(edge_points, expected) -> None:
+def test_get_mini_max_ferets(edge_points, expected) -> None:
     """Tests the Grainstats.get_min_max_ferets method"""
     assert GrainStats.get_max_min_ferets(edge_points) == expected

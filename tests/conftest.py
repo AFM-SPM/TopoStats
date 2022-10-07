@@ -195,8 +195,6 @@ def test_filters_random(test_filters: Filters, image_random: np.ndarray) -> Filt
     return test_filters
 
 
-
-
 @pytest.fixture
 def test_filters_random_with_mask(filter_config: dict, test_filters: Filters, image_random: np.ndarray) -> Filters:
     """Filters class for testing with pixels replaced by random image."""
