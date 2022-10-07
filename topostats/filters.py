@@ -137,9 +137,9 @@ class Filters:
         LOGGER.info(f"[{self.filename}] : Row and column medians calculated.")
         return medians
 
-    def align_rows(self, image: np.ndarray, mask: np.ndarray=None) -> np.ndarray:
+    def align_rows(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Returns a copy of the input image with rows aligned by median height.
-        
+
         Parameters
         ----------
         image: np.ndarray
@@ -183,9 +183,9 @@ class Filters:
         """Calculate difference of row medians from the median row height"""
         return row_medians - median_row_height
 
-    def remove_tilt(self, image: np.ndarray, mask: np.ndarray=None) -> np.ndarray:
+    def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Returns a copy of the input image after removing any linear plane slant.
-    
+
         Parameters
         ----------
         image: np.ndarray
@@ -242,17 +242,17 @@ class Filters:
 
     def gaussian_filter(self, image: np.ndarray, **kwargs) -> np.array:
         """Apply Gaussian filter to an image.
-        
+
         Parameters
         ----------
         image: np.array
             Numpy array representing image.
-        
+
         Returns
         -------
         np.array
             Numpy array of gaussian blurred image.
-            
+
         """
         LOGGER.info(
             f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (nm) : {self.gaussian_size})."

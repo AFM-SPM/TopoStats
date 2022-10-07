@@ -1,7 +1,6 @@
 """Test end-to-end running of topostats."""
-import importlib.resources as pkg_resources
 from pathlib import Path
-import yaml
+
 from topostats.run_topostats import process_scan
 from topostats.io import read_yaml
 
@@ -13,7 +12,6 @@ RESOURCES = BASE_DIR / "tests" / "resources"
 # so instead we run three regression tests.
 def test_process_scan_lower(regtest, tmp_path, process_scan_config: dict) -> None:
     """Regression test for checking the process_scan functions correctly"""
-    config = read_yaml(RESOURCES / "process_scan_config.yaml")
     process_scan_config["grains"]["direction"] = "lower"
     _, results = process_scan(
         image_path=RESOURCES / "minicircle.spm",

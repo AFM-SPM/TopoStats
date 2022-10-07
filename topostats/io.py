@@ -85,6 +85,7 @@ class LoadScan:
         """
         self.img_path = Path(img_path)
         self.channel = channel
+        self.channel_data = None
         self.file_path = self.img_path
         self.filename = self.img_path.stem
         self.suffix = self.img_path.suffix
@@ -97,15 +98,15 @@ class LoadScan:
         try:
             scan = Bruker(self.img_path)
             LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
-            channel_data = scan.get_channel(self.channel)
+            self.channel_data = scan.get_channel(self.channel)
             LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
-            image = np.flipud(np.array(channel_data.pixels))
+            image = np.flipud(np.array(self.channel_data.pixels))
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
         except Exception as exception:
             LOGGER.error(f"[{self.filename}] : {exception}")
 
-        return (image, self._spm_pixel_to_nm_scaling(channel_data))
+        return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
 
     def _spm_pixel_to_nm_scaling(self, channel_data) -> float:
         """Extract pixel to nm scaling from the SPM image metadata.
@@ -125,20 +126,20 @@ class LoadScan:
             "um": 1e3,
         }
         px_to_real = channel_data.pxs()
-        # FIXME : Why are both nm and um calculated here and then only nm used?
+        # Why are both nm and um calculated here and then only nm used?
         # Has potential for non-square pixels but not yet implimented
         pixel_to_nm_scaling = (
             px_to_real[0][0] * unit_dict[px_to_real[0][1]],
             px_to_real[1][0] * unit_dict[px_to_real[1][1]],
         )[0]
-        LOGGER.info(f"[{self.filename}] : Pixels to nm scaling : {pixel_to_nm_scaling}")
+        LOGGER.info(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
         return pixel_to_nm_scaling
 
-    def load_jpk(self) -> None:
-        """Load and extract image from .jpk files."""
-        jpk = self._load_jpk()
-        data = self._extract_jpk(jpk)
-        return (jpk, None)
+    # def load_jpk(self) -> None:
+    #     """Load and extract image from .jpk files."""
+    #     jpk = self._load_jpk()
+    #     data = self._extract_jpk(jpk)
+    #     return (jpk, None)
 
     def _load_jpk(self) -> None:
         try:
@@ -156,7 +157,7 @@ class LoadScan:
     def get_data(self) -> None:
         """Method to extract image and pixel to nm scaling."""
         LOGGER.info(f"Extracting image from {self.suffix}")
-        if self.suffix is ".spm":
+        if self.suffix == ".spm":
             self.image, self.pixel_to_nm_scaling = self.load_spm()
         if self.suffix == ".jpk":
             self.image, self.pixel_to_nm_scaling = self.load_jpk()

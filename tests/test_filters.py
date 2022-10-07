@@ -1,13 +1,10 @@
 """Tests of the filters module."""
 from pathlib import Path
+
 import numpy as np
-import pytest
-from pySPM.SPM import SPM_image
-from pySPM.Bruker import Bruker
 from skimage.filters import gaussian
 
 from topostats.filters import Filters
-from topostats.utils import get_thresholds, get_mask
 
 # pylint: disable=protected-access
 
@@ -18,54 +15,10 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
 
-# def test_load_image(test_filters: Filters) -> None:
-#     """Test loading of image."""
-#     filters = Filters(RESOURCES / "minicircle.spm", amplify_level=1.5)
-#     filters.load_scan()
-#     assert isinstance(test_filters.images["scan_raw"], Bruker)
-
-
-# def test_extract_filename(test_filters: Filters) -> None:
-#     """Test extraction of filename."""
-#     test_filters.extract_filename()
-#     assert test_filters.filename == "minicircle"
-
-
-# TODO : Move this to test_process_scan() since creation of directories is now down outside of classes and within process_scan()
-# def test_make_output_directory(test_filters: Filters, tmp_path: Path) -> None:
-#     """Test creation of output directory"""
-#     test_filters.make_output_directory()
-#     assert tmp_path.exists()
-
-
-# FIXME
-# def test_load_image_that_does_not_exist(caplog) -> None:
-#     """Test logging and exceptions when file does not exist."""
-#     Filters("nothing", "to", "see")
-
-#     assert "File not found : nothing" in caplog.text
-
-
-# Moved, done by io.LoadScan() but should we break this down within that class?
-# @pytest.mark.parametrize(
-#     "unit, x, y, expected",
-#     [
-#         ("um", 100, 100, 97.65625),
-#         ("nm", 50, 50, 0.048828125),
-#     ],
-# )
-# def test_extract_pixel_to_nm_scaling(test_filters_random: Filters, unit, x, y, expected) -> None:
-#     """Test extraction of pixels to nanometer scaling."""
-#     test_filters_random.images["extracted_channel"].size["real"] = {"unit": unit, "x": x, "y": y}
-#     test_filters_random.extract_pixel_to_nm_scaling()
-#     assert test_filters_random.pixel_to_nm_scaling == expected
-
-
 def test_row_col_medians_no_mask(
     test_filters_random: Filters, image_random_row_medians: np.array, image_random_col_medians: np.array
 ) -> None:
     """Test calculation of row and column medians without masking."""
-    print(f"test_filters_random.images['pixels']   : {test_filters_random.images['pixels']}")
     medians = test_filters_random.row_col_medians(test_filters_random.images["pixels"], mask=None)
 
     assert isinstance(medians, dict)
@@ -160,15 +113,16 @@ def test_row_col_medians_with_mask(
     np.testing.assert_array_equal(medians["cols"], image_random_col_medians_masked)
 
 
-# FIXME
-# def test_non_square_img(test_filters_random: Filters):
-#     test_filters_random.images["pixels"] = test_filters_random.images["pixels"][:, 0:512]
-#     test_filters_random.images["zero_averaged_background"] = test_filters_random.average_background(
-#         image=test_filters_random.images["pixels"], mask=None
-#     )
-#     assert isinstance(test_filters_random.images["zero_averaged_background"], np.ndarray)
-#     assert test_filters_random.images["zero_averaged_background"].shape == (1024, 512)
-#     assert test_filters_random.images["zero_averaged_background"].sum() == 44426.48188033322
+# FIXME : sum of half of the array values is vastly smaller and so test fails. What is strange is that
+#         test_filters_minicircle.test_average_background() *DOESN'T* fail
+def test_non_square_img(test_filters_random: Filters):
+    test_filters_random.images["pixels"] = test_filters_random.images["pixels"][:, 0:512]
+    test_filters_random.images["zero_averaged_background"] = test_filters_random.average_background(
+        image=test_filters_random.images["pixels"], mask=None
+    )
+    assert isinstance(test_filters_random.images["zero_averaged_background"], np.ndarray)
+    assert test_filters_random.images["zero_averaged_background"].shape == (1024, 512)
+    # assert test_filters_random.images["zero_averaged_background"].sum() == 44426.48188033322
 
 
 def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> None:
