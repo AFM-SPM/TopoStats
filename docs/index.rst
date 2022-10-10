@@ -10,6 +10,7 @@ Welcome to TopoStats's documentation!
     configuration
     contributing
     workflow
+    data_dictionary
     related_software
 
 .. toctree::

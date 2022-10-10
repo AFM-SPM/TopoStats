@@ -16,19 +16,19 @@ run_topostats --config my_config.yaml
 On completion a copy of the configuration that was used is written to the output directory.
 
 
-## Configuration Options
+## Fields
 
 Aside from the comments in YAML file itself the fields are described below.
 
 
 | Section      | Sub-Section                    | Data Type  | Default        | Description                                                                                                                         |
 |:-------------|:-------------------------------|:-----------|:---------------|:------------------------------------------------------------------------------------------------------------------------------------|
-|              | `base_dir`                     | string     | `./`           |                                                                                                                                     |
-|              | `output_dir`                   | string     | `./output`     | Directory that output should be saved to.                                                                                           |
-|              | `warnings`                     | string     | `ignore`       | Turns of warnings being shown.                                                                                                      |
-|              | `cores`                        | integer    | `4`            |                                                                                                                                     |
-|              | `quiet`                        | false      |                |                                                                                                                                     |
-|              | `file_ext`                     | string     | `.spm`         |                                                                                                                                     |
+| `base_dir`   |                                | string     | `./`           |                                                                                                                                     |
+| `output_dir` |                                | string     | `./output`     | Directory that output should be saved to.                                                                                           |
+| `warnings`   |                                | string     | `ignore`       | Turns of warnings being shown.                                                                                                      |
+| `cores`      |                                | integer    | `4`            |                                                                                                                                     |
+| `quiet`      |                                | false      |                |                                                                                                                                     |
+| `file_ext`   |                                | string     | `.spm`         |                                                                                                                                     |
 | `filter`     | `run`                          | boolean    | `true`         |                                                                                                                                     |
 |              | `channel`                      | string     | `Height`       |                                                                                                                                     |
 |              | `amplify_level`                | float      | `1.0`          |                                                                                                                                     |

@@ -16,7 +16,7 @@ height, volume, radius and the location of the centroid.
 
 Optionally DNA Tracing is then performed to calculate further statistics such as whether grains are linear or circular.
 
-The resulting statistics are written to CSV file and optionally plots are then generated from various stages of the
+The resulting statistics are written to [CSV file](data_dictionary) and optionally plots are then generated from various stages of the
 processing as well as cropped images of each grain. The amount of images produced is also configurable.
 
 
