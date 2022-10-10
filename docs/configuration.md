@@ -1,22 +1,25 @@
-## Parameter Configuration
-
-*todo: document YAML config.*
+# Configuration
 
 Configuration for TopoStats is done using a [YAML](https://yaml.org/) configuration that is specified on the command line when
 invoking. A default configuration file is provided in the TopoStats repository at
-[`config/example.yaml`](https://github.com/AFM-SPM/TopoStats/blob/dev/config/example.yaml). The file contains comments
-indicating valid values for many of the fields. If this is saved to your current working directory it can be used as
-shown below. If no configuration file is provided a default configuration is loaded automatically and used. On
-completion a copy of the configuration that was used is written to the output directory.
+[`topostats/default_config.yaml`](https://github.com/AFM-SPM/TopoStats/blob/dev/topostats/default_config.yaml). The file
+contains comments indicating valid values for many of the fields. If no configuration file is provided this default
+configuration is loaded automatically and used.
+
+You can make a copy of the `default_config.yaml` and modify it for your own use. Once saved you can run TopoStats with
+this configuration file as shown below.
 
 ``` bash
-run_topostats -c example.yaml
+run_topostats --config my_config.yaml
 ```
 
-The configuration file is validated against a Schema before any processing is done. This will capture any errors in the
-supplied configuration file and exit rather than trying to run any processing.
+On completion a copy of the configuration that was used is written to the output directory.
 
-### Configuration Options
+
+## Configuration Options
+
+Aside from the comments in YAML file itself the fields are described below.
+
 
 | Section      | Sub-Section                    | Data Type  | Default        | Description                                                                                                                         |
 |:-------------|:-------------------------------|:-----------|:---------------|:------------------------------------------------------------------------------------------------------------------------------------|
@@ -36,7 +39,7 @@ supplied configuration file and exit rather than trying to run any processing.
 |              | `threshold_absolute_upper`     | float      | `1.0`          |                                                                                                                                     |
 |              | `gaussian_size`                | float      | `0.5`          |                                                                                                                                     |
 |              | `gaussian_mode`                | string     | `nearest`      |                                                                                                                                     |
-| `grains`     | `run`                            | boolean    | `true`         | Whether to run grain finding. Options `true`, `false`                                                                               |
+| `grains`     | `run`                          | boolean    | `true`         | Whether to run grain finding. Options `true`, `false`                                                                               |
 |              | `absolute_smallest_grain_size` | int        | `100`          | The smallest size of grains to be included (in pixels), anything smaller than this is considered noise and removed.                 |
 |              | `threshold_method`             | float      | `std_dev`      | Threshold method for grain finding.  Options : `otsu`, `std_dev`, `absolute`                                                        |
 |              | `otsu_threshold_multiplier`    |            | `1.0`          | Factor by which the derived Otsu Threshold should be scaled.                                                                        |
@@ -59,3 +62,10 @@ supplied configuration file and exit rather than trying to run any processing.
 |              | `colorbar`                     | boolean    | `true`         | Whether to include the colorbar scale in plots. Options `true`, `false`                                                             |
 |              | `axes`                         | boolean    | `true`         | # Options : true, false (due to off being a bool when parsed)                                                                       |
 |              | `cmap`                         | string     | `nanoscope`    | Colormap to use in plotting. Options : `nanoscope`, `afmhot`                                                                        |
+
+
+## Validation
+
+Configuration files are validated against a schema to check that the values in the configuration file are within the
+expected ranges or valid parameters. This helps capture problems early and should provide informative messages as to
+what needs correcting if there are errors.

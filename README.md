@@ -12,9 +12,14 @@ An AFM image analysis program to batch process data and obtain statistics from i
 
 ## How to Use
 
+There is more complete documentation on the projects documentation website. This is hosted in two locations.
+
+* [GitHub Pages : TopoStats](https://afm-spm.github.io/TopoStats/)
+* [Readthedocs : TopoStats](https://topostats.readthedocs.io/en/dev/)
+
 ### Installation
 
-Please see the [installation instructions](docs/installation.md).
+Please see the [installation instructions](https://afm-spm.github.io/TopoStats/installation.html).
 
 ### Tutorials and Examples
 
@@ -22,16 +27,28 @@ Please see the [installation instructions](docs/installation.md).
 
 > Currently Topostats is undergoing heavy revision. This involves removing the dependency on Gwyddion in favour of using [scikit-image](https://scikit-image.org/) to perform a number of steps in identifying and isolating features and summarising them. In turn this allows the package to move away from relying on Python 2.7 and instead run under Python >= 3.8.
 
-In this development branch configuration is done through [YAML](https://yaml.org/) files. An example configuration file
-is included in the directory `config/example.yml` under the `dev` branch and you can run this to process the included
-`minicircle.spm` (found under `tests/resources/minicircle.spm`) with the following...
+In this development branch configuration is done through [YAML](https://yaml.org/) files. A default configuration file
+is included in the directory `topostats/default_config.yml` under the `dev` branch and you can run this to process the
+included `minicircle.spm` (found under `tests/resources/minicircle.spm`) with the following...
 
 ``` bash
-run_topostats --config config/example.yaml
+run_topostats
 ```
 
-This version takes command line arguments, and you _have_ to include `--config path/to/valid/config.yaml` option. You
-can see what other options are available with...
+If you have your own files and wish to process them you should copy the default configuration and edit it as required
+then invoke `run_topostats` and pass it the argument for `--config` pointing to your file.
+
+``` bash
+cp topostats/default_config.yaml my_config.yaml
+# Edit and save my_config.yaml then run TopoStats with this configuration file
+run_topostats --config my_config.yaml
+```
+
+The configuration file is validated before analysis begins and if there are problems you will see errors messages that
+are hopefully useful in resolving the.
+
+This version takes command line arguments also takes a small subset of additional arguments. You can see what other
+options are available with...
 
 ``` bash
 run_topostats --help
@@ -46,7 +63,7 @@ run_topostats --config config/example.yaml --quiet True
 
 ## Contributing
 
-See [contributing guidelines](contributing.md).
+See [contributing guidelines](https://afm-spm.github.io/TopoStats/contributing.html).
 
 ## Licence
 
