@@ -331,11 +331,12 @@ def process_scan(
                     results["Image Name"] = filtered_image.filename
                     results["Basename"] = image_path.parent
 
-            except Exception:
+            except Exception as e:
                 # If no results we need a dummy dataframe to return.
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Errors occurred attempting to calculate grain statistics and DNA tracing statistics."
                 )
+                raise e
                 results = create_empty_dataframe()
 
     return image_path, results

@@ -28,25 +28,25 @@ CHANNEL = "Height"
 
 
 @pytest.fixture
-def sample_config() -> Dict:
+def default_config() -> Dict:
     """Sample configuration"""
-    config = read_yaml(RESOURCES / "sample_config.yaml")
+    config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
     return config
 
 
-@pytest.fixture
-def process_scan_config() -> Dict:
-    """Sample configuration"""
-    config = read_yaml(RESOURCES / "process_scan_config.yaml")
-    plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
-    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
-    return config
+# @pytest.fixture
+# def process_scan_config() -> Dict:
+#     """Sample configuration"""
+#     config = read_yaml(RESOURCES / "process_scan_config.yaml")
+#     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
+#     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+#     return config
 
 
 @pytest.fixture
-def plot_dict(sample_config: Dict) -> Dict:
+def plot_dict(default_config: Dict) -> Dict:
     """Load the plot_dict dictionary. This is required because the above configs have the 'plot_dict' key/value
     popped."""
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
@@ -54,42 +54,42 @@ def plot_dict(sample_config: Dict) -> Dict:
 
 
 @pytest.fixture
-def filter_config(sample_config: Dict) -> Dict:
+def filter_config(default_config: Dict) -> Dict:
     """Configurations for filtering"""
-    config = sample_config["filter"]
+    config = default_config["filter"]
     config.pop("run")
     return config
 
 
 @pytest.fixture
-def grains_config(sample_config: Dict) -> Dict:
+def grains_config(default_config: Dict) -> Dict:
     """Configurations for grain finding."""
-    config = sample_config["grains"]
+    config = default_config["grains"]
     config.pop("run")
     return config
 
 
 @pytest.fixture
-def grainstats_config(sample_config: Dict) -> Dict:
+def grainstats_config(default_config: Dict) -> Dict:
     """Configurations for grainstats"""
-    config = sample_config["grainstats"]
+    config = default_config["grainstats"]
     config["direction"] = "upper"
     config.pop("run")
     return config
 
 
 @pytest.fixture
-def dnatracing_config(sample_config: Dict) -> Dict:
+def dnatracing_config(default_config: Dict) -> Dict:
     """Configurations for dnatracing"""
-    config = sample_config["dnatracing"]
+    config = default_config["dnatracing"]
     config.pop("run")
     return config
 
 
 @pytest.fixture
-def plotting_config(sample_config: Dict) -> Dict:
+def plotting_config(default_config: Dict) -> Dict:
     """Configurations for filtering"""
-    config = sample_config["plotting"]
+    config = default_config["plotting"]
     config.pop("run")
     config.pop("plot_dict")
     return config
@@ -160,7 +160,7 @@ def image_random_col_medians_masked() -> np.array:
 
 
 @pytest.fixture
-def test_filters(filter_config: dict, sample_config: dict, tmp_path) -> Filters:
+def test_filters(filter_config: dict, default_config: dict, tmp_path) -> Filters:
     """Filters class for testing."""
     filters = Filters(RESOURCES / "minicircle.spm", output_dir=tmp_path, **filter_config)
     filters.load_scan()
