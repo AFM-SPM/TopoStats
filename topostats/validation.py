@@ -32,7 +32,6 @@ def validate_config(config: dict):
                     True, False, error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'"
                 ),
                 "channel": Or("Height"),
-                "amplify_level": float,
                 "threshold_method": Or(
                     "absolute",
                     "otsu",

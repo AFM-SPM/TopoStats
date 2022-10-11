@@ -20,7 +20,7 @@ RESOURCES = BASE_DIR / "tests" / "resources"
 
 def test_load_image(test_filters: Filters) -> None:
     """Test loading of image."""
-    filters = Filters(RESOURCES / "minicircle.spm", amplify_level=1.5)
+    filters = Filters(RESOURCES / "minicircle.spm")
     filters.load_scan()
     assert isinstance(test_filters.images["scan_raw"], Bruker)
 
@@ -65,17 +65,16 @@ def test_extract_pixels(test_filters: Filters) -> None:
     assert test_filters.images["pixels"].shape == (1024, 1024)
 
 
-@pytest.mark.parametrize("unit, x, y, expected", [
-    ('um', 100, 100, 97.65625),
-    ('nm', 50, 50, 0.048828125),
-    ])
-def test_extract_pixel_to_nm_scaling(test_filters_random: Filters, unit, x, y , expected) -> None:
+@pytest.mark.parametrize(
+    "unit, x, y, expected",
+    [
+        ("um", 100, 100, 97.65625),
+        ("nm", 50, 50, 0.048828125),
+    ],
+)
+def test_extract_pixel_to_nm_scaling(test_filters_random: Filters, unit, x, y, expected) -> None:
     """Test extraction of pixels to nanometer scaling."""
-    test_filters_random.images["extracted_channel"].size['real'] = {
-    'unit': unit,
-    'x': x,
-    'y': y
-    }
+    test_filters_random.images["extracted_channel"].size["real"] = {"unit": unit, "x": x, "y": y}
     test_filters_random.extract_pixel_to_nm_scaling()
     assert test_filters_random.pixel_to_nm_scaling == expected
 
@@ -134,14 +133,6 @@ def test_row_median_diffs(test_filters_random: Filters):
     np.testing.assert_equal(row_median_diffs, target)
 
 
-def test_amplify(test_filters_random: Filters) -> None:
-    """Test amplification filter of extracted pixels."""
-    target = test_filters_random.images["pixels"] * 1.0
-    test_filters_random.amplify()
-
-    np.testing.assert_array_equal(test_filters_random.images["pixels"], target)
-
-
 def test_calc_diff(test_filters_random: Filters, image_random: np.ndarray) -> None:
     """Test calculation of difference in array."""
     target = image_random[-1] - image_random[0]
@@ -177,22 +168,22 @@ def test_row_col_medians_with_mask(
 
 
 def test_non_square_img(test_filters_random: Filters):
-    test_filters_random.images["pixels"]=test_filters_random.images["pixels"][:,0:512]
+    test_filters_random.images["pixels"] = test_filters_random.images["pixels"][:, 0:512]
     test_filters_random.images["zero_averaged_background"] = test_filters_random.average_background(
         image=test_filters_random.images["pixels"], mask=None
     )
     assert isinstance(test_filters_random.images["zero_averaged_background"], np.ndarray)
-    assert test_filters_random.images["zero_averaged_background"].shape==(1024, 512)
+    assert test_filters_random.images["zero_averaged_background"].shape == (1024, 512)
     assert test_filters_random.images["zero_averaged_background"].sum() == 44426.48188033322
 
 
 def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> None:
     """Test Gaussian filter."""
     small_array_filters.images["gaussian_filtered"] = small_array_filters.gaussian_filter(
-        image=small_array_filters.images['zero_averaged_background']
+        image=small_array_filters.images["zero_averaged_background"]
     )
     target = gaussian(
-        small_array_filters.images['zero_averaged_background'],
+        small_array_filters.images["zero_averaged_background"],
         sigma=(filter_config["gaussian_size"] / 0.5),
         mode=filter_config["gaussian_mode"],
     )

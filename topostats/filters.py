@@ -29,7 +29,6 @@ class Filters:
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
         channel: str = "Height",
-        amplify_level: float = None,
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
         output_dir: Union[str, Path] = None,
@@ -43,8 +42,6 @@ class Filters:
             Path to a valid image to load.
         channel: str
             Channel to extract from the image.
-        amplify_level : float
-            Factor by which to amplify the image.
         threshold_method: str
             Method for thresholding, default 'otsu'.
         quiet: bool
@@ -59,7 +56,6 @@ class Filters:
         """
         self.img_path = Path(img_path)
         self.channel = channel
-        self.amplify_level = amplify_level
         self.gaussian_size = gaussian_size
         self.gaussian_mode = gaussian_mode
         self.threshold_method = threshold_method
@@ -87,7 +83,6 @@ class Filters:
         LOGGER.info(f"Filename : {self.filename}")
         self.results = {
             "diff": None,
-            "amplify": self.amplify_level,
             "median_row_height": None,
             "x_gradient": None,
             "y_gradient": None,
@@ -143,11 +138,6 @@ class Filters:
         self.images["pixels"] = np.flipud(np.array(self.images["extracted_channel"].pixels))
         LOGGER.info(f"[{self.filename}] : Pixels extracted")
 
-    def amplify(self) -> None:
-        """The amplify filter mulitplies the value of all extracted pixels by the `level` argument."""
-        self.images["pixels"] = self.images["pixels"] * self.amplify_level
-        LOGGER.info(f"[{self.filename}] : Image amplified (x {self.amplify_level})")
-
     def flatten_image(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Flatten an image.
 
@@ -197,9 +187,9 @@ class Filters:
         LOGGER.info(f"[{self.filename}] : Row and column medians calculated.")
         return medians
 
-    def align_rows(self, image: np.ndarray, mask: np.ndarray=None) -> np.ndarray:
+    def align_rows(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Returns a copy of the input image with rows aligned by median height.
-        
+
         Parameters
         ----------
         image: np.ndarray
@@ -243,9 +233,9 @@ class Filters:
         """Calculate difference of row medians from the median row height"""
         return row_medians - median_row_height
 
-    def remove_tilt(self, image: np.ndarray, mask: np.ndarray=None) -> np.ndarray:
+    def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Returns a copy of the input image after removing any linear plane slant.
-    
+
         Parameters
         ----------
         image: np.ndarray
@@ -302,17 +292,17 @@ class Filters:
 
     def gaussian_filter(self, image: np.ndarray, **kwargs) -> np.array:
         """Apply Gaussian filter to an image.
-        
+
         Parameters
         ----------
         image: np.array
             Numpy array representing image.
-        
+
         Returns
         -------
         np.array
             Numpy array of gaussian blurred image.
-            
+
         """
         LOGGER.info(
             f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (nm) : {self.gaussian_size})."
@@ -332,7 +322,6 @@ class Filters:
         from topostats.topotracing import Filter, process_scan
         filter = Filter(image_path='minicircle.spm',
         ...             channel='Height',
-        ...             amplify_level=1.0,
         ...             threshold_method='otsu')
         filter.filter_image()
 
@@ -343,8 +332,6 @@ class Filters:
         self.extract_channel()
         self.extract_pixels()
         self.extract_pixel_to_nm_scaling()
-        if self.amplify_level != 1.0:
-            self.amplify()
         self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
         # Get the thresholds
