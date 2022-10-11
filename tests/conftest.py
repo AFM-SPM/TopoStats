@@ -170,7 +170,7 @@ def test_filters(filter_config: dict, sample_config: dict, tmp_path) -> Filters:
 @pytest.fixture
 def test_filters_random(filter_config: dict, tmp_path, image_random: np.array) -> Filters:
     """Filters class for testing with pixels replaced by random image."""
-    filters = Filters(RESOURCES / "minicircle.spm", amplify_level=filter_config["amplify_level"], output_dir=tmp_path)
+    filters = Filters(RESOURCES / "minicircle.spm", output_dir=tmp_path)
     filters.load_scan()
     filters.extract_channel()
     filters.extract_pixels()
@@ -181,18 +181,16 @@ def test_filters_random(filter_config: dict, tmp_path, image_random: np.array) -
 @pytest.fixture
 def test_filters_random_with_mask(filter_config: dict, tmp_path, image_random: np.array) -> Filters:
     """Filters class for testing with pixels replaced by random image."""
-    filters = Filters(RESOURCES / "minicircle.spm", amplify_level=filter_config["amplify_level"], output_dir=tmp_path)
+    filters = Filters(RESOURCES / "minicircle.spm", output_dir=tmp_path)
     filters.load_scan()
     filters.extract_channel()
     filters.extract_pixels()
     filters.images["pixels"] = image_random
-    # filters.get_threshold(filters.images["pixels"])
     thresholds = get_thresholds(
         image=filters.images["pixels"],
         threshold_method=filter_config["threshold_method"],
         otsu_threshold_multiplier=filter_config["otsu_threshold_multiplier"],
     )
-    # filters.get_mask(filters.images["pixels"])
     filters.images["mask"] = get_mask(image=filters.images["pixels"], thresholds=thresholds)
     return filters
 

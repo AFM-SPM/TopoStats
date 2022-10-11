@@ -96,14 +96,6 @@ def create_parser() -> arg.ArgumentParser:
         help="Whether to save plots.",
     )
     parser.add_argument(
-        "-a",
-        "--amplify_level",
-        dest="amplify_level",
-        type=float,
-        required=False,
-        help="Amplify signals by the given factor.",
-    )
-    parser.add_argument(
         "-t", "--threshold_method", dest="threshold_method", required=False, help="Method used for thresholding."
     )
     parser.add_argument(
@@ -367,7 +359,6 @@ def main():
     validate_config(config)
 
     config["output_dir"].mkdir(parents=True, exist_ok=True)
-
 
     # Load plotting_dictionary
     plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
