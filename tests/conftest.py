@@ -668,10 +668,9 @@ def test_dnatracing() -> dnaTrace:
 
 
 @pytest.fixture
-def minicircle_dnatracing(
-    minicircle_grain_gaussian_filter: Filters, minicircle_grain_coloured: Grains, dnatracing_config: dict
-) -> pd.DataFrame:
-    """DNA Tracing Statistics"""
+def minicircle_dnatracing(    minicircle_grain_gaussian_filter: Filters, minicircle_grain_coloured: Grains, dnatracing_config: dict
+) -> dnaTrace:
+    """dnaTrace object instantiated with minicircle data."""
     dna_traces = dnaTrace(
         full_image_data=minicircle_grain_coloured.image.T,
         grains=minicircle_grain_coloured.directions["upper"]["labelled_regions_02"],
@@ -680,7 +679,12 @@ def minicircle_dnatracing(
         **dnatracing_config,
     )
     dna_traces.trace_dna()
-    tracing_stats = traceStats(trace_object=dna_traces, image_path="tmp")
+    return dna_traces
+
+@pytest.fixture
+def minicircle_tracestats(minicircle_dnatracing: dnaTrace) -> pd.DataFrame:
+    """DNA Tracing Statistics"""
+    tracing_stats = traceStats(trace_object=minicircle_dnatracing, image_path="tmp")
     return tracing_stats.df
 
 

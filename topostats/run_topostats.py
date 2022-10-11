@@ -1,4 +1,7 @@
-"""Topotracing"""
+"""Run TopoStats
+
+This provides an entry point for running TopoStats as a command line programme.
+"""
 import argparse as arg
 from collections import defaultdict
 from functools import partial
@@ -27,6 +30,7 @@ from topostats.utils import (
     create_empty_dataframe,
     folder_grainstats,
 )
+from topostats.validation import validate_config
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -185,7 +189,7 @@ def process_scan(
     image = scan_loader.image
     pixel_to_nm_scaling = scan_loader.pixel_to_nm_scaling
     filename = scan_loader.filename
-
+    
     # Filter Image :
     if filter_config["run"]:
         filter_config.pop("run")
@@ -368,7 +372,12 @@ def main():
         config = yaml.safe_load(default_config.read())
     config = update_config(config, args)
     config["output_dir"] = convert_path(config["output_dir"])
+
+    # Validate configuration
+    validate_config(config)
+
     config["output_dir"].mkdir(parents=True, exist_ok=True)
+
 
     # Load plotting_dictionary
     plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")

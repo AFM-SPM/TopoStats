@@ -31,7 +31,7 @@ grains:
   background: 0.0
 grainstats:
   run: true # Options : true, false
-  cropped_size: 40 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
+  cropped_size: 40.0 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
   save_cropped_grains: true # Options : true, false
 dnatracing:
   run: true # Options : true, false
