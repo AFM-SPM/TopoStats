@@ -69,14 +69,6 @@ def test_row_median_diffs(test_filters_random: Filters):
     np.testing.assert_equal(row_median_diffs, target)
 
 
-def test_amplify(test_filters_random: Filters) -> None:
-    """Test amplification filter of extracted pixels."""
-    target = test_filters_random.images["pixels"] * 1.0
-    test_filters_random.amplify()
-
-    np.testing.assert_array_equal(test_filters_random.images["pixels"], target)
-
-
 def test_calc_diff(test_filters_random: Filters, image_random: np.ndarray) -> None:
     """Test calculation of difference in array."""
     target = image_random[-1] - image_random[0]

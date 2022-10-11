@@ -96,14 +96,6 @@ def create_parser() -> arg.ArgumentParser:
         help="Whether to save plots.",
     )
     parser.add_argument(
-        "-a",
-        "--amplify_level",
-        dest="amplify_level",
-        type=float,
-        required=False,
-        help="Amplify signals by the given factor.",
-    )
-    parser.add_argument(
         "-t", "--threshold_method", dest="threshold_method", required=False, help="Method used for thresholding."
     )
     parser.add_argument(

@@ -29,7 +29,7 @@ class Filters:
         threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
-        amplify_level: float = None,
+        channel: str = "Height",
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
         quiet: bool = False,
@@ -54,8 +54,6 @@ class Filters:
             Lower threshold if using the 'absolute' threshold method.
         threshold_absolute_upper: float
             Upper threshold if using the 'absolute' threshold method.
-        amplify_level : float
-            Factor by which to amplify the image.
         quiet: bool
             Whether to silence output.
         """
@@ -83,7 +81,6 @@ class Filters:
         self.medians = {"rows": None, "cols": None}
         self.results = {
             "diff": None,
-            "amplify": self.amplify_level,
             "median_row_height": None,
             "x_gradient": None,
             "y_gradient": None,
@@ -92,11 +89,6 @@ class Filters:
 
         if quiet:
             LOGGER.setLevel("ERROR")
-
-    def amplify(self) -> None:
-        """The amplify filter mulitplies the value of all extracted pixels by the `level` argument."""
-        self.images["pixels"] = self.images["pixels"] * self.amplify_level
-        LOGGER.info(f"[{self.filename}] : Image amplified (x {self.amplify_level})")
 
     def flatten_image(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Flatten an image.
@@ -288,14 +280,10 @@ class Filters:
         ...             pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
         ...             filename=load_scan.filename,
         ...             channel='Height',
-        ...             amplify_level=1.0,
         ...             threshold_method='otsu')
         filter.filter_image()
 
         """
-
-        if self.amplify_level != 1.0:
-            self.amplify()
         self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
         # Get the thresholds
