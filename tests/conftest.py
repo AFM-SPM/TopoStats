@@ -36,13 +36,19 @@ def default_config() -> Dict:
     return config
 
 
-# @pytest.fixture
-# def process_scan_config() -> Dict:
-#     """Sample configuration"""
-#     config = read_yaml(RESOURCES / "process_scan_config.yaml")
-#     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
-#     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
-#     return config
+@pytest.fixture
+def process_scan_config() -> Dict:
+    """Sample configuration"""
+    # config = read_yaml(RESOURCES / "process_scan_config.yaml")
+    config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
+    config["filter"]["threshold_method"] = "std_dev"
+    config["grains"]["threshold_method"] = "std_dev"
+    config["grains"]["otsu_threshold_multiplier"] = 1.0
+    config["grains"]["absolute_area_threshold"]["upper"] = [500, 800]
+    config["plotting"]["zrange"] = [0, 3]
+    plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
+    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    return config
 
 
 @pytest.fixture
