@@ -166,7 +166,7 @@ def image_random_col_medians_masked() -> np.array:
 
 
 @pytest.fixture
-def test_filters(filter_config: dict, default_config: dict, tmp_path) -> Filters:
+def test_filters(filter_config: dict, tmp_path) -> Filters:
     """Filters class for testing."""
     filters = Filters(RESOURCES / "minicircle.spm", output_dir=tmp_path, **filter_config)
     filters.load_scan()

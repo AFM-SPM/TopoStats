@@ -336,7 +336,6 @@ def process_scan(
                 LOGGER.info(
                     f"[{filtered_image.filename}] : Errors occurred attempting to calculate grain statistics and DNA tracing statistics."
                 )
-                raise e
                 results = create_empty_dataframe()
 
     return image_path, results
