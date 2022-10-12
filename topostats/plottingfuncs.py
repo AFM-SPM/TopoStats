@@ -16,13 +16,13 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 class Images:
     """Plots image arrays"""
-    
+
     def __init__(
         self,
         data: np.array,
         output_dir: Union[str, Path],
         filename: str,
-        pixel_to_nm_scaling_factor: float = 1.,
+        pixel_to_nm_scaling_factor: float = 1.0,
         data2: np.array = None,
         title: str = None,
         type: str = "non-binary",
@@ -35,11 +35,11 @@ class Images:
         colorbar: bool = True,
         axes: bool = True,
         save: bool = True,
-        save_format: str = "png"
+        save_format: str = "png",
     ) -> None:
         """
         Initialise the class.
-        
+
         Parameters
         ----------
         data : np.array
@@ -78,28 +78,28 @@ class Images:
             Format to save the image as.
         """
 
-        self.data=data
-        self.output_dir=Path(output_dir)
-        self.filename=filename
-        self.pixel_to_nm_scaling_factor=pixel_to_nm_scaling_factor
-        self.data2=data2
-        self.title=title
-        self.type=type
-        self.image_set=image_set
-        self.core_set=core_set
-        self.interpolation=interpolation
-        self.cmap=cmap
-        self.region_properties=region_properties
-        self.zrange=zrange
-        self.colorbar=colorbar
-        self.axes=axes
-        self.save=save
-        self.save_format=save_format
+        self.data = data
+        self.output_dir = Path(output_dir)
+        self.filename = filename
+        self.pixel_to_nm_scaling_factor = pixel_to_nm_scaling_factor
+        self.data2 = data2
+        self.title = title
+        self.type = type
+        self.image_set = image_set
+        self.core_set = core_set
+        self.interpolation = interpolation
+        self.cmap = cmap
+        self.region_properties = region_properties
+        self.zrange = zrange
+        self.colorbar = colorbar
+        self.axes = axes
+        self.save = save
+        self.save_format = save_format
 
     def plot_and_save(self):
         """
         Plot and save the images with savefig or imsave depending on config file parameters.
-        
+
         Returns
         -------
         fig: plt.figure.Figure
@@ -113,18 +113,20 @@ class Images:
                 if self.axes or self.colorbar:
                     fig, ax = self.save_figure()
                 else:
-                    if isinstance(self.data2,np.ndarray) or self.region_properties:
+                    if isinstance(self.data2, np.ndarray) or self.region_properties:
                         fig, ax = self.save_figure()
                     else:
                         self.save_array_figure()
         if "_processed" in self.filename:
-            LOGGER.info(f"[{self.filename.split('_processed')[0]}] : Image saved to : {str(self.output_dir / self.filename)}")
+            LOGGER.info(
+                f"[{self.filename.split('_processed')[0]}] : Image saved to : {str(self.output_dir / self.filename)}"
+            )
         return fig, ax
 
     def save_figure(self):
         """
         This function saves figures as plt.savefig objects.
-        
+
         Returns
         -------
         fig: plt.figure.Figure
@@ -149,7 +151,12 @@ class Images:
                 ax.imshow(
                     mask,
                     "jet_r",
-                    extent=(0, shape[1] * self.pixel_to_nm_scaling_factor, 0, shape[0] * self.pixel_to_nm_scaling_factor),
+                    extent=(
+                        0,
+                        shape[1] * self.pixel_to_nm_scaling_factor,
+                        0,
+                        shape[0] * self.pixel_to_nm_scaling_factor,
+                    ),
                     interpolation=self.interpolation,
                     alpha=0.7,
                 )
@@ -165,16 +172,18 @@ class Images:
                 cax = divider.append_axes("right", size="5%", pad=0.05)
                 plt.colorbar(im, cax=cax, label="Height (Nanometres)")
             if self.region_properties:
-                fig, ax = add_bounding_boxes_to_plot(fig, ax, shape, self.region_properties, self.pixel_to_nm_scaling_factor)
+                fig, ax = add_bounding_boxes_to_plot(
+                    fig, ax, shape, self.region_properties, self.pixel_to_nm_scaling_factor
+                )
             if not self.axes and not self.colorbar:
-                        plt.title("")
-                        fig.frameon=False
-                        plt.savefig(
-                            (self.output_dir / f"{self.filename}.{self.save_format}"), 
-                            format=self.save_format, 
-                            bbox_inches="tight", 
-                            pad_inches = 0
-                        )
+                plt.title("")
+                fig.frameon = False
+                plt.savefig(
+                    (self.output_dir / f"{self.filename}.{self.save_format}"),
+                    format=self.save_format,
+                    bbox_inches="tight",
+                    pad_inches=0,
+                )
             else:
                 plt.savefig((self.output_dir / f"{self.filename}.{self.save_format}"), format=self.save_format)
         else:
@@ -197,9 +206,10 @@ class Images:
             cmap=Colormap(self.cmap).get_cmap(),
             vmin=self.zrange[0],
             vmax=self.zrange[1],
-            format=self.save_format
+            format=self.save_format,
         )
         plt.close()
+
 
 def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to_nm_scaling_factor: float) -> None:
     """Add the bounding boxes to a plot.
@@ -216,7 +226,7 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
         Region properties to add bounding boxes from.
     pixel_to_nm_scaling_factor: float
         The scaling factor from px to nm.
-    
+
     Returns
     -------
     fig: plt.figure.Figure

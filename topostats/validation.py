@@ -27,6 +27,9 @@ def validate_config(config: dict):
             "file_ext": Or(
                 ".spm", ".jpk", error="Invalid value in config for 'file_ext', valid values are '.spm' or '.jpk'"
             ),
+            "loading": {
+                "channel": Or("Height"),
+            },
             "filter": {
                 "run": Or(
                     True, False, error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'"

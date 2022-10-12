@@ -4,6 +4,8 @@ warnings: ignore
 cores: 4
 quiet: false
 file_ext: .spm
+loading:
+  channel: Height
 filter:
   run: true # Options : true, false
   channel: Height

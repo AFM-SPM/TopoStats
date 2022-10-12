@@ -3,58 +3,12 @@
 import numpy as np
 
 import pytest
-from pySPM.SPM import SPM_image
 
 from topostats.filters import Filters
 from topostats.plottingfuncs import Images
 
 # Specify the absolute and relattive tolerance for floating point comparison
 TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
-
-
-def test_extract_img_name(minicircle_filename: Filters) -> None:
-    """Test extracting image name."""
-    assert isinstance(minicircle_filename, Filters)
-    assert isinstance(minicircle_filename.filename, str)
-    assert minicircle_filename.filename == "minicircle"
-
-
-def test_load_scan(minicircle_load_scan: Filters) -> None:
-    """Test loading of scan."""
-    assert isinstance(minicircle_load_scan, Filters)
-
-
-def test_make_output_directory(tmp_path) -> None:
-    """Test loading of scan."""
-    assert tmp_path.exists()
-
-
-def test_extract_channel(minicircle_channel: Filters) -> None:
-    """Test extraction of channel."""
-    assert isinstance(minicircle_channel, Filters)
-    assert isinstance(minicircle_channel.images["extracted_channel"], SPM_image)
-
-
-def test_extract_pixel_to_nm_scaling(minicircle_pixels: Filters) -> None:
-    """Test extraction of pixels to nanometer scaling."""
-    assert isinstance(minicircle_pixels, Filters)
-    assert minicircle_pixels.pixel_to_nm_scaling == 0.4940029296875
-
-
-@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_extract_pixels(minicircle_pixels: Filters, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
-    """Test extraction of channel."""
-    assert isinstance(minicircle_pixels.images["pixels"], np.ndarray)
-    assert minicircle_pixels.images["pixels"].shape == (1024, 1024)
-    assert minicircle_pixels.images["pixels"].sum() == 30695369.188316286
-    plotting_config = {**plotting_config, **plot_dict["pixels"]}
-    fig, _ = Images(
-        data=minicircle_pixels.images["pixels"],
-        output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
-        **plotting_config,
-    ).plot_and_save()
-    return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
@@ -179,6 +133,7 @@ def test_average_background(
     ).plot_and_save()
     return fig
 
+
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_gaussian_filter(
     minicircle_grain_gaussian_filter: Filters, plotting_config: dict, plot_dict: dict, tmp_path
@@ -195,5 +150,3 @@ def test_gaussian_filter(
         **plotting_config,
     ).plot_and_save()
     return fig
-
-# FIXME (2022-07-11): More tests of alignment/tilt removal and average background when methods other than otsu are used

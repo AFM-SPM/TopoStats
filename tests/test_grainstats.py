@@ -1,8 +1,9 @@
 """Testing of grainstats class"""
+from pathlib import Path
+
 import logging
 import numpy as np
 import pytest
-from pathlib import Path
 
 from topostats.grainstats import GrainStats
 from topostats.logs.logs import LOGGER_NAME
