@@ -15,6 +15,7 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
 
+
 def test_row_col_medians_no_mask(
     test_filters_random: Filters, image_random_row_medians: np.array, image_random_col_medians: np.array
 ) -> None:
