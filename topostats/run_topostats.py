@@ -18,7 +18,7 @@ from tqdm import tqdm
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import read_yaml, write_yaml
+from topostats.io import read_yaml, write_yaml, LoadScan
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
@@ -96,14 +96,6 @@ def create_parser() -> arg.ArgumentParser:
         help="Whether to save plots.",
     )
     parser.add_argument(
-        "-a",
-        "--amplify_level",
-        dest="amplify_level",
-        type=float,
-        required=False,
-        help="Amplify signals by the given factor.",
-    )
-    parser.add_argument(
         "-t", "--threshold_method", dest="threshold_method", required=False, help="Method used for thresholding."
     )
     parser.add_argument(
@@ -128,6 +120,7 @@ def create_parser() -> arg.ArgumentParser:
 def process_scan(
     image_path: Union[str, Path],
     base_dir: Union[str, Path],
+    loading_config: dict,
     filter_config: dict,
     grains_config: dict,
     grainstats_config: dict,
@@ -143,6 +136,8 @@ def process_scan(
         Path to image to process.
     base_dir : Union[str, Path]
         Directory to recursively search for files, if not specified the current directory is scanned.
+    loading_config : dict
+        Dictionary of configuration options for running the Load Scan stage.
     filter_config : dict
         Dictionary of configuration options for running the Filter stage.
     grains_config : dict
@@ -172,17 +167,26 @@ def process_scan(
         filter_out_path = _output_dir
         grain_out_path = _output_dir
     else:
-        filter_out_path = _output_dir / image_path.stem / "filters"
-        grain_out_path = _output_dir / image_path.stem / "grains"
+        filter_out_path = Path(_output_dir) / image_path.stem / "filters"
+        grain_out_path = Path(_output_dir) / image_path.stem / "grains"
+        filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(_output_dir / image_path.stem / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
+
+    # Extract image and image params
+    scan_loader = LoadScan(image_path, **loading_config)
+    scan_loader.get_data()
+    image = scan_loader.image
+    pixel_to_nm_scaling = scan_loader.pixel_to_nm_scaling
+    filename = scan_loader.filename
 
     # Filter Image :
     if filter_config["run"]:
         filter_config.pop("run")
         filtered_image = Filters(
-            image_path,
-            output_dir=filter_out_path,
+            image,
+            filename,
+            pixel_to_nm_scaling,
             **filter_config,
         )
         filtered_image.filter_image()
@@ -190,10 +194,10 @@ def process_scan(
         # Optionally plot filter stage
         if plotting_config["run"]:
             plotting_config.pop("run")
-            LOGGER.info(f"[{filtered_image.filename}] : Plotting Filtering Images")
+            LOGGER.info(f"[{filename}] : Plotting Filtering Images")
             # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
             plot_opts = {
-                "pixel_to_nm_scaling_factor": filtered_image.pixel_to_nm_scaling,
+                "pixel_to_nm_scaling_factor": pixel_to_nm_scaling,
             }
             for image, options in plotting_config["plot_dict"].items():
                 plotting_config["plot_dict"][image] = {**options, **plot_opts}
@@ -206,12 +210,12 @@ def process_scan(
                     try:
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
                     except AttributeError:
-                        LOGGER.info(f"[{filtered_image.filename}] Unable to generate plot : {plot_name}")
+                        LOGGER.info(f"[{filename}] Unable to generate plot : {plot_name}")
             plot_name = "z_threshed"
             plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
             Images(
                 filtered_image.images["gaussian_filtered"],
-                filename=filtered_image.filename + "_processed",
+                filename=filename + "_processed",
                 **plotting_config["plot_dict"][plot_name],
             ).plot_and_save()
             plotting_config["run"] = True
@@ -220,21 +224,19 @@ def process_scan(
     if grains_config["run"]:
         grains_config.pop("run")
         try:
-            LOGGER.info(f"[{filtered_image.filename}] : *** Grain Finding ***")
+            LOGGER.info(f"[{filename}] : *** Grain Finding ***")
             grains = Grains(
                 image=filtered_image.images["gaussian_filtered"],
-                filename=filtered_image.filename,
-                pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
+                filename=filename,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
                 base_output_dir=grain_out_path,
                 **grains_config,
             )
             grains.find_grains()
         except IndexError:
-            LOGGER.info(
-                f"[{filtered_image.filename}] : No grains were detected, skipping Grain Statistics and DNA Tracing."
-            )
+            LOGGER.info(f"[{filename}] : No grains were detected, skipping Grain Statistics and DNA Tracing.")
         except ValueError:
-            LOGGER.info(f"[{filtered_image.filename}] : No image, it is all masked.")
+            LOGGER.info(f"[{filename}] : No image, it is all masked.")
             results = create_empty_dataframe()
         if grains.region_properties is None:
             results = create_empty_dataframe()
@@ -242,9 +244,9 @@ def process_scan(
         # Optionally plot grain finding stage
         if plotting_config["run"] and grains.region_properties is not None:
             plotting_config.pop("run")
-            LOGGER.info(f"[{filtered_image.filename}] : Plotting Grain Finding Images")
+            LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
             for direction, image_arrays in grains.directions.items():
-                output_dir = Path(_output_dir) / filtered_image.filename / "grains" / f"{direction}"
+                output_dir = Path(_output_dir) / filename / "grains" / f"{direction}"
                 for plot_name, array in image_arrays.items():
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                     Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
@@ -266,7 +268,7 @@ def process_scan(
                 plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
                 Images(
                     filtered_image.images["gaussian_filtered"],
-                    filename=f"{filtered_image.filename}_{direction}_processed_masked",
+                    filename=f"{filename}_{direction}_processed_masked",
                     data2=grains.directions[direction]["removed_small_objects"],
                     **plotting_config["plot_dict"][plot_name],
                 ).plot_and_save()
@@ -280,7 +282,7 @@ def process_scan(
             grainstats_config.pop("run")
             # Grain Statistics :
             try:
-                LOGGER.info(f"[{filtered_image.filename}] : *** Grain Statistics ***")
+                LOGGER.info(f"[{filename}] : *** Grain Statistics ***")
                 grain_plot_dict = {
                     key: value
                     for key, value in plotting_config["plot_dict"].items()
@@ -291,10 +293,10 @@ def process_scan(
                     grainstats[direction] = GrainStats(
                         data=filtered_image.images["gaussian_filtered"],
                         labelled_data=grains.directions[direction]["labelled_regions_02"],
-                        pixel_to_nanometre_scaling=filtered_image.pixel_to_nm_scaling,
+                        pixel_to_nanometre_scaling=pixel_to_nm_scaling,
                         direction=direction,
                         base_output_dir=_output_dir / "grains",
-                        image_name=filtered_image.filename,
+                        image_name=filename,
                         plot_opts=grain_plot_dict,
                         **grainstats_config,
                     ).calculate_stats()
@@ -309,15 +311,15 @@ def process_scan(
                 # Run dnatracing
                 if dnatracing_config["run"]:
                     dnatracing_config.pop("run")
-                    LOGGER.info(f"[{filtered_image.filename}] : *** DNA Tracing ***")
+                    LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
                     dna_traces = defaultdict()
                     tracing_stats = defaultdict()
                     for direction, _ in grainstats.items():
                         dna_traces[direction] = dnaTrace(
                             full_image_data=filtered_image.images["gaussian_filtered"].T,
                             grains=grains.directions[direction]["labelled_regions_02"],
-                            filename=filtered_image.filename,
-                            pixel_size=filtered_image.pixel_to_nm_scaling,
+                            filename=filename,
+                            pixel_size=pixel_to_nm_scaling,
                             **dnatracing_config,
                         )
                         dna_traces[direction].trace_dna()
@@ -330,19 +332,17 @@ def process_scan(
                         tracing_stats_df = tracing_stats["upper"].df
                     elif grains_config["direction"] == "lower":
                         tracing_stats_df = tracing_stats["lower"].df
-                    LOGGER.info(
-                        f"[{filtered_image.filename}] : Combining {direction} grain statistics and dnatracing statistics"
-                    )
+                    LOGGER.info(f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics")
                     results = grainstats_df.merge(tracing_stats_df, on=["Molecule Number", "threshold"])
                 else:
                     results = grainstats_df
-                    results["Image Name"] = filtered_image.filename
+                    results["Image Name"] = filename
                     results["Basename"] = image_path.parent
 
             except Exception:
                 # If no results we need a dummy dataframe to return.
                 LOGGER.info(
-                    f"[{filtered_image.filename}] : Errors occurred attempting to calculate grain statistics and DNA tracing statistics."
+                    f"[{filename}] : Errors occurred attempting to calculate grain statistics and DNA tracing statistics."
                 )
                 results = create_empty_dataframe()
 
@@ -368,7 +368,6 @@ def main():
 
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 
-
     # Load plotting_dictionary
     plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
@@ -392,8 +391,12 @@ def main():
     LOGGER.info(f"Scanning for images in              : {config['base_dir']}")
     LOGGER.info(f"Output directory                    : {str(config['output_dir'])}")
     LOGGER.info(f"Looking for images with extension   : {config['file_ext']}")
-    img_files = find_images(config["base_dir"])
-    LOGGER.info(f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}')
+    img_files = find_images(config["base_dir"], file_ext=config["file_ext"])
+    LOGGER.info(f"Images with extension {config['file_ext']} in {config['base_dir']} : {len(img_files)}")
+    if len(img_files) == 0:
+        LOGGER.error(f"No images with extension {config['file_ext']} in {config['base_dir']}")
+        LOGGER.error("Please check your configuration and directories.")
+        exit()
     LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
     LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
 
@@ -403,6 +406,7 @@ def main():
     processing_function = partial(
         process_scan,
         base_dir=config["base_dir"],
+        loading_config=config["loading"],
         filter_config=config["filter"],
         grains_config=config["grains"],
         grainstats_config=config["grainstats"],

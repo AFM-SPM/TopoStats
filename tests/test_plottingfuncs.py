@@ -1,28 +1,30 @@
 """Tests of plotting functions."""
-import pytest
 from pathlib import Path
-import numpy as np
-import skimage.io as io
 
-from topostats.filters import Filters
+import pytest
+import numpy as np
+from skimage import io
+
 from topostats.grains import Grains
+from topostats.io import LoadScan
 from topostats.plottingfuncs import Images
 
-@pytest.mark.parametrize("data2, axes_colorbar, region_properties", [
-(np.random.rand(10,10), True, None),
-(None, True, None),
-(None, False, True)
-])
+
+@pytest.mark.parametrize(
+    "data2, axes_colorbar, region_properties",
+    [(np.random.rand(10, 10), True, None), (None, True, None), (None, False, True)],
+)
 def test_save_figure(
     data2: np.ndarray,
     axes_colorbar: bool,
     region_properties: bool,
     image_random: np.ndarray,
     minicircle_grain_region_properties_post_removal: Grains,
-    tmp_path: Path):
+    tmp_path: Path,
+):
     """Tests that an image is saved and a figure returned"""
     if region_properties:
-        region_properties=minicircle_grain_region_properties_post_removal
+        region_properties = minicircle_grain_region_properties_post_removal
     fig, ax = Images(
         data=image_random,
         output_dir=tmp_path,
@@ -40,7 +42,7 @@ def test_save_figure(
 def test_save_array_figure(tmp_path: Path):
     """Tests that the image array is saved"""
     Images(
-        data=np.random.rand(10,10),
+        data=np.random.rand(10, 10),
         output_dir=tmp_path,
         filename="result",
     ).save_array_figure()
@@ -48,13 +50,13 @@ def test_save_array_figure(tmp_path: Path):
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_no_colorbar(minicircle_pixels: Filters, tmp_path: Path) -> None:
+def test_plot_and_save_no_colorbar(load_scan_data: LoadScan, tmp_path: Path) -> None:
     """Test plotting without colorbar"""
     fig, _ = Images(
-        data=minicircle_pixels.images["pixels"],
+        data=load_scan_data.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
-        pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
+        pixel_to_nm_scaling_factor=load_scan_data.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=False,
         axes=True,
@@ -64,13 +66,13 @@ def test_plot_and_save_no_colorbar(minicircle_pixels: Filters, tmp_path: Path) -
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_colorbar(minicircle_pixels: Filters, tmp_path: Path) -> None:
+def test_plot_and_save_colorbar(load_scan_data: LoadScan, tmp_path: Path) -> None:
     """Test plotting with colorbar"""
     fig, _ = Images(
-        data=minicircle_pixels.images["pixels"],
+        data=load_scan_data.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
-        pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
+        pixel_to_nm_scaling_factor=load_scan_data.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=True,
         axes=True,
@@ -80,50 +82,49 @@ def test_plot_and_save_colorbar(minicircle_pixels: Filters, tmp_path: Path) -> N
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_no_axes(minicircle_pixels: Filters, plotting_config: dict, tmp_path: Path) -> None:
+def test_plot_and_save_no_axes(load_scan_data: LoadScan, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes"""
     plotting_config["axes"] = False
     fig, _ = Images(
-        data=minicircle_pixels.images["pixels"],
+        data=load_scan_data.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
-        title="Raw Height", 
-        **plotting_config
+        title="Raw Height",
+        **plotting_config,
     ).plot_and_save()
     return fig
 
 
-def test_plot_and_save_no_axes_no_colorbar(minicircle_pixels: Filters, plotting_config: dict, tmp_path: Path) -> None:
+def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScan, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes and without the colourbar."""
     plotting_config["axes"] = False
     plotting_config["colorbar"] = False
     Images(
-        data=minicircle_pixels.images["pixels"],
+        data=load_scan_data.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
         title="Raw Height",
-        **plotting_config
+        **plotting_config,
     ).plot_and_save()
-    img = io.imread(tmp_path/"01-raw_heightmap.png")
+    img = io.imread(tmp_path / "01-raw_heightmap.png")
     assert np.sum(img) == 448788105
-    assert img.shape == (1024,1024,4)
+    assert img.shape == (1024, 1024, 4)
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_colorbar_afmhot(minicircle_pixels: Filters, tmp_path: Path, plotting_config: dict
-    ) -> None:
+def test_plot_and_save_colorbar_afmhot(load_scan_data: LoadScan, tmp_path: Path, plotting_config: dict) -> None:
     """Test plotting with colorbar"""
     plotting_config["cmap"] = "afmhot"
     fig, _ = Images(
-        data=minicircle_pixels.images["pixels"],
+        data=load_scan_data.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
-        pixel_to_nm_scaling_factor=minicircle_pixels.pixel_to_nm_scaling,
+        pixel_to_nm_scaling_factor=load_scan_data.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=True,
         axes=True,
         cmap="afmhot",
-        image_set="all"
+        image_set="all",
     ).plot_and_save()
     return fig
 
@@ -175,7 +176,7 @@ def test_plot_and_save_non_square_bounding_box(
     """Test plotting bounding boxes"""
     plotting_config["type"] = "binary"
     fig, _ = Images(
-        data=minicircle_grain_coloured.image[:,0:512],
+        data=minicircle_grain_coloured.image[:, 0:512],
         output_dir=tmp_path,
         filename="15-coloured_regions.png",
         pixel_to_nm_scaling_factor=minicircle_grain_coloured.pixel_to_nm_scaling,
