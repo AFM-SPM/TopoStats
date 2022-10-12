@@ -26,7 +26,6 @@ grains:
     upper: [400,600] # above surface [Low, High] in nm^2 (also takes null)
     lower: [null, null] # below surface [Low, High] in nm^2 (also takes null)
   direction: upper # Options: upper, lower, both (defines whether to look for grains above or below thresholds or both)
-  background: 0.0
 grainstats:
   run: true # Options : true, false
   cropped_size: 40.0 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
