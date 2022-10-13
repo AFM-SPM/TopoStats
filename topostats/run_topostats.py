@@ -1,4 +1,7 @@
-"""Topotracing"""
+"""Run TopoStats
+
+This provides an entry point for running TopoStats as a command line programme.
+"""
 import argparse as arg
 from collections import defaultdict
 from functools import partial
@@ -15,7 +18,7 @@ from tqdm import tqdm
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import read_yaml, write_yaml, Load_scan
+from topostats.io import read_yaml, write_yaml, LoadScan
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
@@ -27,6 +30,7 @@ from topostats.utils import (
     create_empty_dataframe,
     folder_grainstats,
 )
+from topostats.validation import validate_config
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -92,14 +96,6 @@ def create_parser() -> arg.ArgumentParser:
         help="Whether to save plots.",
     )
     parser.add_argument(
-        "-a",
-        "--amplify_level",
-        dest="amplify_level",
-        type=float,
-        required=False,
-        help="Amplify signals by the given factor.",
-    )
-    parser.add_argument(
         "-t", "--threshold_method", dest="threshold_method", required=False, help="Method used for thresholding."
     )
     parser.add_argument(
@@ -140,6 +136,8 @@ def process_scan(
         Path to image to process.
     base_dir : Union[str, Path]
         Directory to recursively search for files, if not specified the current directory is scanned.
+    loading_config : dict
+        Dictionary of configuration options for running the Load Scan stage.
     filter_config : dict
         Dictionary of configuration options for running the Filter stage.
     grains_config : dict
@@ -176,9 +174,11 @@ def process_scan(
         Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
 
     # Extract image and image params
-    #   I don't know if this should be Load_scan(...) and 
-    #   then at points of calling use Load_scan.filename etc?
-    filename, image, pixel_to_nm_scaling = Load_scan(image_path, **loading_config).get_data()
+    scan_loader = LoadScan(image_path, **loading_config)
+    scan_loader.get_data()
+    image = scan_loader.image
+    pixel_to_nm_scaling = scan_loader.pixel_to_nm_scaling
+    filename = scan_loader.filename
 
     # Filter Image :
     if filter_config["run"]:
@@ -220,7 +220,6 @@ def process_scan(
             ).plot_and_save()
             plotting_config["run"] = True
 
-
     # Find Grains :
     if grains_config["run"]:
         grains_config.pop("run")
@@ -235,9 +234,7 @@ def process_scan(
             )
             grains.find_grains()
         except IndexError:
-            LOGGER.info(
-                f"[{filename}] : No grains were detected, skipping Grain Statistics and DNA Tracing."
-            )
+            LOGGER.info(f"[{filename}] : No grains were detected, skipping Grain Statistics and DNA Tracing.")
         except ValueError:
             LOGGER.info(f"[{filename}] : No image, it is all masked.")
             results = create_empty_dataframe()
@@ -277,7 +274,6 @@ def process_scan(
                 ).plot_and_save()
             plotting_config["run"] = True
 
-
         # Grainstats :
         #
         # There are two layers to process those above the given threshold and those below, use dictionary comprehension
@@ -287,7 +283,11 @@ def process_scan(
             # Grain Statistics :
             try:
                 LOGGER.info(f"[{filename}] : *** Grain Statistics ***")
-                grain_plot_dict = {key:value for key, value in plotting_config["plot_dict"].items() if key in ["grain_image","grain_mask", "grain_mask_image"]}
+                grain_plot_dict = {
+                    key: value
+                    for key, value in plotting_config["plot_dict"].items()
+                    if key in ["grain_image", "grain_mask", "grain_mask_image"]
+                }
                 grainstats = {}
                 for direction in grains.directions.keys():
                     grainstats[direction] = GrainStats(
@@ -332,15 +332,13 @@ def process_scan(
                         tracing_stats_df = tracing_stats["upper"].df
                     elif grains_config["direction"] == "lower":
                         tracing_stats_df = tracing_stats["lower"].df
-                    LOGGER.info(
-                        f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics"
-                    )
+                    LOGGER.info(f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics")
                     results = grainstats_df.merge(tracing_stats_df, on=["Molecule Number", "threshold"])
                 else:
                     results = grainstats_df
                     results["Image Name"] = filename
                     results["Basename"] = image_path.parent
-            
+
             except Exception:
                 # If no results we need a dummy dataframe to return.
                 LOGGER.info(
@@ -364,6 +362,10 @@ def main():
         config = yaml.safe_load(default_config.read())
     config = update_config(config, args)
     config["output_dir"] = convert_path(config["output_dir"])
+
+    # Validate configuration
+    validate_config(config)
+
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 
     # Load plotting_dictionary
@@ -389,8 +391,12 @@ def main():
     LOGGER.info(f"Scanning for images in              : {config['base_dir']}")
     LOGGER.info(f"Output directory                    : {str(config['output_dir'])}")
     LOGGER.info(f"Looking for images with extension   : {config['file_ext']}")
-    img_files = find_images(config["base_dir"])
-    LOGGER.info(f'Images with extension {config["file_ext"]} in {config["base_dir"]} : {len(img_files)}')
+    img_files = find_images(config["base_dir"], file_ext=config["file_ext"])
+    LOGGER.info(f"Images with extension {config['file_ext']} in {config['base_dir']} : {len(img_files)}")
+    if len(img_files) == 0:
+        LOGGER.error(f"No images with extension {config['file_ext']} in {config['base_dir']}")
+        LOGGER.error("Please check your configuration and directories.")
+        exit()
     LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
     LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
 

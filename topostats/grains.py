@@ -37,12 +37,11 @@ class Grains:
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
         absolute_area_threshold: dict = {
-            "upper": [None,None],
-            "lower": [None,None],
-            },
+            "upper": [None, None],
+            "lower": [None, None],
+        },
         direction: str = None,
         absolute_smallest_grain_size: float = None,
-        background: float = 0.0,
         base_output_dir: Union[str, Path] = ".",
     ):
         """Initialise the class.
@@ -85,7 +84,6 @@ class Grains:
         self.absolute_area_threshold = absolute_area_threshold
         # Only detect grains for the desired direction
         self.direction = [direction] if direction != "both" else ["upper", "lower"]
-        self.background = background
         self.base_output_dir = Path(base_output_dir)
         self.absolute_smallest_grain_size = absolute_smallest_grain_size
         self.thresholds = None
@@ -137,7 +135,7 @@ class Grains:
             Numpy array of image with objects coloured.
         """
         LOGGER.info(f"[{self.filename}] : Labelling Regions")
-        return label(image, background=self.background)
+        return label(image, background=0)
 
     def calc_minimum_grain_size(self, image: np.ndarray) -> float:
         """Calculate the minimum grain size.
@@ -192,7 +190,7 @@ class Grains:
 
     def area_thresholding(self, image: np.ndarray, area_thresh_list: list):
         """Removes objects larger and smaller than the specified thresholds.
-        
+
         Parameters
         ----------
         image: np.ndarray
@@ -201,7 +199,7 @@ class Grains:
             Upper threshold area.
         lower: float
             Lower threshold area.
-        
+
         Returns
         -------
         np.ndarray
@@ -213,18 +211,18 @@ class Grains:
         lower = area_thresh_list[0]
         # if one value is None adjust for comparison
         if upper is None:
-            upper = image.size * self.pixel_to_nm_scaling ** 2
+            upper = image.size * self.pixel_to_nm_scaling**2
         if lower is None:
             lower = 0
-        uniq = np.delete(np.unique(image),0)
+        uniq = np.delete(np.unique(image), 0)
         grain_count = 0
         for grain_no in uniq:
-            grain_area = np.sum(image_cp==grain_no) * (self.pixel_to_nm_scaling ** 2)
+            grain_area = np.sum(image_cp == grain_no) * (self.pixel_to_nm_scaling**2)
             if grain_area > upper or grain_area < lower:
-                image_cp[image_cp==grain_no] = 0
+                image_cp[image_cp == grain_no] = 0
             else:
                 grain_count += 1
-                image_cp[image_cp==grain_no] = grain_count
+                image_cp[image_cp == grain_no] = grain_count
         return image_cp
 
     def colour_regions(self, image: np.array, **kwargs) -> np.array:
@@ -332,7 +330,8 @@ class Grains:
                 self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
                 LOGGER.info(f"[{self.filename}] : Extracted bounding boxes ({direction})")
                 region_props_count += len(self.region_properties[direction])
-            if region_props_count == 0: self.region_properties =  None
+            if region_props_count == 0:
+                self.region_properties = None
         # FIXME : Identify what exception is raised with images without grains and replace broad except
         except:
             LOGGER.info(f"[{self.filename}] : No grains found.")

@@ -88,12 +88,11 @@ def test_get_thresholds_value_error(image_random: np.ndarray) -> None:
         get_thresholds(image=image_random, threshold_method="mean", **THRESHOLD_OPTIONS)
 
 
-def test_folder_grainstats(tmp_path: Path, minicircle_dnatracing: pd.DataFrame) -> None:
+def test_folder_grainstats(tmp_path: Path, minicircle_tracestats: pd.DataFrame) -> None:
     """Test a folder-wide grainstats file is made"""
     input_path = tmp_path / "minicircle"
-    minicircle_dnatracing["Basename"] = input_path / "subfolder"
+    minicircle_tracestats["Basename"] = input_path / "subfolder"
     true_out_path = tmp_path / "subfolder" / "Processed"
     Path.mkdir(true_out_path, parents=True)
-    folder_grainstats(tmp_path, input_path, minicircle_dnatracing)
+    folder_grainstats(tmp_path, input_path, minicircle_tracestats)
     assert Path(true_out_path / "folder_grainstats.csv").exists()
-    

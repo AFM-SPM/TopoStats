@@ -7,7 +7,8 @@ import numpy as np
 
 from pySPM.Bruker import Bruker
 from afmformats import load_data
-import libasd
+from afmformats.mod_creep_compliance import AFMCreepCompliance
+
 from ruamel.yaml import YAML, YAMLError
 from ruamel.yaml.main import round_trip_load as yaml_load, round_trip_dump as yaml_dump
 from topostats.logs.logs import LOGGER_NAME
@@ -85,48 +86,74 @@ class LoadScan:
         """
         self.img_path = Path(img_path)
         self.channel = channel
-        self.filename = self.imag_path
+        self.channel_data = None
+        self.file_path = self.img_path
+        self.filename = self.img_path.stem
         self.suffix = self.img_path.suffix
         self.image = None
-        self.px_to_m_scaling = None
+        self.pixel_to_nm_scaling = None
 
-    def extract_spm(self) -> tuple:
+    def load_spm(self) -> tuple:
         """Extract image and pixel to nm scaling from the Bruker .spm file."""
         LOGGER.info(f"Loading image from : {self.img_path}")
         try:
             scan = Bruker(self.img_path)
             LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
-            channel_data = scan.get_channel(self.channel)
+            self.channel_data = scan.get_channel(self.channel)
             LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
-            image = np.flipud(np.array(channel_data.pixels))
+            image = np.flipud(np.array(self.channel_data.pixels))
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
         # check exception of channel not found and return channel list
         except Exception as exception:
             LOGGER.error(f"[{self.filename}] : {exception}")
 
+        return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
+
+    def _spm_pixel_to_nm_scaling(self, channel_data) -> float:
+        """Extract pixel to nm scaling from the SPM image metadata.
+
+        Parameters
+        ----------
+        channel_data:
+            Channel data
+
+        Returns
+        -------
+        float
+            Pixel to nm scaling factor.
+        """
         unit_dict = {
             "nm": 1,
             "um": 1e3,
         }
         px_to_real = channel_data.pxs()
         # Has potential for non-square pixels but not yet implimented
-        px_to_m_scaling = (
+        pixel_to_nm_scaling = (
             px_to_real[0][0] * unit_dict[px_to_real[0][1]],
             px_to_real[1][0] * unit_dict[px_to_real[1][1]],
         )[0]
-        LOGGER.info(f"[{self.filename}] : Pixels to nm scaling : {px_to_m_scaling}")
-        return (image, px_to_m_scaling)
+        LOGGER.info(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
+        return pixel_to_nm_scaling
 
-    def extract_jpk(self) -> None:
-        """Extract image and pixel to nm scaling from .jpk files."""
+    # def load_jpk(self) -> None:
+    #     """Load and extract image from .jpk files."""
+    #     jpk = self._load_jpk()
+    #     data = self._extract_jpk(jpk)
+    #     return (jpk, None)
+
+    def _load_jpk(self) -> None:
         try:
-            dslist = load_data(self.img_path)
+            jpk = load_data(self.img_path)
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
         except Exception as exception:
             LOGGER.error(f"[{self.filename}] : {exception}")
-        return (dslist, None)
+        return jpk
+
+    @staticmethod
+    def _extract_jpk(jpk: AFMCreepCompliance) -> np.ndarray:
+        """Extract data from jpk object"""
 
     def extract_asd(self) -> tuple:
         """Extract image and pixel to nm scaling from .asd files"""
@@ -161,9 +188,8 @@ class LoadScan:
         """Method to extract image and pixel to nm scaling."""
         LOGGER.info(f"Extracting image from {self.suffix}")
         if self.suffix == ".spm":
-            self.image, self.px_to_m_scaling = self.extract_spm()
+            self.image, self.pixel_to_nm_scaling = self.load_spm()
         if self.suffix == ".jpk":
-            self.image, self.px_to_m_scaling = self.extract_jpk()
+            self.image, self.pixel_to_nm_scaling = self.load_jpk()
         if self.suffix == ".ibw":
-            self.image, self.px_to_m_scaling = self.extract_ibw()
-        raise ValueError(self.suffix)
+            self.image, self.pixel_to_nm_scaling = self.load_ibw()

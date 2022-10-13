@@ -170,7 +170,8 @@ class dnaTrace(object):
         and to try to better trace from looped molecules"""
 
         for grain_num in sorted(self.grains.keys()):
-
+            # What purpose does binary dilation serve here? Name suggests some sort of smoothing around the edges and
+            # the resulting array is used as a mask during the skeletonising process.
             smoothed_grain = ndimage.binary_dilation(self.grains[grain_num], iterations=1).astype(
                 self.grains[grain_num].dtype
             )

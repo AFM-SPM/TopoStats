@@ -29,7 +29,7 @@ class Filters:
         threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
-        amplify_level: float = None,
+        channel: str = "Height",
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
         quiet: bool = False,
@@ -42,16 +42,23 @@ class Filters:
             The raw image from the AFM.
         filename: str
             The filename (used for logging outputs only).
-        amplify_level : float
-            Factor by which to amplify the image.
+        pixel_to_nm_scaling: float
+            Value for converting pixels to nanometers.
         threshold_method: str
-            Method for thresholding, default 'otsu'.
+            Method for thresholding, default 'otsu', valid options 'otsu', 'std_dev' and 'absolute'.
+        otsu_threshold_multiplier: float
+            Value for scaling the derived Otsu threshold (optional).
+        threshold_std_dev: float()
+            If using the 'std_dev' threshold method the number of standard deviations from the mean to threshold.
+        threshold_absolute_lower: float
+            Lower threshold if using the 'absolute' threshold method.
+        threshold_absolute_upper: float
+            Upper threshold if using the 'absolute' threshold method.
         quiet: bool
             Whether to silence output.
         """
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
-        self.amplify_level = amplify_level
         self.gaussian_size = gaussian_size
         self.gaussian_mode = gaussian_mode
         self.threshold_method = threshold_method
@@ -73,7 +80,6 @@ class Filters:
         self.medians = {"rows": None, "cols": None}
         self.results = {
             "diff": None,
-            "amplify": self.amplify_level,
             "median_row_height": None,
             "x_gradient": None,
             "y_gradient": None,
@@ -82,11 +88,6 @@ class Filters:
 
         if quiet:
             LOGGER.setLevel("ERROR")
-
-    def amplify(self) -> None:
-        """The amplify filter mulitplies the value of all extracted pixels by the `level` argument."""
-        self.images["pixels"] = self.images["pixels"] * self.amplify_level
-        LOGGER.info(f"[{self.filename}] : Image amplified (x {self.amplify_level})")
 
     def flatten_image(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Flatten an image.
@@ -137,9 +138,9 @@ class Filters:
         LOGGER.info(f"[{self.filename}] : Row and column medians calculated.")
         return medians
 
-    def align_rows(self, image: np.ndarray, mask: np.ndarray=None) -> np.ndarray:
+    def align_rows(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Returns a copy of the input image with rows aligned by median height.
-        
+
         Parameters
         ----------
         image: np.ndarray
@@ -183,9 +184,9 @@ class Filters:
         """Calculate difference of row medians from the median row height"""
         return row_medians - median_row_height
 
-    def remove_tilt(self, image: np.ndarray, mask: np.ndarray=None) -> np.ndarray:
+    def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Returns a copy of the input image after removing any linear plane slant.
-    
+
         Parameters
         ----------
         image: np.ndarray
@@ -242,17 +243,17 @@ class Filters:
 
     def gaussian_filter(self, image: np.ndarray, **kwargs) -> np.array:
         """Apply Gaussian filter to an image.
-        
+
         Parameters
         ----------
         image: np.array
             Numpy array representing image.
-        
+
         Returns
         -------
         np.array
             Numpy array of gaussian blurred image.
-            
+
         """
         LOGGER.info(
             f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (nm) : {self.gaussian_size})."
@@ -269,17 +270,19 @@ class Filters:
 
         Example
         -------
+        from topostats.io import LoadScan
         from topostats.topotracing import Filter, process_scan
-        filter = Filter(image_path='minicircle.spm',
+
+        load_scan = LoadScan("minicircle.spm", channel="Height")
+        load_scan.get_data()
+        filter = Filter(image=load_scan.image,
+        ...             pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
+        ...             filename=load_scan.filename,
         ...             channel='Height',
-        ...             amplify_level=1.0,
         ...             threshold_method='otsu')
         filter.filter_image()
 
         """
-
-        if self.amplify_level != 1.0:
-            self.amplify()
         self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
         # Get the thresholds
