@@ -1,22 +1,23 @@
 # Introduction
 
-TopoStats is a [Python](https://www.python.org/) package that aims to simplify batch processing of images from Atomic
-Force Microscopy (AFM).
+TopoStats is a [Python](https://www.python.org/) package that aims to simplify batch processing Atomic
+Force Microscopy (AFM) images.
 
 Input directories are recursively searched for files of a given type. Each image is then loaded and processed and
 multiple images can be processed in parallel.
 
 A loaded image has the specified channel of data extracted along with the pixel to nanometre scaling. This data is then
 aligned and the tilt is removed. Configurable thresholds are then used to generate masks and a second round of tilt
-removal is performed.
+removal and row alignment is performed.
 
-Grains are then detected based on user specified thresholds and the detected regions are labelled and have preliminary
+Molecules/regions of interest known as Grains are then detected based on user specified thresholds and the detected regions are labelled and have preliminary
 statistics calculated. The labelled regions of each grain then have individual statistics calculated capturing the
 height, volume, radius and the location of the centroid.
 
-Optionally DNA Tracing is then performed to calculate further statistics such as whether grains are linear or circular.
+Optionally DNA Tracing is then performed, which traces the backbone of the DNA molecules to calculate further statistics such as whether grains are linear or circular, their 
+contour length and end-to-end distances etc.
 
-The resulting statistics are written to [CSV file](data_dictionary) and optionally plots are then generated from various stages of the
+The resulting statistics are written to a [CSV file](data_dictionary) and optionally plots are then generated from various stages of the
 processing as well as cropped images of each grain. The amount of images produced is also configurable.
 
 

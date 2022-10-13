@@ -23,12 +23,12 @@ Aside from the comments in YAML file itself the fields are described below.
 
 | Section      | Sub-Section                    | Data Type  | Default        | Description                                                                                                                         |
 |:-------------|:-------------------------------|:-----------|:---------------|:------------------------------------------------------------------------------------------------------------------------------------|
-| `base_dir`   |                                | string     | `./`           |                                                                                                                                     |
+| `base_dir`   |                                | string     | `./`           | Directory to recursively search for files within.                                                                                                                                   |
 | `output_dir` |                                | string     | `./output`     | Directory that output should be saved to.                                                                                           |
-| `warnings`   |                                | string     | `ignore`       | Turns of warnings being shown.                                                                                                      |
-| `cores`      |                                | integer    | `4`            |                                                                                                                                     |
+| `warnings`   |                                | string     | `ignore`       | Turns off warnings being shown.                                                                                                      |
+| `cores`      |                                | integer    | `4`            | Number of cores to run parallel processes on.                                                                                                                                    |
 | `quiet`      |                                | false      |                |                                                                                                                                     |
-| `file_ext`   |                                | string     | `.spm`         |                                                                                                                                     |
+| `file_ext`   |                                | string     | `.spm`         | File extensions to search for.                                                                                                                                 |
 | `filter`     | `run`                          | boolean    | `true`         |                                                                                                                                     |
 |              | `channel`                      | string     | `Height`       |                                                                                                                                     |
 |              | `amplify_level`                | float      | `1.0`          |                                                                                                                                     |
@@ -58,9 +58,9 @@ Aside from the comments in YAML file itself the fields are described below.
 | `plotting`   | `run`                          | boolean    | `true`         | Whether to run plotting. Options : `true`, `false`                                                                                  |
 |              | `save_format`                  | string     | `png`          | Format to save images in, see [matplotlib.pyplot.savefig](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html) |
 |              | `image_set`                    | string     | `all`          | Which images to plot. Options : `all`, `core`                                                                                       |
-|              | `zrange`                       | list       | `[0, 3]`       | # low and high height range for core images (can take [null, null])                                                                 |
+|              | `zrange`                       | list       | `[0, 3]`       | Low and high height range for core images (can take [null, null])                                                                 |
 |              | `colorbar`                     | boolean    | `true`         | Whether to include the colorbar scale in plots. Options `true`, `false`                                                             |
-|              | `axes`                         | boolean    | `true`         | # Options : true, false (due to off being a bool when parsed)                                                                       |
+|              | `axes`                         | boolean    | `true`         | Wether to include the axes in the produced plots.                                                                       |
 |              | `cmap`                         | string     | `nanoscope`    | Colormap to use in plotting. Options : `nanoscope`, `afmhot`                                                                        |
 
 
