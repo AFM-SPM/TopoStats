@@ -42,7 +42,6 @@ class Grains:
         },
         direction: str = None,
         absolute_smallest_grain_size: float = None,
-        background: float = 0.0,
         base_output_dir: Union[str, Path] = ".",
     ):
         """Initialise the class.
@@ -85,7 +84,6 @@ class Grains:
         self.absolute_area_threshold = absolute_area_threshold
         # Only detect grains for the desired direction
         self.direction = [direction] if direction != "both" else ["upper", "lower"]
-        self.background = background
         self.base_output_dir = Path(base_output_dir)
         self.absolute_smallest_grain_size = absolute_smallest_grain_size
         self.thresholds = None
@@ -137,7 +135,7 @@ class Grains:
             Numpy array of image with objects coloured.
         """
         LOGGER.info(f"[{self.filename}] : Labelling Regions")
-        return label(image, background=self.background)
+        return label(image, background=0)
 
     def calc_minimum_grain_size(self, image: np.ndarray) -> float:
         """Calculate the minimum grain size.
