@@ -87,7 +87,6 @@ def validate_config(config: dict):
                     "upper",
                     error="Invalid direction for grains.direction valid values are 'both', 'lower' or 'upper",
                 ),
-                "background": float,
             },
             "grainstats": {
                 "run": Or(
