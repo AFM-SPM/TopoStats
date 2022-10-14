@@ -104,8 +104,15 @@ class LoadScan:
             image = np.flipud(np.array(self.channel_data.pixels))
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
-        except Exception as exception:
-            LOGGER.error(f"[{self.filename}] : {exception}")
+        except Exception:
+            # trying to return the error with options of possible channel values
+            labels = []
+            for channel in [layer[b'@2:Image Data'][0] for layer in scan.layers]:
+                channel_name = channel.decode('latin1').split(' ')[1][1:-1]
+                #channel_description = channel.decode('latin1').split('"')[1] # incase '' raises quesions?
+                labels.append(channel_name)
+            LOGGER.error(f"[{self.filename}] : {ValueError}: {self.channel} not in channel list: {labels}")
+            raise
 
         return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
 
