@@ -16,6 +16,8 @@ from topostats.io import read_yaml, LoadScan
 from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import get_thresholds, get_mask, _get_mask
 
+from pySPM import SPM
+
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
 BASE_DIR = Path.cwd()
@@ -172,10 +174,10 @@ def image_random_col_medians_masked() -> np.array:
 
 
 @pytest.fixture()
-def test_load_scan_minicircle() -> LoadScan:
+def test_load_scan_minicircle(loading_config: dict) -> LoadScan:
     """Load the minicricle.spm and return image (np.ndarray), pixel_to_nm_scaling (float) and filename (str) for use in
     subsequent fixtures."""
-    scan_loader = LoadScan(RESOURCES / "minicircle.spm", channel="Height")
+    scan_loader = LoadScan(RESOURCES / "minicircle.spm", **loading_config)
     scan_loader.get_data()
     return scan_loader
 
@@ -266,12 +268,19 @@ def small_array_filters(small_array: np.ndarray, load_scan: LoadScan, filter_con
 # IO fixtures
 @pytest.fixture
 def load_scan(loading_config: dict) -> LoadScan:
-    """Instantiate a LoadScan object."""
+    """Instantiate a LoadScan object from a .spm file."""
     scan_loader = LoadScan(RESOURCES / "minicircle.spm", **loading_config)
     return scan_loader
 
 
 @pytest.fixture
+def load_scan_ibw() -> LoadScan:
+    """Instantiate a LoadScan object from a .ibw file."""
+    scan_loader = LoadScan(RESOURCES / "minicircle2.ibw", channel = "HeightTracee")
+    return scan_loader
+
+
+@pytest.fixture # I'm not sure this is used?
 def load_scan_data(load_scan: LoadScan) -> LoadScan:
     """Instantiate a LoadScan object."""
     load_scan.get_data()
