@@ -229,7 +229,6 @@ def process_scan(
                 image=filtered_image.images["gaussian_filtered"],
                 filename=filename,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
-                # base_output_dir=grain_out_path,
                 **grains_config,
             )
             grains.find_grains()
