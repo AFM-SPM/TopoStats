@@ -69,8 +69,8 @@ def test_cropped_image(minicircle_grainstats: GrainStats, tmp_path: Path):
         data=cropped_grain_image,
         output_dir=tmp_path,
         filename="cropped_grain_7.png",
-        pixel_to_nm_scaling_factor=minicircle_grainstats.pixel_to_nanometre_scaling,
-        type="non-binary",
+        pixel_to_nm_scaling=minicircle_grainstats.pixel_to_nanometre_scaling,
+        image_type="non-binary",
         image_set="all",
         core_set=True,
     ).plot_and_save()

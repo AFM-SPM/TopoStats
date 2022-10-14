@@ -32,7 +32,7 @@ def test_threshold_abs(minicircle_grain_threshold_abs: Grains) -> None:
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_mask_minicircle(minicircle_grain_mask: Grains, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
     """Test creation of boolean array for clearing borders."""
-    plotting_config["type"] = "binary"
+    plotting_config["image_type"] = "binary"
     assert isinstance(minicircle_grain_mask.directions["upper"]["mask_grains"], np.ndarray)
     assert minicircle_grain_mask.directions["upper"]["mask_grains"].shape == (1024, 1024)
     assert minicircle_grain_mask.directions["upper"]["mask_grains"].sum() == 55648
@@ -40,7 +40,7 @@ def test_mask_minicircle(minicircle_grain_mask: Grains, plotting_config: dict, p
     fig, _ = Images(
         data=minicircle_grain_mask.directions["upper"]["mask_grains"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_grain_mask.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_grain_mask.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig
@@ -49,7 +49,7 @@ def test_mask_minicircle(minicircle_grain_mask: Grains, plotting_config: dict, p
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_clear_border(minicircle_grain_clear_border: Grains, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
     """Test creation of boolean array for clearing borders."""
-    plotting_config["type"] = "binary"
+    plotting_config["image_type"] = "binary"
     assert isinstance(minicircle_grain_clear_border.directions["upper"]["tidied_border"], np.ndarray)
     assert minicircle_grain_clear_border.directions["upper"]["tidied_border"].shape == (1024, 1024)
     assert minicircle_grain_clear_border.directions["upper"]["tidied_border"].sum() == 51457
@@ -57,7 +57,7 @@ def test_clear_border(minicircle_grain_clear_border: Grains, plotting_config: di
     fig, _ = Images(
         data=minicircle_grain_clear_border.directions["upper"]["tidied_border"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_grain_clear_border.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_grain_clear_border.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig
@@ -66,7 +66,7 @@ def test_clear_border(minicircle_grain_clear_border: Grains, plotting_config: di
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_remove_noise(minicircle_grain_remove_noise: Grains, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
     """Test creation of boolean array for clearing borders."""
-    plotting_config["type"] = "binary"
+    plotting_config["image_type"] = "binary"
     assert isinstance(minicircle_grain_remove_noise.directions["upper"]["removed_noise"], np.ndarray)
     assert minicircle_grain_remove_noise.directions["upper"]["removed_noise"].shape == (1024, 1024)
     assert minicircle_grain_remove_noise.directions["upper"]["removed_noise"].sum() == 46484
@@ -74,7 +74,7 @@ def test_remove_noise(minicircle_grain_remove_noise: Grains, plotting_config: di
     fig, _ = Images(
         data=minicircle_grain_remove_noise.directions["upper"]["removed_noise"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_grain_remove_noise.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_grain_remove_noise.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig
@@ -91,7 +91,7 @@ def test_remove_small_objects(
     minicircle_small_objects_removed: Grains, plotting_config: dict, plot_dict: dict, tmp_path
 ) -> None:
     """Test removal of small objects."""
-    plotting_config["type"] = "binary"
+    plotting_config["image_type"] = "binary"
     assert isinstance(minicircle_small_objects_removed.directions["upper"]["removed_small_objects"], np.ndarray)
     assert minicircle_small_objects_removed.directions["upper"]["removed_small_objects"].shape == (1024, 1024)
     assert minicircle_small_objects_removed.directions["upper"]["removed_small_objects"].sum() == 42378
@@ -99,7 +99,7 @@ def test_remove_small_objects(
     fig, _ = Images(
         data=minicircle_small_objects_removed.directions["upper"]["removed_small_objects"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_small_objects_removed.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_small_objects_removed.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig
@@ -110,7 +110,7 @@ def test_area_thresholding(
     minicircle_area_thresholding: Grains, plotting_config: dict, plot_dict: dict, tmp_path
 ) -> None:
     """Test removal of small objects via absolute area thresholding."""
-    plotting_config["type"] = "binary"
+    plotting_config["image_type"] = "binary"
     assert isinstance(minicircle_area_thresholding.directions["upper"]["removed_small_objects"], np.ndarray)
     assert minicircle_area_thresholding.directions["upper"]["removed_small_objects"].shape == (1024, 1024)
     assert minicircle_area_thresholding.directions["upper"]["removed_small_objects"].sum() == 442441
@@ -118,7 +118,7 @@ def test_area_thresholding(
     fig, _ = Images(
         data=minicircle_area_thresholding.directions["upper"]["removed_small_objects"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_area_thresholding.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_area_thresholding.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig
@@ -129,7 +129,7 @@ def test_label_regions(
     minicircle_grain_labelled_post_removal: Grains, plotting_config: dict, plot_dict: dict, tmp_path
 ) -> None:
     """Test removal of small objects."""
-    plotting_config["type"] = "binary"
+    plotting_config["image_type"] = "binary"
     assert isinstance(minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"], np.ndarray)
     assert minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"].shape == (1024, 1024)
     assert minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"].sum() == 484819
@@ -137,7 +137,7 @@ def test_label_regions(
     fig, _ = Images(
         data=minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_grain_labelled_post_removal.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_grain_labelled_post_removal.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig
@@ -154,7 +154,7 @@ def test_region_properties(minicircle_grain_region_properties_post_removal: np.a
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_colour_regions(minicircle_grain_coloured: Grains, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
     """Test removal of small objects."""
-    plotting_config["type"] = "binary"
+    plotting_config["image_type"] = "binary"
     assert isinstance(minicircle_grain_coloured.directions["upper"]["coloured_regions"], np.ndarray)
     assert minicircle_grain_coloured.directions["upper"]["coloured_regions"].shape == (1024, 1024, 3)
     assert minicircle_grain_coloured.directions["upper"]["coloured_regions"].sum() == 61714.27500000001
@@ -162,7 +162,7 @@ def test_colour_regions(minicircle_grain_coloured: Grains, plotting_config: dict
     fig, _ = Images(
         data=minicircle_grain_coloured.directions["upper"]["coloured_regions"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_grain_coloured.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_grain_coloured.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig

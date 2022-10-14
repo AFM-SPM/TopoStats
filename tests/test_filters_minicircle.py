@@ -23,7 +23,7 @@ def test_align_rows_unmasked(
     fig, _ = Images(
         data=minicircle_initial_align.images["initial_align"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_initial_align.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_initial_align.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig
@@ -41,7 +41,7 @@ def test_remove_x_y_tilt_unmasked(
     fig, _ = Images(
         data=minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_initial_tilt_removal.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_initial_tilt_removal.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig
@@ -68,7 +68,7 @@ def test_get_threshold_abs(minicircle_threshold_abs: np.array) -> None:
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_get_mask(minicircle_mask: Filters, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
     """Test derivation of mask."""
-    plotting_config["type"] = "binary"
+    plotting_config["image_type"] = "binary"
     assert isinstance(minicircle_mask.images["mask"], np.ndarray)
     assert minicircle_mask.images["mask"].shape == (1024, 1024)
     assert minicircle_mask.images["mask"].sum() == 82159
@@ -76,7 +76,7 @@ def test_get_mask(minicircle_mask: Filters, plotting_config: dict, plot_dict: di
     fig, _ = Images(
         data=minicircle_mask.images["mask"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_mask.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_mask.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig
@@ -92,7 +92,7 @@ def test_align_rows_masked(minicircle_masked_align: Filters, plotting_config: di
     fig, _ = Images(
         data=minicircle_masked_align.images["masked_align"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_masked_align.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_masked_align.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig
@@ -110,7 +110,7 @@ def test_remove_x_y_tilt_masked(
     fig, _ = Images(
         data=minicircle_masked_tilt_removal.images["masked_tilt_removal"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_masked_tilt_removal.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_masked_tilt_removal.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig
@@ -128,7 +128,7 @@ def test_average_background(
     fig, _ = Images(
         data=minicircle_zero_average_background.images["zero_averaged_background"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_zero_average_background.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_zero_average_background.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig
@@ -146,7 +146,7 @@ def test_gaussian_filter(
     fig, _ = Images(
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling_factor=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig
