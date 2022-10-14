@@ -155,7 +155,7 @@ class LoadScan:
                     if label:
                         labels.append(label.decode())
             channel_idx = labels.index(self.channel)
-            image = - scan["wave"]["wData"][:, :, channel_idx].T * 1e9 # Looks to be in m
+            image = scan["wave"]["wData"][:, :, channel_idx].T * 1e9 # Looks to be in m
             image = np.flipud(image)
             LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
         except FileNotFoundError:
