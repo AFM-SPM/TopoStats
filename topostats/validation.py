@@ -25,10 +25,10 @@ def validate_config(config: dict):
             "cores": lambda n: 1 <= n <= os.cpu_count(),
             "quiet": Or(True, False, error="Invalid value in config for 'quiet', valid values are 'True' or 'False'"),
             "file_ext": Or(
-                ".spm", ".jpk", error="Invalid value in config for 'file_ext', valid values are '.spm' or '.jpk'"
+                ".spm", ".jpk", ".ibw", error="Invalid value in config for 'file_ext', valid values are '.spm' or '.jpk'"
             ),
             "loading": {
-                "channel": Or("Height"),
+                "channel": str,
             },
             "filter": {
                 "run": Or(
