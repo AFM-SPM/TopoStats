@@ -177,7 +177,7 @@ def image_random_col_medians_masked() -> np.array:
 def test_load_scan_minicircle(loading_config: dict) -> LoadScan:
     """Load the minicricle.spm and return image (np.ndarray), pixel_to_nm_scaling (float) and filename (str) for use in
     subsequent fixtures."""
-    scan_loader = LoadScan(RESOURCES / "minicircle.spm", **loading_config)
+    scan_loader = LoadScan(RESOURCES / "minicircle.spm", channel="Height")
     scan_loader.get_data()
     return scan_loader
 
