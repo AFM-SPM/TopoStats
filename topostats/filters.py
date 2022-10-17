@@ -29,7 +29,6 @@ class Filters:
         threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
-        channel: str = "Height",
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
         quiet: bool = False,
@@ -278,7 +277,6 @@ class Filters:
         filter = Filter(image=load_scan.image,
         ...             pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
         ...             filename=load_scan.filename,
-        ...             channel='Height',
         ...             threshold_method='otsu')
         filter.filter_image()
 
