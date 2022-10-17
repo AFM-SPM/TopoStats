@@ -93,7 +93,7 @@ class LoadScan:
         self.image = None
         self.pixel_to_nm_scaling = None
 
-    def _load_spm(self) -> tuple:
+    def load_spm(self) -> tuple:
         """Extract image and pixel to nm scaling from the Bruker .spm file."""
         LOGGER.info(f"Loading image from : {self.img_path}")
         try:
@@ -148,7 +148,7 @@ class LoadScan:
     #     data = self._extract_jpk(jpk)
     #     return (jpk, None)
 
-    def _load_ibw(self) -> None:
+    def load_ibw(self) -> None:
         """Loads image from Asylum Research (Igor) .ibw files"""
         
         LOGGER.info(f"Loading image from : {self.img_path}")
@@ -190,7 +190,7 @@ class LoadScan:
         LOGGER.info(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
         return pixel_to_nm_scaling
 
-    def _load_jpk(self) -> None:
+    def load_jpk(self) -> None:
         try:
             jpk = load_data(self.img_path)
         except FileNotFoundError:
@@ -207,8 +207,8 @@ class LoadScan:
         """Method to extract image and pixel to nm scaling."""
         LOGGER.info(f"Extracting image from {self.suffix}")
         if self.suffix == ".spm":
-            self.image, self.pixel_to_nm_scaling = self._load_spm()
+            self.image, self.pixel_to_nm_scaling = self.load_spm()
         if self.suffix == ".jpk":
             self.image, self.pixel_to_nm_scaling = self.load_jpk()
         if self.suffix == ".ibw":
-            self.image, self.pixel_to_nm_scaling = self._load_ibw()
+            self.image, self.pixel_to_nm_scaling = self.load_ibw()
