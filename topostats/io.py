@@ -111,7 +111,7 @@ class LoadScan:
                 channel_name = channel.decode('latin1').split(' ')[1][1:-1]
                 #channel_description = channel.decode('latin1').split('"')[1] # incase '' raises quesions?
                 labels.append(channel_name)
-            LOGGER.error(f"[{self.filename}] : {ValueError}: {self.channel} not in channel list: {labels}")
+            LOGGER.error(f"[{self.filename}] : ValueError: {self.channel} not in channel list: {labels}")
             raise
 
         return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
