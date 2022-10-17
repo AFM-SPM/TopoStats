@@ -148,7 +148,7 @@ class LoadScan:
     #     data = self._extract_jpk(jpk)
     #     return (jpk, None)
 
-    def load_ibw(self) -> None:
+    def load_ibw(self) -> tuple:
         """Loads image from Asylum Research (Igor) .ibw files"""
         
         LOGGER.info(f"Loading image from : {self.img_path}")
@@ -175,7 +175,7 @@ class LoadScan:
         
         return (image, self._ibw_pixel_to_nm_scaling(scan))
 
-    def _ibw_pixel_to_nm_scaling(self, scan) -> None:
+    def _ibw_pixel_to_nm_scaling(self, scan) -> float:
         """Extract pixel to nm scaling from the IBW image metadata."""
         # Get metadata
         notes = {}
