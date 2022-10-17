@@ -82,6 +82,28 @@ and reduces some of the [code smells](https://en.wikipedia.org/wiki/Code_smell) 
 making. A `.pylintrc` is included in the repository. Currently this isn't strictly applied but it is planned for part of
 the CI/CD pipeline and so we would be grateful if you could lint your code before making Pull Requests.
 
+### Pre-commit
+
+[pre-commit](https://pre-commit.com) is a powerful and useful tool that runs hooks on your code prior to making
+commits. For a more detailed exposition see [pre-commit : Protecting your future
+self](https://rse.shef.ac.uk/blog/pre-commit/).
+
+The repository includes `pre-commit` as a development dependency as well as a `.pre-commit-config.yaml`. To use these
+locally install `pre-commit` in your virtual environment and then install the configuration and all the configured hooks
+(**NB** this will download specific virtual environments that `pre-commit` uses when running hooks so the first time
+this is run may take a little while).
+
+
+``` bash
+pip install .[dev]
+pre-commit install --install-hooks
+```
+
+Currently there are hooks to remove trailing whitespace, check YAML configuration files and a few other common checks as
+well as hooks for `black` and `flake8`. If these fail then you will not be able to make a commit until they are
+fixed. The `black` hook will automatically format failed files so you can simply `git add` those and try committing
+straight away. `flake8` does not correct files automatically so the errors will need manually correcting.
+
 ### Typing
 
 Whilst Python is a dynamically typed language (that is the type of an object is determined dynamically) the use of Type
