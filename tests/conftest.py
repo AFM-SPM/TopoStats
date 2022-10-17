@@ -16,7 +16,6 @@ from topostats.io import read_yaml, LoadScan
 from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import get_thresholds, get_mask, _get_mask
 
-from pySPM import SPM
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
@@ -280,7 +279,7 @@ def load_scan_ibw() -> LoadScan:
     return scan_loader
 
 
-@pytest.fixture # I'm not sure this is used?
+@pytest.fixture
 def load_scan_data(load_scan: LoadScan) -> LoadScan:
     """Instantiate a LoadScan object."""
     load_scan.get_data()
