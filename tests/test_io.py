@@ -31,7 +31,7 @@ def test_read_yaml() -> None:
 
 def test_load_scan_spm(load_scan: LoadScan) -> None:
     """Test loading of Bruker spm image"""
-    image, px_to_nm_scaling = load_scan._load_spm()
+    image, px_to_nm_scaling = load_scan.load_spm()
     assert isinstance(image, np.ndarray)
     assert image.shape == (1024, 1024)
     assert image.sum() == 30695369.188316286
@@ -72,7 +72,7 @@ def test_load_scan_get_data(load_scan_object: LoadScan, filename: str, suffix: s
 
 
 def test_load_scan_ibw(load_scan_ibw: LoadScan) -> None:
-    image, px_to_nm_scaling = load_scan_ibw._load_ibw()
+    image, px_to_nm_scaling = load_scan_ibw.load_ibw()
     assert isinstance(image, np.ndarray)
     assert image.shape == (512, 512)
     assert image.sum() == -218091520.0
