@@ -18,7 +18,7 @@ filter:
 grains:
   run: true # Options : true, false
   # Thresholding by height
-  threshold_method: std_dev # Options : otsu, std_dev, absolute
+  threshold_method: otsu # Options : otsu, std_dev, absolute
   otsu_threshold_multiplier: 1.7
   threshold_std_dev: 1.0
   threshold_absolute_lower: 1.0
