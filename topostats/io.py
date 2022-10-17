@@ -169,8 +169,9 @@ class LoadScan:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
         except ValueError:
             LOGGER.error(f"[{self.filename}] : {self.channel} not in channel list: {labels}")
-        except Exception as exception:
-            LOGGER.error(f"[{self.filename}] : {exception}")
+            raise
+        #except Exception as exception:
+        #    LOGGER.error(f"[{self.filename}] : {exception}")
         
         return (image, self._ibw_pixel_to_nm_scaling(scan))
 
