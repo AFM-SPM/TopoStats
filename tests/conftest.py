@@ -35,6 +35,7 @@ def default_config() -> Dict:
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
     config["filter"]["threshold_method"] = "otsu"
     config["grains"]["threshold_method"] = "otsu"
+    config["grains"]["otsu_threshold_multiplier"] = 1.7
     return config
 
 
