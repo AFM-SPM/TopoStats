@@ -18,7 +18,7 @@ from tqdm import tqdm
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import read_yaml, write_yaml, LoadScan
+from topostats.io import read_yaml, write_yaml, LoadScans
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
@@ -118,9 +118,8 @@ def create_parser() -> arg.ArgumentParser:
 
 
 def process_scan(
-    image_path: Union[str, Path],
+    img_path_px2nm: tuple[np.ndarray, str, float],
     base_dir: Union[str, Path],
-    loading_config: dict,
     filter_config: dict,
     grains_config: dict,
     grainstats_config: dict,
@@ -159,7 +158,11 @@ def process_scan(
 
     Results are written to CSV and images produced in configuration options request them.
     """
-    LOGGER.info(f"Processing : {image_path}")
+
+    image, image_path, pixel_to_nm_scaling = img_path_px2nm
+    filename = image_path.stem
+
+    LOGGER.info(f"Processing : {filename}")
     _output_dir = get_out_path(image_path, base_dir, output_dir).parent / "Processed"
     _output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -167,18 +170,12 @@ def process_scan(
         filter_out_path = _output_dir
         grain_out_path = _output_dir
     else:
-        filter_out_path = Path(_output_dir) / image_path.stem / "filters"
-        grain_out_path = Path(_output_dir) / image_path.stem / "grains"
+        filter_out_path = Path(_output_dir) / filename / "filters"
+        grain_out_path = Path(_output_dir) / filename / "grains"
         filter_out_path.mkdir(exist_ok=True, parents=True)
-        Path.mkdir(_output_dir / image_path.stem / "grains" / "upper", parents=True, exist_ok=True)
-        Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
+        Path.mkdir(_output_dir / filename / "grains" / "upper", parents=True, exist_ok=True)
+        Path.mkdir(_output_dir / filename / "grains" / "lower", parents=True, exist_ok=True)
 
-    # Extract image and image params
-    scan_loader = LoadScan(image_path, **loading_config)
-    scan_loader.get_data()
-    image = scan_loader.image
-    pixel_to_nm_scaling = scan_loader.pixel_to_nm_scaling
-    filename = scan_loader.filename
 
     # Filter Image :
     if filter_config["run"]:
@@ -406,7 +403,6 @@ def main():
     processing_function = partial(
         process_scan,
         base_dir=config["base_dir"],
-        loading_config=config["loading"],
         filter_config=config["filter"],
         grains_config=config["grains"],
         grainstats_config=config["grainstats"],
@@ -415,13 +411,17 @@ def main():
         output_dir=config["output_dir"],
     )
 
+    all_scan_data = LoadScans(img_files, **config["loading"])
+    all_scan_data.get_data()
+    scan_data_dict = all_scan_data.img_dic
+
     with Pool(processes=config["cores"]) as pool:
         results = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result in pool.imap_unordered(processing_function, img_files):
+            for img, result in pool.imap_unordered(processing_function, zip(scan_data_dict["images"], scan_data_dict["img_paths"], scan_data_dict["px_2_nms"])):
                 results[str(img)] = result
                 pbar.update()
 
