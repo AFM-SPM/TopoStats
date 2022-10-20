@@ -255,11 +255,12 @@ class Filters:
 
         """
         LOGGER.info(
-            f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (nm) : {self.gaussian_size})."
+            f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (px) : {self.gaussian_size})."
         )
+        print(f"Sigma = {self.gaussian_size / self.pixel_to_nm_scaling}")
         return gaussian(
             image,
-            sigma=(self.gaussian_size / self.pixel_to_nm_scaling),
+            sigma=(self.gaussian_size),
             mode=self.gaussian_mode,
             **kwargs,
         )
