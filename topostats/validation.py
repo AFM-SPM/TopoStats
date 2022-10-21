@@ -31,12 +31,6 @@ def validate_config(config: dict):
                 error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk' or '.ibw'",
             ),
             "loading": {
-                "channel": str,
-            },
-            "filter": {
-                "run": Or(
-                    True, False, error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'"
-                ),
                 "channel": Or(
                     "ZSensor",
                     "",
@@ -54,6 +48,12 @@ def validate_config(config: dict):
                     "UserIn0Retrace",
                     "UserIn1Trace",
                     "UserIn1Retrace",  # end of ibw channels
+                    error="Invalid value in config file for 'channel', all possible image channels are seen in the above error message.",
+                )
+            },
+            "filter": {
+                "run": Or(
+                    True, False, error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'"
                 ),
                 "threshold_method": Or(
                     "absolute",

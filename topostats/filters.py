@@ -29,7 +29,6 @@ class Filters:
         threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
-        channel: str = "Height",
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
         quiet: bool = False,
