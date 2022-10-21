@@ -76,18 +76,16 @@ def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> Li
     return list(base_dir.glob("**/*" + file_ext))
 
 
-def get_out_path(
-    image_path: Union[str, Path] = None, base_dir: Union[str, Path] = None, output_dir: Union[str, Path] = None
-) -> Path:
+def get_out_path(image_path: Path = None, base_dir: Path = None, output_dir: Path = None) -> Path:
     """Replaces the base directory part of the image path with the output directory.
 
     Parameters
     ----------
-    image_path: Union[str, Path]
+    image_path: Path
         The path of the current image.
-    base_dir: Union[str, Path]
-        Directory to recursively search for files, if not specified the current directory is scanned.
-    output_dir: Union[str, Path]
+    base_dir: Path
+        Directory to recursively search for files.
+    output_dir: Path
         The output directory specified in the configuration file.
 
     Returns
@@ -95,9 +93,13 @@ def get_out_path(
     Path
         The output path that mirrors the input path structure.
     """
-    pathparts = list(image_path.parts)
-    inparts = list(base_dir.parts)
-    return Path(output_dir / Path(*pathparts[len(inparts) :]))
+    try:
+        pathparts = list(image_path.parts)
+        inparts = list(base_dir.parts)
+        return Path(output_dir / Path(*pathparts[len(inparts) :]))
+    except TypeError:
+        LOGGER.error("A string form of a Path has been passed to 'get_out_path()'")
+        raise
 
 
 def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
