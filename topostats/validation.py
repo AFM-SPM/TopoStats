@@ -34,7 +34,6 @@ def validate_config(config: dict):
                 "run": Or(
                     True, False, error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'"
                 ),
-                "channel": Or("Height"),
                 "threshold_method": Or(
                     "absolute",
                     "otsu",
