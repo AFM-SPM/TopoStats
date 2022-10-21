@@ -56,12 +56,23 @@ def test_load_scan_spm(load_scan: LoadScan) -> None:
 
 
 @pytest.mark.parametrize(
-    "load_scan_object, filename, suffix", [
-        ("load_scan", "minicircle", ".spm"),
-        ("load_scan_ibw", "minicircle2", ".ibw")
-    ]
+    "load_scan_object, filename, image_type, image_shape, image_sum, pixel_type, pixel_to_nm_scaling, suffix",
+    [
+        ("load_scan", "minicircle", np.ndarray, (1024, 1024), 30695369.188316286, float, 0.4940029296875, ".spm"),
+        ("load_scan_ibw", "minicircle2", np.ndarray, (512, 512), -218091520.0, float, 1.5625, ".ibw"),
+    ],
 )
-def test_load_scan_get_data(load_scan_object: LoadScan, filename: str, suffix: str, request) -> None:
+def test_load_scan_get_data(
+    load_scan_object: LoadScan,
+    filename: str,
+    image_type,
+    image_shape: tuple,
+    image_sum: float,
+    pixel_type,
+    pixel_to_nm_scaling: float,
+    suffix: str,
+    request,
+) -> None:
     """Test the LoadScan.get_data() method."""
     scan = request.getfixturevalue(load_scan_object)
     scan.get_data()
@@ -69,6 +80,11 @@ def test_load_scan_get_data(load_scan_object: LoadScan, filename: str, suffix: s
     assert scan.filename == filename
     assert isinstance(scan.suffix, str)
     assert scan.suffix == suffix
+    assert isinstance(scan.image, image_type)
+    assert scan.image.shape == image_shape
+    assert scan.image.sum() == image_sum
+    assert isinstance(scan.pixel_to_nm_scaling, pixel_type)
+    assert scan.pixel_to_nm_scaling, pixel_to_nm_scaling
 
 
 def test_load_scan_ibw(load_scan_ibw: LoadScan) -> None:
@@ -95,7 +111,6 @@ def test_load_scan_ibw(load_scan_ibw: LoadScan) -> None:
 # "unit": unit, "px_x": px_x, "px_y": py_y, "re_x": re_x, "re_y": re_y
 # }
 #     assert px_2_nm == expected
-
 
 
 def test_load_scan_load_jpk() -> None:
