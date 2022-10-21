@@ -22,10 +22,10 @@ class Images:
         data: np.array,
         output_dir: Union[str, Path],
         filename: str,
-        pixel_to_nm_scaling_factor: float = 1.0,
+        pixel_to_nm_scaling: float = 1.0,
         data2: np.array = None,
         title: str = None,
-        type: str = "non-binary",
+        image_type: str = "non-binary",
         image_set: str = "core",
         core_set: bool = False,
         interpolation: str = "nearest",
@@ -48,13 +48,13 @@ class Images:
             Output directory to save the file to.
         filename : Union[str, Path]
             Filename to save image as.
-        pixel_to_nm_scaling_factor : float
+        pixel_to_nm_scaling : float
             The scaling factor showing the real length of 1 pixel, in nm.
         data2 : np.ndarray
             Optional mask array to overlay onto an image.
         title : str
             Title for plot.
-        type : str
+        image_type : str
             The image data type - binary or non-binary.
         image_set : str
             The set of images to process - core or all.
@@ -81,10 +81,10 @@ class Images:
         self.data = data
         self.output_dir = Path(output_dir)
         self.filename = filename
-        self.pixel_to_nm_scaling_factor = pixel_to_nm_scaling_factor
+        self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.data2 = data2
         self.title = title
-        self.type = type
+        self.image_type = image_type
         self.image_set = image_set
         self.core_set = core_set
         self.interpolation = interpolation
@@ -139,7 +139,7 @@ class Images:
         if isinstance(self.data, np.ndarray):
             im = ax.imshow(
                 self.data,
-                extent=(0, shape[1] * self.pixel_to_nm_scaling_factor, 0, shape[0] * self.pixel_to_nm_scaling_factor),
+                extent=(0, shape[1] * self.pixel_to_nm_scaling, 0, shape[0] * self.pixel_to_nm_scaling),
                 interpolation=self.interpolation,
                 cmap=Colormap(self.cmap).get_cmap(),
                 vmin=self.zrange[0],
@@ -153,9 +153,9 @@ class Images:
                     "jet_r",
                     extent=(
                         0,
-                        shape[1] * self.pixel_to_nm_scaling_factor,
+                        shape[1] * self.pixel_to_nm_scaling,
                         0,
-                        shape[0] * self.pixel_to_nm_scaling_factor,
+                        shape[0] * self.pixel_to_nm_scaling,
                     ),
                     interpolation=self.interpolation,
                     alpha=0.7,
@@ -167,14 +167,12 @@ class Images:
             plt.xlabel("Nanometres")
             plt.ylabel("Nanometres")
             plt.axis(self.axes)
-            if self.colorbar and self.type == "non-binary":
+            if self.colorbar and self.image_type == "non-binary":
                 divider = make_axes_locatable(ax)
                 cax = divider.append_axes("right", size="5%", pad=0.05)
                 plt.colorbar(im, cax=cax, label="Height (Nanometres)")
             if self.region_properties:
-                fig, ax = add_bounding_boxes_to_plot(
-                    fig, ax, shape, self.region_properties, self.pixel_to_nm_scaling_factor
-                )
+                fig, ax = add_bounding_boxes_to_plot(fig, ax, shape, self.region_properties, self.pixel_to_nm_scaling)
             if not self.axes and not self.colorbar:
                 plt.title("")
                 fig.frameon = False
@@ -191,7 +189,7 @@ class Images:
             plt.ylabel("Nanometres")
             self.data.show(
                 ax=ax,
-                extent=(0, shape[1] * self.pixel_to_nm_scaling_factor, 0, shape[0] * self.pixel_to_nm_scaling_factor),
+                extent=(0, shape[1] * self.pixel_to_nm_scaling, 0, shape[0] * self.pixel_to_nm_scaling),
                 interpolation=self.interpolation,
                 cmap=Colormap(self.cmap).get_cmap(),
             )
@@ -211,7 +209,7 @@ class Images:
         plt.close()
 
 
-def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to_nm_scaling_factor: float) -> None:
+def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to_nm_scaling: float) -> None:
     """Add the bounding boxes to a plot.
 
     Parameters
@@ -224,7 +222,7 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
         Tuple of the image-to-be-plot's shape.
     region_properties:
         Region properties to add bounding boxes from.
-    pixel_to_nm_scaling_factor: float
+    pixel_to_nm_scaling: float
         The scaling factor from px to nm.
 
     Returns
@@ -235,10 +233,10 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
         Matplotlib.pyplot axes object.
     """
     for region in region_properties:
-        min_y, min_x, max_y, max_x = [x * pixel_to_nm_scaling_factor for x in region.bbox]
+        min_y, min_x, max_y, max_x = [x * pixel_to_nm_scaling for x in region.bbox]
         # Correct y-axis
-        min_y = (shape[0] * pixel_to_nm_scaling_factor) - min_y
-        max_y = (shape[0] * pixel_to_nm_scaling_factor) - max_y
+        min_y = (shape[0] * pixel_to_nm_scaling) - min_y
+        max_y = (shape[0] * pixel_to_nm_scaling) - max_y
         rectangle = Rectangle((min_x, min_y), max_x - min_x, max_y - min_y, fill=False, edgecolor="white", linewidth=2)
         ax.add_patch(rectangle)
     return fig, ax

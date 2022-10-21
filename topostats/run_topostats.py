@@ -197,7 +197,7 @@ def process_scan(
             LOGGER.info(f"[{filename}] : Plotting Filtering Images")
             # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
             plot_opts = {
-                "pixel_to_nm_scaling_factor": pixel_to_nm_scaling,
+                "pixel_to_nm_scaling": pixel_to_nm_scaling,
             }
             for image, options in plotting_config["plot_dict"].items():
                 plotting_config["plot_dict"][image] = {**options, **plot_opts}
@@ -229,7 +229,6 @@ def process_scan(
                 image=filtered_image.images["gaussian_filtered"],
                 filename=filename,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
-                base_output_dir=grain_out_path,
                 **grains_config,
             )
             grains.find_grains()
