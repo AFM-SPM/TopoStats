@@ -114,7 +114,10 @@ def validate_config(config: dict):
                     False,
                     error="Invalid value in config for 'grainstats.run', valid values are 'True' or 'False'",
                 ),
-                "cropped_size": float,
+                "cropped_size": Or(
+                    float,
+                    int,
+                ),
                 "save_cropped_grains": Or(
                     True,
                     False,
