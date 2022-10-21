@@ -42,7 +42,6 @@ class Grains:
         },
         direction: str = None,
         absolute_smallest_grain_size: float = None,
-        base_output_dir: Union[str, Path] = ".",
     ):
         """Initialise the class.
 
@@ -68,10 +67,6 @@ class Grains:
             Dictionary of upper and lower grain's area thresholds
         direction: str
             Direction for which grains are to be detected, valid values are upper, lower and both.
-        background : float
-            The value to average the background around.
-        output_dir : Union[str, Path]
-            Output directory.
         """
         self.image = image
         self.filename = filename
@@ -84,7 +79,6 @@ class Grains:
         self.absolute_area_threshold = absolute_area_threshold
         # Only detect grains for the desired direction
         self.direction = [direction] if direction != "both" else ["upper", "lower"]
-        self.base_output_dir = Path(base_output_dir)
         self.absolute_smallest_grain_size = absolute_smallest_grain_size
         self.thresholds = None
         self.images = {
@@ -100,7 +94,6 @@ class Grains:
         self.region_properties = defaultdict()
         self.bounding_boxes = defaultdict()
         self.grainstats = None
-        Path.mkdir(self.base_output_dir, parents=True, exist_ok=True)
 
     def tidy_border(self, image: np.array, **kwargs) -> np.array:
         """Remove grains touching the border.

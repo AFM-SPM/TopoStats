@@ -243,7 +243,6 @@ def random_grains(grains_config: dict, random_filters: Filters, tmp_path) -> Gra
         image=random_filters.images["zero_averaged_background"],
         filename="random",
         pixel_to_nm_scaling=0.5,
-        base_output_dir=Path(tmp_path),
         **grains_config,
     )
     grains.find_grains()
@@ -404,7 +403,6 @@ def minicircle_grains(minicircle_grain_gaussian_filter: Filters, grains_config: 
         image=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         filename=minicircle_grain_gaussian_filter.filename,
         pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
-        base_output_dir=Path(tmp_path),
         **grains_config,
     )
     return grains
