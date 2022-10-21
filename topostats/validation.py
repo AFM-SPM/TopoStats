@@ -25,7 +25,10 @@ def validate_config(config: dict):
             "cores": lambda n: 1 <= n <= os.cpu_count(),
             "quiet": Or(True, False, error="Invalid value in config for 'quiet', valid values are 'True' or 'False'"),
             "file_ext": Or(
-                ".spm", ".jpk", ".ibw", error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk' or '.ibw'"
+                ".spm",
+                ".jpk",
+                ".ibw",
+                error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk' or '.ibw'",
             ),
             "loading": {
                 "channel": str,
@@ -34,7 +37,24 @@ def validate_config(config: dict):
                 "run": Or(
                     True, False, error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'"
                 ),
-                "channel": Or("Height"),
+                "channel": Or(
+                    "ZSensor",
+                    "",
+                    "Stiffness",
+                    "LogStiffness",
+                    "Adhesion",
+                    "Deformation",
+                    "Dissipation",
+                    "Height",  # end of spm channels
+                    "HeightTracee",
+                    "HeightRetrace",
+                    "ZSensorTrace",
+                    "ZSensorRetrace",
+                    "UserIn0Trace",
+                    "UserIn0Retrace",
+                    "UserIn1Trace",
+                    "UserIn1Retrace",  # end of ibw channels
+                ),
                 "threshold_method": Or(
                     "absolute",
                     "otsu",
