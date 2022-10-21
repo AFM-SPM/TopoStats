@@ -96,12 +96,12 @@ def get_out_path(
         The output path that mirrors the input path structure.
     """
     try:
-        # Remove the filename if there is a suffix (not always the case as get_out_path is called from folder_grainstats())
+        # Remove the filename if there is a suffix, not always the case as get_out_path is called from folder_grainstats()
         if image_path.suffix:
             return output_dir / image_path.parent.relative_to(base_dir)
         else:
             return output_dir / image_path.relative_to(base_dir)
-    # it output_dir is NOT within base_dir the relative_to() method raises a ValueError in which case we just want to
+    # If output_dir is NOT within base_dir the relative_to() method raises a ValueError in which case we just want to
     # append the image_path to the output_dir
     except ValueError:
         return output_dir / image_path.parent
