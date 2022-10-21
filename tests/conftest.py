@@ -275,7 +275,7 @@ def load_scan(loading_config: dict) -> LoadScan:
 @pytest.fixture
 def load_scan_ibw() -> LoadScan:
     """Instantiate a LoadScan object from a .ibw file."""
-    scan_loader = LoadScan(RESOURCES / "minicircle2.ibw", channel = "HeightTracee")
+    scan_loader = LoadScan(RESOURCES / "minicircle2.ibw", channel="HeightTracee")
     return scan_loader
 
 
