@@ -160,7 +160,7 @@ def process_scan(
     Results are written to CSV and images produced in configuration options request them.
     """
     LOGGER.info(f"Processing : {image_path}")
-    _output_dir = get_out_path(image_path, base_dir, output_dir).parent / "Processed"
+    _output_dir = get_out_path(image_path, base_dir, output_dir) / "Processed"
     _output_dir.mkdir(parents=True, exist_ok=True)
 
     if plotting_config["image_set"] == "core":
@@ -168,7 +168,7 @@ def process_scan(
         grain_out_path = _output_dir
     else:
         filter_out_path = Path(_output_dir) / image_path.stem / "filters"
-        grain_out_path = Path(_output_dir) / image_path.stem / "grains"
+        grain_out_path = Path(_output_dir).parent / image_path.stem / "grains"
         filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(_output_dir / image_path.stem / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
@@ -239,7 +239,6 @@ def process_scan(
             results = create_empty_dataframe()
         if grains.region_properties is None:
             results = create_empty_dataframe()
-
         # Optionally plot grain finding stage
         if plotting_config["run"] and grains.region_properties is not None:
             plotting_config.pop("run")
@@ -423,7 +422,6 @@ def main():
             for img, result in pool.imap_unordered(processing_function, img_files):
                 results[str(img)] = result
                 pbar.update()
-
     results = pd.concat(results.values())
     results.reset_index()
     results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)
