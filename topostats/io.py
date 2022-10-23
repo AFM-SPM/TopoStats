@@ -115,8 +115,10 @@ class LoadScans:
             image = np.flipud(np.array(self.channel_data.pixels))
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
+            raise
         except Exception as exception:
             LOGGER.error(f"[{self.filename}] : {exception}")
+            raise
 
         return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
 
@@ -228,17 +230,17 @@ class LoadScans:
         for img_path in self.img_paths:
             self.img_path = img_path
             self.filename = img_path.stem
-            suffix = img_path.suffix
+            self.suffix = img_path.suffix
             LOGGER.info(f"Extracting image from {self.img_path}")
-            if suffix == ".spm":
+            if self.suffix == ".spm":
                 self.image, self.pixel_to_nm_scaling = self.load_spm()
                 self.add_to_dic(self.image, self.img_path, self.pixel_to_nm_scaling)
-            if suffix == ".jpk":
+            if self.suffix == ".jpk":
                 self.image, self.pixel_to_nm_scaling = self.load_jpk()
-            if suffix == ".ibw":
+            if self.suffix == ".ibw":
                 self.image, self.pixel_to_nm_scaling = self.load_ibw()
                 self.add_to_dic(self.image, self.img_path, self.pixel_to_nm_scaling)
-            if suffix == ".asd":
+            if self.suffix == ".asd":
                 self.img_path = str(self.img_path)
                 self.image, self.pixel_to_nm_scaling = self.load_asd()
                 for i, frame in enumerate(self.image):
