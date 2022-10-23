@@ -12,7 +12,7 @@ import topostats
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import read_yaml, LoadScan
+from topostats.io import read_yaml, LoadScans
 from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import get_thresholds, get_mask, _get_mask
 
@@ -172,16 +172,16 @@ def image_random_col_medians_masked() -> np.array:
 
 
 @pytest.fixture()
-def test_load_scan_minicircle() -> LoadScan:
+def test_load_scan_minicircle() -> LoadScans:
     """Load the minicricle.spm and return image (np.ndarray), pixel_to_nm_scaling (float) and filename (str) for use in
     subsequent fixtures."""
-    scan_loader = LoadScan(RESOURCES / "minicircle.spm", channel="Height")
+    scan_loader = LoadScans(RESOURCES / "minicircle.spm", channel="Height")
     scan_loader.get_data()
     return scan_loader
 
 
 @pytest.fixture
-def test_filters(load_scan: LoadScan, filter_config: dict) -> Filters:
+def test_filters(load_scan: LoadScans, filter_config: dict) -> Filters:
     """Filters class for testing."""
     load_scan.get_data()
     filters = Filters(
@@ -250,7 +250,7 @@ def random_grains(grains_config: dict, random_filters: Filters, tmp_path) -> Gra
 
 
 @pytest.fixture
-def small_array_filters(small_array: np.ndarray, load_scan: LoadScan, filter_config: dict) -> Grains:
+def small_array_filters(small_array: np.ndarray, load_scan: LoadScans, filter_config: dict) -> Grains:
     """Filters object based on small_array."""
     filter_obj = Filters(
         image=load_scan.image,
@@ -265,22 +265,22 @@ def small_array_filters(small_array: np.ndarray, load_scan: LoadScan, filter_con
 
 # IO fixtures
 @pytest.fixture
-def load_scan(loading_config: dict) -> LoadScan:
-    """Instantiate a LoadScan object."""
-    scan_loader = LoadScan(RESOURCES / "minicircle.spm", **loading_config)
+def load_scan(loading_config: dict) -> LoadScans:
+    """Instantiate a LoadScans object."""
+    scan_loader = LoadScans([RESOURCES / "minicircle.spm"], **loading_config)
     return scan_loader
 
 
 @pytest.fixture
-def load_scan_data(load_scan: LoadScan) -> LoadScan:
-    """Instantiate a LoadScan object."""
+def load_scan_data(load_scan: LoadScans) -> LoadScans:
+    """Instantiate a LoadScans object."""
     load_scan.get_data()
     return load_scan
 
 
 # Minicircle fixtures
 @pytest.fixture
-def minicircle(load_scan: LoadScan, filter_config: dict) -> Filters:
+def minicircle(load_scan: LoadScans, filter_config: dict) -> Filters:
     """Instantiate a Filters object, creates the output directory and loads the image."""
     load_scan.get_data()
     filters = Filters(
@@ -555,7 +555,7 @@ def grainstats(image_random: np.array, grainstats_config: dict, tmp_path) -> Gra
 def minicircle_grainstats(
     minicircle_grain_gaussian_filter: Filters,
     minicircle_grain_labelled_post_removal: Grains,
-    load_scan: LoadScan,
+    load_scan: LoadScans,
     grainstats_config: dict,
     tmp_path: Path,
 ) -> GrainStats:
