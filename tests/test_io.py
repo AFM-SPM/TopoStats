@@ -31,6 +31,8 @@ def test_read_yaml() -> None:
 
 def test_load_scan_spm(load_scan: LoadScans) -> None:
     """Test loading of Bruker spm image"""
+    load_scan.img_path = load_scan.img_paths[0]
+    load_scan.filename = load_scan.img_paths[0].stem
     image, px_to_nm_scaling = load_scan.load_spm()
     assert isinstance(image, np.ndarray)
     assert image.shape == (1024, 1024)
@@ -55,13 +57,12 @@ def test_load_scan_spm(load_scan: LoadScans) -> None:
 #     assert test_filters_random.pixel_to_nm_scaling == expected
 
 
-def test_load_scan_get_data(load_scan: LoadScans) -> None:
+def test_load_scan_get_data(load_scan_data: LoadScans) -> None:
     """Test the LoadScans.get_data() method."""
-    load_scan.get_data()
-    assert isinstance(load_scan.filename, str)
-    assert load_scan.filename == "minicircle"
-    assert isinstance(load_scan.suffix, str)
-    assert load_scan.suffix == ".spm"
+    assert isinstance(load_scan_data.filename, str)
+    assert load_scan_data.filename == "minicircle"
+    assert isinstance(load_scan_data.suffix, str)
+    assert load_scan_data.suffix == ".spm"
 
 
 def test_load_scan_load_jpk() -> None:
