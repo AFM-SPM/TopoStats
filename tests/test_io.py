@@ -3,7 +3,6 @@ from pathlib import Path
 from unittest import TestCase
 
 import numpy as np
-import pytest
 
 from topostats.io import read_yaml, LoadScan
 

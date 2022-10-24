@@ -623,6 +623,7 @@ def minicircle_tracestats(minicircle_dnatracing: dnaTrace) -> pd.DataFrame:
 def minicircle_all_statistics() -> pd.DataFrame:
     return pd.read_csv(RESOURCES / "minicircle_default_all_statistics.csv", header=0)
 
+
 # Skeletonizing Fixtures
 @pytest.fixture
 def skeletonize_circular() -> np.ndarray:

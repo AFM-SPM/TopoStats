@@ -1,8 +1,6 @@
 """Contains filter functions that take a 2D array representing an image as an input, as well as necessary parameters,
 and return a 2D array of the same size representing the filtered image."""
 import logging
-from pathlib import Path
-from typing import Union
 
 from skimage.filters import gaussian
 import numpy as np

@@ -7,9 +7,9 @@ import pytest
 from topostats.plotting import (
     importfromfile,
     savestats,
-    pathman,
-    labelunitconversion,
-    dataunitconversion,
+    # pathman,
+    # labelunitconversion,
+    # dataunitconversion,
     plotkde,
     plotkde2var,
     plothist,
@@ -18,7 +18,7 @@ from topostats.plotting import (
     plotdist2var,
     plotviolin,
     plotjoint,
-    plotLinearVsCircular,
+    # plotLinearVsCircular,
     computeStats,
 )
 

@@ -2,7 +2,6 @@
 from pathlib import Path
 
 from topostats.run_topostats import process_scan
-from topostats.io import read_yaml
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
@@ -26,7 +25,7 @@ def test_process_scan_lower(regtest, tmp_path, process_scan_config: dict) -> Non
     )
     # Remove the Basename column as this differs on CI
     results.drop(["Basename"], axis=1, inplace=True)
-    print(results.to_string(), file=regtest)
+    print(results.to_string(), file=regtest)  # noqa: T201
 
 
 def test_process_scan_upper(regtest, tmp_path, process_scan_config: dict) -> None:
@@ -44,7 +43,7 @@ def test_process_scan_upper(regtest, tmp_path, process_scan_config: dict) -> Non
     )
     # Remove the Basename column as this differs on CI
     results.drop(["Basename"], axis=1, inplace=True)
-    print(results.to_string(), file=regtest)
+    print(results.to_string(), file=regtest)  # noqa: T201
 
 
 def test_process_scan_both(regtest, tmp_path, process_scan_config: dict) -> None:
@@ -63,4 +62,4 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict) -> None
     )
     # Remove the Basename column as this differs on CI
     results.drop(["Basename"], axis=1, inplace=True)
-    print(results.to_string(), file=regtest)
+    print(results.to_string(), file=regtest)  # noqa: T201

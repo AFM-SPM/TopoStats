@@ -165,10 +165,8 @@ def process_scan(
 
     if plotting_config["image_set"] == "core":
         filter_out_path = _output_dir
-        grain_out_path = _output_dir
     else:
         filter_out_path = Path(_output_dir) / image_path.stem / "filters"
-        grain_out_path = Path(_output_dir) / image_path.stem / "grains"
         filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(_output_dir / image_path.stem / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
