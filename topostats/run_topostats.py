@@ -8,7 +8,7 @@ from functools import partial
 import importlib.resources as pkg_resources
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Union
+from typing import Union, Tuple
 import yaml
 
 import pandas as pd
@@ -118,7 +118,7 @@ def create_parser() -> arg.ArgumentParser:
 
 
 def process_scan(
-    img_path_px2nm: tuple[np.ndarray, str, float],
+    img_path_px2nm: Tuple[np.ndarray, str, float],
     base_dir: Union[str, Path],
     filter_config: dict,
     grains_config: dict,
