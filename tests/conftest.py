@@ -33,6 +33,9 @@ def default_config() -> Dict:
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    config["filter"]["threshold_method"] = "otsu"
+    config["grains"]["threshold_method"] = "otsu"
+    config["grains"]["otsu_threshold_multiplier"] = 1.7
     return config
 
 
@@ -40,8 +43,6 @@ def default_config() -> Dict:
 def process_scan_config() -> Dict:
     """Sample configuration"""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
-    config["filter"]["threshold_method"] = "std_dev"
-    config["grains"]["threshold_method"] = "std_dev"
     config["grains"]["otsu_threshold_multiplier"] = 1.0
     config["grains"]["absolute_area_threshold"]["upper"] = [500, 800]
     config["plotting"]["zrange"] = [0, 3]
@@ -242,7 +243,6 @@ def random_grains(grains_config: dict, random_filters: Filters, tmp_path) -> Gra
         image=random_filters.images["zero_averaged_background"],
         filename="random",
         pixel_to_nm_scaling=0.5,
-        base_output_dir=Path(tmp_path),
         **grains_config,
     )
     grains.find_grains()
@@ -403,7 +403,6 @@ def minicircle_grains(minicircle_grain_gaussian_filter: Filters, grains_config: 
         image=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         filename=minicircle_grain_gaussian_filter.filename,
         pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
-        base_output_dir=Path(tmp_path),
         **grains_config,
     )
     return grains
