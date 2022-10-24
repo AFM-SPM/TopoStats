@@ -17,7 +17,7 @@ from topostats.plotting import (
     plotdist,
     plotdist2var,
     plotviolin,
-    plotjoint,
+    # plotjoint,
     # plotLinearVsCircular,
     computeStats,
 )
@@ -148,11 +148,11 @@ def test_plotviolin(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
     return fig
 
 
-@pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plotjoint(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
-    """Regression test for plotjoint()."""
-    fig = plotjoint(df=minicircle_all_statistics, arg1="height_mean", arg2="height_median", specpath="tmpdir")
-    return fig
+# @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
+# def test_plotjoint(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
+#     """Regression test for plotjoint()."""
+#     fig = plotjoint(df=minicircle_all_statistics, arg1="height_mean", arg2="height_median", specpath="tmpdir")
+#     return fig
 
 
 # No test required, function not complete
