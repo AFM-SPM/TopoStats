@@ -76,9 +76,7 @@ def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> Li
     return list(base_dir.glob("**/*" + file_ext))
 
 
-def get_out_path(
-    image_path: Union[str, Path] = None, base_dir: Union[str, Path] = None, output_dir: Union[str, Path] = None
-) -> Path:
+def get_out_path(image_path: Path = None, base_dir: Path = None, output_dir: Path = None) -> Path:
     """Adds the image path relative to the base directory to the output directory.
 
     Parameters
@@ -101,12 +99,16 @@ def get_out_path(
             return output_dir / image_path.parent.relative_to(base_dir)
         else:
             return output_dir / image_path.relative_to(base_dir)
-    # If output_dir is NOT within base_dir the relative_to() method raises a ValueError in which case we just want to
-    # append the image_path to the output_dir
+    # If image_path is a relative path and doesn't include base_dir the relative_to() method raises a ValueError in which
+    # case we just want to append the image_path to the output_dir
     except ValueError:
-        return output_dir / image_path.parent
-    except TypeError:
-        LOGGER.error("A string form of a Path has been passed to 'get_out_path()'")
+        if image_path.suffix:
+            return output_dir / image_path.parent
+        else:
+            return output_dir / image_path
+    # AttributeError is raised if image_path is a string (since it isn't a Path() object with a .suffix)
+    except AttributeError:
+        LOGGER.error("A string form of a Path has been passed to 'get_out_path()' for image_path")
         raise
 
 
