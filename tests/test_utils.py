@@ -37,7 +37,7 @@ def test_get_out_path() -> None:
     output_dir = Path("output/here")
     out_path = get_out_path(image_path, base_dir, output_dir)
     assert isinstance(out_path, Path)
-    assert out_path == Path("output/here/path/test.spm")
+    assert out_path == Path("output/here/path/")
 
 
 def test_update_config(caplog) -> None:
