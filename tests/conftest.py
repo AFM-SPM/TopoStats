@@ -278,11 +278,11 @@ def load_scan_data(load_scan: LoadScans) -> LoadScans:
     return load_scan
 
 
-@pytest.fixture
-def load_scan_asd() -> LoadScans:
-    """Instantiate a LoadScans object."""
-    scan_loader = LoadScans([RESOURCES / "minicircles.asd"], channel="topography")
-    return scan_loader
+#@pytest.fixture
+#def load_scan_asd() -> LoadScans:
+#    """Instantiate a LoadScans object."""
+#    scan_loader = LoadScans([RESOURCES / "minicircles.asd"], channel="topography")
+#    return scan_loader
 
 
 # Minicircle fixtures

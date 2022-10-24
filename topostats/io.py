@@ -7,7 +7,7 @@ import numpy as np
 
 from pySPM.Bruker import Bruker
 from afmformats import load_data
-import libasd
+#import libasd  # uncomment and import libasd to use asd formats
 from afmformats.mod_creep_compliance import AFMCreepCompliance
 from ruamel.yaml import YAML, YAMLError
 from ruamel.yaml.main import round_trip_load as yaml_load, round_trip_dump as yaml_dump
@@ -159,65 +159,67 @@ class LoadScans:
             LOGGER.error(f"[{self.filename}] : {exception}")
         return jpk
 
-    def load_asd(self) -> tuple:
-        """Extract image and pixel to nm scaling from .asd files.
+    # uncomment below func and import libasd to use asd formats
+    #def load_asd(self) -> tuple:
+    #    """Extract image and pixel to nm scaling from .asd files.
 
-        Returns
-        -------
-        tuple(np.ndarray, float)
-            A tuple containing the image and its pixel to nanometre scaling value.
-        """
-        try:
-            scan = libasd.read_asd(self.img_path)
-            print(type(scan))
-            LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
-        except FileNotFoundError:
-            LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
-        try:
-            # libasd docs seem like there is only 2 channels i.e. help(scan)
-            # libasd.Header_v0 uses "type" and _v1 uses "kind"
-            ch1_name = str(scan.header.data_type_1ch).split(".")[1]
-            ch2_name = str(scan.header.data_type_2ch).split(".")[1]
-        except AttributeError:
-            ch1_name = str(scan.header.data_kind_1ch).split(".")[1]
-            ch2_name = str(scan.header.data_kind_2ch).split(".")[1]
-        try:
-            if self.channel == ch1_name:
-                channel_data = scan.channels[0]
-            elif self.channel == ch2_name:
-                channel_data = scan.channels[1]
-            else:
-                raise ValueError
-            LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel} with {len(channel_data)} frames")
-            images = [channel_data[i].image() for i in range(len(channel_data))]
-        except ValueError:
-            LOGGER.info(
-                f"[{self.filename}] : {self.channel} not found in {self.suffix} channel list: [{ch1_name}, {ch2_name}"
-            )
-            raise ValueError(
-                f"[{self.filename}] : {self.channel} not found in {self.suffix} channel list: [{ch1_name}, {ch2_name}"
-            )
+    #    Returns
+    #    -------
+    #    tuple(np.ndarray, float)
+    #        A tuple containing the image and its pixel to nanometre scaling value.
+    #    """
+    #    try:
+    #        scan = libasd.read_asd(self.img_path)
+    #        print(type(scan))
+    #        LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
+    #    except FileNotFoundError:
+    #        LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
+    #    try:
+    #        # libasd docs seem like there is only 2 channels i.e. help(scan)
+    #        # libasd.Header_v0 uses "type" and _v1 uses "kind"
+    #        ch1_name = str(scan.header.data_type_1ch).split(".")[1]
+    #        ch2_name = str(scan.header.data_type_2ch).split(".")[1]
+    #    except AttributeError:
+    #        ch1_name = str(scan.header.data_kind_1ch).split(".")[1]
+    #        ch2_name = str(scan.header.data_kind_2ch).split(".")[1]
+    #    try:
+    #        if self.channel == ch1_name:
+    #            channel_data = scan.channels[0]
+    #        elif self.channel == ch2_name:
+    #            channel_data = scan.channels[1]
+    #        else:
+    #            raise ValueError
+    #        LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel} with {len(channel_data)} frames")
+    #        images = [channel_data[i].image() for i in range(len(channel_data))]
+    #    except ValueError:
+    #        LOGGER.info(
+    #            f"[{self.filename}] : {self.channel} not found in {self.suffix} channel list: [{ch1_name}, {ch2_name}"
+    #        )
+    #        raise ValueError(
+    #            f"[{self.filename}] : {self.channel} not found in {self.suffix} channel list: [{ch1_name}, {ch2_name}"
+    #        )
 
-        return (images, self._asd_px_to_nm_scaling(scan))
+    #    return (images, self._asd_px_to_nm_scaling(scan))
 
-    def _asd_px_to_nm_scaling(self, scan: Union[libasd.Data2ch_v0, libasd.Data2ch_v1]) -> float:
-        """Extracts the pixel to nanometre scaling value from an .asd file object.
+    # uncomment below func and import libasd to use asd formats
+    #def _asd_px_to_nm_scaling(self, scan: Union[libasd.Data2ch_v0, libasd.Data2ch_v1]) -> float:
+    #    """Extracts the pixel to nanometre scaling value from an .asd file object.
 
-        Parameters
-        ----------
+    #    Parameters
+    #    ----------
         scan: Union[libasd.Data2ch_v0, libasd.Data2ch_v1]
-            The object resulting from loading the filepath via the libasd library.
-        Returns
-        -------
-        px_to_m_scaling: float
-            The length of a single pixel in real length units (nm).
+    #        The object resulting from loading the filepath via the libasd library.
+    #    Returns
+    #    -------
+    #    px_to_m_scaling: float
+    #        The length of a single pixel in real length units (nm).
 
-        """
-        px_to_m_scaling = (
-            scan.header.x_scanning_range / scan.header.x_pixel,  # scan range always in nm
-            scan.header.y_scanning_range / scan.header.y_pixel,
-        )[0]
-        return px_to_m_scaling
+    #    """
+    #    px_to_m_scaling = (
+    #        scan.header.x_scanning_range / scan.header.x_pixel,  # scan range always in nm
+    #        scan.header.y_scanning_range / scan.header.y_pixel,
+    #    )[0]
+    #    return px_to_m_scaling
 
     @staticmethod
     def _extract_jpk(jpk: AFMCreepCompliance) -> np.ndarray:
