@@ -4,10 +4,9 @@ import logging
 from pathlib import Path
 from typing import Union
 
-import os
+from skimage.filters import gaussian
 import numpy as np
 
-from topostats.io import load_scan
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import get_thresholds, get_mask
 
@@ -22,44 +21,43 @@ class Filters:
 
     def __init__(
         self,
-        img_path: Union[str, Path],
+        image: np.ndarray,
+        filename: str,
+        pixel_to_nm_scaling: float,
         threshold_method: str = "otsu",
         otsu_threshold_multiplier: float = 1.7,
         threshold_std_dev: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
-        channel: str = "Height",
-        amplify_level: float = None,
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
-        output_dir: Union[str, Path] = None,
         quiet: bool = False,
     ):
         """Initialise the class.
 
         Parameters
         ----------
-        img_path: Union[str, Path]
-            Path to a valid image to load.
-        channel: str
-            Channel to extract from the image.
-        amplify_level : float
-            Factor by which to amplify the image.
+        image: np.ndarray
+            The raw image from the AFM.
+        filename: str
+            The filename (used for logging outputs only).
+        pixel_to_nm_scaling: float
+            Value for converting pixels to nanometers.
         threshold_method: str
-            Method for thresholding, default 'otsu'.
+            Method for thresholding, default 'otsu', valid options 'otsu', 'std_dev' and 'absolute'.
+        otsu_threshold_multiplier: float
+            Value for scaling the derived Otsu threshold (optional).
+        threshold_std_dev: float()
+            If using the 'std_dev' threshold method the number of standard deviations from the mean to threshold.
+        threshold_absolute_lower: float
+            Lower threshold if using the 'absolute' threshold method.
+        threshold_absolute_upper: float
+            Upper threshold if using the 'absolute' threshold method.
         quiet: bool
             Whether to silence output.
-        output_dir: Union[str, Path]
-            Directory to save output to, if it does not exist it will be created.
-
-        Notes
-        -----
-
-        A directory under the 'outdir' will be created using the filename.
         """
-        self.img_path = Path(img_path)
-        self.channel = channel
-        self.amplify_level = amplify_level
+        self.filename = filename
+        self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.gaussian_size = gaussian_size
         self.gaussian_mode = gaussian_mode
         self.threshold_method = threshold_method
@@ -67,12 +65,8 @@ class Filters:
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
-        self.filename = self.extract_filename()
-        self.output_dir = Path(output_dir) if output_dir else Path("./output")
         self.images = {
-            "scan_raw": None,
-            "extracted_channel": None,
-            "pixels": None,
+            "pixels": image,
             "initial_align": None,
             "initial_tilt_removal": None,
             "masked_align": None,
@@ -82,75 +76,17 @@ class Filters:
             "gaussian_filtered": None,
         }
         self.thresholds = None
-        self.pixel_to_nm_scaling = None
         self.medians = {"rows": None, "cols": None}
-        LOGGER.info(f"Filename : {self.filename}")
         self.results = {
             "diff": None,
-            "amplify": self.amplify_level,
             "median_row_height": None,
             "x_gradient": None,
             "y_gradient": None,
             "threshold": None,
         }
-        self.file_type = os.path.splitext(self.img_path)[1]
-        print(f'file ext: {self.file_type}')
-        if self.file_type != '.png':
-            self.load_scan()
 
         if quiet:
             LOGGER.setLevel("ERROR")
-
-    def extract_filename(self) -> str:
-        """Extract the filename from the img_path"""
-        LOGGER.info(f"Extracting filename from : {self.img_path}")
-        return self.img_path.stem
-
-    def load_scan(self) -> None:
-        """Load the scan."""
-        print('file type: spm')
-        try:
-            self.images["scan_raw"] = load_scan(self.img_path)
-            LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
-        except FileNotFoundError:
-            LOGGER.info(f"File not found : {self.img_path}")
-
-    def make_output_directory(self) -> None:
-        """Create the output directory for saving files to."""
-        self.output_dir.mkdir(exist_ok=True, parents=True)
-        LOGGER.info(f"[{self.filename}] : Created directory : {self.output_dir}")
-
-    def extract_channel(self):
-        """Extract the channel"""
-        try:
-            self.images["extracted_channel"] = self.images["scan_raw"].get_channel(self.channel)
-            LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
-        except Exception as exception:
-            LOGGER.error(f"[{self.filename}] : {exception}")
-
-    def extract_pixel_to_nm_scaling(self) -> float:
-        """Extract the pixel to nanometer scaling from the image metadata."""
-        unit_dict = {
-            "nm": 1,
-            "um": 1e3,
-        }
-        px_to_real = self.images["extracted_channel"].pxs()
-        # Has potential for non-square images but not yet implimented
-        self.pixel_to_nm_scaling = (
-            px_to_real[0][0] * unit_dict[px_to_real[0][1]],
-            px_to_real[1][0] * unit_dict[px_to_real[1][1]],
-        )[0]
-        LOGGER.info(f"[{self.filename}] : Pixels to nm scaling : {self.pixel_to_nm_scaling}")
-
-    def extract_pixels(self) -> None:
-        """Flatten the scan to a Numpy Array."""
-        self.images["pixels"] = np.flipud(np.array(self.images["extracted_channel"].pixels))
-        LOGGER.info(f"[{self.filename}] : Pixels extracted")
-
-    def amplify(self) -> None:
-        """The amplify filter mulitplies the value of all extracted pixels by the `level` argument."""
-        self.images["pixels"] = self.images["pixels"] * self.amplify_level
-        LOGGER.info(f"[{self.filename}] : Image amplified (x {self.amplify_level})")
 
     def flatten_image(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Flatten an image.
@@ -201,9 +137,9 @@ class Filters:
         LOGGER.info(f"[{self.filename}] : Row and column medians calculated.")
         return medians
 
-    def align_rows(self, image: np.ndarray, mask: np.ndarray=None) -> np.ndarray:
+    def align_rows(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Returns a copy of the input image with rows aligned by median height.
-        
+
         Parameters
         ----------
         image: np.ndarray
@@ -247,9 +183,9 @@ class Filters:
         """Calculate difference of row medians from the median row height"""
         return row_medians - median_row_height
 
-    def remove_tilt(self, image: np.ndarray, mask: np.ndarray=None) -> np.ndarray:
+    def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """Returns a copy of the input image after removing any linear plane slant.
-    
+
         Parameters
         ----------
         image: np.ndarray
@@ -306,24 +242,24 @@ class Filters:
 
     def gaussian_filter(self, image: np.ndarray, **kwargs) -> np.array:
         """Apply Gaussian filter to an image.
-        
+
         Parameters
         ----------
         image: np.array
             Numpy array representing image.
-        
+
         Returns
         -------
         np.array
             Numpy array of gaussian blurred image.
-            
+
         """
         LOGGER.info(
-            f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (nm) : {self.gaussian_size})."
+            f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (px) : {self.gaussian_size})."
         )
         return gaussian(
             image,
-            sigma=(self.gaussian_size / self.pixel_to_nm_scaling),
+            sigma=(self.gaussian_size),
             mode=self.gaussian_mode,
             **kwargs,
         )
@@ -333,34 +269,18 @@ class Filters:
 
         Example
         -------
+        from topostats.io import LoadScan
         from topostats.topotracing import Filter, process_scan
-        filter = Filter(image_path='minicircle.spm',
-        ...             channel='Height',
-        ...             amplify_level=1.0,
+
+        load_scan = LoadScan("minicircle.spm", channel="Height")
+        load_scan.get_data()
+        filter = Filter(image=load_scan.image,
+        ...             pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
+        ...             filename=load_scan.filename,
         ...             threshold_method='otsu')
         filter.filter_image()
 
         """
-        if self.file_type != '.png':
-            self.extract_filename()
-            self.load_scan()
-            self.make_output_directory()
-            self.extract_channel()
-            self.extract_pixels()
-            self.extract_pixel_to_nm_scaling()
-        else:
-            print('  skipping initial stuff due to loading png')
-            print('file type: png')
-            from PIL import Image
-            im = Image.open(self.img_path)
-            print(im.format)
-            im_array = np.array(im, dtype=np.float64)
-            # plt.imshow(im_array)
-            print('assigning im_array to pixels')
-            self.images["pixels"] = im_array[:, :, 0]
-        if self.amplify_level != 1.0:
-            self.amplify()
-        print('  initial aligning')
         self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
         # Get the thresholds
