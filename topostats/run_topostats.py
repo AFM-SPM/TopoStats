@@ -176,7 +176,6 @@ def process_scan(
         Path.mkdir(_output_dir / filename / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / filename / "grains" / "lower", parents=True, exist_ok=True)
 
-
     # Filter Image :
     if filter_config["run"]:
         filter_config.pop("run")
@@ -421,7 +420,10 @@ def main():
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result in pool.imap_unordered(processing_function, zip(scan_data_dict["images"], scan_data_dict["img_paths"], scan_data_dict["px_2_nms"])):
+            for img, result in pool.imap_unordered(
+                processing_function,
+                zip(scan_data_dict["images"], scan_data_dict["img_paths"], scan_data_dict["px_2_nms"]),
+            ):
                 results[str(img)] = result
                 pbar.update()
 

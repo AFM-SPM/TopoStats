@@ -85,7 +85,7 @@ def test_load_scan_extract_jpk() -> None:
     "load_scan_object, suffix, length, frame_no, image_shape, image_sum, filename, pixel_to_nm_scaling",
     [
         ("load_scan", ".spm", 1, 0, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
-        ( "load_scan_asd", ".asd", 64, 40, (256, 256), 5958870.556640625, "minicircles_frame_40", 1.953125),
+        ("load_scan_asd", ".asd", 64, 40, (256, 256), 5958870.556640625, "minicircles_frame_40", 1.953125),
     ],
 )
 def test_load_scan_get_data(

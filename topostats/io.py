@@ -92,15 +92,11 @@ class LoadScans:
         self.suffix = None
         self.image = None
         self.pixel_to_nm_scaling = None
-        self.img_dic = {
-            "images": [],
-            "img_paths": [],
-            "px_2_nms": []
-        }
+        self.img_dic = {"images": [], "img_paths": [], "px_2_nms": []}
 
     def load_spm(self) -> tuple:
         """Extract image and pixel to nm scaling from the Bruker .spm file.
-        
+
         Returns
         -------
         tuple(np.ndarray, float)
@@ -165,7 +161,7 @@ class LoadScans:
 
     def load_asd(self) -> tuple:
         """Extract image and pixel to nm scaling from .asd files.
-        
+
         Returns
         -------
         tuple(np.ndarray, float)
@@ -180,11 +176,11 @@ class LoadScans:
         try:
             # libasd docs seem like there is only 2 channels i.e. help(scan)
             # libasd.Header_v0 uses "type" and _v1 uses "kind"
-            ch1_name = str(scan.header.data_type_1ch).split('.')[1]
-            ch2_name = str(scan.header.data_type_2ch).split('.')[1]
+            ch1_name = str(scan.header.data_type_1ch).split(".")[1]
+            ch2_name = str(scan.header.data_type_2ch).split(".")[1]
         except AttributeError:
-            ch1_name = str(scan.header.data_kind_1ch).split('.')[1]
-            ch2_name = str(scan.header.data_kind_2ch).split('.')[1]
+            ch1_name = str(scan.header.data_kind_1ch).split(".")[1]
+            ch2_name = str(scan.header.data_kind_2ch).split(".")[1]
         try:
             if self.channel == ch1_name:
                 channel_data = scan.channels[0]
@@ -195,8 +191,12 @@ class LoadScans:
             LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel} with {len(channel_data)} frames")
             images = [channel_data[i].image() for i in range(len(channel_data))]
         except ValueError:
-            LOGGER.info(f"[{self.filename}] : {self.channel} not found in {self.suffix} channel list: [{ch1_name}, {ch2_name}")
-            raise ValueError(f"[{self.filename}] : {self.channel} not found in {self.suffix} channel list: [{ch1_name}, {ch2_name}")
+            LOGGER.info(
+                f"[{self.filename}] : {self.channel} not found in {self.suffix} channel list: [{ch1_name}, {ch2_name}"
+            )
+            raise ValueError(
+                f"[{self.filename}] : {self.channel} not found in {self.suffix} channel list: [{ch1_name}, {ch2_name}"
+            )
 
         return (images, self._asd_px_to_nm_scaling(scan))
 
@@ -211,10 +211,10 @@ class LoadScans:
         -------
         px_to_m_scaling: float
             The length of a single pixel in real length units (nm).
-        
+
         """
         px_to_m_scaling = (
-            scan.header.x_scanning_range / scan.header.x_pixel, # scan range always in nm
+            scan.header.x_scanning_range / scan.header.x_pixel,  # scan range always in nm
             scan.header.y_scanning_range / scan.header.y_pixel,
         )[0]
         return px_to_m_scaling
@@ -224,7 +224,7 @@ class LoadScans:
         """Extract data from jpk object"""
 
     def get_data(self) -> None:
-        """Method to extract image, filepath and pixel to nm scaling value, and append these to the 
+        """Method to extract image, filepath and pixel to nm scaling value, and append these to the
         img_dic object.
         """
         for img_path in self.img_paths:
@@ -245,7 +245,7 @@ class LoadScans:
                 self.image, self.pixel_to_nm_scaling = self.load_asd()
                 for i, frame in enumerate(self.image):
                     pathname = list(Path(self.img_path).parts)
-                    pathname[-1] = self.filename+"_frame_"+str(i)
+                    pathname[-1] = self.filename + "_frame_" + str(i)
                     pathname = Path(*pathname)
                     self.add_to_dic(frame, pathname, self.pixel_to_nm_scaling)
 
