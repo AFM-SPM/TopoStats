@@ -16,6 +16,7 @@ from topostats.io import read_yaml, LoadScan
 from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import get_thresholds, get_mask, _get_mask
 
+
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
 BASE_DIR = Path.cwd()
@@ -266,8 +267,15 @@ def small_array_filters(small_array: np.ndarray, load_scan: LoadScan, filter_con
 # IO fixtures
 @pytest.fixture
 def load_scan(loading_config: dict) -> LoadScan:
-    """Instantiate a LoadScan object."""
+    """Instantiate a LoadScan object from a .spm file."""
     scan_loader = LoadScan(RESOURCES / "minicircle.spm", **loading_config)
+    return scan_loader
+
+
+@pytest.fixture
+def load_scan_ibw() -> LoadScan:
+    """Instantiate a LoadScan object from a .ibw file."""
+    scan_loader = LoadScan(RESOURCES / "minicircle2.ibw", channel="HeightTracee")
     return scan_loader
 
 

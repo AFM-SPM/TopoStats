@@ -75,7 +75,6 @@ def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> Li
     base_dir = Path("./") if base_dir is None else Path(base_dir)
     return list(base_dir.glob("**/*" + file_ext))
 
-
 def get_out_path(
     image_path: Union[str, Path] = None, base_dir: Union[str, Path] = None, output_dir: Union[str, Path] = None
 ) -> Path:
@@ -83,11 +82,11 @@ def get_out_path(
 
     Parameters
     ----------
-    image_path: Union[str, Path]
+    image_path: Path
         The path of the current image.
-    base_dir: Union[str, Path]
-        Directory to recursively search for files, if not specified the current directory is scanned.
-    output_dir: Union[str, Path]
+    base_dir: Path
+        Directory to recursively search for files.
+    output_dir: Path
         The output directory specified in the configuration file.
 
     Returns
@@ -293,4 +292,4 @@ def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], 
             all_stats_df[all_stats_df["Basename"] == _dir].to_csv(out_path / "Processed" / "folder_grainstats.csv")
             LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/Processed/folder_grainstats.csv")
     except TypeError:
-        LOGGER.info(f"Unable to generate folderwise statistics as 'all_stats_df' is empty")
+        LOGGER.info("Unable to generate folderwise statistics as 'all_statistics.csv' has empty values")

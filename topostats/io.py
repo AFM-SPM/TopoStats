@@ -6,6 +6,7 @@ from typing import Union, Dict
 import numpy as np
 
 from pySPM.Bruker import Bruker
+from igor import binarywave  # this is already imported with afmformats but is being specialised for our use
 from afmformats import load_data
 from afmformats.mod_creep_compliance import AFMCreepCompliance
 from ruamel.yaml import YAML, YAMLError
@@ -103,8 +104,15 @@ class LoadScan:
             image = np.flipud(np.array(self.channel_data.pixels))
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
-        except Exception as exception:
-            LOGGER.error(f"[{self.filename}] : {exception}")
+        except Exception:
+            # trying to return the error with options of possible channel values
+            labels = []
+            for channel in [layer[b"@2:Image Data"][0] for layer in scan.layers]:
+                channel_name = channel.decode("latin1").split(" ")[1][1:-1]
+                # channel_description = channel.decode('latin1').split('"')[1] # incase the blank field raises quesions?
+                labels.append(channel_name)
+            LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.suffix} channel list: {labels}")
+            raise
 
         return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
 
@@ -140,7 +148,50 @@ class LoadScan:
     #     data = self._extract_jpk(jpk)
     #     return (jpk, None)
 
-    def _load_jpk(self) -> None:
+    def load_ibw(self) -> tuple:
+        """Loads image from Asylum Research (Igor) .ibw files"""
+
+        LOGGER.info(f"Loading image from : {self.img_path}")
+        try:
+            scan = binarywave.load(self.img_path)
+            LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
+
+            labels = []
+            for label_list in scan["wave"]["labels"]:
+                for label in label_list:
+                    if label:
+                        labels.append(label.decode())
+            channel_idx = labels.index(self.channel)
+            image = scan["wave"]["wData"][:, :, channel_idx].T * 1e9  # Looks to be in m
+            image = np.flipud(image)
+            LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
+        except FileNotFoundError:
+            LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
+        except ValueError:
+            LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.suffix} channel list: {labels}")
+            raise
+        except Exception as exception:
+            LOGGER.error(f"[{self.filename}] : {exception}")
+
+        return (image, self._ibw_pixel_to_nm_scaling(scan))
+
+    def _ibw_pixel_to_nm_scaling(self, scan) -> float:
+        """Extract pixel to nm scaling from the IBW image metadata."""
+        # Get metadata
+        notes = {}
+        for line in str(scan["wave"]["note"]).split("\\r"):
+            if line.count(":"):
+                key, val = line.split(":", 1)
+                notes[key] = val.strip()
+        # Has potential for non-square pixels but not yet implimented
+        pixel_to_nm_scaling = (
+            float(notes["SlowScanSize"]) / scan["wave"]["wData"].shape[0] * 1e9,  # as in m
+            float(notes["FastScanSize"]) / scan["wave"]["wData"].shape[1] * 1e9,  # as in m
+        )[0]
+        LOGGER.info(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
+        return pixel_to_nm_scaling
+
+    def load_jpk(self) -> None:
         try:
             jpk = load_data(self.img_path)
         except FileNotFoundError:
