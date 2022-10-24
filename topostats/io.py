@@ -234,12 +234,12 @@ class LoadScans:
             LOGGER.info(f"Extracting image from {self.img_path}")
             if self.suffix == ".spm":
                 self.image, self.pixel_to_nm_scaling = self.load_spm()
-                self.add_to_dic(self.image, self.img_path, self.pixel_to_nm_scaling)
+                self.add_to_dic(self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling)
             if self.suffix == ".jpk":
                 self.image, self.pixel_to_nm_scaling = self.load_jpk()
             if self.suffix == ".ibw":
                 self.image, self.pixel_to_nm_scaling = self.load_ibw()
-                self.add_to_dic(self.image, self.img_path, self.pixel_to_nm_scaling)
+                self.add_to_dic(self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling)
             if self.suffix == ".asd":
                 self.img_path = str(self.img_path)
                 self.image, self.pixel_to_nm_scaling = self.load_asd()
