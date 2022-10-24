@@ -16,6 +16,7 @@ from topostats.io import read_yaml, LoadScan
 from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import get_thresholds, get_mask, _get_mask
 
+
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
 BASE_DIR = Path.cwd()
@@ -33,6 +34,9 @@ def default_config() -> Dict:
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    config["filter"]["threshold_method"] = "otsu"
+    config["grains"]["threshold_method"] = "otsu"
+    config["grains"]["otsu_threshold_multiplier"] = 1.7
     return config
 
 
@@ -40,8 +44,6 @@ def default_config() -> Dict:
 def process_scan_config() -> Dict:
     """Sample configuration"""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
-    config["filter"]["threshold_method"] = "std_dev"
-    config["grains"]["threshold_method"] = "std_dev"
     config["grains"]["otsu_threshold_multiplier"] = 1.0
     config["grains"]["absolute_area_threshold"]["upper"] = [500, 800]
     config["plotting"]["zrange"] = [0, 3]
@@ -265,8 +267,15 @@ def small_array_filters(small_array: np.ndarray, load_scan: LoadScan, filter_con
 # IO fixtures
 @pytest.fixture
 def load_scan(loading_config: dict) -> LoadScan:
-    """Instantiate a LoadScan object."""
+    """Instantiate a LoadScan object from a .spm file."""
     scan_loader = LoadScan(RESOURCES / "minicircle.spm", **loading_config)
+    return scan_loader
+
+
+@pytest.fixture
+def load_scan_ibw() -> LoadScan:
+    """Instantiate a LoadScan object from a .ibw file."""
+    scan_loader = LoadScan(RESOURCES / "minicircle2.ibw", channel="HeightTracee")
     return scan_loader
 
 

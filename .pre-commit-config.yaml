@@ -27,3 +27,10 @@ repos:
         additional_dependencies: [flake8-print]
         args: ["topostats", "tests"]
         types: [python]
+  # - repo: local
+  #   hooks:
+  #     - id: pylint
+  #       name: Pylint
+  #       entry: python -m pylint.__main__
+  #       language: system
+  #       files: \.py$

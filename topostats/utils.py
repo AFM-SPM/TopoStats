@@ -75,19 +75,18 @@ def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> Li
     base_dir = Path("./") if base_dir is None else Path(base_dir)
     return list(base_dir.glob("**/*" + file_ext))
 
-
 def get_out_path(
     image_path: Union[str, Path] = None, base_dir: Union[str, Path] = None, output_dir: Union[str, Path] = None
 ) -> Path:
-    """Replaces the base directory part of the image path with the output directory.
+    """Adds the image path relative to the base directory to the output directory.
 
     Parameters
     ----------
-    image_path: Union[str, Path]
+    image_path: Path
         The path of the current image.
-    base_dir: Union[str, Path]
-        Directory to recursively search for files, if not specified the current directory is scanned.
-    output_dir: Union[str, Path]
+    base_dir: Path
+        Directory to recursively search for files.
+    output_dir: Path
         The output directory specified in the configuration file.
 
     Returns
@@ -95,9 +94,19 @@ def get_out_path(
     Path
         The output path that mirrors the input path structure.
     """
-    pathparts = list(image_path.parts)
-    inparts = list(base_dir.parts)
-    return Path(output_dir / Path(*pathparts[len(inparts) :]))  # noqa: E203
+    try:
+        # Remove the filename if there is a suffix, not always the case as get_out_path is called from folder_grainstats()
+        if image_path.suffix:
+            return output_dir / image_path.parent.relative_to(base_dir)
+        else:
+            return output_dir / image_path.relative_to(base_dir)
+    # If output_dir is NOT within base_dir the relative_to() method raises a ValueError in which case we just want to
+    # append the image_path to the output_dir
+    except ValueError:
+        return output_dir / image_path.parent
+    except TypeError:
+        LOGGER.error("A string form of a Path has been passed to 'get_out_path()'")
+        raise
 
 
 def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
@@ -283,4 +292,4 @@ def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], 
             all_stats_df[all_stats_df["Basename"] == _dir].to_csv(out_path / "Processed" / "folder_grainstats.csv")
             LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/Processed/folder_grainstats.csv")
     except TypeError:
-        LOGGER.info("Unable to generate folderwise statistics as 'all_statistics.csv' is empty")
+        LOGGER.info("Unable to generate folderwise statistics as 'all_statis_df' is empty")

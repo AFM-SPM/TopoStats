@@ -30,7 +30,7 @@ from topostats.utils import (
     create_empty_dataframe,
     folder_grainstats,
 )
-from topostats.validation import validate_config
+from topostats.validation import validate_config, validate_plotting
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -55,6 +55,13 @@ def create_parser() -> arg.ArgumentParser:
         dest="config_file",
         required=False,
         help="Path to a YAML configuration file.",
+    )
+    parser.add_argument(
+        "-p",
+        "--plotting_file",
+        dest="plotting_file",
+        required=False,
+        help="Path to a YAML plotting file.",
     )
     parser.add_argument(
         "-b",
@@ -160,7 +167,7 @@ def process_scan(
     Results are written to CSV and images produced in configuration options request them.
     """
     LOGGER.info(f"Processing : {image_path}")
-    _output_dir = get_out_path(image_path, base_dir, output_dir).parent / "Processed"
+    _output_dir = get_out_path(image_path, base_dir, output_dir) / "Processed"
     _output_dir.mkdir(parents=True, exist_ok=True)
 
     if plotting_config["image_set"] == "core":
@@ -168,6 +175,7 @@ def process_scan(
     else:
         filter_out_path = Path(_output_dir) / image_path.stem / "filters"
         filter_out_path.mkdir(exist_ok=True, parents=True)
+        grain_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(_output_dir / image_path.stem / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
 
@@ -237,7 +245,6 @@ def process_scan(
             results = create_empty_dataframe()
         if grains.region_properties is None:
             results = create_empty_dataframe()
-
         # Optionally plot grain finding stage
         if plotting_config["run"] and grains.region_properties is not None:
             plotting_config.pop("run")
@@ -339,7 +346,7 @@ def process_scan(
             except Exception:
                 # If no results we need a dummy dataframe to return.
                 LOGGER.info(
-                    f"[{filename}] : Errors occurred attempting to calculate grain statistics and DNA tracing statistics."
+                    f"[{filename}] : Errors occurred whilst calculating grain statistics and DNA tracing statistics."
                 )
                 results = create_empty_dataframe()
 
@@ -365,9 +372,13 @@ def main():
 
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 
-    # Load plotting_dictionary
-    plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
-    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    # Load plotting_dictionary and validate
+    if args.plotting_file is not None:
+        config["plotting"]["plot_dict"] = read_yaml(args.plotting_file)
+    else:
+        plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
+        config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    validate_plotting(config["plotting"]["plot_dict"])
 
     # FIXME : Make this a function and from topostats.utils import update_plot_dict and write tests
     # Update the config["plotting"]["plot_dict"] with plotting options
@@ -421,12 +432,14 @@ def main():
             for img, result in pool.imap_unordered(processing_function, img_files):
                 results[str(img)] = result
                 pbar.update()
-
     results = pd.concat(results.values())
     results.reset_index()
     results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)
     LOGGER.info(
-        f"All statistics combined for {len(img_files)} images(s) are saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
+        (
+            f"All statistics combined for {len(img_files)} images(s) are "
+            "saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
+        )
     )
     folder_grainstats(config["output_dir"], config["base_dir"], results)
 
