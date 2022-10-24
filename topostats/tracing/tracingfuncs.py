@@ -45,9 +45,10 @@ class getSkeleton(object):
         self.doSkeletonising()
 
     def getDNAmolHeightStats(self):
-
+        # Why are axes swapped here?
         self.image_data = np.swapaxes(self.image_data, 0, 1)
 
+        # This doesn't appear to be used within this class and its not used anywhere in dnatracing.py either.
         self.average_height = np.average(self.image_data[np.argwhere(self.binary_map == 1)])
         # print(self.average_height)
 
