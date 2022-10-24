@@ -75,6 +75,7 @@ def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> Li
     base_dir = Path("./") if base_dir is None else Path(base_dir)
     return list(base_dir.glob("**/*" + file_ext))
 
+
 def get_out_path(
     image_path: Union[str, Path] = None, base_dir: Union[str, Path] = None, output_dir: Union[str, Path] = None
 ) -> Path:

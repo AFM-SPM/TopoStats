@@ -175,7 +175,6 @@ def process_scan(
     else:
         filter_out_path = Path(_output_dir) / image_path.stem / "filters"
         filter_out_path.mkdir(exist_ok=True, parents=True)
-        grain_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(_output_dir / image_path.stem / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
 
