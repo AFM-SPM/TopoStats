@@ -1,4 +1,4 @@
-# Installing TopoStats
+# Installation
 
 **NB** - The package is currently undergoing heavy revision and these installation instructions apply to installing and
 workin on the the `dev` branch.
@@ -79,7 +79,7 @@ pytest
 ```
 
 
-# Git
+## Git
 
 [Git](https://git.vc) is a version control system for managing software development and is required to be installed on
 your computer in order to clone the TopoStats repository. Instructions on installing Git can be found at [Git Guides -

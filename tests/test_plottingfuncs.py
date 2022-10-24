@@ -56,7 +56,7 @@ def test_plot_and_save_no_colorbar(load_scan_data: LoadScans, tmp_path: Path) ->
         data=load_scan_data.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
-        pixel_to_nm_scaling_factor=load_scan_data.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=load_scan_data.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=False,
         axes=True,
@@ -72,7 +72,7 @@ def test_plot_and_save_colorbar(load_scan_data: LoadScans, tmp_path: Path) -> No
         data=load_scan_data.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
-        pixel_to_nm_scaling_factor=load_scan_data.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=load_scan_data.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=True,
         axes=True,
@@ -119,7 +119,7 @@ def test_plot_and_save_colorbar_afmhot(load_scan_data: LoadScans, tmp_path: Path
         data=load_scan_data.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
-        pixel_to_nm_scaling_factor=load_scan_data.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=load_scan_data.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=True,
         axes=True,
@@ -137,12 +137,12 @@ def test_plot_and_save_bounding_box(
     tmp_path: Path,
 ) -> None:
     """Test plotting bounding boxes"""
-    plotting_config["type"] = "binary"
+    plotting_config["image_type"] = "binary"
     fig, _ = Images(
         data=minicircle_grain_coloured.directions["upper"]["coloured_regions"],
         output_dir=tmp_path,
         filename="15-coloured_regions",
-        pixel_to_nm_scaling_factor=minicircle_grain_coloured.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_grain_coloured.pixel_to_nm_scaling,
         title="Coloured Regions",
         **plotting_config,
         region_properties=minicircle_grain_region_properties_post_removal,
@@ -159,7 +159,7 @@ def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         output_dir=tmp_path,
         filename="08_5-z_threshold",
-        pixel_to_nm_scaling_factor=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
         title="Raw Height",
         **plotting_config,
     ).plot_and_save()
@@ -174,12 +174,12 @@ def test_plot_and_save_non_square_bounding_box(
     tmp_path: Path,
 ) -> None:
     """Test plotting bounding boxes"""
-    plotting_config["type"] = "binary"
+    plotting_config["image_type"] = "binary"
     fig, _ = Images(
         data=minicircle_grain_coloured.image[:, 0:512],
         output_dir=tmp_path,
         filename="15-coloured_regions.png",
-        pixel_to_nm_scaling_factor=minicircle_grain_coloured.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_grain_coloured.pixel_to_nm_scaling,
         title="Coloured Regions",
         **plotting_config,
         region_properties=minicircle_grain_region_properties_post_removal,

@@ -8,7 +8,9 @@ Welcome to TopoStats's documentation!
     introduction
     installation
     configuration
+    contributing
     workflow
+    data_dictionary
     related_software
 
 .. toctree::
