@@ -71,18 +71,6 @@ def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
     assert px_to_nm_scaling == 1.953125
 
 
-def test_load_scan_get_data(load_scan_data: LoadScans) -> None:
-    """Test the LoadScans.get_data() method."""
-    assert isinstance(load_scan_data.filename, str)
-    assert load_scan_data.filename == "minicircle"
-    assert isinstance(load_scan_data.suffix, str)
-    assert load_scan_data.suffix == ".spm"
-    assert isinstance(load_scan_data.img_dic, dict)
-    assert len(load_scan_data.img_dic["images"]) == 1
-    assert len(load_scan_data.img_dic["img_paths"]) == 1
-    assert len(load_scan_data.img_dic["px_2_nms"]) == 1
-
-
 def test_load_scan_load_jpk() -> None:
     """Test loading of JPK image."""
     assert True
@@ -91,3 +79,38 @@ def test_load_scan_load_jpk() -> None:
 def test_load_scan_extract_jpk() -> None:
     """Test extraction of data from loaded JPK image."""
     assert True
+
+
+@pytest.mark.parametrize(
+    "load_scan_object, suffix, length, frame_no, image_shape, image_sum, filename, pixel_to_nm_scaling",
+    [
+        ("load_scan", ".spm", 1, 0, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
+        ( "load_scan_asd", ".asd", 64, 40, (256, 256), 5958870.556640625, "minicircles_frame_40", 1.953125),
+    ],
+)
+def test_load_scan_get_data(
+    load_scan_object: LoadScans,
+    suffix: str,
+    length: int,
+    frame_no: int,
+    image_shape: tuple,
+    image_sum: float,
+    filename: str,
+    pixel_to_nm_scaling: float,
+    request,
+) -> None:
+    """Test the LoadScan.get_data() method."""
+    scan = request.getfixturevalue(load_scan_object)
+    scan.get_data()
+    assert isinstance(scan.suffix, str)
+    assert scan.suffix == suffix
+    assert len(scan.img_dic["images"]) == length
+    assert len(scan.img_dic["img_paths"]) == length
+    assert len(scan.img_dic["px_2_nms"]) == length
+    assert isinstance(scan.img_dic["images"][frame_no], np.ndarray)
+    assert scan.img_dic["images"][frame_no].shape == image_shape
+    assert scan.img_dic["images"][frame_no].sum() == image_sum
+    assert isinstance(scan.img_dic["img_paths"][frame_no], Path)
+    assert scan.img_dic["img_paths"][frame_no] == RESOURCES / filename
+    assert isinstance(scan.img_dic["px_2_nms"][frame_no], float)
+    assert scan.img_dic["px_2_nms"][frame_no] == pixel_to_nm_scaling
