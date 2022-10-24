@@ -33,9 +33,10 @@ def test_importfromfile(minicircle_all_statistics: pd.DataFrame) -> None:
     pd.testing.assert_frame_equal(minicircle_all_statistics, minicircle_df)
 
 
-def test_savestats(regtest) -> None:
+def test_savestats(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
     """Regression test for savestats()."""
-    assert True
+    savestats(str(tmpdir), minicircle_all_statistics)
+    assert Path(str(tmpdir)[:-5] + "_evaluated.txt").is_file()
 
 
 # Not testing, path is contingent on system and changes with each test
@@ -69,10 +70,19 @@ def test_plotkde_nm(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
     return fig
 
 
-# @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-# def test_plotkde2var() -> None:
-#     """Regression test for plotkde2var()."""
-#     assert True
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
+def test_plotkde2var(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
+    """Regression test for plotkde2var()."""
+    fig = plotkde2var(
+        df=minicircle_all_statistics,
+        plotarg="smallest_bounding_width",
+        plotarg2="smallest_bounding_length",
+        label1="Smallest Bounding Width",
+        label2="Smallest Bounding Length",
+        nm=False,
+        specpath=tmpdir,
+    )
+    return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
@@ -89,10 +99,19 @@ def test_plothist_nm(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
     return fig
 
 
-# @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-# def test_plothist2var() -> None:
-#     """Regression test for plothist2var()."""
-#     assert True
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
+def test_plothist2var(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
+    """Regression test for plothist2var()."""
+    fig = plothist2var(
+        df=minicircle_all_statistics,
+        plotarg="smallest_bounding_width",
+        plotarg2="smallest_bounding_length",
+        label1="Smallest Bounding Width",
+        label2="Smallest Bounding Length",
+        nm=False,
+        specpath=tmpdir,
+    )
+    return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
@@ -109,24 +128,34 @@ def test_plotdist_nm(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
     return fig
 
 
-# @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-# def test_plotdist2var() -> None:
-#     """Regression test for plotdist2var()."""
-#     assert True
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
+def test_plotdist2var(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
+    """Regression test for plotdist2var()."""
+    fig = plotdist2var(
+        df=minicircle_all_statistics,
+        plotarg="smallest_bounding_width",
+        plotarg2="smallest_bounding_length",
+        nm=False,
+        specpath=tmpdir,
+    )
+    return fig
 
 
-# @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-# def test_plotviolin() -> None:
-#     """Regression test for plotviolin()."""
-#     assert True
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
+def test_plotviolin(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
+    """Regression test for plotviolin()."""
+    fig = plotviolin(df=minicircle_all_statistics, plotarg="area", grouparg="Circular", specpath=tmpdir)
+    return fig
 
 
-# @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-# def test_plotjoint() -> None:
-#     """Regression test for plotjoint()."""
-#     assert True
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
+def test_plotjoint(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
+    """Regression test for plotjoint()."""
+    fig = plotjoint(df=minicircle_all_statistics, arg1="height_mean", arg2="height_median", specpath="tmpdir")
+    return fig
 
 
+# No test required, function not complete
 # @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 # def test_plotLinearVsCircular() -> None:
 #     """Regression test for plotLinearVsCircular()."""

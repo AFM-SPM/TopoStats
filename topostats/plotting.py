@@ -85,7 +85,6 @@ def importfromfile(path):
 
 def savestats(path, dataframetosave):
     print("Saving stats for: " + str(os.path.basename(path)[:-5]) + "_evaluated")
-
     dataframetosave.to_json(path[:-5] + "_evaluated.json")
     dataframetosave.to_csv(path[:-5] + "_evaluated.txt")
 
@@ -191,7 +190,17 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath
 
 
 def plotkde2var(
-    df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, xmin=None, xmax=None, nm=False, specpath=None
+    df,
+    plotarg,
+    df2=None,
+    plotarg2=None,
+    label1=None,
+    label2=None,
+    xmin=None,
+    xmax=None,
+    nm=False,
+    specpath=None,
+    grouparg=None,  # Defined outside scope of function but required for testing
 ):
     """Creating a KDE plot for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
@@ -283,7 +292,17 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
 
 
 def plothist2var(
-    df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, xmin=None, xmax=None, nm=False, specpath=None
+    df,
+    plotarg,
+    df2=None,
+    plotarg2=None,
+    label1=None,
+    label2=None,
+    xmin=None,
+    xmax=None,
+    nm=False,
+    specpath=None,
+    bins=12,  # Missing argument defined outside scope of function required within for testing
 ):
     """Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
@@ -377,6 +396,7 @@ def plotdist2var(
     plotname=None,
     c1=None,
     c2=None,
+    extension=".png",  # Defined globally and not within this functions scope, required for testing
 ):
     """Dist plot for 2 variables"""
 
@@ -472,6 +492,7 @@ def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=Fal
     dfnew[arg2] = dataunitconversion(df[arg2], arg2, nm)
 
     # Plot data using seaborn
+    fig, ax = plt.subplots(figsize=(15, 12))  # Need a fig to return for tests
     sns.jointplot(arg1, arg2, data=dfnew, kind="reg", height=15)
     plt.xlim(xmin, xmax)
     plt.ylim(ymin, ymax)
