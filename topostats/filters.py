@@ -1,8 +1,6 @@
 """Contains filter functions that take a 2D array representing an image as an input, as well as necessary parameters,
 and return a 2D array of the same size representing the filtered image."""
 import logging
-from pathlib import Path
-from typing import Union
 
 from skimage.filters import gaussian
 import numpy as np
@@ -137,41 +135,130 @@ class Filters:
         LOGGER.info(f"[{self.filename}] : Row and column medians calculated.")
         return medians
 
-    def align_rows(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
-        """Returns a copy of the input image with rows aligned by median height.
-
-        Parameters
-        ----------
-        image: np.ndarray
-            2-D image to align rows.
-        mask: np.ndarray
-            Boolean array of points to mask.
-        Returns
-        -------
-        np.ndarray
-            Returns a copy of the input image with rows aligned by median height.
-        """
-        image_cp = image.copy()
+    def median_flatten(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         if mask is not None:
-            if mask.all():
-                LOGGER.error(f"[{self.filename}] : Mask covers entire image. Adjust filtering thresholds/method.")
+            read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
+            LOGGER.info("median flattening with mask")
+        else:
+            read_matrix = image
+            LOGGER.info("median flattening without mask")
 
-        medians = self.row_col_medians(image_cp, mask)
-        row_medians = medians["rows"]
-        median_row_height = self._median_row_height(row_medians)
-        LOGGER.info(f"[{self.filename}] : Median Row Height: {median_row_height}")
+        for j in range(image.shape[0]):
+            # Get the median of the row
+            m = np.nanmedian(read_matrix[j, :])
+            # print(m)
+            if not np.isnan(m):
+                image[j, :] -= m
+        return image
 
-        # Calculate the differences between the row medians and the median row height
-        row_median_diffs = self._row_median_diffs(row_medians, median_row_height)
+    def remove_plane_tilt(self, image: np.ndarray, mask: np.ndarray = None):
+        if mask is not None:
+            read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
+            LOGGER.info("plane removal with mask")
+        else:
+            read_matrix = image
+            LOGGER.info("plane removal without mask")
 
-        # Adjust the row medians accordingly
-        # FIXME : I think this can be done using arrays directly, no need to loop.
-        for i in range(image_cp.shape[0]):
-            # if np.isnan(row_median_diffs[i]):
-            #     LOGGER.info(f"{i} Row_median is nan! : {row_median_diffs[i]}")
-            image_cp[i] -= row_median_diffs[i]
-        LOGGER.info(f"[{self.filename}] : Rows aligned")
-        return image_cp
+        # LOBF
+        # Calculate medians
+        medians_x = [np.nanmedian(read_matrix[:, i]) for i in range(read_matrix.shape[1])]
+        medians_y = [np.nanmedian(read_matrix[j, :]) for j in range(read_matrix.shape[0])]
+
+        # Fit linear x
+        px = np.polyfit(range(0, len(medians_x)), medians_x, 1)
+        LOGGER.info(f"x-polyfit 1st order: {px}")
+        py = np.polyfit(range(0, len(medians_y)), medians_y, 1)
+        LOGGER.info(f"y-polyfit 1st order: {py}")
+
+        if px[0] != 0:
+            if not np.isnan(px[0]):
+                LOGGER.info("removing x plane tilt")
+                for j in range(0, image.shape[0]):
+                    for i in range(0, image.shape[1]):
+                        image[j, i] -= px[0] * (i)
+            else:
+                LOGGER.info("x gradient is nan, skipping plane tilt x removal")
+        else:
+            LOGGER.info("x gradient is zero, skipping plane tilt x removal")
+
+        if py[0] != 0:
+            if not np.isnan(py[0]):
+                LOGGER.info("removing y plane tilt")
+                for j in range(0, image.shape[0]):
+                    for i in range(0, image.shape[1]):
+                        image[j, i] -= py[0] * (j)
+            else:
+                LOGGER.info("y gradient is nan, skipping plane tilt y removal")
+        else:
+            LOGGER.info("y gradient is zero, skipping plane tilt y removal")
+
+        return image
+
+    def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None):
+        if mask is not None:
+            read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
+            LOGGER.info("quadratic bow removal with mask")
+        else:
+            read_matrix = image
+            LOGGER.info("quadratic bow removal without mask")
+
+        # Calculate medians
+        medians_x = [np.nanmedian(read_matrix[:, i]) for i in range(read_matrix.shape[1])]
+
+        # Fit quadratic x
+        px = np.polyfit(range(0, len(medians_x)), medians_x, 2)
+        LOGGER.info(f"x polyfit 2nd order: {px}")
+
+        # Handle divide by zero
+        if px[0] != 0:
+            if not np.isnan(px[0]):
+                # Remove quadratic in x
+                cx = -px[1] / (2 * px[0])
+                for j in range(0, image.shape[0]):
+                    for i in range(0, image.shape[1]):
+                        image[j, i] -= px[0] * (i - cx) ** 2
+            else:
+                LOGGER.info("quadratic polyfit returns nan, skipping quadratic removal")
+        else:
+            LOGGER.info("quadratic polyfit returns zero, skipping quadratic removal")
+
+        return image
+
+    # def align_rows(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
+    #     """Returns a copy of the input image with rows aligned by median height.
+
+    #     Parameters
+    #     ----------
+    #     image: np.ndarray
+    #         2-D image to align rows.
+    #     mask: np.ndarray
+    #         Boolean array of points to mask.
+    #     Returns
+    #     -------
+    #     np.ndarray
+    #         Returns a copy of the input image with rows aligned by median height.
+    #     """
+    #     image_cp = image.copy()
+    #     if mask is not None:
+    #         if mask.all():
+    #             LOGGER.error(f"[{self.filename}] : Mask covers entire image. Adjust filtering thresholds/method.")
+
+    #     medians = self.row_col_medians(image_cp, mask)
+    #     row_medians = medians["rows"]
+    #     median_row_height = self._median_row_height(row_medians)
+    #     LOGGER.info(f"[{self.filename}] : Median Row Height: {median_row_height}")
+
+    #     # Calculate the differences between the row medians and the median row height
+    #     row_median_diffs = self._row_median_diffs(row_medians, median_row_height)
+
+    #     # Adjust the row medians accordingly
+    #     # FIXME : I think this can be done using arrays directly, no need to loop.
+    #     for i in range(image_cp.shape[0]):
+    #         # if np.isnan(row_median_diffs[i]):
+    #         #     LOGGER.info(f"{i} Row_median is nan! : {row_median_diffs[i]}")
+    #         image_cp[i] -= row_median_diffs[i]
+    #     LOGGER.info(f"[{self.filename}] : Rows aligned")
+    #     return image_cp
 
     @staticmethod
     def _median_row_height(array: np.ndarray) -> float:
@@ -183,34 +270,34 @@ class Filters:
         """Calculate difference of row medians from the median row height"""
         return row_medians - median_row_height
 
-    def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
-        """Returns a copy of the input image after removing any linear plane slant.
+    # def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
+    #     """Returns a copy of the input image after removing any linear plane slant.
 
-        Parameters
-        ----------
-        image: np.ndarray
-            2-D image to align rows.
-        mask: np.ndarray
-            Boolean array of points to mask.
-        Returns
-        -------
-        np.ndarray
-            Returns a copy of the input image after removing any linear plane slant.
-        """
-        image_cp = image.copy()
-        medians = self.row_col_medians(image_cp, mask)
-        gradient = {}
-        gradient["x"] = self.calc_gradient(array=medians["rows"], shape=medians["rows"].shape[0])
-        gradient["y"] = self.calc_gradient(medians["cols"], medians["cols"].shape[0])
-        LOGGER.info(f'[{self.filename}] : X-gradient: {gradient["x"]}')
-        LOGGER.info(f'[{self.filename}] : Y-gradient: {gradient["y"]}')
+    #     Parameters
+    #     ----------
+    #     image: np.ndarray
+    #         2-D image to align rows.
+    #     mask: np.ndarray
+    #         Boolean array of points to mask.
+    #     Returns
+    #     -------
+    #     np.ndarray
+    #         Returns a copy of the input image after removing any linear plane slant.
+    #     """
+    #     image_cp = image.copy()
+    #     medians = self.row_col_medians(image_cp, mask)
+    #     gradient = {}
+    #     gradient["x"] = self.calc_gradient(array=medians["rows"], shape=medians["rows"].shape[0])
+    #     gradient["y"] = self.calc_gradient(medians["cols"], medians["cols"].shape[0])
+    #     LOGGER.info(f'[{self.filename}] : X-gradient: {gradient["x"]}')
+    #     LOGGER.info(f'[{self.filename}] : Y-gradient: {gradient["y"]}')
 
-        for i in range(image_cp.shape[0]):
-            for j in range(image_cp.shape[1]):
-                image_cp[i, j] -= gradient["x"] * i
-                image_cp[i, j] -= gradient["y"] * j
-        LOGGER.info(f"[{self.filename}] : X/Y tilt removed")
-        return image_cp
+    #     for i in range(image_cp.shape[0]):
+    #         for j in range(image_cp.shape[1]):
+    #             image_cp[i, j] -= gradient["x"] * i
+    #             image_cp[i, j] -= gradient["y"] * j
+    #     LOGGER.info(f"[{self.filename}] : X/Y tilt removed")
+    #     return image_cp
 
     @staticmethod
     def calc_diff(array: np.ndarray) -> np.ndarray:
@@ -221,24 +308,24 @@ class Filters:
         """Calculate the gradient of an array."""
         return self.calc_diff(array) / shape
 
-    def average_background(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
-        """Zero the background
+    # def average_background(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
+    #     """Zero the background
 
-        Parameters
-        ----------
-        image: np.array
-            Numpy array representing image.
-        mask: np.array
-            Mask of the array, should have the same dimensions as image.
+    #     Parameters
+    #     ----------
+    #     image: np.array
+    #         Numpy array representing image.
+    #     mask: np.array
+    #         Mask of the array, should have the same dimensions as image.
 
-        Returns
-        -------
-        np.ndarray
-            Numpy array of image zero averaged.
-        """
-        medians = self.row_col_medians(image, mask)
-        LOGGER.info(f"[{self.filename}] : Zero averaging background")
-        return (image.T - np.array(medians["rows"], ndmin=1)).T
+    #     Returns
+    #     -------
+    #     np.ndarray
+    #         Numpy array of image zero averaged.
+    #     """
+    #     medians = self.row_col_medians(image, mask)
+    #     LOGGER.info(f"[{self.filename}] : Zero averaging background")
+    #     return (image.T - np.array(medians["rows"], ndmin=1)).T
 
     def gaussian_filter(self, image: np.ndarray, **kwargs) -> np.array:
         """Apply Gaussian filter to an image.
@@ -255,7 +342,8 @@ class Filters:
 
         """
         LOGGER.info(
-            f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode}; Gaussian blur (px) : {self.gaussian_size})."
+            f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode};"
+            f" Gaussian blur (px) : {self.gaussian_size})."
         )
         return gaussian(
             image,
@@ -281,25 +369,27 @@ class Filters:
         filter.filter_image()
 
         """
-        self.images["initial_align"] = self.align_rows(self.images["pixels"], mask=None)
-        self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
+        self.images["initial_align"] = self.median_flatten(self.images["pixels"], mask=None)
+        self.images["initial_tilt_removal"] = self.remove_plane_tilt(self.images["initial_align"], mask=None)
+        self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None)
+
         # Get the thresholds
         try:
             self.thresholds = get_thresholds(
-                image=self.images["initial_tilt_removal"],
+                image=self.images["initial_quadratic_removal"],
                 threshold_method=self.threshold_method,
                 otsu_threshold_multiplier=self.otsu_threshold_multiplier,
-                threshold_std_dev=self.threshold_std_dev,
+                threshold_std_dev=(self.threshold_std_dev_lower, self.threshold_std_dev_upper),
                 absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
             )
         except TypeError as type_error:
             raise type_error
         self.images["mask"] = get_mask(
-            image=self.images["initial_tilt_removal"], thresholds=self.thresholds, img_name=self.filename
+            image=self.images["initial_quadratic_removal"], thresholds=self.thresholds, img_name=self.filename
         )
-        self.images["masked_align"] = self.align_rows(self.images["initial_tilt_removal"], self.images["mask"])
-        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], self.images["mask"])
-        self.images["zero_averaged_background"] = self.average_background(
+        self.images["masked_align"] = self.median_flatten(self.images["initial_tilt_removal"], self.images["mask"])
+        self.images["masked_tilt_removal"] = self.remove_plane_tilt(self.images["masked_align"], self.images["mask"])
+        self.images["masked_quadratic_removal"] = self.remove_quadratic(
             self.images["masked_tilt_removal"], self.images["mask"]
         )
-        self.images["gaussian_filtered"] = self.gaussian_filter(self.images["zero_averaged_background"])
+        self.images["gaussian_filtered"] = self.gaussian_filter(self.images["masked_quadratic_removal"])
