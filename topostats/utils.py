@@ -75,6 +75,7 @@ def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> Li
     base_dir = Path("./") if base_dir is None else Path(base_dir)
     return list(base_dir.glob("**/*" + file_ext))
 
+
 def get_out_path(image_path: Path = None, base_dir: Path = None, output_dir: Path = None) -> Path:
     """Adds the image path relative to the base directory to the output directory.
 
@@ -92,14 +93,14 @@ def get_out_path(image_path: Path = None, base_dir: Path = None, output_dir: Pat
     Path
         The output path that mirrors the input path structure.
     """
+    # If image_path is relative and doesn't include base_dir then a ValueError is raisedin which
+    # case we just want to append the image_path to the output_dir
     try:
         # Remove the filename if there is a suffix, not always the case as get_out_path is called from folder_grainstats()
         if image_path.suffix:
             return output_dir / image_path.parent.relative_to(base_dir)
         else:
             return output_dir / image_path.relative_to(base_dir)
-    # If image_path is a relative path and doesn't include base_dir the relative_to() method raises a ValueError in which
-    # case we just want to append the image_path to the output_dir
     except ValueError:
         if image_path.suffix:
             return output_dir / image_path.parent
