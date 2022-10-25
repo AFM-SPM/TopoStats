@@ -75,6 +75,7 @@ def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> Li
     base_dir = Path("./") if base_dir is None else Path(base_dir)
     return list(base_dir.glob("**/*" + file_ext))
 
+
 def get_out_path(
     image_path: Union[str, Path] = None, base_dir: Union[str, Path] = None, output_dir: Union[str, Path] = None
 ) -> Path:
@@ -95,7 +96,8 @@ def get_out_path(
         The output path that mirrors the input path structure.
     """
     try:
-        # Remove the filename if there is a suffix, not always the case as get_out_path is called from folder_grainstats()
+        # Remove the filename if there is a suffix, not always the case as
+        # get_out_path is called from folder_grainstats()
         if image_path.suffix:
             return output_dir / image_path.parent.relative_to(base_dir)
         else:
@@ -203,7 +205,7 @@ def get_thresholds(
     image: np.ndarray,
     threshold_method: str,
     otsu_threshold_multiplier: float = None,
-    threshold_std_dev: float = None,
+    threshold_std_dev: tuple = None,
     absolute: tuple = None,
     **kwargs,
 ) -> Dict:
@@ -231,8 +233,10 @@ def get_thresholds(
         thresholds["upper"] = threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)
     elif threshold_method == "std_dev":
         try:
-            thresholds["lower"] = threshold(image, method="mean") - threshold_std_dev * np.nanstd(image)
-            thresholds["upper"] = threshold(image, method="mean") + threshold_std_dev * np.nanstd(image)
+            if threshold_std_dev[0] is not None:
+                thresholds["lower"] = threshold(image, method="mean") - threshold_std_dev[0] * np.nanstd(image)
+            if threshold_std_dev[1] is not None:
+                thresholds["upper"] = threshold(image, method="mean") + threshold_std_dev[1] * np.nanstd(image)
         except TypeError as typeerror:
             raise typeerror
     elif threshold_method == "absolute":

@@ -24,7 +24,8 @@ class Filters:
         pixel_to_nm_scaling: float,
         threshold_method: str = "otsu",
         otsu_threshold_multiplier: float = 1.7,
-        threshold_std_dev: float = None,
+        threshold_std_dev_lower: float = None,
+        threshold_std_dev_upper: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
         gaussian_size: float = None,
@@ -60,16 +61,18 @@ class Filters:
         self.gaussian_mode = gaussian_mode
         self.threshold_method = threshold_method
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
-        self.threshold_std_dev = threshold_std_dev
+        self.threshold_std_dev_lower = threshold_std_dev_lower
+        self.threshold_std_dev_upper = threshold_std_dev_upper
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
         self.images = {
             "pixels": image,
             "initial_align": None,
             "initial_tilt_removal": None,
+            "initial_quadratic_removal": None,
             "masked_align": None,
             "masked_tilt_removal": None,
-            "zero_averaged_background": None,
+            "masked_quadratic_removal": None,
             "mask": None,
             "gaussian_filtered": None,
         }

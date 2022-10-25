@@ -2,8 +2,7 @@
 # pylint: disable=no-name-in-module
 from collections import defaultdict
 import logging
-from pathlib import Path
-from typing import Union, List, Dict
+from typing import List, Dict
 import numpy as np
 
 from skimage.segmentation import clear_border
@@ -33,7 +32,8 @@ class Grains:
         pixel_to_nm_scaling: float,
         threshold_method: str = None,
         otsu_threshold_multiplier: float = None,
-        threshold_std_dev: float = None,
+        threshold_std_dev_lower: float = None,
+        threshold_std_dev_upper: float = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
         absolute_area_threshold: dict = {
@@ -73,7 +73,8 @@ class Grains:
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.threshold_method = threshold_method
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
-        self.threshold_std_dev = threshold_std_dev
+        self.threshold_std_dev_lower = threshold_std_dev_lower
+        self.threshold_std_dev_upper = threshold_std_dev_upper
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
         self.absolute_area_threshold = absolute_area_threshold
@@ -168,7 +169,8 @@ class Grains:
 
     def remove_small_objects(self, image: np.array, **kwargs):
         """Remove small objects."""
-        # If self.minimum_grain_size is -1, then this means that there were no grains to calculate the minimum grian size from.
+        # If self.minimum_grain_size is -1, then this means that
+        # there were no grains to calculate the minimum grian size from.
         if self.minimum_grain_size != -1:
             small_objects_removed = remove_small_objects(
                 image,
@@ -274,7 +276,7 @@ class Grains:
             image=self.image,
             threshold_method=self.threshold_method,
             otsu_threshold_multiplier=self.otsu_threshold_multiplier,
-            threshold_std_dev=self.threshold_std_dev,
+            threshold_std_dev=(self.threshold_std_dev_lower, self.threshold_std_dev_upper),
             absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
         )
         try:
@@ -326,5 +328,5 @@ class Grains:
             if region_props_count == 0:
                 self.region_properties = None
         # FIXME : Identify what exception is raised with images without grains and replace broad except
-        except:
+        except:  # noqa: E722
             LOGGER.info(f"[{self.filename}] : No grains found.")
