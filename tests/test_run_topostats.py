@@ -15,7 +15,7 @@ def test_process_scan_lower(regtest, tmp_path, process_scan_config: dict, load_s
     process_scan_config["grains"]["direction"] = "lower"
     img_dic = load_scan_data.img_dic
     _, results = process_scan(
-        img_path_px2nm=(img_dic["images"][0], img_dic["img_paths"][0], img_dic["px_2_nms"][0]),
+        img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -33,7 +33,7 @@ def test_process_scan_upper(regtest, tmp_path, process_scan_config: dict, load_s
     """Regression test for checking the process_scan functions correctly"""
     img_dic = load_scan_data.img_dic
     _, results = process_scan(
-        img_path_px2nm=(img_dic["images"][0], img_dic["img_paths"][0], img_dic["px_2_nms"][0]),
+        img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -52,7 +52,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     process_scan_config["grains"]["direction"] = "both"
     img_dic = load_scan_data.img_dic
     _, results = process_scan(
-        img_path_px2nm=(img_dic["images"][0], img_dic["img_paths"][0], img_dic["px_2_nms"][0]),
+        img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],

@@ -1,4 +1,5 @@
 """Fixtures for testing"""
+from ast import Load
 import importlib.resources as pkg_resources
 from pathlib import Path
 from typing import Dict
@@ -270,12 +271,19 @@ def load_scan(loading_config: dict) -> LoadScans:
     scan_loader = LoadScans([RESOURCES / "minicircle.spm"], **loading_config)
     return scan_loader
 
+@pytest.fixture
+def load_scan_data(load_scan: LoadScans) -> LoadScans:
+    """Instance of a LoadScans object after applying the get_data func."""
+    scan_data = LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
+    scan_data.get_data()
+    return scan_data
 
-#@pytest.fixture
-#def load_scan_asd() -> LoadScans:
-#    """Instantiate a LoadScans object."""
-#    scan_loader = LoadScans([RESOURCES / "minicircles.asd"], channel="topography")
-#    return scan_loader
+
+@pytest.fixture
+def load_scan_asd() -> LoadScans:
+    """Instantiate a LoadScans object."""
+    scan_loader = LoadScans([RESOURCES / "minicircles.asd"], channel="topography")
+    return scan_loader
 
 
 # Minicircle fixtures

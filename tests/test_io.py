@@ -57,19 +57,18 @@ def test_load_scan_spm(load_scan: LoadScans) -> None:
 #     assert test_filters_random.pixel_to_nm_scaling == expected
 
 
-# uncomment below func and import libasd to test asd formats
-#def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
-#    """Test loading of high-speed asd image"""
-#    load_scan_asd.img_path = str(load_scan_asd.img_paths[0])
-#    load_scan_asd.filename = load_scan_asd.img_paths[0].stem
-#    images, px_to_nm_scaling = load_scan_asd.load_asd()
-#    image = images[40]  # some frames are just black so pick a middle one
-#    assert len(images) == 64
-#    assert isinstance(image, np.ndarray)
-#    assert image.shape == (256, 256)
-#    assert image.sum() == 5958870.556640625
-#    assert isinstance(px_to_nm_scaling, float)
-#    assert px_to_nm_scaling == 1.953125
+def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
+    """Test loading of high-speed asd image"""
+    load_scan_asd.img_path = str(load_scan_asd.img_paths[0])
+    load_scan_asd.filename = load_scan_asd.img_paths[0].stem
+    images, px_to_nm_scaling = load_scan_asd.load_asd()
+    image = images[40]  # some frames are just black so pick a middle one
+    assert len(images) == 64
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (256, 256)
+    assert image.sum() == 5958870.556640625
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 1.953125
 
 
 def test_load_scan_load_jpk() -> None:
@@ -82,19 +81,17 @@ def test_load_scan_extract_jpk() -> None:
     assert True
 
 
-# uncomment below line and import libasd to test asd formats
 @pytest.mark.parametrize(
-    "load_scan_object, suffix, length, frame_no, image_shape, image_sum, filename, pixel_to_nm_scaling",
+    "load_scan_object, suffix, length, image_shape, image_sum, filename, pixel_to_nm_scaling",
     [
-        ("load_scan", ".spm", 1, 0, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
-        #("load_scan_asd", ".asd", 64, 40, (256, 256), 5958870.556640625, "minicircles_frame_40", 1.953125),
+        ("load_scan", ".spm", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
+        ("load_scan_asd", ".asd", 64, (256, 256), 5958870.556640625, "minicircles_frame_40", 1.953125),
     ],
 )
 def test_load_scan_get_data(
     load_scan_object: LoadScans,
     suffix: str,
     length: int,
-    frame_no: int,
     image_shape: tuple,
     image_sum: float,
     filename: str,
@@ -106,13 +103,11 @@ def test_load_scan_get_data(
     scan.get_data()
     assert isinstance(scan.suffix, str)
     assert scan.suffix == suffix
-    assert len(scan.img_dic["images"]) == length
-    assert len(scan.img_dic["img_paths"]) == length
-    assert len(scan.img_dic["px_2_nms"]) == length
-    assert isinstance(scan.img_dic["images"][frame_no], np.ndarray)
-    assert scan.img_dic["images"][frame_no].shape == image_shape
-    assert scan.img_dic["images"][frame_no].sum() == image_sum
-    assert isinstance(scan.img_dic["img_paths"][frame_no], Path)
-    assert scan.img_dic["img_paths"][frame_no] == RESOURCES / filename
-    assert isinstance(scan.img_dic["px_2_nms"][frame_no], float)
-    assert scan.img_dic["px_2_nms"][frame_no] == pixel_to_nm_scaling
+    assert len(scan.img_dic) == length
+    assert isinstance(scan.img_dic[filename]["image"], np.ndarray)
+    assert scan.img_dic[filename]["image"].shape == image_shape
+    assert scan.img_dic[filename]["image"].sum() == image_sum
+    assert isinstance(scan.img_dic[filename]["img_path"], Path)
+    assert scan.img_dic[filename]["img_path"] == RESOURCES / filename
+    assert isinstance(scan.img_dic[filename]["px_2_nm"], float)
+    assert scan.img_dic[filename]["px_2_nm"] == pixel_to_nm_scaling
