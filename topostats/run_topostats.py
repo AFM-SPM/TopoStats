@@ -8,7 +8,7 @@ from functools import partial
 import importlib.resources as pkg_resources
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Union, Tuple
+from typing import Union, Dict
 import yaml
 
 import pandas as pd
@@ -125,7 +125,7 @@ def create_parser() -> arg.ArgumentParser:
 
 
 def process_scan(
-    img_path_px2nm: Tuple[np.ndarray, str, float],
+    img_path_px2nm: Dict[str, Union[np.ndarray, Path, float]],
     base_dir: Union[str, Path],
     filter_config: dict,
     grains_config: dict,
@@ -138,12 +138,8 @@ def process_scan(
 
     Parameters
     ----------
-    image_path : Union[str, Path]
-        Path to image to process.
-    base_dir : Union[str, Path]
-        Directory to recursively search for files, if not specified the current directory is scanned.
-    loading_config : dict
-        Dictionary of configuration options for running the Load Scan stage.
+    img_path_px2nm : Dict[str, Union[np.ndarray, Path, float]]
+        A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's pixel to namometre scaling value.
     filter_config : dict
         Dictionary of configuration options for running the Filter stage.
     grains_config : dict
@@ -166,7 +162,9 @@ def process_scan(
     Results are written to CSV and images produced in configuration options request them.
     """
 
-    image, image_path, pixel_to_nm_scaling = img_path_px2nm
+    image = img_path_px2nm["image"] 
+    image_path = img_path_px2nm["img_path"] 
+    pixel_to_nm_scaling = img_path_px2nm["px_2_nm"]
     filename = image_path.stem
 
     LOGGER.info(f"Processing : {filename}")
@@ -431,7 +429,7 @@ def main():
         ) as pbar:
             for img, result in pool.imap_unordered(
                 processing_function,
-                zip(scan_data_dict["images"], scan_data_dict["img_paths"], scan_data_dict["px_2_nms"]),
+                scan_data_dict.values(),
             ):
                 results[str(img)] = result
                 pbar.update()

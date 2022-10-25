@@ -35,7 +35,11 @@ def validate_config(config: dict):
 
             ),
             "loading": {
-                "channel": str,
+                "channel": Or(
+                    "Height",
+                    "topography",
+                    "phase",
+                ),
             },
             "filter": {
                 "run": Or(
