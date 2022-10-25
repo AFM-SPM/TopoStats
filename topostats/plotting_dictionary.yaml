@@ -30,6 +30,11 @@ initial_tilt_removal:
   title: "Initial Tilt Removal (Unmasked)"
   image_type: "non-binary"
   core_set: false
+initial_quadratic_removal:
+  filename: "xx-initial_quadratic_removal_unmasked"
+  title: "Initial Quadratic Removal (Unmasked)"
+  image_type: "non-binary"
+  core_set: false
 mask:
   filename: "04-binary_mask.png"
   title: "Binary Mask"
@@ -45,9 +50,9 @@ masked_tilt_removal:
   title: "Secondary Tilt Removal (Masked)"
   image_type: "non-binary"
   core_set: false
-zero_averaged_background:
-  filename: "07-zero_average_background"
-  title: "Zero Average Background"
+masked_quadratic_removal:
+  filename: "xx-quadratic_removal_masked"
+  title: "Secondary Quadratic Removal"
   image_type: "non-binary"
   core_set: false
 gaussian_filtered:

@@ -50,7 +50,8 @@ def validate_config(config: dict):
                     "UserIn0Retrace",
                     "UserIn1Trace",
                     "UserIn1Retrace",  # end of ibw channels
-                    error="Invalid value in config file for 'channel', all possible image channels are seen in the above error message.",
+                    error="Invalid value in config file for 'channel', all possible"
+                    "image channels are seen in the above error message.",
                 )
             },
             "filter": {
@@ -251,6 +252,19 @@ def validate_plotting(config: dict) -> None:
                 ),
                 "core_set": bool,
             },
+            "initial_quadratic_removal": {
+                "filename": str,
+                "title": str,
+                "image_type": Or(
+                    "binary",
+                    "non-binary",
+                    error=(
+                        "Invalid value in config 'initial_quadratic_removal.image_type', valid values "
+                        "are 'binary' or 'non-binary'"
+                    ),
+                ),
+                "core_set": bool,
+            },
             "mask": {
                 "filename": str,
                 "title": str,
@@ -287,14 +301,14 @@ def validate_plotting(config: dict) -> None:
                 ),
                 "core_set": bool,
             },
-            "zero_averaged_background": {
+            "masked_quadratic_removal": {
                 "filename": str,
                 "title": str,
                 "image_type": Or(
                     "binary",
                     "non-binary",
                     error=(
-                        "Invalid value in config 'zero_averaged_bacground.image_type', valid values "
+                        "Invalid value in config 'masked_quadratic_removal.image_type', valid values "
                         "are 'binary' or 'non-binary'"
                     ),
                 ),
