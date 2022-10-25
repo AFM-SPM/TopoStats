@@ -271,13 +271,6 @@ def load_scan(loading_config: dict) -> LoadScans:
     return scan_loader
 
 
-@pytest.fixture
-def load_scan_data(load_scan: LoadScans) -> LoadScans:
-    """Instantiate a LoadScans object."""
-    load_scan.get_data()
-    return load_scan
-
-
 #@pytest.fixture
 #def load_scan_asd() -> LoadScans:
 #    """Instantiate a LoadScans object."""
