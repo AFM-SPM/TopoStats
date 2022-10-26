@@ -121,7 +121,7 @@ class LoadScans:
                 channel_name = channel.decode("latin1").split(" ")[1][1:-1]
                 # channel_description = channel.decode('latin1').split('"')[1] # incase the blank field raises quesions?
                 labels.append(channel_name)
-            LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.suffix} channel list: {labels}")
+            LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
             raise
 
         return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
@@ -178,7 +178,7 @@ class LoadScans:
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
         except ValueError:
-            LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.suffix} channel list: {labels}")
+            LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
             raise
         except Exception as exception:
             LOGGER.error(f"[{self.filename}] : {exception}")
@@ -253,10 +253,10 @@ class LoadScans:
             images = [channel_data[i].image() for i in range(len(channel_data))]
         except ValueError:
             LOGGER.error(
-                f"[{self.filename}] : {self.channel} not found in {self.suffix} channel list: [{ch1_name}, {ch2_name}"
+                f"[{self.filename}] : {self.channel} not found in {self.img_path.suffix} channel list: [{ch1_name}, {ch2_name}"
             )
             raise ValueError(
-                f"[{self.filename}] : {self.channel} not found in {self.suffix} channel list: [{ch1_name}, {ch2_name}"
+                f"[{self.filename}] : {self.channel} not found in {self.img_path.suffix} channel list: [{ch1_name}, {ch2_name}"
             )
 
         return (images, self._asd_px_to_nm_scaling(scan))
