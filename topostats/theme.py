@@ -30,11 +30,10 @@ class Colormap:
         """
         if name.lower() == "nanoscope":
             self.cmap = self.nanoscope()
-            LOGGER.info("[theme] Colormap set to : nanoscope")
         else:
             # Get one of the matplotlib colormaps
             self.cmap = mpl.colormaps[name]
-            LOGGER.info(f"[theme] Colormap set to : {name}")
+        LOGGER.info(f"[theme] Colormap set to : {name}")
 
     def get_cmap(self):
         """Return the matplotlib.cm colormap object"""
