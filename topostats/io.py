@@ -111,7 +111,7 @@ class LoadScans:
             image = np.flipud(np.array(self.channel_data.pixels))
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
-            raaise
+            raise
         except Exception:
             # trying to return the error with options of possible channel values
             labels = []

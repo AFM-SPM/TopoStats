@@ -55,13 +55,13 @@ def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
     assert px_to_nm_scaling == 1.953125
 
 
-def test_load_scan_ibw(load_scan_ibw: LoadScan) -> None:
+def test_load_scan_ibw(load_scan_ibw: LoadScans) -> None:
     load_scan_ibw.img_path = load_scan_ibw.img_paths[0]
     load_scan_ibw.filename = load_scan_ibw.img_paths[0].stem
     image, px_to_nm_scaling = load_scan_ibw.load_ibw()
-    assert isinstance(load_scan_ibw.image, np.ndarray)
-    assert load_scan_ibw.image.shape == (512, 512)
-    assert load_scan_ibw.image.sum() == -218091520.0
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (512, 512)
+    assert image.sum() == -218091520.0
     assert isinstance(px_to_nm_scaling, float)
     assert px_to_nm_scaling == 1.5625
 
