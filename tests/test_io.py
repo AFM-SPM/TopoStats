@@ -41,6 +41,36 @@ def test_load_scan_spm(load_scan: LoadScans) -> None:
     assert px_to_nm_scaling == 0.4940029296875
 
 
+def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
+    """Test loading of high-speed asd image"""
+    load_scan_asd.img_path = str(load_scan_asd.img_paths[0])
+    load_scan_asd.filename = load_scan_asd.img_paths[0].stem
+    images, px_to_nm_scaling = load_scan_asd.load_asd()
+    image = images[40]  # some frames are just black so pick a middle one
+    assert len(images) == 64
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (256, 256)
+    assert image.sum() == 5958870.556640625
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 1.953125
+
+
+def test_load_scan_ibw(load_scan_ibw: LoadScan) -> None:
+    load_scan_ibw.img_path = load_scan_ibw.img_paths[0]
+    load_scan_ibw.filename = load_scan_ibw.img_paths[0].stem
+    image, px_to_nm_scaling = load_scan_ibw.load_ibw()
+    assert isinstance(load_scan_ibw.image, np.ndarray)
+    assert load_scan_ibw.image.shape == (512, 512)
+    assert load_scan_ibw.image.sum() == -218091520.0
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 1.5625
+
+
+def test_load_scan_load_jpk() -> None:
+    """Test loading of JPK image."""
+    assert True
+
+
 # FIXME : Get this test working
 # @pytest.mark.parametrize(
 #     "unit, x, y, expected",
@@ -57,25 +87,6 @@ def test_load_scan_spm(load_scan: LoadScans) -> None:
 #     assert test_filters_random.pixel_to_nm_scaling == expected
 
 
-def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
-    """Test loading of high-speed asd image"""
-    load_scan_asd.img_path = str(load_scan_asd.img_paths[0])
-    load_scan_asd.filename = load_scan_asd.img_paths[0].stem
-    images, px_to_nm_scaling = load_scan_asd.load_asd()
-    image = images[40]  # some frames are just black so pick a middle one
-    assert len(images) == 64
-    assert isinstance(image, np.ndarray)
-    assert image.shape == (256, 256)
-    assert image.sum() == 5958870.556640625
-    assert isinstance(px_to_nm_scaling, float)
-    assert px_to_nm_scaling == 1.953125
-
-
-def test_load_scan_load_jpk() -> None:
-    """Test loading of JPK image."""
-    assert True
-
-
 def test_load_scan_extract_jpk() -> None:
     """Test extraction of data from loaded JPK image."""
     assert True
@@ -85,6 +96,7 @@ def test_load_scan_extract_jpk() -> None:
     "load_scan_object, suffix, length, image_shape, image_sum, filename, pixel_to_nm_scaling",
     [
         ("load_scan", ".spm", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
+        ("load_scan_ibw", ".ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625),
         ("load_scan_asd", ".asd", 64, (256, 256), 5958870.556640625, "minicircles_frame_40", 1.953125),
     ],
 )

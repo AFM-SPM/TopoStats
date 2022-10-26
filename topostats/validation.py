@@ -36,10 +36,26 @@ def validate_config(config: dict):
             ),
             "loading": {
                 "channel": Or(
-                    "Height",
+                    "ZSensor",
+                    "",
+                    "Stiffness",
+                    "LogStiffness",
+                    "Adhesion",
+                    "Deformation",
+                    "Dissipation",
+                    "Height",  # end of spm channels
+                    "HeightTracee",
+                    "HeightRetrace",
+                    "ZSensorTrace",
+                    "ZSensorRetrace",
+                    "UserIn0Trace",
+                    "UserIn0Retrace",
+                    "UserIn1Trace",
+                    "UserIn1Retrace",  # end of ibw channels
                     "topography",
-                    "phase",
-                ),
+                    "phase",  # end of asd channels
+                    error="Invalid value in config file for 'channel', all possible image channels are seen in the above error message.",
+                )
             },
             "filter": {
                 "run": Or(
@@ -119,7 +135,10 @@ def validate_config(config: dict):
                     False,
                     error="Invalid value in config for 'grainstats.run', valid values are 'True' or 'False'",
                 ),
-                "cropped_size": float,
+                "cropped_size": Or(
+                    float,
+                    int,
+                ),
                 "save_cropped_grains": Or(
                     True,
                     False,

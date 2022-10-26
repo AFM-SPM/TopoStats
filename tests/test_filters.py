@@ -15,7 +15,6 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
 
-
 def test_row_col_medians_no_mask(
     test_filters_random: Filters, image_random_row_medians: np.array, image_random_col_medians: np.array
 ) -> None:
@@ -125,7 +124,7 @@ def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> N
     )
     target = gaussian(
         small_array_filters.images["zero_averaged_background"],
-        sigma=(filter_config["gaussian_size"] / 0.5),
+        sigma=(filter_config["gaussian_size"]),
         mode=filter_config["gaussian_mode"],
     )
     assert isinstance(small_array_filters.images["gaussian_filtered"], np.ndarray)
