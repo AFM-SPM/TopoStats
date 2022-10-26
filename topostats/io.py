@@ -6,8 +6,7 @@ from typing import Union, Dict
 import numpy as np
 
 from pySPM.Bruker import Bruker
-from afmformats import load_data
-import libasd  # uncomment and import libasd to use asd formats
+import libasd
 from afmformats.mod_creep_compliance import AFMCreepCompliance
 from ruamel.yaml import YAML, YAMLError
 from ruamel.yaml.main import round_trip_load as yaml_load, round_trip_dump as yaml_dump
@@ -152,7 +151,7 @@ class LoadScans:
 
     def _load_jpk(self) -> None:
         try:
-            jpk = load_data(self.img_path)
+            jpk = (self.img_path)
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
         except Exception as exception:
