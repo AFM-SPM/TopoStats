@@ -6,14 +6,17 @@ from typing import Union, Dict
 import numpy as np
 
 from pySPM.Bruker import Bruker
-import libasd
 from igor import binarywave
-from afmformats.mod_creep_compliance import AFMCreepCompliance
 from ruamel.yaml import YAML, YAMLError
 from ruamel.yaml.main import round_trip_load as yaml_load, round_trip_dump as yaml_dump
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+
+try:
+    import libasd
+except ModuleNotFoundError:
+    LOGGER.warning("libasd module not installed. Ignore if '.asd' files are not being processed. \n Otherwise install via 'pip install .[libasd]' or if on an M1/2 Mac, follow libasd installation guidelines for 'build yourself' here: https://github.com/ToruNiina/libasd")
 
 # pylint: disable=broad-except
 
@@ -208,15 +211,14 @@ class LoadScans:
             LOGGER.error(f"[{self.filename}] : {exception}")
         return jpk
 
-    # uncomment below func and import libasd to use asd formats
     def load_asd(self) -> tuple:
-    #    """Extract image and pixel to nm scaling from .asd files.
+        """Extract image and pixel to nm scaling from .asd files.
 
-    #    Returns
-    #    -------
-    #    tuple(np.ndarray, float)
-    #        A tuple containing the image and its pixel to nanometre scaling value.
-    #    """
+        Returns
+        -------
+        tuple(np.ndarray, float)
+            A tuple containing the image and its pixel to nanometre scaling value.
+        """
         try:
             img_path_str = str(self.img_path)
             scan = libasd.read_asd(img_path_str)
@@ -224,6 +226,7 @@ class LoadScans:
             scan_header = scan.header
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
+        
         try:
             if type(scan_header) == libasd.Header_v0:
                 # libasd docs seem like there is only 2 channels i.e. help(scan)
@@ -234,8 +237,8 @@ class LoadScans:
                 ch1_name = str(scan.header.data_kind_1ch).split(".")[1]
                 ch2_name = str(scan.header.data_kind_2ch).split(".")[1]
             else:
-                raise ValueError
-        except ValueError:
+                raise AttributeError
+        except AttributeError:
             LOGGER.error(
                 f"[{self.filename}] : File header not found. Header of type {type(scan_header)}, not [{libasd.Header_v0, libasd.Header_v1}]"
             )
@@ -259,7 +262,7 @@ class LoadScans:
 
         return (images, self._asd_px_to_nm_scaling(scan))
 
-    def _asd_px_to_nm_scaling(self, scan: Union[libasd.Data2ch_v0, libasd.Data2ch_v1]) -> float:
+    def _asd_px_to_nm_scaling(self, scan) -> float:  #: Union[libasd.Data2ch_v0, libasd.Data2ch_v1]) -> float:
         """Extracts the pixel to nanometre scaling value from an .asd file object.
 
         Parameters
@@ -279,7 +282,7 @@ class LoadScans:
         return px_to_nm_scaling
 
     @staticmethod
-    def _extract_jpk(jpk: AFMCreepCompliance) -> np.ndarray:
+    def _extract_jpk(jpk) -> np.ndarray:
         """Extract data from jpk object"""
 
     def get_data(self) -> None:
