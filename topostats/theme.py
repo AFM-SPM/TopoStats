@@ -1,9 +1,17 @@
-from matplotlib import cm
+"""Custom Bruker Nanoscope colorscale."""
+import logging
+import matplotlib as mpl
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 
+from topostats.logs.logs import LOGGER_NAME
+
+LOGGER = logging.getLogger(LOGGER_NAME)
+
 
 class Colormap:
+    """Class for setting the COlormap"""
+
     def __init__(self, name: str = "nanoscope"):
         self.name = name
         self.cmap = None
@@ -13,19 +21,27 @@ class Colormap:
         return f"TopoStats Colormap: {self.name}"
 
     def set(self, name: str):
-        # This function could probably do with some better string comparisons to ensure the correct colormap is picked up
+        """Set the ColorMap.
+
+        Parameters
+        ----------
+        name: str
+            Name of colormap
+        """
         if name.lower() == "nanoscope":
-            # print("Using the Nanoscope colormap for plotting")
             self.cmap = self.nanoscope()
+            LOGGER.info("[theme] Colormap set to : nanoscope")
         else:
             # Get one of the matplotlib colormaps
-            self.cmap = cm.get_cmap(name)
+            self.cmap = mpl.colormaps[name]
+            LOGGER.info(f"[theme] Colormap set to : {name}")
 
     def get_cmap(self):
         """Return the matplotlib.cm colormap object"""
         return self.cmap
 
-    def nanoscope(self):
+    @staticmethod
+    def nanoscope():
         """
         Returns a matplotlib compatible colormap that replicates the Bruker Nanoscope colorscale
         The colormap is implemented in Gwyddion's GwyGradient via 'Nanoscope.txt'
@@ -47,10 +63,6 @@ class Colormap:
         0.965682 0.995207 0.992278 0.974293 1
         0.971401 0.996006 0.993565 0.990347 1
         1 1 1 1 1
-
-        return colormap
-
-
         """
 
         N = 9  # Number of values
