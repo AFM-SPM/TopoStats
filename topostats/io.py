@@ -92,7 +92,6 @@ class LoadScans:
         self.channel = channel
         self.channel_data = None
         self.filename = None
-        self.suffix = None
         self.image = None
         self.pixel_to_nm_scaling = None
         self.img_dic = {}
@@ -292,17 +291,17 @@ class LoadScans:
         for img_path in self.img_paths:
             self.img_path = img_path
             self.filename = img_path.stem
-            self.suffix = img_path.suffix
+            suffix = img_path.suffix
             LOGGER.info(f"Extracting image from {self.img_path}")
-            if self.suffix == ".spm":
+            if suffix == ".spm":
                 self.image, self.pixel_to_nm_scaling = self.load_spm()
                 self.add_to_dic(self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling)
-            if self.suffix == ".jpk":
+            if suffix == ".jpk":
                 self.image, self.pixel_to_nm_scaling = self.load_jpk()
-            if self.suffix == ".ibw":
+            if suffix == ".ibw":
                 self.image, self.pixel_to_nm_scaling = self.load_ibw()
                 self.add_to_dic(self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling)
-            if self.suffix == ".asd":
+            if suffix == ".asd":
                 self.image, self.pixel_to_nm_scaling = self.load_asd()
                 for i, frame in enumerate(self.image):
                     filename = self.filename + f"_frame_{str(i)}"
