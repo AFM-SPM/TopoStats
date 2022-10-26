@@ -100,16 +100,15 @@ def test_load_scan_extract_jpk() -> None:
 
 
 @pytest.mark.parametrize(
-    "load_scan_object, suffix, length, image_shape, image_sum, filename, pixel_to_nm_scaling",
+    "load_scan_object, length, image_shape, image_sum, filename, pixel_to_nm_scaling",
     [
-        ("load_scan", ".spm", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
-        ("load_scan_ibw", ".ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625),
-        ("load_scan_asd", ".asd", 64, (256, 256), 5958870.556640625, "minicircles_frame_40", 1.953125),
+        ("load_scan", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
+        ("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625),
+        ("load_scan_asd", 64, (256, 256), 5958870.556640625, "minicircles_frame_40", 1.953125),
     ],
 )
 def test_load_scan_get_data(
     load_scan_object: LoadScans,
-    suffix: str,
     length: int,
     image_shape: tuple,
     image_sum: float,
@@ -122,8 +121,6 @@ def test_load_scan_get_data(
     try:
         scan = request.getfixturevalue(load_scan_object)
         scan.get_data()
-        assert isinstance(scan.suffix, str)
-        assert scan.suffix == suffix
         assert len(scan.img_dic) == length
         assert isinstance(scan.img_dic[filename]["image"], np.ndarray)
         assert scan.img_dic[filename]["image"].shape == image_shape
