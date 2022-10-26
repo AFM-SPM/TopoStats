@@ -16,7 +16,9 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 try:
     import libasd
 except ModuleNotFoundError:
-    LOGGER.warning("libasd module not installed. Ignore if '.asd' files are not being processed. \n Otherwise install via 'pip install .[libasd]' or if on an M1/2 Mac, follow libasd installation guidelines for 'build yourself' here: https://github.com/ToruNiina/libasd")
+    LOGGER.warning(
+        "libasd module not installed. Ignore if '.asd' files are not being processed. \n Otherwise install via 'pip install .[libasd]' or if on an M1/2 Mac, follow libasd installation guidelines for 'build yourself' here: https://github.com/ToruNiina/libasd"
+    )
 
 # pylint: disable=broad-except
 
@@ -203,7 +205,7 @@ class LoadScans:
 
     def load_jpk(self) -> None:
         try:
-            jpk = (self.img_path)
+            jpk = self.img_path
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
         except Exception as exception:
@@ -225,7 +227,7 @@ class LoadScans:
             scan_header = scan.header
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
-        
+
         try:
             if type(scan_header) == libasd.Header_v0:
                 # libasd docs seem like there is only 2 channels i.e. help(scan)
@@ -295,12 +297,16 @@ class LoadScans:
             LOGGER.info(f"Extracting image from {self.img_path}")
             if suffix == ".spm":
                 self.image, self.pixel_to_nm_scaling = self.load_spm()
-                self.add_to_dic(self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling)
+                self.add_to_dic(
+                    self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
+                )
             if suffix == ".jpk":
                 self.image, self.pixel_to_nm_scaling = self.load_jpk()
             if suffix == ".ibw":
                 self.image, self.pixel_to_nm_scaling = self.load_ibw()
-                self.add_to_dic(self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling)
+                self.add_to_dic(
+                    self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
+                )
             if suffix == ".asd":
                 self.image, self.pixel_to_nm_scaling = self.load_asd()
                 for i, frame in enumerate(self.image):
@@ -310,7 +316,7 @@ class LoadScans:
 
     def add_to_dic(self, filename: str, image: np.ndarray, img_path: Path, px_2_nm: float) -> None:
         """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under the key filename.
-        
+
         Parameters
         ----------
         filename: str
@@ -322,9 +328,4 @@ class LoadScans:
         px_2_nm: float
             The length of a pixel in nm.
         """
-        self.img_dic[filename] = {
-            "image": image,
-            "img_path": img_path,
-            "px_2_nm": px_2_nm
-        }
-
+        self.img_dic[filename] = {"image": image, "img_path": img_path, "px_2_nm": px_2_nm}
