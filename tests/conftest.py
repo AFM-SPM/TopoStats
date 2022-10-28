@@ -141,9 +141,9 @@ def image_random_col_medians() -> np.array:
 
 
 @pytest.fixture
-def image_random_aligned_rows() -> np.array:
+def image_random_median_flattened() -> np.array:
     """Expected aligned rows (unmasked)."""
-    df = pd.read_csv(RESOURCES / "image_random_aligned_rows.csv.bz2", header=None)
+    df = pd.read_csv(RESOURCES / "image_random_median_flattened.csv.bz2", header=None)
     return df.to_numpy()
 
 
@@ -218,13 +218,13 @@ def test_filters_random_with_mask(filter_config: dict, test_filters: Filters, im
 @pytest.fixture
 def random_filters(test_filters_random_with_mask: Filters) -> Filters:
     """Process random with filters, for use in grains fixture."""
-    test_filters_random_with_mask.images["initial_align"] = test_filters_random_with_mask.align_rows(
+    test_filters_random_with_mask.images["initial_align"] = test_filters_random_with_mask.median_flatten(
         test_filters_random_with_mask.images["pixels"], mask=None
     )
     test_filters_random_with_mask.images["initial_tilt_removal"] = test_filters_random_with_mask.remove_tilt(
         test_filters_random_with_mask.images["initial_align"], mask=None
     )
-    test_filters_random_with_mask.images["masked_align"] = test_filters_random_with_mask.align_rows(
+    test_filters_random_with_mask.images["masked_align"] = test_filters_random_with_mask.median_flatten(
         test_filters_random_with_mask.images["initial_tilt_removal"], mask=test_filters_random_with_mask.images["mask"]
     )
     test_filters_random_with_mask.images["masked_tilt_removal"] = test_filters_random_with_mask.remove_tilt(
@@ -303,7 +303,7 @@ def minicircle(load_scan: LoadScan, filter_config: dict) -> Filters:
 @pytest.fixture
 def minicircle_initial_align(minicircle: Filters) -> Filters:
     """Initial align on unmasked data."""
-    minicircle.images["initial_align"] = minicircle.align_rows(minicircle.images["pixels"], mask=None)
+    minicircle.images["initial_align"] = minicircle.median_flatten(minicircle.images["pixels"], mask=None)
     return minicircle
 
 
@@ -361,7 +361,7 @@ def minicircle_mask(minicircle_threshold_otsu: Filters) -> Filters:
 @pytest.fixture
 def minicircle_masked_align(minicircle_mask: Filters) -> Filters:
     """Secondary alignment using mask."""
-    minicircle_mask.images["masked_align"] = minicircle_mask.align_rows(
+    minicircle_mask.images["masked_align"] = minicircle_mask.median_flatten(
         minicircle_mask.images["initial_tilt_removal"], mask=minicircle_mask.images["mask"]
     )
     return minicircle_mask

@@ -89,29 +89,29 @@ class Filters:
         if quiet:
             LOGGER.setLevel("ERROR")
 
-    def flatten_image(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
-        """Flatten an image.
+    # def flatten_image(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
+    #     """Flatten an image.
 
-        Flattening an image involves first aligining rows and then removing tilt, with a mask optionally applied to both
-        stages. These methods could be called independently but this method is provided as a convenience.
+    #     Flattening an image involves first aligining rows and then removing tilt, with a mask optionally applied to both
+    #     stages. These methods could be called independently but this method is provided as a convenience.
 
-        Parameters
-        ----------
-        image: np.ndarray
-            2-D image to be flattened.
-        mask: np.ndarray
-            2-D mask to apply to image, should be the same dimensions as iamge.
-        stage: str
-            Indicator of the stage of flattneing.
+    #     Parameters
+    #     ----------
+    #     image: np.ndarray
+    #         2-D image to be flattened.
+    #     mask: np.ndarray
+    #         2-D mask to apply to image, should be the same dimensions as iamge.
+    #     stage: str
+    #         Indicator of the stage of flattneing.
 
-        Returns
-        -------
-        np.ndarray
-            2-D flattened image.all
-        """
-        image = self.align_rows(image, mask)
-        image = self.remove_tilt(image, mask)
-        return image
+    #     Returns
+    #     -------
+    #     np.ndarray
+    #         2-D flattened image.all
+    #     """
+    #     image = self.align_rows(image, mask)
+    #     image = self.remove_tilt(image, mask)
+    #     return image
 
     def row_col_medians(self, image: np.ndarray, mask: np.ndarray = None) -> dict:
         """Returns the height value medians for the rows and columns.

@@ -12,7 +12,7 @@ TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_align_rows_unmasked(
+def test_median_flatten_unmasked(
     minicircle_initial_align: Filters, plotting_config: dict, plot_dict: dict, tmp_path
 ) -> None:
     """Test initial alignment of rows without mask."""
@@ -83,7 +83,7 @@ def test_get_mask(minicircle_mask: Filters, plotting_config: dict, plot_dict: di
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_align_rows_masked(minicircle_masked_align: Filters, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
+def test_median_flatten_masked(minicircle_masked_align: Filters, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
     """Test alignment of rows without mask."""
     assert isinstance(minicircle_masked_align.images["masked_align"], np.ndarray)
     assert minicircle_masked_align.images["masked_align"].shape == (1024, 1024)

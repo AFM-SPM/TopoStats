@@ -30,13 +30,14 @@ def test_row_col_medians_no_mask(
     np.testing.assert_array_equal(medians["cols"], image_random_col_medians)
 
 
-def test_align_rows_no_mask(test_filters_random: Filters, image_random_aligned_rows: np.array) -> None:
+def test_median_flatten_no_mask(test_filters_random: Filters, image_random_median_flattened: np.array) -> None:
     """Test aligning of rows by median height."""
-    aligned_rows = test_filters_random.align_rows(test_filters_random.images["pixels"], mask=None)
+    median_flattened = test_filters_random.median_flatten(test_filters_random.images["pixels"], mask=None)
 
-    assert isinstance(aligned_rows, np.ndarray)
-    assert aligned_rows.shape == (1024, 1024)
-    np.testing.assert_allclose(aligned_rows, image_random_aligned_rows, **TOLERANCE)
+    assert isinstance(median_flattened, np.ndarray)
+    assert median_flattened.shape == (1024, 1024)
+
+    np.testing.assert_allclose(median_flattened, image_random_median_flattened, **TOLERANCE)
 
 
 def test_remove_tilt_no_mask(test_filters_random: Filters, image_random_remove_x_y_tilt: np.array) -> None:
