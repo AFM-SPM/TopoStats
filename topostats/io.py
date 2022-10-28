@@ -326,7 +326,7 @@ class LoadScans:
         elif scaling_type == "NullScaling":
             pass
         else:
-            raise ValueError(f"Non 'LinearScaling' scaling type found: {scaling_type}")
+            raise ValueError(f"Scaling type {scaling_type} is not 'NullScaling' or 'LinearScaling'")
         # Get page for common metadata between scans
         metadata_page = tif.pages[0]
         return (image * 1e9, self._jpk_pixel_to_nm_scaling(metadata_page))
