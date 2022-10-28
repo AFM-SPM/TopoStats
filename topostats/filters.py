@@ -154,7 +154,7 @@ class Filters:
                 image[j, :] -= m
         return image
 
-    def remove_plane_tilt(self, image: np.ndarray, mask: np.ndarray = None):
+    def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None):
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
             LOGGER.info("plane removal with mask")
@@ -373,7 +373,7 @@ class Filters:
 
         """
         self.images["initial_align"] = self.median_flatten(self.images["pixels"], mask=None)
-        self.images["initial_tilt_removal"] = self.remove_plane_tilt(self.images["initial_align"], mask=None)
+        self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
         self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None)
 
         # Get the thresholds
@@ -391,7 +391,7 @@ class Filters:
             image=self.images["initial_quadratic_removal"], thresholds=self.thresholds, img_name=self.filename
         )
         self.images["masked_align"] = self.median_flatten(self.images["initial_tilt_removal"], self.images["mask"])
-        self.images["masked_tilt_removal"] = self.remove_plane_tilt(self.images["masked_align"], self.images["mask"])
+        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], self.images["mask"])
         self.images["masked_quadratic_removal"] = self.remove_quadratic(
             self.images["masked_tilt_removal"], self.images["mask"]
         )
