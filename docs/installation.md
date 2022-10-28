@@ -56,7 +56,11 @@ should create a branch from `dev` and work on that before committing your change
 suggested nomenclature for branches is your GitHub username followed by a slash, then the issue number and a short
 description, e.g. `ns-rse/90-refactor-topostats`.
 
-Should you want to use high-speed AFM files (extension ".asd") with TopoStats, this currently requires a extra dependancy to install. If you *are not* on an M1/M2 Mac, you can install the library `libasd` via `pip install .[libasd]`. If you *are* on an M1/M2 Mac, you will need to clone the `libasd` repository, `pip install cmake`, and run `pip install .` in the libasd repository. More info can be found on the [libasd gitHub page](https://github.com/ToruNiina/libasd)
+**WARNING**
+Should you want to process high-speed AFM files (with the file extension ".asd") with TopoStats, this currently requires a extra dependancy to install. This is due to the `libasd` library not having binaries built for ARM processors (Apple Mac M1 or M2 computers). However, TopoStats does have the functions inplace to run these file with additional import steps:
+<li> If you *are not* on an ARM processor, you can install the library `libasd` via `pip install .[libasd]` or just `pip install libasd`. 
+<li> If you *are* on an M1/M2 Mac, you will need to to build libasd yourself. This can be done by cloning the `libasd` repository, `pip install cmake`, and run `pip install .` in the `libasd` repository. More info can be found on the [libasd gitHub page](https://github.com/ToruNiina/libasd)
+If you encounter issues doing this please do not hesitate to ask questions in the [TopoStats GitHub Discussions](https://github.com/AFM-SPM/TopoStats/discussions).
 
 ## Tests
 
