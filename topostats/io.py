@@ -18,7 +18,7 @@ try:
     import libasd
 except ModuleNotFoundError:
     LOGGER.warning(
-        "libasd module not installed. Ignore if '.asd' files are not being processed. \n Otherwise install via 'pip install .[libasd]' or if on an M1/2 Mac, follow libasd installation guidelines for 'build yourself' here: https://github.com/ToruNiina/libasd"
+        "libasd module not installed. Ignore if '.asd' files are not being processed. \n Otherwise install via 'pip install topostats[libasd]' or if on an M1/2 Mac, follow libasd installation guidelines for 'build yourself' here: https://github.com/ToruNiina/libasd#building-by-yourself"
     )
 
 # pylint: disable=broad-except
