@@ -293,6 +293,12 @@ def load_scan_ibw() -> LoadScans:
     scan_loader = LoadScans([RESOURCES / "minicircle2.ibw"], channel="HeightTracee")
     return scan_loader
 
+@pytest.fixture
+def load_scan_jpk() -> LoadScans:
+    """Instantiate a LoadScans object from a .jpk file."""
+    scan_loader = LoadScans([RESOURCES / "file.jpk"], channel="height_trace")
+    return scan_loader
+
 
 # Minicircle fixtures
 @pytest.fixture
