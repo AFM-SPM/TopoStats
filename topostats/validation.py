@@ -32,7 +32,6 @@ def validate_config(config: dict):
                 ".jpk",
                 ".ibw",
                 error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw' or '.asd' when `libasd` imported",
-
             ),
             "loading": {
                 "channel": Or(
@@ -54,6 +53,16 @@ def validate_config(config: dict):
                     "UserIn1Retrace",  # end of ibw channels
                     "topography",
                     "phase",  # end of asd channels
+                    "height_retrace",
+                    "measuredHeight_retrace",
+                    "amplitude_retrace",
+                    "phase_retrace",
+                    "error_retrace",
+                    "height_trace",
+                    "measuredHeight_trace",
+                    "amplitude_trace",
+                    "phase_trace",
+                    "error_trace",  # end of jpk channels
                     error="Invalid value in config file for 'channel', all possible image channels are seen in the above error message.",
                 )
             },
