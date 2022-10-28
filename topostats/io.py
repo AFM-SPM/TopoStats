@@ -329,7 +329,7 @@ class LoadScans:
             raise ValueError(f"Non 'LinearScaling' scaling type found: {scaling_type}")
         # Get page for common metadata between scans
         metadata_page = tif.pages[0]
-        return (image, self._jpk_pixel_to_nm_scaling(metadata_page))  # common info in pages[0]
+        return (image * 1e9, self._jpk_pixel_to_nm_scaling(metadata_page))
 
     def _jpk_pixel_to_nm_scaling(self, tiff_page: tifffile.tifffile.TiffPage) -> float:
         """Extract pixel to nm scaling from the JPK image metadata.
