@@ -139,6 +139,9 @@ class LoadScan:
             px_to_real[0][0] * unit_dict[px_to_real[0][1]],
             px_to_real[1][0] * unit_dict[px_to_real[1][1]],
         )[0]
+        if px_to_real[0][0] == 0 and px_to_real[1][0] == 0:
+            pixel_to_nm_scaling = 1
+            LOGGER.warning(f"[{self.filename}] : Pixel size not found in metadata, defaulting to 1nm")
         LOGGER.info(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
         return pixel_to_nm_scaling
 
