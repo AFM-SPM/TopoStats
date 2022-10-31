@@ -278,13 +278,6 @@ def load_scan_data(load_scan: LoadScans) -> LoadScans:
     scan_data = LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
     scan_data.get_data()
     return scan_data
-
-
-@pytest.fixture
-def load_scan_asd() -> LoadScans:
-    """Instantiate a LoadScans object from a .asd file."""
-    scan_loader = LoadScans([RESOURCES / "minicircles.asd"], channel="topography")
-    return scan_loader
     
 
 @pytest.fixture
@@ -292,6 +285,7 @@ def load_scan_ibw() -> LoadScans:
     """Instantiate a LoadScans object from a .ibw file."""
     scan_loader = LoadScans([RESOURCES / "minicircle2.ibw"], channel="HeightTracee")
     return scan_loader
+
 
 @pytest.fixture
 def load_scan_jpk() -> LoadScans:
