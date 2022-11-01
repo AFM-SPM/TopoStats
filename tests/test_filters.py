@@ -110,7 +110,7 @@ def test_row_col_medians_with_mask(
 #         test_filters_minicircle.test_average_background() *DOESN'T* fail
 def test_non_square_img(test_filters_random: Filters):
     test_filters_random.images["pixels"] = test_filters_random.images["pixels"][:, 0:512]
-    test_filters_random.images["zero_averaged_background"] = test_filters_random.average_background(
+    test_filters_random.images["zero_averaged_background"] = test_filters_random.median_flatten(
         image=test_filters_random.images["pixels"], mask=None
     )
     assert isinstance(test_filters_random.images["zero_averaged_background"], np.ndarray)
