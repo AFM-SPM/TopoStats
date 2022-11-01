@@ -217,6 +217,7 @@ def process_scan(
                     plotting_config["plot_dict"][plot_name]["output_dir"] = filter_out_path
                     try:
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
+                        Images(array, **plotting_config["plot_dict"][plot_name]).plot_histogram_and_save()
                     except AttributeError:
                         LOGGER.info(f"[{filename}] Unable to generate plot : {plot_name}")
             plot_name = "z_threshed"

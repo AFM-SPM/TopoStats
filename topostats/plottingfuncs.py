@@ -96,6 +96,28 @@ class Images:
         self.save = save
         self.save_format = save_format
 
+    def plot_histogram_and_save(self):
+        """
+        Plot and save a histogram of the height map
+        
+        Returns
+        -------
+        fig: plt.figure.Figure
+            Matplotlib.pyplot figure object
+        ax: plt.axes._subplots.AxesSubplot
+            Matplotlib.pyplot axes object
+        """
+        if self.save:
+            if self.image_set == "all" or self.core_set:
+                plt.hist(self.data.flatten().astype(float), bins='auto', log=True)
+                plt.title(self.title)
+                plt.savefig(
+                    (self.output_dir / f"{self.filename}_histogram.{self.save_format}"),
+                    format=self.save_format,
+                    bbox_inches="tight",
+                    pad_inches=0,
+                )
+
     def plot_and_save(self):
         """
         Plot and save the images with savefig or imsave depending on config file parameters.
