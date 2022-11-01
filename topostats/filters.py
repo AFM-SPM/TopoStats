@@ -311,25 +311,6 @@ class Filters:
         """Calculate the gradient of an array."""
         return self.calc_diff(array) / shape
 
-    # def average_background(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
-    #     """Zero the background
-
-    #     Parameters
-    #     ----------
-    #     image: np.array
-    #         Numpy array representing image.
-    #     mask: np.array
-    #         Mask of the array, should have the same dimensions as image.
-
-    #     Returns
-    #     -------
-    #     np.ndarray
-    #         Numpy array of image zero averaged.
-    #     """
-    #     medians = self.row_col_medians(image, mask)
-    #     LOGGER.info(f"[{self.filename}] : Zero averaging background")
-    #     return (image.T - np.array(medians["rows"], ndmin=1)).T
-
     def gaussian_filter(self, image: np.ndarray, **kwargs) -> np.array:
         """Apply Gaussian filter to an image.
 
