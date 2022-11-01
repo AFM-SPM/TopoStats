@@ -109,13 +109,13 @@ def test_minicircle_dnatracing_skeletons(regtest, minicircle_dnatracing: traceSt
     print(np.array2string(mol_array), file=regtest)
 
 
-@pytest.mark.mpl_image_compare(baseline_dir="../resources/img/")
-def test_minicircle_dnatracing_skeletons_plot(regtest, minicircle_dnatracing: traceStats) -> None:
-    """Test the skeletons returned by dnatracing."""
-    mol_array = minicircle_dnatracing._get_grain_array(1)
-    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-    ax.imshow(mol_array)
-    return fig
+# @pytest.mark.mpl_image_compare(baseline_dir="../resources/img/")
+# def test_minicircle_dnatracing_skeletons_plot(regtest, minicircle_dnatracing: traceStats) -> None:
+#     """Test the skeletons returned by dnatracing."""
+#     mol_array = minicircle_dnatracing._get_grain_array(1)
+#     fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+#     ax.imshow(mol_array)
+#     return fig
 
 
 def test_tracestats(regtest, minicircle_tracestats: traceStats) -> None:
