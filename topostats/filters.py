@@ -113,32 +113,33 @@ class Filters:
     #     image = self.remove_tilt(image, mask)
     #     return image
 
-    def row_col_medians(self, image: np.ndarray, mask: np.ndarray = None) -> dict:
-        """Returns the height value medians for the rows and columns.
+    # def row_col_medians(self, image: np.ndarray, mask: np.ndarray = None) -> dict:
+    #     """Returns the height value medians for the rows and columns.
 
-        Parameters
-        ----------
-        image: np.ndarray
-            2-D image to calculate row and column medians.
-        mask: np.ndarray
-            Boolean array of points to mask.
-        Returns
-        -------
-        dict
-            Dict of two Numpy arrays corresponding to row height value medians and column height value medians.
-        """
-        if mask is not None:
-            image = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-            LOGGER.info(f"[{self.filename}] : Masking enabled")
-        else:
-            LOGGER.info(f"[{self.filename}] : Masking disabled")
-        medians = {}
-        medians["rows"] = np.nanmedian(image, axis=1)
-        medians["cols"] = np.nanmedian(image, axis=0)
-        LOGGER.info(f"[{self.filename}] : Row and column medians calculated.")
-        return medians
+    #     Parameters
+    #     ----------
+    #     image: np.ndarray
+    #         2-D image to calculate row and column medians.
+    #     mask: np.ndarray
+    #         Boolean array of points to mask.
+    #     Returns
+    #     -------
+    #     dict
+    #         Dict of two Numpy arrays corresponding to row height value medians and column height value medians.
+    #     """
+    #     if mask is not None:
+    #         image = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
+    #         LOGGER.info(f"[{self.filename}] : Masking enabled")
+    #     else:
+    #         LOGGER.info(f"[{self.filename}] : Masking disabled")
+    #     medians = {}
+    #     medians["rows"] = np.nanmedian(image, axis=1)
+    #     medians["cols"] = np.nanmedian(image, axis=0)
+    #     LOGGER.info(f"[{self.filename}] : Row and column medians calculated.")
+    #     return medians
 
     def median_flatten(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
+        image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
             LOGGER.info("median flattening with mask")
