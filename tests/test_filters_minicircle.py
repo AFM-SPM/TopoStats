@@ -36,7 +36,7 @@ def test_remove_tilt_unmasked(
     """Test removal of tilt without mask."""
     assert isinstance(minicircle_initial_tilt_removal.images["initial_tilt_removal"], np.ndarray)
     assert minicircle_initial_tilt_removal.images["initial_tilt_removal"].shape == (1024, 1024)
-    assert minicircle_initial_tilt_removal.images["initial_tilt_removal"].sum() == -1673257.7284464263
+    assert minicircle_initial_tilt_removal.images["initial_tilt_removal"].sum() == -1673257.7284464256
     plotting_config = {**plotting_config, **plot_dict["initial_tilt_removal"]}
     fig, _ = Images(
         data=minicircle_initial_tilt_removal.images["initial_tilt_removal"],
