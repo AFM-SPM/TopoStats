@@ -156,6 +156,7 @@ class Filters:
         return image
 
     def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None):
+        image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
             LOGGER.info("plane removal with mask")
@@ -199,6 +200,7 @@ class Filters:
         return image
 
     def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None):
+        image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
             LOGGER.info("quadratic bow removal with mask")

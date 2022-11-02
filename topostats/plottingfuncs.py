@@ -99,7 +99,7 @@ class Images:
     def plot_histogram_and_save(self):
         """
         Plot and save a histogram of the height map
-        
+
         Returns
         -------
         fig: plt.figure.Figure
@@ -109,7 +109,7 @@ class Images:
         """
         if self.save:
             if self.image_set == "all" or self.core_set:
-                plt.hist(self.data.flatten().astype(float), bins='auto', log=True)
+                plt.hist(self.data.flatten().astype(float), bins="auto", log=True)
                 plt.title(self.title)
                 plt.savefig(
                     (self.output_dir / f"{self.filename}_histogram.{self.save_format}"),
@@ -117,6 +117,7 @@ class Images:
                     bbox_inches="tight",
                     pad_inches=0,
                 )
+        plt.close()
 
     def plot_and_save(self):
         """
