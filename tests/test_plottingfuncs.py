@@ -107,7 +107,7 @@ def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScan, plotting_co
         **plotting_config,
     ).plot_and_save()
     img = io.imread(tmp_path / "01-raw_heightmap.png")
-    assert np.sum(img) == 448788105
+    assert np.sum(img) == 1069547520
     assert img.shape == (1024, 1024, 4)
 
 
