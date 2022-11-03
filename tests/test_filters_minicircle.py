@@ -46,17 +46,33 @@ def test_remove_tilt_unmasked(
     ).plot_and_save()
     return fig
 
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_remove_quadratic_unmasked(
+    minicircle_initial_quadratic_removal: Filters, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
+    """Test removal of quadratic with mask."""
+    assert isinstance(minicircle_initial_quadratic_removal.images["initial_quadratic_removal"], np.ndarray)
+    assert minicircle_initial_quadratic_removal.images["initial_quadratic_removal"].shape == (1024, 1024)
+    assert minicircle_initial_quadratic_removal.images["initial_quadratic_removal"].sum() == -1672538.8578738687
+    plotting_config = {**plotting_config, **plot_dict["initial_quadratic_removal"]}
+    fig, _ = Images(
+        data=minicircle_initial_quadratic_removal.images["initial_quadratic_removal"],
+        output_dir=tmp_path,
+        pixel_to_nm_scaling=minicircle_initial_quadratic_removal.pixel_to_nm_scaling,
+        **plotting_config,
+    ).plot_and_save()
+    return fig
+
 
 def test_get_threshold_otsu(minicircle_threshold_otsu: np.array) -> None:
     """Test calculation of threshold."""
     assert isinstance(minicircle_threshold_otsu.thresholds, dict)
-    assert minicircle_threshold_otsu.thresholds["upper"] == 28.58495414588038
+    assert minicircle_threshold_otsu.thresholds["upper"] == -0.7471511148088736
 
 
 def test_get_threshold_stddev(minicircle_threshold_stddev: np.array) -> None:
     """Test calculation of threshold."""
     assert isinstance(minicircle_threshold_stddev.thresholds, dict)
-    assert minicircle_threshold_stddev.thresholds == {"upper": 28.382985321353974, "lower": 27.045051324866566}
+    assert minicircle_threshold_stddev.thresholds == {'lower': -8.283235478318018, 'upper': -0.9269936645505799}
 
 
 def test_get_threshold_abs(minicircle_threshold_abs: np.array) -> None:
@@ -71,7 +87,7 @@ def test_get_mask(minicircle_mask: Filters, plotting_config: dict, plot_dict: di
     plotting_config["image_type"] = "binary"
     assert isinstance(minicircle_mask.images["mask"], np.ndarray)
     assert minicircle_mask.images["mask"].shape == (1024, 1024)
-    assert minicircle_mask.images["mask"].sum() == 82159
+    assert minicircle_mask.images["mask"].sum() == 83095
     plotting_config = {**plotting_config, **plot_dict["mask"]}
     fig, _ = Images(
         data=minicircle_mask.images["mask"],
@@ -87,7 +103,7 @@ def test_median_flatten_masked(minicircle_masked_align: Filters, plotting_config
     """Test alignment of rows without mask."""
     assert isinstance(minicircle_masked_align.images["masked_align"], np.ndarray)
     assert minicircle_masked_align.images["masked_align"].shape == (1024, 1024)
-    assert minicircle_masked_align.images["masked_align"].sum() == 29077928.954810616
+    assert minicircle_masked_align.images["masked_align"].sum() == 169538.4636641923
     plotting_config = {**plotting_config, **plot_dict["masked_align"]}
     fig, _ = Images(
         data=minicircle_masked_align.images["masked_align"],
@@ -102,10 +118,10 @@ def test_median_flatten_masked(minicircle_masked_align: Filters, plotting_config
 def test_remove_x_y_tilt_masked(
     minicircle_masked_tilt_removal: Filters, plotting_config: dict, plot_dict: dict, tmp_path
 ) -> None:
-    """Test removal of tilt without mask."""
+    """Test removal of tilt with mask."""
     assert isinstance(minicircle_masked_tilt_removal.images["masked_tilt_removal"], np.ndarray)
     assert minicircle_masked_tilt_removal.images["masked_tilt_removal"].shape == (1024, 1024)
-    assert minicircle_masked_tilt_removal.images["masked_tilt_removal"].sum() == 29074955.22136825
+    assert minicircle_masked_tilt_removal.images["masked_tilt_removal"].sum() == 163752.28336856866
     plotting_config = {**plotting_config, **plot_dict["masked_tilt_removal"]}
     fig, _ = Images(
         data=minicircle_masked_tilt_removal.images["masked_tilt_removal"],
@@ -115,6 +131,21 @@ def test_remove_x_y_tilt_masked(
     ).plot_and_save()
     return fig
 
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_remove_quadratic_masked(
+    minicircle_masked_quadratic_removal: Filters, plotting_config: dict, plot_dict: dict, tmp_path) -> None:
+    """Test removal of quadratic with mask."""
+    assert isinstance(minicircle_masked_quadratic_removal.images["masked_quadratic_removal"], np.ndarray)
+    assert minicircle_masked_quadratic_removal.images["masked_quadratic_removal"].shape == (1024, 1024)
+    assert minicircle_masked_quadratic_removal.images["masked_quadratic_removal"].sum() == 169411.34987849486
+    plotting_config = {**plotting_config, **plot_dict["masked_quadratic_removal"]}
+    fig, _ = Images(
+        data=minicircle_masked_quadratic_removal.images["masked_quadratic_removal"],
+        output_dir=tmp_path,
+        pixel_to_nm_scaling=minicircle_masked_quadratic_removal.pixel_to_nm_scaling,
+        **plotting_config,
+    ).plot_and_save()
+    return fig
 
 # @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 # def test_average_background(
@@ -141,7 +172,7 @@ def test_gaussian_filter(
     """Test gaussian filter applied to background."""
     assert isinstance(minicircle_grain_gaussian_filter.images["gaussian_filtered"], np.ndarray)
     assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].shape == (1024, 1024)
-    assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].sum() == 169373.05336999876
+    assert minicircle_grain_gaussian_filter.images["gaussian_filtered"].sum() == 169409.44307011212
     plotting_config = {**plotting_config, **plot_dict["gaussian_filtered"]}
     fig, _ = Images(
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
