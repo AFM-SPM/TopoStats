@@ -315,6 +315,14 @@ def minicircle_initial_tilt_removal(minicircle_initial_align: Filters) -> Filter
     )
     return minicircle_initial_align
 
+@pytest.fixture
+def minicircle_initial_quadratic_removal(minicircle_initial_tilt_removal: Filters) -> Filters:
+    """Initial quadratic removal on unmasked data."""
+    minicircle_initial_tilt_removal.images["initial_quadratic_removal"] = minicircle_initial_tilt_removal.remove_quadratic(
+        minicircle_initial_tilt_removal.images["initial_tilt_removal"], mask=None
+    )
+    return minicircle_initial_tilt_removal
+
 
 @pytest.fixture
 def minicircle_threshold_otsu(minicircle_initial_tilt_removal: Filters, filter_config: dict) -> Filters:
@@ -332,7 +340,7 @@ def minicircle_threshold_stddev(minicircle_initial_tilt_removal: Filters) -> Fil
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        threshold_std_dev=1.0,
+        threshold_std_dev=(10, 1.0),
     )
     return minicircle_initial_tilt_removal
 
@@ -375,6 +383,13 @@ def minicircle_masked_tilt_removal(minicircle_masked_align: Filters) -> Filters:
     )
     return minicircle_masked_align
 
+@pytest.fixture
+def minicircle_masked_quadratic_removal(minicircle_masked_tilt_removal: Filters) -> Filters:
+    """Secondary quadratic removal using mask."""
+    minicircle_masked_tilt_removal.images["masked_quadratic_removal"] = minicircle_masked_tilt_removal.remove_quadratic(
+        minicircle_masked_tilt_removal.images["masked_tilt_removal"], mask=minicircle_masked_tilt_removal.images["mask"]
+    )
+    return minicircle_masked_tilt_removal
 
 # @pytest.fixture
 # def minicircle_zero_average_background(minicircle_masked_tilt_removal: Filters) -> Filters:
@@ -388,12 +403,12 @@ def minicircle_masked_tilt_removal(minicircle_masked_align: Filters) -> Filters:
 
 
 @pytest.fixture
-def minicircle_grain_gaussian_filter(minicircle_zero_average_background: Filters) -> Filters:
+def minicircle_grain_gaussian_filter(minicircle_masked_quadratic_removal: Filters) -> Filters:
     """Apply Gaussian filter."""
-    minicircle_zero_average_background.images["gaussian_filtered"] = minicircle_zero_average_background.gaussian_filter(
-        image=minicircle_zero_average_background.images["zero_averaged_background"]
+    minicircle_masked_quadratic_removal.images["gaussian_filtered"] = minicircle_masked_quadratic_removal.gaussian_filter(
+        image=minicircle_masked_quadratic_removal.images["masked_quadratic_removal"]
     )
-    return minicircle_zero_average_background
+    return minicircle_masked_quadratic_removal
 
 
 # Derive fixtures for grain finding
@@ -427,7 +442,10 @@ def minicircle_grain_threshold_stddev(minicircle_grains: np.array, grains_config
     grains_config["threshold_method"] = "std_dev"
     minicircle_grains.thresholds = get_thresholds(
         image=minicircle_grains.image,
-        **grains_config,
+        threshold_method='std_dev',
+        otsu_threshold_multiplier=None,
+        threshold_std_dev=(10.0, 1.0),
+        absolute=None
     )
     return minicircle_grains
 
