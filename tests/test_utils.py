@@ -63,7 +63,7 @@ def test_get_thresholds_stddev(image_random: np.ndarray) -> None:
     """Test of get_thresholds() method with mean threshold."""
     thresholds = get_thresholds(image=image_random, threshold_method="std_dev", **THRESHOLD_OPTIONS)
     assert isinstance(thresholds, dict)
-    assert thresholds == {'lower': -2.3866804917165663, 'upper': 0.7886033762450778}
+    assert thresholds == {"lower": -2.3866804917165663, "upper": 0.7886033762450778}
 
     with pytest.raises(TypeError):
         thresholds = get_thresholds(image=image_random, threshold_method="std_dev", deviation_from_mean=None)
