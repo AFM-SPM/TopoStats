@@ -48,6 +48,14 @@ def test_remove_tilt_no_mask(test_filters_random: Filters, image_random_remove_x
     assert tilt_removed.shape == (1024, 1024)
     np.testing.assert_allclose(tilt_removed, image_random_remove_x_y_tilt, **TOLERANCE)
 
+def test_remove_quadratic(test_filters_random: Filters, image_random_remove_quadratic: np.ndarray) -> None:
+    """Test removal of quadratic tilt."""
+    quadratic_removed = test_filters_random.remove_quadratic(test_filters_random.images["pixels"], mask=None)
+
+    assert isinstance(quadratic_removed, np.ndarray)
+    assert quadratic_removed.shape == (1024, 1024)
+    np.testing.assert_allclose(quadratic_removed, image_random_remove_quadratic, **TOLERANCE)
+
 
 # def test_median_row_height(test_filters_random: Filters):
 #     """Test calculation of median row height."""
