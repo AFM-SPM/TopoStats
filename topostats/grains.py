@@ -2,8 +2,7 @@
 # pylint: disable=no-name-in-module
 from collections import defaultdict
 import logging
-from pathlib import Path
-from typing import Union, List, Dict
+from typing import List, Dict
 import numpy as np
 
 from skimage.segmentation import clear_border
@@ -326,5 +325,5 @@ class Grains:
             if region_props_count == 0:
                 self.region_properties = None
         # FIXME : Identify what exception is raised with images without grains and replace broad except
-        except:
+        except:  # noqa: E722
             LOGGER.info(f"[{self.filename}] : No grains found.")
