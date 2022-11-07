@@ -911,8 +911,8 @@ class GrainStats:
         shiftx = self.get_shift(xy[:, 0], shape[0])
         shifty = self.get_shift(xy[:, 1], shape[1])
         return image.copy()[
-            centre[0] - length - shiftx : centre[0] + length + 1 - shiftx,
-            centre[1] - length - shifty : centre[1] + length + 1 - shifty,
+            centre[0] - length - shiftx : centre[0] + length + 1 - shiftx,  # noqa: E203
+            centre[1] - length - shifty : centre[1] + length + 1 - shifty,  # noqa: E203
         ]
 
     @staticmethod
