@@ -14,6 +14,14 @@ TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
+# Example of how to add / update tests that rely on creating _.csv.bz2 files:
+    # Place the following in the test before generating/calling the fixture in the test arguments, run it, then
+    # comment it out, then run it again with the fixture and check if the test passes.
+
+    # import pandas as pd
+    # df = pd.DataFrame(quadratic_removed)
+    # df.to_csv("tests/resources/image_random_remove_quadratic.csv.bz2", index=False, header=False)
+
 
 # def test_row_col_medians_no_mask(
 #     test_filters_random: Filters, image_random_row_medians: np.array, image_random_col_medians: np.array
