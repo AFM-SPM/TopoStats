@@ -14,13 +14,13 @@ TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
 def test_threshold_otsu(minicircle_grain_threshold_otsu: Grains) -> None:
     """Test threshold calculation"""
     assert isinstance(minicircle_grain_threshold_otsu.thresholds, dict)
-    assert minicircle_grain_threshold_otsu.thresholds["upper"] == 1.6955888564850083
+    assert minicircle_grain_threshold_otsu.thresholds["upper"] == pytest.approx(1.6955888564850083)
 
 
 def test_threshold_stddev(minicircle_grain_threshold_stddev: Grains) -> None:
     """Test threshold calculation"""
     assert isinstance(minicircle_grain_threshold_stddev.thresholds, dict)
-    assert minicircle_grain_threshold_stddev.thresholds == {'lower': -5.934646110767899, 'upper': 0.7711821893707078}
+    assert minicircle_grain_threshold_stddev.thresholds == pytest.approx({'lower': -5.934646110767899, 'upper': 0.7711821893707078})
 
 
 def test_threshold_abs(minicircle_grain_threshold_abs: Grains) -> None:
