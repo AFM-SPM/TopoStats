@@ -89,54 +89,6 @@ class Filters:
         if quiet:
             LOGGER.setLevel("ERROR")
 
-    # def flatten_image(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
-    #     """Flatten an image.
-
-    #     Flattening an image involves first aligining rows and then removing tilt, with a mask optionally applied to both
-    #     stages. These methods could be called independently but this method is provided as a convenience.
-
-    #     Parameters
-    #     ----------
-    #     image: np.ndarray
-    #         2-D image to be flattened.
-    #     mask: np.ndarray
-    #         2-D mask to apply to image, should be the same dimensions as iamge.
-    #     stage: str
-    #         Indicator of the stage of flattneing.
-
-    #     Returns
-    #     -------
-    #     np.ndarray
-    #         2-D flattened image.all
-    #     """
-    #     image = self.align_rows(image, mask)
-    #     image = self.remove_tilt(image, mask)
-    #     return image
-
-    # def row_col_medians(self, image: np.ndarray, mask: np.ndarray = None) -> dict:
-    #     """Returns the height value medians for the rows and columns.
-
-    #     Parameters
-    #     ----------
-    #     image: np.ndarray
-    #         2-D image to calculate row and column medians.
-    #     mask: np.ndarray
-    #         Boolean array of points to mask.
-    #     Returns
-    #     -------
-    #     dict
-    #         Dict of two Numpy arrays corresponding to row height value medians and column height value medians.
-    #     """
-    #     if mask is not None:
-    #         image = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-    #         LOGGER.info(f"[{self.filename}] : Masking enabled")
-    #     else:
-    #         LOGGER.info(f"[{self.filename}] : Masking disabled")
-    #     medians = {}
-    #     medians["rows"] = np.nanmedian(image, axis=1)
-    #     medians["cols"] = np.nanmedian(image, axis=0)
-    #     LOGGER.info(f"[{self.filename}] : Row and column medians calculated.")
-    #     return medians
 
     def median_flatten(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         image = image.copy()
@@ -230,41 +182,6 @@ class Filters:
 
         return image
 
-    # def align_rows(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
-    #     """Returns a copy of the input image with rows aligned by median height.
-
-    #     Parameters
-    #     ----------
-    #     image: np.ndarray
-    #         2-D image to align rows.
-    #     mask: np.ndarray
-    #         Boolean array of points to mask.
-    #     Returns
-    #     -------
-    #     np.ndarray
-    #         Returns a copy of the input image with rows aligned by median height.
-    #     """
-    #     image_cp = image.copy()
-    #     if mask is not None:
-    #         if mask.all():
-    #             LOGGER.error(f"[{self.filename}] : Mask covers entire image. Adjust filtering thresholds/method.")
-
-    #     medians = self.row_col_medians(image_cp, mask)
-    #     row_medians = medians["rows"]
-    #     median_row_height = self._median_row_height(row_medians)
-    #     LOGGER.info(f"[{self.filename}] : Median Row Height: {median_row_height}")
-
-    #     # Calculate the differences between the row medians and the median row height
-    #     row_median_diffs = self._row_median_diffs(row_medians, median_row_height)
-
-    #     # Adjust the row medians accordingly
-    #     # FIXME : I think this can be done using arrays directly, no need to loop.
-    #     for i in range(image_cp.shape[0]):
-    #         # if np.isnan(row_median_diffs[i]):
-    #         #     LOGGER.info(f"{i} Row_median is nan! : {row_median_diffs[i]}")
-    #         image_cp[i] -= row_median_diffs[i]
-    #     LOGGER.info(f"[{self.filename}] : Rows aligned")
-    #     return image_cp
 
     @staticmethod
     def _median_row_height(array: np.ndarray) -> float:
@@ -276,34 +193,6 @@ class Filters:
         """Calculate difference of row medians from the median row height"""
         return row_medians - median_row_height
 
-    # def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
-    #     """Returns a copy of the input image after removing any linear plane slant.
-
-    #     Parameters
-    #     ----------
-    #     image: np.ndarray
-    #         2-D image to align rows.
-    #     mask: np.ndarray
-    #         Boolean array of points to mask.
-    #     Returns
-    #     -------
-    #     np.ndarray
-    #         Returns a copy of the input image after removing any linear plane slant.
-    #     """
-    #     image_cp = image.copy()
-    #     medians = self.row_col_medians(image_cp, mask)
-    #     gradient = {}
-    #     gradient["x"] = self.calc_gradient(array=medians["rows"], shape=medians["rows"].shape[0])
-    #     gradient["y"] = self.calc_gradient(medians["cols"], medians["cols"].shape[0])
-    #     LOGGER.info(f'[{self.filename}] : X-gradient: {gradient["x"]}')
-    #     LOGGER.info(f'[{self.filename}] : Y-gradient: {gradient["y"]}')
-
-    #     for i in range(image_cp.shape[0]):
-    #         for j in range(image_cp.shape[1]):
-    #             image_cp[i, j] -= gradient["x"] * i
-    #             image_cp[i, j] -= gradient["y"] * j
-    #     LOGGER.info(f"[{self.filename}] : X/Y tilt removed")
-    #     return image_cp
 
     @staticmethod
     def calc_diff(array: np.ndarray) -> np.ndarray:

@@ -122,7 +122,7 @@ class Images:
         )
         plt.close()
 
-        return fig
+        return fig, ax
 
     def plot_and_save(self):
         """

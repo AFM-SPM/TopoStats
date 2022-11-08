@@ -160,23 +160,6 @@ def test_remove_quadratic_masked(
     return fig
 
 
-# @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-# def test_average_background(
-#     minicircle_zero_average_background: Filters, plotting_config: dict, plot_dict: dict, tmp_path
-# ) -> None:
-#     """Test zero-averaging of background."""
-#     assert isinstance(minicircle_zero_average_background.images["zero_averaged_background"], np.ndarray)
-#     assert minicircle_zero_average_background.images["zero_averaged_background"].shape == (1024, 1024)
-#     assert minicircle_zero_average_background.images["zero_averaged_background"].sum() == 169375.4175476962
-#     plotting_config = {**plotting_config, **plot_dict["zero_averaged_background"]}
-#     fig, _ = Images(
-#         data=minicircle_zero_average_background.images["zero_averaged_background"],
-#         output_dir=tmp_path,
-#         pixel_to_nm_scaling=minicircle_zero_average_background.pixel_to_nm_scaling,
-#         **plotting_config,
-#     ).plot_and_save()
-#     return fig
-
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_gaussian_filter(
