@@ -173,13 +173,13 @@ def process_scan(
 
     if plotting_config["image_set"] == "core":
         filter_out_path = _output_dir
-        grain_out_path = _output_dir
     else:
         filter_out_path = Path(_output_dir) / filename / "filters"
         grain_out_path = Path(_output_dir) / filename / "grains"
         filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(_output_dir / filename / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / filename / "grains" / "lower", parents=True, exist_ok=True)
+
 
     # Filter Image :
     if filter_config["run"]:

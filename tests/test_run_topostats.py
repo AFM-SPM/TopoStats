@@ -26,7 +26,7 @@ def test_process_scan_lower(regtest, tmp_path, process_scan_config: dict, load_s
     )
     # Remove the Basename column as this differs on CI
     results.drop(["Basename"], axis=1, inplace=True)
-    print(results.to_string(), file=regtest)
+    print(results.to_string(), file=regtest)  # noqa: T201
 
 
 def test_process_scan_upper(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
@@ -44,7 +44,7 @@ def test_process_scan_upper(regtest, tmp_path, process_scan_config: dict, load_s
     )
     # Remove the Basename column as this differs on CI
     results.drop(["Basename"], axis=1, inplace=True)
-    print(results.to_string(), file=regtest)
+    print(results.to_string(), file=regtest)  # noqa: T201
 
 
 def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
@@ -63,4 +63,4 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     )
     # Remove the Basename column as this differs on CI
     results.drop(["Basename"], axis=1, inplace=True)
-    print(results.to_string(), file=regtest)
+    print(results.to_string(), file=regtest)  # noqa: T201
