@@ -367,7 +367,9 @@ def plotdist2var(df, plotarg, plotarg2=None, df2=None, xmin=None, xmax=None, bin
     # Plot figure
     fig, ax = plt.subplots(figsize=(14.5, 12))
     sns.distplot(dfnew, ax=ax, bins=bins, color=c1)
+    # sns.histplot(dfnew, ax=ax, bins=bins, color=c1)
     sns.distplot(dfnew2, ax=ax, bins=bins, color=c2)
+    # sns.histplot(dfnew2, ax=ax, bins=bins, color=c2)
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
@@ -567,8 +569,8 @@ if __name__ == '__main__':
     # df = df[df['grain_max_bound_size'] <= 115e-9]
     # df = df[df['grain_max_bound_size'] >= 50e-9]
 
-    # df1 = df[df['directory'] == 'DNA_pure']
-    # df2 = df[df['directory'] == 'DNA_NDP']
+    df1 = df[df['directory'] == 'DNA_pure']
+    df2 = df[df['directory'] == 'DNA_NDP']
 
     # dfDNA = df[df['directory'] == 'DNA_pure']
     # print len(dfDNA)
@@ -580,7 +582,7 @@ if __name__ == '__main__':
     # df2 = df2.rename(columns={"directory": "Experimental Conditions"})
     # df = df.rename(columns={"grain_min_bound_size": "Minimum Bound Size"})
     # df = df.rename(columns={"directory": "Experimental Conditions"})
-    df = df.rename(columns={"Basename": "Immobilisation\ntechnique"})
+    # df = df.rename(columns={"Basename": "Immobilisation\ntechnique"})
 
 
     # Calculate the aspect ratio for each grain
@@ -619,11 +621,11 @@ if __name__ == '__main__':
 # print len(df)
 # print len(df2)
 # Setting group argument
-grouparg = 'Immobilisation\ntechnique'
+# grouparg = 'Immobilisation\ntechnique'
 # grouparg = 'Mask'
 # grouparg = 'Basename'
 # grouparg = 'directory'
-# grouparg = None
+grouparg = None
 # grouparg = 'Domain'
 
 # Setting a continuous colour palette; useful for certain grouped plots, but can be commented out if unsuitable.
@@ -644,10 +646,12 @@ grouparg = 'Immobilisation\ntechnique'
 
 # plothist(df, 'grain_max_bound_size', nm=True, grouparg=grouparg)
 
-# plothist2var(df1, 'grain_max_bound_size', df2=df2, nm=True)
-# plotkde2var(df2, 'grain_max_bound_size', df2=df1, nm=True, xmin=35, xmax=115)
-#
-# plotdist2var(df1, 'grain_max_bound_size', df2=df2, nm=True, c1='#B45F06', c2='#0B5394', plotname='Length', xmin=40, xmax=120)
+
+
+plothist2var(df1, 'grain_max_bound_size', df2=df2, nm=True)
+plotkde2var(df2, 'grain_max_bound_size', df2=df1, nm=True, xmin=35, xmax=115)
+
+plotdist2var(df1, 'grain_max_bound_size', df2=df2, nm=True, c1='#B45F06', c2='#0B5394', plotname='Length', xmin=40, xmax=120)
 
 
 # columns = ['height', 'length', 'width', 'area']
@@ -678,25 +682,25 @@ grouparg = 'Immobilisation\ntechnique'
 # plotkde(df, 'grain_mean', xmin=0, xmax=5, nm=True, grouparg=grouparg)
 # plotkde(df, 'grain_median', xmin=0, xmax=5, nm=True, grouparg=grouparg)
 
-dfplo= df[df['Immobilisation\ntechnique'] == 'PLO']
-dfNi= df[df['Immobilisation\ntechnique'] == 'NiCl2']
-columns = ['ete', 'cl', 'meancurvature', 'maxcurvature']
-plodata = [dfplo['End to End Distance'], dfplo['Contour Lengths'], dfplo['Mean Curvature'], dfplo['Max Curvature']]
-Nidata = [dfNi['End to End Distance'], dfNi['Contour Lengths'], dfNi['Mean Curvature'], dfNi['Max Curvature']]
-computeStats(plodata, columns, 0, 200, savename='PLO_ete_cl')
-computeStats(plodata, columns, 0, 0.2, savename='PLO_curvature')
-computeStats(Nidata, columns, 0, 200, savename='Ni_ete_cl')
-computeStats(Nidata, columns, 0, 0.2, savename='Ni_curvature')
+# dfplo= df[df['Immobilisation\ntechnique'] == 'PLO']
+# dfNi= df[df['Immobilisation\ntechnique'] == 'NiCl2']
+# columns = ['ete', 'cl', 'meancurvature', 'maxcurvature']
+# plodata = [dfplo['End to End Distance'], dfplo['Contour Lengths'], dfplo['Mean Curvature'], dfplo['Max Curvature']]
+# Nidata = [dfNi['End to End Distance'], dfNi['Contour Lengths'], dfNi['Mean Curvature'], dfNi['Max Curvature']]
+# computeStats(plodata, columns, 0, 200, savename='PLO_ete_cl')
+# computeStats(plodata, columns, 0, 0.2, savename='PLO_curvature')
+# computeStats(Nidata, columns, 0, 200, savename='Ni_ete_cl')
+# computeStats(Nidata, columns, 0, 0.2, savename='Ni_curvature')
 #
-plotkde(df[df['Circular'] == False], 'End to End Distance', nm=True, xmin=0, xmax=150, grouparg=grouparg)
-plotkde(df, 'Contour Lengths', nm=True, xmin=0, xmax=250, grouparg=grouparg)
-# plotkde(df, 'Mean Curvature', nm=True, grouparg=grouparg, xmin=0, xmax=0.25)
-plotkde(df, 'Mean Curvature', nm=True, grouparg=grouparg, xmin=-0.5, xmax=0.75)
-
-plothist(df[df['Circular'] == False], 'End to End Distance', nm=True, xmin=0, xmax=150, grouparg=grouparg, bins=np.linspace(0, 150, 21))
-plothist(df, 'Contour Lengths', nm=True, xmin=0, xmax=250, grouparg=grouparg, bins=np.linspace(0, 250, 21))
-# plothist(df, 'Mean Curvature', nm=True, grouparg=grouparg, xmin=0, xmax=0.25)
-plothist(df, 'Mean Curvature', nm=True, grouparg=grouparg, bins=np.linspace(0.0, 0.6, 21))
+# plotkde(df[df['Circular'] == False], 'End to End Distance', nm=True, xmin=0, xmax=150, grouparg=grouparg)
+# plotkde(df, 'Contour Lengths', nm=True, xmin=0, xmax=250, grouparg=grouparg)
+# # plotkde(df, 'Mean Curvature', nm=True, grouparg=grouparg, xmin=0, xmax=0.25)
+# plotkde(df, 'Mean Curvature', nm=True, grouparg=grouparg, xmin=-0.5, xmax=0.75)
+#
+# plothist(df[df['Circular'] == False], 'End to End Distance', nm=True, xmin=0, xmax=150, grouparg=grouparg, bins=np.linspace(0, 150, 21))
+# plothist(df, 'Contour Lengths', nm=True, xmin=0, xmax=250, grouparg=grouparg, bins=np.linspace(0, 250, 21))
+# # plothist(df, 'Mean Curvature', nm=True, grouparg=grouparg, xmin=0, xmax=0.25)
+# plothist(df, 'Mean Curvature', nm=True, grouparg=grouparg, bins=np.linspace(0.0, 0.6, 21))
 
 
 # plotkde(df, 'grain_proj_area', nm=True, grouparg=grouparg)
