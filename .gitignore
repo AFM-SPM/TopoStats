@@ -46,5 +46,3 @@ _build/
 
 # Tests and docs
 .coverage
-
-!Flattening development/images/*.png
