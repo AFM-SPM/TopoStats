@@ -21,7 +21,7 @@ grains:
   # Thresholding by height
   threshold_method: std_dev # Options : std_dev, otsu, absolute
   otsu_threshold_multiplier: 1.0
-  threshold_std_dev_lower: 10.0
+  threshold_std_dev_lower: 1.0
   threshold_std_dev_upper: 1.0
   threshold_absolute_lower: 1.0
   threshold_absolute_upper: 1.0
