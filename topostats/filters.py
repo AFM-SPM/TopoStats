@@ -89,7 +89,6 @@ class Filters:
         if quiet:
             LOGGER.setLevel("ERROR")
 
-
     def median_flatten(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         image = image.copy()
         if mask is not None:
@@ -182,7 +181,6 @@ class Filters:
 
         return image
 
-
     @staticmethod
     def _median_row_height(array: np.ndarray) -> float:
         """Calculate median of row medians"""
@@ -192,7 +190,6 @@ class Filters:
     def _row_median_diffs(row_medians: np.array, median_row_height: float) -> np.array:
         """Calculate difference of row medians from the median row height"""
         return row_medians - median_row_height
-
 
     @staticmethod
     def calc_diff(array: np.ndarray) -> np.ndarray:

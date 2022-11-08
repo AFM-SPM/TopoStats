@@ -160,7 +160,6 @@ def test_remove_quadratic_masked(
     return fig
 
 
-
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_gaussian_filter(
     minicircle_grain_gaussian_filter: Filters, plotting_config: dict, plot_dict: dict, tmp_path

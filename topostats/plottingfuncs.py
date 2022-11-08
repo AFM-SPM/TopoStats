@@ -111,8 +111,8 @@ class Images:
         fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
         ax.hist(self.data.flatten().astype(float), bins="auto", log=True)
-        ax.set_xlabel('pixel height')
-        ax.set_ylabel('frequency in image')
+        ax.set_xlabel("pixel height")
+        ax.set_ylabel("frequency in image")
         plt.title(self.title)
         plt.savefig(
             (self.output_dir / f"{self.filename}_histogram.{self.save_format}"),

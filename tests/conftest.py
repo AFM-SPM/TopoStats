@@ -153,11 +153,13 @@ def image_random_remove_x_y_tilt() -> np.array:
     df = pd.read_csv(RESOURCES / "image_random_remove_x_y_tilt.csv.bz2", header=None)
     return df.to_numpy()
 
+
 @pytest.fixture
 def image_random_remove_quadratic() -> np.array:
     """Expected removed quadratic (unmasked)"""
     df = pd.read_csv(RESOURCES / "image_random_remove_quadratic.csv.bz2", header=None)
     return df.to_numpy()
+
 
 @pytest.fixture
 def image_random_mask() -> np.array:
