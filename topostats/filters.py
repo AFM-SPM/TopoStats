@@ -181,15 +181,6 @@ class Filters:
 
         return image
 
-    @staticmethod
-    def _median_row_height(array: np.ndarray) -> float:
-        """Calculate median of row medians"""
-        return np.nanmedian(array)
-
-    @staticmethod
-    def _row_median_diffs(row_medians: np.array, median_row_height: float) -> np.array:
-        """Calculate difference of row medians from the median row height"""
-        return row_medians - median_row_height
 
     @staticmethod
     def calc_diff(array: np.ndarray) -> np.ndarray:
