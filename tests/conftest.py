@@ -155,6 +155,13 @@ def image_random_remove_x_y_tilt() -> np.array:
 
 
 @pytest.fixture
+def image_random_remove_quadratic() -> np.array:
+    """Expected removed quadratic (unmasked)"""
+    df = pd.read_csv(RESOURCES / "image_random_remove_quadratic.csv.bz2", header=None)
+    return df.to_numpy()
+
+
+@pytest.fixture
 def image_random_mask() -> np.array:
     """Expected mask."""
     df = pd.read_csv(RESOURCES / "image_random_mask.csv.bz2", header=None)
@@ -231,9 +238,6 @@ def random_filters(test_filters_random_with_mask: Filters) -> Filters:
         test_filters_random_with_mask.images["masked_align"], mask=test_filters_random_with_mask.images["mask"]
     )
 
-    # test_filters_random_with_mask.images["zero_averaged_background"] = test_filters_random_with_mask.average_background(
-    #     test_filters_random_with_mask.images["masked_tilt_removal"], mask=test_filters_random_with_mask.images["mask"]
-    # )
     return test_filters_random_with_mask
 
 
@@ -394,17 +398,6 @@ def minicircle_masked_quadratic_removal(minicircle_masked_tilt_removal: Filters)
         minicircle_masked_tilt_removal.images["masked_tilt_removal"], mask=minicircle_masked_tilt_removal.images["mask"]
     )
     return minicircle_masked_tilt_removal
-
-
-# @pytest.fixture
-# def minicircle_zero_average_background(minicircle_masked_tilt_removal: Filters) -> Filters:
-#     """Zero average background"""
-#     minicircle_masked_tilt_removal.images[
-#         "zero_averaged_background"
-#     ] = minicircle_masked_tilt_removal.average_background(
-#         minicircle_masked_tilt_removal.images["masked_tilt_removal"], mask=minicircle_masked_tilt_removal.images["mask"]
-#     )
-#     return minicircle_masked_tilt_removal
 
 
 @pytest.fixture
