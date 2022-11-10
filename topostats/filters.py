@@ -89,14 +89,14 @@ class Filters:
         if quiet:
             LOGGER.setLevel("ERROR")
 
-    def median_flatten(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
+    def median_flatten(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None) -> np.ndarray:
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-            LOGGER.info("median flattening with mask")
+            LOGGER.info(f"[{img_name}] : Median flattening with mask")
         else:
             read_matrix = image
-            LOGGER.info("median flattening without mask")
+            LOGGER.info(f"[{img_name}] : Median flattening without mask")
 
         for j in range(image.shape[0]):
             # Get the median of the row
@@ -106,16 +106,16 @@ class Filters:
                 image[j, :] -= m
         return image
 
-    def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None):
+    def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None):
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-            LOGGER.info("plane removal with mask")
+            LOGGER.info(f"[{img_name}] : Plane tilt removal with mask")
         else:
             read_matrix = image
-            LOGGER.info("plane removal without mask")
+            LOGGER.info(f"[{img_name}] : Plane tilt removal without mask")
 
-        # LOBF
+        # Line of best fit
         # Calculate medians
         medians_x = [np.nanmedian(read_matrix[:, i]) for i in range(read_matrix.shape[1])]
         medians_y = [np.nanmedian(read_matrix[j, :]) for j in range(read_matrix.shape[0])]
@@ -150,14 +150,14 @@ class Filters:
 
         return image
 
-    def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None):
+    def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None):
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-            LOGGER.info("quadratic bow removal with mask")
+            LOGGER.info(f"[{img_name}] : Remove quadratic bow with mask")
         else:
             read_matrix = image
-            LOGGER.info("quadratic bow removal without mask")
+            LOGGER.info(f"[{img_name}] : Remove quadratic bow without mask")
 
         # Calculate medians
         medians_x = [np.nanmedian(read_matrix[:, i]) for i in range(read_matrix.shape[1])]
@@ -233,9 +233,9 @@ class Filters:
         filter.filter_image()
 
         """
-        self.images["initial_align"] = self.median_flatten(self.images["pixels"], mask=None)
-        self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None)
-        self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None)
+        self.images["initial_align"] = self.median_flatten(self.images["pixels"], mask=None, img_name=self.filename)
+        self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_align"], mask=None, img_name=self.filename)
+        self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None, img_name=self.filename)
 
         # Get the thresholds
         try:
@@ -251,9 +251,9 @@ class Filters:
         self.images["mask"] = get_mask(
             image=self.images["initial_quadratic_removal"], thresholds=self.thresholds, img_name=self.filename
         )
-        self.images["masked_align"] = self.median_flatten(self.images["initial_tilt_removal"], self.images["mask"])
-        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], self.images["mask"])
+        self.images["masked_align"] = self.median_flatten(self.images["initial_tilt_removal"], self.images["mask"], img_name=self.filename)
+        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_align"], self.images["mask"], img_name=self.filename)
         self.images["masked_quadratic_removal"] = self.remove_quadratic(
-            self.images["masked_tilt_removal"], self.images["mask"]
+            self.images["masked_tilt_removal"], self.images["mask"], img_name=self.filename
         )
         self.images["gaussian_filtered"] = self.gaussian_filter(self.images["masked_quadratic_removal"])
