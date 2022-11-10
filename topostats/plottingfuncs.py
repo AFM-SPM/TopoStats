@@ -107,22 +107,24 @@ class Images:
         ax: plt.axes._subplots.AxesSubplot
             Matplotlib.pyplot axes object
         """
+        if self.image_set == "all":
+            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
-        fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+            ax.hist(self.data.flatten().astype(float), bins="auto", log=True)
+            ax.set_xlabel("pixel height")
+            ax.set_ylabel("frequency in image")
+            plt.title(self.title)
+            plt.savefig(
+                (self.output_dir / f"{self.filename}_histogram.{self.save_format}"),
+                format=self.save_format,
+                bbox_inches="tight",
+                pad_inches=0.5,
+            )
+            plt.close()
 
-        ax.hist(self.data.flatten().astype(float), bins="auto", log=True)
-        ax.set_xlabel("pixel height")
-        ax.set_ylabel("frequency in image")
-        plt.title(self.title)
-        plt.savefig(
-            (self.output_dir / f"{self.filename}_histogram.{self.save_format}"),
-            format=self.save_format,
-            bbox_inches="tight",
-            pad_inches=0.5,
-        )
-        plt.close()
-
-        return fig, ax
+            return fig, ax
+        else:
+            return None
 
     def plot_and_save(self):
         """
