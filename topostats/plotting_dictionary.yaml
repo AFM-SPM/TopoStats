@@ -31,7 +31,7 @@ initial_tilt_removal:
   image_type: "non-binary"
   core_set: false
 initial_quadratic_removal:
-  filename: 04-initial_quadratic_removal_unmasked"
+  filename: "04-initial_quadratic_removal_unmasked"
   title: "Initial Quadratic Removal (Unmasked)"
   image_type: "non-binary"
   core_set: false
