@@ -44,7 +44,7 @@ def default_config() -> Dict:
 def process_scan_config() -> Dict:
     """Sample configuration"""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
-    config["grains"]["threshold_std_dev_lower"] = 1.0
+    config["grains"]["threshold_std_dev"]["lower"] = 1.0
     config["grains"]["absolute_area_threshold"]["upper"] = [500, 800]
     config["plotting"]["zrange"] = [0, 3]
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
@@ -347,7 +347,7 @@ def minicircle_threshold_stddev(minicircle_initial_tilt_removal: Filters) -> Fil
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        threshold_std_dev=(10, 1.0),
+        threshold_std_dev={"lower": 10.0, "upper": 1.0},
     )
     return minicircle_initial_tilt_removal
 
@@ -444,7 +444,7 @@ def minicircle_grain_threshold_stddev(minicircle_grains: np.array, grains_config
         image=minicircle_grains.image,
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        threshold_std_dev=(10.0, 1.0),
+        threshold_std_dev={"lower": 10.0, "upper": 1.0},
         absolute=None,
     )
     return minicircle_grains

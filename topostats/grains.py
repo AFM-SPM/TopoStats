@@ -32,8 +32,7 @@ class Grains:
         pixel_to_nm_scaling: float,
         threshold_method: str = None,
         otsu_threshold_multiplier: float = None,
-        threshold_std_dev_lower: float = None,
-        threshold_std_dev_upper: float = None,
+        threshold_std_dev: dict = None,
         threshold_absolute_lower: float = None,
         threshold_absolute_upper: float = None,
         absolute_area_threshold: dict = {
@@ -57,8 +56,8 @@ class Grains:
             Factor by which lower threshold is to be scaled prior to masking.
         threshold_method: str
             Method for determining threshold to mask values, default is 'otsu'.
-        threshold_std_dev: float
-            Factor by which standard deviation is multiplied to derive the threshold if threshold_method is 'std_dev'.
+        threshold_std_dev: dict
+            Dictionary of factors by which standard deviation is multiplied to derive the threshold if threshold_method is 'std_dev'.
         threshold_absolute_lower: float
             Lower absolute threshold.
         threshold_absolute_upper: float
@@ -73,8 +72,7 @@ class Grains:
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.threshold_method = threshold_method
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
-        self.threshold_std_dev_lower = threshold_std_dev_lower
-        self.threshold_std_dev_upper = threshold_std_dev_upper
+        self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute_lower = threshold_absolute_lower
         self.threshold_absolute_upper = threshold_absolute_upper
         self.absolute_area_threshold = absolute_area_threshold
@@ -276,7 +274,7 @@ class Grains:
             image=self.image,
             threshold_method=self.threshold_method,
             otsu_threshold_multiplier=self.otsu_threshold_multiplier,
-            threshold_std_dev=(self.threshold_std_dev_lower, self.threshold_std_dev_upper),
+            threshold_std_dev=self.threshold_std_dev,
             absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
         )
         try:

@@ -205,7 +205,7 @@ def get_thresholds(
     image: np.ndarray,
     threshold_method: str,
     otsu_threshold_multiplier: float = None,
-    threshold_std_dev: tuple = None,
+    threshold_std_dev: dict = None,
     absolute: tuple = None,
     **kwargs,
 ) -> Dict:
@@ -217,7 +217,7 @@ def get_thresholds(
         2D Numpy array of image to be masked
     threshold_method : str
         Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
-    threshold_std_dev : float
+    threshold_std_dev : dict
         Scaling of standard deviation from the mean for lower and upper thresholds.
     absolute : tuple
         Tuple of lower and upper thresholds.
@@ -233,10 +233,10 @@ def get_thresholds(
         thresholds["upper"] = threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)
     elif threshold_method == "std_dev":
         try:
-            if threshold_std_dev[0] is not None:
-                thresholds["lower"] = threshold(image, method="mean") - threshold_std_dev[0] * np.nanstd(image)
-            if threshold_std_dev[1] is not None:
-                thresholds["upper"] = threshold(image, method="mean") + threshold_std_dev[1] * np.nanstd(image)
+            if threshold_std_dev["lower"] is not None:
+                thresholds["lower"] = threshold(image, method="mean") - threshold_std_dev["lower"] * np.nanstd(image)
+            if threshold_std_dev["upper"] is not None:
+                thresholds["upper"] = threshold(image, method="mean") + threshold_std_dev["upper"] * np.nanstd(image)
         except TypeError as typeerror:
             raise typeerror
     elif threshold_method == "absolute":

@@ -70,8 +70,10 @@ def validate_config(config: dict):
                     ),
                 ),
                 "otsu_threshold_multiplier": float,
-                "threshold_std_dev_lower": float,
-                "threshold_std_dev_upper": float,
+                "threshold_std_dev": {
+                    "lower": float,
+                    "upper": float,
+                },
                 "threshold_absolute_lower": float,
                 "threshold_absolute_upper": float,
                 "gaussian_size": float,
@@ -95,8 +97,10 @@ def validate_config(config: dict):
                     ),
                 ),
                 "otsu_threshold_multiplier": float,
-                "threshold_std_dev_lower": float,
-                "threshold_std_dev_upper": float,
+                "threshold_std_dev": {
+                    "lower": float,
+                    "upper": float,
+                },
                 "threshold_absolute_lower": float,
                 "threshold_absolute_upper": float,
                 "absolute_area_threshold": {
