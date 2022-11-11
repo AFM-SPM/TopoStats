@@ -90,6 +90,22 @@ class Filters:
             LOGGER.setLevel("ERROR")
 
     def median_flatten(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None) -> np.ndarray:
+        """
+        Aligns the rows of an image, flattening it. Note this does not handle scars.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            2-D image of the data to align the rows of.
+        mask: np.ndarray
+            Boolean array of points to mask out (ignore).
+        img_name: str
+            Name of the image (to be able to print information in the console).
+        Returns
+        -------
+        np.ndarray
+            Returns a copy of the input image with rows aligned
+        """
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
@@ -107,6 +123,23 @@ class Filters:
         return image
 
     def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None):
+        """
+        Removes planar tilt from an image (linear in 2D space). It uses a linear fit of the medians
+        of the rows and columns to determine the linear slants in x and y directions.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            2-D image of the data to remove the planar tilt from.
+        mask: np.ndarray
+            Boolean array of points to mask out (ignore).
+        img_name: str
+            Name of the image (to be able to print information in the console).
+        Returns
+        -------
+        np.ndarray
+            Returns a copy of the input image with the planar tilt removed
+        """
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
@@ -151,6 +184,23 @@ class Filters:
         return image
 
     def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None):
+        """
+        Removes the quadratic bowing that can be seen in some large-scale AFM images. It uses a simple quadratic fit
+        on the medians of the columns of the image and then subtracts the calculated quadratic from the image.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            2-D image of the data to remove the quadratic from.
+        mask: np.ndarray
+            Boolean array of points to mask out (ignore).
+        img_name: str
+            Name of the image (to be able to print information in the console).
+        Returns
+        -------
+        np.ndarray
+            Returns a copy of the input image with the quadratic bowing removed
+        """
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
