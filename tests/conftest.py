@@ -44,7 +44,7 @@ def default_config() -> Dict:
 def process_scan_config() -> Dict:
     """Sample configuration"""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
-    config["grains"]["otsu_threshold_multiplier"] = 1.0
+    config["grains"]["threshold_std_dev_lower"] = 1.0
     config["grains"]["absolute_area_threshold"]["upper"] = [500, 800]
     config["plotting"]["zrange"] = [0, 3]
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
