@@ -87,7 +87,7 @@ class Filters:
 
     def median_flatten(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None) -> np.ndarray:
         """
-        Aligns the rows of an image, flattening it. Note this does not handle scars.
+        Uses the method of median differences to flatten the rows of an image, aligning the rows. Note this does not handle scars.
 
         Parameters
         ----------
@@ -110,18 +110,18 @@ class Filters:
             read_matrix = image
             LOGGER.info(f"[{img_name}] : Median flattening without mask")
 
-        for j in range(image.shape[0]):
+        for row in range(image.shape[0]):
             # Get the median of the row
-            m = np.nanmedian(read_matrix[j, :])
+            m = np.nanmedian(read_matrix[row, :])
             # print(m)
             if not np.isnan(m):
-                image[j, :] -= m
+                image[row, :] -= m
         return image
 
     def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None):
         """
         Removes planar tilt from an image (linear in 2D space). It uses a linear fit of the medians
-        of the rows and columns to determine the linear slants in x and y directions.
+        of the rows and columns to determine the linear slants in x and y directions and then subtracts the fit from the columns.
 
         Parameters
         ----------
@@ -158,9 +158,9 @@ class Filters:
         if px[0] != 0:
             if not np.isnan(px[0]):
                 LOGGER.info("removing x plane tilt")
-                for j in range(0, image.shape[0]):
-                    for i in range(0, image.shape[1]):
-                        image[j, i] -= px[0] * (i)
+                for row in range(0, image.shape[0]):
+                    for col in range(0, image.shape[1]):
+                        image[row, col] -= px[0] * (col)
             else:
                 LOGGER.info("x gradient is nan, skipping plane tilt x removal")
         else:
@@ -169,9 +169,9 @@ class Filters:
         if py[0] != 0:
             if not np.isnan(py[0]):
                 LOGGER.info("removing y plane tilt")
-                for j in range(0, image.shape[0]):
-                    for i in range(0, image.shape[1]):
-                        image[j, i] -= py[0] * (j)
+                for row in range(0, image.shape[0]):
+                    for col in range(0, image.shape[1]):
+                        image[row, col] -= py[0] * (row)
             else:
                 LOGGER.info("y gradient is nan, skipping plane tilt y removal")
         else:
@@ -182,7 +182,7 @@ class Filters:
     def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None):
         """
         Removes the quadratic bowing that can be seen in some large-scale AFM images. It uses a simple quadratic fit
-        on the medians of the columns of the image and then subtracts the calculated quadratic from the image.
+        on the medians of the columns of the image and then subtracts the calculated quadratic from the columns.
 
         Parameters
         ----------
@@ -217,9 +217,9 @@ class Filters:
             if not np.isnan(px[0]):
                 # Remove quadratic in x
                 cx = -px[1] / (2 * px[0])
-                for j in range(0, image.shape[0]):
-                    for i in range(0, image.shape[1]):
-                        image[j, i] -= px[0] * (i - cx) ** 2
+                for row in range(0, image.shape[0]):
+                    for col in range(0, image.shape[1]):
+                        image[row, col] -= px[0] * (col - cx) ** 2
             else:
                 LOGGER.info("quadratic polyfit returns nan, skipping quadratic removal")
         else:
