@@ -71,12 +71,12 @@ def validate_config(config: dict):
                 ),
                 "otsu_threshold_multiplier": float,
                 "threshold_std_dev": {
-                    "lower": float,
-                    "upper": float,
+                    "lower": lambda n: n>0,
+                    "upper": lambda n: n>0,
                 },
                 "threshold_absolute": {
-                    "lower": float,
-                    "upper": float,
+                    "lower": lambda n: n<0,
+                    "upper": lambda n: n>0,
                 },
                 "gaussian_size": float,
                 "gaussian_mode": Or(
@@ -100,12 +100,12 @@ def validate_config(config: dict):
                 ),
                 "otsu_threshold_multiplier": float,
                 "threshold_std_dev": {
-                    "lower": float,
-                    "upper": float,
+                    "lower": lambda n: n>0,
+                    "upper": lambda n: n>0,
                 },
                 "threshold_absolute": {
-                    "lower": float,
-                    "upper": float,
+                    "lower": lambda n: n<0,
+                    "upper": lambda n: n>0,
                 },
                 "absolute_area_threshold": {
                     "upper": [
