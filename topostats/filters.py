@@ -25,8 +25,7 @@ class Filters:
         threshold_method: str = "otsu",
         otsu_threshold_multiplier: float = 1.7,
         threshold_std_dev: dict = None,
-        threshold_absolute_lower: float = None,
-        threshold_absolute_upper: float = None,
+        threshold_absolute: dict = None,
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
         quiet: bool = False,
@@ -45,12 +44,12 @@ class Filters:
             Method for thresholding, default 'otsu', valid options 'otsu', 'std_dev' and 'absolute'.
         otsu_threshold_multiplier: float
             Value for scaling the derived Otsu threshold (optional).
-        threshold_std_dev: float()
-            If using the 'std_dev' threshold method the number of standard deviations from the mean to threshold.
-        threshold_absolute_lower: float
-            Lower threshold if using the 'absolute' threshold method.
-        threshold_absolute_upper: float
-            Upper threshold if using the 'absolute' threshold method.
+        threshold_std_dev: dict
+            If using the 'std_dev' threshold method. Dictionary that contains upper and lower
+            threshold values for the number of standard deviations from the mean to threshold.
+        threshold_absolute: dict
+            If using the 'absolute' threshold method. Dictionary that contains upper and lower
+            absolute threshold values for flattening.
         quiet: bool
             Whether to silence output.
         """
@@ -61,8 +60,7 @@ class Filters:
         self.threshold_method = threshold_method
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
         self.threshold_std_dev = threshold_std_dev
-        self.threshold_absolute_lower = threshold_absolute_lower
-        self.threshold_absolute_upper = threshold_absolute_upper
+        self.threshold_absolute = threshold_absolute
         self.images = {
             "pixels": image,
             "initial_align": None,
@@ -292,7 +290,7 @@ class Filters:
                 threshold_method=self.threshold_method,
                 otsu_threshold_multiplier=self.otsu_threshold_multiplier,
                 threshold_std_dev=self.threshold_std_dev,
-                absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
+                absolute=self.threshold_absolute,
             )
         except TypeError as type_error:
             raise type_error

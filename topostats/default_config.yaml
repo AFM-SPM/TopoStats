@@ -13,8 +13,9 @@ filter:
   threshold_std_dev:
     lower: 10.0
     upper: 1.0
-  threshold_absolute_lower: -1.0
-  threshold_absolute_upper: 1.0
+  threshold_absolute:
+    lower: -1.0
+    upper: 1.0
   gaussian_size: 1.0121397464510862 # in px
   gaussian_mode: nearest
 grains:
@@ -25,8 +26,9 @@ grains:
   threshold_std_dev:
     lower: 10.0
     upper: 1.0
-  threshold_absolute_lower: 1.0
-  threshold_absolute_upper: 1.0
+  threshold_absolute:
+    lower: -1.0
+    upper: 1.0
   direction: upper # Options: upper, lower, both (defines whether to look for grains above or below thresholds or both)
   # Thresholding by area
   absolute_smallest_grain_size: 100

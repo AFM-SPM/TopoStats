@@ -206,7 +206,7 @@ def get_thresholds(
     threshold_method: str,
     otsu_threshold_multiplier: float = None,
     threshold_std_dev: dict = None,
-    absolute: tuple = None,
+    absolute: dict = None,
     **kwargs,
 ) -> Dict:
     """Obtain thresholds for masking data points.
@@ -218,9 +218,9 @@ def get_thresholds(
     threshold_method : str
         Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
     threshold_std_dev : dict
-        Scaling of standard deviation from the mean for lower and upper thresholds.
+        Dict of upper and lower thresholds for the standard deviation method.
     absolute : tuple
-        Tuple of lower and upper thresholds.
+        Dict of lower and upper thresholds.
     **kwargs:
 
     Returns
@@ -240,10 +240,10 @@ def get_thresholds(
         except TypeError as typeerror:
             raise typeerror
     elif threshold_method == "absolute":
-        if absolute[0] is not None:
-            thresholds["lower"] = absolute[0]
-        if absolute[1] is not None:
-            thresholds["upper"] = absolute[1]
+        if absolute["lower"] is not None:
+            thresholds["lower"] = absolute["lower"]
+        if absolute["upper"] is not None:
+            thresholds["upper"] = absolute["upper"]
     else:
         if not isinstance(threshold_method, str):
             raise TypeError(

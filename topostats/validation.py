@@ -74,8 +74,10 @@ def validate_config(config: dict):
                     "lower": float,
                     "upper": float,
                 },
-                "threshold_absolute_lower": float,
-                "threshold_absolute_upper": float,
+                "threshold_absolute": {
+                    "lower": float,
+                    "upper": float,
+                },
                 "gaussian_size": float,
                 "gaussian_mode": Or(
                     "nearest",
@@ -101,8 +103,10 @@ def validate_config(config: dict):
                     "lower": float,
                     "upper": float,
                 },
-                "threshold_absolute_lower": float,
-                "threshold_absolute_upper": float,
+                "threshold_absolute": {
+                    "lower": float,
+                    "upper": float,
+                },
                 "absolute_area_threshold": {
                     "upper": [
                         Or(

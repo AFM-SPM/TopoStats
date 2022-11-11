@@ -359,7 +359,7 @@ def minicircle_threshold_abs(minicircle_initial_tilt_removal: Filters) -> Filter
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="absolute",
         otsu_threshold_multiplier=None,
-        absolute=(-1.5, 1.5),
+        absolute={"lower": -1.5, "upper": 1.5},
     )
     return minicircle_initial_tilt_removal
 
@@ -454,7 +454,7 @@ def minicircle_grain_threshold_stddev(minicircle_grains: np.array, grains_config
 def minicircle_grain_threshold_abs(minicircle_grains: np.array) -> Grains:
     """Calculate threshold."""
     minicircle_grains.thresholds = get_thresholds(
-        image=minicircle_grains.image, threshold_method="absolute", otsu_threshold_multiplier=None, absolute=(-1.0, 1.0)
+        image=minicircle_grains.image, threshold_method="absolute", otsu_threshold_multiplier=None, absolute={"lower": -1.0, "upper": 1.0}
     )
     return minicircle_grains
 
