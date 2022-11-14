@@ -13,17 +13,17 @@ TOLERANCE = {"atol": 1e-06, "rtol": 1e-06}
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_median_flatten_unmasked(
-    minicircle_initial_align: Filters, plotting_config: dict, plot_dict: dict, tmp_path
+    minicircle_initial_median_flatten: Filters, plotting_config: dict, plot_dict: dict, tmp_path
 ) -> None:
     """Test initial alignment of rows without mask."""
-    assert isinstance(minicircle_initial_align.images["initial_align"], np.ndarray)
-    assert minicircle_initial_align.images["initial_align"].shape == (1024, 1024)
-    assert minicircle_initial_align.images["initial_align"].sum() == pytest.approx(40879.633073103985)
-    plotting_config = {**plotting_config, **plot_dict["initial_align"]}
+    assert isinstance(minicircle_initial_median_flatten.images["initial_median_flatten"], np.ndarray)
+    assert minicircle_initial_median_flatten.images["initial_median_flatten"].shape == (1024, 1024)
+    assert minicircle_initial_median_flatten.images["initial_median_flatten"].sum() == pytest.approx(40879.633073103985)
+    plotting_config = {**plotting_config, **plot_dict["initial_median_flatten"]}
     fig, _ = Images(
-        data=minicircle_initial_align.images["initial_align"],
+        data=minicircle_initial_median_flatten.images["initial_median_flatten"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling=minicircle_initial_align.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_initial_median_flatten.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig
@@ -106,17 +106,17 @@ def test_get_mask(minicircle_mask: Filters, plotting_config: dict, plot_dict: di
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_median_flatten_masked(
-    minicircle_masked_align: Filters, plotting_config: dict, plot_dict: dict, tmp_path
+    minicircle_masked_median_flatten: Filters, plotting_config: dict, plot_dict: dict, tmp_path
 ) -> None:
     """Test alignment of rows without mask."""
-    assert isinstance(minicircle_masked_align.images["masked_align"], np.ndarray)
-    assert minicircle_masked_align.images["masked_align"].shape == (1024, 1024)
-    assert minicircle_masked_align.images["masked_align"].sum() == pytest.approx(169538.4636641923)
-    plotting_config = {**plotting_config, **plot_dict["masked_align"]}
+    assert isinstance(minicircle_masked_median_flatten.images["masked_median_flatten"], np.ndarray)
+    assert minicircle_masked_median_flatten.images["masked_median_flatten"].shape == (1024, 1024)
+    assert minicircle_masked_median_flatten.images["masked_median_flatten"].sum() == pytest.approx(169538.4636641923)
+    plotting_config = {**plotting_config, **plot_dict["masked_median_flatten"]}
     fig, _ = Images(
-        data=minicircle_masked_align.images["masked_align"],
+        data=minicircle_masked_median_flatten.images["masked_median_flatten"],
         output_dir=tmp_path,
-        pixel_to_nm_scaling=minicircle_masked_align.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_masked_median_flatten.pixel_to_nm_scaling,
         **plotting_config,
     ).plot_and_save()
     return fig

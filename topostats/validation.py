@@ -236,14 +236,14 @@ def validate_plotting(config: dict) -> None:
                 ),
                 "core_set": bool,
             },
-            "initial_align": {
+            "initial_median_flatten": {
                 "filename": str,
                 "title": str,
                 "image_type": Or(
                     "binary",
                     "non-binary",
                     error=(
-                        "Invalid value in config 'initial_align.image_type', valid values "
+                        "Invalid value in config 'initial_median_flatten.image_type', valid values "
                         "are 'binary' or 'non-binary'"
                     ),
                 ),
@@ -285,14 +285,14 @@ def validate_plotting(config: dict) -> None:
                 ),
                 "core_set": bool,
             },
-            "masked_align": {
+            "masked_median_flatten": {
                 "filename": str,
                 "title": str,
                 "image_type": Or(
                     "binary",
                     "non-binary",
                     error=(
-                        "Invalid value in config 'masked_align.image_type', valid values "
+                        "Invalid value in config 'masked_median_flatten.image_type', valid values "
                         "are 'binary' or 'non-binary'"
                     ),
                 ),

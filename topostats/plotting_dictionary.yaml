@@ -20,8 +20,8 @@ pixels:
   title: "Pixels"
   image_type: "non-binary"
   core_set: false
-initial_align:
-  filename: "02-initial_align_unmasked"
+initial_median_flatten:
+  filename: "02-initial_median_flatten_unmasked"
   title: "Initial Alignment (Unmasked)"
   image_type: "non-binary"
   core_set: false
@@ -40,7 +40,7 @@ mask:
   title: "Binary Mask"
   image_type: "binary"
   core_set: false
-masked_align:
+masked_median_flatten:
   filename: "06-secondary_align_masked"
   title: "Secondary Alignment (Masked)"
   image_type: "non-binary"

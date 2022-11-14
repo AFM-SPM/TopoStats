@@ -225,17 +225,17 @@ def test_filters_random_with_mask(filter_config: dict, test_filters: Filters, im
 @pytest.fixture
 def random_filters(test_filters_random_with_mask: Filters) -> Filters:
     """Process random with filters, for use in grains fixture."""
-    test_filters_random_with_mask.images["initial_align"] = test_filters_random_with_mask.median_flatten(
+    test_filters_random_with_mask.images["initial_median_flatten"] = test_filters_random_with_mask.median_flatten(
         test_filters_random_with_mask.images["pixels"], mask=None
     )
     test_filters_random_with_mask.images["initial_tilt_removal"] = test_filters_random_with_mask.remove_tilt(
-        test_filters_random_with_mask.images["initial_align"], mask=None
+        test_filters_random_with_mask.images["initial_median_flatten"], mask=None
     )
-    test_filters_random_with_mask.images["masked_align"] = test_filters_random_with_mask.median_flatten(
+    test_filters_random_with_mask.images["masked_median_flatten"] = test_filters_random_with_mask.median_flatten(
         test_filters_random_with_mask.images["initial_tilt_removal"], mask=test_filters_random_with_mask.images["mask"]
     )
     test_filters_random_with_mask.images["masked_tilt_removal"] = test_filters_random_with_mask.remove_tilt(
-        test_filters_random_with_mask.images["masked_align"], mask=test_filters_random_with_mask.images["mask"]
+        test_filters_random_with_mask.images["masked_median_flatten"], mask=test_filters_random_with_mask.images["mask"]
     )
 
     return test_filters_random_with_mask
@@ -305,19 +305,19 @@ def minicircle(load_scan: LoadScan, filter_config: dict) -> Filters:
 
 
 @pytest.fixture
-def minicircle_initial_align(minicircle: Filters) -> Filters:
+def minicircle_initial_median_flatten(minicircle: Filters) -> Filters:
     """Initial align on unmasked data."""
-    minicircle.images["initial_align"] = minicircle.median_flatten(minicircle.images["pixels"], mask=None)
+    minicircle.images["initial_median_flatten"] = minicircle.median_flatten(minicircle.images["pixels"], mask=None)
     return minicircle
 
 
 @pytest.fixture
-def minicircle_initial_tilt_removal(minicircle_initial_align: Filters) -> Filters:
+def minicircle_initial_tilt_removal(minicircle_initial_median_flatten: Filters) -> Filters:
     """Initial x/y tilt removal on unmasked data."""
-    minicircle_initial_align.images["initial_tilt_removal"] = minicircle_initial_align.remove_tilt(
-        minicircle_initial_align.images["initial_align"], mask=None
+    minicircle_initial_median_flatten.images["initial_tilt_removal"] = minicircle_initial_median_flatten.remove_tilt(
+        minicircle_initial_median_flatten.images["initial_median_flatten"], mask=None
     )
-    return minicircle_initial_align
+    return minicircle_initial_median_flatten
 
 
 @pytest.fixture
@@ -374,21 +374,21 @@ def minicircle_mask(minicircle_threshold_otsu: Filters) -> Filters:
 
 
 @pytest.fixture
-def minicircle_masked_align(minicircle_mask: Filters) -> Filters:
+def minicircle_masked_median_flatten(minicircle_mask: Filters) -> Filters:
     """Secondary alignment using mask."""
-    minicircle_mask.images["masked_align"] = minicircle_mask.median_flatten(
+    minicircle_mask.images["masked_median_flatten"] = minicircle_mask.median_flatten(
         minicircle_mask.images["initial_tilt_removal"], mask=minicircle_mask.images["mask"]
     )
     return minicircle_mask
 
 
 @pytest.fixture
-def minicircle_masked_tilt_removal(minicircle_masked_align: Filters) -> Filters:
+def minicircle_masked_tilt_removal(minicircle_masked_median_flatten: Filters) -> Filters:
     """Secondary x/y tilt removal using mask."""
-    minicircle_masked_align.images["masked_tilt_removal"] = minicircle_masked_align.remove_tilt(
-        minicircle_masked_align.images["masked_align"], mask=minicircle_masked_align.images["mask"]
+    minicircle_masked_median_flatten.images["masked_tilt_removal"] = minicircle_masked_median_flatten.remove_tilt(
+        minicircle_masked_median_flatten.images["masked_median_flatten"], mask=minicircle_masked_median_flatten.images["mask"]
     )
-    return minicircle_masked_align
+    return minicircle_masked_median_flatten
 
 
 @pytest.fixture
