@@ -58,7 +58,7 @@ class Grains:
         threshold_std_dev: dict
             Dictionary of 'lower' and 'upper' factors by which standard deviation is multiplied to derive the threshold if threshold_method is 'std_dev'.
         threshold_absolute: dict
-            Dictionary of absolute thresholds for grain finding.
+            Dictionary of absolute 'lower' and 'upper' thresholds for grain finding.
         absolute_area_threshold: dict
             Dictionary of upper and lower grain's area thresholds
         direction: str
