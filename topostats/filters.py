@@ -87,7 +87,9 @@ class Filters:
 
     def median_flatten(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None) -> np.ndarray:
         """
-        Uses the method of median differences to flatten the rows of an image, aligning the rows. Note this does not handle scars.
+        Uses the method of median differences to flatten the rows of an image, aligning the rows and centering the 
+        median around zero. When used with a mask, this has the effect of centering the background data on zero. 
+        Note this function does not handle scars.
 
         Parameters
         ----------
