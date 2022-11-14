@@ -50,7 +50,8 @@ def validate_config(config: dict):
                     "UserIn0Retrace",
                     "UserIn1Trace",
                     "UserIn1Retrace",  # end of ibw channels
-                    error="Invalid value in config file for 'channel', all possible image channels are seen in the above error message.",
+                    error="Invalid value in config file for 'channel', all possible"
+                    "image channels are seen in the above error message.",
                 )
             },
             "filter": {
@@ -69,9 +70,14 @@ def validate_config(config: dict):
                     ),
                 ),
                 "otsu_threshold_multiplier": float,
-                "threshold_std_dev": lambda n: 0 < n <= 6,
-                "threshold_absolute_lower": float,
-                "threshold_absolute_upper": float,
+                "threshold_std_dev": {
+                    "lower": lambda n: n>0,
+                    "upper": lambda n: n>0,
+                },
+                "threshold_absolute": {
+                    "lower": lambda n: n<0,
+                    "upper": lambda n: n>0,
+                },
                 "gaussian_size": float,
                 "gaussian_mode": Or(
                     "nearest",
@@ -93,9 +99,14 @@ def validate_config(config: dict):
                     ),
                 ),
                 "otsu_threshold_multiplier": float,
-                "threshold_std_dev": lambda n: 0 < n <= 6,
-                "threshold_absolute_lower": float,
-                "threshold_absolute_upper": float,
+                "threshold_std_dev": {
+                    "lower": lambda n: n>0,
+                    "upper": lambda n: n>0,
+                },
+                "threshold_absolute": {
+                    "lower": lambda n: n<0,
+                    "upper": lambda n: n>0,
+                },
                 "absolute_area_threshold": {
                     "upper": [
                         Or(
@@ -179,6 +190,11 @@ def validate_config(config: dict):
                     "nanoscope",
                     error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot' or 'nanoscope",
                 ),
+                "histogram_log_axis": Or(
+                    True,
+                    False,
+                    error="Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or 'False'",
+                ),
             },
         }
     )
@@ -225,14 +241,14 @@ def validate_plotting(config: dict) -> None:
                 ),
                 "core_set": bool,
             },
-            "initial_align": {
+            "initial_median_flatten": {
                 "filename": str,
                 "title": str,
                 "image_type": Or(
                     "binary",
                     "non-binary",
                     error=(
-                        "Invalid value in config 'initial_align.image_type', valid values "
+                        "Invalid value in config 'initial_median_flatten.image_type', valid values "
                         "are 'binary' or 'non-binary'"
                     ),
                 ),
@@ -251,6 +267,19 @@ def validate_plotting(config: dict) -> None:
                 ),
                 "core_set": bool,
             },
+            "initial_quadratic_removal": {
+                "filename": str,
+                "title": str,
+                "image_type": Or(
+                    "binary",
+                    "non-binary",
+                    error=(
+                        "Invalid value in config 'initial_quadratic_removal.image_type', valid values "
+                        "are 'binary' or 'non-binary'"
+                    ),
+                ),
+                "core_set": bool,
+            },
             "mask": {
                 "filename": str,
                 "title": str,
@@ -261,14 +290,14 @@ def validate_plotting(config: dict) -> None:
                 ),
                 "core_set": bool,
             },
-            "masked_align": {
+            "masked_median_flatten": {
                 "filename": str,
                 "title": str,
                 "image_type": Or(
                     "binary",
                     "non-binary",
                     error=(
-                        "Invalid value in config 'masked_align.image_type', valid values "
+                        "Invalid value in config 'masked_median_flatten.image_type', valid values "
                         "are 'binary' or 'non-binary'"
                     ),
                 ),
@@ -287,14 +316,14 @@ def validate_plotting(config: dict) -> None:
                 ),
                 "core_set": bool,
             },
-            "zero_averaged_background": {
+            "masked_quadratic_removal": {
                 "filename": str,
                 "title": str,
                 "image_type": Or(
                     "binary",
                     "non-binary",
                     error=(
-                        "Invalid value in config 'zero_averaged_bacground.image_type', valid values "
+                        "Invalid value in config 'masked_quadratic_removal.image_type', valid values "
                         "are 'binary' or 'non-binary'"
                     ),
                 ),

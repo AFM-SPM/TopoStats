@@ -20,8 +20,8 @@ pixels:
   title: "Pixels"
   image_type: "non-binary"
   core_set: false
-initial_align:
-  filename: "02-initial_align_unmasked"
+initial_median_flatten:
+  filename: "02-initial_median_flatten_unmasked"
   title: "Initial Alignment (Unmasked)"
   image_type: "non-binary"
   core_set: false
@@ -30,28 +30,33 @@ initial_tilt_removal:
   title: "Initial Tilt Removal (Unmasked)"
   image_type: "non-binary"
   core_set: false
+initial_quadratic_removal:
+  filename: "04-initial_quadratic_removal_unmasked"
+  title: "Initial Quadratic Removal (Unmasked)"
+  image_type: "non-binary"
+  core_set: false
 mask:
-  filename: "04-binary_mask.png"
+  filename: "05-binary_mask"
   title: "Binary Mask"
   image_type: "binary"
   core_set: false
-masked_align:
-  filename: "05-secondary_align_masked"
+masked_median_flatten:
+  filename: "06-secondary_align_masked"
   title: "Secondary Alignment (Masked)"
   image_type: "non-binary"
   core_set: false
 masked_tilt_removal:
-  filename: "06-secondary_tilt_removal_masked"
+  filename: "07-secondary_tilt_removal_masked"
   title: "Secondary Tilt Removal (Masked)"
   image_type: "non-binary"
   core_set: false
-zero_averaged_background:
-  filename: "07-zero_average_background"
-  title: "Zero Average Background"
+masked_quadratic_removal:
+  filename: "08-quadratic_removal_masked"
+  title: "Secondary Quadratic Removal"
   image_type: "non-binary"
   core_set: false
 gaussian_filtered:
-  filename: "08-gaussian_filtered"
+  filename: "09-gaussian_filtered"
   title: "Gaussian Filtered"
   image_type: "non-binary"
   core_set: false
@@ -60,27 +65,27 @@ z_threshed:
   image_type: "non-binary"
   core_set: true
 mask_grains:
-  filename: "09-mask_grains"
+  filename: "10-mask_grains"
   title: "Mask for Grains"
   image_type: "binary"
   core_set: false
 labelled_regions_01:
-  filename: "10-labelled_regions"
+  filename: "11-labelled_regions"
   title: "Labelled Regions"
   image_type: "binary"
   core_set: false
 tidied_border:
-  filename: "11-tidy_borders"
+  filename: "12-tidy_borders"
   title: "Tidied Borders"
   image_type: "binary"
   core_set: false
 removed_noise:
-  filename: "12-noise_removed"
+  filename: "13-noise_removed"
   title: "Noise removed"
   image_type: "binary"
   core_set: false
 removed_small_objects:
-  filename: "13-small_objects_removed"
+  filename: "14-small_objects_removed"
   title: "Small Objects Removed"
   image_type: "binary"
   core_set: false
@@ -89,22 +94,22 @@ mask_overlay:
   image_type: "non-binary"
   core_set: true
 labelled_regions_02:
-  filename: "14-labelled_regions"
+  filename: "15-labelled_regions"
   title: "Labelled Regions"
   image_type: "binary"
   core_set: false
 coloured_regions:
-  filename: "15-coloured_regions"
+  filename: "16-coloured_regions"
   title: "Coloured Regions"
   image_type: "binary"
   core_set: false
 bounding_boxes:
-  filename: "16-bounding_boxes"
+  filename: "17-bounding_boxes"
   title: "Bounding Boxes"
   image_type: "binary"
   core_set: false
 coloured_boxes:
-  filename: "17-labelled_image_bboxes"
+  filename: "18-labelled_image_bboxes"
   title: "Labelled Image with Bounding Boxes"
   image_type: "binary"
   core_set: false

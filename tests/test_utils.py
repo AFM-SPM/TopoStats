@@ -8,7 +8,7 @@ import pandas as pd
 from topostats.utils import convert_path, find_images, get_out_path, update_config, get_thresholds, folder_grainstats
 
 
-THRESHOLD_OPTIONS = {"otsu_threshold_multiplier": 1.7, "threshold_std_dev": 1, "absolute": (-1.5, 1.5)}
+THRESHOLD_OPTIONS = {"otsu_threshold_multiplier": 1.7, "threshold_std_dev": {"lower": 10.0, "upper": 1.0}, "absolute": {"lower": -1.5, "upper": 1.5}}
 
 
 def test_convert_path(tmp_path: Path) -> None:
@@ -63,7 +63,7 @@ def test_get_thresholds_stddev(image_random: np.ndarray) -> None:
     """Test of get_thresholds() method with mean threshold."""
     thresholds = get_thresholds(image=image_random, threshold_method="std_dev", **THRESHOLD_OPTIONS)
     assert isinstance(thresholds, dict)
-    assert thresholds == {"upper": 0.7886033762450778, "lower": 0.21127903661568803}
+    assert thresholds == {"lower": -2.3866804917165663, "upper": 0.7886033762450778}
 
     with pytest.raises(TypeError):
         thresholds = get_thresholds(image=image_random, threshold_method="std_dev", deviation_from_mean=None)

@@ -64,6 +64,19 @@ To run tests:
 python -m pytest
 ```
 
+### Updating tests that use `.csv.bz2` files
+
+Here is an example of how to add / update tests that rely on creating _.csv.bz2 files:
+Place the following in the test before generating/calling the fixture from `conftest.py` in the test arguments, run it, then
+comment it out / remove it, then run it again with the fixture and check if the test passes. This generates the data and 
+saves it such that next time you run the tests, it will get picked up for testing against. 
+
+```
+import pandas as pd
+df = pd.DataFrame(quadratic_removed)
+df.to_csv("tests/resources/image_random_remove_quadratic.csv.bz2", index=False, header=False)
+```
+
 ## Static Analysis
 
 * [x] Use [`pylint`](https://pypi.org/project/pylint/) to analyse your code before submission.

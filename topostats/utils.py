@@ -96,7 +96,8 @@ def get_out_path(
         The output path that mirrors the input path structure.
     """
     try:
-        # Remove the filename if there is a suffix, not always the case as get_out_path is called from folder_grainstats()
+        # Remove the filename if there is a suffix, not always the case as
+        # get_out_path is called from folder_grainstats()
         if image_path.suffix:
             return output_dir / image_path.parent.relative_to(base_dir)
         else:
@@ -204,8 +205,8 @@ def get_thresholds(
     image: np.ndarray,
     threshold_method: str,
     otsu_threshold_multiplier: float = None,
-    threshold_std_dev: float = None,
-    absolute: tuple = None,
+    threshold_std_dev: dict = None,
+    absolute: dict = None,
     **kwargs,
 ) -> Dict:
     """Obtain thresholds for masking data points.
@@ -216,10 +217,10 @@ def get_thresholds(
         2D Numpy array of image to be masked
     threshold_method : str
         Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
-    threshold_std_dev : float
-        Scaling of standard deviation from the mean for lower and upper thresholds.
+    threshold_std_dev : dict
+        Dict of upper and lower thresholds for the standard deviation method.
     absolute : tuple
-        Tuple of lower and upper thresholds.
+        Dict of lower and upper thresholds.
     **kwargs:
 
     Returns
@@ -232,15 +233,17 @@ def get_thresholds(
         thresholds["upper"] = threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)
     elif threshold_method == "std_dev":
         try:
-            thresholds["lower"] = threshold(image, method="mean") - threshold_std_dev * np.nanstd(image)
-            thresholds["upper"] = threshold(image, method="mean") + threshold_std_dev * np.nanstd(image)
+            if threshold_std_dev["lower"] is not None:
+                thresholds["lower"] = threshold(image, method="mean") - threshold_std_dev["lower"] * np.nanstd(image)
+            if threshold_std_dev["upper"] is not None:
+                thresholds["upper"] = threshold(image, method="mean") + threshold_std_dev["upper"] * np.nanstd(image)
         except TypeError as typeerror:
             raise typeerror
     elif threshold_method == "absolute":
-        if absolute[0] is not None:
-            thresholds["lower"] = absolute[0]
-        if absolute[1] is not None:
-            thresholds["upper"] = absolute[1]
+        if absolute["lower"] is not None:
+            thresholds["lower"] = absolute["lower"]
+        if absolute["upper"] is not None:
+            thresholds["upper"] = absolute["upper"]
     else:
         if not isinstance(threshold_method, str):
             raise TypeError(
