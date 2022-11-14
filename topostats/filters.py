@@ -113,9 +113,12 @@ class Filters:
         for row in range(image.shape[0]):
             # Get the median of the row
             m = np.nanmedian(read_matrix[row, :])
-            # print(m)
             if not np.isnan(m):
                 image[row, :] -= m
+            else:
+                LOGGER.warning("""f[{self.filename}] Large grain detected image can not be
+processed, please refer to <url to page where we document common problems> for more information.""")
+            image[row, :] -= m
         return image
 
     def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None):
