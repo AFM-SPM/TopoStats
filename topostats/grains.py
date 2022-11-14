@@ -56,7 +56,7 @@ class Grains:
         threshold_method: str
             Method for determining threshold to mask values, default is 'otsu'.
         threshold_std_dev: dict
-            Dictionary of factors by which standard deviation is multiplied to derive the threshold if threshold_method is 'std_dev'.
+            Dictionary of 'lower' and 'upper' factors by which standard deviation is multiplied to derive the threshold if threshold_method is 'std_dev'.
         threshold_absolute: dict
             Dictionary of absolute thresholds for grain finding.
         absolute_area_threshold: dict
