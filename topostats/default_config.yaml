@@ -49,3 +49,5 @@ plotting:
   colorbar: true  # Options : true, false
   axes: true # Options : true, false (due to off being a bool when parsed)
   cmap: nanoscope # Options : nanoscope, afmhot
+  histogram:
+    log_y_axis: true
