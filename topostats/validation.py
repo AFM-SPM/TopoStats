@@ -190,13 +190,11 @@ def validate_config(config: dict):
                     "nanoscope",
                     error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot' or 'nanoscope",
                 ),
-                "histogram": {
-                    "log_y_axis": Or(
-                        True,
-                        False,
-                        error="Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or 'False'",
-                    ),
-                }
+                "histogram_log_axis": Or(
+                    True,
+                    False,
+                    error="Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or 'False'",
+                ),
             },
         }
     )

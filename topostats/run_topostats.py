@@ -391,7 +391,7 @@ def main():
             "axes": config["plotting"]["axes"],
             "cmap": config["plotting"]["cmap"],
             "zrange": config["plotting"]["zrange"],
-            "histogram_log": config["plotting"]["histogram"]["log_y_axis"]
+            "histogram_log_axis": config["plotting"]["histogram_log_axis"]
         }
         if image not in ["z_threshed", "mask_overlay", "grain_image", "grain_mask_image"]:
             config["plotting"]["plot_dict"][image].pop("zrange")

@@ -36,7 +36,7 @@ class Images:
         axes: bool = True,
         save: bool = True,
         save_format: str = "png",
-        histogram_log: bool = True,
+        histogram_log_axis: bool = True,
     ) -> None:
         """
         Initialise the class.
@@ -77,7 +77,7 @@ class Images:
             Whether to save the image.
         save_format: str
             Format to save the image as.
-        histogram_log: bool
+        histogram_log_axis: bool
             Optionally use a logarithmic y axis for the histogram plots
         """
 
@@ -98,7 +98,7 @@ class Images:
         self.axes = axes
         self.save = save
         self.save_format = save_format
-        self.histogram_log = histogram_log
+        self.histogram_log_axis = histogram_log_axis
 
     def plot_histogram_and_save(self):
         """
@@ -114,9 +114,9 @@ class Images:
         if self.image_set == "all":
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
-            ax.hist(self.data.flatten().astype(float), bins="auto", log=self.histogram_log)
+            ax.hist(self.data.flatten().astype(float), bins="auto", log=self.histogram_log_axis)
             ax.set_xlabel("pixel height")
-            if self.histogram_log:
+            if self.histogram_log_axis:
                 ax.set_ylabel("frequency in image (log)")
             else:
                 ax.set_ylabel("frequency in image")
