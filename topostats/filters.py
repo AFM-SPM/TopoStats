@@ -120,7 +120,7 @@ class Filters:
             else:
                 LOGGER.warning("""f[{self.filename}] Large grain detected image can not be
 processed, please refer to <url to page where we document common problems> for more information.""")
-            image[row, :] -= m
+
         return image
 
     def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None):
