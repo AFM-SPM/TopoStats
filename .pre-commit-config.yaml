@@ -24,7 +24,7 @@ repos:
     rev: 5.0.4
     hooks:
       - id: flake8
-        args: ["--exclude=topostats/_version.py", "topostats", "tests"]
+        args: ["--extend-exclude=topostats/_version.py", "topostats", "tests"]
         additional_dependencies: [flake8-print]
         types: [python]
   # - repo: local

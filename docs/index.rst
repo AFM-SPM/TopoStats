@@ -5,8 +5,12 @@ Welcome to TopoStats's documentation!
     :maxdepth: 1
     :caption: Getting Started
 
+    TopoStats batch processes scans from Atomic Force Microscopy. Please read through the various documentation sections
+    listed below to find out more.
+
     introduction
     installation
+    usage
     configuration
     contributing
     workflow
@@ -14,7 +18,7 @@ Welcome to TopoStats's documentation!
     related_software
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: API
 
    topostats.filters

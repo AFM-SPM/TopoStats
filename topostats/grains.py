@@ -177,17 +177,15 @@ class Grains:
             return small_objects_removed > 0.0
         return image
 
-    def area_thresholding(self, image: np.ndarray, area_thresh_list: list):
+    def area_thresholding(self, image: np.ndarray, area_thresholds: list):
         """Removes objects larger and smaller than the specified thresholds.
 
         Parameters
         ----------
         image: np.ndarray
             Image array where the background == 0 and grains are labelled as integers > 0.
-        upper: float
-            Upper threshold area.
-        lower: float
-            Lower threshold area.
+        area_thresholds: list
+            List of area thresholds, first should be the lower threshold, second upper threshold.
 
         Returns
         -------
@@ -196,8 +194,7 @@ class Grains:
 
         """
         image_cp = image.copy()
-        upper = area_thresh_list[1]
-        lower = area_thresh_list[0]
+        lower, upper = area_thresholds
         # if one value is None adjust for comparison
         if upper is None:
             upper = image.size * self.pixel_to_nm_scaling**2

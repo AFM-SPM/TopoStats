@@ -88,8 +88,8 @@ class Filters:
 
     def median_flatten(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None) -> np.ndarray:
         """
-        Uses the method of median differences to flatten the rows of an image, aligning the rows and centering the 
-        median around zero. When used with a mask, this has the effect of centering the background data on zero. 
+        Uses the method of median differences to flatten the rows of an image, aligning the rows and centering the
+        median around zero. When used with a mask, this has the effect of centering the background data on zero.
         Note this function does not handle scars.
 
         Parameters
@@ -119,8 +119,10 @@ class Filters:
             if not np.isnan(m):
                 image[row, :] -= m
             else:
-                LOGGER.warning("""f[{self.filename}] Large grain detected image can not be
-processed, please refer to <url to page where we document common problems> for more information.""")
+                LOGGER.warning(
+                    """f[{self.filename}] Large grain detected image can not be
+processed, please refer to <url to page where we document common problems> for more information."""
+                )
 
         return image
 
@@ -233,7 +235,6 @@ processed, please refer to <url to page where we document common problems> for m
 
         return image
 
-
     @staticmethod
     def calc_diff(array: np.ndarray) -> np.ndarray:
         """Calculate the difference of an array."""
@@ -306,9 +307,15 @@ processed, please refer to <url to page where we document common problems> for m
         filter.filter_image()
 
         """
-        self.images["initial_median_flatten"] = self.median_flatten(self.images["pixels"], mask=None, img_name=self.filename)
-        self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_median_flatten"], mask=None, img_name=self.filename)
-        self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None, img_name=self.filename)
+        self.images["initial_median_flatten"] = self.median_flatten(
+            self.images["pixels"], mask=None, img_name=self.filename
+        )
+        self.images["initial_tilt_removal"] = self.remove_tilt(
+            self.images["initial_median_flatten"], mask=None, img_name=self.filename
+        )
+        self.images["initial_quadratic_removal"] = self.remove_quadratic(
+            self.images["initial_tilt_removal"], mask=None, img_name=self.filename
+        )
 
         # Get the thresholds
         try:
@@ -324,8 +331,12 @@ processed, please refer to <url to page where we document common problems> for m
         self.images["mask"] = get_mask(
             image=self.images["initial_quadratic_removal"], thresholds=self.thresholds, img_name=self.filename
         )
-        self.images["masked_median_flatten"] = self.median_flatten(self.images["initial_tilt_removal"], self.images["mask"], img_name=self.filename)
-        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_median_flatten"], self.images["mask"], img_name=self.filename)
+        self.images["masked_median_flatten"] = self.median_flatten(
+            self.images["initial_tilt_removal"], self.images["mask"], img_name=self.filename
+        )
+        self.images["masked_tilt_removal"] = self.remove_tilt(
+            self.images["masked_median_flatten"], self.images["mask"], img_name=self.filename
+        )
         self.images["masked_quadratic_removal"] = self.remove_quadratic(
             self.images["masked_tilt_removal"], self.images["mask"], img_name=self.filename
         )

@@ -23,43 +23,27 @@ Please see the [installation instructions](https://afm-spm.github.io/TopoStats/i
 
 ### Tutorials and Examples
 
-*todo: This will initially contain a simple run through, probably using `mincircle.spm`.*
+For a full description of usage please refer to the [usage](https://afm-spm.github.io/TopoStats/usage.html) documentation.
 
-> Currently Topostats is undergoing heavy revision. This involves removing the dependency on Gwyddion in favour of using [scikit-image](https://scikit-image.org/) to perform a number of steps in identifying and isolating features and summarising them. In turn this allows the package to move away from relying on Python 2.7 and instead run under Python >= 3.8.
-
-In this development branch configuration is done through [YAML](https://yaml.org/) files. A default configuration file
-is included in the directory `topostats/default_config.yml` under the `dev` branch and you can run this to process the
-included `minicircle.spm` (found under `tests/resources/minicircle.spm`) with the following...
+A default configuration is loaded automatically and so the simplest method of processing images is to run
+`run_topostats` in the same directory as your scans _after_ having activated the virtual environment in which you have
+installed TopoStats
 
 ``` bash
 run_topostats
 ```
 
-If you have your own files and wish to process them you should copy the default configuration and edit it as required
-then invoke `run_topostats` and pass it the argument for `--config` pointing to your file.
+If you have your own YAML configuration file (see [Usage : Configuring
+TopoStats](https://afm-spm.github.io/TopoStats/usage.html#configuring_topostats)) then invoke `run_topostats` and use
+the argument for `--config <config_file>.yaml` that points to your file.
 
 ``` bash
-cp topostats/default_config.yaml my_config.yaml
 # Edit and save my_config.yaml then run TopoStats with this configuration file
 run_topostats --config my_config.yaml
 ```
 
 The configuration file is validated before analysis begins and if there are problems you will see errors messages that
-are hopefully useful in resolving the error(s).
-
-This version takes command line arguments and also takes a small subset of additional arguments. You can see what other
-options are available with...
-
-``` bash
-run_topostats --help
-```
-
-Any options specified on the command line will over-ride those in the configuration file, for example to suppress log
-messages and just have a progress bar you can over-ride the `quiet: false` option on the command line with.
-
-``` bash
-run_topostats --config config/example.yaml --quiet True
-```
+are hopefully useful in resolving the error(s) in your modified configuration.
 
 ## Contributing
 
