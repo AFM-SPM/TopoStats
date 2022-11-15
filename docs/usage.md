@@ -1,11 +1,13 @@
 # Usage
 
-After having [installed](installation) TopoStats you are ready to run it. For convenience TopoStats provides an command
+After having [installed](installation) TopoStats you are ready to run it. For convenience TopoStats provides a command
 line interface `run_topostats` that will load a default configuration file and process all images with reasonable
 default configuration options.
 
 However, because the location of your image files can not be known in advance you must make a copy of the default
-configuration and modify it to work with your files. The configuration
+configuration and modify it to work with your files. This guide will hopefully take you through the process of running
+TopoStats and customising the configuration file with which it is run. If you encounter any problems please ask
+questions in the [Discussions](https://github.com/AFM-SPM/TopoStats/discussions).
 
 ## Organising Scans
 
@@ -43,16 +45,16 @@ run_topostats
 Configuration of TopoStats is done through a [YAML](https://yuaml.org/) file and a full description of the fields used
 can be found under the [configuration](configuration) section.
 
-Here we will go through common changes that you are likely to wish to make to the default configuration and how to make
+Here we will go through common changes that you are likely to want to make to the default configuration and how to make
 them.
 
 ### Copying `default_config.yaml`
 
-If you have cloned the TopoStats repository the default configuration can be found in the sub-directory
-`topostats/default_config.yaml`. If you have installed TopoStats from PyPI (**NB** not currently possible) then for
-convenience a sample configuration file can be downloaded from
-[here](https://raw.githubusercontent.com/AFM-SPM/TopoStats/master/topostats/default_config.yaml) (right-click on the link
-and select `Save As` to save the file to your computer).
+If you have used Git to clone the TopoStats repository from GitHub the default configuration can be found in the
+sub-directory `topostats/default_config.yaml`. If you have installed TopoStats from PyPI (**NB** not currently possible)
+then for convenience a sample configuration file can be downloaded from
+[here](https://raw.githubusercontent.com/AFM-SPM/TopoStats/master/topostats/default_config.yaml) (right-click on the
+link and select `Save As` to save the file to your computer).
 
 Save or copy this file to the same directory all of your scan files are located and call it `my_config.yaml`.
 
@@ -64,17 +66,17 @@ cp /<path>/<to>/<where>/<topostats>/<is>/<cloned>/TopoStats/topostats/default_co
 ### Editing `my_config.yaml`
 
 You can now start customising the configuration you are going to run TopoStats with. All fields have defaults but the
-ones you may wish to change are....
+ones you may want to change are....
 
 * `base_dir` (default: `./`) the directory in which to search for scans. By default this is `./` which represents the
   directory from which `run_topostats` is called and it is good practice to have one configuration file per batch of
   scans that are being processed.
-* `output_dir` (default: `output`) the location output is saved, by default this is the directory `output` which will be
-  created if it doesn't exist. If you wish output to be somewhere else specify it here. If you want `Processed`
-  directories to sit within the directories that images are found then simply set the `output_dir` to the same value as
-  `base_dir`.
+* `output_dir` (default: `output`) the location where theoutput is saved, by default this is the directory `output`
+  which will be   created if it doesn't exist. If you wish for the output to be somewhere else specify it here. If you
+  want `Processed` directories to sit within the directories that images are found then simply set the `output_dir` to
+  the same value as `base_dir`.
 * `cores` (default: `4`) the number of parallel processes to run processing of all found images. Set this to a maximum
-  of one less than the number of cores on your computers CPU.
+  of one less than the number of cores on your computers CPU. If unsure leave as is.
 * `file_ext` (default: `.spm`) the file extension of scans to search for within the current directory. The default is
   `.spm` but other file format support is in the pipeline.
 * `plotting` : `image_set` (default `core`) specifies which steps of the processing to plot images of. The value `all`
@@ -156,7 +158,7 @@ one under `level1/a`...
 |-- [4.0K Nov 15 14:06]  output/Processed
 ```
 
-...where there is one `Processe` directory at the sub-directory level that each image was found.
+...where there is one `Processed` directory at the sub-directory level that each image was found.
 
 **NB** If you want `Processed` directories to sit within the directories that images are found then simply set the `output_dir`
 to the same value as `base_dir`.
