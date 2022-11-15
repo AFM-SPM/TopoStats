@@ -258,9 +258,9 @@ processed, please refer to <url to page where we document common problems> for m
         np.ndarray
             Numpy array of image zero averaged.
         """
-        masked_image = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-        LOGGER.info(f"[{self.filename}] : Zero averaging background {np.nanmean(masked_image)}")
-        return image - np.nanmean(masked_image)
+        mean = np.mean(image[mask == 0])
+        LOGGER.info(f"[{self.filename}] : Zero averaging background : {mean} nm")
+        return image - mean
 
     def gaussian_filter(self, image: np.ndarray, **kwargs) -> np.array:
         """Apply Gaussian filter to an image.
