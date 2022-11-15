@@ -258,6 +258,8 @@ processed, please refer to <url to page where we document common problems> for m
         np.ndarray
             Numpy array of image zero averaged.
         """
+        if mask == None:
+            mask = np.zeros_like(image)
         mean = np.mean(image[mask == 0])
         LOGGER.info(f"[{self.filename}] : Zero averaging background : {mean} nm")
         return image - mean
