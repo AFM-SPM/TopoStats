@@ -1,18 +1,28 @@
+"""Perform DNA Tracing"""
+from collections import OrderedDict
+import logging
+from pathlib import Path
+import math
+import os
+from typing import Union, Tuple
+import warnings
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import ndimage, spatial, interpolate as interp
-from skimage import morphology, filters
-import math
-import warnings
-import os
+from skimage import morphology
+from skimage.filters import gaussian
 
-from topostats.tracingfuncs import genTracingFuncs, getSkeleton, reorderTrace
+from topostats.logs.logs import LOGGER_NAME
+from topostats.tracing.tracingfuncs import genTracingFuncs, getSkeleton, reorderTrace
+
+LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 class dnaTrace(object):
-    '''
+    """
     This class gets all the useful functions from the old tracing code and staples
     them together to create an object that contains the traces for each DNA molecule
     in an image and functions to calculate stats from those traces.
@@ -22,16 +32,26 @@ class dnaTrace(object):
 
     The object also keeps track of the skeletonised plots and other intermediates
     in case these are useful for other things in the future.
-    '''
+    """
 
-    def __init__(self, full_image_data, gwyddion_grains, afm_image_name, pixel_size,
-                 number_of_columns, number_of_rows):
-        self.full_image_data = full_image_data
-        self.gwyddion_grains = gwyddion_grains
-        self.afm_image_name = afm_image_name
-        self.pixel_size = pixel_size
-        self.number_of_columns = number_of_columns
-        self.number_of_rows = number_of_rows
+    def __init__(
+        self,
+        full_image_data,
+        grains,
+        filename,
+        pixel_size,
+        convert_nm_to_m: bool = True,
+    ):
+        self.full_image_data = full_image_data * 1e-9 if convert_nm_to_m else full_image_data
+        # self.grains_orig = [x for row in grains for x in row]
+        self.grains_orig = grains
+        self.filename = filename
+        self.pixel_size = pixel_size * 1e-9 if convert_nm_to_m else pixel_size
+        # self.number_of_columns = number_of_columns
+        # self.number_of_rows = number_of_rows
+        self.number_of_rows = self.full_image_data.shape[0]
+        self.number_of_columns = self.full_image_data.shape[1]
+        self.sigma = 0.7 / (self.pixel_size * 1e9)
 
         self.gauss_image = []
         self.grains = {}
@@ -62,27 +82,32 @@ class dnaTrace(object):
         self.minor = float(1)
         self.step_size_m = 7e-9  # Used for getting the splines
         # supresses scipy splining warnings
-        warnings.filterwarnings('ignore')
+        warnings.filterwarnings("ignore")
 
-        self.getNumpyArraysfromGwyddion()
-        self.getDisorderedTrace()
+        LOGGER.info("Performing DNA Tracing")
+
+    def trace_dna(self):
+        """Perform DNA tracing."""
+        self.get_numpy_arrays()
+        self.gaussian_filter()
+        self.get_disordered_trace()
         # self.isMolLooped()
-        self.purgeObviousCrap()
-        self.determineLinearOrCircular(self.disordered_traces)
-        self.getOrderedTraces()
-        self.determineLinearOrCircular(self.ordered_traces)
-        self.getFittedTraces()
-        self.getSplinedTraces()
+        self.purge_obvious_crap()
+        self.linear_or_circular(self.disordered_traces)
+        self.get_ordered_traces()
+        self.linear_or_circular(self.ordered_traces)
+        self.get_fitted_traces()
+        self.get_splined_traces()
         self.findCurvature()
         self.saveCurvature()
         self.analyseCurvature()
-        self.measureContourLength()
-        self.measureEndtoEndDistance()
-        self.reportBasicStats()
+        self.measure_contour_length()
+        self.measure_end_to_end_distance()
+        self.report_basic_stats()
 
-    def getNumpyArraysfromGwyddion(self):
+    def get_numpy_arrays(self):
 
-        ''' Function to get each grain as a numpy array which is stored in a
+        """Function to get each grain as a numpy array which is stored in a
         dictionary
 
         Currently the grains are unnecessarily large (the full image) as I don't
@@ -93,41 +118,81 @@ class dnaTrace(object):
 
         There is some kind of discrepency between the ordering of arrays from
         gwyddion and how they're usually handled in np arrays meaning you need
-        to be careful when indexing from gwyddion derived numpy arrays'''
-
-        for grain_num in set(self.gwyddion_grains):
+        to be careful when indexing from gwyddion derived numpy arrays"""
+        for grain_num in set(self.grains_orig.flatten()):
             # Skip the background
-            if grain_num == 0:
-                continue
-
-            # Saves each grain as a multidim numpy array
-            single_grain_1d = np.array([1 if i == grain_num else 0 for i in self.gwyddion_grains])
-            self.grains[int(grain_num)] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
-
+            if grain_num != 0:
+                # Saves each grain as a multidim numpy array
+                # single_grain_1d = np.array([1 if i == grain_num else 0 for i in self.grains_orig])
+                # self.grains[int(grain_num)] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
+                self.grains[int(grain_num)] = self._get_grain_array(grain_num)
+        # FIXME : This should be a method of its own, but strange that apparently Gaussian filtered image is filtered again
         # Get a 7 A gauss filtered version of the original image
-        # used in refining the pixel positions in getFittedTraces()
-        sigma = 0.7 / (self.pixel_size * 1e9)
-        self.gauss_image = filters.gaussian(self.full_image_data, sigma)
+        # used in refining the pixel positions in fitted_traces()
+        # sigma = 0.7 / (self.pixel_size * 1e9)
+        # self.gauss_image = filters.gaussian(self.full_image_data, sigma)
 
-    def getDisorderedTrace(self):
+    def _get_grain_array(self, grain_number: int) -> np.ndarray:
+        """Extract a single grains."""
+        return np.where(self.grains_orig == grain_number, 1, 0)
 
-        '''Function to make a skeleton for each of the grains in the image
+    # FIXME : It is straight-forward to get bounding boxes for grains, need to then have a dictionary of original image
+    #         and label for each grain to then be processed.
+    def _get_bounding_box(array: np.ndarray) -> np.ndarray:
+        """Calculate bounding box for each grain."""
+        rows = grain_array.any(axis=1)
+        LOGGER.info(f"[{self.filename}] : Cropping grain")
+        if rows.any():
+            m, n = grain_array.shape
+            cols = grain_array.any(0)
+            return (rows.argmax(), m - rows[::-1].argmax(), cols.argmax(), n - cols[::-1].argmax())
+            return grain_array[rows.argmax() : m - rows[::-1].argmax(), cols.argmax() : n - cols[::-1].argmax()]
+        return np.empty((0, 0), dtype=bool)
+
+    def _crop_array(array: np.ndarray, bounding_box: Tuple) -> np.ndarray:
+        """Crop an array.
+
+        Parameters
+        ----------
+        array: np.ndarray
+            2D Numpy array to be cropped.
+        bounding_box: Tuple
+            Tuple of co-ordinates to crop, should be of form (max_x, min_x, max_y, min_y) as returned by
+        _get_bounding_box().
+
+        Returns
+        -------
+        np.ndarray()
+            Cropped array
+        """
+        return array[bounding_box[0] : bounding_box[1], bounding_box[2] : bounding_box[3]]
+
+    def gaussian_filter(self, **kwargs) -> np.array:
+        """Apply Gaussian filter"""
+        self.gauss_image = gaussian(self.full_image_data, sigma=self.sigma, **kwargs)
+        LOGGER.info(f"[{self.filename}] : Gaussian filter applied.")
+
+    def get_disordered_trace(self):
+        """Create a skeleton for each of the grains in the image.
 
         Uses my own skeletonisation function from tracingfuncs module. I will
         eventually get round to editing this function to try to reduce the branching
-        and to try to better trace from looped molecules '''
+        and to try to better trace from looped molecules"""
 
         for grain_num in sorted(self.grains.keys()):
-
+            # What purpose does binary dilation serve here? Name suggests some sort of smoothing around the edges and
+            # the resulting array is used as a mask during the skeletonising process.
             smoothed_grain = ndimage.binary_dilation(self.grains[grain_num], iterations=1).astype(
-                self.grains[grain_num].dtype)
+                self.grains[grain_num].dtype
+            )
 
-            sigma = (0.01 / (self.pixel_size * 1e9))
+            sigma = 0.01 / (self.pixel_size * 1e9)
             very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
             try:
-                dna_skeleton = getSkeleton(self.gauss_image, smoothed_grain, self.number_of_columns,
-                                           self.number_of_rows, self.pixel_size)
+                dna_skeleton = getSkeleton(
+                    self.gauss_image, smoothed_grain, self.number_of_columns, self.number_of_rows, self.pixel_size
+                )
                 self.disordered_traces[grain_num] = dna_skeleton.output_skeleton
             except IndexError:
                 # Some gwyddion grains touch image border causing IndexError
@@ -136,20 +201,18 @@ class dnaTrace(object):
             # skel = morphology.skeletonize(self.grains[grain_num])
             # self.skeletons[grain_num] = np.argwhere(skel == 1)
 
-    def purgeObviousCrap(self):
+    def purge_obvious_crap(self):
 
         for dna_num in sorted(self.disordered_traces.keys()):
 
             if len(self.disordered_traces[dna_num]) < 10:
                 self.disordered_traces.pop(dna_num, None)
 
-    def determineLinearOrCircular(self, traces):
+    def linear_or_circular(self, traces):
 
-        ''' Determines whether each molecule is circular or linear based on the
-        local environment of each pixel from the trace
+        """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace
 
-        This function is sensitive to branches from the skeleton so might need
-        to implement a function to remove them'''
+        This function is sensitive to branches from the skeleton so might need to implement a function to remove them"""
 
         self.num_circular = 0
         self.num_linear = 0
@@ -174,7 +237,7 @@ class dnaTrace(object):
                 self.mol_is_circular[dna_num] = False
                 self.num_linear += 1
 
-    def getOrderedTraces(self):
+    def get_ordered_traces(self):
 
         for dna_num in sorted(self.disordered_traces.keys()):
 
@@ -183,7 +246,8 @@ class dnaTrace(object):
             if self.mol_is_circular[dna_num]:
 
                 self.ordered_traces[dna_num], trace_completed = reorderTrace.circularTrace(
-                    self.disordered_traces[dna_num])
+                    self.disordered_traces[dna_num]
+                )
 
                 if not trace_completed:
                     self.mol_is_circular[dna_num] = False
@@ -196,30 +260,18 @@ class dnaTrace(object):
                         self.ordered_traces.pop(dna_num)
 
             elif not self.mol_is_circular[dna_num]:
-                self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_traces[dna_num].tolist())
+                self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
 
-    def reportBasicStats(self):
-        # self.determineLinearOrCircular()
-        print('There are %i circular and %i linear DNA molecules found in the image' % (
-            self.num_circular, self.num_linear))
+    def report_basic_stats(self):
+        """Report number of circular and linear DNA molecules detected."""
+        LOGGER.info(
+            f"There are {self.num_circular} circular and {self.num_linear} linear DNA molecules found in the image"
+        )
 
-    def getFittedTraces(self):
-
-        '''
-        Creates self.fitted_traces dictonary which contains trace
-        coordinates (for each identified molecule) that are adjusted to lie
+    def get_fitted_traces(self):
+        """Create trace coordinates (for each identified molecule) that are adjusted to lie
         along the highest points of each traced molecule
-
-        param:  self.ordered_traces; the unadjusted skeleton traces
-        param:  self.gauss_image; gaussian filtered AFM image of the original
-                molecules
-        param:  index_width; 1/2th the width of the height profile indexed from
-                self.gauss_image at each coordinate (e.g. 2*index_width pixels
-                are indexed)
-
-        return: no direct output but instance variable self.fitted_traces
-                is populated with adjusted x,y coordinates
-        '''
+        """
 
         for dna_num in sorted(self.ordered_traces.keys()):
 
@@ -240,18 +292,14 @@ class dnaTrace(object):
                     # prevents negative number indexing
                     # i.e. stops (trace_coordinate - index_width) < 0
                     trace_coordinate[0] = index_width
-                elif trace_coordinate[0] >= (self.number_of_rows -
-                                             index_width):
+                elif trace_coordinate[0] >= (self.number_of_rows - index_width):
                     # prevents indexing above image range causing IndexError
-                    trace_coordinate[0] = (self.number_of_rows -
-                                           index_width)
+                    trace_coordinate[0] = self.number_of_rows - index_width
                 # do same for y coordinate
                 elif trace_coordinate[1] < 0:
                     trace_coordinate[1] = index_width
-                elif trace_coordinate[1] >= (self.number_of_columns -
-                                             index_width):
-                    trace_coordinate[1] = (self.number_of_columns -
-                                           index_width)
+                elif trace_coordinate[1] >= (self.number_of_columns - index_width):
+                    trace_coordinate[1] = self.number_of_columns - index_width
 
                 # calculate vector to n - 2 coordinate in trace
                 if self.mol_is_circular[dna_num]:
@@ -271,22 +319,16 @@ class dnaTrace(object):
 
                 # if  angle is closest to 45 degrees
                 if 67.5 > vector_angle >= 22.5:
-                    perp_direction = 'negative diaganol'
+                    perp_direction = "negative diaganol"
                     # positive diagonal (change in x and y)
-                    # Take height values at the inverse of the positive diagonal
-                    # (i.e. the negative diagonal)
-                    y_coords = np.arange(
-                        trace_coordinate[1] - index_width,
-                        trace_coordinate[1] + index_width
-                    )[::-1]
-                    x_coords = np.arange(
-                        trace_coordinate[0] - index_width,
-                        trace_coordinate[0] + index_width
-                    )
+                    # Take height values at the inverse of the positive diaganol
+                    # (i.e. the negative diaganol)
+                    y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)[::-1]
+                    x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
 
                 # if angle is closest to 135 degrees
                 elif 157.5 >= vector_angle >= 112.5:
-                    perp_direction = 'positive diaganol'
+                    perp_direction = "positive diaganol"
                     y_coords = np.arange(
                         trace_coordinate[1] - index_width,
                         trace_coordinate[1] + index_width
@@ -298,7 +340,7 @@ class dnaTrace(object):
 
                 # if angle is closest to 90 degrees
                 if 112.5 > vector_angle >= 67.5:
-                    perp_direction = 'horizontal'
+                    perp_direction = "horizontal"
                     x_coords = np.arange(
                         trace_coordinate[0] - index_width,
                         trace_coordinate[0] + index_width
@@ -306,7 +348,7 @@ class dnaTrace(object):
                     y_coords = np.full(len(x_coords), trace_coordinate[1])
 
                 elif 22.5 > vector_angle:  # if angle is closest to 0 degrees
-                    perp_direction = 'vertical'
+                    perp_direction = "vertical"
                     y_coords = np.arange(
                         trace_coordinate[1] - index_width,
                         trace_coordinate[1] + index_width
@@ -314,7 +356,7 @@ class dnaTrace(object):
                     x_coords = np.full(len(y_coords), trace_coordinate[0])
 
                 elif vector_angle >= 157.5:  # if angle is closest to 180 degrees
-                    perp_direction = 'vertical'
+                    perp_direction = "vertical"
                     y_coords = np.arange(
                         trace_coordinate[1] - index_width,
                         trace_coordinate[1] + index_width
@@ -325,7 +367,7 @@ class dnaTrace(object):
                 perp_array = np.column_stack((x_coords, y_coords))
                 height_values = self.gauss_image[perp_array[:, 1], perp_array[:, 0]]
 
-                '''
+                """
                 # Old code that interpolated the height profile for "sub-pixel
                 # accuracy" - probably slow and not necessary, can delete
 
@@ -363,7 +405,7 @@ class dnaTrace(object):
                 elif perp_direction == 'horizontal':
                     fine_x_coords = np.arange(perp_array[0,0], perp_array[-1,0], 0.1)
                     fine_y_coords = np.full(len(fine_x_coords), trace_coordinate[1], dtype = 'float')
-                '''
+                """
                 # Grab x,y coordinates for highest point
                 # fine_coords = np.column_stack((fine_x_coords, fine_y_coords))
                 sorted_array = perp_array[np.argsort(height_values)]
@@ -393,6 +435,7 @@ class dnaTrace(object):
         # step_size = int(7e-9 / (self.pixel_size)) # 3 nm step size
         interp_step = int(1e-10 / self.pixel_size)
 
+        # FIXME : Iterate over self.fitted_traces directly use either self.fitted_traces.values() or self.fitted_trace.items()
         for dna_num in sorted(self.fitted_traces.keys()):
 
             self.splining_success = True
@@ -404,6 +447,10 @@ class dnaTrace(object):
                 continue
 
             # The degree of spline fit used is 3 so there cannot be less than 3 points in the splined trace
+            # LOGGER.info(f"DNA Number      : {dna_num}")
+            # LOGGER.info(f"nbr             : {nbr}")
+            # LOGGER.info(f"step_size       : {step_size}")
+            # LOGGER.info(f"self.pixel_size : {self.pixel_size}")
             while nbr / step_size_px < 4:
                 if step_size_px <= 1:
                     step_size_px = 1
@@ -781,6 +828,7 @@ class dnaTrace(object):
 
     def saveCurvature(self):
 
+        # FIXME : Iterate directly over self.splined_traces.values() or self.splined_traces.items()
         for dna_num in sorted(self.curvature.keys()):
             for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(self.curvature[dna_num]):
                 try:
@@ -883,12 +931,12 @@ class dnaTrace(object):
         plt.savefig('%s_%s_second_order.png' % (savename, dna_num))
         plt.close
 
-    def measureContourLength(self):
+    def measure_contour_length(self):
 
-        '''Measures the contour length for each of the splined traces taking into
+        """Measures the contour length for each of the splined traces taking into
         account whether the molecule is circular or linear
 
-        Contour length units are nm'''
+        Contour length units are nm"""
 
         for dna_num in sorted(self.splined_traces.keys()):
 
@@ -914,7 +962,6 @@ class dnaTrace(object):
                     try:
                         x1 = self.splined_traces[dna_num][num, 0]
                         y1 = self.splined_traces[dna_num][num, 1]
-
                         x2 = self.splined_traces[dna_num][num + 1, 0]
                         y2 = self.splined_traces[dna_num][num + 1, 1]
 
@@ -930,7 +977,7 @@ class dnaTrace(object):
     def writeContourLengths(self, filename, channel_name):
 
         if not self.contour_lengths:
-            self.measureContourLength()
+            self.measure_contour_length()
 
         with open('%s_%s_contours.txt' % (filename, channel_name), 'w') as writing_file:
             writing_file.write('#units: nm\n')
@@ -985,7 +1032,11 @@ class dnaTrace(object):
         # plt.savefig('%s_%s_x_and_y.png' % (savename, dna_num))
         # plt.close()
 
-    def measureEndtoEndDistance(self):
+    def measure_end_to_end_distance(self):
+        """Calculate the Euclidean distance between the start and end of linear molecules.
+        The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
+        molecules. If the molecule is circular then the distance is set to zero (0).
+        """
 
         for dna_num in sorted(self.splined_traces.keys()):
             if self.mol_is_circular[dna_num]:
