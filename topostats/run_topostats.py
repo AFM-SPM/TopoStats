@@ -325,6 +325,9 @@ def process_scan(
                         dna_traces[direction].trace_dna()
                         tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
                         tracing_stats[direction].df["threshold"] = direction
+
+                        dna_traces[direction].saveTraceFigures(filename, loading_config["channel"], plotting_config['zrange'][1], plotting_config['zrange'][0], _output_dir)
+
                     # Set tracing_stats_df in light of direction
                     if grains_config["direction"] == "both":
                         tracing_stats_df = pd.concat([tracing_stats["lower"].df, tracing_stats["upper"].df])
