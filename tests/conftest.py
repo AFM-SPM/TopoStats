@@ -526,11 +526,12 @@ def minicircle_small_objects_removed(minicircle_minimum_grain_size: np.array) ->
 @pytest.fixture
 def minicircle_area_thresholding(minicircle_grain_labelled_all: np.array, grains_config: dict) -> Grains:
     """Small objects removed."""
+    absolute_area_thresholds = [400, 600]
     minicircle_grain_labelled_all.directions["upper"][
         "removed_small_objects"
     ] = minicircle_grain_labelled_all.area_thresholding(
-        minicircle_grain_labelled_all.directions["upper"]["labelled_regions_01"],
-        grains_config["absolute_area_threshold"]["upper"],
+        image=minicircle_grain_labelled_all.directions["upper"]["labelled_regions_01"],
+        area_thresholds=absolute_area_thresholds,
     )
     return minicircle_grain_labelled_all
 
