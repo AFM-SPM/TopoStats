@@ -70,6 +70,7 @@ class Filters:
             "masked_tilt_removal": None,
             "masked_quadratic_removal": None,
             "mask": None,
+            "zero_average_background": None,
             "gaussian_filtered": None,
         }
         self.thresholds = None
@@ -242,6 +243,27 @@ processed, please refer to <url to page where we document common problems> for m
         """Calculate the gradient of an array."""
         return self.calc_diff(array) / shape
 
+    def average_background(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
+        """Zero the background by subtracting the non-masked mean from all pixels.
+
+        Parameters
+        ----------
+        image: np.array
+            Numpy array representing image.
+        mask: np.array
+            Mask of the array, should have the same dimensions as image.
+
+        Returns
+        -------
+        np.ndarray
+            Numpy array of image zero averaged.
+        """
+        if mask is None:
+            mask = np.zeros_like(image)
+        mean = np.mean(image[mask == 0])
+        LOGGER.info(f"[{self.filename}] : Zero averaging background : {mean} nm")
+        return image - mean
+
     def gaussian_filter(self, image: np.ndarray, **kwargs) -> np.array:
         """Apply Gaussian filter to an image.
 
@@ -307,4 +329,5 @@ processed, please refer to <url to page where we document common problems> for m
         self.images["masked_quadratic_removal"] = self.remove_quadratic(
             self.images["masked_tilt_removal"], self.images["mask"], img_name=self.filename
         )
-        self.images["gaussian_filtered"] = self.gaussian_filter(self.images["masked_quadratic_removal"])
+        self.images["zero_average_background"] = self.average_background(self.images["masked_quadratic_removal"], self.images["mask"])
+        self.images["gaussian_filtered"] = self.gaussian_filter(self.images["zero_average_background"])

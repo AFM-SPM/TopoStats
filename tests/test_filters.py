@@ -72,6 +72,16 @@ def test_non_square_img(test_filters_random: Filters):
     # assert test_filters_random.images["zero_averaged_background"].sum() == 44426.48188033322
 
 
+def test_average_background(test_filters_random_with_mask: Filters):
+    """Test the background averaging"""
+    test_filters_random_with_mask.images["zero_averaged_background"] = test_filters_random_with_mask.average_background(
+        image=test_filters_random_with_mask.images["pixels"],
+        mask=test_filters_random_with_mask.images["mask"]
+    )
+    assert isinstance(test_filters_random_with_mask.images["zero_averaged_background"], np.ndarray)
+    assert test_filters_random_with_mask.images["zero_averaged_background"].sum() == 263002.61107539403
+
+
 def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> None:
     """Test Gaussian filter."""
     small_array_filters.images["gaussian_filtered"] = small_array_filters.gaussian_filter(
