@@ -8,7 +8,7 @@ import pandas as pd
 from topostats.utils import convert_path, find_images, get_out_path, update_config, get_thresholds, folder_grainstats
 
 
-THRESHOLD_OPTIONS = {"otsu_threshold_multiplier": 1.7, "threshold_std_dev": 1, "absolute": (-1.5, 1.5)}
+THRESHOLD_OPTIONS = {"otsu_threshold_multiplier": 1.7, "threshold_std_dev": {"lower": 10.0, "upper": 1.0}, "absolute": {"lower": -1.5, "upper": 1.5}}
 
 
 def test_convert_path(tmp_path: Path) -> None:
@@ -30,14 +30,57 @@ def test_find_images() -> None:
     assert "minicircle.spm" in str(found_images[0])
 
 
-def test_get_out_path() -> None:
+@pytest.mark.parametrize(
+    "image_path, base_dir, output_dir, expected",
+    [
+        # Full absolute path for test.spm
+        (
+            Path("/heres/some/random/path/images/test.spm"),
+            Path("/heres/some/random/path"),
+            Path("output/here"),
+            Path("output/here/images/"),
+        ),
+        # Relative path for test.spm, this raises a ValueError
+        (
+            Path("images/test.spm"),
+            Path("/heres/some/random/path"),
+            Path("output/here"),
+            Path("output/here/images/"),
+        ),
+        # No file with suffix
+        (Path("images/"), Path("/heres/some/random/path"), Path("output/here"), Path("output/here/images/")),
+        # Absolute path for output
+        (
+            Path("/heres/some/random/path/images/test.spm"),
+            Path("/heres/some/random/path"),
+            Path("/an/absolute/path"),
+            Path("/an/absolute/path/images"),
+        ),
+        # Absolute path for output and relative path for image
+        (
+            Path("images/test.spm"),
+            Path("/heres/some/random/path"),
+            Path("/an/absolute/path"),
+            Path("/an/absolute/path/images"),
+        ),
+    ],
+)
+def test_get_out_path(image_path: Path, base_dir: Path, output_dir: Path, expected: Path) -> None:
     """Test output directories"""
-    image_path = Path("heres/some/rand/path/test.spm")
-    base_dir = Path("heres/some/rand")
-    output_dir = Path("output/here")
+    image_path = Path(image_path)
+    base_dir = Path(base_dir)
+    output_dir = Path(output_dir)
     out_path = get_out_path(image_path, base_dir, output_dir)
     assert isinstance(out_path, Path)
-    assert out_path == Path("output/here/path/")
+    assert out_path == expected
+
+
+def test_get_out_path_attributeerror() -> None:
+    """Test get_out_path() raises AttribteError when passed a string instead of a Path() for image_path."""
+    with pytest.raises(AttributeError):
+        get_out_path(
+            image_path="images/test.spm", base_dir=Path("/heres/some/random/path"), output_dir=Path("output/here")
+        )
 
 
 def test_update_config(caplog) -> None:
@@ -63,7 +106,7 @@ def test_get_thresholds_stddev(image_random: np.ndarray) -> None:
     """Test of get_thresholds() method with mean threshold."""
     thresholds = get_thresholds(image=image_random, threshold_method="std_dev", **THRESHOLD_OPTIONS)
     assert isinstance(thresholds, dict)
-    assert thresholds == {"upper": 0.7886033762450778, "lower": 0.21127903661568803}
+    assert thresholds == {"lower": -2.3866804917165663, "upper": 0.7886033762450778}
 
     with pytest.raises(TypeError):
         thresholds = get_thresholds(image=image_random, threshold_method="std_dev", deviation_from_mean=None)

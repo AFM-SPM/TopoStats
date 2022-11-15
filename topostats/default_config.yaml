@@ -10,9 +10,12 @@ filter:
   run: true # Options : true, false
   threshold_method: std_dev # Options : otsu, std_dev, absolute
   otsu_threshold_multiplier: 1.0
-  threshold_std_dev: 1.0
-  threshold_absolute_lower: -1.0
-  threshold_absolute_upper: 1.0
+  threshold_std_dev:
+    lower: 10.0
+    upper: 1.0
+  threshold_absolute:
+    lower: -1.0
+    upper: 1.0
   gaussian_size: 1.0121397464510862 # in px
   gaussian_mode: nearest
 grains:
@@ -20,9 +23,12 @@ grains:
   # Thresholding by height
   threshold_method: std_dev # Options : std_dev, otsu, absolute
   otsu_threshold_multiplier: 1.0
-  threshold_std_dev: 1.0
-  threshold_absolute_lower: 1.0
-  threshold_absolute_upper: 1.0
+  threshold_std_dev:
+    lower: 10.0
+    upper: 1.0
+  threshold_absolute:
+    lower: -1.0
+    upper: 1.0
   direction: upper # Options: upper, lower, both (defines whether to look for grains above or below thresholds or both)
   # Thresholding by area
   absolute_smallest_grain_size: 100
@@ -43,3 +49,4 @@ plotting:
   colorbar: true  # Options : true, false
   axes: true # Options : true, false (due to off being a bool when parsed)
   cmap: nanoscope # Options : nanoscope, afmhot
+  histogram_log_axis: false # Options : true, false

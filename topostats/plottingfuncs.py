@@ -36,6 +36,7 @@ class Images:
         axes: bool = True,
         save: bool = True,
         save_format: str = "png",
+        histogram_log_axis: bool = True,
     ) -> None:
         """
         Initialise the class.
@@ -76,6 +77,8 @@ class Images:
             Whether to save the image.
         save_format: str
             Format to save the image as.
+        histogram_log_axis: bool
+            Optionally use a logarithmic y axis for the histogram plots
         """
 
         self.data = data
@@ -95,6 +98,40 @@ class Images:
         self.axes = axes
         self.save = save
         self.save_format = save_format
+        self.histogram_log_axis = histogram_log_axis
+
+    def plot_histogram_and_save(self):
+        """
+        Plot and save a histogram of the height map
+
+        Returns
+        -------
+        fig: plt.figure.Figure
+            Matplotlib.pyplot figure object
+        ax: plt.axes._subplots.AxesSubplot
+            Matplotlib.pyplot axes object
+        """
+        if self.image_set == "all":
+            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+
+            ax.hist(self.data.flatten().astype(float), bins="auto", log=self.histogram_log_axis)
+            ax.set_xlabel("pixel height")
+            if self.histogram_log_axis:
+                ax.set_ylabel("frequency in image (log)")
+            else:
+                ax.set_ylabel("frequency in image")
+            plt.title(self.title)
+            plt.savefig(
+                (self.output_dir / f"{self.filename}_histogram.{self.save_format}"),
+                format=self.save_format,
+                bbox_inches="tight",
+                pad_inches=0.5,
+            )
+            plt.close()
+
+            return fig, ax
+        else:
+            return None
 
     def plot_and_save(self):
         """

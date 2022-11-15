@@ -62,7 +62,7 @@ def otsuthresholdgrainfinding(data, k):
     # # Invert mask to maks things below the membrane
     mask.grains_invert()
 
-    gwy.gwy_process_func_run("align_rows", data, gwy.RUN_IMMEDIATE)
+    gwy.gwy_process_func_run("median_flatten", data, gwy.RUN_IMMEDIATE)
     # # gwy.gwy_process_func_run("level", data, gwy.RUN_IMMEDIATE)
     # gwy.gwy_process_func_run('flatten_base', data, gwy.RUN_IMMEDIATE)
 

@@ -210,6 +210,7 @@ def process_scan(
                     plotting_config["plot_dict"][plot_name]["output_dir"] = filter_out_path
                     try:
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
+                        Images(array, **plotting_config["plot_dict"][plot_name]).plot_histogram_and_save()
                     except AttributeError:
                         LOGGER.info(f"[{filename}] Unable to generate plot : {plot_name}")
             plot_name = "z_threshed"
@@ -386,6 +387,7 @@ def main():
             "axes": config["plotting"]["axes"],
             "cmap": config["plotting"]["cmap"],
             "zrange": config["plotting"]["zrange"],
+            "histogram_log_axis": config["plotting"]["histogram_log_axis"]
         }
         if image not in ["z_threshed", "mask_overlay", "grain_image", "grain_mask_image"]:
             config["plotting"]["plot_dict"][image].pop("zrange")

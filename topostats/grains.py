@@ -32,9 +32,8 @@ class Grains:
         pixel_to_nm_scaling: float,
         threshold_method: str = None,
         otsu_threshold_multiplier: float = None,
-        threshold_std_dev: float = None,
-        threshold_absolute_lower: float = None,
-        threshold_absolute_upper: float = None,
+        threshold_std_dev: dict = None,
+        threshold_absolute: dict = None,
         absolute_area_threshold: dict = {
             "upper": [None, None],
             "lower": [None, None],
@@ -56,12 +55,10 @@ class Grains:
             Factor by which lower threshold is to be scaled prior to masking.
         threshold_method: str
             Method for determining threshold to mask values, default is 'otsu'.
-        threshold_std_dev: float
-            Factor by which standard deviation is multiplied to derive the threshold if threshold_method is 'std_dev'.
-        threshold_absolute_lower: float
-            Lower absolute threshold.
-        threshold_absolute_upper: float
-            Upper absolute threshold.
+        threshold_std_dev: dict
+            Dictionary of 'lower' and 'upper' factors by which standard deviation is multiplied to derive the threshold if threshold_method is 'std_dev'.
+        threshold_absolute: dict
+            Dictionary of absolute 'lower' and 'upper' thresholds for grain finding.
         absolute_area_threshold: dict
             Dictionary of upper and lower grain's area thresholds
         direction: str
@@ -73,8 +70,7 @@ class Grains:
         self.threshold_method = threshold_method
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
         self.threshold_std_dev = threshold_std_dev
-        self.threshold_absolute_lower = threshold_absolute_lower
-        self.threshold_absolute_upper = threshold_absolute_upper
+        self.threshold_absolute = threshold_absolute
         self.absolute_area_threshold = absolute_area_threshold
         # Only detect grains for the desired direction
         self.direction = [direction] if direction != "both" else ["upper", "lower"]
@@ -167,7 +163,8 @@ class Grains:
 
     def remove_small_objects(self, image: np.array, **kwargs):
         """Remove small objects."""
-        # If self.minimum_grain_size is -1, then this means that there were no grains to calculate the minimum grian size from.
+        # If self.minimum_grain_size is -1, then this means that
+        # there were no grains to calculate the minimum grian size from.
         if self.minimum_grain_size != -1:
             small_objects_removed = remove_small_objects(
                 image,
@@ -274,7 +271,7 @@ class Grains:
             threshold_method=self.threshold_method,
             otsu_threshold_multiplier=self.otsu_threshold_multiplier,
             threshold_std_dev=self.threshold_std_dev,
-            absolute=(self.threshold_absolute_lower, self.threshold_absolute_upper),
+            absolute=self.threshold_absolute,
         )
         try:
             region_props_count = 0
