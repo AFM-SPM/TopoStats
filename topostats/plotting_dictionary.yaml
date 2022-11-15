@@ -55,8 +55,13 @@ masked_quadratic_removal:
   title: "Secondary Quadratic Removal"
   image_type: "non-binary"
   core_set: false
+zero_average_background:
+  filename: "09-zero_average_background"
+  title: "Zero Averaged Background"
+  image_type: "non-binary"
+  core_set: false
 gaussian_filtered:
-  filename: "09-gaussian_filtered"
+  filename: "10-gaussian_filtered"
   title: "Gaussian Filtered"
   image_type: "non-binary"
   core_set: false
@@ -65,27 +70,27 @@ z_threshed:
   image_type: "non-binary"
   core_set: true
 mask_grains:
-  filename: "10-mask_grains"
+  filename: "11-mask_grains"
   title: "Mask for Grains"
   image_type: "binary"
   core_set: false
 labelled_regions_01:
-  filename: "11-labelled_regions"
+  filename: "12-labelled_regions"
   title: "Labelled Regions"
   image_type: "binary"
   core_set: false
 tidied_border:
-  filename: "12-tidy_borders"
+  filename: "13-tidy_borders"
   title: "Tidied Borders"
   image_type: "binary"
   core_set: false
 removed_noise:
-  filename: "13-noise_removed"
+  filename: "14-noise_removed"
   title: "Noise removed"
   image_type: "binary"
   core_set: false
 removed_small_objects:
-  filename: "14-small_objects_removed"
+  filename: "15-small_objects_removed"
   title: "Small Objects Removed"
   image_type: "binary"
   core_set: false
@@ -94,22 +99,22 @@ mask_overlay:
   image_type: "non-binary"
   core_set: true
 labelled_regions_02:
-  filename: "15-labelled_regions"
+  filename: "16-labelled_regions"
   title: "Labelled Regions"
   image_type: "binary"
   core_set: false
 coloured_regions:
-  filename: "16-coloured_regions"
+  filename: "17-coloured_regions"
   title: "Coloured Regions"
   image_type: "binary"
   core_set: false
 bounding_boxes:
-  filename: "17-bounding_boxes"
+  filename: "18-bounding_boxes"
   title: "Bounding Boxes"
   image_type: "binary"
   core_set: false
 coloured_boxes:
-  filename: "18-labelled_image_bboxes"
+  filename: "19-labelled_image_bboxes"
   title: "Labelled Image with Bounding Boxes"
   image_type: "binary"
   core_set: false
