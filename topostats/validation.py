@@ -329,6 +329,19 @@ def validate_plotting(config: dict) -> None:
                 ),
                 "core_set": bool,
             },
+            "zero_average_background": {
+                "filename": str,
+                "title": str,
+                "image_type": Or(
+                    "binary",
+                    "non-binary",
+                    error=(
+                        "Invalid value in config 'gaussian_filtered.image_type', valid values "
+                        "are 'binary' or 'non-binary'"
+                    ),
+                ),
+                "core_set": bool,
+            },
             "gaussian_filtered": {
                 "filename": str,
                 "title": str,
