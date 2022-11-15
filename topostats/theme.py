@@ -33,7 +33,7 @@ class Colormap:
         else:
             # Get one of the matplotlib colormaps
             self.cmap = mpl.colormaps[name]
-        LOGGER.info(f"[theme] Colormap set to : {name}")
+        LOGGER.debug(f"[theme] Colormap set to : {name}")
 
     def get_cmap(self):
         """Return the matplotlib.cm colormap object"""

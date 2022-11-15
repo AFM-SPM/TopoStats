@@ -8,7 +8,11 @@ import pandas as pd
 from topostats.utils import convert_path, find_images, get_out_path, update_config, get_thresholds, folder_grainstats
 
 
-THRESHOLD_OPTIONS = {"otsu_threshold_multiplier": 1.7, "threshold_std_dev": {"lower": 10.0, "upper": 1.0}, "absolute": {"lower": -1.5, "upper": 1.5}}
+THRESHOLD_OPTIONS = {
+    "otsu_threshold_multiplier": 1.7,
+    "threshold_std_dev": {"lower": 10.0, "upper": 1.0},
+    "absolute": {"lower": -1.5, "upper": 1.5},
+}
 
 
 def test_convert_path(tmp_path: Path) -> None:

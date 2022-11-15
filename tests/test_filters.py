@@ -42,6 +42,7 @@ def test_remove_quadratic(test_filters_random: Filters, image_random_remove_quad
     assert quadratic_removed.shape == (1024, 1024)
     np.testing.assert_allclose(quadratic_removed, image_random_remove_quadratic, **TOLERANCE)
 
+
 def test_calc_diff(test_filters_random: Filters, image_random: np.ndarray) -> None:
     """Test calculation of difference in array."""
     target = image_random[-1] - image_random[0]

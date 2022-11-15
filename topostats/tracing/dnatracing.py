@@ -75,7 +75,7 @@ class dnaTrace(object):
         # supresses scipy splining warnings
         warnings.filterwarnings("ignore")
 
-        LOGGER.info("Performing DNA Tracing")
+        LOGGER.debug(f"[{self.filename}] Performing DNA Tracing")
 
     def trace_dna(self):
         """Perform DNA tracing."""

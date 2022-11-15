@@ -386,7 +386,8 @@ def minicircle_masked_median_flatten(minicircle_mask: Filters) -> Filters:
 def minicircle_masked_tilt_removal(minicircle_masked_median_flatten: Filters) -> Filters:
     """Secondary x/y tilt removal using mask."""
     minicircle_masked_median_flatten.images["masked_tilt_removal"] = minicircle_masked_median_flatten.remove_tilt(
-        minicircle_masked_median_flatten.images["masked_median_flatten"], mask=minicircle_masked_median_flatten.images["mask"]
+        minicircle_masked_median_flatten.images["masked_median_flatten"],
+        mask=minicircle_masked_median_flatten.images["mask"],
     )
     return minicircle_masked_median_flatten
 
@@ -454,7 +455,10 @@ def minicircle_grain_threshold_stddev(minicircle_grains: np.array, grains_config
 def minicircle_grain_threshold_abs(minicircle_grains: np.array) -> Grains:
     """Calculate threshold."""
     minicircle_grains.thresholds = get_thresholds(
-        image=minicircle_grains.image, threshold_method="absolute", otsu_threshold_multiplier=None, absolute={"lower": -1.0, "upper": 1.0}
+        image=minicircle_grains.image,
+        threshold_method="absolute",
+        otsu_threshold_multiplier=None,
+        absolute={"lower": -1.0, "upper": 1.0},
     )
     return minicircle_grains
 

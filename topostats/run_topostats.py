@@ -391,7 +391,7 @@ def main():
             "axes": config["plotting"]["axes"],
             "cmap": config["plotting"]["cmap"],
             "zrange": config["plotting"]["zrange"],
-            "histogram_log_axis": config["plotting"]["histogram_log_axis"]
+            "histogram_log_axis": config["plotting"]["histogram_log_axis"],
         }
         if image not in ["z_threshed", "mask_overlay", "grain_image", "grain_mask_image"]:
             config["plotting"]["plot_dict"][image].pop("zrange")
@@ -439,7 +439,7 @@ def main():
     LOGGER.info(
         (
             f"All statistics combined for {len(img_files)} images(s) are "
-            "saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
+            f"saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
         )
     )
     folder_grainstats(config["output_dir"], config["base_dir"], results)
