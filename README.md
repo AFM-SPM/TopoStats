@@ -38,7 +38,6 @@ TopoStats](https://afm-spm.github.io/TopoStats/usage.html#configuring_topostats)
 the argument for `--config <config_file>.yaml` that points to your file.
 
 ``` bash
-cp topostats/default_config.yaml my_config.yaml
 # Edit and save my_config.yaml then run TopoStats with this configuration file
 run_topostats --config my_config.yaml
 ```
