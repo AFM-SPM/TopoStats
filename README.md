@@ -43,7 +43,7 @@ run_topostats --config my_config.yaml
 ```
 
 The configuration file is validated before analysis begins and if there are problems you will see errors messages that
-are hopefully useful in resolving the error(s) in your modified cnofiguration.
+are hopefully useful in resolving the error(s) in your modified configuration.
 
 ## Contributing
 
