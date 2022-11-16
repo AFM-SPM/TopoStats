@@ -90,7 +90,7 @@ class dnaTrace(object):
         """Perform DNA tracing."""
         self.get_numpy_arrays()
         self.gaussian_filter()
-        self.get_disordered_trace()
+        self.get_disordered_traces()
         # self.isMolLooped()
         self.purge_obvious_crap()
         self.linear_or_circular(self.disordered_traces)
@@ -172,7 +172,7 @@ class dnaTrace(object):
         self.gauss_image = gaussian(self.full_image_data, sigma=self.sigma, **kwargs)
         LOGGER.info(f"[{self.filename}] : Gaussian filter applied.")
 
-    def get_disordered_trace(self):
+    def get_disordered_traces(self):
         """Create a skeleton for each of the grains in the image.
 
         Uses my own skeletonisation function from tracingfuncs module. I will
@@ -260,7 +260,7 @@ class dnaTrace(object):
                         self.ordered_traces.pop(dna_num)
 
             elif not self.mol_is_circular[dna_num]:
-                self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
+                self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_traces[dna_num].tolist())
 
     def report_basic_stats(self):
         """Report number of circular and linear DNA molecules detected."""
@@ -661,15 +661,15 @@ class dnaTrace(object):
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.disordered_traces.keys()):
-            # disordered_trace_list = self.disordered_trace[dna_num].tolist()
-            # less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
+            # disordered_traces_list = self.disordered_traces[dna_num].tolist()
+            # less_dense_trace = np.array([disordered_traces_list[i] for i in range(0,len(disordered_traces_list),5)])
             plt.plot(self.disordered_traces[dna_num][:, 0], self.disordered_traces[dna_num][:, 1], 'o', markersize=0.5,
                      color='c')
         # plt.savefig('%s_%s_disorderedtrace.png' % (save_file, channel_name))
-        plt.savefig(output_dir / filename / f"{channel_name}_disordered_trace.png")
+        plt.savefig(output_dir / filename / f"{channel_name}_disordered_traces.png")
         plt.close()
         LOGGER.info(
-            f"Disordered trace image saved to : {str(output_dir / filename / f'{channel_name}_disordered_trace.png')}"
+            f"Disordered trace image saved to : {str(output_dir / filename / f'{channel_name}_disordered_traces.png')}"
         )
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
