@@ -38,6 +38,7 @@ def default_config() -> Dict:
     config["filter"]["threshold_method"] = "otsu"
     config["grains"]["threshold_method"] = "otsu"
     config["grains"]["otsu_threshold_multiplier"] = 1.7
+    config["grains"]["absolute_area_threshold"]["upper"] = [400, 600]
     return config
 
 
