@@ -23,7 +23,6 @@ jobs:
         run: |
           pip install -e .
           pip install -e .[tests]
-          pip install -e .[libasd]
       - name: Test with pytest
         run: |
           pytest --cov=topostats --mpl
