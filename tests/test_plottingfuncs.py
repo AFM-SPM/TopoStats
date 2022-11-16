@@ -68,7 +68,9 @@ def test_plot_and_save_no_colorbar(load_scan_data: LoadScans, tmp_path: Path) ->
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_histogram_and_save(load_scan_data: LoadScans, tmp_path: Path) -> None:
     """Test plotting histograms"""
-    fig, _ = Images(load_scan_data.image, output_dir=tmp_path, filename="histogram", image_set="all").plot_histogram_and_save()
+    fig, _ = Images(
+        load_scan_data.image, output_dir=tmp_path, filename="histogram", image_set="all"
+    ).plot_histogram_and_save()
     return fig
 
 

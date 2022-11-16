@@ -395,7 +395,8 @@ def minicircle_masked_median_flatten(minicircle_mask: Filters) -> Filters:
 def minicircle_masked_tilt_removal(minicircle_masked_median_flatten: Filters) -> Filters:
     """Secondary x/y tilt removal using mask."""
     minicircle_masked_median_flatten.images["masked_tilt_removal"] = minicircle_masked_median_flatten.remove_tilt(
-        minicircle_masked_median_flatten.images["masked_median_flatten"], mask=minicircle_masked_median_flatten.images["mask"]
+        minicircle_masked_median_flatten.images["masked_median_flatten"],
+        mask=minicircle_masked_median_flatten.images["mask"],
     )
     return minicircle_masked_median_flatten
 
@@ -463,7 +464,10 @@ def minicircle_grain_threshold_stddev(minicircle_grains: np.array, grains_config
 def minicircle_grain_threshold_abs(minicircle_grains: np.array) -> Grains:
     """Calculate threshold."""
     minicircle_grains.thresholds = get_thresholds(
-        image=minicircle_grains.image, threshold_method="absolute", otsu_threshold_multiplier=None, absolute={"lower": -1.0, "upper": 1.0}
+        image=minicircle_grains.image,
+        threshold_method="absolute",
+        otsu_threshold_multiplier=None,
+        absolute={"lower": -1.0, "upper": 1.0},
     )
     return minicircle_grains
 
@@ -531,11 +535,12 @@ def minicircle_small_objects_removed(minicircle_minimum_grain_size: np.array) ->
 @pytest.fixture
 def minicircle_area_thresholding(minicircle_grain_labelled_all: np.array, grains_config: dict) -> Grains:
     """Small objects removed."""
+    absolute_area_thresholds = [400, 600]
     minicircle_grain_labelled_all.directions["upper"][
         "removed_small_objects"
     ] = minicircle_grain_labelled_all.area_thresholding(
-        minicircle_grain_labelled_all.directions["upper"]["labelled_regions_01"],
-        grains_config["absolute_area_threshold"]["upper"],
+        image=minicircle_grain_labelled_all.directions["upper"]["labelled_regions_01"],
+        area_thresholds=absolute_area_thresholds,
     )
     return minicircle_grain_labelled_all
 

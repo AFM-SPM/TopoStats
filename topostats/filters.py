@@ -70,6 +70,7 @@ class Filters:
             "masked_tilt_removal": None,
             "masked_quadratic_removal": None,
             "mask": None,
+            "zero_average_background": None,
             "gaussian_filtered": None,
         }
         self.thresholds = None
@@ -87,8 +88,8 @@ class Filters:
 
     def median_flatten(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None) -> np.ndarray:
         """
-        Uses the method of median differences to flatten the rows of an image, aligning the rows and centering the 
-        median around zero. When used with a mask, this has the effect of centering the background data on zero. 
+        Uses the method of median differences to flatten the rows of an image, aligning the rows and centering the
+        median around zero. When used with a mask, this has the effect of centering the background data on zero.
         Note this function does not handle scars.
 
         Parameters
@@ -118,8 +119,10 @@ class Filters:
             if not np.isnan(m):
                 image[row, :] -= m
             else:
-                LOGGER.warning("""f[{self.filename}] Large grain detected image can not be
-processed, please refer to <url to page where we document common problems> for more information.""")
+                LOGGER.warning(
+                    """f[{self.filename}] Large grain detected image can not be
+processed, please refer to <url to page where we document common problems> for more information."""
+                )
 
         return image
 
@@ -232,7 +235,6 @@ processed, please refer to <url to page where we document common problems> for m
 
         return image
 
-
     @staticmethod
     def calc_diff(array: np.ndarray) -> np.ndarray:
         """Calculate the difference of an array."""
@@ -241,6 +243,27 @@ processed, please refer to <url to page where we document common problems> for m
     def calc_gradient(self, array: np.ndarray, shape: int) -> np.ndarray:
         """Calculate the gradient of an array."""
         return self.calc_diff(array) / shape
+
+    def average_background(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
+        """Zero the background by subtracting the non-masked mean from all pixels.
+
+        Parameters
+        ----------
+        image: np.array
+            Numpy array representing image.
+        mask: np.array
+            Mask of the array, should have the same dimensions as image.
+
+        Returns
+        -------
+        np.ndarray
+            Numpy array of image zero averaged.
+        """
+        if mask is None:
+            mask = np.zeros_like(image)
+        mean = np.mean(image[mask == 0])
+        LOGGER.info(f"[{self.filename}] : Zero averaging background : {mean} nm")
+        return image - mean
 
     def gaussian_filter(self, image: np.ndarray, **kwargs) -> np.array:
         """Apply Gaussian filter to an image.
@@ -282,9 +305,15 @@ processed, please refer to <url to page where we document common problems> for m
         filter.filter_image()
 
         """
-        self.images["initial_median_flatten"] = self.median_flatten(self.images["pixels"], mask=None, img_name=self.filename)
-        self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_median_flatten"], mask=None, img_name=self.filename)
-        self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None, img_name=self.filename)
+        self.images["initial_median_flatten"] = self.median_flatten(
+            self.images["pixels"], mask=None, img_name=self.filename
+        )
+        self.images["initial_tilt_removal"] = self.remove_tilt(
+            self.images["initial_median_flatten"], mask=None, img_name=self.filename
+        )
+        self.images["initial_quadratic_removal"] = self.remove_quadratic(
+            self.images["initial_tilt_removal"], mask=None, img_name=self.filename
+        )
 
         # Get the thresholds
         try:
@@ -300,9 +329,14 @@ processed, please refer to <url to page where we document common problems> for m
         self.images["mask"] = get_mask(
             image=self.images["initial_quadratic_removal"], thresholds=self.thresholds, img_name=self.filename
         )
-        self.images["masked_median_flatten"] = self.median_flatten(self.images["initial_tilt_removal"], self.images["mask"], img_name=self.filename)
-        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_median_flatten"], self.images["mask"], img_name=self.filename)
+        self.images["masked_median_flatten"] = self.median_flatten(
+            self.images["initial_tilt_removal"], self.images["mask"], img_name=self.filename
+        )
+        self.images["masked_tilt_removal"] = self.remove_tilt(
+            self.images["masked_median_flatten"], self.images["mask"], img_name=self.filename
+        )
         self.images["masked_quadratic_removal"] = self.remove_quadratic(
             self.images["masked_tilt_removal"], self.images["mask"], img_name=self.filename
         )
-        self.images["gaussian_filtered"] = self.gaussian_filter(self.images["masked_quadratic_removal"])
+        self.images["zero_average_background"] = self.average_background(self.images["masked_quadratic_removal"], self.images["mask"])
+        self.images["gaussian_filtered"] = self.gaussian_filter(self.images["zero_average_background"])

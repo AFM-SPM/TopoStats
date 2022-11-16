@@ -4,7 +4,7 @@ name: Sphinx docs to gh-pages
 on:
   push:
     branches:
-      - dev
+      - main
 
 # workflow_dispatch:        # Un comment line if you also want to trigger action manually
 
@@ -13,11 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     name: Sphinx docs to gh-pages
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.5.0
         with:
           fetch-depth: 0
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4.3.0
         with:
           python-version: 3.9
       - name: Installing the Documentation requirements
@@ -26,9 +26,9 @@ jobs:
       - name: Running Sphinx to gh-pages Action
         uses: ns-rse/action-sphinx-docs-to-gh-pages@main
         with:
-          # When testing set this branch to your branch, when working switch to master or dev. It WILL fail if not
+          # When testing set this branch to your branch, when working switch to main. It WILL fail if not
           # defined as it defaults to 'main'.
-          branch: dev
+          branch: main
           dir_docs: docs
           sphinxapiexclude: '../*setup* ../*tests* ../*.ipynb ../demo.py ../make_baseline.py ../jupyter_notebook_config.py ../demo_ftrs.py'
           sphinxapiopts: '--separate -o . ../'

@@ -84,12 +84,12 @@ def validate_config(config: dict):
                 ),
                 "otsu_threshold_multiplier": float,
                 "threshold_std_dev": {
-                    "lower": lambda n: n>0,
-                    "upper": lambda n: n>0,
+                    "lower": lambda n: n > 0,
+                    "upper": lambda n: n > 0,
                 },
                 "threshold_absolute": {
-                    "lower": lambda n: n<0,
-                    "upper": lambda n: n>0,
+                    "lower": lambda n: n < 0,
+                    "upper": lambda n: n > 0,
                 },
                 "gaussian_size": float,
                 "gaussian_mode": Or(
@@ -113,12 +113,12 @@ def validate_config(config: dict):
                 ),
                 "otsu_threshold_multiplier": float,
                 "threshold_std_dev": {
-                    "lower": lambda n: n>0,
-                    "upper": lambda n: n>0,
+                    "lower": lambda n: n > 0,
+                    "upper": lambda n: n > 0,
                 },
                 "threshold_absolute": {
-                    "lower": lambda n: n<0,
-                    "upper": lambda n: n>0,
+                    "lower": lambda n: n < 0,
+                    "upper": lambda n: n > 0,
                 },
                 "absolute_area_threshold": {
                     "upper": [
@@ -337,6 +337,19 @@ def validate_plotting(config: dict) -> None:
                     "non-binary",
                     error=(
                         "Invalid value in config 'masked_quadratic_removal.image_type', valid values "
+                        "are 'binary' or 'non-binary'"
+                    ),
+                ),
+                "core_set": bool,
+            },
+            "zero_average_background": {
+                "filename": str,
+                "title": str,
+                "image_type": Or(
+                    "binary",
+                    "non-binary",
+                    error=(
+                        "Invalid value in config 'gaussian_filtered.image_type', valid values "
                         "are 'binary' or 'non-binary'"
                     ),
                 ),
