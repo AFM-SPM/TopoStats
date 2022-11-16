@@ -569,7 +569,7 @@ class dnaTrace(object):
                 spline_average = np.divide(spline_running_total, [step_size_px, step_size_px])
                 del spline_running_total
                 self.splined_traces[dna_num] = spline_average
-            self.simplified_splined_traces[dna_num] = self.splined_traces[dna_num][::20]
+            self.simplified_splined_traces[dna_num] = self.splined_traces[dna_num][::1]
 
     def show_traces(self):
 
@@ -586,7 +586,7 @@ class dnaTrace(object):
         plt.close()
 
     def saveTraceFigures(
-            self, filename: Union[str, Path], channel_name: str, vmaxval, vminval, output_dir: Union[str, Path] = None
+        self, filename: Union[str, Path], channel_name: str, vmaxval, vminval, output_dir: Union[str, Path] = None
     ):
 
         # if directory_name:
@@ -607,7 +607,7 @@ class dnaTrace(object):
         plt.colorbar()
         for dna_num in sorted(self.splined_traces.keys()):
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color="c", linewidth=2.0)
-        # plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name), dpi=1000)
+        # plt.savefig("%s_%s_splinedtrace.png" % (save_file, channel_name), dpi=1000)
         plt.savefig(output_dir / filename / f"{channel_name}_splinedtrace.png")
         LOGGER.info(f"Splined Trace image saved to : {str(output_dir / filename / f'{channel_name}_splinedtrace.png')}")
         plt.close()
@@ -695,10 +695,10 @@ class dnaTrace(object):
         LOGGER.info(f"Grains image saved to : {str(output_dir / filename / f'{channel_name}_grains.png')}")
 
         for dna_num in sorted(self.ordered_traces.keys()):
-                plt.scatter(x=self.simplified_splined_traces[dna_num][:, 0],
-                            y=self.simplified_splined_traces[dna_num][:, 1],
-                            c=self.curvature[dna_num][:, 2],
-                            s=1)
+            plt.scatter(x=self.simplified_splined_traces[dna_num][:, 0],
+                        y=self.simplified_splined_traces[dna_num][:, 1],
+                        c=self.curvature[dna_num][:, 2],
+                        s=1)
 
         plt.colorbar()
         plt.axis('equal')
@@ -867,10 +867,11 @@ class dnaTrace(object):
         curvature_stats = pd.DataFrame(curvature_array)
         curvature_stats.columns = ['DNA number', 'Number', 'Contour length', 'Curvature', 'dx', 'dy', 'd2x', 'd2y']
 
-        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Curvature")):
-            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Curvature"))
-        directory = os.path.join(os.path.dirname(self.afm_image_name), "Curvature")
-        savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
+        # FIXME : Replace with Path()
+        if not os.path.exists(os.path.join(os.path.dirname(self.filename), "Curvature")):
+            os.mkdir(os.path.join(os.path.dirname(self.filename), "Curvature"))
+        directory = os.path.join(os.path.dirname(self.filename), "Curvature")
+        savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
         curvature_stats.to_json(savename + '.json')
         curvature_stats.to_csv(savename + '.csv')
 
@@ -896,12 +897,12 @@ class dnaTrace(object):
         curvature = np.array(self.curvature[dna_num])
         length = len(curvature)
         # FIXME : Replace with Path()
-        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Curvature")):
-            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Curvature"))
-        directory = os.path.join(os.path.dirname(self.afm_image_name), "Curvature")
-        savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
+        if not os.path.exists(os.path.join(os.path.dirname(self.filename), "Curvature")):
+            os.mkdir(os.path.join(os.path.dirname(self.filename), "Curvature"))
+        directory = os.path.join(os.path.dirname(self.filename), "Curvature")
+        savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
 
-        plt.figure
+        plt.figure()
         # fig, ax = plt.subplots(figsize=(25, 25))
 
         # if dna_num == 0:
@@ -919,8 +920,8 @@ class dnaTrace(object):
             sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, theory, color='b')
             sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='y')
         else:
-            plt.xlim(0, 105)
-            plt.ylim(-0.1, 0.2)
+            # plt.xlim(0, 105)
+            # plt.ylim(-0.1, 0.2)
             sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='black', linewidth=5)
             plt.ticklabel_format(axis='both', style='sci', scilimits=(-2, 2))
             plt.axvline(curvature[0][1], color="#D55E00", linewidth=5, alpha=0.8)
@@ -929,7 +930,7 @@ class dnaTrace(object):
                         alpha=0.8)
             plt.axvline(curvature[int(length / 6 * 3)][1] * self.pixel_size * 1e9, color="#009E74", linewidth=5,
                         alpha=0.8)
-            plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size * 1e9, color="#0071B2", linewidth=5,
+            plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size * 1e9, color="#56B4E9", linewidth=5,
                         alpha=0.8)
             plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size * 1e9, color="#CC79A7", linewidth=5,
                         alpha=0.8)
@@ -940,25 +941,25 @@ class dnaTrace(object):
         plt.savefig('%s_%s_curvature.png' % (savename, dna_num))
         plt.close()
 
-    def plotGradient(self, dna_num):
+    def plot_gradient(self, dna_num):
 
-        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Gradient")):
-            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Gradient"))
-        directory = os.path.join(os.path.dirname(self.afm_image_name), "Gradient")
-        savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
+        if not os.path.exists(os.path.join(os.path.dirname(self.filename), "Gradient")):
+            os.mkdir(os.path.join(os.path.dirname(self.filename), "Gradient"))
+        directory = os.path.join(os.path.dirname(self.filename), "Gradient")
+        savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
 
         curvature = np.array(self.curvature[dna_num])
         plt.figure()
         plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 3], color='r')
         plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 4], color='b')
         plt.savefig('%s_%s_gradient.png' % (savename, dna_num))
-        plt.close
+        plt.close()
 
         plt.figure()
         plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 5], color='r')
         plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 6], color='b')
         plt.savefig('%s_%s_second_order.png' % (savename, dna_num))
-        plt.close
+        plt.close()
 
     def measure_contour_length(self):
 
@@ -1003,7 +1004,7 @@ class dnaTrace(object):
                         del hypotenuse_array
                         break
 
-    def writeContourLengths(self, filename, channel_name):
+    def write_contour_lengths(self, filename, channel_name):
 
         if not self.contour_lengths:
             self.measure_contour_length()
@@ -1013,12 +1014,12 @@ class dnaTrace(object):
             for dna_num in sorted(self.contour_lengths.keys()):
                 writing_file.write("%f \n" % self.contour_lengths[dna_num])
 
-    def writeCoordinates(self, dna_num):
+    def write_coordinates(self, dna_num):
         # FIXME: Replace with Path()
-        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Coordinates")):
-            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Coordinates"))
-        directory = os.path.join(os.path.dirname(self.afm_image_name), "Coordinates")
-        savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
+        if not os.path.exists(os.path.join(os.path.dirname(self.filename), "Coordinates")):
+            os.mkdir(os.path.join(os.path.dirname(self.filename), "Coordinates"))
+        directory = os.path.join(os.path.dirname(self.filename), "Coordinates")
+        savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
         for i, (x, y) in enumerate(self.splined_traces[dna_num]):
             try:
                 coordinates_array = np.append(coordinates_array, np.array([[x, y]]), axis=0)
@@ -1026,7 +1027,7 @@ class dnaTrace(object):
                 coordinates_array = np.array([[x, y]])
 
         coordinates = pd.DataFrame(coordinates_array)
-        coordinates.to_csv('%s_%s.csv' % (savename, dna_num))
+        coordinates.to_csv("%s_%s.csv" % (savename, dna_num))
 
         plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], 'k.', markersize=5)
         plt.axis('equal')
@@ -1049,10 +1050,10 @@ class dnaTrace(object):
         plt.plot(coordinates_array[int(length / 6 * 5), 0],
                  coordinates_array[int(length / 6 * 5), 1],
                  color='#CC79A7', markersize=10, marker='o')
-        # plt.xticks([])
-        # plt.yticks([])
+        plt.xticks([])
+        plt.yticks([])
 
-        plt.savefig('%s_%s_coordinates.png' % (savename, dna_num))
+        plt.savefig("%s_%s_coordinates.png" % (savename, dna_num))
         plt.close()
 
         # curvature = np.array(self.curvature[dna_num])
