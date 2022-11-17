@@ -329,38 +329,23 @@ class dnaTrace(object):
                 # if angle is closest to 135 degrees
                 elif 157.5 >= vector_angle >= 112.5:
                     perp_direction = "positive diaganol"
-                    y_coords = np.arange(
-                        trace_coordinate[1] - index_width,
-                        trace_coordinate[1] + index_width
-                    )
-                    x_coords = np.arange(
-                        trace_coordinate[0] - index_width,
-                        trace_coordinate[0] + index_width
-                    )
+                    y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
+                    x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
 
                 # if angle is closest to 90 degrees
                 if 112.5 > vector_angle >= 67.5:
                     perp_direction = "horizontal"
-                    x_coords = np.arange(
-                        trace_coordinate[0] - index_width,
-                        trace_coordinate[0] + index_width
-                    )
+                    x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
                     y_coords = np.full(len(x_coords), trace_coordinate[1])
 
                 elif 22.5 > vector_angle:  # if angle is closest to 0 degrees
                     perp_direction = "vertical"
-                    y_coords = np.arange(
-                        trace_coordinate[1] - index_width,
-                        trace_coordinate[1] + index_width
-                    )
+                    y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
                     x_coords = np.full(len(y_coords), trace_coordinate[0])
 
                 elif vector_angle >= 157.5:  # if angle is closest to 180 degrees
                     perp_direction = "vertical"
-                    y_coords = np.arange(
-                        trace_coordinate[1] - index_width,
-                        trace_coordinate[1] + index_width
-                    )
+                    y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
                     x_coords = np.full(len(y_coords), trace_coordinate[0])
 
                 # Use the perp array to index the guassian filtered image
@@ -413,10 +398,7 @@ class dnaTrace(object):
 
                 try:
                     # could use np.append() here
-                    fitted_coordinate_array = np.vstack((
-                        fitted_coordinate_array,
-                        highest_point
-                    ))
+                    fitted_coordinate_array = np.vstack((fitted_coordinate_array, highest_point))
                 except UnboundLocalError:
                     fitted_coordinate_array = highest_point
 
@@ -453,17 +435,25 @@ class dnaTrace(object):
                 if step_size_px <= 1:
                     step_size_px = 1
                     break
-                step_size_px = - 1
+                step_size_px = -1
 
             if self.mol_is_circular[dna_num]:
 
                 ev_array = np.linspace(0, 1, nbr * step_size_px)
 
                 for i in range(step_size_px):
-                    x_sampled = np.array([self.fitted_traces[dna_num][:, 0][j] for j in
-                                          range(i, len(self.fitted_traces[dna_num][:, 0]), step_size_px)])
-                    y_sampled = np.array([self.fitted_traces[dna_num][:, 1][j] for j in
-                                          range(i, len(self.fitted_traces[dna_num][:, 1]), step_size_px)])
+                    x_sampled = np.array(
+                        [
+                            self.fitted_traces[dna_num][:, 0][j]
+                            for j in range(i, len(self.fitted_traces[dna_num][:, 0]), step_size_px)
+                        ]
+                    )
+                    y_sampled = np.array(
+                        [
+                            self.fitted_traces[dna_num][:, 1][j]
+                            for j in range(i, len(self.fitted_traces[dna_num][:, 1]), step_size_px)
+                        ]
+                    )
 
                     try:
                         tck, u = interp.splprep([x_sampled, y_sampled], s=2, per=2, quiet=1, k=3)
@@ -472,10 +462,18 @@ class dnaTrace(object):
                     except ValueError:
                         # Value error occurs when the "trace fitting" really messes up the traces
 
-                        x = np.array([self.ordered_traces[dna_num][:, 0][j] for j in
-                                      range(i, len(self.ordered_traces[dna_num][:, 0]), step_size_px)])
-                        y = np.array([self.ordered_traces[dna_num][:, 1][j] for j in
-                                      range(i, len(self.ordered_traces[dna_num][:, 1]), step_size_px)])
+                        x = np.array(
+                            [
+                                self.ordered_traces[dna_num][:, 0][j]
+                                for j in range(i, len(self.ordered_traces[dna_num][:, 0]), step_size_px)
+                            ]
+                        )
+                        y = np.array(
+                            [
+                                self.ordered_traces[dna_num][:, 1][j]
+                                for j in range(i, len(self.ordered_traces[dna_num][:, 1]), step_size_px)
+                            ]
+                        )
 
                         try:
                             tck, u = interp.splprep([x, y], s=2, per=2, quiet=1)
@@ -525,10 +523,18 @@ class dnaTrace(object):
                 ev_array = np.linspace(0, 1, nbr * step_size_px)
 
                 for i in range(step_size_px):
-                    x_sampled = np.array([self.fitted_traces[dna_num][:, 0][j] for j in
-                                          range(i, len(self.fitted_traces[dna_num][:, 0]), step_size_px)])
-                    y_sampled = np.array([self.fitted_traces[dna_num][:, 1][j] for j in
-                                          range(i, len(self.fitted_traces[dna_num][:, 1]), step_size_px)])
+                    x_sampled = np.array(
+                        [
+                            self.fitted_traces[dna_num][:, 0][j]
+                            for j in range(i, len(self.fitted_traces[dna_num][:, 0]), step_size_px)
+                        ]
+                    )
+                    y_sampled = np.array(
+                        [
+                            self.fitted_traces[dna_num][:, 1][j]
+                            for j in range(i, len(self.fitted_traces[dna_num][:, 1]), step_size_px)
+                        ]
+                    )
 
                     try:
                         tck, u = interp.splprep([x_sampled, y_sampled], s=5, per=0, quiet=1, k=3)
@@ -537,10 +543,18 @@ class dnaTrace(object):
                     except ValueError:
                         # Value error occurs when the "trace fitting" really messes up the traces
 
-                        x = np.array([self.ordered_traces[dna_num][:, 0][j] for j in
-                                      range(i, len(self.ordered_traces[dna_num][:, 0]), step_size_px)])
-                        y = np.array([self.ordered_traces[dna_num][:, 1][j] for j in
-                                      range(i, len(self.ordered_traces[dna_num][:, 1]), step_size_px)])
+                        x = np.array(
+                            [
+                                self.ordered_traces[dna_num][:, 0][j]
+                                for j in range(i, len(self.ordered_traces[dna_num][:, 0]), step_size_px)
+                            ]
+                        )
+                        y = np.array(
+                            [
+                                self.ordered_traces[dna_num][:, 1][j]
+                                for j in range(i, len(self.ordered_traces[dna_num][:, 1]), step_size_px)
+                            ]
+                        )
 
                         try:
                             tck, u = interp.splprep([x, y], s=5, per=0, quiet=1)
@@ -581,7 +595,7 @@ class dnaTrace(object):
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], markersize=1)
             # print(len(self.skeletons[dna_num]), len(self.disordered_traces[dna_num]))
             # plt.plot(self.skeletons[dna_num][:,0], self.skeletons[dna_num][:,1], 'o', markersize = 0.8)
-        plt.axis('equal')
+        plt.axis("equal")
         plt.show()
         plt.close()
 
@@ -615,30 +629,54 @@ class dnaTrace(object):
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.splined_traces.keys()):
-            plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=1.0)
+            plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color="c", linewidth=1.0)
             if self.mol_is_circular[dna_num]:
                 starting_point = 0
             else:
                 starting_point = 0
             length = len(self.curvature[dna_num])
-            plt.plot(self.splined_traces[dna_num][starting_point, 0],
-                     self.splined_traces[dna_num][starting_point, 1],
-                     color='#D55E00', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6), 1],
-                     color='#E69F00', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 1],
-                     color='#F0E442', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 1],
-                     color='#009E74', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 1],
-                     color='#56B4E9', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 1],
-                     color='#CC79A7', markersize=3.0, marker=5)
+            plt.plot(
+                self.splined_traces[dna_num][starting_point, 0],
+                self.splined_traces[dna_num][starting_point, 1],
+                color="#D55E00",
+                markersize=3.0,
+                marker=5,
+            )
+            plt.plot(
+                self.splined_traces[dna_num][starting_point + int(length / 6), 0],
+                self.splined_traces[dna_num][starting_point + int(length / 6), 1],
+                color="#E69F00",
+                markersize=3.0,
+                marker=5,
+            )
+            plt.plot(
+                self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 0],
+                self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 1],
+                color="#F0E442",
+                markersize=3.0,
+                marker=5,
+            )
+            plt.plot(
+                self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 0],
+                self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 1],
+                color="#009E74",
+                markersize=3.0,
+                marker=5,
+            )
+            plt.plot(
+                self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 0],
+                self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 1],
+                color="#56B4E9",
+                markersize=3.0,
+                marker=5,
+            )
+            plt.plot(
+                self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 0],
+                self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 1],
+                color="#CC79A7",
+                markersize=3.0,
+                marker=5,
+            )
         # plt.savefig('%s_%s_splinedtrace_with_markers.png' % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_splined_trace_with_markers.png")
         plt.close()
@@ -649,8 +687,9 @@ class dnaTrace(object):
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.ordered_traces.keys()):
-            plt.plot(self.ordered_traces[dna_num][:, 0], self.ordered_traces[dna_num][:, 1], 'o', markersize=0.5,
-                     color='c')
+            plt.plot(
+                self.ordered_traces[dna_num][:, 0], self.ordered_traces[dna_num][:, 1], "o", markersize=0.5, color="c"
+            )
         # plt.savefig('%s_%s_orderedtrace.png' % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_ordered_trace.png")
         plt.close()
@@ -663,8 +702,13 @@ class dnaTrace(object):
         for dna_num in sorted(self.disordered_traces.keys()):
             # disordered_traces_list = self.disordered_traces[dna_num].tolist()
             # less_dense_trace = np.array([disordered_traces_list[i] for i in range(0,len(disordered_traces_list),5)])
-            plt.plot(self.disordered_traces[dna_num][:, 0], self.disordered_traces[dna_num][:, 1], 'o', markersize=0.5,
-                     color='c')
+            plt.plot(
+                self.disordered_traces[dna_num][:, 0],
+                self.disordered_traces[dna_num][:, 1],
+                "o",
+                markersize=0.5,
+                color="c",
+            )
         # plt.savefig('%s_%s_disorderedtrace.png' % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_disordered_traces.png")
         plt.close()
@@ -675,40 +719,42 @@ class dnaTrace(object):
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.fitted_traces.keys()):
-            plt.plot(self.fitted_traces[dna_num][:, 0], self.fitted_traces[dna_num][:, 1], 'o', markersize=0.5,
-                     color='c')
+            plt.plot(
+                self.fitted_traces[dna_num][:, 0], self.fitted_traces[dna_num][:, 1], "o", markersize=0.5, color="c"
+            )
         # plt.savefig('%s_%s_fittedtrace.png' % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_fitted_trace.png")
         plt.close()
-        LOGGER.info(
-            f"Fitted trace image saved to : {str(output_dir / filename / f'{channel_name}_fitted_trace.png')}"
-        )
+        LOGGER.info(f"Fitted trace image saved to : {str(output_dir / filename / f'{channel_name}_fitted_trace.png')}")
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.grains.keys()):
             grain_plt = np.argwhere(self.grains[dna_num] == 1)
-            plt.plot(grain_plt[:, 0], grain_plt[:, 1], 'o', markersize=2, color='c')
+            plt.plot(grain_plt[:, 0], grain_plt[:, 1], "o", markersize=2, color="c")
         # plt.savefig('%s_%s_grains.png' % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_grains.png")
         plt.close()
         LOGGER.info(f"Grains image saved to : {str(output_dir / filename / f'{channel_name}_grains.png')}")
 
         for dna_num in sorted(self.ordered_traces.keys()):
-            plt.scatter(x=self.simplified_splined_traces[dna_num][:, 0],
-                        y=self.simplified_splined_traces[dna_num][:, 1],
-                        c=self.curvature[dna_num][:, 2],
-                        s=1)
+            plt.scatter(
+                x=self.simplified_splined_traces[dna_num][:, 0],
+                y=self.simplified_splined_traces[dna_num][:, 1],
+                c=self.curvature[dna_num][:, 2],
+                s=1,
+            )
 
         plt.colorbar()
-        plt.axis('equal')
+        plt.axis("equal")
         plt.xticks([])
         plt.yticks([])
         # plt.savefig('%s_%s_curvature_summary.png' % (save_file, channel_name), dpi=300)
         plt.savefig(output_dir / filename / f"{channel_name}_curvature_summary.png")
         plt.close()
-        LOGGER.info(f"Curvature summary saved to : {str(output_dir / filename / f'{channel_name}_curvature_summary.png')}")
-
+        LOGGER.info(
+            f"Curvature summary saved to : {str(output_dir / filename / f'{channel_name}_curvature_summary.png')}"
+        )
 
     # FIXME : Replace with Path() (.mkdir(parent=True, exists=True) negate need to handle errors.)
     def _checkForSaveDirectory(self, filename, new_directory_name):
@@ -772,18 +818,22 @@ class dnaTrace(object):
             # dymean = np.zeros(length)
             # gradients = np.zeros([2, self.neighbours * 2 + 1])
             if self.mol_is_circular[dna_num]:
-                longlist = np.concatenate([self.simplified_splined_traces[dna_num],
-                                           self.simplified_splined_traces[dna_num],
-                                           self.simplified_splined_traces[dna_num]])
+                longlist = np.concatenate(
+                    [
+                        self.simplified_splined_traces[dna_num],
+                        self.simplified_splined_traces[dna_num],
+                        self.simplified_splined_traces[dna_num],
+                    ]
+                )
                 dx = np.gradient(longlist, axis=0)[:, 0]
                 dy = np.gradient(longlist, axis=0)[:, 1]
                 d2x = np.gradient(dx)
                 d2y = np.gradient(dy)
 
-                dx = dx[length:2 * length]
-                dy = dy[length:2 * length]
-                d2x = d2x[length:2 * length]
-                d2y = d2y[length:2 * length]
+                dx = dx[length : 2 * length]
+                dy = dy[length : 2 * length]
+                d2x = d2x[length : 2 * length]
+                d2y = d2y[length : 2 * length]
             else:
                 # longlist = np.concatenate(
                 #     [np.flip(self.splined_traces[dna_num], 0), self.splined_traces[dna_num], np.flip(self.splined_traces[dna_num], 0)])
@@ -842,10 +892,14 @@ class dnaTrace(object):
 
                     if i < (length - 1):
                         contour = contour + math.hypot(
-                            (self.simplified_splined_traces[dna_num][(i + 1), 0] -
-                             self.simplified_splined_traces[dna_num][i, 0]),
-                            (self.simplified_splined_traces[dna_num][(i + 1), 1] -
-                             self.simplified_splined_traces[dna_num][i, 1])
+                            (
+                                self.simplified_splined_traces[dna_num][(i + 1), 0]
+                                - self.simplified_splined_traces[dna_num][i, 0]
+                            ),
+                            (
+                                self.simplified_splined_traces[dna_num][(i + 1), 1]
+                                - self.simplified_splined_traces[dna_num][i, 1]
+                            )
                             # (coordinates[0][self.neighbours] - coordinates[0][self.neighbours - 1]),
                             # (coordinates[1][self.neighbours] - coordinates[1][self.neighbours - 1])
                         )
@@ -860,20 +914,21 @@ class dnaTrace(object):
         for dna_num in sorted(self.curvature.keys()):
             for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(self.curvature[dna_num]):
                 try:
-                    curvature_array = np.append(curvature_array, np.array([[dna_num, i, contour, c, dx, dy, d2x, d2y]]),
-                                                axis=0)
+                    curvature_array = np.append(
+                        curvature_array, np.array([[dna_num, i, contour, c, dx, dy, d2x, d2y]]), axis=0
+                    )
                 except NameError:
                     curvature_array = np.array([[dna_num, i, contour, c, dx, dy, d2x, d2y]])
         curvature_stats = pd.DataFrame(curvature_array)
-        curvature_stats.columns = ['DNA number', 'Number', 'Contour length', 'Curvature', 'dx', 'dy', 'd2x', 'd2y']
+        curvature_stats.columns = ["DNA number", "Number", "Contour length", "Curvature", "dx", "dy", "d2x", "d2y"]
 
         # FIXME : Replace with Path()
         if not os.path.exists(os.path.join(os.path.dirname(self.filename), "Curvature")):
             os.mkdir(os.path.join(os.path.dirname(self.filename), "Curvature"))
         directory = os.path.join(os.path.dirname(self.filename), "Curvature")
         savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
-        curvature_stats.to_json(savename + '.json')
-        curvature_stats.to_csv(savename + '.csv')
+        curvature_stats.to_json(savename + ".json")
+        curvature_stats.to_csv(savename + ".csv")
 
     def analyse_curvature(self):
 
@@ -912,33 +967,47 @@ class dnaTrace(object):
             theory = np.zeros(length)
             for i in range(length):
                 # For ellipse
-                theory[i] = self.major * self.minor * (-1 / ((self.major ** 2 - self.minor ** 2) * math.cos(
-                    math.pi * 2 / self.n_points * i) ** 2 - self.major ** 2)) ** 1.5
+                theory[i] = (
+                    self.major
+                    * self.minor
+                    * (
+                        -1
+                        / (
+                            (self.major**2 - self.minor**2) * math.cos(math.pi * 2 / self.n_points * i) ** 2
+                            - self.major**2
+                        )
+                    )
+                    ** 1.5
+                )
                 theory = np.roll(theory, int(self.n_points * self.displacement), axis=0)
                 # For parabola
                 # theory[i] = - 2/(1+(2*self.splined_traces[0][i][0])**2)**1.5
-            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, theory, color='b')
-            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='y')
+            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, theory, color="b")
+            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color="y")
         else:
             # plt.xlim(0, 105)
             # plt.ylim(-0.1, 0.2)
-            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='black', linewidth=5)
-            plt.ticklabel_format(axis='both', style='sci', scilimits=(-2, 2))
+            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color="black", linewidth=5)
+            plt.ticklabel_format(axis="both", style="sci", scilimits=(-2, 2))
             plt.axvline(curvature[0][1], color="#D55E00", linewidth=5, alpha=0.8)
             plt.axvline(curvature[int(length / 6)][1] * self.pixel_size * 1e9, color="#E69F00", linewidth=5, alpha=0.8)
-            plt.axvline(curvature[int(length / 6 * 2)][1] * self.pixel_size * 1e9, color="#F0E442", linewidth=5,
-                        alpha=0.8)
-            plt.axvline(curvature[int(length / 6 * 3)][1] * self.pixel_size * 1e9, color="#009E74", linewidth=5,
-                        alpha=0.8)
-            plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size * 1e9, color="#56B4E9", linewidth=5,
-                        alpha=0.8)
-            plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size * 1e9, color="#CC79A7", linewidth=5,
-                        alpha=0.8)
-        plt.xlabel('Length alongside molecule / nm')
-        plt.ylabel('Curvature / $\mathregular{nm^{-1}}$')
+            plt.axvline(
+                curvature[int(length / 6 * 2)][1] * self.pixel_size * 1e9, color="#F0E442", linewidth=5, alpha=0.8
+            )
+            plt.axvline(
+                curvature[int(length / 6 * 3)][1] * self.pixel_size * 1e9, color="#009E74", linewidth=5, alpha=0.8
+            )
+            plt.axvline(
+                curvature[int(length / 6 * 4)][1] * self.pixel_size * 1e9, color="#56B4E9", linewidth=5, alpha=0.8
+            )
+            plt.axvline(
+                curvature[int(length / 6 * 5)][1] * self.pixel_size * 1e9, color="#CC79A7", linewidth=5, alpha=0.8
+            )
+        plt.xlabel("Length alongside molecule / nm")
+        plt.ylabel("Curvature / $\mathregular{nm^{-1}}$")
         # plt.xticks(fontsize=20)
         # plt.yticks(fontsize=20)
-        plt.savefig('%s_%s_curvature.png' % (savename, dna_num))
+        plt.savefig("%s_%s_curvature.png" % (savename, dna_num))
         plt.close()
 
     def plot_gradient(self, dna_num):
@@ -950,15 +1019,15 @@ class dnaTrace(object):
 
         curvature = np.array(self.curvature[dna_num])
         plt.figure()
-        plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 3], color='r')
-        plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 4], color='b')
-        plt.savefig('%s_%s_gradient.png' % (savename, dna_num))
+        plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 3], color="r")
+        plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 4], color="b")
+        plt.savefig("%s_%s_gradient.png" % (savename, dna_num))
         plt.close()
 
         plt.figure()
-        plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 5], color='r')
-        plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 6], color='b')
-        plt.savefig('%s_%s_second_order.png' % (savename, dna_num))
+        plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 5], color="r")
+        plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 6], color="b")
+        plt.savefig("%s_%s_second_order.png" % (savename, dna_num))
         plt.close()
 
     def measure_contour_length(self):
@@ -1029,27 +1098,45 @@ class dnaTrace(object):
         coordinates = pd.DataFrame(coordinates_array)
         coordinates.to_csv("%s_%s.csv" % (savename, dna_num))
 
-        plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], 'k.', markersize=5)
-        plt.axis('equal')
+        plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], "k.", markersize=5)
+        plt.axis("equal")
         length = len(coordinates_array)
-        plt.plot(coordinates_array[0, 0],
-                 coordinates_array[0, 1],
-                 color='#D55E00', markersize=10, marker='o')
-        plt.plot(coordinates_array[int(length / 6), 0],
-                 coordinates_array[int(length / 6), 1],
-                 color='#E69F00', markersize=10, marker='o')
-        plt.plot(coordinates_array[int(length / 6 * 2), 0],
-                 coordinates_array[int(length / 6 * 2), 1],
-                 color='#F0E442', markersize=10, marker='o')
-        plt.plot(coordinates_array[int(length / 6 * 3), 0],
-                 coordinates_array[int(length / 6 * 3), 1],
-                 color='#009E74', markersize=10, marker='o')
-        plt.plot(coordinates_array[int(length / 6 * 4), 0],
-                 coordinates_array[int(length / 6 * 4), 1],
-                 color='#56B4E9', markersize=10, marker='o')
-        plt.plot(coordinates_array[int(length / 6 * 5), 0],
-                 coordinates_array[int(length / 6 * 5), 1],
-                 color='#CC79A7', markersize=10, marker='o')
+        plt.plot(coordinates_array[0, 0], coordinates_array[0, 1], color="#D55E00", markersize=10, marker="o")
+        plt.plot(
+            coordinates_array[int(length / 6), 0],
+            coordinates_array[int(length / 6), 1],
+            color="#E69F00",
+            markersize=10,
+            marker="o",
+        )
+        plt.plot(
+            coordinates_array[int(length / 6 * 2), 0],
+            coordinates_array[int(length / 6 * 2), 1],
+            color="#F0E442",
+            markersize=10,
+            marker="o",
+        )
+        plt.plot(
+            coordinates_array[int(length / 6 * 3), 0],
+            coordinates_array[int(length / 6 * 3), 1],
+            color="#009E74",
+            markersize=10,
+            marker="o",
+        )
+        plt.plot(
+            coordinates_array[int(length / 6 * 4), 0],
+            coordinates_array[int(length / 6 * 4), 1],
+            color="#56B4E9",
+            markersize=10,
+            marker="o",
+        )
+        plt.plot(
+            coordinates_array[int(length / 6 * 5), 0],
+            coordinates_array[int(length / 6 * 5), 1],
+            color="#CC79A7",
+            markersize=10,
+            marker="o",
+        )
         plt.xticks([])
         plt.yticks([])
 
@@ -1145,7 +1232,6 @@ class traceStats(object):
 
 
 class curvatureStats(object):
-
     def __init__(self, trace_object):
 
         self.trace_object = trace_object
@@ -1163,11 +1249,11 @@ class curvatureStats(object):
 
     def createCurvatureObject(self):
 
-        '''Creates a pandas dataframe with the shape:
+        """Creates a pandas dataframe with the shape:
 
         Directory     ImageName   dna_num Point   ContourLength  Curvature
 
-        '''
+        """
 
         curvature_dict = {}
 
@@ -1178,26 +1264,29 @@ class curvatureStats(object):
 
         for mol_num, dna_num in enumerate(sorted(self.trace_object.curvature.keys())):
             try:
-                if self.trace_object.mol_is_circular[dna_num] == False and 80 < self.trace_object.contour_lengths[
-                    dna_num] < 130 and self.trace_object.max_curvature[dna_num] < 2:
+                if (
+                    self.trace_object.mol_is_circular[dna_num] == False
+                    and 80 < self.trace_object.contour_lengths[dna_num] < 130
+                    and self.trace_object.max_curvature[dna_num] < 2
+                ):
                     for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(self.trace_object.curvature[dna_num]):
                         try:
-                            curvature_dict['Molecule number'].append(mol_num)
-                            curvature_dict['Experiment Directory'].append(trace_directory)
-                            curvature_dict['Basename'].append(basename)
-                            curvature_dict['Image Name'].append(img_name)
-                            curvature_dict['Point number'].append(n)
-                            curvature_dict['Contour length'].append(contour)
-                            curvature_dict['Curvature'].append(c)
+                            curvature_dict["Molecule number"].append(mol_num)
+                            curvature_dict["Experiment Directory"].append(trace_directory)
+                            curvature_dict["Basename"].append(basename)
+                            curvature_dict["Image Name"].append(img_name)
+                            curvature_dict["Point number"].append(n)
+                            curvature_dict["Contour length"].append(contour)
+                            curvature_dict["Curvature"].append(c)
 
                         except KeyError:
-                            curvature_dict['Molecule number'] = [mol_num]
-                            curvature_dict['Experiment Directory'] = [trace_directory]
-                            curvature_dict['Basename'] = [basename]
-                            curvature_dict['Image Name'] = [img_name]
-                            curvature_dict['Point number'] = [n]
-                            curvature_dict['Contour length'] = [contour]
-                            curvature_dict['Curvature'] = [c]
+                            curvature_dict["Molecule number"] = [mol_num]
+                            curvature_dict["Experiment Directory"] = [trace_directory]
+                            curvature_dict["Basename"] = [basename]
+                            curvature_dict["Image Name"] = [img_name]
+                            curvature_dict["Point number"] = [n]
+                            curvature_dict["Contour length"] = [contour]
+                            curvature_dict["Curvature"] = [c]
             except KeyError:
                 continue
 
@@ -1214,26 +1303,29 @@ class curvatureStats(object):
 
         for mol_num, dna_num in enumerate(sorted(new_traces.contour_lengths.keys())):
             try:
-                if new_traces.mol_is_circular[dna_num] == False and 80 < new_traces.contour_lengths[
-                    dna_num] < 130 and new_traces.max_curvature[dna_num] < 2:
+                if (
+                    new_traces.mol_is_circular[dna_num] == False
+                    and 80 < new_traces.contour_lengths[dna_num] < 130
+                    and new_traces.max_curvature[dna_num] < 2
+                ):
                     for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(new_traces.curvature[dna_num]):
                         try:
-                            curvature_dict['Molecule number'].append(mol_num)
-                            curvature_dict['Experiment Directory'].append(trace_directory)
-                            curvature_dict['Basename'].append(basename)
-                            curvature_dict['Image Name'].append(img_name)
-                            curvature_dict['Point number'].append(n)
-                            curvature_dict['Contour length'].append(contour)
-                            curvature_dict['Curvature'].append(c)
+                            curvature_dict["Molecule number"].append(mol_num)
+                            curvature_dict["Experiment Directory"].append(trace_directory)
+                            curvature_dict["Basename"].append(basename)
+                            curvature_dict["Image Name"].append(img_name)
+                            curvature_dict["Point number"].append(n)
+                            curvature_dict["Contour length"].append(contour)
+                            curvature_dict["Curvature"].append(c)
 
                         except KeyError:
-                            curvature_dict['Molecule number'] = [mol_num]
-                            curvature_dict['Experiment Directory'] = [trace_directory]
-                            curvature_dict['Basename'] = [basename]
-                            curvature_dict['Image Name'] = [img_name]
-                            curvature_dict['Point number'] = [n]
-                            curvature_dict['Contour length'] = [contour]
-                            curvature_dict['Curvature'] = [c]
+                            curvature_dict["Molecule number"] = [mol_num]
+                            curvature_dict["Experiment Directory"] = [trace_directory]
+                            curvature_dict["Basename"] = [basename]
+                            curvature_dict["Image Name"] = [img_name]
+                            curvature_dict["Point number"] = [n]
+                            curvature_dict["Contour length"] = [contour]
+                            curvature_dict["Curvature"] = [c]
             except KeyError:
                 continue
 
@@ -1242,18 +1334,18 @@ class curvatureStats(object):
         self.curvature_dataframe = self.curvature_dataframe.append(pd_new_traces_dframe, ignore_index=True)
 
     def saveCurvatureStats(self, save_path):
-        save_file_name = ''
+        save_file_name = ""
 
-        if save_path[-1] == '/':
+        if save_path[-1] == "/":
             pass
         else:
-            save_path = save_path + '/'
+            save_path = save_path + "/"
 
-        for i in self.trace_object.afm_image_name.split('/')[:-1]:
-            save_file_name = save_file_name + i + '/'
+        for i in self.trace_object.afm_image_name.split("/")[:-1]:
+            save_file_name = save_file_name + i + "/"
         print(save_file_name)
 
-        self.curvature_dataframe.to_json('%scurvaturestats.json' % save_path)
-        self.curvature_dataframe.to_csv('%scurvaturestats.csv' % save_path)
+        self.curvature_dataframe.to_json("%scurvaturestats.json" % save_path)
+        self.curvature_dataframe.to_csv("%scurvaturestats.csv" % save_path)
 
-        print('Saved curvature stats for all analysed images into: %scurvaturestats.json' % save_path)
+        print("Saved curvature stats for all analysed images into: %scurvaturestats.json" % save_path)
