@@ -205,7 +205,7 @@ class LoadScan:
 
     @staticmethod
     def _extract_jpk(jpk: AFMCreepCompliance) -> np.ndarray:
-        """Extract data from jpk object"""
+        """Extract data from jpk object."""
 
     def get_data(self) -> None:
         """Method to extract image and pixel to nm scaling."""
