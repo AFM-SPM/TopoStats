@@ -19,7 +19,13 @@ There is more complete documentation on the projects documentation website. This
 
 ### Installation
 
-Please see the [installation instructions](https://afm-spm.github.io/TopoStats/installation.html).
+TopoStats is available via PyPI and can be installed in your Virtual Environment with...
+
+``` bash
+pip install topostats
+```
+
+For more on installation please see the [installation instructions](https://afm-spm.github.io/TopoStats/installation.html)
 
 ### Tutorials and Examples
 
