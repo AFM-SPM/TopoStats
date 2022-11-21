@@ -3,7 +3,7 @@ name: Publish package to PyPi
 on:
   push:
     branches:
-      - master
+      - main
       # - test/branch    # Uncomment and replace with the branch you are testing on
 jobs:
   build-release:

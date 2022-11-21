@@ -962,7 +962,7 @@ class GrainStats:
         Notes
         -----
         The method starts out by calculating the upper and lower convex hulls using
-        an algorithm based on the Graham Scan Algorithm [1]_. Using these upper and
+        an algorithm based on the Graham Scan Algorithm [1]. Using these upper and
         lower hulls, the callipers are simulated as rotating clockwise around the grain.
         We determine the order in which vertices are encountered by comparing the
         gradients of the slopes between vertices. An array of pairs of points that
