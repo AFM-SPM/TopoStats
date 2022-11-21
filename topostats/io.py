@@ -123,12 +123,12 @@ class LoadScans:
 
         return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
 
-    def _spm_pixel_to_nm_scaling(self, channel_data) -> float:
+    def _spm_pixel_to_nm_scaling(self, channel_data: pySPM.SPM.SPM_image) -> float:
         """Extract pixel to nm scaling from the SPM image metadata.
 
         Parameters
         ----------
-        channel_data:
+        channel_data: pySPM.SPM.SPM_image
             Channel data from PySPM.
 
         Returns
@@ -185,12 +185,12 @@ class LoadScans:
 
         return (image, self._ibw_pixel_to_nm_scaling(scan))
 
-    def _ibw_pixel_to_nm_scaling(self, scan) -> float:
+    def _ibw_pixel_to_nm_scaling(self, scan: dict) -> float:
         """Extract pixel to nm scaling from the IBW image metadata.
         
         Parameters
         ----------
-        scan
+        scan: dict
             The loaded binary wave object.
 
         Returns
