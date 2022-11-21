@@ -239,7 +239,7 @@ class LoadScans:
         try:
             channel_idx = channel_list[self.channel]
         except KeyError:
-            print(f"{self.channel} not in channel list: {channel_list}")
+            LOGGER.error(f"{self.channel} not in channel list: {channel_list}")
             raise
         # Get image and if applicable, scale it
         channel_page = tif.pages[channel_idx]
@@ -297,8 +297,6 @@ class LoadScans:
                 )
             if suffix == ".jpk":
                 self.image, self.pixel_to_nm_scaling = self.load_jpk()
-                print(type(self.image))
-                print(type(self.pixel_to_nm_scaling))
                 self.add_to_dic(
                     self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
                 )
