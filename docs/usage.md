@@ -7,7 +7,8 @@ default configuration options.
 However, because the location of your image files can not be known in advance you must make a copy of the default
 configuration and modify it to work with your files. This guide will hopefully take you through the process of running
 TopoStats and customising the configuration file with which it is run. If you encounter any problems please ask
-questions in the [Discussions](https://github.com/AFM-SPM/TopoStats/discussions).
+questions in the [Discussions](https://github.com/AFM-SPM/TopoStats/discussions). If you think you have encountered a
+bug or have a feature suggestion please create an [Issue](https://github.com/AFM-SPM/TopoStats/issues).
 
 ## Organising Scans
 
@@ -27,6 +28,7 @@ shell/terminal you will therefore need to do two things.
 You can now run topostats by invoking `run_topostats` and you should start to see some output similar to that below.
 
 ``` bash
+cd /path/to/where/scans/are/located
 run_topostats
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Plotting configuration is valid.
@@ -51,10 +53,10 @@ them.
 ### Copying `default_config.yaml`
 
 If you have used Git to clone the TopoStats repository from GitHub the default configuration can be found in the
-sub-directory `topostats/default_config.yaml`. If you have installed TopoStats from PyPI (**NB** not currently possible)
-then for convenience a sample configuration file can be downloaded from
-[here](https://raw.githubusercontent.com/AFM-SPM/TopoStats/main/topostats/default_config.yaml) (right-click on the
-link and select `Save As` to save the file to your computer).
+sub-directory `topostats/default_config.yaml`. If you have installed TopoStats from PyPI then a sample configuration
+file can be downloaded from
+[here](https://raw.githubusercontent.com/AFM-SPM/TopoStats/main/topostats/default_config.yaml) (right-click on the link
+and select `Save As` to save the file to your computer).
 
 Save or copy this file to the same directory all of your scan files are located and call it `my_config.yaml`.
 
@@ -65,13 +67,17 @@ cp /<path>/<to>/<where>/<topostats>/<is>/<cloned>/TopoStats/topostats/default_co
 
 ### Editing `my_config.yaml`
 
+**IMPORTANT** This file is an ASCII text file and  you should use NotePad (Windows), TextEdit (OSX) or Nano/Emacs/Vim
+(GNU/Linux) or any other text editor. Do _not_ use Microsoft Word or any other Word Processor to edit this file.
+
+
 You can now start customising the configuration you are going to run TopoStats with. All fields have defaults but the
 ones you may want to change are....
 
 * `base_dir` (default: `./`) the directory in which to search for scans. By default this is `./` which represents the
   directory from which `run_topostats` is called and it is good practice to have one configuration file per batch of
   scans that are being processed.
-* `output_dir` (default: `output`) the location where theoutput is saved, by default this is the directory `output`
+* `output_dir` (default: `output`) the location where the output is saved, by default this is the directory `output`
   which will be   created if it doesn't exist. If you wish for the output to be somewhere else specify it here. If you
   want `Processed` directories to sit within the directories that images are found then simply set the `output_dir` to
   the same value as `base_dir`.
@@ -80,11 +86,11 @@ ones you may want to change are....
 * `file_ext` (default: `.spm`) the file extension of scans to search for within the current directory. The default is
   `.spm` but other file format support is in the pipeline.
 * `plotting` : `image_set` (default `core`) specifies which steps of the processing to plot images of. The value `all`
-  gets images for all stages, `core` saves only a subset of images.
+  gets images for all stages, `core** saves only a subset of images.
 
 
 Most of the other configuration options can be left on their default values for now. Once you have made any changes save
-the changes and return to your terminal.
+the file and return to your terminal.
 
 ### Running TopoStats with `my_config.yaml`
 
@@ -92,7 +98,7 @@ To use your new configuration file you need to inform `run_topostats` to use tha
 done using the `--config my_config.yaml` file.
 
 **NB** this assumes that you are in the same directory as your scans where you have saved the `my_config.yaml` file that
-you edited. That doesn't _have_ to be the case but it makes life easier for now if you are not familiar with absolute
+you edited. That doesn't _have_ to be the case but it makes life easier for if you are not familiar with absolute
 and relative paths.
 
 ``` bash

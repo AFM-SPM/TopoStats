@@ -1,7 +1,9 @@
 # Installation
 
-**NB** - The package is currently undergoing heavy revision and these installation instructions apply to installing and
-workin on the the `dev` branch.
+**NB** - If you have trouble installing TopoStats please do checkout the
+[discussion](https://github.com/AFM-SPM/TopoStats/discussions) for possible solutions. If your problem isn't covered
+then please do not hesitate to ask a question.
+
 
 TopoStats is a [Python](https://www.python.org) package designed to run at the command line. You may have Python
 installed on your system but should use a [Python Virtual
@@ -13,7 +15,7 @@ minimum.
 ## Setting up Conda
 
 Once you have downloaded and installed [Miniconda](https://docs.conda.io/en/latest/miniconda.html) you can create a
-virtual environment for installing TopoStats with a version of Python that meets the requirements with. We will call
+virtual environment for installing TopoStats with a version of Python that meets the requirements. We will call
 this environment `topostats` (specified with the `--name topostats` option) and to use Python 3.10 (the option
 `python=3.10`). After creating it we can, as per the instructions printed out, activate the environment.
 
@@ -22,9 +24,7 @@ conda create --name topostats python=3.10
 conda activate topostats
 ```
 
-
-
-You are now ready to clone and install TopoStats.
+You are now ready to install TopoStats.
 
 **NB** If you are using an Apple M1 Macbook then you need to install Anaconda >=
 [2022.05](https://www.anaconda.com/blog/new-release-anaconda-distribution-now-supporting-m1).
@@ -52,6 +52,9 @@ command line. You will probably want to download a copy of the
 and use for running your analysis. Please see the [usage](usage) section for more information on running TopoStats.
 
 ### Cloning from GitHub
+
+**NB** Cloning and installing from GitHub is only required if you wish to contribute to or debug problems with
+TopoStats, if you only intend on using it then please install from PyPI.
 
 If you do not have Git already installed please see [Git](#git). If you intend to contribute to the development of
 TopoStats please read through the [contributing](contributing) section.
@@ -86,7 +89,7 @@ cd /path/to/where/topostats/was/cloned/TopoStats
 pip install .
 ```
 
-If you wish to make changes to the code and test then make `git branch`, make your changes and install in editable mode,
+If you wish to make changes to the code and test then make a `git branch`, make your changes and install in editable mode,
 i.e. `pip install -e .`.
 
 If you wish to develop features or address an existing [issue](https://github.com/AFM-SPM/TopoStats/issues) please refer
