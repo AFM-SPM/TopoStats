@@ -65,8 +65,6 @@ git clone https://github.com/AFM-SPM/TopoStats.git
 git clone git@github.com:AFM-SPM/TopoStats.git
 ```
 
-If you wish to make changes to the code then install in editable mode, i.e. `pip install -e .`.
-
 
 #### Cloning Using GitKraken
 
