@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Union, Dict
 import numpy as np
 
-from pySPM.Bruker import Bruker
+import pySPM
 from igor import binarywave
 import tifffile
 from ruamel.yaml import YAML, YAMLError
@@ -103,7 +103,7 @@ class LoadScans:
         """
         LOGGER.info(f"Loading image from : {self.img_path}")
         try:
-            scan = Bruker(self.img_path)
+            scan = pySPM.Bruker(self.img_path)
             LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
             self.channel_data = scan.get_channel(self.channel)
             LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
