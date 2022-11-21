@@ -197,8 +197,8 @@ def test_filters(load_scan: LoadScans, filter_config: dict) -> Filters:
     load_scan.get_data()
     filters = Filters(
         image=load_scan.image,
-        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
         filename=load_scan.filename,
+        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
         **filter_config,
     )
     return filters
