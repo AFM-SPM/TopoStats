@@ -338,5 +338,7 @@ processed, please refer to <url to page where we document common problems> for m
         self.images["masked_quadratic_removal"] = self.remove_quadratic(
             self.images["masked_tilt_removal"], self.images["mask"], img_name=self.filename
         )
-        self.images["zero_average_background"] = self.average_background(self.images["masked_quadratic_removal"], self.images["mask"])
+        self.images["zero_average_background"] = self.average_background(
+            self.images["masked_quadratic_removal"], self.images["mask"]
+        )
         self.images["gaussian_filtered"] = self.gaussian_filter(self.images["zero_average_background"])
