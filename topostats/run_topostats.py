@@ -140,6 +140,8 @@ def process_scan(
     ----------
     img_path_px2nm : Dict[str, Union[np.ndarray, Path, float]]
         A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's pixel to namometre scaling value.
+    base_dir : Union[str, Path]
+        Directory to recursively search for files, if not specified the current directory is scanned.
     filter_config : dict
         Dictionary of configuration options for running the Filter stage.
     grains_config : dict
