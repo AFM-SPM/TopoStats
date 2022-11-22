@@ -25,6 +25,8 @@ jobs:
       - name: Build package
         run: |
           python -m build --no-isolation
+          echo ${{ github.event_name }}
+          echo ${{ github.ref }}
       # - name: Publish package to Test PyPI
       #   uses: pypa/gh-action-pypi-publish@release/v1.5.1
       #   with:
