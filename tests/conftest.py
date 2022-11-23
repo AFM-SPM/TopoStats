@@ -1,5 +1,4 @@
 """Fixtures for testing"""
-from ast import Load
 import importlib.resources as pkg_resources
 from pathlib import Path
 from typing import Dict
