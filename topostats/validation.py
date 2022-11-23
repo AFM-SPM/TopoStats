@@ -28,9 +28,10 @@ def validate_config(config: dict):
             "quiet": Or(True, False, error="Invalid value in config for 'quiet', valid values are 'True' or 'False'"),
             "file_ext": Or(
                 ".spm",
+                ".asd",
                 ".jpk",
                 ".ibw",
-                error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk' or '.ibw'",
+                error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw' or '.asd'.",
             ),
             "loading": {
                 "channel": Or(
@@ -50,6 +51,18 @@ def validate_config(config: dict):
                     "UserIn0Retrace",
                     "UserIn1Trace",
                     "UserIn1Retrace",  # end of ibw channels
+                    "topography",
+                    "phase",  # end of asd channels
+                    "height_retrace",
+                    "measuredHeight_retrace",
+                    "amplitude_retrace",
+                    "phase_retrace",
+                    "error_retrace",
+                    "height_trace",
+                    "measuredHeight_trace",
+                    "amplitude_trace",
+                    "phase_trace",
+                    "error_trace",  # end of jpk channels
                     error="Invalid value in config file for 'channel', all possible"
                     "image channels are seen in the above error message.",
                 )

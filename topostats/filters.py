@@ -298,8 +298,6 @@ processed, please refer to <url to page where we document common problems> for m
         from topostats.io import LoadScan
         from topostats.topotracing import Filter, process_scan
 
-        load_scan = LoadScan("minicircle.spm", channel="Height")
-        load_scan.get_data()
         filter = Filter(image=load_scan.image,
         ...             pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
         ...             filename=load_scan.filename,
