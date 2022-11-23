@@ -31,7 +31,7 @@ def validate_config(config: dict):
                 ".asd",
                 ".jpk",
                 ".ibw",
-                error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw' or '.asd' when `libasd` imported",
+                error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw' and '.asd'",
 
             ),
             "loading": {
