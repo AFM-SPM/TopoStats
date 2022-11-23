@@ -43,22 +43,16 @@ def test_load_scan_spm(load_scan: LoadScans) -> None:
 
 def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
     """Test loading of high-speed .asd file"""
-    # temporary try statement until libasd has correct binaries
-    try:
-        load_scan_asd.img_path = str(load_scan_asd.img_paths[0])
-        load_scan_asd.filename = load_scan_asd.img_paths[0].stem
-        images, px_to_nm_scaling = load_scan_asd.load_asd()
-        image = images[40]  # some frames are just black so pick a middle one
-        assert len(images) == 64
-        assert isinstance(image, np.ndarray)
-        assert image.shape == (256, 256)
-        assert image.sum() == 5958870.556640625
-        assert isinstance(px_to_nm_scaling, float)
-        assert px_to_nm_scaling == 1.953125
-    except AssertionError:
-        raise
-    except NameError:
-        assert True
+    load_scan_asd.img_path = str(load_scan_asd.img_paths[0])
+    load_scan_asd.filename = load_scan_asd.img_paths[0].stem
+    images, px_to_nm_scaling = load_scan_asd.load_asd()
+    image = images[40]  # some frames are just black so pick a middle one
+    assert len(images) == 64
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (256, 256)
+    assert image.sum() == 5958870.556640625
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 1.953125
 
 
 def test_load_scan_ibw(load_scan_ibw: LoadScans) -> None:
@@ -117,19 +111,13 @@ def test_load_scan_get_data(
     request,
 ) -> None:
     """Test the LoadScan.get_data() method."""
-    # temporary try statement until libasd has correct binaries
-    try:
-        scan = request.getfixturevalue(load_scan_object)
-        scan.get_data()
-        assert len(scan.img_dic) == length
-        assert isinstance(scan.img_dic[filename]["image"], np.ndarray)
-        assert scan.img_dic[filename]["image"].shape == image_shape
-        assert scan.img_dic[filename]["image"].sum() == image_sum
-        assert isinstance(scan.img_dic[filename]["img_path"], Path)
-        assert scan.img_dic[filename]["img_path"] == RESOURCES / filename
-        assert isinstance(scan.img_dic[filename]["px_2_nm"], float)
-        assert scan.img_dic[filename]["px_2_nm"] == pixel_to_nm_scaling
-    except AssertionError:
-        raise
-    except NameError:
-        assert True
+    scan = request.getfixturevalue(load_scan_object)
+    scan.get_data()
+    assert len(scan.img_dic) == length
+    assert isinstance(scan.img_dic[filename]["image"], np.ndarray)
+    assert scan.img_dic[filename]["image"].shape == image_shape
+    assert scan.img_dic[filename]["image"].sum() == image_sum
+    assert isinstance(scan.img_dic[filename]["img_path"], Path)
+    assert scan.img_dic[filename]["img_path"] == RESOURCES / filename
+    assert isinstance(scan.img_dic[filename]["px_2_nm"], float)
+    assert scan.img_dic[filename]["px_2_nm"] == pixel_to_nm_scaling
