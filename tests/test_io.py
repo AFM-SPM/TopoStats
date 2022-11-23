@@ -84,11 +84,6 @@ def test_load_scan_jpk(load_scan_jpk: LoadScans) -> None:
 #     assert test_filters_random.pixel_to_nm_scaling == expected
 
 
-def test_load_scan_extract_jpk() -> None:
-    """Test extraction of data from loaded JPK image."""
-    assert True
-
-
 @pytest.mark.parametrize(
     "load_scan_object, length, image_shape, image_sum, filename, pixel_to_nm_scaling",
     [
