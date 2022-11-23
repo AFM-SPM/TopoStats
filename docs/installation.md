@@ -56,8 +56,6 @@ should create a branch from `dev` and work on that before committing your change
 suggested nomenclature for branches is your GitHub username followed by a slash, then the issue number and a short
 description, e.g. `ns-rse/90-refactor-topostats`.
 
-Should you want to use high-speed AFM files (extension ".asd") with TopoStats, this currently requires a extra dependancy to install. If you *are not* on an M1/M2 Mac, you can install the library `libasd` via `pip install .[libasd]`. If you *are* on an M1/M2 Mac, you will need to clone the `libasd` repository, `pip install cmake`, and run `pip install .` in the libasd repository. More info can be found on the [libasd gitHub page](https://github.com/ToruNiina/libasd)
-
 ## Tests
 
 One of the major changes in the refactoring is the introduction of unit tests. These require certain packages to be
