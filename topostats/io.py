@@ -7,19 +7,12 @@ import numpy as np
 
 from pySPM.Bruker import Bruker
 from igor import binarywave
+import libasd
 from ruamel.yaml import YAML, YAMLError
 from ruamel.yaml.main import round_trip_load as yaml_load, round_trip_dump as yaml_dump
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
-
-try:
-    import libasd
-except ModuleNotFoundError:
-    LOGGER.warning(
-        "libasd module not installed. Ignore if '.asd' files are not being processed. \n Otherwise install via 'pip install .[libasd]' or if on an M1/2 Mac, follow libasd installation guidelines for 'build yourself' here: https://github.com/ToruNiina/libasd"
-    )
-
 # pylint: disable=broad-except
 
 
@@ -263,7 +256,7 @@ class LoadScans:
 
         return (images, self._asd_px_to_nm_scaling(scan))
 
-    def _asd_px_to_nm_scaling(self, scan) -> float:  #: Union[libasd.Data2ch_v0, libasd.Data2ch_v1]) -> float:
+    def _asd_px_to_nm_scaling(self, scan: Union[libasd.Data2ch_v0, libasd.Data2ch_v1]) -> float:
         """Extracts the pixel to nanometre scaling value from an .asd file object.
 
         Parameters
