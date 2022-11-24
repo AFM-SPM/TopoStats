@@ -77,7 +77,7 @@ class getSkeleton(object):
         for x, y in pixels_to_delete:
             self.mask_being_skeletonised[x, y] = 0
 
-        # Sub-iteration 2 - binary check
+        # Sub-iteration 2 - binary check - seems like a repeat and could be condensed
         mask_coordinates = np.argwhere(self.mask_being_skeletonised == 1).tolist()
         for point in mask_coordinates:
             if self._deletePixelSubit2(point):
@@ -102,24 +102,14 @@ class getSkeleton(object):
         return self._binaryThinCheck_a() and self._binaryThinCheck_b() and self._binaryThinCheck_c() and self._binaryThinCheck_d()
 
     def _deletePixelSubit2(self, point):
-
         """Function to check whether a single point should be deleted based
         on both its local binary environment and its local height values"""
 
         self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(
             self.mask_being_skeletonised, point[0], point[1]
         )
-
         # Add in generic code here to protect high points from being deleted
-        if (
-            self._binaryThinCheck_a()
-            and self._binaryThinCheck_b()
-            and self._binaryThinCheck_csharp()
-            and self._binaryThinCheck_dsharp()
-        ):
-            return True
-        else:
-            return False
+        return self._binaryThinCheck_a() and self._binaryThinCheck_b() and self._binaryThinCheck_csharp() and self._binaryThinCheck_dsharp()
 
     """These functions are ripped from the Zhang et al. paper and do the basic
     skeletonisation steps
@@ -129,10 +119,7 @@ class getSkeleton(object):
 
     def _binaryThinCheck_a(self):
         # Condition A protects the endpoints (which will be > 2) - add in code here to prune low height points
-        if 2 <= self.p2 + self.p3 + self.p4 + self.p5 + self.p6 + self.p7 + self.p8 + self.p9 <= 6:
-            return True
-        else:
-            return False
+        return 2 <= self.p2 + self.p3 + self.p4 + self.p5 + self.p6 + self.p7 + self.p8 + self.p9 <= 6
 
     def _binaryThinCheck_b(self):
         # Condition B checks if 7 0's or 7 1's?
