@@ -63,7 +63,6 @@ class getSkeleton(object):
         delete a point
         """
 
-        number_of_deleted_points = 0
         pixels_to_delete = []
 
         # Sub-iteration 1 - binary check
@@ -75,8 +74,8 @@ class getSkeleton(object):
         # Check the local height values to determine if pixels should be deleted
         # pixels_to_delete = self._checkHeights(pixels_to_delete)
 
+        number_of_deleted_points = len(pixels_to_delete)
         for x, y in pixels_to_delete:
-            number_of_deleted_points += 1
             self.mask_being_skeletonised[x, y] = 0
         pixels_to_delete = []
 
@@ -103,16 +102,7 @@ class getSkeleton(object):
         self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(
             self.mask_being_skeletonised, point[0], point[1]
         )
-
-        if (
-            self._binaryThinCheck_a()
-            and self._binaryThinCheck_b()
-            and self._binaryThinCheck_c()
-            and self._binaryThinCheck_d()
-        ):
-            return True
-        else:
-            return False
+        return self._binaryThinCheck_a() and self._binaryThinCheck_b() and self._binaryThinCheck_c() and self._binaryThinCheck_d()
 
     def _deletePixelSubit2(self, point):
 
@@ -148,6 +138,7 @@ class getSkeleton(object):
             return False
 
     def _binaryThinCheck_b(self):
+        # Condition B checks if 7 0's or 7 1's?
         count = 0
 
         if [self.p2, self.p3] == [0, 1]:
@@ -173,28 +164,18 @@ class getSkeleton(object):
             return False
 
     def _binaryThinCheck_c(self):
-        if self.p2 * self.p4 * self.p6 == 0:
-            return True
-        else:
-            return False
+        # check if p2, p4 or p6 is 0
+        return self.p2 * self.p4 * self.p6 == 0
 
     def _binaryThinCheck_d(self):
-        if self.p4 * self.p6 * self.p8 == 0:
-            return True
-        else:
-            return False
+        # check if p4, p6 or p8 is 0
+        return self.p4 * self.p6 * self.p8 == 0
 
     def _binaryThinCheck_csharp(self):
-        if self.p2 * self.p4 * self.p8 == 0:
-            return True
-        else:
-            return False
+        return self.p2 * self.p4 * self.p8 == 0
 
     def _binaryThinCheck_dsharp(self):
-        if self.p2 * self.p6 * self.p8 == 0:
-            return True
-        else:
-            return False
+        return self.p2 * self.p6 * self.p8 == 0
 
     def _checkHeights(self, candidate_points):
 
@@ -801,6 +782,9 @@ class reorderTrace:
 class genTracingFuncs:
     @staticmethod
     def getLocalPixelsBinary(binary_map, x, y):
+        # [[p9, p2, p3],
+        #  [p8, na, p4],
+        #  [p7, p6, p5]]
         p2 = binary_map[x, y + 1]
         p3 = binary_map[x + 1, y + 1]
         p4 = binary_map[x + 1, y]
