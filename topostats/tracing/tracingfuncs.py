@@ -74,10 +74,8 @@ class getSkeleton(object):
         # Check the local height values to determine if pixels should be deleted
         # pixels_to_delete = self._checkHeights(pixels_to_delete)
 
-        number_of_deleted_points = len(pixels_to_delete)
         for x, y in pixels_to_delete:
             self.mask_being_skeletonised[x, y] = 0
-        pixels_to_delete = []
 
         # Sub-iteration 2 - binary check
         mask_coordinates = np.argwhere(self.mask_being_skeletonised == 1).tolist()
@@ -87,12 +85,11 @@ class getSkeleton(object):
 
         # Check the local height values to determine if pixels should be deleted
         # pixels_to_delete = self._checkHeights(pixels_to_delete)
-
+        
         for x, y in pixels_to_delete:
-            number_of_deleted_points += 1
             self.mask_being_skeletonised[x, y] = 0
 
-        if number_of_deleted_points == 0:
+        if len(pixels_to_delete) == 0:
             self.skeleton_converged = True
 
     def _deletePixelSubit1(self, point):
