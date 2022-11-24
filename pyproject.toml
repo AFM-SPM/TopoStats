@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "wheel", "versioneer[toml]"]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
@@ -26,3 +26,11 @@ exclude = '''
   )/
 )
 '''
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440"
+versionfile_source = "topostats/_version.py"
+versionfile_build = "topostats/_version.py"
+tag_prefix = "v"
+parentdir_prefix = ""

@@ -67,9 +67,19 @@ def test_load_scan_ibw(load_scan_ibw: LoadScans) -> None:
     assert px_to_nm_scaling == 1.5625
 
 
-def test_load_scan_load_jpk() -> None:
-    """Test loading of JPK image."""
-    assert True
+def test_load_scan_jpk(load_scan_jpk: LoadScans) -> None:
+    """Test loading of JPK Instruments .jpk file."""
+    load_scan_jpk.img_path = load_scan_jpk.img_paths[0]
+    load_scan_jpk.filename = load_scan_jpk.img_paths[0].stem
+    image, px_to_nm_scaling = load_scan_jpk.load_jpk()
+    print(image.shape)
+    print(image.sum())
+    print(px_to_nm_scaling)
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (256, 256)
+    assert image.sum() == 286598232.9308627
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 1.2770176335964876
 
 
 # FIXME : Get this test working
@@ -88,17 +98,13 @@ def test_load_scan_load_jpk() -> None:
 #     assert test_filters_random.pixel_to_nm_scaling == expected
 
 
-def test_load_scan_extract_jpk() -> None:
-    """Test extraction of data from loaded JPK image."""
-    assert True
-
-
 @pytest.mark.parametrize(
     "load_scan_object, length, image_shape, image_sum, filename, pixel_to_nm_scaling",
     [
         ("load_scan", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
         ("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625),
-        ("load_scan_asd", 64, (256, 256), 5958870.556640625, "minicircles_frame_40", 1.953125),
+        ("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876),
+        ("load_scan_asd", 64, (256, 256), 5958870.556640625, "minicircles_frame_40", 1.953125)
     ],
 )
 def test_load_scan_get_data(

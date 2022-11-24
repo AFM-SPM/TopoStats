@@ -15,28 +15,14 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
 
-def test_row_col_medians_no_mask(
-    test_filters_random: Filters, image_random_row_medians: np.array, image_random_col_medians: np.array
-) -> None:
-    """Test calculation of row and column medians without masking."""
-    medians = test_filters_random.row_col_medians(test_filters_random.images["pixels"], mask=None)
-
-    assert isinstance(medians, dict)
-    assert list(medians.keys()) == ["rows", "cols"]
-    assert isinstance(medians["rows"], np.ndarray)
-    assert isinstance(medians["cols"], np.ndarray)
-
-    np.testing.assert_array_equal(medians["rows"], image_random_row_medians)
-    np.testing.assert_array_equal(medians["cols"], image_random_col_medians)
-
-
-def test_align_rows_no_mask(test_filters_random: Filters, image_random_aligned_rows: np.array) -> None:
+def test_median_flatten_no_mask(test_filters_random: Filters, image_random_median_flattened: np.array) -> None:
     """Test aligning of rows by median height."""
-    aligned_rows = test_filters_random.align_rows(test_filters_random.images["pixels"], mask=None)
+    median_flattened = test_filters_random.median_flatten(test_filters_random.images["pixels"], mask=None)
 
-    assert isinstance(aligned_rows, np.ndarray)
-    assert aligned_rows.shape == (1024, 1024)
-    np.testing.assert_allclose(aligned_rows, image_random_aligned_rows, **TOLERANCE)
+    assert isinstance(median_flattened, np.ndarray)
+    assert median_flattened.shape == (1024, 1024)
+
+    np.testing.assert_allclose(median_flattened, image_random_median_flattened, **TOLERANCE)
 
 
 def test_remove_tilt_no_mask(test_filters_random: Filters, image_random_remove_x_y_tilt: np.array) -> None:
@@ -48,25 +34,13 @@ def test_remove_tilt_no_mask(test_filters_random: Filters, image_random_remove_x
     np.testing.assert_allclose(tilt_removed, image_random_remove_x_y_tilt, **TOLERANCE)
 
 
-def test_median_row_height(test_filters_random: Filters):
-    """Test calculation of median row height."""
-    medians = test_filters_random.row_col_medians(test_filters_random.images["pixels"], mask=None)
-    row_medians = medians["rows"]
-    median_row_height = test_filters_random._median_row_height(row_medians)
-    target = np.nanmedian(medians["rows"])
+def test_remove_quadratic(test_filters_random: Filters, image_random_remove_quadratic: np.ndarray) -> None:
+    """Test removal of quadratic tilt."""
+    quadratic_removed = test_filters_random.remove_quadratic(test_filters_random.images["pixels"], mask=None)
 
-    assert median_row_height == target
-
-
-def test_row_median_diffs(test_filters_random: Filters):
-    """Test calculation of median row differences."""
-    medians = test_filters_random.row_col_medians(test_filters_random.images["pixels"], mask=None)
-    row_medians = medians["rows"]
-    median_row_height = test_filters_random._median_row_height(row_medians)
-    row_median_diffs = test_filters_random._row_median_diffs(row_medians, median_row_height)
-    target = medians["rows"] - np.nanmedian(medians["rows"])
-
-    np.testing.assert_equal(row_median_diffs, target)
+    assert isinstance(quadratic_removed, np.ndarray)
+    assert quadratic_removed.shape == (1024, 1024)
+    np.testing.assert_allclose(quadratic_removed, image_random_remove_quadratic, **TOLERANCE)
 
 
 def test_calc_diff(test_filters_random: Filters, image_random: np.ndarray) -> None:
@@ -87,34 +61,25 @@ def test_calc_gradient(test_filters_random: Filters, image_random: np.ndarray) -
     np.testing.assert_array_equal(target, calculated)
 
 
-def test_row_col_medians_with_mask(
-    test_filters_random_with_mask: Filters,
-    image_random_row_medians_masked: np.array,
-    image_random_col_medians_masked: np.array,
-) -> None:
-    """Test calculation of row and column medians without masking."""
-    medians = test_filters_random_with_mask.row_col_medians(
-        test_filters_random_with_mask.images["pixels"], mask=test_filters_random_with_mask.images["mask"]
-    )
-
-    assert isinstance(medians, dict)
-    assert list(medians.keys()) == ["rows", "cols"]
-    assert isinstance(medians["rows"], np.ndarray)
-    assert isinstance(medians["cols"], np.ndarray)
-    np.testing.assert_array_equal(medians["rows"], image_random_row_medians_masked)
-    np.testing.assert_array_equal(medians["cols"], image_random_col_medians_masked)
-
-
 # FIXME : sum of half of the array values is vastly smaller and so test fails. What is strange is that
 #         test_filters_minicircle.test_average_background() *DOESN'T* fail
 def test_non_square_img(test_filters_random: Filters):
     test_filters_random.images["pixels"] = test_filters_random.images["pixels"][:, 0:512]
-    test_filters_random.images["zero_averaged_background"] = test_filters_random.average_background(
+    test_filters_random.images["zero_averaged_background"] = test_filters_random.median_flatten(
         image=test_filters_random.images["pixels"], mask=None
     )
     assert isinstance(test_filters_random.images["zero_averaged_background"], np.ndarray)
     assert test_filters_random.images["zero_averaged_background"].shape == (1024, 512)
     # assert test_filters_random.images["zero_averaged_background"].sum() == 44426.48188033322
+
+
+def test_average_background(test_filters_random_with_mask: Filters):
+    """Test the background averaging"""
+    test_filters_random_with_mask.images["zero_averaged_background"] = test_filters_random_with_mask.average_background(
+        image=test_filters_random_with_mask.images["pixels"], mask=test_filters_random_with_mask.images["mask"]
+    )
+    assert isinstance(test_filters_random_with_mask.images["zero_averaged_background"], np.ndarray)
+    assert test_filters_random_with_mask.images["zero_averaged_background"].sum() == 263002.61107539403
 
 
 def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> None:

@@ -17,6 +17,8 @@ import sys
 
 import sphinx_rtd_theme
 
+import topostats
+
 sys.path.insert(0, os.path.abspath(".."))
 
 # Mock imports (things that can't be installed at do building time)
@@ -33,7 +35,7 @@ author = "TopoStats authors"
 # The short X.Y version
 version = ""
 # The full version, including alpha/beta/rc tags
-release = "1.0"
+release = topostats.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -192,3 +194,4 @@ epub_exclude_files = ["search.html"]
 
 
 # -- Extension configuration -------------------------------------------------
+numpydoc_class_members_toctree = False

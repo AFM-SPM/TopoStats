@@ -72,28 +72,28 @@ def test_get_grain_array(test_dnatracing: pd.DataFrame) -> None:
 @pytest.mark.parametrize(
     "molecule, array_sum",
     [
-        (1, 2859),
-        (2, 1711),
-        (3, 1802),
-        (4, 1646),
-        (5, 1725),
-        (6, 1715),
-        (7, 1756),
-        (8, 1882),
-        (9, 2119),
-        (10, 1930),
-        (11, 2065),
-        (12, 1999),
-        (13, 1947),
-        (14, 1920),
-        (15, 1797),
-        (16, 1924),
-        (17, 1987),
-        (18, 2029),
-        (19, 1849),
-        (20, 2004),
+        (1, 2872),
+        (2, 1726),
+        (3, 1770),
+        (4, 1624),
+        (5, 1706),
+        (6, 1695),
+        (7, 1729),
+        (8, 1855),
+        (9, 2085),
+        (10, 1900),
+        (11, 2054),
+        (12, 2003),
+        (13, 1919),
+        (14, 1887),
+        (15, 1766),
+        (16, 1898),
+        (17, 1965),
+        (18, 2000),
+        (19, 1818),
+        (20, 1967),
         (21, 1895),
-        (22, 1817),
+        (22, 1826),
     ],
 )
 def test_minicircle_dnatracing_skeleton_size(regtest, minicircle_dnatracing: traceStats, molecule, array_sum) -> None:
@@ -109,13 +109,13 @@ def test_minicircle_dnatracing_skeletons(regtest, minicircle_dnatracing: traceSt
     print(np.array2string(mol_array), file=regtest)
 
 
-@pytest.mark.mpl_image_compare(baseline_dir="../resources/img/")
-def test_minicircle_dnatracing_skeletons_plot(regtest, minicircle_dnatracing: traceStats) -> None:
-    """Test the skeletons returned by dnatracing."""
-    mol_array = minicircle_dnatracing._get_grain_array(1)
-    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-    ax.imshow(mol_array)
-    return fig
+# @pytest.mark.mpl_image_compare(baseline_dir="../resources/img/")
+# def test_minicircle_dnatracing_skeletons_plot(regtest, minicircle_dnatracing: traceStats) -> None:
+#     """Test the skeletons returned by dnatracing."""
+#     mol_array = minicircle_dnatracing._get_grain_array(1)
+#     fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+#     ax.imshow(mol_array)
+#     return fig
 
 
 def test_tracestats(regtest, minicircle_tracestats: traceStats) -> None:

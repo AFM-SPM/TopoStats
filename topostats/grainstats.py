@@ -911,8 +911,8 @@ class GrainStats:
         shiftx = self.get_shift(xy[:, 0], shape[0])
         shifty = self.get_shift(xy[:, 1], shape[1])
         return image.copy()[
-            centre[0] - length - shiftx : centre[0] + length + 1 - shiftx,
-            centre[1] - length - shifty : centre[1] + length + 1 - shifty,
+            centre[0] - length - shiftx : centre[0] + length + 1 - shiftx,  # noqa: E203
+            centre[1] - length - shifty : centre[1] + length + 1 - shifty,  # noqa: E203
         ]
 
     @staticmethod
@@ -962,7 +962,7 @@ class GrainStats:
         Notes
         -----
         The method starts out by calculating the upper and lower convex hulls using
-        an algorithm based on the Graham Scan Algorithm [1]_. Using these upper and
+        an algorithm based on the Graham Scan Algorithm [1]. Using these upper and
         lower hulls, the callipers are simulated as rotating clockwise around the grain.
         We determine the order in which vertices are encountered by comparing the
         gradients of the slopes between vertices. An array of pairs of points that

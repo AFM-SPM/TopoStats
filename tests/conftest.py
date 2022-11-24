@@ -37,6 +37,7 @@ def default_config() -> Dict:
     config["filter"]["threshold_method"] = "otsu"
     config["grains"]["threshold_method"] = "otsu"
     config["grains"]["otsu_threshold_multiplier"] = 1.7
+    config["grains"]["absolute_area_threshold"]["upper"] = [400, 600]
     return config
 
 
@@ -44,7 +45,7 @@ def default_config() -> Dict:
 def process_scan_config() -> Dict:
     """Sample configuration"""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
-    config["grains"]["otsu_threshold_multiplier"] = 1.0
+    config["grains"]["threshold_std_dev"]["lower"] = 1.0
     config["grains"]["absolute_area_threshold"]["upper"] = [500, 800]
     config["plotting"]["zrange"] = [0, 3]
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
@@ -141,9 +142,9 @@ def image_random_col_medians() -> np.array:
 
 
 @pytest.fixture
-def image_random_aligned_rows() -> np.array:
+def image_random_median_flattened() -> np.array:
     """Expected aligned rows (unmasked)."""
-    df = pd.read_csv(RESOURCES / "image_random_aligned_rows.csv.bz2", header=None)
+    df = pd.read_csv(RESOURCES / "image_random_median_flattened.csv.bz2", header=None)
     return df.to_numpy()
 
 
@@ -151,6 +152,13 @@ def image_random_aligned_rows() -> np.array:
 def image_random_remove_x_y_tilt() -> np.array:
     """Expected removed tilt (unmasked)."""
     df = pd.read_csv(RESOURCES / "image_random_remove_x_y_tilt.csv.bz2", header=None)
+    return df.to_numpy()
+
+
+@pytest.fixture
+def image_random_remove_quadratic() -> np.array:
+    """Expected removed quadratic (unmasked)"""
+    df = pd.read_csv(RESOURCES / "image_random_remove_quadratic.csv.bz2", header=None)
     return df.to_numpy()
 
 
@@ -188,8 +196,8 @@ def test_filters(load_scan: LoadScans, filter_config: dict) -> Filters:
     load_scan.get_data()
     filters = Filters(
         image=load_scan.image,
-        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
         filename=load_scan.filename,
+        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
         **filter_config,
     )
     return filters
@@ -218,22 +226,19 @@ def test_filters_random_with_mask(filter_config: dict, test_filters: Filters, im
 @pytest.fixture
 def random_filters(test_filters_random_with_mask: Filters) -> Filters:
     """Process random with filters, for use in grains fixture."""
-    test_filters_random_with_mask.images["initial_align"] = test_filters_random_with_mask.align_rows(
+    test_filters_random_with_mask.images["initial_median_flatten"] = test_filters_random_with_mask.median_flatten(
         test_filters_random_with_mask.images["pixels"], mask=None
     )
     test_filters_random_with_mask.images["initial_tilt_removal"] = test_filters_random_with_mask.remove_tilt(
-        test_filters_random_with_mask.images["initial_align"], mask=None
+        test_filters_random_with_mask.images["initial_median_flatten"], mask=None
     )
-    test_filters_random_with_mask.images["masked_align"] = test_filters_random_with_mask.align_rows(
+    test_filters_random_with_mask.images["masked_median_flatten"] = test_filters_random_with_mask.median_flatten(
         test_filters_random_with_mask.images["initial_tilt_removal"], mask=test_filters_random_with_mask.images["mask"]
     )
     test_filters_random_with_mask.images["masked_tilt_removal"] = test_filters_random_with_mask.remove_tilt(
-        test_filters_random_with_mask.images["masked_align"], mask=test_filters_random_with_mask.images["mask"]
+        test_filters_random_with_mask.images["masked_median_flatten"], mask=test_filters_random_with_mask.images["mask"]
     )
 
-    test_filters_random_with_mask.images["zero_averaged_background"] = test_filters_random_with_mask.average_background(
-        test_filters_random_with_mask.images["masked_tilt_removal"], mask=test_filters_random_with_mask.images["mask"]
-    )
     return test_filters_random_with_mask
 
 
@@ -277,19 +282,19 @@ def load_scan_data(load_scan: LoadScans) -> LoadScans:
     scan_data = LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
     scan_data.get_data()
     return scan_data
-
-
-@pytest.fixture
-def load_scan_asd() -> LoadScans:
-    """Instantiate a LoadScans object from a .asd file."""
-    scan_loader = LoadScans([RESOURCES / "minicircles.asd"], channel="topography")
-    return scan_loader
     
 
 @pytest.fixture
 def load_scan_ibw() -> LoadScans:
     """Instantiate a LoadScans object from a .ibw file."""
     scan_loader = LoadScans([RESOURCES / "minicircle2.ibw"], channel="HeightTracee")
+    return scan_loader
+
+
+@pytest.fixture
+def load_scan_jpk() -> LoadScans:
+    """Instantiate a LoadScans object from a .jpk file."""
+    scan_loader = LoadScans([RESOURCES / "file.jpk"], channel="height_trace")
     return scan_loader
 
 
@@ -308,19 +313,30 @@ def minicircle(load_scan: LoadScans, filter_config: dict) -> Filters:
 
 
 @pytest.fixture
-def minicircle_initial_align(minicircle: Filters) -> Filters:
+def minicircle_initial_median_flatten(minicircle: Filters) -> Filters:
     """Initial align on unmasked data."""
-    minicircle.images["initial_align"] = minicircle.align_rows(minicircle.images["pixels"], mask=None)
+    minicircle.images["initial_median_flatten"] = minicircle.median_flatten(minicircle.images["pixels"], mask=None)
     return minicircle
 
 
 @pytest.fixture
-def minicircle_initial_tilt_removal(minicircle_initial_align: Filters) -> Filters:
+def minicircle_initial_tilt_removal(minicircle_initial_median_flatten: Filters) -> Filters:
     """Initial x/y tilt removal on unmasked data."""
-    minicircle_initial_align.images["initial_tilt_removal"] = minicircle_initial_align.remove_tilt(
-        minicircle_initial_align.images["initial_align"], mask=None
+    minicircle_initial_median_flatten.images["initial_tilt_removal"] = minicircle_initial_median_flatten.remove_tilt(
+        minicircle_initial_median_flatten.images["initial_median_flatten"], mask=None
     )
-    return minicircle_initial_align
+    return minicircle_initial_median_flatten
+
+
+@pytest.fixture
+def minicircle_initial_quadratic_removal(minicircle_initial_tilt_removal: Filters) -> Filters:
+    """Initial quadratic removal on unmasked data."""
+    minicircle_initial_tilt_removal.images[
+        "initial_quadratic_removal"
+    ] = minicircle_initial_tilt_removal.remove_quadratic(
+        minicircle_initial_tilt_removal.images["initial_tilt_removal"], mask=None
+    )
+    return minicircle_initial_tilt_removal
 
 
 @pytest.fixture
@@ -339,7 +355,7 @@ def minicircle_threshold_stddev(minicircle_initial_tilt_removal: Filters) -> Fil
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        threshold_std_dev=1.0,
+        threshold_std_dev={"lower": 10.0, "upper": 1.0},
     )
     return minicircle_initial_tilt_removal
 
@@ -351,7 +367,7 @@ def minicircle_threshold_abs(minicircle_initial_tilt_removal: Filters) -> Filter
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="absolute",
         otsu_threshold_multiplier=None,
-        absolute=(-1.5, 1.5),
+        absolute={"lower": -1.5, "upper": 1.5},
     )
     return minicircle_initial_tilt_removal
 
@@ -366,41 +382,42 @@ def minicircle_mask(minicircle_threshold_otsu: Filters) -> Filters:
 
 
 @pytest.fixture
-def minicircle_masked_align(minicircle_mask: Filters) -> Filters:
+def minicircle_masked_median_flatten(minicircle_mask: Filters) -> Filters:
     """Secondary alignment using mask."""
-    minicircle_mask.images["masked_align"] = minicircle_mask.align_rows(
+    minicircle_mask.images["masked_median_flatten"] = minicircle_mask.median_flatten(
         minicircle_mask.images["initial_tilt_removal"], mask=minicircle_mask.images["mask"]
     )
     return minicircle_mask
 
 
 @pytest.fixture
-def minicircle_masked_tilt_removal(minicircle_masked_align: Filters) -> Filters:
+def minicircle_masked_tilt_removal(minicircle_masked_median_flatten: Filters) -> Filters:
     """Secondary x/y tilt removal using mask."""
-    minicircle_masked_align.images["masked_tilt_removal"] = minicircle_masked_align.remove_tilt(
-        minicircle_masked_align.images["masked_align"], mask=minicircle_masked_align.images["mask"]
+    minicircle_masked_median_flatten.images["masked_tilt_removal"] = minicircle_masked_median_flatten.remove_tilt(
+        minicircle_masked_median_flatten.images["masked_median_flatten"],
+        mask=minicircle_masked_median_flatten.images["mask"],
     )
-    return minicircle_masked_align
+    return minicircle_masked_median_flatten
 
 
 @pytest.fixture
-def minicircle_zero_average_background(minicircle_masked_tilt_removal: Filters) -> Filters:
-    """Zero average background"""
-    minicircle_masked_tilt_removal.images[
-        "zero_averaged_background"
-    ] = minicircle_masked_tilt_removal.average_background(
+def minicircle_masked_quadratic_removal(minicircle_masked_tilt_removal: Filters) -> Filters:
+    """Secondary quadratic removal using mask."""
+    minicircle_masked_tilt_removal.images["masked_quadratic_removal"] = minicircle_masked_tilt_removal.remove_quadratic(
         minicircle_masked_tilt_removal.images["masked_tilt_removal"], mask=minicircle_masked_tilt_removal.images["mask"]
     )
     return minicircle_masked_tilt_removal
 
 
 @pytest.fixture
-def minicircle_grain_gaussian_filter(minicircle_zero_average_background: Filters) -> Filters:
+def minicircle_grain_gaussian_filter(minicircle_masked_quadratic_removal: Filters) -> Filters:
     """Apply Gaussian filter."""
-    minicircle_zero_average_background.images["gaussian_filtered"] = minicircle_zero_average_background.gaussian_filter(
-        image=minicircle_zero_average_background.images["zero_averaged_background"]
+    minicircle_masked_quadratic_removal.images[
+        "gaussian_filtered"
+    ] = minicircle_masked_quadratic_removal.gaussian_filter(
+        image=minicircle_masked_quadratic_removal.images["masked_quadratic_removal"]
     )
-    return minicircle_zero_average_background
+    return minicircle_masked_quadratic_removal
 
 
 # Derive fixtures for grain finding
@@ -434,7 +451,10 @@ def minicircle_grain_threshold_stddev(minicircle_grains: np.array, grains_config
     grains_config["threshold_method"] = "std_dev"
     minicircle_grains.thresholds = get_thresholds(
         image=minicircle_grains.image,
-        **grains_config,
+        threshold_method="std_dev",
+        otsu_threshold_multiplier=None,
+        threshold_std_dev={"lower": 10.0, "upper": 1.0},
+        absolute=None,
     )
     return minicircle_grains
 
@@ -443,7 +463,10 @@ def minicircle_grain_threshold_stddev(minicircle_grains: np.array, grains_config
 def minicircle_grain_threshold_abs(minicircle_grains: np.array) -> Grains:
     """Calculate threshold."""
     minicircle_grains.thresholds = get_thresholds(
-        image=minicircle_grains.image, threshold_method="absolute", otsu_threshold_multiplier=None, absolute=(-1.0, 1.0)
+        image=minicircle_grains.image,
+        threshold_method="absolute",
+        otsu_threshold_multiplier=None,
+        absolute={"lower": -1.0, "upper": 1.0},
     )
     return minicircle_grains
 
@@ -511,11 +534,12 @@ def minicircle_small_objects_removed(minicircle_minimum_grain_size: np.array) ->
 @pytest.fixture
 def minicircle_area_thresholding(minicircle_grain_labelled_all: np.array, grains_config: dict) -> Grains:
     """Small objects removed."""
+    absolute_area_thresholds = [400, 600]
     minicircle_grain_labelled_all.directions["upper"][
         "removed_small_objects"
     ] = minicircle_grain_labelled_all.area_thresholding(
-        minicircle_grain_labelled_all.directions["upper"]["labelled_regions_01"],
-        grains_config["absolute_area_threshold"]["upper"],
+        image=minicircle_grain_labelled_all.directions["upper"]["labelled_regions_01"],
+        area_thresholds=absolute_area_thresholds,
     )
     return minicircle_grain_labelled_all
 
@@ -635,6 +659,10 @@ def minicircle_tracestats(minicircle_dnatracing: dnaTrace) -> pd.DataFrame:
 
 
 # DNA Tracing Fixtures
+@pytest.fixture
+def minicircle_all_statistics() -> pd.DataFrame:
+    return pd.read_csv(RESOURCES / "minicircle_default_all_statistics.csv", header=0)
+
 
 # Skeletonizing Fixtures
 @pytest.fixture

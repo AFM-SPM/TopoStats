@@ -1,0 +1,31 @@
+name: Publish package to PyPi
+
+on:
+  push:
+    tags:
+      - v*
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    name: Publish package to PyPi
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v4.3.0
+        with:
+          python-version: 3.9
+      - name: Installing the package
+        run: |
+          pip3 install versioneer
+          pip3 install .
+          pip3 install .[pypi]
+      - name: Build package
+        run: |
+          python -m build --no-isolation
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}

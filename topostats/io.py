@@ -5,14 +5,17 @@ from pathlib import Path
 from typing import Union, Dict
 import numpy as np
 
-from pySPM.Bruker import Bruker
+import pySPM
 from igor import binarywave
 import libasd
+import tifffile
 from ruamel.yaml import YAML, YAMLError
 from ruamel.yaml.main import round_trip_load as yaml_load, round_trip_dump as yaml_dump
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+
+
 # pylint: disable=broad-except
 
 
@@ -101,7 +104,7 @@ class LoadScans:
         """
         LOGGER.info(f"Loading image from : {self.img_path}")
         try:
-            scan = Bruker(self.img_path)
+            scan = pySPM.Bruker(self.img_path)
             LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
             self.channel_data = scan.get_channel(self.channel)
             LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
@@ -121,13 +124,13 @@ class LoadScans:
 
         return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
 
-    def _spm_pixel_to_nm_scaling(self, channel_data) -> float:
+    def _spm_pixel_to_nm_scaling(self, channel_data: pySPM.SPM.SPM_image) -> float:
         """Extract pixel to nm scaling from the SPM image metadata.
 
         Parameters
         ----------
-        channel_data:
-            Channel data
+        channel_data: pySPM.SPM.SPM_image
+            Channel data from PySPM.
 
         Returns
         -------
@@ -144,17 +147,20 @@ class LoadScans:
             px_to_real[0][0] * unit_dict[px_to_real[0][1]],
             px_to_real[1][0] * unit_dict[px_to_real[1][1]],
         )[0]
+        if px_to_real[0][0] == 0 and px_to_real[1][0] == 0:
+            pixel_to_nm_scaling = 1
+            LOGGER.warning(f"[{self.filename}] : Pixel size not found in metadata, defaulting to 1nm")
         LOGGER.info(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
         return pixel_to_nm_scaling
 
-    # def load_jpk(self) -> None:
-    #     """Load and extract image from .jpk files."""
-    #     jpk = self._load_jpk()
-    #     data = self._extract_jpk(jpk)
-    #     return (jpk, None)
-
     def load_ibw(self) -> tuple:
-        """Loads image from Asylum Research (Igor) .ibw files"""
+        """Loads image from Asylum Research (Igor) .ibw files
+        
+        Returns
+        -------
+        tuple(np.ndarray, float)
+            A tuple containing the image and its pixel to nanometre scaling value.
+        """
 
         LOGGER.info(f"Loading image from : {self.img_path}")
         try:
@@ -180,8 +186,19 @@ class LoadScans:
 
         return (image, self._ibw_pixel_to_nm_scaling(scan))
 
-    def _ibw_pixel_to_nm_scaling(self, scan) -> float:
-        """Extract pixel to nm scaling from the IBW image metadata."""
+    def _ibw_pixel_to_nm_scaling(self, scan: dict) -> float:
+        """Extract pixel to nm scaling from the IBW image metadata.
+        
+        Parameters
+        ----------
+        scan: dict
+            The loaded binary wave object.
+
+        Returns
+        -------
+        float
+            A value corresponding to the real length of a single pixel.
+        """
         # Get metadata
         notes = {}
         for line in str(scan["wave"]["note"]).split("\\r"):
@@ -196,15 +213,75 @@ class LoadScans:
         LOGGER.info(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
         return pixel_to_nm_scaling
 
-    def load_jpk(self) -> None:
+    def load_jpk(self) -> tuple:
+        """Loads image from JPK Instruments .jpk files.
+        
+        Returns
+        -------
+        tuple(np.ndarray, float)
+            A tuple containing the image and its pixel to nanometre scaling value.
+        """
+        # Load the file
+        img_path = str(self.img_path)
         try:
-            jpk = self.img_path
+            tif = tifffile.TiffFile(img_path)
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
-        except Exception as exception:
-            LOGGER.error(f"[{self.filename}] : {exception}")
-        return jpk
+            raise
+        # Obtain channel list for all channels in file
+        channel_list = {}
+        for i, page in enumerate(tif.pages[1:]):  # [0] is thumbnail
+            available_channel = page.tags["32848"].value  # keys are hexidecimal vals
+            if page.tags["32849"].value == 0:  # wether img is trace or retrace
+                tr_rt = "trace"
+            else:
+                tr_rt = "retrace"
+            channel_list[f"{available_channel}_{tr_rt}"] = i + 1
+        try:
+            channel_idx = channel_list[self.channel]
+        except KeyError:
+            LOGGER.error(f"{self.channel} not in channel list: {channel_list}")
+            raise
+        # Get image and if applicable, scale it
+        channel_page = tif.pages[channel_idx]
+        image = channel_page.asarray()
+        scaling_type = channel_page.tags["33027"].value
+        if scaling_type == "LinearScaling":
+            scaling = channel_page.tags["33028"].value
+            offset = channel_page.tags["33029"].value
+            image = (image * scaling) + offset
+        elif scaling_type == "NullScaling":
+            pass
+        else:
+            raise ValueError(f"Scaling type {scaling_type} is not 'NullScaling' or 'LinearScaling'")
+        # Get page for common metadata between scans
+        metadata_page = tif.pages[0]
+        return (image * 1e9, self._jpk_pixel_to_nm_scaling(metadata_page))
 
+    def _jpk_pixel_to_nm_scaling(self, tiff_page: tifffile.tifffile.TiffPage) -> float:
+        """Extract pixel to nm scaling from the JPK image metadata.
+
+        Parameters
+        ----------
+        tiff_page: tifffile.tifffile.TiffPage
+            An image file directory (IFD) of .jpk files.
+
+        Returns
+        -------
+        float
+            A value corresponding to the real length of a single pixel.
+        """
+        length = tiff_page.tags["32834"].value  # Grid-uLength (fast)
+        width = tiff_page.tags["32835"].value  # Grid-vLength (slow)
+        length_px = tiff_page.tags["32838"].value  # Grid-iLength (fast)
+        width_px = tiff_page.tags["32839"].value  # Grid-jLength (slow)
+
+        px_to_nm = (length / length_px, width / width_px)[0]
+
+        LOGGER.info(px_to_nm)
+
+        return px_to_nm * 1e9
+        
     def load_asd(self) -> tuple:
         """Extract image and pixel to nm scaling from .asd files.
 
@@ -224,7 +301,7 @@ class LoadScans:
         try:
             if type(scan_header) == libasd.Header_v0:
                 # libasd docs seem like there is only 2 channels i.e. help(scan)
-                # libasd.Header_v0 uses "type" and _v1 uses "kind"
+                # libasd.Header_v0 uses "type" func and _v1 uses "kind" func
                 ch1_name = str(scan.header.data_type_1ch).split(".")[1]
                 ch2_name = str(scan.header.data_type_2ch).split(".")[1]
             elif type(scan_header) == libasd.Header_v1:
@@ -275,10 +352,6 @@ class LoadScans:
         )[0]
         return px_to_nm_scaling
 
-    @staticmethod
-    def _extract_jpk(jpk) -> np.ndarray:
-        """Extract data from jpk object"""
-
     def get_data(self) -> None:
         """Method to extract image, filepath and pixel to nm scaling value, and append these to the
         img_dic object.
@@ -295,6 +368,9 @@ class LoadScans:
                 )
             if suffix == ".jpk":
                 self.image, self.pixel_to_nm_scaling = self.load_jpk()
+                self.add_to_dic(
+                    self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
+                )
             if suffix == ".ibw":
                 self.image, self.pixel_to_nm_scaling = self.load_ibw()
                 self.add_to_dic(
@@ -308,14 +384,15 @@ class LoadScans:
                     self.add_to_dic(filename, frame, pathname, self.pixel_to_nm_scaling)
 
     def add_to_dic(self, filename: str, image: np.ndarray, img_path: Path, px_2_nm: float) -> None:
-        """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under the key filename.
+        """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under 
+        the key filename.
 
         Parameters
         ----------
         filename: str
-            The filename
+            The filename, idealy without an extension.
         image: np.ndarray
-            The extracted AFM image.
+            An array of the extracted AFM image.
         img_path: str
             The path to the AFM file (with a frame number if applicable)
         px_2_nm: float

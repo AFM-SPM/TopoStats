@@ -140,6 +140,8 @@ def process_scan(
     ----------
     img_path_px2nm : Dict[str, Union[np.ndarray, Path, float]]
         A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's pixel to namometre scaling value.
+    base_dir : Union[str, Path]
+        Directory to recursively search for files, if not specified the current directory is scanned.
     filter_config : dict
         Dictionary of configuration options for running the Filter stage.
     grains_config : dict
@@ -173,13 +175,13 @@ def process_scan(
 
     if plotting_config["image_set"] == "core":
         filter_out_path = _output_dir
-        grain_out_path = _output_dir
     else:
         filter_out_path = Path(_output_dir) / filename / "filters"
         grain_out_path = Path(_output_dir) / filename / "grains"
         filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(_output_dir / filename / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / filename / "grains" / "lower", parents=True, exist_ok=True)
+
 
     # Filter Image :
     if filter_config["run"]:
@@ -210,6 +212,7 @@ def process_scan(
                     plotting_config["plot_dict"][plot_name]["output_dir"] = filter_out_path
                     try:
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
+                        Images(array, **plotting_config["plot_dict"][plot_name]).plot_histogram_and_save()
                     except AttributeError:
                         LOGGER.info(f"[{filename}] Unable to generate plot : {plot_name}")
             plot_name = "z_threshed"
@@ -386,6 +389,7 @@ def main():
             "axes": config["plotting"]["axes"],
             "cmap": config["plotting"]["cmap"],
             "zrange": config["plotting"]["zrange"],
+            "histogram_log_axis": config["plotting"]["histogram_log_axis"],
         }
         if image not in ["z_threshed", "mask_overlay", "grain_image", "grain_mask_image"]:
             config["plotting"]["plot_dict"][image].pop("zrange")
@@ -439,7 +443,7 @@ def main():
     LOGGER.info(
         (
             f"All statistics combined for {len(img_files)} images(s) are "
-            "saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
+            f"saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
         )
     )
     folder_grainstats(config["output_dir"], config["base_dir"], results)
