@@ -423,7 +423,7 @@ class getSkeleton(object):
                 self.mask_being_skeletonised[x, y] = 0
 
     def _binaryFinalThinCheck_a(self):
-
+        # assess if local area has 4 connectivity
         if self.p2 * self.p4 == 1:
             return True
         elif self.p4 * self.p6 == 1:
@@ -434,7 +434,7 @@ class getSkeleton(object):
             return True
 
     def _binaryFinalThinCheck_b(self):
-
+        # assess if local area has 4 connectivity
         if self.p2 * self.p4 * self.p6 == 1:
             return True
         elif self.p4 * self.p6 * self.p8 == 1:
@@ -445,6 +445,7 @@ class getSkeleton(object):
             return True
 
     def _binaryThinCheck_b_returncount(self):
+        # assess local area connectivity?
         count = 0
 
         if [self.p2, self.p3] == [0, 1]:
@@ -467,7 +468,6 @@ class getSkeleton(object):
         return count
 
     def pruneSkeleton(self):
-
         """Function to remove the hanging branches from the skeletons - these
         are a persistent problem in the overall tracing process."""
 
