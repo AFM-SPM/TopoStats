@@ -603,17 +603,11 @@ class dnaTrace(object):
         self, filename: Union[str, Path], channel_name: str, vmaxval, vminval, output_dir: Union[str, Path] = None
     ):
 
-        # if directory_name:
-        #     filename_with_ext = self._checkForSaveDirectory(filename_with_ext, directory_name)
-
-        # save_file = filename_with_ext[:-4]
-
         # vmaxval = 20e-9
         # vminval = -10e-9
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
-        # plt.savefig("%s_%s_originalImage.png" % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_original.png")
         plt.close()
 
@@ -621,7 +615,6 @@ class dnaTrace(object):
         plt.colorbar()
         for dna_num in sorted(self.splined_traces.keys()):
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color="c", linewidth=2.0)
-        # plt.savefig("%s_%s_splinedtrace.png" % (save_file, channel_name), dpi=1000)
         plt.savefig(output_dir / filename / f"{channel_name}_splinedtrace.png")
         LOGGER.info(f"Splined Trace image saved to : {str(output_dir / filename / f'{channel_name}_splinedtrace.png')}")
         plt.close()
@@ -673,7 +666,6 @@ class dnaTrace(object):
                 markersize=3.0,
                 marker=5,
             )
-        # plt.savefig('%s_%s_splinedtrace_with_markers.png' % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_splined_trace_with_markers.png")
         plt.close()
         LOGGER.info(
@@ -686,7 +678,6 @@ class dnaTrace(object):
             plt.plot(
                 self.ordered_traces[dna_num][:, 0], self.ordered_traces[dna_num][:, 1], "o", markersize=0.5, color="c"
             )
-        # plt.savefig('%s_%s_orderedtrace.png' % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_ordered_trace.png")
         plt.close()
         LOGGER.info(
@@ -705,7 +696,6 @@ class dnaTrace(object):
                 markersize=0.5,
                 color="c",
             )
-        # plt.savefig('%s_%s_disorderedtrace.png' % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_disordered_traces.png")
         plt.close()
         LOGGER.info(
@@ -718,7 +708,6 @@ class dnaTrace(object):
             plt.plot(
                 self.fitted_traces[dna_num][:, 0], self.fitted_traces[dna_num][:, 1], "o", markersize=0.5, color="c"
             )
-        # plt.savefig('%s_%s_fittedtrace.png' % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_fitted_trace.png")
         plt.close()
         LOGGER.info(f"Fitted trace image saved to : {str(output_dir / filename / f'{channel_name}_fitted_trace.png')}")
@@ -728,7 +717,6 @@ class dnaTrace(object):
         for dna_num in sorted(self.grains.keys()):
             grain_plt = np.argwhere(self.grains[dna_num] == 1)
             plt.plot(grain_plt[:, 0], grain_plt[:, 1], "o", markersize=2, color="c")
-        # plt.savefig('%s_%s_grains.png' % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_grains.png")
         plt.close()
         LOGGER.info(f"Grains image saved to : {str(output_dir / filename / f'{channel_name}_grains.png')}")
@@ -745,7 +733,6 @@ class dnaTrace(object):
         plt.axis("equal")
         plt.xticks([])
         plt.yticks([])
-        # plt.savefig('%s_%s_curvature_summary.png' % (save_file, channel_name), dpi=300)
         plt.savefig(output_dir / filename / f"{channel_name}_curvature_summary.png")
         plt.close()
         LOGGER.info(
@@ -831,21 +818,6 @@ class dnaTrace(object):
                 d2x = d2x[length : 2 * length]
                 d2y = d2y[length : 2 * length]
             else:
-                # longlist = np.concatenate(
-                #     [np.flip(self.splined_traces[dna_num], 0), self.splined_traces[dna_num], np.flip(self.splined_traces[dna_num], 0)])
-                # longlist = np.concatenate(
-                #     [np.flip(self.splined_traces[dna_num], 0), self.splined_traces[dna_num],
-                #      np.flip(self.splined_traces[dna_num], 0)])
-                # dx = np.gradient(longlist, axis=0)[:, 0]
-                # dy = np.gradient(longlist, axis=0)[:, 1]
-                # d2x = np.gradient(dx)
-                # d2y = np.gradient(dy)
-                #
-                # dx = dx[length:2 * length]
-                # dy = dy[length:2 * length]
-                # d2x = d2x[length:2 * length]
-                # d2y = d2y[length:2 * length]
-
                 dx = np.gradient(self.simplified_splined_traces[dna_num], axis=0, edge_order=2)[:, 0]
                 dy = np.gradient(self.simplified_splined_traces[dna_num], axis=0, edge_order=2)[:, 1]
                 d2x = np.gradient(dx)
@@ -853,52 +825,19 @@ class dnaTrace(object):
 
             for i, (x, y) in enumerate(self.simplified_splined_traces[dna_num]):
                 # Extracts the coordinates for the required number of points and puts them in an array
-                if self.mol_is_circular[dna_num] or not self.mol_is_circular[dna_num]:
-                    # (self.neighbours < i < len(self.splined_traces[dna_num]) - self.neighbours)
-                    # for j in range(self.neighbours * 2 + 1):
-                    #     coordinates[0][j] = self.splined_traces[dna_num][i - j][0]
-                    #     coordinates[1][j] = self.splined_traces[dna_num][i - j][1]
-                    # gradients[0][j] = dx[i - j]
-                    # gradients[1][j] = dy[i - j]
-                    # dxmean[i] = np.mean(gradients[0])
-                    # dymean[i] = np.mean(gradients[1])
-
-                    # Calculates the angles for the tangent lines to the left and the right of the point
-                    # theta1 = math.atan((coordinates[1][self.neighbours] - coordinates[1][0]) / (
-                    #         coordinates[0][self.neighbours] - coordinates[0][0]))
-                    # theta2 = math.atan((coordinates[1][-1] - coordinates[1][self.neighbours]) / (
-                    #         coordinates[0][-1] - coordinates[0][self.neighbours]))
-                    #
-                    # left = coordinates[:, :self.neighbours + 1]
-                    # right = coordinates[:, -(self.neighbours + 1):]
-                    #
-                    # xa = np.mean(left[0])
-                    # ya = np.mean(left[1])
-
-                    # xb = np.mean(right[0])
-                    # yb = np.mean(right[1])
-
-                    # Calculates the curvature using the change in angle divided by the distance
-                    # dist = math.hypot((xb - xa), (yb - ya))
-                    # dist_real = dist * self.pixel_size
-                    # curve.append([i, contour, (theta2 - theta1) / dist_real])
-
-                    curvature_local = (d2x[i] * dy[i] - dx[i] * d2y[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
-                    curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
-
-                    if i < (length - 1):
-                        contour = contour + math.hypot(
-                            (
-                                self.simplified_splined_traces[dna_num][(i + 1), 0]
-                                - self.simplified_splined_traces[dna_num][i, 0]
-                            ),
-                            (
-                                self.simplified_splined_traces[dna_num][(i + 1), 1]
-                                - self.simplified_splined_traces[dna_num][i, 1]
-                            )
-                            # (coordinates[0][self.neighbours] - coordinates[0][self.neighbours - 1]),
-                            # (coordinates[1][self.neighbours] - coordinates[1][self.neighbours - 1])
-                        )
+                curvature_local = (d2x[i] * dy[i] - dx[i] * d2y[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
+                curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
+                if i < (length - 1):
+                    contour = contour + math.hypot(
+                        (
+                            self.simplified_splined_traces[dna_num][(i + 1), 0]
+                            - self.simplified_splined_traces[dna_num][i, 0]
+                        ),
+                        (
+                            self.simplified_splined_traces[dna_num][(i + 1), 1]
+                            - self.simplified_splined_traces[dna_num][i, 1]
+                        ),
+                    )
             curve = np.array(curve)
             # curvature_smoothed = scipy.ndimage.gaussian_filter(curve[:, 2], 10, mode='nearest')
             # curve[:, 2] = curvature_smoothed
