@@ -298,6 +298,13 @@ def load_scan_jpk() -> LoadScans:
     return scan_loader
 
 
+@pytest.fixture
+def load_scan_asd() -> LoadScans:
+    """Instantiate a LoadScans object from a .asd file."""
+    scan_loader = LoadScans([RESOURCES / "minicircles.asd"], channel="topography")
+    return scan_loader
+
+
 # Minicircle fixtures
 @pytest.fixture
 def minicircle(load_scan: LoadScans, filter_config: dict) -> Filters:
