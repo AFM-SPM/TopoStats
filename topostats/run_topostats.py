@@ -329,6 +329,12 @@ def process_scan(
                         dna_traces[direction].trace_dna()
                         tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
                         tracing_stats[direction].df["threshold"] = direction
+
+                    print(dna_traces[direction].ordered_traces[1])
+                    np.savetxt("grains.txt", grains.directions[direction]["labelled_regions_02"])
+                    np.savetxt("ord_trace.txt", np.asarray(dna_traces[direction].ordered_traces[1]))
+
+
                     # Set tracing_stats_df in light of direction
                     if grains_config["direction"] == "both":
                         tracing_stats_df = pd.concat([tracing_stats["lower"].df, tracing_stats["upper"].df])
