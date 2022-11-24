@@ -19,6 +19,7 @@ class getSkeleton(object):
         self.p6 = 0
         self.p7 = 0
         self.p8 = 0
+        self.p9 = 0
 
         # skeletonising variables
         self.mask_being_skeletonised = []
@@ -96,7 +97,6 @@ class getSkeleton(object):
             self.skeleton_converged = True
 
     def _deletePixelSubit1(self, point):
-
         """Function to check whether a single point should be deleted based
         on both its local binary environment and its local height values"""
 
