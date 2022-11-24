@@ -868,17 +868,12 @@ class dnaTrace(object):
         """Calculate curvature related statistics for each molecule, including max curvature, max curvature location,
         mean value of absolute curvature, variance of curvature, and variance of absolute curvature"""
         for dna_num in sorted(self.curvature.keys()):
-            max_value = np.amax(np.abs(self.curvature[dna_num][:, 2]))
+            self.max_curvature[dna_num] = np.amax(np.abs(self.curvature[dna_num][:, 2]))
             max_index = np.argmax(np.abs(self.curvature[dna_num][:, 2]))
-            max_location = self.curvature[dna_num][max_index, 1] * self.pixel_size * 1e9
-            mean_value = np.average(np.abs(self.curvature[dna_num][:, 2]))
-            variance = np.var(self.curvature[dna_num][:, 2])
-            variance_absolute = np.var(np.abs(self.curvature[dna_num][:, 2]))
-            self.max_curvature[dna_num] = max_value
-            self.max_curvature_location[dna_num] = max_location
-            self.mean_curvature[dna_num] = mean_value
-            self.curvature_variance[dna_num] = variance
-            self.curvature_variance_abs[dna_num] = variance_absolute
+            self.max_curvature_location[dna_num] = self.curvature[dna_num][max_index, 1] * self.pixel_size * 1e9
+            self.mean_curvature[dna_num] = np.average(np.abs(self.curvature[dna_num][:, 2]))
+            self.curvature_variance[dna_num] = np.var(self.curvature[dna_num][:, 2])
+            self.curvature_variance_abs[dna_num] = np.var(np.abs(self.curvature[dna_num][:, 2]))
 
     def plot_curvature(
         self, dna_num, filename: Union[str, Path], channel_name: str, output_dir: Union[str, Path] = None
