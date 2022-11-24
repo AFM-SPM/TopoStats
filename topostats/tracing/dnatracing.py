@@ -865,7 +865,8 @@ class dnaTrace(object):
         curvature_stats.to_csv(savename + ".csv")
 
     def analyse_curvature(self):
-        """Calculate curvature related statistics for each molecule, including max curvature, max curvature location, mean value of absolute curvature, variance of curvature, and variance of absolute curvature"""
+        """Calculate curvature related statistics for each molecule, including max curvature, max curvature location,
+        mean value of absolute curvature, variance of curvature, and variance of absolute curvature"""
         for dna_num in sorted(self.curvature.keys()):
             max_value = np.amax(np.abs(self.curvature[dna_num][:, 2]))
             max_index = np.argmax(np.abs(self.curvature[dna_num][:, 2]))
@@ -883,7 +884,8 @@ class dnaTrace(object):
         self, dna_num, filename: Union[str, Path], channel_name: str, output_dir: Union[str, Path] = None
     ):
 
-        """Plot the curvature of the chosen molecule as a function of the contour length (in metres). The molecule number needs to be specified when calling the method."""
+        """Plot the curvature of the chosen molecule as a function of the contour length (in metres). The molecule
+        number needs to be specified when calling the method."""
 
         curvature = np.array(self.curvature[dna_num])
         length = len(curvature)
@@ -944,7 +946,8 @@ class dnaTrace(object):
         self, dna_num, filename: Union[str, Path], channel_name: str, output_dir: Union[str, Path] = None
     ):
 
-        """Plot the first and second order gradients of the chosen molecule as a function of the contour length (in metres). The molecule number needs to be specified when calling the method."""
+        """Plot the first and second order gradients of the chosen molecule as a function of the contour length (in
+        metres). The molecule number needs to be specified when calling the method."""
 
         curvature = np.array(self.curvature[dna_num])
         plt.figure()
