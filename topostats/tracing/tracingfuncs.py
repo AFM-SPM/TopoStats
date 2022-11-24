@@ -8,7 +8,7 @@ class getSkeleton(object):
     Thinning Digital Patterns" by Zhang et al., 1984"""
 
     def __init__(self, image_data, binary_map, pixel_size):
-        self.image_data = image_data
+        self.image_data = np.swapaxes(image_data, 0, 1)
         self.binary_map = binary_map
         self.pixel_size = pixel_size
 
@@ -37,13 +37,7 @@ class getSkeleton(object):
         if self.dir_search < 3:
             self.dir_search = 3
 
-        self.getDNAmolHeightStats()
         self.doSkeletonising()
-
-    def getDNAmolHeightStats(self):
-        # Why are axes swapped here axes -> swapped because np arrays have axes swapped and this 
-        # enables x,y coords to be directly input
-        self.image_data = np.swapaxes(self.image_data, 0, 1)
 
     def doSkeletonising(self):
         """Simple while loop to check if the skeletonising is finished"""
