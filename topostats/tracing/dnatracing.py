@@ -862,11 +862,10 @@ class dnaTrace(object):
             os.mkdir(os.path.join(os.path.dirname(self.filename), "Curvature"))
         directory = os.path.join(os.path.dirname(self.filename), "Curvature")
         savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
-        curvature_stats.to_json(savename + ".json")
         curvature_stats.to_csv(savename + ".csv")
 
     def analyse_curvature(self):
-
+        """Calculate curvature related statistics for each molecule, including max curvature, max curvature location, mean value of absolute curvature, variance of curvature, and variance of absolute curvature"""
         for dna_num in sorted(self.curvature.keys()):
             max_value = np.amax(np.abs(self.curvature[dna_num][:, 2]))
             max_index = np.argmax(np.abs(self.curvature[dna_num][:, 2]))
@@ -880,18 +879,14 @@ class dnaTrace(object):
             self.curvature_variance[dna_num] = variance
             self.curvature_variance_abs[dna_num] = variance_absolute
 
-    def plot_curvature(self, dna_num):
+    def plot_curvature(
+        self, dna_num, filename: Union[str, Path], channel_name: str, output_dir: Union[str, Path] = None
+    ):
 
-        """Plot the curvature of the chosen molecule as a function of the contour length (in metres)"""
+        """Plot the curvature of the chosen molecule as a function of the contour length (in metres). The molecule number needs to be specified when calling the method."""
 
         curvature = np.array(self.curvature[dna_num])
         length = len(curvature)
-        # FIXME : Replace with Path()
-        if not os.path.exists(os.path.join(os.path.dirname(self.filename), "Curvature")):
-            os.mkdir(os.path.join(os.path.dirname(self.filename), "Curvature"))
-        directory = os.path.join(os.path.dirname(self.filename), "Curvature")
-        savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
-
         plt.figure()
         # fig, ax = plt.subplots(figsize=(25, 25))
 
@@ -942,27 +937,26 @@ class dnaTrace(object):
         plt.ylabel("Curvature / $\mathregular{nm^{-1}}$")
         # plt.xticks(fontsize=20)
         # plt.yticks(fontsize=20)
-        plt.savefig("%s_%s_curvature.png" % (savename, dna_num))
+        plt.savefig(output_dir / filename / f"{channel_name}_{dna_num}_curvature.png")
         plt.close()
 
-    def plot_gradient(self, dna_num):
+    def plot_gradient(
+        self, dna_num, filename: Union[str, Path], channel_name: str, output_dir: Union[str, Path] = None
+    ):
 
-        if not os.path.exists(os.path.join(os.path.dirname(self.filename), "Gradient")):
-            os.mkdir(os.path.join(os.path.dirname(self.filename), "Gradient"))
-        directory = os.path.join(os.path.dirname(self.filename), "Gradient")
-        savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
+        """Plot the first and second order gradients of the chosen molecule as a function of the contour length (in metres). The molecule number needs to be specified when calling the method."""
 
         curvature = np.array(self.curvature[dna_num])
         plt.figure()
         plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 3], color="r")
         plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 4], color="b")
-        plt.savefig("%s_%s_gradient.png" % (savename, dna_num))
+        plt.savefig(output_dir / filename / f"{channel_name}_{dna_num}_gradient.png")
         plt.close()
 
         plt.figure()
         plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 5], color="r")
         plt.plot(curvature[:, 1] * self.pixel_size, curvature[:, 6], color="b")
-        plt.savefig("%s_%s_second_order.png" % (savename, dna_num))
+        plt.savefig(output_dir / filename / f"{channel_name}_{dna_num}_second_order.png")
         plt.close()
 
     def measure_contour_length(self):
