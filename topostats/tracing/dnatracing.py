@@ -630,49 +630,45 @@ class dnaTrace(object):
         plt.colorbar()
         for dna_num in sorted(self.splined_traces.keys()):
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color="c", linewidth=1.0)
-            if self.mol_is_circular[dna_num]:
-                starting_point = 0
-            else:
-                starting_point = 0
             length = len(self.curvature[dna_num])
             plt.plot(
-                self.splined_traces[dna_num][starting_point, 0],
-                self.splined_traces[dna_num][starting_point, 1],
+                self.splined_traces[dna_num][0, 0],
+                self.splined_traces[dna_num][0, 1],
                 color="#D55E00",
                 markersize=3.0,
                 marker=5,
             )
             plt.plot(
-                self.splined_traces[dna_num][starting_point + int(length / 6), 0],
-                self.splined_traces[dna_num][starting_point + int(length / 6), 1],
+                self.splined_traces[dna_num][int(length / 6), 0],
+                self.splined_traces[dna_num][int(length / 6), 1],
                 color="#E69F00",
                 markersize=3.0,
                 marker=5,
             )
             plt.plot(
-                self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 0],
-                self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 1],
+                self.splined_traces[dna_num][int(length / 6 * 2), 0],
+                self.splined_traces[dna_num][int(length / 6 * 2), 1],
                 color="#F0E442",
                 markersize=3.0,
                 marker=5,
             )
             plt.plot(
-                self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 0],
-                self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 1],
+                self.splined_traces[dna_num][int(length / 6 * 3), 0],
+                self.splined_traces[dna_num][int(length / 6 * 3), 1],
                 color="#009E74",
                 markersize=3.0,
                 marker=5,
             )
             plt.plot(
-                self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 0],
-                self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 1],
+                self.splined_traces[dna_num][int(length / 6 * 4), 0],
+                self.splined_traces[dna_num][int(length / 6 * 4), 1],
                 color="#56B4E9",
                 markersize=3.0,
                 marker=5,
             )
             plt.plot(
-                self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 0],
-                self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 1],
+                self.splined_traces[dna_num][int(length / 6 * 5), 0],
+                self.splined_traces[dna_num][int(length / 6 * 5), 1],
                 color="#CC79A7",
                 markersize=3.0,
                 marker=5,
