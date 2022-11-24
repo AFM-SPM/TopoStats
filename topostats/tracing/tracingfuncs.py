@@ -27,7 +27,6 @@ class getSkeleton(object):
         self.pruning = True
 
         # Height checking variables
-        self.average_height = 0
         # self.cropping_dict = self._initialiseHeightFindingDict()
         self.highest_points = {}
         self.search_window = int(3 / (pixel_size * 1e9))
@@ -42,15 +41,11 @@ class getSkeleton(object):
         self.doSkeletonising()
 
     def getDNAmolHeightStats(self):
-        # Why are axes swapped here?
+        # Why are axes swapped here axes -> swapped because np arrays have axes swapped and this 
+        # enables x,y coords to be directly input
         self.image_data = np.swapaxes(self.image_data, 0, 1)
 
-        # This doesn't appear to be used within this class and its not used anywhere in dnatracing.py either.
-        self.average_height = np.average(self.image_data[np.argwhere(self.binary_map == 1)])
-        # print(self.average_height)
-
     def doSkeletonising(self):
-
         """Simple while loop to check if the skeletonising is finished"""
 
         self.mask_being_skeletonised = self.binary_map
@@ -68,7 +63,6 @@ class getSkeleton(object):
         self.output_skeleton = np.argwhere(self.mask_being_skeletonised == 1)
 
     def _doSkeletonisingIteration(self):
-
         """Do an iteration of skeletonisation - check for the local binary pixel
         environment and assess the local height values to decide whether to
         delete a point
