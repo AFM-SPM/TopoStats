@@ -43,12 +43,9 @@ class dnaTrace(object):
         convert_nm_to_m: bool = True,
     ):
         self.full_image_data = full_image_data * 1e-9 if convert_nm_to_m else full_image_data
-        # self.grains_orig = [x for row in grains for x in row]
         self.grains_orig = grains
         self.filename = filename
         self.pixel_size = pixel_size * 1e-9 if convert_nm_to_m else pixel_size
-        # self.number_of_columns = number_of_columns
-        # self.number_of_rows = number_of_rows
         self.number_of_rows = self.full_image_data.shape[0]
         self.number_of_columns = self.full_image_data.shape[1]
         self.sigma = 0.7 / (self.pixel_size * 1e9)
@@ -175,14 +172,8 @@ class dnaTrace(object):
             smoothed_grain = ndimage.binary_dilation(self.grains[grain_num], iterations=1).astype(
                 self.grains[grain_num].dtype
             )
-
-            sigma = 0.01 / (self.pixel_size * 1e9)
-            very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
-
             try:
-                dna_skeleton = getSkeleton(
-                    self.gauss_image, smoothed_grain, self.number_of_columns, self.number_of_rows, self.pixel_size
-                )
+                dna_skeleton = getSkeleton(self.gauss_image, smoothed_grain, self.pixel_size)
                 self.disordered_trace[grain_num] = dna_skeleton.output_skeleton
             except IndexError:
                 # Some gwyddion grains touch image border causing IndexError

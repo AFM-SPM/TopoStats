@@ -4,15 +4,12 @@ import math
 
 
 class getSkeleton(object):
-
     """Skeltonisation algorithm based on the paper "A Fast Parallel Algorithm for
     Thinning Digital Patterns" by Zhang et al., 1984"""
 
-    def __init__(self, image_data, binary_map, number_of_columns, number_of_rows, pixel_size):
+    def __init__(self, image_data, binary_map, pixel_size):
         self.image_data = image_data
         self.binary_map = binary_map
-        self.number_of_columns = number_of_columns
-        self.number_of_rows = number_of_rows
         self.pixel_size = pixel_size
 
         self.p2 = 0
