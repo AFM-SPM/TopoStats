@@ -51,8 +51,9 @@ class getSkeleton(object):
         # When skeleton converged do an additional iteration of thinning to remove hanging points
         self.finalSkeletonisationIteration()
 
-        self.pruning = True
-        while self.pruning:
+        self.pruning = True #always true via init?
+
+        while self.pruning: # what are conditions for loop seems like all branch points are iterated through on the first pass within function?
             self.pruneSkeleton()
 
         self.output_skeleton = np.argwhere(self.mask_being_skeletonised == 1)
@@ -476,8 +477,7 @@ class getSkeleton(object):
 
         # The branches are typically short so if a branch is longer than
         #  0.15 * total points, its assumed to be part of the real data
-        length_of_trace = len(coordinates)
-        max_branch_length = int(length_of_trace * 0.15)
+        max_branch_length = int(len(coordinates) * 0.15)
 
         # first check to find all the end coordinates in the trace
         potential_branch_ends = self._findBranchEnds(coordinates)
@@ -503,21 +503,21 @@ class getSkeleton(object):
                     branch_coordinates.pop(branch_coordinates.index([x_b, y_b]))
                     branch_continues = False
                     is_branch = True
-                # Weird case that happens sometimes
+                
+                # Weird case that happens sometimes (would this be linear mols?)
                 elif no_of_neighbours == 0:
                     is_branch = True
                     branch_continues = False
 
+                # why not `and branch_continues`?
                 if len(branch_coordinates) > max_branch_length:
                     branch_continues = False
                     is_branch = False
-
+            # 
             if is_branch:
                 number_of_branches += 1
                 for x, y in branch_coordinates:
                     self.mask_being_skeletonised[x, y] = 0
-
-        remaining_coordinates = np.argwhere(self.mask_being_skeletonised)
 
         if number_of_branches == 0:
             self.pruning = False
