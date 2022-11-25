@@ -206,7 +206,7 @@ class dnaTrace(object):
             # For loop determines how many neighbours a point has - if only one it is an end
             for x, y in fitted_trace_list:
 
-                if genTracingFuncs.countNeighbours(x, y, fitted_trace_list) == 1:
+                if genTracingFuncs.countandGetNeighbours(x, y, fitted_trace_list)[0] == 1:
                     points_with_one_neighbour += 1
                 else:
                     pass

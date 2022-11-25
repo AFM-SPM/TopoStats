@@ -489,8 +489,6 @@ class getSkeleton(object):
             temp_coordinates = coordinates[:]
             temp_coordinates.pop(temp_coordinates.index([x_b, y_b]))
 
-            count = 0
-
             while branch_continues:
                 no_of_neighbours, neighbours = genTracingFuncs.countandGetNeighbours(x_b, y_b, temp_coordinates)
 
@@ -529,7 +527,7 @@ class getSkeleton(object):
 
         # Most of the branch ends are just points with one neighbour
         for x, y in coordinates:
-            if genTracingFuncs.countNeighbours(x, y, coordinates) == 1:
+            if genTracingFuncs.countandGetNeighbours(x, y, coordinates)[0] == 1:
                 potential_branch_ends.append([x, y])
         # Find the ends that are 3/4 neighbouring points
         return potential_branch_ends
@@ -562,7 +560,7 @@ class reorderTrace:
 
         # Find one of the end points
         for i, (x, y) in enumerate(trace_coordinates):
-            if genTracingFuncs.countNeighbours(x, y, trace_coordinates) == 1:
+            if genTracingFuncs.countandGetNeighbours(x, y, trace_coordinates)[0] == 1:
                 ordered_points = [[x, y]]
                 trace_coordinates.pop(i)
                 break
@@ -604,7 +602,7 @@ class reorderTrace:
                 ordered_points.append(best_next_pixel)
 
             # If the tracing has reached the other end of the trace then its finished
-            if genTracingFuncs.countNeighbours(x_n, y_n, trace_coordinates) == 1:
+            if genTracingFuncs.countandGetNeighbours(x_n, y_n, trace_coordinates)[0] == 1:
                 break
 
         return np.array(ordered_points)
@@ -624,7 +622,7 @@ class reorderTrace:
 
         # Find a sensible point to start of the end points
         for i, (x, y) in enumerate(trace_coordinates):
-            if genTracingFuncs.countNeighbours(x, y, trace_coordinates) == 2:
+            if genTracingFuncs.countandGetNeighbours(x, y, trace_coordinates)[0] == 2:
                 ordered_points = [[x, y]]
                 remaining_unordered_coords.pop(i)
                 break
@@ -772,56 +770,6 @@ class genTracingFuncs:
         p9 = binary_map[x - 1, y + 1]
 
         return p2, p3, p4, p5, p6, p7, p8, p9
-
-    @staticmethod
-    def countNeighbours(x, y, trace_coordinates):
-
-        """Counts the number of neighbouring points for a given coordinate in
-        a list of points"""
-
-        number_of_neighbours = 0
-        if [x, y + 1] in trace_coordinates:
-            number_of_neighbours += 1
-        if [x + 1, y + 1] in trace_coordinates:
-            number_of_neighbours += 1
-        if [x + 1, y] in trace_coordinates:
-            number_of_neighbours += 1
-        if [x + 1, y - 1] in trace_coordinates:
-            number_of_neighbours += 1
-        if [x, y - 1] in trace_coordinates:
-            number_of_neighbours += 1
-        if [x - 1, y - 1] in trace_coordinates:
-            number_of_neighbours += 1
-        if [x - 1, y] in trace_coordinates:
-            number_of_neighbours += 1
-        if [x - 1, y + 1] in trace_coordinates:
-            number_of_neighbours += 1
-        return number_of_neighbours
-
-    @staticmethod
-    def getNeighbours(x, y, trace_coordinates):
-
-        """Returns an array containing the neighbouring points for a given
-        coordinate in a list of points"""
-
-        neighbour_array = []
-        if [x, y + 1] in trace_coordinates:
-            neighbour_array.append([x, y + 1])
-        if [x + 1, y + 1] in trace_coordinates:
-            neighbour_array.append([x + 1, y + 1])
-        if [x + 1, y] in trace_coordinates:
-            neighbour_array.append([x + 1, y])
-        if [x + 1, y - 1] in trace_coordinates:
-            neighbour_array.append([x + 1, y - 1])
-        if [x, y - 1] in trace_coordinates:
-            neighbour_array.append([x, y - 1])
-        if [x - 1, y - 1] in trace_coordinates:
-            neighbour_array.append([x - 1, y - 1])
-        if [x - 1, y] in trace_coordinates:
-            neighbour_array.append([x - 1, y])
-        if [x - 1, y + 1] in trace_coordinates:
-            neighbour_array.append([x - 1, y + 1])
-        return neighbour_array
 
     @staticmethod
     def countandGetNeighbours(x, y, trace_coordinates):
