@@ -605,7 +605,7 @@ class dnaTrace(object):
 
         # vmaxval = 20e-9
         # vminval = -10e-9
-
+        LOGGER.info(f"[{filename}] : Saving trace figures")
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         plt.savefig(output_dir / filename / f"{channel_name}_original.png")
@@ -1159,120 +1159,128 @@ class traceStats(object):
 
 
 class curvatureStats(object):
-    def __init__(self, trace_object):
+    """A class for pixel-level curvature related statistics."""
 
+    def __init__(self, trace_object: dnaTrace, image_path: Union[str, Path]) -> None:
         self.trace_object = trace_object
-
+        self.image_path = Path(image_path)
         self.curvature_dataframe = []
+        self.create_curvature_object()
 
-        self.createCurvatureObject()
+    def create_curvature_object(self):
+        """Creates a pixel-level pandas dataframe, for the curvature and accumulative contour length at each point of the molecule"""
 
-    # def filterMolecule(self):
+        stats = OrderedDict()
+        for mol_num, _ in self.trace_object.curvature.items():
+            if (
+                self.trace_object.mol_is_circular[mol_num] == False
+                and 80 < self.trace_object.contour_lengths[mol_num] < 130
+                and self.trace_object.max_curvature[mol_num] < 2
+            ):
+                stats[mol_num] = mol_num
+                for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(self.trace_object.curvature[mol_num]):
+                    stats[mol_num]["Point Number"] = n
+                    stats[mol_num]["Contour Length"] = contour
+                    stats[mol_num]["Curvature"] = c
+        self.curvature_dataframe = pd.DataFrame.from_dict(data=stats, orient="index")
+        self.curvature_dataframe.reset_index(drop=True, inplace=True)
+        self.curvature_dataframe.index.name = "Molecule Number"
+        self.curvature_dataframe["Image Name"] = self.image_path.name
+        self.curvature_dataframe["Basename"] = str(self.image_path.parent)
+
+        # curvature_dict = {}
+        #
+        # trace_directory_file = self.trace_object.afm_image_name
+        # trace_directory = os.path.dirname(trace_directory_file)
+        # basename = os.path.basename(trace_directory)
+        # img_name = os.path.basename(trace_directory_file)
+        #
+        # for mol_num, dna_num in enumerate(sorted(self.trace_object.curvature.keys())):
+        #     try:
+        #         if (
+        #                 self.trace_object.mol_is_circular[dna_num] == False
+        #                 and 80 < self.trace_object.contour_lengths[dna_num] < 130
+        #                 and self.trace_object.max_curvature[dna_num] < 2
+        #         ):
+        #             for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(self.trace_object.curvature[dna_num]):
+        #                 try:
+        #                     curvature_dict["Molecule number"].append(mol_num)
+        #                     curvature_dict["Experiment Directory"].append(trace_directory)
+        #                     curvature_dict["Basename"].append(basename)
+        #                     curvature_dict["Image Name"].append(img_name)
+        #                     curvature_dict["Point number"].append(n)
+        #                     curvature_dict["Contour length"].append(contour)
+        #                     curvature_dict["Curvature"].append(c)
+        #
+        #                 except KeyError:
+        #                     curvature_dict["Molecule number"] = [mol_num]
+        #                     curvature_dict["Experiment Directory"] = [trace_directory]
+        #                     curvature_dict["Basename"] = [basename]
+        #                     curvature_dict["Image Name"] = [img_name]
+        #                     curvature_dict["Point number"] = [n]
+        #                     curvature_dict["Contour length"] = [contour]
+        #                     curvature_dict["Curvature"] = [c]
+        #     except KeyError:
+        #         continue
+        #
+        # self.curvature_dataframe = pd.DataFrame(data=curvature_dict)
+
+    # def update_curvature(self, new_traces):
     #
-    #     if self.trace_object.mol_is_circular == False & self.trace_object.contour_lengths < 130 & self.trace_object.contour_lengths > 80 & self.trace_object.max_curvature < 2:
-    #         return True
-    #     else:
-    #         return False
+    #     curvature_dict = {}
+    #
+    #     trace_directory_file = new_traces.afm_image_name
+    #     trace_directory = os.path.dirname(trace_directory_file)
+    #     basename = os.path.basename(trace_directory)
+    #     img_name = os.path.basename(trace_directory_file)
+    #
+    #     for mol_num, dna_num in enumerate(sorted(new_traces.contour_lengths.keys())):
+    #         try:
+    #             if (
+    #                     new_traces.mol_is_circular[dna_num] == False
+    #                     and 80 < new_traces.contour_lengths[dna_num] < 130
+    #                     and new_traces.max_curvature[dna_num] < 2
+    #             ):
+    #                 for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(new_traces.curvature[dna_num]):
+    #                     try:
+    #                         curvature_dict["Molecule number"].append(mol_num)
+    #                         curvature_dict["Experiment Directory"].append(trace_directory)
+    #                         curvature_dict["Basename"].append(basename)
+    #                         curvature_dict["Image Name"].append(img_name)
+    #                         curvature_dict["Point number"].append(n)
+    #                         curvature_dict["Contour length"].append(contour)
+    #                         curvature_dict["Curvature"].append(c)
+    #
+    #                     except KeyError:
+    #                         curvature_dict["Molecule number"] = [mol_num]
+    #                         curvature_dict["Experiment Directory"] = [trace_directory]
+    #                         curvature_dict["Basename"] = [basename]
+    #                         curvature_dict["Image Name"] = [img_name]
+    #                         curvature_dict["Point number"] = [n]
+    #                         curvature_dict["Contour length"] = [contour]
+    #                         curvature_dict["Curvature"] = [c]
+    #         except KeyError:
+    #             continue
+    #
+    #     pd_new_traces_dframe = pd.DataFrame(data=curvature_dict)
+    #
+    #     self.curvature_dataframe = self.curvature_dataframe.append(pd_new_traces_dframe, ignore_index=True)
 
-    def createCurvatureObject(self):
+    def save_curvature_stats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True) -> None:
+        """Write trace statistics to JSON and/or CSV.
 
-        """Creates a pandas dataframe with the shape:
-
-        Directory     ImageName   dna_num Point   ContourLength  Curvature
-
+        Parameters
+        ----------
+        save_path: Union[str, Path]
+            Directory to save results to.
+        json: bool
+            Whether to save a JSON version of statistics.
+        csv: bool
+            Whether to save a CSV version of statistics.
         """
-
-        curvature_dict = {}
-
-        trace_directory_file = self.trace_object.afm_image_name
-        trace_directory = os.path.dirname(trace_directory_file)
-        basename = os.path.basename(trace_directory)
-        img_name = os.path.basename(trace_directory_file)
-
-        for mol_num, dna_num in enumerate(sorted(self.trace_object.curvature.keys())):
-            try:
-                if (
-                    self.trace_object.mol_is_circular[dna_num] == False
-                    and 80 < self.trace_object.contour_lengths[dna_num] < 130
-                    and self.trace_object.max_curvature[dna_num] < 2
-                ):
-                    for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(self.trace_object.curvature[dna_num]):
-                        try:
-                            curvature_dict["Molecule number"].append(mol_num)
-                            curvature_dict["Experiment Directory"].append(trace_directory)
-                            curvature_dict["Basename"].append(basename)
-                            curvature_dict["Image Name"].append(img_name)
-                            curvature_dict["Point number"].append(n)
-                            curvature_dict["Contour length"].append(contour)
-                            curvature_dict["Curvature"].append(c)
-
-                        except KeyError:
-                            curvature_dict["Molecule number"] = [mol_num]
-                            curvature_dict["Experiment Directory"] = [trace_directory]
-                            curvature_dict["Basename"] = [basename]
-                            curvature_dict["Image Name"] = [img_name]
-                            curvature_dict["Point number"] = [n]
-                            curvature_dict["Contour length"] = [contour]
-                            curvature_dict["Curvature"] = [c]
-            except KeyError:
-                continue
-
-        self.curvature_dataframe = pd.DataFrame(data=curvature_dict)
-
-    def updateCurvature(self, new_traces):
-
-        curvature_dict = {}
-
-        trace_directory_file = new_traces.afm_image_name
-        trace_directory = os.path.dirname(trace_directory_file)
-        basename = os.path.basename(trace_directory)
-        img_name = os.path.basename(trace_directory_file)
-
-        for mol_num, dna_num in enumerate(sorted(new_traces.contour_lengths.keys())):
-            try:
-                if (
-                    new_traces.mol_is_circular[dna_num] == False
-                    and 80 < new_traces.contour_lengths[dna_num] < 130
-                    and new_traces.max_curvature[dna_num] < 2
-                ):
-                    for i, [n, contour, c, dx, dy, d2x, d2y] in enumerate(new_traces.curvature[dna_num]):
-                        try:
-                            curvature_dict["Molecule number"].append(mol_num)
-                            curvature_dict["Experiment Directory"].append(trace_directory)
-                            curvature_dict["Basename"].append(basename)
-                            curvature_dict["Image Name"].append(img_name)
-                            curvature_dict["Point number"].append(n)
-                            curvature_dict["Contour length"].append(contour)
-                            curvature_dict["Curvature"].append(c)
-
-                        except KeyError:
-                            curvature_dict["Molecule number"] = [mol_num]
-                            curvature_dict["Experiment Directory"] = [trace_directory]
-                            curvature_dict["Basename"] = [basename]
-                            curvature_dict["Image Name"] = [img_name]
-                            curvature_dict["Point number"] = [n]
-                            curvature_dict["Contour length"] = [contour]
-                            curvature_dict["Curvature"] = [c]
-            except KeyError:
-                continue
-
-        pd_new_traces_dframe = pd.DataFrame(data=curvature_dict)
-
-        self.curvature_dataframe = self.curvature_dataframe.append(pd_new_traces_dframe, ignore_index=True)
-
-    def saveCurvatureStats(self, save_path):
-        save_file_name = ""
-
-        if save_path[-1] == "/":
-            pass
-        else:
-            save_path = save_path + "/"
-
-        for i in self.trace_object.afm_image_name.split("/")[:-1]:
-            save_file_name = save_file_name + i + "/"
-        print(save_file_name)
-
-        self.curvature_dataframe.to_json("%scurvaturestats.json" % save_path)
-        self.curvature_dataframe.to_csv("%scurvaturestats.csv" % save_path)
-
-        print("Saved curvature stats for all analysed images into: %scurvaturestats.json" % save_path)
+        if json:
+            self.curvature_dataframe.to_json(save_path / "curvaturestats.json")
+            LOGGER.info(f"Saved curvature stats for all analysed images to: {str(save_path / 'curvaturestats.json')}")
+        if csv:
+            self.curvature_dataframe.to_csv(save_path / "curvaturestats.csv")
+            LOGGER.info(f"Saved curvature stats for all analysed images to: {str(save_path / 'curvaturestats.csv')}")
