@@ -100,7 +100,7 @@ class getSkeleton(object):
         self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(
             self.mask_being_skeletonised, point[0], point[1]
         )
-        return self._binaryThinCheck_a() and self._binaryThinCheck_b() and self._binaryThinCheck_c() and self._binaryThinCheck_d()
+        return self._binaryThinCheck_a() and self._binaryThinCheck_b_returncount() == 1 and self._binaryThinCheck_c() and self._binaryThinCheck_d()
 
     def _deletePixelSubit2(self, point):
         """Function to check whether a single point should be deleted based
@@ -110,7 +110,7 @@ class getSkeleton(object):
             self.mask_being_skeletonised, point[0], point[1]
         )
         # Add in generic code here to protect high points from being deleted
-        return self._binaryThinCheck_a() and self._binaryThinCheck_b() and self._binaryThinCheck_csharp() and self._binaryThinCheck_dsharp()
+        return self._binaryThinCheck_a() and self._binaryThinCheck_b_returncount() == 1 and self._binaryThinCheck_csharp() and self._binaryThinCheck_dsharp()
 
     """These functions are ripped from the Zhang et al. paper and do the basic
     skeletonisation steps
@@ -122,31 +122,18 @@ class getSkeleton(object):
         # Condition A protects the endpoints (which will be > 2) - add in code here to prune low height points
         return 2 <= self.p2 + self.p3 + self.p4 + self.p5 + self.p6 + self.p7 + self.p8 + self.p9 <= 6
 
-    def _binaryThinCheck_b(self):
-        # Condition B checks if 7 0's or 7 1's?
-        count = 0
+    def _binaryThinCheck_b_returncount(self):
+        # assess local area connectivity? (adding T/F)
+        count = [self.p2, self.p3] == [0, 1]
+        count += [self.p3, self.p4] == [0, 1]
+        count += [self.p4, self.p5] == [0, 1]
+        count += [self.p5, self.p6] == [0, 1]
+        count += [self.p6, self.p7] == [0, 1]
+        count += [self.p7, self.p8] == [0, 1]
+        count += [self.p8, self.p9] == [0, 1]
+        count += [self.p9, self.p2] == [0, 1]
 
-        if [self.p2, self.p3] == [0, 1]:
-            count += 1
-        if [self.p3, self.p4] == [0, 1]:
-            count += 1
-        if [self.p4, self.p5] == [0, 1]:
-            count += 1
-        if [self.p5, self.p6] == [0, 1]:
-            count += 1
-        if [self.p6, self.p7] == [0, 1]:
-            count += 1
-        if [self.p7, self.p8] == [0, 1]:
-            count += 1
-        if [self.p8, self.p9] == [0, 1]:
-            count += 1
-        if [self.p9, self.p2] == [0, 1]:
-            count += 1
-
-        if count == 1:
-            return True
-        else:
-            return False
+        return count
 
     def _binaryThinCheck_c(self):
         # check if p2, p4 or p6 is 0
@@ -425,48 +412,12 @@ class getSkeleton(object):
 
     def _binaryFinalThinCheck_a(self):
         # assess if local area has 4 connectivity
-        if self.p2 * self.p4 == 1:
-            return True
-        elif self.p4 * self.p6 == 1:
-            return True
-        elif self.p6 * self.p8 == 1:
-            return True
-        elif self.p8 * self.p2 == 1:
-            return True
+        return 1 in (self.p2 * self.p4, self.p4 * self.p6, self.p6 * self.p8, self.p8 * self.p2)
+
 
     def _binaryFinalThinCheck_b(self):
         # assess if local area has 4 connectivity
-        if self.p2 * self.p4 * self.p6 == 1:
-            return True
-        elif self.p4 * self.p6 * self.p8 == 1:
-            return True
-        elif self.p6 * self.p8 * self.p2 == 1:
-            return True
-        elif self.p8 * self.p2 * self.p4 == 1:
-            return True
-
-    def _binaryThinCheck_b_returncount(self):
-        # assess local area connectivity?
-        count = 0
-
-        if [self.p2, self.p3] == [0, 1]:
-            count += 1
-        if [self.p3, self.p4] == [0, 1]:
-            count += 1
-        if [self.p4, self.p5] == [0, 1]:
-            count += 1
-        if [self.p5, self.p6] == [0, 1]:
-            count += 1
-        if [self.p6, self.p7] == [0, 1]:
-            count += 1
-        if [self.p7, self.p8] == [0, 1]:
-            count += 1
-        if [self.p8, self.p9] == [0, 1]:
-            count += 1
-        if [self.p9, self.p2] == [0, 1]:
-            count += 1
-
-        return count
+        return 1 in (self.p2 * self.p4 * self.p6, self.p4 * self.p6 * self.p8, self.p6 * self.p8 * self.p2, self.p8 * self.p2 * self.p4)
 
     def pruneSkeleton(self):
         """Function to remove the hanging branches from the skeletons - these
