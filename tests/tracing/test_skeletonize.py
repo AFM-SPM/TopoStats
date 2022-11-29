@@ -4,7 +4,7 @@ import pytest
 
 # pytest: disable=
 # pytest: disable=import-error
-from topostats.tracing.skeletonize import get_skeleton
+from topostats.tracing.skeletonize import getSkeleton
 
 CIRCULAR_TARGET = np.array(
     [
@@ -36,12 +36,12 @@ CIRCULAR_TARGET = np.array(
 def test_skeletonize_method(skeletonize_circular_bool_int: np.ndarray) -> None:
     """Test unsupported method raises the appropriate error."""
     with pytest.raises(ValueError):
-        get_skeleton(skeletonize_circular_bool_int, method="nonsense")
+        getSkeleton(None, skeletonize_circular_bool_int).get_skeleton(method="nonsense")
 
 
-def test_skeletonize_circular_zha(skeletonize_circular_bool_int: np.ndarray) -> None:
+def test_skeletonize_circular_zhang(skeletonize_circular_bool_int: np.ndarray) -> None:
     """Test the Zhang method of skeletionzation on a circular object."""
-    test = get_skeleton(skeletonize_circular_bool_int, method="zhang").astype(int)
+    test = getSkeleton(None, skeletonize_circular_bool_int).get_skeleton(method="zhang")
     assert isinstance(test, np.ndarray)
     assert test.ndim == 2
     assert test.shape == (21, 21)
@@ -51,7 +51,7 @@ def test_skeletonize_circular_zha(skeletonize_circular_bool_int: np.ndarray) -> 
 
 def test_skeletonize_circular_lee(skeletonize_circular_bool_int: np.ndarray) -> None:
     """Test the Lee method of skeletonization on a circular object."""
-    test = get_skeleton(skeletonize_circular_bool_int, method="lee").astype(int)
+    test = getSkeleton(None, skeletonize_circular_bool_int).get_skeleton(method="lee").astype(int)
     assert isinstance(test, np.ndarray)
     assert test.ndim == 2
     assert test.shape == (21, 21)
@@ -86,7 +86,7 @@ def test_skeletonize_circular_medial_axis(skeletonize_circular_bool_int: np.ndar
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ]
     )
-    test = get_skeleton(skeletonize_circular_bool_int, method="medial_axis").astype(int)
+    test = getSkeleton(None, skeletonize_circular_bool_int).get_skeleton(method="medial_axis").astype(int)
     assert isinstance(test, np.ndarray)
     assert test.ndim == 2
     assert test.shape == (21, 21)
@@ -121,7 +121,7 @@ def test_skeletonize_circular_thin(skeletonize_circular_bool_int: np.ndarray) ->
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ]
     )
-    test = get_skeleton(skeletonize_circular_bool_int, method="thin").astype(int)
+    test = getSkeleton(None, skeletonize_circular_bool_int).get_skeleton(method="thin").astype(int)
     assert isinstance(test, np.ndarray)
     assert test.ndim == 2
     assert test.shape == (21, 21)
@@ -159,7 +159,7 @@ def test_skeletonize_linear_zha(skeletonize_linear_bool_int: np.ndarray) -> None
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ]
     )
-    test = get_skeleton(skeletonize_linear_bool_int, method="zhang").astype(int)
+    test = getSkeleton(None, skeletonize_linear_bool_int).get_skeleton(method="zhang").astype(int)
     assert isinstance(test, np.ndarray)
     assert test.ndim == 2
     assert test.shape == (24, 20)
@@ -197,7 +197,7 @@ def test_skeletonize_linear_lee(skeletonize_linear_bool_int: np.ndarray) -> None
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ]
     )
-    test = get_skeleton(skeletonize_linear_bool_int, method="lee").astype(int)
+    test = getSkeleton(None, skeletonize_linear_bool_int).get_skeleton(method="lee").astype(int)
     assert isinstance(test, np.ndarray)
     assert test.ndim == 2
     assert test.shape == (24, 20)
@@ -235,7 +235,7 @@ def test_skeletonize_linear_medial_axis(skeletonize_linear_bool_int: np.ndarray)
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ]
     )
-    test = get_skeleton(skeletonize_linear_bool_int, method="medial_axis").astype(int)
+    test = getSkeleton(None, skeletonize_linear_bool_int).get_skeleton(method="medial_axis").astype(int)
     assert isinstance(test, np.ndarray)
     assert test.ndim == 2
     assert test.shape == (24, 20)
@@ -273,7 +273,7 @@ def test_skeletonize_linear_thin(skeletonize_linear_bool_int: np.ndarray) -> Non
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ]
     )
-    test = get_skeleton(skeletonize_linear_bool_int, method="thin").astype(int)
+    test = getSkeleton(None, skeletonize_linear_bool_int).get_skeleton(method="thin").astype(int)
     assert isinstance(test, np.ndarray)
     assert test.ndim == 2
     assert test.shape == (24, 20)
