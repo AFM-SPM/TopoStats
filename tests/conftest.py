@@ -1,6 +1,6 @@
 """Fixtures for testing"""
-from ast import Load
 import importlib.resources as pkg_resources
+import math
 from pathlib import Path
 from typing import Dict
 import yaml
@@ -15,6 +15,7 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, LoadScans
 from topostats.tracing.dnatracing import dnaTrace, traceStats
+from topostats.tracing.dnacurvature import Curvature
 from topostats.utils import get_thresholds, get_mask, _get_mask
 
 
@@ -277,13 +278,14 @@ def load_scan(loading_config: dict) -> LoadScans:
     scan_loader = LoadScans([RESOURCES / "minicircle.spm"], **loading_config)
     return scan_loader
 
+
 @pytest.fixture
 def load_scan_data(load_scan: LoadScans) -> LoadScans:
     """Instance of a LoadScans object after applying the get_data func."""
     scan_data = LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
     scan_data.get_data()
     return scan_data
-    
+
 
 @pytest.fixture
 def load_scan_ibw() -> LoadScans:
@@ -739,3 +741,75 @@ def skeletonize_linear() -> np.ndarray:
 def skeletonize_linear_bool_int(skeletonize_linear) -> np.ndarray:
     """A linear molecule for testing skeletonizing as a boolean integer array."""
     return np.array(skeletonize_linear, dtype="bool").astype(int)
+
+
+# Curvature Fixtures
+N_POINTS = 1000
+
+
+@pytest.fixture(params=[4, 10, 100])
+def curvature_circle(request) -> np.ndarray:
+    """A circle for testing curvature class and methods."""
+    radius = float(1)
+    coordinates = np.zeros([request.param, 2])
+    print(f"coordinates : {coordinates}")
+    for i in np.arange(request.param):
+        theta = 2 * math.pi / request.param * i
+        print(f"theta : {theta}")
+        x = -math.cos(theta) * radius
+        y = math.sin(theta) * radius
+        print(f"x : {x}")
+        print(f"y : {y}")
+        coordinates[i][0] = x
+        coordinates[i][1] = y
+    curvature = Curvature(coordinates, circular=True, edge_order=2)
+    return curvature
+
+
+# @pytest.fixture
+# def curvature_circle(circle_coordinates) -> Curvature:
+#     """Object of class Curvature initialised with the coordinates of a circle."""
+#     curvature = Curvature(circle_coordinates, circular=True, edge_order=2)
+#     return curvature
+
+
+@pytest.fixture(params=[4, 10, 100])
+def ellipse_coordinates(request) -> np.ndarray:
+    """An ellipse for testing curvature class and methods."""
+    major = 5.0
+    minor = 1.0
+    displacement = 0.0
+    coordinates = np.zeros([request.param, 2])
+    for i in range(0, request.param):
+        theta = 2 * math.pi / request.param * i
+        x = -math.cos(theta) * major
+        y = math.sin(theta) * minor
+        coordinates[i][0] = x
+        coordinates[i][1] = y
+    ellipse_coord = np.roll(coordinates, int(request.param * displacement), axis=0)
+    curvature = Curvature(ellipse_coord, circular=True, edge_order=2)
+    return curvature
+
+
+# @pytest.fixture
+# def curvature_ellipse(ellipse_coordinates) -> Curvature:
+#     """Object of class Curvature initialised with the coordinates of a ellipse."""
+#     curvature = Curvature(ellipse_coordinates, circular=True, edge_order=2)
+#     return curvature
+
+
+@pytest.fixture(params=[4, 10, 100])
+def parabola_coordinates(request) -> np.ndarray:
+    """A parabola for testing curvature class and methods."""
+    x = np.linspace(-2, 2, num=request.param)
+    y = x**2
+    parabola_coord = np.column_stack((x, y))
+    curvature = Curvature(parabola_coord, circular=False, edge_order=2)
+    return curvature
+
+
+# @pytest.fixture
+# def curvature_parabola(parabola_coordinates) -> Curvature:
+#     """Object of class Curvature initialised with the coordinates of a parabola."""
+#     curvature = Curvature(parabola_coordinates, circular=False, edge_order=2)
+#     return curvature

@@ -164,8 +164,8 @@ def process_scan(
     Results are written to CSV and images produced in configuration options request them.
     """
 
-    image = img_path_px2nm["image"] 
-    image_path = img_path_px2nm["img_path"] 
+    image = img_path_px2nm["image"]
+    image_path = img_path_px2nm["img_path"]
     pixel_to_nm_scaling = img_path_px2nm["px_2_nm"]
     filename = image_path.stem
 
@@ -177,11 +177,9 @@ def process_scan(
         filter_out_path = _output_dir
     else:
         filter_out_path = Path(_output_dir) / filename / "filters"
-        grain_out_path = Path(_output_dir) / filename / "grains"
         filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(_output_dir / filename / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / filename / "grains" / "lower", parents=True, exist_ok=True)
-
 
     # Filter Image :
     if filter_config["run"]:
