@@ -96,8 +96,7 @@ class joeFuncs():
     """Contains all the functions used for Joe's skeletonisation code"""
     def __init__(self, image: np.ndarray, mask: np.ndarray):
         self.image = image
-        self.mask = mask
-        self.mask_being_skeletonised = mask.copy()
+        self.mask = mask.copy()
         self.skeleton_converged = False
 
     def doSkeletonising(self):
@@ -107,8 +106,8 @@ class joeFuncs():
         # When skeleton converged do an additional iteration of thinning to remove hanging points
         self.finalSkeletonisationIteration()
 
-        return self.mask_being_skeletonised
-    
+        return self.mask
+
     def _doSkeletonisingIteration(self):
         """Do an iteration of skeletonisation - check for the local binary pixel
         environment and assess the local height values to decide whether to
@@ -116,7 +115,7 @@ class joeFuncs():
         """
         pixels_to_delete = []
         # Sub-iteration 1 - binary check
-        mask_coordinates = np.argwhere(self.mask_being_skeletonised == 1).tolist()
+        mask_coordinates = np.argwhere(self.mask == 1).tolist()
         for point in mask_coordinates:
             if self._deletePixelSubit1(point):
                 pixels_to_delete.append(point)
@@ -125,10 +124,10 @@ class joeFuncs():
         # pixels_to_delete = self._checkHeights(pixels_to_delete)
 
         for x, y in pixels_to_delete:
-            self.mask_being_skeletonised[x, y] = 0
+            self.mask[x, y] = 0
 
         # Sub-iteration 2 - binary check - seems like a repeat and could be condensed
-        mask_coordinates = np.argwhere(self.mask_being_skeletonised == 1).tolist()
+        mask_coordinates = np.argwhere(self.mask == 1).tolist()
         for point in mask_coordinates:
             if self._deletePixelSubit2(point):
                 pixels_to_delete.append(point)
@@ -137,7 +136,7 @@ class joeFuncs():
         # pixels_to_delete = self._checkHeights(pixels_to_delete)
         
         for x, y in pixels_to_delete:
-            self.mask_being_skeletonised[x, y] = 0
+            self.mask[x, y] = 0
 
         if len(pixels_to_delete) == 0:
             self.skeleton_converged = True
@@ -147,7 +146,7 @@ class joeFuncs():
         on both its local binary environment and its local height values"""
 
         self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = self.getLocalPixelsBinary(
-            self.mask_being_skeletonised, point[0], point[1]
+            self.mask, point[0], point[1]
         )
         return self._binaryThinCheck_a() and self._binaryThinCheck_b_returncount() == 1 and self._binaryThinCheck_c() and self._binaryThinCheck_d()
 
@@ -156,7 +155,7 @@ class joeFuncs():
         on both its local binary environment and its local height values"""
 
         self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = self.getLocalPixelsBinary(
-            self.mask_being_skeletonised, point[0], point[1]
+            self.mask, point[0], point[1]
         )
         # Add in generic code here to protect high points from being deleted
         return self._binaryThinCheck_a() and self._binaryThinCheck_b_returncount() == 1 and self._binaryThinCheck_csharp() and self._binaryThinCheck_dsharp()
@@ -209,7 +208,7 @@ class joeFuncs():
         This is useful for the future functions that rely on local pixel environment
         to make assessments about the overall shape/structure of traces"""
 
-        remaining_coordinates = np.argwhere(self.mask_being_skeletonised).tolist()
+        remaining_coordinates = np.argwhere(self.mask).tolist()
 
         for x, y in remaining_coordinates:
 
@@ -222,14 +221,14 @@ class joeFuncs():
                 self.p7,
                 self.p8,
                 self.p9,
-            ) = self.getLocalPixelsBinary(self.mask_being_skeletonised, x, y)
+            ) = self.getLocalPixelsBinary(self.mask, x, y)
 
             # Checks for case 1 pixels
             if self._binaryThinCheck_b_returncount() == 2 and self._binaryFinalThinCheck_a():
-                self.mask_being_skeletonised[x, y] = 0
+                self.mask[x, y] = 0
             # Checks for case 2 pixels
             elif self._binaryThinCheck_b_returncount() == 3 and self._binaryFinalThinCheck_b():
-                self.mask_being_skeletonised[x, y] = 0
+                self.mask[x, y] = 0
 
     def _binaryFinalThinCheck_a(self):
         # assess if local area has 4 connectivity
@@ -255,6 +254,7 @@ class joeFuncs():
         p9 = binary_map[x - 1, y + 1]
 
         return p2, p3, p4, p5, p6, p7, p8, p9
+
 
 class pruneSkeleton():
 
