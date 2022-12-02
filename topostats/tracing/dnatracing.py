@@ -16,7 +16,8 @@ from skimage import morphology
 from skimage.filters import gaussian
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.tracing.tracingfuncs import genTracingFuncs, getSkeleton, reorderTrace
+from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
+from topostats.tracing.skeletonize import getSkeleton#, pruneSkeleton
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -173,8 +174,9 @@ class dnaTrace(object):
                 self.grains[grain_num].dtype
             )
             try:
-                dna_skeleton = getSkeleton(self.gauss_image, smoothed_grain, self.pixel_size)
-                self.disordered_trace[grain_num] = dna_skeleton.output_skeleton
+                dna_skeleton = getSkeleton(self.gauss_image, smoothed_grain).get_skeleton("joe")
+                #dna_skeleton_pruned = pruneSkeleton(self.gauss_image, dna_skeleton).prune_skeleton("joe")
+                self.disordered_trace[grain_num] = np.argwhere(dna_skeleton == 1)
             except IndexError:
                 # Some gwyddion grains touch image border causing IndexError
                 # These grains are deleted
