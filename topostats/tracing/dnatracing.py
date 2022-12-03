@@ -49,7 +49,7 @@ class dnaTrace(object):
         self.pixel_size = pixel_size * 1e-9 if convert_nm_to_m else pixel_size
         self.number_of_rows = self.full_image_data.shape[0]
         self.number_of_columns = self.full_image_data.shape[1]
-        self.sigma = 0.7 / (self.pixel_size * 1e9) # hardset
+        self.sigma = 0.7 / (self.pixel_size * 1e9)  # hardset
 
         self.gauss_image = gaussian(self.full_image_data, self.sigma)
         self.grains = {}
@@ -110,7 +110,7 @@ class dnaTrace(object):
         Returns:
         --------
         dict:
-            A dictionary mapping the object (or grain number) to a binary image with 
+            A dictionary mapping the object (or grain number) to a binary image with
             only that object present.
         """
         dictionary = {}

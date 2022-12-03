@@ -14,9 +14,11 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 #   the different branch pruning methods (mine & joe's)
 #   skeleton descriptors (mine)
 
-class getSkeleton():
+
+class getSkeleton:
     """Class containing skeletonization code from factory methods to functions
     depaendant on the method"""
+
     def __init__(self, image: np.ndarray, mask: np.ndarray):
         """Initialise the class.
 
@@ -81,7 +83,7 @@ class getSkeleton():
     @staticmethod
     def _skeletonize_zhang(mask: np.ndarray) -> np.ndarray:
         """Wrapper for the scikit image implimentation of the Zhang skeletonisation method.
-        
+
         Parameters
         ----------
         mask: np.ndarray
@@ -97,7 +99,7 @@ class getSkeleton():
     @staticmethod
     def _skeletonize_lee(mask: np.ndarray) -> np.ndarray:
         """Wrapper for the scikit image implimentation of the Lee skeletonisation method.
-        
+
         Parameters
         ----------
         mask: np.ndarray
@@ -113,7 +115,7 @@ class getSkeleton():
     @staticmethod
     def _skeletonize_medial_axis(image: np.ndarray) -> np.ndarray:
         """Wrapper for the scikit image implimentation of the medial axis skeletonisation method.
-        
+
         Parameters
         ----------
         mask: np.ndarray
@@ -130,7 +132,7 @@ class getSkeleton():
     @staticmethod
     def _skeletonize_thin(image: np.ndarray) -> np.ndarray:
         """Wrapper for the scikit image implimentation of the thin skeletonisation method.
-        
+
         Parameters
         ----------
         mask: np.ndarray
@@ -147,7 +149,7 @@ class getSkeleton():
     @staticmethod
     def _skeletonize_joe(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
         """Wrapper for Pyne-lab member Joe's skeletonisation method.
-        
+
         Parameters
         ----------
         mask: np.ndarray
@@ -157,28 +159,29 @@ class getSkeleton():
         -------
         np.ndarray
             The mask array reduce to a single pixel thickness
-        
+
         Notes
         -----
-        This method is based on Zhang's method but produces different results 
+        This method is based on Zhang's method but produces different results
         (less branches but slightly less accurate).
         """
         # image height bits don't seem to be used but are there?
         return joeSkeleonize(image, mask).doSkeletonising()
 
 
-class joeSkeleonize():
+class joeSkeleonize:
     """Contains all the functions used for Joe's skeletonisation code
-    
+
     Notes
     -----
     This code contains only the minimum viable product code as much of the other code
     relating to skeletonising based on heights was unused. This also means that
     should someone be upto the task, it is possible to include the heights when skeletonising.
     """
+
     def __init__(self, image: np.ndarray, mask: np.ndarray):
         """Initialises the class
-        
+
         Parameters
         ----------
         image: np.ndarray
@@ -192,7 +195,7 @@ class joeSkeleonize():
 
     def doSkeletonising(self) -> np.ndarray:
         """The wrapper for the whole skeletonisation process.
-        
+
         Returns
         -------
         np.ndarray
@@ -235,12 +238,12 @@ class joeSkeleonize():
     def _deletePixelSubit1(self, point: list):
         """Function to check whether a single point should be deleted based
         on both its local binary environment.
-        
+
         Parameters
         ----------
         point: list
             List of [x, y] coordinate positions
-        
+
         Returns
         -------
         bool
@@ -251,17 +254,22 @@ class joeSkeleonize():
         self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.getLocalPixelsBinary(
             self.mask, point[0], point[1]
         )
-        return self._binaryThinCheck_a() and self._binaryThinCheck_b_returncount() == 1 and self._binaryThinCheck_c() and self._binaryThinCheck_d()
+        return (
+            self._binaryThinCheck_a()
+            and self._binaryThinCheck_b_returncount() == 1
+            and self._binaryThinCheck_c()
+            and self._binaryThinCheck_d()
+        )
 
     def _deletePixelSubit2(self, point):
         """Function to check whether a single point should be deleted based
         on both its local binary environment.
-        
+
         Parameters
         ----------
         point: list
             List of [x, y] coordinate positions
-        
+
         Returns
         -------
         bool
@@ -273,7 +281,12 @@ class joeSkeleonize():
             self.mask, point[0], point[1]
         )
         # Add in generic code here to protect high points from being deleted
-        return self._binaryThinCheck_a() and self._binaryThinCheck_b_returncount() == 1 and self._binaryThinCheck_csharp() and self._binaryThinCheck_dsharp()
+        return (
+            self._binaryThinCheck_a()
+            and self._binaryThinCheck_b_returncount() == 1
+            and self._binaryThinCheck_csharp()
+            and self._binaryThinCheck_dsharp()
+        )
 
     def _binaryThinCheck_a(self):
         """Checks the surrounding area to see if the point lies on the edge of the grain.
@@ -288,22 +301,24 @@ class joeSkeleonize():
 
     def _binaryThinCheck_b_returncount(self):
         """Assess local area connectivity?"""
-        count = sum([
-            [self.p2, self.p3] == [0, 1],
-            [self.p3, self.p4] == [0, 1],
-            [self.p4, self.p5] == [0, 1],
-            [self.p5, self.p6] == [0, 1],
-            [self.p6, self.p7] == [0, 1],
-            [self.p7, self.p8] == [0, 1],
-            [self.p8, self.p9] == [0, 1],
-            [self.p9, self.p2] == [0, 1]
-        ])
+        count = sum(
+            [
+                [self.p2, self.p3] == [0, 1],
+                [self.p3, self.p4] == [0, 1],
+                [self.p4, self.p5] == [0, 1],
+                [self.p5, self.p6] == [0, 1],
+                [self.p6, self.p7] == [0, 1],
+                [self.p7, self.p8] == [0, 1],
+                [self.p8, self.p9] == [0, 1],
+                [self.p9, self.p2] == [0, 1],
+            ]
+        )
 
         return count
 
     def _binaryThinCheck_c(self):
         """Check if p2, p4 or p6 is 0 - seems very specific
-        
+
         Returns
         -------
         bool
@@ -313,7 +328,7 @@ class joeSkeleonize():
 
     def _binaryThinCheck_d(self):
         """Check if p4, p6 or p8 is 0 - seems very specific
-        
+
         Returns
         -------
         bool
@@ -323,7 +338,7 @@ class joeSkeleonize():
 
     def _binaryThinCheck_csharp(self):
         """Check if p2, p4 or p8 is 0 - seems very specific
-        
+
         Returns
         -------
         bool
@@ -333,7 +348,7 @@ class joeSkeleonize():
 
     def _binaryThinCheck_dsharp(self):
         """Check if p2, p6 or p8 is 0 - seems very specific
-        
+
         Returns
         -------
         bool
@@ -354,7 +369,9 @@ class joeSkeleonize():
         remaining_coordinates = np.argwhere(self.mask).tolist()
 
         for x, y in remaining_coordinates:
-            self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.getLocalPixelsBinary(self.mask, x, y)
+            self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.getLocalPixelsBinary(
+                self.mask, x, y
+            )
 
             # Checks for case 1 pixels
             if self._binaryThinCheck_b_returncount() == 2 and self._binaryFinalThinCheck_a():
@@ -365,34 +382,28 @@ class joeSkeleonize():
 
     def _binaryFinalThinCheck_a(self):
         """Assess if local area has 4-connectivity.
-        
+
         Returns
         -------
         bool
             T/F if any neighbours of the 4-connections have a near pixel.
         """
-        return 1 in (
-            self.p2 * self.p4, 
-            self.p4 * self.p6, 
-            self.p6 * self.p8, 
-            self.p8 * self.p2
-            )
-
+        return 1 in (self.p2 * self.p4, self.p4 * self.p6, self.p6 * self.p8, self.p8 * self.p2)
 
     def _binaryFinalThinCheck_b(self):
         """Assess if local area 4-connectivity is connected to multiple branches.
-        
+
         Returns
         -------
         bool
             T/F if any neighbours of the 4-connections have a near pixel.
         """
         return 1 in (
-            self.p2 * self.p4 * self.p6, 
-            self.p4 * self.p6 * self.p8, 
-            self.p6 * self.p8 * self.p2, 
-            self.p8 * self.p2 * self.p4
-            )
+            self.p2 * self.p4 * self.p6,
+            self.p4 * self.p6 * self.p8,
+            self.p6 * self.p8 * self.p2,
+            self.p8 * self.p2 * self.p4,
+        )
 
     @staticmethod
     def getLocalPixelsBinary(binary_map, x, y) -> np.ndarray:
@@ -405,7 +416,7 @@ class joeSkeleonize():
             The binary array containing the grains.
         x: int
             An x coordinate within the binary map.
-        y: int 
+        y: int
             A y coordinate within the binary map.
 
         Returns
@@ -414,7 +425,7 @@ class joeSkeleonize():
             A flattened 8-long array describing the values in the binary map
             around the x,y point
         """
-        local_pixels = binary_map[x-1:x+2,y-1:y+2].flatten()
+        local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
         # [[p7, p8, p9],    [[0,1,2],
         #  [p6, na, p2], ->  [3,4,5], -> [0,1,2,3,5,6,7,8]
         #  [p5, p4, p3]]     [6,7,8]]
@@ -422,7 +433,7 @@ class joeSkeleonize():
         return np.delete(local_pixels, 4)
 
 
-class pruneSkeleton():
+class pruneSkeleton:
     """Class containing skeletonization pruning code from factory methods to functions
     depaendant on the method. Pruning is the act of removing spurious branches commonly
     found when implimenting skeletonization algorithms."""
@@ -480,7 +491,7 @@ class pruneSkeleton():
     @staticmethod
     def _prune_joe(image: np.ndarray, skeleton: np.ndarray) -> np.ndarray:
         """Wrapper for Pyne-lab member Joe's pruning method.
-        
+
         Parameters
         ----------
         image: np.ndarray
@@ -496,9 +507,9 @@ class pruneSkeleton():
         return joePrune(image, skeleton).prune_all_skeletons()
 
 
-class joePrune():
+class joePrune:
     """Contains all the functions used for Joe's skeletonisation code
-    
+
     Notes
     -----
     This code contains only the minimum viable product code as much of the other code
@@ -524,9 +535,9 @@ class joePrune():
 
     def prune_all_skeletons(self) -> np.ndarray:
         """Wrapper function to prune all skeletons by labling and iterating through
-        each one, binarising, then pruning, then adding up the single skeleton masks 
+        each one, binarising, then pruning, then adding up the single skeleton masks
         to make a single mask.
-        
+
         Returns
         -------
         np.ndarray
@@ -541,9 +552,9 @@ class joePrune():
 
     def _prune_single_skeleton(self, single_skeleton: np.ndarray) -> np.ndarray:
         """Function to remove the hanging branches from a single skeleton as this
-        function is an iterative process. These are a persistent problem in the 
+        function is an iterative process. These are a persistent problem in the
         overall tracing process.
-        
+
         Parameters
         ---------
         single_skeleton: np.ndarray
@@ -552,7 +563,7 @@ class joePrune():
         Returns:
         --------
         np.ndarray
-            A binary mask of the single skeleton 
+            A binary mask of the single skeleton
         """
         pruning = True
         while pruning:
@@ -587,7 +598,7 @@ class joePrune():
                         branch_coordinates.pop(branch_coordinates.index([x_b, y_b]))
                         branch_continues = False
                         is_branch = True
-                    
+
                     # Weird case that happens sometimes (would this be linear mols?)
                     elif no_of_neighbours == 0:
                         is_branch = True
@@ -597,7 +608,7 @@ class joePrune():
                     if len(branch_coordinates) > max_branch_length:
                         branch_continues = False
                         is_branch = False
-                # 
+                #
                 if is_branch:
                     number_of_branches += 1
                     for x, y in branch_coordinates:
@@ -605,7 +616,7 @@ class joePrune():
 
             if number_of_branches == 0:
                 pruning = False
-        
+
         return single_skeleton
 
     @staticmethod
