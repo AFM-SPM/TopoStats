@@ -12,12 +12,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import ndimage, spatial, interpolate as interp
-from skimage import morphology
+from skimage.morphology import label, binary_dilation
 from skimage.filters import gaussian
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
-from topostats.tracing.skeletonize import getSkeleton#, pruneSkeleton
+from topostats.tracing.skeletonize import getSkeleton, pruneSkeleton
+from topostats.filters import Filters
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -44,18 +45,17 @@ class dnaTrace(object):
         convert_nm_to_m: bool = True,
     ):
         self.full_image_data = full_image_data * 1e-9 if convert_nm_to_m else full_image_data
-        self.grains_orig = grains
+        self.grains_orig = np.where(grains != 0, 1, 0)
         self.filename = filename
         self.pixel_size = pixel_size * 1e-9 if convert_nm_to_m else pixel_size
         self.number_of_rows = self.full_image_data.shape[0]
         self.number_of_columns = self.full_image_data.shape[1]
-        self.sigma = 0.7 / (self.pixel_size * 1e9)
+        self.sigma = 0.7 / (self.pixel_size * 1e9) # hardset
 
-        self.gauss_image = []
+        self.gauss_image = gaussian(self.full_image_data, self.sigma)
         self.grains = {}
-        self.dna_masks = {}
-        self.skeletons = {}
-        self.disordered_trace = {}
+        self.skeleton_dict = {}
+        self.disordered_traces = {}
         self.ordered_traces = {}
         self.fitted_traces = {}
         self.splined_traces = {}
@@ -64,7 +64,6 @@ class dnaTrace(object):
         self.mol_is_circular = {}
         self.curvature = {}
 
-        self.number_of_traces = 0
         self.num_circular = 0
         self.num_linear = 0
 
@@ -77,12 +76,18 @@ class dnaTrace(object):
 
     def trace_dna(self):
         """Perform DNA tracing."""
-        self.get_numpy_arrays()
-        self.gaussian_filter()
+        self.grains = self.binary_img_to_dict(self.grains_orig)
+        # What purpose does binary dilation serve here? Name suggests some sort of smoothing around the edges and
+        # the resulting array is used as a mask during the skeletonising process.
+        self.dilate_grains()
+        for grain_num, grain in self.grains.items():
+            skeleton = getSkeleton(self.gauss_image, grain).get_skeleton("joe")
+            pruned_skeleton = pruneSkeleton(self.gauss_image, skeleton).prune_skeleton("joe")
+            self.skeleton_dict[grain_num] = pruned_skeleton
         self.get_disordered_trace()
         # self.isMolLooped()
         self.purge_obvious_crap()
-        self.linear_or_circular(self.disordered_trace)
+        self.linear_or_circular(self.disordered_traces)
         self.get_ordered_traces()
         self.linear_or_circular(self.ordered_traces)
         self.get_fitted_traces()
@@ -93,36 +98,32 @@ class dnaTrace(object):
         self.measure_end_to_end_distance()
         self.report_basic_stats()
 
-    def get_numpy_arrays(self):
+    @staticmethod
+    def binary_img_to_dict(img: np.ndarray) -> None:
+        """Converts a binary image of multiple objects into a dictionary
+        of multiple images the same size as the img (nessecary for dialation step).
 
-        """Function to get each grain as a numpy array which is stored in a
-        dictionary
+        Parameters:
+        -----------
+        img : np.ndarray
+            A binary image of multiple molecules
 
-        Currently the grains are unnecessarily large (the full image) as I don't
-        know how to handle the cropped versions
+        Returns:
+        --------
+        dict:
+            A dictionary mapping the object (or grain number) to a binary image with 
+            only that object present.
+        """
+        dictionary = {}
+        labelled_img = label(img)
+        for grain_num in range(1, labelled_img.max() + 1):
+            dictionary[grain_num] = np.where(labelled_img == grain_num, 1, 0)
+        return dictionary
 
-        I find using the gwyddion objects clunky and not helpful once the
-        grains have been found
-
-        There is some kind of discrepency between the ordering of arrays from
-        gwyddion and how they're usually handled in np arrays meaning you need
-        to be careful when indexing from gwyddion derived numpy arrays"""
-        for grain_num in set(self.grains_orig.flatten()):
-            # Skip the background
-            if grain_num != 0:
-                # Saves each grain as a multidim numpy array
-                # single_grain_1d = np.array([1 if i == grain_num else 0 for i in self.grains_orig])
-                # self.grains[int(grain_num)] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
-                self.grains[int(grain_num)] = self._get_grain_array(grain_num)
-        # FIXME : This should be a method of its own, but strange that apparently Gaussian filtered image is filtered again
-        # Get a 7 A gauss filtered version of the original image
-        # used in refining the pixel positions in fitted_traces()
-        # sigma = 0.7 / (self.pixel_size * 1e9)
-        # self.gauss_image = filters.gaussian(self.full_image_data, sigma)
-
-    def _get_grain_array(self, grain_number: int) -> np.ndarray:
-        """Extract a single grains."""
-        return np.where(self.grains_orig == grain_number, 1, 0)
+    def dilate_grains(self) -> None:
+        """Dilates each individual grain in the grains dictionary."""
+        for grain_num, image in self.grains.items():
+            self.grains[grain_num] = ndimage.binary_dilation(image, iterations=1).astype(np.int32)
 
     # FIXME : It is straight-forward to get bounding boxes for grains, need to then have a dictionary of original image
     #         and label for each grain to then be processed.
@@ -155,41 +156,21 @@ class dnaTrace(object):
         """
         return array[bounding_box[0] : bounding_box[1], bounding_box[2] : bounding_box[3]]
 
-    def gaussian_filter(self, **kwargs) -> np.array:
-        """Apply Gaussian filter"""
-        self.gauss_image = gaussian(self.full_image_data, sigma=self.sigma, **kwargs)
-        LOGGER.info(f"[{self.filename}] : Gaussian filter applied.")
-
     def get_disordered_trace(self):
-        """Create a skeleton for each of the grains in the image.
-
-        Uses my own skeletonisation function from tracingfuncs module. I will
-        eventually get round to editing this function to try to reduce the branching
-        and to try to better trace from looped molecules"""
-
-        for grain_num in sorted(self.grains.keys()):
-            # What purpose does binary dilation serve here? Name suggests some sort of smoothing around the edges and
-            # the resulting array is used as a mask during the skeletonising process.
-            smoothed_grain = ndimage.binary_dilation(self.grains[grain_num], iterations=1).astype(
-                self.grains[grain_num].dtype
-            )
+        """Puts skeletons into dictionary"""
+        for grain_num, skeleton in self.skeleton_dict.items():
             try:
-                dna_skeleton = getSkeleton(self.gauss_image, smoothed_grain).get_skeleton("joe")
-                #dna_skeleton_pruned = pruneSkeleton(self.gauss_image, dna_skeleton).prune_skeleton("joe")
-                self.disordered_trace[grain_num] = np.argwhere(dna_skeleton == 1)
+                self.disordered_traces[grain_num] = np.argwhere(skeleton == 1)
             except IndexError:
-                # Some gwyddion grains touch image border causing IndexError
-                # These grains are deleted
+                # Grains touching border (IndexError) are deleted
                 self.grains.pop(grain_num)
-            # skel = morphology.skeletonize(self.grains[grain_num])
-            # self.skeletons[grain_num] = np.argwhere(skel == 1)
 
     def purge_obvious_crap(self):
 
-        for dna_num in sorted(self.disordered_trace.keys()):
+        for dna_num in sorted(self.disordered_traces.keys()):
 
-            if len(self.disordered_trace[dna_num]) < 10:
-                self.disordered_trace.pop(dna_num, None)
+            if len(self.disordered_traces[dna_num]) < 10:
+                self.disordered_traces.pop(dna_num, None)
 
     def linear_or_circular(self, traces):
 
@@ -222,14 +203,14 @@ class dnaTrace(object):
 
     def get_ordered_traces(self):
 
-        for dna_num in sorted(self.disordered_trace.keys()):
+        for dna_num in sorted(self.disordered_traces.keys()):
 
             circle_tracing = True
 
             if self.mol_is_circular[dna_num]:
 
                 self.ordered_traces[dna_num], trace_completed = reorderTrace.circularTrace(
-                    self.disordered_trace[dna_num]
+                    self.disordered_traces[dna_num]
                 )
 
                 if not trace_completed:
@@ -238,12 +219,12 @@ class dnaTrace(object):
                         self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.ordered_traces[dna_num].tolist())
                     except UnboundLocalError:
                         self.mol_is_circular.pop(dna_num)
-                        self.disordered_trace.pop(dna_num)
+                        self.disordered_traces.pop(dna_num)
                         self.grains.pop(dna_num)
                         self.ordered_traces.pop(dna_num)
 
             elif not self.mol_is_circular[dna_num]:
-                self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
+                self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_traces[dna_num].tolist())
 
     def report_basic_stats(self):
         """Report number of circular and linear DNA molecules detected."""
@@ -468,7 +449,7 @@ class dnaTrace(object):
                             splined_trace = np.column_stack((out[0], out[1]))
                         except ValueError:  # sometimes even the ordered_traces are too bugged out so just delete these traces
                             self.mol_is_circular.pop(dna_num)
-                            self.disordered_trace.pop(dna_num)
+                            self.disordered_traces.pop(dna_num)
                             self.grains.pop(dna_num)
                             self.ordered_traces.pop(dna_num)
                             self.splining_success = False
@@ -500,7 +481,7 @@ class dnaTrace(object):
                 #        self.splined_traces[dna_num] = splined_trace
                 #    except ValueError: #if the trace is really messed up just delete it
                 #        self.mol_is_circular.pop(dna_num)
-                #        self.disordered_trace.pop(dna_num)
+                #        self.disordered_traces.pop(dna_num)
                 #        self.grains.pop(dna_num)
                 #        self.ordered_traces.pop(dna_num)
 
@@ -542,11 +523,11 @@ class dnaTrace(object):
 
         plt.pcolormesh(self.gauss_image, vmax=-3e-9, vmin=3e-9)
         plt.colorbar()
-        for dna_num in sorted(self.disordered_trace.keys()):
+        for dna_num in sorted(self.disordered_traces.keys()):
             plt.plot(self.ordered_traces[dna_num][:, 0], self.ordered_traces[dna_num][:, 1], markersize=1)
             plt.plot(self.fitted_traces[dna_num][:, 0], self.fitted_traces[dna_num][:, 1], markersize=1)
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], markersize=1)
-            # print(len(self.skeletons[dna_num]), len(self.disordered_trace[dna_num]))
+            # print(len(self.skeletons[dna_num]), len(self.disordered_traces[dna_num]))
             # plt.plot(self.skeletons[dna_num][:,0], self.skeletons[dna_num][:,1], 'o', markersize = 0.8)
 
         plt.show()
@@ -624,12 +605,12 @@ class dnaTrace(object):
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
-        for dna_num in sorted(self.disordered_trace.keys()):
-            # disordered_trace_list = self.disordered_trace[dna_num].tolist()
+        for dna_num in sorted(self.disordered_traces.keys()):
+            # disordered_trace_list = self.disordered_traces[dna_num].tolist()
             # less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
             plt.plot(
-                self.disordered_trace[dna_num][:, 0],
-                self.disordered_trace[dna_num][:, 1],
+                self.disordered_traces[dna_num][:, 0],
+                self.disordered_traces[dna_num][:, 1],
                 "o",
                 markersize=0.5,
                 color="c",
