@@ -2,8 +2,9 @@
 import logging
 from typing import Callable
 import numpy as np
-from skimage.morphology import medial_axis, skeletonize, thin
+from skimage.morphology import label, medial_axis, skeletonize, thin
 
+from topostats.tracing.tracingfuncs import genTracingFuncs
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -14,8 +15,18 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 #   skeleton descriptors (mine)
 
 class getSkeleton():
-
+    """Class containing skeletonization code from factory methods to functions
+    depaendant on the method"""
     def __init__(self, image: np.ndarray, mask: np.ndarray):
+        """Initialise the class.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            The image used to generate the mask.
+        mask: np.ndarray
+            The binary mask of features in the image.
+        """
         self.image = image
         self.mask = mask
 
@@ -25,16 +36,15 @@ class getSkeleton():
         Parameters
         ----------
         method : str
-            Method to use, default is 'zhang' other options are 'lee', 'medial_axis' and 'thin'.
+            Method to use, default is 'zhang' other options are 'lee', 'medial_axis', 'thin' and 'joe'.
 
         Returns
         -------
         np.ndarray
-            Skeletonised version of the image.all($0)
+            Skeletonised version of the binary mask (possibly using criteria from the image).
 
         Notes
         -----
-
         This is a thin wrapper to the methods provided
         by the `skimage.morphology
         <https://scikit-image.org/docs/stable/api/skimage.morphology.html?highlight=skeletonize>`_
@@ -70,37 +80,124 @@ class getSkeleton():
 
     @staticmethod
     def _skeletonize_zhang(mask: np.ndarray) -> np.ndarray:
+        """Wrapper for the scikit image implimentation of the Zhang skeletonisation method.
+        
+        Parameters
+        ----------
+        mask: np.ndarray
+            A binary array to skeletonise.
+
+        Returns
+        -------
+        np.ndarray
+            The mask array reduce to a single pixel thickness
+        """
         return skeletonize(mask, method="zhang")
 
     @staticmethod
     def _skeletonize_lee(mask: np.ndarray) -> np.ndarray:
+        """Wrapper for the scikit image implimentation of the Lee skeletonisation method.
+        
+        Parameters
+        ----------
+        mask: np.ndarray
+            A binary array to skeletonise.
+
+        Returns
+        -------
+        np.ndarray
+            The mask array reduce to a single pixel thickness
+        """
         return skeletonize(mask, method="lee")
 
     @staticmethod
     def _skeletonize_medial_axis(image: np.ndarray) -> np.ndarray:
+        """Wrapper for the scikit image implimentation of the medial axis skeletonisation method.
+        
+        Parameters
+        ----------
+        mask: np.ndarray
+            A binary array to skeletonise.
+
+        Returns
+        -------
+        np.ndarray
+            The mask array reduce to a single pixel thickness
+        """
         # don't know how these work - do they need img or mask?
         return medial_axis(image, return_distance=False)
 
     @staticmethod
     def _skeletonize_thin(image: np.ndarray) -> np.ndarray:
+        """Wrapper for the scikit image implimentation of the thin skeletonisation method.
+        
+        Parameters
+        ----------
+        mask: np.ndarray
+            A binary array to skeletonise.
+
+        Returns
+        -------
+        np.ndarray
+            The mask array reduce to a single pixel thickness
+        """
         # don't know how these work - do they need img or mask?
         return thin(image)
 
     @staticmethod
     def _skeletonize_joe(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
+        """Wrapper for Pyne-lab member Joe's skeletonisation method.
+        
+        Parameters
+        ----------
+        mask: np.ndarray
+            A binary array to skeletonise.
+
+        Returns
+        -------
+        np.ndarray
+            The mask array reduce to a single pixel thickness
+        
+        Notes
+        -----
+        This method is based on Zhang's method but produces different results 
+        (less branches but slightly less accurate).
+        """
         # image height bits don't seem to be used but are there?
-        return joeFuncs(image, mask).doSkeletonising()
+        return joeSkeleonize(image, mask).doSkeletonising()
 
 
-class joeFuncs():
-    """Contains all the functions used for Joe's skeletonisation code"""
+class joeSkeleonize():
+    """Contains all the functions used for Joe's skeletonisation code
+    
+    Notes
+    -----
+    This code contains only the minimum viable product code as much of the other code
+    relating to skeletonising based on heights was unused. This also means that
+    should someone be upto the task, it is possible to include the heights when skeletonising.
+    """
     def __init__(self, image: np.ndarray, mask: np.ndarray):
+        """Initialises the class
+        
+        Parameters
+        ----------
+        image: np.ndarray
+            The original image containing the data.
+        mask: np.ndarray
+            The binary image containing the grain(s) to be skeletonised.
+        """
         self.image = image
         self.mask = mask.copy()
         self.skeleton_converged = False
 
-    def doSkeletonising(self):
-        """Simple while loop to check if the skeletonising is finished"""
+    def doSkeletonising(self) -> np.ndarray:
+        """The wrapper for the whole skeletonisation process.
+        
+        Returns
+        -------
+        np.ndarray
+            The single pixel thick, skeletonised array.
+        """
         while not self.skeleton_converged:
             self._doSkeletonisingIteration()
         # When skeleton converged do an additional iteration of thinning to remove hanging points
@@ -108,10 +205,10 @@ class joeFuncs():
 
         return self.mask
 
-    def _doSkeletonisingIteration(self):
+    def _doSkeletonisingIteration(self) -> None:
         """Do an iteration of skeletonisation - check for the local binary pixel
         environment and assess the local height values to decide whether to
-        delete a point
+        delete a point.
         """
         pixels_to_delete = []
         # Sub-iteration 1 - binary check
@@ -120,87 +217,133 @@ class joeFuncs():
             if self._deletePixelSubit1(point):
                 pixels_to_delete.append(point)
 
-        # Check the local height values to determine if pixels should be deleted
-        # pixels_to_delete = self._checkHeights(pixels_to_delete)
-
         for x, y in pixels_to_delete:
             self.mask[x, y] = 0
 
-        # Sub-iteration 2 - binary check - seems like a repeat and could be condensed
+        # Sub-iteration 2 - binary check
         mask_coordinates = np.argwhere(self.mask == 1).tolist()
         for point in mask_coordinates:
             if self._deletePixelSubit2(point):
                 pixels_to_delete.append(point)
 
-        # Check the local height values to determine if pixels should be deleted
-        # pixels_to_delete = self._checkHeights(pixels_to_delete)
-        
         for x, y in pixels_to_delete:
             self.mask[x, y] = 0
 
         if len(pixels_to_delete) == 0:
             self.skeleton_converged = True
 
-    def _deletePixelSubit1(self, point):
+    def _deletePixelSubit1(self, point: list):
         """Function to check whether a single point should be deleted based
-        on both its local binary environment and its local height values"""
+        on both its local binary environment.
+        
+        Parameters
+        ----------
+        point: list
+            List of [x, y] coordinate positions
+        
+        Returns
+        -------
+        bool
+            Returns T/F depending if the surrounding points have met the criteria
+            of the binary thin a, b returncount, c and d checks below.
+        """
 
-        self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = self.getLocalPixelsBinary(
+        self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.getLocalPixelsBinary(
             self.mask, point[0], point[1]
         )
         return self._binaryThinCheck_a() and self._binaryThinCheck_b_returncount() == 1 and self._binaryThinCheck_c() and self._binaryThinCheck_d()
 
     def _deletePixelSubit2(self, point):
         """Function to check whether a single point should be deleted based
-        on both its local binary environment and its local height values"""
+        on both its local binary environment.
+        
+        Parameters
+        ----------
+        point: list
+            List of [x, y] coordinate positions
+        
+        Returns
+        -------
+        bool
+            Returns T/F depending if the surrounding points have met the criteria
+            of the binary thin a, b returncount, csharp and dsharp checks below.
+        """
 
-        self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = self.getLocalPixelsBinary(
+        self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.getLocalPixelsBinary(
             self.mask, point[0], point[1]
         )
         # Add in generic code here to protect high points from being deleted
         return self._binaryThinCheck_a() and self._binaryThinCheck_b_returncount() == 1 and self._binaryThinCheck_csharp() and self._binaryThinCheck_dsharp()
 
-    """These functions are ripped from the Zhang et al. paper and do the basic
-    skeletonisation steps
-
-    I can use the information from the c,d,c' and d' tests to determine a good
-    direction to search for higher height values """
-
     def _binaryThinCheck_a(self):
-        # Condition A protects the endpoints (which will be > 2) - add in code here to prune low height points
+        """Checks the surrounding area to see if the point lies on the edge of the grain.
+        Condition A protects the endpoints (which will be > 2)
+
+        Returns
+        -------
+        bool
+            if point lies on edge of graph and isn't an endpoint.
+        """
         return 2 <= self.p2 + self.p3 + self.p4 + self.p5 + self.p6 + self.p7 + self.p8 + self.p9 <= 6
 
     def _binaryThinCheck_b_returncount(self):
-        # assess local area connectivity? (adding T/F)
-        count = [self.p2, self.p3] == [0, 1]
-        count += [self.p3, self.p4] == [0, 1]
-        count += [self.p4, self.p5] == [0, 1]
-        count += [self.p5, self.p6] == [0, 1]
-        count += [self.p6, self.p7] == [0, 1]
-        count += [self.p7, self.p8] == [0, 1]
-        count += [self.p8, self.p9] == [0, 1]
-        count += [self.p9, self.p2] == [0, 1]
+        """Assess local area connectivity?"""
+        count = sum([
+            [self.p2, self.p3] == [0, 1],
+            [self.p3, self.p4] == [0, 1],
+            [self.p4, self.p5] == [0, 1],
+            [self.p5, self.p6] == [0, 1],
+            [self.p6, self.p7] == [0, 1],
+            [self.p7, self.p8] == [0, 1],
+            [self.p8, self.p9] == [0, 1],
+            [self.p9, self.p2] == [0, 1]
+        ])
 
         return count
 
     def _binaryThinCheck_c(self):
-        # check if p2, p4 or p6 is 0
+        """Check if p2, p4 or p6 is 0 - seems very specific
+        
+        Returns
+        -------
+        bool
+            if p2, p4 or p6 is 0.
+        """
         return self.p2 * self.p4 * self.p6 == 0
 
     def _binaryThinCheck_d(self):
-        # check if p4, p6 or p8 is 0
+        """Check if p4, p6 or p8 is 0 - seems very specific
+        
+        Returns
+        -------
+        bool
+            if p4, p6 or p8 is 0.
+        """
         return self.p4 * self.p6 * self.p8 == 0
 
     def _binaryThinCheck_csharp(self):
+        """Check if p2, p4 or p8 is 0 - seems very specific
+        
+        Returns
+        -------
+        bool
+            if p2, p4 or p8 is 0.
+        """
         return self.p2 * self.p4 * self.p8 == 0
 
     def _binaryThinCheck_dsharp(self):
+        """Check if p2, p6 or p8 is 0 - seems very specific
+        
+        Returns
+        -------
+        bool
+            if p2, p6 or p8 is 0.
+        """
         return self.p2 * self.p6 * self.p8 == 0
 
     def finalSkeletonisationIteration(self):
         """A final skeletonisation iteration that removes "hanging" pixels.
         Examples of such pixels are:
-
                     [0, 0, 0]               [0, 1, 0]            [0, 0, 0]
                     [0, 1, 1]               [0, 1, 1]            [0, 1, 1]
             case 1: [0, 1, 0]   or  case 2: [0, 1, 0] or case 3: [1, 1, 0]
@@ -211,17 +354,7 @@ class joeFuncs():
         remaining_coordinates = np.argwhere(self.mask).tolist()
 
         for x, y in remaining_coordinates:
-
-            (
-                self.p2,
-                self.p3,
-                self.p4,
-                self.p5,
-                self.p6,
-                self.p7,
-                self.p8,
-                self.p9,
-            ) = self.getLocalPixelsBinary(self.mask, x, y)
+            self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.getLocalPixelsBinary(self.mask, x, y)
 
             # Checks for case 1 pixels
             if self._binaryThinCheck_b_returncount() == 2 and self._binaryFinalThinCheck_a():
@@ -231,35 +364,268 @@ class joeFuncs():
                 self.mask[x, y] = 0
 
     def _binaryFinalThinCheck_a(self):
-        # assess if local area has 4 connectivity
-        return 1 in (self.p2 * self.p4, self.p4 * self.p6, self.p6 * self.p8, self.p8 * self.p2)
+        """Assess if local area has 4-connectivity.
+        
+        Returns
+        -------
+        bool
+            T/F if any neighbours of the 4-connections have a near pixel.
+        """
+        return 1 in (
+            self.p2 * self.p4, 
+            self.p4 * self.p6, 
+            self.p6 * self.p8, 
+            self.p8 * self.p2
+            )
 
 
     def _binaryFinalThinCheck_b(self):
-        # assess if local area has 4 connectivity
-        return 1 in (self.p2 * self.p4 * self.p6, self.p4 * self.p6 * self.p8, self.p6 * self.p8 * self.p2, self.p8 * self.p2 * self.p4)
+        """Assess if local area 4-connectivity is connected to multiple branches.
+        
+        Returns
+        -------
+        bool
+            T/F if any neighbours of the 4-connections have a near pixel.
+        """
+        return 1 in (
+            self.p2 * self.p4 * self.p6, 
+            self.p4 * self.p6 * self.p8, 
+            self.p6 * self.p8 * self.p2, 
+            self.p8 * self.p2 * self.p4
+            )
 
     @staticmethod
-    def getLocalPixelsBinary(binary_map, x, y):
-        # [[p9, p2, p3],
-        #  [p8, na, p4],
-        #  [p7, p6, p5]]
-        p2 = binary_map[x, y + 1]
-        p3 = binary_map[x + 1, y + 1]
-        p4 = binary_map[x + 1, y]
-        p5 = binary_map[x + 1, y - 1]
-        p6 = binary_map[x, y - 1]
-        p7 = binary_map[x - 1, y - 1]
-        p8 = binary_map[x - 1, y]
-        p9 = binary_map[x - 1, y + 1]
+    def getLocalPixelsBinary(binary_map, x, y) -> np.ndarray:
+        """Get the values of the pixels in the local 8-connectivit area around
+        the coordinate described by x and y.
 
-        return p2, p3, p4, p5, p6, p7, p8, p9
+        Parameters
+        ----------
+        binary_map: np.ndarray
+            The binary array containing the grains.
+        x: int
+            An x coordinate within the binary map.
+        y: int 
+            A y coordinate within the binary map.
+
+        Returns
+        -------
+        np.ndarray
+            A flattened 8-long array describing the values in the binary map
+            around the x,y point
+        """
+        local_pixels = binary_map[x-1:x+2,y-1:y+2].flatten()
+        # [[p7, p8, p9],    [[0,1,2],
+        #  [p6, na, p2], ->  [3,4,5], -> [0,1,2,3,5,6,7,8]
+        #  [p5, p4, p3]]     [6,7,8]]
+        # delete coordinate pixel to only get local area
+        return np.delete(local_pixels, 4)
 
 
 class pruneSkeleton():
+    """Class containing skeletonization pruning code from factory methods to functions
+    depaendant on the method. Pruning is the act of removing spurious branches commonly
+    found when implimenting skeletonization algorithms."""
 
-    def __init__(self, image: np.ndarray, mask: np.ndarray) -> None:
+    def __init__(self, image: np.ndarray, skeleton: np.ndarray) -> None:
+        """Initialise the class.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            The original image the skeleton derives from (not the binary mask)
+        skeleton: np.ndarray
+            The single-pixel-thick skeleton pertaining to features of the image.
+        """
         self.image = image
-        self.mask = mask
+        self.skeleton = skeleton
+
+    def prune_skeleton(self, method: str = "joe") -> np.ndarray:
+        """Factory method for pruning skeletons.
+
+        Parameters
+        ----------
+        method : str
+            Method to use, default is 'joe'.
+
+        Returns
+        -------
+        np.ndarray
+            An array of the skeleton with spurious branching artefacts removed.
+
+        Notes
+        -----
+
+        This is a thin wrapper to the methods provided within the pruning classes below.
+        """
+        return self._prune_method(method)
+
+    def _prune_method(self, method: str = "joe") -> Callable:
+        """Creator component which determines which skeletonize method to use.
+
+        Parameters
+        ----------
+        method: str
+            Method to use for skeletonizing, methods are 'joe' other options are 'conv'.
+
+        Returns
+        -------
+        Callable
+            Returns the function appropriate for the required skeletonizing method.
+        """
+        if method == "joe":
+            return self._prune_joe(self.image, self.skeleton)
+        raise ValueError(method)
+
+    @staticmethod
+    def _prune_joe(image: np.ndarray, skeleton: np.ndarray) -> np.ndarray:
+        """Wrapper for Pyne-lab member Joe's pruning method.
+        
+        Parameters
+        ----------
+        image: np.ndarray
+            The image used to find the skeleton (doesn't have to be binary)
+        skeleton: np.ndarray
+            Binary array containing skelton(s)
+
+        Returns
+        -------
+        np.ndarray
+            The skeleton with spurious branching artefacts removed.
+        """
+        return joePrune(image, skeleton).prune_all_skeletons()
 
 
+class joePrune():
+    """Contains all the functions used for Joe's skeletonisation code
+    
+    Notes
+    -----
+    This code contains only the minimum viable product code as much of the other code
+    relating to pruning based on heights was unused. This also means that
+    should someone be upto the task, it is possible to include the heights when pruning.
+    """
+
+    def __init__(self, image: np.ndarray, skeleton: np.ndarray) -> np.ndarray:
+        """Initialise the class.
+
+        Parameters
+        image: np.ndarray
+            The original data to help with branch removal.
+
+        skeleton np.ndarray
+            The skeleton to remove unwanted branches from.
+
+        Returns:
+            np.ndarray: _description_
+        """
+        self.image = image
+        self.skeleton = skeleton.copy()
+
+    def prune_all_skeletons(self) -> np.ndarray:
+        """Wrapper function to prune all skeletons by labling and iterating through
+        each one, binarising, then pruning, then adding up the single skeleton masks 
+        to make a single mask.
+        
+        Returns
+        -------
+        np.ndarray
+            A single mask with all pruned skeletons."""
+        pruned_skeleton_mask = np.zeros_like(self.skeleton)
+        for i in range(1, label(self.skeleton).max() + 1):
+            single_skeleton = self.skeleton.copy()
+            single_skeleton[single_skeleton != i] = 0
+            single_skeleton[single_skeleton == i] = 1
+            pruned_skeleton_mask += self._prune_single_skeleton(single_skeleton)
+        return pruned_skeleton_mask
+
+    def _prune_single_skeleton(self, single_skeleton: np.ndarray) -> np.ndarray:
+        """Function to remove the hanging branches from a single skeleton as this
+        function is an iterative process. These are a persistent problem in the 
+        overall tracing process.
+        
+        Parameters
+        ---------
+        single_skeleton: np.ndarray
+            A binary array containing a single skeleton.
+
+        Returns:
+        --------
+        np.ndarray
+            A binary mask of the single skeleton 
+        """
+        pruning = True
+        while pruning:
+            number_of_branches = 0
+            coordinates = np.argwhere(single_skeleton == 1).tolist()
+
+            # The branches are typically short so if a branch is longer than
+            #  0.15 * total points, its assumed to be part of the real data
+            max_branch_length = int(len(coordinates) * 0.15)
+
+            # first check to find all the end coordinates in the trace
+            potential_branch_ends = self._findBranchEnds(coordinates)
+
+            # Now check if its a branch - and if it is delete it
+            for x_b, y_b in potential_branch_ends:
+                branch_coordinates = [[x_b, y_b]]
+                branch_continues = True
+                temp_coordinates = coordinates[:]
+                temp_coordinates.pop(temp_coordinates.index([x_b, y_b]))
+
+                while branch_continues:
+                    no_of_neighbours, neighbours = genTracingFuncs.countandGetNeighbours(x_b, y_b, temp_coordinates)
+
+                    # If branch continues
+                    if no_of_neighbours == 1:
+                        x_b, y_b = neighbours[0]
+                        branch_coordinates.append([x_b, y_b])
+                        temp_coordinates.pop(temp_coordinates.index([x_b, y_b]))
+
+                    # If the branch reaches the edge of the main trace
+                    elif no_of_neighbours > 1:
+                        branch_coordinates.pop(branch_coordinates.index([x_b, y_b]))
+                        branch_continues = False
+                        is_branch = True
+                    
+                    # Weird case that happens sometimes (would this be linear mols?)
+                    elif no_of_neighbours == 0:
+                        is_branch = True
+                        branch_continues = False
+
+                    # why not `and branch_continues`?
+                    if len(branch_coordinates) > max_branch_length:
+                        branch_continues = False
+                        is_branch = False
+                # 
+                if is_branch:
+                    number_of_branches += 1
+                    for x, y in branch_coordinates:
+                        single_skeleton[x, y] = 0
+
+            if number_of_branches == 0:
+                pruning = False
+        
+        return single_skeleton
+
+    @staticmethod
+    def _findBranchEnds(coordinates) -> list:
+        """Identifies branch ends as they only have one connected point.
+
+        Parameters
+        ----------
+        coordinates: list
+            A list of x, y coordinates of a branch.
+
+        Returns
+        -------
+        list
+            A list of x,y coordinates of the branch ends.
+        """
+        potential_branch_ends = []
+
+        # Most of the branch ends are just points with one neighbour
+        for x, y in coordinates:
+            if genTracingFuncs.countandGetNeighbours(x, y, coordinates)[0] == 1:
+                potential_branch_ends.append([x, y])
+        return potential_branch_ends
