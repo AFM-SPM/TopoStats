@@ -18,7 +18,6 @@ from skimage.filters import gaussian
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
 from topostats.tracing.skeletonize import getSkeleton, pruneSkeleton
-from topostats.filters import Filters
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
