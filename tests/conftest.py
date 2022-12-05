@@ -607,15 +607,15 @@ def minicircle_grainstats(
 # Derive fixtures for DNA Tracing
 GRAINS = np.array(
     [
-        [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2],
-        [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 2],
-        [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 2],
-        [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-        [0, 0, 3, 3, 3, 3, 3, 0, 0, 0, 2],
-        [0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 2],
-        [0, 0, 3, 3, 3, 3, 3, 0, 0, 0, 2],
-        [0, 0, 4, 4, 4, 4, 4, 0, 0, 0, 2],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0],
+        [0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0],
+        [0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+        [0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0],
+        [0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ]
 )
 FULL_IMAGE = RNG.random((GRAINS.shape[0], GRAINS.shape[1]))
@@ -626,6 +626,25 @@ def test_dnatracing() -> dnaTrace:
     """Instantiate a dnaTrace object."""
     return dnaTrace(full_image_data=FULL_IMAGE, grains=GRAINS, filename="Test", pixel_size=1.0)
 
+
+@pytest.fixture
+def dnatracing_dilate(test_dnatracing: dnaTrace) -> dnaTrace:
+    """Perform dilation"""
+    test_dnatracing.grains = dnaTrace.binary_img_to_dict(test_dnatracing.grains_orig)
+    test_dnatracing.dilate_grains()
+    return test_dnatracing
+
+@pytest.fixture
+def dnatracing_disordered_traces(dnatracing_dilate: dnaTrace) -> dnaTrace:
+    """Get disordered grain coords."""
+    dnatracing_dilate.get_disordered_trace()
+    return dnatracing_dilate
+
+@pytest.fixture
+def dnatracing_trace(test_dnatracing: dnaTrace) -> dnaTrace:
+    """Run the tracing pipeline on the dnatracing object."""
+    test_dnatracing.trace_dna()
+    return test_dnatracing
 
 @pytest.fixture
 def minicircle_dnatracing(
