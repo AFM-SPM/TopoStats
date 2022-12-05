@@ -7,6 +7,7 @@ import numpy as np
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import get_thresholds, get_mask
+from topostats.scars import Scars
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -314,6 +315,13 @@ processed, please refer to <url to page where we document common problems> for m
         self.images["initial_quadratic_removal"] = self.remove_quadratic(
             self.images["initial_tilt_removal"], mask=None, img_name=self.filename
         )
+
+        # FIXME: Link this up with the pipeline
+        # Remove scars
+        scars_removed = Scars(
+            # Config here
+        )
+        self.images["scar_removal"] = scars_removed.remove_scars()
 
         # Get the thresholds
         try:
