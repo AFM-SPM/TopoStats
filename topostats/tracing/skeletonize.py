@@ -166,10 +166,10 @@ class getSkeleton:
         (less branches but slightly less accurate).
         """
         # image height bits don't seem to be used but are there?
-        return joeSkeleonize(image, mask).doSkeletonising()
+        return joeSkeletonize(image, mask).doSkeletonising()
 
 
-class joeSkeleonize:
+class joeSkeletonize:
     """Contains all the functions used for Joe's skeletonisation code
 
     Notes
