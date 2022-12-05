@@ -1,0 +1,359 @@
+"""Contains image artefact correction functions that take a 2D np.ndarray image, and return the image with
+interpolated values filling the space of any detected scars."""
+import logging
+import numpy as np
+from topostats.logs.logs import LOGGER_NAME
+
+LOGGER = logging.getLogger(LOGGER_NAME)
+
+class Scars:
+    """
+    A class for detecting and removing scars from an image. Scars are typically
+    long, thin horizontal streaks above/below the data, resulting from the
+    AFM imaging process.
+    """
+
+    def __init__(
+        self,
+        img: np.ndarray,
+        removal_iterations: int,
+        threshold_low: float,
+        threshold_high: float,
+        max_scar_width: int,
+        min_scar_length: int
+    ):
+        """Initialise the class"""
+        self.img = img
+        self.removal_iterations = removal_iterations
+        self.threshold_low = threshold_low
+        self.threshold_high = threshold_high
+        self.max_scar_width = max_scar_width
+        self.min_scar_length = min_scar_length
+
+    def mark_if_positive_scar(
+        self,
+        row_col: tuple,
+        stddev: float,
+        img: np.ndarray,
+        marked: np.ndarray,
+        threshold_low: float,
+        max_scar_width: int,
+        ) -> None:
+        """
+        Determine if the points below and including the pixel at the specified row and column are an positive scar.
+        If they are, mark them in the marked 2d np.ndarray. Note that this only detects positive scars.
+        Parameters
+        ----------
+        row_col: tuple
+            A tuple containing the row and column indices of the pixel for the top of the potential scar. Note that
+            the first value is the row index, and the second is the column index.
+        stddev: float
+            The standard deviation, or the root-mean-square value for the image.
+        img: np.ndarray
+            A 2-D image of the data to remove scars from.
+        marked: np.ndarry
+            A 2-D image of pixels that stores the positions of scars marked for removal. The value of the pixel is a
+            floating point value that represents how strongly the algorithm considers it to be a scar.
+            This may or may not already contain non-zero values given that previous iterations of scar removal
+            may have been performed.
+        threshold_low: float
+            A value that when multiplied with the standard deviation, acts as a threshold to determine if an increase
+            or decrease in height might constitute the top or bottom of a scar.
+        max_scar_width: int
+            A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,
+            rather vertical, this is because we conside scars to be laying flat, horizontally, so their width is 
+            vertical and their length is horizontal.
+        """
+
+        # Unpack row, col
+        row = row_col[0]
+        col = row_col[1]
+
+        # If sharp enough rise
+        min_scar_value = img[row+1, col]
+        max_border_value = img[row, col]
+        if min_scar_value - max_border_value > threshold_low*stddev:
+            # Possibly in a scar
+            for k in range(1, max_scar_width+1):
+                if row + k + 1 >= img.shape[0]:
+                    # Bottom of image, break
+                    break
+                min_scar_value = min(min_scar_value, img[row+k, col])
+                max_border_value = max(img[row, col], img[row+k+1, col])
+                # Check if scar ended
+                if min_scar_value - max_border_value > threshold_low*stddev:
+                    while k:
+                        val = (img[row+k, col] - max_border_value) / stddev
+                        marked[row+k, col] = val
+                        k -= 1
+
+    def mark_if_negative_scar(
+        self,
+        row_col: tuple,
+        stddev: float,
+        img: np.ndarray,
+        marked: np.ndarray,
+        threshold_low: float,
+        max_scar_width: int,
+        ) -> None:
+        """
+        Determine if the points below and including the pixel at the specified row and column are a negative scar.
+        If they are, mark them in the marked 2d np.ndarray. Note that this only detects negative scars.
+        
+        Parameters
+        ----------
+        row_col: tuple
+            A tuple containing the row and column indices of the pixel for the top of the potential scar. Note that
+            the first value is the row index, and the second is the column index.
+        stddev: float
+            The standard deviation, or the root-mean-square value for the image.
+        img: np.ndarray
+            A 2-D image of the data to remove scars from.
+        marked: np.ndarry
+            A 2-D image of pixels that stores the positions of scars marked for removal. The value of the pixel is a
+            floating point value that represents how strongly the algorithm considers it to be a scar.
+            This may or may not already contain non-zero values given that previous iterations of scar removal
+            may have been performed.
+        threshold_low: float
+            A value that when multiplied with the standard deviation, acts as a threshold to determine if an increase
+            or decrease in height might constitute the top or bottom of a scar.
+        max_scar_width: int
+            A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,
+            rather vertical, this is because we conside scars to be laying flat, horizontally, so their width is
+            vertical and their length is horizontal.
+        """
+
+        # Unpack row, col
+        row = row_col[0]
+        col = row_col[1]
+
+        # If sharp enough dip
+        min_scar_value = img[row+1, col]
+        max_border_value = img[row, col]
+        if min_scar_value - max_border_value < -threshold_low*stddev:
+            # Possibly in a scar
+            for k in range(1, max_scar_width+1):
+                if row + k + 1 >= img.shape[0]:
+                    # Bottom of image, break
+                    break
+                min_scar_value = max(min_scar_value, img[row+k, col])
+                max_border_value = min(img[row, col], img[row+k+1, col])
+                # Check if scar ended
+                if min_scar_value - max_border_value < -threshold_low*stddev:
+                    while k:
+                        val = (max_border_value - img[row + k, col]) / stddev
+                        marked[row+k, col] = val
+                        k -= 1
+
+    def spread_scars(
+        self,
+        marked: np.ndarray,
+        threshold_low: float,
+        threshold_high: float,
+        ) -> None:
+        """Spread high-marked pixels into adjacent low-marked pixels. This is a smudging function that attempts to catch
+        any pixels that are parts of scars that might not have been extreme enough to get marked above the high_threshold.
+        Any remaining marked pixels below high_threshold are considered not to be scars and are removed from the mask.
+        """
+
+        # Spread scars that have close to threshold edge-points
+        left_filled_count = 0
+        right_filled_count = 0
+        for row in range(marked.shape[0]):
+            # Spread right
+            for col in range(1, marked.shape[1]):
+                if marked[row, col] >= threshold_low and marked[row, col-1] >= threshold_high:
+                    marked[row, col] = threshold_high
+                    right_filled_count += 1
+            # Spread left
+            for col in range(marked.shape[1]-1, 0):
+                if marked[row, col-1] >= threshold_low and marked[row, col] >= threshold_high:
+                    marked[row,col-1] = threshold_high
+                    left_filled_count += 1
+
+    def remove_too_short_scars(
+        self,
+        marked: np.ndarray,
+        threshold_high: float,
+        min_scar_length: int
+    ) -> None:
+        """
+        Removes scars that are too short (horizontally), based on the min_scar_length argument.
+        """
+
+        # Remove too-short scars
+        for row in range(marked.shape[0]):
+            k = 0
+            for col in range(marked.shape[1]):
+                # If greater than threshold, set value to true
+                if marked[row, col] >= threshold_high:
+                    marked[row, col] = 1.0
+                    k += 1
+                    continue
+                # If not greater than threshold,
+                # either we reached the end of the scar,
+                # or haven't found one.
+                # Check if too short. If so, remove.
+                if k and k < min_scar_length:
+                    while k:
+                        marked[row, col-k] = 0.0
+                        k -= 1
+                # Long enough, just not bright anymore.
+                # Reached the end of the scar that is long enough. Stop and reset.
+                marked[row, col] = 0.0
+                k = 0
+            # Reached the end of the line, so check current scar's
+            # length to see if too short and should be deleted.
+            if k and k < min_scar_length:
+                while k:
+                    marked[row, col-k] = 0.0
+                    k -= 1
+
+    def mark_scars(
+        self,
+        img: np.ndarray,
+        direction: str,
+        threshold_low: float,
+        threshold_high: float,
+        max_scar_width: int,
+        min_scar_length: int
+    ) -> np.ndarray:
+        """
+        Mark scars within an image, returning a boolean 2D np.ndarray of pixels that have been detected as scars.
+
+        Parameters
+        ----------
+        img: np.ndarray
+            A 2-D image of the data to detect scars in.
+        direction: str
+            Options: 'positive', 'negative'. The direction of scars to detect. For example, to detect scars
+            that lie above the data, select 'positive'.
+        threshold_low: float
+            A floating point value, that when multiplied by the standard deviation of the image, acts as a
+            threshold for sharp inclines or descents in pixel values and thus marks potential scars.
+            A lower value will make the algorithm
+            more sensitive, and a higher value will make it less sensitive.
+        threshold_high: float
+            A floating point value that is used similarly to threshold_low, however sharp inclines or descents
+            that result in values in the mask higher than this threshold are automatically considered scars.
+        max_scar_width: int
+            An integer that restricts the algorithm to only mark scars that are as thin or thinner than this width.
+            This is important for ensuring that legitimate grain data is not detected as scarred data.
+            Note that width here is vertical, as scars are thin, horizontal features.
+        min_scar_length: int
+            An integer that restricts the algorithm to only mark scars taht are as long or longer than this length.
+            This is important for ensuring that noise or legitimate but sharp datapoints do not get detected as scars.
+            Note that length here is horizontal, as scars are thin, horizontal features.
+        Returns
+        -------
+        np.ndarray
+            Returns a copy of the input image with any detected scars removed.
+        """
+
+        img = np.copy(img)
+
+        stddev = np.std(img)
+        marked = np.zeros(img.shape)
+
+        if direction == 'positive':
+            # Find positive scars
+            for row in range(img.shape[0]-1):
+                for col in range(img.shape[1]):
+
+                    self.mark_if_positive_scar(
+                        row_col=(row, col),
+                        stddev=stddev,
+                        img=img,
+                        marked=marked,
+                        threshold_low=threshold_low,
+                        max_scar_width=max_scar_width
+                    )
+
+        elif direction == 'negative':
+            # Find negative scars
+            for row in range(img.shape[0]-1):
+                for col in range(img.shape[1]):
+
+                    self.mark_if_negative_scar(
+                        row_col=(row, col),
+                        stddev=stddev,
+                        img=img,
+                        marked=marked,
+                        threshold_low=threshold_low,
+                        max_scar_width=max_scar_width
+                    )
+
+        else:
+            raise ValueError(f'direction {direction} invalid.')
+
+        self.spread_scars(
+            marked=marked,
+            threshold_low=threshold_low,
+            threshold_high=threshold_high
+        )
+
+        self.remove_too_short_scars(
+            marked=marked,
+            threshold_high=threshold_high,
+            min_scar_length=min_scar_length
+        )
+
+        return marked
+
+    def remove_marked_scars(self, img: np.ndarray, scar_mask: np.ndarray) -> np.ndarray:
+        """
+        Interpolate values covered by marked scars. Takes an image, and a marked scar boolean mask for that
+        image. Returns the image where the marked scars are replaced by interpolated values.
+        """
+        for row in range(img.shape[0]):
+            for col in range(img.shape[1]):
+                if scar_mask[row, col] == 1.0:
+                    # Scar detected
+                    # Find out how tall it is
+                    scar_width = 1
+                    while True:
+                        # Exit if reach the bottom of the image
+                        if row+scar_width >= img.shape[0]:
+                            break
+                        # If pixel is marked, increase scar width
+                        if scar_mask[row+scar_width, col] == 1.0:
+                            scar_width += 1
+                        else:
+                            break
+
+                    above = img[row-1, col]
+                    below = img[row+scar_width, col]
+                    # Linearly interpolate
+                    k = scar_width
+                    while k:
+                        interp_val = (k / (scar_width + 1)) * below + (1 - (k / (scar_width + 1))) * above
+                        img[row+k-1, col] = interp_val
+                        scar_mask[row+k-1, col] = 0.0
+                        k -= 1
+
+        return img
+
+    def remove_scars(self):
+        """Remove scars from image"""
+
+        for _ in range(self.removal_iterations):
+            marked_positive = self.mark_scars(
+                img = self.img,
+                direction = 'positive',
+                threshold_low = self.threshold_low,
+                threshold_high = self.threshold_high,
+                max_scar_width = self.max_scar_width, 
+                min_scar_length = self.min_scar_length
+            )
+            marked_negative = self.mark_scars(
+                img = self.img,
+                direction = 'negative',
+                threshold_low = self.threshold_low,
+                threshold_high = self.threshold_high,
+                max_scar_width = self.max_scar_width,
+                min_scar_length = self.min_scar_length
+            )
+            # Combine the upper and lower scar masks
+            marked_both = np.bitwise_or(marked_positive.astype(bool), marked_negative.astype(bool))
+            img = self.remove_marked_scars(self.img, marked_both)
+        return img
