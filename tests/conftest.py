@@ -747,23 +747,19 @@ def skeletonize_linear_bool_int(skeletonize_linear) -> np.ndarray:
 N_POINTS = 1000
 
 
-@pytest.fixture(params=[4, 10, 100])
-def curvature_circle(request) -> np.ndarray:
-    """A circle for testing curvature class and methods."""
-    radius = float(1)
-    coordinates = np.zeros([request.param, 2])
-    print(f"coordinates : {coordinates}")
-    for i in np.arange(request.param):
-        theta = 2 * math.pi / request.param * i
-        print(f"theta : {theta}")
-        x = -math.cos(theta) * radius
-        y = math.sin(theta) * radius
-        print(f"x : {x}")
-        print(f"y : {y}")
-        coordinates[i][0] = x
-        coordinates[i][1] = y
-    curvature = Curvature(coordinates, circular=True, edge_order=2)
-    return curvature
+# @pytest.fixture(params=[4, 10, 100])
+# def curvature_circle(request) -> np.ndarray:
+#     """A circle for testing curvature class and methods."""
+#     radius = float(10)
+#     coordinates = np.zeros([request.param, 2])
+#     for i in np.arange(request.param):
+#         theta = 2 * math.pi / request.param * i
+#         x = -math.cos(theta) * radius
+#         y = math.sin(theta) * radius
+#         coordinates[i][0] = x
+#         coordinates[i][1] = y
+#     curvature = Curvature(coordinates, circular=True)
+#     return curvature
 
 
 # @pytest.fixture
@@ -787,7 +783,7 @@ def ellipse_coordinates(request) -> np.ndarray:
         coordinates[i][0] = x
         coordinates[i][1] = y
     ellipse_coord = np.roll(coordinates, int(request.param * displacement), axis=0)
-    curvature = Curvature(ellipse_coord, circular=True, edge_order=2)
+    curvature = Curvature(ellipse_coord, circular=True)
     return curvature
 
 
@@ -804,7 +800,7 @@ def parabola_coordinates(request) -> np.ndarray:
     x = np.linspace(-2, 2, num=request.param)
     y = x**2
     parabola_coord = np.column_stack((x, y))
-    curvature = Curvature(parabola_coord, circular=False, edge_order=2)
+    curvature = Curvature(parabola_coord, circular=False)
     return curvature
 
 
