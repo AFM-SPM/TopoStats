@@ -1,3 +1,5 @@
+<div align="center">
+
 # TopoStats
 
 <p>
@@ -12,6 +14,9 @@ Status](https://readthedocs.org/projects/topostats/badge/?version=dev)](https://
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-360/)
 </p>
 | [How to use](#How-to-use) | [Installation](#installation) | [Tutorials and Examples](#tutorials-and-Examples) | [Contributing](contributing.md) | [Licence](#licence) | [Citation](#citation) |  |
+</div>
+
+--------------------------------------------------------------------------------
 
 An AFM image analysis program to batch process data and obtain statistics from images.
 
