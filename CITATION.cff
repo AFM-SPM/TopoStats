@@ -38,6 +38,8 @@ authors:
 identifiers:
   - type: doi
     value: 10.1101/2020.09.23.309609
+  - type: doi
+    value: 10.1016/j.ymeth.2021.01.008
 abstract: >-
   TopoStats is software for processing and summarising images from Atomic Force Microscopy.
 keywords:
