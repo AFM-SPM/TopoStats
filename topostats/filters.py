@@ -291,7 +291,7 @@ processed, please refer to <url to page where we document common problems> for m
             **kwargs,
         )
 
-    def filter_image(self) -> None:
+    def filter_image(self, scars_config: dict) -> None:
         """Process a single image, filtering, finding grains and calculating their statistics.
 
         Example
@@ -316,17 +316,16 @@ processed, please refer to <url to page where we document common problems> for m
             self.images["initial_tilt_removal"], mask=None, img_name=self.filename
         )
 
-        # FIXME: Link this up with the pipeline
         # Remove scars
         scars_removed = Scars(
-            # Config here
+            self.images["initial_quadratic_removal"], filename=self.filename, **scars_config
         )
-        self.images["scar_removal"] = scars_removed.remove_scars()
+        self.images["initial_scar_removal"] = scars_removed.remove_scars()
 
         # Get the thresholds
         try:
             self.thresholds = get_thresholds(
-                image=self.images["initial_quadratic_removal"],
+                image=self.images["initial_scar_removal"],
                 threshold_method=self.threshold_method,
                 otsu_threshold_multiplier=self.otsu_threshold_multiplier,
                 threshold_std_dev=self.threshold_std_dev,
@@ -335,7 +334,7 @@ processed, please refer to <url to page where we document common problems> for m
         except TypeError as type_error:
             raise type_error
         self.images["mask"] = get_mask(
-            image=self.images["initial_quadratic_removal"], thresholds=self.thresholds, img_name=self.filename
+            image=self.images["initial_scar_removal"], thresholds=self.thresholds, img_name=self.filename
         )
         self.images["masked_median_flatten"] = self.median_flatten(
             self.images["initial_tilt_removal"], self.images["mask"], img_name=self.filename
@@ -346,7 +345,12 @@ processed, please refer to <url to page where we document common problems> for m
         self.images["masked_quadratic_removal"] = self.remove_quadratic(
             self.images["masked_tilt_removal"], self.images["mask"], img_name=self.filename
         )
+        # Remove scars
+        secondary_scars_removed = Scars(
+            self.images["masked_quadratic_removal"], filename=self.filename, **scars_config
+        )
+        self.images["secondary_scar_removal"] = secondary_scars_removed.remove_scars()
         self.images["zero_average_background"] = self.average_background(
-            self.images["masked_quadratic_removal"], self.images["mask"]
+            self.images["secondary_scar_removal"], self.images["mask"]
         )
         self.images["gaussian_filtered"] = self.gaussian_filter(self.images["zero_average_background"])
