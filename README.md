@@ -72,6 +72,8 @@ See [contributing guidelines](https://afm-spm.github.io/TopoStats/contributing.h
 
 ## Citation
 
-Please use the [Citation File Format](https://citation-file-format.github.io/) is available in this repository (see )
+Please use the [Citation File Format](https://citation-file-format.github.io/) which is available in this repository.
+
+### Publications
 
 - [TopoStats – A program for automated tracing of biomolecules from AFM images](https://www.sciencedirect.com/science/article/pii/S1046202321000207)
