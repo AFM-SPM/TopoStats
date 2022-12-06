@@ -30,6 +30,7 @@ repos:
   - repo: local
     hooks:
       - id: pylint
+        args: ["--rcfile=.pylintrc", "--ignore-patterns=*_version.py", "topostats", "tests"]
         name: Pylint
         entry: python -m pylint.__main__
         language: system
