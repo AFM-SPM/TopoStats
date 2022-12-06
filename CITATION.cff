@@ -9,10 +9,10 @@ message: >-
 type: software
 authors:
   - given-names: Alice
+    family-names: Pyne
     email: a.l.pyne@sheffield.ac.uk
     affiliation: The University of Sheffield
     orcid: 'https://orcid.org/0000-0002-2658-8987'
-    family-names: ' Pyne'
   - given-names: Robert
     family-names: Turner
     email: r.d.turner@sheffield.ac.uk

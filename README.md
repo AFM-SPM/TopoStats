@@ -62,6 +62,10 @@ A sample configuration file is available [here](https://github.com/AFM-SPM/TopoS
 The configuration file is validated before analysis begins and if there are problems you will see errors messages that
 are hopefully useful in resolving the error(s) in your modified configuration.
 
+### Notebooks
+
+Example Jupyter Notebooks are in development (see #242).
+
 ## Contributing
 
 See [contributing guidelines](https://afm-spm.github.io/TopoStats/contributing.html).
