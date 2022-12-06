@@ -18,6 +18,13 @@ filter:
     upper: 1.0
   gaussian_size: 1.0121397464510862 # in px
   gaussian_mode: nearest
+scars:
+  run: true
+  removal_iterations: 2
+  threshold_low: 0.250
+  threshold_high: 0.666
+  max_scar_width: 4
+  min_scar_length: 16
 grains:
   run: true # Options : true, false
   # Thresholding by height

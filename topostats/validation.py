@@ -97,6 +97,14 @@ def validate_config(config: dict):
                     error="Invalid value in config for 'filter.gaussian_mode', valid values are 'nearest'",
                 ),
             },
+            "scars": {
+                "run": bool,
+                "removal_iterations": lambda n: 0 <= n < 10,
+                "threshold_low": lambda n: n > 0,
+                "threshold_high": lambda n: n > 0,
+                "max_scar_width": lambda n: n >= 1,
+                "min_scar_length": lambda n: n >= 1
+            },
             "grains": {
                 "run": Or(
                     True, False, error="Invalid value in config for grains.run, valid values are 'True' or 'False'"
@@ -293,6 +301,19 @@ def validate_plotting(config: dict) -> None:
                 ),
                 "core_set": bool,
             },
+            "initial_scar_removal": {
+                "filename": str,
+                "title": str,
+                "image_type": Or(
+                    "binary",
+                    "non-binary",
+                    error=(
+                        "Invalid value in config 'initial_scar_removal.image_type', valid values "
+                        "are 'binary' or 'non-binary'"
+                    ),
+                ),
+                "core_set": bool,
+            },
             "mask": {
                 "filename": str,
                 "title": str,
@@ -330,6 +351,19 @@ def validate_plotting(config: dict) -> None:
                 "core_set": bool,
             },
             "masked_quadratic_removal": {
+                "filename": str,
+                "title": str,
+                "image_type": Or(
+                    "binary",
+                    "non-binary",
+                    error=(
+                        "Invalid value in config 'masked_quadratic_removal.image_type', valid values "
+                        "are 'binary' or 'non-binary'"
+                    ),
+                ),
+                "core_set": bool,
+            },
+            "secondary_scar_removal": {
                 "filename": str,
                 "title": str,
                 "image_type": Or(
