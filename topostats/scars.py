@@ -6,6 +6,8 @@ from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-instance-attributes
 
 class Scars:
     """
@@ -17,6 +19,8 @@ class Scars:
     def __init__(
         self,
         img: np.ndarray,
+        filename: str,
+        run: bool,
         removal_iterations: int,
         threshold_low: float,
         threshold_high: float,
@@ -25,6 +29,8 @@ class Scars:
     ):
         """Initialise the class"""
         self.img = img
+        self.filename = filename
+        self.run = run
         self.removal_iterations = removal_iterations
         self.threshold_low = threshold_low
         self.threshold_high = threshold_high
@@ -64,6 +70,10 @@ class Scars:
             A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,
             rather vertical, this is because we conside scars to be laying flat, horizontally, so their width is
             vertical and their length is horizontal.
+
+        Returns
+        -------
+        None
         """
 
         # Unpack row, col
@@ -122,6 +132,9 @@ class Scars:
             A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,
             rather vertical, this is because we conside scars to be laying flat, horizontally, so their width is
             vertical and their length is horizontal.
+
+        Returns
+        -------
         """
 
         # Unpack row, col
@@ -153,7 +166,8 @@ class Scars:
         threshold_high: float,
     ) -> None:
         """Spread high-marked pixels into adjacent low-marked pixels. This is a smudging function that attempts to catch
-        any pixels that are parts of scars that might not have been extreme enough to get marked above the high_threshold.
+        any pixels that are parts of scars that might not have been extreme enough to get marked above the
+        high_threshold.
         Any remaining marked pixels below high_threshold are considered not to be scars and are removed from the mask.
         """
 
@@ -292,6 +306,8 @@ class Scars:
         """
         Interpolate values covered by marked scars. Takes an image, and a marked scar boolean mask for that
         image. Returns the image where the marked scars are replaced by interpolated values.
+
+
         """
         for row in range(img.shape[0]):
             for col in range(img.shape[1]):
@@ -322,26 +338,46 @@ class Scars:
         return img
 
     def remove_scars(self):
-        """Remove scars from image"""
+        """
+        Remove scars from an image.
+        Scars are long, typically 1-4 pixels wide streaks of high or low data in AFM images. They are a problem
+        resulting from random errors in the AFM data collection process and are hard to avoid. This function
+        detects and removes these artefacts by interpolating over them between the pixels above and below them.
 
-        for _ in range(self.removal_iterations):
-            marked_positive = self.mark_scars(
-                img=self.img,
-                direction="positive",
-                threshold_low=self.threshold_low,
-                threshold_high=self.threshold_high,
-                max_scar_width=self.max_scar_width,
-                min_scar_length=self.min_scar_length,
-            )
-            marked_negative = self.mark_scars(
-                img=self.img,
-                direction="negative",
-                threshold_low=self.threshold_low,
-                threshold_high=self.threshold_high,
-                max_scar_width=self.max_scar_width,
-                min_scar_length=self.min_scar_length,
-            )
-            # Combine the upper and lower scar masks
-            marked_both = np.bitwise_or(marked_positive.astype(bool), marked_negative.astype(bool))
-            img = self.remove_marked_scars(self.img, marked_both)
-        return img
+        Parameters
+        ----------
+
+        Returns
+        -------
+        self.img
+            The original 2-D image with scars removed, unless the config has run set to False, in which case it
+            will not remove the scars.
+        """
+
+        if self.run:
+
+            LOGGER.info(f"[{self.filename}] : Removing scars")
+
+            for _ in range(self.removal_iterations):
+                marked_positive = self.mark_scars(
+                    img=self.img,
+                    direction="positive",
+                    threshold_low=self.threshold_low,
+                    threshold_high=self.threshold_high,
+                    max_scar_width=self.max_scar_width,
+                    min_scar_length=self.min_scar_length,
+                )
+                marked_negative = self.mark_scars(
+                    img=self.img,
+                    direction="negative",
+                    threshold_low=self.threshold_low,
+                    threshold_high=self.threshold_high,
+                    max_scar_width=self.max_scar_width,
+                    min_scar_length=self.min_scar_length,
+                )
+                # Combine the upper and lower scar masks
+                marked_both = np.bitwise_or(marked_positive.astype(bool), marked_negative.astype(bool))
+                self.img = self.remove_marked_scars(self.img, marked_both)
+        else:
+            LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config.")
+        return self.img
