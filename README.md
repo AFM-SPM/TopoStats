@@ -1,11 +1,16 @@
 # TopoStats
 
-[![Documentation Status](https://readthedocs.org/projects/topostats/badge/?version=dev)](https://topostats.readthedocs.io/en/dev/?badge=dev)
+<p>
+[![PyPI version](https://badge.fury.io/py/pyclarity.svg)](https://badge.fury.io/py/pyclarity)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyclarity)
+[![Documentation
+Status](https://readthedocs.org/projects/topostats/badge/?version=dev)](https://topostats.readthedocs.io/en/dev/?badge=dev)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![codecov](https://codecov.io/gh/AFM-SPM/TopoStats/branch/dev/graph/badge.svg)](https://codecov.io/gh/AFM-SPM/TopoStats)
 [![Python 3.8](https://img.shields.io/badge/python-3.8-blue.svg)](https://www.python.org/downloads/release/python-380/)
 [![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/release/python-390/)
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-360/)
-
+</p>
 | [How to use](#How-to-use) | [Installation](#installation) | [Tutorials and Examples](#tutorials-and-Examples) | [Contributing](contributing.md) | [Licence](#licence) | [Citation](#citation) |  |
 
 An AFM image analysis program to batch process data and obtain statistics from images.
