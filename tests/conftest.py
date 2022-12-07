@@ -129,10 +129,12 @@ def small_mask() -> np.ndarray:
     """Small (10x10) mask array for testing."""
     return RNG.uniform(low=0, high=1, size=SMALL_ARRAY_SIZE) > 0.5
 
+
 @pytest.fixture
 def synthetic_scars_image() -> np.array:
     """Small synthetic image for testing scar removal."""
     return np.load(RESOURCES / "synthetic_scar_image.npy")
+
 
 @pytest.fixture
 def image_random_row_medians() -> np.array:
@@ -178,6 +180,7 @@ def image_random_mask() -> np.array:
 def image_random_row_medians_masked() -> np.array:
     """Expected row medians (masked)."""
     return np.loadtxt(RESOURCES / "image_random_row_medians_masked.csv", delimiter=",")
+
 
 @pytest.fixture
 def image_random_col_medians_masked() -> np.array:
@@ -245,12 +248,13 @@ def random_filters(test_filters_random_with_mask: Filters) -> Filters:
 
     return test_filters_random_with_mask
 
+
 @pytest.fixture
 def synthetic_scar_removal(synthetic_scars_image: np.ndarray) -> Scars:
     """Scars object using a synthetic image"""
     scars = Scars(
         img=synthetic_scars_image,
-        filename='',
+        filename="",
         run=True,
         removal_iterations=2,
         threshold_low=1.5,
@@ -259,6 +263,7 @@ def synthetic_scar_removal(synthetic_scars_image: np.ndarray) -> Scars:
         min_scar_length=1,
     )
     return scars
+
 
 @pytest.fixture
 def random_grains(grains_config: dict, random_filters: Filters, tmp_path) -> Grains:
@@ -285,6 +290,7 @@ def small_array_filters(small_array: np.ndarray, load_scan: LoadScans, filter_co
     filter_obj.pixel_to_nm_scaling = 0.5
     filter_obj.images["zero_averaged_background"] = filter_obj.gaussian_filter(image=small_array)
     return filter_obj
+
 
 # IO fixtures
 @pytest.fixture

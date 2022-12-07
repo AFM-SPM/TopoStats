@@ -103,7 +103,7 @@ def validate_config(config: dict):
                 "threshold_low": lambda n: n > 0,
                 "threshold_high": lambda n: n > 0,
                 "max_scar_width": lambda n: n >= 1,
-                "min_scar_length": lambda n: n >= 1
+                "min_scar_length": lambda n: n >= 1,
             },
             "grains": {
                 "run": Or(

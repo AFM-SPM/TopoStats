@@ -317,9 +317,7 @@ processed, please refer to <url to page where we document common problems> for m
         )
 
         # Remove scars
-        scars_removed = Scars(
-            self.images["initial_quadratic_removal"], filename=self.filename, **scars_config
-        )
+        scars_removed = Scars(self.images["initial_quadratic_removal"], filename=self.filename, **scars_config)
         self.images["initial_scar_removal"] = scars_removed.remove_scars()
 
         # Get the thresholds
@@ -346,9 +344,7 @@ processed, please refer to <url to page where we document common problems> for m
             self.images["masked_tilt_removal"], self.images["mask"], img_name=self.filename
         )
         # Remove scars
-        secondary_scars_removed = Scars(
-            self.images["masked_quadratic_removal"], filename=self.filename, **scars_config
-        )
+        secondary_scars_removed = Scars(self.images["masked_quadratic_removal"], filename=self.filename, **scars_config)
         self.images["secondary_scar_removal"] = secondary_scars_removed.remove_scars()
         self.images["zero_average_background"] = self.average_background(
             self.images["secondary_scar_removal"], self.images["mask"]

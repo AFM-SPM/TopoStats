@@ -9,6 +9,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
 
+
 class Scars:
     """
     A class for detecting and removing scars from an image. Scars are typically
@@ -29,7 +30,7 @@ class Scars:
     ) -> None:
         """
         Initialise the class
-       
+
         Parameters
         ----------
         img: np.ndarray

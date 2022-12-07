@@ -154,7 +154,7 @@ class LoadScans:
 
     def load_ibw(self) -> tuple:
         """Loads image from Asylum Research (Igor) .ibw files
-        
+
         Returns
         -------
         tuple(np.ndarray, float)
@@ -187,7 +187,7 @@ class LoadScans:
 
     def _ibw_pixel_to_nm_scaling(self, scan: dict) -> float:
         """Extract pixel to nm scaling from the IBW image metadata.
-        
+
         Parameters
         ----------
         scan: dict
@@ -214,7 +214,7 @@ class LoadScans:
 
     def load_jpk(self) -> tuple:
         """Loads image from JPK Instruments .jpk files.
-        
+
         Returns
         -------
         tuple(np.ndarray, float)
@@ -307,7 +307,7 @@ class LoadScans:
                 )
 
     def add_to_dic(self, filename: str, image: np.ndarray, img_path: Path, px_2_nm: float) -> None:
-        """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under 
+        """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under
         the key filename.
 
         Parameters
