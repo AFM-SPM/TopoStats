@@ -2,7 +2,7 @@
 from pathlib import Path
 
 from topostats.run_topostats import process_scan
-from topostats.io import read_yaml, LoadScans
+from topostats.io import LoadScans
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"

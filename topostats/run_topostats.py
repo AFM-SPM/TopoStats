@@ -18,7 +18,7 @@ from tqdm import tqdm
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import write_yaml, LoadScans
+from topostats.io import read_yaml, write_yaml, LoadScans
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
