@@ -27,6 +27,10 @@ output/config.yaml
 # Example Data
 !minicircle.spm
 
+# Tests data
+!tests/resources/synthetic_scar_image.npy
+!tests/resources/synthetic_scar_removal.npy
+
 # IDE
 .vscode/
 .idea/
