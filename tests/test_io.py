@@ -89,7 +89,7 @@ def test_load_scan_jpk(load_scan_jpk: LoadScans) -> None:
     [
         ("load_scan", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
         ("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625),
-        ("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876)
+        ("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876),
     ],
 )
 def test_load_scan_get_data(

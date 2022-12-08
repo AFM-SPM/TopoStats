@@ -5,7 +5,9 @@
 then please do not hesitate to ask a question.
 
 
-TopoStats is a [Python](https://www.python.org) package designed to run at the command line. You may have Python
+TopoStats is a [Python](https://www.python.org) package designed to run at the command line. If you are using Microsoft
+Windows you should install and use
+[Powershell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell). You may have Python
 installed on your system but should use a [Python Virtual
 Environment](https://realpython.com/python-virtual-environments-a-primer/) such as
 [Miniconda](https://docs.conda.io/en/latest/miniconda.html) and install it under the Virtual Environment. The versions
@@ -16,7 +18,7 @@ minimum.
 
 Once you have downloaded and installed [Miniconda](https://docs.conda.io/en/latest/miniconda.html) you can create a
 virtual environment for installing TopoStats with a version of Python that meets the requirements. We will call
-this environment `topostats` (specified with the `--name topostats` option) and to use Python 3.10 (the option
+this environment `topostats` (specified with the `--name topostats` option) and use Python 3.10 (the option
 `python=3.10`). After creating it we can, as per the instructions printed out, activate the environment.
 
 ``` bash

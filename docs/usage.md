@@ -16,6 +16,57 @@ You should place all files you wish to batch process in a single directory. They
 TopoStats will scan for all images within this directory but currently it will only process one scan type at a time
 (i.e. `.spm` _or_ `.jpk` _or_ `.asd`). This may change in the future.
 
+## Command Line Navigation
+
+TopoStats currently runs as a command-line programme. To use it you will have to use a "prompt" or "terminal" (they're
+essentially the same thing). What you use will depend on your operating system, but the following are some simple
+commands on navigation. If you use Windows then for consistency it is recommended to
+[PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell).
+
+At the command line you use `cd` to `c`hange `d`irectory to the location of your files. For example if your scans are on
+the C-drive in `C:\User\me\work\spm\2022-12-08\scans` then you would
+
+``` bash
+cd c:/User/me/work/spm/2022-12-08/scans
+```
+
+If you are on a Linux or OSX system then paths are not prefixed with letters and your files may be saved to
+`/home/me/work/spm/2022-12-08/scans`. To change directory there you would...
+
+``` bash
+cd /home/me/work/spm/2022-12-08/scans
+```
+
+You can always find out what location you are at in the command line using the `pwd` command (`p`rint `w`orking
+`d`irectory)and it will print out the directory you are currently out.
+
+``` bash
+pwd
+/home/me/work/spm/2022-12-08/scans
+```
+
+To navigate up one directory level use `cd ..`. These can be chained together
+
+``` bash
+# Move up a single directory level
+cd ..
+pwd
+/home/me/work/spm/2022-12-08
+# Move up another two directory levels
+cd ../../
+pwd
+/home/me/work/spm/
+```
+
+You can list the files in a directory using the `ls` command.
+
+``` bash
+ls
+sample_image_scan_2022-12-08-1204.spm
+```
+
+For learn more about the command line see the [Introduction to the Command Line for
+Genomics](https://datacarpentry.org/shell-genomics/).
 
 ## Running TopoStats
 
@@ -44,11 +95,30 @@ run_topostats
 
 ## Configuring TopoStats
 
-Configuration of TopoStats is done through a [YAML](https://yuaml.org/) file and a full description of the fields used
+Configuration of TopoStats is done through a [YAML](https://yaml.org/) file and a full description of the fields used
 can be found under the [configuration](configuration) section.
 
 Here we will go through common changes that you are likely to want to make to the default configuration and how to make
 them.
+
+
+### Generating Configuration File
+
+TopoStats will use some reasonable default parameters by default, but typically you will want to customise the
+parameters that are used. This is achieved using a [configuration](configuration) file. This is a
+[YAML](https://yaml.org) that contains parameters for different settings. For convenience you can generate
+a sample configuration file in your current working directory using the `--create-config-file` and it will create a
+`config.yaml` file in your current working directory based on the current default configuration.
+
+``` bash
+run_topostats --create-config-file
+ls -l
+config.yaml
+sample_image_scan_2022-12-08-1204.spm
+```
+
+You can now edit and rename the `config.yaml`. It can be called anything you want,
+e.g. `todays_first_run_configuration.yaml` is a valid name. For more on
 
 ### Copying `default_config.yaml`
 

@@ -8,6 +8,7 @@ from functools import partial
 import importlib.resources as pkg_resources
 from multiprocessing import Pool
 from pathlib import Path
+import sys
 from typing import Union, Dict
 import yaml
 
@@ -57,11 +58,11 @@ def create_parser() -> arg.ArgumentParser:
         help="Path to a YAML configuration file.",
     )
     parser.add_argument(
-        "-p",
-        "--plotting_file",
-        dest="plotting_file",
+        "--create-config-file",
+        dest="create_config_file",
+        action=arg.BooleanOptionalAction,
         required=False,
-        help="Path to a YAML plotting file.",
+        help="Path to write a sample YAML configuration file to.",
     )
     parser.add_argument(
         "-b",
@@ -164,8 +165,8 @@ def process_scan(
     Results are written to CSV and images produced in configuration options request them.
     """
 
-    image = img_path_px2nm["image"] 
-    image_path = img_path_px2nm["img_path"] 
+    image = img_path_px2nm["image"]
+    image_path = img_path_px2nm["img_path"]
     pixel_to_nm_scaling = img_path_px2nm["px_2_nm"]
     filename = image_path.stem
 
@@ -177,11 +178,9 @@ def process_scan(
         filter_out_path = _output_dir
     else:
         filter_out_path = Path(_output_dir) / filename / "filters"
-        grain_out_path = Path(_output_dir) / filename / "grains"
         filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(_output_dir / filename / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / filename / "grains" / "lower", parents=True, exist_ok=True)
-
 
     # Filter Image :
     if filter_config["run"]:
@@ -291,7 +290,7 @@ def process_scan(
                     if key in ["grain_image", "grain_mask", "grain_mask_image"]
                 }
                 grainstats = {}
-                for direction in grains.directions.keys():
+                for direction, _ in grains.directions.items():
                     grainstats[direction] = GrainStats(
                         data=filtered_image.images["gaussian_filtered"],
                         labelled_data=grains.directions[direction]["labelled_regions_02"],
@@ -370,6 +369,16 @@ def main():
 
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 
+    # Write sample configuration if asked to do so and exit
+    if args.create_config_file:
+        write_yaml(config, output_dir="./", header_message="Sample configuration file auto-generated")
+        LOGGER.info("A sample configuration has been written to : config.yaml)")
+        LOGGER.info(
+            "Please refer to the documentation on how to use the configuration file : \n\n"
+            "https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats\n"
+            "https://afm-spm.github.io/TopoStats/configuration.html"
+        )
+        sys.exit()
     # Load plotting_dictionary and validate
     if args.plotting_file is not None:
         config["plotting"]["plot_dict"] = read_yaml(args.plotting_file)
@@ -403,7 +412,7 @@ def main():
     if len(img_files) == 0:
         LOGGER.error(f"No images with extension {config['file_ext']} in {config['base_dir']}")
         LOGGER.error("Please check your configuration and directories.")
-        exit()
+        sys.exit()
     LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
     LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
 

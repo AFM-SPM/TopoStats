@@ -19,10 +19,7 @@
 
 An AFM image analysis program to batch process data and obtain statistics from images.
 
-There is more complete documentation on the projects documentation website. This is hosted in two locations.
-
-* [GitHub Pages : TopoStats](https://afm-spm.github.io/TopoStats/)
-* [Readthedocs : TopoStats](https://topostats.readthedocs.io/en/dev/)
+There is more complete documentation on the projects [documentation website](https://afm-spm.github.io/TopoStats/).
 
 ## Installation
 
@@ -57,10 +54,17 @@ the argument for `--config <config_file>.yaml` that points to your file.
 run_topostats --config my_config.yaml
 ```
 
-A sample configuration file is available [here](https://github.com/AFM-SPM/TopoStats/blob/main/topostats/default_config.yaml).
+A sample configuration file for v2.0.0 is available [here](https://github.com/AFM-SPM/TopoStats/blob/v2.0.0/topostats/default_config.yaml).
 
 The configuration file is validated before analysis begins and if there are problems you will see errors messages that
 are hopefully useful in resolving the error(s) in your modified configuration.
+
+You can generate a sample configuration file using the `--create-config-file`. This will _not_  run any analyses but
+will instead write the default configuration to the file `config.yaml` in the current directory.
+
+``` bash
+run_topostats --create-config-file
+```
 
 ### Notebooks
 
