@@ -121,14 +121,12 @@ class dnaTrace(object):
         labelled_img = label(img)
         for grain_num in range(1, labelled_img.max() + 1):
             dictionary[grain_num] = np.where(labelled_img == grain_num, 1, 0)
-        np.savetxt("grain1_n.txt", dictionary[3])
         return dictionary
 
     def dilate_grains(self) -> None:
         """Dilates each individual grain in the grains dictionary."""
         for grain_num, image in self.grains.items():
             self.grains[grain_num] = ndimage.binary_dilation(image, iterations=1).astype(np.int32)
-        np.savetxt("grain1_d.txt", self.grains[3])
 
     # FIXME : It is straight-forward to get bounding boxes for grains, need to then have a dictionary of original image
     #         and label for each grain to then be processed.
@@ -176,19 +174,22 @@ class dnaTrace(object):
             if len(self.disordered_traces[dna_num]) < 10:
                 self.disordered_traces.pop(dna_num, None)
 
-    def linear_or_circular(self, traces):
-        """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace
-
-        This function is sensitive to branches from the skeleton so might need to implement a function to remove them"""
+    def linear_or_circular(self, traces: dict):
+        """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace.
+        This function is sensitive to branches from the skeleton so might need to implement a function to remove them
+        
+        Parameters
+        ----------
+        traces: dict
+            A dictionary of the molecule_number and points within the skeleton.
+        """
 
         self.num_circular = 0
         self.num_linear = 0
 
         for dna_num in sorted(traces.keys()):
-
             points_with_one_neighbour = 0
             fitted_trace_list = traces[dna_num].tolist()
-
             # For loop determines how many neighbours a point has - if only one it is an end
             for x, y in fitted_trace_list:
 
