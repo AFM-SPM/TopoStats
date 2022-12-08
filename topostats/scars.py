@@ -21,12 +21,12 @@ class Scars:
         self,
         img: np.ndarray,
         filename: str,
-        run: bool,
-        removal_iterations: int,
-        threshold_low: float,
-        threshold_high: float,
-        max_scar_width: int,
-        min_scar_length: int,
+        run: bool = True,
+        removal_iterations: int = 2,
+        threshold_low: float = 0.250,
+        threshold_high: float = 0.666,
+        max_scar_width: int = 4,
+        min_scar_length: int = 16,
     ) -> None:
         """
         Initialise the class
@@ -227,19 +227,16 @@ class Scars:
         """
 
         # Spread scars that have close to threshold edge-points
-        left_filled_count = 0
-        right_filled_count = 0
         for row in range(marked.shape[0]):
             # Spread right
             for col in range(1, marked.shape[1]):
                 if marked[row, col] >= threshold_low and marked[row, col - 1] >= threshold_high:
                     marked[row, col] = threshold_high
-                    right_filled_count += 1
+
             # Spread left
             for col in range(marked.shape[1] - 1, 0):
                 if marked[row, col - 1] >= threshold_low and marked[row, col] >= threshold_high:
                     marked[row, col - 1] = threshold_high
-                    left_filled_count += 1
 
     def remove_too_short_scars(self, marked: np.ndarray, threshold_high: float, min_scar_length: int) -> None:
         """
@@ -397,6 +394,7 @@ class Scars:
         -------
         None
         """
+
         for row in range(img.shape[0]):
             for col in range(img.shape[1]):
                 if scar_mask[row, col] == 1.0:
@@ -415,9 +413,9 @@ class Scars:
 
                     above = img[row - 1, col]
                     below = img[row + scar_width, col]
-                    # Linearly interpolate
                     k = scar_width
                     while k:
+                        # Linearly interpolate
                         interp_val = (k / (scar_width + 1)) * below + (1 - (k / (scar_width + 1))) * above
                         img[row + k - 1, col] = interp_val
                         scar_mask[row + k - 1, col] = 0.0
