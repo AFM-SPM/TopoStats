@@ -15,7 +15,7 @@ run_topostats --config my_config.yaml
 
 On completion a copy of the configuration that was used is written to the output directory.
 
-*Note: When writing file paths, paths that start with `/` are full paths, and mean that they contain the whole folder path to the destination, i.e. `/the/full/path/to/my/data`. The `.` at the start of the path represents a relative file path from where you invoke the command (your current postioion in the folder tree can be found by the command `pwd` i.e. `/the/full/path/to/my/`). From here, the relative path to your data would be: `./data`.
+*Note: When writing file paths, paths that start with `/` are full paths, and mean that they contain the whole folder path to the destination, i.e. `/the/full/path/to/my/data`. The `.` at the start of the path represents a relative file path from where you invoke the command (your current postioion in the folder tree can be found by the command `pwd` (present working directory) i.e. if you were in `/the/full/path/to/`). From here, the relative path to your data would be: `./my/data`.
 
 ## Fields
 
