@@ -160,6 +160,18 @@ def validate_config(config: dict):
                     True,
                     False,
                     error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
+                ),
+                "skeletonisation_method": Or(
+                    "zhang",
+                    "lee",
+                    "thin",
+                    "medial_axis",
+                    "joe",
+                    error="Invalid value in config for 'filter.skeletonisation_method', valid values are 'zhang', 'lee', 'thin', 'medial_axis', 'joe'",
+                ),
+                "pruning_method": Or(
+                    "joe",
+                    error="Invalid value in config for 'filter.pruning_method', valid values are 'joe'",
                 )
             },
             "plotting": {

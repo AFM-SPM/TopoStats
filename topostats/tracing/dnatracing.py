@@ -42,11 +42,15 @@ class dnaTrace(object):
         filename,
         pixel_size,
         convert_nm_to_m: bool = True,
+        skeletonisation_method: str = "joe",
+        pruning_method: str = "joe",
     ):
         self.full_image_data = full_image_data * 1e-9 if convert_nm_to_m else full_image_data
         self.grains_orig = np.where(grains != 0, 1, 0)
         self.filename = filename
         self.pixel_size = pixel_size * 1e-9 if convert_nm_to_m else pixel_size
+        self.skeletonisation_method = skeletonisation_method
+        self.pruning_method = pruning_method
         self.number_of_rows = self.full_image_data.shape[0]
         self.number_of_columns = self.full_image_data.shape[1]
         self.sigma = 0.7 / (self.pixel_size * 1e9)  # hardset
@@ -80,9 +84,9 @@ class dnaTrace(object):
         # the resulting array is used as a mask during the skeletonising process.
         self.dilate_grains()
         for grain_num, grain in self.grains.items():
-            skeleton = getSkeleton(self.gauss_image, grain).get_skeleton("joe")
-            pruned_skeleton = pruneSkeleton(self.gauss_image, skeleton).prune_skeleton("joe")
-            self.skeleton_dict[grain_num] = pruned_skeleton
+            skeleton = getSkeleton(self.gauss_image, grain).get_skeleton(self.skeletonisation_method)
+            pruned_skeleton = pruneSkeleton(self.gauss_image, skeleton).prune_skeleton(self.pruning_method)
+            self.skeleton_dict[grain_num] = pruned_skeleton #if pruned_skeleton[pruned_skeleton==1].size < 10 else pass
         self.get_disordered_trace()
         # self.isMolLooped()
         self.purge_obvious_crap()
@@ -117,12 +121,14 @@ class dnaTrace(object):
         labelled_img = label(img)
         for grain_num in range(1, labelled_img.max() + 1):
             dictionary[grain_num] = np.where(labelled_img == grain_num, 1, 0)
+        np.savetxt("grain1_n.txt", dictionary[3])
         return dictionary
 
     def dilate_grains(self) -> None:
         """Dilates each individual grain in the grains dictionary."""
         for grain_num, image in self.grains.items():
             self.grains[grain_num] = ndimage.binary_dilation(image, iterations=1).astype(np.int32)
+        np.savetxt("grain1_d.txt", self.grains[3])
 
     # FIXME : It is straight-forward to get bounding boxes for grains, need to then have a dictionary of original image
     #         and label for each grain to then be processed.
@@ -165,14 +171,12 @@ class dnaTrace(object):
                 self.grains.pop(grain_num)
 
     def purge_obvious_crap(self):
-
+        """Checks skeleton is <10 pixels, and removes otherwise."""
         for dna_num in sorted(self.disordered_traces.keys()):
-
             if len(self.disordered_traces[dna_num]) < 10:
                 self.disordered_traces.pop(dna_num, None)
 
     def linear_or_circular(self, traces):
-
         """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace
 
         This function is sensitive to branches from the skeleton so might need to implement a function to remove them"""
@@ -201,7 +205,7 @@ class dnaTrace(object):
                 self.num_linear += 1
 
     def get_ordered_traces(self):
-
+        """Depending on whether the mol is circular or linear, order the traces so the points follow."""
         for dna_num in sorted(self.disordered_traces.keys()):
 
             circle_tracing = True
@@ -216,7 +220,7 @@ class dnaTrace(object):
                     self.mol_is_circular[dna_num] = False
                     try:
                         self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.ordered_traces[dna_num].tolist())
-                    except UnboundLocalError:
+                    except UnboundLocalError: # unsure how the ULE appears and why that means we remove the grain?
                         self.mol_is_circular.pop(dna_num)
                         self.disordered_traces.pop(dna_num)
                         self.grains.pop(dna_num)
