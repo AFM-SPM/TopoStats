@@ -17,7 +17,7 @@ TopoStats will scan for all images within this directory but currently it will o
 (i.e. `.spm` _or_ `.jpk` _or_ `.asd`). This may change in the future.
 
 
-## Running TopoStats
+## Running TopoStats - Test Run
 
 The default location that TopoStats looks for scans is the directory from which it is invoked. Once you start your
 shell/terminal you will therefore need to do two things.
@@ -42,7 +42,7 @@ run_topostats
 ...
 ```
 
-## Configuring TopoStats
+## Configuring TopoStats - For Your Data
 
 Configuration of TopoStats is done through a [YAML](https://yuaml.org/) file and a full description of the fields used
 can be found under the [configuration](configuration) section.
@@ -53,12 +53,13 @@ them.
 ### Copying `default_config.yaml`
 
 If you have used Git to clone the TopoStats repository from GitHub the default configuration can be found in the
-sub-directory `topostats/default_config.yaml`. If you have installed TopoStats from PyPI then a sample configuration
-file can be downloaded from
-[here](https://raw.githubusercontent.com/AFM-SPM/TopoStats/main/topostats/default_config.yaml) (right-click on the link
-and select `Save As` to save the file to your computer).
+sub-directory `topostats/default_config.yaml`. 
 
-Save or copy this file to the same directory all of your scan files are located and call it `my_config.yaml`.
+If you have installed TopoStats from PyPI then a sample configuration
+file can be downloaded from
+[here](https://github.com/AFM-SPM/TopoStats/blob/a180198b369e68dd892038dca1893aa396b04d33/topostats/default_config.yaml), or copy and paste the contents into a text file ending with `.yaml`.
+
+Save or copy this file to the folder containing all of your scan files and call it `my_config.yaml`. The command for this is below but you can also use the drag-and-drop feature on your desktop.
 
 ``` bash
 cp /<path>/<to>/<where>/<topostats>/<is>/<cloned>/TopoStats/topostats/default_config.yaml /<where>/<scans>/<are>/my_config.yaml
@@ -75,10 +76,10 @@ You can now start customising the configuration you are going to run TopoStats w
 ones you may want to change are....
 
 * `base_dir` (default: `./`) the directory in which to search for scans. By default this is `./` which represents the
-  directory from which `run_topostats` is called and it is good practice to have one configuration file per batch of
+  folder from which `run_topostats` is called and it is good practice to have one configuration file per batch of
   scans that are being processed.
-* `output_dir` (default: `output`) the location where the output is saved, by default this is the directory `output`
-  which will be   created if it doesn't exist. If you wish for the output to be somewhere else specify it here. If you
+* `output_dir` (default: `output`) the location where the output is saved, by default this is the folder `output`
+  which will be created if it doesn't exist. If you wish for the output to be somewhere else specify it here. If you
   want `Processed` directories to sit within the directories that images are found then simply set the `output_dir` to
   the same value as `base_dir`.
 * `cores` (default: `4`) the number of parallel processes to run processing of all found images. Set this to a maximum
