@@ -125,7 +125,7 @@ e.g. `todays_first_run_configuration.yaml` is a valid name. For more on
 If you have used Git to clone the TopoStats repository from GitHub the default configuration can be found in the
 sub-directory `topostats/default_config.yaml`. If you have installed TopoStats from PyPI then a sample configuration
 file can be downloaded from
-[here](https://raw.githubusercontent.com/AFM-SPM/TopoStats/main/topostats/default_config.yaml) (right-click on the link
+[here](https://raw.githubusercontent.com/AFM-SPM/TopoStats/v2.0.0/topostats/default_config.yaml) (right-click on the link
 and select `Save As` to save the file to your computer).
 
 Save or copy this file to the same directory all of your scan files are located and call it `my_config.yaml`.
