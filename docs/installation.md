@@ -47,9 +47,10 @@ pip install topostats
 ```
 
 This will install TopoStats under your virtual environment and the command `run_topostats` will be available at the
-command line. You will probably want to download a copy of the
-[`default_config.yaml`](https://raw.githubusercontent.com/AFM-SPM/TopoStats/main/topostats/default_config.yaml) to edit
-and use for running your analysis. Please see the [usage](usage) section for more information on running TopoStats.
+command line. Following this, you may want to create a folder containing your data and a TopoStats configuration file to edit and use for running your analysis (download a copy here:
+[`default_config.yaml`](https://github.com/AFM-SPM/TopoStats/blob/a180198b369e68dd892038dca1893aa396b04d33/topostats/default_config.yaml). Download or copy and paste the contents into a text file ending with `.yaml`.
+
+Please see the [usage](usage) section for more information on running TopoStats.
 
 ### Cloning from GitHub
 
