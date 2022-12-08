@@ -15,6 +15,7 @@ run_topostats --config my_config.yaml
 
 On completion a copy of the configuration that was used is written to the output directory.
 
+*Note: When writing file paths, paths that start with `/` are full paths, and mean that they contain the whole folder path to the destination, i.e. `/the/full/path/to/my/data`. The `.` at the start of the path represents a relative file path from where you invoke the command (your current postioion in the folder tree can be found by the command `pwd` i.e. `/the/full/path/to/my/`). From here, the relative path to your data would be: `./data`.
 
 ## Fields
 
@@ -23,7 +24,7 @@ Aside from the comments in YAML file itself the fields are described below.
 
 | Section      | Sub-Section                    | Data Type  | Default        | Description                                                                                                                                                                                                                                                  |
 |:-------------|:-------------------------------|:-----------|:---------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `base_dir`   |                                | string     | `./`           | Directory to recursively search for files within.                                                                                                                                                                                                            |
+| `base_dir`   |                                | string     | `./`           | Directory to recursively search for files within.                                                                                                                                                                                                           |
 | `output_dir` |                                | string     | `./output`     | Directory that output should be saved to.                                                                                                                                                                                                                    |
 | `warnings`   |                                | string     | `ignore`       | Turns off warnings being shown.                                                                                                                                                                                                                              |
 | `cores`      |                                | integer    | `4`            | Number of cores to run parallel processes on.                                                                                                                                                                                                                |
