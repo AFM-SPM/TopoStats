@@ -22,7 +22,6 @@ An AFM image analysis program to batch process data and obtain statistics from i
 There is more complete documentation on the projects documentation website. This is hosted in two locations.
 
 * [GitHub Pages : TopoStats](https://afm-spm.github.io/TopoStats/)
-* [Readthedocs : TopoStats](https://topostats.readthedocs.io/en/dev/)
 
 ## Installation
 
