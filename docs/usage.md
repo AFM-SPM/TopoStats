@@ -55,7 +55,7 @@ pwd
 # Move up another two directory levels
 cd ../../
 pwd
-/home/me/work/spm/
+/home/me/
 ```
 
 You can list the files in a directory using the `ls` command.
@@ -65,7 +65,7 @@ ls
 sample_image_scan_2022-12-08-1204.spm
 ```
 
-For learn more about the command line see the [Introduction to the Command Line for
+To learn more about the command line see the [Introduction to the Command Line for
 Genomics](https://datacarpentry.org/shell-genomics/).
 
 ## Running TopoStats
@@ -98,8 +98,8 @@ run_topostats
 Configuration of TopoStats is done through a [YAML](https://yaml.org/) file and a full description of the fields used
 can be found under the [configuration](configuration) section.
 
-Here we will go through common changes that you are likely to want to make to the default configuration and how to make
-them.
+Here we will go through generating a configuration file to edit and some of the common changes that you are likely to
+want to make to the default configuration and how to make them.
 
 
 ### Generating Configuration File
@@ -110,6 +110,8 @@ parameters that are used. This is achieved using a [configuration](configuration
 a sample configuration file in your current working directory using the `--create-config-file` and it will create a
 `config.yaml` file in your current working directory based on the current default configuration.
 
+**NB** - This feature is only available in versions > v2.0.0 as it was introduced after v2.0.0 was released.
+
 ``` bash
 run_topostats --create-config-file
 ls -l
@@ -119,20 +121,6 @@ sample_image_scan_2022-12-08-1204.spm
 
 You can now edit and rename the `config.yaml`. It can be called anything you want,
 e.g. `todays_first_run_configuration.yaml` is a valid name. For more on
-
-### Copying `default_config.yaml`
-
-If you have used Git to clone the TopoStats repository from GitHub the default configuration can be found in the
-sub-directory `topostats/default_config.yaml`. If you have installed TopoStats from PyPI then a sample configuration
-file can be downloaded from
-[here](https://raw.githubusercontent.com/AFM-SPM/TopoStats/v2.0.0/topostats/default_config.yaml) (right-click on the link
-and select `Save As` to save the file to your computer).
-
-Save or copy this file to the same directory all of your scan files are located and call it `my_config.yaml`.
-
-``` bash
-cp /<path>/<to>/<where>/<topostats>/<is>/<cloned>/TopoStats/topostats/default_config.yaml /<where>/<scans>/<are>/my_config.yaml
-```
 
 
 ### Editing `my_config.yaml`
@@ -156,7 +144,7 @@ ones you may want to change are....
 * `file_ext` (default: `.spm`) the file extension of scans to search for within the current directory. The default is
   `.spm` but other file format support is in the pipeline.
 * `plotting` : `image_set` (default `core`) specifies which steps of the processing to plot images of. The value `all`
-  gets images for all stages, `core** saves only a subset of images.
+  gets images for all stages, `core` saves only a subset of images.
 
 
 Most of the other configuration options can be left on their default values for now. Once you have made any changes save
@@ -189,15 +177,14 @@ On a successful completion you should see output similar to this at the bottom.
 
 ``` bash
 Processing images from tests, results are under output: 100%|XXXXXXXXXXXXXXXX| 1/1 [00:03<00:00,  3.60s/it][Tue, 15 Nov 2022 13:49:14] [INFO    ] [topostats] All statistics combined for 1 images(s) are saved to : output/all_statistics.csv}
-[Tue, 15 Nov 2022 13:49:14] [INFO    ] [topostats] Unable to generate folderwise statistics as 'all_statis_df' is empty
 [Tue, 15 Nov 2022 13:49:14] [INFO    ] [topostats] Writing configuration to : output/config.yaml
 ```
 
 ## Output
 
 The output from running TopoStats is saved in the location defined in the configuration file by `output_dir`. The
-default is the directory `output` within the directory from which `run_topostats` is invoked unless it has been modified
-in a copy of the default configuration as described above.
+default is the directory `output` within the directory from which `run_topostats`. This may differ if you have
+used your own customised configuration file.
 
 At the top level of the output directory are two files `config.yaml` and `all_statistics.csv`
 

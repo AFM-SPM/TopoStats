@@ -17,10 +17,10 @@ minimum.
 ## Setting up Conda
 
 Once you have downloaded and installed [Miniconda](https://docs.conda.io/en/latest/miniconda.html) you can create a
-virtual environment for installing TopoStats with a version of Python that meets the requirements. We will call
-this environment `topostats` (specified with the `--name topostats` option) and use Python 3.10 (the option
-`python=3.10`). After creating it we can, as per the instructions printed out, activate the environment.
-
+virtual environment for installing TopoStats with a version of Python that meets the requirements you are ready to
+create a dedicated Conda environment for installing and running TopoStats. We will call this environment `topostats`
+(specified with the `--name topostats` option) and use Python 3.10 (the option `python=3.10`). After creating it we can,
+as per the instructions printed out, activate the environment.
 ``` bash
 conda create --name topostats python=3.10
 conda activate topostats
@@ -49,10 +49,20 @@ pip install topostats
 ```
 
 This will install TopoStats under your virtual environment and the command `run_topostats` will be available at the
-command line. You will probably want to download a copy of the
-[`default_config.yaml`](https://raw.githubusercontent.com/AFM-SPM/TopoStats/v2.0.0/topostats/default_config.yaml)
-(right-click the link to save the file) to edit and use for running your analysis. Please see the [usage](usage) section
-for more information on running TopoStats.
+command line. You can upgrade `topostats` by using the `--upgrade` flag...
+
+``` bash
+pip install --upgrade topostats
+```
+
+...or install a specific version
+
+``` bash
+pip install topostats==2.0.1
+```
+
+For more information on using `pip` to install and manage packages please refer to the [pip
+documentation](https://pip.pypa.io/en/stable/user_guide/).
 
 ### Cloning from GitHub
 
@@ -103,9 +113,9 @@ to the [contributing](contributing) section.
 
 One of the major changes in the refactoring is the introduction of unit tests. These require certain packages to be
 installed which are not installed to your virtual environment by
-[setuptools](https://setuptools.pypa.io/en/latest/setuptools.html) in the above steps. If you are develop and making
-changes to the code base you will likely want to be able to run the tests. Install the necessary dependencies to do so
-with...
+[setuptools](https://setuptools.pypa.io/en/latest/setuptools.html) in the above steps. If you are intending to modify or
+contribute to the development of TopoStats and making changes to the code base you will likely want to be able to run
+the tests. Install the necessary dependencies to do so with...
 
 
 ``` bash

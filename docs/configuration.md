@@ -1,13 +1,25 @@
 # Configuration
 
-Configuration for TopoStats is done using a [YAML](https://yaml.org/) configuration that is specified on the command line when
-invoking. A default configuration file is provided in the TopoStats repository at
-[`topostats/default_config.yaml`](https://github.com/AFM-SPM/TopoStats/blob/dev/topostats/default_config.yaml). The file
-contains comments indicating valid values for many of the fields. If no configuration file is provided this default
-configuration is loaded automatically and used.
+Configuration for TopoStats is done using a [YAML](https://yaml.org/) configuration file that is specified on the command line when
+invoking. The current configuration file is provided in the TopoStats repository at
+[`topostats/default_config.yaml`](https://github.com/AFM-SPM/TopoStats/blob/main/topostats/default_config.yaml) but
+please be aware this may not work with your installed version, particularly if you installed from PyPI.
 
-You can make a copy of the `default_config.yaml` and modify it for your own use. Once saved you can run TopoStats with
-this configuration file as shown below.
+## Generating a configuration
+
+You can always [generate a configuration file](usage#generating-configuration-file) appropriate for the version you have
+installed (bar v2.0.0 as this option was added afterwards).
+
+``` bash
+run_topostats --create-config-file
+```
+
+This produces the file `config.yaml` which contains comments indicating valid values for many of the
+fields. If no configuration file is provided this default configuration is loaded automatically and used.
+
+## Using a custom configuration
+
+You can modify and edit a configuration and, once saved, you can run TopoStats with this configuration file as shown below.
 
 ``` bash
 run_topostats --config my_config.yaml
@@ -23,8 +35,8 @@ Aside from the comments in YAML file itself the fields are described below.
 
 | Section      | Sub-Section                    | Data Type  | Default        | Description                                                                                                                                                                                                                                                  |
 |:-------------|:-------------------------------|:-----------|:---------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `base_dir`   |                                | string     | `./`           | Directory to recursively search for files within.                                                                                                                                                                                                            |
-| `output_dir` |                                | string     | `./output`     | Directory that output should be saved to.                                                                                                                                                                                                                    |
+| `base_dir`   |                                | string     | `./`           | Directory to recursively search for files within.[^1]                                                                                                                                                                                                            |
+| `output_dir` |                                | string     | `./output`     | Directory that output should be saved to.[^1]                                                                                                                                                                                                                    |
 | `warnings`   |                                | string     | `ignore`       | Turns off warnings being shown.                                                                                                                                                                                                                              |
 | `cores`      |                                | integer    | `4`            | Number of cores to run parallel processes on.                                                                                                                                                                                                                |
 | `quiet`      |                                | false      |                |                                                                                                                                                                                                                                                              |
@@ -69,3 +81,19 @@ Aside from the comments in YAML file itself the fields are described below.
 Configuration files are validated against a schema to check that the values in the configuration file are within the
 expected ranges or valid parameters. This helps capture problems early and should provide informative messages as to
 what needs correcting if there are errors.
+
+[^1] When writing file paths you can use absolute or relative paths. On Windows systems absolute paths start with the
+drive letter (e.g. `c:/`) on Linux and OSX systems they start with `/`. Relative paths are started either with a `./`
+which denotes the current directory or one or more `../` which means the higher level directory from the current
+directory. You can always find the current directory you are in using the `pwd` (`p`rint `w`orking `d`irectory). If for
+your work is in `/home/user/path/to/my/data` and `pwd` prints `/home/user` then the relative path to your data is
+`./path/to/my/data`.
+
+
+``` bash
+pwd
+/home/user/
+# Two ways of changing directory
+cd ./path/to/my/data
+cd /home/user/path/to/my/data
+```
