@@ -54,7 +54,9 @@ the argument for `--config <config_file>.yaml` that points to your file.
 run_topostats --config my_config.yaml
 ```
 
-A sample configuration file for v2.0.0 is available [here](https://github.com/AFM-SPM/TopoStats/blob/v2.0.0/topostats/default_config.yaml).
+A sample configuration file for v2.0.0 is available
+[here](https://raw.githubusercontent.com/AFM-SPM/TopoStats/v2.0.0/topostats/default_config.yaml) (right-click the link
+to save).
 
 The configuration file is validated before analysis begins and if there are problems you will see errors messages that
 are hopefully useful in resolving the error(s) in your modified configuration.
