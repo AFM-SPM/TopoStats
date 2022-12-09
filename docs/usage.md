@@ -38,7 +38,7 @@ cd /home/me/work/spm/2022-12-08/scans
 ```
 
 You can always find out what location you are at in the command line using the `pwd` command (`p`rint `w`orking
-`d`irectory)and it will print out the directory you are currently out.
+`d`irectory)and it will print out the directory you are currently at.
 
 ``` bash
 pwd
@@ -106,7 +106,7 @@ want to make to the default configuration and how to make them.
 
 TopoStats will use some reasonable default parameters by default, but typically you will want to customise the
 parameters that are used. This is achieved using a [configuration](configuration) file. This is a
-[YAML](https://yaml.org) that contains parameters for different settings. For convenience you can generate
+[YAML](https://yaml.org) file that contains parameters for different settings. For convenience you can generate
 a sample configuration file in your current working directory using the `--create-config-file` and it will create a
 `config.yaml` file in your current working directory based on the current default configuration.
 

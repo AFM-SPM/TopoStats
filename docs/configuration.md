@@ -28,7 +28,29 @@ run_topostats --config my_config.yaml
 On completion a copy of the configuration that was used is written to the output directory.
 
 
+## YAML Structure
+
+YAML files have key and value pairs, the first word, e.g. `base_dir` is the key this is followed by a colon to separate
+it from the value that it takes, by default `base_dir` takes the value `./` (which means the current directory) and so
+the entry in the file is a single line with `base_dir: ./`. Other data structures are available in YAML files including
+nested values and lists.
+
+A list in YAML consists of a key (e.g. `upper:`) followed by the values in square brackets separated by commas such as
+`upper: [ 500, 800 ]`. This means the `upper` key is a list of the values `500` and `800`. Long lists can be split over
+separate lines as shown below
+
+``` yaml
+upper:
+  - 100
+  - 200
+  - 300
+  - 400
+```
+
+
 ## Fields
+
+
 
 Aside from the comments in YAML file itself the fields are described below.
 
@@ -85,15 +107,20 @@ what needs correcting if there are errors.
 [^1] When writing file paths you can use absolute or relative paths. On Windows systems absolute paths start with the
 drive letter (e.g. `c:/`) on Linux and OSX systems they start with `/`. Relative paths are started either with a `./`
 which denotes the current directory or one or more `../` which means the higher level directory from the current
-directory. You can always find the current directory you are in using the `pwd` (`p`rint `w`orking `d`irectory). If for
+directory. You can always find the current directory you are in using the `pwd` (`p`rint `w`orking `d`irectory). If
 your work is in `/home/user/path/to/my/data` and `pwd` prints `/home/user` then the relative path to your data is
-`./path/to/my/data`.
+`./path/to/my/data`. The `cd` command is used to `c`hange `d`irectory.
 
 
 ``` bash
 pwd
 /home/user/
-# Two ways of changing directory
+# Two ways of changing directory using a relative path
 cd ./path/to/my/data
+pwd
+/home/user/path/to/my/data
+# Using an absolute path
 cd /home/user/path/to/my/data
+pwd
+/home/user/path/to/my/data
 ```

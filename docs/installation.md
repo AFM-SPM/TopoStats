@@ -17,10 +17,10 @@ minimum.
 ## Setting up Conda
 
 Once you have downloaded and installed [Miniconda](https://docs.conda.io/en/latest/miniconda.html) you can create a
-virtual environment for installing TopoStats with a version of Python that meets the requirements you are ready to
-create a dedicated Conda environment for installing and running TopoStats. We will call this environment `topostats`
+virtual environment for installing TopoStats for installing and running TopoStats. We will call this environment `topostats`
 (specified with the `--name topostats` option) and use Python 3.10 (the option `python=3.10`). After creating it we can,
 as per the instructions printed out, activate the environment.
+
 ``` bash
 conda create --name topostats python=3.10
 conda activate topostats
@@ -55,10 +55,10 @@ command line. You can upgrade `topostats` by using the `--upgrade` flag...
 pip install --upgrade topostats
 ```
 
-...or install a specific version
+You can always install a specific version from PyPI
 
 ``` bash
-pip install topostats==2.0.1
+pip install topostats==2.0.0
 ```
 
 For more information on using `pip` to install and manage packages please refer to the [pip
@@ -72,8 +72,8 @@ TopoStats, if you only intend on using it then please install from PyPI.
 If you do not have Git already installed please see [Git](#git). If you intend to contribute to the development of
 TopoStats please read through the [contributing](contributing) section.
 
-If you are familiar with the command line then you can
-clone and install TopoStats with the following _after_ activating your virtual environment.
+If you are familiar with the command line then you can clone and install TopoStats with the following _after_ activating
+your virtual environment.
 
 ``` bash
 git clone https://github.com/AFM-SPM/TopoStats.git
