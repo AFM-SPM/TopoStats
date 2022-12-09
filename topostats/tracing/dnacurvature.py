@@ -39,16 +39,17 @@ class Curvature:
         Parameters
         ----------
         molecule_coordinates: np.ndarray
-        Coordinates of the simplified splined trace of a molecule. These are returned by dnaTracing.
+            Coordinates of the simplified splined trace of a molecule. These are returned by dnaTracing.
         circular: bool
-        Whether the molecule has been determined as being circular or not.
-        edge_order: int(
+            Whether the molecule has been determined as being circular or not.
+        edge_order: int
             Gradient is passed to numpy.gradient and Gradient is calculated using N-th order accurate differences at
             boundaries. Also used to expand the array by the necessary number of co-ordinates at either end to form a
             loop for the calculations.
         """
-        # If circular we need gradients correctly calculated at the start and end and so the array has the edge_order
-        # (used in np.gradient) from the end attached to the start and the same from the start attached to the end.
+        # If circular we need gradients correctly calculated at the start and end and so the array has the number of
+        # points used in np.gradient(edge_order) from the end attached to the start and the same from the start attached
+        # to the end.
         edge_order_boundary = edge_order + 1
         if self.circular:
             coordinates = np.vstack(

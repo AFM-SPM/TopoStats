@@ -1,6 +1,5 @@
 """Fixtures for testing"""
 import importlib.resources as pkg_resources
-import math
 from pathlib import Path
 from typing import Dict
 import yaml
@@ -15,7 +14,6 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, LoadScans
 from topostats.tracing.dnatracing import dnaTrace, traceStats
-from topostats.tracing.dnacurvature import Curvature
 from topostats.utils import get_thresholds, get_mask, _get_mask
 
 
@@ -744,68 +742,3 @@ def skeletonize_linear_bool_int(skeletonize_linear) -> np.ndarray:
 
 
 # Curvature Fixtures
-N_POINTS = 1000
-
-
-# @pytest.fixture(params=[4, 10, 100])
-# def curvature_circle(request) -> np.ndarray:
-#     """A circle for testing curvature class and methods."""
-#     radius = float(10)
-#     coordinates = np.zeros([request.param, 2])
-#     for i in np.arange(request.param):
-#         theta = 2 * math.pi / request.param * i
-#         x = -math.cos(theta) * radius
-#         y = math.sin(theta) * radius
-#         coordinates[i][0] = x
-#         coordinates[i][1] = y
-#     curvature = Curvature(coordinates, circular=True)
-#     return curvature
-
-
-# @pytest.fixture
-# def curvature_circle(circle_coordinates) -> Curvature:
-#     """Object of class Curvature initialised with the coordinates of a circle."""
-#     curvature = Curvature(circle_coordinates, circular=True, edge_order=2)
-#     return curvature
-
-
-@pytest.fixture(params=[4, 10, 100])
-def ellipse_coordinates(request) -> np.ndarray:
-    """An ellipse for testing curvature class and methods."""
-    major = 5.0
-    minor = 1.0
-    displacement = 0.0
-    coordinates = np.zeros([request.param, 2])
-    for i in range(0, request.param):
-        theta = 2 * math.pi / request.param * i
-        x = -math.cos(theta) * major
-        y = math.sin(theta) * minor
-        coordinates[i][0] = x
-        coordinates[i][1] = y
-    ellipse_coord = np.roll(coordinates, int(request.param * displacement), axis=0)
-    curvature = Curvature(ellipse_coord, circular=True)
-    return curvature
-
-
-# @pytest.fixture
-# def curvature_ellipse(ellipse_coordinates) -> Curvature:
-#     """Object of class Curvature initialised with the coordinates of a ellipse."""
-#     curvature = Curvature(ellipse_coordinates, circular=True, edge_order=2)
-#     return curvature
-
-
-@pytest.fixture(params=[4, 10, 100])
-def parabola_coordinates(request) -> np.ndarray:
-    """A parabola for testing curvature class and methods."""
-    x = np.linspace(-2, 2, num=request.param)
-    y = x**2
-    parabola_coord = np.column_stack((x, y))
-    curvature = Curvature(parabola_coord, circular=False)
-    return curvature
-
-
-# @pytest.fixture
-# def curvature_parabola(parabola_coordinates) -> Curvature:
-#     """Object of class Curvature initialised with the coordinates of a parabola."""
-#     curvature = Curvature(parabola_coordinates, circular=False, edge_order=2)
-#     return curvature
