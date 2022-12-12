@@ -60,9 +60,9 @@ def create_parser() -> arg.ArgumentParser:
     parser.add_argument(
         "--create-config-file",
         dest="create_config_file",
-        action=arg.BooleanOptionalAction,
+        type=str,
         required=False,
-        help="Path to write a sample YAML configuration file to.",
+        help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
     )
     parser.add_argument(
         "-b",
@@ -371,8 +371,13 @@ def main():
 
     # Write sample configuration if asked to do so and exit
     if args.create_config_file:
-        write_yaml(config, output_dir="./", header_message="Sample configuration file auto-generated")
-        LOGGER.info("A sample configuration has been written to : config.yaml)")
+        write_yaml(
+            config,
+            output_dir="./",
+            config_file=args.create_config_file,
+            header_message="Sample configuration file auto-generated",
+        )
+        LOGGER.info(f"A sample configuration has been written to : ./{args.create_config_file})")
         LOGGER.info(
             "Please refer to the documentation on how to use the configuration file : \n\n"
             "https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats\n"

@@ -40,7 +40,9 @@ def read_yaml(filename: Union[str, Path]) -> Dict:
             return {}
 
 
-def write_yaml(config: dict, output_dir: Union[str, Path], header_message: str = None) -> None:
+def write_yaml(
+    config: dict, output_dir: Union[str, Path], config_file: str = "config.yaml", header_message: str = None
+) -> None:
     """Write a configuration (stored as a dictionary) to a YAML file.
 
     Parameters
@@ -49,9 +51,13 @@ def write_yaml(config: dict, output_dir: Union[str, Path], header_message: str =
         Configuration dictionary.
     output_dir: Union[str, Path]
         Path to save the dictionary to as a YAML file (it will be called 'config.yaml').
+    config_file: str
+        Filename to write to.
+    header_message: str
+        String to write to the header message of the YAML file
     """
     # Save the configuration to output directory
-    output_config = Path(output_dir) / "config.yaml"
+    output_config = Path(output_dir) / config_file
     # Revert PosixPath items to string
     config["base_dir"] = str(config["base_dir"])
     config["output_dir"] = str(config["output_dir"])

@@ -11,7 +11,7 @@ You can always [generate a configuration file](usage#generating-configuration-fi
 installed (bar v2.0.0 as this option was added afterwards).
 
 ``` bash
-run_topostats --create-config-file
+run_topostats --create-config-file config.yaml
 ```
 
 This produces the file `config.yaml` which contains comments indicating valid values for many of the

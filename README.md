@@ -58,13 +58,14 @@ run_topostats --config my_config.yaml
 The configuration file is validated before analysis begins and if there are problems you will see errors messages that
 are hopefully useful in resolving the error(s) in your modified configuration.
 
-You can generate a sample configuration file using the `--create-config-file`. This will _not_  run any analyses but
+You can generate a sample configuration file using the `--create-config-file` which takes a single argument, the name of
+the file to save the configuration to (e.g. `config.yaml` or `settings.yaml`). This will _not_  run any analyses but
 will instead write the default configuration to the file `config.yaml` in the current directory.
 
 **NB** - This feature is only available in versions > v2.0.0 as it was introduced after v2.0.0 was released.
 
 ``` bash
-run_topostats --create-config-file
+run_topostats --create-config-file config.yaml
 ```
 
 ### Notebooks

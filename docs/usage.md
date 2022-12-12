@@ -107,23 +107,24 @@ want to make to the default configuration and how to make them.
 TopoStats will use some reasonable default parameters by default, but typically you will want to customise the
 parameters that are used. This is achieved using a [configuration](configuration) file. This is a
 [YAML](https://yaml.org) file that contains parameters for different settings. For convenience you can generate
-a sample configuration file in your current working directory using the `--create-config-file` and it will create a
-`config.yaml` file in your current working directory based on the current default configuration.
+a sample configuration file in your current working directory using the `--create-config-file` option.  It takes a
+single argument, the name of the file to save the configuration to (e.g. `config.yaml` or `settings.yaml`), and it will
+write the current default configuration to that file.
 
 **NB** - This feature is only available in versions > v2.0.0 as it was introduced after v2.0.0 was released.
 
 ``` bash
-run_topostats --create-config-file
+run_topostats --create-config-file my_config.yaml
 ls -l
-config.yaml
+my_config.yaml
 sample_image_scan_2022-12-08-1204.spm
 ```
 
-You can now edit and rename the `config.yaml`. It can be called anything you want,
+You can now edit and/or rename the `my_config.yaml`. It can be called anything you want,
 e.g. `todays_first_run_configuration.yaml` is a valid name. For more on
 
 
-### Editing `my_config.yaml`
+### Editing `config.yaml`
 
 **IMPORTANT** This file is an ASCII text file and  you should use NotePad (Windows), TextEdit (OSX) or Nano/Emacs/Vim
 (GNU/Linux) or any other text editor. Do _not_ use Microsoft Word or any other Word Processor to edit this file.
@@ -153,14 +154,14 @@ the file and return to your terminal.
 ### Running TopoStats with `my_config.yaml`
 
 To use your new configuration file you need to inform `run_topostats` to use that file rather than the defaults, this is
-done using the `--config my_config.yaml` file.
+done using the `--config config.yaml` file.
 
 **NB** this assumes that you are in the same directory as your scans where you have saved the `my_config.yaml` file that
 you edited. That doesn't _have_ to be the case but it makes life easier for if you are not familiar with absolute
 and relative paths.
 
 ``` bash
-run_topostats --config my_configy.yaml
+run_topostats --config my_config.yaml
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Plotting configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration file loaded from      : None
