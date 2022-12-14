@@ -21,7 +21,7 @@ from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, write_yaml, LoadScan
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
-from topostats.tracing.dnatracing import dnaTrace, traceStats
+from topostats.tracing.dnatracing import dnaTrace, traceStats  # , curvatureStats
 from topostats.utils import (
     find_images,
     get_out_path,
@@ -285,73 +285,91 @@ def process_scan(
         if grainstats_config["run"] and grains.region_properties is not None:
             grainstats_config.pop("run")
             # Grain Statistics :
-            try:
-                LOGGER.info(f"[{filename}] : *** Grain Statistics ***")
-                grain_plot_dict = {
-                    key: value
-                    for key, value in plotting_config["plot_dict"].items()
-                    if key in ["grain_image", "grain_mask", "grain_mask_image"]
-                }
-                grainstats = {}
-                for direction in grains.directions.keys():
-                    grainstats[direction] = GrainStats(
-                        data=filtered_image.images["gaussian_filtered"],
-                        labelled_data=grains.directions[direction]["labelled_regions_02"],
-                        pixel_to_nanometre_scaling=pixel_to_nm_scaling,
-                        direction=direction,
-                        base_output_dir=_output_dir / "grains",
-                        image_name=filename,
-                        plot_opts=grain_plot_dict,
-                        **grainstats_config,
-                    ).calculate_stats()
-                    grainstats[direction]["statistics"]["threshold"] = direction
+            #
+            LOGGER.info(f"[{filename}] : *** Grain Statistics ***")
+            grain_plot_dict = {
+                key: value
+                for key, value in plotting_config["plot_dict"].items()
+                if key in ["grain_image", "grain_mask", "grain_mask_image"]
+            }
+            grainstats = {}
+            for direction in grains.directions.keys():
+                grainstats[direction] = GrainStats(
+                    data=filtered_image.images["gaussian_filtered"],
+                    labelled_data=grains.directions[direction]["labelled_regions_02"],
+                    pixel_to_nanometre_scaling=pixel_to_nm_scaling,
+                    direction=direction,
+                    base_output_dir=_output_dir / "grains",
+                    image_name=filename,
+                    plot_opts=grain_plot_dict,
+                    **grainstats_config,
+                ).calculate_stats()
+                grainstats[direction]["statistics"]["threshold"] = direction
+            # Set tracing_stats_df in light of direction
+            if grains_config["direction"] == "both":
+                grainstats_df = pd.concat([grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]])
+            elif grains_config["direction"] == "upper":
+                grainstats_df = grainstats["upper"]["statistics"]
+            elif grains_config["direction"] == "lower":
+                grainstats_df = grainstats["lower"]["statistics"]
+            # Run dnatracing
+            if dnatracing_config["run"]:
+                dnatracing_config.pop("run")
+                LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
+                dna_traces = defaultdict()
+                tracing_stats = defaultdict()
+                for direction, _ in grainstats.items():
+                    dna_traces[direction] = dnaTrace(
+                        full_image_data=filtered_image.images["gaussian_filtered"].T,
+                        grains=grains.directions[direction]["labelled_regions_02"],
+                        filename=filename,
+                        pixel_size=pixel_to_nm_scaling,
+                        **dnatracing_config,
+                    )
+                    dna_traces[direction].trace_dna()
+                    tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
+                    tracing_stats[direction].df["threshold"] = direction
+                    dna_traces[direction].saveTraceFigures(
+                        filename,
+                        loading_config["channel"],
+                        plotting_config["zrange"][1],
+                        plotting_config["zrange"][0],
+                        _output_dir,
+                    )
+                    # dna_traces[direction].plot_curvature(
+                    #     34,
+                    #     filename,
+                    #     loading_config["channel"],
+                    #     _output_dir,
+                    # )
+                    for i in [1, 2, 3, 4, 5, 6, 7, 34]:
+                        dna_traces[direction].write_coordinates(
+                            i,
+                            filename,
+                            loading_config["channel"],
+                            _output_dir,
+                        )
+
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
-                    grainstats_df = pd.concat([grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]])
+                    tracing_stats_df = pd.concat([tracing_stats["lower"].df, tracing_stats["upper"].df])
                 elif grains_config["direction"] == "upper":
-                    grainstats_df = grainstats["upper"]["statistics"]
+                    tracing_stats_df = tracing_stats["upper"].df
                 elif grains_config["direction"] == "lower":
-                    grainstats_df = grainstats["lower"]["statistics"]
-                # Run dnatracing
-                if dnatracing_config["run"]:
-                    dnatracing_config.pop("run")
-                    LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
-                    dna_traces = defaultdict()
-                    tracing_stats = defaultdict()
-                    for direction, _ in grainstats.items():
-                        dna_traces[direction] = dnaTrace(
-                            full_image_data=filtered_image.images["gaussian_filtered"].T,
-                            grains=grains.directions[direction]["labelled_regions_02"],
-                            filename=filename,
-                            pixel_size=pixel_to_nm_scaling,
-                            **dnatracing_config,
-                        )
-                        dna_traces[direction].trace_dna()
-                        tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
-                        tracing_stats[direction].df["threshold"] = direction
+                    tracing_stats_df = tracing_stats["lower"].df
+                LOGGER.info(f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics")
+                results = grainstats_df.merge(tracing_stats_df, on=["Molecule Number", "threshold"])
+            else:
+                results = grainstats_df
+                results["Image Name"] = filename
+                results["Basename"] = image_path.parent
 
-                        dna_traces[direction].saveTraceFigures(filename, loading_config["channel"], plotting_config['zrange'][1], plotting_config['zrange'][0], _output_dir)
-
-                    # Set tracing_stats_df in light of direction
-                    if grains_config["direction"] == "both":
-                        tracing_stats_df = pd.concat([tracing_stats["lower"].df, tracing_stats["upper"].df])
-                    elif grains_config["direction"] == "upper":
-                        tracing_stats_df = tracing_stats["upper"].df
-                    elif grains_config["direction"] == "lower":
-                        tracing_stats_df = tracing_stats["lower"].df
-                    LOGGER.info(f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics")
-                    results = grainstats_df.merge(tracing_stats_df, on=["Molecule Number", "threshold"])
-                else:
-                    results = grainstats_df
-                    results["Image Name"] = filename
-                    results["Basename"] = image_path.parent
-
-            except Exception:
-                # If no results we need a dummy dataframe to return.
-                LOGGER.info(
-                    f"[{filename}] : Errors occurred whilst calculating grain statistics and DNA tracing statistics."
-                )
-                results = create_empty_dataframe()
+            # except Exception:
+            #     # If no results we need a dummy dataframe to return.
+            #     LOGGER.info(
+            #         f"[{filename}] : Errors occurred whilst calculating grain statistics and DNA tracing statistics."
+            #     )
+            #     results = create_empty_dataframe()
 
     return image_path, results
 
@@ -394,7 +412,7 @@ def main():
             "axes": config["plotting"]["axes"],
             "cmap": config["plotting"]["cmap"],
             "zrange": config["plotting"]["zrange"],
-            "histogram_log_axis": config["plotting"]["histogram_log_axis"]
+            "histogram_log_axis": config["plotting"]["histogram_log_axis"],
         }
         if image not in ["z_threshed", "mask_overlay", "grain_image", "grain_mask_image"]:
             config["plotting"]["plot_dict"][image].pop("zrange")
@@ -442,7 +460,7 @@ def main():
     LOGGER.info(
         (
             f"All statistics combined for {len(img_files)} images(s) are "
-            "saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
+            f"saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
         )
     )
     folder_grainstats(config["output_dir"], config["base_dir"], results)

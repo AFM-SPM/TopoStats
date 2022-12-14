@@ -731,8 +731,6 @@ class dnaTrace(object):
 
         plt.colorbar()
         plt.axis("equal")
-        plt.xticks([])
-        plt.yticks([])
         plt.savefig(output_dir / filename / f"{channel_name}_curvature_summary.png")
         plt.close()
         LOGGER.info(
@@ -889,7 +887,6 @@ class dnaTrace(object):
 
         # if dna_num == 0:
         #     plt.ylim(0, 2)
-
         if dna_num == 0:
             theory = np.zeros(length)
             for i in range(length):
@@ -909,12 +906,12 @@ class dnaTrace(object):
                 theory = np.roll(theory, int(self.n_points * self.displacement), axis=0)
                 # For parabola
                 # theory[i] = - 2/(1+(2*self.splined_traces[0][i][0])**2)**1.5
-            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, theory, color="b")
-            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color="y")
+            sns.lineplot(x=curvature[:, 1] * self.pixel_size * 1e9, y=theory, color="b")
+            sns.lineplot(x=curvature[:, 1] * self.pixel_size * 1e9, y=curvature[:, 2], color="y")
         else:
             # plt.xlim(0, 105)
             # plt.ylim(-0.1, 0.2)
-            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color="black", linewidth=5)
+            sns.lineplot(x=curvature[:, 1] * self.pixel_size * 1e9, y=curvature[:, 2], color="black", linewidth=5)
             plt.ticklabel_format(axis="both", style="sci", scilimits=(-2, 2))
             plt.axvline(curvature[0][1], color="#D55E00", linewidth=5, alpha=0.8)
             plt.axvline(curvature[int(length / 6)][1] * self.pixel_size * 1e9, color="#E69F00", linewidth=5, alpha=0.8)
@@ -936,6 +933,9 @@ class dnaTrace(object):
         # plt.yticks(fontsize=20)
         plt.savefig(output_dir / filename / f"{channel_name}_{dna_num}_curvature.png")
         plt.close()
+        LOGGER.info(
+            f"Curvature plot for molecule {dna_num} saved to : {str(output_dir / filename / f'{channel_name}_{dna_num}_curvature.png')}"
+        )
 
     def plot_gradient(
         self, dna_num, filename: Union[str, Path], channel_name: str, output_dir: Union[str, Path] = None
@@ -971,7 +971,6 @@ class dnaTrace(object):
 
                     x1 = self.splined_traces[dna_num][num - 1, 0]
                     y1 = self.splined_traces[dna_num][num - 1, 1]
-
                     x2 = self.splined_traces[dna_num][num, 0]
                     y2 = self.splined_traces[dna_num][num, 1]
 
@@ -1010,7 +1009,9 @@ class dnaTrace(object):
             for dna_num in sorted(self.contour_lengths.keys()):
                 writing_file.write("%f \n" % self.contour_lengths[dna_num])
 
-    def write_coordinates(self, dna_num):
+    def write_coordinates(
+        self, dna_num, filename: Union[str, Path], channel_name: str, output_dir: Union[str, Path] = None
+    ):
         # FIXME: Replace with Path()
         if not os.path.exists(os.path.join(os.path.dirname(self.filename), "Coordinates")):
             os.mkdir(os.path.join(os.path.dirname(self.filename), "Coordinates"))
@@ -1064,10 +1065,10 @@ class dnaTrace(object):
             markersize=10,
             marker="o",
         )
-        plt.xticks([])
-        plt.yticks([])
+        # plt.xticks([])
+        # plt.yticks([])
 
-        plt.savefig("%s_%s_coordinates.png" % (savename, dna_num))
+        plt.savefig(output_dir / filename / f"{channel_name}_{dna_num}_coordinates.png")
         plt.close()
 
         # curvature = np.array(self.curvature[dna_num])
