@@ -595,7 +595,7 @@ class joePrune:
                 temp_coordinates.pop(temp_coordinates.index([branch_x, branch_y]))
 
                 while branch_continues:
-                    no_of_neighbours, neighbours = genTracingFuncs.countandGetNeighbours(branch_x, branch_y, temp_coordinates)
+                    no_of_neighbours, neighbours = genTracingFuncs.count_and_get_neighbours(branch_x, branch_y, temp_coordinates)
 
                     # If branch continues
                     if no_of_neighbours == 1:
@@ -647,6 +647,6 @@ class joePrune:
 
         # Most of the branch ends are just points with one neighbour
         for x, y in coordinates:
-            if genTracingFuncs.countandGetNeighbours(x, y, coordinates)[0] == 1:
+            if genTracingFuncs.count_and_get_neighbours(x, y, coordinates)[0] == 1:
                 potential_branch_ends.append([x, y])
         return potential_branch_ends

@@ -30,7 +30,7 @@ class reorderTrace:
 
         # Find one of the end points
         for i, (x, y) in enumerate(trace_coordinates):
-            if genTracingFuncs.countandGetNeighbours(x, y, trace_coordinates)[0] == 1:
+            if genTracingFuncs.count_and_get_neighbours(x, y, trace_coordinates)[0] == 1:
                 ordered_points = [[x, y]]
                 trace_coordinates.pop(i)
                 break
@@ -44,7 +44,7 @@ class reorderTrace:
 
             x_n, y_n = ordered_points[-1]  # get the last point to be added to the array and find its neighbour
 
-            no_of_neighbours, neighbour_array = genTracingFuncs.countandGetNeighbours(
+            no_of_neighbours, neighbour_array = genTracingFuncs.count_and_get_neighbours(
                 x_n, y_n, remaining_unordered_coords
             )
 
@@ -72,7 +72,7 @@ class reorderTrace:
                 ordered_points.append(best_next_pixel)
 
             # If the tracing has reached the other end of the trace then its finished
-            if genTracingFuncs.countandGetNeighbours(x_n, y_n, trace_coordinates)[0] == 1:
+            if genTracingFuncs.count_and_get_neighbours(x_n, y_n, trace_coordinates)[0] == 1:
                 break
 
         return np.array(ordered_points)
@@ -92,7 +92,7 @@ class reorderTrace:
 
         # Find a sensible point to start of the end points
         for i, (x, y) in enumerate(trace_coordinates):
-            if genTracingFuncs.countandGetNeighbours(x, y, trace_coordinates)[0] == 2:
+            if genTracingFuncs.count_and_get_neighbours(x, y, trace_coordinates)[0] == 2:
                 ordered_points = [[x, y]]
                 remaining_unordered_coords.pop(i)
                 break
@@ -100,7 +100,7 @@ class reorderTrace:
         # Randomly choose one of the neighbouring points as the next point
         x_n = ordered_points[0][0]
         y_n = ordered_points[0][1]
-        no_of_neighbours, neighbour_array = genTracingFuncs.countandGetNeighbours(x_n, y_n, remaining_unordered_coords)
+        no_of_neighbours, neighbour_array = genTracingFuncs.count_and_get_neighbours(x_n, y_n, remaining_unordered_coords)
         ordered_points.append(neighbour_array[0])
         remaining_unordered_coords.pop(remaining_unordered_coords.index(neighbour_array[0]))
 
@@ -110,7 +110,7 @@ class reorderTrace:
 
             x_n, y_n = ordered_points[-1]  # get the last point to be added to the array and find its neighbour
 
-            no_of_neighbours, neighbour_array = genTracingFuncs.countandGetNeighbours(
+            no_of_neighbours, neighbour_array = genTracingFuncs.count_and_get_neighbours(
                 x_n, y_n, remaining_unordered_coords
             )
 
@@ -141,7 +141,7 @@ class reorderTrace:
 
             elif no_of_neighbours == 0:
                 # Check if the tracing is finished
-                nn, neighbour_array_all_coords = genTracingFuncs.countandGetNeighbours(x_n, y_n, trace_coordinates)
+                nn, neighbour_array_all_coords = genTracingFuncs.count_and_get_neighbours(x_n, y_n, trace_coordinates)
                 if ordered_points[0] in neighbour_array_all_coords:
                     break
 
@@ -227,7 +227,7 @@ class reorderTrace:
 class genTracingFuncs:
 
     @staticmethod
-    def countandGetNeighbours(x, y, trace_coordinates):
+    def count_and_get_neighbours(x, y, trace_coordinates):
 
         """Returns the number of neighbouring points for a coordinate and an
         array containing the those points"""
