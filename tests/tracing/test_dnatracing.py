@@ -101,4 +101,3 @@ def test_dnatracing_get_disordered_trace(dnatracing_disordered_traces: dnaTrace)
 def test_tracestats(regtest, minicircle_tracestats: traceStats) -> None:
     """Regression tests for DNA trace statistics."""
     print(minicircle_tracestats.to_string(), file=regtest)
-    assert 1 == 1
