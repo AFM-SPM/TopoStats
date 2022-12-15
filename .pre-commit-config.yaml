@@ -18,20 +18,20 @@ repos:
       - id: black
         types: [python]
         additional_dependencies: ['click==8.0.4']
-        args: ["--extend-exclude", "topostats/plotting.py", "topostats", "tests", "*.ipynb"]
+        args: ["--extend-exclude", "topostats/plotting.py"]
 
   - repo: https://github.com/pycqa/flake8.git
     rev: 5.0.4
     hooks:
       - id: flake8
-        args: ["--extend-exclude=topostats/_version.py", "topostats", "tests", "*.ipynb"]
+        args: ["--extend-exclude=topostats/_version.py"]
         additional_dependencies: [flake8-print]
         types: [python]
   - repo: local
     hooks:
       - id: pylint
-        args: ["--rcfile=.pylintrc", "--ignore-patterns=*_version.py", "topostats", "tests"]
+        args: ["--rcfile=.pylintrc"]
         name: Pylint
-        entry: python -m pylint.__main__
+        entry: python -m pylint
         language: system
         files: \.py$

@@ -57,7 +57,7 @@ class dnaTrace(object):
         self.grains = {}
         self.dna_masks = {}
         self.skeletons = {}
-        self.disordered_trace = {}
+        self.disordered_traces = {}
         self.ordered_traces = {}
         self.fitted_traces = {}
         self.splined_traces = {}
@@ -69,6 +69,7 @@ class dnaTrace(object):
         self.number_of_traces = 0
         self.num_circular = 0
         self.num_linear = 0
+        self.step_size_m = 7e-9  # Used for getting the splines
 
         self.neighbours = 5  # The number of neighbours used for the curvature measurement
 
@@ -81,10 +82,10 @@ class dnaTrace(object):
         """Perform DNA tracing."""
         self.get_numpy_arrays()
         self.gaussian_filter()
-        self.get_disordered_trace()
+        self.get_disordered_traces()
         # self.isMolLooped()
         self.purge_obvious_crap()
-        self.linear_or_circular(self.disordered_trace)
+        self.linear_or_circular(self.disordered_traces)
         self.get_ordered_traces()
         self.linear_or_circular(self.ordered_traces)
         self.get_fitted_traces()
@@ -162,7 +163,7 @@ class dnaTrace(object):
         self.gauss_image = gaussian(self.full_image_data, sigma=self.sigma, **kwargs)
         LOGGER.info(f"[{self.filename}] : Gaussian filter applied.")
 
-    def get_disordered_trace(self):
+    def get_disordered_traces(self):
         """Create a skeleton for each of the grains in the image.
 
         Uses my own skeletonisation function from tracingfuncs module. I will
@@ -183,7 +184,7 @@ class dnaTrace(object):
                 dna_skeleton = getSkeleton(
                     self.gauss_image, smoothed_grain, self.number_of_columns, self.number_of_rows, self.pixel_size
                 )
-                self.disordered_trace[grain_num] = dna_skeleton.output_skeleton
+                self.disordered_traces[grain_num] = dna_skeleton.output_skeleton
             except IndexError:
                 # Some gwyddion grains touch image border causing IndexError
                 # These grains are deleted
@@ -193,10 +194,10 @@ class dnaTrace(object):
 
     def purge_obvious_crap(self):
 
-        for dna_num in sorted(self.disordered_trace.keys()):
+        for dna_num in sorted(self.disordered_traces.keys()):
 
-            if len(self.disordered_trace[dna_num]) < 10:
-                self.disordered_trace.pop(dna_num, None)
+            if len(self.disordered_traces[dna_num]) < 10:
+                self.disordered_traces.pop(dna_num, None)
 
     def linear_or_circular(self, traces):
 
@@ -229,14 +230,14 @@ class dnaTrace(object):
 
     def get_ordered_traces(self):
 
-        for dna_num in sorted(self.disordered_trace.keys()):
+        for dna_num in sorted(self.disordered_traces.keys()):
 
             circle_tracing = True
 
             if self.mol_is_circular[dna_num]:
 
                 self.ordered_traces[dna_num], trace_completed = reorderTrace.circularTrace(
-                    self.disordered_trace[dna_num]
+                    self.disordered_traces[dna_num]
                 )
 
                 if not trace_completed:
@@ -245,12 +246,12 @@ class dnaTrace(object):
                         self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.ordered_traces[dna_num].tolist())
                     except UnboundLocalError:
                         self.mol_is_circular.pop(dna_num)
-                        self.disordered_trace.pop(dna_num)
+                        self.disordered_traces.pop(dna_num)
                         self.grains.pop(dna_num)
                         self.ordered_traces.pop(dna_num)
 
             elif not self.mol_is_circular[dna_num]:
-                self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
+                self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_traces[dna_num].tolist())
 
     def report_basic_stats(self):
         """Report number of circular and linear DNA molecules detected."""
@@ -401,11 +402,7 @@ class dnaTrace(object):
         This function actually calculates the average of several splines which is important for getting a good fit on
         the lower res data"""
 
-        step_size = int(7e-9 / (self.pixel_size))  # 3 nm step size
-        interp_step = int(1e-10 / self.pixel_size)
-        # Lets see if we just got with the pixel_to_nm_scaling
-        # step_size = self.pixel_size
-        # interp_step = self.pixel_size
+        step_size_px = int(self.step_size_m / (self.pixel_size))
 
         # FIXME : Iterate over self.fitted_traces directly use either self.fitted_traces.values() or self.fitted_trace.items()
         for dna_num in sorted(self.fitted_traces.keys()):
@@ -423,34 +420,32 @@ class dnaTrace(object):
             # LOGGER.info(f"nbr             : {nbr}")
             # LOGGER.info(f"step_size       : {step_size}")
             # LOGGER.info(f"self.pixel_size : {self.pixel_size}")
-            while nbr / step_size < 4:
-                if step_size <= 1:
-                    step_size = 1
+            while nbr / step_size_px < 4:
+                if step_size_px <= 1:
+                    step_size_px = 1
                     break
-                step_size = -1
+                step_size_px = -1
+
             if self.mol_is_circular[dna_num]:
 
-                # if nbr/step_size > 4: #the degree of spline fit is 3 so there cannot be less than 3 points in splined trace
+                ev_array = np.linspace(0, 1, nbr * step_size_px)
 
-                # ev_array = np.linspace(0, 1, nbr * step_size)
-                ev_array = np.linspace(0, 1, int(nbr * step_size))
-
-                for i in range(step_size):
+                for i in range(step_size_px):
                     x_sampled = np.array(
                         [
                             self.fitted_traces[dna_num][:, 0][j]
-                            for j in range(i, len(self.fitted_traces[dna_num][:, 0]), step_size)
+                            for j in range(i, len(self.fitted_traces[dna_num][:, 0]), step_size_px)
                         ]
                     )
                     y_sampled = np.array(
                         [
                             self.fitted_traces[dna_num][:, 1][j]
-                            for j in range(i, len(self.fitted_traces[dna_num][:, 1]), step_size)
+                            for j in range(i, len(self.fitted_traces[dna_num][:, 1]), step_size_px)
                         ]
                     )
 
                     try:
-                        tck, u = interp.splprep([x_sampled, y_sampled], s=0, per=2, quiet=1, k=3)
+                        tck, u = interp.splprep([x_sampled, y_sampled], s=2, per=2, quiet=1, k=3)
                         out = interp.splev(ev_array, tck)
                         splined_trace = np.column_stack((out[0], out[1]))
                     except ValueError:
@@ -459,23 +454,23 @@ class dnaTrace(object):
                         x = np.array(
                             [
                                 self.ordered_traces[dna_num][:, 0][j]
-                                for j in range(i, len(self.ordered_traces[dna_num][:, 0]), step_size)
+                                for j in range(i, len(self.ordered_traces[dna_num][:, 0]), step_size_px)
                             ]
                         )
                         y = np.array(
                             [
                                 self.ordered_traces[dna_num][:, 1][j]
-                                for j in range(i, len(self.ordered_traces[dna_num][:, 1]), step_size)
+                                for j in range(i, len(self.ordered_traces[dna_num][:, 1]), step_size_px)
                             ]
                         )
 
                         try:
-                            tck, u = interp.splprep([x, y], s=0, per=2, quiet=1)
-                            out = interp.splev(np.linspace(0, 1, nbr * step_size), tck)
+                            tck, u = interp.splprep([x, y], s=2, per=2, quiet=1)
+                            out = interp.splev(np.linspace(0, 1, nbr * step_size_px), tck)
                             splined_trace = np.column_stack((out[0], out[1]))
                         except ValueError:  # sometimes even the ordered_traces are too bugged out so just delete these traces
                             self.mol_is_circular.pop(dna_num)
-                            self.disordered_trace.pop(dna_num)
+                            self.disordered_traces.pop(dna_num)
                             self.grains.pop(dna_num)
                             self.ordered_traces.pop(dna_num)
                             self.splining_success = False
@@ -493,69 +488,88 @@ class dnaTrace(object):
                 if not self.splining_success:
                     continue
 
-                spline_average = np.divide(spline_running_total, [step_size, step_size])
+                spline_average = np.divide(spline_running_total, [step_size_px, step_size_px])
                 del spline_running_total
+                spline_average = np.delete(spline_average, -1, 0)
                 self.splined_traces[dna_num] = spline_average
-                # else:
-                #    x = self.fitted_traces[dna_num][:,0]
-                #    y = self.fitted_traces[dna_num][:,1]
-
-                #    try:
-                #        tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1, k = 3)
-                #        out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
-                #        splined_trace = np.column_stack((out[0], out[1]))
-                #        self.splined_traces[dna_num] = splined_trace
-                #    except ValueError: #if the trace is really messed up just delete it
-                #        self.mol_is_circular.pop(dna_num)
-                #        self.disordered_trace.pop(dna_num)
-                #        self.grains.pop(dna_num)
-                #        self.ordered_traces.pop(dna_num)
 
             else:
-                """
-                start_x = self.fitted_traces[dna_num][0, 0]
-                end_x = self.fitted_traces[dna_num][-1, 0]
+                # ev_array = np.linspace(0, 1, 1000)
+                ev_array = np.linspace(0, 1, nbr * step_size_px)
 
-                for i in range(step_size):
-                    x_sampled = np.array([self.fitted_traces[dna_num][:, 0][j] for j in
-                                          range(i, len(self.fitted_traces[dna_num][:, 0]), step_size)])
-                    y_sampled = np.array([self.fitted_traces[dna_num][:, 1][j] for j in
-                                          range(i, len(self.fitted_traces[dna_num][:, 1]), step_size)])
-
-                    interp_f = interp.interp1d(x_sampled, y_sampled, kind='cubic', assume_sorted=False)
-
-                    x_new = np.linspace(start_x, end_x, interp_step)
-                    y_new = interp_f(x_new)
-
-                    print(y_new)
-
-                    # tck = interp.splrep(x_sampled, y_sampled, quiet = 0)
-                    # out = interp.splev(np.linspace(start_x,end_x, nbr*step_size), tck)
-                    splined_trace = np.column_stack((x_new, y_new))
+                for i in range(step_size_px):
+                    x_sampled = np.array(
+                        [
+                            self.fitted_traces[dna_num][:, 0][j]
+                            for j in range(i, len(self.fitted_traces[dna_num][:, 0]), step_size_px)
+                        ]
+                    )
+                    y_sampled = np.array(
+                        [
+                            self.fitted_traces[dna_num][:, 1][j]
+                            for j in range(i, len(self.fitted_traces[dna_num][:, 1]), step_size_px)
+                        ]
+                    )
 
                     try:
-                        np.add(spline_running_total, splined_trace)
+                        tck, u = interp.splprep([x_sampled, y_sampled], s=5, per=0, quiet=1, k=3)
+                        out = interp.splev(ev_array, tck)
+                        splined_trace = np.column_stack((out[0], out[1]))
+                    except ValueError:
+                        # Value error occurs when the "trace fitting" really messes up the traces
+
+                        x = np.array(
+                            [
+                                self.ordered_traces[dna_num][:, 0][j]
+                                for j in range(i, len(self.ordered_traces[dna_num][:, 0]), step_size_px)
+                            ]
+                        )
+                        y = np.array(
+                            [
+                                self.ordered_traces[dna_num][:, 1][j]
+                                for j in range(i, len(self.ordered_traces[dna_num][:, 1]), step_size_px)
+                            ]
+                        )
+
+                        try:
+                            tck, u = interp.splprep([x, y], s=5, per=0, quiet=1)
+                            out = interp.splev(np.linspace(0, 1, nbr * step_size_px), tck)
+                            splined_trace = np.column_stack((out[0], out[1]))
+                        except ValueError:  # sometimes even the ordered_traces are too bugged out so just delete these traces
+                            self.mol_is_circular.pop(dna_num)
+                            self.disordered_traces.pop(dna_num)
+                            self.grains.pop(dna_num)
+                            self.ordered_traces.pop(dna_num)
+                            self.splining_success = False
+                            try:
+                                del spline_running_total
+                            except UnboundLocalError:  # happens if splining fails immediately
+                                break
+                            break
+
+                    try:
+                        spline_running_total = np.add(spline_running_total, splined_trace)
                     except NameError:
                         spline_running_total = np.array(splined_trace)
 
-                spline_average = spline_running_total
-                self.splined_traces[dna_num] = spline_average
-                """
+                if not self.splining_success:
+                    continue
 
-                # can't get splining of linear molecules to work yet
-                self.splined_traces[dna_num] = self.fitted_traces[dna_num]
+                spline_average = np.divide(spline_running_total, [step_size_px, step_size_px])
+                del spline_running_total
+                self.splined_traces[dna_num] = spline_average
 
     def show_traces(self):
 
         plt.pcolormesh(self.gauss_image, vmax=-3e-9, vmin=3e-9)
         plt.colorbar()
-        for dna_num in sorted(self.disordered_trace.keys()):
+        for dna_num in sorted(self.disordered_traces.keys()):
             plt.plot(self.ordered_traces[dna_num][:, 0], self.ordered_traces[dna_num][:, 1], markersize=1)
             plt.plot(self.fitted_traces[dna_num][:, 0], self.fitted_traces[dna_num][:, 1], markersize=1)
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], markersize=1)
-            # print(len(self.skeletons[dna_num]), len(self.disordered_trace[dna_num]))
+            # print(len(self.skeletons[dna_num]), len(self.disordered_traces[dna_num]))
             # plt.plot(self.skeletons[dna_num][:,0], self.skeletons[dna_num][:,1], 'o', markersize = 0.8)
-
+        plt.axis("equal")
         plt.show()
         plt.close()
 
@@ -573,87 +587,115 @@ class dnaTrace(object):
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
-        # plt.savefig("%s_%s_originalImage.png" % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_original.png")
         plt.close()
 
-        # plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
-        # plt.colorbar()
-        # for dna_num in sorted(self.splined_traces.keys()):
-        #     # disordered_trace_list = self.ordered_traces[dna_num].tolist()
-        #     # less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
-        #     plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=1.0)
-        #     if self.mol_is_circular[dna_num]:
-        #         starting_point = 0
-        #     else:
-        #         starting_point = self.neighbours
-        #     length = len(self.curvature[dna_num])
-        #     plt.plot(self.splined_traces[dna_num][starting_point, 0],
-        #              self.splined_traces[dna_num][starting_point, 1],
-        #              color='#D55E00', markersize=3.0, marker=5)
-        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6), 0],
-        #              self.splined_traces[dna_num][starting_point + int(length / 6), 1],
-        #              color='#E69F00', markersize=3.0, marker=5)
-        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 0],
-        #              self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 1],
-        #              color='#F0E442', markersize=3.0, marker=5)
-        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 0],
-        #              self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 1],
-        #              color='#009E74', markersize=3.0, marker=5)
-        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 0],
-        #              self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 1],
-        #              color='#0071B2', markersize=3.0, marker=5)
-        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 0],
-        #              self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 1],
-        #              color='#CC79A7', markersize=3.0, marker=5)
-        # plt.savefig('%s_%s_splinedtrace_with_markers.png' % (save_file, channel_name))
-        # plt.close()
+        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        plt.colorbar()
+        for dna_num in sorted(self.splined_traces.keys()):
+            plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color="c", linewidth=2.0)
+        plt.savefig(output_dir / filename / f"{channel_name}_splinedtrace.png")
+        LOGGER.info(f"Splined Trace image saved to : {str(output_dir / filename / f'{channel_name}_splinedtrace.png')}")
+        plt.close()
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.splined_traces.keys()):
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color="c", linewidth=1.0)
-        # plt.savefig("%s_%s_splinedtrace.png" % (save_file, channel_name))
-        plt.savefig(output_dir / filename / f"{channel_name}_splinedtrace.png")
-        LOGGER.info(f"Splined Trace image saved to : {str(output_dir / filename / f'{channel_name}_splinedtrace.png')}")
+            length = len(self.curvature[dna_num])
+            plt.plot(
+                self.splined_traces[dna_num][0, 0],
+                self.splined_traces[dna_num][0, 1],
+                color="#D55E00",
+                markersize=3.0,
+                marker=5,
+            )
+            plt.plot(
+                self.splined_traces[dna_num][int(length / 6), 0],
+                self.splined_traces[dna_num][int(length / 6), 1],
+                color="#E69F00",
+                markersize=3.0,
+                marker=5,
+            )
+            plt.plot(
+                self.splined_traces[dna_num][int(length / 6 * 2), 0],
+                self.splined_traces[dna_num][int(length / 6 * 2), 1],
+                color="#F0E442",
+                markersize=3.0,
+                marker=5,
+            )
+            plt.plot(
+                self.splined_traces[dna_num][int(length / 6 * 3), 0],
+                self.splined_traces[dna_num][int(length / 6 * 3), 1],
+                color="#009E74",
+                markersize=3.0,
+                marker=5,
+            )
+            plt.plot(
+                self.splined_traces[dna_num][int(length / 6 * 4), 0],
+                self.splined_traces[dna_num][int(length / 6 * 4), 1],
+                color="#56B4E9",
+                markersize=3.0,
+                marker=5,
+            )
+            plt.plot(
+                self.splined_traces[dna_num][int(length / 6 * 5), 0],
+                self.splined_traces[dna_num][int(length / 6 * 5), 1],
+                color="#CC79A7",
+                markersize=3.0,
+                marker=5,
+            )
+        plt.savefig(output_dir / filename / f"{channel_name}_splined_trace_with_markers.png")
         plt.close()
-
-        """
-        plt.pcolormesh(self.full_image_data)
-        plt.colorbar()
-        for dna_num in sorted(self.ordered_traces.keys()):
-            #disordered_trace_list = self.ordered_traces[dna_num].tolist()
-            #less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
-            plt.plot(self.ordered_traces[dna_num][:,0], self.ordered_traces[dna_num][:,1])
-        plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name))
-        plt.close()
-        """
+        LOGGER.info(
+            f"Splined trace with markers image saved to : {str(output_dir / filename / f'{channel_name}_splined_trace_with_markers.png')}"
+        )
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
-        for dna_num in sorted(self.disordered_trace.keys()):
-            # disordered_trace_list = self.disordered_trace[dna_num].tolist()
-            # less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
+        for dna_num in sorted(self.ordered_traces.keys()):
             plt.plot(
-                self.disordered_trace[dna_num][:, 0],
-                self.disordered_trace[dna_num][:, 1],
+                self.ordered_traces[dna_num][:, 0], self.ordered_traces[dna_num][:, 1], "o", markersize=0.5, color="c"
+            )
+        plt.savefig(output_dir / filename / f"{channel_name}_ordered_trace.png")
+        plt.close()
+        LOGGER.info(
+            f"Ordered trace image saved to : {str(output_dir / filename / f'{channel_name}_ordered_trace.png')}"
+        )
+
+        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        plt.colorbar()
+        for dna_num in sorted(self.disordered_traces.keys()):
+            # disordered_traces_list = self.disordered_traces[dna_num].tolist()
+            # less_dense_trace = np.array([disordered_traces_list[i] for i in range(0,len(disordered_traces_list),5)])
+            plt.plot(
+                self.disordered_traces[dna_num][:, 0],
+                self.disordered_traces[dna_num][:, 1],
                 "o",
                 markersize=0.5,
                 color="c",
             )
-        # plt.savefig("%s_%s_disorderedtrace.png" % (save_file, channel_name))
-        plt.savefig(output_dir / filename / f"{channel_name}_disordered_trace.png")
+        plt.savefig(output_dir / filename / f"{channel_name}_disordered_traces.png")
         plt.close()
         LOGGER.info(
-            f"Disordered trace image saved to : {str(output_dir / filename / f'{channel_name}_disordered_trace.png')}"
+            f"Disordered trace image saved to : {str(output_dir / filename / f'{channel_name}_disordered_traces.png')}"
         )
+
+        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        plt.colorbar()
+        for dna_num in sorted(self.fitted_traces.keys()):
+            plt.plot(
+                self.fitted_traces[dna_num][:, 0], self.fitted_traces[dna_num][:, 1], "o", markersize=0.5, color="c"
+            )
+        plt.savefig(output_dir / filename / f"{channel_name}_fitted_trace.png")
+        plt.close()
+        LOGGER.info(f"Fitted trace image saved to : {str(output_dir / filename / f'{channel_name}_fitted_trace.png')}")
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.grains.keys()):
             grain_plt = np.argwhere(self.grains[dna_num] == 1)
             plt.plot(grain_plt[:, 0], grain_plt[:, 1], "o", markersize=2, color="c")
-        # plt.savefig("%s_%s_grains.png" % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_grains.png")
         plt.close()
         LOGGER.info(f"Grains image saved to : {str(output_dir / filename / f'{channel_name}_grains.png')}")
