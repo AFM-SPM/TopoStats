@@ -225,21 +225,6 @@ class reorderTrace:
 
 
 class genTracingFuncs:
-    @staticmethod
-    def getLocalPixelsBinary(binary_map, x, y):
-        # [[p9, p2, p3],
-        #  [p8, na, p4],
-        #  [p7, p6, p5]]
-        p2 = binary_map[x, y + 1]
-        p3 = binary_map[x + 1, y + 1]
-        p4 = binary_map[x + 1, y]
-        p5 = binary_map[x + 1, y - 1]
-        p6 = binary_map[x, y - 1]
-        p7 = binary_map[x - 1, y - 1]
-        p8 = binary_map[x - 1, y]
-        p9 = binary_map[x - 1, y + 1]
-
-        return p2, p3, p4, p5, p6, p7, p8, p9
 
     @staticmethod
     def countandGetNeighbours(x, y, trace_coordinates):
