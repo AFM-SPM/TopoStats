@@ -67,10 +67,12 @@ class dnaTrace(object):
         self.mol_is_circular = {}
         self.curvature = {}
         self.max_curvature = {}
+        self.max_curvature_location_px = {}
         self.max_curvature_location = {}
         self.mean_curvature = {}
         self.curvature_variance = {}
         self.curvature_variance_abs = {}
+        self.bending_angle = {}
 
         self.number_of_traces = 0
         self.num_circular = 0
@@ -103,6 +105,7 @@ class dnaTrace(object):
         self.analyse_curvature()
         self.measure_contour_length()
         self.measure_end_to_end_distance()
+        self.measure_bending_angle()
         self.report_basic_stats()
 
     def get_numpy_arrays(self):
@@ -412,8 +415,6 @@ class dnaTrace(object):
         the lower res data"""
 
         step_size_px = int(self.step_size_m / (self.pixel_size))
-        # step_size = int(7e-9 / (self.pixel_size)) # 3 nm step size
-        interp_step = int(1e-10 / self.pixel_size)
 
         # FIXME : Iterate over self.fitted_traces directly use either self.fitted_traces.values() or self.fitted_trace.items()
         for dna_num in sorted(self.fitted_traces.keys()):
@@ -503,20 +504,6 @@ class dnaTrace(object):
                 del spline_running_total
                 spline_average = np.delete(spline_average, -1, 0)
                 self.splined_traces[dna_num] = spline_average
-                # else:
-                #    x = self.fitted_traces[dna_num][:,0]
-                #    y = self.fitted_traces[dna_num][:,1]
-
-                #    try:
-                #        tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1, k = 3)
-                #        out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
-                #        splined_trace = np.column_stack((out[0], out[1]))
-                #        self.splined_traces[dna_num] = splined_trace
-                #    except ValueError: #if the trace is really messed up just delete it
-                #        self.mol_is_circular.pop(dna_num)
-                #        self.disordered_traces.pop(dna_num)
-                #        self.grains.pop(dna_num)
-                #        self.ordered_traces.pop(dna_num)
 
             else:
                 # ev_array = np.linspace(0, 1, 1000)
@@ -868,6 +855,7 @@ class dnaTrace(object):
         for dna_num in sorted(self.curvature.keys()):
             self.max_curvature[dna_num] = np.amax(np.abs(self.curvature[dna_num][:, 2]))
             max_index = np.argmax(np.abs(self.curvature[dna_num][:, 2]))
+            self.max_curvature_location_px[dna_num] = self.curvature[dna_num][max_index, 1]
             self.max_curvature_location[dna_num] = self.curvature[dna_num][max_index, 1] * self.pixel_size * 1e9
             self.mean_curvature[dna_num] = np.average(np.abs(self.curvature[dna_num][:, 2]))
             self.curvature_variance[dna_num] = np.var(self.curvature[dna_num][:, 2])
@@ -1093,6 +1081,26 @@ class dnaTrace(object):
                 y2 = self.splined_traces[dna_num][-1, 1]
                 self.end_to_end_distance[dna_num] = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_size * 1e9
 
+    def measure_bending_angle(self):
+        """Calculate the bending angle at the point of highest curvature"""
+
+        for dna_num in sorted(self.splined_traces.keys()):
+            bending_angle = 0
+            position = int(self.max_curvature_location_px[dna_num])
+            x0 = self.splined_traces[dna_num][position, 0]
+            y0 = self.splined_traces[dna_num][position, 1]
+
+            xa = self.splined_traces[dna_num][position - 5, 0]
+            ya = self.splined_traces[dna_num][position - 5, 0]
+            ga = (y0 - ya) / (x0 - xa)
+
+            xb = self.splined_traces[dna_num][position + 5, 0]
+            yb = self.splined_traces[dna_num][position + 5, 0]
+            gb = (yb - y0) / (xb - x0)
+
+            bending_angle = math.atan((ga - gb) / (1 + ga * gb))
+            self.bending_angle[dna_num] = bending_angle
+
 
 class traceStats(object):
     """Combine and save trace statistics."""
@@ -1132,6 +1140,7 @@ class traceStats(object):
             stats[mol_num]["Mean Curvature"] = self.trace_object.mean_curvature[mol_num]
             stats[mol_num]["Variance of Curvature"] = self.trace_object.curvature_variance[mol_num]
             stats[mol_num]["Variance of Absolute Curvature"] = self.trace_object.curvature_variance_abs[mol_num]
+            stats[mol_num]["Bending Angle"] = self.trace_object.bending_angle[mol_num]
         self.df = pd.DataFrame.from_dict(data=stats, orient="index")
         self.df.reset_index(drop=True, inplace=True)
         self.df.index.name = "Molecule Number"
