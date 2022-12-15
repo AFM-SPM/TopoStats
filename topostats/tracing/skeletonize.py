@@ -166,7 +166,7 @@ class getSkeleton:
         (less branches but slightly less accurate).
         """
         # image height bits don't seem to be used but are there?
-        return joeSkeletonize(image, mask).doSkeletonising()
+        return joeSkeletonize(image, mask).do_skeletonising()
 
 
 class joeSkeletonize:
@@ -191,9 +191,18 @@ class joeSkeletonize:
         """
         self.image = image
         self.mask = mask.copy()
-        self.skeleton_converged = False
 
-    def doSkeletonising(self) -> np.ndarray:
+        self.skeleton_converged = False
+        self.p2 = None
+        self.p3 = None
+        self.p4 = None
+        self.p5 = None
+        self.p6 = None
+        self.p7 = None
+        self.p8 = None
+        self.p9 = None
+
+    def do_skeletonising(self) -> np.ndarray:
         """The wrapper for the whole skeletonisation process.
 
         Returns
@@ -202,13 +211,13 @@ class joeSkeletonize:
             The single pixel thick, skeletonised array.
         """
         while not self.skeleton_converged:
-            self._doSkeletonisingIteration()
+            self._do_skeletonising_iteration()
         # When skeleton converged do an additional iteration of thinning to remove hanging points
-        self.finalSkeletonisationIteration()
+        self.final_skeletonisation_iteration()
 
         return self.mask
 
-    def _doSkeletonisingIteration(self) -> None:
+    def _do_skeletonising_iteration(self) -> None:
         """Do an iteration of skeletonisation - check for the local binary pixel
         environment and assess the local height values to decide whether to
         delete a point.
@@ -217,7 +226,7 @@ class joeSkeletonize:
         # Sub-iteration 1 - binary check
         mask_coordinates = np.argwhere(self.mask == 1).tolist()
         for point in mask_coordinates:
-            if self._deletePixelSubit1(point):
+            if self._delete_pixel_subit1(point):
                 pixels_to_delete.append(point)
 
         for x, y in pixels_to_delete:
@@ -226,7 +235,7 @@ class joeSkeletonize:
         # Sub-iteration 2 - binary check
         mask_coordinates = np.argwhere(self.mask == 1).tolist()
         for point in mask_coordinates:
-            if self._deletePixelSubit2(point):
+            if self._delete_pixel_subit2(point):
                 pixels_to_delete.append(point)
 
         for x, y in pixels_to_delete:
@@ -235,7 +244,7 @@ class joeSkeletonize:
         if len(pixels_to_delete) == 0:
             self.skeleton_converged = True
 
-    def _deletePixelSubit1(self, point: list):
+    def _delete_pixel_subit1(self, point: list) -> bool:
         """Function to check whether a single point should be deleted based
         on both its local binary environment.
 
@@ -251,17 +260,17 @@ class joeSkeletonize:
             of the binary thin a, b returncount, c and d checks below.
         """
 
-        self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.getLocalPixelsBinary(
+        self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.get_local_pixels_binary(
             self.mask, point[0], point[1]
         )
         return (
-            self._binaryThinCheck_a()
-            and self._binaryThinCheck_b_returncount() == 1
-            and self._binaryThinCheck_c()
-            and self._binaryThinCheck_d()
+            self._binary_thin_check_a()
+            and self._binary_thin_check_b_returncount() == 1
+            and self._binary_thin_check_c()
+            and self._binary_thin_check_d()
         )
 
-    def _deletePixelSubit2(self, point):
+    def _delete_pixel_subit2(self, point) -> bool:
         """Function to check whether a single point should be deleted based
         on both its local binary environment.
 
@@ -277,18 +286,18 @@ class joeSkeletonize:
             of the binary thin a, b returncount, csharp and dsharp checks below.
         """
 
-        self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.getLocalPixelsBinary(
+        self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.get_local_pixels_binary(
             self.mask, point[0], point[1]
         )
         # Add in generic code here to protect high points from being deleted
         return (
-            self._binaryThinCheck_a()
-            and self._binaryThinCheck_b_returncount() == 1
-            and self._binaryThinCheck_csharp()
-            and self._binaryThinCheck_dsharp()
+            self._binary_thin_check_a()
+            and self._binary_thin_check_b_returncount() == 1
+            and self._binary_thin_check_csharp()
+            and self._binary_thin_check_dsharp()
         )
 
-    def _binaryThinCheck_a(self):
+    def _binary_thin_check_a(self) -> bool:
         """Checks the surrounding area to see if the point lies on the edge of the grain.
         Condition A protects the endpoints (which will be > 2)
 
@@ -299,7 +308,7 @@ class joeSkeletonize:
         """
         return 2 <= self.p2 + self.p3 + self.p4 + self.p5 + self.p6 + self.p7 + self.p8 + self.p9 <= 6
 
-    def _binaryThinCheck_b_returncount(self):
+    def _binary_thin_check_b_returncount(self) -> bool:
         """Assess local area connectivity?"""
         count = sum(
             [
@@ -316,7 +325,7 @@ class joeSkeletonize:
 
         return count
 
-    def _binaryThinCheck_c(self):
+    def _binary_thin_check_c(self) -> bool:
         """Check if p2, p4 or p6 is 0 - seems very specific
 
         Returns
@@ -326,7 +335,7 @@ class joeSkeletonize:
         """
         return self.p2 * self.p4 * self.p6 == 0
 
-    def _binaryThinCheck_d(self):
+    def _binary_thin_check_d(self) -> bool:
         """Check if p4, p6 or p8 is 0 - seems very specific
 
         Returns
@@ -336,7 +345,7 @@ class joeSkeletonize:
         """
         return self.p4 * self.p6 * self.p8 == 0
 
-    def _binaryThinCheck_csharp(self):
+    def _binary_thin_check_csharp(self) -> bool:
         """Check if p2, p4 or p8 is 0 - seems very specific
 
         Returns
@@ -346,7 +355,7 @@ class joeSkeletonize:
         """
         return self.p2 * self.p4 * self.p8 == 0
 
-    def _binaryThinCheck_dsharp(self):
+    def _binary_thin_check_dsharp(self) -> bool:
         """Check if p2, p6 or p8 is 0 - seems very specific
 
         Returns
@@ -356,7 +365,7 @@ class joeSkeletonize:
         """
         return self.p2 * self.p6 * self.p8 == 0
 
-    def finalSkeletonisationIteration(self):
+    def final_skeletonisation_iteration(self) -> None:
         """A final skeletonisation iteration that removes "hanging" pixels.
         Examples of such pixels are:
                     [0, 0, 0]               [0, 1, 0]            [0, 0, 0]
@@ -369,34 +378,34 @@ class joeSkeletonize:
         remaining_coordinates = np.argwhere(self.mask).tolist()
 
         for x, y in remaining_coordinates:
-            self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.getLocalPixelsBinary(
+            self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.get_local_pixels_binary(
                 self.mask, x, y
             )
 
             # Checks for case 1 pixels
-            if self._binaryThinCheck_b_returncount() == 2 and self._binaryFinalThinCheck_a():
+            if self._binary_thin_check_b_returncount() == 2 and self._binary_final_thin_check_a():
                 self.mask[x, y] = 0
             # Checks for case 2 pixels
-            elif self._binaryThinCheck_b_returncount() == 3 and self._binaryFinalThinCheck_b():
+            elif self._binary_thin_check_b_returncount() == 3 and self._binary_final_thin_check_b():
                 self.mask[x, y] = 0
 
-    def _binaryFinalThinCheck_a(self):
+    def _binary_final_thin_check_a(self) -> bool:
         """Assess if local area has 4-connectivity.
 
         Returns
         -------
         bool
-            T/F if any neighbours of the 4-connections have a near pixel.
+            Logical indicator of whether if any neighbours of the 4-connections have a near pixel.
         """
         return 1 in (self.p2 * self.p4, self.p4 * self.p6, self.p6 * self.p8, self.p8 * self.p2)
 
-    def _binaryFinalThinCheck_b(self):
+    def _binary_final_thin_check_b(self) -> bool:
         """Assess if local area 4-connectivity is connected to multiple branches.
 
         Returns
         -------
         bool
-            T/F if any neighbours of the 4-connections have a near pixel.
+            Logical indicator of whether if any neighbours of the 4-connections have a near pixel.
         """
         return 1 in (
             self.p2 * self.p4 * self.p6,
@@ -406,9 +415,14 @@ class joeSkeletonize:
         )
 
     @staticmethod
-    def getLocalPixelsBinary(binary_map, x, y) -> np.ndarray:
+    def get_local_pixels_binary(binary_map, x, y) -> np.ndarray:
         """Get the values of the pixels in the local 8-connectivit area around
         the coordinate described by x and y.
+
+        [[p7, p8, p9],    [[0,1,2],
+         [p6, na, p2], ->  [3,4,5], -> [0,1,2,3,5,6,7,8]
+         [p5, p4, p3]]     [6,7,8]]
+        delete coordinate pixel to only get local area.
 
         Parameters
         ----------
@@ -426,10 +440,6 @@ class joeSkeletonize:
             around the x,y point
         """
         local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
-        # [[p7, p8, p9],    [[0,1,2],
-        #  [p6, na, p2], ->  [3,4,5], -> [0,1,2,3,5,6,7,8]
-        #  [p5, p4, p3]]     [6,7,8]]
-        # delete coordinate pixel to only get local area
         return np.delete(local_pixels, 4)
 
 
@@ -575,27 +585,27 @@ class joePrune:
             max_branch_length = int(len(coordinates) * 0.15)
 
             # first check to find all the end coordinates in the trace
-            potential_branch_ends = self._findBranchEnds(coordinates)
+            potential_branch_ends = self._find_branch_ends(coordinates)
 
             # Now check if its a branch - and if it is delete it
-            for x_b, y_b in potential_branch_ends:
-                branch_coordinates = [[x_b, y_b]]
+            for branch_x, branch_y in potential_branch_ends:
+                branch_coordinates = [[branch_x, branch_y]]
                 branch_continues = True
                 temp_coordinates = coordinates[:]
-                temp_coordinates.pop(temp_coordinates.index([x_b, y_b]))
+                temp_coordinates.pop(temp_coordinates.index([branch_x, branch_y]))
 
                 while branch_continues:
-                    no_of_neighbours, neighbours = genTracingFuncs.countandGetNeighbours(x_b, y_b, temp_coordinates)
+                    no_of_neighbours, neighbours = genTracingFuncs.countandGetNeighbours(branch_x, branch_y, temp_coordinates)
 
                     # If branch continues
                     if no_of_neighbours == 1:
-                        x_b, y_b = neighbours[0]
-                        branch_coordinates.append([x_b, y_b])
-                        temp_coordinates.pop(temp_coordinates.index([x_b, y_b]))
+                        branch_x, branch_y = neighbours[0]
+                        branch_coordinates.append([branch_x, branch_y])
+                        temp_coordinates.pop(temp_coordinates.index([branch_x, branch_y]))
 
                     # If the branch reaches the edge of the main trace
                     elif no_of_neighbours > 1:
-                        branch_coordinates.pop(branch_coordinates.index([x_b, y_b]))
+                        branch_coordinates.pop(branch_coordinates.index([branch_x, branch_y]))
                         branch_continues = False
                         is_branch = True
 
@@ -620,7 +630,7 @@ class joePrune:
         return single_skeleton
 
     @staticmethod
-    def _findBranchEnds(coordinates) -> list:
+    def _find_branch_ends(coordinates) -> list:
         """Identifies branch ends as they only have one connected point.
 
         Parameters
