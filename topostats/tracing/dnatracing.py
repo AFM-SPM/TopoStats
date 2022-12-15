@@ -89,7 +89,6 @@ class dnaTrace(object):
             self.skeleton_dict[grain_num] = pruned_skeleton #if pruned_skeleton[pruned_skeleton==1].size < 10 else pass
         self.get_disordered_trace()
         # self.isMolLooped()
-        self.purge_obvious_crap()
         self.linear_or_circular(self.disordered_traces)
         self.get_ordered_traces()
         self.linear_or_circular(self.ordered_traces)
@@ -167,12 +166,6 @@ class dnaTrace(object):
             except IndexError:
                 # Grains touching border (IndexError) are deleted
                 self.grains.pop(grain_num)
-
-    def purge_obvious_crap(self):
-        """Checks skeleton is <10 pixels, and removes otherwise."""
-        for dna_num in sorted(self.disordered_traces.keys()):
-            if len(self.disordered_traces[dna_num]) < 10:
-                self.disordered_traces.pop(dna_num, None)
 
     def linear_or_circular(self, traces: dict):
         """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace.
