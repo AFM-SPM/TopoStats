@@ -200,7 +200,9 @@ def validate_config(config: dict):
                 "cmap": Or(
                     "afmhot",
                     "nanoscope",
-                    error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot' or 'nanoscope",
+                    "gwyddion",
+                    "blu",
+                    error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot', 'nanoscope', 'gwyddion' or 'blu'",
                 ),
                 "histogram_log_axis": Or(
                     True,
