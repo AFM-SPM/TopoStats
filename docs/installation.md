@@ -6,9 +6,9 @@ then please do not hesitate to ask a question.
 
 
 TopoStats is a [Python](https://www.python.org) package designed to run at the command line. If you are using Microsoft
-Windows you should install and use
-[Powershell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell). You may have Python
-installed on your system but should use a [Python Virtual
+Windows you should use
+[Powershell](https://learn.microsoft.com/en-us/powershell/scripting/learn/ps101/01-getting-started?view=powershell-7.3). You
+may have Python installed on your system but should use a [Python Virtual
 Environment](https://realpython.com/python-virtual-environments-a-primer/) such as
 [Miniconda](https://docs.conda.io/en/latest/miniconda.html) and install it under the Virtual Environment. The versions
 of Python supported are Python >=3.8 and so when creating your virtual environment you should specify this `3.8` as the

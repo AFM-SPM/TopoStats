@@ -377,7 +377,7 @@ def main():
             config_file=args.create_config_file,
             header_message="Sample configuration file auto-generated",
         )
-        LOGGER.info(f"A sample configuration has been written to : ./{args.create_config_file})")
+        LOGGER.info(f"A sample configuration has been written to : ./{args.create_config_file}")
         LOGGER.info(
             "Please refer to the documentation on how to use the configuration file : \n\n"
             "https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats\n"
