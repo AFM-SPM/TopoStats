@@ -50,5 +50,6 @@ plotting:
   zrange: [null, null]  # low and high height range for core images (can take [null, null])
   colorbar: true  # Options : true, false
   axes: true # Options : true, false (due to off being a bool when parsed)
-  cmap: nanoscope # Options : nanoscope, afmhot
+  cmap: nanoscope # Options : nanoscope, afmhot, gwyddion
+  mask_cmap: jet_r # Options : blu, jet_r and any in matplotlib
   histogram_log_axis: false # Options : true, false
