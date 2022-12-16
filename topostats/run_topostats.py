@@ -385,11 +385,8 @@ def main():
         )
         sys.exit()
     # Load plotting_dictionary and validate
-    if args.plotting_file is not None:
-        config["plotting"]["plot_dict"] = read_yaml(args.plotting_file)
-    else:
-        plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
-        config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
+    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
     validate_plotting(config["plotting"]["plot_dict"])
 
     # FIXME : Make this a function and from topostats.utils import update_plot_dict and write tests
