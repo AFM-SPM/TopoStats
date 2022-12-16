@@ -37,6 +37,10 @@ If you are on a Linux or OSX system then paths are not prefixed with letters and
 cd /home/me/work/spm/2022-12-08/scans
 ```
 
+**NB** - Always use a forward-slash (`/`) when typing directory paths. Windows will display back-slash (`\`) but
+understands forward-slash. Under Linux and OSX they mean different things and so you should always use forward-slash
+(`/`).
+
 You can always find out what location you are at in the command line using the `pwd` command (`p`rint `w`orking
 `d`irectory) and it will print out the directory you are currently at.
 
