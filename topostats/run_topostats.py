@@ -58,11 +58,11 @@ def create_parser() -> arg.ArgumentParser:
         help="Path to a YAML configuration file.",
     )
     parser.add_argument(
-        "-p",
-        "--plotting_file",
-        dest="plotting_file",
+        "--create-config-file",
+        dest="create_config_file",
+        type=str,
         required=False,
-        help="Path to a YAML plotting file.",
+        help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
     )
     parser.add_argument(
         "-b",
@@ -369,13 +369,25 @@ def main():
 
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 
+    # Write sample configuration if asked to do so and exit
+    if args.create_config_file:
+        write_yaml(
+            config,
+            output_dir="./",
+            config_file=args.create_config_file,
+            header_message="Sample configuration file auto-generated",
+        )
+        LOGGER.info(f"A sample configuration has been written to : ./{args.create_config_file}")
+        LOGGER.info(
+            "Please refer to the documentation on how to use the configuration file : \n\n"
+            "https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats\n"
+            "https://afm-spm.github.io/TopoStats/configuration.html"
+        )
+        sys.exit()
     # Load plotting_dictionary and validate
-    if args.plotting_file is not None:
-        config["plotting"]["plot_dict"] = read_yaml(args.plotting_file)
-    else:
-        plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
-        config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
-    validate_config(config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML plotting configuration")
+    plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
+    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    validate_plotting(config["plotting"]["plot_dict"])
 
     # FIXME : Make this a function and from topostats.utils import update_plot_dict and write tests
     # Update the config["plotting"]["plot_dict"] with plotting options
