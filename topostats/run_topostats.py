@@ -31,7 +31,7 @@ from topostats.utils import (
     create_empty_dataframe,
     folder_grainstats,
 )
-from topostats.validation import validate_config, validate_plotting
+from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -365,7 +365,7 @@ def main():
     config["output_dir"] = convert_path(config["output_dir"])
 
     # Validate configuration
-    validate_config(config)
+    validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 
