@@ -8,6 +8,7 @@ from functools import partial
 import importlib.resources as pkg_resources
 from multiprocessing import Pool
 from pathlib import Path
+import sys
 from typing import Union, Dict
 import yaml
 
@@ -30,7 +31,7 @@ from topostats.utils import (
     create_empty_dataframe,
     folder_grainstats,
 )
-from topostats.validation import validate_config, validate_plotting
+from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -164,8 +165,8 @@ def process_scan(
     Results are written to CSV and images produced in configuration options request them.
     """
 
-    image = img_path_px2nm["image"] 
-    image_path = img_path_px2nm["img_path"] 
+    image = img_path_px2nm["image"]
+    image_path = img_path_px2nm["img_path"]
     pixel_to_nm_scaling = img_path_px2nm["px_2_nm"]
     filename = image_path.stem
 
@@ -177,11 +178,9 @@ def process_scan(
         filter_out_path = _output_dir
     else:
         filter_out_path = Path(_output_dir) / filename / "filters"
-        grain_out_path = Path(_output_dir) / filename / "grains"
         filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(_output_dir / filename / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / filename / "grains" / "lower", parents=True, exist_ok=True)
-
 
     # Filter Image :
     if filter_config["run"]:
@@ -291,7 +290,7 @@ def process_scan(
                     if key in ["grain_image", "grain_mask", "grain_mask_image"]
                 }
                 grainstats = {}
-                for direction in grains.directions.keys():
+                for direction, _ in grains.directions.items():
                     grainstats[direction] = GrainStats(
                         data=filtered_image.images["gaussian_filtered"],
                         labelled_data=grains.directions[direction]["labelled_regions_02"],
@@ -366,7 +365,7 @@ def main():
     config["output_dir"] = convert_path(config["output_dir"])
 
     # Validate configuration
-    validate_config(config)
+    validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 
@@ -376,7 +375,7 @@ def main():
     else:
         plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
         config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
-    validate_plotting(config["plotting"]["plot_dict"])
+    validate_config(config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML plotting configuration")
 
     # FIXME : Make this a function and from topostats.utils import update_plot_dict and write tests
     # Update the config["plotting"]["plot_dict"] with plotting options
@@ -403,7 +402,7 @@ def main():
     if len(img_files) == 0:
         LOGGER.error(f"No images with extension {config['file_ext']} in {config['base_dir']}")
         LOGGER.error("Please check your configuration and directories.")
-        exit()
+        sys.exit()
     LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
     LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
 
