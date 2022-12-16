@@ -20,7 +20,7 @@ TopoStats will scan for all images within this directory but currently it will o
 
 TopoStats currently runs as a command-line programme. To use it you will have to use a "prompt" or "terminal" (they're
 essentially the same thing). What you use will depend on your operating system, but the following are some simple
-commands on navigation. If you use Windows then for consistency it is recommended to
+commands on navigation. If you use Windows then for consistency it is recommended to install and use
 [PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell).
 
 At the command line you use `cd` to `c`hange `d`irectory to the location of your files. For example if your scans are on
@@ -38,14 +38,14 @@ cd /home/me/work/spm/2022-12-08/scans
 ```
 
 You can always find out what location you are at in the command line using the `pwd` command (`p`rint `w`orking
-`d`irectory)and it will print out the directory you are currently at.
+`d`irectory) and it will print out the directory you are currently at.
 
 ``` bash
 pwd
 /home/me/work/spm/2022-12-08/scans
 ```
 
-To navigate up one directory level use `cd ..`. These can be chained together
+To navigate up one directory level use `cd ..`. These can be chained together and directories separated with `/`.
 
 ``` bash
 # Move up a single directory level
