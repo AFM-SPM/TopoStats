@@ -1,7 +1,7 @@
 """Custom Bruker Nanoscope colorscale."""
 import logging
 import matplotlib as mpl
-from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 import numpy as np
 
 from topostats.logs.logs import LOGGER_NAME
@@ -30,6 +30,10 @@ class Colormap:
         """
         if name.lower() == "nanoscope":
             self.cmap = self.nanoscope()
+        elif name.lower() == "gwyddion":
+            self.cmap = self.gwyddion()
+        elif name.lower() == "blu":
+            self.cmap = self.blu()
         else:
             # Get one of the matplotlib colormaps
             self.cmap = mpl.colormaps[name]
@@ -78,3 +82,21 @@ class Colormap:
 
         colormap = LinearSegmentedColormap.from_list("nanoscope", vals, N=256)
         return colormap
+
+    @staticmethod
+    def gwyddion():
+        """The RGBA colour map for the Gwyddion.net colour gradient."""
+        N = 4  # Number of values
+        vals = np.ones((N, 4))  # Initialise the array to be full of 1.0
+        vals[0] = [0.0, 0.0, 0.0, 1]
+        vals[1] = [168/256, 40/256, 15/256, 1.0]
+        vals[2] = [243/256, 194/256, 93/256, 1.0]
+        vals[3] = [1.0, 1.0, 1.0, 1.0]
+
+        colormap = LinearSegmentedColormap.from_list("gwyddion", vals, N=256)
+        return colormap
+
+    @staticmethod
+    def blu():
+        "RGBA colour map of just the colour blue."
+        return ListedColormap([[32/256, 226/256, 205/256]], "blu", N=256)
