@@ -387,7 +387,7 @@ def main():
     # Load plotting_dictionary and validate
     plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
-    validate_plotting(config["plotting"]["plot_dict"])
+    validate_config(config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML configuration file")
 
     # FIXME : Make this a function and from topostats.utils import update_plot_dict and write tests
     # Update the config["plotting"]["plot_dict"] with plotting options
