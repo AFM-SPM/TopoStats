@@ -194,3 +194,15 @@ def test_plot_and_save_non_square_bounding_box(
         region_properties=minicircle_grain_region_properties_post_removal,
     ).plot_and_save()
     return fig
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_mask_cmap(small_array: np.ndarray, small_mask: np.ndarray, plotting_config: dict, tmp_path: Path) -> None:
+    plotting_config['mask_cmap'] = 'blu'
+    fig, _ = Images(
+        data=small_array,
+        output_dir=tmp_path,
+        filename="colour.png",
+        data2=small_mask,
+        **plotting_config,
+        ).plot_and_save()
+    return fig
