@@ -399,6 +399,7 @@ def main():
             "colorbar": config["plotting"]["colorbar"],
             "axes": config["plotting"]["axes"],
             "cmap": config["plotting"]["cmap"],
+            "mask_cmap": config["plotting"]["mask_cmap"],
             "zrange": config["plotting"]["zrange"],
             "histogram_log_axis": config["plotting"]["histogram_log_axis"],
         }
