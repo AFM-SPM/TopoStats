@@ -86,7 +86,6 @@ class Images:
         dpi: Union[str, float]
             The resolution of the saved plot (default 'figure').
         """
-
         self.data = data
         self.output_dir = Path(output_dir)
         self.filename = filename
