@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy import ndimage, spatial, interpolate as interp
+from scipy import ndimage, stats, spatial, interpolate as interp
 from skimage import morphology
 from skimage.filters import gaussian
 
@@ -72,6 +72,9 @@ class dnaTrace(object):
         self.mean_curvature = {}
         self.curvature_variance = {}
         self.curvature_variance_abs = {}
+        self.central_curvature = {}
+        self.central_max_curvature = {}
+        self.central_max_curvature_location = {}
         self.bending_angle = {}
 
         self.number_of_traces = 0
@@ -856,7 +859,7 @@ class dnaTrace(object):
             self.max_curvature[dna_num] = np.amax(np.abs(self.curvature[dna_num][:, 2]))
             max_index = np.argmax(np.abs(self.curvature[dna_num][:, 2]))
             self.max_curvature_location_px[dna_num] = self.curvature[dna_num][max_index, 1]
-            self.max_curvature_location[dna_num] = self.curvature[dna_num][max_index, 1] * self.pixel_size * 1e9
+            self.max_curvature_location[dna_num] = self.curvature[dna_num][max_index, 1]
             self.mean_curvature[dna_num] = np.average(np.abs(self.curvature[dna_num][:, 2]))
             self.curvature_variance[dna_num] = np.var(self.curvature[dna_num][:, 2])
             self.curvature_variance_abs[dna_num] = np.var(np.abs(self.curvature[dna_num][:, 2]))
@@ -1083,23 +1086,50 @@ class dnaTrace(object):
 
     def measure_bending_angle(self):
         """Calculate the bending angle at the point of highest curvature"""
-
+        neighbours = int(3e-9 / self.pixel_size)
         for dna_num in sorted(self.splined_traces.keys()):
-            bending_angle = 0
-            position = int(self.max_curvature_location_px[dna_num])
-            x0 = self.splined_traces[dna_num][position, 0]
-            y0 = self.splined_traces[dna_num][position, 1]
+            if self.contour_lengths[dna_num] > 80:
+                length = len(self.curvature[dna_num])
+                start = int(length / 2) - int(10e-9 / self.pixel_size)
+                end = int(length / 2) + int(10e-9 / self.pixel_size)
+                self.central_curvature[dna_num] = self.curvature[dna_num][start:end]
+                self.central_max_curvature[dna_num] = np.amax(np.abs(self.central_curvature[dna_num][:, 2]))
+                max_index = np.argmax(np.abs(self.central_curvature[dna_num][:, 2]))
+                self.central_max_curvature_location[dna_num] = self.central_curvature[dna_num][max_index, 1]
+                position = max_index
 
-            xa = self.splined_traces[dna_num][position - 5, 0]
-            ya = self.splined_traces[dna_num][position - 5, 0]
-            ga = (y0 - ya) / (x0 - xa)
+                xa = self.splined_traces[dna_num][position - neighbours : position + 1, 0]
+                ya = self.splined_traces[dna_num][position - neighbours : position + 1, 1]
 
-            xb = self.splined_traces[dna_num][position + 5, 0]
-            yb = self.splined_traces[dna_num][position + 5, 0]
-            gb = (yb - y0) / (xb - x0)
+                ga, _, _, _, _ = stats.linregress(xa, ya)
 
-            bending_angle = math.atan((ga - gb) / (1 + ga * gb))
-            self.bending_angle[dna_num] = bending_angle
+                xb = self.splined_traces[dna_num][position : position + neighbours + 1, 0]
+                yb = self.splined_traces[dna_num][position : position + neighbours + 1, 1]
+
+                gb, _, _, _, _ = stats.linregress(xb, yb)
+
+                bending_angle_r = math.atan((ga - gb) / (1 + ga * gb))
+                bending_angle_d = bending_angle_r / math.pi * 180
+                self.bending_angle[dna_num] = bending_angle_d
+            else:
+                self.central_max_curvature_location[dna_num] = 0
+                self.bending_angle[dna_num] = 0
+            # position = int(self.max_curvature_location_px[dna_num])
+            # x0 = self.splined_traces[dna_num][position, 0]
+            # y0 = self.splined_traces[dna_num][position, 1]
+            #
+            # xa = self.splined_traces[dna_num][position - neighbours, 0]
+            # ya = self.splined_traces[dna_num][position - neighbours, 1]
+            # ga = (y0 - ya) / (x0 - xa)
+            #
+            #
+            # xb = self.splined_traces[dna_num][position + neighbours, 0]
+            # yb = self.splined_traces[dna_num][position + neighbours, 1]
+            # gb = (yb - y0) / (xb - x0)
+
+            # bending_angle_r = math.atan((ga - gb) / (1 + ga * gb))
+            # bending_angle_d = bending_angle_r / math.pi * 180
+            # self.bending_angle[dna_num] = bending_angle_d
 
 
 class traceStats(object):
@@ -1140,6 +1170,7 @@ class traceStats(object):
             stats[mol_num]["Mean Curvature"] = self.trace_object.mean_curvature[mol_num]
             stats[mol_num]["Variance of Curvature"] = self.trace_object.curvature_variance[mol_num]
             stats[mol_num]["Variance of Absolute Curvature"] = self.trace_object.curvature_variance_abs[mol_num]
+            stats[mol_num]["Middle Max Curvature Location"] = self.trace_object.central_max_curvature_location[mol_num]
             stats[mol_num]["Bending Angle"] = self.trace_object.bending_angle[mol_num]
         self.df = pd.DataFrame.from_dict(data=stats, orient="index")
         self.df.reset_index(drop=True, inplace=True)
