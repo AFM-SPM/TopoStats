@@ -4,7 +4,7 @@ import pytest
 
 # pytest: disable=
 # pytest: disable=import-error
-from topostats.tracing.skeletonize import getSkeleton
+from topostats.tracing.skeletonize import getSkeleton, joeSkeletonize
 
 CIRCULAR_TARGET = np.array(
     [
@@ -279,3 +279,15 @@ def test_skeletonize_linear_thin(skeletonize_linear_bool_int: np.ndarray) -> Non
     assert test.shape == (24, 20)
     assert test.sum() == 11
     np.testing.assert_array_equal(test, LINEAR_THIN_TARGET)
+
+def test_joeSkeletonize_get_local_pixels_binary():
+    """Test the get_local_pixels_binary method of joeSkeletonize."""
+
+    image = np.array([
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+    ])
+
+    local_pixels = joeSkeletonize.get_local_pixels_binary(binary_map=image, x=1, y=1)
+    assert (local_pixels == np.array([1, 2, 3, 4, 6, 7, 8, 9])).all()
