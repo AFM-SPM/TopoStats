@@ -97,7 +97,7 @@ def validate_config(config: dict):
                     error="Invalid value in config for 'filter.gaussian_mode', valid values are 'nearest'",
                 ),
             },
-            "scars": {
+            "remove_scars": {
                 "run": bool,
                 "removal_iterations": lambda n: 0 <= n < 10,
                 "threshold_low": lambda n: n > 0,

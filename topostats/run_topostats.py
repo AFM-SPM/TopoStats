@@ -415,7 +415,7 @@ def main():
         process_scan,
         base_dir=config["base_dir"],
         filter_config=config["filter"],
-        scars_config=config["scars"],
+        scars_config=config["remove_scars"],
         grains_config=config["grains"],
         grainstats_config=config["grainstats"],
         dnatracing_config=config["dnatracing"],

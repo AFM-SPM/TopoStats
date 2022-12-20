@@ -18,7 +18,7 @@ filter:
     upper: 1.0
   gaussian_size: 1.0121397464510862 # in px
   gaussian_mode: nearest
-scars:
+remove_scars:
   run: true
   removal_iterations: 2
   threshold_low: 0.250
