@@ -116,7 +116,7 @@ def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScans, plotting_c
         **plotting_config,
     ).plot_and_save()
     img = io.imread(tmp_path / "01-raw_heightmap.png")
-    assert np.sum(img) == 448788105
+    assert np.sum(img) == 461143075
     assert img.shape == (1024, 1024, 4)
 
 
@@ -195,14 +195,20 @@ def test_plot_and_save_non_square_bounding_box(
     ).plot_and_save()
     return fig
 
+
+RNG = np.random.default_rng(seed=1000)
+array = RNG.random((10, 10))
+mask = RNG.uniform(low=0, high=1, size=array.shape) > 0.5
+
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_mask_cmap(small_array: np.ndarray, small_mask: np.ndarray, plotting_config: dict, tmp_path: Path) -> None:
+def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
+    """Test the plotting of a mask with a different colourmap (blu)."""
     plotting_config['mask_cmap'] = 'blu'
     fig, _ = Images(
-        data=small_array,
+        data=array,
         output_dir=tmp_path,
         filename="colour.png",
-        data2=small_mask,
+        data2=mask,
         **plotting_config,
         ).plot_and_save()
     return fig
