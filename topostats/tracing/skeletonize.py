@@ -308,7 +308,7 @@ class joeSkeletonize:
         """
         return 2 <= self.p2 + self.p3 + self.p4 + self.p5 + self.p6 + self.p7 + self.p8 + self.p9 <= 6
 
-    def _binary_thin_check_b_returncount(self) -> bool:
+    def _binary_thin_check_b_returncount(self) -> int:
         """Assess local area connectivity?"""
         count = sum(
             [
