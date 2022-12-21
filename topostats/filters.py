@@ -2,6 +2,8 @@
 and return a 2D array of the same size representing the filtered image."""
 import logging
 
+# noqa: disable=no-name-in-module
+# pylint: disable=no-name-in-module
 from skimage.filters import gaussian
 import numpy as np
 
@@ -10,8 +12,13 @@ from topostats.utils import get_thresholds, get_mask
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+# noqa: disable=too-many-instance-attributes
+# noqa: disable=too-many-arguments
 # pylint: disable=fixme
 # pylint: disable=broad-except
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-branches
 
 
 class Filters:
@@ -86,7 +93,7 @@ class Filters:
         if quiet:
             LOGGER.setLevel("ERROR")
 
-    def median_flatten(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None) -> np.ndarray:
+    def median_flatten(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """
         Uses the method of median differences to flatten the rows of an image, aligning the rows and centering the
         median around zero. When used with a mask, this has the effect of centering the background data on zero.
@@ -98,8 +105,7 @@ class Filters:
             2-D image of the data to align the rows of.
         mask: np.ndarray
             Boolean array of points to mask out (ignore).
-        img_name: str
-            Name of the image (to be able to print information in the console).
+
         Returns
         -------
         np.ndarray
@@ -108,10 +114,10 @@ class Filters:
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-            LOGGER.info(f"[{img_name}] : Median flattening with mask")
+            LOGGER.info(f"[{self.filename}] : Median flattening with mask")
         else:
             read_matrix = image
-            LOGGER.info(f"[{img_name}] : Median flattening without mask")
+            LOGGER.info(f"[{self.filename}] : Median flattening without mask")
 
         for row in range(image.shape[0]):
             # Get the median of the row
@@ -126,10 +132,11 @@ processed, please refer to <url to page where we document common problems> for m
 
         return image
 
-    def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None):
+    def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None):
         """
         Removes planar tilt from an image (linear in 2D space). It uses a linear fit of the medians
-        of the rows and columns to determine the linear slants in x and y directions and then subtracts the fit from the columns.
+        of the rows and columns to determine the linear slants in x and y directions and then subtracts
+        the fit from the columns.
 
         Parameters
         ----------
@@ -147,10 +154,10 @@ processed, please refer to <url to page where we document common problems> for m
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-            LOGGER.info(f"[{img_name}] : Plane tilt removal with mask")
+            LOGGER.info(f"[{self.filename}] : Plane tilt removal with mask")
         else:
             read_matrix = image
-            LOGGER.info(f"[{img_name}] : Plane tilt removal without mask")
+            LOGGER.info(f"[{self.filename}] : Plane tilt removal without mask")
 
         # Line of best fit
         # Calculate medians
@@ -159,35 +166,35 @@ processed, please refer to <url to page where we document common problems> for m
 
         # Fit linear x
         px = np.polyfit(range(0, len(medians_x)), medians_x, 1)
-        LOGGER.info(f"x-polyfit 1st order: {px}")
+        LOGGER.info(f"[{self.filename}] : x-polyfit 1st order: {px}")
         py = np.polyfit(range(0, len(medians_y)), medians_y, 1)
-        LOGGER.info(f"y-polyfit 1st order: {py}")
+        LOGGER.info(f"[{self.filename}] : y-polyfit 1st order: {py}")
 
         if px[0] != 0:
             if not np.isnan(px[0]):
-                LOGGER.info("removing x plane tilt")
+                LOGGER.info(f"[{self.filename}] : Removing x plane tilt")
                 for row in range(0, image.shape[0]):
                     for col in range(0, image.shape[1]):
                         image[row, col] -= px[0] * (col)
             else:
-                LOGGER.info("x gradient is nan, skipping plane tilt x removal")
+                LOGGER.info(f"[{self.filename}] : x gradient is nan, skipping plane tilt x removal")
         else:
-            LOGGER.info("x gradient is zero, skipping plane tilt x removal")
+            LOGGER.info("[{self.filename}] : x gradient is zero, skipping plane tilt x removal")
 
         if py[0] != 0:
             if not np.isnan(py[0]):
-                LOGGER.info("removing y plane tilt")
+                LOGGER.info(f"[{self.filename}] : removing y plane tilt")
                 for row in range(0, image.shape[0]):
                     for col in range(0, image.shape[1]):
                         image[row, col] -= py[0] * (row)
             else:
-                LOGGER.info("y gradient is nan, skipping plane tilt y removal")
+                LOGGER.info("[{self.filename}] : y gradient is nan, skipping plane tilt y removal")
         else:
-            LOGGER.info("y gradient is zero, skipping plane tilt y removal")
+            LOGGER.info("[{self.filename}] : y gradient is zero, skipping plane tilt y removal")
 
         return image
 
-    def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None, img_name: str = None):
+    def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None):
         """
         Removes the quadratic bowing that can be seen in some large-scale AFM images. It uses a simple quadratic fit
         on the medians of the columns of the image and then subtracts the calculated quadratic from the columns.
@@ -198,8 +205,7 @@ processed, please refer to <url to page where we document common problems> for m
             2-D image of the data to remove the quadratic from.
         mask: np.ndarray
             Boolean array of points to mask out (ignore).
-        img_name: str
-            Name of the image (to be able to print information in the console).
+
         Returns
         -------
         np.ndarray
@@ -208,17 +214,17 @@ processed, please refer to <url to page where we document common problems> for m
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-            LOGGER.info(f"[{img_name}] : Remove quadratic bow with mask")
+            LOGGER.info(f"[{self.filename}] : Remove quadratic bow with mask")
         else:
             read_matrix = image
-            LOGGER.info(f"[{img_name}] : Remove quadratic bow without mask")
+            LOGGER.info(f"[{self.filename}] : Remove quadratic bow without mask")
 
         # Calculate medians
         medians_x = [np.nanmedian(read_matrix[:, i]) for i in range(read_matrix.shape[1])]
 
         # Fit quadratic x
         px = np.polyfit(range(0, len(medians_x)), medians_x, 2)
-        LOGGER.info(f"x polyfit 2nd order: {px}")
+        LOGGER.info(f"[{self.filename}] : x polyfit 2nd order: {px}")
 
         # Handle divide by zero
         if px[0] != 0:
@@ -229,9 +235,9 @@ processed, please refer to <url to page where we document common problems> for m
                     for col in range(0, image.shape[1]):
                         image[row, col] -= px[0] * (col - cx) ** 2
             else:
-                LOGGER.info("quadratic polyfit returns nan, skipping quadratic removal")
+                LOGGER.info(f"[{self.filename}] : Quadratic polyfit returns nan, skipping quadratic removal")
         else:
-            LOGGER.info("quadratic polyfit returns zero, skipping quadratic removal")
+            LOGGER.info(f"[{self.filename}] : Quadratic polyfit returns zero, skipping quadratic removal")
 
         return image
 
@@ -305,15 +311,9 @@ processed, please refer to <url to page where we document common problems> for m
         filter.filter_image()
 
         """
-        self.images["initial_median_flatten"] = self.median_flatten(
-            self.images["pixels"], mask=None, img_name=self.filename
-        )
-        self.images["initial_tilt_removal"] = self.remove_tilt(
-            self.images["initial_median_flatten"], mask=None, img_name=self.filename
-        )
-        self.images["initial_quadratic_removal"] = self.remove_quadratic(
-            self.images["initial_tilt_removal"], mask=None, img_name=self.filename
-        )
+        self.images["initial_median_flatten"] = self.median_flatten(self.images["pixels"], mask=None)
+        self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_median_flatten"], mask=None)
+        self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None)
 
         # Get the thresholds
         try:
@@ -330,13 +330,11 @@ processed, please refer to <url to page where we document common problems> for m
             image=self.images["initial_quadratic_removal"], thresholds=self.thresholds, img_name=self.filename
         )
         self.images["masked_median_flatten"] = self.median_flatten(
-            self.images["initial_tilt_removal"], self.images["mask"], img_name=self.filename
+            self.images["initial_tilt_removal"], self.images["mask"]
         )
-        self.images["masked_tilt_removal"] = self.remove_tilt(
-            self.images["masked_median_flatten"], self.images["mask"], img_name=self.filename
-        )
+        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_median_flatten"], self.images["mask"])
         self.images["masked_quadratic_removal"] = self.remove_quadratic(
-            self.images["masked_tilt_removal"], self.images["mask"], img_name=self.filename
+            self.images["masked_tilt_removal"], self.images["mask"]
         )
         self.images["zero_average_background"] = self.average_background(
             self.images["masked_quadratic_removal"], self.images["mask"]
