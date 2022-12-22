@@ -21,13 +21,14 @@ def circle_coordinates(points=4, radius=1) -> np.ndarray:
 
 
 @pytest.mark.parametrize(
-    "points, radius, edge_order, expected_first_derivative, expected_second_derivative, expected_local_curvature",
+    "points, radius, edge_order, expected_variance, expected_first_derivative, expected_second_derivative, expected_local_curvature",
     [
         # 4-point circle with varying radius and edge_order
         (
             4,
             1,
             1,
+            0,
             np.asarray(
                 [
                     [-1.224647e-16, 1.000000e00],
@@ -57,6 +58,7 @@ def circle_coordinates(points=4, radius=1) -> np.ndarray:
             4,
             1,
             2,
+            0,
             np.asarray(
                 [
                     [-6.123234e-17, 5.000000e-01],
@@ -79,6 +81,7 @@ def circle_coordinates(points=4, radius=1) -> np.ndarray:
             4,
             10,
             1,
+            0,
             np.asarray(
                 [
                     [-1.224647e-15, 1.000000e01],
@@ -101,6 +104,7 @@ def circle_coordinates(points=4, radius=1) -> np.ndarray:
             4,
             10,
             2,
+            0,
             np.asarray(
                 [
                     [-6.123234e-16, 5.000000e00],
@@ -124,6 +128,7 @@ def circle_coordinates(points=4, radius=1) -> np.ndarray:
             10,
             1,
             1,
+            0,
             np.asarray(
                 [
                     [-5.55111512e-17, 5.87785252e-01],
@@ -158,6 +163,7 @@ def circle_coordinates(points=4, radius=1) -> np.ndarray:
             10,
             1,
             2,
+            0,
             np.asarray(
                 [
                     [-2.77555756e-17, 2.93892626e-01],
@@ -192,6 +198,7 @@ def circle_coordinates(points=4, radius=1) -> np.ndarray:
             10,
             10,
             1,
+            0,
             np.asarray(
                 [
                     [-8.88178420e-16, 5.87785252e00],
@@ -226,6 +233,7 @@ def circle_coordinates(points=4, radius=1) -> np.ndarray:
             10,
             10,
             2,
+            0,
             np.asarray(
                 [
                     [-4.44089210e-16, 2.93892626e00],
@@ -259,8 +267,17 @@ def circle_coordinates(points=4, radius=1) -> np.ndarray:
     ],
 )
 def test_curvature_circle(
-    points, radius, edge_order, expected_first_derivative, expected_second_derivative, expected_local_curvature
+    points,
+    radius,
+    edge_order,
+    expected_variance,
+    expected_first_derivative,
+    expected_second_derivative,
+    expected_local_curvature,
 ) -> None:
+    """Test first and second derivatives and local curvature of a circle.
+
+    The variance of local curvature is also tested, for a circle it should be zero."""
     circle_points = circle_coordinates(points, radius)
     curvature = Curvature(molecule_coordinates=circle_points, circular=True)
     curvature.calculate_derivatives(edge_order=edge_order)
@@ -268,6 +285,157 @@ def test_curvature_circle(
     np.testing.assert_array_almost_equal(curvature.first_derivative, expected_first_derivative)
     np.testing.assert_array_almost_equal(curvature.second_derivative, expected_second_derivative)
     np.testing.assert_array_almost_equal(curvature.local_curvature, expected_local_curvature)
+    np.testing.assert_almost_equal(np.var(curvature.local_curvature), expected_variance)
+
+
+@pytest.mark.parametrize(
+    "points, radius, shift, edge_order, expected_variance, expected_first_derivative, expected_second_derivative, expected_local_curvature",
+    [
+        (
+            10,
+            10,
+            5,  # Shift array by 3 points
+            2,
+            0,
+            np.asarray(
+                [
+                    [-4.44089210e-16, 2.93892626e00],
+                    [1.72745751e00, 2.37764129e00],
+                    [2.79508497e00, 9.08178160e-01],
+                    [2.79508497e00, -9.08178160e-01],
+                    [1.72745751e00, -2.37764129e00],
+                    [8.88178420e-16, -2.93892626e00],
+                    [-1.72745751e00, -2.37764129e00],
+                    [-2.79508497e00, -9.08178160e-01],
+                    [-2.79508497e00, 9.08178160e-01],
+                    [-1.72745751e00, 2.37764129e00],
+                ]
+            ),
+            np.asarray(
+                [
+                    [8.63728757e-01, -1.11022302e-16],
+                    [6.98771243e-01, -5.07687025e-01],
+                    [2.66906864e-01, -8.21454863e-01],
+                    [-2.66906864e-01, -8.21454863e-01],
+                    [-6.98771243e-01, -5.07687025e-01],
+                    [-8.63728757e-01, -1.11022302e-16],
+                    [-6.98771243e-01, 5.07687025e-01],
+                    [-2.66906864e-01, 8.21454863e-01],
+                    [2.66906864e-01, 8.21454863e-01],
+                    [6.98771243e-01, 5.07687025e-01],
+                ]
+            ),
+            np.asarray([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
+        ),
+        (
+            10,
+            10,
+            5,  # Shift array by 5 points
+            2,
+            0,
+            np.asarray(
+                [
+                    [-4.44089210e-16, 2.93892626e00],
+                    [1.72745751e00, 2.37764129e00],
+                    [2.79508497e00, 9.08178160e-01],
+                    [2.79508497e00, -9.08178160e-01],
+                    [1.72745751e00, -2.37764129e00],
+                    [8.88178420e-16, -2.93892626e00],
+                    [-1.72745751e00, -2.37764129e00],
+                    [-2.79508497e00, -9.08178160e-01],
+                    [-2.79508497e00, 9.08178160e-01],
+                    [-1.72745751e00, 2.37764129e00],
+                ]
+            ),
+            np.asarray(
+                [
+                    [8.63728757e-01, -1.11022302e-16],
+                    [6.98771243e-01, -5.07687025e-01],
+                    [2.66906864e-01, -8.21454863e-01],
+                    [-2.66906864e-01, -8.21454863e-01],
+                    [-6.98771243e-01, -5.07687025e-01],
+                    [-8.63728757e-01, -1.11022302e-16],
+                    [-6.98771243e-01, 5.07687025e-01],
+                    [-2.66906864e-01, 8.21454863e-01],
+                    [2.66906864e-01, 8.21454863e-01],
+                    [6.98771243e-01, 5.07687025e-01],
+                ]
+            ),
+            np.asarray([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
+        ),
+        (
+            10,
+            10,
+            7,  # Shift array by 7 points
+            2,
+            0,
+            np.asarray(
+                [
+                    [-4.44089210e-16, 2.93892626e00],
+                    [1.72745751e00, 2.37764129e00],
+                    [2.79508497e00, 9.08178160e-01],
+                    [2.79508497e00, -9.08178160e-01],
+                    [1.72745751e00, -2.37764129e00],
+                    [8.88178420e-16, -2.93892626e00],
+                    [-1.72745751e00, -2.37764129e00],
+                    [-2.79508497e00, -9.08178160e-01],
+                    [-2.79508497e00, 9.08178160e-01],
+                    [-1.72745751e00, 2.37764129e00],
+                ]
+            ),
+            np.asarray(
+                [
+                    [8.63728757e-01, -1.11022302e-16],
+                    [6.98771243e-01, -5.07687025e-01],
+                    [2.66906864e-01, -8.21454863e-01],
+                    [-2.66906864e-01, -8.21454863e-01],
+                    [-6.98771243e-01, -5.07687025e-01],
+                    [-8.63728757e-01, -1.11022302e-16],
+                    [-6.98771243e-01, 5.07687025e-01],
+                    [-2.66906864e-01, 8.21454863e-01],
+                    [2.66906864e-01, 8.21454863e-01],
+                    [6.98771243e-01, 5.07687025e-01],
+                ]
+            ),
+            np.asarray([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
+        ),
+    ],
+)
+def test_curvature_circle_starting_point(
+    points,
+    radius,
+    shift,
+    edge_order,
+    expected_variance,
+    expected_first_derivative,
+    expected_second_derivative,
+    expected_local_curvature,
+) -> None:
+    """Test that the starting point for measuring local curvature of a circle gives the same first and second derivative
+    and the same overall local curvature."""
+    # Curvature for original circle
+    circle_points = circle_coordinates(points, radius)
+    curvature = Curvature(molecule_coordinates=circle_points, circular=True)
+    curvature.calculate_derivatives(edge_order=edge_order)
+    curvature._calculate_local_curvature()
+
+    # Curvature for shifted starting point
+    circle_points_rolled = np.roll(circle_points, shift=shift, axis=0)
+    curvature_rolled = Curvature(molecule_coordinates=circle_points_rolled, circular=True)
+    curvature_rolled.calculate_derivatives(edge_order=edge_order)
+    curvature_rolled._calculate_local_curvature()
+
+    # NB - We have to roll the resulting first and second derivatives back
+    np.testing.assert_array_almost_equal(
+        np.roll(curvature_rolled.first_derivative, shift=(points - shift), axis=0), expected_first_derivative
+    )
+    np.testing.assert_array_almost_equal(
+        np.roll(curvature_rolled.second_derivative, shift=(points - shift), axis=0), expected_second_derivative
+    )
+    # No need to roll the local curvature back because this is a circle it should be the same everywhere
+    np.testing.assert_array_almost_equal(curvature_rolled.local_curvature, expected_local_curvature)
+    np.testing.assert_almost_equal(np.var(curvature_rolled.local_curvature), expected_variance)
+    np.testing.assert_array_almost_equal(curvature.local_curvature, curvature_rolled.local_curvature)
 
 
 # Test curvature calculated on ellipse'
@@ -434,7 +602,167 @@ def test_curvature_ellipse(
     np.testing.assert_array_almost_equal(curvature.local_curvature, expected_local_curvature)
 
 
-# Test curvature calculated on parabola
+@pytest.mark.parametrize(
+    "points, major, minor, displacement, shift, edge_order, expected_first_derivative, expected_second_derivative, expected_local_curvature",
+    [
+        (
+            10,
+            5.0,
+            1.0,
+            0.0,
+            3,  # Shift array by 3 points
+            1,
+            np.asarray(
+                [
+                    [-4.44089210e-16, 5.87785252e-01],
+                    [1.72745751e00, 4.75528258e-01],
+                    [2.79508497e00, 1.81635632e-01],
+                    [2.79508497e00, -1.81635632e-01],
+                    [1.72745751e00, -4.75528258e-01],
+                    [8.88178420e-16, -5.87785252e-01],
+                    [-1.72745751e00, -4.75528258e-01],
+                    [-2.79508497e00, -1.81635632e-01],
+                    [-2.79508497e00, 1.81635632e-01],
+                    [-1.72745751e00, 4.75528258e-01],
+                ]
+            ),
+            np.asarray(
+                [
+                    [1.72745751e00, -2.77555756e-17],
+                    [1.39754249e00, -2.03074810e-01],
+                    [5.33813729e-01, -3.28581945e-01],
+                    [-5.33813729e-01, -3.28581945e-01],
+                    [-1.39754249e00, -2.03074810e-01],
+                    [-1.72745751e00, -2.77555756e-17],
+                    [-1.39754249e00, 2.03074810e-01],
+                    [-5.33813729e-01, 3.28581945e-01],
+                    [5.33813729e-01, 3.28581945e-01],
+                    [1.39754249e00, 2.03074810e-01],
+                ]
+            ),
+            np.asarray(
+                [5.0, 0.1765308, 0.04620573, 0.04620573, 0.1765308, 5.0, 0.1765308, 0.04620573, 0.04620573, 0.1765308]
+            ),
+        ),
+        (
+            10,
+            5.0,
+            1.0,
+            0.0,
+            3,  # Shift array by 5 points
+            1,
+            np.asarray(
+                [
+                    [-4.44089210e-16, 5.87785252e-01],
+                    [1.72745751e00, 4.75528258e-01],
+                    [2.79508497e00, 1.81635632e-01],
+                    [2.79508497e00, -1.81635632e-01],
+                    [1.72745751e00, -4.75528258e-01],
+                    [8.88178420e-16, -5.87785252e-01],
+                    [-1.72745751e00, -4.75528258e-01],
+                    [-2.79508497e00, -1.81635632e-01],
+                    [-2.79508497e00, 1.81635632e-01],
+                    [-1.72745751e00, 4.75528258e-01],
+                ]
+            ),
+            np.asarray(
+                [
+                    [1.72745751e00, -2.77555756e-17],
+                    [1.39754249e00, -2.03074810e-01],
+                    [5.33813729e-01, -3.28581945e-01],
+                    [-5.33813729e-01, -3.28581945e-01],
+                    [-1.39754249e00, -2.03074810e-01],
+                    [-1.72745751e00, -2.77555756e-17],
+                    [-1.39754249e00, 2.03074810e-01],
+                    [-5.33813729e-01, 3.28581945e-01],
+                    [5.33813729e-01, 3.28581945e-01],
+                    [1.39754249e00, 2.03074810e-01],
+                ]
+            ),
+            np.asarray(
+                [5.0, 0.1765308, 0.04620573, 0.04620573, 0.1765308, 5.0, 0.1765308, 0.04620573, 0.04620573, 0.1765308]
+            ),
+        ),
+        (
+            10,
+            5.0,
+            1.0,
+            0.0,
+            3,  # Shift array by 7 points
+            1,
+            np.asarray(
+                [
+                    [-4.44089210e-16, 5.87785252e-01],
+                    [1.72745751e00, 4.75528258e-01],
+                    [2.79508497e00, 1.81635632e-01],
+                    [2.79508497e00, -1.81635632e-01],
+                    [1.72745751e00, -4.75528258e-01],
+                    [8.88178420e-16, -5.87785252e-01],
+                    [-1.72745751e00, -4.75528258e-01],
+                    [-2.79508497e00, -1.81635632e-01],
+                    [-2.79508497e00, 1.81635632e-01],
+                    [-1.72745751e00, 4.75528258e-01],
+                ]
+            ),
+            np.asarray(
+                [
+                    [1.72745751e00, -2.77555756e-17],
+                    [1.39754249e00, -2.03074810e-01],
+                    [5.33813729e-01, -3.28581945e-01],
+                    [-5.33813729e-01, -3.28581945e-01],
+                    [-1.39754249e00, -2.03074810e-01],
+                    [-1.72745751e00, -2.77555756e-17],
+                    [-1.39754249e00, 2.03074810e-01],
+                    [-5.33813729e-01, 3.28581945e-01],
+                    [5.33813729e-01, 3.28581945e-01],
+                    [1.39754249e00, 2.03074810e-01],
+                ]
+            ),
+            np.asarray(
+                [5.0, 0.1765308, 0.04620573, 0.04620573, 0.1765308, 5.0, 0.1765308, 0.04620573, 0.04620573, 0.1765308]
+            ),
+        ),
+    ],
+)
+def test_curvature_ellipse_starting_point(
+    points,
+    major,
+    minor,
+    shift,
+    displacement,
+    edge_order,
+    expected_first_derivative,
+    expected_second_derivative,
+    expected_local_curvature,
+) -> None:
+    ellipse_points = ellipse_coordinates(points, major, minor, displacement)
+    curvature = Curvature(molecule_coordinates=ellipse_points, circular=True)
+    curvature.calculate_derivatives(edge_order=edge_order)
+    curvature._calculate_local_curvature()
+
+    ellipse_points_rolled = np.roll(ellipse_points, shift=shift, axis=0)
+    curvature_rolled = Curvature(molecule_coordinates=ellipse_points_rolled, circular=True)
+    curvature_rolled.calculate_derivatives(edge_order=edge_order)
+    curvature_rolled._calculate_local_curvature()
+
+    # NB - We have to roll the first, second AND curvature array back
+    np.testing.assert_array_almost_equal(
+        np.roll(curvature_rolled.first_derivative, shift=(points - shift), axis=0), expected_first_derivative
+    )
+    np.testing.assert_array_almost_equal(
+        np.roll(curvature_rolled.second_derivative, shift=(points - shift), axis=0), expected_second_derivative
+    )
+    np.testing.assert_array_almost_equal(
+        np.roll(curvature_rolled.local_curvature, shift=(points - shift), axis=0), expected_local_curvature
+    )
+    # To check we have the same curvature as original (and not just expected) compare directly, shifting the rolled
+    # curvature back.
+    np.testing.assert_array_almost_equal(
+        curvature.local_curvature, np.roll(curvature_rolled.local_curvature, shift=(points - shift), axis=0)
+    )
+
+
+# # Test curvature calculated on parabola
 def parabola_coordinates(points: int = 10, order: int = 2) -> np.ndarray:
     """A parabola for testing curvature class and methods.
 
