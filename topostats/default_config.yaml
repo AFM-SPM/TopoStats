@@ -1,4 +1,4 @@
-base_dir: ./tests/
+base_dir: ./data/
 output_dir: ./output
 warnings: ignore
 cores: 4
@@ -16,7 +16,7 @@ filter:
   threshold_absolute:
     lower: -1.0
     upper: 1.0
-  gaussian_size: 1.0121397464510862 # in px
+  gaussian_size: 3.0 # in px
   gaussian_mode: nearest
 grains:
   run: true # Options : true, false
@@ -33,7 +33,7 @@ grains:
   # Thresholding by area
   absolute_smallest_grain_size: 100
   absolute_area_threshold:
-    upper: [ 500, 800 ] # above surface [Low, High] in nm^2 (also takes null)
+    upper: [ 500, null ] # above surface [Low, High] in nm^2 (also takes null)
     lower: [ null, null ] # below surface [Low, High] in nm^2 (also takes null)
 grainstats:
   run: true # Options : true, false
@@ -41,7 +41,7 @@ grainstats:
   save_cropped_grains: true # Options : true, false
 dnatracing:
   run: true # Options : true, false
-  skeletonisation_method: joe # Options : zhang, lee, thin, medial_axis, joe
+  skeletonisation_method: zhang # Options : zhang, lee, thin, medial_axis, joe
   pruning_method: joe # Options : joe (more to come)
 plotting:
   run: true # Options : true, false
@@ -50,5 +50,6 @@ plotting:
   zrange: [null, null]  # low and high height range for core images (can take [null, null])
   colorbar: true  # Options : true, false
   axes: true # Options : true, false (due to off being a bool when parsed)
-  cmap: nanoscope # Options : nanoscope, afmhot
+  cmap: nanoscope # Options : nanoscope, afmhot, gwyddion
+  mask_cmap: blu # Options : blu, jet_r and any in matplotlib
   histogram_log_axis: false # Options : true, false
