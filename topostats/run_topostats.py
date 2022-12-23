@@ -2,7 +2,6 @@
 
 This provides an entry point for running TopoStats as a command line programme.
 """
-import os
 import argparse as arg
 from collections import defaultdict
 from functools import partial
@@ -361,16 +360,7 @@ def main(args=None):
     else:
         default_config = pkg_resources.open_text(__package__, "default_config.yaml")
         config = yaml.safe_load(default_config.read())
-    print(f"############# [000] : config :\n{config}")
-    current_dir = Path().cwd()
-
-    print(f"os.cpu_count() : {os.cpu_count()}")
-    print(f"############# [000] : Path().cwd()         : {Path().cwd()}")
-    print(f"############# [000] : current_dir.exists() : {current_dir.exists()}")
     config = update_config(config, args)
-    print(f"############# [001] : config :\n{config}")
-    for key, value in config.items():
-        print(f"{key} type : {type(value)}")
 
     # Validate configuration
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
