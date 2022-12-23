@@ -125,7 +125,7 @@ sample_image_scan_2022-12-08-1204.spm
 ```
 
 You can now edit and/or rename the `my_config.yaml`. It can be called anything you want,
-e.g. `todays_first_run_configuration.yaml` is a valid name. For more on
+e.g. `todays_first_run_configuration.yaml` is a valid name.
 
 
 ### Editing `config.yaml`
@@ -144,8 +144,9 @@ ones you may want to change are....
   which will be   created if it doesn't exist. If you wish for the output to be somewhere else specify it here. If you
   want `Processed` directories to sit within the directories that images are found then simply set the `output_dir` to
   the same value as `base_dir`.
-* `cores` (default: `4`) the number of parallel processes to run processing of all found images. Set this to a maximum
-  of one less than the number of cores on your computers CPU. If unsure leave as is.
+* `cores` (default: `2`) the number of parallel processes to run processing of all found images. Set this to a maximum
+  of one less than the number of cores on your computers CPU. If unsure leave as is, but chances are you can increase
+  this to at least `4` quite safely.
 * `file_ext` (default: `.spm`) the file extension of scans to search for within the current directory. The default is
   `.spm` but other file format support is in the pipeline.
 * `plotting` : `image_set` (default `core`) specifies which steps of the processing to plot images of. The value `all`
