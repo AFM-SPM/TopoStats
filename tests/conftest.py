@@ -740,3 +740,6 @@ def skeletonize_linear() -> np.ndarray:
 def skeletonize_linear_bool_int(skeletonize_linear) -> np.ndarray:
     """A linear molecule for testing skeletonizing as a boolean integer array."""
     return np.array(skeletonize_linear, dtype="bool").astype(int)
+
+
+# Curvature Fixtures
