@@ -58,7 +58,9 @@ class dnaTrace(object):
         self.gauss_image = gaussian(self.full_image_data, self.sigma)
         self.grains = {}
         self.skeleton_dict = {}
+        self.skeleton = None
         self.disordered_traces = {}
+        self.disordered_trace_img = None
         self.ordered_traces = {}
         self.fitted_traces = {}
         self.splined_traces = {}
@@ -85,14 +87,20 @@ class dnaTrace(object):
         self.dilate_grains()
         for grain_num, grain in self.grains.items():
             skeleton = getSkeleton(self.gauss_image, grain).get_skeleton(self.skeletonisation_method)
-            pruned_skeleton = pruneSkeleton(self.gauss_image, skeleton).prune_skeleton(self.pruning_method)
-            self.skeleton_dict[grain_num] = pruned_skeleton #if pruned_skeleton[pruned_skeleton==1].size < 10 else pass
+            print(f"{label(skeleton).max()-1} breakages in skeleton {grain_num}")
+            #pruned_skeleton = pruneSkeleton(self.gauss_image, skeleton).prune_skeleton(self.pruning_method)
+            self.skeleton_dict[grain_num] = skeleton #if pruned_skeleton[pruned_skeleton==1].size < 10 else pass
+        self.concat_skeletons()
+        for grain_num, grain in self.skeleton_dict.items():
+            pass
         self.get_disordered_trace()
+        self.disordered_trace_img = self.dict_to_binary_image(self.disordered_traces)
         # self.isMolLooped()
         self.linear_or_circular(self.disordered_traces)
         self.get_ordered_traces()
         self.linear_or_circular(self.ordered_traces)
         self.get_fitted_traces()
+        self.disordered_trace_img = self.dict_to_binary_image(self.ordered_traces)
         self.get_splined_traces()
         # self.find_curvature()
         # self.saveCurvature()
@@ -157,6 +165,31 @@ class dnaTrace(object):
             Cropped array
         """
         return array[bounding_box[0] : bounding_box[1], bounding_box[2] : bounding_box[3]]
+
+    def dict_to_binary_image(self, coord_dict):
+        """Construct a binary image from point coordinates.
+
+        Parameters
+        ----------
+        coord_dict: dict
+            A dictionary of x and y coordinates.
+
+        Returns
+        -------
+        np.ndarray
+            Image of the point coordinates.
+        """
+        img = np.zeros_like(self.full_image_data)
+        for grain_num, coords in coord_dict.items():
+            img[coords[:,0], coords[:,1]] = grain_num
+        return img
+        
+
+    def concat_skeletons(self):
+        """Concatonates the skeletons in the skeleton dictionary onto one image"""
+        self.skeletons = np.zeros_like(self.grains_orig)
+        for skeleton in self.skeleton_dict.values():
+            self.skeletons += skeleton
 
     def get_disordered_trace(self):
         """Puts skeletons into dictionary"""
@@ -284,29 +317,29 @@ class dnaTrace(object):
                     # positive diagonal (change in x and y)
                     # Take height values at the inverse of the positive diaganol
                     # (i.e. the negative diaganol)
-                    y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)[::-1]
-                    x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
+                    y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width + 1)[::-1]
+                    x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width + 1)
 
                 # if angle is closest to 135 degrees
                 elif 157.5 >= vector_angle >= 112.5:
                     perp_direction = "positive diaganol"
-                    y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
-                    x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
+                    y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width + 1)
+                    x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width + 1)
 
                 # if angle is closest to 90 degrees
                 if 112.5 > vector_angle >= 67.5:
                     perp_direction = "horizontal"
-                    x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
+                    x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width + 1)
                     y_coords = np.full(len(x_coords), trace_coordinate[1])
 
                 elif 22.5 > vector_angle:  # if angle is closest to 0 degrees
                     perp_direction = "vertical"
-                    y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
+                    y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width + 1)
                     x_coords = np.full(len(y_coords), trace_coordinate[0])
 
                 elif vector_angle >= 157.5:  # if angle is closest to 180 degrees
                     perp_direction = "vertical"
-                    y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
+                    y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width + 1)
                     x_coords = np.full(len(y_coords), trace_coordinate[0])
 
                 # Use the perp array to index the guassian filtered image
