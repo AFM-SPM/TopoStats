@@ -127,3 +127,15 @@ grain_mask:
 grain_mask_image:
   image_type: "non-binary"
   core_set: false
+skeletons:
+  filename: "20-skeletons"
+  title: "Image with Overlapping Skeletons"
+  image_type: "non-binary"
+  core_set: false
+  dpi: 1000
+test:
+  filename: "21-test"
+  title: "The test image"
+  image_type: "non-binary"
+  core_set: false
+  dpi: 1000
