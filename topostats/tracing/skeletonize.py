@@ -61,7 +61,7 @@ class getSkeleton:
         Parameters
         ----------
         method: str
-            Method to use for skeletonizing, methods are 'zhang' (default), 'lee', 'medial_axis', and 'thin'.
+            Method to use for skeletonizing, methods are 'zhang' (default), 'lee', 'medial_axis', 'thin' and 'joe'.
 
         Returns
         -------
