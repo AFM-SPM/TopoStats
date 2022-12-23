@@ -48,9 +48,8 @@ class reorderTrace:
                 x_n, y_n, remaining_unordered_coords
             )
 
-            if (
-                no_of_neighbours == 1
-            ):  # if there's only one candidate - its the next point add it to array and delete from candidate points
+            # if there's only one candidate - its the next point add it to array and delete from candidate points
+            if no_of_neighbours == 1:
                 ordered_points.append(neighbour_array[0])
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(neighbour_array[0]))
                 continue
