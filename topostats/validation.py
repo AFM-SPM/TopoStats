@@ -200,8 +200,10 @@ def validate_config(config: dict):
                 "cmap": Or(
                     "afmhot",
                     "nanoscope",
-                    error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot' or 'nanoscope",
+                    "gwyddion",
+                    error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot', 'nanoscope' or 'gwyddion'",
                 ),
+                "mask_cmap": str,
                 "histogram_log_axis": Or(
                     True,
                     False,
@@ -537,6 +539,34 @@ def validate_plotting(config: dict) -> None:
                 ),
                 "core_set": bool,
             },
+            "skeletons": {
+                "filename": str,
+                "title": str,
+                "image_type": Or(
+                    "binary",
+                    "non-binary",
+                    error=(
+                        "Invalid value in config 'coloured_boxes.image_type', valid values "
+                        "are 'binary' or 'non-binary'"
+                    )
+                ),
+                "core_set": bool,
+                "dpi": int,
+            },
+            "test": {
+                "filename": str,
+                "title": str,
+                "image_type": Or(
+                    "binary",
+                    "non-binary",
+                    error=(
+                        "Invalid value in config 'coloured_boxes.image_type', valid values "
+                        "are 'binary' or 'non-binary'"
+                    )
+                ),
+                "core_set": bool,
+                "dpi": int,
+            }
         }
     )
     try:
