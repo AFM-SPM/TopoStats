@@ -294,7 +294,7 @@ def test_curvature_circle(
         (
             10,
             10,
-            5,  # Shift array by 3 points
+            3,  # Shift array by 3 points
             2,
             0,
             np.asarray(
@@ -649,7 +649,7 @@ def test_curvature_ellipse(
             5.0,
             1.0,
             0.0,
-            3,  # Shift array by 5 points
+            5,  # Shift array by 5 points
             1,
             np.asarray(
                 [
@@ -688,7 +688,7 @@ def test_curvature_ellipse(
             5.0,
             1.0,
             0.0,
-            3,  # Shift array by 7 points
+            7,  # Shift array by 7 points
             1,
             np.asarray(
                 [
