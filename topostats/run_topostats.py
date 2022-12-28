@@ -21,7 +21,7 @@ from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, write_yaml, LoadScan
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
-from topostats.tracing.dnatracing import dnaTrace, traceStats
+from topostats.tracing.dnatracing import dnaTrace, traceStats, nodeStats
 from topostats.utils import (
     find_images,
     get_out_path,
@@ -321,9 +321,10 @@ def process_scan(
                 LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
                 dna_traces = defaultdict()
                 tracing_stats = defaultdict()
+                node_stats = defaultdict()
                 for direction, _ in grainstats.items():
                     dna_traces[direction] = dnaTrace(
-                        full_image_data=filtered_image.images["gaussian_filtered"].T,
+                        full_image_data=filtered_image.images["gaussian_filtered"],
                         grains=grains.directions[direction]["labelled_regions_02"],
                         filename=filename,
                         pixel_size=pixel_to_nm_scaling,
@@ -332,7 +333,10 @@ def process_scan(
                     dna_traces[direction].trace_dna()
                     tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
                     tracing_stats[direction].df["threshold"] = direction
-
+                    nodes = nodeStats(image=dna_traces[direction].full_image_data, skeletons=dna_traces[direction].skeletons)
+                    node_stats[direction] = nodes.get_node_stats()
+                    print("-------Dict Keys-------")
+                    print(node_stats[direction][1][2]["branch_stats"][0].keys())
                     # Plot dnatracing images
                     LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
                     output_dir = Path(_output_dir) / filename / "dnatracing" / f"{direction}"
@@ -348,9 +352,8 @@ def process_scan(
                     plot_name = "test"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                     Images(
-                        filtered_image.images["gaussian_filtered"],
-                        data2=dna_traces[direction].disordered_trace_img,
-                        mask_cmap="blu",
+                        nodes.test,
+                        mask_cmap="viridis",
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
 

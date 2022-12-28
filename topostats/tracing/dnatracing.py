@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy import ndimage, spatial, interpolate as interp
+from scipy import ndimage, spatial, optimize, interpolate as interp
 from skimage.morphology import label, binary_dilation
 from skimage.filters import gaussian
 
@@ -58,7 +58,7 @@ class dnaTrace(object):
         self.gauss_image = gaussian(self.full_image_data, self.sigma)
         self.grains = {}
         self.skeleton_dict = {}
-        self.skeleton = None
+        self.skeletons = None
         self.disordered_traces = {}
         self.disordered_trace_img = None
         self.ordered_traces = {}
@@ -87,9 +87,9 @@ class dnaTrace(object):
         self.dilate_grains()
         for grain_num, grain in self.grains.items():
             skeleton = getSkeleton(self.gauss_image, grain).get_skeleton(self.skeletonisation_method)
-            print(f"{label(skeleton).max()-1} breakages in skeleton {grain_num}")
+            LOGGER.info(f"[{self.filename}] {label(skeleton).max()-1} breakages in skeleton {grain_num}")
             pruned_skeleton = pruneSkeleton(self.gauss_image, skeleton).prune_skeleton(self.pruning_method)
-            self.skeleton_dict[grain_num] = pruned_skeleton #if pruned_skeleton[pruned_skeleton==1].size < 10 else pass
+            self.skeleton_dict[grain_num] = pruned_skeleton
         self.concat_skeletons()
         for grain_num, grain in self.skeleton_dict.items():
             pass
@@ -181,9 +181,8 @@ class dnaTrace(object):
         """
         img = np.zeros_like(self.full_image_data)
         for grain_num, coords in coord_dict.items():
-            img[coords[:,0], coords[:,1]] = grain_num
+            img[coords[:, 0], coords[:, 1]] = grain_num
         return img
-        
 
     def concat_skeletons(self):
         """Concatonates the skeletons in the skeleton dictionary onto one image"""
@@ -203,7 +202,7 @@ class dnaTrace(object):
     def linear_or_circular(self, traces: dict):
         """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace.
         This function is sensitive to branches from the skeleton so might need to implement a function to remove them
-        
+
         Parameters
         ----------
         traces: dict
@@ -247,7 +246,7 @@ class dnaTrace(object):
                     self.mol_is_circular[dna_num] = False
                     try:
                         self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.ordered_traces[dna_num].tolist())
-                    except UnboundLocalError: # unsure how the ULE appears and why that means we remove the grain?
+                    except UnboundLocalError:  # unsure how the ULE appears and why that means we remove the grain?
                         self.mol_is_circular.pop(dna_num)
                         self.disordered_traces.pop(dna_num)
                         self.grains.pop(dna_num)
@@ -926,3 +925,334 @@ class traceStats(object):
         if csv:
             self.df.to_csv(save_path / "tracestats.csv")
             LOGGER.info(f"Saved trace info for all analysed images to: {str(save_path / 'tracestats.csv')}")
+
+
+class nodeStats():
+    """Class containing methods to find and analyse the nodes/crossings within a grain"""
+
+    def __init__(self, image: np.ndarray, skeletons: np.ndarray) -> None:
+        self.image = image
+        self.skeletons = skeletons
+
+        self.skeleton = None
+        self.conv_skelly = None
+        self.connected_nodes = None
+        self.node_centre_mask = None
+        self.node_dict = None
+        self.test = None
+        self.full_dict = {}
+
+    def get_node_stats(self) -> dict:
+        """The workflow for obtaining the node statistics.
+        
+        Returns:
+        --------
+        dict
+            Structure: <grain_number>
+                        |-> <node_number>
+                            |-> 'branch_stats'
+                                |-> <branch_number>
+                                    -> 'ordered_coords', 'heights', 'gaussian_fit', 'fwhm', 'angles'
+                                    -> <values>
+        """
+        for skeleton_no in range(label(self.skeletons).max() + 1):
+            self.skeleton = self.skeletons.copy()
+            self.skeleton[self.skeleton != skeleton_no] = 0
+            self.skeleton[self.skeleton != 0] = 1
+            self.convolve_skelly()
+            if len(self.conv_skelly[self.conv_skelly==3]) != 0: # check if any nodes
+                self.connect_close_nodes(node_width=60)
+                self.highlight_node_centres(self.connected_nodes)
+                self.analyse_nodes(box_length=100)
+                self.full_dict[skeleton_no] = self.node_dict
+            else:
+                self.full_dict[skeleton_no] = {}
+
+        return self.full_dict
+
+    def convolve_skelly(self) -> None:
+        """Convolves the skeleton with a 3x3 ones kernel to producing an array
+        of the skeleton as 1, endpoints as 2, and nodes as 3.
+        """
+        conv = ndimage.convolve(self.skeleton, np.ones((3, 3)))
+        conv[self.skeleton == 0] = 0  # remove non-skeleton points
+        conv[conv == 3] = 1  # skelly = 1
+        conv[conv > 3] = 3  # nodes = 3
+        self.conv_skelly = conv
+
+    def connect_close_nodes(self, node_width: float) -> None:
+        """Looks to see if nodes are within the node_width boundary and thus
+        are also labeled as part of the node.
+
+        Parameters
+        ----------
+        node_width: float
+            The width of the dna in the grain, used to connect close nodes.
+        """
+        self.connected_nodes = self.conv_skelly.copy()
+        nodeless = self.conv_skelly.copy()
+        nodeless[nodeless != 1] = 0  # remove non-skeleton points
+        nodeless = label(nodeless)
+        for i in range(1, nodeless.max() + 1):
+            if nodeless[nodeless == i].size < node_width:
+                self.connected_nodes[nodeless == i] = 3
+
+    def highlight_node_centres(self, mask):
+        """Uses the provided mask to calculate the node centres based on
+        height. These node centres are then re-plotted on the mask.
+
+            bg = 0, skeleton = 1, endpoints = 2, node_centres = 3.
+        """
+        small_node_mask = mask.copy()
+        small_node_mask[mask == 3] = 1  # remap nodes to skeleton
+        big_nodes = mask.copy()
+        big_nodes[mask != 3] = 0  # remove non-nodes
+        big_nodes[mask == 3] = 1  # set nodes to 1
+        big_node_mask = label(big_nodes)
+
+        for i in np.delete(np.unique(big_node_mask), 0):  # get node indecies
+            centre = np.unravel_index((self.image * (big_node_mask == i).astype(int)).argmax(), self.image.shape)
+            small_node_mask[centre] = 3
+
+        self.node_centre_mask = small_node_mask
+
+    def analyse_nodes(self, box_length: int = 100):
+        """This function obtains the main analyses for the nodes of a single molecule.
+
+        bg = 0, skeleton = 1, endpoints = 2, nodes = 3, #branches = 4.
+        """
+        length = int(box_length / 2)
+        branch_mask = self.connected_nodes.copy()
+        x_arr, y_arr = np.where(self.node_centre_mask == 3)
+        # iterate over the nodes to find areas
+        node_dict = {}
+        real_node_count = 0
+        for node_no, (x, y) in enumerate(zip(x_arr, y_arr)): # get centres
+            # get area around node
+            node_area = branch_mask[x-length : x+length+1, y-length : y+length+1]
+            node_area = np.pad(node_area, 1)  # pad to allow ordering edge regions
+            node_area[node_area == 3] = 0  # remove node
+            # iterate through branches to order
+            labeled_area = label(node_area)
+            self.test = labeled_area
+            LOGGER.info(f"No. branches from node {node_no}: {labeled_area.max()}")
+
+            # stop processing if nib (node has 2 branches)
+            if labeled_area.max() <= 2:
+                print(f"node {node_no} has only two branches - skipped")
+                self.node_centre_mask[self.node_centre_mask == 3] = 1
+                self.connected_nodes[self.connected_nodes == 3] = 1
+            else:
+                real_node_count += 1
+                ordered_branches = []
+                vectors = []
+                for branch_no in range(1, labeled_area.max() + 1):
+                    # get image of just branch
+                    branch = labeled_area.copy()
+                    branch[labeled_area != branch_no] = 0
+                    branch[labeled_area == branch_no] = 1
+                    # order branch
+                    ordered = self.order_branch(branch)
+                    # height shuffle the branch?
+
+                    # identify vector
+                    vector = self.get_vector(ordered)
+                    # add to list
+                    vectors.append(vector)
+                    ordered_branches.append(ordered)
+
+                # pair vectors
+                pairs = self.pair_vectors(np.asarray(vectors))
+
+                # join matching branches (through node?)
+                centre = (np.asarray(branch.shape) / 2).astype(int)
+                matched_branches = {}
+                for i, (branch_1, branch_2) in enumerate(pairs):
+                    matched_branches[i] = {}
+                    branch_1_coords = ordered_branches[branch_1]
+                    branch_2_coords = ordered_branches[branch_2]
+                    branch_coords = np.append(branch_1_coords[:45][::-1], branch_2_coords[:45], axis=0)  # hardcoded
+                    # calc image-wide coords
+                    branch_coords_img = branch_coords + ([x, y] - centre)
+                    matched_branches[i]["ordered_coords"] = branch_coords_img
+                    # get heights of branch
+                    heights = self.image[branch_coords_img[:, 0], branch_coords_img[:, 1]]
+                    matched_branches[i]["heights"] = heights
+                    # identify over/under
+                    try:
+                        fwhm, popt = self.fwhm(heights)
+                        matched_branches[i]["gaussian_fit"] = popt
+                        matched_branches[i]["fwhm"] = fwhm
+                    except RuntimeError as error:
+                        LOGGER.error(f"{error}. Could not find optimal curvefit params")
+
+                # calc crossing angle
+                # get full branch vectors
+                vectors = []
+                for branch_no, values in matched_branches.items():
+                    vectors.append(self.get_vector(values["ordered_coords"]))
+                # calc angles to first vector i.e. first should always be 0
+                cos_angles = self.calc_angles(np.asarray(vectors))[0]
+                cos_angles[cos_angles > 1] = 1  # floating point sometimes causes nans for 1's
+                angles = np.arccos(cos_angles) / np.pi * 180
+                for i, angle in enumerate(angles):
+                    print(f"{i}, {angle:.1f}")
+                    matched_branches[i]["angles"] = angle
+
+                node_dict[real_node_count] = {"branch_stats": matched_branches}
+
+            self.node_dict = node_dict
+
+    def order_branch(self, binary_image: np.ndarray):
+        """Orders the branch by identify an endpoint, and looking at the local area of the point to find the next.
+
+        Parameters
+        ----------
+        binary_image: np.ndarray
+            A binary image of a skeleton segment to order it's points.
+
+        Returns
+        -------
+        np.ndarray
+            An array of ordered cordinates.
+        """
+        # get branch starts
+        endpoints_highlight = ndimage.convolve(binary_image, np.ones((3, 3)))
+        endpoints_highlight[binary_image == 0] = 0
+        endpoints = np.argwhere(endpoints_highlight == 2)
+
+        # as > 1 endpoint, find one closest to node
+        centre = (np.asarray(binary_image.shape) / 2).astype(int)
+        dist_vals = abs((endpoints - centre).sum(axis=1))
+        endpoint = endpoints[np.argmin(dist_vals)]
+
+        # initialise points
+        all_points = np.stack(np.where(binary_image == 1)).T
+        no_points = len(all_points)
+
+        # add starting point to ordered array
+        ordered = np.zeros_like(all_points)
+        ordered[0] += endpoint
+        binary_image[endpoint[0], endpoint[1]] = 0  # remove from array
+
+        # iterate to order the rest of the points
+        for i in range(no_points - 1):
+            current_point = ordered[i]  # get last point
+            area, n_neighbours = self.local_area_sum(binary_image, current_point)  # look at local area
+            next_point = (current_point + np.argwhere(np.reshape(area, (3, 3,)) == 1) - (1, 1))[
+                0
+            ]  # find where to go next
+            ordered[i + 1] += next_point  # add to ordered array
+            binary_image[next_point[0], next_point[1]] = 0  # set value to zero
+
+        return ordered
+
+    @staticmethod
+    def local_area_sum(binary_map, point):
+        """Evaluates the local area around a point in a binary map.
+
+        Parameters
+        ----------
+        binary_map: np.ndarray
+            A binary array of an image.
+        point: Union[list, touple, np.ndarray]
+            A single object containing 2 integers relating to a point within the binary_map
+
+        Returns
+        -------
+        np.ndarray
+            An array values of the local coordinates around the point.
+        int
+            A value corresponding to the number of neighbours around the point in the binary_map.
+        """
+        x, y = point
+        local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
+        local_pixels[4] = 0  # ensure centre is 0
+        return local_pixels, local_pixels.sum()
+
+    @staticmethod
+    def get_vector(coords):
+        """Calculate the normalised vector of the coordinate means in a branch"""
+        vector = coords.mean(axis=0) - coords[0]
+        vector /= abs(vector).max()
+        return vector
+
+    @staticmethod
+    def calc_angles(vectors: np.ndarray):
+        """Calculates the cosine of the angles between vectors in an array.
+        Uses the formula: cos(theta) = |a|•|b|/|a||b|
+
+        Parameters
+        ----------
+        vectors: np.ndarray
+            Array of 2x1 vectors.
+
+        Returns
+        -------
+        np.ndarray
+            An array of the cosine of the angles between the vectors.
+        """
+        dot = vectors @ vectors.T
+        norm = abs(np.diag(dot)) ** 0.5
+        angles = abs(dot / (norm.reshape(-1, 1) @ norm.reshape(1, -1)))
+        return angles
+
+    def pair_vectors(self, vectors: np.ndarray):
+        """Takes a list of vectors and pairs them based on the angle between them
+
+        Parameters
+        ----------
+        vectors: np.ndarray
+            Array of 2x1 vectors to be paired.
+
+        Returns:
+        --------
+        np.ndarray
+            An array of the matching pair indicies.
+        """
+        # calculate cosine of angle
+        angles = self.calc_angles(vectors)
+        # find highest values
+        angles[angles == angles.diagonal()] = 0  # ensures not paired with itself
+        pairs = np.argmax(angles, axis=1)
+        pairs = np.asarray([[branch_1, branch_2] for branch_1, branch_2 in enumerate(pairs)])
+        # remove duplicate pairs
+        dup_pair_idx = []
+        for i, pair in enumerate(pairs):
+            idx = np.argwhere((pairs == pair[::-1]).all(axis=1))
+            if i not in dup_pair_idx:
+                dup_pair_idx.append(idx)
+        return np.delete(pairs, dup_pair_idx, axis=0)
+
+    @staticmethod
+    def gaussian(x, h, mean, sigma):
+        """The gaussian function.
+
+        Parameters
+        ----------
+        h: float
+            The peak height of the gaussian.
+        x: np.ndarray
+            X values to be passed into the gaussian.
+        mean: float
+            The mean of the x values.
+        sigma: float
+            The standard deviation of the image.
+
+        Returns
+        -------
+        np.ndarray
+            The y-values of the gaussian performed on the x values.
+        """
+        return h * np.exp(-((x - mean) ** 2) / (2 * sigma**2))
+
+    def fwhm(self, heights):
+        """Fits a gaussian to the branch heights, and calculates the FWHM"""
+        x_vals = np.arange(0, len(heights))
+        mean = 45.5  # hard coded as middle node value
+        sigma = 1 / (200 / 1024)  # 1nm / px2nm = px  half a nm as either side of std
+        popt, pcov = optimize.curve_fit(
+            self.gaussian, x_vals, heights - heights.min(), p0=[max(heights) - heights.min(), mean, sigma], maxfev=8000
+        )
+
+        return 2.3548 * popt[2], popt  # 2*(2ln2)^1/2 * sigma = FWHM
