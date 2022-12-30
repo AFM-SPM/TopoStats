@@ -13,21 +13,23 @@ from scipy import stats
 from cycler import cycler
 from pathlib import Path
 from topostats.io import read_yaml
+from topostats.tracing.dnatracing import nodeStats
+from topostats.theme import Colormap
 
-plotting_config = read_yaml(Path("./config/plotting_config.yml"))
+#plotting_config = read_yaml(Path("./config/plotting_config.yml"))
 
 # Need to define extension for tests to pass
-extension = ".png"
+#extension = ".png"
 
 # Set seaborn to override matplotlib for plot output
-sns.set()
-sns.set_style("white", {"font.family": ["sans-serif"]})
+#sns.set()
+#sns.set_style("white", {"font.family": ["sans-serif"]})
 # The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
 # The notebook style is the default
 # sns.set_context("notebook", font_scale=1.5)
-sns.set_context("poster", font_scale=1.4)
+#sns.set_context("poster", font_scale=1.4)
 # plt.style.use("dark_background")
-sns.set_palette(sns.color_palette("bright"))
+#sns.set_palette(sns.color_palette("bright"))
 
 colname2label = {
     "grain_bound_len": "Circumference / %s",
@@ -560,6 +562,29 @@ def computeStats(data, columns, min, max):
 #         summary = data.groupby(groupby)[metrics].summary()
 #     else:
 #         summary = data[metrics].summary()
+
+def plot_crossing_linetrace(branch_stats_dict, cmap, title):
+    """Plots the heightmap lines traces of the branches found in the 'branch_stats' dictionary, and their gaussian"""
+    fig, ax = plt.subplots(1, 1)
+    cmp = Colormap(cmap).get_cmap()
+    total_branches = len(branch_stats_dict)
+    for branch_idx, values in branch_stats_dict.items():
+        cmap_ratio = branch_idx / (total_branches - 1) # 1 branch and ZDE avoided in dnatracing
+        print(branch_idx, total_branches, cmap_ratio)
+        heights = values["heights"]
+        x = np.arange(len(heights))
+        ax.plot(x, heights, label=f"Branch: {branch_idx}", c=cmp(cmap_ratio))
+        try:
+            popt = values["gaussian_fit"]
+            fwhm = values["fwhm"]
+            ax.plot(x, nodeStats.gaussian(x, popt[0], popt[1], popt[2]) + heights.min(), label=f"FWHM: {fwhm:.1f}", c=cmp(cmap_ratio), linestyle='dashed')
+        except KeyError:
+            pass # if no gaussian params found then skip this bit of the plot
+    ax.set_xlabel("Pixel of Branch")
+    ax.set_ylabel("Height")
+    ax.set_title(title)
+    ax.legend()
+    return fig, ax
 
 
 if __name__ == "__main__":

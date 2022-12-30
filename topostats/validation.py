@@ -570,6 +570,7 @@ def validate_plotting(config: dict) -> None:
                 "dpi": int,
             },
             "crossings":{
+                "title": str,
                 "image_type": Or(
                     "binary",
                     "non-binary",
@@ -578,8 +579,12 @@ def validate_plotting(config: dict) -> None:
                         "are 'binary' or 'non-binary'"
                     )
                 ),
-                #"mask_cmap": str,
+                "mask_cmap": str,
                 "core_set": bool,
+            },
+            "line_trace":{
+                "title": str,
+                "cmap": str,
             },
             "test": {
                 "filename": str,

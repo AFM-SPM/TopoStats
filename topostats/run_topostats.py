@@ -21,6 +21,7 @@ from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, write_yaml, LoadScan
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
+from topostats.plotting import plot_crossing_linetrace
 from topostats.tracing.dnatracing import dnaTrace, traceStats, nodeStats
 from topostats.utils import (
     find_images,
@@ -333,7 +334,7 @@ def process_scan(
                         **dnatracing_config,
                     )
                     dna_traces[direction].trace_dna()
-                    
+
                     tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
                     tracing_stats[direction].df["threshold"] = direction
 
@@ -342,6 +343,7 @@ def process_scan(
                         skeletons=dna_traces[direction].skeletons,
                         )
                     node_stats[direction] = nodes.get_node_stats()
+
                     # Plot dnatracing images
                     LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
                     output_dir = Path(_output_dir) / filename / "dnatracing" / f"{direction}"
@@ -366,13 +368,18 @@ def process_scan(
                             Images(
                                 node_stats["node_stats"]["node_area_image"],
                                 data2=node_stats["node_stats"]["node_area_mask"],
-                                filename=f"mol_{mol_no}_node_{node_no}",
+                                filename=f"mol_{mol_no}_node_{node_no}_crossings",
                                 output_dir=output_dir / "nodes",
-                                mask_cmap="viridis",
                                 **plotting_config["plot_dict"]["crossings"],
                             ).plot_and_save()
-                            
-                    
+                            plotting_config["plot_dict"]["line_trace"] = {"title": "Heights of Crossing", "cmap": "winter"}
+                            fig, _ = plot_crossing_linetrace(
+                                node_stats["branch_stats"],
+                                **plotting_config["plot_dict"]["line_trace"]
+                                )
+                            fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace")
+
+                    """
                     plot_name = "test"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                     Images(
@@ -380,7 +387,7 @@ def process_scan(
                         mask_cmap="viridis",
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
-
+                    """
                     #np.savetxt('cat_skel.txt', dna_traces[direction].skeletons)
                     #np.savetxt('cat_grain.txt', grains.directions[direction]["labelled_regions_02"])
                     #np.savetxt('cat_img.txt', filtered_image.images["gaussian_filtered"])

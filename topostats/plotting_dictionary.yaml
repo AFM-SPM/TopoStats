@@ -131,7 +131,7 @@ skeletons:
   filename: "20-skeletons"
   title: "Image with Overlapping Skeletons"
   image_type: "non-binary"
-  mask_cmap: "blu"
+  mask_cmap: "winter"
   core_set: false
   dpi: 1000
 nodes:
@@ -142,11 +142,13 @@ nodes:
   core_set: false
   dpi: 1000
 crossings:
+  title: "Crossing and Skeleton Branches"
   image_type: "non-binary"
   core_set: false
-  # cmap same as below?
-#line_trace:
-  # cmap?
+  mask_cmap: "winter"
+line_trace:
+  title: "Heights of Crossing"
+  cmap: "winter"
 test:
   filename: "test"
   title: "The test image"

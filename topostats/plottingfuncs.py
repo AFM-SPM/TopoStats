@@ -10,6 +10,7 @@ import numpy as np
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
+from topostats.tracing.dnatracing import nodeStats
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
