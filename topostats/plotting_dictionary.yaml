@@ -144,7 +144,6 @@ nodes:
 crossings:
   image_type: "non-binary"
   core_set: false
-  dpi: 1000
   # cmap same as below?
 #line_trace:
   # cmap?

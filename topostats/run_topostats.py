@@ -179,6 +179,8 @@ def process_scan(
         Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / image_path.stem / "dnatracing" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / image_path.stem / "dnatracing" / "lower", parents=True, exist_ok=True)
+        Path.mkdir(_output_dir / image_path.stem / "dnatracing" / "upper" / "nodes", parents=True, exist_ok=True)
+        Path.mkdir(_output_dir / image_path.stem / "dnatracing" / "lower" / "nodes", parents=True, exist_ok=True)
 
     # Extract image and image params
     scan_loader = LoadScan(image_path, **loading_config)
@@ -331,11 +333,15 @@ def process_scan(
                         **dnatracing_config,
                     )
                     dna_traces[direction].trace_dna()
+                    
                     tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
                     tracing_stats[direction].df["threshold"] = direction
-                    nodes = nodeStats(image=dna_traces[direction].full_image_data, skeletons=dna_traces[direction].skeletons)
-                    node_stats[direction] = nodes.get_node_stats()
 
+                    nodes = nodeStats(
+                        image=dna_traces[direction].full_image_data, 
+                        skeletons=dna_traces[direction].skeletons,
+                        )
+                    node_stats[direction] = nodes.get_node_stats()
                     # Plot dnatracing images
                     LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
                     output_dir = Path(_output_dir) / filename / "dnatracing" / f"{direction}"
@@ -346,14 +352,27 @@ def process_scan(
 
                     plot_names = ["skeletons", "nodes"]
                     data2s = [dna_traces[direction].skeletons, nodes.connected_nodes]
-                    for i, p in enumerate(plot_names):
-                        plotting_config["plot_dict"][p]["output_dir"] = output_dir
+                    for i, plot_name in enumerate(plot_names):
+                        plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                         Images(
                             filtered_image.images["gaussian_filtered"],
                             data2=data2s[i],
-                            **plotting_config["plot_dict"][p],
+                            **plotting_config["plot_dict"][plot_name],
                         ).plot_and_save()
 
+                    # plot nodes and line traces
+                    for mol_no, mol_stats in node_stats[direction].items():
+                        for node_no, node_stats in mol_stats.items():
+                            Images(
+                                node_stats["node_stats"]["node_area_image"],
+                                data2=node_stats["node_stats"]["node_area_mask"],
+                                filename=f"mol_{mol_no}_node_{node_no}",
+                                output_dir=output_dir / "nodes",
+                                mask_cmap="viridis",
+                                **plotting_config["plot_dict"]["crossings"],
+                            ).plot_and_save()
+                            
+                    
                     plot_name = "test"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                     Images(

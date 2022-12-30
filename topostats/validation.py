@@ -580,7 +580,6 @@ def validate_plotting(config: dict) -> None:
                 ),
                 #"mask_cmap": str,
                 "core_set": bool,
-                "dpi": int,
             },
             "test": {
                 "filename": str,

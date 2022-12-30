@@ -18,6 +18,7 @@ from skimage.filters import gaussian
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
 from topostats.tracing.skeletonize import getSkeleton, pruneSkeleton
+from topostats.plottingfuncs import Images
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -940,6 +941,7 @@ class nodeStats():
         self.node_centre_mask = None
         self.node_dict = None
         self.test = None
+        self.plot_opts = None
         self.full_dict = {}
 
     def get_node_stats(self) -> dict:
@@ -1033,6 +1035,7 @@ class nodeStats():
             node_coords = np.stack(np.where(node_area == 3)).T
             node_area = np.pad(node_area, 1)  # pad to allow ordering edge regions
             node_area[node_area == 3] = 0  # remove node
+            branch_img = np.zeros_like(node_area)
             # iterate through branches to order
             labeled_area = label(node_area)
             LOGGER.info(f"No. branches from node {node_no}: {labeled_area.max()}")
@@ -1072,6 +1075,7 @@ class nodeStats():
                     branch_1_coords = ordered_branches[branch_1]
                     branch_2_coords = ordered_branches[branch_2]
                     branch_coords = np.append(branch_1_coords[:45][::-1], branch_2_coords[:45], axis=0)  # hardcoded
+                    branch_img[branch_coords[:,0], branch_coords[:,1]] = i + 1
                     # calc image-wide coords
                     branch_coords_img = branch_coords + ([x, y] - centre)
                     matched_branches[i]["ordered_coords"] = branch_coords_img
@@ -1099,7 +1103,19 @@ class nodeStats():
                     print(f"{i}, {angle:.1f}")
                     matched_branches[i]["angles"] = angle
 
-                node_dict[real_node_count] = {"branch_stats": matched_branches}
+                nodes_and_branches = np.zeros_like(self.image)
+                for branch_num, values in matched_branches.items():
+                    coords = values["ordered_coords"]
+                    nodes_and_branches[coords[:,0], coords[:,1]] = branch_num + 1
+
+                node_dict[real_node_count] = {
+                    "branch_stats": matched_branches,
+                    "node_stats": {
+                        "node_mid_coords": [x, y],
+                        "node_area_image": self.image[x-length : x+length+1, y-length : y+length+1],
+                        "node_area_mask": branch_img[1:-1, 1:-1], # to remove padding
+                    }
+                }
 
             self.node_dict = node_dict
 
@@ -1138,7 +1154,7 @@ class nodeStats():
         # iterate to order the rest of the points
         for i in range(no_points - 1):
             current_point = ordered[i]  # get last point
-            area, n_neighbours = self.local_area_sum(binary_image, current_point)  # look at local area
+            area, _ = self.local_area_sum(binary_image, current_point)  # look at local area
             next_point = (current_point + np.argwhere(np.reshape(area, (3, 3,)) == 1) - (1, 1))[
                 0
             ]  # find where to go next
