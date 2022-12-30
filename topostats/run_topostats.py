@@ -335,19 +335,24 @@ def process_scan(
                     tracing_stats[direction].df["threshold"] = direction
                     nodes = nodeStats(image=dna_traces[direction].full_image_data, skeletons=dna_traces[direction].skeletons)
                     node_stats[direction] = nodes.get_node_stats()
-                    print("-------Dict Keys-------")
-                    print(node_stats[direction][1][2]["branch_stats"][0].keys())
+
                     # Plot dnatracing images
                     LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
                     output_dir = Path(_output_dir) / filename / "dnatracing" / f"{direction}"
-                    plot_name = "skeletons"
-                    plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
-                    Images(
-                        filtered_image.images["gaussian_filtered"],
-                        data2=dna_traces[direction].skeletons,
-                        mask_cmap="blu",
-                        **plotting_config["plot_dict"][plot_name],
-                    ).plot_and_save()
+
+                    fitted_coords = dna_traces[direction].fitted_traces[1]
+                    fitted_img = np.zeros_like(dna_traces[direction].skeletons)
+                    fitted_img[fitted_coords[:,0], fitted_coords[:,1]] = 1
+
+                    plot_names = ["skeletons", "nodes"]
+                    data2s = [dna_traces[direction].skeletons, nodes.connected_nodes]
+                    for i, p in enumerate(plot_names):
+                        plotting_config["plot_dict"][p]["output_dir"] = output_dir
+                        Images(
+                            filtered_image.images["gaussian_filtered"],
+                            data2=data2s[i],
+                            **plotting_config["plot_dict"][p],
+                        ).plot_and_save()
 
                     plot_name = "test"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
