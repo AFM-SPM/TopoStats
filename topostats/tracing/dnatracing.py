@@ -955,7 +955,7 @@ class nodeStats():
                                     -> 'ordered_coords', 'heights', 'gaussian_fit', 'fwhm', 'angles'
                                     -> <values>
         """
-        for skeleton_no in range(label(self.skeletons).max() + 1):
+        for skeleton_no in range(1, label(self.skeletons).max() + 1):
             self.skeleton = self.skeletons.copy()
             self.skeleton[self.skeleton != skeleton_no] = 0
             self.skeleton[self.skeleton != 0] = 1
@@ -967,7 +967,6 @@ class nodeStats():
                 self.full_dict[skeleton_no] = self.node_dict
             else:
                 self.full_dict[skeleton_no] = {}
-
         return self.full_dict
 
     def convolve_skelly(self) -> None:
@@ -1023,25 +1022,27 @@ class nodeStats():
         """
         length = int(box_length / 2)
         branch_mask = self.connected_nodes.copy()
-        x_arr, y_arr = np.where(self.node_centre_mask == 3)
+        x_arr, y_arr = np.where(self.node_centre_mask.copy() == 3)
         # iterate over the nodes to find areas
         node_dict = {}
         real_node_count = 0
         for node_no, (x, y) in enumerate(zip(x_arr, y_arr)): # get centres
             # get area around node
             node_area = branch_mask[x-length : x+length+1, y-length : y+length+1]
+            centre = (np.asarray(node_area.shape) / 2).astype(int)
+            node_coords = np.stack(np.where(node_area == 3)).T
             node_area = np.pad(node_area, 1)  # pad to allow ordering edge regions
             node_area[node_area == 3] = 0  # remove node
             # iterate through branches to order
             labeled_area = label(node_area)
-            self.test = labeled_area
             LOGGER.info(f"No. branches from node {node_no}: {labeled_area.max()}")
 
             # stop processing if nib (node has 2 branches)
             if labeled_area.max() <= 2:
-                print(f"node {node_no} has only two branches - skipped")
-                self.node_centre_mask[self.node_centre_mask == 3] = 1
-                self.connected_nodes[self.connected_nodes == 3] = 1
+                print(f"node {node_no} has only two branches - skipped & nodes removed")
+                node_coords += ([x, y] - centre) # get whole image coords
+                self.node_centre_mask[x, y] = 1 # remove these from node_centre_mask
+                self.connected_nodes[node_coords[:,0], node_coords[:,1]] = 1 # remove these from connected_nodes
             else:
                 real_node_count += 1
                 ordered_branches = []
@@ -1065,7 +1066,6 @@ class nodeStats():
                 pairs = self.pair_vectors(np.asarray(vectors))
 
                 # join matching branches (through node?)
-                centre = (np.asarray(branch.shape) / 2).astype(int)
                 matched_branches = {}
                 for i, (branch_1, branch_2) in enumerate(pairs):
                     matched_branches[i] = {}
