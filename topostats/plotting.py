@@ -570,7 +570,6 @@ def plot_crossing_linetrace(branch_stats_dict, cmap, title):
     total_branches = len(branch_stats_dict)
     for branch_idx, values in branch_stats_dict.items():
         cmap_ratio = branch_idx / (total_branches - 1) # 1 branch and ZDE avoided in dnatracing
-        print(branch_idx, total_branches, cmap_ratio)
         heights = values["heights"]
         x = np.arange(len(heights))
         ax.plot(x, heights, label=f"Branch: {branch_idx}", c=cmp(cmap_ratio))
