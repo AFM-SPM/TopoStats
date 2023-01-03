@@ -238,7 +238,7 @@ class Scars:
                 if marked[row, col - 1] >= threshold_low and marked[row, col] >= threshold_high:
                     marked[row, col - 1] = threshold_high
 
-    def remove_too_short_scars(self, marked: np.ndarray, threshold_high: float, min_scar_length: int) -> None:
+    def remove_short_scars(self, marked: np.ndarray, threshold_high: float, min_scar_length: int) -> None:
         """
         Removes scars that are too short (horizontally), based on the min_scar_length argument.
 
@@ -373,7 +373,7 @@ class Scars:
 
         self.spread_scars(marked=marked, threshold_low=threshold_low, threshold_high=threshold_high)
 
-        self.remove_too_short_scars(marked=marked, threshold_high=threshold_high, min_scar_length=min_scar_length)
+        self.remove_short_scars(marked=marked, threshold_high=threshold_high, min_scar_length=min_scar_length)
 
         return marked
 
