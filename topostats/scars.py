@@ -71,8 +71,8 @@ class Scars:
         self.max_scar_width = max_scar_width
         self.min_scar_length = min_scar_length
 
+    @staticmethod
     def mark_if_positive_scar(
-        self,
         row_col: tuple,
         stddev: float,
         img: np.ndarray,
@@ -132,8 +132,8 @@ class Scars:
                         marked[row + k, col] = val
                         k -= 1
 
+    @staticmethod
     def mark_if_negative_scar(
-        self,
         row_col: tuple,
         stddev: float,
         img: np.ndarray,
@@ -356,13 +356,13 @@ class Scars:
 
         elif direction == "negative":
             # Find negative scars
-            for row in range(img.shape[0] - 1):
-                for col in range(img.shape[1]):
+            for row in range(image.shape[0] - 1):
+                for col in range(image.shape[1]):
 
-                    self.mark_if_negative_scar(
+                    Scars.mark_if_negative_scar(
                         row_col=(row, col),
                         stddev=stddev,
-                        img=img,
+                        img=image,
                         marked=marked,
                         threshold_low=threshold_low,
                         max_scar_width=max_scar_width,
