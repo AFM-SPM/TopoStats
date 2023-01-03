@@ -81,7 +81,7 @@ class Scars:
         max_scar_width: int,
     ) -> None:
         """
-        Determine if the points below and including the pixel at the specified row and column are an positive scar.
+        Determine if the points below and including the pixel at the specified row and column are a positive scar.
         If they are, mark them in the marked 2d np.ndarray. Note that this only detects positive scars.
         Parameters
         ----------
