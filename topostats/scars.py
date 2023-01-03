@@ -335,20 +335,20 @@ class Scars:
             to be a scar.
         """
 
-        img = np.copy(img)
+        image = np.copy(img)
 
-        stddev = np.std(img)
-        marked = np.zeros(img.shape)
+        stddev = np.std(image)
+        marked = np.zeros(image.shape)
 
         if direction == "positive":
             # Find positive scars
-            for row in range(img.shape[0] - 1):
-                for col in range(img.shape[1]):
+            for row in range(image.shape[0] - 1):
+                for col in range(image.shape[1]):
 
-                    self.mark_if_positive_scar(
+                    Scars.mark_if_positive_scar(
                         row_col=(row, col),
                         stddev=stddev,
-                        img=img,
+                        img=image,
                         marked=marked,
                         threshold_low=threshold_low,
                         max_scar_width=max_scar_width,
