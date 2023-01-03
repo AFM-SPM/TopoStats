@@ -464,7 +464,7 @@ class Scars:
                 )
                 # Combine the upper and lower scar masks
                 marked_both = np.bitwise_or(marked_positive.astype(bool), marked_negative.astype(bool))
-                self.remove_marked_scars(self.img, marked_both)
+                self.remove_marked_scars(self.img, np.copy(marked_both))
         else:
             LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config.")
-        return self.img
+        return self.img, marked_both
