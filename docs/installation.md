@@ -5,8 +5,10 @@
 then please do not hesitate to ask a question.
 
 
-TopoStats is a [Python](https://www.python.org) package designed to run at the command line. You may have Python
-installed on your system but should use a [Python Virtual
+TopoStats is a [Python](https://www.python.org) package designed to run at the command line. If you are using Microsoft
+Windows you should use
+[Powershell](https://learn.microsoft.com/en-us/powershell/scripting/learn/ps101/01-getting-started?view=powershell-7.3). You
+may have Python installed on your system but should use a [Python Virtual
 Environment](https://realpython.com/python-virtual-environments-a-primer/) such as
 [Miniconda](https://docs.conda.io/en/latest/miniconda.html) and install it under the Virtual Environment. The versions
 of Python supported are Python >=3.8 and so when creating your virtual environment you should specify this `3.8` as the
@@ -15,9 +17,9 @@ minimum.
 ## Setting up Conda
 
 Once you have downloaded and installed [Miniconda](https://docs.conda.io/en/latest/miniconda.html) you can create a
-virtual environment for installing TopoStats with a version of Python that meets the requirements. We will call
-this environment `topostats` (specified with the `--name topostats` option) and to use Python 3.10 (the option
-`python=3.10`). After creating it we can, as per the instructions printed out, activate the environment.
+virtual environment for installing TopoStats for installing and running TopoStats. We will call this environment `topostats`
+(specified with the `--name topostats` option) and use Python 3.10 (the option `python=3.10`). After creating it we can,
+as per the instructions printed out, activate the environment.
 
 ``` bash
 conda create --name topostats python=3.10
@@ -47,9 +49,20 @@ pip install topostats
 ```
 
 This will install TopoStats under your virtual environment and the command `run_topostats` will be available at the
-command line. You will probably want to download a copy of the
-[`default_config.yaml`](https://raw.githubusercontent.com/AFM-SPM/TopoStats/main/topostats/default_config.yaml) to edit
-and use for running your analysis. Please see the [usage](usage) section for more information on running TopoStats.
+command line. You can upgrade `topostats` by using the `--upgrade` flag...
+
+``` bash
+pip install --upgrade topostats
+```
+
+You can always install a specific version from PyPI
+
+``` bash
+pip install topostats==2.0.0
+```
+
+For more information on using `pip` to install and manage packages please refer to the [pip
+documentation](https://pip.pypa.io/en/stable/user_guide/).
 
 ### Cloning from GitHub
 
@@ -59,8 +72,8 @@ TopoStats, if you only intend on using it then please install from PyPI.
 If you do not have Git already installed please see [Git](#git). If you intend to contribute to the development of
 TopoStats please read through the [contributing](contributing) section.
 
-If you are familiar with the command line then you can
-clone and install TopoStats with the following _after_ activating your virtual environment.
+If you are familiar with the command line then you can clone and install TopoStats with the following _after_ activating
+your virtual environment.
 
 ``` bash
 git clone https://github.com/AFM-SPM/TopoStats.git
@@ -100,9 +113,9 @@ to the [contributing](contributing) section.
 
 One of the major changes in the refactoring is the introduction of unit tests. These require certain packages to be
 installed which are not installed to your virtual environment by
-[setuptools](https://setuptools.pypa.io/en/latest/setuptools.html) in the above steps. If you are develop and making
-changes to the code base you will likely want to be able to run the tests. Install the necessary dependencies to do so
-with...
+[setuptools](https://setuptools.pypa.io/en/latest/setuptools.html) in the above steps. If you are intending to modify or
+contribute to the development of TopoStats and making changes to the code base you will likely want to be able to run
+the tests. Install the necessary dependencies to do so with...
 
 
 ``` bash

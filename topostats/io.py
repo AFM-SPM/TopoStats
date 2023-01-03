@@ -40,7 +40,9 @@ def read_yaml(filename: Union[str, Path]) -> Dict:
             return {}
 
 
-def write_yaml(config: dict, output_dir: Union[str, Path]) -> None:
+def write_yaml(
+    config: dict, output_dir: Union[str, Path], config_file: str = "config.yaml", header_message: str = None
+) -> None:
     """Write a configuration (stored as a dictionary) to a YAML file.
 
     Parameters
@@ -49,16 +51,23 @@ def write_yaml(config: dict, output_dir: Union[str, Path]) -> None:
         Configuration dictionary.
     output_dir: Union[str, Path]
         Path to save the dictionary to as a YAML file (it will be called 'config.yaml').
+    config_file: str
+        Filename to write to.
+    header_message: str
+        String to write to the header message of the YAML file
     """
     # Save the configuration to output directory
-    output_config = Path(output_dir) / "config.yaml"
+    output_config = Path(output_dir) / config_file
     # Revert PosixPath items to string
     config["base_dir"] = str(config["base_dir"])
     config["output_dir"] = str(config["output_dir"])
     config_yaml = yaml_load(yaml_dump(config))
-    config_yaml.yaml_set_start_comment(
-        f"Configuration from TopoStats run completed : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-    )
+    if header_message:
+        config_yaml.yaml_set_start_comment(f"{header_message} : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    else:
+        config_yaml.yaml_set_start_comment(
+            f"Configuration from TopoStats run completed : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
     with output_config.open("w") as f:
         try:
             f.write(yaml_dump(config_yaml))
@@ -66,6 +75,7 @@ def write_yaml(config: dict, output_dir: Union[str, Path]) -> None:
             LOGGER.error(exception)
 
 
+# pylint: disable=too-many-instance-attributes
 class LoadScans:
     """Load the image and image parameters from a file path."""
 
@@ -257,7 +267,8 @@ class LoadScans:
         metadata_page = tif.pages[0]
         return (image * 1e9, self._jpk_pixel_to_nm_scaling(metadata_page))
 
-    def _jpk_pixel_to_nm_scaling(self, tiff_page: tifffile.tifffile.TiffPage) -> float:
+    @staticmethod
+    def _jpk_pixel_to_nm_scaling(tiff_page: tifffile.tifffile.TiffPage) -> float:
         """Extract pixel to nm scaling from the JPK image metadata.
 
         Parameters
