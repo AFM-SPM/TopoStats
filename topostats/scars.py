@@ -194,8 +194,8 @@ class Scars:
                         marked[row + k, col] = val
                         k -= 1
 
+    @staticmethod
     def spread_scars(
-        self,
         marked: np.ndarray,
         threshold_low: float,
         threshold_high: float,
@@ -238,7 +238,8 @@ class Scars:
                 if marked[row, col - 1] >= threshold_low and marked[row, col] >= threshold_high:
                     marked[row, col - 1] = threshold_high
 
-    def remove_short_scars(self, marked: np.ndarray, threshold_high: float, min_scar_length: int) -> None:
+    @staticmethod
+    def remove_short_scars(marked: np.ndarray, threshold_high: float, min_scar_length: int) -> None:
         """
         Removes scars that are too short (horizontally), based on the min_scar_length argument.
 
@@ -292,8 +293,8 @@ class Scars:
                     marked[row, col - k] = 0.0
                     k -= 1
 
+    @staticmethod
     def mark_scars(
-        self,
         img: np.ndarray,
         direction: str,
         threshold_low: float,
@@ -371,13 +372,14 @@ class Scars:
         else:
             raise ValueError(f"direction {direction} invalid.")
 
-        self.spread_scars(marked=marked, threshold_low=threshold_low, threshold_high=threshold_high)
+        Scars.spread_scars(marked=marked, threshold_low=threshold_low, threshold_high=threshold_high)
 
-        self.remove_short_scars(marked=marked, threshold_high=threshold_high, min_scar_length=min_scar_length)
+        Scars.remove_short_scars(marked=marked, threshold_high=threshold_high, min_scar_length=min_scar_length)
 
         return marked
 
-    def remove_marked_scars(self, img: np.ndarray, scar_mask: np.ndarray) -> None:
+    @staticmethod
+    def remove_marked_scars(img: np.ndarray, scar_mask: np.ndarray) -> None:
         """
         Interpolate values covered by marked scars. Takes an image, and a marked scar boolean mask for that
         image. Returns the image where the marked scars are replaced by interpolated values.
@@ -469,7 +471,7 @@ class Scars:
                 if i == 0:
                     first_marked_mask = marked_both
 
-                self.remove_marked_scars(self.img, np.copy(marked_both))
+                Scars.remove_marked_scars(self.img, np.copy(marked_both))
 
         else:
             LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config.")
