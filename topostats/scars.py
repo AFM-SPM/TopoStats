@@ -445,7 +445,8 @@ class Scars:
 
             LOGGER.info(f"[{self.filename}] : Removing scars")
 
-            for _ in range(self.removal_iterations):
+            first_marked_mask = None
+            for i in range(self.removal_iterations):
                 marked_positive = self.mark_scars(
                     img=self.img,
                     direction="positive",
@@ -464,7 +465,12 @@ class Scars:
                 )
                 # Combine the upper and lower scar masks
                 marked_both = np.bitwise_or(marked_positive.astype(bool), marked_negative.astype(bool))
+
+                if i == 0:
+                    first_marked_mask = marked_both
+
                 self.remove_marked_scars(self.img, np.copy(marked_both))
+
         else:
             LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config.")
-        return self.img, marked_both
+        return self.img, first_marked_mask

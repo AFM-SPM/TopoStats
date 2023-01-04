@@ -11,7 +11,8 @@ RESOURCES = BASE_DIR / "tests" / "resources"
 def test_remove_scars(synthetic_scar_removal: Scars):
     """Test removal of scars"""
 
-    scars_removed = synthetic_scar_removal.remove_scars()
+    scars_removed, _scar_mask = synthetic_scar_removal.remove_scars()
 
-    target = np.load(RESOURCES / "synthetic_scar_removal.npy")
-    np.testing.assert_array_equal(scars_removed, target)
+    target_img = np.load(RESOURCES / "synthetic_scar_removal.npy")
+
+    np.testing.assert_array_equal(scars_removed, target_img)
