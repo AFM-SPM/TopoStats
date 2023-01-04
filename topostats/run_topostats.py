@@ -27,7 +27,6 @@ from topostats.utils import (
     find_images,
     get_out_path,
     update_config,
-    convert_path,
     create_empty_dataframe,
     folder_grainstats,
 )
@@ -117,8 +116,8 @@ def create_parser() -> arg.ArgumentParser:
     parser.add_argument(
         "-w",
         "--warnings",
-        dest="quiet",
-        type=str,
+        dest="warnings",
+        type=bool,
         required=False,
         help="Whether to ignore warnings.",
     )
@@ -350,19 +349,18 @@ def process_scan(
     return image_path, results
 
 
-def main():
-    """Run processing."""
+def main(args=None):
+    """Find and process all files."""
 
     # Parse command line options, load config (or default) and update with command line options
     parser = create_parser()
-    args = parser.parse_args()
+    args = parser.parse_args() if args is None else parser.parse_args(args)
     if args.config_file is not None:
         config = read_yaml(args.config_file)
     else:
         default_config = pkg_resources.open_text(__package__, "default_config.yaml")
         config = yaml.safe_load(default_config.read())
     config = update_config(config, args)
-    config["output_dir"] = convert_path(config["output_dir"])
 
     # Validate configuration
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
@@ -455,6 +453,7 @@ def main():
     results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)
     LOGGER.info(
         (
+            f"~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~"
             f"All statistics combined for {len(img_files)} images(s) are "
             f"saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
         )
