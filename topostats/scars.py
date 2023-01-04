@@ -234,7 +234,7 @@ class Scars:
                     marked[row, col] = threshold_high
 
             # Spread left
-            for col in range(marked.shape[1] - 1, 0):
+            for col in range(marked.shape[1] - 1, 0, -1):
                 if marked[row, col - 1] >= threshold_low and marked[row, col] >= threshold_high:
                     marked[row, col - 1] = threshold_high
 
