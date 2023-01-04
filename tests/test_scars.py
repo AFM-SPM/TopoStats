@@ -22,7 +22,7 @@ def test_remove_scars(synthetic_scar_removal: Scars):
 
 
 @pytest.mark.parametrize(
-    "potential_positive_scar, target",
+    "potential_positive_scar, target, threshold_low, max_scar_width",
     [
         (
             np.array(
@@ -43,6 +43,8 @@ def test_remove_scars(synthetic_scar_removal: Scars):
                     [0],
                 ]
             ),
+            2,
+            3,
         ),
         (
             np.array(
@@ -63,6 +65,8 @@ def test_remove_scars(synthetic_scar_removal: Scars):
                     [0],
                 ]
             ),
+            2,
+            3,
         ),
         (
             np.array(
@@ -83,6 +87,8 @@ def test_remove_scars(synthetic_scar_removal: Scars):
                     [0],
                 ]
             ),
+            2,
+            3,
         ),
         (
             np.array(
@@ -103,6 +109,8 @@ def test_remove_scars(synthetic_scar_removal: Scars):
                     [0],
                 ]
             ),
+            2,
+            3,
         ),
         (
             np.array(
@@ -123,6 +131,8 @@ def test_remove_scars(synthetic_scar_removal: Scars):
                     [0],
                 ]
             ),
+            2,
+            3,
         ),
         (
             np.array(
@@ -145,6 +155,8 @@ def test_remove_scars(synthetic_scar_removal: Scars):
                     [0],
                 ]
             ),
+            2,
+            3,
         ),
         (
             np.array(
@@ -163,23 +175,30 @@ def test_remove_scars(synthetic_scar_removal: Scars):
                     [0],
                 ]
             ),
+            2,
+            3,
         ),
     ],
 )
-def test_mark_if_positive_scar(potential_positive_scar, target):
+def test_mark_if_positive_scar(potential_positive_scar, target, threshold_low, max_scar_width):
     """Test the mark_if_positive_scar method of the Scars class."""
 
     marked = np.zeros(potential_positive_scar.shape)
 
     Scars.mark_if_positive_scar(
-        row_col=(0, 0), stddev=1.0, img=potential_positive_scar, marked=marked, threshold_low=2, max_scar_width=3
+        row_col=(0, 0),
+        stddev=1.0,
+        img=potential_positive_scar,
+        marked=marked,
+        threshold_low=threshold_low,
+        max_scar_width=max_scar_width,
     )
 
     np.testing.assert_array_equal(marked, target)
 
 
 @pytest.mark.parametrize(
-    "potential_negative_scar, target",
+    "potential_negative_scar, target, threshold_low, max_scar_width",
     [
         (
             np.array(
@@ -200,6 +219,8 @@ def test_mark_if_positive_scar(potential_positive_scar, target):
                     [0],
                 ]
             ),
+            2,
+            3,
         ),
         (
             np.array(
@@ -220,6 +241,8 @@ def test_mark_if_positive_scar(potential_positive_scar, target):
                     [0],
                 ]
             ),
+            2,
+            3,
         ),
         (
             np.array(
@@ -240,6 +263,8 @@ def test_mark_if_positive_scar(potential_positive_scar, target):
                     [0],
                 ]
             ),
+            2,
+            3,
         ),
         (
             np.array(
@@ -260,6 +285,8 @@ def test_mark_if_positive_scar(potential_positive_scar, target):
                     [0],
                 ]
             ),
+            2,
+            3,
         ),
         (
             np.array(
@@ -280,6 +307,8 @@ def test_mark_if_positive_scar(potential_positive_scar, target):
                     [0],
                 ]
             ),
+            2,
+            3,
         ),
         (
             np.array(
@@ -302,6 +331,8 @@ def test_mark_if_positive_scar(potential_positive_scar, target):
                     [0],
                 ]
             ),
+            2,
+            3,
         ),
         (
             np.array(
@@ -320,16 +351,23 @@ def test_mark_if_positive_scar(potential_positive_scar, target):
                     [0],
                 ]
             ),
+            2,
+            3,
         ),
     ],
 )
-def test_mark_if_negative_scar(potential_negative_scar, target):
+def test_mark_if_negative_scar(potential_negative_scar, target, threshold_low, max_scar_width):
     """Test the mark_if_negative_scar method of the Scars class."""
 
     marked = np.zeros(potential_negative_scar.shape)
 
     Scars.mark_if_negative_scar(
-        row_col=(0, 0), stddev=1.0, img=potential_negative_scar, marked=marked, threshold_low=2, max_scar_width=3
+        row_col=(0, 0),
+        stddev=1.0,
+        img=potential_negative_scar,
+        marked=marked,
+        threshold_low=threshold_low,
+        max_scar_width=max_scar_width,
     )
 
     np.testing.assert_array_equal(marked, target)
