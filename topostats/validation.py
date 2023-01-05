@@ -22,206 +22,6 @@ def validate_config(config: dict, schema: Schema, config_type: str) -> None:
         A schema against which the configuration is to be compared.
     config_type: str
     """
-    config_schema = Schema(
-        {
-            "base_dir": Path,
-            "output_dir": Path,
-            "warnings": Or("ignore", error="Invalid value in config for 'warnings', valid values are 'ignore'"),
-            "cores": lambda n: 1 <= n <= os.cpu_count(),
-            "quiet": Or(True, False, error="Invalid value in config for 'quiet', valid values are 'True' or 'False'"),
-            "file_ext": Or(
-                ".spm",
-                ".asd",
-                ".jpk",
-                ".ibw",
-                error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw' or '.asd'.",
-            ),
-            "loading": {
-                "channel": Or(
-                    "ZSensor",
-                    "",
-                    "Stiffness",
-                    "LogStiffness",
-                    "Adhesion",
-                    "Deformation",
-                    "Dissipation",
-                    "Height",  # end of spm channels
-                    "HeightTracee",
-                    "HeightRetrace",
-                    "ZSensorTrace",
-                    "ZSensorRetrace",
-                    "UserIn0Trace",
-                    "UserIn0Retrace",
-                    "UserIn1Trace",
-                    "UserIn1Retrace",  # end of ibw channels
-                    "topography",
-                    "phase",  # end of asd channels
-                    "height_retrace",
-                    "measuredHeight_retrace",
-                    "amplitude_retrace",
-                    "phase_retrace",
-                    "error_retrace",
-                    "height_trace",
-                    "measuredHeight_trace",
-                    "amplitude_trace",
-                    "phase_trace",
-                    "error_trace",  # end of jpk channels
-                    error="Invalid value in config file for 'channel', all possible"
-                    "image channels are seen in the above error message.",
-                )
-            },
-            "filter": {
-                "run": Or(
-                    True,
-                    False,
-                    error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
-                ),
-                "threshold_method": Or(
-                    "absolute",
-                    "otsu",
-                    "std_dev",
-                    error=(
-                        "Invalid value in config for 'filter.threshold_method', valid values "
-                        "are 'absolute', 'otsu' or 'std_dev'"
-                    ),
-                ),
-                "otsu_threshold_multiplier": float,
-                "threshold_std_dev": {
-                    "lower": lambda n: n > 0,
-                    "upper": lambda n: n > 0,
-                },
-                "threshold_absolute": {
-                    "lower": lambda n: n < 0,
-                    "upper": lambda n: n > 0,
-                },
-                "gaussian_size": float,
-                "gaussian_mode": Or(
-                    "nearest",
-                    error="Invalid value in config for 'filter.gaussian_mode', valid values are 'nearest'",
-                ),
-            },
-            "remove_scars": {
-                "run": bool,
-                "removal_iterations": lambda n: 0 <= n < 10,
-                "threshold_low": lambda n: n > 0,
-                "threshold_high": lambda n: n > 0,
-                "max_scar_width": lambda n: n >= 1,
-                "min_scar_length": lambda n: n >= 1,
-            },
-            "grains": {
-                "run": Or(
-                    True, False, error="Invalid value in config for grains.run, valid values are 'True' or 'False'"
-                ),
-                "absolute_smallest_grain_size": int,
-                "threshold_method": Or(
-                    "absolute",
-                    "otsu",
-                    "std_dev",
-                    error=(
-                        "Invalid value in config for 'grains.threshold_method', valid values "
-                        "are 'absolute', 'otsu' or 'std_dev'"
-                    ),
-                ),
-                "otsu_threshold_multiplier": float,
-                "threshold_std_dev": {
-                    "lower": lambda n: n > 0,
-                    "upper": lambda n: n > 0,
-                },
-                "threshold_absolute": {
-                    "lower": lambda n: n < 0,
-                    "upper": lambda n: n > 0,
-                },
-                "absolute_area_threshold": {
-                    "upper": [
-                        Or(
-                            int,
-                            None,
-                            error=(
-                                "Invalid value in config for 'grains.absolute_area_threshold.upper', valid values "
-                                "are int or null"
-                            ),
-                        )
-                    ],
-                    "lower": [
-                        Or(
-                            int,
-                            None,
-                            error=(
-                                "Invalid value in config for 'grains.absolute_area_threshold.lower', valid values "
-                                "are int or null"
-                            ),
-                        )
-                    ],
-                },
-                "direction": Or(
-                    "both",
-                    "lower",
-                    "upper",
-                    error="Invalid direction for grains.direction valid values are 'both', 'lower' or 'upper",
-                ),
-            },
-            "grainstats": {
-                "run": Or(
-                    True,
-                    False,
-                    error="Invalid value in config for 'grainstats.run', valid values are 'True' or 'False'",
-                ),
-                "cropped_size": Or(
-                    float,
-                    int,
-                ),
-                "save_cropped_grains": Or(
-                    True,
-                    False,
-                    error=(
-                        "Invalid value in config for 'grainstats.save_cropped_grains, valid values "
-                        "are 'True' or 'False'"
-                    ),
-                ),
-            },
-            "dnatracing": {
-                "run": Or(
-                    True,
-                    False,
-                    error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
-                )
-            },
-            "plotting": {
-                "run": Or(
-                    True,
-                    False,
-                    error="Invalid value in config for 'plotting.run', valid values are 'True' or 'False'",
-                ),
-                "save_format": str,
-                "image_set": Or(
-                    "all",
-                    "core",
-                    error="Invalid value in config for 'plotting.image_set', valid values " "are 'all' or 'core'",
-                ),
-                "zrange": list,
-                "colorbar": Or(
-                    True,
-                    False,
-                    error="Invalid value in config for 'plotting.colorbar', valid values are 'True' or 'False'",
-                ),
-                "axes": Or(
-                    True,
-                    False,
-                    error="Invalid value in config plotting.for 'axes', valid values are 'True' or 'False'",
-                ),
-                "cmap": Or(
-                    "afmhot",
-                    "nanoscope",
-                    error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot' or 'nanoscope",
-                ),
-                "histogram_log_axis": Or(
-                    True,
-                    False,
-                    error="Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or 'False'",
-                ),
-            },
-        }
-    )
 
     try:
         schema.validate(config)
@@ -310,6 +110,14 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "nearest",
                 error="Invalid value in config for 'filter.gaussian_mode', valid values are 'nearest'",
             ),
+        },
+        "remove_scars": {
+            "run": bool,
+            "removal_iterations": lambda n: 0 <= n < 10,
+            "threshold_low": lambda n: n > 0,
+            "threshold_high": lambda n: n > 0,
+            "max_scar_width": lambda n: n >= 1,
+            "min_scar_length": lambda n: n >= 1,
         },
         "grains": {
             "run": Or(True, False, error="Invalid value in config for grains.run, valid values are 'True' or 'False'"),
@@ -551,6 +359,19 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
         },
         "secondary_scar_removal": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'masked_quadratic_removal.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
+        "scar_mask": {
             "filename": str,
             "title": str,
             "image_type": Or(
