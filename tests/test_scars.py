@@ -3,16 +3,16 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from topostats.scars import Scars
+from topostats import scars
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
 
-def test_remove_scars(synthetic_scar_removal: Scars):
+def test_remove_scars(synthetic_scar_removal_args: dict):
     """Test removal of scars"""
 
-    scars_removed, scar_mask = synthetic_scar_removal.remove_scars()
+    scars_removed, scar_mask = scars.remove_scars(**synthetic_scar_removal_args)
 
     target_img = np.load(RESOURCES / "test_scars_synthetic_remove_scars.npy")
     target_mask = np.load(RESOURCES / "test_scars_synthetic_remove_scars_mask.npy")
@@ -261,7 +261,7 @@ def test_mark_if_positive_scar(potential_positive_scar, target, threshold_low, m
 
     marked = np.zeros(potential_positive_scar.shape)
 
-    Scars.mark_if_positive_scar(
+    scars._mark_if_positive_scar(
         row_col=(0, 0),
         stddev=1.0,
         img=potential_positive_scar,
@@ -513,7 +513,7 @@ def test_mark_if_negative_scar(potential_negative_scar, target, threshold_low, m
 
     marked = np.zeros(potential_negative_scar.shape)
 
-    Scars.mark_if_negative_scar(
+    scars._mark_if_negative_scar(
         row_col=(0, 0),
         stddev=1.0,
         img=potential_negative_scar,
@@ -562,7 +562,7 @@ def test_spread_scars():
         ]
     )
 
-    Scars.spread_scars(marked=marked_mask, threshold_low=1, threshold_high=2)
+    scars._spread_scars(marked=marked_mask, threshold_low=1, threshold_high=2)
 
     np.testing.assert_array_equal(marked_mask, target)
 
@@ -602,7 +602,7 @@ def test_remove_short_scars():
         ]
     )
 
-    Scars.remove_short_scars(mask, threshold_high=2, min_scar_length=3)
+    scars._remove_short_scars(mask, threshold_high=2, min_scar_length=3)
 
     np.testing.assert_array_equal(mask, target)
 
@@ -610,7 +610,7 @@ def test_remove_short_scars():
 def test_mark_scars(synthetic_scars_image, synthetic_marked_scars):
     """Test the mark_scars method of the Scars class."""
 
-    marked = Scars.mark_scars(
+    marked = scars._mark_scars(
         img=synthetic_scars_image,
         direction="positive",
         threshold_low=1.5,
@@ -625,7 +625,7 @@ def test_mark_scars(synthetic_scars_image, synthetic_marked_scars):
 def test_remove_marked_scars(synthetic_scars_image, synthetic_marked_scars):
     """Test the remove_marked_scars method of the Scars class."""
 
-    Scars.remove_marked_scars(synthetic_scars_image, synthetic_marked_scars)
+    scars._remove_marked_scars(synthetic_scars_image, synthetic_marked_scars)
 
     target = np.load(RESOURCES / "test_scars_synthetic_remove_marked_scars.npy")
 
