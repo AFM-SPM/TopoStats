@@ -229,17 +229,26 @@ class joeSkeletonize:
             if self._delete_pixel_subit1(point):
                 pixels_to_delete.append(point)
 
-        for x, y in pixels_to_delete:
-            self.mask[x, y] = 0
-
+        # remove points based on height (lowest 60%)
+        pixels_to_delete = np.asarray(pixels_to_delete) # turn into array
+        if pixels_to_delete.shape != (0,): # ensure array not empty
+            heights = self.image[pixels_to_delete[:,0], pixels_to_delete[:,1]] # get heights of pixels
+            hight_sort_idx = np.argsort(heights)[:int(np.ceil(len(heights)*0.6))] # idx of lowest 60%
+            self.mask[pixels_to_delete[hight_sort_idx,0], pixels_to_delete[hight_sort_idx,1]] = 0 # remove lowest 60%
+        
+        pixels_to_delete = []
         # Sub-iteration 2 - binary check
         mask_coordinates = np.argwhere(self.mask == 1).tolist()
         for point in mask_coordinates:
             if self._delete_pixel_subit2(point):
                 pixels_to_delete.append(point)
-
-        for x, y in pixels_to_delete:
-            self.mask[x, y] = 0
+        
+        # remove points based on height (lowest 60%)
+        pixels_to_delete = np.asarray(pixels_to_delete)
+        if pixels_to_delete.shape != (0,):
+            heights = self.image[pixels_to_delete[:,0], pixels_to_delete[:,1]]
+            hight_sort_idx = np.argsort(heights)[:int(np.ceil(len(heights)*0.6))] # idx of lowest 60%
+            self.mask[pixels_to_delete[hight_sort_idx,0], pixels_to_delete[hight_sort_idx,1]] = 0
 
         if len(pixels_to_delete) == 0:
             self.skeleton_converged = True
