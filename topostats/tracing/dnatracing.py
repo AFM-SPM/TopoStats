@@ -1004,10 +1004,10 @@ class dnaTrace(object):
         self, dna_num, filename: Union[str, Path], channel_name: str, output_dir: Union[str, Path] = None
     ):
         # FIXME: Replace with Path()
-        if not os.path.exists(os.path.join(os.path.dirname(self.filename), "Coordinates")):
-            os.mkdir(os.path.join(os.path.dirname(self.filename), "Coordinates"))
-        directory = os.path.join(os.path.dirname(self.filename), "Coordinates")
-        savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
+        # if not os.path.exists(os.path.join(os.path.dirname(self.filename), "Coordinates")):
+        #     os.mkdir(os.path.join(os.path.dirname(self.filename), "Coordinates"))
+        # directory = os.path.join(os.path.dirname(self.filename), "Coordinates")
+        # savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
         for i, (x, y) in enumerate(self.splined_traces[dna_num]):
             try:
                 coordinates_array = np.append(coordinates_array, np.array([[x, y]]), axis=0)
@@ -1015,7 +1015,8 @@ class dnaTrace(object):
                 coordinates_array = np.array([[x, y]])
 
         coordinates = pd.DataFrame(coordinates_array)
-        coordinates.to_csv("%s_%s.csv" % (savename, dna_num))
+        # coordinates.to_csv("%s_%s.csv" % (savename, dna_num))
+        coordinates.to_csv(output_dir / "Coordinates.csv")
 
         plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], "k.", markersize=5)
         plt.axis("equal")
@@ -1086,20 +1087,30 @@ class dnaTrace(object):
 
     def measure_bending_angle(self):
         """Calculate the bending angle at the point of highest curvature"""
-        neighbours = int(3e-9 / self.pixel_size)
+        neighbours = int(10e-9 / self.pixel_size)
+        LOGGER.info(f"number of neighbours is {neighbours}")
         for dna_num in sorted(self.splined_traces.keys()):
             if self.contour_lengths[dna_num] > 80:
+                LOGGER.info(f"Molecule number: {dna_num}")
                 length = len(self.curvature[dna_num])
+                LOGGER.info(f"Molecule {dna_num} length: {length}")
                 start = int(length / 2) - int(10e-9 / self.pixel_size)
-                end = int(length / 2) + int(10e-9 / self.pixel_size)
+                LOGGER.info(f"Molecule {dna_num} start: {start}")
+                end = int(length / 2) + int(10e-9 / self.pixel_size) + 1
+                LOGGER.info(f"Molecule {dna_num} end: {end}")
                 self.central_curvature[dna_num] = self.curvature[dna_num][start:end]
+                # LOGGER.info(f'Molecule {dna_num} curvature array: {self.central_curvature[dna_num]}')
                 self.central_max_curvature[dna_num] = np.amax(np.abs(self.central_curvature[dna_num][:, 2]))
-                max_index = np.argmax(np.abs(self.central_curvature[dna_num][:, 2]))
-                self.central_max_curvature_location[dna_num] = self.central_curvature[dna_num][max_index, 1]
-                position = max_index
+                position_central = np.argmax(np.abs(self.central_curvature[dna_num][:, 2]))
+                self.central_max_curvature_location[dna_num] = self.central_curvature[dna_num][position_central, 1]
+                position = position_central + start
+
+                LOGGER.info(f"Molecule {dna_num} position: {position} ")
 
                 xa = self.splined_traces[dna_num][position - neighbours : position + 1, 0]
                 ya = self.splined_traces[dna_num][position - neighbours : position + 1, 1]
+
+                LOGGER.info(f"Molecule {dna_num}: {xa} and {ya} ")
 
                 ga, _, _, _, _ = stats.linregress(xa, ya)
 
@@ -1114,22 +1125,6 @@ class dnaTrace(object):
             else:
                 self.central_max_curvature_location[dna_num] = 0
                 self.bending_angle[dna_num] = 0
-            # position = int(self.max_curvature_location_px[dna_num])
-            # x0 = self.splined_traces[dna_num][position, 0]
-            # y0 = self.splined_traces[dna_num][position, 1]
-            #
-            # xa = self.splined_traces[dna_num][position - neighbours, 0]
-            # ya = self.splined_traces[dna_num][position - neighbours, 1]
-            # ga = (y0 - ya) / (x0 - xa)
-            #
-            #
-            # xb = self.splined_traces[dna_num][position + neighbours, 0]
-            # yb = self.splined_traces[dna_num][position + neighbours, 1]
-            # gb = (yb - y0) / (xb - x0)
-
-            # bending_angle_r = math.atan((ga - gb) / (1 + ga * gb))
-            # bending_angle_d = bending_angle_r / math.pi * 180
-            # self.bending_angle[dna_num] = bending_angle_d
 
 
 class traceStats(object):

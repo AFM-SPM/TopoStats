@@ -336,14 +336,14 @@ def process_scan(
                         plotting_config["zrange"][0],
                         _output_dir,
                     )
-                    # dna_traces[direction].plot_curvature(
-                    #     34,
-                    #     filename,
-                    #     loading_config["channel"],
-                    #     _output_dir,
-                    # )
-                    for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 34]:
+                    for i in [1, 4, 7, 9, 11, 13, 14, 17, 18, 21, 22, 27, 28, 32, 33, 38, 39, 40, 45]:
                         dna_traces[direction].write_coordinates(
+                            i,
+                            filename,
+                            loading_config["channel"],
+                            _output_dir,
+                        )
+                        dna_traces[direction].plot_curvature(
                             i,
                             filename,
                             loading_config["channel"],
