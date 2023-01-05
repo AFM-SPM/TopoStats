@@ -343,11 +343,9 @@ class Scars:
         stddev = np.std(image)
         marked = np.zeros(image.shape)
 
-        if direction == "positive":
-            # Find positive scars
-            for row in range(image.shape[0] - 1):
-                for col in range(image.shape[1]):
-
+        for row in range(image.shape[0] - 1):
+            for col in range(image.shape[1]):
+                if direction == "positive":
                     Scars.mark_if_positive_scar(
                         row_col=(row, col),
                         stddev=stddev,
@@ -357,11 +355,7 @@ class Scars:
                         max_scar_width=max_scar_width,
                     )
 
-        elif direction == "negative":
-            # Find negative scars
-            for row in range(image.shape[0] - 1):
-                for col in range(image.shape[1]):
-
+                elif direction == "negative":
                     Scars.mark_if_negative_scar(
                         row_col=(row, col),
                         stddev=stddev,
@@ -371,8 +365,8 @@ class Scars:
                         max_scar_width=max_scar_width,
                     )
 
-        else:
-            raise ValueError(f"direction {direction} invalid.")
+                else:
+                    raise ValueError(f"direction {direction} invalid.")
 
         Scars.spread_scars(marked=marked, threshold_low=threshold_low, threshold_high=threshold_high)
 
