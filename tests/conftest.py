@@ -10,7 +10,6 @@ import pytest
 
 import topostats
 from topostats.filters import Filters
-from topostats.scars import Scars
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, LoadScans
@@ -256,19 +255,18 @@ def random_filters(test_filters_random_with_mask: Filters) -> Filters:
 
 
 @pytest.fixture
-def synthetic_scar_removal(synthetic_scars_image: np.ndarray) -> Scars:
-    """Scars object using a synthetic image"""
-    scars = Scars(
-        img=synthetic_scars_image,
-        filename="",
-        run=True,
-        removal_iterations=2,
-        threshold_low=1.5,
-        threshold_high=1.8,
-        max_scar_width=2,
-        min_scar_length=1,
-    )
-    return scars
+def synthetic_scar_removal_args(synthetic_scars_image: np.ndarray) -> dict:
+    """Arguments for testing the remove_scars function of the scars module."""
+    return {
+        "img": synthetic_scars_image,
+        "filename": "test",
+        "run": True,
+        "removal_iterations": 2,
+        "threshold_low": 1.5,
+        "threshold_high": 1.8,
+        "max_scar_width": 2,
+        "min_scar_length": 1,
+    }
 
 
 @pytest.fixture
