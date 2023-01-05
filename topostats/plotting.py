@@ -563,7 +563,7 @@ def computeStats(data, columns, min, max):
 #     else:
 #         summary = data[metrics].summary()
 
-def plot_crossing_linetrace(branch_stats_dict, cmap, title):
+def plot_crossing_linetrace_gauss(branch_stats_dict, cmap, title):
     """Plots the heightmap lines traces of the branches found in the 'branch_stats' dictionary, and their gaussian"""
     fig, ax = plt.subplots(1, 1)
     cmp = Colormap(cmap).get_cmap()
@@ -585,6 +585,28 @@ def plot_crossing_linetrace(branch_stats_dict, cmap, title):
     ax.legend()
     return fig, ax
 
+def plot_crossing_linetrace_halfmax(branch_stats_dict, cmap, title):
+    """Plots the heightmap lines traces of the branches found in the 'branch_stats' dictionary, and their meetings."""
+    fig, ax = plt.subplots(1, 1)
+    cmp = Colormap(cmap).get_cmap()
+    total_branches = len(branch_stats_dict)
+    for branch_idx, values in branch_stats_dict.items():
+        cmap_ratio = branch_idx / (total_branches - 1) # 1 branch and ZDE avoided in dnatracing
+        heights = values["heights"]
+        x = np.arange(len(heights))
+        ax.plot(x, heights, label=f"Branch: {branch_idx}", c=cmp(cmap_ratio))
+        try:
+            fwhm, lr_idx, hm_high_point = values["fwhm2"]
+            plt.plot([0, hm_high_point[1]],[hm_high_point[0]*2,hm_high_point[0]*2]+heights.min(), c=cmp(cmap_ratio), label=f"FWHM: {fwhm:.1f}")
+            plt.plot([lr_idx[0], lr_idx[0]],[hm_high_point[0],0]+heights.min(), c=cmp(cmap_ratio))
+            plt.plot([lr_idx[1], lr_idx[1]],[hm_high_point[0],0]+heights.min(), c=cmp(cmap_ratio))
+        except KeyError:
+            pass # if no gaussian params found then skip this bit of the plot
+    ax.set_xlabel("Pixel of Branch")
+    ax.set_ylabel("Height")
+    ax.set_title(title)
+    ax.legend()
+    return fig, ax
 
 if __name__ == "__main__":
 

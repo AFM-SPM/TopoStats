@@ -21,7 +21,7 @@ from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, write_yaml, LoadScan
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
-from topostats.plotting import plot_crossing_linetrace
+from topostats.plotting import plot_crossing_linetrace_gauss, plot_crossing_linetrace_halfmax
 from topostats.tracing.dnatracing import dnaTrace, traceStats, nodeStats
 from topostats.utils import (
     find_images,
@@ -373,11 +373,16 @@ def process_scan(
                                 **plotting_config["plot_dict"]["crossings"],
                             ).plot_and_save()
                             plotting_config["plot_dict"]["line_trace"] = {"title": "Heights of Crossing", "cmap": "winter"}
-                            fig, _ = plot_crossing_linetrace(
+                            fig, _ = plot_crossing_linetrace_gauss(
                                 node_stats["branch_stats"],
                                 **plotting_config["plot_dict"]["line_trace"]
                                 )
-                            fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace")
+                            fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_gauss")
+                            fig, _ = plot_crossing_linetrace_halfmax(
+                                node_stats["branch_stats"],
+                                **plotting_config["plot_dict"]["line_trace"]
+                                )
+                            fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax")
 
                     """
                     plot_name = "test"

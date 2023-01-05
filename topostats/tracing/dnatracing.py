@@ -1082,6 +1082,8 @@ class nodeStats():
                     heights = self.image[branch_coords_img[:, 0], branch_coords_img[:, 1]]
                     matched_branches[i]["heights"] = heights
                     # identify over/under
+                    fwhm2 = self.fwhm2(heights)
+                    matched_branches[i]["fwhm2"] = fwhm2
                     try:
                         fwhm, popt = self.fwhm(heights)
                         matched_branches[i]["gaussian_fit"] = popt
@@ -1271,3 +1273,40 @@ class nodeStats():
         )
 
         return 2.3548 * popt[2], popt  # 2*(2ln2)^1/2 * sigma = FWHM
+
+    def fwhm2(self, heights):
+        high_point = np.argmax(heights)
+        heights_norm = heights.copy() - heights.min() # lower graph so min is 0
+        hm = heights_norm.max()/2 # half max value
+        
+        # get array halves to find first points that cross hm
+        arr1 = heights_norm[:high_point][::-1]
+        arr2 = heights_norm[high_point:]
+        
+        for i in range(len(arr1)-1):
+            if (arr1[i] > hm) and (arr1[i+1] < hm): # if points cross through the hm value
+                arr1_hm = self.lin_interp([i, arr1[i]], [i+1, arr1[i+1]], hm)
+                arr1_hm_idx = len(arr1) - 1 - arr1_hm
+                break
+            else:
+                arr1_hm_idx = 0
+
+        for i in range(len(arr2)-1):
+            if (arr2[i] > hm) and (arr2[i+1] < hm): # if points cross through the hm value
+                arr2_hm = self.lin_interp([i, arr2[i]], [i+1, arr2[i+1]], hm)
+                arr2_hm_idx = len(arr1) + arr2_hm
+                break
+            else:
+                arr2_hm_idx = 0
+
+        fwhm = arr2_hm_idx - arr1_hm_idx
+        
+        return fwhm, [arr1_hm_idx, arr2_hm_idx], [hm, high_point]
+
+    @staticmethod
+    def lin_interp(point_1, point_2, value):
+        """linear interp 2 points by finding line eq and subbing"""
+        m = (point_1[1]-point_2[1]) / (point_1[0]-point_2[0])
+        c = point_1[1] - (m * point_1[0])
+        interp_x = (value - c) / m
+        return interp_x
