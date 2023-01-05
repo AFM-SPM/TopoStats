@@ -47,6 +47,29 @@ def test_remove_scars(synthetic_scar_removal: Scars):
             2,
             3,
         ),
+        # Unsuccesssful scar segment: negative scar rather than positive
+        (
+            np.array(
+                [
+                    [4],
+                    [1],
+                    [1],
+                    [1],
+                    [4],
+                ]
+            ),
+            np.array(
+                [
+                    [0],
+                    [0],
+                    [0],
+                    [0],
+                    [0],
+                ]
+            ),
+            2,
+            3,
+        ),
         # Unsuccessful scar segment: threshold_low too high
         (
             np.array(
@@ -270,6 +293,29 @@ def test_mark_if_positive_scar(potential_positive_scar, target, threshold_low, m
                     [3],
                     [3],
                     [3],
+                    [0],
+                ]
+            ),
+            2,
+            3,
+        ),
+        # Unsuccessful scar segment: positive scar rather than negative
+        (
+            np.array(
+                [
+                    [0],
+                    [3],
+                    [3],
+                    [3],
+                    [0],
+                ]
+            ),
+            np.array(
+                [
+                    [0],
+                    [0],
+                    [0],
+                    [0],
                     [0],
                 ]
             ),
