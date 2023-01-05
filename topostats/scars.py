@@ -81,7 +81,8 @@ class Scars:
         max_scar_width: int,
     ) -> None:
         """
-        Determine if the points below and including the pixel at the specified row and column are a positive scar.
+        Determine if the points below and including the pixel at the specified row and column are a positive scar (a
+        ridge rather than a dip).
         If they are, mark them in the marked 2d np.ndarray. Note that this only detects positive scars.
         Parameters
         ----------
@@ -142,7 +143,8 @@ class Scars:
         max_scar_width: int,
     ) -> None:
         """
-        Determine if the points below and including the pixel at the specified row and column are a negative scar.
+        Determine if the points below and including the pixel at the specified row and column are a negative scar (a
+        dip rather than a ridge).
         If they are, mark them in the marked 2d np.ndarray. Note that this only detects negative scars.
 
         Parameters
