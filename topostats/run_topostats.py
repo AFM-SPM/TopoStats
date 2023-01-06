@@ -8,6 +8,7 @@ from functools import partial
 import importlib.resources as pkg_resources
 from multiprocessing import Pool
 from pathlib import Path
+import sys
 from typing import Union, Dict
 import yaml
 
@@ -26,11 +27,10 @@ from topostats.utils import (
     find_images,
     get_out_path,
     update_config,
-    convert_path,
     create_empty_dataframe,
     folder_grainstats,
 )
-from topostats.validation import validate_config, validate_plotting
+from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -57,11 +57,11 @@ def create_parser() -> arg.ArgumentParser:
         help="Path to a YAML configuration file.",
     )
     parser.add_argument(
-        "-p",
-        "--plotting_file",
-        dest="plotting_file",
+        "--create-config-file",
+        dest="create_config_file",
+        type=str,
         required=False,
-        help="Path to a YAML plotting file.",
+        help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
     )
     parser.add_argument(
         "-b",
@@ -116,8 +116,8 @@ def create_parser() -> arg.ArgumentParser:
     parser.add_argument(
         "-w",
         "--warnings",
-        dest="quiet",
-        type=str,
+        dest="warnings",
+        type=bool,
         required=False,
         help="Whether to ignore warnings.",
     )
@@ -164,8 +164,8 @@ def process_scan(
     Results are written to CSV and images produced in configuration options request them.
     """
 
-    image = img_path_px2nm["image"] 
-    image_path = img_path_px2nm["img_path"] 
+    image = img_path_px2nm["image"]
+    image_path = img_path_px2nm["img_path"]
     pixel_to_nm_scaling = img_path_px2nm["px_2_nm"]
     filename = image_path.stem
 
@@ -177,11 +177,9 @@ def process_scan(
         filter_out_path = _output_dir
     else:
         filter_out_path = Path(_output_dir) / filename / "filters"
-        grain_out_path = Path(_output_dir) / filename / "grains"
         filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(_output_dir / filename / "grains" / "upper", parents=True, exist_ok=True)
         Path.mkdir(_output_dir / filename / "grains" / "lower", parents=True, exist_ok=True)
-
 
     # Filter Image :
     if filter_config["run"]:
@@ -291,7 +289,7 @@ def process_scan(
                     if key in ["grain_image", "grain_mask", "grain_mask_image"]
                 }
                 grainstats = {}
-                for direction in grains.directions.keys():
+                for direction, _ in grains.directions.items():
                     grainstats[direction] = GrainStats(
                         data=filtered_image.images["gaussian_filtered"],
                         labelled_data=grains.directions[direction]["labelled_regions_02"],
@@ -351,32 +349,45 @@ def process_scan(
     return image_path, results
 
 
-def main():
-    """Run processing."""
+def main(args=None):
+    """Find and process all files."""
 
     # Parse command line options, load config (or default) and update with command line options
     parser = create_parser()
-    args = parser.parse_args()
+    args = parser.parse_args() if args is None else parser.parse_args(args)
     if args.config_file is not None:
         config = read_yaml(args.config_file)
     else:
         default_config = pkg_resources.open_text(__package__, "default_config.yaml")
         config = yaml.safe_load(default_config.read())
     config = update_config(config, args)
-    config["output_dir"] = convert_path(config["output_dir"])
 
     # Validate configuration
-    validate_config(config)
+    validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 
+    # Write sample configuration if asked to do so and exit
+    if args.create_config_file:
+        write_yaml(
+            config,
+            output_dir="./",
+            config_file=args.create_config_file,
+            header_message="Sample configuration file auto-generated",
+        )
+        LOGGER.info(f"A sample configuration has been written to : ./{args.create_config_file}")
+        LOGGER.info(
+            "Please refer to the documentation on how to use the configuration file : \n\n"
+            "https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats\n"
+            "https://afm-spm.github.io/TopoStats/configuration.html"
+        )
+        sys.exit()
     # Load plotting_dictionary and validate
-    if args.plotting_file is not None:
-        config["plotting"]["plot_dict"] = read_yaml(args.plotting_file)
-    else:
-        plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
-        config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
-    validate_plotting(config["plotting"]["plot_dict"])
+    plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
+    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    validate_config(
+        config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML plotting configuration file"
+    )
 
     # FIXME : Make this a function and from topostats.utils import update_plot_dict and write tests
     # Update the config["plotting"]["plot_dict"] with plotting options
@@ -403,7 +414,7 @@ def main():
     if len(img_files) == 0:
         LOGGER.error(f"No images with extension {config['file_ext']} in {config['base_dir']}")
         LOGGER.error("Please check your configuration and directories.")
-        exit()
+        sys.exit()
     LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
     LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
 
@@ -442,6 +453,7 @@ def main():
     results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)
     LOGGER.info(
         (
+            f"~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~"
             f"All statistics combined for {len(img_files)} images(s) are "
             f"saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
         )

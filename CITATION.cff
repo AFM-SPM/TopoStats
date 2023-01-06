@@ -1,0 +1,51 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: TopoStats
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Alice
+    family-names: Pyne
+    email: a.l.pyne@sheffield.ac.uk
+    affiliation: The University of Sheffield
+    orcid: 'https://orcid.org/0000-0002-2658-8987'
+  - given-names: Robert
+    family-names: Turner
+    email: r.d.turner@sheffield.ac.uk
+    affiliation: The University of Sheffield
+    orcid: 'https://orcid.org/0000-0002-1353-1404'
+  - given-names: Neil
+    family-names: Shephard
+    email: n.shephard@sheffield.ac.uk
+    affiliation: The University of Sheffield
+    orcid: 'https://orcid.org/0000-0001-8301-6857'
+  - given-names: Syliva
+    family-names: Whittle
+    email: sylvia.whittle@sheffield.ac.uk
+    affiliation: The University of Sheffield
+  - given-names: Max
+    family-names: Gamill
+    email: mcgamill1@sheffield.ac.uk
+    affiliation: The University of Sheffield
+  - email: mdu12@sheffield.ac.uk
+    affiliation: The University of Sheffield
+    given-names: Mingxue
+    family-names: Du
+identifiers:
+  - type: doi
+    value: 10.1101/2020.09.23.309609
+  - type: doi
+    value: 10.1016/j.ymeth.2021.01.008
+abstract: >-
+  TopoStats is software for processing and summarising images from Atomic Force Microscopy.
+keywords:
+  - atomic force microscopy
+  - python
+license: GPL-3.0
+commit: d819d1f3d0bed977cdfa926fb309a76a8e394462
+version: 2.0.0
+date-released: '2022-11-22'

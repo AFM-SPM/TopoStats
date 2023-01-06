@@ -243,7 +243,7 @@ def random_filters(test_filters_random_with_mask: Filters) -> Filters:
 
 
 @pytest.fixture
-def random_grains(grains_config: dict, random_filters: Filters, tmp_path) -> Grains:
+def random_grains(grains_config: dict, random_filters: Filters) -> Grains:
     """Grains object based on random image which has no grains."""
     grains = Grains(
         image=random_filters.images["zero_averaged_background"],
@@ -276,13 +276,14 @@ def load_scan(loading_config: dict) -> LoadScans:
     scan_loader = LoadScans([RESOURCES / "minicircle.spm"], **loading_config)
     return scan_loader
 
+
 @pytest.fixture
-def load_scan_data(load_scan: LoadScans) -> LoadScans:
+def load_scan_data() -> LoadScans:
     """Instance of a LoadScans object after applying the get_data func."""
     scan_data = LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
     scan_data.get_data()
     return scan_data
-    
+
 
 @pytest.fixture
 def load_scan_ibw() -> LoadScans:
@@ -429,7 +430,7 @@ def minicircle_grain_gaussian_filter(minicircle_masked_quadratic_removal: Filter
 
 # Derive fixtures for grain finding
 @pytest.fixture
-def minicircle_grains(minicircle_grain_gaussian_filter: Filters, grains_config: dict, tmp_path) -> Grains:
+def minicircle_grains(minicircle_grain_gaussian_filter: Filters, grains_config: dict) -> Grains:
     """Grains object based on filtered minicircle."""
     grains = Grains(
         image=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
@@ -539,7 +540,7 @@ def minicircle_small_objects_removed(minicircle_minimum_grain_size: np.array) ->
 
 
 @pytest.fixture
-def minicircle_area_thresholding(minicircle_grain_labelled_all: np.array, grains_config: dict) -> Grains:
+def minicircle_area_thresholding(minicircle_grain_labelled_all: np.array) -> Grains:
     """Small objects removed."""
     absolute_area_thresholds = [400, 600]
     minicircle_grain_labelled_all.directions["upper"][
@@ -668,6 +669,7 @@ def minicircle_tracestats(minicircle_dnatracing: dnaTrace) -> pd.DataFrame:
 # DNA Tracing Fixtures
 @pytest.fixture
 def minicircle_all_statistics() -> pd.DataFrame:
+    """Expected statistics for minicricle."""
     return pd.read_csv(RESOURCES / "minicircle_default_all_statistics.csv", header=0)
 
 
@@ -745,3 +747,6 @@ def skeletonize_linear() -> np.ndarray:
 def skeletonize_linear_bool_int(skeletonize_linear) -> np.ndarray:
     """A linear molecule for testing skeletonizing as a boolean integer array."""
     return np.array(skeletonize_linear, dtype="bool").astype(int)
+
+
+# Curvature Fixtures

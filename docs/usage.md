@@ -16,6 +16,61 @@ You should place all files you wish to batch process in a single directory. They
 TopoStats will scan for all images within this directory but currently it will only process one scan type at a time
 (i.e. `.spm` _or_ `.jpk` _or_ `.asd`). This may change in the future.
 
+## Command Line Navigation
+
+TopoStats currently runs as a command-line programme. To use it you will have to use a "prompt" or "terminal" (they're
+essentially the same thing). What you use will depend on your operating system, but the following are some simple
+commands on navigation. If you use Windows then for consistency it is recommended to install and use
+[PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell).
+
+At the command line you use `cd` to `c`hange `d`irectory to the location of your files. For example if your scans are on
+the C-drive in `C:\User\me\work\spm\2022-12-08\scans` then you would
+
+``` bash
+cd c:/User/me/work/spm/2022-12-08/scans
+```
+
+If you are on a Linux or OSX system then paths are not prefixed with letters and your files may be saved to
+`/home/me/work/spm/2022-12-08/scans`. To change directory there you would...
+
+``` bash
+cd /home/me/work/spm/2022-12-08/scans
+```
+
+**NB** - Always use a forward-slash (`/`) when typing directory paths. Windows will display back-slash (`\`) but
+understands forward-slash. Under Linux and OSX they mean different things and so you should always use forward-slash
+(`/`).
+
+You can always find out what location you are at in the command line using the `pwd` command (`p`rint `w`orking
+`d`irectory) and it will print out the directory you are currently at.
+
+``` bash
+pwd
+/home/me/work/spm/2022-12-08/scans
+```
+
+To navigate up one directory level use `cd ..`. These can be chained together and directories separated with `/`.
+
+``` bash
+# Move up a single directory level
+cd ..
+pwd
+/home/me/work/spm/2022-12-08
+# Move up another two directory levels
+cd ../../
+pwd
+/home/me/
+```
+
+You can list the files in a directory using the `ls` command.
+
+``` bash
+ls
+sample_image_scan_2022-12-08-1204.spm
+```
+
+To learn more about the command line see the [Introduction to the Command Line for
+Genomics](https://datacarpentry.org/shell-genomics/).
 
 ## Running TopoStats
 
@@ -44,28 +99,36 @@ run_topostats
 
 ## Configuring TopoStats
 
-Configuration of TopoStats is done through a [YAML](https://yuaml.org/) file and a full description of the fields used
+Configuration of TopoStats is done through a [YAML](https://yaml.org/) file and a full description of the fields used
 can be found under the [configuration](configuration) section.
 
-Here we will go through common changes that you are likely to want to make to the default configuration and how to make
-them.
+Here we will go through generating a configuration file to edit and some of the common changes that you are likely to
+want to make to the default configuration and how to make them.
 
-### Copying `default_config.yaml`
 
-If you have used Git to clone the TopoStats repository from GitHub the default configuration can be found in the
-sub-directory `topostats/default_config.yaml`. If you have installed TopoStats from PyPI then a sample configuration
-file can be downloaded from
-[here](https://raw.githubusercontent.com/AFM-SPM/TopoStats/main/topostats/default_config.yaml) (right-click on the link
-and select `Save As` to save the file to your computer).
+### Generating Configuration File
 
-Save or copy this file to the same directory all of your scan files are located and call it `my_config.yaml`.
+TopoStats will use some reasonable default parameters by default, but typically you will want to customise the
+parameters that are used. This is achieved using a [configuration](configuration) file. This is a
+[YAML](https://yaml.org) file that contains parameters for different settings. For convenience you can generate
+a sample configuration file in your current working directory using the `--create-config-file` option.  It takes a
+single argument, the name of the file to save the configuration to (e.g. `config.yaml` or `settings.yaml`), and it will
+write the current default configuration to that file.
+
+**NB** - This feature is only available in versions > v2.0.0 as it was introduced after v2.0.0 was released.
 
 ``` bash
-cp /<path>/<to>/<where>/<topostats>/<is>/<cloned>/TopoStats/topostats/default_config.yaml /<where>/<scans>/<are>/my_config.yaml
+run_topostats --create-config-file my_config.yaml
+ls -l
+my_config.yaml
+sample_image_scan_2022-12-08-1204.spm
 ```
 
+You can now edit and/or rename the `my_config.yaml`. It can be called anything you want,
+e.g. `todays_first_run_configuration.yaml` is a valid name.
 
-### Editing `my_config.yaml`
+
+### Editing `config.yaml`
 
 **IMPORTANT** This file is an ASCII text file and  you should use NotePad (Windows), TextEdit (OSX) or Nano/Emacs/Vim
 (GNU/Linux) or any other text editor. Do _not_ use Microsoft Word or any other Word Processor to edit this file.
@@ -81,12 +144,13 @@ ones you may want to change are....
   which will be   created if it doesn't exist. If you wish for the output to be somewhere else specify it here. If you
   want `Processed` directories to sit within the directories that images are found then simply set the `output_dir` to
   the same value as `base_dir`.
-* `cores` (default: `4`) the number of parallel processes to run processing of all found images. Set this to a maximum
-  of one less than the number of cores on your computers CPU. If unsure leave as is.
+* `cores` (default: `2`) the number of parallel processes to run processing of all found images. Set this to a maximum
+  of one less than the number of cores on your computers CPU. If unsure leave as is, but chances are you can increase
+  this to at least `4` quite safely.
 * `file_ext` (default: `.spm`) the file extension of scans to search for within the current directory. The default is
   `.spm` but other file format support is in the pipeline.
 * `plotting` : `image_set` (default `core`) specifies which steps of the processing to plot images of. The value `all`
-  gets images for all stages, `core** saves only a subset of images.
+  gets images for all stages, `core` saves only a subset of images.
 
 
 Most of the other configuration options can be left on their default values for now. Once you have made any changes save
@@ -95,14 +159,14 @@ the file and return to your terminal.
 ### Running TopoStats with `my_config.yaml`
 
 To use your new configuration file you need to inform `run_topostats` to use that file rather than the defaults, this is
-done using the `--config my_config.yaml` file.
+done using the `--config config.yaml` file.
 
 **NB** this assumes that you are in the same directory as your scans where you have saved the `my_config.yaml` file that
 you edited. That doesn't _have_ to be the case but it makes life easier for if you are not familiar with absolute
 and relative paths.
 
 ``` bash
-run_topostats --config my_configy.yaml
+run_topostats --config my_config.yaml
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Plotting configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration file loaded from      : None
@@ -119,15 +183,14 @@ On a successful completion you should see output similar to this at the bottom.
 
 ``` bash
 Processing images from tests, results are under output: 100%|XXXXXXXXXXXXXXXX| 1/1 [00:03<00:00,  3.60s/it][Tue, 15 Nov 2022 13:49:14] [INFO    ] [topostats] All statistics combined for 1 images(s) are saved to : output/all_statistics.csv}
-[Tue, 15 Nov 2022 13:49:14] [INFO    ] [topostats] Unable to generate folderwise statistics as 'all_statis_df' is empty
 [Tue, 15 Nov 2022 13:49:14] [INFO    ] [topostats] Writing configuration to : output/config.yaml
 ```
 
 ## Output
 
 The output from running TopoStats is saved in the location defined in the configuration file by `output_dir`. The
-default is the directory `output` within the directory from which `run_topostats` is invoked unless it has been modified
-in a copy of the default configuration as described above.
+default is the directory `output` within the directory from which `run_topostats`. This may differ if you have
+used your own customised configuration file.
 
 At the top level of the output directory are two files `config.yaml` and `all_statistics.csv`
 

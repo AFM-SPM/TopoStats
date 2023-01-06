@@ -1,13 +1,25 @@
 # Configuration
 
-Configuration for TopoStats is done using a [YAML](https://yaml.org/) configuration that is specified on the command line when
-invoking. A default configuration file is provided in the TopoStats repository at
-[`topostats/default_config.yaml`](https://github.com/AFM-SPM/TopoStats/blob/dev/topostats/default_config.yaml). The file
-contains comments indicating valid values for many of the fields. If no configuration file is provided this default
-configuration is loaded automatically and used.
+Configuration for TopoStats is done using a [YAML](https://yaml.org/) configuration file that is specified on the command line when
+invoking. The current configuration file is provided in the TopoStats repository at
+[`topostats/default_config.yaml`](https://github.com/AFM-SPM/TopoStats/blob/main/topostats/default_config.yaml) but
+please be aware this may not work with your installed version, particularly if you installed from PyPI.
 
-You can make a copy of the `default_config.yaml` and modify it for your own use. Once saved you can run TopoStats with
-this configuration file as shown below.
+## Generating a configuration
+
+You can always [generate a configuration file](usage#generating-configuration-file) appropriate for the version you have
+installed (bar v2.0.0 as this option was added afterwards).
+
+``` bash
+run_topostats --create-config-file config.yaml
+```
+
+This produces the file `config.yaml` which contains comments indicating valid values for many of the
+fields. If no configuration file is provided this default configuration is loaded automatically and used.
+
+## Using a custom configuration
+
+You can modify and edit a configuration and, once saved, you can run TopoStats with this configuration file as shown below.
 
 ``` bash
 run_topostats --config my_config.yaml
@@ -16,17 +28,39 @@ run_topostats --config my_config.yaml
 On completion a copy of the configuration that was used is written to the output directory.
 
 
+## YAML Structure
+
+YAML files have key and value pairs, the first word, e.g. `base_dir` is the key this is followed by a colon to separate
+it from the value that it takes, by default `base_dir` takes the value `./` (which means the current directory) and so
+the entry in the file is a single line with `base_dir: ./`. Other data structures are available in YAML files including
+nested values and lists.
+
+A list in YAML consists of a key (e.g. `upper:`) followed by the values in square brackets separated by commas such as
+`upper: [ 500, 800 ]`. This means the `upper` key is a list of the values `500` and `800`. Long lists can be split over
+separate lines as shown below
+
+``` yaml
+upper:
+  - 100
+  - 200
+  - 300
+  - 400
+```
+
+
 ## Fields
+
+
 
 Aside from the comments in YAML file itself the fields are described below.
 
 
 | Section      | Sub-Section                    | Data Type  | Default        | Description                                                                                                                                                                                                                                                  |
 |:-------------|:-------------------------------|:-----------|:---------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `base_dir`   |                                | string     | `./`           | Directory to recursively search for files within.                                                                                                                                                                                                            |
-| `output_dir` |                                | string     | `./output`     | Directory that output should be saved to.                                                                                                                                                                                                                    |
+| `base_dir`   |                                | string     | `./`           | Directory to recursively search for files within.[^1]                                                                                                                                                                                                            |
+| `output_dir` |                                | string     | `./output`     | Directory that output should be saved to.[^1]                                                                                                                                                                                                                    |
 | `warnings`   |                                | string     | `ignore`       | Turns off warnings being shown.                                                                                                                                                                                                                              |
-| `cores`      |                                | integer    | `4`            | Number of cores to run parallel processes on.                                                                                                                                                                                                                |
+| `cores`      |                                | integer    | `2`            | Number of cores to run parallel processes on.                                                                                                                                                                                                                |
 | `quiet`      |                                | false      |                |                                                                                                                                                                                                                                                              |
 | `file_ext`   |                                | string     | `.spm`         | File extensions to search for.                                                                                                                                                                                                                               |
 | `loading`    | `channel`                      | string     | `Height`       | The channel of data to be processed, what this is will depend on the file-format you are processing and the channel you wish to process.                                                                                                                     |
@@ -69,3 +103,24 @@ Aside from the comments in YAML file itself the fields are described below.
 Configuration files are validated against a schema to check that the values in the configuration file are within the
 expected ranges or valid parameters. This helps capture problems early and should provide informative messages as to
 what needs correcting if there are errors.
+
+[^1] When writing file paths you can use absolute or relative paths. On Windows systems absolute paths start with the
+drive letter (e.g. `c:/`) on Linux and OSX systems they start with `/`. Relative paths are started either with a `./`
+which denotes the current directory or one or more `../` which means the higher level directory from the current
+directory. You can always find the current directory you are in using the `pwd` (`p`rint `w`orking `d`irectory). If
+your work is in `/home/user/path/to/my/data` and `pwd` prints `/home/user` then the relative path to your data is
+`./path/to/my/data`. The `cd` command is used to `c`hange `d`irectory.
+
+
+``` bash
+pwd
+/home/user/
+# Two ways of changing directory using a relative path
+cd ./path/to/my/data
+pwd
+/home/user/path/to/my/data
+# Using an absolute path
+cd /home/user/path/to/my/data
+pwd
+/home/user/path/to/my/data
+```
