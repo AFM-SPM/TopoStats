@@ -88,8 +88,8 @@ class dnaTrace(object):
         for grain_num, grain in self.grains.items():
             skeleton = getSkeleton(self.gauss_image, grain).get_skeleton(self.skeletonisation_method)
             LOGGER.info(f"[{self.filename}] {label(skeleton).max()-1} breakages in skeleton {grain_num}")
-            #pruned_skeleton = pruneSkeleton(self.gauss_image, skeleton).prune_skeleton(self.pruning_method)
-            self.skeleton_dict[grain_num] = skeleton #pruned_skeleton
+            pruned_skeleton = pruneSkeleton(self.gauss_image, skeleton).prune_skeleton(self.pruning_method)
+            self.skeleton_dict[grain_num] = pruned_skeleton
         self.concat_skeletons()
         for grain_num, grain in self.skeleton_dict.items():
             pass
