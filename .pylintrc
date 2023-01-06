@@ -22,6 +22,7 @@ fail-under=10.0
 # Files or directories to be skipped. They should be base names, not paths.
 ignore=CVS,
        _version.py
+       libasd
 
 # Add files or directories matching the regex patterns to the ignore-list. The
 # regex matches against paths and can be in Posix or Windows format.
@@ -389,7 +390,8 @@ function-naming-style=snake_case
 #function-rgx=
 
 # Good variable names which should always be accepted, separated by a comma.
-good-names=i,
+good-names=e,
+           i,
            j,
            k,
            ex,

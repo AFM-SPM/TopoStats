@@ -17,7 +17,7 @@ RESOURCES = BASE_DIR / "tests" / "resources"
 def test_process_scan_lower(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly"""
     process_scan_config["grains"]["direction"] = "lower"
-    img_dic = load_scan_data.img_dic
+    img_dic = load_scan_data.img_dict
     _, results = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
@@ -35,7 +35,7 @@ def test_process_scan_lower(regtest, tmp_path, process_scan_config: dict, load_s
 
 def test_process_scan_upper(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly"""
-    img_dic = load_scan_data.img_dic
+    img_dic = load_scan_data.img_dict
     _, results = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
@@ -54,7 +54,7 @@ def test_process_scan_upper(regtest, tmp_path, process_scan_config: dict, load_s
 def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly"""
     process_scan_config["grains"]["direction"] = "both"
-    img_dic = load_scan_data.img_dic
+    img_dic = load_scan_data.img_dict
     _, results = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,

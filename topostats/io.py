@@ -102,7 +102,7 @@ class LoadScans:
         self.filename = None
         self.image = None
         self.pixel_to_nm_scaling = None
-        self.img_dic = {}
+        self.img_dict = {}
 
     def load_spm(self) -> tuple:
         """Extract image and pixel to nm scaling from the Bruker .spm file.
@@ -292,7 +292,7 @@ class LoadScans:
         LOGGER.info(px_to_nm)
 
         return px_to_nm * 1e9
-        
+
     def load_asd(self) -> tuple:
         """Extract image and pixel to nm scaling from .asd files.
 
@@ -310,19 +310,20 @@ class LoadScans:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
 
         try:
-            if type(scan_header) == libasd.Header_v0:
+            if isinstance(scan_header, libasd.Header_v0):
                 # libasd docs seem like there is only 2 channels i.e. help(scan)
                 # libasd.Header_v0 uses "type" func and _v1 uses "kind" func
                 ch1_name = str(scan.header.data_type_1ch).split(".")[1]
                 ch2_name = str(scan.header.data_type_2ch).split(".")[1]
-            elif type(scan_header) == libasd.Header_v1:
+            elif isinstance(scan_header, libasd.Header_v1):
                 ch1_name = str(scan.header.data_kind_1ch).split(".")[1]
                 ch2_name = str(scan.header.data_kind_2ch).split(".")[1]
             else:
                 raise AttributeError
         except AttributeError:
             LOGGER.error(
-                f"[{self.filename}] : File header not found. Header of type {type(scan_header)}, not [{libasd.Header_v0, libasd.Header_v1}]"
+                f"[{self.filename}] : File header not found. Header of type {type(scan_header)}, "
+                "not [{libasd.Header_v0, libasd.Header_v1}]"
             )
             raise
         try:
@@ -334,17 +335,20 @@ class LoadScans:
                 raise ValueError
             LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel} with {len(channel_data)} frames")
             images = [channel_data[i].image() for i in range(len(channel_data))]
-        except ValueError:
+        except ValueError as e:
             LOGGER.error(
-                f"[{self.filename}] : {self.channel} not found in {self.img_path.suffix} channel list: [{ch1_name}, {ch2_name}"
+                f"[{self.filename}] : {self.channel} not found in {self.img_path.suffix} channel "
+                "list: [{ch1_name}, {ch2_name}"
             )
             raise ValueError(
-                f"[{self.filename}] : {self.channel} not found in {self.img_path.suffix} channel list: [{ch1_name}, {ch2_name}"
-            )
+                f"[{self.filename}] : {self.channel} not found in {self.img_path.suffix} channel "
+                "list: [{ch1_name}, {ch2_name}"
+            ) from e
 
         return (images, self._asd_px_to_nm_scaling(scan))
 
-    def _asd_px_to_nm_scaling(self, scan: Union[libasd.Data2ch_v0, libasd.Data2ch_v1]) -> float:
+    @staticmethod
+    def _asd_px_to_nm_scaling(scan: Union[libasd.Data2ch_v0, libasd.Data2ch_v1]) -> float:
         """Extracts the pixel to nanometre scaling value from an .asd file object.
 
         Parameters
@@ -374,17 +378,17 @@ class LoadScans:
             LOGGER.info(f"Extracting image from {self.img_path}")
             if suffix == ".spm":
                 self.image, self.pixel_to_nm_scaling = self.load_spm()
-                self.add_to_dic(
+                self.add_to_dict(
                     self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
                 )
             if suffix == ".jpk":
                 self.image, self.pixel_to_nm_scaling = self.load_jpk()
-                self.add_to_dic(
+                self.add_to_dict(
                     self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
                 )
             if suffix == ".ibw":
                 self.image, self.pixel_to_nm_scaling = self.load_ibw()
-                self.add_to_dic(
+                self.add_to_dict(
                     self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
                 )
             if suffix == ".asd":
@@ -392,10 +396,10 @@ class LoadScans:
                 for i, frame in enumerate(self.image):
                     filename = self.filename + f"_frame_{str(i)}"
                     pathname = self.img_path.with_name(filename)
-                    self.add_to_dic(filename, frame, pathname, self.pixel_to_nm_scaling)
+                    self.add_to_dict(filename, frame, pathname, self.pixel_to_nm_scaling)
 
     def add_to_dict(self, filename: str, image: np.ndarray, img_path: Path, px_2_nm: float) -> None:
-        """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under 
+        """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under
         the key filename.
 
         Parameters
@@ -409,4 +413,4 @@ class LoadScans:
         px_2_nm: float
             The length of a pixel in nm.
         """
-        self.img_dic[filename] = {"image": image, "img_path": img_path, "px_2_nm": px_2_nm}
+        self.img_dict[filename] = {"image": image, "img_path": img_path, "px_2_nm": px_2_nm}
