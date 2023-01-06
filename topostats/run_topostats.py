@@ -339,8 +339,9 @@ def process_scan(
                     tracing_stats[direction].df["threshold"] = direction
 
                     nodes = nodeStats(
-                        image=dna_traces[direction].full_image_data, 
+                        image=dna_traces[direction].full_image_data,
                         skeletons=dna_traces[direction].skeletons,
+                        px_2_nm=pixel_to_nm_scaling
                         )
                     node_stats[direction] = nodes.get_node_stats()
 

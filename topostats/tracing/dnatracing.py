@@ -930,9 +930,10 @@ class traceStats(object):
 class nodeStats():
     """Class containing methods to find and analyse the nodes/crossings within a grain"""
 
-    def __init__(self, image: np.ndarray, skeletons: np.ndarray) -> None:
+    def __init__(self, image: np.ndarray, skeletons: np.ndarray, px_2_nm: float) -> None:
         self.image = image
         self.skeletons = skeletons
+        self.px_2_nm = px_2_nm
 
         self.skeleton = None
         self.conv_skelly = None
@@ -980,8 +981,8 @@ class nodeStats():
         conv[conv > 3] = 3  # nodes = 3
         self.conv_skelly = conv
 
-    def connect_close_nodes(self, node_width: float) -> None:
-        """Looks to see if nodes are within the node_width boundary and thus
+    def connect_close_nodes(self, node_width: float = 2) -> None:
+        """Looks to see if nodes are within the node_width boundary (2nm) and thus
         are also labeled as part of the node.
 
         Parameters
@@ -994,7 +995,7 @@ class nodeStats():
         nodeless[nodeless != 1] = 0  # remove non-skeleton points
         nodeless = label(nodeless)
         for i in range(1, nodeless.max() + 1):
-            if nodeless[nodeless == i].size < node_width:
+            if nodeless[nodeless == i].size < node_width: #/ self.px_2_nm:
                 self.connected_nodes[nodeless == i] = 3
 
     def highlight_node_centres(self, mask):
@@ -1016,12 +1017,12 @@ class nodeStats():
 
         self.node_centre_mask = small_node_mask
 
-    def analyse_nodes(self, box_length: int = 100):
-        """This function obtains the main analyses for the nodes of a single molecule.
+    def analyse_nodes(self, box_length: int = 20):
+        """This function obtains the main analyses for the nodes of a single molecule. Within a certain box (nm) around the node.
 
         bg = 0, skeleton = 1, endpoints = 2, nodes = 3, #branches = 4.
         """
-        length = int(box_length / 2)
+        length = int(box_length / 2) # / self.px_2_nm
         branch_mask = self.connected_nodes.copy()
         x_arr, y_arr = np.where(self.node_centre_mask.copy() == 3)
         # iterate over the nodes to find areas
@@ -1045,6 +1046,8 @@ class nodeStats():
                 node_coords += ([x, y] - centre) # get whole image coords
                 self.node_centre_mask[x, y] = 1 # remove these from node_centre_mask
                 self.connected_nodes[node_coords[:,0], node_coords[:,1]] = 1 # remove these from connected_nodes
+            elif labeled_area.max() == 3:
+                pass
             else:
                 real_node_count += 1
                 ordered_branches = []
@@ -1071,25 +1074,12 @@ class nodeStats():
                     matched_branches[i] = {}
                     branch_1_coords = ordered_branches[branch_1]
                     branch_2_coords = ordered_branches[branch_2]
-
+                    branch_1_coords, branch_2_coords = self.order_branches(branch_1_coords, branch_2_coords)
                     # find close ends
-                    node_end1, node_end2 = self.close_coords(
-                        np.asarray([branch_1_coords[0], branch_1_coords[-1]]),
-                        np.asarray([branch_2_coords[0], branch_2_coords[-1]]))
-
-                    # need to solve upside-down problem and ill connections
-                    print(f"Node: {real_node_count}")
-                    print("branch1: ", branch_1_coords[0], branch_1_coords[-1], node_end1)
-                    print("branch1: ", branch_2_coords[0], branch_2_coords[-1], node_end2)
-
-                    crossing = self.binary_line(node_end1, node_end2)
-
-                    print(crossing)
-
-                    branch_coords = np.append(branch_1_coords[:45][::-1], crossing[1:-1], axis=0) # hardcoded
+                    
+                    crossing = self.binary_line(branch_1_coords[-1], branch_2_coords[0])
+                    branch_coords = np.append(branch_1_coords[(len(branch_1_coords)-45):], crossing[1:-1], axis=0) # hardcoded
                     branch_coords = np.append(branch_coords, branch_2_coords[:45], axis=0) # hardcoded
-
-                    #branch_coords = np.append(branch_1_coords[:45][::-1], branch_2_coords[:45], axis=0)  # hardcoded
                     branch_img[branch_coords[:,0], branch_coords[:,1]] = i + 1
                     # calc image-wide coords
                     branch_coords_img = branch_coords + ([x, y] - centre)
@@ -1338,6 +1328,24 @@ class nodeStats():
         else:
             min_idx = np.argmin(sum2)
             return endpoints1[::-1][min_idx], endpoints2[min_idx]
+
+    @staticmethod
+    def order_branches(branch1, branch2):
+        """Find the closes coordinates (those at the node crossing) between 2 pairs."""
+        endpoints1 = np.asarray([branch1[0], branch1[-1]])
+        endpoints2 = np.asarray([branch2[0], branch2[-1]])
+        sum1 = abs(endpoints1 - endpoints2).sum(axis=1)
+        sum2 = abs(endpoints1[::-1] - endpoints2).sum(axis=1)
+        if sum1.min() < sum2.min():
+            if np.argmin(sum1) == 0:  
+                return branch1[::-1], branch2
+            else:
+                return branch1, branch2[::-1]
+        else: 
+            if np.argmin(sum2) == 0:  
+                return branch1, branch2
+            else:
+                return branch1[::-1], branch2[::-1]
 
 
     @staticmethod
