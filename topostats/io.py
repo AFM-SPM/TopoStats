@@ -383,7 +383,7 @@ class LoadScans:
                     pathname = self.img_path.with_name(filename)
                     self.add_to_dic(filename, frame, pathname, self.pixel_to_nm_scaling)
 
-    def add_to_dic(self, filename: str, image: np.ndarray, img_path: Path, px_2_nm: float) -> None:
+    def add_to_dict(self, filename: str, image: np.ndarray, img_path: Path, px_2_nm: float) -> None:
         """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under 
         the key filename.
 
