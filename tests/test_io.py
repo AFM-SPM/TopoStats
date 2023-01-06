@@ -104,7 +104,7 @@ def test_load_scan_jpk(load_scan_jpk: LoadScans) -> None:
         ("load_scan", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
         ("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625),
         ("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876),
-        ("load_scan_asd", 64, (256, 256), 5958870.556640625, "minicircles_frame_40", 1.953125)
+        ("load_scan_asd", 64, (256, 256), 5958870.556640625, "minicircles_frame_40", 1.953125),
     ],
 )
 def test_load_scan_get_data(
@@ -119,11 +119,11 @@ def test_load_scan_get_data(
     """Test the LoadScan.get_data() method."""
     scan = request.getfixturevalue(load_scan_object)
     scan.get_data()
-    assert len(scan.img_dic) == length
-    assert isinstance(scan.img_dic[filename]["image"], np.ndarray)
-    assert scan.img_dic[filename]["image"].shape == image_shape
-    assert scan.img_dic[filename]["image"].sum() == image_sum
-    assert isinstance(scan.img_dic[filename]["img_path"], Path)
-    assert scan.img_dic[filename]["img_path"] == RESOURCES / filename
-    assert isinstance(scan.img_dic[filename]["px_2_nm"], float)
-    assert scan.img_dic[filename]["px_2_nm"] == pixel_to_nm_scaling
+    assert len(scan.img_dict) == length
+    assert isinstance(scan.img_dict[filename]["image"], np.ndarray)
+    assert scan.img_dict[filename]["image"].shape == image_shape
+    assert scan.img_dict[filename]["image"].sum() == image_sum
+    assert isinstance(scan.img_dict[filename]["img_path"], Path)
+    assert scan.img_dict[filename]["img_path"] == RESOURCES / filename
+    assert isinstance(scan.img_dict[filename]["px_2_nm"], float)
+    assert scan.img_dict[filename]["px_2_nm"] == pixel_to_nm_scaling
