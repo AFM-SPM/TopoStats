@@ -1239,16 +1239,21 @@ class nodeStats():
         # calculate cosine of angle
         angles = self.calc_angles(vectors)
         # find highest values
-        angles[angles == angles.diagonal()] = 0  # ensures not paired with itself
-        pairs = np.argmax(angles, axis=1)
-        pairs = np.asarray([[branch_1, branch_2] for branch_1, branch_2 in enumerate(pairs)])
-        # remove duplicate pairs
-        dup_pair_idx = []
-        for i, pair in enumerate(pairs):
-            idx = np.argwhere((pairs == pair[::-1]).all(axis=1))
-            if i not in dup_pair_idx:
-                dup_pair_idx.append(idx)
-        return np.delete(pairs, dup_pair_idx, axis=0)
+        np.fill_diagonal(angles, 0)  # ensures not paired with itself
+        # match angles
+        return self.pair_angles(angles)
+
+    @staticmethod
+    def pair_angles(angles):
+        """pairs large values in a symmetric NxN matrix"""
+        angles = angles.copy()
+        pairs = []
+        for _ in range(int(angles.shape[0]/2)):
+            pair = np.argwhere(angles==angles.max()) # find pairs (2x2)
+            pairs.append(pair[0]) # add to list
+            angles[pair[:,0], pair[:,1]] = 0 # set to 0 to avoid picking again
+            
+        return np.asarray(pairs)
 
     @staticmethod
     def gaussian(x, h, mean, sigma):
