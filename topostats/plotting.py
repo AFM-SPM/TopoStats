@@ -593,16 +593,17 @@ def plot_crossing_linetrace_halfmax(branch_stats_dict, cmap, title):
     for branch_idx, values in branch_stats_dict.items():
         cmap_ratio = branch_idx / (total_branches - 1) # 1 branch and ZDE avoided in dnatracing
         heights = values["heights"]
-        x = np.arange(len(heights))
+        dist_offset = values["distances"][np.argmax(values["heights"])]
+        x = values["distances"] - dist_offset
         ax.plot(x, heights, label=f"Branch: {branch_idx}", c=cmp(cmap_ratio))
         try:
             fwhm, lr_idx, hm_high_point = values["fwhm2"]
-            plt.plot([0, hm_high_point[1]],[hm_high_point[0]*2,hm_high_point[0]*2]+heights.min(), c=cmp(cmap_ratio), label=f"FWHM: {fwhm:.1f}")
-            plt.plot([lr_idx[0], lr_idx[0]],[hm_high_point[0],0]+heights.min(), c=cmp(cmap_ratio))
-            plt.plot([lr_idx[1], lr_idx[1]],[hm_high_point[0],0]+heights.min(), c=cmp(cmap_ratio))
+            plt.plot([0, hm_high_point[1]] - dist_offset,[hm_high_point[0]*2,hm_high_point[0]*2]+heights.min(), c=cmp(cmap_ratio), label=f"FWHM: {fwhm:.1f}")
+            plt.plot([lr_idx[0], lr_idx[0]] - dist_offset,[hm_high_point[0],0]+heights.min(), c=cmp(cmap_ratio))
+            plt.plot([lr_idx[1], lr_idx[1]] - dist_offset,[hm_high_point[0],0]+heights.min(), c=cmp(cmap_ratio))
         except KeyError:
             pass # if no gaussian params found then skip this bit of the plot
-    ax.set_xlabel("Pixel of Branch")
+    ax.set_xlabel("Distance from Node (nm)")
     ax.set_ylabel("Height")
     ax.set_title(title)
     ax.legend()
