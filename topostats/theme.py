@@ -34,6 +34,8 @@ class Colormap:
             self.cmap = self.gwyddion()
         elif name.lower() == "blu":
             self.cmap = self.blu()
+        elif name.lower() == "blu_purp":
+            self.cmap = self.blu_purp()
         else:
             # Get one of the matplotlib colormaps
             self.cmap = mpl.colormaps[name]
@@ -115,6 +117,11 @@ class Colormap:
 
         colormap = LinearSegmentedColormap.from_list("gwyddion", vals, N=256)
         return colormap
+
+    @staticmethod
+    def blu_purp():
+        "RGBA colour map of just the colour blue."
+        return ListedColormap([[39/256, 130/256, 149/256],[153/256, 37/256, 80/256]], "blu_purp", N=256)
 
     @staticmethod
     def blu():
