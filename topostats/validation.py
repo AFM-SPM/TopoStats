@@ -110,14 +110,14 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "nearest",
                 error="Invalid value in config for 'filter.gaussian_mode', valid values are 'nearest'",
             ),
-        },
-        "remove_scars": {
-            "run": bool,
-            "removal_iterations": lambda n: 0 <= n < 10,
-            "threshold_low": lambda n: n > 0,
-            "threshold_high": lambda n: n > 0,
-            "max_scar_width": lambda n: n >= 1,
-            "min_scar_length": lambda n: n >= 1,
+            "remove_scars": {
+                "run": bool,
+                "removal_iterations": lambda n: 0 <= n < 10,
+                "threshold_low": lambda n: n > 0,
+                "threshold_high": lambda n: n > 0,
+                "max_scar_width": lambda n: n >= 1,
+                "min_scar_length": lambda n: n >= 1,
+            },
         },
         "grains": {
             "run": Or(True, False, error="Invalid value in config for grains.run, valid values are 'True' or 'False'"),

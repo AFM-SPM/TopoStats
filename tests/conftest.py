@@ -260,7 +260,6 @@ def synthetic_scar_removal_args(synthetic_scars_image: np.ndarray) -> dict:
     return {
         "img": synthetic_scars_image,
         "filename": "test",
-        "run": True,
         "removal_iterations": 2,
         "threshold_low": 1.5,
         "threshold_high": 1.8,

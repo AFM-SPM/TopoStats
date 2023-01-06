@@ -129,7 +129,6 @@ def process_scan(
     img_path_px2nm: Dict[str, Union[np.ndarray, Path, float]],
     base_dir: Union[str, Path],
     filter_config: dict,
-    scars_config: dict,
     grains_config: dict,
     grainstats_config: dict,
     dnatracing_config: dict,
@@ -146,8 +145,6 @@ def process_scan(
         Directory to recursively search for files, if not specified the current directory is scanned.
     filter_config : dict
         Dictionary of configuration options for running the Filter stage.
-    scars_config : dict
-        Dictionary of configuration options for removing scars from the image.
     grains_config : dict
         Dictionary of configuration options for running the Grain detection stage.
     grainstats_config : dict
@@ -194,7 +191,7 @@ def process_scan(
             pixel_to_nm_scaling,
             **filter_config,
         )
-        filtered_image.filter_image(scars_config=scars_config)
+        filtered_image.filter_image()
 
         # Optionally plot filter stage
         if plotting_config["run"]:
@@ -430,7 +427,6 @@ def main():
         process_scan,
         base_dir=config["base_dir"],
         filter_config=config["filter"],
-        scars_config=config["remove_scars"],
         grains_config=config["grains"],
         grainstats_config=config["grainstats"],
         dnatracing_config=config["dnatracing"],

@@ -61,6 +61,7 @@ def _mark_if_positive_scar(
         for k in range(1, max_scar_width + 1):
             if row + k + 1 >= img.shape[0]:
                 # Bottom of image, break
+                LOGGER.debug("Bottom of image.")
                 break
             min_scar_value = min(min_scar_value, img[row + k, col])
             max_border_value = max(img[row, col], img[row + k + 1, col])
@@ -124,6 +125,7 @@ def _mark_if_negative_scar(
         for k in range(1, max_scar_width + 1):
             if row + k + 1 >= img.shape[0]:
                 # Bottom of image, break
+                LOGGER.debug("Bottom of image.")
                 break
             min_scar_value = max(min_scar_value, img[row + k, col])
             max_border_value = min(img[row, col], img[row + k + 1, col])
@@ -361,7 +363,6 @@ def _remove_marked_scars(img: np.ndarray, scar_mask: np.ndarray) -> None:
 def remove_scars(
     img: np.ndarray,
     filename: str,
-    run: bool = True,
     removal_iterations: int = 2,
     threshold_low: float = 0.250,
     threshold_high: float = 0.666,
@@ -382,8 +383,6 @@ def remove_scars(
         A 2-D image to remove scars from.
     filename: str
         The filename (used for logging outputs only).
-    run: bool
-        A toggle to turn scar removal on, or off.
     removal_iterations: int
         The number of times the scar removal should run on the image.
         Running just once sometimes isn't enough to remove some of the
@@ -410,36 +409,32 @@ def remove_scars(
         will not remove the scars.
     """
 
-    if run:
+    LOGGER.info(f"[{filename}] : Removing scars")
 
-        LOGGER.info(f"[{filename}] : Removing scars")
+    first_marked_mask = None
+    for i in range(removal_iterations):
+        marked_positive = _mark_scars(
+            img=img,
+            direction="positive",
+            threshold_low=threshold_low,
+            threshold_high=threshold_high,
+            max_scar_width=max_scar_width,
+            min_scar_length=min_scar_length,
+        )
+        marked_negative = _mark_scars(
+            img=img,
+            direction="negative",
+            threshold_low=threshold_low,
+            threshold_high=threshold_high,
+            max_scar_width=max_scar_width,
+            min_scar_length=min_scar_length,
+        )
+        # Combine the upper and lower scar masks
+        marked_both = np.bitwise_or(marked_positive.astype(bool), marked_negative.astype(bool))
 
-        first_marked_mask = None
-        for i in range(removal_iterations):
-            marked_positive = _mark_scars(
-                img=img,
-                direction="positive",
-                threshold_low=threshold_low,
-                threshold_high=threshold_high,
-                max_scar_width=max_scar_width,
-                min_scar_length=min_scar_length,
-            )
-            marked_negative = _mark_scars(
-                img=img,
-                direction="negative",
-                threshold_low=threshold_low,
-                threshold_high=threshold_high,
-                max_scar_width=max_scar_width,
-                min_scar_length=min_scar_length,
-            )
-            # Combine the upper and lower scar masks
-            marked_both = np.bitwise_or(marked_positive.astype(bool), marked_negative.astype(bool))
+        if i == 0:
+            first_marked_mask = marked_both
 
-            if i == 0:
-                first_marked_mask = marked_both
+        _remove_marked_scars(img, np.copy(marked_both))
 
-            _remove_marked_scars(img, np.copy(marked_both))
-
-    else:
-        LOGGER.info(f"[{filename}] : Skipping scar removal as requested from config.")
     return img, first_marked_mask
