@@ -88,8 +88,8 @@ class dnaTrace(object):
         for grain_num, grain in self.grains.items():
             skeleton = getSkeleton(self.gauss_image, grain).get_skeleton(self.skeletonisation_method)
             LOGGER.info(f"[{self.filename}] {label(skeleton).max()-1} breakages in skeleton {grain_num}")
-            pruned_skeleton = pruneSkeleton(self.gauss_image, skeleton).prune_skeleton(self.pruning_method)
-            self.skeleton_dict[grain_num] = pruned_skeleton
+            #pruned_skeleton = pruneSkeleton(self.gauss_image, skeleton).prune_skeleton(self.pruning_method)
+            self.skeleton_dict[grain_num] = skeleton #pruned_skeleton
         self.concat_skeletons()
         for grain_num, grain in self.skeleton_dict.items():
             pass
@@ -930,8 +930,9 @@ class traceStats(object):
 class nodeStats():
     """Class containing methods to find and analyse the nodes/crossings within a grain"""
 
-    def __init__(self, image: np.ndarray, skeletons: np.ndarray, px_2_nm: float) -> None:
+    def __init__(self, image: np.ndarray, grains: np.ndarray, skeletons: np.ndarray, px_2_nm: float) -> None:
         self.image = image
+        self.grains = grains
         self.skeletons = skeletons
         self.px_2_nm = px_2_nm
 
@@ -963,9 +964,9 @@ class nodeStats():
             self.skeleton[self.skeleton != 0] = 1
             self.convolve_skelly()
             if len(self.conv_skelly[self.conv_skelly==3]) != 0: # check if any nodes
-                self.connect_close_nodes(node_width=60)
+                self.connect_close_nodes(node_width=2.85)
                 self.highlight_node_centres(self.connected_nodes)
-                self.analyse_nodes(box_length=100)
+                self.analyse_nodes(box_length=20)
                 self.full_dict[skeleton_no] = self.node_dict
             else:
                 self.full_dict[skeleton_no] = {}
@@ -981,8 +982,8 @@ class nodeStats():
         conv[conv > 3] = 3  # nodes = 3
         self.conv_skelly = conv
 
-    def connect_close_nodes(self, node_width: float = 2) -> None:
-        """Looks to see if nodes are within the node_width boundary (2nm) and thus
+    def connect_close_nodes(self, node_width: float = 2.85) -> None:
+        """Looks to see if nodes are within the node_width boundary (2.85nm) and thus
         are also labeled as part of the node.
 
         Parameters
@@ -995,7 +996,7 @@ class nodeStats():
         nodeless[nodeless != 1] = 0  # remove non-skeleton points
         nodeless = label(nodeless)
         for i in range(1, nodeless.max() + 1):
-            if nodeless[nodeless == i].size < node_width: #/ self.px_2_nm:
+            if nodeless[nodeless == i].size < (node_width / self.px_2_nm):
                 self.connected_nodes[nodeless == i] = 3
 
     def highlight_node_centres(self, mask):
@@ -1022,7 +1023,7 @@ class nodeStats():
 
         bg = 0, skeleton = 1, endpoints = 2, nodes = 3, #branches = 4.
         """
-        length = int(box_length / 2) # / self.px_2_nm
+        length = int((box_length / 2) / self.px_2_nm)
         branch_mask = self.connected_nodes.copy()
         x_arr, y_arr = np.where(self.node_centre_mask.copy() == 3)
         # iterate over the nodes to find areas
@@ -1075,23 +1076,25 @@ class nodeStats():
                     branch_1_coords = ordered_branches[branch_1]
                     branch_2_coords = ordered_branches[branch_2]
                     branch_1_coords, branch_2_coords = self.order_branches(branch_1_coords, branch_2_coords)
-                    # find close ends
-                    
+                    # find close ends by rearranging branch coords
                     crossing = self.binary_line(branch_1_coords[-1], branch_2_coords[0])
-                    branch_coords = np.append(branch_1_coords[(len(branch_1_coords)-45):], crossing[1:-1], axis=0) # hardcoded
-                    branch_coords = np.append(branch_coords, branch_2_coords[:45], axis=0) # hardcoded
+                    # find lowest size of branch coords
+                    branch_coords = np.append(branch_1_coords, crossing[1:-1], axis=0)
+                    branch_coords = np.append(branch_coords, branch_2_coords, axis=0)
                     branch_img[branch_coords[:,0], branch_coords[:,1]] = i + 1
                     # calc image-wide coords
                     branch_coords_img = branch_coords + ([x, y] - centre)
                     matched_branches[i]["ordered_coords"] = branch_coords_img
-                    # get heights of branch
+                    # get heights and line distance of branch
                     heights = self.image[branch_coords_img[:, 0], branch_coords_img[:, 1]]
                     matched_branches[i]["heights"] = heights
+                    distances = self.coord_dist(branch_coords)
+                    matched_branches[i]["distances"] = distances
                     # identify over/under
-                    fwhm2 = self.fwhm2(heights)
+                    fwhm2 = self.fwhm2(heights, distances)
                     matched_branches[i]["fwhm2"] = fwhm2
                     try:
-                        fwhm, popt = self.fwhm(heights)
+                        fwhm, popt = self.fwhm(heights, distances)
                         matched_branches[i]["gaussian_fit"] = popt
                         matched_branches[i]["fwhm"] = fwhm
                     except RuntimeError as error:
@@ -1107,7 +1110,6 @@ class nodeStats():
                 cos_angles[cos_angles > 1] = 1  # floating point sometimes causes nans for 1's
                 angles = np.arccos(cos_angles) / np.pi * 180
                 for i, angle in enumerate(angles):
-                    print(f"{i}, {angle:.1f}")
                     matched_branches[i]["angles"] = angle
 
                 nodes_and_branches = np.zeros_like(self.image)
@@ -1120,7 +1122,8 @@ class nodeStats():
                     "node_stats": {
                         "node_mid_coords": [x, y],
                         "node_area_image": self.image[x-length : x+length+1, y-length : y+length+1],
-                        "node_area_mask": branch_img[1:-1, 1:-1], # to remove padding
+                        "node_area_grain": self.grains[x-length : x+length+1, y-length : y+length+1],
+                        "node_branch_mask": branch_img[1:-1, 1:-1], # to remove padding
                     }
                 }
 
@@ -1269,45 +1272,43 @@ class nodeStats():
         """
         return h * np.exp(-((x - mean) ** 2) / (2 * sigma**2))
 
-    def fwhm(self, heights):
+    def fwhm(self, heights, distances):
         """Fits a gaussian to the branch heights, and calculates the FWHM"""
-        x_vals = np.arange(0, len(heights))
         mean = 45.5  # hard coded as middle node value
         sigma = 1 / (200 / 1024)  # 1nm / px2nm = px  half a nm as either side of std
         popt, pcov = optimize.curve_fit(
-            self.gaussian, x_vals, heights - heights.min(), p0=[max(heights) - heights.min(), mean, sigma], maxfev=8000
+            self.gaussian, distances, heights - heights.min(), p0=[max(heights) - heights.min(), mean, sigma], maxfev=8000
         )
 
         return 2.3548 * popt[2], popt  # 2*(2ln2)^1/2 * sigma = FWHM
 
-    def fwhm2(self, heights):
-        high_point = np.argmax(heights)
+    def fwhm2(self, heights, distances):
+        high_idx = np.argmax(heights)
         heights_norm = heights.copy() - heights.min() # lower graph so min is 0
         hm = heights_norm.max()/2 # half max value
         
         # get array halves to find first points that cross hm
-        arr1 = heights_norm[:high_point][::-1]
-        arr2 = heights_norm[high_point:]
+        arr1 = heights_norm[:high_idx][::-1]
+        dist1 = distances[:high_idx][::-1]
+        arr2 = heights_norm[high_idx:]
+        dist2 = distances[high_idx:]
+
+        arr1_hm = 0
+        arr2_hm = 0
         
         for i in range(len(arr1)-1):
             if (arr1[i] > hm) and (arr1[i+1] < hm): # if points cross through the hm value
-                arr1_hm = self.lin_interp([i, arr1[i]], [i+1, arr1[i+1]], hm)
-                arr1_hm_idx = len(arr1) - 1 - arr1_hm
+                arr1_hm = self.lin_interp([dist1[i], arr1[i]], [dist1[i+1], arr1[i+1]], hm)
                 break
-            else:
-                arr1_hm_idx = 0
 
         for i in range(len(arr2)-1):
             if (arr2[i] > hm) and (arr2[i+1] < hm): # if points cross through the hm value
-                arr2_hm = self.lin_interp([i, arr2[i]], [i+1, arr2[i+1]], hm)
-                arr2_hm_idx = len(arr1) + arr2_hm
+                arr2_hm = self.lin_interp([dist2[i], arr2[i]], [dist2[i+1], arr2[i+1]], hm)
                 break
-            else:
-                arr2_hm_idx = 0
 
-        fwhm = arr2_hm_idx - arr1_hm_idx
+        fwhm = arr2_hm - arr1_hm
         
-        return fwhm, [arr1_hm_idx, arr2_hm_idx], [hm, high_point]
+        return fwhm, [arr1_hm, arr2_hm], [hm, distances[high_idx]]
 
     @staticmethod
     def lin_interp(point_1, point_2, value):
@@ -1379,3 +1380,15 @@ class nodeStats():
             return np.asarray(arr)[:,[1,0]].reshape(-1,2).astype(int)
         else:
             return np.asarray(arr).reshape(-1,2).astype(int)
+
+    @staticmethod
+    def coord_dist(coords):
+        dist_list = [0]
+        dist = 0
+        for i in range(len(coords)-1):
+            if abs(coords[i]-coords[i+1]).sum() == 2:
+                dist += 2**0.5
+            else:
+                dist += 1
+            dist_list.append(dist)
+        return np.asarray(dist_list)
