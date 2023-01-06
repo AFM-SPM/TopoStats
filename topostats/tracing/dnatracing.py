@@ -1056,8 +1056,6 @@ class nodeStats():
                     branch[labeled_area == branch_no] = 1
                     # order branch
                     ordered = self.order_branch(branch)
-                    # height shuffle the branch?
-
                     # identify vector
                     vector = self.get_vector(ordered)
                     # add to list
@@ -1073,7 +1071,25 @@ class nodeStats():
                     matched_branches[i] = {}
                     branch_1_coords = ordered_branches[branch_1]
                     branch_2_coords = ordered_branches[branch_2]
-                    branch_coords = np.append(branch_1_coords[:45][::-1], branch_2_coords[:45], axis=0)  # hardcoded
+
+                    # find close ends
+                    node_end1, node_end2 = self.close_coords(
+                        np.asarray([branch_1_coords[0], branch_1_coords[-1]]),
+                        np.asarray([branch_2_coords[0], branch_2_coords[-1]]))
+
+                    # need to solve upside-down problem and ill connections
+                    print(f"Node: {real_node_count}")
+                    print("branch1: ", branch_1_coords[0], branch_1_coords[-1], node_end1)
+                    print("branch1: ", branch_2_coords[0], branch_2_coords[-1], node_end2)
+
+                    crossing = self.binary_line(node_end1, node_end2)
+
+                    print(crossing)
+
+                    branch_coords = np.append(branch_1_coords[:45][::-1], crossing[1:-1], axis=0) # hardcoded
+                    branch_coords = np.append(branch_coords, branch_2_coords[:45], axis=0) # hardcoded
+
+                    #branch_coords = np.append(branch_1_coords[:45][::-1], branch_2_coords[:45], axis=0)  # hardcoded
                     branch_img[branch_coords[:,0], branch_coords[:,1]] = i + 1
                     # calc image-wide coords
                     branch_coords_img = branch_coords + ([x, y] - centre)
@@ -1305,8 +1321,53 @@ class nodeStats():
 
     @staticmethod
     def lin_interp(point_1, point_2, value):
-        """linear interp 2 points by finding line eq and subbing"""
+        """Linear interp 2 points by finding line eq and subbing."""
         m = (point_1[1]-point_2[1]) / (point_1[0]-point_2[0])
         c = point_1[1] - (m * point_1[0])
         interp_x = (value - c) / m
         return interp_x
+
+    @staticmethod
+    def close_coords(endpoints1, endpoints2):
+        """Find the closes coordinates (those at the node crossing) between 2 pairs."""
+        sum1 = abs(endpoints1 - endpoints2).sum(axis=1)
+        sum2 = abs(endpoints1[::-1] - endpoints2).sum(axis=1)
+        if sum1.min() < sum2.min():
+            min_idx = np.argmin(sum1)
+            return endpoints1[min_idx], endpoints2[min_idx]
+        else:
+            min_idx = np.argmin(sum2)
+            return endpoints1[::-1][min_idx], endpoints2[min_idx]
+
+
+    @staticmethod
+    def binary_line(start, end):
+        """Creates a binary path following the straight line between 2 points."""
+        arr = []
+        swap = False
+        slope = (end-start)[1] / (end-start)[0]
+        
+        if abs(slope) > 1: # swap x and y if slope will cause skips
+            start = start[::-1]
+            end = end[::-1]
+
+            slope = 1/slope
+            swap = True
+        
+        if start[0] > end[0]: # swap x coords if coords wrong way arround
+            start_temp = start
+            start = end
+            end = start_temp
+        
+        # code assumes slope < 1 hence swap
+        x_start, y_start = start
+        x_end, y_end = end
+        for x in range(x_start, x_end + 1):
+            y_true = slope * (x - x_start) + y_start
+            y_pixel = np.round(y_true)
+            arr.append([x, y_pixel])
+            
+        if swap: # if swapped due to slope, return
+            return np.asarray(arr)[:,[1,0]].reshape(-1,2).astype(int)
+        else:
+            return np.asarray(arr).reshape(-1,2).astype(int)
