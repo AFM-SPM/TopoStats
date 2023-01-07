@@ -1288,7 +1288,9 @@ class nodeStats():
         return 2.3548 * popt[2], popt  # 2*(2ln2)^1/2 * sigma = FWHM
 
     def fwhm2(self, heights, distances):
-        high_idx = np.argmax(heights)
+        centre_fraction = int(len(heights)*0.2) # incase zone approaches another node, look at centre for max
+        high_idx = np.argmax(heights[centre_fraction:-centre_fraction]) + centre_fraction
+        print(len(heights), high_idx)
         heights_norm = heights.copy() - heights.min() # lower graph so min is 0
         hm = heights_norm.max()/2 # half max value
         
@@ -1313,7 +1315,7 @@ class nodeStats():
 
         fwhm = arr2_hm - arr1_hm
         
-        return fwhm, [arr1_hm, arr2_hm], [hm, distances[high_idx]]
+        return fwhm, [arr1_hm, arr2_hm, hm], [high_idx, distances[high_idx], heights[high_idx]]
 
     @staticmethod
     def lin_interp(point_1, point_2, value):

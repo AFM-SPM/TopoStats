@@ -591,18 +591,20 @@ def plot_crossing_linetrace_halfmax(branch_stats_dict, cmap, title):
     cmp = Colormap(cmap).get_cmap()
     total_branches = len(branch_stats_dict)
     for branch_idx, values in branch_stats_dict.items():
+        fwhm, hm_vals, m_vals = values["fwhm2"]
+        
         cmap_ratio = branch_idx / (total_branches - 1) # 1 branch and ZDE avoided in dnatracing
         heights = values["heights"]
-        dist_offset = values["distances"][np.argmax(values["heights"])]
+        dist_offset = values["distances"][m_vals[0]]
         x = values["distances"] - dist_offset
         ax.plot(x, heights, label=f"Branch: {branch_idx}", c=cmp(cmap_ratio))
-        try:
-            fwhm, lr_idx, hm_high_point = values["fwhm2"]
-            plt.plot([0, hm_high_point[1]] - dist_offset,[hm_high_point[0]*2,hm_high_point[0]*2]+heights.min(), c=cmp(cmap_ratio), label=f"FWHM: {fwhm:.1f}")
-            plt.plot([lr_idx[0], lr_idx[0]] - dist_offset,[hm_high_point[0],0]+heights.min(), c=cmp(cmap_ratio))
-            plt.plot([lr_idx[1], lr_idx[1]] - dist_offset,[hm_high_point[0],0]+heights.min(), c=cmp(cmap_ratio))
-        except KeyError:
-            pass # if no gaussian params found then skip this bit of the plot
+
+        # plot the high point lines
+        plt.plot([0, m_vals[1]] - dist_offset, [m_vals[2] ,m_vals[2]], c=cmp(cmap_ratio), label=f"FWHM: {fwhm:.1f}")
+        # plot the half max lines
+        plt.plot([hm_vals[0], hm_vals[0]] - dist_offset,[hm_vals[2], 0] + heights.min(), c=cmp(cmap_ratio))
+        plt.plot([hm_vals[1], hm_vals[1]] - dist_offset,[hm_vals[2], 0] + heights.min(), c=cmp(cmap_ratio))
+    
     ax.set_xlabel("Distance from Node (nm)")
     ax.set_ylabel("Height")
     ax.set_title(title)
