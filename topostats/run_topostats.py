@@ -283,6 +283,8 @@ def process_scan(
                 ).plot_and_save()
             plotting_config["run"] = True
 
+            #np.savetxt('cat_img.txt', filtered_image.images["gaussian_filtered"])
+
         # Grainstats :
         #
         # There are two layers to process those above the given threshold and those below, use dictionary comprehension
@@ -335,11 +337,22 @@ def process_scan(
                     )
                     dna_traces[direction].trace_dna()
 
+                    plot_name = "skeletons"
+                    plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
+                    Images(
+                        filtered_image.images["gaussian_filtered"],
+                        data2=dna_traces[direction].skeletons,
+                        **plotting_config["plot_dict"][plot_name],
+                    ).save_figure_black(
+                            background=grains.directions[direction]["removed_small_objects"],
+                            )
+
                     tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
                     tracing_stats[direction].df["threshold"] = direction
-
+                    
                     nodes = nodeStats(
                         image=dna_traces[direction].full_image_data,
+                        grains=grains.directions[direction]["removed_small_objects"],
                         skeletons=dna_traces[direction].skeletons,
                         px_2_nm=pixel_to_nm_scaling
                         )
@@ -361,19 +374,23 @@ def process_scan(
                             filtered_image.images["gaussian_filtered"],
                             data2=data2s[i],
                             **plotting_config["plot_dict"][plot_name],
-                        ).plot_and_save()
+                        ).save_figure_black(
+                                background=grains.directions[direction]["removed_small_objects"],
+                                )
 
                     # plot nodes and line traces
                     for mol_no, mol_stats in node_stats[direction].items():
                         for node_no, node_stats in mol_stats.items():
                             Images(
                                 node_stats["node_stats"]["node_area_image"],
-                                data2=node_stats["node_stats"]["node_area_mask"],
+                                data2=node_stats["node_stats"]["node_branch_mask"],
                                 filename=f"mol_{mol_no}_node_{node_no}_crossings",
                                 output_dir=output_dir / "nodes",
                                 **plotting_config["plot_dict"]["crossings"],
-                            ).plot_and_save()
-                            plotting_config["plot_dict"]["line_trace"] = {"title": "Heights of Crossing", "cmap": "winter"}
+                            ).save_figure_black(
+                                background=node_stats["node_stats"]["node_area_grain"]
+                                )
+                            plotting_config["plot_dict"]["line_trace"] = {"title": "Heights of Crossing", "cmap": "blu_purp"}
                             fig, _ = plot_crossing_linetrace_gauss(
                                 node_stats["branch_stats"],
                                 **plotting_config["plot_dict"]["line_trace"]
@@ -384,7 +401,7 @@ def process_scan(
                                 **plotting_config["plot_dict"]["line_trace"]
                                 )
                             fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax")
-
+                    
                     """
                     plot_name = "test"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
@@ -394,9 +411,9 @@ def process_scan(
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
                     """
+
                     #np.savetxt('cat_skel.txt', dna_traces[direction].skeletons)
                     #np.savetxt('cat_grain.txt', grains.directions[direction]["labelled_regions_02"])
-                    #np.savetxt('cat_img.txt', filtered_image.images["gaussian_filtered"])
 
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
