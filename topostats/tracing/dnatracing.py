@@ -1024,31 +1024,28 @@ class nodeStats():
         bg = 0, skeleton = 1, endpoints = 2, nodes = 3, #branches = 4.
         """
         length = int((box_length / 2) / self.px_2_nm)
-        branch_mask = self.connected_nodes.copy()
         x_arr, y_arr = np.where(self.node_centre_mask.copy() == 3)
         # iterate over the nodes to find areas
         node_dict = {}
         real_node_count = 0
         for node_no, (x, y) in enumerate(zip(x_arr, y_arr)): # get centres
             # get area around node
-            node_area = branch_mask[x-length : x+length+1, y-length : y+length+1]
-            centre = (np.asarray(node_area.shape) / 2).astype(int)
+            node_area = self.connected_nodes.copy()[x-length : x+length+1, y-length : y+length+1]
             node_coords = np.stack(np.where(node_area == 3)).T
-            node_area = np.pad(node_area, 1)  # pad to allow ordering edge regions
-            node_area[node_area == 3] = 0  # remove node
-            branch_img = np.zeros_like(node_area)
+            centre = (np.asarray(node_area.shape) / 2).astype(int)
+            branch_mask = self.clean_centre_branches(node_area)
+            branch_img = np.zeros_like(node_area) # initialising paired branch img
+            
             # iterate through branches to order
-            labeled_area = label(node_area)
+            labeled_area = label(branch_mask)
             LOGGER.info(f"No. branches from node {node_no}: {labeled_area.max()}")
 
             # stop processing if nib (node has 2 branches)
             if labeled_area.max() <= 2:
-                print(f"node {node_no} has only two branches - skipped & nodes removed")
+                LOGGER.info(f"node {node_no} has only two branches - skipped & nodes removed")
                 node_coords += ([x, y] - centre) # get whole image coords
                 self.node_centre_mask[x, y] = 1 # remove these from node_centre_mask
                 self.connected_nodes[node_coords[:,0], node_coords[:,1]] = 1 # remove these from connected_nodes
-            elif labeled_area.max() == 3:
-                pass
             else:
                 real_node_count += 1
                 ordered_branches = []
@@ -1100,6 +1097,14 @@ class nodeStats():
                     except RuntimeError as error:
                         LOGGER.error(f"{error}. Could not find optimal curvefit params")
 
+                # add unpaired branches to image plot
+                unpaired_branches = np.delete(np.arange(0, labeled_area.max()), pairs.flatten())
+                print(f"Unpaired branches: {unpaired_branches}")
+                branch_label = branch_img.max()
+                for i in unpaired_branches: # carries on from loop variable i
+                    branch_label += 1
+                    branch_img[ordered_branches[i][:,0], ordered_branches[i][:,1]] = branch_label
+
                 # calc crossing angle
                 # get full branch vectors
                 vectors = []
@@ -1116,6 +1121,8 @@ class nodeStats():
                 for branch_num, values in matched_branches.items():
                     coords = values["ordered_coords"]
                     nodes_and_branches[coords[:,0], coords[:,1]] = branch_num + 1
+                
+                self.test = branch_img
 
                 node_dict[real_node_count] = {
                     "branch_stats": matched_branches,
@@ -1195,6 +1202,44 @@ class nodeStats():
         local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
         local_pixels[4] = 0  # ensure centre is 0
         return local_pixels, local_pixels.sum()
+
+    def clean_centre_branches(self, node_area):
+        centre = (np.asarray(node_area.shape) / 2).astype(int)
+        # highlight only nodes
+        nodes = node_area.copy()
+        nodes[nodes!=3] = 0
+        nodes[nodes==3] = 1
+        labeled_nodes = label(nodes)
+        # highlight only branches
+        branches = node_area.copy()
+        branches[branches==3] = 0
+        labeled_branches = label(branches)
+        
+        if labeled_nodes.max() > 1:
+            # gets centre node coords
+            for i in range(1, labeled_nodes.max()+1):
+                node_coords = np.stack(np.where(labeled_nodes==i)).T
+                if centre in node_coords: # find centre node
+                    if len(node_coords.shape) < 2: # if only one coord point
+                        # find connecting skeleton
+                        local_area = self.local_area_sum(branches, node_coords)[0].reshape(3,3)
+                        connecting_points = np.stack(np.where(local_area==1)).T - [1,1] + node_coords
+                        connecting_branch_points = connecting_points
+                    else:
+                        # find connecting skeleton points
+                        connecting_branch_points = np.asarray([])
+                        for coord in node_coords:
+                            local_area = self.local_area_sum(branches, coord)[0].reshape(3,3)
+                            connecting_points = np.stack(np.where(local_area==1)).T - [1,1] + coord
+                            connecting_branch_points = np.append(connecting_branch_points, connecting_points)
+                            connecting_branch_points = connecting_branch_points.reshape(-1,2).astype(int)
+            # remove branches without connecting_branch_points
+            for i in range(1, labeled_branches.max()+1):    
+                branch_coords = np.stack(np.where(labeled_branches==i)).T
+                point_in_coords = (np.isin(branch_coords, connecting_branch_points).sum(axis=1)==2).any()
+                if not point_in_coords:
+                    branches[labeled_branches==i] = 0 # remove from view if not connected
+        return branches
 
     @staticmethod
     def get_vector(coords):
@@ -1290,7 +1335,6 @@ class nodeStats():
     def fwhm2(self, heights, distances):
         centre_fraction = int(len(heights)*0.2) # incase zone approaches another node, look at centre for max
         high_idx = np.argmax(heights[centre_fraction:-centre_fraction]) + centre_fraction
-        print(len(heights), high_idx)
         heights_norm = heights.copy() - heights.min() # lower graph so min is 0
         hm = heights_norm.max()/2 # half max value
         
