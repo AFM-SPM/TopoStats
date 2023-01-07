@@ -569,7 +569,10 @@ def plot_crossing_linetrace_gauss(branch_stats_dict, cmap, title):
     cmp = Colormap(cmap).get_cmap()
     total_branches = len(branch_stats_dict)
     for branch_idx, values in branch_stats_dict.items():
-        cmap_ratio = branch_idx / (total_branches - 1) # 1 branch and ZDE avoided in dnatracing
+        if total_branches == 1:
+            cmap_ratio = 0
+        else:
+            cmap_ratio = branch_idx / (total_branches - 1)
         heights = values["heights"]
         x = np.arange(len(heights))
         ax.plot(x, heights, label=f"Branch: {branch_idx}", c=cmp(cmap_ratio))
@@ -592,8 +595,10 @@ def plot_crossing_linetrace_halfmax(branch_stats_dict, cmap, title):
     total_branches = len(branch_stats_dict)
     for branch_idx, values in branch_stats_dict.items():
         fwhm, hm_vals, m_vals = values["fwhm2"]
-        
-        cmap_ratio = branch_idx / (total_branches - 1) # 1 branch and ZDE avoided in dnatracing
+        if total_branches == 1:
+            cmap_ratio = 0
+        else:
+            cmap_ratio = branch_idx / (total_branches - 1) # 1 branch and ZDE avoided in dnatracing
         heights = values["heights"]
         dist_offset = values["distances"][m_vals[0]]
         x = values["distances"] - dist_offset
