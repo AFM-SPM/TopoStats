@@ -1031,6 +1031,7 @@ class nodeStats():
         for node_no, (x, y) in enumerate(zip(x_arr, y_arr)): # get centres
             # get area around node
             node_area = self.connected_nodes.copy()[x-length : x+length+1, y-length : y+length+1]
+            node_area = np.pad(node_area, 1)
             node_coords = np.stack(np.where(node_area == 3)).T
             centre = (np.asarray(node_area.shape) / 2).astype(int)
             branch_mask = self.clean_centre_branches(node_area)
@@ -1167,14 +1168,12 @@ class nodeStats():
         ordered = np.zeros_like(all_points)
         ordered[0] += endpoint
         binary_image[endpoint[0], endpoint[1]] = 0  # remove from array
-
         # iterate to order the rest of the points
         for i in range(no_points - 1):
             current_point = ordered[i]  # get last point
             area, _ = self.local_area_sum(binary_image, current_point)  # look at local area
-            next_point = (current_point + np.argwhere(np.reshape(area, (3, 3,)) == 1) - (1, 1))[
-                0
-            ]  # find where to go next
+            next_point = (current_point + np.argwhere(np.reshape(area, (3, 3,)) == 1) - (1, 1))[0]
+            # find where to go next
             ordered[i + 1] += next_point  # add to ordered array
             binary_image[next_point[0], next_point[1]] = 0  # set value to zero
 
@@ -1286,8 +1285,6 @@ class nodeStats():
         # find highest values
         np.fill_diagonal(angles, 0)  # ensures not paired with itself
         # match angles
-        print(vectors)
-        print(angles)
         return self.pair_angles(angles)
 
     @staticmethod
