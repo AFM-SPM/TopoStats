@@ -255,17 +255,18 @@ def random_filters(test_filters_random_with_mask: Filters) -> Filters:
 
 
 @pytest.fixture
-def synthetic_scar_removal_args(synthetic_scars_image: np.ndarray) -> dict:
-    """Arguments for testing the remove_scars function of the scars module."""
-    return {
-        "img": synthetic_scars_image,
-        "filename": "test",
-        "removal_iterations": 2,
-        "threshold_low": 1.5,
-        "threshold_high": 1.8,
-        "max_scar_width": 2,
-        "min_scar_length": 1,
-    }
+def remove_scars_config(synthetic_scars_image: np.ndarray, default_config: dict) -> dict:
+    """Configuration for testing scar removal."""
+    config = default_config["filter"]["remove_scars"]
+    config["img"] = synthetic_scars_image
+    config["filename"] = " "
+    config["removal_iterations"] = 2
+    config["threshold_low"] = 1.5
+    config["threshold_high"] = 1.8
+    config["max_scar_width"] = 2
+    config["min_scar_length"] = 1
+    config.pop("run")
+    return config
 
 
 @pytest.fixture

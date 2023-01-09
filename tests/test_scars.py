@@ -11,10 +11,10 @@ RESOURCES = BASE_DIR / "tests" / "resources"
 # pylint: disable=protected-access
 
 
-def test_remove_scars(synthetic_scar_removal_args: dict):
+def test_remove_scars(remove_scars_config: dict):
     """Test removal of scars"""
 
-    scars_removed, scar_mask = scars.remove_scars(**synthetic_scar_removal_args)
+    scars_removed, scar_mask = scars.remove_scars(**remove_scars_config)
 
     target_img = np.load(RESOURCES / "test_scars_synthetic_remove_scars.npy")
     target_mask = np.load(RESOURCES / "test_scars_synthetic_remove_scars_mask.npy")
