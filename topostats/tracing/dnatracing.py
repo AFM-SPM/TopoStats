@@ -67,7 +67,6 @@ class dnaTrace(object):
         self.mol_is_circular = {}
         self.curvature = {}
         self.max_curvature = {}
-        self.max_curvature_location_px = {}
         self.max_curvature_location = {}
         self.mean_curvature = {}
         self.curvature_variance = {}
@@ -816,7 +815,7 @@ class dnaTrace(object):
                 curvature_local = (d2x[i] * dy[i] - dx[i] * d2y[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
                 curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
                 if i < (length - 1):
-                    contour = contour + math.hypot(
+                    contour = contour + self.pixel_size * 1e9 * math.hypot(
                         (
                             self.simplified_splined_traces[dna_num][(i + 1), 0]
                             - self.simplified_splined_traces[dna_num][i, 0]
@@ -858,7 +857,6 @@ class dnaTrace(object):
         for dna_num in sorted(self.curvature.keys()):
             self.max_curvature[dna_num] = np.amax(np.abs(self.curvature[dna_num][:, 2]))
             max_index = np.argmax(np.abs(self.curvature[dna_num][:, 2]))
-            self.max_curvature_location_px[dna_num] = self.curvature[dna_num][max_index, 1]
             self.max_curvature_location[dna_num] = self.curvature[dna_num][max_index, 1]
             self.mean_curvature[dna_num] = np.average(np.abs(self.curvature[dna_num][:, 2]))
             self.curvature_variance[dna_num] = np.var(self.curvature[dna_num][:, 2])
@@ -902,22 +900,14 @@ class dnaTrace(object):
         else:
             # plt.xlim(0, 105)
             # plt.ylim(-0.1, 0.2)
-            sns.lineplot(x=curvature[:, 1] * self.pixel_size * 1e9, y=curvature[:, 2], color="black", linewidth=5)
+            sns.lineplot(x=curvature[:, 1], y=curvature[:, 2], color="black", linewidth=5)
             plt.ticklabel_format(axis="both", style="sci", scilimits=(-2, 2))
             plt.axvline(curvature[0][1], color="#D55E00", linewidth=5, alpha=0.8)
-            plt.axvline(curvature[int(length / 6)][1] * self.pixel_size * 1e9, color="#E69F00", linewidth=5, alpha=0.8)
-            plt.axvline(
-                curvature[int(length / 6 * 2)][1] * self.pixel_size * 1e9, color="#F0E442", linewidth=5, alpha=0.8
-            )
-            plt.axvline(
-                curvature[int(length / 6 * 3)][1] * self.pixel_size * 1e9, color="#009E74", linewidth=5, alpha=0.8
-            )
-            plt.axvline(
-                curvature[int(length / 6 * 4)][1] * self.pixel_size * 1e9, color="#56B4E9", linewidth=5, alpha=0.8
-            )
-            plt.axvline(
-                curvature[int(length / 6 * 5)][1] * self.pixel_size * 1e9, color="#CC79A7", linewidth=5, alpha=0.8
-            )
+            plt.axvline(curvature[int(length / 6)][1], color="#E69F00", linewidth=5, alpha=0.8)
+            plt.axvline(curvature[int(length / 6 * 2)][1], color="#F0E442", linewidth=5, alpha=0.8)
+            plt.axvline(curvature[int(length / 6 * 3)][1], color="#009E74", linewidth=5, alpha=0.8)
+            plt.axvline(curvature[int(length / 6 * 4)][1], color="#56B4E9", linewidth=5, alpha=0.8)
+            plt.axvline(curvature[int(length / 6 * 5)][1], color="#CC79A7", linewidth=5, alpha=0.8)
         plt.xlabel("Length alongside molecule / nm")
         plt.ylabel("Curvature / $\mathregular{nm^{-1}}$")
         # plt.xticks(fontsize=20)
