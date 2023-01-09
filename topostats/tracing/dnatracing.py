@@ -1115,6 +1115,8 @@ class dnaTrace(object):
                 xa = self.splined_traces[dna_num][left : position + 1, 0]
                 ya = self.splined_traces[dna_num][left : position + 1, 1]
                 ga, _, _, _, _ = stats.linregress(xa, ya)  # Gradient of left line
+                vax = self.splined_traces[dna_num][position, 0] - self.splined_traces[dna_num][left, 0]
+                vay = ga * vax  # Left line vector
 
                 # Right line that forms the bending angle
                 right_nm = self.central_max_curvature_location[dna_num] + 10
@@ -1122,9 +1124,13 @@ class dnaTrace(object):
                 xb = self.splined_traces[dna_num][position : right + 1, 0]
                 yb = self.splined_traces[dna_num][position : right + 1, 1]
                 gb, _, _, _, _ = stats.linregress(xb, yb)  # Gradient of right line
+                vbx = self.splined_traces[dna_num][position, 0] - self.splined_traces[dna_num][right, 0]
+                vby = gb * vbx  # Right line vector
 
                 # Calculates the bending angle
-                bending_angle_r = math.atan((ga - gb) / (1 + ga * gb))  # radians
+                dot_product = vax * vbx + vay * vby
+                mod_of_vector = math.sqrt(vax**2 + vay**2) * math.sqrt(vbx**2 + vby**2)
+                bending_angle_r = math.acos(dot_product / mod_of_vector)  # radians
                 bending_angle_d = bending_angle_r / math.pi * 180  # degrees
                 self.bending_angle[dna_num] = bending_angle_d
             else:  # For molecules that are too short
