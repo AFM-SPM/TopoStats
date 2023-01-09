@@ -8,6 +8,8 @@ from topostats import scars
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
+# pylint: disable=protected-access
+
 
 def test_remove_scars(synthetic_scar_removal_args: dict):
     """Test removal of scars"""
@@ -22,56 +24,58 @@ def test_remove_scars(synthetic_scar_removal_args: dict):
 
 
 @pytest.mark.parametrize(
-    "potential_positive_scar, target, threshold_low, max_scar_width",
+    "threshold_low, max_scar_width, potential_positive_scar, target",
     [
         # Successful scar segment
         (
-            np.array(
-                [
-                    [0],
-                    [3],
-                    [3],
-                    [3],
-                    [0],
-                ]
-            ),
-            np.array(
-                [
-                    [0],
-                    [3],
-                    [3],
-                    [3],
-                    [0],
-                ]
-            ),
             2,
             3,
+            np.array(
+                [
+                    [0],
+                    [3],
+                    [3],
+                    [3],
+                    [0],
+                ]
+            ),
+            np.array(
+                [
+                    [0],
+                    [3],
+                    [3],
+                    [3],
+                    [0],
+                ]
+            ),
         ),
         # Unsuccesssful scar segment: negative scar rather than positive
         (
-            np.array(
-                [
-                    [4],
-                    [1],
-                    [1],
-                    [1],
-                    [4],
-                ]
-            ),
-            np.array(
-                [
-                    [0],
-                    [0],
-                    [0],
-                    [0],
-                    [0],
-                ]
-            ),
             2,
             3,
+            np.array(
+                [
+                    [4],
+                    [1],
+                    [1],
+                    [1],
+                    [4],
+                ]
+            ),
+            np.array(
+                [
+                    [0],
+                    [0],
+                    [0],
+                    [0],
+                    [0],
+                ]
+            ),
         ),
         # Unsuccessful scar segment: threshold_low too high
         (
+            3,
+            3,
             np.array(
                 [
                     [0],
@@ -90,80 +94,80 @@ def test_remove_scars(synthetic_scar_removal_args: dict):
                     [0],
                 ]
             ),
-            3,
-            3,
         ),
         # Successful scar segment: slightly lower value in middle
         (
-            np.array(
-                [
-                    [0],
-                    [3],
-                    [2.1],
-                    [3],
-                    [0],
-                ]
-            ),
-            np.array(
-                [
-                    [0],
-                    [3],
-                    [2.1],
-                    [3],
-                    [0],
-                ]
-            ),
             2,
             3,
+            np.array(
+                [
+                    [0],
+                    [3],
+                    [2.1],
+                    [3],
+                    [0],
+                ]
+            ),
+            np.array(
+                [
+                    [0],
+                    [3],
+                    [2.1],
+                    [3],
+                    [0],
+                ]
+            ),
         ),
         # Successful scar segment: slightly lower value at end
         (
-            np.array(
-                [
-                    [0],
-                    [3],
-                    [3],
-                    [2.1],
-                    [0],
-                ]
-            ),
-            np.array(
-                [
-                    [0],
-                    [3],
-                    [3],
-                    [2.1],
-                    [0],
-                ]
-            ),
             2,
             3,
+            np.array(
+                [
+                    [0],
+                    [3],
+                    [3],
+                    [2.1],
+                    [0],
+                ]
+            ),
+            np.array(
+                [
+                    [0],
+                    [3],
+                    [3],
+                    [2.1],
+                    [0],
+                ]
+            ),
         ),
         # Successful scar segment: slightly lower value at start
         (
-            np.array(
-                [
-                    [0],
-                    [2.1],
-                    [3],
-                    [3],
-                    [0],
-                ]
-            ),
-            np.array(
-                [
-                    [0],
-                    [2.1],
-                    [3],
-                    [3],
-                    [0],
-                ]
-            ),
             2,
             3,
+            np.array(
+                [
+                    [0],
+                    [2.1],
+                    [3],
+                    [3],
+                    [0],
+                ]
+            ),
+            np.array(
+                [
+                    [0],
+                    [2.1],
+                    [3],
+                    [3],
+                    [0],
+                ]
+            ),
         ),
         # Unsuccessful scar segment: descent detected but too slow for a scar.
         (
+            2,
+            3,
             np.array(
                 [
                     [0],
@@ -182,36 +186,36 @@ def test_remove_scars(synthetic_scar_removal_args: dict):
                     [0],
                 ]
             ),
-            2,
-            3,
         ),
         # Unsuccessful scar segment: too wide
         (
-            np.array(
-                [
-                    [0],
-                    [3],
-                    [3],
-                    [3],
-                    [3],
-                    [0],
-                ]
-            ),
-            np.array(
-                [
-                    [0],
-                    [0],
-                    [0],
-                    [0],
-                    [0],
-                    [0],
-                ]
-            ),
             2,
             3,
+            np.array(
+                [
+                    [0],
+                    [3],
+                    [3],
+                    [3],
+                    [3],
+                    [0],
+                ]
+            ),
+            np.array(
+                [
+                    [0],
+                    [0],
+                    [0],
+                    [0],
+                    [0],
+                    [0],
+                ]
+            ),
         ),
         # Unsuccessful scar segment: too wide
         (
+            2,
+            2,
             np.array(
                 [
                     [0],
@@ -230,29 +234,27 @@ def test_remove_scars(synthetic_scar_removal_args: dict):
                     [0],
                 ]
             ),
-            2,
-            2,
         ),
         # Unsuccessful scar segment: touching bottom
         (
-            np.array(
-                [
-                    [0],
-                    [3],
-                    [3],
-                    [3],
-                ]
-            ),
-            np.array(
-                [
-                    [0],
-                    [0],
-                    [0],
-                    [0],
-                ]
-            ),
             2,
             3,
+            np.array(
+                [
+                    [0],
+                    [3],
+                    [3],
+                    [3],
+                ]
+            ),
+            np.array(
+                [
+                    [0],
+                    [0],
+                    [0],
+                    [0],
+                ]
+            ),
         ),
     ],
 )
@@ -274,56 +276,58 @@ def test_mark_if_positive_scar(potential_positive_scar, target, threshold_low, m
 
 
 @pytest.mark.parametrize(
-    "potential_negative_scar, target, threshold_low, max_scar_width",
+    "threshold_low, max_scar_width, potential_negative_scar, target",
     [
         # Successful scar segment
         (
-            np.array(
-                [
-                    [4],
-                    [1],
-                    [1],
-                    [1],
-                    [4],
-                ]
-            ),
-            np.array(
-                [
-                    [0],
-                    [3],
-                    [3],
-                    [3],
-                    [0],
-                ]
-            ),
             2,
             3,
+            np.array(
+                [
+                    [4],
+                    [1],
+                    [1],
+                    [1],
+                    [4],
+                ]
+            ),
+            np.array(
+                [
+                    [0],
+                    [3],
+                    [3],
+                    [3],
+                    [0],
+                ]
+            ),
         ),
         # Unsuccessful scar segment: positive scar rather than negative
         (
-            np.array(
-                [
-                    [0],
-                    [3],
-                    [3],
-                    [3],
-                    [0],
-                ]
-            ),
-            np.array(
-                [
-                    [0],
-                    [0],
-                    [0],
-                    [0],
-                    [0],
-                ]
-            ),
             2,
             3,
+            np.array(
+                [
+                    [0],
+                    [3],
+                    [3],
+                    [3],
+                    [0],
+                ]
+            ),
+            np.array(
+                [
+                    [0],
+                    [0],
+                    [0],
+                    [0],
+                    [0],
+                ]
+            ),
         ),
         # Unsuccessful scar segment: threshold too high
         (
+            3,
+            3,
             np.array(
                 [
                     [4],
@@ -342,11 +346,11 @@ def test_mark_if_positive_scar(potential_positive_scar, target, threshold_low, m
                     [0],
                 ]
             ),
-            3,
-            3,
         ),
         # Successful scar segment: slightly higher value in middle
         (
+            2,
+            3,
             np.array(
                 [
                     [4],
@@ -365,11 +369,11 @@ def test_mark_if_positive_scar(potential_positive_scar, target, threshold_low, m
                     [0],
                 ]
             ),
-            2,
-            3,
         ),
         # Successful scar segment: slightly higher value at end
         (
+            2,
+            3,
             np.array(
                 [
                     [4],
@@ -388,11 +392,11 @@ def test_mark_if_positive_scar(potential_positive_scar, target, threshold_low, m
                     [0],
                 ]
             ),
-            2,
-            3,
         ),
         # Successful scar segment: slightly higher value at start
         (
+            2,
+            3,
             np.array(
                 [
                     [4],
@@ -411,11 +415,11 @@ def test_mark_if_positive_scar(potential_positive_scar, target, threshold_low, m
                     [0],
                 ]
             ),
-            2,
-            3,
         ),
         # Unsuccessful scar segment: ascent detected but too slow for a scar
         (
+            2,
+            3,
             np.array(
                 [
                     [4],
@@ -434,36 +438,36 @@ def test_mark_if_positive_scar(potential_positive_scar, target, threshold_low, m
                     [0],
                 ]
             ),
-            2,
-            3,
         ),
         # Unsuccessful scar segment: too wide
         (
-            np.array(
-                [
-                    [4],
-                    [1],
-                    [1],
-                    [1],
-                    [1],
-                    [4],
-                ]
-            ),
-            np.array(
-                [
-                    [0],
-                    [0],
-                    [0],
-                    [0],
-                    [0],
-                    [0],
-                ]
-            ),
             2,
             3,
+            np.array(
+                [
+                    [4],
+                    [1],
+                    [1],
+                    [1],
+                    [1],
+                    [4],
+                ]
+            ),
+            np.array(
+                [
+                    [0],
+                    [0],
+                    [0],
+                    [0],
+                    [0],
+                    [0],
+                ]
+            ),
         ),
         # Unsuccessful scar segment: too wide
         (
+            2,
+            2,
             np.array(
                 [
                     [4],
@@ -482,11 +486,11 @@ def test_mark_if_positive_scar(potential_positive_scar, target, threshold_low, m
                     [0],
                 ]
             ),
-            2,
-            2,
         ),
         # Unsuccessful scar segment: touching bottom
         (
+            2,
+            3,
             np.array(
                 [
                     [4],
@@ -503,8 +507,6 @@ def test_mark_if_positive_scar(potential_positive_scar, target, threshold_low, m
                     [0],
                 ]
             ),
-            2,
-            3,
         ),
     ],
 )
