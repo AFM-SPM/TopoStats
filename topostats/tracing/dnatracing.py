@@ -84,7 +84,7 @@ class dnaTrace(object):
         self.grains = self.binary_img_to_dict(self.grains_orig)
         # What purpose does binary dilation serve here? Name suggests some sort of smoothing around the edges and
         # the resulting array is used as a mask during the skeletonising process.
-        self.dilate_grains()
+        #self.dilate_grains()
         for grain_num, grain in self.grains.items():
             skeleton = getSkeleton(self.gauss_image, grain).get_skeleton(self.skeletonisation_method)
             LOGGER.info(f"[{self.filename}] {label(skeleton).max()-1} breakages in skeleton {grain_num}")
@@ -1286,17 +1286,20 @@ class nodeStats():
         # find highest values
         np.fill_diagonal(angles, 0)  # ensures not paired with itself
         # match angles
+        print(vectors)
+        print(angles)
         return self.pair_angles(angles)
 
     @staticmethod
     def pair_angles(angles):
         """pairs large values in a symmetric NxN matrix"""
-        angles = angles.copy()
+        angles_cp = angles.copy()
         pairs = []
         for _ in range(int(angles.shape[0]/2)):
-            pair = np.argwhere(angles==angles.max()) # find pairs (2x2)
-            pairs.append(pair[0]) # add to list
-            angles[pair[:,0], pair[:,1]] = 0 # set to 0 to avoid picking again
+            pair = np.unravel_index(np.argmax(angles_cp), angles.shape)
+            pairs.append(pair) # add to list
+            angles_cp[[pair]] = 0 # set rows 0 to avoid picking again
+            angles_cp[:,[pair]] = 0 # set cols 0 to avoid picking again
             
         return np.asarray(pairs)
 
