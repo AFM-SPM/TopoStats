@@ -358,6 +358,7 @@ def _remove_marked_scars(img: np.ndarray, scar_mask: np.ndarray) -> None:
                     img[row + k - 1, col] = interp_val
                     scar_mask[row + k - 1, col] = 0.0
                     k -= 1
+                    LOGGER.debug("Scar removed")
 
 
 def remove_scars(
@@ -436,5 +437,7 @@ def remove_scars(
             first_marked_mask = marked_both
 
         _remove_marked_scars(img, np.copy(marked_both))
+
+        LOGGER.debug("Scars removed")
 
     return img, first_marked_mask
