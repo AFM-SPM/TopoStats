@@ -114,7 +114,7 @@ class Images:
         if self.image_set == "all":
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
-            ax.hist(self.data.flatten().astype(float), bins="auto", log=self.histogram_log_axis)
+            ax.hist(self.data.flatten().astype(float), bins=200, log=self.histogram_log_axis)
             ax.set_xlabel("pixel height")
             if self.histogram_log_axis:
                 ax.set_ylabel("frequency in image (log)")
