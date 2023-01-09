@@ -333,32 +333,31 @@ def _remove_marked_scars(img: np.ndarray, scar_mask: np.ndarray) -> None:
     None
     """
 
-    for row in range(img.shape[0]):
-        for col in range(img.shape[1]):
-            if scar_mask[row, col] == 1.0:
-                # Scar detected
-                # Find out how tall it is
-                scar_width = 1
-                while True:
-                    # Exit if reach the bottom of the image
-                    if row + scar_width >= img.shape[0]:
-                        break
-                    # If pixel is marked, increase scar width
-                    if scar_mask[row + scar_width, col] == 1.0:
-                        scar_width += 1
-                    else:
-                        break
+    for row, col in np.ndindex(img.shape):
+        if scar_mask[row, col] == 1.0:
+            # Scar detected
+            # Find out how tall it is
+            scar_width = 1
+            while True:
+                # Exit if reach the bottom of the image
+                if row + scar_width >= img.shape[0]:
+                    break
+                # If pixel is marked, increase scar width
+                if scar_mask[row + scar_width, col] == 1.0:
+                    scar_width += 1
+                else:
+                    break
 
-                above = img[row - 1, col]
-                below = img[row + scar_width, col]
-                k = scar_width
-                while k:
-                    # Linearly interpolate
-                    interp_val = (k / (scar_width + 1)) * below + (1 - (k / (scar_width + 1))) * above
-                    img[row + k - 1, col] = interp_val
-                    scar_mask[row + k - 1, col] = 0.0
-                    k -= 1
-                    LOGGER.debug("Scar removed")
+            above = img[row - 1, col]
+            below = img[row + scar_width, col]
+            k = scar_width
+            while k:
+                # Linearly interpolate
+                interp_val = (k / (scar_width + 1)) * below + (1 - (k / (scar_width + 1))) * above
+                img[row + k - 1, col] = interp_val
+                scar_mask[row + k - 1, col] = 0.0
+                k -= 1
+                LOGGER.debug("Scar removed")
 
 
 def remove_scars(
