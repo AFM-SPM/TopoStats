@@ -13,6 +13,11 @@ from topostats.theme import Colormap
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
+# pylint: disable=dangerous-default-value
+
 
 class Images:
     """Plots image arrays"""
@@ -194,7 +199,7 @@ class Images:
                 mask = np.ma.masked_where(self.data2 == 0, self.data2)
                 ax.imshow(
                     mask,
-                    cmap = self.mask_cmap,
+                    cmap=self.mask_cmap,
                     extent=(
                         0,
                         shape[1] * self.pixel_to_nm_scaling,
@@ -228,7 +233,9 @@ class Images:
                     dpi=self.dpi,
                 )
             else:
-                plt.savefig((self.output_dir / f"{self.filename}.{self.save_format}"), format=self.save_format, dpi=self.dpi)
+                plt.savefig(
+                    (self.output_dir / f"{self.filename}.{self.save_format}"), format=self.save_format, dpi=self.dpi
+                )
         else:
             plt.xlabel("Nanometres")
             plt.ylabel("Nanometres")
