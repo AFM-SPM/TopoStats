@@ -478,7 +478,7 @@ def minicircle_grain_mask(minicircle_grain_threshold_otsu: Grains) -> Grains:
     minicircle_grain_threshold_otsu.directions["upper"] = {}
     minicircle_grain_threshold_otsu.directions["upper"]["mask_grains"] = _get_mask(
         image=minicircle_grain_threshold_otsu.image,
-        threshold=minicircle_grain_threshold_otsu.thresholds["upper"],
+        thresh=minicircle_grain_threshold_otsu.thresholds["upper"],
         threshold_direction="upper",
         img_name=minicircle_grain_threshold_otsu.filename,
     )

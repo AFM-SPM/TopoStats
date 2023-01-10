@@ -42,7 +42,7 @@ def test_find_images() -> None:
             Path("/heres/some/random/path/images/test.spm"),
             Path("/heres/some/random/path"),
             Path("output/here"),
-            Path("output/here/images/"),
+            Path("output/here/test/"),
         ),
         # Relative path for test.spm, this raises a ValueError
         (
@@ -58,7 +58,7 @@ def test_find_images() -> None:
             Path("/heres/some/random/path/images/test.spm"),
             Path("/heres/some/random/path"),
             Path("/an/absolute/path"),
-            Path("/an/absolute/path/images"),
+            Path("/an/absolute/path/test"),
         ),
         # Absolute path for output and relative path for image
         (
@@ -113,7 +113,7 @@ def test_get_thresholds_stddev(image_random: np.ndarray) -> None:
     assert thresholds == {"lower": -2.3866804917165663, "upper": 0.7886033762450778}
 
     with pytest.raises(TypeError):
-        thresholds = get_thresholds(image=image_random, threshold_method="std_dev", deviation_from_mean=None)
+        thresholds = get_thresholds(image=image_random, threshold_method="std_dev")
 
 
 def test_get_thresholds_absolute(image_random: np.ndarray) -> None:

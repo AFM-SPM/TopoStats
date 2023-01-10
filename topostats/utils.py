@@ -101,14 +101,12 @@ def get_out_path(
         # Remove the filename if there is a suffix, not always the case as
         # get_out_path is called from folder_grainstats()
         if image_path.suffix:
-            return output_dir / image_path.parent.relative_to(base_dir)
-        else:
-            return output_dir / image_path.relative_to(base_dir)
+            return output_dir / image_path.relative_to(base_dir).stem
+        return output_dir / image_path.relative_to(base_dir)
     except ValueError:
         if image_path.suffix:
             return output_dir / image_path.parent
-        else:
-            return output_dir / image_path
+        return output_dir / image_path
     # AttributeError is raised if image_path is a string (since it isn't a Path() object with a .suffix)
     except AttributeError:
         LOGGER.error("A string form of a Path has been passed to 'get_out_path()' for image_path")
@@ -145,7 +143,7 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
     return config
 
 
-def _get_mask(image: np.ndarray, threshold: float, threshold_direction: str, img_name: str = None) -> np.ndarray:
+def _get_mask(image: np.ndarray, thresh: float, threshold_direction: str, img_name: str = None) -> np.ndarray:
     """Calculate a mask for pixels that exceed the threshold
 
     Parameters
@@ -165,11 +163,10 @@ def _get_mask(image: np.ndarray, threshold: float, threshold_direction: str, img
         Numpy array of image with objects coloured.
     """
     if threshold_direction == "upper":
-        LOGGER.info(f"[{img_name}] : Masking (upper) Threshold: {threshold}")
-        return image > threshold
-    if threshold_direction == "lower":
-        LOGGER.info(f"[{img_name}] : Masking (lower) Threshold: {threshold}")
-        return image < threshold
+        LOGGER.info(f"[{img_name}] : Masking (upper) Threshold: {thresh}")
+        return image > thresh
+    LOGGER.info(f"[{img_name}] : Masking (lower) Threshold: {thresh}")
+    return image < thresh
     # LOGGER.fatal(f"[{img_name}] : Threshold direction invalid: {threshold_direction}")
 
 
@@ -194,17 +191,18 @@ def get_mask(image: np.ndarray, thresholds: dict, img_name: str = None) -> np.nd
     """
     # Both thresholds are applicable
     if "lower" in thresholds and "upper" in thresholds:
-        mask_upper = _get_mask(image, threshold=thresholds["upper"], threshold_direction="upper", img_name=img_name)
-        mask_lower = _get_mask(image, threshold=thresholds["lower"], threshold_direction="lower", img_name=img_name)
+        mask_upper = _get_mask(image, thresh=thresholds["upper"], threshold_direction="upper", img_name=img_name)
+        mask_lower = _get_mask(image, thresh=thresholds["lower"], threshold_direction="lower", img_name=img_name)
         # Masks are combined to remove both the extreme high and extreme low data points.
         return mask_upper + mask_lower
     # Only lower threshold is applicable
     if "lower" in thresholds:
-        return _get_mask(image, threshold=thresholds["lower"], threshold_direction="lower", img_name=img_name)
+        return _get_mask(image, thresh=thresholds["lower"], threshold_direction="lower", img_name=img_name)
     # Only upper threshold is applicable
-    return _get_mask(image, threshold=thresholds["upper"], threshold_direction="upper", img_name=img_name)
+    return _get_mask(image, thresh=thresholds["upper"], threshold_direction="upper", img_name=img_name)
 
 
+# pylint: disable=unused-argument
 def get_thresholds(
     image: np.ndarray,
     threshold_method: str,
