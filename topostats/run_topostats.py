@@ -8,7 +8,8 @@ from functools import partial
 import importlib.resources as pkg_resources
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Union
+import sys
+from typing import Union, Dict
 import yaml
 
 import pandas as pd
@@ -18,19 +19,18 @@ from tqdm import tqdm
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import read_yaml, write_yaml, LoadScan
+from topostats.io import read_yaml, write_yaml, LoadScans
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
-from topostats.tracing.dnatracing import dnaTrace, traceStats  # , curvatureStats
+from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import (
     find_images,
     get_out_path,
     update_config,
-    convert_path,
     create_empty_dataframe,
     folder_grainstats,
 )
-from topostats.validation import validate_config, validate_plotting
+from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -57,11 +57,11 @@ def create_parser() -> arg.ArgumentParser:
         help="Path to a YAML configuration file.",
     )
     parser.add_argument(
-        "-p",
-        "--plotting_file",
-        dest="plotting_file",
+        "--create-config-file",
+        dest="create_config_file",
+        type=str,
         required=False,
-        help="Path to a YAML plotting file.",
+        help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
     )
     parser.add_argument(
         "-b",
@@ -116,8 +116,8 @@ def create_parser() -> arg.ArgumentParser:
     parser.add_argument(
         "-w",
         "--warnings",
-        dest="quiet",
-        type=str,
+        dest="warnings",
+        type=bool,
         required=False,
         help="Whether to ignore warnings.",
     )
@@ -125,9 +125,8 @@ def create_parser() -> arg.ArgumentParser:
 
 
 def process_scan(
-    image_path: Union[str, Path],
+    img_path_px2nm: Dict[str, Union[np.ndarray, Path, float]],
     base_dir: Union[str, Path],
-    loading_config: dict,
     filter_config: dict,
     grains_config: dict,
     grainstats_config: dict,
@@ -139,12 +138,10 @@ def process_scan(
 
     Parameters
     ----------
-    image_path : Union[str, Path]
-        Path to image to process.
+    img_path_px2nm : Dict[str, Union[np.ndarray, Path, float]]
+        A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's pixel to namometre scaling value.
     base_dir : Union[str, Path]
         Directory to recursively search for files, if not specified the current directory is scanned.
-    loading_config : dict
-        Dictionary of configuration options for running the Load Scan stage.
     filter_config : dict
         Dictionary of configuration options for running the Filter stage.
     grains_config : dict
@@ -166,24 +163,23 @@ def process_scan(
 
     Results are written to CSV and images produced in configuration options request them.
     """
-    LOGGER.info(f"Processing : {image_path}")
-    _output_dir = get_out_path(image_path, base_dir, output_dir) / "Processed"
+
+    image = img_path_px2nm["image"]
+    image_path = img_path_px2nm["img_path"]
+    pixel_to_nm_scaling = img_path_px2nm["px_2_nm"]
+    filename = image_path.stem
+
+    LOGGER.info(f"Processing : {filename}")
+    _output_dir = get_out_path(image_path, base_dir, output_dir).parent / "Processed"
     _output_dir.mkdir(parents=True, exist_ok=True)
 
     if plotting_config["image_set"] == "core":
         filter_out_path = _output_dir
     else:
-        filter_out_path = Path(_output_dir) / image_path.stem / "filters"
+        filter_out_path = Path(_output_dir) / filename / "filters"
         filter_out_path.mkdir(exist_ok=True, parents=True)
-        Path.mkdir(_output_dir / image_path.stem / "grains" / "upper", parents=True, exist_ok=True)
-        Path.mkdir(_output_dir / image_path.stem / "grains" / "lower", parents=True, exist_ok=True)
-
-    # Extract image and image params
-    scan_loader = LoadScan(image_path, **loading_config)
-    scan_loader.get_data()
-    image = scan_loader.image
-    pixel_to_nm_scaling = scan_loader.pixel_to_nm_scaling
-    filename = scan_loader.filename
+        Path.mkdir(_output_dir / filename / "grains" / "upper", parents=True, exist_ok=True)
+        Path.mkdir(_output_dir / filename / "grains" / "lower", parents=True, exist_ok=True)
 
     # Filter Image :
     if filter_config["run"]:
@@ -293,7 +289,7 @@ def process_scan(
                 if key in ["grain_image", "grain_mask", "grain_mask_image"]
             }
             grainstats = {}
-            for direction in grains.directions.keys():
+            for direction, _ in grains.directions.items():
                 grainstats[direction] = GrainStats(
                     data=filtered_image.images["gaussian_filtered"],
                     labelled_data=grains.directions[direction]["labelled_regions_02"],
@@ -331,7 +327,7 @@ def process_scan(
                     tracing_stats[direction].df["threshold"] = direction
                     dna_traces[direction].saveTraceFigures(
                         filename,
-                        loading_config["channel"],
+                        'Height',
                         plotting_config["zrange"][1],
                         plotting_config["zrange"][0],
                         _output_dir,
@@ -340,13 +336,13 @@ def process_scan(
                         dna_traces[direction].write_coordinates(
                             i,
                             filename,
-                            loading_config["channel"],
+                            'Height',
                             _output_dir,
                         )
                         dna_traces[direction].plot_curvature(
                             i,
                             filename,
-                            loading_config["channel"],
+                            'Height',
                             _output_dir,
                         )
 
@@ -374,32 +370,45 @@ def process_scan(
     return image_path, results
 
 
-def main():
-    """Run processing."""
+def main(args=None):
+    """Find and process all files."""
 
     # Parse command line options, load config (or default) and update with command line options
     parser = create_parser()
-    args = parser.parse_args()
+    args = parser.parse_args() if args is None else parser.parse_args(args)
     if args.config_file is not None:
         config = read_yaml(args.config_file)
     else:
         default_config = pkg_resources.open_text(__package__, "default_config.yaml")
         config = yaml.safe_load(default_config.read())
     config = update_config(config, args)
-    config["output_dir"] = convert_path(config["output_dir"])
 
     # Validate configuration
-    validate_config(config)
+    validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 
+    # Write sample configuration if asked to do so and exit
+    if args.create_config_file:
+        write_yaml(
+            config,
+            output_dir="./",
+            config_file=args.create_config_file,
+            header_message="Sample configuration file auto-generated",
+        )
+        LOGGER.info(f"A sample configuration has been written to : ./{args.create_config_file}")
+        LOGGER.info(
+            "Please refer to the documentation on how to use the configuration file : \n\n"
+            "https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats\n"
+            "https://afm-spm.github.io/TopoStats/configuration.html"
+        )
+        sys.exit()
     # Load plotting_dictionary and validate
-    if args.plotting_file is not None:
-        config["plotting"]["plot_dict"] = read_yaml(args.plotting_file)
-    else:
-        plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
-        config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
-    validate_plotting(config["plotting"]["plot_dict"])
+    plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
+    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    validate_config(
+        config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML plotting configuration file"
+    )
 
     # FIXME : Make this a function and from topostats.utils import update_plot_dict and write tests
     # Update the config["plotting"]["plot_dict"] with plotting options
@@ -426,7 +435,7 @@ def main():
     if len(img_files) == 0:
         LOGGER.error(f"No images with extension {config['file_ext']} in {config['base_dir']}")
         LOGGER.error("Please check your configuration and directories.")
-        exit()
+        sys.exit()
     LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
     LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
 
@@ -436,7 +445,6 @@ def main():
     processing_function = partial(
         process_scan,
         base_dir=config["base_dir"],
-        loading_config=config["loading"],
         filter_config=config["filter"],
         grains_config=config["grains"],
         grainstats_config=config["grainstats"],
@@ -445,13 +453,20 @@ def main():
         output_dir=config["output_dir"],
     )
 
+    all_scan_data = LoadScans(img_files, **config["loading"])
+    all_scan_data.get_data()
+    scan_data_dict = all_scan_data.img_dic
+
     with Pool(processes=config["cores"]) as pool:
         results = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result in pool.imap_unordered(processing_function, img_files):
+            for img, result in pool.imap_unordered(
+                processing_function,
+                scan_data_dict.values(),
+            ):
                 results[str(img)] = result
                 pbar.update()
     results = pd.concat(results.values())
@@ -459,6 +474,7 @@ def main():
     results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)
     LOGGER.info(
         (
+            f"~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~"
             f"All statistics combined for {len(img_files)} images(s) are "
             f"saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
         )
