@@ -97,7 +97,7 @@ Aside from the comments in YAML file itself the fields are described below.
 |              | `cmap`                         | string     | `nanoscope`    | Colormap to use in plotting. Options : `nanoscope`, `afmhot`                                                                                                                                                                                                 |
 |              | `histogram_log_axis`           | boolean    | `false`        | Whether to plot hisograms using a logarithmic scale or not. Options: `true`, `false`.
 |              | `histogram_bins`               | int        |200             | Number of bins to use for histograms
-
+|
 
 ## Validation
 
