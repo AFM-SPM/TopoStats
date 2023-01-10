@@ -102,8 +102,20 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "upper": lambda n: n > 0,
             },
             "threshold_absolute": {
-                "lower": lambda n: n < 0,
-                "upper": lambda n: n > 0,
+                "lower": Or(
+                    int,
+                    float,
+                    error=(
+                        "Invalid value in config for filter.threshold.absolute.lower " "should be type int or float"
+                    ),
+                ),
+                "upper": Or(
+                    int,
+                    float,
+                    error=(
+                        "Invalid value in config for filter.threshold.absolute.lower " "should be type int or float"
+                    ),
+                ),
             },
             "gaussian_size": float,
             "gaussian_mode": Or(
@@ -129,8 +141,20 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "upper": lambda n: n > 0,
             },
             "threshold_absolute": {
-                "lower": lambda n: n < 0,
-                "upper": lambda n: n > 0,
+                "lower": Or(
+                    int,
+                    float,
+                    error=(
+                        "Invalid value in config for grains.threshold.absolute.lower " "should be type int or float"
+                    ),
+                ),
+                "upper": Or(
+                    int,
+                    float,
+                    error=(
+                        "Invalid value in config for grains.threshold.absolute.lower " "should be type int or float"
+                    ),
+                ),
             },
             "absolute_area_threshold": {
                 "upper": [
