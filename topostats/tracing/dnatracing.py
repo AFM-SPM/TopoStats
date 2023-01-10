@@ -1080,24 +1080,17 @@ class dnaTrace(object):
         nm_each_side = 10  # nm each side of the max curvature point used to determine bending angle
         for dna_num in sorted(self.splined_traces.keys()):
             if self.contour_lengths[dna_num] > 80:  # Filtering out molecules that are too small
-                LOGGER.info(f"Molecule number: {dna_num}")
                 length = len(self.curvature[dna_num])
-                LOGGER.info(f"Molecule {dna_num} length: {length}")
                 mid_nm = self.curvature[dna_num][int(length / 2), 1]
                 start_nm = mid_nm - 10  # Starting point of the middle section, in nm
-                LOGGER.info(f"starting nm: {start_nm}")
                 end_nm = mid_nm + 10  # Ending point of the middle section, in nm
-                LOGGER.info(f"ending nm: {end_nm}")
                 start = np.argmin(np.abs(self.curvature[dna_num][:, 1] - start_nm))
                 end = np.argmin(np.abs(self.curvature[dna_num][:, 1] - end_nm))
-                LOGGER.info(f"Molecule {dna_num} start: {start}")
-                LOGGER.info(f"Molecule {dna_num} end: {end}")
                 self.central_curvature[dna_num] = self.curvature[dna_num][start:end]  # Middle 20 nm of the molecule
                 self.central_max_curvature[dna_num] = np.amax(np.abs(self.central_curvature[dna_num][:, 2]))  # in nm
                 position_in_central = np.argmax(np.abs(self.central_curvature[dna_num][:, 2]))
                 self.central_max_curvature_location[dna_num] = self.central_curvature[dna_num][position_in_central, 1]
                 position = position_in_central + start  # The location of the max curvature point in the entire molecule
-                LOGGER.info(f"Molecule {dna_num} position: {position} ")
 
                 # Left line that forms the bending angle
                 left_nm = self.central_max_curvature_location[dna_num] - nm_each_side
