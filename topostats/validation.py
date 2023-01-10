@@ -243,6 +243,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or 'False'",
             ),
+            "histogram_bins": lambda n: n > 0,
         },
     }
 )

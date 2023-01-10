@@ -50,3 +50,4 @@ plotting:
   axes: true # Options : true, false (due to off being a bool when parsed)
   cmap: nanoscope # Options : nanoscope, afmhot
   histogram_log_axis: false # Options : true, false
+  histogram_bins: 200 # Number of bins for histogram plots to use
