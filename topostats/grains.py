@@ -20,6 +20,8 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=line-too-long
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=bare-except
+# pylint: disable=dangerous-default-value
+# pylint: disable=too-many-arguments
 
 
 class Grains:
@@ -39,7 +41,7 @@ class Grains:
             "lower": [None, None],
         },
         direction: str = None,
-        absolute_smallest_grain_size: float = None,
+        smallest_grain_size: float = None,
     ):
         """Initialise the class.
 
@@ -74,7 +76,7 @@ class Grains:
         self.absolute_area_threshold = absolute_area_threshold
         # Only detect grains for the desired direction
         self.direction = [direction] if direction != "both" else ["upper", "lower"]
-        self.absolute_smallest_grain_size = absolute_smallest_grain_size
+        self.smallest_grain_size = smallest_grain_size
         self.thresholds = None
         self.images = {
             "mask_grains": None,
@@ -144,7 +146,7 @@ class Grains:
             self.minimum_grain_size = -1
 
     def remove_noise(self, image: np.ndarray) -> np.ndarray:
-        """Removes noise which are objects smaller than the 'absolute_smallest_grain_size'.
+        """Removes noise which are objects smaller than the 'smallest_grain_size'.
 
         This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.
 
@@ -156,10 +158,10 @@ class Grains:
         Returns
         -------
         np.ndarray
-            2D Numpy array of image with objects < absolute_smallest_grain_size removed.
+            2D Numpy array of image with objects < smallest_grain_size removed.
         """
-        LOGGER.info(f"[{self.filename}] : Removing noise (< {self.absolute_smallest_grain_size})")
-        return remove_small_objects(image, min_size=self.absolute_smallest_grain_size)
+        LOGGER.info(f"[{self.filename}] : Removing noise (< {self.smallest_grain_size})")
+        return remove_small_objects(image, min_size=self.smallest_grain_size)
 
     def remove_small_objects(self, image: np.array, **kwargs):
         """Remove small objects."""
@@ -289,7 +291,7 @@ class Grains:
                 )
                 self.directions[direction]["removed_noise"] = self.area_thresholding(
                     self.directions[direction]["tidied_border"],
-                    [self.absolute_smallest_grain_size * self.pixel_to_nm_scaling, None],
+                    [self.smallest_grain_size * self.pixel_to_nm_scaling, None],
                 )
                 # if no area thresholds specified, use otsu
                 if self.absolute_area_threshold[direction].count(None) == 2:
