@@ -145,10 +145,12 @@ class Grains:
         else:
             self.minimum_grain_size = -1
 
-    def remove_noise(self, image: np.ndarray) -> np.ndarray:
+    def remove_noise(self, image: np.ndarray, **kwargs) -> np.ndarray:
         """Removes noise which are objects smaller than the 'smallest_grain_size'.
 
         This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.
+
+        Value uses nanometres so that users can define how large the noise is in relatable SI units.
 
         Parameters
         ----------
@@ -160,21 +162,35 @@ class Grains:
         np.ndarray
             2D Numpy array of image with objects < smallest_grain_size removed.
         """
-        LOGGER.info(f"[{self.filename}] : Removing noise (< {self.smallest_grain_size})")
-        return remove_small_objects(image, min_size=self.smallest_grain_size)
+        LOGGER.info(
+            f"[{self.filename}] : Removing noise (< {self.smallest_grain_size / (self.pixel_to_nm_scaling)**2} nm^2)"
+        )
+        return remove_small_objects(
+            image, min_size=self.smallest_grain_size / (self.pixel_to_nm_scaling) ** 2, **kwargs
+        )
 
     def remove_small_objects(self, image: np.array, **kwargs):
-        """Remove small objects."""
+        """Remove small objects from the input image. Threshold determined by the minimum_grain_size variable of the
+        Grains class.
+
+        Parameters
+        image: np.ndarray
+            2D Numpy image to remove small objects from.
+        Returns
+        np.ndarray
+            2D Numpy array of image with objects < minimum_grain_size removed.
+        """
+
         # If self.minimum_grain_size is -1, then this means that
         # there were no grains to calculate the minimum grian size from.
         if self.minimum_grain_size != -1:
             small_objects_removed = remove_small_objects(
                 image,
-                min_size=(self.minimum_grain_size * self.pixel_to_nm_scaling),
+                min_size=(self.minimum_grain_size / (self.pixel_to_nm_scaling) ** 2),
                 **kwargs,
             )
             LOGGER.info(
-                f"[{self.filename}] : Removed small objects (< {self.minimum_grain_size * self.pixel_to_nm_scaling})"
+                f"[{self.filename}] : Removed small objects (< {self.minimum_grain_size / (self.pixel_to_nm_scaling)**2} nm^2)"
             )
             return small_objects_removed > 0.0
         return image
