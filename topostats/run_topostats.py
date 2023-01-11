@@ -327,22 +327,23 @@ def process_scan(
                     tracing_stats[direction].df["threshold"] = direction
                     dna_traces[direction].saveTraceFigures(
                         filename,
-                        'Height',
+                        "Height",
                         plotting_config["zrange"][1],
                         plotting_config["zrange"][0],
                         _output_dir,
                     )
-                    for i in [1, 4, 7, 9, 11, 13, 14, 17, 18, 21, 22, 27, 28, 32, 33, 38, 39, 40, 45]:
+                    # for i in [1, 4, 7, 9, 11, 13, 14, 17, 18, 21, 22, 27, 28, 32, 33, 38, 39, 40, 45]:
+                    for i in []:
                         dna_traces[direction].write_coordinates(
                             i,
                             filename,
-                            'Height',
+                            "Height",
                             _output_dir,
                         )
                         dna_traces[direction].plot_curvature(
                             i,
                             filename,
-                            'Height',
+                            "Height",
                             _output_dir,
                         )
 
