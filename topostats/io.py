@@ -2,7 +2,7 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Union, Dict
+from typing import Dict, List, Union
 import numpy as np
 
 import pySPM
@@ -73,6 +73,62 @@ def write_yaml(
             f.write(yaml_dump(config_yaml))
         except YAMLError as exception:
             LOGGER.error(exception)
+
+
+def get_out_path(
+    image_path: Union[str, Path] = None, base_dir: Union[str, Path] = None, output_dir: Union[str, Path] = None
+) -> Path:
+    """Adds the image path relative to the base directory to the output directory.
+
+    Parameters
+    ----------
+    image_path: Path
+        The path of the current image.
+    base_dir: Path
+        Directory to recursively search for files.
+    output_dir: Path
+        The output directory specified in the configuration file.
+
+    Returns
+    -------
+    Path
+        The output path that mirrors the input path structure.
+    """
+    # If image_path is relative and doesn't include base_dir then a ValueError is raised, in which
+    # case we just want to append the image_path to the output_dir
+    try:
+        # Remove the filename if there is a suffix, not always the case as
+        # get_out_path is called from folder_grainstats()
+        if image_path.suffix:
+            return output_dir / image_path.relative_to(base_dir).parent / image_path.stem
+        return output_dir / image_path.relative_to(base_dir)
+    except ValueError:
+        if image_path.suffix:
+            return output_dir / image_path.parent / image_path.stem
+        return Path(str(output_dir) + "/" + str(image_path))
+    # AttributeError is raised if image_path is a string (since it isn't a Path() object with a .suffix)
+    except AttributeError:
+        LOGGER.error("A string form of a Path has been passed to 'get_out_path()' for image_path")
+        raise
+
+
+def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> List:
+    """Scan the specified directory for images with the given file extension.
+
+    Parameters
+    ----------
+    base_dir: Union[str, Path]
+        Directory to recursively search for files, if not specified the current directory is scanned.
+    file_ext: str
+        File extension to search for.
+
+    Returns
+    -------
+    List
+        List of files found with the extension in the given directory.
+    """
+    base_dir = Path("./") if base_dir is None else Path(base_dir)
+    return list(base_dir.glob("**/*" + file_ext))
 
 
 # pylint: disable=too-many-instance-attributes

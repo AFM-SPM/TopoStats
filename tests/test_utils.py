@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 import pandas as pd
 
-from topostats.utils import convert_path, find_images, get_out_path, update_config, get_thresholds, folder_grainstats
+from topostats.utils import convert_path, update_config, get_thresholds, folder_grainstats
 
 
 THRESHOLD_OPTIONS = {
@@ -22,69 +22,6 @@ def test_convert_path(tmp_path: Path) -> None:
 
     assert isinstance(converted_path, Path)
     assert tmp_path == converted_path
-
-
-def test_find_images() -> None:
-    """Test finding images"""
-    found_images = find_images(base_dir="tests/", file_ext=".spm")
-
-    assert isinstance(found_images, list)
-    assert len(found_images) == 1
-    assert isinstance(found_images[0], Path)
-    assert "minicircle.spm" in str(found_images[0])
-
-
-@pytest.mark.parametrize(
-    "image_path, base_dir, output_dir, expected",
-    [
-        # Full absolute path for test.spm
-        (
-            Path("/heres/some/random/path/images/test.spm"),
-            Path("/heres/some/random/path"),
-            Path("output/here"),
-            Path("output/here/test/"),
-        ),
-        # Relative path for test.spm, this raises a ValueError
-        (
-            Path("images/test.spm"),
-            Path("/heres/some/random/path"),
-            Path("output/here"),
-            Path("output/here/images/"),
-        ),
-        # No file with suffix
-        (Path("images/"), Path("/heres/some/random/path"), Path("output/here"), Path("output/here/images/")),
-        # Absolute path for output
-        (
-            Path("/heres/some/random/path/images/test.spm"),
-            Path("/heres/some/random/path"),
-            Path("/an/absolute/path"),
-            Path("/an/absolute/path/test"),
-        ),
-        # Absolute path for output and relative path for image
-        (
-            Path("images/test.spm"),
-            Path("/heres/some/random/path"),
-            Path("/an/absolute/path"),
-            Path("/an/absolute/path/images"),
-        ),
-    ],
-)
-def test_get_out_path(image_path: Path, base_dir: Path, output_dir: Path, expected: Path) -> None:
-    """Test output directories"""
-    image_path = Path(image_path)
-    base_dir = Path(base_dir)
-    output_dir = Path(output_dir)
-    out_path = get_out_path(image_path, base_dir, output_dir)
-    assert isinstance(out_path, Path)
-    assert out_path == expected
-
-
-def test_get_out_path_attributeerror() -> None:
-    """Test get_out_path() raises AttribteError when passed a string instead of a Path() for image_path."""
-    with pytest.raises(AttributeError):
-        get_out_path(
-            image_path="images/test.spm", base_dir=Path("/heres/some/random/path"), output_dir=Path("output/here")
-        )
 
 
 def test_update_config(caplog) -> None:

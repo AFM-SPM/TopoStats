@@ -19,13 +19,11 @@ from tqdm import tqdm
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import read_yaml, write_yaml, LoadScans
+from topostats.io import find_images, read_yaml, write_yaml, get_out_path, LoadScans
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import (
-    find_images,
-    get_out_path,
     update_config,
     create_empty_dataframe,
     folder_grainstats,
@@ -170,16 +168,18 @@ def process_scan(
     filename = image_path.stem
 
     LOGGER.info(f"Processing : {filename}")
-    _output_dir = get_out_path(image_path, base_dir, output_dir).parent / "Processed"
-    _output_dir.mkdir(parents=True, exist_ok=True)
+    core_out_path = get_out_path(image_path, base_dir, output_dir).parent / "processed"
+    core_out_path.mkdir(parents=True, exist_ok=True)
 
     if plotting_config["image_set"] == "core":
-        filter_out_path = _output_dir
+        filter_out_path = core_out_path
     else:
-        filter_out_path = Path(_output_dir) / filename / "filters"
-        filter_out_path.mkdir(exist_ok=True, parents=True)
-        Path.mkdir(_output_dir / filename / "grains" / "upper", parents=True, exist_ok=True)
-        Path.mkdir(_output_dir / filename / "grains" / "lower", parents=True, exist_ok=True)
+        filter_out_path = core_out_path / "filters"
+        filter_out_path = Path(output_dir) / filename / "filters"
+    grain_out_path = core_out_path / "grains"
+    filter_out_path.mkdir(exist_ok=True, parents=True)
+    Path.mkdir(grain_out_path / "upper", parents=True, exist_ok=True)
+    Path.mkdir(grain_out_path / "lower", parents=True, exist_ok=True)
 
     # Filter Image :
     if filter_config["run"]:
@@ -214,7 +214,10 @@ def process_scan(
                     except AttributeError:
                         LOGGER.info(f"[{filename}] Unable to generate plot : {plot_name}")
             plot_name = "z_threshed"
-            plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
+            if plotting_config["image_set"] == "core":
+                plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
+            else:
+                plotting_config["plot_dict"][plot_name]["output_dir"] = filter_out_path
             Images(
                 filtered_image.images["gaussian_filtered"],
                 filename=filename + "_processed",
@@ -246,18 +249,24 @@ def process_scan(
             plotting_config.pop("run")
             LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
             for direction, image_arrays in grains.directions.items():
-                output_dir = Path(_output_dir) / filename / "grains" / f"{direction}"
+                # output_dir = Path(_output_dir) / filename / "grains" / f"{direction}"
                 for plot_name, array in image_arrays.items():
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                     Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
                 # Make a plot of coloured regions with bounding boxes
-                plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = output_dir
+                # plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = output_dir
+                plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = (
+                    Path(core_out_path) / filename / "grains" / f"{direction}"
+                )
                 Images(
                     grains.directions[direction]["coloured_regions"],
                     **plotting_config["plot_dict"]["bounding_boxes"],
                     region_properties=grains.region_properties[direction],
                 ).plot_and_save()
-                plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = output_dir
+                # plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = output_dir
+                plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = (
+                    Path(core_out_path) / filename / "grains" / f"{direction}"
+                )
                 Images(
                     grains.directions[direction]["labelled_regions_02"],
                     **plotting_config["plot_dict"]["coloured_boxes"],
@@ -265,7 +274,11 @@ def process_scan(
                 ).plot_and_save()
 
                 plot_name = "mask_overlay"
-                plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
+                # plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
+                if plotting_config["image_set"] == "core":
+                    plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
+                else:
+                    plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
                 Images(
                     filtered_image.images["gaussian_filtered"],
                     filename=f"{filename}_{direction}_processed_masked",
@@ -295,7 +308,7 @@ def process_scan(
                         labelled_data=grains.directions[direction]["labelled_regions_02"],
                         pixel_to_nanometre_scaling=pixel_to_nm_scaling,
                         direction=direction,
-                        base_output_dir=_output_dir / "grains",
+                        base_output_dir=core_out_path / "grains",
                         image_name=filename,
                         plot_opts=grain_plot_dict,
                         **grainstats_config,
