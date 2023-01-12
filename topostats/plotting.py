@@ -14,7 +14,7 @@ from cycler import cycler
 from pathlib import Path
 from topostats.io import read_yaml
 
-plotting_config = read_yaml(Path("./config/plotting_config.yml"))
+plotting_config = read_yaml(Path("../config/plotting_config.yml"))
 
 # Need to define extension for tests to pass
 extension = ".png"
@@ -65,6 +65,7 @@ colname2label = {
     "smallest_bounding_length": "Smallest Bounding Length / nm",
     "smallest_bounding_area": "Smallest Bounding Area / $\mathregular{nm^2}$",
     "aspect_ratio": "Aspect Ratio",
+    "Bending Angle": "Bending Angle / degrees",
 }
 
 
@@ -287,8 +288,8 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     plt.ylabel("Count", alpha=1)
     plt.ticklabel_format(axis="both", style="sci", scilimits=(-3, 3))
     # Need to return fig in order to test
-    # plt.savefig(savename)
-    return fig
+    plt.savefig(savename)
+    # return fig
 
 
 def plothist2var(
@@ -569,6 +570,7 @@ if __name__ == "__main__":
     # import data from the csv file
     path = plotting_config["file"]
     df = importfromfile(path)
+    df = df[df['Bending Angle'] != 0]
     extension = plotting_config["extension"]
 
     for plot in plotting_config["plots"]:
