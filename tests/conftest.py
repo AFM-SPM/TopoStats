@@ -105,6 +105,7 @@ def dnatracing_config(default_config: Dict) -> Dict:
 def plotting_config(default_config: Dict) -> Dict:
     """Configurations for filtering"""
     config = default_config["plotting"]
+    config["image_set"] = "all"
     config.pop("run")
     config.pop("plot_dict")
     return config
@@ -478,7 +479,7 @@ def minicircle_grain_mask(minicircle_grain_threshold_otsu: Grains) -> Grains:
     minicircle_grain_threshold_otsu.directions["upper"] = {}
     minicircle_grain_threshold_otsu.directions["upper"]["mask_grains"] = _get_mask(
         image=minicircle_grain_threshold_otsu.image,
-        threshold=minicircle_grain_threshold_otsu.thresholds["upper"],
+        thresh=minicircle_grain_threshold_otsu.thresholds["upper"],
         threshold_direction="upper",
         img_name=minicircle_grain_threshold_otsu.filename,
     )
