@@ -158,10 +158,7 @@ class Images:
                         fig, ax = self.save_figure()
                     else:
                         self.save_array_figure()
-        if "_processed" in self.filename:
-            LOGGER.info(
-                f"[{self.filename.split('_processed')[0]}] : Image saved to : {str(self.output_dir / self.filename)}"
-            )
+        LOGGER.info(f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}")
         return fig, ax
 
     def save_figure(self):

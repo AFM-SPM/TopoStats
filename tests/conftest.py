@@ -105,6 +105,7 @@ def dnatracing_config(default_config: Dict) -> Dict:
 def plotting_config(default_config: Dict) -> Dict:
     """Configurations for filtering"""
     config = default_config["plotting"]
+    config["image_set"] = "all"
     config.pop("run")
     config.pop("plot_dict")
     return config
