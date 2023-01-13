@@ -144,9 +144,6 @@ def test_load_scan_jpk(load_scan_jpk: LoadScans) -> None:
     load_scan_jpk.img_path = load_scan_jpk.img_paths[0]
     load_scan_jpk.filename = load_scan_jpk.img_paths[0].stem
     image, px_to_nm_scaling = load_scan_jpk.load_jpk()
-    print(image.shape)
-    print(image.sum())
-    print(px_to_nm_scaling)
     assert isinstance(image, np.ndarray)
     assert image.shape == (256, 256)
     assert image.sum() == 286598232.9308627

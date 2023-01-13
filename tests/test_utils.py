@@ -78,8 +78,5 @@ def test_folder_grainstats(tmp_path: Path, minicircle_tracestats: pd.DataFrame) 
     minicircle_tracestats["Basename"] = input_path / "subfolder"
     out_path = tmp_path / "subfolder" / "processed"
     Path.mkdir(out_path, parents=True)
-    print(f"###### out_path   : {out_path}")
-    print(f"###### input_path : {input_path}")
-    print(f"###### minicircle_tracestats :\n{minicircle_tracestats['Basename']}")
     folder_grainstats(tmp_path, input_path, minicircle_tracestats)
     assert Path(out_path / "folder_grainstats.csv").exists()
