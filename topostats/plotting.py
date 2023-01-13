@@ -14,7 +14,7 @@ from cycler import cycler
 from pathlib import Path
 from topostats.io import read_yaml
 
-plotting_config = read_yaml(Path("../config/plotting_config.yml"))
+plotting_config = read_yaml(Path("../config/jean_plotting_config.yml"))
 
 # Need to define extension for tests to pass
 extension = ".png"
@@ -574,8 +574,8 @@ if __name__ == "__main__":
     path = plotting_config["file"]
     path2 = plotting_config["file2"]
     df = importfromfile(path)
-    # df = df[df['Bending Angle'] != 0]
-    df2 = importfromfile(path2)
+    df = df[df['Bending Angle'] != 0]
+    # df2 = importfromfile(path2)
     # df2 = df2[df2['Bending Angle'] != 0]
     extension = plotting_config["extension"]
     output_dir = plotting_config["output_dir"]

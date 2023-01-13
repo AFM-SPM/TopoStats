@@ -2,6 +2,8 @@
 from pathlib import Path
 
 import pytest
+from matplotlib.figure import Figure
+from matplotlib.axes import Axes
 import numpy as np
 from skimage import io
 
@@ -11,11 +13,11 @@ from topostats.plottingfuncs import Images
 
 
 @pytest.mark.parametrize(
-    "data2, axes_colorbar, region_properties",
+    "masked_array, axes_colorbar, region_properties",
     [(np.random.rand(10, 10), True, None), (None, True, None), (None, False, True)],
 )
 def test_save_figure(
-    data2: np.ndarray,
+    masked_array: np.ndarray,
     axes_colorbar: bool,
     region_properties: bool,
     image_random: np.ndarray,
@@ -29,14 +31,14 @@ def test_save_figure(
         data=image_random,
         output_dir=tmp_path,
         filename="result",
-        data2=data2,
+        masked_array=masked_array,
         colorbar=axes_colorbar,
         axes=axes_colorbar,
         region_properties=region_properties,
     ).save_figure()
     assert Path(tmp_path / "result.png").exists()
-    assert fig is not None
-    assert ax is not None
+    assert isinstance(fig, Figure)
+    assert isinstance(ax, Axes)
 
 
 def test_save_array_figure(tmp_path: Path):

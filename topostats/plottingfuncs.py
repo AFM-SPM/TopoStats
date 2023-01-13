@@ -11,6 +11,11 @@ import numpy as np
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
 
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-locals
+# pylint: disable=too-many-arguments
+# pylint: disable=dangerous-default-value
+
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
@@ -23,7 +28,7 @@ class Images:
         output_dir: Union[str, Path],
         filename: str,
         pixel_to_nm_scaling: float = 1.0,
-        data2: np.array = None,
+        masked_array: np.array = None,
         title: str = None,
         image_type: str = "non-binary",
         image_set: str = "core",
@@ -37,6 +42,7 @@ class Images:
         save: bool = True,
         save_format: str = "png",
         histogram_log_axis: bool = True,
+        histogram_bins: int = 200,
     ) -> None:
         """
         Initialise the class.
@@ -51,7 +57,7 @@ class Images:
             Filename to save image as.
         pixel_to_nm_scaling : float
             The scaling factor showing the real length of 1 pixel, in nm.
-        data2 : np.ndarray
+        masked_array : np.ndarray
             Optional mask array to overlay onto an image.
         title : str
             Title for plot.
@@ -78,14 +84,16 @@ class Images:
         save_format: str
             Format to save the image as.
         histogram_log_axis: bool
-            Optionally use a logarithmic y axis for the histogram plots
+            Optionally use a logarithmic y axis for the histogram plots.
+        histogram_binis: int
+            Number of bins for histograms to use.
         """
 
         self.data = data
         self.output_dir = Path(output_dir)
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
-        self.data2 = data2
+        self.masked_array = masked_array
         self.title = title
         self.image_type = image_type
         self.image_set = image_set
@@ -99,6 +107,7 @@ class Images:
         self.save = save
         self.save_format = save_format
         self.histogram_log_axis = histogram_log_axis
+        self.histogram_bins = histogram_bins
 
     def plot_histogram_and_save(self):
         """
@@ -114,7 +123,7 @@ class Images:
         if self.image_set == "all":
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
-            ax.hist(self.data.flatten().astype(float), bins="auto", log=self.histogram_log_axis)
+            ax.hist(self.data.flatten().astype(float), bins=self.histogram_bins, log=self.histogram_log_axis)
             ax.set_xlabel("pixel height")
             if self.histogram_log_axis:
                 ax.set_ylabel("frequency in image (log)")
@@ -130,8 +139,7 @@ class Images:
             plt.close()
 
             return fig, ax
-        else:
-            return None
+        return None
 
     def plot_and_save(self):
         """
@@ -150,14 +158,11 @@ class Images:
                 if self.axes or self.colorbar:
                     fig, ax = self.save_figure()
                 else:
-                    if isinstance(self.data2, np.ndarray) or self.region_properties:
+                    if isinstance(self.masked_array, np.ndarray) or self.region_properties:
                         fig, ax = self.save_figure()
                     else:
                         self.save_array_figure()
-        if "_processed" in self.filename:
-            LOGGER.info(
-                f"[{self.filename.split('_processed')[0]}] : Image saved to : {str(self.output_dir / self.filename)}"
-            )
+        LOGGER.info(f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}")
         return fig, ax
 
     def save_figure(self):
@@ -182,9 +187,9 @@ class Images:
                 vmin=self.zrange[0],
                 vmax=self.zrange[1],
             )
-            if isinstance(self.data2, np.ndarray):
-                self.data2[self.data2 != 0] = 1
-                mask = np.ma.masked_where(self.data2 == 0, self.data2)
+            if isinstance(self.masked_array, np.ndarray):
+                self.masked_array[self.masked_array != 0] = 1
+                mask = np.ma.masked_where(self.masked_array == 0, self.masked_array)
                 ax.imshow(
                     mask,
                     "jet_r",
