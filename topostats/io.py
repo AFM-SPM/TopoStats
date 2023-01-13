@@ -113,7 +113,7 @@ def get_out_path(
 
 
 def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> List:
-    """Scan the specified directory for images with the given file extension.
+    """Recursively scan the specified directory for images with the given file extension.
 
     Parameters
     ----------
