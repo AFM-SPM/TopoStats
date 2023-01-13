@@ -9,6 +9,7 @@ import numpy as np
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import get_thresholds, get_mask
+from topostats import scars
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -19,7 +20,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-branches
-
+# pylint: disable=dangerous-default-value
 
 class Filters:
     """Class for filtering scans."""
@@ -35,6 +36,7 @@ class Filters:
         threshold_absolute: dict = None,
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
+        remove_scars: dict = None,
         quiet: bool = False,
     ):
         """Initialise the class.
@@ -57,6 +59,8 @@ class Filters:
         threshold_absolute: dict
             If using the 'absolute' threshold method. Dictionary that contains upper and lower
             absolute threshold values for flattening.
+        remove_scars: dict
+            Dictionary containing configuration parameters for the scar removal function.
         quiet: bool
             Whether to silence output.
         """
@@ -68,14 +72,18 @@ class Filters:
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute = threshold_absolute
+        self.remove_scars_config = remove_scars
         self.images = {
             "pixels": image,
             "initial_median_flatten": None,
             "initial_tilt_removal": None,
             "initial_quadratic_removal": None,
+            "initial_scar_removal": None,
             "masked_median_flatten": None,
             "masked_tilt_removal": None,
             "masked_quadratic_removal": None,
+            "secondary_scar_removal": None,
+            "scar_mask": None,
             "mask": None,
             "zero_average_background": None,
             "gaussian_filtered": None,
@@ -315,10 +323,21 @@ processed, please refer to <url to page where we document common problems> for m
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_median_flatten"], mask=None)
         self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None)
 
+        # Remove scars
+        run_scar_removal = self.remove_scars_config.pop("run")
+        if run_scar_removal:
+            LOGGER.info(f"[{self.filename}] : Initial scar removal")
+            self.images["initial_scar_removal"], _scar_mask = scars.remove_scars(
+                self.images["initial_quadratic_removal"], filename=self.filename, **self.remove_scars_config
+            )
+        else:
+            LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config")
+            self.images["initial_scar_removal"] = self.images["initial_quadratic_removal"]
+
         # Get the thresholds
         try:
             self.thresholds = get_thresholds(
-                image=self.images["initial_quadratic_removal"],
+                image=self.images["initial_scar_removal"],
                 threshold_method=self.threshold_method,
                 otsu_threshold_multiplier=self.otsu_threshold_multiplier,
                 threshold_std_dev=self.threshold_std_dev,
@@ -327,7 +346,7 @@ processed, please refer to <url to page where we document common problems> for m
         except TypeError as type_error:
             raise type_error
         self.images["mask"] = get_mask(
-            image=self.images["initial_quadratic_removal"], thresholds=self.thresholds, img_name=self.filename
+            image=self.images["initial_scar_removal"], thresholds=self.thresholds, img_name=self.filename
         )
         self.images["masked_median_flatten"] = self.median_flatten(
             self.images["initial_tilt_removal"], self.images["mask"]
@@ -336,7 +355,17 @@ processed, please refer to <url to page where we document common problems> for m
         self.images["masked_quadratic_removal"] = self.remove_quadratic(
             self.images["masked_tilt_removal"], self.images["mask"]
         )
+        # Remove scars
+        if run_scar_removal:
+            LOGGER.info(f"[{self.filename}] : Secondary scar removal")
+            self.images["secondary_scar_removal"], scar_mask = scars.remove_scars(
+                self.images["masked_quadratic_removal"], filename=self.filename, **self.remove_scars_config
+            )
+            self.images["scar_mask"] = scar_mask
+        else:
+            LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config")
+            self.images["secondary_scar_removal"] = self.images["masked_quadratic_removal"]
         self.images["zero_average_background"] = self.average_background(
-            self.images["masked_quadratic_removal"], self.images["mask"]
+            self.images["secondary_scar_removal"], self.images["mask"]
         )
         self.images["gaussian_filtered"] = self.gaussian_filter(self.images["zero_average_background"])

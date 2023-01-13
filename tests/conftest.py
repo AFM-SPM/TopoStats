@@ -131,6 +131,18 @@ def small_mask() -> np.ndarray:
 
 
 @pytest.fixture
+def synthetic_scars_image() -> np.array:
+    """Small synthetic image for testing scar removal."""
+    return np.load(RESOURCES / "test_scars_synthetic_scar_image.npy")
+
+
+@pytest.fixture
+def synthetic_marked_scars() -> np.array:
+    """Small synthetic boolean array of marked scar coordinates corresponding to synthetic_scars_image."""
+    return np.load(RESOURCES / "test_scars_synthetic_mark_scars.npy")
+
+
+@pytest.fixture
 def image_random_row_medians() -> np.array:
     """Expected row medians (unmasked)."""
     return np.loadtxt(RESOURCES / "image_random_row_medians.csv", delimiter=",")
@@ -241,6 +253,21 @@ def random_filters(test_filters_random_with_mask: Filters) -> Filters:
     )
 
     return test_filters_random_with_mask
+
+
+@pytest.fixture
+def remove_scars_config(synthetic_scars_image: np.ndarray, default_config: dict) -> dict:
+    """Configuration for testing scar removal."""
+    config = default_config["filter"]["remove_scars"]
+    config["img"] = synthetic_scars_image
+    config["filename"] = " "
+    config["removal_iterations"] = 2
+    config["threshold_low"] = 1.5
+    config["threshold_high"] = 1.8
+    config["max_scar_width"] = 2
+    config["min_scar_length"] = 1
+    config.pop("run")
+    return config
 
 
 @pytest.fixture
