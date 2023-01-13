@@ -218,11 +218,12 @@ class Grains:
             upper = image.size * self.pixel_to_nm_scaling**2
         if lower is None:
             lower = 0
+        # Get array of grain numbers (discounting zero)
         uniq = np.delete(np.unique(image), 0)
         grain_count = 0
         LOGGER.info(
-            f"[{self.filename}] : Area thresholding grains | Thresholds: {round(lower, 2)}, {round(upper, 2)} pixels^2, \
-{round(lower * self.pixel_to_nm_scaling**2, 2)}, {round(upper * self.pixel_to_nm_scaling**2, 2)} nm^2."
+            f"[{self.filename}] : Area thresholding grains | Thresholds: L:{round(lower, 2)}, U:{round(upper, 2)} pixels^2, \
+L:{round(lower * self.pixel_to_nm_scaling**2, 2)}, U:{round(upper * self.pixel_to_nm_scaling**2, 2)} nm^2."
         )
         for grain_no in uniq:
             grain_area = np.sum(image_cp == grain_no) * (self.pixel_to_nm_scaling**2)
@@ -309,10 +310,12 @@ class Grains:
                 self.directions[direction]["tidied_border"] = self.tidy_border(
                     self.directions[direction]["labelled_regions_01"]
                 )
+                LOGGER.info(f"[{self.filename}] : Removing noise ({direction})")
                 self.directions[direction]["removed_noise"] = self.area_thresholding(
                     self.directions[direction]["tidied_border"],
                     [self.smallest_grain_size / self.pixel_to_nm_scaling**2, None],
                 )
+                LOGGER.info(f"[{self.filename}] : Removing small / large grains ({direction})")
                 # if no area thresholds specified, use otsu
                 if self.absolute_area_threshold[direction].count(None) == 2:
                     self.calc_minimum_grain_size(self.directions[direction]["removed_noise"])
