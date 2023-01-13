@@ -15,6 +15,10 @@ import pandas as pd
 from topostats.plottingfuncs import Images
 from topostats.logs.logs import LOGGER_NAME
 
+# pylint: disable=too-many-lines
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-branches
 # pylint: disable=line-too-long
 # pylint: disable=fixme
 # FIXME : The calculate_stats() and calculate_aspect_ratio() raise this error when linting, could consider putting
@@ -883,9 +887,8 @@ class GrainStats:
         shift = np.hstack((shift, -coords[np.where(coords < 0)]))
         if len(shift) == 0:
             return 0
-        else:
-            max_index = np.argmax(abs(shift))
-            return shift[max_index]
+        max_index = np.argmax(abs(shift))
+        return shift[max_index]
 
     def get_cropped_region(self, image: np.ndarray, length: int, centre: np.ndarray) -> np.ndarray:
         """Crops the image with respect to a given pixel length around the centre coordinates.

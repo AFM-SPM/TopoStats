@@ -76,7 +76,10 @@ def test_folder_grainstats(tmp_path: Path, minicircle_tracestats: pd.DataFrame) 
     """Test a folder-wide grainstats file is made"""
     input_path = tmp_path / "minicircle"
     minicircle_tracestats["Basename"] = input_path / "subfolder"
-    true_out_path = tmp_path / "subfolder" / "Processed"
-    Path.mkdir(true_out_path, parents=True)
+    out_path = tmp_path / "subfolder" / "processed"
+    Path.mkdir(out_path, parents=True)
+    print(f"###### out_path   : {out_path}")
+    print(f"###### input_path : {input_path}")
+    print(f"###### minicircle_tracestats :\n{minicircle_tracestats['Basename']}")
     folder_grainstats(tmp_path, input_path, minicircle_tracestats)
-    assert Path(true_out_path / "folder_grainstats.csv").exists()
+    assert Path(out_path / "folder_grainstats.csv").exists()
