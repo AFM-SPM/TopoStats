@@ -1,4 +1,5 @@
 file: ./output/all_statistics.csv
+file2: ./output/all_statistics.csv
 # Consider compatibility for multiple (or at least two) files
 output_dir: ./plots
 extension: '.png'
@@ -6,14 +7,14 @@ plots:
   plot_1:
     data:
     # Need to add option to filter the data, eg by 'Circular' == False
-    group: None
+    group: null
     # e.g. Setting group argument: 'Basename'
     parameter: 'area'
     # Available parameters:
-    plottype: histogram
-    # Available types: KDE, histogram, violin, dist
+    plottype: histogram2
+    # Available types: KDE, histogram, violin, dist, histogram2, dist2
     color: blue
-    nm: True
+    nm: False
     xmin:
     xmax:
     ymin:

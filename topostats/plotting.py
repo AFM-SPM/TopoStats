@@ -186,8 +186,8 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath
     plt.ylabel("Probability Density", alpha=1)
     plt.ticklabel_format(axis="both", style="sci", scilimits=(-3, 3))
     # Need to return fig in order to test
-    # plt.savefig(savename)
-    return fig
+    plt.savefig(savename)
+    # return fig
 
 
 def plotkde2var(
@@ -329,12 +329,12 @@ def plothist2var(
     dfnew = df.copy()
     dfnew2 = df2.copy()
     dfnew[plotarg] = dataunitconversion(df[plotarg], plotarg, nm)
-    dfnew2[plotarg2] = dataunitconversion(df[plotarg2], plotarg2, nm)
+    dfnew2[plotarg2] = dataunitconversion(df2[plotarg2], plotarg2, nm)
 
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
-    dfnew[plotarg].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins)
-    dfnew2[plotarg2].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins, histtype="barstacked")
+    dfnew[plotarg].plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, color='#B45F06', density=True)
+    dfnew2[plotarg2].plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, color='#0B5394', density=True, histtype="barstacked")
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
@@ -342,9 +342,9 @@ def plothist2var(
     plt.ylabel("Probability Density", alpha=1)
     plt.ticklabel_format(axis="both", style="sci", scilimits=(-3, 3))
     handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles, labels)
+    ax.legend(labels=[label1, label2])
     # Need to return fig in order to test
-    # plt.savefig(savename)
+    plt.savefig(savename)
     return fig
 
 
@@ -385,9 +385,9 @@ def plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
 
 
 def plotdist2var(
+    df,
     plotarg,
     plotarg2,
-    df,
     df2=None,
     xmin=None,
     xmax=None,
@@ -397,6 +397,8 @@ def plotdist2var(
     plotname=None,
     c1=None,
     c2=None,
+    label1=None,
+    label2=None,
     extension=".png",  # Defined globally and not within this functions scope, required for testing
 ):
     """Dist plot for 2 variables"""
@@ -434,9 +436,10 @@ def plotdist2var(
     ax.tick_params(direction="out", bottom=True, left=True)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
+    ax.legend(labels=[label1, label2])
     # Need to return fig in order to test
-    # plt.savefig(savename)
-    return fig
+    plt.savefig(savename)
+    # return fig
 
 
 def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specpath=None):
@@ -569,9 +572,13 @@ if __name__ == "__main__":
 
     # import data from the csv file
     path = plotting_config["file"]
+    path2 = plotting_config["file2"]
     df = importfromfile(path)
-    df = df[df['Bending Angle'] != 0]
+    # df = df[df['Bending Angle'] != 0]
+    df2 = importfromfile(path2)
+    # df2 = df2[df2['Bending Angle'] != 0]
     extension = plotting_config["extension"]
+    output_dir = plotting_config["output_dir"]
 
     for plot in plotting_config["plots"]:
         plottype = plotting_config["plots"][plot]["plottype"]
@@ -584,15 +591,20 @@ if __name__ == "__main__":
         ymax = plotting_config["plots"][plot]["ymax"]
         if plottype == "histogram":
             plothist(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
+        elif plottype == "histogram2":
+            plothist2var(df, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1='01', label2='02',bins=np.linspace(1, 5, 20))
+            # plothist2var(df, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1="With protein",
+                         # label2="Without protein", bins=np.linspace(20, 180, 17))
         elif plottype == "KDE":
             plotkde(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
         elif plottype == "violin":
             plotviolin(df, parameter, nm=nm, grouparg=grouparg, ymin=ymin, ymax=ymax)
         elif plottype == "dist":
             plotdist(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
+        elif plottype == "dist2":
+            plotdist2var(df, parameter, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, c1="#B45F06", c2="#0B5394", label1='01', label2='02')
         elif plottype == "joint":
             plotjoint(df, parameter, nm=nm)
-
     # Filter data based on the need of specific projects
     # df = df[df['End to End Distance'] != 0]
     # df = df[df['Contour Lengths'] > 100]
