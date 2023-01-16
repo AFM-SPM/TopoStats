@@ -128,7 +128,7 @@ class Grains:
         return label(image, background=0)
 
     def calc_minimum_grain_size(self, image: np.ndarray) -> float:
-        """Calculate the minimum grain size.
+        """Calculate the minimum grain size in pixels squared.
 
         Very small objects are first removed via thresholding before calculating the lower extreme.
         """
@@ -163,10 +163,13 @@ class Grains:
             2D Numpy array of image with objects < smallest_grain_size removed.
         """
         LOGGER.info(
-            f"[{self.filename}] : Removing noise (< {self.smallest_grain_size / (self.pixel_to_nm_scaling)**2} nm^2)"
+            f"[{self.filename}] : Removing noise (< {self.smallest_grain_size} nm^2 {self.smallest_grain_size / (self.pixel_to_nm_scaling) ** 2} px^2 )"
         )
         return remove_small_objects(
-            image, min_size=self.smallest_grain_size / (self.pixel_to_nm_scaling) ** 2, **kwargs
+            # Convert from nm^2 to px^2
+            image,
+            min_size=self.smallest_grain_size / (self.pixel_to_nm_scaling) ** 2,
+            **kwargs,
         )
 
     def remove_small_objects(self, image: np.array, **kwargs):
@@ -186,7 +189,7 @@ class Grains:
         if self.minimum_grain_size != -1:
             small_objects_removed = remove_small_objects(
                 image,
-                min_size=(self.minimum_grain_size),
+                min_size=(self.minimum_grain_size),  # Note that minimum_grain_size is in pixels^2
                 **kwargs,
             )
             LOGGER.info(
