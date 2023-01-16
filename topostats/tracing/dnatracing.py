@@ -942,7 +942,6 @@ class nodeStats():
         self.node_centre_mask = None
         self.node_dict = None
         self.test = None
-        self.plot_opts = None
         self.full_dict = {}
 
     def get_node_stats(self) -> dict:
@@ -1202,7 +1201,21 @@ class nodeStats():
         local_pixels[4] = 0  # ensure centre is 0
         return local_pixels, local_pixels.sum()
 
-    def clean_centre_branches(self, node_area):
+    def clean_centre_branches(self, node_area: np.ndarray):
+        """This function check to see if the node area contains another node. If it does,
+        it removes the node and branche pixels associated with only that extra node.
+
+        Parameters
+        ----------
+        node_area: np.ndarray
+            An integer NxM numpy array where 0 = background, 1 = skeleton, 2 = endpoint, 3 = node.
+
+
+        Returns
+        -------
+        np.ndarray
+            A binary branch mask of the branches around the central node only.
+        """
         centre = (np.asarray(node_area.shape) / 2).astype(int)
         # highlight only nodes
         nodes = node_area.copy()
