@@ -31,10 +31,10 @@ grains:
     upper: 1.0
   direction: upper # Options: upper, lower, both (defines whether to look for grains above or below thresholds or both)
   # Thresholding by area
-  smallest_grain_size: 100 # Minimum allowable grain size in nm^2
+  smallest_grain_size: 24 # Size in nm^2 of tiny grians/blobs (noise) to remove.
   absolute_area_threshold:
-    upper: [ 500, 800 ] # above surface [Low, High] in nm^2 (also takes null)
-    lower: [ null, null ] # below surface [Low, High] in nm^2 (also takes null)
+    upper: [ 250, 400 ] # Maximum allowable grain size in nm^2
+    lower: [ null, null ] # Minimum allowable grain size in nm^2
 grainstats:
   run: true # Options : true, false
   cropped_size: 40.0 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
