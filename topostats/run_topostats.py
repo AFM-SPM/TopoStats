@@ -184,17 +184,11 @@ def process_scan(
     grain_out_path = core_out_path / filename / "grains"
     Path.mkdir(grain_out_path / "upper", parents=True, exist_ok=True)
     Path.mkdir(grain_out_path / "lower", parents=True, exist_ok=True)
-    Path.mkdir(_output_dir / image_path.stem / "dnatracing" / "upper", parents=True, exist_ok=True)
-    Path.mkdir(_output_dir / image_path.stem / "dnatracing" / "lower", parents=True, exist_ok=True)
-    Path.mkdir(_output_dir / image_path.stem / "dnatracing" / "upper" / "nodes", parents=True, exist_ok=True)
-    Path.mkdir(_output_dir / image_path.stem / "dnatracing" / "lower" / "nodes", parents=True, exist_ok=True)
-
-    # Extract image and image params
-    scan_loader = LoadScan(image_path, **loading_config)
-    scan_loader.get_data()
-    image = scan_loader.image
-    pixel_to_nm_scaling = scan_loader.pixel_to_nm_scaling
-    filename = scan_loader.filename
+    dna_tracing_out_path = core_out_path / filename / "dna_tracing"
+    Path.mkdir(dna_tracing_out_path / "upper", parents=True, exist_ok=True)
+    Path.mkdir(dna_tracing_out_path / "lower", parents=True, exist_ok=True)
+    Path.mkdir(dna_tracing_out_path / "upper" / "nodes", parents=True, exist_ok=True)
+    Path.mkdir(dna_tracing_out_path / "lower" / "nodes", parents=True, exist_ok=True)
 
     # Filter Image :
     if filter_config["run"]:
@@ -282,7 +276,7 @@ def process_scan(
                 Images(
                     filtered_image.images["gaussian_filtered"],
                     filename=f"{filename}_{direction}_masked",
-                    masked_array=grains.directions[direction]["removed_small_objects"],
+                    data2=grains.directions[direction]["removed_small_objects"],
                     **plotting_config["plot_dict"][plot_name],
                 ).plot_and_save()
 
@@ -311,7 +305,7 @@ def process_scan(
                     labelled_data=grains.directions[direction]["labelled_regions_02"],
                     pixel_to_nanometre_scaling=pixel_to_nm_scaling,
                     direction=direction,
-                    base_output_dir=_output_dir / "grains",
+                    base_output_dir=grain_out_path,
                     image_name=filename,
                     plot_opts=grain_plot_dict,
                     **grainstats_config,
@@ -365,7 +359,7 @@ def process_scan(
 
                     # Plot dnatracing images
                     LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
-                    output_dir = Path(_output_dir) / filename / "dnatracing" / f"{direction}"
+                    output_dir = Path(dna_tracing_out_path / f"{direction}")
 
                     fitted_coords = dna_traces[direction].fitted_traces[1]
                     fitted_img = np.zeros_like(dna_traces[direction].skeletons)
