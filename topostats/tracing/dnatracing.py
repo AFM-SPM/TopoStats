@@ -1210,7 +1210,6 @@ class nodeStats():
         node_area: np.ndarray
             An integer NxM numpy array where 0 = background, 1 = skeleton, 2 = endpoint, 3 = node.
 
-
         Returns
         -------
         np.ndarray
