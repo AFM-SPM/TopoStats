@@ -505,6 +505,7 @@ class pruneSkeleton:
         """
         if method == "joe":
             return self._prune_joe(self.image, self.skeleton)
+        # I've read about a "Discrete Skeleton Evolultion" (DSE) method that looks useful
         raise ValueError(method)
 
     @staticmethod
