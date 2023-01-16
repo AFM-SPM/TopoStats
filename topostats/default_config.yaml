@@ -33,8 +33,8 @@ grains:
   # Thresholding by area
   smallest_grain_size: 24 # Size in nm^2 of tiny grians/blobs (noise) to remove.
   absolute_area_threshold:
-    upper: [ 120, 96 ] # Grain size thresholds for upper grains
-    lower: [ null, null ] # Grain size thresholds for lower
+    upper: [ 120, 96 ] # Above surface [Low, High] in nm^2 (also takes null)
+    lower: [ null, null ] # Below surface [Low, High] in nm^2 (also takes null)
 grainstats:
   run: true # Options : true, false
   cropped_size: 40.0 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
