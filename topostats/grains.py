@@ -186,11 +186,11 @@ class Grains:
         if self.minimum_grain_size != -1:
             small_objects_removed = remove_small_objects(
                 image,
-                min_size=(self.minimum_grain_size / (self.pixel_to_nm_scaling) ** 2),
+                min_size=(self.minimum_grain_size),
                 **kwargs,
             )
             LOGGER.info(
-                f"[{self.filename}] : Removed small objects (< {self.minimum_grain_size / (self.pixel_to_nm_scaling)**2} nm^2)"
+                f"[{self.filename}] : Removed small objects (< {self.minimum_grain_size} px^2 {self.minimum_grain_size / (self.pixel_to_nm_scaling)**2} nm^2)"
             )
             return small_objects_removed > 0.0
         return image
@@ -203,7 +203,7 @@ class Grains:
         image: np.ndarray
             Image array where the background == 0 and grains are labelled as integers > 0.
         area_thresholds: list
-            List of area thresholds, first should be the lower threshold, second upper threshold.
+            List of area thresholds (in nanometres squared, not pixels squared), first should be the lower (smaller) threshold, second upper (larger) threshold.
 
         Returns
         -------
@@ -222,11 +222,13 @@ class Grains:
         uniq = np.delete(np.unique(image), 0)
         grain_count = 0
         LOGGER.info(
-            f"[{self.filename}] : Area thresholding grains | Thresholds: L:{round(lower, 2)}, U:{round(upper, 2)} pixels^2, \
-L:{round(lower * self.pixel_to_nm_scaling**2, 2)}, U:{round(upper * self.pixel_to_nm_scaling**2, 2)} nm^2."
+            f"[{self.filename}] : Area thresholding grains | Thresholds: L:{lower / self.pixel_to_nm_scaling**2:.2f}, \
+U:{upper / self.pixel_to_nm_scaling**2:.2f} px^2, L:{lower:.2f}, U:{upper:.2f} nm^2."
         )
         for grain_no in uniq:
+            # Calculate grain area in nm^2
             grain_area = np.sum(image_cp == grain_no) * (self.pixel_to_nm_scaling**2)
+            # Compare area in nm^2 to area thresholds
             if grain_area > upper or grain_area < lower:
                 image_cp[image_cp == grain_no] = 0
             else:
@@ -313,7 +315,7 @@ L:{round(lower * self.pixel_to_nm_scaling**2, 2)}, U:{round(upper * self.pixel_t
                 LOGGER.info(f"[{self.filename}] : Removing noise ({direction})")
                 self.directions[direction]["removed_noise"] = self.area_thresholding(
                     self.directions[direction]["tidied_border"],
-                    [self.smallest_grain_size / self.pixel_to_nm_scaling**2, None],
+                    [self.smallest_grain_size, None],
                 )
                 LOGGER.info(f"[{self.filename}] : Removing small / large grains ({direction})")
                 # if no area thresholds specified, use otsu
