@@ -2,12 +2,13 @@
 from argparse import Namespace
 import logging
 from pathlib import Path
-from typing import Union, List, Dict
+from typing import Union, Dict
 from collections import defaultdict
 
 import numpy as np
 import pandas as pd
 
+from topostats.io import get_out_path
 from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
 
@@ -57,64 +58,6 @@ def convert_path(path: Union[str, Path]) -> Path:
     return Path().cwd() if path == "./" else Path(path).expanduser()
 
 
-def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> List:
-    """Scan the specified directory for images with the given file extension.
-
-    Parameters
-    ----------
-    base_dir: Union[str, Path]
-        Directory to recursively search for files, if not specified the current directory is scanned.
-    file_ext: str
-        File extension to search for.
-
-    Returns
-    -------
-    List
-        List of files found with the extension in the given directory.
-    """
-    base_dir = Path("./") if base_dir is None else Path(base_dir)
-    return list(base_dir.glob("**/*" + file_ext))
-
-
-def get_out_path(
-    image_path: Union[str, Path] = None, base_dir: Union[str, Path] = None, output_dir: Union[str, Path] = None
-) -> Path:
-    """Adds the image path relative to the base directory to the output directory.
-
-    Parameters
-    ----------
-    image_path: Path
-        The path of the current image.
-    base_dir: Path
-        Directory to recursively search for files.
-    output_dir: Path
-        The output directory specified in the configuration file.
-
-    Returns
-    -------
-    Path
-        The output path that mirrors the input path structure.
-    """
-    # If image_path is relative and doesn't include base_dir then a ValueError is raisedin which
-    # case we just want to append the image_path to the output_dir
-    try:
-        # Remove the filename if there is a suffix, not always the case as
-        # get_out_path is called from folder_grainstats()
-        if image_path.suffix:
-            return output_dir / image_path.parent.relative_to(base_dir)
-        else:
-            return output_dir / image_path.relative_to(base_dir)
-    except ValueError:
-        if image_path.suffix:
-            return output_dir / image_path.parent
-        else:
-            return output_dir / image_path
-    # AttributeError is raised if image_path is a string (since it isn't a Path() object with a .suffix)
-    except AttributeError:
-        LOGGER.error("A string form of a Path has been passed to 'get_out_path()' for image_path")
-        raise
-
-
 def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
     """Update the configuration with any arguments
 
@@ -145,7 +88,7 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
     return config
 
 
-def _get_mask(image: np.ndarray, threshold: float, threshold_direction: str, img_name: str = None) -> np.ndarray:
+def _get_mask(image: np.ndarray, thresh: float, threshold_direction: str, img_name: str = None) -> np.ndarray:
     """Calculate a mask for pixels that exceed the threshold
 
     Parameters
@@ -165,11 +108,10 @@ def _get_mask(image: np.ndarray, threshold: float, threshold_direction: str, img
         Numpy array of image with objects coloured.
     """
     if threshold_direction == "upper":
-        LOGGER.info(f"[{img_name}] : Masking (upper) Threshold: {threshold}")
-        return image > threshold
-    if threshold_direction == "lower":
-        LOGGER.info(f"[{img_name}] : Masking (lower) Threshold: {threshold}")
-        return image < threshold
+        LOGGER.info(f"[{img_name}] : Masking (upper) Threshold: {thresh}")
+        return image > thresh
+    LOGGER.info(f"[{img_name}] : Masking (lower) Threshold: {thresh}")
+    return image < thresh
     # LOGGER.fatal(f"[{img_name}] : Threshold direction invalid: {threshold_direction}")
 
 
@@ -194,17 +136,18 @@ def get_mask(image: np.ndarray, thresholds: dict, img_name: str = None) -> np.nd
     """
     # Both thresholds are applicable
     if "lower" in thresholds and "upper" in thresholds:
-        mask_upper = _get_mask(image, threshold=thresholds["upper"], threshold_direction="upper", img_name=img_name)
-        mask_lower = _get_mask(image, threshold=thresholds["lower"], threshold_direction="lower", img_name=img_name)
+        mask_upper = _get_mask(image, thresh=thresholds["upper"], threshold_direction="upper", img_name=img_name)
+        mask_lower = _get_mask(image, thresh=thresholds["lower"], threshold_direction="lower", img_name=img_name)
         # Masks are combined to remove both the extreme high and extreme low data points.
         return mask_upper + mask_lower
     # Only lower threshold is applicable
     if "lower" in thresholds:
-        return _get_mask(image, threshold=thresholds["lower"], threshold_direction="lower", img_name=img_name)
+        return _get_mask(image, thresh=thresholds["lower"], threshold_direction="lower", img_name=img_name)
     # Only upper threshold is applicable
-    return _get_mask(image, threshold=thresholds["upper"], threshold_direction="upper", img_name=img_name)
+    return _get_mask(image, thresh=thresholds["upper"], threshold_direction="upper", img_name=img_name)
 
 
+# pylint: disable=unused-argument
 def get_thresholds(
     image: np.ndarray,
     threshold_method: str,
@@ -277,7 +220,7 @@ def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS) -> pd.DataFram
 
 
 def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], all_stats_df: pd.DataFrame) -> None:
-    """Creates saves a data frame of grain and tracing statictics at the folder level.
+    """Saves a data frame of grain and tracing statictics at the folder level.
 
     Parameters
     ----------
@@ -297,7 +240,7 @@ def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], 
     try:
         for _dir in dirs:
             out_path = get_out_path(Path(_dir), base_dir, output_dir)
-            all_stats_df[all_stats_df["Basename"] == _dir].to_csv(out_path / "Processed" / "folder_grainstats.csv")
-            LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/Processed/folder_grainstats.csv")
+            all_stats_df[all_stats_df["Basename"] == _dir].to_csv(out_path / "processed" / "folder_grainstats.csv")
+            LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/folder_grainstats.csv")
     except TypeError:
-        LOGGER.info("Unable to generate folderwise statistics as 'all_statis_df' is empty")
+        LOGGER.info("Unable to generate folderwise statistics as 'all_stats_df' is empty")

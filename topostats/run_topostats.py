@@ -19,13 +19,11 @@ from tqdm import tqdm
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import read_yaml, write_yaml, LoadScans
+from topostats.io import find_images, read_yaml, write_yaml, get_out_path, LoadScans
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import (
-    find_images,
-    get_out_path,
     update_config,
     create_empty_dataframe,
     folder_grainstats,
@@ -70,6 +68,14 @@ def create_parser() -> arg.ArgumentParser:
         type=str,
         required=False,
         help="Base directory to scan for images.",
+    )
+    parser.add_argument(
+        "-j",
+        "--cores",
+        dest="cores",
+        type=int,
+        required=False,
+        help="Number of CPU cores to use when processing.",
     )
     parser.add_argument(
         "-f",
@@ -167,19 +173,16 @@ def process_scan(
     image = img_path_px2nm["image"]
     image_path = img_path_px2nm["img_path"]
     pixel_to_nm_scaling = img_path_px2nm["px_2_nm"]
-    filename = image_path.stem
+    filename = image_path.name
 
     LOGGER.info(f"Processing : {filename}")
-    _output_dir = get_out_path(image_path, base_dir, output_dir).parent / "Processed"
-    _output_dir.mkdir(parents=True, exist_ok=True)
-
-    if plotting_config["image_set"] == "core":
-        filter_out_path = _output_dir
-    else:
-        filter_out_path = Path(_output_dir) / filename / "filters"
-        filter_out_path.mkdir(exist_ok=True, parents=True)
-        Path.mkdir(_output_dir / filename / "grains" / "upper", parents=True, exist_ok=True)
-        Path.mkdir(_output_dir / filename / "grains" / "lower", parents=True, exist_ok=True)
+    core_out_path = get_out_path(image_path, base_dir, output_dir).parent / "processed"
+    core_out_path.mkdir(parents=True, exist_ok=True)
+    filter_out_path = core_out_path / filename / "filters"
+    filter_out_path.mkdir(exist_ok=True, parents=True)
+    grain_out_path = core_out_path / filename / "grains"
+    Path.mkdir(grain_out_path / "upper", parents=True, exist_ok=True)
+    Path.mkdir(grain_out_path / "lower", parents=True, exist_ok=True)
 
     # Filter Image :
     if filter_config["run"]:
@@ -197,9 +200,7 @@ def process_scan(
             plotting_config.pop("run")
             LOGGER.info(f"[{filename}] : Plotting Filtering Images")
             # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
-            plot_opts = {
-                "pixel_to_nm_scaling": pixel_to_nm_scaling,
-            }
+            plot_opts = {"pixel_to_nm_scaling": pixel_to_nm_scaling}
             for image, options in plotting_config["plot_dict"].items():
                 plotting_config["plot_dict"][image] = {**options, **plot_opts}
             # Generate plots
@@ -213,14 +214,15 @@ def process_scan(
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_histogram_and_save()
                     except AttributeError:
                         LOGGER.info(f"[{filename}] Unable to generate plot : {plot_name}")
-            plot_name = "z_threshed"
-            plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
-            Images(
-                filtered_image.images["gaussian_filtered"],
-                filename=filename + "_processed",
-                **plotting_config["plot_dict"][plot_name],
-            ).plot_and_save()
             plotting_config["run"] = True
+        # Always want the 'z_threshed' plot (aka "Height Thresholded") but in the core_out_path
+        plot_name = "z_threshed"
+        plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
+        Images(
+            filtered_image.images["gaussian_filtered"],
+            filename=filename,
+            **plotting_config["plot_dict"][plot_name],
+        ).plot_and_save()
 
     # Find Grains :
     if grains_config["run"]:
@@ -246,32 +248,32 @@ def process_scan(
             plotting_config.pop("run")
             LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
             for direction, image_arrays in grains.directions.items():
-                output_dir = Path(_output_dir) / filename / "grains" / f"{direction}"
                 for plot_name, array in image_arrays.items():
-                    plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
+                    plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path / f"{direction}"
                     Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
                 # Make a plot of coloured regions with bounding boxes
-                plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = output_dir
+                plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path / f"{direction}"
                 Images(
                     grains.directions[direction]["coloured_regions"],
                     **plotting_config["plot_dict"]["bounding_boxes"],
                     region_properties=grains.region_properties[direction],
                 ).plot_and_save()
-                plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = output_dir
+                plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path / f"{direction}"
                 Images(
                     grains.directions[direction]["labelled_regions_02"],
                     **plotting_config["plot_dict"]["coloured_boxes"],
                     region_properties=grains.region_properties[direction],
                 ).plot_and_save()
-
+                # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
                 plot_name = "mask_overlay"
-                plotting_config["plot_dict"][plot_name]["output_dir"] = Path(_output_dir)
+                plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
                 Images(
                     filtered_image.images["gaussian_filtered"],
-                    filename=f"{filename}_{direction}_processed_masked",
-                    data2=grains.directions[direction]["removed_small_objects"],
+                    filename=f"{filename}_{direction}_masked",
+                    masked_array=grains.directions[direction]["removed_small_objects"],
                     **plotting_config["plot_dict"][plot_name],
                 ).plot_and_save()
+
             plotting_config["run"] = True
 
         # Grainstats :
@@ -295,7 +297,7 @@ def process_scan(
                         labelled_data=grains.directions[direction]["labelled_regions_02"],
                         pixel_to_nanometre_scaling=pixel_to_nm_scaling,
                         direction=direction,
-                        base_output_dir=_output_dir / "grains",
+                        base_output_dir=grain_out_path,
                         image_name=filename,
                         plot_opts=grain_plot_dict,
                         **grainstats_config,
@@ -452,18 +454,32 @@ def main(args=None):
     results = pd.concat(results.values())
     results.reset_index()
     results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)
+    folder_grainstats(config["output_dir"], config["base_dir"], results)
+    # Write config to file
+    config["plotting"].pop("plot_dict")
+    write_yaml(config, output_dir=config["output_dir"])
+    images_processed = len(results["Image Name"].unique())
     LOGGER.info(
         (
-            f"~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~"
-            f"All statistics combined for {len(img_files)} images(s) are "
-            f"saved to : {str(config['output_dir'] / 'all_statistics.csv')}"
+            f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+            f"  Base Directory              : {config['base_dir']}\n"
+            f"  File Extension              : {config['file_ext']}\n"
+            f"  Files Found                 : {len(img_files)}\n"
+            f"  Successfully Processed      : {images_processed} ({(images_processed * 100) / len(img_files)}%)\n"
+            f"  Configuration               : {config['output_dir']}/config.yaml\n"
+            f"  All statistics              : {str(config['output_dir'])}/all_statistics.csv\n\n"
+            f"  Email                       : topostats@sheffield.ac.uk\n"
+            f"  Documentation               : https://afm-spm.github.io/topostats/\n"
+            f"  Source Code                 : https://github.com/AFM-SPM/TopoStats/\n"
+            f"  Bug Reports/Feature Request : https://github.com/AFM-SPM/TopoStats/issues/new/choose\n"
+            f"  Citation File Format        : https://github.com/AFM-SPM/TopoStats/blob/main/CITATION.cff\n\n"
+            f"  If you encounter bugs/issues or have feature requests please report them at the above URL\n"
+            f"  or email us.\n\n"
+            f"  If you have found TopoStats useful please consider citing it. A citation file format is\n"
+            f"  included and there are links on the Source Code page.\n"
+            f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
         )
     )
-    folder_grainstats(config["output_dir"], config["base_dir"], results)
-
-    # Write config to file
-    LOGGER.info(f"Writing configuration to : {config['output_dir']}/config.yaml")
-    write_yaml(config, output_dir=config["output_dir"])
 
 
 if __name__ == "__main__":

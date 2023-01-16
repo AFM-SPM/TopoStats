@@ -95,8 +95,9 @@ Aside from the comments in YAML file itself the fields are described below.
 |              | `colorbar`                     | boolean    | `true`         | Whether to include the colorbar scale in plots. Options `true`, `false`                                                                                                                                                                                      |
 |              | `axes`                         | boolean    | `true`         | Wether to include the axes in the produced plots.                                                                                                                                                                                                            |
 |              | `cmap`                         | string     | `nanoscope`    | Colormap to use in plotting. Options : `nanoscope`, `afmhot`                                                                                                                                                                                                 |
-|              | `histogram_log_axis`           | bbolean    | `false`    | Whether to plot hisograms using a logarithmic scale or not. Options: `true`, `false`.                                                                                                                                                                                                 |
-
+|              | `histogram_log_axis`           | boolean    | `false`        | Whether to plot hisograms using a logarithmic scale or not. Options: `true`, `false`.
+|              | `histogram_bins`               | int        |200             | Number of bins to use for histograms
+|
 
 ## Validation
 

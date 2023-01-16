@@ -18,6 +18,13 @@ filter:
     upper: 1.0
   gaussian_size: 1.0121397464510862 # in px
   gaussian_mode: nearest
+  remove_scars:
+    run: true
+    removal_iterations: 2
+    threshold_low: 0.250
+    threshold_high: 0.666
+    max_scar_width: 4
+    min_scar_length: 16
 grains:
   run: true # Options : true, false
   # Thresholding by height
@@ -44,10 +51,11 @@ dnatracing:
 plotting:
   run: true # Options : true, false
   save_format: png # Options : see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
-  image_set: all  # Options : all, core
+  image_set: core  # Options : all, core
   zrange: [null, null]  # low and high height range for core images (can take [null, null])
   colorbar: true  # Options : true, false
   axes: true # Options : true, false (due to off being a bool when parsed)
   cmap: nanoscope # Options : nanoscope, afmhot, gwyddion
   mask_cmap: blu # Options : blu, jet_r and any in matplotlib
   histogram_log_axis: false # Options : true, false
+  histogram_bins: 200 # Number of bins for histogram plots to use
