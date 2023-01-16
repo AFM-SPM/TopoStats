@@ -22,6 +22,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-branches
 # pylint: disable=dangerous-default-value
 
+
 class Filters:
     """Class for filtering scans."""
 
@@ -171,6 +172,8 @@ processed, please refer to <url to page where we document common problems> for m
         # Calculate medians
         medians_x = [np.nanmedian(read_matrix[:, i]) for i in range(read_matrix.shape[1])]
         medians_y = [np.nanmedian(read_matrix[j, :]) for j in range(read_matrix.shape[0])]
+        LOGGER.debug(f"[{self.filename}] [remove_tilt] medians_x   : {medians_x}")
+        LOGGER.debug(f"[{self.filename}] [remove_tilt] medians_y   : {medians_y}")
 
         # Fit linear x
         px = np.polyfit(range(0, len(medians_x)), medians_x, 1)

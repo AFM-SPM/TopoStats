@@ -78,6 +78,14 @@ def create_parser() -> arg.ArgumentParser:
         help="Number of CPU cores to use when processing.",
     )
     parser.add_argument(
+        "-l",
+        "--log_level",
+        dest="log_level",
+        type=str,
+        required=False,
+        help="Logging level to use, default is 'info' for verbose output use 'debug'.",
+    )
+    parser.add_argument(
         "-f",
         "--file_ext",
         dest="file_ext",
@@ -364,6 +372,15 @@ def main(args=None):
         config = yaml.safe_load(default_config.read())
     config = update_config(config, args)
 
+    # Set logging level
+    if config["log_level"] == "warning":
+        LOGGER.setLevel("WARNING")
+    elif config["log_level"] == "error":
+        LOGGER.setLevel("ERROR")
+    elif config["log_level"] == "debug":
+        LOGGER.setLevel("DEBUG")
+    else:
+        LOGGER.setLevel("INFO")
     # Validate configuration
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
@@ -391,7 +408,7 @@ def main(args=None):
         config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML plotting configuration file"
     )
 
-    # FIXME : Make this a function and from topostats.utils import update_plot_dict and write tests
+    # FIXME : Make this a function and from topostats.plottingfuncs import update_plot_dict and write tests
     # Update the config["plotting"]["plot_dict"] with plotting options
     for image, options in config["plotting"]["plot_dict"].items():
         config["plotting"]["plot_dict"][image] = {
@@ -419,9 +436,6 @@ def main(args=None):
         sys.exit()
     LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
     LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
-
-    if config["quiet"]:
-        LOGGER.setLevel("ERROR")
 
     processing_function = partial(
         process_scan,
