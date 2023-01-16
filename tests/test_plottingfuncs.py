@@ -2,20 +2,22 @@
 from pathlib import Path
 
 import pytest
+from matplotlib.figure import Figure
+from matplotlib.axes import Axes
 import numpy as np
 from skimage import io
 
 from topostats.grains import Grains
-from topostats.io import LoadScan
+from topostats.io import LoadScans
 from topostats.plottingfuncs import Images
 
 
 @pytest.mark.parametrize(
-    "data2, axes_colorbar, region_properties",
+    "masked_array, axes_colorbar, region_properties",
     [(np.random.rand(10, 10), True, None), (None, True, None), (None, False, True)],
 )
 def test_save_figure(
-    data2: np.ndarray,
+    masked_array: np.ndarray,
     axes_colorbar: bool,
     region_properties: bool,
     image_random: np.ndarray,
@@ -29,14 +31,14 @@ def test_save_figure(
         data=image_random,
         output_dir=tmp_path,
         filename="result",
-        data2=data2,
+        masked_array=masked_array,
         colorbar=axes_colorbar,
         axes=axes_colorbar,
         region_properties=region_properties,
     ).save_figure()
     assert Path(tmp_path / "result.png").exists()
-    assert fig is not None
-    assert ax is not None
+    assert isinstance(fig, Figure)
+    assert isinstance(ax, Axes)
 
 
 def test_save_array_figure(tmp_path: Path):
@@ -50,7 +52,7 @@ def test_save_array_figure(tmp_path: Path):
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_no_colorbar(load_scan_data: LoadScan, tmp_path: Path) -> None:
+def test_plot_and_save_no_colorbar(load_scan_data: LoadScans, tmp_path: Path) -> None:
     """Test plotting without colorbar"""
     fig, _ = Images(
         data=load_scan_data.image,
@@ -66,7 +68,7 @@ def test_plot_and_save_no_colorbar(load_scan_data: LoadScan, tmp_path: Path) -> 
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_histogram_and_save(load_scan_data: LoadScan, tmp_path: Path) -> None:
+def test_plot_histogram_and_save(load_scan_data: LoadScans, tmp_path: Path) -> None:
     """Test plotting histograms"""
     fig, _ = Images(
         load_scan_data.image, output_dir=tmp_path, filename="histogram", image_set="all"
@@ -75,7 +77,7 @@ def test_plot_histogram_and_save(load_scan_data: LoadScan, tmp_path: Path) -> No
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_colorbar(load_scan_data: LoadScan, tmp_path: Path) -> None:
+def test_plot_and_save_colorbar(load_scan_data: LoadScans, tmp_path: Path) -> None:
     """Test plotting with colorbar"""
     fig, _ = Images(
         data=load_scan_data.image,
@@ -91,7 +93,7 @@ def test_plot_and_save_colorbar(load_scan_data: LoadScan, tmp_path: Path) -> Non
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_no_axes(load_scan_data: LoadScan, plotting_config: dict, tmp_path: Path) -> None:
+def test_plot_and_save_no_axes(load_scan_data: LoadScans, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes"""
     plotting_config["axes"] = False
     fig, _ = Images(
@@ -104,7 +106,7 @@ def test_plot_and_save_no_axes(load_scan_data: LoadScan, plotting_config: dict, 
     return fig
 
 
-def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScan, plotting_config: dict, tmp_path: Path) -> None:
+def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScans, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes and without the colourbar."""
     plotting_config["axes"] = False
     plotting_config["colorbar"] = False
@@ -121,7 +123,7 @@ def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScan, plotting_co
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_colorbar_afmhot(load_scan_data: LoadScan, tmp_path: Path, plotting_config: dict) -> None:
+def test_plot_and_save_colorbar_afmhot(load_scan_data: LoadScans, tmp_path: Path, plotting_config: dict) -> None:
     """Test plotting with colorbar"""
     plotting_config["cmap"] = "afmhot"
     fig, _ = Images(

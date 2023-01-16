@@ -12,7 +12,7 @@ import topostats
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import read_yaml, LoadScan
+from topostats.io import read_yaml, LoadScans
 from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import get_thresholds, get_mask, _get_mask
 
@@ -37,6 +37,7 @@ def default_config() -> Dict:
     config["filter"]["threshold_method"] = "otsu"
     config["grains"]["threshold_method"] = "otsu"
     config["grains"]["otsu_threshold_multiplier"] = 1.7
+    config["grains"]["absolute_area_threshold"]["upper"] = [400, 600]
     return config
 
 
@@ -104,6 +105,7 @@ def dnatracing_config(default_config: Dict) -> Dict:
 def plotting_config(default_config: Dict) -> Dict:
     """Configurations for filtering"""
     config = default_config["plotting"]
+    config["image_set"] = "all"
     config.pop("run")
     config.pop("plot_dict")
     return config
@@ -126,6 +128,18 @@ def small_array() -> np.ndarray:
 def small_mask() -> np.ndarray:
     """Small (10x10) mask array for testing."""
     return RNG.uniform(low=0, high=1, size=SMALL_ARRAY_SIZE) > 0.5
+
+
+@pytest.fixture
+def synthetic_scars_image() -> np.array:
+    """Small synthetic image for testing scar removal."""
+    return np.load(RESOURCES / "test_scars_synthetic_scar_image.npy")
+
+
+@pytest.fixture
+def synthetic_marked_scars() -> np.array:
+    """Small synthetic boolean array of marked scar coordinates corresponding to synthetic_scars_image."""
+    return np.load(RESOURCES / "test_scars_synthetic_mark_scars.npy")
 
 
 @pytest.fixture
@@ -181,22 +195,22 @@ def image_random_col_medians_masked() -> np.array:
 
 
 @pytest.fixture()
-def test_load_scan_minicircle() -> LoadScan:
+def test_load_scan_minicircle() -> LoadScans:
     """Load the minicricle.spm and return image (np.ndarray), pixel_to_nm_scaling (float) and filename (str) for use in
     subsequent fixtures."""
-    scan_loader = LoadScan(RESOURCES / "minicircle.spm", channel="Height")
+    scan_loader = LoadScans(RESOURCES / "minicircle.spm", channel="Height")
     scan_loader.get_data()
     return scan_loader
 
 
 @pytest.fixture
-def test_filters(load_scan: LoadScan, filter_config: dict) -> Filters:
+def test_filters(load_scan: LoadScans, filter_config: dict) -> Filters:
     """Filters class for testing."""
     load_scan.get_data()
     filters = Filters(
         image=load_scan.image,
-        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
         filename=load_scan.filename,
+        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
         **filter_config,
     )
     return filters
@@ -242,7 +256,22 @@ def random_filters(test_filters_random_with_mask: Filters) -> Filters:
 
 
 @pytest.fixture
-def random_grains(grains_config: dict, random_filters: Filters, tmp_path) -> Grains:
+def remove_scars_config(synthetic_scars_image: np.ndarray, default_config: dict) -> dict:
+    """Configuration for testing scar removal."""
+    config = default_config["filter"]["remove_scars"]
+    config["img"] = synthetic_scars_image
+    config["filename"] = " "
+    config["removal_iterations"] = 2
+    config["threshold_low"] = 1.5
+    config["threshold_high"] = 1.8
+    config["max_scar_width"] = 2
+    config["min_scar_length"] = 1
+    config.pop("run")
+    return config
+
+
+@pytest.fixture
+def random_grains(grains_config: dict, random_filters: Filters) -> Grains:
     """Grains object based on random image which has no grains."""
     grains = Grains(
         image=random_filters.images["zero_averaged_background"],
@@ -255,7 +284,7 @@ def random_grains(grains_config: dict, random_filters: Filters, tmp_path) -> Gra
 
 
 @pytest.fixture
-def small_array_filters(small_array: np.ndarray, load_scan: LoadScan, filter_config: dict) -> Grains:
+def small_array_filters(small_array: np.ndarray, load_scan: LoadScans, filter_config: dict) -> Grains:
     """Filters object based on small_array."""
     filter_obj = Filters(
         image=load_scan.image,
@@ -270,29 +299,37 @@ def small_array_filters(small_array: np.ndarray, load_scan: LoadScan, filter_con
 
 # IO fixtures
 @pytest.fixture
-def load_scan(loading_config: dict) -> LoadScan:
-    """Instantiate a LoadScan object from a .spm file."""
-    scan_loader = LoadScan(RESOURCES / "minicircle.spm", **loading_config)
+def load_scan(loading_config: dict) -> LoadScans:
+    """Instantiate a LoadScans object from a .spm file."""
+    scan_loader = LoadScans([RESOURCES / "minicircle.spm"], **loading_config)
     return scan_loader
 
 
 @pytest.fixture
-def load_scan_ibw() -> LoadScan:
-    """Instantiate a LoadScan object from a .ibw file."""
-    scan_loader = LoadScan(RESOURCES / "minicircle2.ibw", channel="HeightTracee")
+def load_scan_data() -> LoadScans:
+    """Instance of a LoadScans object after applying the get_data func."""
+    scan_data = LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
+    scan_data.get_data()
+    return scan_data
+
+
+@pytest.fixture
+def load_scan_ibw() -> LoadScans:
+    """Instantiate a LoadScans object from a .ibw file."""
+    scan_loader = LoadScans([RESOURCES / "minicircle2.ibw"], channel="HeightTracee")
     return scan_loader
 
 
 @pytest.fixture
-def load_scan_data(load_scan: LoadScan) -> LoadScan:
-    """Instantiate a LoadScan object."""
-    load_scan.get_data()
-    return load_scan
+def load_scan_jpk() -> LoadScans:
+    """Instantiate a LoadScans object from a .jpk file."""
+    scan_loader = LoadScans([RESOURCES / "file.jpk"], channel="height_trace")
+    return scan_loader
 
 
 # Minicircle fixtures
 @pytest.fixture
-def minicircle(load_scan: LoadScan, filter_config: dict) -> Filters:
+def minicircle(load_scan: LoadScans, filter_config: dict) -> Filters:
     """Instantiate a Filters object, creates the output directory and loads the image."""
     load_scan.get_data()
     filters = Filters(
@@ -414,7 +451,7 @@ def minicircle_grain_gaussian_filter(minicircle_masked_quadratic_removal: Filter
 
 # Derive fixtures for grain finding
 @pytest.fixture
-def minicircle_grains(minicircle_grain_gaussian_filter: Filters, grains_config: dict, tmp_path) -> Grains:
+def minicircle_grains(minicircle_grain_gaussian_filter: Filters, grains_config: dict) -> Grains:
     """Grains object based on filtered minicircle."""
     grains = Grains(
         image=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
@@ -469,7 +506,7 @@ def minicircle_grain_mask(minicircle_grain_threshold_otsu: Grains) -> Grains:
     minicircle_grain_threshold_otsu.directions["upper"] = {}
     minicircle_grain_threshold_otsu.directions["upper"]["mask_grains"] = _get_mask(
         image=minicircle_grain_threshold_otsu.image,
-        threshold=minicircle_grain_threshold_otsu.thresholds["upper"],
+        thresh=minicircle_grain_threshold_otsu.thresholds["upper"],
         threshold_direction="upper",
         img_name=minicircle_grain_threshold_otsu.filename,
     )
@@ -524,7 +561,7 @@ def minicircle_small_objects_removed(minicircle_minimum_grain_size: np.array) ->
 
 
 @pytest.fixture
-def minicircle_area_thresholding(minicircle_grain_labelled_all: np.array, grains_config: dict) -> Grains:
+def minicircle_area_thresholding(minicircle_grain_labelled_all: np.array) -> Grains:
     """Small objects removed."""
     absolute_area_thresholds = [400, 600]
     minicircle_grain_labelled_all.directions["upper"][
@@ -585,7 +622,7 @@ def grainstats(image_random: np.array, grainstats_config: dict, tmp_path) -> Gra
 def minicircle_grainstats(
     minicircle_grain_gaussian_filter: Filters,
     minicircle_grain_labelled_post_removal: Grains,
-    load_scan: LoadScan,
+    load_scan: LoadScans,
     grainstats_config: dict,
     tmp_path: Path,
 ) -> GrainStats:
@@ -672,6 +709,7 @@ def minicircle_tracestats(minicircle_dnatracing: dnaTrace) -> pd.DataFrame:
 # DNA Tracing Fixtures
 @pytest.fixture
 def minicircle_all_statistics() -> pd.DataFrame:
+    """Expected statistics for minicricle."""
     return pd.read_csv(RESOURCES / "minicircle_default_all_statistics.csv", header=0)
 
 
@@ -749,3 +787,6 @@ def skeletonize_linear() -> np.ndarray:
 def skeletonize_linear_bool_int(skeletonize_linear) -> np.ndarray:
     """A linear molecule for testing skeletonizing as a boolean integer array."""
     return np.array(skeletonize_linear, dtype="bool").astype(int)
+
+
+# Curvature Fixtures

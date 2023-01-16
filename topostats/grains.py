@@ -19,7 +19,9 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=fixme
 # pylint: disable=line-too-long
 # pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-arguments
 # pylint: disable=bare-except
+# pylint: disable=dangerous-default-value
 
 
 class Grains:
@@ -277,7 +279,7 @@ class Grains:
                 self.directions[direction] = defaultdict()
                 self.directions[direction]["mask_grains"] = _get_mask(
                     self.image,
-                    threshold=self.thresholds[direction],
+                    thresh=self.thresholds[direction],
                     threshold_direction=direction,
                     img_name=self.filename,
                 )

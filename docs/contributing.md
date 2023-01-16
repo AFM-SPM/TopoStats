@@ -2,6 +2,7 @@
 
 This document describes how to contribute to the development of this software.
 
+
 ## Contribution Workflow
 
 ### Create an Issue
@@ -28,6 +29,15 @@ git clone git@github.com:AFM-SPM/TopoStats.git
 git clone git@github.com:<YOUR_GITHUB_USERNAME>/TopoStats.git
 ```
 
+### Install Additional Dependencies
+
+If you are going to contribute you should install the additional dependencies for undertaking such work. There are three
+groups of additional dependencies, `dev`, `docs` and `tests` and you should install all three using `pip` as shown below.
+
+``` bash
+cd TopoStats
+pip install ".[dev,docs,tests]"
+```
 
 ### Creating a branch
 
@@ -49,8 +59,8 @@ use the later but you are of course free to use your chosen method of managing G
 In this example we branch from `dev` and create a new branch called `ns-rse/000-fix-an-issue`.
 
 ``` bash
-# Ensure you are up-to-date on the dev branch
-git checkout dev
+# Ensure you are up-to-date on the main branch
+git checkout main
 git pull
 # Create and checkout a branch in one step
 git checkout -b ns-rse/000-fix-an-issue
@@ -124,19 +134,19 @@ documented under [Parameter Configuration](configuration)
 
 New features should have unit-tests written and included under the `tests/` directory to ensure the functions work as
 expected. The [pytest](https://docs.pytest.org/en/latest/) framework is used for running tests along with a number of
-plugins ([pytest-regtest]() for regression testing; [pytest-mpl]())
+plugins ([pytest-regtest](https://gitlab.com/uweschmitt/pytest-regtest) for regression testing;
+[pytest-mpl](https://github.com/matplotlib/pytest-mpl) for testing generated Matplotlib images).
 
 
 ## Configuration
 
 As described in [Parameter Configuration](configuration) options are primarily passed to TopoStats via a
 [YAML](https://yaml.org) configuration file. When introducing new features that require configuration options you will
-have to ensure that both the default configuration file (`topostats/default.yaml`) and the example configuration
-(`config/example.yaml`) are updated to include your options.
+have to ensure that the default configuration file (`topostats/default.yaml`) is updated to include your options.
 
-Further the `topostats.validation.validate.config()` function which checks a valid configuration file with all necessary
-fields has been passed when invoking TopoStats will also need updating to include new options in the Schema against
-which validation of configuration files is made configuration.
+Further the `topostats.validation.validate.config()` function, which checks a valid configuration file with all necessary
+fields has been passed when invoking `run_topostats`, will also need updating to include new options in the Schema against
+which validation of configuration files is made.
 
 
 ### IDE Configuration
