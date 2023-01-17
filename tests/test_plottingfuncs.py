@@ -210,7 +210,7 @@ def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
         data=array,
         output_dir=tmp_path,
         filename="colour.png",
-        data2=mask,
+        masked_array=mask,
         **plotting_config,
         ).plot_and_save()
     return fig
