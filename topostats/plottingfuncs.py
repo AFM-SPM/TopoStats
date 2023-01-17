@@ -18,6 +18,11 @@ from topostats.theme import Colormap
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
+# pylint: disable=dangerous-default-value
+
 
 class Images:
     """Plots image arrays"""
@@ -35,6 +40,7 @@ class Images:
         core_set: bool = False,
         interpolation: str = "nearest",
         cmap: str = "nanoscope",
+        mask_cmap: str = "jet_r",
         region_properties: dict = None,
         zrange: list = [None, None],
         colorbar: bool = True,
@@ -43,6 +49,7 @@ class Images:
         save_format: str = "png",
         histogram_log_axis: bool = True,
         histogram_bins: int = 200,
+        dpi: Union[str, float] = "figure",
     ) -> None:
         """
         Initialise the class.
@@ -70,7 +77,9 @@ class Images:
         interpolation: str
             Interpolation to use (default 'nearest').
         cmap : str
-            Colour map to use (default 'nanoscope', 'afmhot' also available)
+            Colour map to use (default 'nanoscope', 'afmhot' also available).
+        mask_cmap : str
+            Colour map to use for the secondary (masked) data (default 'jet_r', 'blu' proivides more contrast).
         region_properties: dict
             Dictionary of region properties, adds bounding boxes if specified.
         zrange : list
@@ -85,10 +94,11 @@ class Images:
             Format to save the image as.
         histogram_log_axis: bool
             Optionally use a logarithmic y axis for the histogram plots.
-        histogram_binis: int
+        histogram_bin: int
             Number of bins for histograms to use.
+        dpi: Union[str, float]
+            The resolution of the saved plot (default 'figure').
         """
-
         self.data = data
         self.output_dir = Path(output_dir)
         self.filename = filename
@@ -99,7 +109,8 @@ class Images:
         self.image_set = image_set
         self.core_set = core_set
         self.interpolation = interpolation
-        self.cmap = cmap
+        self.cmap = Colormap(cmap).get_cmap()
+        self.mask_cmap = Colormap(mask_cmap).get_cmap()
         self.region_properties = region_properties
         self.zrange = zrange
         self.colorbar = colorbar
@@ -108,6 +119,7 @@ class Images:
         self.save_format = save_format
         self.histogram_log_axis = histogram_log_axis
         self.histogram_bins = histogram_bins
+        self.dpi = dpi
 
     def plot_histogram_and_save(self):
         """
@@ -132,9 +144,9 @@ class Images:
             plt.title(self.title)
             plt.savefig(
                 (self.output_dir / f"{self.filename}_histogram.{self.save_format}"),
-                format=self.save_format,
                 bbox_inches="tight",
                 pad_inches=0.5,
+                dpi=self.dpi,
             )
             plt.close()
 
@@ -183,7 +195,7 @@ class Images:
                 self.data,
                 extent=(0, shape[1] * self.pixel_to_nm_scaling, 0, shape[0] * self.pixel_to_nm_scaling),
                 interpolation=self.interpolation,
-                cmap=Colormap(self.cmap).get_cmap(),
+                cmap=self.cmap,
                 vmin=self.zrange[0],
                 vmax=self.zrange[1],
             )
@@ -192,7 +204,7 @@ class Images:
                 mask = np.ma.masked_where(self.masked_array == 0, self.masked_array)
                 ax.imshow(
                     mask,
-                    "jet_r",
+                    cmap=self.mask_cmap,
                     extent=(
                         0,
                         shape[1] * self.pixel_to_nm_scaling,
@@ -202,7 +214,7 @@ class Images:
                     interpolation=self.interpolation,
                     alpha=0.7,
                 )
-                patch = [Patch(color=plt.get_cmap("jet_r")(1, 0.7), label="Mask")]
+                patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
 
             plt.title(self.title)
@@ -220,12 +232,14 @@ class Images:
                 fig.frameon = False
                 plt.savefig(
                     (self.output_dir / f"{self.filename}.{self.save_format}"),
-                    format=self.save_format,
                     bbox_inches="tight",
                     pad_inches=0,
+                    dpi=self.dpi,
                 )
             else:
-                plt.savefig((self.output_dir / f"{self.filename}.{self.save_format}"), format=self.save_format)
+                plt.savefig(
+                    (self.output_dir / f"{self.filename}.{self.save_format}"), dpi=self.dpi
+                )
         else:
             plt.xlabel("Nanometres")
             plt.ylabel("Nanometres")
@@ -233,7 +247,7 @@ class Images:
                 ax=ax,
                 extent=(0, shape[1] * self.pixel_to_nm_scaling, 0, shape[0] * self.pixel_to_nm_scaling),
                 interpolation=self.interpolation,
-                cmap=Colormap(self.cmap).get_cmap(),
+                cmap=self.cmap,
             )
         plt.close()
         return fig, ax
@@ -243,7 +257,7 @@ class Images:
         plt.imsave(
             (self.output_dir / f"{self.filename}.{self.save_format}"),
             self.data,
-            cmap=Colormap(self.cmap).get_cmap(),
+            cmap=self.cmap,
             vmin=self.zrange[0],
             vmax=self.zrange[1],
             format=self.save_format,
