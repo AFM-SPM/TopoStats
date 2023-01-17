@@ -38,7 +38,6 @@ class Filters:
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
         remove_scars: dict = None,
-        quiet: bool = False,
     ):
         """Initialise the class.
 
@@ -62,8 +61,6 @@ class Filters:
             absolute threshold values for flattening.
         remove_scars: dict
             Dictionary containing configuration parameters for the scar removal function.
-        quiet: bool
-            Whether to silence output.
         """
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
@@ -98,9 +95,6 @@ class Filters:
             "y_gradient": None,
             "threshold": None,
         }
-
-        if quiet:
-            LOGGER.setLevel("ERROR")
 
     def median_flatten(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """
