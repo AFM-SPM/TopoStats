@@ -94,7 +94,7 @@ class Images:
             Format to save the image as.
         histogram_log_axis: bool
             Optionally use a logarithmic y axis for the histogram plots.
-        histogram_binis: int
+        histogram_bin: int
             Number of bins for histograms to use.
         dpi: Union[str, float]
             The resolution of the saved plot (default 'figure').
