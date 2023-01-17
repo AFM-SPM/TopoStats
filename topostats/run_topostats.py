@@ -30,8 +30,10 @@ from topostats.utils import (
 )
 from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA
 
+# We already setup the logger in __init__.py and it is idempotent so calling it here returns the same object as from
+# __init__.py
+# Ref : https://stackoverflow.com/a/57799639/1444043
 LOGGER = setup_logger(LOGGER_NAME)
-
 
 # pylint: disable=broad-except
 # pylint: disable=line-too-long
