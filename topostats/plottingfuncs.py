@@ -144,7 +144,6 @@ class Images:
             plt.title(self.title)
             plt.savefig(
                 (self.output_dir / f"{self.filename}_histogram.{self.save_format}"),
-                format=self.save_format,
                 bbox_inches="tight",
                 pad_inches=0.5,
                 dpi=self.dpi,
@@ -233,14 +232,13 @@ class Images:
                 fig.frameon = False
                 plt.savefig(
                     (self.output_dir / f"{self.filename}.{self.save_format}"),
-                    format=self.save_format,
                     bbox_inches="tight",
                     pad_inches=0,
                     dpi=self.dpi,
                 )
             else:
                 plt.savefig(
-                    (self.output_dir / f"{self.filename}.{self.save_format}"), format=self.save_format, dpi=self.dpi
+                    (self.output_dir / f"{self.filename}.{self.save_format}"), dpi=self.dpi
                 )
         else:
             plt.xlabel("Nanometres")
