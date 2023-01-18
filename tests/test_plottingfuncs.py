@@ -202,15 +202,16 @@ RNG = np.random.default_rng(seed=1000)
 array = RNG.random((10, 10))
 mask = RNG.uniform(low=0, high=1, size=array.shape) > 0.5
 
+
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
     """Test the plotting of a mask with a different colourmap (blu)."""
-    plotting_config['mask_cmap'] = 'blu'
+    plotting_config["mask_cmap"] = "blu"
     fig, _ = Images(
         data=array,
         output_dir=tmp_path,
         filename="colour.png",
         masked_array=mask,
         **plotting_config,
-        ).plot_and_save()
+    ).plot_and_save()
     return fig
