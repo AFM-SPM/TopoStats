@@ -28,6 +28,7 @@ repos:
         additional_dependencies: [flake8-print]
         types: [python]
   - repo: https://github.com/pycqa/pylint.git
+    rev: 2.16.0
     hooks:
       - id: pylint
         types: [python]
