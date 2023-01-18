@@ -237,9 +237,7 @@ class Images:
                     dpi=self.dpi,
                 )
             else:
-                plt.savefig(
-                    (self.output_dir / f"{self.filename}.{self.save_format}"), dpi=self.dpi
-                )
+                plt.savefig((self.output_dir / f"{self.filename}.{self.save_format}"), dpi=self.dpi)
         else:
             plt.xlabel("Nanometres")
             plt.ylabel("Nanometres")

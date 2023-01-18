@@ -50,7 +50,7 @@ class Colormap:
         The colormap is implemented in Gwyddion's GwyGradient via 'Nanoscope.txt'
         """
         cdict = {
-            'red': (
+            "red": (
                 (0.0, 0.0, 0.0),
                 (0.124464, 0.0, 0.0),
                 (0.236052, 0.0670103, 0.0670103),
@@ -66,7 +66,7 @@ class Colormap:
                 (0.971401, 0.996006, 0.996006),
                 (1, 1, 1),
             ),
-            'green': (
+            "green": (
                 (0.0, 0.0, 0.0),
                 (0.124464, 0.0, 0.0),
                 (0.236052, 0.0, 0.0),
@@ -82,7 +82,7 @@ class Colormap:
                 (0.971401, 0.993565, 0.993565),
                 (1, 1, 1),
             ),
-            'blue': (
+            "blue": (
                 (0.0, 0.0, 0.0),
                 (0.124464, 0.0, 0.0),
                 (0.236052, 0.0, 0.0),
@@ -97,8 +97,8 @@ class Colormap:
                 (0.965682, 0.974293, 0.974293),
                 (0.971401, 0.990347, 0.990347),
                 (1, 1, 1),
-            )
-            }
+            ),
+        }
 
         colormap = LinearSegmentedColormap("nanoscope", cdict)
         return colormap
@@ -109,8 +109,8 @@ class Colormap:
         N = 4  # Number of values
         vals = np.ones((N, 4))  # Initialise the array to be full of 1.0
         vals[0] = [0.0, 0.0, 0.0, 1]
-        vals[1] = [168/256, 40/256, 15/256, 1.0]
-        vals[2] = [243/256, 194/256, 93/256, 1.0]
+        vals[1] = [168 / 256, 40 / 256, 15 / 256, 1.0]
+        vals[2] = [243 / 256, 194 / 256, 93 / 256, 1.0]
         vals[3] = [1.0, 1.0, 1.0, 1.0]
 
         colormap = LinearSegmentedColormap.from_list("gwyddion", vals, N=256)
@@ -119,4 +119,4 @@ class Colormap:
     @staticmethod
     def blu():
         "RGBA colour map of just the colour blue."
-        return ListedColormap([[32/256, 226/256, 205/256]], "blu", N=256)
+        return ListedColormap([[32 / 256, 226 / 256, 205 / 256]], "blu", N=256)
