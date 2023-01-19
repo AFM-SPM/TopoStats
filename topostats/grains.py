@@ -316,7 +316,7 @@ U:{upper / self.pixel_to_nm_scaling**2:.2f} px^2, L:{lower:.2f}, U:{upper:.2f} n
                 LOGGER.info(f"[{self.filename}] : Removing noise ({direction})")
                 self.directions[direction]["removed_noise"] = self.area_thresholding(
                     self.directions[direction]["tidied_border"],
-                    [self.smallest_grain_size, None],
+                    [self.smallest_grain_size_nm, None],
                 )
                 LOGGER.info(f"[{self.filename}] : Removing small / large grains ({direction})")
                 # if no area thresholds specified, use otsu
