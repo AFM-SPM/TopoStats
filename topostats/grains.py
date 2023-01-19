@@ -191,7 +191,7 @@ class Grains:
             )
             LOGGER.info(
                 f"[{self.filename}] : Removed small objects (< \
-{self.minimum_grain_size} px^2 {self.minimum_grain_size / (self.pixel_to_nm_scaling)**2} nm^2)"
+{self.minimum_grain_size} px^2 / {self.minimum_grain_size / (self.pixel_to_nm_scaling)**2} nm^2)"
             )
             return small_objects_removed > 0.0
         return image
