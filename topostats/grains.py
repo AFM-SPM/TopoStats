@@ -158,7 +158,7 @@ class Grains:
         Returns
         -------
         np.ndarray
-            2D Numpy array of image with objects < smallest_grain_size removed.
+            2D Numpy array of image with objects < smallest_grain_size_nm removed.
         """
         LOGGER.info(
             f"[{self.filename}] : Removing noise (< {self.smallest_grain_size} nm^2 \
