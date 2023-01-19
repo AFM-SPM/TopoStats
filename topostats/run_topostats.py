@@ -6,6 +6,7 @@ import argparse as arg
 from collections import defaultdict
 from functools import partial
 import importlib.resources as pkg_resources
+import logging
 from multiprocessing import Pool
 from pathlib import Path
 import sys
@@ -20,7 +21,7 @@ from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import find_images, read_yaml, write_yaml, get_out_path, LoadScans
-from topostats.logs.logs import setup_logger, LOGGER_NAME
+from topostats.logs.logs import LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import (
@@ -33,7 +34,8 @@ from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTIN
 # We already setup the logger in __init__.py and it is idempotent so calling it here returns the same object as from
 # __init__.py
 # Ref : https://stackoverflow.com/a/57799639/1444043
-LOGGER = setup_logger(LOGGER_NAME)
+# LOGGER = setup_logger(LOGGER_NAME)
+LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=broad-except
 # pylint: disable=line-too-long
