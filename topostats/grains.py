@@ -41,7 +41,7 @@ class Grains:
             "lower": [None, None],
         },
         direction: str = None,
-        smallest_grain_size: float = None,
+        smallest_grain_size_nm: float = None,
     ):
         """Initialise the class.
 
