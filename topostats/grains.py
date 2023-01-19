@@ -76,7 +76,7 @@ class Grains:
         self.absolute_area_threshold = absolute_area_threshold
         # Only detect grains for the desired direction
         self.direction = [direction] if direction != "both" else ["upper", "lower"]
-        self.smallest_grain_size = smallest_grain_size
+        self.smallest_grain_size_nm = smallest_grain_size_nm
         self.thresholds = None
         self.images = {
             "mask_grains": None,
