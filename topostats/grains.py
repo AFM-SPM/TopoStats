@@ -41,7 +41,7 @@ class Grains:
             "lower": [None, None],
         },
         direction: str = None,
-        smallest_grain_size_nm: float = None,
+        smallest_grain_size_nm2: float = None,
     ):
         """Initialise the class.
 
@@ -76,7 +76,7 @@ class Grains:
         self.absolute_area_threshold = absolute_area_threshold
         # Only detect grains for the desired direction
         self.direction = [direction] if direction != "both" else ["upper", "lower"]
-        self.smallest_grain_size_nm = smallest_grain_size_nm
+        self.smallest_grain_size_nm2 = smallest_grain_size_nm2
         self.thresholds = None
         self.images = {
             "mask_grains": None,
@@ -146,7 +146,7 @@ class Grains:
             self.minimum_grain_size = -1
 
     def remove_noise(self, image: np.ndarray, **kwargs) -> np.ndarray:
-        """Removes noise which are objects smaller than the 'smallest_grain_size_nm'.
+        """Removes noise which are objects smaller than the 'smallest_grain_size_nm2'.
 
         This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.
 
@@ -158,14 +158,14 @@ class Grains:
         Returns
         -------
         np.ndarray
-            2D Numpy array of image with objects < smallest_grain_size_nm removed.
+            2D Numpy array of image with objects < smallest_grain_size_nm2 removed.
         """
         LOGGER.info(
-            f"[{self.filename}] : Removing noise (< {self.smallest_grain_size} nm^2 \
-{self.smallest_grain_size / (self.pixel_to_nm_scaling**2):.2f} px^2)"
+            f"[{self.filename}] : Removing noise (< {self.smallest_grain_size_nm2} nm^2"
+            "{self.smallest_grain_size_nm2 / (self.pixel_to_nm_scaling**2):.2f} px^2)"
         )
         return remove_small_objects(
-            image, min_size=self.smallest_grain_size / (self.pixel_to_nm_scaling**2), **kwargs
+            image, min_size=self.smallest_grain_size_nm2 / (self.pixel_to_nm_scaling**2), **kwargs
         )
 
     def remove_small_objects(self, image: np.array, **kwargs):
@@ -224,8 +224,8 @@ class Grains:
         uniq = np.delete(np.unique(image), 0)
         grain_count = 0
         LOGGER.info(
-            f"[{self.filename}] : Area thresholding grains | Thresholds: L:{lower / self.pixel_to_nm_scaling**2:.2f},\
-U:{upper / self.pixel_to_nm_scaling**2:.2f} px^2, L:{lower:.2f}, U:{upper:.2f} nm^2."
+            f"[{self.filename}] : Area thresholding grains | Thresholds: L:{lower / self.pixel_to_nm_scaling**2:.2f},"
+            "U:{upper / self.pixel_to_nm_scaling**2:.2f} px^2, L:{lower:.2f}, U:{upper:.2f} nm^2."
         )
         for grain_no in uniq:  # Calculate grian area in nm^2
             grain_area = np.sum(image_cp == grain_no) * (self.pixel_to_nm_scaling**2)
@@ -316,7 +316,7 @@ U:{upper / self.pixel_to_nm_scaling**2:.2f} px^2, L:{lower:.2f}, U:{upper:.2f} n
                 LOGGER.info(f"[{self.filename}] : Removing noise ({direction})")
                 self.directions[direction]["removed_noise"] = self.area_thresholding(
                     self.directions[direction]["tidied_border"],
-                    [self.smallest_grain_size_nm, None],
+                    [self.smallest_grain_size_nm2, None],
                 )
                 LOGGER.info(f"[{self.filename}] : Removing small / large grains ({direction})")
                 # if no area thresholds specified, use otsu
