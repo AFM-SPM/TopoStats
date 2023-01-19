@@ -146,7 +146,7 @@ class Grains:
             self.minimum_grain_size = -1
 
     def remove_noise(self, image: np.ndarray, **kwargs) -> np.ndarray:
-        """Removes noise which are objects smaller than the 'smallest_grain_size'.
+        """Removes noise which are objects smaller than the 'smallest_grain_size_nm'.
 
         This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.
 
