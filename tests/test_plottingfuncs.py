@@ -2,6 +2,8 @@
 from pathlib import Path
 
 import pytest
+from matplotlib.figure import Figure
+from matplotlib.axes import Axes
 import numpy as np
 from skimage import io
 
@@ -11,11 +13,11 @@ from topostats.plottingfuncs import Images
 
 
 @pytest.mark.parametrize(
-    "data2, axes_colorbar, region_properties",
+    "masked_array, axes_colorbar, region_properties",
     [(np.random.rand(10, 10), True, None), (None, True, None), (None, False, True)],
 )
 def test_save_figure(
-    data2: np.ndarray,
+    masked_array: np.ndarray,
     axes_colorbar: bool,
     region_properties: bool,
     image_random: np.ndarray,
@@ -29,14 +31,14 @@ def test_save_figure(
         data=image_random,
         output_dir=tmp_path,
         filename="result",
-        data2=data2,
+        masked_array=masked_array,
         colorbar=axes_colorbar,
         axes=axes_colorbar,
         region_properties=region_properties,
     ).save_figure()
     assert Path(tmp_path / "result.png").exists()
-    assert fig is not None
-    assert ax is not None
+    assert isinstance(fig, Figure)
+    assert isinstance(ax, Axes)
 
 
 def test_save_array_figure(tmp_path: Path):
@@ -116,7 +118,7 @@ def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScans, plotting_c
         **plotting_config,
     ).plot_and_save()
     img = io.imread(tmp_path / "01-raw_heightmap.png")
-    assert np.sum(img) == 448788105
+    assert np.sum(img) == 461143075
     assert img.shape == (1024, 1024, 4)
 
 
@@ -192,5 +194,24 @@ def test_plot_and_save_non_square_bounding_box(
         title="Coloured Regions",
         **plotting_config,
         region_properties=minicircle_grain_region_properties_post_removal,
+    ).plot_and_save()
+    return fig
+
+
+RNG = np.random.default_rng(seed=1000)
+array = RNG.random((10, 10))
+mask = RNG.uniform(low=0, high=1, size=array.shape) > 0.5
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
+    """Test the plotting of a mask with a different colourmap (blu)."""
+    plotting_config["mask_cmap"] = "blu"
+    fig, _ = Images(
+        data=array,
+        output_dir=tmp_path,
+        filename="colour.png",
+        masked_array=mask,
+        **plotting_config,
     ).plot_and_save()
     return fig

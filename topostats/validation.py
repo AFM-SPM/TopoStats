@@ -102,18 +102,38 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "upper": lambda n: n > 0,
             },
             "threshold_absolute": {
-                "lower": lambda n: n < 0,
-                "upper": lambda n: n > 0,
+                "lower": Or(
+                    int,
+                    float,
+                    error=(
+                        "Invalid value in config for filter.threshold.absolute.lower " "should be type int or float"
+                    ),
+                ),
+                "upper": Or(
+                    int,
+                    float,
+                    error=(
+                        "Invalid value in config for filter.threshold.absolute.lower " "should be type int or float"
+                    ),
+                ),
             },
             "gaussian_size": float,
             "gaussian_mode": Or(
                 "nearest",
                 error="Invalid value in config for 'filter.gaussian_mode', valid values are 'nearest'",
             ),
+            "remove_scars": {
+                "run": bool,
+                "removal_iterations": lambda n: 0 <= n < 10,
+                "threshold_low": lambda n: n > 0,
+                "threshold_high": lambda n: n > 0,
+                "max_scar_width": lambda n: n >= 1,
+                "min_scar_length": lambda n: n >= 1,
+            },
         },
         "grains": {
             "run": Or(True, False, error="Invalid value in config for grains.run, valid values are 'True' or 'False'"),
-            "absolute_smallest_grain_size": int,
+            "smallest_grain_size_nm2": lambda n: n > 0.0,
             "threshold_method": Or(
                 "absolute",
                 "otsu",
@@ -129,8 +149,20 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "upper": lambda n: n > 0,
             },
             "threshold_absolute": {
-                "lower": lambda n: n < 0,
-                "upper": lambda n: n > 0,
+                "lower": Or(
+                    int,
+                    float,
+                    error=(
+                        "Invalid value in config for grains.threshold.absolute.lower " "should be type int or float"
+                    ),
+                ),
+                "upper": Or(
+                    int,
+                    float,
+                    error=(
+                        "Invalid value in config for grains.threshold.absolute.lower " "should be type int or float"
+                    ),
+                ),
             },
             "absolute_area_threshold": {
                 "upper": [
@@ -212,13 +244,16 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "cmap": Or(
                 "afmhot",
                 "nanoscope",
-                error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot' or 'nanoscope",
+                "gwyddion",
+                error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot', 'nanoscope' or 'gwyddion'",
             ),
+            "mask_cmap": str,
             "histogram_log_axis": Or(
                 True,
                 False,
                 error="Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or 'False'",
             ),
+            "histogram_bins": lambda n: n > 0,
         },
     }
 )
@@ -288,6 +323,19 @@ PLOTTING_SCHEMA = Schema(
             ),
             "core_set": bool,
         },
+        "initial_scar_removal": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'initial_scar_removal.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
         "mask": {
             "filename": str,
             "title": str,
@@ -325,6 +373,32 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
         },
         "masked_quadratic_removal": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'masked_quadratic_removal.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
+        "secondary_scar_removal": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'masked_quadratic_removal.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
+        "scar_mask": {
             "filename": str,
             "title": str,
             "image_type": Or(

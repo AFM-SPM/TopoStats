@@ -5,7 +5,7 @@ from unittest import TestCase
 import numpy as np
 import pytest
 
-from topostats.io import read_yaml, LoadScans
+from topostats.io import read_yaml, find_images, get_out_path, LoadScans
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
@@ -27,6 +27,92 @@ def test_read_yaml() -> None:
     sample_config = read_yaml(RESOURCES / "test.yaml")
 
     TestCase().assertDictEqual(sample_config, CONFIG)
+
+
+def test_find_images() -> None:
+    """Test finding images"""
+    found_images = find_images(base_dir="tests/", file_ext=".spm")
+
+    assert isinstance(found_images, list)
+    assert len(found_images) == 1
+    assert isinstance(found_images[0], Path)
+    assert "minicircle.spm" in str(found_images[0])
+
+
+@pytest.mark.parametrize(
+    "base_dir, image_path, output_dir, expected",
+    [
+        # Absolute path, nested under base_dir, with file suffix
+        (
+            Path("/some/random/path"),
+            Path("/some/random/path/images/test.spm"),
+            Path("output/here"),
+            Path("output/here/images/test/"),
+        ),
+        # Absolute path, nested under base_dir, with file suffix and multiple periods
+        (
+            Path("/some/random/path"),
+            Path("/some/random/path/images/te.st.spm"),
+            Path("output/here"),
+            Path("output/here/images/te.st/"),
+        ),
+        # Absolute path, nested under base_dir, with file suffix
+        (
+            Path("/some/random/path"),
+            Path("/some/random/path/images/today/test.spm"),
+            Path("output/here"),
+            Path("output/here/images/today/test/"),
+        ),
+        # Relative path, nested under base_dir, with file_suffix
+        (
+            Path("/some/random/path"),
+            Path("images/test.spm"),
+            Path("output/here"),
+            Path("output/here/images/test"),
+        ),
+        # Relative path, nested (two deep) under base_dir, with file_suffix
+        (
+            Path("/some/random/path"),
+            Path("images/today/test.spm"),
+            Path("output/here"),
+            Path("output/here/images/today/test"),
+        ),
+        # Relative path, nested under base_dir, no file suffix
+        (Path("/some/random/path"), Path("images/"), Path("output/here"), Path("output/here/images/")),
+        # Absolute path, nested under base_dir, output not nested under base_dir, with file_suffix
+        (
+            Path("/some/random/path"),
+            Path("/some/random/path/images/test.spm"),
+            Path("/different/absolute/path"),
+            Path("/different/absolute/path/images/test"),
+        ),
+        # Absolute path, nested under base_dir, output not nested under base_dir, no file file_suffix
+        (
+            Path("/some/random/path"),
+            Path("/some/random/path/images/"),
+            Path("/different/absolute/path"),
+            Path("/different/absolute/path/images/"),
+        ),
+        # Relative path, nested under base_dir, output not nested under base_dir, with file_suffix
+        (
+            Path("/some/random/path"),
+            Path("images/test.spm"),
+            Path("/an/absolute/path"),
+            Path("/an/absolute/path/images/test"),
+        ),
+    ],
+)
+def test_get_out_path(image_path: Path, base_dir: Path, output_dir: Path, expected: Path) -> None:
+    """Test output directories"""
+    out_path = get_out_path(image_path, base_dir, output_dir)
+    assert isinstance(out_path, Path)
+    assert out_path == expected
+
+
+def test_get_out_path_attributeerror() -> None:
+    """Test get_out_path() raises AttribteError when passed a string instead of a Path() for image_path."""
+    with pytest.raises(AttributeError):
+        get_out_path(image_path="images/test.spm", base_dir=Path("/some/random/path"), output_dir=Path("output/here"))
 
 
 def test_load_scan_spm(load_scan: LoadScans) -> None:
@@ -58,9 +144,6 @@ def test_load_scan_jpk(load_scan_jpk: LoadScans) -> None:
     load_scan_jpk.img_path = load_scan_jpk.img_paths[0]
     load_scan_jpk.filename = load_scan_jpk.img_paths[0].stem
     image, px_to_nm_scaling = load_scan_jpk.load_jpk()
-    print(image.shape)
-    print(image.sum())
-    print(px_to_nm_scaling)
     assert isinstance(image, np.ndarray)
     assert image.shape == (256, 256)
     assert image.sum() == 286598232.9308627
