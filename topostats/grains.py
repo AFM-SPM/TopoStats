@@ -6,7 +6,7 @@ from typing import List, Dict
 import numpy as np
 
 from skimage.segmentation import clear_border
-from skimage.morphology import remove_small_objects, label
+from skimage import morphology
 from skimage.measure import regionprops
 from skimage.color import label2rgb
 
@@ -125,7 +125,7 @@ class Grains:
             Numpy array of image with objects coloured.
         """
         LOGGER.info(f"[{self.filename}] : Labelling Regions")
-        return label(image, background=0)
+        return morphology.label(image, background=0)
 
     def calc_minimum_grain_size(self, image: np.ndarray) -> float:
         """Calculate the minimum grain size in pixels squared.
@@ -164,7 +164,7 @@ class Grains:
             f"[{self.filename}] : Removing noise (< {self.smallest_grain_size_nm2} nm^2"
             "{self.smallest_grain_size_nm2 / (self.pixel_to_nm_scaling**2):.2f} px^2)"
         )
-        return remove_small_objects(
+        return morphology.remove_small_objects(
             image, min_size=self.smallest_grain_size_nm2 / (self.pixel_to_nm_scaling**2), **kwargs
         )
 
@@ -184,7 +184,7 @@ class Grains:
         # If self.minimum_grain_size is -1, then this means that
         # there were no grains to calculate the minimum grian size from.
         if self.minimum_grain_size != -1:
-            small_objects_removed = remove_small_objects(
+            small_objects_removed = morphology.remove_small_objects(
                 image,
                 min_size=self.minimum_grain_size,  # minimum_grain_size is in pixels squared
                 **kwargs,
