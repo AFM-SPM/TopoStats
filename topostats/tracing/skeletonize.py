@@ -2,7 +2,8 @@
 import logging
 from typing import Callable
 import numpy as np
-from skimage.morphology import medial_axis, skeletonize, thin  # , label
+from skimage.morphology import medial_axis, skeletonize, thin
+from skimage.filters import meijering, sato, frangi, hessian
 
 # from topostats.tracing.tracingfuncs import genTracingFuncs
 from topostats.logs.logs import LOGGER_NAME
@@ -72,15 +73,23 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
             return self._skeletonize_medial_axis(self.mask)
         if method == "thin":
             return self._skeletonize_thin(self.mask)
+        # if method == "meijering":
+        #     return self._skeletonize_meijering(self.image)
+        # if method == "frangi":
+        #     return self._skeletonize_frangi(self.image)
+        # if method == "sato":
+        #     return self._skeletonize_sato(self.image)
+        # if method == "hessian":
+        #     return self._skeletonize_hessian(self.image)
         raise ValueError(method)
 
     @staticmethod
-    def _skeletonize_zhang(mask: np.ndarray) -> np.ndarray:
-        """Wrapper for the scikit image implimentation of the Zhang skeletonisation method.
+    def _skeletonize_zhang(image: np.ndarray) -> np.ndarray:
+        """Wrapper for the scikit image implementation of the Zhang skeletonisation method.
 
         Parameters
         ----------
-        mask: np.ndarray
+        image: np.ndarray
             A binary array to skeletonise.
 
         Returns
@@ -88,15 +97,15 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         np.ndarray
             The mask array reduce to a single pixel thickness
         """
-        return skeletonize(mask, method="zhang")
+        return skeletonize(image, method="zhang")
 
     @staticmethod
-    def _skeletonize_lee(mask: np.ndarray) -> np.ndarray:
-        """Wrapper for the scikit image implimentation of the Lee skeletonisation method.
+    def _skeletonize_lee(image: np.ndarray) -> np.ndarray:
+        """Wrapper for the scikit image implementation of the Lee skeletonisation method.
 
         Parameters
         ----------
-        mask: np.ndarray
+        imagemask: np.ndarray
             A binary array to skeletonise.
 
         Returns
@@ -104,15 +113,15 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         np.ndarray
             The mask array reduce to a single pixel thickness
         """
-        return skeletonize(mask, method="lee")
+        return skeletonize(image, method="lee")
 
     @staticmethod
     def _skeletonize_medial_axis(image: np.ndarray) -> np.ndarray:
-        """Wrapper for the scikit image implimentation of the medial axis skeletonisation method.
+        """Wrapper for the scikit image implementation of the medial axis skeletonisation method.
 
         Parameters
         ----------
-        mask: np.ndarray
+        image: np.ndarray
             A binary array to skeletonise.
 
         Returns
@@ -125,11 +134,11 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
 
     @staticmethod
     def _skeletonize_thin(image: np.ndarray) -> np.ndarray:
-        """Wrapper for the scikit image implimentation of the thin skeletonisation method.
+        """Wrapper for the scikit image implementation of the thin skeletonisation method.
 
         Parameters
         ----------
-        mask: np.ndarray
+        image: np.ndarray
             A binary array to skeletonise.
 
         Returns
@@ -139,3 +148,67 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         """
         # don't know how these work - do they need img or mask?
         return thin(image)
+
+    # @staticmethod
+    # def _skeletonize_meijering(image: np.ndarray) -> np.ndarray:
+    #     """Wrapper for the scikit image implementation of the Meijering neuriteness filter method.
+
+    #     Parameters
+    #     ----------
+    #     image: np.ndarray()
+    #         The image to skeletonise.
+
+    #     Returns
+    #     -------
+    #     np.ndarray
+    #         The array reduced to the ridge.
+    #     """
+    #     return meijering(image, black_ridges=False)
+
+    # @staticmethod
+    # def _skeletonize_sato(image: np.ndarray) -> np.ndarray:
+    #     """Wrapper for the scikit image implementation of the Sato tubeness filter method.
+
+    #     Parameters
+    #     ----------
+    #     image: np.ndarray()
+    #         The image to skeletonise.
+
+    #     Returns
+    #     -------
+    #     np.ndarray
+    #         The array reduced to the ridge.
+    #     """
+    #     return sato(image, black_ridges=False)
+
+    # @staticmethod
+    # def _skeletonize_frangi(image: np.ndarray) -> np.ndarray:
+    #     """Wrapper for the scikit image implementation of the Frangi vesselness filter method.
+
+    #     Parameters
+    #     ----------
+    #     image: np.ndarray()
+    #         The image to skeletonise.
+
+    #     Returns
+    #     -------
+    #     np.ndarray
+    #         The array reduced to the ridge.
+    #     """
+    #     return frangi(image, black_ridges=False)
+
+    # @staticmethod
+    # def _skeletonize_hessian(image: np.ndarray) -> np.ndarray:
+    #     """Wrapper for the scikit image implementation of the Hybrid Hessian filter method.
+
+    #     Parameters
+    #     ----------
+    #     image: np.ndarray()
+    #         The image to skeletonise.
+
+    #     Returns
+    #     -------
+    #     np.ndarray
+    #         The array reduced to the ridge.
+    #     """
+    #     return hessian(image, black_ridges=False)
