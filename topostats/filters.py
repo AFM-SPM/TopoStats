@@ -22,6 +22,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-branches
 # pylint: disable=dangerous-default-value
 
+
 class Filters:
     """Class for filtering scans."""
 
