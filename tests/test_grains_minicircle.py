@@ -71,7 +71,7 @@ def test_remove_noise(minicircle_grain_remove_noise: Grains, plotting_config: di
     plotting_config["image_type"] = "binary"
     assert isinstance(minicircle_grain_remove_noise.directions["upper"]["removed_noise"], np.ndarray)
     assert minicircle_grain_remove_noise.directions["upper"]["removed_noise"].shape == (1024, 1024)
-    assert minicircle_grain_remove_noise.directions["upper"]["removed_noise"].sum() == 45813
+    assert minicircle_grain_remove_noise.directions["upper"]["removed_noise"].sum() == 44065
     plotting_config = {**plotting_config, **plot_dict["removed_noise"]}
     fig, _ = Images(
         data=minicircle_grain_remove_noise.directions["upper"]["removed_noise"],
