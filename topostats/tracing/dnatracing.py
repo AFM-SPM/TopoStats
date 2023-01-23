@@ -792,7 +792,7 @@ class dnaTrace(object):
                     except NameError:
                         hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
 
-                self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size * 1e9
+                self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size
                 del hypotenuse_array
 
             else:
@@ -808,7 +808,7 @@ class dnaTrace(object):
                         except NameError:
                             hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
                     except IndexError:  # IndexError happens at last point in array
-                        self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size * 1e9
+                        self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size
                         del hypotenuse_array
                         break
 
@@ -855,7 +855,7 @@ class dnaTrace(object):
                 y1 = self.splined_traces[dna_num][0, 1]
                 x2 = self.splined_traces[dna_num][-1, 0]
                 y2 = self.splined_traces[dna_num][-1, 1]
-                self.end_to_end_distance[dna_num] = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_size * 1e9
+                self.end_to_end_distance[dna_num] = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_size
         # self.end_to_end_distance = {
         #     dna_num: math.hypot((trace[0, 0] - trace[-1, 0]), (trace[0, 1] - trace[-1, 1]))
         #     if self.mol_is_circular[dna_num]
