@@ -1163,11 +1163,9 @@ class nodeStats():
             An array of ordered cordinates.
         """
         binary_image = np.pad(binary_image, 1).astype(int)
-        np.savetxt('bin_img.txt', binary_image)
         # get branch starts
         endpoints_highlight = ndimage.convolve(binary_image, np.ones((3, 3)))
         endpoints_highlight[binary_image == 0] = 0
-        np.savetxt('order.txt', endpoints_highlight)
         endpoints = np.argwhere(endpoints_highlight == 2)
         # as > 1 endpoint, find one closest to node
         centre = (np.asarray(binary_image.shape) / 2).astype(int)
@@ -1555,9 +1553,6 @@ class nodeStats():
         dilate2 = ndimage.binary_dilation(dilate)
         dilate2[(dilate == 1) | (branch_mask == 1)] = 0
         labels = label(dilate2)
-        np.savetxt('labels.txt', labels)
-        np.savetxt('sb.txt', branch_mask)
-
 
         # get and order coords, get heights and distances
         heights = []
@@ -1578,8 +1573,8 @@ class nodeStats():
         avg2 = []
         for mid_dist in branch_dist_norm:
             for i, (distance, height) in enumerate(zip(distances, heights)):
-                # check if point in traces array
-                if (mid_dist==distance).any(): # check if distance already in array
+                # check if distance already in traces array
+                if (mid_dist==distance).any():
                     idx = np.where(mid_dist==distance)
                     if i == 0:
                         avg1.append([mid_dist, height[idx][0]])
