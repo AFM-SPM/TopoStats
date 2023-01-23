@@ -1029,8 +1029,9 @@ class nodeStats():
         real_node_count = 0
         for node_no, (x, y) in enumerate(zip(x_arr, y_arr)): # get centres
             # get area around node
+            image_area = self.image[x-length : x+length+1, y-length : y+length+1]
             node_area = self.connected_nodes.copy()[x-length : x+length+1, y-length : y+length+1]
-            node_area = np.pad(node_area, 1)
+            #node_area = np.pad(node_area, 1)
             node_coords = np.stack(np.where(node_area == 3)).T
             centre = (np.asarray(node_area.shape) / 2).astype(int)
             branch_mask = self.clean_centre_branches(node_area)
@@ -1072,12 +1073,21 @@ class nodeStats():
                     matched_branches[i] = {}
                     branch_1_coords = ordered_branches[branch_1]
                     branch_2_coords = ordered_branches[branch_2]
-                    branch_1_coords, branch_2_coords = self.order_branches(branch_1_coords, branch_2_coords)
                     # find close ends by rearranging branch coords
-                    crossing = self.binary_line(branch_1_coords[-1], branch_2_coords[0])
-                    # find lowest size of branch coords
+                    branch_1_coords, branch_2_coords = self.order_branches(branch_1_coords, branch_2_coords)
+                    # Linearly interpolate the node
+                    # binary line needs to consider previous pixel as it can make kinks (non-skelly bits)
+                    #   which can cause a pixel to be missed when ordering the traces
+                    crossing = self.binary_line(branch_1_coords[-1], branch_2_coords[0])#[1:-1]
+                    # Branch coords and crossing
                     branch_coords = np.append(branch_1_coords, crossing[1:-1], axis=0)
                     branch_coords = np.append(branch_coords, branch_2_coords, axis=0)
+                    # make branch images single joined and multiple joined
+                    single_branch = np.zeros_like(branch_img)
+                    single_branch[branch_coords[:,0], branch_coords[:,1]] = 1
+                    self.reskeletonise_point(single_branch, branch_1_coords[-1])
+                    self.reskeletonise_point(single_branch, branch_2_coords[0])
+
                     branch_img[branch_coords[:,0], branch_coords[:,1]] = i + 1
                     # calc image-wide coords
                     branch_coords_img = branch_coords + ([x, y] - centre)
@@ -1087,6 +1097,9 @@ class nodeStats():
                     matched_branches[i]["heights"] = heights
                     distances = self.coord_dist(branch_coords)
                     matched_branches[i]["distances"] = distances
+                    avg_heights, avg_distances = self.average_height_trace(image_area, single_branch)
+                    matched_branches[i]["avg_heights"] = avg_heights
+                    matched_branches[i]["avg_distances"] = avg_distances
                     # identify over/under
                     fwhm2 = self.fwhm2(heights, distances)
                     matched_branches[i]["fwhm2"] = fwhm2
@@ -1128,7 +1141,7 @@ class nodeStats():
                     "branch_stats": matched_branches,
                     "node_stats": {
                         "node_mid_coords": [x, y],
-                        "node_area_image": self.image[x-length : x+length+1, y-length : y+length+1],
+                        "node_area_image": image_area,
                         "node_area_grain": self.grains[x-length : x+length+1, y-length : y+length+1],
                         "node_branch_mask": branch_img[1:-1, 1:-1], # to remove padding
                     }
@@ -1149,11 +1162,13 @@ class nodeStats():
         np.ndarray
             An array of ordered cordinates.
         """
+        binary_image = np.pad(binary_image, 1).astype(int)
+        np.savetxt('bin_img.txt', binary_image)
         # get branch starts
         endpoints_highlight = ndimage.convolve(binary_image, np.ones((3, 3)))
         endpoints_highlight[binary_image == 0] = 0
+        np.savetxt('order.txt', endpoints_highlight)
         endpoints = np.argwhere(endpoints_highlight == 2)
-
         # as > 1 endpoint, find one closest to node
         centre = (np.asarray(binary_image.shape) / 2).astype(int)
         dist_vals = abs((endpoints - centre).sum(axis=1))
@@ -1171,12 +1186,11 @@ class nodeStats():
         for i in range(no_points - 1):
             current_point = ordered[i]  # get last point
             area, _ = self.local_area_sum(binary_image, current_point)  # look at local area
-            next_point = (current_point + np.argwhere(np.reshape(area, (3, 3,)) == 1) - (1, 1))[0]
+            next_point = (current_point + np.argwhere(area.reshape((3, 3,)) == 1) - (1, 1))[0]
             # find where to go next
             ordered[i + 1] += next_point  # add to ordered array
             binary_image[next_point[0], next_point[1]] = 0  # set value to zero
-
-        return ordered
+        return ordered - [1, 1] # remove padding
 
     @staticmethod
     def local_area_sum(binary_map, point):
@@ -1201,7 +1215,7 @@ class nodeStats():
         local_pixels[4] = 0  # ensure centre is 0
         return local_pixels, local_pixels.sum()
 
-    def clean_centre_branches(self, node_area: np.ndarray):
+    def clean_centre_branches(self, node_area: np.ndarray) -> np.ndarray:
         """This function check to see if the node area contains another node. If it does,
         it removes the node and branche pixels associated with only that extra node.
 
@@ -1221,9 +1235,11 @@ class nodeStats():
         nodes[nodes!=3] = 0
         nodes[nodes==3] = 1
         labeled_nodes = label(nodes)
+
         # highlight only branches
         branches = node_area.copy()
-        branches[branches==3] = 0
+        branches[branches==3] = 0 # remove nodes
+        branches[branches!=0] = 1
         labeled_branches = label(branches)
         
         if labeled_nodes.max() > 1:
@@ -1361,12 +1377,12 @@ class nodeStats():
         
         for i in range(len(arr1)-1):
             if (arr1[i] > hm) and (arr1[i+1] < hm): # if points cross through the hm value
-                arr1_hm = self.lin_interp([dist1[i], arr1[i]], [dist1[i+1], arr1[i+1]], hm)
+                arr1_hm = self.lin_interp([dist1[i], arr1[i]], [dist1[i+1], arr1[i+1]], yvalue=hm)
                 break
 
         for i in range(len(arr2)-1):
             if (arr2[i] > hm) and (arr2[i+1] < hm): # if points cross through the hm value
-                arr2_hm = self.lin_interp([dist2[i], arr2[i]], [dist2[i+1], arr2[i+1]], hm)
+                arr2_hm = self.lin_interp([dist2[i], arr2[i]], [dist2[i+1], arr2[i+1]], yvalue=hm)
                 break
 
         fwhm = arr2_hm - arr1_hm
@@ -1374,12 +1390,16 @@ class nodeStats():
         return fwhm, [arr1_hm, arr2_hm, hm], [high_idx, distances[high_idx], heights[high_idx]]
 
     @staticmethod
-    def lin_interp(point_1, point_2, value):
+    def lin_interp(point_1, point_2, xvalue=None, yvalue=None):
         """Linear interp 2 points by finding line eq and subbing."""
         m = (point_1[1]-point_2[1]) / (point_1[0]-point_2[0])
         c = point_1[1] - (m * point_1[0])
-        interp_x = (value - c) / m
-        return interp_x
+        if xvalue is not None:
+            interp_y = m * xvalue + c
+            return interp_y
+        if yvalue is not None:
+            interp_x = (yvalue - c) / m
+            return interp_x
 
     @staticmethod
     def close_coords(endpoints1, endpoints2):
@@ -1395,7 +1415,7 @@ class nodeStats():
 
     @staticmethod
     def order_branches(branch1, branch2):
-        """Find the closes coordinates (those at the node crossing) between 2 pairs."""
+        """Find the closest coordinates between 2 coordinate arrays."""
         endpoints1 = np.asarray([branch1[0], branch1[-1]])
         endpoints2 = np.asarray([branch2[0], branch2[-1]])
         sum1 = abs(endpoints1 - endpoints2).sum(axis=1)
@@ -1411,7 +1431,6 @@ class nodeStats():
             else:
                 return branch1[::-1], branch2[::-1]
 
-
     @staticmethod
     def binary_line(start, end):
         """Creates a binary path following the straight line between 2 points."""
@@ -1422,7 +1441,6 @@ class nodeStats():
         if abs(slope) > 1: # swap x and y if slope will cause skips
             start = start[::-1]
             end = end[::-1]
-
             slope = 1/slope
             swap = True
         
@@ -1444,8 +1462,43 @@ class nodeStats():
         else:
             return np.asarray(arr).reshape(-1,2).astype(int)
 
+    def reskeletonise_point(self, binary_image: np.ndarray, point) -> None:
+        """Checks the neightbours around a point to see if they >2 connections
+        (corresponding to a non-skeletonised mask) and removes the point from the 
+        binary image if they do.
+
+        Parameters
+        ----------
+        binary_image: np.ndarray
+            Array representing an binary image.
+        point np.ndarray: np.ndarray
+            The point to check wether it needs to be removed.
+        """
+        point_area, _ = self.local_area_sum(binary_image, point)
+        point_area = point_area.reshape((3,3))
+        neighbours = np.stack(np.where(point_area==1)).T - [1,1] + point
+        for neighbour in neighbours:
+            if self.local_area_sum(binary_image, neighbour)[1] == 3:
+                binary_image[point[0], point[1]] = 0
+        return None
+
     @staticmethod
-    def coord_dist(coords):
+    def coord_dist(coords: np.ndarray, px_2_nm: float = 1) -> np.ndarray:
+        """Takes a list/array of coordinates (Nx2) and produces an array which
+        accumulates a real distance as if traversing from pixel to pixel.
+        
+        Parameters
+        ----------
+        coords: np.ndarray
+            A Nx2 integer array corresponding to the ordered coordinates of a binary trace.
+        px_2_nm: float
+            The pixel to nanometer scaling factor.
+
+        Returns
+        -------
+        np.ndarray
+            An array of length N containing thcumulative sum of the distances.
+        """
         dist_list = [0]
         dist = 0
         for i in range(len(coords)-1):
@@ -1454,4 +1507,108 @@ class nodeStats():
             else:
                 dist += 1
             dist_list.append(dist)
-        return np.asarray(dist_list)
+        return np.asarray(dist_list) * px_2_nm
+
+    @staticmethod
+    def above_below_value_idx(array, value):
+        """Finds index of the points neighbouring the value in an array."""
+        idx1 = abs(array - value).argmin()
+        try:
+            if value < array[idx1 + 1] and array[idx1] < value:
+                idx2 = idx1 + 1
+            elif value < array[idx1] and array[idx1 - 1] < value:
+                idx2 = idx1 - 1
+            else:
+                raise IndexError # this will be if the number is the same
+            indices = [idx1, idx2]
+            indices.sort()
+            return indices
+        except IndexError:
+            return None
+
+    def average_height_trace(self, img: np.ndarray, branch_mask: np.ndarray) -> tuple:
+        """Dilates the original branch to create two additional side-by-side branches
+        in order to get a more accurate average of the height traces. This function produces
+        the common distances between these 3 branches, and their averaged heights.
+
+        Parameters
+        ----------
+        img: np.ndarray
+            An array of numbers pertaining to an image.
+        branch_mask: np.ndarray
+            A binary array of the branch, must share the same dimensions as the image.
+
+        Returns
+        -------
+        tuple
+            A tuple of the averaged heights from the linetrace and their corresponding distances
+            from the crossing.
+        """
+        # get heights and dists of the original (middle) branch
+        branch_coords = np.stack(np.where(branch_mask==1)).T
+        branch_dist = self.coord_dist(branch_coords)
+        branch_heights = img[branch_coords[:,0], branch_coords[:,1]]
+        branch_dist_norm = branch_dist - branch_dist[branch_heights.argmax()]
+        
+        # want to get a 3 pixel line trace, one on each side of orig
+        dilate = ndimage.binary_dilation(branch_mask, iterations=1)
+        dilate2 = ndimage.binary_dilation(dilate)
+        dilate2[(dilate == 1) | (branch_mask == 1)] = 0
+        labels = label(dilate2)
+        np.savetxt('labels.txt', labels)
+        np.savetxt('sb.txt', branch_mask)
+
+
+        # get and order coords, get heights and distances
+        heights = []
+        distances = []
+        for i in range(1, labels.max()+1):
+            trace = labels.copy()
+            trace[trace != i] = 0
+            trace[trace != 0] = 1
+            trace = getSkeleton(img, trace).get_skeleton('zhang')
+            trace = self.order_branch(trace)
+            height_trace = img[trace[:,0], trace[:,1]]
+            heights.append(height_trace)
+            dist = self.coord_dist(trace)
+            distances.append(dist - dist[height_trace.argmax()])
+        
+        # Make like coord system using original branch
+        avg1 = []
+        avg2 = []
+        for mid_dist in branch_dist_norm:
+            for i, (distance, height) in enumerate(zip(distances, heights)):
+                # check if point in traces array
+                if (mid_dist==distance).any(): # check if distance already in array
+                    idx = np.where(mid_dist==distance)
+                    if i == 0:
+                        avg1.append([mid_dist, height[idx][0]])
+                    else:
+                        avg2.append([mid_dist, height[idx][0]])
+                else:
+                    # get index after and before the mid branches' x coord
+                    xidxs = self.above_below_value_idx(distance, mid_dist)
+                    if xidxs is None:
+                        pass # if indexes outside of range, pass
+                    else:
+                        point1 = [distance[xidxs[0]], height[xidxs[0]]]
+                        point2 = [distance[xidxs[1]], height[xidxs[1]]]
+                        y = self.lin_interp(point1, point2, xvalue=mid_dist)
+                        if i == 0:
+                            avg1.append([mid_dist, y])
+                        else:
+                            avg2.append([mid_dist, y])
+        avg1 = np.asarray(avg1)
+        avg2 = np.asarray(avg2)
+        
+        # ensure arrays are same length to average
+        temp_x = branch_dist_norm[np.isin(branch_dist_norm, avg1[:,0])]
+        common_dists = avg2[:,0][np.isin(avg2[:,0], temp_x)]
+
+        common_avg_branch_heights = branch_heights[np.isin(branch_dist_norm, common_dists)]
+        common_avg1_heights = avg1[:,1][np.isin(avg1[:,0], common_dists)]
+        common_avg2_heights = avg2[:,1][np.isin(avg2[:,0], common_dists)]
+
+        average_heights = (common_avg_branch_heights + common_avg1_heights + common_avg2_heights) / 3
+        
+        return common_dists, average_heights
