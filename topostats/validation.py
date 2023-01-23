@@ -133,7 +133,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
         },
         "grains": {
             "run": Or(True, False, error="Invalid value in config for grains.run, valid values are 'True' or 'False'"),
-            "absolute_smallest_grain_size": int,
+            "smallest_grain_size_nm2": lambda n: n > 0.0,
             "threshold_method": Or(
                 "absolute",
                 "otsu",

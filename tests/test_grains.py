@@ -56,13 +56,13 @@ grain_array4 = np.array(
 
 
 @pytest.mark.parametrize(
-    "area_thresh, expected",
-    [([None, None], grain_array), ([None, 8], grain_array2), ([3, 6], grain_array3), ([8, 11], grain_array4)],
+    "area_thresh_nm, expected",
+    [([None, None], grain_array), ([None, 32], grain_array2), ([12, 24], grain_array3), ([32, 44], grain_array4)],
 )
-def test_known_array_threshold(area_thresh, expected) -> None:
+def test_known_array_threshold(area_thresh_nm, expected) -> None:
     "Tests that arrays are thresholded on size as expected."
-    grains = Grains(image=np.zeros((10, 6)), filename="xyz", pixel_to_nm_scaling=1)
-    assert (grains.area_thresholding(grain_array, area_thresh) == expected).all()
+    grains = Grains(image=np.zeros((10, 6)), filename="xyz", pixel_to_nm_scaling=2)
+    assert (grains.area_thresholding(grain_array, area_thresh_nm) == expected).all()
 
 
 # def test_random_grains(random_grains: Grains, caplog) -> None:
