@@ -21,7 +21,7 @@ fail-under=10.0
 
 # Files or directories to be skipped. They should be base names, not paths.
 ignore=CVS,
-       _version.py
+       _version.py,
        dnatracing.py
 
 # Add files or directories matching the regex patterns to the ignore-list. The
