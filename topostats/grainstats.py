@@ -241,28 +241,31 @@ class GrainStats:
             # from pixel units to nanometres.
             # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
             stats = {
-                "centre_x": centre_x * self.pixel_to_nanometre_scaling,
-                "centre_y": centre_y * self.pixel_to_nanometre_scaling,
-                "radius_min": radius_stats["min"] * self.pixel_to_nanometre_scaling,
-                "radius_max": radius_stats["max"] * self.pixel_to_nanometre_scaling,
-                "radius_mean": radius_stats["mean"] * self.pixel_to_nanometre_scaling,
-                "radius_median": radius_stats["median"] * self.pixel_to_nanometre_scaling,
-                "height_min": np.nanmin(masked_grain_image),
-                "height_max": np.nanmax(masked_grain_image),
-                "height_median": np.nanmedian(masked_grain_image),
-                "height_mean": np.nanmean(masked_grain_image),
-                "volume": np.nansum(masked_grain_image) * self.pixel_to_nanometre_scaling**2,
-                "area": region.area * self.pixel_to_nanometre_scaling**2,
-                "area_cartesian_bbox": region.area_bbox * self.pixel_to_nanometre_scaling**2,
-                "smallest_bounding_width": smallest_bounding_width * self.pixel_to_nanometre_scaling,
-                "smallest_bounding_length": smallest_bounding_length * self.pixel_to_nanometre_scaling,
+                "centre_x": centre_x * self.pixel_to_nanometre_scaling * 1e-9,
+                "centre_y": centre_y * self.pixel_to_nanometre_scaling * 1e-9,
+                "radius_min": radius_stats["min"] * self.pixel_to_nanometre_scaling * 1e-9,
+                "radius_max": radius_stats["max"] * self.pixel_to_nanometre_scaling * 1e-9,
+                "radius_mean": radius_stats["mean"] * self.pixel_to_nanometre_scaling * 1e-9,
+                "radius_median": radius_stats["median"] * self.pixel_to_nanometre_scaling * 1e-9,
+                "height_min": np.nanmin(masked_grain_image) * 1e-9,
+                "height_max": np.nanmax(masked_grain_image) * 1e-9,
+                "height_median": np.nanmedian(masked_grain_image) * 1e-9,
+                "height_mean": np.nanmean(masked_grain_image) * 1e-9,
+                "volume": np.nansum(masked_grain_image)
+                * self.pixel_to_nanometre_scaling**2
+                * (1e-9**3),  # px^2 * nm^2 -> 1e-9^3
+                "area": region.area * self.pixel_to_nanometre_scaling**2 * (1e-9**2),
+                "area_cartesian_bbox": region.area_bbox * self.pixel_to_nanometre_scaling**2 * (1e-9**2),
+                "smallest_bounding_width": smallest_bounding_width * self.pixel_to_nanometre_scaling * 1e-9,
+                "smallest_bounding_length": smallest_bounding_length * self.pixel_to_nanometre_scaling * 1e-9,
                 "smallest_bounding_area": smallest_bounding_length
                 * smallest_bounding_width
-                * self.pixel_to_nanometre_scaling**2,
-                "aspect_ratio": aspect_ratio,
+                * self.pixel_to_nanometre_scaling**2
+                * (1e-9**2),
+                "aspect_ratio": aspect_ratio * 1e-9,
                 "threshold": self.direction,
-                "max_feret": max_feret * self.pixel_to_nanometre_scaling,
-                "min_feret": min_feret * self.pixel_to_nanometre_scaling,
+                "max_feret": max_feret * self.pixel_to_nanometre_scaling * 1e-9,
+                "min_feret": min_feret * self.pixel_to_nanometre_scaling * 1e-9,
             }
 
             stats_array.append(stats)
