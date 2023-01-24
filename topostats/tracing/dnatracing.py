@@ -6,6 +6,7 @@ import math
 import os
 from typing import Union, Tuple
 import warnings
+import time
 
 import numpy as np
 import pandas as pd
@@ -1024,6 +1025,10 @@ class nodeStats():
         """
         length = int((box_length / 2) / self.px_2_nm)
         x_arr, y_arr = np.where(self.node_centre_mask.copy() == 3)
+        # check whether average trace would be inside grain
+        dilate = ndimage.binary_dilation(self.skeleton, iterations=2)
+        average_trace_advised = dilate[self.grains==1].sum() == dilate.sum()
+        LOGGER.info(f"Branch height traces will be averaged: {average_trace_advised}")
         # iterate over the nodes to find areas
         node_dict = {}
         real_node_count = 0
@@ -1082,24 +1087,24 @@ class nodeStats():
                     # Branch coords and crossing
                     branch_coords = np.append(branch_1_coords, crossing[1:-1], axis=0)
                     branch_coords = np.append(branch_coords, branch_2_coords, axis=0)
-                    # make branch images single joined and multiple joined
+                    # make images of single branch joined and multiple branches joined
                     single_branch = np.zeros_like(branch_img)
                     single_branch[branch_coords[:,0], branch_coords[:,1]] = 1
-                    self.reskeletonise_point(single_branch, branch_1_coords[-1])
-                    self.reskeletonise_point(single_branch, branch_2_coords[0])
-
+                    single_branch = getSkeleton(image_area, single_branch).get_skeleton('zhang')
                     branch_img[branch_coords[:,0], branch_coords[:,1]] = i + 1
                     # calc image-wide coords
                     branch_coords_img = branch_coords + ([x, y] - centre)
                     matched_branches[i]["ordered_coords"] = branch_coords_img
-                    # get heights and line distance of branch
-                    heights = self.image[branch_coords_img[:, 0], branch_coords_img[:, 1]]
-                    matched_branches[i]["heights"] = heights
-                    distances = self.coord_dist(branch_coords)
-                    matched_branches[i]["distances"] = distances
-                    avg_heights, avg_distances = self.average_height_trace(image_area, single_branch)
-                    matched_branches[i]["avg_heights"] = avg_heights
-                    matched_branches[i]["avg_distances"] = avg_distances
+                    # get heights and trace distance of branch
+                    if average_trace_advised:
+                        distances, heights = self.average_height_trace(image_area, single_branch)
+                        matched_branches[i]["heights"] = heights
+                        matched_branches[i]["distances"] = distances
+                    else:
+                        heights = self.image[branch_coords_img[:, 0], branch_coords_img[:, 1]]
+                        distances = self.coord_dist(branch_coords)
+                        matched_branches[i]["heights"] = heights
+                        matched_branches[i]["distances"] = distances
                     # identify over/under
                     fwhm2 = self.fwhm2(heights, distances)
                     matched_branches[i]["fwhm2"] = fwhm2
@@ -1112,7 +1117,7 @@ class nodeStats():
 
                 # add unpaired branches to image plot
                 unpaired_branches = np.delete(np.arange(0, labeled_area.max()), pairs.flatten())
-                print(f"Unpaired branches: {unpaired_branches}")
+                LOGGER.info(f"Unpaired branches: {unpaired_branches}")
                 branch_label = branch_img.max()
                 for i in unpaired_branches: # carries on from loop variable i
                     branch_label += 1
@@ -1459,26 +1464,6 @@ class nodeStats():
             return np.asarray(arr)[:,[1,0]].reshape(-1,2).astype(int)
         else:
             return np.asarray(arr).reshape(-1,2).astype(int)
-
-    def reskeletonise_point(self, binary_image: np.ndarray, point) -> None:
-        """Checks the neightbours around a point to see if they >2 connections
-        (corresponding to a non-skeletonised mask) and removes the point from the 
-        binary image if they do.
-
-        Parameters
-        ----------
-        binary_image: np.ndarray
-            Array representing an binary image.
-        point np.ndarray: np.ndarray
-            The point to check wether it needs to be removed.
-        """
-        point_area, _ = self.local_area_sum(binary_image, point)
-        point_area = point_area.reshape((3,3))
-        neighbours = np.stack(np.where(point_area==1)).T - [1,1] + point
-        for neighbour in neighbours:
-            if self.local_area_sum(binary_image, neighbour)[1] == 3:
-                binary_image[point[0], point[1]] = 0
-        return None
 
     @staticmethod
     def coord_dist(coords: np.ndarray, px_2_nm: float = 1) -> np.ndarray:
