@@ -7,6 +7,7 @@ from collections import defaultdict
 
 import numpy as np
 import pandas as pd
+from scipy.ndimage import convolve
 
 from topostats.io import get_out_path
 from topostats.thresholds import threshold
@@ -244,3 +245,24 @@ def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], 
             LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/folder_grainstats.csv")
     except TypeError:
         LOGGER.info("Unable to generate folderwise statistics as 'all_stats_df' is empty")
+
+
+def convolve_skelly(skeleton) -> np.ndarray:
+    """Convolves the skeleton with a 3x3 ones kernel to produce an array
+    of the skeleton as 1, endpoints as 2, and nodes as 3.
+    
+    Parameters
+    ----------
+    skeleton: np.ndarray
+        Single pixel thick binary trace(s) within an array.
+    
+    Returns
+    -------
+    np.ndarray
+        The skeleton (=1) with endpoints (=2), and crossings (=3) highlighted.
+    """
+    conv = convolve(skeleton, np.ones((3, 3)))
+    conv[skeleton == 0] = 0  # remove non-skeleton points
+    conv[conv == 3] = 1  # skelly = 1
+    conv[conv > 3] = 3  # nodes = 3
+    return conv
