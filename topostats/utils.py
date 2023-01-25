@@ -261,7 +261,7 @@ def convolve_skelly(skeleton) -> np.ndarray:
     np.ndarray
         The skeleton (=1) with endpoints (=2), and crossings (=3) highlighted.
     """
-    conv = convolve(skeleton, np.ones((3, 3)))
+    conv = convolve(skeleton.astype(np.int32), np.ones((3, 3)))
     conv[skeleton == 0] = 0  # remove non-skeleton points
     conv[conv == 3] = 1  # skelly = 1
     conv[conv > 3] = 3  # nodes = 3
