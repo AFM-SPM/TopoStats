@@ -282,7 +282,6 @@ def process_scan(
 
             plotting_config["run"] = True
 
-            #np.savetxt('cat_img.txt', filtered_image.images["gaussian_filtered"])
 
         # Grainstats :
         #
@@ -411,8 +410,8 @@ def process_scan(
                     ).plot_and_save()
                     """
 
-                    #np.savetxt('cat_skel.txt', dna_traces[direction].skeletons)
-                    #np.savetxt('cat_grain.txt', grains.directions[direction]["labelled_regions_02"])
+                    np.savetxt('cat_skel.txt', dna_traces[direction].skeletons)
+                    np.savetxt('cat_grain_1gf.txt', grains.directions[direction]["labelled_regions_02"])
 
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
