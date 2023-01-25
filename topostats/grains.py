@@ -13,6 +13,7 @@ from skimage.color import label2rgb
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
 from topostats.utils import _get_mask, get_thresholds
+from skimage.filters import gaussian, threshold_otsu
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -247,6 +248,14 @@ class Grains:
         """
         return regionprops(image, **kwargs)
 
+    @staticmethod
+    def gaussian_grains(image) -> None:
+        """Applies a gaussian to each individual grain to smooth it"""
+        image = gaussian(image, sigma=max(image.shape)/256)
+        image[image > threshold_otsu(image)*1.3] = 1
+        image[image != 1] = 0
+        return image
+
     def get_bounding_boxes(self, direction) -> Dict:
         """Derive a list of bounding boxes for each region from the derived region_properties
 
@@ -304,6 +313,10 @@ class Grains:
                         self.directions[direction]["removed_noise"],
                         self.absolute_area_threshold[direction],
                     )
+                
+                self.directions[direction]["removed_small_objects"] = self.gaussian_grains(
+                    self.directions[direction]["removed_small_objects"]
+                )
 
                 self.directions[direction]["labelled_regions_02"] = self.label_regions(
                     self.directions[direction]["removed_small_objects"]
