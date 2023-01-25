@@ -6,6 +6,7 @@ from skimage.morphology import label, medial_axis, skeletonize, thin
 
 from topostats.tracing.tracingfuncs import genTracingFuncs
 from topostats.logs.logs import LOGGER_NAME
+from topostats.utils import convolve_skelly
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -660,3 +661,17 @@ class joePrune:
             if genTracingFuncs.count_and_get_neighbours(x, y, coordinates)[0] == 1:
                 potential_branch_ends.append([x, y])
         return potential_branch_ends
+
+    @staticmethod
+    def _remove_dud_branches(skeleton, image, threshold) -> np.ndarray:
+        """Identifies branches which cross the skeleton in places they shouldn't."""
+        conv = convolve_skelly(skeleton)
+        nodeless = skeleton.copy()
+        nodeless[conv==3] = 0
+        segments = label(nodeless)
+        median_heights = [np.median(image[segments==i]) for i in range(1, segments.max()+1)]
+        # threshold heights to remove segments
+        idxs = np.asarray(np.where(np.asarray(median_heights) < threshold)) + 1
+        for i in idxs:
+            segments[segments==i] = 0
+        return segments
