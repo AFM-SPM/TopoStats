@@ -14,11 +14,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import ndimage, spatial, optimize, interpolate as interp
 from skimage.morphology import label, binary_dilation
-from skimage.filters import gaussian
+from skimage.filters import gaussian, threshold_otsu
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
 from topostats.tracing.skeletonize import getSkeleton, pruneSkeleton
+from topostats.utils import convolve_skelly
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -86,6 +87,7 @@ class dnaTrace(object):
         # What purpose does binary dilation serve here? Name suggests some sort of smoothing around the edges and
         # the resulting array is used as a mask during the skeletonising process.
         #self.dilate_grains()
+        #self.gaussian_grains()
         for grain_num, grain in self.grains.items():
             skeleton = getSkeleton(self.gauss_image, grain).get_skeleton(self.skeletonisation_method)
             LOGGER.info(f"[{self.filename}] {label(skeleton).max()-1} breakages in skeleton {grain_num}")
@@ -135,6 +137,14 @@ class dnaTrace(object):
         """Dilates each individual grain in the grains dictionary."""
         for grain_num, image in self.grains.items():
             self.grains[grain_num] = ndimage.binary_dilation(image, iterations=1).astype(np.int32)
+
+    def gaussian_grains(self) -> None:
+        """Applies a gaussian to each individual grain to smooth it"""
+        for grain_num, image in self.grains.items():
+            image = gaussian(image, sigma=max(image.shape)/256)
+            image[image > threshold_otsu(image)*1.3] = 1
+            image[image != 1] = 0
+            self.grains[grain_num] = image.astype(np.int32)
 
     # FIXME : It is straight-forward to get bounding boxes for grains, need to then have a dictionary of original image
     #         and label for each grain to then be processed.
@@ -962,7 +972,7 @@ class nodeStats():
             self.skeleton = self.skeletons.copy()
             self.skeleton[self.skeleton != skeleton_no] = 0
             self.skeleton[self.skeleton != 0] = 1
-            self.convolve_skelly()
+            self.conv_skelly = convolve_skelly(self.skeleton)
             if len(self.conv_skelly[self.conv_skelly==3]) != 0: # check if any nodes
                 self.connect_close_nodes(node_width=2.85)
                 self.highlight_node_centres(self.connected_nodes)
@@ -971,16 +981,6 @@ class nodeStats():
             else:
                 self.full_dict[skeleton_no] = {}
         return self.full_dict
-
-    def convolve_skelly(self) -> None:
-        """Convolves the skeleton with a 3x3 ones kernel to producing an array
-        of the skeleton as 1, endpoints as 2, and nodes as 3.
-        """
-        conv = ndimage.convolve(self.skeleton, np.ones((3, 3)))
-        conv[self.skeleton == 0] = 0  # remove non-skeleton points
-        conv[conv == 3] = 1  # skelly = 1
-        conv[conv > 3] = 3  # nodes = 3
-        self.conv_skelly = conv
 
     def connect_close_nodes(self, node_width: float = 2.85) -> None:
         """Looks to see if nodes are within the node_width boundary (2.85nm) and thus
@@ -1025,7 +1025,7 @@ class nodeStats():
         """
         length = int((box_length / 2) / self.px_2_nm)
         x_arr, y_arr = np.where(self.node_centre_mask.copy() == 3)
-        # check whether average trace would be inside grain
+        # check whether average trace resides inside the grain mask
         dilate = ndimage.binary_dilation(self.skeleton, iterations=2)
         average_trace_advised = dilate[self.grains==1].sum() == dilate.sum()
         LOGGER.info(f"Branch height traces will be averaged: {average_trace_advised}")
@@ -1539,10 +1539,30 @@ class nodeStats():
         dilate2[(dilate == 1) | (branch_mask == 1)] = 0
         labels = label(dilate2)
 
+        # if parallel trace out and back in zone, can get > 2 labels
+        if labels.max() > 2:
+            lens = [labels[labels==i].size for i in range(1, labels.max()+1)]
+            while len(lens) > 2:
+                smallest_idx = min(enumerate(lens), key=lambda x: x[1])[0]
+                labels[labels==smallest_idx+1] = 0
+                lens.remove(min(lens))
+
+        # if parallel trace doesn't exit window, can get 1 label
+        #   occurs when skeleton has poor connections (extra branches which cut corners)
+        if labels.max() == 1:
+            conv = convolve_skelly(branch_mask)
+            endpoint = np.stack(np.where(conv==2)).T
+            para_trace_coords = np.stack(np.where(labels==1)).T
+            abs_diff = np.absolute(para_trace_coords-endpoint).sum(axis=1)
+            min_idxs = np.where(abs_diff == abs_diff.min())
+            trace_coords_remove = para_trace_coords[min_idxs]
+            labels[trace_coords_remove[:,0], trace_coords_remove[:,1]] = 0
+            labels = label(labels)
+
         # get and order coords, get heights and distances
         heights = []
         distances = []
-        for i in range(1, labels.max()+1):
+        for i in range(1, labels.max() + 1):
             trace = labels.copy()
             trace[trace != i] = 0
             trace[trace != 0] = 1
@@ -1580,15 +1600,17 @@ class nodeStats():
                             avg2.append([mid_dist, y])
         avg1 = np.asarray(avg1)
         avg2 = np.asarray(avg2)
-        
+
         # ensure arrays are same length to average
         temp_x = branch_dist_norm[np.isin(branch_dist_norm, avg1[:,0])]
         common_dists = avg2[:,0][np.isin(avg2[:,0], temp_x)]
+        
+        #print('--',len(branch_dist_norm), len(avg1[:,0]), len(avg2[:,0]))
 
         common_avg_branch_heights = branch_heights[np.isin(branch_dist_norm, common_dists)]
         common_avg1_heights = avg1[:,1][np.isin(avg1[:,0], common_dists)]
         common_avg2_heights = avg2[:,1][np.isin(avg2[:,0], common_dists)]
-
+        
         average_heights = (common_avg_branch_heights + common_avg1_heights + common_avg2_heights) / 3
         
         return common_dists, average_heights
