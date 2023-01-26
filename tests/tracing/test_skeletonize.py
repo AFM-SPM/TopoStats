@@ -92,7 +92,7 @@ CIRCULAR_TARGET_THIN = np.asarray(
         ("thin", CIRCULAR_TARGET_THIN),
     ],
 )
-def test_skeletonize_circular(skeletonize_getskeleton_circular, method: str, expected: np.ndarray) -> None:
+def test_skeletonize_circular(skeletonize_getskeleton_circular: getSkeleton, method: str, expected: np.ndarray) -> None:
     """Test skeletonisation"""
     skeleton = skeletonize_getskeleton_circular.get_skeleton(method)
     np.testing.assert_array_equal(skeleton, expected)
@@ -221,7 +221,7 @@ LINEAR_TARGET_THIN = np.array(
         ("thin", LINEAR_TARGET_THIN),
     ],
 )
-def test_skeletonize_linear(skeletonize_getskeleton_linear, method: str, expected: np.ndarray) -> None:
+def test_skeletonize_linear(skeletonize_getskeleton_linear: getSkeleton, method: str, expected: np.ndarray) -> None:
     """Test skeletonisation"""
     skeleton = skeletonize_getskeleton_linear.get_skeleton(method)
     np.testing.assert_array_equal(skeleton, expected)

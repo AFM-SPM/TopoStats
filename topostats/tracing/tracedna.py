@@ -38,7 +38,8 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         filename: str,
         pixel_to_nm_scaling: float,
         grain_number: int = 0,
-        iterations: int = 2,
+        dilate: bool = False,
+        dilation_iterations: int = 2,
         sigma: float = 1,
         skeletonisation_method: str = "zhang",
     ):
@@ -53,7 +54,11 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
             Filename
         pixel_to_nm_scaling: float
             Pixel to nanometer sacling factor
-        iterations: int
+        grain_number: int
+            Grain number being processed.
+        dilate: bool
+            Whether to dilate the boolean mask.
+        dilation_iterations: int
             Number of iterations to perform dilation for.
         sigma: float
             Number of standard deviations to use for Gaussian Filtering.
@@ -63,17 +68,24 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         super().__init__("grain")
         self.grain = {}
         self.grain["original"] = grain
-        self.iterations = iterations
+        self.grain_number = grain_number
+        self.dilate = dilate
+        self.dilation_iterations = dilation_iterations
         self.sigma = sigma
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.skeletonisation_method = skeletonisation_method
+        self.ends = None
         self._circle = None
 
     def trace_dna(self):
         """Perform DNA tracing on a single grain."""
         # Step 1 Binary dilation
-        self.grain["dilated"] = self._dilate(grain=self.grain["mask"], iterations=self.iterations)
+        self.grain["dilated"] = (
+            self._dilate(grain=self.grain["mask"], iterations=self.dilation_iterations)
+            if self.dilate
+            else self.grain["mask"]
+        )
         # Step 2 Gaussian filter
         self.grain["filtered"] = self._gaussian_filter(grain=self.grain["dilated"], sigma=self.sigma)
         # Step 3 - Skeletonize the image, there is no get_disordered trace as the docstring for get_disordered_trace()
@@ -149,14 +161,79 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         """Set whether circle or not"""
         self._count_adjacent
         self._inverse_mask()
-        self.grain["adjacent_masked"] = np.ma.masked_array(self.grain["adjacent"], self.grain["skeleton_inverse_mask"])
         self._circle = True if self._count_ends() == 0 else False
 
     def _count_ends(self):
         """Count how many points of a skeletonised image are ends.
 
-        In this context an end is a non-zero cell that has only one adjacent non-zero cell."""
-        return np.count_nonzero(self.grain["adjacent"] == 1)
+        In this context an end is a non-zero cell that has a sum of adjacent (n = 8) non-zero cells of either 1 or 2 and
+        the four adjacent cells in the x and y plane that are non-zero sum to 1. By way of example...
+
+            Original     Adjacent    Abscissa/    Masked      Ends
+                         non-zero    Ordinate
+                                     non-zero
+
+            0 0 0 0      1 1 1 0                 0 0 0 0     0 0 0 0    A linear skeleton is straight-forward there
+            0 1 0 0      2 1 2 0                 0 1 0 0     0 1 0 0    are two ends and based solely on the adjacent
+            0 1 0 0 -->  2 2 2 0 -->   N/A   --> 0 2 0 0 --> 0 0 0 0    (n = 8) surrounding cells after masking we have
+            0 1 0 0      2 1 2 0                 0 1 0 0     0 1 0 0    only two cells with the value of 1 adjacent cell
+            0 0 0 0      1 1 1 0                 0 0 0 0     0 0 0 0    that is non-zero
+
+            0 0 0 0      1 1 1 0                 0 0 0 0     0 0 0 0    Another example of a linear skeleton with a diagonal
+            0 0 1 0      1 2 1 0                 0 0 1 0     0 0 1 0    end and based solely on the adjacent (n = 8) cells
+            0 1 0 0 -->  2 2 3 0 -->   N/A   --> 0 2 0 0 --> 0 0 0 0    cells after masking we again have only two cells
+            0 1 0 0      2 1 2 0                 0 1 0 0     0 1 0 0    with the value of 1 adjacent cell that is non-zero.
+            0 0 0 0      1 1 1 0                 0 0 0 0     0 0 0 0
+
+            0 0 0 0      1 1 1 1                 0 0 0 0     0 0 0 0     However, when there is a "kink" at the end we
+            0 1 1 0      2 2 2 1                 0 2 2 0     0 0 0 0     can not rely solely on the adjacent (n = 8) as the
+            0 1 0 0 -->  2 2 3 1 --------------> 0 2 0 0 --> 0 0 0 0     kink results in there being only one end.
+            0 1 0 0      2 1 2 0                 0 1 0 0     0 1 0 0
+            0 0 0 0      1 1 1 0                 0 0 0 0     0 0 0 0
+               |
+               |                     0 1 1 0     0 0 0 0     0 0 0 0     Instead we also have to look at the adjacent cells
+               |                     1 2 1 1     0 2 1 0     0 0 1 0     just in the abscissa/ordinate directions to
+               |-------------------> 1 2 1 0 --> 0 2 0 0 --> 0 0 0 0     check if there are kinks.
+                                     1 1 1 0     0 1 0 0     0 1 0 0
+                                     0 1 0 0     0 0 0 0     0 0 0 0
+
+        We then sum the end arrays from the adjacent non-zero and ordinal/abscissa to tell us how many ends there are in
+        the image.
+
+        What this approach doesn't deal well with is branching, which occurs frequently with the skeletonisation method
+        of 'medial_axis' but also with others.
+        """
+        adjacent_ends = np.count_nonzero(self.grain["adjacent_masked"] == 1)
+        abscissa_ordinate_ends = np.count_nonzero(self.grain["adjacent_abscissa_ordinate_masked"] == 1)
+        print(f"adjacent_ends          : {adjacent_ends}")
+        print(f"abscissa_ordinate_ends : {abscissa_ordinate_ends}")
+        if adjacent_ends == 2:
+            LOGGER.info(f"{[self.filename]} | {[self.grain_number]} : Found two ends via all adjacent.")
+            self.ends = adjacent_ends
+        elif abscissa_ordinate_ends == 2:
+            LOGGER.info(f"{[self.filename]} | {[self.grain_number]} : Found two ends via abscissa/ordinate adjacent.")
+            self.ends = abscissa_ordinate_ends
+        else:
+            LOGGER.debug(
+                f"{[self.filename]} | {[self.grain_number]} : No ends found based on all adjacent or"
+                "abscissa/ordinate adjacent alone, checking further."
+            )
+            combined_ends = np.where(self.grain["adjacent_masked"] == 2, 1, 0) + np.where(
+                self.grain["adjacent_abscissa_ordinate_masked"] == 1, 1, 0
+            )
+            print(f"combined_ends :\n{combined_ends}")
+            all_ends = np.count_nonzero(combined_ends)
+            print(f"all_ends:\n{all_ends}")
+            if all_ends == 6:
+                self.ends = 2
+            else:
+                # print(f"self.grain['skeleton'] :\n{self.grain['skeleton']}")
+                # print(f"self.grain['adjacent_masked'] :\n{self.grain['adjacent_masked']}")
+                # print(
+                #     f"self.grain['adjacent_abscissa_ordinal_masked']:\n{self.grain['adjacent_abscissa_ordinate_masked']}"
+                # )
+                self.ends = 0
+                # raise Exception("There is something weird about this skeleton!")
 
     def _inverse_mask(self):
         """Mask all cells but those that are part of the skeleton."""
@@ -190,12 +267,10 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
                                       0 f g   f g h   g h 0
                                       0 0 0   0 0 0   0 0 0
 
-        Non-zero adjacent cells to x = A + B + C + D + E + F + G + H
+        Non-zero adjacent cells to x = a + b + c + d + e + f + g + h but since this method is vectorised we get the
+        counts across the whole of the Original array at the same time.
         """
         padded = np.pad(self.grain["skeleton"], 1, mode="constant")
-        padded_mask = np.where(self.grain["skeleton"] == 0, 1, 0)
-        # print(f"padded :\n{padded}")
-        # print(f"padded_mask :\n{padded_mask}")
         # Use slicing to get the 8 surrounding cells of each element in the padded array
         top_left = padded[:-2, :-2]
         top_center = padded[:-2, 1:-1]
@@ -219,10 +294,20 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
                 bottom_right,
             ]
         )
-        # self.grain["skeleton_adjacent"] =
-        self.grain["adjacent_masked"] = np.ma.masked_array(self.grain["adjacent"], padded_mask)
+        self.grain["adjacent_masked"] = np.ma.masked_array(self.grain["adjacent"], self.grain["skeleton_inverse_mask"])
+        # print(f"padded_mask            :\n{self.grain['skeleton_inverse_mask']}")
         # print(f"self.grain['adjacent'] :\n{self.grain['adjacent']}")
-        # print(f"self.grain['adjacent_masked'] :\n{self.grain['adjacent_masked']}")
+        print(f"self.grain['adjacent_masked'] :\n{self.grain['adjacent_masked']}")
+        LOGGER.debug(f"[{self.filename}] | [{self.grain_number}] : Adjacent grains calculated for all adjacent cells")
+        self.grain["adjacent_abscissa_ordinate"] = sum([top_center, middle_left, middle_right, bottom_center])
+        self.grain["adjacent_abscissa_ordinate_masked"] = np.ma.masked_array(
+            self.grain["adjacent_abscissa_ordinate"], self.grain["skeleton_inverse_mask"]
+        )
+        print(f"self.grain['adjacent_abscissa_ordinate_masked'] :\n{self.grain['adjacent_abscissa_ordinate_masked']}")
+        LOGGER.debug(
+            f"[{self.filename}] | [{self.grain_number}] : Adjacent grains calculated for abscissa and ordinate "
+            "adjacent cells only."
+        )
 
     def get_ordered_trace(self) -> None:
         """Order the trace"""

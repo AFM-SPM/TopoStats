@@ -73,14 +73,6 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
             return self._skeletonize_medial_axis(self.mask)
         if method == "thin":
             return self._skeletonize_thin(self.mask)
-        # if method == "meijering":
-        #     return self._skeletonize_meijering(self.image)
-        # if method == "frangi":
-        #     return self._skeletonize_frangi(self.image)
-        # if method == "sato":
-        #     return self._skeletonize_sato(self.image)
-        # if method == "hessian":
-        #     return self._skeletonize_hessian(self.image)
         raise ValueError(method)
 
     @staticmethod
@@ -129,7 +121,6 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         np.ndarray
             The mask array reduce to a single pixel thickness
         """
-        # don't know how these work - do they need img or mask?
         return medial_axis(image, return_distance=False)
 
     @staticmethod
@@ -146,69 +137,4 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         np.ndarray
             The mask array reduce to a single pixel thickness
         """
-        # don't know how these work - do they need img or mask?
         return thin(image)
-
-    # @staticmethod
-    # def _skeletonize_meijering(image: np.ndarray) -> np.ndarray:
-    #     """Wrapper for the scikit image implementation of the Meijering neuriteness filter method.
-
-    #     Parameters
-    #     ----------
-    #     image: np.ndarray()
-    #         The image to skeletonise.
-
-    #     Returns
-    #     -------
-    #     np.ndarray
-    #         The array reduced to the ridge.
-    #     """
-    #     return meijering(image, black_ridges=False)
-
-    # @staticmethod
-    # def _skeletonize_sato(image: np.ndarray) -> np.ndarray:
-    #     """Wrapper for the scikit image implementation of the Sato tubeness filter method.
-
-    #     Parameters
-    #     ----------
-    #     image: np.ndarray()
-    #         The image to skeletonise.
-
-    #     Returns
-    #     -------
-    #     np.ndarray
-    #         The array reduced to the ridge.
-    #     """
-    #     return sato(image, black_ridges=False)
-
-    # @staticmethod
-    # def _skeletonize_frangi(image: np.ndarray) -> np.ndarray:
-    #     """Wrapper for the scikit image implementation of the Frangi vesselness filter method.
-
-    #     Parameters
-    #     ----------
-    #     image: np.ndarray()
-    #         The image to skeletonise.
-
-    #     Returns
-    #     -------
-    #     np.ndarray
-    #         The array reduced to the ridge.
-    #     """
-    #     return frangi(image, black_ridges=False)
-
-    # @staticmethod
-    # def _skeletonize_hessian(image: np.ndarray) -> np.ndarray:
-    #     """Wrapper for the scikit image implementation of the Hybrid Hessian filter method.
-
-    #     Parameters
-    #     ----------
-    #     image: np.ndarray()
-    #         The image to skeletonise.
-
-    #     Returns
-    #     -------
-    #     np.ndarray
-    #         The array reduced to the ridge.
-    #     """
-    #     return hessian(image, black_ridges=False)
