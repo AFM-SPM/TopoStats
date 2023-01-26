@@ -1139,6 +1139,58 @@ def test_inverse_mask(tracedna: traceDNA, binary_array: np.ndarray, expected: np
 
 
 @pytest.mark.parametrize(
+    "skeleton,expected_regions",
+    [
+        (ADJACENT_GRAINS["single_L"], [0, 1]),
+        (ADJACENT_GRAINS["double_L"], [0, 1]),
+        (ADJACENT_GRAINS["diagonal_end_single_L"], [0, 1]),
+        (ADJACENT_GRAINS["diagonal_end_straight"], [0, 1]),
+        (ADJACENT_GRAINS["vertical"], [0, 1]),
+        (ADJACENT_GRAINS["horizontal"], [0, 1]),
+        (ADJACENT_GRAINS["diagonal1"], [0, 1]),
+        (ADJACENT_GRAINS["diagonal2"], [0, 1]),
+        (ADJACENT_GRAINS["diagonal3"], [0, 1]),
+        (ADJACENT_GRAINS["circle"], [0, 1, 2]),
+        (ADJACENT_GRAINS["blob"], [0, 1]),
+        (ADJACENT_GRAINS["cross"], [0, 1]),
+        (ADJACENT_GRAINS["figure8"], [0, 1, 2, 3]),
+    ],
+)
+def test_label_regions(tracedna: traceDNA, skeleton: np.ndarray, expected_regions: int) -> None:
+    """Test labelling of regions."""
+    tracedna.grain["skeleton"] = skeleton
+    tracedna._label_regions()
+
+    np.testing.assert_array_equal(np.unique(tracedna.grain["labelled"]), expected_regions)
+
+@pytest.mark.parametrize(
+    "skeleton,expected_regions",
+    [
+        (ADJACENT_GRAINS["single_L"], 1),
+        (ADJACENT_GRAINS["double_L"], 1),
+        (ADJACENT_GRAINS["diagonal_end_single_L"], 1),
+        (ADJACENT_GRAINS["diagonal_end_straight"], 1),
+        (ADJACENT_GRAINS["vertical"], 1),
+        (ADJACENT_GRAINS["horizontal"], 1),
+        (ADJACENT_GRAINS["diagonal1"], 1),
+        (ADJACENT_GRAINS["diagonal2"], 1),
+        (ADJACENT_GRAINS["diagonal3"], 1),
+        (ADJACENT_GRAINS["circle"], 2),
+        (ADJACENT_GRAINS["blob"], 1),
+        (ADJACENT_GRAINS["cross"], 1),
+        (ADJACENT_GRAINS["figure8"], 3),
+    ],
+)
+def test_count_regions(tracedna: traceDNA, skeleton: np.ndarray, expected_regions: int) -> None:
+    """Test counting of regions."""
+    tracedna.grain["skeleton"] = skeleton
+    tracedna._label_regions()
+    tracedna._count_regions()
+
+    tracedna.regions == expected_regions
+
+    
+@pytest.mark.parametrize(
     "binary_array,expected",
     [
         (ADJACENT_GRAINS["single_L"], 2),
@@ -1152,7 +1204,7 @@ def test_inverse_mask(tracedna: traceDNA, binary_array: np.ndarray, expected: np
         (ADJACENT_GRAINS["diagonal3"], 2),
         (ADJACENT_GRAINS["circle"], 0),
         (ADJACENT_GRAINS["blob"], 0),
-        (ADJACENT_GRAINS["cross"], 0),
+        (ADJACENT_GRAINS["cross"], 2),
         (ADJACENT_GRAINS["figure8"], 0),
     ],
 )
@@ -1162,17 +1214,5 @@ def test_count_ends(tracedna: traceDNA, binary_array: np.ndarray, expected: np.n
     tracedna._inverse_mask()
     tracedna._count_adjacent()
     tracedna._count_ends()
-    # print(f"tracenda.ends : {tracedna.ends}")
-    # print(f"tracedna.grain['skeleton'] :\n{tracedna.grain['skeleton']}")
-    # print(f"tracedna.grain['adjacent_masked'] :\n{tracedna.grain['adjacent_masked']}")
-    # print(
-    #     f"tracedna.grain['adjacent_abscissa_ordinate_masked'] :\n{tracedna.grain['adjacent_abscissa_ordinate_masked']}"
-    # )
-    print(
-        f"np.where(tracedna.grain['adjacent_masked'] == 2, 1, 0) :\n{np.where(tracedna.grain['adjacent_masked'] == 2, 1, 0)}"
-    )
-    print(
-        f"np.where(tracedna.grain['adjacent_abscissa_ordinate_masked'] == 1, 1, 0) :\n{np.where(tracedna.grain['adjacent_abscissa_ordinate_masked'] == 1, 1, 0)}"
-    )
 
     assert tracedna.ends == expected
