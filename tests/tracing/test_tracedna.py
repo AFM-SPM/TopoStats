@@ -2,7 +2,6 @@
 import numpy as np
 import pytest
 
-from topostats.tracing.skeletonize import getSkeleton
 from topostats.tracing.tracedna import traceDNA
 
 # pylint: disable=protected-access
@@ -248,12 +247,11 @@ def test_gaussian_filter(tracedna, grain, sigma, expected):
 
 
 @pytest.mark.parametrize(
-    "grain, iterations, method, expected",
+    "grain, iterations, expected",
     [
         (
             GRAINS["vertical"],
             2,
-            "zhang",
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -272,7 +270,6 @@ def test_gaussian_filter(tracedna, grain, sigma, expected):
         (
             GRAINS["horizontal"],
             2,
-            "zhang",
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -291,7 +288,6 @@ def test_gaussian_filter(tracedna, grain, sigma, expected):
         (
             GRAINS["diagonal"],
             2,
-            "zhang",
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -312,7 +308,6 @@ def test_gaussian_filter(tracedna, grain, sigma, expected):
         (
             GRAINS["circle"],
             2,
-            "zhang",
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -333,23 +328,22 @@ def test_gaussian_filter(tracedna, grain, sigma, expected):
         ),
     ],
 )
-def test_tracedna_zhang(tracedna, grain, iterations, method, expected):
+def test_tracedna_zhang(tracedna: traceDNA, grain: np.ndarray, iterations: int, expected: np.ndarray) -> None:
     """Test skeletonisation."""
     tracedna.grain["dilated"] = tracedna._dilate(grain, iterations)
     tracedna.grain["mask"] = grain
-    tracedna.skeletonisation_method = method
+    tracedna.skeletonisation_method = "zhang"
     tracedna.skeletonize()
 
     np.testing.assert_array_equal(tracedna.grain["skeleton"], expected)
 
 
 @pytest.mark.parametrize(
-    "grain, iterations, method, expected",
+    "grain, iterations, expected",
     [
         (
             GRAINS["vertical"],
             2,
-            "lee",
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -368,7 +362,6 @@ def test_tracedna_zhang(tracedna, grain, iterations, method, expected):
         (
             GRAINS["horizontal"],
             2,
-            "lee",
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -387,7 +380,6 @@ def test_tracedna_zhang(tracedna, grain, iterations, method, expected):
         (
             GRAINS["diagonal"],
             2,
-            "lee",
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -408,7 +400,6 @@ def test_tracedna_zhang(tracedna, grain, iterations, method, expected):
         (
             GRAINS["circle"],
             2,
-            "lee",
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -429,23 +420,22 @@ def test_tracedna_zhang(tracedna, grain, iterations, method, expected):
         ),
     ],
 )
-def test_tracedna_lee(tracedna, grain, iterations, method, expected):
+def test_tracedna_lee(tracedna: traceDNA, grain: np.ndarray, iterations: int, expected: np.ndarray) -> None:
     """Test skeletonisation."""
     tracedna.grain["dilated"] = tracedna._dilate(grain, iterations)
     tracedna.grain["mask"] = grain
-    tracedna.skeletonisation_method = method
+    tracedna.skeletonisation_method = "lee"
     tracedna.skeletonize()
 
     np.testing.assert_array_equal(tracedna.grain["skeleton"], expected)
 
 
 @pytest.mark.parametrize(
-    "grain, iterations, method, expected",
+    "grain, iterations, expected",
     [
         (
             GRAINS["vertical"],
             2,
-            "medial_axis",
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -464,7 +454,6 @@ def test_tracedna_lee(tracedna, grain, iterations, method, expected):
         # (
         #     GRAINS["horizontal"],
         #     2,
-        #     "medial_axis",
         #     np.asarray(
         #         [
         #             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -483,7 +472,6 @@ def test_tracedna_lee(tracedna, grain, iterations, method, expected):
         (
             GRAINS["diagonal"],
             2,
-            "medial_axis",
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -504,7 +492,6 @@ def test_tracedna_lee(tracedna, grain, iterations, method, expected):
         # (
         #     GRAINS["circle"],
         #     2,
-        #     "medial_axis",
         #     np.asarray(
         #         [
         #             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -525,23 +512,22 @@ def test_tracedna_lee(tracedna, grain, iterations, method, expected):
         # ),
     ],
 )
-def test_tracedna_medial_axis(tracedna, grain, iterations, method, expected):
+def test_tracedna_medial_axis(tracedna: traceDNA, grain: np.ndarray, iterations: int, expected: np.ndarray) -> None:
     """Test skeletonisation."""
     tracedna.grain["dilated"] = tracedna._dilate(grain, iterations)
     tracedna.grain["mask"] = grain
-    tracedna.skeletonisation_method = method
+    tracedna.skeletonisation_method = "medial_axis"
     tracedna.skeletonize()
     print(f"tracedna.grain['skeleton'] :\n{tracedna.grain['skeleton']}")
     np.testing.assert_array_equal(tracedna.grain["skeleton"], expected)
 
 
 @pytest.mark.parametrize(
-    "grain, iterations, method, expected",
+    "grain, iterations, expected",
     [
         (
             GRAINS["vertical"],
             2,
-            "thin",
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -560,7 +546,6 @@ def test_tracedna_medial_axis(tracedna, grain, iterations, method, expected):
         (
             GRAINS["horizontal"],
             2,
-            "thin",
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -579,7 +564,6 @@ def test_tracedna_medial_axis(tracedna, grain, iterations, method, expected):
         (
             GRAINS["diagonal"],
             2,
-            "thin",
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -600,7 +584,6 @@ def test_tracedna_medial_axis(tracedna, grain, iterations, method, expected):
         (
             GRAINS["circle"],
             2,
-            "thin",
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -621,11 +604,11 @@ def test_tracedna_medial_axis(tracedna, grain, iterations, method, expected):
         ),
     ],
 )
-def test_tracedna_thin(tracedna, grain, iterations, method, expected):
+def test_tracedna_thin(tracedna: traceDNA, grain: np.ndarray, iterations: int, expected: np.ndarray) -> None:
     """Test skeletonisation."""
     tracedna.grain["dilated"] = tracedna._dilate(grain, iterations)
     tracedna.grain["mask"] = grain
-    tracedna.skeletonisation_method = method
+    tracedna.skeletonisation_method = "thin"
     tracedna.skeletonize()
     np.testing.assert_array_equal(tracedna.grain["skeleton"], expected)
 
@@ -1134,7 +1117,7 @@ def test_inverse_mask(tracedna: traceDNA, binary_array: np.ndarray, expected: np
     """Test inverse array for a skeleton."""
     tracedna.grain["skeleton"] = binary_array
     tracedna._inverse_mask()
-    print(tracedna.grain["skeleton_inverse_mask"])
+
     np.testing.assert_array_equal(tracedna.grain["skeleton_inverse_mask"], expected)
 
 
@@ -1163,6 +1146,7 @@ def test_label_regions(tracedna: traceDNA, skeleton: np.ndarray, expected_region
 
     np.testing.assert_array_equal(np.unique(tracedna.grain["labelled"]), expected_regions)
 
+
 @pytest.mark.parametrize(
     "skeleton,expected_regions",
     [
@@ -1189,7 +1173,7 @@ def test_count_regions(tracedna: traceDNA, skeleton: np.ndarray, expected_region
 
     tracedna.regions == expected_regions
 
-    
+
 @pytest.mark.parametrize(
     "binary_array,expected",
     [
@@ -1203,8 +1187,8 @@ def test_count_regions(tracedna: traceDNA, skeleton: np.ndarray, expected_region
         (ADJACENT_GRAINS["diagonal2"], 2),
         (ADJACENT_GRAINS["diagonal3"], 2),
         (ADJACENT_GRAINS["circle"], 0),
-        (ADJACENT_GRAINS["blob"], 0),
-        (ADJACENT_GRAINS["cross"], 2),
+        # (ADJACENT_GRAINS["blob"], ),  # Skip as not a skeleton
+        (ADJACENT_GRAINS["cross"], 2),  # Should be 4 if it weren't for having to use region method to set ends to 2
         (ADJACENT_GRAINS["figure8"], 0),
     ],
 )
