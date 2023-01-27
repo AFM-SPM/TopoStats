@@ -569,6 +569,7 @@ class joePrune:
             single_skeleton[single_skeleton != i] = 0
             single_skeleton[single_skeleton == i] = 1
             pruned_skeleton_mask += self._prune_single_skeleton(single_skeleton)
+            pruned_skeleton_mask = self._remove_dud_branches(pruned_skeleton_mask, self.image, 2e-9)
         return pruned_skeleton_mask
 
     def _prune_single_skeleton(self, single_skeleton: np.ndarray) -> np.ndarray:
@@ -670,8 +671,10 @@ class joePrune:
         nodeless[conv==3] = 0
         segments = label(nodeless)
         median_heights = [np.median(image[segments==i]) for i in range(1, segments.max()+1)]
+        print(median_heights)
         # threshold heights to remove segments
         idxs = np.asarray(np.where(np.asarray(median_heights) < threshold)) + 1
         for i in idxs:
             segments[segments==i] = 0
+        segments[segments != 0] = 1
         return segments
