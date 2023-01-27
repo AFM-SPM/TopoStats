@@ -953,6 +953,10 @@ class nodeStats():
         self.node_centre_mask = None
         self.node_dict = None
         self.test = None
+        self.test2 = None
+        self.test3 = None
+        self.test4 = None
+        self.test5 = None
         self.full_dict = {}
 
     def get_node_stats(self) -> dict:
@@ -1045,6 +1049,8 @@ class nodeStats():
             # iterate through branches to order
             labeled_area = label(branch_mask)
             LOGGER.info(f"No. branches from node {node_no}: {labeled_area.max()}")
+            if node_no == 0:
+                self.test = labeled_area
 
             # stop processing if nib (node has 2 branches)
             if labeled_area.max() <= 2:
@@ -1064,16 +1070,18 @@ class nodeStats():
                     # order branch
                     ordered = self.order_branch(branch)
                     # identify vector
-                    vector = self.get_vector(ordered)
+                    vector = self.get_vector(ordered, centre)
                     # add to list
                     vectors.append(vector)
                     ordered_branches.append(ordered)
-
+                if node_no == 0:
+                    self.test2 = vectors
                 # pair vectors
                 pairs = self.pair_vectors(np.asarray(vectors))
 
                 # join matching branches (through node?)
                 matched_branches = {}
+                avg_img = np.zeros_like(node_area)
                 for i, (branch_1, branch_2) in enumerate(pairs):
                     matched_branches[i] = {}
                     branch_1_coords = ordered_branches[branch_1]
@@ -1097,9 +1105,12 @@ class nodeStats():
                     matched_branches[i]["ordered_coords"] = branch_coords_img
                     # get heights and trace distance of branch
                     if average_trace_advised:
-                        distances, heights = self.average_height_trace(image_area, single_branch)
+                        distances, heights, mask = self.average_height_trace(image_area, single_branch)
                         matched_branches[i]["heights"] = heights
                         matched_branches[i]["distances"] = distances
+                        
+                        avg_img[mask!=0] = i + 1
+
                     else:
                         heights = self.image[branch_coords_img[:, 0], branch_coords_img[:, 1]]
                         distances = self.coord_dist(branch_coords)
@@ -1122,25 +1133,30 @@ class nodeStats():
                 for i in unpaired_branches: # carries on from loop variable i
                     branch_label += 1
                     branch_img[ordered_branches[i][:,0], ordered_branches[i][:,1]] = branch_label
+                
+                if node_no == 0:
+                    self.test3 = avg_img
 
                 # calc crossing angle
                 # get full branch vectors
                 vectors = []
                 for branch_no, values in matched_branches.items():
-                    vectors.append(self.get_vector(values["ordered_coords"]))
+                    vectors.append(self.get_vector(values["ordered_coords"], centre))
                 # calc angles to first vector i.e. first should always be 0
                 cos_angles = self.calc_angles(np.asarray(vectors))[0]
                 cos_angles[cos_angles > 1] = 1  # floating point sometimes causes nans for 1's
                 angles = np.arccos(cos_angles) / np.pi * 180
                 for i, angle in enumerate(angles):
                     matched_branches[i]["angles"] = angle
+                
+                if node_no == 0:
+                    self.test4 = vectors
+                    self.test5 = angles
 
                 nodes_and_branches = np.zeros_like(self.image)
                 for branch_num, values in matched_branches.items():
                     coords = values["ordered_coords"]
                     nodes_and_branches[coords[:,0], coords[:,1]] = branch_num + 1
-                
-                self.test = branch_img
 
                 node_dict[real_node_count] = {
                     "branch_stats": matched_branches,
@@ -1272,9 +1288,10 @@ class nodeStats():
         return branches
 
     @staticmethod
-    def get_vector(coords):
+    def get_vector(coords, origin):
         """Calculate the normalised vector of the coordinate means in a branch"""
-        vector = coords.mean(axis=0) - coords[0]
+        start_coord = coords[np.absolute(origin-coords).sum(axis=1).argmin()]
+        vector = coords.mean(axis=0) - start_coord
         vector /= abs(vector).max()
         return vector
 
@@ -1424,12 +1441,12 @@ class nodeStats():
         sum1 = abs(endpoints1 - endpoints2).sum(axis=1)
         sum2 = abs(endpoints1[::-1] - endpoints2).sum(axis=1)
         if sum1.min() < sum2.min():
-            if np.argmin(sum1) == 0:  
+            if np.argmin(sum1) == 0:
                 return branch1[::-1], branch2
             else:
                 return branch1, branch2[::-1]
-        else: 
-            if np.argmin(sum2) == 0:  
+        else:
+            if np.argmin(sum2) == 0:
                 return branch1, branch2
             else:
                 return branch1[::-1], branch2[::-1]
@@ -1559,6 +1576,10 @@ class nodeStats():
             labels[trace_coords_remove[:,0], trace_coords_remove[:,1]] = 0
             labels = label(labels)
 
+        binary = labels.copy()
+        binary[binary!=0] = 1
+        binary += branch_mask
+        
         # get and order coords, get heights and distances
         heights = []
         distances = []
@@ -1613,4 +1634,4 @@ class nodeStats():
         
         average_heights = (common_avg_branch_heights + common_avg1_heights + common_avg2_heights) / 3
         
-        return common_dists, average_heights
+        return common_dists, average_heights, binary
