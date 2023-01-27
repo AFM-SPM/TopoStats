@@ -46,6 +46,7 @@ class Images:
         histogram_log_axis: bool = True,
         histogram_bins: int = 200,
         dpi: Union[str, float] = "figure",
+        remove_background: bool = False,
     ) -> None:
         """
         Initialise the class.
@@ -116,6 +117,7 @@ class Images:
         self.histogram_log_axis = histogram_log_axis
         self.histogram_bins = histogram_bins
         self.dpi = dpi
+        self.remove_background = False
 
     def plot_histogram_and_save(self):
         """
@@ -208,9 +210,9 @@ class Images:
                         shape[0] * self.pixel_to_nm_scaling,
                     ),
                     interpolation=self.interpolation,
-                    alpha=0.7,
+                    alpha=0.4,
                 )
-                patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
+                patch = [Patch(color=self.mask_cmap(1, 0.5), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
 
             plt.title(self.title)
