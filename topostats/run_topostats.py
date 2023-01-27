@@ -15,6 +15,8 @@ import yaml
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+from scipy.ndimage import binary_dilation
+from  matplotlib.patches import Arc
 
 from topostats.filters import Filters
 from topostats.grains import Grains
@@ -277,6 +279,7 @@ def process_scan(
                     filtered_image.images["gaussian_filtered"],
                     filename=f"{filename}_{direction}_masked",
                     data2=grains.directions[direction]["removed_small_objects"],
+                    mask_cmap="green_black",
                     **plotting_config["plot_dict"][plot_name],
                 ).plot_and_save()
 
@@ -339,7 +342,7 @@ def process_scan(
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                     Images(
                         filtered_image.images["gaussian_filtered"],
-                        data2=dna_traces[direction].skeletons,
+                        data2=binary_dilation(dna_traces[direction].skeletons),
                         **plotting_config["plot_dict"][plot_name],
                     ).save_figure_black(
                             background=grains.directions[direction]["removed_small_objects"],
@@ -371,6 +374,7 @@ def process_scan(
                         Images(
                             filtered_image.images["gaussian_filtered"],
                             data2=data2s[i],
+                            zrange=[0,3.5],
                             **plotting_config["plot_dict"][plot_name],
                         ).save_figure_black(
                                 background=grains.directions[direction]["removed_small_objects"],
@@ -378,41 +382,83 @@ def process_scan(
 
                     # plot nodes and line traces
                     for mol_no, mol_stats in node_stats[direction].items():
-                        for node_no, node_stats in mol_stats.items():
+                        for node_no, single_node_stats in mol_stats.items():
                             Images(
-                                node_stats["node_stats"]["node_area_image"],
-                                data2=node_stats["node_stats"]["node_branch_mask"],
+                                single_node_stats["node_stats"]["node_area_image"],
+                                data2=single_node_stats["node_stats"]["node_branch_mask"],
                                 filename=f"mol_{mol_no}_node_{node_no}_crossings",
                                 output_dir=output_dir / "nodes",
+                                zrange=[0, 3.5e-9],
                                 **plotting_config["plot_dict"]["crossings"],
                             ).save_figure_black(
-                                background=node_stats["node_stats"]["node_area_grain"]
+                                background=single_node_stats["node_stats"]["node_area_grain"]
                                 )
                             plotting_config["plot_dict"]["line_trace"] = {"title": "Heights of Crossing", "cmap": "blu_purp"}
                             fig, _ = plot_crossing_linetrace_gauss(
-                                node_stats["branch_stats"],
-                                **plotting_config["plot_dict"]["line_trace"]
+                                single_node_stats["branch_stats"],
+                                **plotting_config["plot_dict"]["line_trace"],
                                 )
                             fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_gauss")
                             fig, _ = plot_crossing_linetrace_halfmax(
-                                node_stats["branch_stats"],
-                                **plotting_config["plot_dict"]["line_trace"]
+                                single_node_stats["branch_stats"],
+                                **plotting_config["plot_dict"]["line_trace"],
                                 )
                             fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax")
-                    
                     """
+                    # ------- branch vector img -------
+                    vectors = nodes.test2
                     plot_name = "test"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
-                    Images(
-                        nodes.test,
+                    fig, ax = Images(
+                        data=node_stats[direction][1][1]["node_stats"]["node_area_image"],
+                        data2=nodes.test,
                         mask_cmap="viridis",
                         **plotting_config["plot_dict"][plot_name],
-                    ).plot_and_save()
-                    """
+                    ).save_figure_black(
+                        background=node_stats[direction][1][1]["node_stats"]["node_area_grain"]
+                        )
+                    
+                    col = ["m","b","g","y"]
+                    for i, vector in enumerate(np.asarray(vectors)): #[:,::-1]):
+                        ax.arrow(10.25, 10.5, vector[1]*4, vector[0]*-4, width=0.3, color=col[i])
+                    fig.savefig("vector_img.png")
+                    
+                    # ------- branch vector + angles fig -------
+                    vectors = nodes.test4
+                    angles = nodes.test5
+                    plot_name = "test"
+                    plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
+                    fig, ax = Images(
+                        data=node_stats[direction][1][1]["node_stats"]["node_area_image"],
+                        data2=node_stats[direction][1][1]["node_stats"]["node_branch_mask"],
+                        mask_cmap="blu_purp",
+                        **plotting_config["plot_dict"][plot_name],
+                    ).save_figure_black(
+                        background=node_stats[direction][1][1]["node_stats"]["node_area_grain"]
+                        )
+                    
+                    col = ["b","m"]
+                    ax.arrow(10.25-4, 10.75, vectors[0][1]*8, vectors[0][0]*-8, width=0.3, color=col[0])
+                    ax.arrow(10.25, 10.75+4, vectors[1][1]*8, vectors[1][0]*-8, width=0.3, color=col[1])
+                    
+                    arc = Arc((10.15, 10.65), 3.7, 3.7, -4, 0, angles[1], lw=4)
+                    ax.add_patch(arc)
+                    ax.text(11.5, 12, "%0.2f"%float(angles[1])+u"\u00b0", fontsize='xx-large', weight='bold')
+                    fig.savefig("vector_angle_img.png")
 
-                    np.savetxt('cat_skel.txt', dna_traces[direction].skeletons)
-                    np.savetxt('cat_grain_1gf.txt', grains.directions[direction]["labelled_regions_02"])
-
+                    # ------- avg trace fig -------
+                    plot_name = "test"
+                    plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
+                    fig, ax = Images(
+                        data=node_stats[direction][1][1]["node_stats"]["node_area_image"],
+                        data2=nodes.test3,
+                        mask_cmap="blu_purp",
+                        zrange=[0, 3.5e-9],
+                        **plotting_config["plot_dict"][plot_name],
+                    ).save_figure_black(
+                        background=node_stats[direction][1][1]["node_stats"]["node_area_grain"]
+                        )
+                """
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
                     tracing_stats_df = pd.concat([tracing_stats["lower"].df, tracing_stats["upper"].df])
