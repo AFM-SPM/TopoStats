@@ -3,9 +3,10 @@ from pathlib import Path
 from unittest import TestCase
 
 import numpy as np
+import pandas as pd
 import pytest
 
-from topostats.io import read_yaml, find_images, get_out_path, LoadScans
+from topostats.io import read_yaml, find_images, get_out_path, folder_grainstats, LoadScans
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
@@ -113,6 +114,16 @@ def test_get_out_path_attributeerror() -> None:
     """Test get_out_path() raises AttribteError when passed a string instead of a Path() for image_path."""
     with pytest.raises(AttributeError):
         get_out_path(image_path="images/test.spm", base_dir=Path("/some/random/path"), output_dir=Path("output/here"))
+
+
+def test_folder_grainstats(tmp_path: Path, minicircle_tracestats: pd.DataFrame) -> None:
+    """Test a folder-wide grainstats file is made"""
+    input_path = tmp_path / "minicircle"
+    minicircle_tracestats["Basename"] = input_path / "subfolder"
+    out_path = tmp_path / "subfolder"
+    Path.mkdir(out_path, parents=True)
+    folder_grainstats(out_path, input_path, minicircle_tracestats)
+    assert Path(out_path / "processed" / "folder_grainstats.csv").exists()
 
 
 def test_load_scan_spm(load_scan: LoadScans) -> None:

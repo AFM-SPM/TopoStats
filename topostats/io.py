@@ -156,6 +156,10 @@ def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], 
         LOGGER.debug(f"Statistics ({_dir}) :\n{all_stats_df}")
         try:
             out_path = get_out_path(Path(_dir), base_dir, output_dir)
+            # Ensure "processed" directory exists at the stem of out_path, creating if needed
+            if out_path.stem != "processed":
+                out_path_processed = out_path / "processed"
+                out_path_processed.mkdir(parents=True, exist_ok=True)
             all_stats_df[all_stats_df["basename"] == _dir].to_csv(
                 out_path / "processed" / "folder_grainstats.csv", index=True
             )

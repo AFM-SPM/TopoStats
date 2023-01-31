@@ -3,9 +3,8 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-import pandas as pd
 
-from topostats.utils import convert_path, update_config, get_thresholds, folder_grainstats
+from topostats.utils import convert_path, update_config, get_thresholds
 
 
 THRESHOLD_OPTIONS = {
@@ -70,13 +69,3 @@ def test_get_thresholds_value_error(image_random: np.ndarray) -> None:
     """Test a ValueError is raised if an invalid value is passed to get_thresholds()"""
     with pytest.raises(ValueError):
         get_thresholds(image=image_random, threshold_method="mean", **THRESHOLD_OPTIONS)
-
-
-def test_folder_grainstats(tmp_path: Path, minicircle_tracestats: pd.DataFrame) -> None:
-    """Test a folder-wide grainstats file is made"""
-    input_path = tmp_path / "minicircle"
-    minicircle_tracestats["Basename"] = input_path / "subfolder"
-    out_path = tmp_path / "subfolder" / "processed"
-    Path.mkdir(out_path, parents=True)
-    folder_grainstats(tmp_path, input_path, minicircle_tracestats)
-    assert Path(out_path / "folder_grainstats.csv").exists()

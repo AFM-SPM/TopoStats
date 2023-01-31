@@ -8,7 +8,6 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 
-from topostats.io import get_out_path
 from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
 
