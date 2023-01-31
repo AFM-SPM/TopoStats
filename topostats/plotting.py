@@ -48,8 +48,8 @@ colname2label = {
     "grain_min_volume": "Minimum Volume / $\mathregular{%s^3}$",
     "grain_zero_volume": "Zero Volume / $\mathregular{%s^3}$",
     "grain_laplace_volume": "Laplacian Volume / $\mathregular{%s^3}$",
-    "End to End Distance": "End to End Distance / nm",
-    "Contour Lengths": "Contour Lengths / nm",
+    "end_to_end_distance": "End to End Distance / nm",
+    "contour_lengths": "Contour Lengths / nm",
     "raidus_min": "Minimum Radius / nm",
     "radius_max": "Maximum Radius / nm",
     "radius_mean": "Mean Radius / nm",
@@ -592,9 +592,9 @@ if __name__ == "__main__":
             plotjoint(df, parameter, nm=nm)
 
     # Filter data based on the need of specific projects
-    # df = df[df['End to End Distance'] != 0]
-    # df = df[df['Contour Lengths'] > 100]
-    # df = df[df['Contour Lengths'] < 120]
+    # df = df[df['end_to_end_distance'] != 0]
+    # df = df[df['contour_lengths'] > 100]
+    # df = df[df['contour_lengths'] < 120]
 
     # Rename directory column as appropriate
     # df = df.rename(columns={"directory": "Experimental Conditions"})

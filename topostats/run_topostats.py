@@ -19,15 +19,11 @@ from tqdm import tqdm
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import find_images, read_yaml, write_yaml, get_out_path, LoadScans
+from topostats.io import find_images, read_yaml, write_yaml, get_out_path, folder_grainstats, LoadScans
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
-from topostats.utils import (
-    update_config,
-    create_empty_dataframe,
-    folder_grainstats,
-)
+from topostats.utils import update_config, create_empty_dataframe
 from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA
 
 LOGGER = setup_logger(LOGGER_NAME)
@@ -335,12 +331,13 @@ def process_scan(
                     elif grains_config["direction"] == "lower":
                         tracing_stats_df = tracing_stats["lower"].df
                     LOGGER.info(f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics")
-                    results = grainstats_df.merge(tracing_stats_df, on=["Molecule Number", "threshold"])
+                    # NB - Merge on molecule and threshold because we may have upper and lower molecueles which gives
+                    #      duplicate molecule numbers as they are processed separately
+                    results = grainstats_df.merge(tracing_stats_df, on=["molecule_number", "threshold"])
                 else:
                     results = grainstats_df
-                    results["Image Name"] = filename
-                    results["Basename"] = image_path.parent
-
+                    results["image"] = filename
+                    results["basename"] = image_path.parent
             except Exception:
                 # If no results we need a dummy dataframe to return.
                 LOGGER.info(
@@ -452,13 +449,15 @@ def main(args=None):
                 results[str(img)] = result
                 pbar.update()
     results = pd.concat(results.values())
-    results.reset_index()
-    results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)
+    results.reset_index(inplace=True)
+    results.set_index(["image", "threshold", "molecule_number"], inplace=True)
+    results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
     folder_grainstats(config["output_dir"], config["base_dir"], results)
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
-    images_processed = len(results["Image Name"].unique())
+    results.reset_index(inplace=True)
+    images_processed = len(results["image"].unique())
     LOGGER.info(
         (
             f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
@@ -475,8 +474,8 @@ def main(args=None):
             f"  Citation File Format        : https://github.com/AFM-SPM/TopoStats/blob/main/CITATION.cff\n\n"
             f"  If you encounter bugs/issues or have feature requests please report them at the above URL\n"
             f"  or email us.\n\n"
-            f"  If you have found TopoStats useful please consider citing it. A citation file format is\n"
-            f"  included and there are links on the Source Code page.\n"
+            f"  If you have found TopoStats useful please consider citing it. A Citation File Format is\n"
+            f"  linked above and available from the Source Code page.\n"
             f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
         )
     )
