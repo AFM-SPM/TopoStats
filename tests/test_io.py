@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from topostats.io import read_yaml, find_images, get_out_path, folder_grainstats, LoadScans
+from topostats.io import read_yaml, find_images, get_out_path, save_folder_grainstats, LoadScans
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
@@ -116,13 +116,13 @@ def test_get_out_path_attributeerror() -> None:
         get_out_path(image_path="images/test.spm", base_dir=Path("/some/random/path"), output_dir=Path("output/here"))
 
 
-def test_folder_grainstats(tmp_path: Path, minicircle_tracestats: pd.DataFrame) -> None:
+def test_save_folder_grainstats(tmp_path: Path, minicircle_tracestats: pd.DataFrame) -> None:
     """Test a folder-wide grainstats file is made"""
     input_path = tmp_path / "minicircle"
     minicircle_tracestats["Basename"] = input_path / "subfolder"
     out_path = tmp_path / "subfolder"
     Path.mkdir(out_path, parents=True)
-    folder_grainstats(out_path, input_path, minicircle_tracestats)
+    save_folder_grainstats(out_path, input_path, minicircle_tracestats)
     assert Path(out_path / "processed" / "folder_grainstats.csv").exists()
 
 

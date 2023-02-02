@@ -19,7 +19,7 @@ from tqdm import tqdm
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import find_images, read_yaml, write_yaml, get_out_path, folder_grainstats, LoadScans
+from topostats.io import find_images, read_yaml, write_yaml, get_out_path, save_folder_grainstats, LoadScans
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
@@ -452,7 +452,7 @@ def main(args=None):
     results.reset_index(inplace=True)
     results.set_index(["image", "threshold", "molecule_number"], inplace=True)
     results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
-    folder_grainstats(config["output_dir"], config["base_dir"], results)
+    save_folder_grainstats(config["output_dir"], config["base_dir"], results)
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])

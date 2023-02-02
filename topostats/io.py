@@ -100,7 +100,7 @@ def get_out_path(
     # case we just want to append the image_path to the output_dir
     try:
         # Remove the filename if there is a suffix, not always the case as
-        # get_out_path is called from folder_grainstats()
+        # get_out_path is called from save_folder_grainstats()
         if image_path.suffix:
             return output_dir / image_path.relative_to(base_dir).parent / image_path.stem
         return output_dir / image_path.relative_to(base_dir)
@@ -133,7 +133,9 @@ def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> Li
     return list(base_dir.glob("**/*" + file_ext))
 
 
-def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], all_stats_df: pd.DataFrame) -> None:
+def save_folder_grainstats(
+    output_dir: Union[str, Path], base_dir: Union[str, Path], all_stats_df: pd.DataFrame
+) -> None:
     """Saves a data frame of grain and tracing statictics at the folder level.
 
     Parameters
@@ -177,7 +179,6 @@ class LoadScans:
         img_paths: list,
         channel: str,
     ):
-
         """Initialise the class.
 
         Parameters
