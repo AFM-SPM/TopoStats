@@ -267,7 +267,7 @@ class GrainStats:
                 "smallest_bounding_width": smallest_bounding_width * length_scaling_factor,
                 "smallest_bounding_length": smallest_bounding_length * length_scaling_factor,
                 "smallest_bounding_area": smallest_bounding_length * smallest_bounding_width * area_scaling_factor,
-                "aspect_ratio": aspect_ratio * self.metre_scaling_factor,
+                "aspect_ratio": aspect_ratio,
                 "threshold": self.direction,
                 "max_feret": max_feret * length_scaling_factor,
                 "min_feret": min_feret * length_scaling_factor,
