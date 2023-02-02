@@ -18,6 +18,7 @@ RESOURCES = BASE_DIR / "tests" / "resources"
 def test_grainstats_regression(regtest, minicircle_grainstats: GrainStats) -> None:
     """Regression tests for grainstats."""
     statistics = minicircle_grainstats.calculate_stats()
+    print(statistics)
     print(statistics["statistics"].to_string(), file=regtest)
 
 

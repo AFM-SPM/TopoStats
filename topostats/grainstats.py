@@ -33,7 +33,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 GRAIN_STATS_COLUMNS = [
-    "Molecule Number",
+    "molecule_number",
     "centre_x",
     "centre_y",
     "radius_min",
@@ -242,7 +242,7 @@ class GrainStats:
 
             # save_format = '.4f'
 
-            # Save the stats to csv file. Note that many of the stats are multiplied by a scaling factor to convert
+            # Save the stats to dictionary. Note that many of the stats are multiplied by a scaling factor to convert
             # from pixel units to nanometres.
             # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
             length_scaling_factor = self.pixel_to_nanometre_scaling * self.metre_scaling_factor
@@ -272,7 +272,6 @@ class GrainStats:
                 "max_feret": max_feret * length_scaling_factor,
                 "min_feret": min_feret * length_scaling_factor,
             }
-
             stats_array.append(stats)
 
             # Add cartesian bounding box for the grain to the labelled image
@@ -288,8 +287,7 @@ class GrainStats:
             ax.add_patch(rectangle)
 
         grainstats = pd.DataFrame(data=stats_array)
-        grainstats.index.name = "Molecule Number"
-
+        grainstats.index.name = "molecule_number"
         # if self.save_cropped_grains:
         # savename = f"{self.image_name}_{self.direction}_grainstats.csv"
         # grainstats.to_csv(self.base_output_dir / self.direction / savename)

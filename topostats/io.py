@@ -3,13 +3,15 @@ import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Union
-import numpy as np
 
+import numpy as np
+import pandas as pd
 import pySPM
 from igor import binarywave
 import tifffile
 from ruamel.yaml import YAML, YAMLError
 from ruamel.yaml.main import round_trip_load as yaml_load, round_trip_dump as yaml_dump
+
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -98,7 +100,7 @@ def get_out_path(
     # case we just want to append the image_path to the output_dir
     try:
         # Remove the filename if there is a suffix, not always the case as
-        # get_out_path is called from folder_grainstats()
+        # get_out_path is called from save_folder_grainstats()
         if image_path.suffix:
             return output_dir / image_path.relative_to(base_dir).parent / image_path.stem
         return output_dir / image_path.relative_to(base_dir)
@@ -131,6 +133,43 @@ def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> Li
     return list(base_dir.glob("**/*" + file_ext))
 
 
+def save_folder_grainstats(
+    output_dir: Union[str, Path], base_dir: Union[str, Path], all_stats_df: pd.DataFrame
+) -> None:
+    """Saves a data frame of grain and tracing statictics at the folder level.
+
+    Parameters
+    ----------
+    output_dir: Union[str, Path]
+        Path of the output directory head.
+    base_dir: Union[str, Path]
+        Path of the base directory where files were found.
+    all_stats_df: pd.DataFrame
+        The dataframe containing all sample statistics run.
+
+    Returns
+    -------
+    None
+        This only saves the dataframes and does not retain them.
+    """
+    dirs = set(all_stats_df["basename"].values)
+    LOGGER.debug(f"Statistics :\n{all_stats_df}")
+    for _dir in dirs:
+        LOGGER.debug(f"Statistics ({_dir}) :\n{all_stats_df}")
+        try:
+            out_path = get_out_path(Path(_dir), base_dir, output_dir)
+            # Ensure "processed" directory exists at the stem of out_path, creating if needed
+            if out_path.stem != "processed":
+                out_path_processed = out_path / "processed"
+                out_path_processed.mkdir(parents=True, exist_ok=True)
+            all_stats_df[all_stats_df["basename"] == _dir].to_csv(
+                out_path / "processed" / "folder_grainstats.csv", index=True
+            )
+            LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/folder_grainstats.csv")
+        except TypeError:
+            LOGGER.info(f"No folder-wise statistics for directory {_dir}, no grains detected in any images.")
+
+
 # pylint: disable=too-many-instance-attributes
 class LoadScans:
     """Load the image and image parameters from a file path."""
@@ -140,7 +179,6 @@ class LoadScans:
         img_paths: list,
         channel: str,
     ):
-
         """Initialise the class.
 
         Parameters
