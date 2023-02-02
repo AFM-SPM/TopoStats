@@ -9,7 +9,6 @@ import skimage.measure as skimage_measure
 import skimage.feature as skimage_feature
 import scipy.ndimage
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 import pandas as pd
 
 from topostats.plottingfuncs import Images
@@ -153,7 +152,13 @@ class GrainStats:
         return not np.linalg.det(rotation_matrix) > 0
 
     def calculate_stats(self) -> Dict:
-        """Calculate the stats of grains in the labelled image"""
+        """Calculate the stats of grains in the labelled image.
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame containing all the grain stats that have been calculated for the labelled image.
+        """
 
         if self.labelled_data is None:
             LOGGER.info(
@@ -163,10 +168,6 @@ class GrainStats:
 
         # Calculate region properties
         region_properties = skimage_measure.regionprops(self.labelled_data)
-
-        # Plot labelled data
-        _, ax = plt.subplots(1, 1, figsize=(8, 8))
-        ax.imshow(self.labelled_data, interpolation="nearest", cmap="afmhot")
 
         # Iterate over all the grains in the image
         stats_array = []
@@ -240,8 +241,6 @@ class GrainStats:
             # Calculate minimum and maximum feret diameters
             min_feret, max_feret = self.get_max_min_ferets(edge_points=edges)
 
-            # save_format = '.4f'
-
             # Save the stats to dictionary. Note that many of the stats are multiplied by a scaling factor to convert
             # from pixel units to nanometres.
             # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
@@ -258,7 +257,8 @@ class GrainStats:
                 "height_max": np.nanmax(masked_grain_image) * self.metre_scaling_factor,
                 "height_median": np.nanmedian(masked_grain_image) * self.metre_scaling_factor,
                 "height_mean": np.nanmean(masked_grain_image) * self.metre_scaling_factor,
-                # px^2 * nm^2 -> self.metre_scaling_factor^3
+                # [volume] = [pixel] * [pixel] * [height] = px * px * nm.
+                # To turn into m^3, multiply by pixel_to_nanometre_scaling^2 and metre_scaling_factor^3.
                 "volume": np.nansum(masked_grain_image)
                 * self.pixel_to_nanometre_scaling**2
                 * (self.metre_scaling_factor**3),
@@ -274,35 +274,10 @@ class GrainStats:
             }
             stats_array.append(stats)
 
-            # Add cartesian bounding box for the grain to the labelled image
-            min_row, min_col, max_row, max_col = region.bbox
-            rectangle = mpl.patches.Rectangle(
-                (min_col, min_row),
-                max_col - min_col,
-                max_row - min_row,
-                fill=False,
-                edgecolor="white",
-                linewidth=2,
-            )
-            ax.add_patch(rectangle)
-
         grainstats = pd.DataFrame(data=stats_array)
         grainstats.index.name = "molecule_number"
-        # if self.save_cropped_grains:
-        # savename = f"{self.image_name}_{self.direction}_grainstats.csv"
-        # grainstats.to_csv(self.base_output_dir / self.direction / savename)
-        # LOGGER.info(
-        #    f"[{self.image_name}] : Grain statistics saved to {str(self.base_output_dir)}/{str(self.direction)}/{savename}"
-        # )
 
-        return {"statistics": grainstats, "plot": ax}
-
-    # def save_plot(self, img: Axes, title: str = None, filename: str = "15-labelled_image_bboxes.png") -> None:
-    #     """Save the image adding a title if specified."""
-    #     title = title if title is not None else "Labelled Image with Bounding Boxes"
-    #     plt.title(title)
-    #     plt.savefig(self.base_output_dir / filename)
-    #     plt.close()
+        return grainstats
 
     @staticmethod
     def calculate_points(grain_mask: np.ndarray):

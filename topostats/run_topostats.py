@@ -298,14 +298,14 @@ def process_scan(
                         plot_opts=grain_plot_dict,
                         **grainstats_config,
                     ).calculate_stats()
-                    grainstats[direction]["statistics"]["threshold"] = direction
+                    grainstats[direction]["threshold"] = direction
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
-                    grainstats_df = pd.concat([grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]])
+                    grainstats_df = pd.concat([grainstats["lower"], grainstats["upper"]])
                 elif grains_config["direction"] == "upper":
-                    grainstats_df = grainstats["upper"]["statistics"]
+                    grainstats_df = grainstats["upper"]
                 elif grains_config["direction"] == "lower":
-                    grainstats_df = grainstats["lower"]["statistics"]
+                    grainstats_df = grainstats["lower"]
                 # Run dnatracing
                 if dnatracing_config["run"]:
                     dnatracing_config.pop("run")
