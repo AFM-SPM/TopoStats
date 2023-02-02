@@ -19,7 +19,7 @@ def test_grainstats_regression(regtest, minicircle_grainstats: GrainStats) -> No
     """Regression tests for grainstats."""
     statistics = minicircle_grainstats.calculate_stats()
     print(statistics)
-    print(statistics["statistics"].to_string(), file=regtest)
+    print(statistics.to_string(), file=regtest)
 
 
 @pytest.mark.parametrize(
