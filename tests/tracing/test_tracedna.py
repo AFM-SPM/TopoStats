@@ -1200,3 +1200,67 @@ def test_count_ends(tracedna: traceDNA, binary_array: np.ndarray, expected: np.n
     tracedna._count_ends()
 
     assert tracedna.ends == expected
+
+
+@pytest.mark.parametrize(
+    "binary_array,linear_method,expected",
+    [
+        (ADJACENT_GRAINS["single_L"], "ends", False),
+        (ADJACENT_GRAINS["single_L"], "regions", False),
+        (ADJACENT_GRAINS["double_L"], "ends", False),
+        (ADJACENT_GRAINS["double_L"], "regions", False),
+        (ADJACENT_GRAINS["diagonal_end_single_L"], "ends", False),
+        (ADJACENT_GRAINS["diagonal_end_single_L"], "regions", False),
+        (ADJACENT_GRAINS["diagonal_end_straight"], "ends", False),
+        (ADJACENT_GRAINS["diagonal_end_straight"], "regions", False),
+        (ADJACENT_GRAINS["vertical"], "ends", False),
+        (ADJACENT_GRAINS["vertical"], "regions", False),
+        (ADJACENT_GRAINS["horizontal"], "ends", False),
+        (ADJACENT_GRAINS["horizontal"], "regions", False),
+        (ADJACENT_GRAINS["diagonal1"], "ends", False),
+        (ADJACENT_GRAINS["diagonal1"], "regions", False),
+        (ADJACENT_GRAINS["diagonal2"], "ends", False),
+        (ADJACENT_GRAINS["diagonal2"], "regions", False),
+        (ADJACENT_GRAINS["diagonal3"], "ends", False),
+        (ADJACENT_GRAINS["diagonal3"], "regions", False),
+        (ADJACENT_GRAINS["circle"], "ends", True),
+        (ADJACENT_GRAINS["circle"], "regions", True),
+        # (ADJACENT_GRAINS["blob"], ),  # Skip as not a skeleton
+        (ADJACENT_GRAINS["cross"], "ends", False),
+        (ADJACENT_GRAINS["cross"], "regions", False),
+        (ADJACENT_GRAINS["figure8"], "ends", True),
+        (ADJACENT_GRAINS["figure8"], "regions", True),
+    ],
+)
+def test_circle(tracedna: traceDNA, binary_array: np.ndarray, linear_method: str, expected: bool) -> None:
+    """Test getting and setting of circle property."""
+    tracedna.grain["skeleton"] = binary_array
+    tracedna._inverse_mask()
+    tracedna.linear_method = linear_method
+    tracedna._circle()
+    assert tracedna.circle == expected
+
+
+@pytest.mark.parametrize(
+    "binary_array,expected",
+    [
+        (ADJACENT_GRAINS["single_L"], 5),
+        (ADJACENT_GRAINS["double_L"], 6),
+        (ADJACENT_GRAINS["diagonal_end_single_L"], 5),
+        (ADJACENT_GRAINS["diagonal_end_straight"], 4),
+        (ADJACENT_GRAINS["vertical"], 8),
+        (ADJACENT_GRAINS["horizontal"], 8),
+        (ADJACENT_GRAINS["diagonal1"], 14),
+        (ADJACENT_GRAINS["diagonal2"], 17),
+        (ADJACENT_GRAINS["diagonal3"], 12),
+        (ADJACENT_GRAINS["circle"], 32),
+        (ADJACENT_GRAINS["blob"], 9),
+        (ADJACENT_GRAINS["cross"], 9),
+        (ADJACENT_GRAINS["figure8"], 23),
+    ],
+)
+def test_count_pixels(tracedna: traceDNA, binary_array: np.ndarray, expected: int) -> None:
+    """Test the _count_pixels() method."""
+    tracedna.grain["skeleton"] = binary_array
+    tracedna._count_pixels()
+    assert tracedna.pixels == expected

@@ -87,7 +87,8 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.skeletonisation_method = skeletonisation_method
         self.ends = None
-        self._circle = None
+        self.pixels = None
+        self.circle = False
 
     def trace_dna(self):
         """Perform DNA tracing on a single grain."""
@@ -103,8 +104,9 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         # method in dnatracing indicates this is the skeletonisation process.
         self.grain["skeleton"] = self.skeletonize()
         # TODO (2023-01-17) - Set a configurable and minimal size for skeletons to be to continue
-        # Don't purge, skeletonise and assess if its nonsense/single pixel
+        # Don't purge, skeletonise and count how many pixels, user can decide whether to discard afterwards
         # self.purge_obvious_crap()
+        self._count_pixels()
         # self.determine_linear()
         self.circle()
         self.order(self._circle)
@@ -162,22 +164,23 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
     # def get_disordered_trace(self) -> None:
     #     """Something"""
 
-    @property
-    def circle(self) -> bool:
-        """Whether the grain is circular."""
-        return self._circle
-
-    @circle.setter
-    def circle(self):
+    def _circle(self):
         """Set whether circle or not"""
-        if self.linear_method == "end":
+        if self.linear_method == "ends":
             self._count_adjacent()
             self._count_ends()
-            self._circle = False if self.ends == 2 else True
+            print(f"self.ends    : {self.ends}")
+            self.circle = False if self.ends == 2 else True
+            LOGGER.debug(
+                f"[{self.filename}] | [{self.grain_number}]\n\n" "Ends   : {self.regions}\nCircle  : {self.circle}"
+            )
         else:
             self._label_regions()
             self._count_regions()
-            self._circle = False if self.regions == 1 else True
+            self.circle = False if self.regions == 1 else True
+            LOGGER.debug(
+                f"[{self.filename}] | [{self.grain_number}]\n\n" " Regions : {self.regions}\nCircle  : {self.circle}"
+            )
 
     def _count_ends(self):
         """Count how many points of a skeletonised image are ends.
@@ -247,15 +250,22 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         those with twists/loops in will at least two regions (one inside, one out) or more if there are twists that form
         say figure-8 like structures."""
         self.grain["labelled"] = morphology.label(self.grain["skeleton"], background=1)
+        LOGGER.debug(f"[{self.filename}] | [{self.grain_number}] : Labelled region\n\n{self.grain['labelled']}")
 
     def _count_regions(self) -> None:
         """Count the number of unique background regions in an image which is indicative of whether a molecule is linear or
         has a circle/loop in it."""
+        LOGGER.debug(
+            f"[{self.filename}] | [{self.grain_number}] : Unique regions : {np.unique(self.grain['labelled'])}"
+        )
         self.regions = len(np.unique(self.grain["labelled"])) - 1
 
     def _inverse_mask(self) -> None:
         """Mask all cells but those that are part of the skeleton."""
         self.grain["skeleton_inverse_mask"] = np.where(self.grain["skeleton"] == 1, 0, 1)
+        LOGGER.debug(
+            f"[{self.filename}] | [{self.grain_number}] : Skeleton Inverse Mask\n\n{self.grain['skeleton_inverse_mask']}"
+        )
 
     def _count_adjacent(self) -> None:
         """Count the number of non-zero cells around every x, y co-ordinate in a binary 2-D Numpy array.
@@ -313,25 +323,21 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
             ]
         )
         self.grain["adjacent_masked"] = np.ma.masked_array(self.grain["adjacent"], self.grain["skeleton_inverse_mask"])
-        # print(f"padded_mask            :\n{self.grain['skeleton_inverse_mask']}")
-        # print(f"self.grain['adjacent'] :\n{self.grain['adjacent']}")
-        print(f"self.grain['adjacent_masked'] :\n{self.grain['adjacent_masked']}")
-        LOGGER.debug(f"[{self.filename}] | [{self.grain_number}] : Adjacent grains calculated for all adjacent cells")
+        LOGGER.debug(
+            f"[{self.filename}] | [{self.grain_number}] : Adjacent grains (all) :\n\n{self.grain['adjacent_masked']}"
+        )
         self.grain["adjacent_abscissa_ordinate"] = sum([top_center, middle_left, middle_right, bottom_center])
         self.grain["adjacent_abscissa_ordinate_masked"] = np.ma.masked_array(
             self.grain["adjacent_abscissa_ordinate"], self.grain["skeleton_inverse_mask"]
         )
-        print(f"self.grain['adjacent_abscissa_ordinate_masked'] :\n{self.grain['adjacent_abscissa_ordinate_masked']}")
         LOGGER.debug(
-            f"[{self.filename}] | [{self.grain_number}] : Adjacent grains calculated for abscissa and ordinate "
-            "adjacent cells only."
+            f"[{self.filename}] | [{self.grain_number}] : Adjacent grains (abscissa & ordinate) :\n\n"
+            f"{self.grain['adjacent_abscissa_ordinate_masked']}"
         )
 
-    def get_ordered_trace(self) -> None:
-        """Order the trace"""
-
-    def get_fitted_trace(self):
-        """Something else"""
+    def _count_pixels(self) -> None:
+        """Count how many pixels in the skeleton."""
+        self.pixels = np.sum(self.grain["skeleton"])
 
     def get_splined_trace(self):
         """Spline the trace."""
