@@ -11,7 +11,6 @@ import scipy.ndimage
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from topostats.plottingfuncs import Images
 from topostats.logs.logs import LOGGER_NAME
 
 # pylint: disable=too-many-lines
@@ -156,21 +155,26 @@ class GrainStats:
 
         Returns
         -------
-        pd.DataFrame
+        grainstats: pd.DataFrame
             A DataFrame containing all the grain stats that have been calculated for the labelled image.
+        grains_plot_data:
+            A list of dictionaries containing grain data to be plotted.
         """
 
+        grains_plot_data = []
         if self.labelled_data is None:
             LOGGER.info(
                 f"[{self.image_name}] : No labelled regions for this image, grain statistics can not be calculated."
             )
-            return {"statistics": pd.DataFrame(columns=GRAIN_STATS_COLUMNS), "plot": None}
+            return pd.DataFrame(columns=GRAIN_STATS_COLUMNS), grains_plot_data
 
         # Calculate region properties
         region_properties = skimage_measure.regionprops(self.labelled_data)
 
         # Iterate over all the grains in the image
         stats_array = []
+        # List to hold all the plot data for all the grains. Each entry is a dictionary of plotting data.
+        # There are multiple entries for each grain.
         for index, region in enumerate(region_properties):
 
             LOGGER.info(f"[{self.image_name}] : Processing grain: {index}")
@@ -189,14 +193,17 @@ class GrainStats:
                     for name, image in {
                         "grain_image": grain_image,
                         "grain_mask": grain_mask,
-                        "grain_mask_image": masked_grain_image,
+                        "masked_grain_image": masked_grain_image,
                     }.items():
-                        Images(
-                            data=image,
-                            output_dir=output_grain,
-                            filename=f"{self.image_name}_{name}_{index}",
-                            **self.plot_opts[name],
-                        ).plot_and_save()
+                        grains_plot_data.append(
+                            {
+                                "image": image,
+                                "output_grain": output_grain,
+                                "filename": f"{self.image_name}_{name}_{index}",
+                                "plot_opts": self.plot_opts[name],
+                            }
+                        )
+
                 else:
                     # Get cropped image and mask
                     grain_centre = int((minr + maxr) / 2), int((minc + maxc) / 2)
@@ -204,24 +211,24 @@ class GrainStats:
                     solo_mask = self.labelled_data.copy()
                     solo_mask[solo_mask != index + 1] = 0
                     solo_mask[solo_mask == index + 1] = 1
-                    cropped_grain_image = self.get_cropped_region(self.data, length, np.asarray(grain_centre))
-                    cropped_grain_mask = self.get_cropped_region(solo_mask, length, np.asarray(grain_centre)).astype(
-                        bool
-                    )
-                    cropped_grain_mask_image = np.ma.masked_array(
-                        cropped_grain_image, mask=np.invert(cropped_grain_mask), fill_value=np.nan
+                    grain_image = self.get_cropped_region(self.data, length, np.asarray(grain_centre))
+                    grain_mask = self.get_cropped_region(solo_mask, length, np.asarray(grain_centre)).astype(bool)
+                    masked_grain_image = np.ma.masked_array(
+                        grain_image, mask=np.invert(grain_mask), fill_value=np.nan
                     ).filled()
                     for name, image in {
-                        "grain_image": cropped_grain_image,
-                        "grain_mask": cropped_grain_mask,
-                        "grain_mask_image": cropped_grain_mask_image,
+                        "grain_image": grain_image,
+                        "grain_mask": grain_mask,
+                        "masked_grain_image": masked_grain_image,
                     }.items():
-                        Images(
-                            data=image,
-                            output_dir=output_grain,
-                            filename=f"{self.image_name}_{name}_{index}",
-                            **self.plot_opts[name],
-                        ).plot_and_save()
+                        grains_plot_data.append(
+                            {
+                                "data": image,
+                                "output_dir": output_grain,
+                                "filename": f"{self.image_name}_{name}_{index}",
+                                "plot_opts": self.plot_opts[name],
+                            }
+                        )
 
             points = self.calculate_points(grain_mask)
             edges = self.calculate_edges(grain_mask)
@@ -277,7 +284,7 @@ class GrainStats:
         grainstats = pd.DataFrame(data=stats_array)
         grainstats.index.name = "molecule_number"
 
-        return grainstats
+        return grainstats, grains_plot_data
 
     @staticmethod
     def calculate_points(grain_mask: np.ndarray):

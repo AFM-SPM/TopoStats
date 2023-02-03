@@ -288,7 +288,7 @@ def process_scan(
                 }
                 grainstats = {}
                 for direction, _ in grains.directions.items():
-                    grainstats[direction] = GrainStats(
+                    grainstats[direction], grains_plot_data = GrainStats(
                         data=filtered_image.images["gaussian_filtered"],
                         labelled_data=grains.directions[direction]["labelled_regions_02"],
                         pixel_to_nanometre_scaling=pixel_to_nm_scaling,
@@ -299,6 +299,15 @@ def process_scan(
                         **grainstats_config,
                     ).calculate_stats()
                     grainstats[direction]["threshold"] = direction
+                    # Plot grains
+                    LOGGER.info(f"[{filename}] : Plotting grain images.")
+                    for plot_data in grains_plot_data:
+                        Images(
+                            data=plot_data["data"],
+                            output_dir=plot_data["output_dir"],
+                            filename=plot_data["filename"],
+                            **plot_data["plot_opts"],
+                        ).plot_and_save()
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
                     grainstats_df = pd.concat([grainstats["lower"], grainstats["upper"]])
