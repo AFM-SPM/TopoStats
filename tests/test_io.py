@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from topostats.io import read_yaml, find_images, get_out_path, save_folder_grainstats, LoadScans
+from topostats.io import read_yaml, find_files, get_out_path, save_folder_grainstats, LoadScans, save_pkl, load_pkl
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
@@ -30,9 +30,9 @@ def test_read_yaml() -> None:
     TestCase().assertDictEqual(sample_config, CONFIG)
 
 
-def test_find_images() -> None:
+def test_find_files() -> None:
     """Test finding images"""
-    found_images = find_images(base_dir="tests/", file_ext=".spm")
+    found_images = find_files(base_dir="tests/", file_ext=".spm")
 
     assert isinstance(found_images, list)
     assert len(found_images) == 1
@@ -206,3 +206,17 @@ def test_load_scan_get_data(
     assert scan.img_dic[filename]["img_path"] == RESOURCES / filename
     assert isinstance(scan.img_dic[filename]["px_2_nm"], float)
     assert scan.img_dic[filename]["px_2_nm"] == pixel_to_nm_scaling
+
+
+def test_save_pkl(summary_config: dict, tmp_path) -> None:
+    """Test saving a pickle."""
+    outfile = tmp_path / "test.pkl"
+    save_pkl(outfile=outfile, to_pkl=summary_config)
+    assert outfile.exists()
+
+
+def test_load_pkl() -> None:
+    """Test loading a pickle."""
+    infile = RESOURCES / "test.pkl"
+    small_dictionary = load_pkl(infile)
+    assert isinstance(small_dictionary, dict)

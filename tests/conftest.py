@@ -13,6 +13,7 @@ from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, LoadScans
+from topostats.plotting import TopoSum
 from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import get_thresholds, get_mask, _get_mask
 
@@ -59,6 +60,44 @@ def plot_dict() -> Dict:
     popped."""
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
     return yaml.safe_load(plotting_dictionary.read())
+
+
+@pytest.fixture
+def summary_config() -> Dict:
+    """Sample summary configuration"""
+    summary_yaml = pkg_resources.open_text(topostats, "summary_config.yaml")
+    summary_config = yaml.safe_load(summary_yaml.read())
+    # Tweak configuration (for now) to match the tests
+    summary_config.pop("violin")
+    summary_config.pop("csv_file")
+    summary_config.pop("stats_to_sum")
+    summary_config["figsize"] = (15, 12)
+    summary_config["kde"] = True
+    summary_config["hist"] = True
+    summary_config["xrange"] = (0, 6)
+    summary_config["stat_to_sum"] = "area"
+    plotting_yaml = pkg_resources.open_text(topostats, "var_to_label.yaml")
+    summary_config["var_to_label"] = yaml.safe_load(plotting_yaml.read())
+    return summary_config
+
+
+@pytest.fixture
+def toposum_object(summary_config: Dict) -> TopoSum:
+    """Set up a fixture for testing plotting."""
+    toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
+    return toposum
+
+
+@pytest.fixture
+def toposum_multiple_images(toposum_object: TopoSum) -> pd.DataFrame:
+    """Duplicate the melted dataframe so tests with multiple images can be made."""
+    larger_data = toposum_object.melted_data.copy()
+    larger_data["Image"] = "larger.spm"
+    larger_data["value"] = larger_data["value"] * 1.1
+    smaller_data = toposum_object.melted_data.copy()
+    smaller_data["Image"] = "smaller.spm"
+    smaller_data["value"] = smaller_data["value"] * 0.95
+    return pd.concat([toposum_object.melted_data, larger_data, smaller_data])
 
 
 @pytest.fixture

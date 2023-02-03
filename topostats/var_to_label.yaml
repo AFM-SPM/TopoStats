@@ -1,0 +1,35 @@
+smallest_bounding_area: Smallest Bounding Area / $\mathregular{nm^2}$
+#grain_half_height_area: Area Above Half Height / $\mathregular{%s^2}$
+#grain_laplace_volume: Laplacian Volume / $\mathregular{%s^3}$
+#grain_min_volume: Minimum Volume / $\mathregular{%s^3}$
+#grain_proj_area: Area / $\mathregular{%s^2}$
+#grain_zero_volume: Zero Volume / $\mathregular{%s^3}$
+area: Area / $\mathregular{nm^2}$
+area_cartesian_bbox: Cartesian Bounding Box Area / $\mathregular{nm^2}$
+aspect_ratio: Aspect Ratio
+banding_angle: Banding Angle / degrees
+contour_lengths: Contour Lengths
+end_to_end_distance: End to End Distance
+grain_bound_len: Circumference
+grain_curvature1: Smaller Curvature
+grain_curvature2: Larger Curvature
+grain_ellipse_major: Ellipse Major Axis Length
+grain_ellipse_minor: Ellipse Minor Axis Length
+grain_max_bound_size: Length
+grain_maximum: Maximum Height
+grain_mean: Mean Height
+grain_mean_radius: Mean Radius
+grain_median: Median Height
+grain_min_bound_size: Width
+grain_pixel_area: Area / Pixels
+height_max: Maximum Height
+height_mean: Mean Height
+height_median: Median Height
+height_min: Minimum Height
+radius_max: Maximum Radius
+radius_mean: Mean Radius
+radius_median: Median Radius
+radius_min: Minimum Radius
+smallest_bounding_length: Smallest Bounding Length
+smallest_bounding_width: Smallest Bounding Width
+volume: Volume / $\mathregular{nm^3}$

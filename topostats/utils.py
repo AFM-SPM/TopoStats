@@ -85,8 +85,10 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
                 original_value = config[arg_key]
                 config[arg_key] = arg_value
                 LOGGER.info(f"Updated config config[{arg_key}] : {original_value} > {arg_value} ")
-    config["base_dir"] = convert_path(config["base_dir"])
-    config["output_dir"] = convert_path(config["output_dir"])
+    if "base_dir" in config.keys():
+        config["base_dir"] = convert_path(config["base_dir"])
+    if "output_dir" in config.keys():
+        config["output_dir"] = convert_path(config["output_dir"])
     return config
 
 
