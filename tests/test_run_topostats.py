@@ -86,7 +86,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
 def test_save_cropped_grains(
     tmp_path: Path, process_scan_config: dict, load_scan_data: LoadScans, image_set, expected
 ) -> None:
-    """Tests if save_cropped_grains option only creates the grains dir when True"""
+    """Tests if cropped grains are saved only when image set is 'all' rather than 'core'."""
     process_scan_config["plotting"]["image_set"] = image_set
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
 

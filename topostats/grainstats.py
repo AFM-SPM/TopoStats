@@ -63,7 +63,6 @@ class GrainStats:
         direction: str,
         base_output_dir: Union[str, Path],
         image_name: str = None,
-        save_cropped_grains: bool = False,
         cropped_size: float = -1,
         plot_opts: dict = None,
         metre_scaling_factor: float = 1e-9,
@@ -84,8 +83,6 @@ class GrainStats:
             Path to the folder that will store the grain stats output images and data.
         image_name : str
             The name of the file being processed.
-        save_cropped_grains : bool
-            Option wether to save the cropped grain images.
         cropped_size : float
             Length of square side (in nm) to crop grains to.
         plot_opts : dict
@@ -102,7 +99,6 @@ class GrainStats:
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
         self.image_name = image_name
-        self.save_cropped_grains = save_cropped_grains
         self.cropped_size = cropped_size
         self.plot_opts = plot_opts
         self.metre_scaling_factor = metre_scaling_factor
