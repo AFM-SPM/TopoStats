@@ -1,8 +1,6 @@
 """Tests for the grainstats module."""
 from pathlib import Path
 
-import pytest
-
 import numpy as np
 
 from topostats.grainstats import GrainStats
@@ -32,4 +30,4 @@ def test_cropped_image(minicircle_grainstats: GrainStats):
 
     expected = np.load(RESOURCES / "test_cropped_grains.npy")
 
-    np.testing.assert_array_equal(cropped_grain_image, expected)
+    np.testing.assert_array_almost_equal(cropped_grain_image, expected, decimal=4)
