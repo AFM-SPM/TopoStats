@@ -224,7 +224,7 @@ class GrainStats:
                             "data": image,
                             "output_dir": output_grain,
                             "filename": f"{self.image_name}_{name}_{index}",
-                            "plot_opts": self.plot_opts[name],
+                            "name": name,
                         }
                     )
 

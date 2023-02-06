@@ -135,7 +135,7 @@ coloured_boxes:
   core_set: false
 grain_image:
   image_type: "non-binary"
-  core_set: true
+  core_set: false
 grain_mask:
   image_type: "non-binary"
   core_set: false

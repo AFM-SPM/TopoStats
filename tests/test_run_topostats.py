@@ -7,6 +7,7 @@ import pytest
 # from topostats import run_topostats
 from topostats.run_topostats import process_scan, main as run_topostats_main
 from topostats.io import LoadScans
+from topostats.utils import update_plotting_config
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
@@ -75,15 +76,20 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
 
 
 @pytest.mark.parametrize(
-    "value",
+    "image_set, expected",
     [
-        (True),
-        (False),
+        ("core", False),
+        ("all", True),
     ],
 )
-def test_save_cropped_grains(tmp_path: Path, process_scan_config: dict, load_scan_data: LoadScans, value) -> None:
+def test_save_cropped_grains(
+    tmp_path: Path, process_scan_config: dict, load_scan_data: LoadScans, image_set, expected
+) -> None:
     """Tests if save_cropped_grains option only creates the grains dir when True"""
-    process_scan_config["plotting"]["save_cropped_grains"] = value
+    process_scan_config["plotting"]["image_set"] = image_set
+    process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
+
+    print(f"image set: {process_scan_config['plotting']['image_set']}")
 
     img_dic = load_scan_data.img_dic
     _, _ = process_scan(
@@ -98,8 +104,18 @@ def test_save_cropped_grains(tmp_path: Path, process_scan_config: dict, load_sca
     )
 
     assert (
-        Path.exists(tmp_path / "tests/resources/processed/minicircle/grains/upper/minicircle_grain_image_0.png")
-        == value
+        Path.exists(tmp_path / "tests/resources/processed/minicircle/grains/upper" / "minicircle_grain_image_0.png")
+        == expected
+    )
+    assert (
+        Path.exists(tmp_path / "tests/resources/processed/minicircle/grains/upper" / "minicircle_grain_mask_0.png")
+        == expected
+    )
+    assert (
+        Path.exists(
+            tmp_path / "tests/resources/processed/minicircle/grains/upper" / "minicircle_grain_mask_image_0.png"
+        )
+        == expected
     )
 
 
