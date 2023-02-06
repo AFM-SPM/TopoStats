@@ -1,6 +1,7 @@
 """Test end-to-end running of topostats."""
 import logging
 from pathlib import Path
+import imghdr
 
 import pytest
 
@@ -118,6 +119,31 @@ def test_save_cropped_grains(
         == expected
     )
 
+@pytest.mark.parametrize("extension", [("png"), ("tiff")])
+def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path, extension: str):
+    "Tests if save format applied to cropped images"
+    # minicircle_grainstats.save_cropped_grains = True
+    # minicircle_grainstats.plot_opts["grain_image"]["save_format"] = extension
+    # minicircle_grainstats.base_output_dir = tmp_path
+    # minicircle_grainstats.calculate_stats()
+
+    process_scan_config["plotting"]["image_set"] = "all"
+    process_scan_config["plotting"]["save_format"] = extension
+    process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
+
+    img_dic = load_scan_data.img_dic
+    _, _ = process_scan(
+        img_path_px2nm=img_dic["minicircle"],
+        base_dir=BASE_DIR,
+        filter_config=process_scan_config["filter"],
+        grains_config=process_scan_config["grains"],
+        grainstats_config=process_scan_config["grainstats"],
+        dnatracing_config=process_scan_config["dnatracing"],
+        plotting_config=process_scan_config["plotting"],
+        output_dir=tmp_path,
+    )
+
+    assert imghdr.what(tmp_path / "tests/resources/processed/minicircle/grains/upper" / f"minicircle_grain_image_0.{extension}") == extension
 
 @pytest.mark.parametrize("option", ("-h", "--help"))
 def test_run_topostats_main_help(capsys, option) -> None:

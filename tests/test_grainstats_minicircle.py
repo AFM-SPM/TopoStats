@@ -1,6 +1,5 @@
 """Tests for the grainstats module."""
 from pathlib import Path
-import imghdr
 
 import pytest
 
@@ -36,11 +35,3 @@ def test_cropped_image(minicircle_grainstats: GrainStats):
     np.testing.assert_array_equal(cropped_grain_image, expected)
 
 
-@pytest.mark.parametrize("extension", [("png"), ("tiff")])
-def test_save_format(minicircle_grainstats: GrainStats, tmp_path: Path, extension: str):
-    "Tests if save format applied to cropped images"
-    minicircle_grainstats.save_cropped_grains = True
-    minicircle_grainstats.plot_opts["grain_image"]["save_format"] = extension
-    minicircle_grainstats.base_output_dir = tmp_path
-    minicircle_grainstats.calculate_stats()
-    assert imghdr.what(tmp_path / f"upper/None_grain_image_0.{extension}") == extension
