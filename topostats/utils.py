@@ -91,7 +91,8 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
 
 
 def update_plotting_config(plotting_config: dict) -> dict:
-    """Update the plotting config for process_scan."""
+    """Update the plotting config for each of the plots in plot_dict to ensure that each
+    entry has all the plotting configuration values that are needed."""
 
     for image, options in plotting_config["plot_dict"].items():
         plotting_config["plot_dict"][image] = {

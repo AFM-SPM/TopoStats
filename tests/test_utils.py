@@ -4,7 +4,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from topostats.utils import convert_path, update_config, get_thresholds
+from topostats.io import read_yaml
+from topostats.utils import convert_path, update_config, get_thresholds, update_plotting_config
 
 
 THRESHOLD_OPTIONS = {
@@ -32,6 +33,16 @@ def test_update_config(caplog) -> None:
     assert isinstance(updated_config, dict)
     assert "Updated config config[c] : something > something new" in caplog.text
     assert updated_config["c"] == "something new"
+
+
+def test_update_plotting_config(process_scan_config: dict) -> None:
+    """Test that the plotting config is correctly updated."""
+
+    expected = read_yaml("./tests/resources/updated_plotting_dict.yaml")
+
+    process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
+
+    assert process_scan_config == expected
 
 
 def test_get_thresholds_otsu(image_random: np.ndarray) -> None:
