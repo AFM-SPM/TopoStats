@@ -90,8 +90,6 @@ def test_save_cropped_grains(
     process_scan_config["plotting"]["image_set"] = image_set
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
 
-    print(f"image set: {process_scan_config['plotting']['image_set']}")
-
     img_dic = load_scan_data.img_dic
     _, _ = process_scan(
         img_path_px2nm=img_dic["minicircle"],
