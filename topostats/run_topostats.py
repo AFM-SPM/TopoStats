@@ -36,6 +36,7 @@ LOGGER = setup_logger(LOGGER_NAME)
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
 # pylint: disable=unnecessary-dict-index-lookup
+# pylint: disable=too-many-nested-blocks
 
 
 def create_parser() -> arg.ArgumentParser:
@@ -300,14 +301,16 @@ def process_scan(
                     ).calculate_stats()
                     grainstats[direction]["threshold"] = direction
                     # Plot grains
-                    LOGGER.info(f"[{filename}] : Plotting grain images.")
-                    for plot_data in grains_plot_data:
-                        Images(
-                            data=plot_data["data"],
-                            output_dir=plot_data["output_dir"],
-                            filename=plot_data["filename"],
-                            **plot_data["plot_opts"],
-                        ).plot_and_save()
+                    if plotting_config["save_cropped_grains"]:
+                        LOGGER.info(f"[{filename}] : Plotting grain images.")
+                        for plot_data in grains_plot_data:
+                            plot_data["output_dir"].mkdir(parents=True, exist_ok=True)
+                            Images(
+                                data=plot_data["data"],
+                                output_dir=plot_data["output_dir"],
+                                filename=plot_data["filename"],
+                                **plot_data["plot_opts"],
+                            ).plot_and_save()
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
                     grainstats_df = pd.concat([grainstats["lower"], grainstats["upper"]])

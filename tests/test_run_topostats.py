@@ -74,6 +74,35 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
 # def run_topostats_arguments() -> arg.ArgumentParser:
 
 
+@pytest.mark.parametrize(
+    "value",
+    [
+        (True),
+        (False),
+    ],
+)
+def test_save_cropped_grains(tmp_path: Path, process_scan_config: dict, load_scan_data: LoadScans, value) -> None:
+    """Tests if save_cropped_grains option only creates the grains dir when True"""
+    process_scan_config["plotting"]["save_cropped_grains"] = value
+
+    img_dic = load_scan_data.img_dic
+    _, _ = process_scan(
+        img_path_px2nm=img_dic["minicircle"],
+        base_dir=BASE_DIR,
+        filter_config=process_scan_config["filter"],
+        grains_config=process_scan_config["grains"],
+        grainstats_config=process_scan_config["grainstats"],
+        dnatracing_config=process_scan_config["dnatracing"],
+        plotting_config=process_scan_config["plotting"],
+        output_dir=tmp_path,
+    )
+
+    assert (
+        Path.exists(tmp_path / "tests/resources/processed/minicircle/grains/upper/minicircle_grain_image_0.png")
+        == value
+    )
+
+
 @pytest.mark.parametrize("option", ("-h", "--help"))
 def test_run_topostats_main_help(capsys, option) -> None:
     """Test the -h/--help flag to run_topostats."""

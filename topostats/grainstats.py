@@ -185,50 +185,48 @@ class GrainStats:
             minr, minc, maxr, maxc = region.bbox
             grain_mask = np.array(region.image)
             grain_image = self.data[minr:maxr, minc:maxc]
-            masked_grain_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
+            grain_mask_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
 
-            if self.save_cropped_grains:
-                output_grain.mkdir(parents=True, exist_ok=True)
-                if self.cropped_size == -1:
-                    for name, image in {
-                        "grain_image": grain_image,
-                        "grain_mask": grain_mask,
-                        "masked_grain_image": masked_grain_image,
-                    }.items():
-                        grains_plot_data.append(
-                            {
-                                "image": image,
-                                "output_grain": output_grain,
-                                "filename": f"{self.image_name}_{name}_{index}",
-                                "plot_opts": self.plot_opts[name],
-                            }
-                        )
+            if self.cropped_size == -1:
+                for name, image in {
+                    "grain_image": grain_image,
+                    "grain_mask": grain_mask,
+                    "grain_mask_image": grain_mask_image,
+                }.items():
+                    grains_plot_data.append(
+                        {
+                            "image": image,
+                            "output_grain": output_grain,
+                            "filename": f"{self.image_name}_{name}_{index}",
+                            "plot_opts": self.plot_opts[name],
+                        }
+                    )
 
-                else:
-                    # Get cropped image and mask
-                    grain_centre = int((minr + maxr) / 2), int((minc + maxc) / 2)
-                    length = int(self.cropped_size / (2 * self.pixel_to_nanometre_scaling))
-                    solo_mask = self.labelled_data.copy()
-                    solo_mask[solo_mask != index + 1] = 0
-                    solo_mask[solo_mask == index + 1] = 1
-                    grain_image = self.get_cropped_region(self.data, length, np.asarray(grain_centre))
-                    grain_mask = self.get_cropped_region(solo_mask, length, np.asarray(grain_centre)).astype(bool)
-                    masked_grain_image = np.ma.masked_array(
-                        grain_image, mask=np.invert(grain_mask), fill_value=np.nan
-                    ).filled()
-                    for name, image in {
-                        "grain_image": grain_image,
-                        "grain_mask": grain_mask,
-                        "masked_grain_image": masked_grain_image,
-                    }.items():
-                        grains_plot_data.append(
-                            {
-                                "data": image,
-                                "output_dir": output_grain,
-                                "filename": f"{self.image_name}_{name}_{index}",
-                                "plot_opts": self.plot_opts[name],
-                            }
-                        )
+            else:
+                # Get cropped image and mask
+                grain_centre = int((minr + maxr) / 2), int((minc + maxc) / 2)
+                length = int(self.cropped_size / (2 * self.pixel_to_nanometre_scaling))
+                solo_mask = self.labelled_data.copy()
+                solo_mask[solo_mask != index + 1] = 0
+                solo_mask[solo_mask == index + 1] = 1
+                cropped_grain_image = self.get_cropped_region(self.data, length, np.asarray(grain_centre))
+                cropped_grain_mask = self.get_cropped_region(solo_mask, length, np.asarray(grain_centre)).astype(bool)
+                cropped_grain_mask_image = np.ma.masked_array(
+                    grain_image, mask=np.invert(grain_mask), fill_value=np.nan
+                ).filled()
+                for name, image in {
+                    "grain_image": cropped_grain_image,
+                    "grain_mask": cropped_grain_mask,
+                    "grain_mask_image": cropped_grain_mask_image,
+                }.items():
+                    grains_plot_data.append(
+                        {
+                            "data": image,
+                            "output_dir": output_grain,
+                            "filename": f"{self.image_name}_{name}_{index}",
+                            "plot_opts": self.plot_opts[name],
+                        }
+                    )
 
             points = self.calculate_points(grain_mask)
             edges = self.calculate_edges(grain_mask)
@@ -260,13 +258,13 @@ class GrainStats:
                 "radius_max": radius_stats["max"] * length_scaling_factor,
                 "radius_mean": radius_stats["mean"] * length_scaling_factor,
                 "radius_median": radius_stats["median"] * length_scaling_factor,
-                "height_min": np.nanmin(masked_grain_image) * self.metre_scaling_factor,
-                "height_max": np.nanmax(masked_grain_image) * self.metre_scaling_factor,
-                "height_median": np.nanmedian(masked_grain_image) * self.metre_scaling_factor,
-                "height_mean": np.nanmean(masked_grain_image) * self.metre_scaling_factor,
+                "height_min": np.nanmin(grain_mask_image) * self.metre_scaling_factor,
+                "height_max": np.nanmax(grain_mask_image) * self.metre_scaling_factor,
+                "height_median": np.nanmedian(grain_mask_image) * self.metre_scaling_factor,
+                "height_mean": np.nanmean(grain_mask_image) * self.metre_scaling_factor,
                 # [volume] = [pixel] * [pixel] * [height] = px * px * nm.
                 # To turn into m^3, multiply by pixel_to_nanometre_scaling^2 and metre_scaling_factor^3.
-                "volume": np.nansum(masked_grain_image)
+                "volume": np.nansum(grain_mask_image)
                 * self.pixel_to_nanometre_scaling**2
                 * (self.metre_scaling_factor**3),
                 "area": region.area * area_scaling_factor,

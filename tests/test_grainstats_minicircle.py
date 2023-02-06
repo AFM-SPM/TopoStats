@@ -17,23 +17,8 @@ RESOURCES = BASE_DIR / "tests" / "resources"
 
 def test_grainstats_regression(regtest, minicircle_grainstats: GrainStats) -> None:
     """Regression tests for grainstats."""
-    statistics = minicircle_grainstats.calculate_stats()
+    statistics, _ = minicircle_grainstats.calculate_stats()
     print(statistics.to_string(), file=regtest)
-
-
-@pytest.mark.parametrize(
-    "value",
-    [
-        (True),
-        (False),
-    ],
-)
-def test_save_cropped_grains(minicircle_grainstats: GrainStats, tmp_path: Path, value):
-    """Tests if save_cropped_grains option only creates the grains dir when True"""
-    minicircle_grainstats.save_cropped_grains = value
-    minicircle_grainstats.base_output_dir = tmp_path / "grains"
-    minicircle_grainstats.calculate_stats()
-    assert Path.exists(tmp_path / "grains") == value
 
 
 @pytest.mark.parametrize(
