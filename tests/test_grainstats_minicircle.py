@@ -33,5 +33,3 @@ def test_cropped_image(minicircle_grainstats: GrainStats):
     expected = np.load(RESOURCES / "test_cropped_grains.npy")
 
     np.testing.assert_array_equal(cropped_grain_image, expected)
-
-

@@ -119,6 +119,7 @@ def test_save_cropped_grains(
         == expected
     )
 
+
 @pytest.mark.parametrize("extension", [("png"), ("tiff")])
 def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path, extension: str):
     "Tests if save format applied to cropped images"
@@ -143,7 +144,13 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
         output_dir=tmp_path,
     )
 
-    assert imghdr.what(tmp_path / "tests/resources/processed/minicircle/grains/upper" / f"minicircle_grain_image_0.{extension}") == extension
+    assert (
+        imghdr.what(
+            tmp_path / "tests/resources/processed/minicircle/grains/upper" / f"minicircle_grain_image_0.{extension}"
+        )
+        == extension
+    )
+
 
 @pytest.mark.parametrize("option", ("-h", "--help"))
 def test_run_topostats_main_help(capsys, option) -> None:
