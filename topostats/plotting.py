@@ -348,7 +348,6 @@ def plothist2var(
 
 
 def plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None, plotname=None):
-
     """Creating a dist plot, which is the combination of a histogram and a KDE plot; doesn't support grouped plots
     yet"""
     # Commenting out caused an error as only one argument provided for the first %s, none for the second.
@@ -563,7 +562,6 @@ def computeStats(data, columns, min, max):
 
 
 if __name__ == "__main__":
-
     bins = 20
 
     # import data from the csv file
