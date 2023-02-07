@@ -173,6 +173,15 @@ class GrainStats:
         # There are multiple entries for each grain.
         for index, region in enumerate(region_properties):
             LOGGER.info(f"[{self.image_name}] : Processing grain: {index}")
+
+            # Skip grain if too small to calculate stats for
+            LOGGER.debug(f"[{self.image_name}] : Grain size: {region.image.size}")
+            if min(region.image.shape) < 5:
+                LOGGER.info(
+                    f"[{self.image_name}] : Skipping grain due to being too small (size: {region.image.shape}) to calculate stats for."
+                )
+                continue
+
             # Create directory for each grain's plots
             output_grain = self.base_output_dir / self.direction
 
