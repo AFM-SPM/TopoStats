@@ -90,6 +90,28 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
     return config
 
 
+def update_plotting_config(plotting_config: dict) -> dict:
+    """Update the plotting config for each of the plots in plot_dict to ensure that each
+    entry has all the plotting configuration values that are needed."""
+
+    for image, options in plotting_config["plot_dict"].items():
+        plotting_config["plot_dict"][image] = {
+            **options,
+            "save_format": plotting_config["save_format"],
+            "image_set": plotting_config["image_set"],
+            "colorbar": plotting_config["colorbar"],
+            "axes": plotting_config["axes"],
+            "cmap": plotting_config["cmap"],
+            "mask_cmap": plotting_config["mask_cmap"],
+            "zrange": plotting_config["zrange"],
+            "histogram_log_axis": plotting_config["histogram_log_axis"],
+        }
+        if image not in ["z_threshed", "mask_overlay"]:
+            plotting_config["plot_dict"][image].pop("zrange")
+
+    return plotting_config
+
+
 def _get_mask(image: np.ndarray, thresh: float, threshold_direction: str, img_name: str = None) -> np.ndarray:
     """Calculate a mask for pixels that exceed the threshold
 
