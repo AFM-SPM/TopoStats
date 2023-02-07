@@ -166,7 +166,6 @@ class GrainStats:
         # Iterate over all the grains in the image
         stats_array = []
         for index, region in enumerate(region_properties):
-
             LOGGER.info(f"[{self.image_name}] : Processing grain: {index}")
             # Create directory for each grain's plots
             output_grain = self.base_output_dir / self.direction
@@ -226,7 +225,11 @@ class GrainStats:
             # Centroids for the grains (minc and minr added because centroid returns values local to the cropped grain images)
             centre_x = centroid[0] + minc
             centre_y = centroid[1] + minr
-            (smallest_bounding_width, smallest_bounding_length, aspect_ratio,) = self.calculate_aspect_ratio(
+            (
+                smallest_bounding_width,
+                smallest_bounding_length,
+                aspect_ratio,
+            ) = self.calculate_aspect_ratio(
                 edges=edges,
                 hull_simplices=hull_simplexes,
                 path=output_grain,

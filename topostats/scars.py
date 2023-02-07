@@ -335,7 +335,6 @@ def _remove_marked_scars(img: np.ndarray, scar_mask: np.ndarray) -> None:
 
     for row, col in np.ndindex(img.shape):
         if scar_mask[row, col] == 1.0:
-
             # Determine how wide the scar is by incrementing scar_width until either the bottom
             # of the image is reached, or a non-marked pixel is encountered.
             scar_width = 1
