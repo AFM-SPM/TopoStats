@@ -335,7 +335,7 @@ class GrainStats:
         # Add padding (needed for erosion)
         padded = np.pad(filled_grain_mask, 1)
         # Erode by 1 pixel
-        eroded = skimage_morphology.erosion(padded)
+        eroded = skimage_morphology.binary_erosion(padded)
         # Remove padding
         eroded = eroded[1:-1, 1:-1]
 
