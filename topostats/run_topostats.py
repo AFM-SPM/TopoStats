@@ -232,13 +232,7 @@ def main(args=None):
         # needs creating
         summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
         summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
-        if config["output_dir"].relative_to(summary_config["output_dir"]):
-            LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
-        else:
-            LOGGER.warning(
-                f"Output directory for summary plot and statistics is '{summary_config['output_dir']}'. "
-                f"This is outside of the overall output directory '{config['output_dir']}'"
-            )
+        LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
 
         # Plot summaries
         summary_config["df"] = results.reset_index()
