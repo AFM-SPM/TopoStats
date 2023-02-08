@@ -121,7 +121,6 @@ def test_is_clockwise_anti_clockwise(grainstats: GrainStats) -> None:
 )
 def test_calculate_edges(grainstats: GrainStats, grain_mask, expected_coords) -> None:
     """Test calculation of edges."""
-    print(grain_mask)
     edges = grainstats.calculate_edges(grain_mask)
 
     assert isinstance(edges, list)
