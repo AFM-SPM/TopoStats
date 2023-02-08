@@ -6,6 +6,7 @@ import argparse as arg
 from collections import defaultdict
 from functools import partial
 import importlib.resources as pkg_resources
+import json
 from multiprocessing import Pool
 from pathlib import Path
 import sys
@@ -132,6 +133,15 @@ def create_parser() -> arg.ArgumentParser:
     )
     return parser
 
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
 
 def process_scan(
     img_path_px2nm: Dict[str, Union[np.ndarray, Path, float]],
@@ -342,7 +352,7 @@ def process_scan(
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                     Images(
                         filtered_image.images["gaussian_filtered"],
-                        data2=binary_dilation(dna_traces[direction].skeletons),
+                        data2=dna_traces[direction].skeletons,
                         **plotting_config["plot_dict"][plot_name],
                     ).save_figure_black(
                             background=grains.directions[direction]["removed_small_objects"],
@@ -404,6 +414,11 @@ def process_scan(
                                 **plotting_config["plot_dict"]["line_trace"],
                                 )
                             fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax")
+                    
+                    np.savetxt("test_skel.txt", dna_traces[direction].skeletons)
+                    #np.savetxt("knot_mask.txt", grains.directions[direction]["removed_small_objects"])
+                    #np.savetxt("knot_img.txt", nodes.image)
+                    
                     """
                     # ------- branch vector img -------
                     vectors = nodes.test2
@@ -480,7 +495,7 @@ def process_scan(
                 )
                 results = create_empty_dataframe()
             """
-    return image_path, results
+    return image_path, results, node_stats
 
 
 def main(args=None):
@@ -572,19 +587,23 @@ def main(args=None):
 
     with Pool(processes=config["cores"]) as pool:
         results = defaultdict()
+        node_results = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result in pool.imap_unordered(
+            for img, result, node_result in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
             ):
                 results[str(img)] = result
+                node_results[str(img)] = node_result
                 pbar.update()
     results = pd.concat(results.values())
     results.reset_index()
     results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)
+    with open(config["output_dir"] / 'all_node_stats.json', 'w', encoding='utf8') as json_file:
+        json.dump(node_results, json_file, cls=NpEncoder)
     folder_grainstats(config["output_dir"], config["base_dir"], results)
     # Write config to file
     config["plotting"].pop("plot_dict")
