@@ -227,6 +227,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 ),
                 "pruning_method": Or(
                     "joe",
+                    "max",
                     error="Invalid value in config for 'filter.pruning_method', valid values are 'joe'",
             )
         },
