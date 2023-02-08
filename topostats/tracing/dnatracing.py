@@ -1163,7 +1163,7 @@ class nodeStats():
                         "node_mid_coords": [x, y],
                         "node_area_image": image_area,
                         "node_area_grain": self.grains[x-length : x+length+1, y-length : y+length+1],
-                        "node_branch_mask": branch_img[1:-1, 1:-1], # to remove padding
+                        "node_branch_mask": branch_img, # to remove padding
                     }
                 }
 
