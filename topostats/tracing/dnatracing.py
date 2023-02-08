@@ -997,11 +997,11 @@ class nodeStats():
         """
         self.connected_nodes = self.conv_skelly.copy()
         nodeless = self.conv_skelly.copy()
-        nodeless[nodeless != 1] = 0  # remove non-skeleton points
-        nodeless = label(nodeless)
-        for i in range(1, nodeless.max() + 1):
-            if nodeless[nodeless == i].size < (node_width / self.px_2_nm):
-                self.connected_nodes[nodeless == i] = 3
+        nodeless[nodeless == 3] = 0  # remove node points
+        nodeless_labels = label(nodeless)
+        for i in range(1, nodeless_labels.max() + 1):
+            if nodeless[nodeless_labels == i].size < (node_width / self.px_2_nm):
+                self.connected_nodes[nodeless_labels == i] = 3
 
     def highlight_node_centres(self, mask):
         """Uses the provided mask to calculate the node centres based on
@@ -1040,7 +1040,6 @@ class nodeStats():
             # get area around node
             image_area = self.image[x-length : x+length+1, y-length : y+length+1]
             node_area = self.connected_nodes.copy()[x-length : x+length+1, y-length : y+length+1]
-            #node_area = np.pad(node_area, 1)
             node_coords = np.stack(np.where(node_area == 3)).T
             centre = (np.asarray(node_area.shape) / 2).astype(int)
             branch_mask = self.clean_centre_branches(node_area)
