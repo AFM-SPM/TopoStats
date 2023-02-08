@@ -313,10 +313,6 @@ class Grains:
                         self.directions[direction]["removed_noise"],
                         self.absolute_area_threshold[direction],
                     )
-                
-                self.directions[direction]["removed_small_objects"] = self.gaussian_grains(
-                    self.directions[direction]["removed_small_objects"]
-                )
 
                 self.directions[direction]["labelled_regions_02"] = self.label_regions(
                     self.directions[direction]["removed_small_objects"]
