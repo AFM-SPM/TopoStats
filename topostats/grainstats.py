@@ -6,7 +6,7 @@ from typing import Union, List, Tuple, Dict
 
 import numpy as np
 import skimage.measure as skimage_measure
-import skimage.feature as skimage_feature
+import skimage.morphology as skimage_morphology
 import scipy.ndimage
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -331,8 +331,18 @@ class GrainStats:
         """
         # Fill any holes
         filled_grain_mask = scipy.ndimage.binary_fill_holes(grain_mask)
-        # Get outer edge using canny filtering
-        edges = skimage_feature.canny(filled_grain_mask, sigma=3)
+
+        # Add padding (needed for erosion)
+        padded = np.pad(filled_grain_mask, 1)
+        # Erode by 1 pixel
+        eroded = skimage_morphology.erosion(padded)
+        # Remove padding
+        eroded = eroded[1:-1, 1:-1]
+
+        # Edges is equal to the difference between the
+        # original image and the eroded image.
+        edges = filled_grain_mask.astype(int) - eroded.astype(int)
+
         nonzero_coordinates = edges.nonzero()
         # Get vector representation of the points
         # FIXME : Switched to list comprehension but should be unnecessary to create this as a list as we can use
