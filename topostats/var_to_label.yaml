@@ -7,7 +7,7 @@ smallest_bounding_area: Smallest Bounding Area / $\mathregular{nm^2}$
 area: Area / $\mathregular{nm^2}$
 area_cartesian_bbox: Cartesian Bounding Box Area / $\mathregular{nm^2}$
 aspect_ratio: Aspect Ratio
-banding_angle: Banding Angle / degrees
+bending_angle: Bending Angle / degrees
 contour_lengths: Contour Lengths
 end_to_end_distance: End to End Distance
 grain_bound_len: Circumference
@@ -26,6 +26,8 @@ height_max: Maximum Height
 height_mean: Mean Height
 height_median: Median Height
 height_min: Minimum Height
+max_feret: Maximum feret diameter
+min_feret: Minimum feret diameter
 radius_max: Maximum Radius
 radius_mean: Mean Radius
 radius_median: Median Radius

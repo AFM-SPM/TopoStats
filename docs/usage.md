@@ -101,7 +101,28 @@ On a successful completion you should see a message similar to the following whi
 along with information about how to give feedback, report bugs and cite the software.
 
 ``` bash
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+  Base Directory              : /home/neil/work/projects/topostats/TopoStats
+  File Extension              : .spm
+  Files Found                 : 1
+  Successfully Processed      : 1 (100.0%)
+  Configuration               : output/config.yaml
+  All statistics              : output/all_statistics.csv
+  Distribution Plots          : output/summary_distributions
+
+  Email                       : topostats@sheffield.ac.uk
+  Documentation               : https://afm-spm.github.io/topostats/
+  Source Code                 : https://github.com/AFM-SPM/TopoStats/
+  Bug Reports/Feature Request : https://github.com/AFM-SPM/TopoStats/issues/new/choose
+  Citation File Format        : https://github.com/AFM-SPM/TopoStats/blob/main/CITATION.cff
+
+  If you encounter bugs/issues or have feature requests please report them at the above URL
+  or email us.
+
+  If you have found TopoStats useful please consider citing it. A Citation File Format is
+  linked above and available from the Source Code page.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
 ## Configuring TopoStats
@@ -186,32 +207,7 @@ run_topostats --config my_config.yaml
 ...
 ```
 
-On a successful completion you should see output similar to this at the bottom.
-
-``` bash
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  Base Directory              : /home/neil/work/projects/topostats/TopoStats
-  File Extension              : .spm
-  Files Found                 : 1
-  Successfully Processed      : 1 (100.0%)
-  Configuration               : output/config.yaml
-  All statistics              : output/all_statistics.csv
-  Distribution Plots          : output/summary
-
-  Email                       : topostats@sheffield.ac.uk
-  Documentation               : https://afm-spm.github.io/topostats/
-  Source Code                 : https://github.com/AFM-SPM/TopoStats/
-  Bug Reports/Feature Request : https://github.com/AFM-SPM/TopoStats/issues/new/choose
-  Citation File Format        : https://github.com/AFM-SPM/TopoStats/blob/main/CITATION.cff
-
-  If you encounter bugs/issues or have feature requests please report them at the above URL
-  or email us.
-
-  If you have found TopoStats useful please consider citing it. A Citation File Format is
-  linked above and available from the Source Code page.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-```
+On successful completion you should see the same message noted above.
 
 ## Output
 

@@ -1,5 +1,5 @@
-output_dir: ./output/summary
-csv_file: ./tests/resources/minicircle_default_all_statistics.csv
+output_dir: ./output/summary_distributions
+csv_file: ./all_statistics.csv
 file_ext: png
 pickle_plots: True
 var_to_label: null # Optional YAML file that maps variable names to labels, uses topostats/var_to_label.yaml if null
@@ -14,16 +14,13 @@ violin: True
 figsize:
   - 16
   - 9
-xrange:
-  - 0
-  - 2
 alpha: 0.5
 palette: bright # Seaborn color palette. Options : colorblind, deep, muted, pastel, bright, dark, Spectral, Set2
 stats_to_sum:  # A list of variables (key) to plot uncomment those that are required.
   - area
   - area_cartesian_bbox
 #  - aspect_ratio
-#  - banding_angle
+#  - bending_angle
   - contour_lengths
   - end_to_end_distance
 #  - height_max

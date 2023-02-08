@@ -39,8 +39,8 @@ def create_parser() -> arg.ArgumentParser:
     )
     parser.add_argument(
         "-p",
-        "--plotting_dictionary",
-        dest="plotting_dictionary",
+        "--var_to_label",
+        dest="var_to_label",
         required=False,
         help="Path to a YAML plotting dictionary that maps variable names to labels.",
     )
@@ -72,7 +72,6 @@ class TopoSum:
         figsize: tuple = (16, 9),
         alpha: float = 0.5,
         palette: str = "deep",
-        xrange: tuple = (0, 10),
         file_ext: str = "png",
         output_dir: Union[str, Path] = ".",
         var_to_label: dict = None,
@@ -107,8 +106,6 @@ class TopoSum:
             Opacity to use in plots.
         palette: str = "deep"
             Seaborn colour plot to use.
-        xrange: tuple
-            Range of the x-axis, if too narrow will be over-ridden automatically to show the data.
         file_ext: str
             File type to save plots as 'png' (default), 'pdf', 'svg'.
         output_dir: Union[str, Path]
@@ -131,7 +128,6 @@ class TopoSum:
         self.figsize = figsize
         self.alpha = alpha
         self.palette = palette
-        self.xrange = xrange
         self.file_ext = file_ext
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -229,18 +225,11 @@ class TopoSum:
             Percentage of the observed range by which to extend the x-axis. Only used if supplied range is outside the
         observed values.
         """
-        if self.xrange[0] > self.melted_data["value"].min() or self.xrange[1] < self.melted_data["value"].max():
-            LOGGER.warning(
-                f"[plotting] Supplied x-axis range ({self.xrange}) does not cover observed data range. Using observed "
-                f"range instead ({self.melted_data['value'].min():.3f} - {self.melted_data['value'].max():.3f})"
-            )
-            range_percent = percent * (self.melted_data["value"].max() - self.melted_data["value"].min())
-            range_min = self.melted_data["value"].min()
-            range_max = self.melted_data["value"].max()
-            plt.xlim(range_min - range_percent, range_max + range_percent)
-        else:
-            plt.xlim(self.xrange[0], self.xrange[1])
-            LOGGER.info(f"[plotting] Setting x-axis range       : {self.xrange[0]} - {self.xrange[1]}")
+        range_percent = percent * (self.melted_data["value"].max() - self.melted_data["value"].min())
+        range_min = self.melted_data["value"].min()
+        range_max = self.melted_data["value"].max()
+        plt.xlim(range_min - range_percent, range_max + range_percent)
+        LOGGER.info(f"[plotting] Setting x-axis range       : {range_min} - {range_max}")
 
     def set_palette(self):
         """Set the color palette."""
@@ -330,9 +319,9 @@ def main():
         config = yaml.safe_load(summary_yaml.read())
         LOGGER.info("[plotting] Default configuration file loaded.")
     config = update_config(config, args)
-    if args.plotting_dictionary is not None:
-        config["var_to_label"] = read_yaml(args.plotting_dictionary)
-        LOGGER.info("[plotting] Variable to labels mapping loaded from : {args.plotting_dictionary}")
+    if args.var_to_label is not None:
+        config["var_to_label"] = read_yaml(args.var_to_label)
+        LOGGER.info("[plotting] Variable to labels mapping loaded from : {args.var_to_label}")
     else:
         plotting_yaml = pkg_resources.open_text(__package__, "var_to_label.yaml")
         config["var_to_label"] = yaml.safe_load(plotting_yaml.read())

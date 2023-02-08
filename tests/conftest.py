@@ -75,7 +75,6 @@ def summary_config() -> Dict:
     summary_config["figsize"] = (15, 12)
     summary_config["kde"] = True
     summary_config["hist"] = True
-    summary_config["xrange"] = (0, 6)
     summary_config["stat_to_sum"] = "area"
     plotting_yaml = pkg_resources.open_text(topostats, "var_to_label.yaml")
     summary_config["var_to_label"] = yaml.safe_load(plotting_yaml.read())

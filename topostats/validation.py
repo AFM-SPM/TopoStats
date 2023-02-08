@@ -617,7 +617,7 @@ PLOTTING_SCHEMA = Schema(
 SUMMARY_SCHEMA = Schema(
     {
         "output_dir": Path,
-        "csv_file": "./tests/resources/minicircle_default_all_statistics.csv",
+        "csv_file": str,
         "file_ext": Or(
             "png",
             "pdf",
@@ -660,7 +660,6 @@ SUMMARY_SCHEMA = Schema(
             error="Invalid value in config for 'violin', valid values are 'True' or 'False'",
         ),
         "figsize": [lambda n: n > 0],
-        "xrange": [lambda n: n >= 0],
         "alpha": lambda n: n > 0,
         "palette": Or(
             "colorblind",
@@ -680,7 +679,7 @@ SUMMARY_SCHEMA = Schema(
             Optional("area"),
             Optional("area_cartesian_bbox"),
             Optional("aspect_ratio"),
-            Optional("banding_angle"),
+            Optional("bending_angle"),
             Optional("contour_lengths"),
             Optional("end_to_end_distance"),
             Optional("height_max"),
