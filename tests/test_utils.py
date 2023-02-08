@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from topostats.utils import convert_path, update_config, get_thresholds
+from topostats.utils import convert_path, update_config, get_thresholds, update_plotting_config
 
 
 THRESHOLD_OPTIONS = {
@@ -32,6 +32,25 @@ def test_update_config(caplog) -> None:
     assert isinstance(updated_config, dict)
     assert "Updated config config[c] : something > something new" in caplog.text
     assert updated_config["c"] == "something new"
+
+
+@pytest.mark.parametrize(
+    "image_name, core_set, title, zrange",
+    [("extracted_channel", False, "Raw Height", KeyError()), ("z_threshed", True, "Height Thresholded", [0, 3])],
+)
+def test_update_plotting_config(
+    process_scan_config: dict, image_name: str, core_set: bool, title: str, zrange: tuple
+) -> None:
+    """Test that update_plotting_config correctly fills in values
+    for each image in the plotting dictionary plot_dict."""
+    process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
+    assert process_scan_config["plotting"]["plot_dict"][image_name]["core_set"] == core_set
+    assert process_scan_config["plotting"]["plot_dict"][image_name]["title"] == title
+    if image_name == "extracted_channel":
+        with pytest.raises(KeyError):
+            _ = process_scan_config["plotting"]["plot_dict"][image_name]["zrange"]
+    else:
+        assert process_scan_config["plotting"]["plot_dict"][image_name]["zrange"] == zrange
 
 
 def test_get_thresholds_otsu(image_random: np.ndarray) -> None:

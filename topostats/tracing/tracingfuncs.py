@@ -53,7 +53,6 @@ class getSkeleton(object):
         # print(self.average_height)
 
     def doSkeletonising(self):
-
         """Simple while loop to check if the skeletonising is finished"""
 
         self.mask_being_skeletonised = self.binary_map
@@ -71,7 +70,6 @@ class getSkeleton(object):
         self.output_skeleton = np.argwhere(self.mask_being_skeletonised == 1)
 
     def _doSkeletonisingIteration(self):
-
         """Do an iteration of skeletonisation - check for the local binary pixel
         environment and assess the local height values to decide whether to
         delete a point
@@ -111,7 +109,6 @@ class getSkeleton(object):
             self.skeleton_converged = True
 
     def _deletePixelSubit1(self, point):
-
         """Function to check whether a single point should be deleted based
         on both its local binary environment and its local height values"""
 
@@ -130,7 +127,6 @@ class getSkeleton(object):
             return False
 
     def _deletePixelSubit2(self, point):
-
         """Function to check whether a single point should be deleted based
         on both its local binary environment and its local height values"""
 
@@ -212,14 +208,12 @@ class getSkeleton(object):
             return False
 
     def _checkHeights(self, candidate_points):
-
         try:
             candidate_points = candidate_points.tolist()
         except AttributeError:
             pass
 
         for x, y in candidate_points:
-
             # if point is basically at background don't bother assessing height and just delete:
             if self.image_data[x, y] < 1e-9:
                 continue
@@ -266,7 +260,6 @@ class getSkeleton(object):
         return candidate_points
 
     def _checkWhichHeightPoints(self):
-
         # Is the point on the left hand edge?
         # if (self.p8 == 1 and self.p4 == 0 and self.p2 == self.p6):
         if self.p7 + self.p8 + self.p9 == 3 and self.p3 + self.p4 + self.p5 == 0 and self.p2 == self.p6:
@@ -439,7 +432,6 @@ class getSkeleton(object):
             return x - num, y - num
 
     def finalSkeletonisationIteration(self):
-
         """A final skeletonisation iteration that removes "hanging" pixels.
         Examples of such pixels are:
 
@@ -453,7 +445,6 @@ class getSkeleton(object):
         remaining_coordinates = np.argwhere(self.mask_being_skeletonised).tolist()
 
         for x, y in remaining_coordinates:
-
             (
                 self.p2,
                 self.p3,
@@ -473,7 +464,6 @@ class getSkeleton(object):
                 self.mask_being_skeletonised[x, y] = 0
 
     def _binaryFinalThinCheck_a(self):
-
         if self.p2 * self.p4 == 1:
             return True
         elif self.p4 * self.p6 == 1:
@@ -484,7 +474,6 @@ class getSkeleton(object):
             return True
 
     def _binaryFinalThinCheck_b(self):
-
         if self.p2 * self.p4 * self.p6 == 1:
             return True
         elif self.p4 * self.p6 * self.p8 == 1:
@@ -517,7 +506,6 @@ class getSkeleton(object):
         return count
 
     def pruneSkeleton(self):
-
         """Function to remove the hanging branches from the skeletons - these
         are a persistent problem in the overall tracing process."""
 
@@ -587,7 +575,6 @@ class getSkeleton(object):
         return potential_branch_ends
 
     def _deleteSquareEnds(self, coordinates):
-
         for x, y in coordinates:
             pass
 
@@ -595,7 +582,6 @@ class getSkeleton(object):
 class reorderTrace:
     @staticmethod
     def linearTrace(trace_coordinates):
-
         """My own function to order the points from a linear trace.
 
         This works by checking the local neighbours for a given pixel (starting
@@ -627,7 +613,6 @@ class reorderTrace:
         remaining_unordered_coords = trace_coordinates[:]
 
         while remaining_unordered_coords:
-
             if len(ordered_points) > len(trace_coordinates):
                 break
 
@@ -668,7 +653,6 @@ class reorderTrace:
 
     @staticmethod
     def circularTrace(trace_coordinates):
-
         """An alternative implementation of the linear tracing algorithm but
         with some adaptations to work with circular dna molecules"""
 
@@ -696,7 +680,6 @@ class reorderTrace:
         count = 0
 
         while remaining_unordered_coords:
-
             x_n, y_n = ordered_points[-1]  # get the last point to be added to the array and find its neighbour
 
             no_of_neighbours, neighbour_array = genTracingFuncs.countandGetNeighbours(
@@ -765,7 +748,6 @@ class reorderTrace:
 
     @staticmethod
     def circularTrace_old(trace_coordinates):
-
         """Reorders the coordinates of a trace from a circular DNA molecule
         (with no loops) using a polar coordinate system with reference to the
         center of mass
@@ -781,7 +763,6 @@ class reorderTrace:
         # convert to polar coordinates with respect to the centre of mass
         polar_coordinates = []
         for x1, y1 in trace_coordinates:
-
             x = x1 - com_x
             y = y1 - com_y
 
@@ -795,7 +776,6 @@ class reorderTrace:
         # Reconvert to x, y coordinates
         sorted_coordinates = []
         for theta, r in sorted_polar_coordinates:
-
             x = r * math.sin(theta)
             y = r * math.cos(theta)
 
@@ -829,7 +809,6 @@ class genTracingFuncs:
 
     @staticmethod
     def countNeighbours(x, y, trace_coordinates):
-
         """Counts the number of neighbouring points for a given coordinate in
         a list of points"""
 
@@ -854,7 +833,6 @@ class genTracingFuncs:
 
     @staticmethod
     def getNeighbours(x, y, trace_coordinates):
-
         """Returns an array containing the neighbouring points for a given
         coordinate in a list of points"""
 
@@ -879,7 +857,6 @@ class genTracingFuncs:
 
     @staticmethod
     def countandGetNeighbours(x, y, trace_coordinates):
-
         """Returns the number of neighbouring points for a coordinate and an
         array containing the those points"""
 
@@ -913,7 +890,6 @@ class genTracingFuncs:
 
     @staticmethod
     def returnPointsInArray(points_array, trace_coordinates):
-
         for x, y in points_array:
             if [x, y] in trace_coordinates:
                 try:
@@ -951,7 +927,6 @@ class genTracingFuncs:
 
     @staticmethod
     def findBestNextPoint(x, y, ordered_points, candidate_points):
-
         ordered_points = np.array(ordered_points)
         candidate_points = np.array(candidate_points)
 
@@ -977,7 +952,6 @@ class genTracingFuncs:
 
     @staticmethod
     def checkVectorsCandidatePoints(x, y, ordered_points, candidate_points):
-
         """Finds which neighbouring pixel incurs the smallest angular change
         with reference to a previous pixel in the ordered trace, and chooses that
         as the next point"""
@@ -1012,7 +986,6 @@ class genTracingFuncs:
         x_y_theta = []
 
         for x_n, y_n in candidate_points:
-
             x = x_n - x_ref_2
             y = y_n - y_ref_2
 

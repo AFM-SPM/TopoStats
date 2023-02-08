@@ -203,13 +203,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 float,
                 int,
             ),
-            "save_cropped_grains": Or(
-                True,
-                False,
-                error=(
-                    "Invalid value in config for 'grainstats.save_cropped_grains, valid values " "are 'True' or 'False'"
-                ),
-            ),
         },
         "dnatracing": {
             "run": Or(
@@ -597,7 +590,7 @@ PLOTTING_SCHEMA = Schema(
                     "Invalid value in config 'grain_image.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
-            "core_set": True,
+            "core_set": False,
         },
         "grain_mask": {
             "image_type": Or(

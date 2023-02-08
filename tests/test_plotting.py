@@ -65,6 +65,7 @@ def test_toposum(summary_config: dict) -> None:
     summary_config["csv_file"] = RESOURCES / "minicircle_default_all_statistics.csv"
     summary_config["violin"] = True
     summary_config["stats_to_sum"] = ["area"]
+    summary_config["pickle_plots"] = True
     summary_config.pop("stat_to_sum")
     figures = toposum(summary_config)
     assert isinstance(figures, dict)

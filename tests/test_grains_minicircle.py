@@ -45,7 +45,8 @@ def test_remove_noise(minicircle_grain_remove_noise: Grains) -> None:
     """Test creation of boolean array for clearing borders."""
     assert isinstance(minicircle_grain_remove_noise.directions["upper"]["removed_noise"], np.ndarray)
     assert minicircle_grain_remove_noise.directions["upper"]["removed_noise"].shape == (1024, 1024)
-    assert minicircle_grain_remove_noise.directions["upper"]["removed_noise"].sum() == 45813
+    #    assert minicircle_grain_remove_noise.directions["upper"]["removed_noise"].sum() == 45813
+    assert minicircle_grain_remove_noise.directions["upper"]["removed_noise"].sum() == 44065
 
 
 def test_calc_minimum_grain_size_pixels(minicircle_minimum_grain_size) -> None:

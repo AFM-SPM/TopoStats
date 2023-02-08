@@ -71,6 +71,7 @@ def summary_config() -> Dict:
     summary_config.pop("violin")
     summary_config.pop("csv_file")
     summary_config.pop("stats_to_sum")
+    summary_config.pop("pickle_plots")
     summary_config["figsize"] = (15, 12)
     summary_config["kde"] = True
     summary_config["hist"] = True

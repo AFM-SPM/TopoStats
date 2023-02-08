@@ -299,7 +299,6 @@ def toposum(config: dict) -> Dict:
     figures = defaultdict()
     # Plot each variable on its own graph
     for var in all_stats_to_sum:
-
         topo_sum = TopoSum(stat_to_sum=var, **config)
         figures[var] = {"dist": None, "violin": None}
         figures[var]["dist"] = defaultdict()

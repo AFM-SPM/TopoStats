@@ -17,13 +17,15 @@ from topostats.io import find_files, read_yaml, write_yaml, save_folder_grainsta
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import process_scan
-from topostats.utils import update_config
+from topostats.utils import update_config, update_plotting_config
 from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA
 
 
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
+# pylint: disable=unnecessary-dict-index-lookup
+# pylint: disable=too-many-nested-blocks
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -153,22 +155,8 @@ def main(args=None):
         config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML plotting configuration file"
     )
 
-    # FIXME : Make this a function and from topostats.utils import update_plot_dict and write tests
     # Update the config["plotting"]["plot_dict"] with plotting options
-    for image, options in config["plotting"]["plot_dict"].items():
-        config["plotting"]["plot_dict"][image] = {
-            **options,
-            "save_format": config["plotting"]["save_format"],
-            "image_set": config["plotting"]["image_set"],
-            "colorbar": config["plotting"]["colorbar"],
-            "axes": config["plotting"]["axes"],
-            "cmap": config["plotting"]["cmap"],
-            "mask_cmap": config["plotting"]["mask_cmap"],
-            "zrange": config["plotting"]["zrange"],
-            "histogram_log_axis": config["plotting"]["histogram_log_axis"],
-        }
-        if image not in ["z_threshed", "mask_overlay", "grain_image", "grain_mask_image"]:
-            config["plotting"]["plot_dict"][image].pop("zrange")
+    config["plotting"] = update_plotting_config(config["plotting"])
 
     LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
     LOGGER.info(f"Scanning for images in              : {config['base_dir']}")

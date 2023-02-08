@@ -21,6 +21,7 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
+# pylint: disable=too-many-nested-blocks
 # pylint: disable=unnecessary-dict-index-lookup
 
 LOGGER = setup_logger(LOGGER_NAME)
@@ -189,7 +190,7 @@ def process_scan(
                 }
                 grainstats = {}
                 for direction, _ in grains.directions.items():
-                    grainstats[direction] = GrainStats(
+                    grainstats[direction], grains_plot_data = GrainStats(
                         data=filtered_image.images["gaussian_filtered"],
                         labelled_data=grains.directions[direction]["labelled_regions_02"],
                         pixel_to_nanometre_scaling=pixel_to_nm_scaling,
@@ -199,15 +200,29 @@ def process_scan(
                         plot_opts=grain_plot_dict,
                         **grainstats_config,
                     ).calculate_stats()
-                    grainstats[direction]["statistics"]["threshold"] = direction
+                    grainstats[direction]["threshold"] = direction
+                    # Plot grains
+                    if plotting_config["image_set"] == "all":
+                        LOGGER.info(f"[{filename}] : Plotting grain images.")
+                        for plot_data in grains_plot_data:
+                            LOGGER.info(f"[{filename}] : Plotting grain image. {plot_data['filename']}")
+                            Images(
+                                data=plot_data["data"],
+                                output_dir=plot_data["output_dir"],
+                                filename=plot_data["filename"],
+                                **plotting_config["plot_dict"][plot_data["name"]],
+                            ).plot_and_save()
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
-                    grainstats_df = pd.concat([grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]])
+                    grainstats_df = pd.concat([grainstats["lower"], grainstats["upper"]])
                 elif grains_config["direction"] == "upper":
-                    grainstats_df = grainstats["upper"]["statistics"]
+                    grainstats_df = grainstats["upper"]
                 elif grains_config["direction"] == "lower":
-                    grainstats_df = grainstats["lower"]["statistics"]
-                # Run dnatracing
+                    grainstats_df = grainstats["lower"]
+            except Exception:
+                LOGGER.info(f"[{filename}] : Errors occurred whilst calculating grain statistics.")
+            # Run dnatracing
+            try:
                 if dnatracing_config["run"]:
                     dnatracing_config.pop("run")
                     LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
@@ -241,9 +256,7 @@ def process_scan(
                     results["basename"] = image_path.parent
             except Exception:
                 # If no results we need a dummy dataframe to return.
-                LOGGER.info(
-                    f"[{filename}] : Errors occurred whilst calculating grain statistics and DNA tracing statistics."
-                )
+                LOGGER.info(f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics.")
                 results = create_empty_dataframe()
 
     return image_path, results
