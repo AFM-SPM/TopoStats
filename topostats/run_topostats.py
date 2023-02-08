@@ -232,7 +232,7 @@ def main(args=None):
         # needs creating
         summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
         summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
-        if config["output_dir"].is_relative_to(summary_config["output_dir"]):
+        if config["output_dir"].relative_to(summary_config["output_dir"]):
             LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
         else:
             LOGGER.warning(
