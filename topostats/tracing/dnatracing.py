@@ -965,12 +965,13 @@ class nodeStats():
         Returns:
         --------
         dict
-            Structure: <grain_number>
-                        |-> <node_number>
-                            |-> 'branch_stats'
-                                |-> <branch_number>
-                                    -> 'ordered_coords', 'heights', 'gaussian_fit', 'fwhm', 'angles'
-                                    -> <values>
+            Key structure:  <grain_number>
+                            |-> <node_number>
+                                |-> 'branch_stats'
+                                    |-> <branch_number>
+                                        -> 'ordered_coords', 'heights', 'gaussian_fit', 'fwhm', 'angles'
+                                |-> 'node stats'
+                                    |-> 'node_area_grain', 'node_area_image', 'node_branch_mask', 'node_mid_coords'
         """
         for skeleton_no in range(1, label(self.skeletons).max() + 1):
             self.skeleton = self.skeletons.copy()
@@ -978,9 +979,9 @@ class nodeStats():
             self.skeleton[self.skeleton != 0] = 1
             self.conv_skelly = convolve_skelly(self.skeleton)
             if len(self.conv_skelly[self.conv_skelly==3]) != 0: # check if any nodes
-                self.connect_close_nodes(node_width=2.85)
+                self.connect_close_nodes(node_width=6)
                 self.highlight_node_centres(self.connected_nodes)
-                self.analyse_nodes(box_length=20)
+                self.analyse_nodes(box_length=30)
                 self.full_dict[skeleton_no] = self.node_dict
             else:
                 self.full_dict[skeleton_no] = {}
