@@ -267,9 +267,9 @@ By default TopoStats will take the data that has been summarised across all file
 [histograms](https://en.wikipedia.org/wiki/Histogram) with [Kernel Density Estimates
 (KDE)](https://en.wikipedia.org/wiki/Kernel_density_estimation) overlaid and [Violin
 plots](https://en.wikipedia.org/wiki/Violin_plot). The default location of these if no custom configuration file is used
-is `output/summary_distribution`. If you have used a custom configuration file it will be the sub-directory
-`summary_distribution` nested under the directory specified for the `output`, e.g. if you used the current directory as
-output you will have a `summary_distribution` directory present.
+is `output/summary_distributions`. If you have used a custom configuration file it will be the sub-directory
+`summary_distributions` nested under the directory specified for the `output`, e.g. if you used the current directory as
+output you will have a `summary_distributions` directory present.
 
 Sometimes you may have a `all_statistics.csv` from a run and wish to plot distributions of additional statistics that
 were not already plotted. This can be achieved using the command line programme `toposum` which is included.
