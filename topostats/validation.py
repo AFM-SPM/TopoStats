@@ -56,6 +56,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "Adhesion",
                 "Deformation",
                 "Dissipation",
+                "Height Sensor",
                 "Height",  # end of spm channels
                 "HeightTracee",
                 "HeightRetrace",
