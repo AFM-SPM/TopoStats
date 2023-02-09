@@ -23,7 +23,7 @@ from topostats.io import find_images, read_yaml, write_yaml, get_out_path, save_
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
-from topostats.utils import update_config, create_empty_dataframe
+from topostats.utils import update_config, create_empty_dataframe, update_plotting_config
 from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA
 
 LOGGER = setup_logger(LOGGER_NAME)
@@ -36,6 +36,7 @@ LOGGER = setup_logger(LOGGER_NAME)
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
 # pylint: disable=unnecessary-dict-index-lookup
+# pylint: disable=too-many-nested-blocks
 
 
 def create_parser() -> arg.ArgumentParser:
@@ -288,7 +289,7 @@ def process_scan(
                 }
                 grainstats = {}
                 for direction, _ in grains.directions.items():
-                    grainstats[direction] = GrainStats(
+                    grainstats[direction], grains_plot_data = GrainStats(
                         data=filtered_image.images["gaussian_filtered"],
                         labelled_data=grains.directions[direction]["labelled_regions_02"],
                         pixel_to_nanometre_scaling=pixel_to_nm_scaling,
@@ -298,14 +299,25 @@ def process_scan(
                         plot_opts=grain_plot_dict,
                         **grainstats_config,
                     ).calculate_stats()
-                    grainstats[direction]["statistics"]["threshold"] = direction
+                    grainstats[direction]["threshold"] = direction
+                    # Plot grains
+                    if plotting_config["image_set"] == "all":
+                        LOGGER.info(f"[{filename}] : Plotting grain images.")
+                        for plot_data in grains_plot_data:
+                            LOGGER.info(f"[{filename}] : Plotting grain image. {plot_data['filename']}")
+                            Images(
+                                data=plot_data["data"],
+                                output_dir=plot_data["output_dir"],
+                                filename=plot_data["filename"],
+                                **plotting_config["plot_dict"][plot_data["name"]],
+                            ).plot_and_save()
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
-                    grainstats_df = pd.concat([grainstats["lower"]["statistics"], grainstats["upper"]["statistics"]])
+                    grainstats_df = pd.concat([grainstats["lower"], grainstats["upper"]])
                 elif grains_config["direction"] == "upper":
-                    grainstats_df = grainstats["upper"]["statistics"]
+                    grainstats_df = grainstats["upper"]
                 elif grains_config["direction"] == "lower":
-                    grainstats_df = grainstats["lower"]["statistics"]
+                    grainstats_df = grainstats["lower"]
                 # Run dnatracing
                 if dnatracing_config["run"]:
                     dnatracing_config.pop("run")
@@ -388,22 +400,8 @@ def main(args=None):
         config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML plotting configuration file"
     )
 
-    # FIXME : Make this a function and from topostats.utils import update_plot_dict and write tests
     # Update the config["plotting"]["plot_dict"] with plotting options
-    for image, options in config["plotting"]["plot_dict"].items():
-        config["plotting"]["plot_dict"][image] = {
-            **options,
-            "save_format": config["plotting"]["save_format"],
-            "image_set": config["plotting"]["image_set"],
-            "colorbar": config["plotting"]["colorbar"],
-            "axes": config["plotting"]["axes"],
-            "cmap": config["plotting"]["cmap"],
-            "mask_cmap": config["plotting"]["mask_cmap"],
-            "zrange": config["plotting"]["zrange"],
-            "histogram_log_axis": config["plotting"]["histogram_log_axis"],
-        }
-        if image not in ["z_threshed", "mask_overlay", "grain_image", "grain_mask_image"]:
-            config["plotting"]["plot_dict"][image].pop("zrange")
+    config["plotting"] = update_plotting_config(config["plotting"])
 
     LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
     LOGGER.info(f"Scanning for images in              : {config['base_dir']}")
