@@ -1,12 +1,14 @@
 """Test end-to-end running of topostats."""
 import logging
 from pathlib import Path
+import imghdr
 
 import pytest
 
 # from topostats import run_topostats
 from topostats.run_topostats import process_scan, main as run_topostats_main
 from topostats.io import LoadScans
+from topostats.utils import update_plotting_config
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
@@ -72,6 +74,80 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
 
 # @pytest.fixture
 # def run_topostats_arguments() -> arg.ArgumentParser:
+
+
+@pytest.mark.parametrize(
+    "image_set, expected",
+    [
+        ("core", False),
+        ("all", True),
+    ],
+)
+def test_save_cropped_grains(
+    tmp_path: Path, process_scan_config: dict, load_scan_data: LoadScans, image_set, expected
+) -> None:
+    """Tests if cropped grains are saved only when image set is 'all' rather than 'core'."""
+    process_scan_config["plotting"]["image_set"] = image_set
+    process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
+
+    img_dic = load_scan_data.img_dic
+    _, _ = process_scan(
+        img_path_px2nm=img_dic["minicircle"],
+        base_dir=BASE_DIR,
+        filter_config=process_scan_config["filter"],
+        grains_config=process_scan_config["grains"],
+        grainstats_config=process_scan_config["grainstats"],
+        dnatracing_config=process_scan_config["dnatracing"],
+        plotting_config=process_scan_config["plotting"],
+        output_dir=tmp_path,
+    )
+
+    assert (
+        Path.exists(tmp_path / "tests/resources/processed/minicircle/grains/upper" / "minicircle_grain_image_0.png")
+        == expected
+    )
+    assert (
+        Path.exists(tmp_path / "tests/resources/processed/minicircle/grains/upper" / "minicircle_grain_mask_0.png")
+        == expected
+    )
+    assert (
+        Path.exists(
+            tmp_path / "tests/resources/processed/minicircle/grains/upper" / "minicircle_grain_mask_image_0.png"
+        )
+        == expected
+    )
+
+
+@pytest.mark.parametrize("extension", [("png"), ("tiff")])
+def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path, extension: str):
+    "Tests if save format applied to cropped images"
+    # minicircle_grainstats.save_cropped_grains = True
+    # minicircle_grainstats.plot_opts["grain_image"]["save_format"] = extension
+    # minicircle_grainstats.base_output_dir = tmp_path
+    # minicircle_grainstats.calculate_stats()
+
+    process_scan_config["plotting"]["image_set"] = "all"
+    process_scan_config["plotting"]["save_format"] = extension
+    process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
+
+    img_dic = load_scan_data.img_dic
+    _, _ = process_scan(
+        img_path_px2nm=img_dic["minicircle"],
+        base_dir=BASE_DIR,
+        filter_config=process_scan_config["filter"],
+        grains_config=process_scan_config["grains"],
+        grainstats_config=process_scan_config["grainstats"],
+        dnatracing_config=process_scan_config["dnatracing"],
+        plotting_config=process_scan_config["plotting"],
+        output_dir=tmp_path,
+    )
+
+    assert (
+        imghdr.what(
+            tmp_path / "tests/resources/processed/minicircle/grains/upper" / f"minicircle_grain_image_0.{extension}"
+        )
+        == extension
+    )
 
 
 @pytest.mark.parametrize("option", ("-h", "--help"))
