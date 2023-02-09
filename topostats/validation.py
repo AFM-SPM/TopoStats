@@ -224,9 +224,10 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for 'plotting.image_set', valid values " "are 'all' or 'core'",
             ),
             "pixel_interpolation": Or(
-                str, 
-                None, 
-                error="Invalid interpolation value. See https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html for options."),
+                str,
+                None,
+                error="Invalid interpolation value. See https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html for options.",
+            ),
             "zrange": list,
             "colorbar": Or(
                 True,
