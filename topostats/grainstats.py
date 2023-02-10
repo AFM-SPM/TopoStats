@@ -184,7 +184,6 @@ class GrainStats:
 
             # Create directory for each grain's plots
             output_grain = self.base_output_dir / self.direction
-
             # Obtain cropped grain mask and image
             minr, minc, maxr, maxc = region.bbox
             grain_mask = np.array(region.image)

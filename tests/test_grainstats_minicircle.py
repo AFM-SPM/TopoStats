@@ -5,9 +5,6 @@ import numpy as np
 
 from topostats.grainstats import GrainStats
 
-# Specify the absolute and relattive tolerance for floating point comparison
-TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
-
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
