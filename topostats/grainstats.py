@@ -7,6 +7,7 @@ from typing import Union, List, Tuple, Dict
 import numpy as np
 import skimage.measure as skimage_measure
 import skimage.morphology as skimage_morphology
+import skimage.feature as skimage_feature
 import scipy.ndimage
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -63,6 +64,7 @@ class GrainStats:
         direction: str,
         base_output_dir: Union[str, Path],
         image_name: str = None,
+        edge_detection_method: str = "binary_erosion",
         cropped_size: float = -1,
         plot_opts: dict = None,
         metre_scaling_factor: float = 1e-9,
@@ -83,6 +85,9 @@ class GrainStats:
             Path to the folder that will store the grain stats output images and data.
         image_name : str
             The name of the file being processed.
+        edge_detection_method : str
+            Method used for detecting the edges of grain masks before calculating statistics on them.
+            Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
         cropped_size : float
             Length of square side (in nm) to crop grains to.
         plot_opts : dict
@@ -99,6 +104,7 @@ class GrainStats:
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
         self.image_name = image_name
+        self.edge_detection_method = edge_detection_method
         self.cropped_size = cropped_size
         self.plot_opts = plot_opts
         self.metre_scaling_factor = metre_scaling_factor
@@ -232,7 +238,7 @@ class GrainStats:
                     )
 
             points = self.calculate_points(grain_mask)
-            edges = self.calculate_edges(grain_mask)
+            edges = self.calculate_edges(grain_mask, edge_detection_method=self.edge_detection_method)
             radius_stats = self.calculate_radius_stats(edges, points)
             # hull, hull_indices, hull_simplexes = self.convex_hull(edges, output_grain)
             _, _, hull_simplexes = self.convex_hull(edges, output_grain)
@@ -314,7 +320,7 @@ class GrainStats:
         return points
 
     @staticmethod
-    def calculate_edges(grain_mask: np.ndarray):
+    def calculate_edges(grain_mask: np.ndarray, edge_detection_method: str):
         """Class method that takes a 2D boolean numpy array image of a grain and returns a python list of the
         coordinates of the edges of the grain.
 
@@ -322,6 +328,9 @@ class GrainStats:
         ----------
         grain_mask : np.ndarray
             A 2D numpy array image of a grain. Data in the array must be boolean.
+        edge_detection_method : str
+            Method used for detecting the edges of grain masks before calculating statistics on them.
+            Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
 
         Returns
         -------
@@ -331,16 +340,20 @@ class GrainStats:
         # Fill any holes
         filled_grain_mask = scipy.ndimage.binary_fill_holes(grain_mask)
 
-        # Add padding (needed for erosion)
-        padded = np.pad(filled_grain_mask, 1)
-        # Erode by 1 pixel
-        eroded = skimage_morphology.binary_erosion(padded)
-        # Remove padding
-        eroded = eroded[1:-1, 1:-1]
+        if edge_detection_method == "binary_erosion":
+            # Add padding (needed for erosion)
+            padded = np.pad(filled_grain_mask, 1)
+            # Erode by 1 pixel
+            eroded = skimage_morphology.binary_erosion(padded)
+            # Remove padding
+            eroded = eroded[1:-1, 1:-1]
 
-        # Edges is equal to the difference between the
-        # original image and the eroded image.
-        edges = filled_grain_mask.astype(int) - eroded.astype(int)
+            # Edges is equal to the difference between the
+            # original image and the eroded image.
+            edges = filled_grain_mask.astype(int) - eroded.astype(int)
+        else:
+            # Get outer edge using canny filtering
+            edges = skimage_feature.canny(filled_grain_mask, sigma=3)
 
         nonzero_coordinates = edges.nonzero()
         # Get vector representation of the points
