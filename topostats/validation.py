@@ -200,6 +200,10 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'grainstats.run', valid values are 'True' or 'False'",
             ),
+            "edge_detection_method": Or(
+                "binary_erosion",
+                "canny",
+            ),
             "cropped_size": Or(
                 float,
                 int,
