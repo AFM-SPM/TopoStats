@@ -58,3 +58,6 @@ plotting:
   mask_cmap: blu # Options : blu, jet_r and any in matplotlib
   histogram_log_axis: false # Options : true, false
   histogram_bins: 200 # Number of bins for histogram plots to use
+summary_stats:
+  run: true
+  config: null

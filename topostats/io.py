@@ -2,7 +2,8 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Union
+import pickle as pkl
+from typing import Any, Dict, List, Union
 
 import numpy as np
 import pandas as pd
@@ -61,6 +62,7 @@ def write_yaml(
     # Save the configuration to output directory
     output_config = Path(output_dir) / config_file
     # Revert PosixPath items to string
+    # FIXME : Now need to recursively process the whole dictionary to convert PosixPath to string
     config["base_dir"] = str(config["base_dir"])
     config["output_dir"] = str(config["output_dir"])
     config_yaml = yaml_load(yaml_dump(config))
@@ -114,7 +116,7 @@ def get_out_path(
         raise
 
 
-def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> List:
+def find_files(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> List:
     """Recursively scan the specified directory for images with the given file extension.
 
     Parameters
@@ -427,3 +429,60 @@ class LoadScans:
             The length of a pixel in nm.
         """
         self.img_dic[filename] = {"image": image, "img_path": img_path, "px_2_nm": px_2_nm}
+
+
+def save_pkl(outfile: Path, to_pkl: dict) -> None:
+    """Pickle objects for working with later.
+
+    Parameters
+    ----------
+    outfile: Path
+        Path and filename to save pickle to.
+    to_pkl: dict
+        Object to be picled.
+
+    Returns
+    -------
+    None
+    """
+    with outfile.open(mode="wb", encoding=None) as f:
+        pkl.dump(to_pkl, f)
+
+
+def load_pkl(infile: Path) -> Any:
+    """Load data from a pickle.
+
+    Parameters
+    ----------
+    infile: Path
+        Path to a valid pickle.
+
+    Returns
+    -------
+    dict:
+        Dictionary of generated images.
+
+    Example
+    -------
+
+    from pathlib import Path
+
+    from topostats.io import load_plots
+
+    pkl_path = "output/distribution_plots.pkl"
+    my_plots = load_plots(pkl_path)
+    # Show the type of my_plots which is a dictionary of nested dictionaries
+    type(my_plots)
+    # Show the keys are various levels of nesting.
+    my_plots.keys()
+    my_plots["area"].keys()
+    my_plots["area"]["dist"].keys()
+    # Get the figure and axis object for a given metrics distribution plot
+    figure, axis = my_plots["area"]["dist"].values()
+    # Get the figure and axis object for a given metrics violin plot
+    figure, axis = my_plots["area"]["violin"].values()
+
+    """
+    with infile.open("rb", encoding=None) as f:
+        images = pkl.load(f)
+    return images
