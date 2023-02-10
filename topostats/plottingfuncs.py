@@ -38,7 +38,7 @@ class Images:
         image_type: str = "non-binary",
         image_set: str = "core",
         core_set: bool = False,
-        pixel_interpolation: str = "nearest",
+        pixel_interpolation: str = None,
         cmap: str = "nanoscope",
         mask_cmap: str = "jet_r",
         region_properties: dict = None,
