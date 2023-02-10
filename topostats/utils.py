@@ -100,6 +100,7 @@ def update_plotting_config(plotting_config: dict) -> dict:
         plotting_config["plot_dict"][image] = {
             **options,
             "save_format": plotting_config["save_format"],
+            "pixel_interpolation": plotting_config["pixel_interpolation"],
             "image_set": plotting_config["image_set"],
             "colorbar": plotting_config["colorbar"],
             "axes": plotting_config["axes"],
