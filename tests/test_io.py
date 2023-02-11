@@ -151,6 +151,18 @@ def test_load_scan_jpk(load_scan_jpk: LoadScans) -> None:
     assert px_to_nm_scaling == 1.2770176335964876
 
 
+def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
+    """Test loading of a .gwy file."""
+    load_scan_gwy.img_path = load_scan_gwy.img_paths[0]
+    load_scan_gwy.filename = load_scan_gwy.img_paths[0].stem
+    image, px_to_nm_scaling = load_scan_gwy.load_gwy()
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (512, 512)
+    assert image.sum() == 33836850.232917726
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 0.8468632812499975
+
+
 # FIXME : Get this test working
 # @pytest.mark.parametrize(
 #     "unit, x, y, expected",
