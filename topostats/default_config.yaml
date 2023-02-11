@@ -38,14 +38,13 @@ grains:
     upper: 1.0
   direction: upper # Options: upper, lower, both (defines whether to look for grains above or below thresholds or both)
   # Thresholding by area
-  smallest_grain_size_nm2: 24 # Size in nm^2 of tiny grians/blobs (noise) to remove.
+  smallest_grain_size_nm2: 50 # Size in nm^2 of tiny grains/blobs (noise) to remove.
   absolute_area_threshold:
-    upper: [ 120, 192 ] # above surface [Low, High] in nm^2 (also takes null)
+    upper: [ 300, 3000 ] # above surface [Low, High] in nm^2 (also takes null)
     lower: [ null, null ] # below surface [Low, High] in nm^2 (also takes null)
 grainstats:
   run: true # Options : true, false
   cropped_size: 40.0 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
-  save_cropped_grains: true # Options : true, false
 dnatracing:
   run: true # Options : true, false
 plotting:
@@ -59,3 +58,6 @@ plotting:
   mask_cmap: blu # Options : blu, jet_r and any in matplotlib
   histogram_log_axis: false # Options : true, false
   histogram_bins: 200 # Number of bins for histogram plots to use
+summary_stats:
+  run: true
+  config: null

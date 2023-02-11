@@ -3,9 +3,10 @@ from pathlib import Path
 from unittest import TestCase
 
 import numpy as np
+import pandas as pd
 import pytest
 
-from topostats.io import read_yaml, find_images, get_out_path, LoadScans
+from topostats.io import read_yaml, find_files, get_out_path, save_folder_grainstats, LoadScans, save_pkl, load_pkl
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
@@ -29,9 +30,9 @@ def test_read_yaml() -> None:
     TestCase().assertDictEqual(sample_config, CONFIG)
 
 
-def test_find_images() -> None:
+def test_find_files() -> None:
     """Test finding images"""
-    found_images = find_images(base_dir="tests/", file_ext=".spm")
+    found_images = find_files(base_dir="tests/", file_ext=".spm")
 
     assert isinstance(found_images, list)
     assert len(found_images) == 1
@@ -113,6 +114,16 @@ def test_get_out_path_attributeerror() -> None:
     """Test get_out_path() raises AttribteError when passed a string instead of a Path() for image_path."""
     with pytest.raises(AttributeError):
         get_out_path(image_path="images/test.spm", base_dir=Path("/some/random/path"), output_dir=Path("output/here"))
+
+
+def test_save_folder_grainstats(tmp_path: Path, minicircle_tracestats: pd.DataFrame) -> None:
+    """Test a folder-wide grainstats file is made"""
+    input_path = tmp_path / "minicircle"
+    minicircle_tracestats["Basename"] = input_path / "subfolder"
+    out_path = tmp_path / "subfolder"
+    Path.mkdir(out_path, parents=True)
+    save_folder_grainstats(out_path, input_path, minicircle_tracestats)
+    assert Path(out_path / "processed" / "folder_grainstats.csv").exists()
 
 
 def test_load_scan_spm(load_scan: LoadScans) -> None:
@@ -207,3 +218,17 @@ def test_load_scan_get_data(
     assert scan.img_dic[filename]["img_path"] == RESOURCES / filename
     assert isinstance(scan.img_dic[filename]["px_2_nm"], float)
     assert scan.img_dic[filename]["px_2_nm"] == pixel_to_nm_scaling
+
+
+def test_save_pkl(summary_config: dict, tmp_path) -> None:
+    """Test saving a pickle."""
+    outfile = tmp_path / "test.pkl"
+    save_pkl(outfile=outfile, to_pkl=summary_config)
+    assert outfile.exists()
+
+
+def test_load_pkl() -> None:
+    """Test loading a pickle."""
+    infile = RESOURCES / "test.pkl"
+    small_dictionary = load_pkl(infile)
+    assert isinstance(small_dictionary, dict)

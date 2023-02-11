@@ -97,6 +97,34 @@ run_topostats
 ...
 ```
 
+On a successful completion you should see a message similar to the following which indicates various aspects of the run
+along with information about how to give feedback, report bugs and cite the software.
+
+``` bash
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Base Directory              : /home/neil/work/projects/topostats/TopoStats
+  File Extension              : .spm
+  Files Found                 : 1
+  Successfully Processed      : 1 (100.0%)
+  Configuration               : output/config.yaml
+  All statistics              : output/all_statistics.csv
+  Distribution Plots          : output/summary_distributions
+
+  Email                       : topostats@sheffield.ac.uk
+  Documentation               : https://afm-spm.github.io/topostats/
+  Source Code                 : https://github.com/AFM-SPM/TopoStats/
+  Bug Reports/Feature Request : https://github.com/AFM-SPM/TopoStats/issues/new/choose
+  Citation File Format        : https://github.com/AFM-SPM/TopoStats/blob/main/CITATION.cff
+
+  If you encounter bugs/issues or have feature requests please report them at the above URL
+  or email us.
+
+  If you have found TopoStats useful please consider citing it. A Citation File Format is
+  linked above and available from the Source Code page.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
 ## Configuring TopoStats
 
 Configuration of TopoStats is done through a [YAML](https://yaml.org/) file and a full description of the fields used
@@ -179,12 +207,7 @@ run_topostats --config my_config.yaml
 ...
 ```
 
-On a successful completion you should see output similar to this at the bottom.
-
-``` bash
-Processing images from tests, results are under output: 100%|XXXXXXXXXXXXXXXX| 1/1 [00:03<00:00,  3.60s/it][Tue, 15 Nov 2022 13:49:14] [INFO    ] [topostats] All statistics combined for 1 images(s) are saved to : output/all_statistics.csv}
-[Tue, 15 Nov 2022 13:49:14] [INFO    ] [topostats] Writing configuration to : output/config.yaml
-```
+On successful completion you should see the same message noted above.
 
 ## Output
 
@@ -237,3 +260,46 @@ the resulting images from processing scans. If the `plotting` : `image_set` is `
 each. If this option is `all` then there is also a sub-directory for each image found within which there are the
 directories `filters`, `grains/lower` and `grains/upper` which contain additional images from the processing stages and
 an accompanying histogram for each image showing the distribution of pixel heights for that image.
+
+## Summary Plots
+
+By default TopoStats will take the data that has been summarised across all files and generate a series of plots,
+[histograms](https://en.wikipedia.org/wiki/Histogram) with [Kernel Density Estimates
+(KDE)](https://en.wikipedia.org/wiki/Kernel_density_estimation) overlaid and [Violin
+plots](https://en.wikipedia.org/wiki/Violin_plot). The default location of these if no custom configuration file is used
+is `output/summary_distributions`. If you have used a custom configuration file it will be the sub-directory
+`summary_distributions` nested under the directory specified for the `output`, e.g. if you used the current directory as
+output you will have a `summary_distributions` directory present.
+
+Sometimes you may have a `all_statistics.csv` from a run and wish to plot distributions of additional statistics that
+were not already plotted. This can be achieved using the command line programme `toposum` which is included.
+
+**NB** Because of the inherent complexity of plots this script is, by design, limited in the scope to which plots can be
+configured. It uses the plotting library [Seaborn](https://seaborn.pydata.org/) (which is built on top of
+[Matplotlib](https://matplotlib.org/)) to produce basic plots, which are not intended for publication. If you want to
+tweak or customise plots it is recommended to load `all_statistics.csv` into a [Jupyter Notebook](https://jupyter.org)
+and generate the plots you want there. A sample notebook is included to show how to do this.
+
+
+### Configuring Summary Plots
+
+Configuration of summary plots is also via a YAML configuration file a description of the fields can be found under
+[configuration](configuration#summary-configuration) page. You can generate a sample configuration by invoking the
+`--create_config_file` option to `toposum`
+
+``` bash
+toposum --create_config_file custom_summary_config.yaml
+```
+
+The file `custom_summary_config.yaml` can then be edited to change what plots are generated, where they are saved to and
+so forth. Typically you will only want to adjust a few settings such as toggling the types of plots (`hist`, `kde` and
+`violin`), the number of `bins` in a histogram or the statistic to plot in histograms (`count`, `frequency` etc.). You
+can change the `palette` that is used by Seaborn and crucially toggle which statistics are summarised by commenting
+and uncommenting the statistic names under `stats_to_sum`.
+
+### Labels
+
+Labels for the plots are generated from the file `topostats/var_to_label.yaml` which provides a dictionary that maps the
+variable name as the dictionary `key` to its description stored in the dictionary `value`.  If you wish to customise
+these you can do so and pass it to `toposum` using the `--plotting_dictionary` which takes as an argument the path to
+the file you have created.
