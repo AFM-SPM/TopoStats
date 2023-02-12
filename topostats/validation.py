@@ -225,6 +225,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for 'plotting.image_set', valid values " "are 'all' or 'core'",
             ),
             "pixel_interpolation": Or(
+                None,
                 "none",
                 "bessel",
                 "bicubic",
