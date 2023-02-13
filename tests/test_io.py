@@ -6,7 +6,20 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from topostats.io import read_yaml, find_files, get_out_path, save_folder_grainstats, LoadScans, save_pkl, load_pkl
+from topostats.io import (
+    read_yaml,
+    find_files,
+    get_out_path,
+    save_folder_grainstats,
+    LoadScans,
+    save_pkl,
+    load_pkl,
+    read_null_terminated_string,
+    read_u32i,
+    read_64d,
+    read_gwy_component_dtype,
+    read_char,
+)
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
@@ -22,6 +35,7 @@ CONFIG = {
     "a_list": [1, 2, 3],
 }
 
+# pylint: disable=protected-access
 
 def test_read_yaml() -> None:
     """Test reading of YAML file."""
@@ -38,6 +52,50 @@ def test_find_files() -> None:
     assert len(found_images) == 1
     assert isinstance(found_images[0], Path)
     assert "minicircle.spm" in str(found_images[0])
+
+
+def test_read_null_terminated_string() -> None:
+    """Test reading a null terminated string from a binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        value = read_null_terminated_string(open_binary_file)
+        assert isinstance(value, str)
+        assert value == "test"
+
+
+def test_read_u32i() -> None:
+    """Test reading an unsigned 32 bit integer from a binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(5)
+        value = read_u32i(open_binary_file)
+        assert isinstance(value, int)
+        assert value == 32
+
+
+def test_read_64d() -> None:
+    """Test reading a 64-bit double from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(9)
+        value = read_64d(open_binary_file)
+        assert isinstance(value, float)
+        assert value == 3.141592653589793
+
+
+def test_read_char() -> None:
+    """Test reading a character from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(17)
+        value = read_char(open_binary_file)
+        assert isinstance(value, str)
+        assert value == "Z"
+
+
+def test_read_gwy_component_dtype() -> None:
+    """Test reading a data type of a `.gwy` file component from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(18)
+        value = read_gwy_component_dtype(open_binary_file)
+        assert isinstance(value, str)
+        assert value == "D"
 
 
 @pytest.mark.parametrize(
