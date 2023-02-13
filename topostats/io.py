@@ -568,10 +568,12 @@ class LoadScans:
             array_size = read_u32i(open_file=open_file)
             LOGGER.debug(f"component name: {component_name} | dtype: {data_type}")
             LOGGER.debug(f"array size: {array_size}")
-            data = np.zeros(data_dict["xres"] * data_dict["yres"])
-            for index in range(data_dict["xres"] * data_dict["yres"]):
+            data = np.zeros(array_size)
+            for index in range(array_size):
                 data[index] = read_64d(open_file=open_file)
-            data_dict["data"] = data.reshape((data_dict["xres"], data_dict["yres"]))
+            if "xres" in data_dict and "yres" in data_dict:
+                data = data.reshape((data_dict["xres"], data_dict["yres"]))
+            data_dict["data"] = data
 
         return open_file.tell() - initial_byte_pos
 
