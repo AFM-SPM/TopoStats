@@ -37,6 +37,7 @@ CONFIG = {
 
 # pylint: disable=protected-access
 
+
 def test_read_yaml() -> None:
     """Test reading of YAML file."""
     sample_config = read_yaml(RESOURCES / "test.yaml")
@@ -230,6 +231,32 @@ def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
     assert image.sum() == 33836850.232917726
     assert isinstance(px_to_nm_scaling, float)
     assert px_to_nm_scaling == 0.8468632812499975
+
+
+def test_gwy_read_object(load_scan_dummy: LoadScans) -> None:
+    """Test reading an object of a `.gwy` file object from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(19)
+        test_dict = {}
+        load_scan_dummy._gwy_read_object(open_file=open_binary_file, data_dict=test_dict)
+
+        assert list(test_dict.keys()) == ["test component", "test object component"]
+        assert list(test_dict.values()) == [500, {"test nested component": 3}]
+
+
+def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
+    """Tests reading a component of a `.gwy` file object from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(55)
+        test_dict = {}
+        byte_size = load_scan_dummy._gwy_read_component(
+            initial_byte_pos=55, open_file=open_binary_file, data_dict=test_dict
+        )
+        print(test_dict.items())
+        print(test_dict.values())
+        assert byte_size == 73
+        assert list(test_dict.keys()) == ["test object component"]
+        assert list(test_dict.values()) == [{"test nested component": 3}]
 
 
 # FIXME : Get this test working
