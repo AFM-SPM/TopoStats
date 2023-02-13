@@ -1,11 +1,12 @@
 """Functions for procesing data."""
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 import numpy as np
 import pandas as pd
 
+from topostats._version import get_versions
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
@@ -221,6 +222,7 @@ def process_scan(
                     grainstats_df = grainstats["lower"]
             except Exception:
                 LOGGER.info(f"[{filename}] : Errors occurred whilst calculating grain statistics.")
+                results = create_empty_dataframe()
             # Run dnatracing
             try:
                 if dnatracing_config["run"]:
@@ -247,16 +249,74 @@ def process_scan(
                     elif grains_config["direction"] == "lower":
                         tracing_stats_df = tracing_stats["lower"].df
                     LOGGER.info(f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics")
-                    # NB - Merge on molecule and threshold because we may have upper and lower molecueles which gives
-                    #      duplicate molecule numbers as they are processed separately
-                    results = grainstats_df.merge(tracing_stats_df, on=["molecule_number", "threshold"])
+                    # NB - Merge on image, molecule and threshold because we may have upper and lower molecueles which
+                    #      gives duplicate molecule numbers as they are processed separately
+                    results = grainstats_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"])
                 else:
                     results = grainstats_df
                     results["image"] = filename
                     results["basename"] = image_path.parent
             except Exception:
                 # If no results we need a dummy dataframe to return.
-                LOGGER.info(f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics.")
-                results = create_empty_dataframe()
+                LOGGER.info(
+                    f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, "
+                    "returning grain statistics"
+                )
+                results = grainstats_df
+                results["image"] = filename
+                results["basename"] = image_path.parent
+        else:
+            LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
+            results = create_empty_dataframe()
+    else:
+        LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
+        results = create_empty_dataframe()
 
     return image_path, results
+
+
+def completion_message(config: Dict, img_files: List, summary_config: Dict, images_processed: pd.DataFrame) -> None:
+    """Print a completion message summarising images processed.
+
+    Parameters
+    ----------
+    config: dict
+        Configuration dictionary.
+    img_files: list()
+        List of found image paths.
+    summary_config: dict(
+        Configuration for plotting summary statistics.
+    results: pd.DataFrame
+        Pandas DataFrame of results.
+
+    Results
+    -------
+    None
+    """
+    topostats_version = get_versions()
+
+    LOGGER.info(
+        (
+            f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+            f"  TopoStats Version           : {topostats_version['version']}\n"
+            f"  Base Directory              : {config['base_dir']}\n"
+            f"  File Extension              : {config['file_ext']}\n"
+            f"  Files Found                 : {len(img_files)}\n"
+            f"  Successfully Processed^1    : {images_processed} ({(images_processed * 100) / len(img_files)}%)\n"
+            f"  Configuration               : {config['output_dir']}/config.yaml\n"
+            f"  All statistics              : {str(config['output_dir'])}/all_statistics.csv\n"
+            f"  Distribution Plots          : {str(summary_config['output_dir'])}\n\n"
+            f"  Email                       : topostats@sheffield.ac.uk\n"
+            f"  Documentation               : https://afm-spm.github.io/topostats/\n"
+            f"  Source Code                 : https://github.com/AFM-SPM/TopoStats/\n"
+            f"  Bug Reports/Feature Request : https://github.com/AFM-SPM/TopoStats/issues/new/choose\n"
+            f"  Citation File Format        : https://github.com/AFM-SPM/TopoStats/blob/main/CITATION.cff\n\n"
+            f"  ^1 Successful processing of an image is detection of grains and calculation of at least\n"
+            f"     grain statistics. If these have been disabled the percentage will be 0.\n\n"
+            f"  If you encounter bugs/issues or have feature requests please report them at the above URL\n"
+            f"  or email us.\n\n"
+            f"  If you have found TopoStats useful please consider citing it. A Citation File Format is\n"
+            f"  linked above and available from the Source Code page.\n"
+            f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+        )
+    )

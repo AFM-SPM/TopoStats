@@ -27,4 +27,4 @@ def test_run_topostats_process_all(caplog) -> None:
     # pytest was invoked with (see thread on StackOverflow at https://stackoverflow.com/a/55260580/1444043)
     run_topostats_main(args=["--config", f"{BASE_DIR / 'topostats' / 'default_config.yaml'}"])
     assert "~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~" in caplog.text
-    assert "Successfully Processed      : 1 (100.0%)" in caplog.text
+    assert "Successfully Processed^1    : 1 (100.0%)" in caplog.text

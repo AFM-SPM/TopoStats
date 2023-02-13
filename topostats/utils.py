@@ -15,32 +15,33 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 ALL_STATISTICS_COLUMNS = (
+    "image",
+    "basename",
     "molecule_number",
+    "area",
+    "area_cartesian_bbox",
+    "aspect_ratio",
+    "banding_angle",
     "centre_x",
     "centre_y",
-    "radius_min",
+    "circular",
+    "contour_lengths",
+    "end_to_end_distance",
+    "height_max",
+    "height_mean",
+    "height_median",
+    "height_min",
+    "max_feret",
+    "min_feret",
     "radius_max",
     "radius_mean",
     "radius_median",
-    "height_min",
-    "height_max",
-    "height_median",
-    "height_mean",
-    "volume",
-    "area",
-    "area_cartesian_bbox",
-    "smallest_bounding_width",
-    "smallest_bounding_length",
+    "radius_min",
     "smallest_bounding_area",
-    "aspect_ratio",
+    "smallest_bounding_length",
+    "smallest_bounding_width",
     "threshold",
-    "max_feret",
-    "min_feret",
-    "contour_lengths",
-    "circular",
-    "End to End Distance",
-    "image",
-    "basename",
+    "volume",
 )
 
 
@@ -229,7 +230,7 @@ def get_thresholds(
     return thresholds
 
 
-def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS) -> pd.DataFrame:
+def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: tuple = ("molecule_number")) -> pd.DataFrame:
     """Create an empty data frame for returning when no results are found.
 
     Parameters
@@ -243,4 +244,4 @@ def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS) -> pd.DataFram
         Empty Pandas DataFrame.
     """
     empty_df = pd.DataFrame([np.repeat(np.nan, len(columns))], columns=columns)
-    return empty_df.set_index("molecule_number", inplace=True)
+    return empty_df.set_index(index, inplace=True)
