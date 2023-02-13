@@ -338,6 +338,12 @@ def small_array_filters(small_array: np.ndarray, load_scan: LoadScans, filter_co
 
 # IO fixtures
 @pytest.fixture
+def load_scan_dummy() -> LoadScans:
+    """Instantiate a dummy LoadScans object for use in testing `.gwy` IO methods."""
+    return LoadScans(img_paths="dummy", channel="dummy")
+
+
+@pytest.fixture
 def load_scan(loading_config: dict) -> LoadScans:
     """Instantiate a LoadScans object from a .spm file."""
     scan_loader = LoadScans([RESOURCES / "minicircle.spm"], **loading_config)
