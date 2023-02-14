@@ -188,12 +188,12 @@ def read_null_terminated_string(open_file: io.TextIOWrapper) -> str:
     str
         String of the ASCII decoded bytes before the next null byte.
     """
-    byte = open_file.read(1).decode("ascii")
-    value = ""
-    while byte != "\x00":
+    byte = open_file.read(1)
+    value = b""
+    while byte != b"\x00":
         value += byte
-        byte = open_file.read(1).decode("ascii")
-    return str(value)
+        byte = open_file.read(1)
+    return str(value.decode("utf-8"))
 
 
 def read_u32i(open_file: io.TextIOWrapper) -> str:
