@@ -102,7 +102,8 @@ class dnaTrace(object):
         self.linear_or_circular(self.ordered_traces)
         self.get_fitted_traces()
         self.get_splined_traces()
-        self.find_curvature()
+        # self.find_curvature()
+        self.find_curvature_old()
         self.save_curvature()
         self.analyse_curvature()
         self.measure_contour_length()
@@ -794,12 +795,67 @@ class dnaTrace(object):
 
             trace_curve_total = np.add(sub_trace_curve[0], sub_trace_curve[1], sub_trace_curve[2])
             print('Test Point 2')
+            print('Test Point 3')
             # overall_curve = np.average([sub_trace_curve[0], sub_trace_curve[1], sub_trace_curve[2]], axis=0)
             overall_curve = trace_curve_total/3
             print(overall_curve)
             print(len(overall_curve))
 
             curve = np.array(overall_curve)
+            # curvature_smoothed = scipy.ndimage.gaussian_filter(curve[:, 2], 10, mode='nearest')
+            # curve[:, 2] = curvature_smoothed
+            self.curvature[dna_num] = curve
+
+    def find_curvature_old(self):
+        for dna_num in sorted(self.splined_traces.keys()):  # the number of molecules identified
+            # splined_traces is a dictionary, where the keys are the number of the molecule, and the values are a
+            # list of coordinates, in a numpy.ndarray
+            length = len(self.splined_traces[dna_num])
+            curve = []
+            contour = 0
+            # coordinates = np.zeros([2, self.neighbours * 2 + 1])
+            # dxmean = np.zeros(length)
+            # dymean = np.zeros(length)
+            # gradients = np.zeros([2, self.neighbours * 2 + 1])
+            if self.mol_is_circular[dna_num]:
+                longlist = np.concatenate(
+                    [
+                        self.splined_traces[dna_num],
+                        self.splined_traces[dna_num],
+                        self.splined_traces[dna_num],
+                    ]
+                )
+                dx = np.gradient(longlist, axis=0)[:, 0]
+                dy = np.gradient(longlist, axis=0)[:, 1]
+                d2x = np.gradient(dx)
+                d2y = np.gradient(dy)
+
+                dx = dx[length: 2 * length]
+                dy = dy[length: 2 * length]
+                d2x = d2x[length: 2 * length]
+                d2y = d2y[length: 2 * length]
+            else:
+                dx = np.gradient(self.splined_traces[dna_num], axis=0, edge_order=2)[:, 0]
+                dy = np.gradient(self.splined_traces[dna_num], axis=0, edge_order=2)[:, 1]
+                d2x = np.gradient(dx)
+                d2y = np.gradient(dy)
+
+            for i, (x, y) in enumerate(self.splined_traces[dna_num]):
+                # Extracts the coordinates for the required number of points and puts them in an array
+                curvature_local = (d2x[i] * dy[i] - dx[i] * d2y[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
+                curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
+                if i < (length - 1):
+                    contour = contour + self.pixel_size * 1e9 * math.hypot(
+                        (
+                                self.splined_traces[dna_num][(i + 1), 0]
+                                - self.splined_traces[dna_num][i, 0]
+                        ),
+                        (
+                                self.splined_traces[dna_num][(i + 1), 1]
+                                - self.splined_traces[dna_num][i, 1]
+                        ),
+                    )
+            curve = np.array(curve)
             # curvature_smoothed = scipy.ndimage.gaussian_filter(curve[:, 2], 10, mode='nearest')
             # curve[:, 2] = curvature_smoothed
             self.curvature[dna_num] = curve
