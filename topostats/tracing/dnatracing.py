@@ -87,7 +87,7 @@ class dnaTrace(object):
         # What purpose does binary dilation serve here? Name suggests some sort of smoothing around the edges and
         # the resulting array is used as a mask during the skeletonising process.
         #self.dilate_grains()
-        #self.gaussian_grains()
+        self.gaussian_grains()
         for grain_num, grain in self.grains.items():
             skeleton = getSkeleton(self.gauss_image, grain).get_skeleton(self.skeletonisation_method)
             LOGGER.info(f"[{self.filename}] {label(skeleton).max()-1} breakages in skeleton {grain_num}")
@@ -981,7 +981,7 @@ class nodeStats():
             if len(self.conv_skelly[self.conv_skelly==3]) != 0: # check if any nodes
                 self.connect_close_nodes(node_width=6)
                 self.highlight_node_centres(self.connected_nodes)
-                self.analyse_nodes(box_length=30)
+                self.analyse_nodes(box_length=20)
                 self.full_dict[skeleton_no] = self.node_dict
             else:
                 self.full_dict[skeleton_no] = {}
@@ -1625,8 +1625,6 @@ class nodeStats():
         # ensure arrays are same length to average
         temp_x = branch_dist_norm[np.isin(branch_dist_norm, avg1[:,0])]
         common_dists = avg2[:,0][np.isin(avg2[:,0], temp_x)]
-        
-        #print('--',len(branch_dist_norm), len(avg1[:,0]), len(avg2[:,0]))
 
         common_avg_branch_heights = branch_heights[np.isin(branch_dist_norm, common_dists)]
         common_avg1_heights = avg1[:,1][np.isin(avg1[:,0], common_dists)]
