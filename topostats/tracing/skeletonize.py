@@ -690,6 +690,8 @@ class joePrune:
         """Identifies branches which cross the skeleton in places they shouldn't due to
         poor thresholding and holes in the mask. Segments are removed based on heights lower
         than 1.5 * interquartile range of heights."""
+        # might need to check that the image *with nodes* is returned
+        skeleton_rtn = skeleton.copy()
         conv = convolve_skelly(skeleton)
         nodeless = skeleton.copy()
         nodeless[conv==3] = 0
@@ -699,14 +701,12 @@ class joePrune:
             q75, q25 = np.percentile(median_heights, [75, 25])
             iqr = q75 - q25
             threshold = q25 - 1.5 * iqr
-        print(threshold)
         # threshold heights to remove segments
         idxs = np.asarray(np.where(np.asarray(median_heights) < threshold)) + 1
         for i in idxs:
-            print("Removed: ", i)
-            segments[segments==i] = 0
-        segments[segments != 0] = 1
-        return segments
+            print("Removed dud branch: ", i)
+            skeleton_rtn[segments == i] = 0
+        return skeleton_rtn
 
 
 class maxPrune:
