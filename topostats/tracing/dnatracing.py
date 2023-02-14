@@ -653,21 +653,21 @@ class dnaTrace(object):
         plt.close()
         LOGGER.info(f"Grains image saved to : {str(output_dir / filename / f'{channel_name}_grains.png')}")
 
-        for dna_num in sorted(self.ordered_traces.keys()):
-            plt.scatter(
-                x=self.splined_traces[dna_num][:, 0],
-                y=self.splined_traces[dna_num][:, 1],
-                c=self.curvature[dna_num][:, 2],
-                s=1,
-            )
+        # for dna_num in sorted(self.ordered_traces.keys()):
+        #     plt.scatter(
+        #         x=self.splined_traces[dna_num][:, 0],
+        #         y=self.splined_traces[dna_num][:, 1],
+        #         c=self.curvature[dna_num][:, 2],
+        #         s=1,
+        #     )
 
-        plt.colorbar()
-        plt.axis("equal")
-        plt.savefig(output_dir / filename / f"{channel_name}_curvature_summary.png")
-        plt.close()
-        LOGGER.info(
-            f"Curvature summary saved to : {str(output_dir / filename / f'{channel_name}_curvature_summary.png')}"
-        )
+        # plt.colorbar()
+        # plt.axis("equal")
+        # plt.savefig(output_dir / filename / f"{channel_name}_curvature_summary.png")
+        # plt.close()
+        # LOGGER.info(
+        #     f"Curvature summary saved to : {str(output_dir / filename / f'{channel_name}_curvature_summary.png')}"
+        # )
 
     # FIXME : Replace with Path() (.mkdir(parent=True, exists=True) negate need to handle errors.)
     def _checkForSaveDirectory(self, filename, new_directory_name):
@@ -768,14 +768,37 @@ class dnaTrace(object):
                                 - sub_trace[i, 1]
                             ),
                         )
+                curve = np.array(curve)
                 sub_trace_curve.append(curve)
+            print('Test Point')
+            print(dna_num)
+            print(len(sub_trace_curve[0]))
+            print(sub_trace_curve[0])
+            print(len(sub_trace_curve[1]))
+            print(sub_trace_curve[1])
+            print(len(sub_trace_curve[2]))
+            print(sub_trace_curve[2])
+            print(sub_trace_curve)
+            print(type(sub_trace_curve))
             if len(sub_trace_curve[0]) > len(sub_trace_curve[1]):
-                sub_trace_curve[1].append(sub_trace_curve[0][-1])
-                sub_trace_curve[2].append(sub_trace_curve[0][-1])
+                sub_trace_curve[1] = np.append(sub_trace_curve[1], [sub_trace_curve[0][-1]], axis=0)
+                sub_trace_curve[2] = np.append(sub_trace_curve[2], [sub_trace_curve[0][-1]], axis=0)
             elif len(sub_trace_curve[1]) > len(sub_trace_curve[2]):
-                last_element = np.average([sub_trace_curve[0][-1], sub_trace_curve[1][-1]])
-                sub_trace_curve[2].append(last_element)
-            overall_curve = np.average(sub_trace_curve, axis=0)
+                last_element = np.average([sub_trace_curve[0][-1], sub_trace_curve[1][-1]], axis=0)
+                print('Test Point 1.5')
+                print(sub_trace_curve[0][-1])
+                print(sub_trace_curve[1][-1])
+                print(last_element)
+                sub_trace_curve[2] = np.append(sub_trace_curve[2], [last_element], axis=0)
+                print(len(sub_trace_curve[2]))
+
+            trace_curve_total = np.add(sub_trace_curve[0], sub_trace_curve[1], sub_trace_curve[2])
+            print('Test Point 2')
+            # overall_curve = np.average([sub_trace_curve[0], sub_trace_curve[1], sub_trace_curve[2]], axis=0)
+            overall_curve = trace_curve_total/3
+            print(overall_curve)
+            print(len(overall_curve))
+
             curve = np.array(overall_curve)
             # curvature_smoothed = scipy.ndimage.gaussian_filter(curve[:, 2], 10, mode='nearest')
             # curve[:, 2] = curvature_smoothed

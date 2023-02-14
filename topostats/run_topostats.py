@@ -335,7 +335,7 @@ def process_scan(
                         core_out_path,
                     )
                     # for i in [1, 4, 7, 9, 11, 13, 14, 17, 18, 21, 22, 27, 28, 32, 33, 38, 39, 40, 45]:
-                    for i in []:
+                    for i in [1, 2, 3]:
                         dna_traces[direction].write_coordinates(
                             i,
                             filename,
