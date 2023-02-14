@@ -20,9 +20,20 @@ A clear and concise description of what you expected to happen.
 
 **Output**
 
-If applicable please include the output error, this can be a copy and paste of the output (preferable) or a screenshot.
+If applicable please include the output error, this can be a copy and paste of the output (preferable** or a screenshot.
 If applicable, add screenshots to help explain your problem.
 Output files can be attached to this bug report.
+
+** TopoStats version
+
+Please report the version of TopoStats you are using. There are several ways of doing this, either with `pip` or
+`run_topostats`. Please copy and paste all output from either of the following, although the later is preferable if you
+have installed TopoStats from source/GitHub and are working on features.
+
+- `pip show topostats`
+- `run_topostats --version`
+
+
 
 **(Not required if using Docker) Your computer configuration (please complete the following information):**
  - OS: e.g. windows, MacOS, linux; please include OS version
