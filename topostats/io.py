@@ -631,10 +631,20 @@ class LoadScans:
             # available keys:
             # LoadScans._gwy_print_dict_wrapper(gwy_file_dict=image_data_dict)
 
-            image = image_data_dict["/0/data"]["data"]
+            if "/0/data" in image_data_dict:
+                image = image_data_dict["/0/data"]["data"]
+                units = image_data_dict["/0/data"]["si_unit_xy"]["unitstr"]
+                px_to_nm = image_data_dict["/0/data"]["xreal"] * 1e9 / image.shape[1]
+            elif "/1/data" in image_data_dict:
+                image = image_data_dict["/1/data"]["data"]
+                px_to_nm = image_data_dict["/1/data"]["xreal"] * 1e9 / image.shape[1]
+                units = image_data_dict["/1/data"]["si_unit_xy"]["unitstr"]
+            else:
+                raise KeyError(
+                    "Data location not defined in the .gwy file. Please locate it and add to the load_gwy() function."
+                )
 
-            # Convert image heights to nanometres
-            units = image_data_dict["/0/data"]["si_unit_xy"]["unitstr"]
+            # Convert image heights to nanometresQ
             if units == "m":
                 image = image * 1e9
             else:
@@ -643,8 +653,6 @@ class LoadScans:
                     an SI to nanometre conversion factor for these units in _gwy_read_component in \
                     io.py."
                 )
-
-            px_to_nm = image_data_dict["/0/data"]["xreal"] * 1e9 / image.shape[1]
 
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
