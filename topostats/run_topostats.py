@@ -255,9 +255,11 @@ def main(args=None):
     write_yaml(config, output_dir=config["output_dir"])
     results.reset_index(inplace=True)  # So we can access unique image names
     images_processed = len(results["image"].unique())
+    topostats_version = get_versions()
     LOGGER.info(
         (
             f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+            f"  TopoStats Version           : {topostats_version['version']}\n"
             f"  Base Directory              : {config['base_dir']}\n"
             f"  File Extension              : {config['file_ext']}\n"
             f"  Files Found                 : {len(img_files)}\n"
