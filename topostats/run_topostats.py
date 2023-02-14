@@ -352,7 +352,7 @@ def process_scan(
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                     Images(
                         filtered_image.images["gaussian_filtered"],
-                        data2=dna_traces[direction].skeletons,
+                        data2=binary_dilation(dna_traces[direction].skeletons),
                         **plotting_config["plot_dict"][plot_name],
                     ).save_figure_black(
                             background=grains.directions[direction]["removed_small_objects"],
