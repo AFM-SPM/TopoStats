@@ -613,7 +613,35 @@ PLOTTING_SCHEMA = Schema(
             ),
             "core_set": bool,
         },
-            "skeletons": {
+        "orig_grains": {
+                "filename": str,
+                "title": str,
+                "image_type": Or(
+                    "binary",
+                    "non-binary",
+                    error=(
+                        "Invalid value in config 'coloured_boxes.image_type', valid values "
+                        "are 'binary' or 'non-binary'"
+                    )
+                ),
+                "mask_cmap": str,
+                "core_set": bool,
+        },
+        "smoothed_grains": {
+                "filename": str,
+                "title": str,
+                "image_type": Or(
+                    "binary",
+                    "non-binary",
+                    error=(
+                        "Invalid value in config 'coloured_boxes.image_type', valid values "
+                        "are 'binary' or 'non-binary'"
+                    )
+                ),
+                "mask_cmap": str,
+                "core_set": bool,
+        },
+        "orig_skeletons": {
                 "filename": str,
                 "title": str,
                 "image_type": Or(
@@ -627,6 +655,21 @@ PLOTTING_SCHEMA = Schema(
                 "mask_cmap": str,
                 "core_set": bool,
                 "dpi": int,
+        },
+        "pruned_skeletons": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                )
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "dpi": int,
             },
             "nodes":{
                 "filename": str,

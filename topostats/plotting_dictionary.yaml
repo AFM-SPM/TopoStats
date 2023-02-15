@@ -142,18 +142,37 @@ grain_mask:
 grain_mask_image:
   image_type: "non-binary"
   core_set: false
-skeletons:
-  filename: "20-skeletons"
-  title: "Image with Overlapping Skeletons"
+orig_grains:
+  filename: "20-original_grains"
+  title: "Image with Threshold Mask"
   image_type: "non-binary"
-  mask_cmap: "winter_r"
+  mask_cmap: "green_black"
+  core_set: false
+smoothed_grains:
+  filename: "21-smoothed_grains"
+  title: "Image with Gaussian-Smoothed Threshold Mask"
+  image_type: "non-binary"
+  mask_cmap: "green_black"
+  core_set: false
+orig_skeletons:
+  filename: "22-original_skeletons"
+  title: "Image with Overlapping Original Skeletons"
+  image_type: "non-binary"
+  mask_cmap: "green_black"
+  core_set: false
+  dpi: 1000
+pruned_skeletons:
+  filename: "23-pruned_skeletons"
+  title: "Image with Overlapping Pruned Skeletons"
+  image_type: "non-binary"
+  mask_cmap: "green_black"
   core_set: false
   dpi: 1000
 nodes:
-  filename: "21-nodes"
-  title: "Image with Highlighted Nodes"
+  filename: "24-nodes"
+  title: "Image with Skeletons and Highlighted Nodes"
   image_type: "non-binary"
-  mask_cmap: "winter_r"
+  mask_cmap: "green_black"
   core_set: false
   dpi: 1000
 crossings:

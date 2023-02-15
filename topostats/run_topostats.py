@@ -348,7 +348,7 @@ def process_scan(
                     )
                     dna_traces[direction].trace_dna()
 
-                    plot_name = "skeletons"
+                    plot_name = "pruned_skeletons"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                     Images(
                         filtered_image.images["gaussian_filtered"],
@@ -377,14 +377,14 @@ def process_scan(
                     fitted_img = np.zeros_like(dna_traces[direction].skeletons)
                     fitted_img[fitted_coords[:,0], fitted_coords[:,1]] = 1
 
-                    plot_names = ["skeletons", "nodes"]
-                    data2s = [dna_traces[direction].skeletons, nodes.connected_nodes]
+                    plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes"]
+                    data2s = [dna_traces[direction].grains_orig, dna_traces[direction].smoothed_grains, dna_traces[direction].orig_skeletons, dna_traces[direction].skeletons, nodes.all_connected_nodes]
                     for i, plot_name in enumerate(plot_names):
                         plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                         Images(
                             filtered_image.images["gaussian_filtered"],
                             data2=data2s[i],
-                            zrange=[0,3.5],
+                            zrange=[0,3],
                             **plotting_config["plot_dict"][plot_name],
                         ).save_figure_black(
                                 background=grains.directions[direction]["removed_small_objects"],
@@ -415,7 +415,7 @@ def process_scan(
                                 )
                             fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax")
                     
-                    np.savetxt("test_skel.txt", dna_traces[direction].skeletons)
+                    #np.savetxt("test_skel.txt", dna_traces[direction].skeletons)
                     #np.savetxt("knot_mask.txt", grains.directions[direction]["removed_small_objects"])
                     #np.savetxt("knot_img.txt", nodes.image)
                     
