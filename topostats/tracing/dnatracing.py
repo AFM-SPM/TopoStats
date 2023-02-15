@@ -57,8 +57,10 @@ class dnaTrace(object):
         self.number_of_columns = self.full_image_data.shape[1]
         self.sigma = 0.7 / (self.pixel_size * 1e9)  # hardset
 
-        self.gauss_image = gaussian(self.full_image_data, self.sigma)
         self.grains = {}
+        self.smoothed_grains = None
+        self.orig_skeleton_dict = {}
+        self.orig_skeletons = None
         self.skeleton_dict = {}
         self.skeletons = None
         self.disordered_traces = {}
@@ -87,15 +89,19 @@ class dnaTrace(object):
         # What purpose does binary dilation serve here? Name suggests some sort of smoothing around the edges and
         # the resulting array is used as a mask during the skeletonising process.
         #self.dilate_grains()
-        self.gaussian_grains()
+        #self.gaussian_grains()
+        self.smooth_grains()
+        self.smoothed_grains = self.concat_images_in_dict(image_dict=self.grains)
+
         for grain_num, grain in self.grains.items():
-            skeleton = getSkeleton(self.gauss_image, grain).get_skeleton(self.skeletonisation_method)
+            skeleton = getSkeleton(self.full_image_data, grain).get_skeleton(self.skeletonisation_method)
+            self.orig_skeleton_dict[grain_num] = skeleton
             LOGGER.info(f"[{self.filename}] {label(skeleton).max()-1} breakages in skeleton {grain_num}")
-            pruned_skeleton = pruneSkeleton(self.gauss_image, skeleton).prune_skeleton(self.pruning_method)
+            pruned_skeleton = pruneSkeleton(self.full_image_data, skeleton).prune_skeleton(self.pruning_method)
             self.skeleton_dict[grain_num] = pruned_skeleton
-        self.concat_skeletons()
-        for grain_num, grain in self.skeleton_dict.items():
-            pass
+        self.orig_skeletons = self.concat_images_in_dict(image_dict=self.orig_skeleton_dict)
+        self.skeletons = self.concat_images_in_dict(image_dict=self.skeleton_dict)
+
         self.get_disordered_trace()
         self.disordered_trace_img = self.dict_to_binary_image(self.disordered_traces)
         # self.isMolLooped()
@@ -133,18 +139,44 @@ class dnaTrace(object):
             dictionary[grain_num] = np.where(labelled_img == grain_num, 1, 0)
         return dictionary
 
-    def dilate_grains(self) -> None:
-        """Dilates each individual grain in the grains dictionary."""
+    def smooth_grains(self) -> None:
+        """Smoothes grains based on the lower number added from dilation or gaussian.
+        (makes sure gaussian isnt too agressive."""
         for grain_num, image in self.grains.items():
-            self.grains[grain_num] = ndimage.binary_dilation(image, iterations=1).astype(np.int32)
+            dilation = ndimage.binary_dilation(image, iterations=1).astype(np.int32)
+            gauss = gaussian(image, sigma=max(image.shape)/256)
+            gauss[gauss > threshold_otsu(gauss)*1.3] = 1
+            gauss[gauss != 1] = 0
+            gauss = gauss.astype(np.int32)
+            print(f"Dilation: {dilation.sum()-image.sum()}, Gauss: {gauss.sum()-image.sum()}")
+            if dilation.sum()-image.sum() > gauss.sum()-image.sum():
+                self.grains[grain_num] = self.re_add_holes(image, gauss)
+            else:
+                self.grains[grain_num] = self.re_add_holes(image, dilation)
+    
+    @staticmethod
+    def re_add_holes(orig_mask, new_mask):
+        """As gaussian and dilation smoothing methods can close holes in the original mask,
+        this function obtains those holes (based on the general background being the largest)
+        and adds them back into the smoothed mask. When paired, this essentailly just smooths
+        the outer edge of the grains.
 
-    def gaussian_grains(self) -> None:
-        """Applies a gaussian to each individual grain to smooth it"""
-        for grain_num, image in self.grains.items():
-            image = gaussian(image, sigma=max(image.shape)/256)
-            image[image > threshold_otsu(image)*1.3] = 1
-            image[image != 1] = 0
-            self.grains[grain_num] = image.astype(np.int32)
+        Parameters:
+        -----------
+            orig_mask (_type_): _description_
+            new_mask (_type_): _description_
+        """
+        holes = 1-orig_mask
+        holes = label(holes)
+        sizes = [holes[holes==i].size for i in range(1, holes.max()+1)]
+        max_idx = max(enumerate(sizes), key=lambda x: x[1])[0] + 1
+        holes[holes == max_idx] = 0
+        holes[holes != 0] = 1
+
+        holy_gauss = new_mask.copy()
+        holy_gauss[holes==1] = 0
+
+        return holy_gauss
 
     # FIXME : It is straight-forward to get bounding boxes for grains, need to then have a dictionary of original image
     #         and label for each grain to then be processed.
@@ -195,11 +227,12 @@ class dnaTrace(object):
             img[coords[:, 0], coords[:, 1]] = grain_num
         return img
 
-    def concat_skeletons(self):
+    def concat_images_in_dict(self, image_dict: dict):
         """Concatonates the skeletons in the skeleton dictionary onto one image"""
-        self.skeletons = np.zeros_like(self.grains_orig)
-        for skeleton in self.skeleton_dict.values():
-            self.skeletons += skeleton
+        skeletons = np.zeros_like(self.grains_orig)
+        for skeleton in image_dict.values():
+            skeletons += skeleton
+        return skeletons
 
     def get_disordered_trace(self):
         """Puts skeletons into dictionary"""
@@ -354,7 +387,7 @@ class dnaTrace(object):
 
                 # Use the perp array to index the guassian filtered image
                 perp_array = np.column_stack((x_coords, y_coords))
-                height_values = self.gauss_image[perp_array[:, 1], perp_array[:, 0]]
+                height_values = self.full_image_data[perp_array[:, 1], perp_array[:, 0]]
 
                 """
                 # Old code that interpolated the height profile for "sub-pixel
@@ -561,7 +594,7 @@ class dnaTrace(object):
 
     def show_traces(self):
 
-        plt.pcolormesh(self.gauss_image, vmax=-3e-9, vmin=3e-9)
+        plt.pcolormesh(self.full_image_data, vmax=-3e-9, vmin=3e-9)
         plt.colorbar()
         for dna_num in sorted(self.disordered_traces.keys()):
             plt.plot(self.ordered_traces[dna_num][:, 0], self.ordered_traces[dna_num][:, 1], markersize=1)
@@ -950,6 +983,8 @@ class nodeStats():
         self.skeleton = None
         self.conv_skelly = None
         self.connected_nodes = None
+        self.all_connected_nodes = self.skeletons.copy()
+
         self.node_centre_mask = None
         self.node_dict = None
         self.test = None
@@ -973,10 +1008,10 @@ class nodeStats():
                                 |-> 'node stats'
                                     |-> 'node_area_grain', 'node_area_image', 'node_branch_mask', 'node_mid_coords'
         """
-        for skeleton_no in range(1, label(self.skeletons).max() + 1):
+        labelled_skeletons = label(self.skeletons)
+        for skeleton_no in range(1, labelled_skeletons.max() + 1):
             self.skeleton = self.skeletons.copy()
-            self.skeleton[self.skeleton != skeleton_no] = 0
-            self.skeleton[self.skeleton != 0] = 1
+            self.skeleton[labelled_skeletons != skeleton_no] = 0
             self.conv_skelly = convolve_skelly(self.skeleton)
             if len(self.conv_skelly[self.conv_skelly==3]) != 0: # check if any nodes
                 self.connect_close_nodes(node_width=6)
@@ -1023,12 +1058,22 @@ class nodeStats():
 
         self.node_centre_mask = small_node_mask
 
-    def analyse_nodes(self, box_length: int = 20):
+    def analyse_nodes(self, box_length: float = 20):
         """This function obtains the main analyses for the nodes of a single molecule. Within a certain box (nm) around the node.
 
-        bg = 0, skeleton = 1, endpoints = 2, nodes = 3, #branches = 4.
+        bg = 0, skeleton = 1, endpoints = 2, nodes = 3.
+
+        Parameters:
+        -----------
+        box_length: float
+            The side length of the box around the node to analyse (in nm).
+
         """
+        # santity check for box length (too small can cause empty sequence error)
         length = int((box_length / 2) / self.px_2_nm)
+        if length < 10:
+            length = 10
+
         x_arr, y_arr = np.where(self.node_centre_mask.copy() == 3)
         # check whether average trace resides inside the grain mask
         dilate = ndimage.binary_dilation(self.skeleton, iterations=2)
@@ -1038,17 +1083,19 @@ class nodeStats():
         node_dict = {}
         real_node_count = 0
         for node_no, (x, y) in enumerate(zip(x_arr, y_arr)): # get centres
-            # get area around node
+            # get area around node - might need to check if box lies on the edge
             image_area = self.image[x-length : x+length+1, y-length : y+length+1]
             node_area = self.connected_nodes.copy()[x-length : x+length+1, y-length : y+length+1]
             node_coords = np.stack(np.where(node_area == 3)).T
             centre = (np.asarray(node_area.shape) / 2).astype(int)
             branch_mask = self.clean_centre_branches(node_area)
             branch_img = np.zeros_like(node_area) # initialising paired branch img
-            
+
             # iterate through branches to order
             labeled_area = label(branch_mask)
             LOGGER.info(f"No. branches from node {node_no}: {labeled_area.max()}")
+            
+            # for cats paper figures - should be removed
             if node_no == 0:
                 self.test = labeled_area
 
@@ -1168,10 +1215,11 @@ class nodeStats():
                     }
                 }
 
+            self.all_connected_nodes[self.connected_nodes !=0] = self.connected_nodes[self.connected_nodes !=0]
             self.node_dict = node_dict
 
     def order_branch(self, binary_image: np.ndarray):
-        """Orders the branch by identify an endpoint, and looking at the local area of the point to find the next.
+        """Orders a linear branch by identifing an endpoint, and looking at the local area of the point to find the next.
 
         Parameters
         ----------
@@ -1184,10 +1232,12 @@ class nodeStats():
             An array of ordered cordinates.
         """
         binary_image = np.pad(binary_image, 1).astype(int)
+        #print('bin: ', np.unique(binary_image))
         # get branch starts
         endpoints_highlight = ndimage.convolve(binary_image, np.ones((3, 3)))
         endpoints_highlight[binary_image == 0] = 0
         endpoints = np.argwhere(endpoints_highlight == 2)
+        #print('ends: ', endpoints)
         # as > 1 endpoint, find one closest to node
         centre = (np.asarray(binary_image.shape) / 2).astype(int)
         dist_vals = abs((endpoints - centre).sum(axis=1))
@@ -1201,6 +1251,7 @@ class nodeStats():
         ordered = np.zeros_like(all_points)
         ordered[0] += endpoint
         binary_image[endpoint[0], endpoint[1]] = 0  # remove from array
+        
         # iterate to order the rest of the points
         for i in range(no_points - 1):
             current_point = ordered[i]  # get last point
@@ -1235,8 +1286,9 @@ class nodeStats():
         return local_pixels, local_pixels.sum()
 
     def clean_centre_branches(self, node_area: np.ndarray) -> np.ndarray:
-        """This function check to see if the node area contains another node. If it does,
-        it removes the node and branche pixels associated with only that extra node.
+        """This function check to see if the node area contains another node or the skeleton
+        exits and re-enters the zone. If it does, it removes the node and branche pixels associated 
+        with only that extra node.
 
         Parameters
         ----------
@@ -1248,7 +1300,11 @@ class nodeStats():
         np.ndarray
             A binary branch mask of the branches around the central node only.
         """
+        node_area = np.pad(node_area, 1)
         centre = (np.asarray(node_area.shape) / 2).astype(int)
+        
+        # if exits and re-enters zone, can get more labels
+        node_area = self._remove_re_entering_branches(node_area, remaining_branches=1)
         # highlight only nodes
         nodes = node_area.copy()
         nodes[nodes!=3] = 0
@@ -1285,7 +1341,7 @@ class nodeStats():
                 point_in_coords = (np.isin(branch_coords, connecting_branch_points).sum(axis=1)==2).any()
                 if not point_in_coords:
                     branches[labeled_branches==i] = 0 # remove from view if not connected
-        return branches
+        return branches[1:-1, 1:-1]
 
     @staticmethod
     def get_vector(coords, origin):
@@ -1557,12 +1613,7 @@ class nodeStats():
         labels = label(dilate2)
 
         # if parallel trace out and back in zone, can get > 2 labels
-        if labels.max() > 2:
-            lens = [labels[labels==i].size for i in range(1, labels.max()+1)]
-            while len(lens) > 2:
-                smallest_idx = min(enumerate(lens), key=lambda x: x[1])[0]
-                labels[labels==smallest_idx+1] = 0
-                lens.remove(min(lens))
+        labels = self._remove_re_entering_branches(labels, remaining_branches=2)
 
         # if parallel trace doesn't exit window, can get 1 label
         #   occurs when skeleton has poor connections (extra branches which cut corners)
@@ -1633,3 +1684,22 @@ class nodeStats():
         average_heights = (common_avg_branch_heights + common_avg1_heights + common_avg2_heights) / 3
         
         return common_dists, average_heights, binary
+
+    @staticmethod
+    def _remove_re_entering_branches(image: np.ndarray, remaining_branches: int = 1) -> np.ndarray:
+        """Looks to see if branches exit and re-enter the viewing area, then removes one-by-one the smallest,
+        so that only <remaining_branches> remain.
+        """
+        rtn_image = image.copy()
+        binary_image = image.copy()
+        binary_image[binary_image != 0] = 1
+        labels = label(binary_image)
+
+        if labels.max() > remaining_branches:
+            lens = [labels[labels==i].size for i in range(1, labels.max()+1)]
+            while len(lens) > remaining_branches:
+                smallest_idx = min(enumerate(lens), key=lambda x: x[1])[0]
+                rtn_image[labels==smallest_idx+1] = 0
+                lens.remove(min(lens))
+        
+        return rtn_image
