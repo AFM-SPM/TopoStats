@@ -16,7 +16,7 @@ from tqdm import tqdm
 from topostats.io import find_files, read_yaml, write_yaml, save_folder_grainstats, LoadScans
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plotting import toposum
-from topostats.processing import completion_message, process_scan
+from topostats.processing import check_run_steps, completion_message, process_scan
 from topostats.utils import update_config, update_plotting_config
 from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA
 
@@ -155,6 +155,13 @@ def main(args=None):
         config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML plotting configuration file"
     )
 
+    # Check earlier stages of processing are enabled for later.
+    check_run_steps(
+        filter_run=config["filter"]["run"],
+        grains_run=config["grains"]["run"],
+        grainstats_run=config["grainstats"]["run"],
+        dnatracing_run=config["dnatracing"]["run"],
+    )
     # Update the config["plotting"]["plot_dict"] with plotting options
     config["plotting"] = update_plotting_config(config["plotting"])
 

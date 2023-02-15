@@ -123,6 +123,12 @@ def process_scan(
             **plotting_config["plot_dict"][plot_name],
         ).plot_and_save()
 
+    else:
+        LOGGER.error(
+            "You have not included running the initial filter stage. This is required for all subsequent "
+            "stages of processing. Please check your configuration file."
+        )
+
     # Find Grains :
     if grains_config["run"]:
         grains_config.pop("run")
@@ -253,6 +259,7 @@ def process_scan(
                     #      gives duplicate molecule numbers as they are processed separately
                     results = grainstats_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"])
                 else:
+                    LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
                     results = grainstats_df
                     results["image"] = filename
                     results["basename"] = image_path.parent
@@ -273,6 +280,51 @@ def process_scan(
         results = create_empty_dataframe()
 
     return image_path, results
+
+
+def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
+    """Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
+
+    This checks that earlier steps required are enabled.
+
+    Parameters
+    ----------
+    filter_run: bool
+        Flag for running Filtering.
+    grains_run: bool
+        Flag for running Grains.
+    grainstats_run: bool
+        Flag for running GrainStats.
+    dnatracing_run: bool
+        Flag for running DNA Tracing.
+
+    Returns
+    -------
+    None
+    """
+    if dnatracing_run:
+        if grainstats_run is False:
+            LOGGER.error("DNA tracing enabled but Grainstats disabled. Please check your configuration file.")
+        elif grains_run is False:
+            LOGGER.error("DNA tracing enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("DNA tracing enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif grainstats_run:
+        if grains_run is False:
+            LOGGER.error("Grainstats enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("Grainstats enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif grains_run:
+        if filter_run is False:
+            LOGGER.error("Grains enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    else:
+        LOGGER.info("Configuration run options are consistent, processing can proceed.")
 
 
 def completion_message(config: Dict, img_files: List, summary_config: Dict, images_processed: pd.DataFrame) -> None:
