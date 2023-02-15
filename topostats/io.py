@@ -692,7 +692,7 @@ class LoadScans:
             else:
                 raise ValueError(
                     f"File type {suffix} not yet supported. Please make an issue at \
-                https://github.com/AFM-SPM/TopoStats/issues, or contact a developer to request support for \
+                https://github.com/AFM-SPM/TopoStats/issues, or email topostats@sheffield.ac.uk to request support for \
                 this file type."
                 )
 
