@@ -13,6 +13,7 @@ import yaml
 import pandas as pd
 from tqdm import tqdm
 
+from topostats._version import get_versions
 from topostats.io import find_files, read_yaml, write_yaml, save_folder_grainstats, LoadScans
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plotting import toposum
@@ -104,6 +105,13 @@ def create_parser() -> arg.ArgumentParser:
     )
     parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
     parser.add_argument("-q", "--quiet", dest="quiet", type=bool, required=False, help="Toggle verbosity.")
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"Installed version of TopoStats : {get_versions()}",
+        help="Report the current version of TopoStats that is installed.",
+    )
     parser.add_argument(
         "-w",
         "--warnings",
@@ -247,9 +255,11 @@ def main(args=None):
     write_yaml(config, output_dir=config["output_dir"])
     results.reset_index(inplace=True)  # So we can access unique image names
     images_processed = len(results["image"].unique())
+    topostats_version = get_versions()
     LOGGER.info(
         (
             f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+            f"  TopoStats Version           : {topostats_version['version']}\n"
             f"  Base Directory              : {config['base_dir']}\n"
             f"  File Extension              : {config['file_ext']}\n"
             f"  Files Found                 : {len(img_files)}\n"
