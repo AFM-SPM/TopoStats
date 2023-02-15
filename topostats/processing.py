@@ -327,7 +327,7 @@ def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dn
         LOGGER.info("Configuration run options are consistent, processing can proceed.")
 
 
-def completion_message(config: Dict, img_files: List, summary_config: Dict, images_processed: pd.DataFrame) -> None:
+def completion_message(config: Dict, img_files: List, summary_config: Dict, images_processed: int) -> None:
     """Print a completion message summarising images processed.
 
     Parameters
@@ -338,7 +338,7 @@ def completion_message(config: Dict, img_files: List, summary_config: Dict, imag
         List of found image paths.
     summary_config: dict(
         Configuration for plotting summary statistics.
-    results: pd.DataFrame
+    images_processed: int
         Pandas DataFrame of results.
 
     Results
