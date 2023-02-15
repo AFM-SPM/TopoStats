@@ -88,6 +88,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
             ),
+            "row_alignment_quantile": lambda n: 0.0 <= n <= 1.0,
             "threshold_method": Or(
                 "absolute",
                 "otsu",
