@@ -261,7 +261,6 @@ def process_scan(
                 else:
                     LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
                     results = grainstats_df
-                    results["image"] = filename
                     results["basename"] = image_path.parent
             except Exception:
                 # If no results we need a dummy dataframe to return.
@@ -270,7 +269,6 @@ def process_scan(
                     "returning grain statistics"
                 )
                 results = grainstats_df
-                results["image"] = filename
                 results["basename"] = image_path.parent
         else:
             LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
