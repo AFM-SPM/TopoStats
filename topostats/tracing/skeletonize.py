@@ -591,7 +591,8 @@ class joePrune:
             single_skeleton[single_skeleton != i] = 0
             single_skeleton[single_skeleton == i] = 1
             pruned_skeleton_mask += self._prune_single_skeleton(single_skeleton)
-            pruned_skeleton_mask = self._remove_low_dud_branches(pruned_skeleton_mask, self.image)
+            #pruned_skeleton_mask = self._remove_low_dud_branches(pruned_skeleton_mask, self.image)
+            pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton('zhang') # reskel to remove nibs
         return pruned_skeleton_mask
 
     def _prune_single_skeleton(self, single_skeleton: np.ndarray) -> np.ndarray:
@@ -742,8 +743,9 @@ class maxPrune:
             single_skeleton = self.skeleton.copy()
             single_skeleton[single_skeleton != i] = 0
             single_skeleton[single_skeleton == i] = 1
-            pruned_skeleton_mask += self._prune_single_skeleton(single_skeleton)
+            pruned_skeleton_mask += self._prune_single_skeleton(single_skeleton) # maybe need to add other option for large images of like 20px
             #pruned_skeleton_mask = self._remove_low_dud_branches(pruned_skeleton_mask, self.image)
+            pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton('zhang')
         return pruned_skeleton_mask
 
     def _prune_single_skeleton(self, single_skeleton: np.ndarray, threshold: float = 0.15) -> np.ndarray:
