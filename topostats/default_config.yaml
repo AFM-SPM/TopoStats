@@ -38,7 +38,7 @@ grains:
     upper: 1.0
   direction: upper # Options: upper, lower, both (defines whether to look for grains above or below thresholds or both)
   # Thresholding by area
-  smallest_grain_size_nm2: 50 # Size in nm^2 of tiny grains/blobs (noise) to remove.
+  smallest_grain_size_nm2: 50 # Size in nm^2 of tiny grains/blobs (noise) to remove, must be > 0.0
   absolute_area_threshold:
     upper: [ 300, 3000 ] # above surface [Low, High] in nm^2 (also takes null)
     lower: [ null, null ] # below surface [Low, High] in nm^2 (also takes null)
