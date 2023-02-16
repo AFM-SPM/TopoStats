@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from topostats.logs.logs import LOGGER_NAME
+from topostats.utils import create_empty_dataframe
 
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-instance-attributes
@@ -291,11 +292,14 @@ class GrainStats:
                 "min_feret": min_feret * length_scaling_factor,
             }
             stats_array.append(stats)
+        if len(stats_array) > 0:
+            grainstats_df = pd.DataFrame(data=stats_array)
+        else:
+            grainstats_df = create_empty_dataframe()
+        grainstats_df.index.name = "molecule_number"
+        grainstats_df["image"] = self.image_name
 
-        grainstats = pd.DataFrame(data=stats_array)
-        grainstats.index.name = "molecule_number"
-
-        return grainstats, grains_plot_data
+        return grainstats_df, grains_plot_data
 
     @staticmethod
     def calculate_points(grain_mask: np.ndarray):

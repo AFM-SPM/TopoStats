@@ -246,8 +246,7 @@ class TopoSum:
         """
         plt.savefig(self.output_dir / f"{outfile}.{self.file_ext}")
         LOGGER.info(
-            f"[plotting] Plotted {self.stat_to_sum} to : "
-            f"{str(self.output_dir / f'{outfile}.{self.file_ext}')}.{self.file_ext}"
+            f"[plotting] Plotted {self.stat_to_sum} to : " f"{str(self.output_dir / f'{outfile}.{self.file_ext}')}"
         )
 
     def _set_label(self, var: str):
@@ -288,15 +287,17 @@ def toposum(config: dict) -> Dict:
     figures = defaultdict()
     # Plot each variable on its own graph
     for var in all_stats_to_sum:
-        topo_sum = TopoSum(stat_to_sum=var, **config)
-        figures[var] = {"dist": None, "violin": None}
-        figures[var]["dist"] = defaultdict()
-        figures[var]["dist"]["figure"], figures[var]["dist"]["axes"] = topo_sum.sns_plot()
+        if var in config["df"].columns:
+            topo_sum = TopoSum(stat_to_sum=var, **config)
+            figures[var] = {"dist": None, "violin": None}
+            figures[var]["dist"] = defaultdict()
+            figures[var]["dist"]["figure"], figures[var]["dist"]["axes"] = topo_sum.sns_plot()
 
-        if violin:
-            figures[var]["violin"] = defaultdict()
-            figures[var]["violin"]["figure"], figures[var]["violin"]["axes"] = topo_sum.sns_violinplot()
-
+            if violin:
+                figures[var]["violin"] = defaultdict()
+                figures[var]["violin"]["figure"], figures[var]["violin"]["axes"] = topo_sum.sns_violinplot()
+        else:
+            LOGGER.info(f"[plotting] Statistic is not in dataframe : {var}")
     if pickle_plots:
         outfile = Path(config["output_dir"]) / "distribution_plots.pkl"
         save_pkl(outfile=outfile, to_pkl=figures)
