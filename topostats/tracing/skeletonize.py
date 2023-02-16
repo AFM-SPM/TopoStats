@@ -70,15 +70,15 @@ class getSkeleton:
             Returns the function appropriate for the required skeletonizing method.
         """
         if method == "zhang":
-            return self._skeletonize_zhang(self.mask)
+            return self._skeletonize_zhang(self.mask).astype(np.int32)
         if method == "lee":
-            return self._skeletonize_lee(self.mask)
+            return self._skeletonize_lee(self.mask).astype(np.int32)
         if method == "medial_axis":
-            return self._skeletonize_medial_axis(self.mask)
+            return self._skeletonize_medial_axis(self.mask).astype(np.int32)
         if method == "thin":
-            return self._skeletonize_thin(self.mask)
+            return self._skeletonize_thin(self.mask).astype(np.int32)
         if method == "joe":
-            return self._skeletonize_joe(self.image, self.mask)
+            return self._skeletonize_joe(self.image, self.mask).astype(np.int32)
         raise ValueError(method)
 
     @staticmethod
