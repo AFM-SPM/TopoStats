@@ -92,13 +92,13 @@ class dnaTrace(object):
         #self.gaussian_grains()
         self.smooth_grains()
         self.smoothed_grains = self.concat_images_in_dict(image_dict=self.grains)
-
         for grain_num, grain in self.grains.items():
             skeleton = getSkeleton(self.full_image_data, grain).get_skeleton(self.skeletonisation_method)
             self.orig_skeleton_dict[grain_num] = skeleton
             LOGGER.info(f"[{self.filename}] {label(skeleton).max()-1} breakages in skeleton {grain_num}")
             pruned_skeleton = pruneSkeleton(self.full_image_data, skeleton).prune_skeleton(self.pruning_method)
             self.skeleton_dict[grain_num] = pruned_skeleton
+            self.purge_obvious_crap(self.skeleton_dict)
         self.orig_skeletons = self.concat_images_in_dict(image_dict=self.orig_skeleton_dict)
         self.skeletons = self.concat_images_in_dict(image_dict=self.skeleton_dict)
 
@@ -148,7 +148,6 @@ class dnaTrace(object):
             gauss[gauss > threshold_otsu(gauss)*1.3] = 1
             gauss[gauss != 1] = 0
             gauss = gauss.astype(np.int32)
-            print(f"Dilation: {dilation.sum()-image.sum()}, Gauss: {gauss.sum()-image.sum()}")
             if dilation.sum()-image.sum() > gauss.sum()-image.sum():
                 self.grains[grain_num] = self.re_add_holes(image, gauss)
             else:
@@ -173,10 +172,18 @@ class dnaTrace(object):
         holes[holes == max_idx] = 0
         holes[holes != 0] = 1
 
-        holy_gauss = new_mask.copy()
-        holy_gauss[holes==1] = 0
+        holey_gauss = new_mask.copy()
+        holey_gauss[holes==1] = 0
 
-        return holy_gauss
+        return holey_gauss
+
+    @staticmethod
+    def purge_obvious_crap(skeleton_dict: dict) -> None:
+        """Removes skeletons < 10px. Caused when circular objects are skeletonised."""
+        for dna_num in sorted(skeleton_dict.keys()):
+            if len(skeleton_dict[dna_num]) < 10:
+                skeleton_dict.pop(dna_num, None)
+                print("Popped :", dna_num)
 
     # FIXME : It is straight-forward to get bounding boxes for grains, need to then have a dictionary of original image
     #         and label for each grain to then be processed.
@@ -1081,6 +1088,7 @@ class nodeStats():
         LOGGER.info(f"Branch height traces will be averaged: {average_trace_advised}")
         # iterate over the nodes to find areas
         node_dict = {}
+        matched_branches = None
         real_node_count = 0
         for node_no, (x, y) in enumerate(zip(x_arr, y_arr)): # get centres
             # get area around node - might need to check if box lies on the edge
@@ -1089,8 +1097,7 @@ class nodeStats():
             node_coords = np.stack(np.where(node_area == 3)).T
             centre = (np.asarray(node_area.shape) / 2).astype(int)
             branch_mask = self.clean_centre_branches(node_area)
-            branch_img = np.zeros_like(node_area) # initialising paired branch img
-
+            np.savetxt("test.txt", node_area)
             # iterate through branches to order
             labeled_area = label(branch_mask)
             LOGGER.info(f"No. branches from node {node_no}: {labeled_area.max()}")
@@ -1128,6 +1135,7 @@ class nodeStats():
 
                 # join matching branches (through node?)
                 matched_branches = {}
+                branch_img = np.zeros_like(node_area) # initialising paired branch img
                 avg_img = np.zeros_like(node_area)
                 for i, (branch_1, branch_2) in enumerate(pairs):
                     matched_branches[i] = {}
@@ -1155,7 +1163,6 @@ class nodeStats():
                         distances, heights, mask = self.average_height_trace(image_area, single_branch)
                         matched_branches[i]["heights"] = heights
                         matched_branches[i]["distances"] = distances
-                        
                         avg_img[mask!=0] = i + 1
 
                     else:
@@ -1163,6 +1170,7 @@ class nodeStats():
                         distances = self.coord_dist(branch_coords)
                         matched_branches[i]["heights"] = heights
                         matched_branches[i]["distances"] = distances
+
                     # identify over/under
                     fwhm2 = self.fwhm2(heights, distances)
                     matched_branches[i]["fwhm2"] = fwhm2
@@ -1205,12 +1213,15 @@ class nodeStats():
                     coords = values["ordered_coords"]
                     nodes_and_branches[coords[:,0], coords[:,1]] = branch_num + 1
 
+                #print("++ Here")
+
                 node_dict[real_node_count] = {
                     "branch_stats": matched_branches,
                     "node_stats": {
                         "node_mid_coords": [x, y],
                         "node_area_image": image_area,
                         "node_area_grain": self.grains[x-length : x+length+1, y-length : y+length+1],
+                        "node_area_skeleton": node_area,
                         "node_branch_mask": branch_img, # to remove padding
                     }
                 }
@@ -1604,6 +1615,8 @@ class nodeStats():
         branch_coords = np.stack(np.where(branch_mask==1)).T
         branch_dist = self.coord_dist(branch_coords)
         branch_heights = img[branch_coords[:,0], branch_coords[:,1]]
+        print('Og_Height: ', len(branch_heights))
+        print('Og_Distance: ', len(branch_dist))
         branch_dist_norm = branch_dist - branch_dist[branch_heights.argmax()]
         
         # want to get a 3 pixel line trace, one on each side of orig
@@ -1611,7 +1624,7 @@ class nodeStats():
         dilate2 = ndimage.binary_dilation(dilate)
         dilate2[(dilate == 1) | (branch_mask == 1)] = 0
         labels = label(dilate2)
-
+        
         # if parallel trace out and back in zone, can get > 2 labels
         labels = self._remove_re_entering_branches(labels, remaining_branches=2)
 
@@ -1632,6 +1645,7 @@ class nodeStats():
         binary += branch_mask
         
         # get and order coords, get heights and distances
+        centre_fraction = 1 - 0.8 # the middle % of data to look for peak - stops peaks being found at edges
         heights = []
         distances = []
         for i in range(1, labels.max() + 1):
@@ -1641,9 +1655,14 @@ class nodeStats():
             trace = getSkeleton(img, trace).get_skeleton('zhang')
             trace = self.order_branch(trace)
             height_trace = img[trace[:,0], trace[:,1]]
+            height_len = len(height_trace)
+            central_heights = height_trace[int(height_len * centre_fraction) : int(- height_len * centre_fraction)]
             heights.append(height_trace)
             dist = self.coord_dist(trace)
-            distances.append(dist - dist[height_trace.argmax()])
+            distances.append(dist - dist[central_heights.argmax()])
+
+        print("Para Heights: ", len(heights[0]), len(heights[1]))
+        print("Para Distances: ", len(distances[0]), len(distances[1]))
         
         # Make like coord system using original branch
         avg1 = []
@@ -1682,7 +1701,6 @@ class nodeStats():
         common_avg2_heights = avg2[:,1][np.isin(avg2[:,0], common_dists)]
         
         average_heights = (common_avg_branch_heights + common_avg1_heights + common_avg2_heights) / 3
-        
         return common_dists, average_heights, binary
 
     @staticmethod
