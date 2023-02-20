@@ -9,6 +9,7 @@ import importlib.resources as pkg_resources
 import logging
 from multiprocessing import Pool
 from pathlib import Path
+from pprint import pprint
 import sys
 from typing import Union, Dict
 import yaml
@@ -440,6 +441,7 @@ def main(args=None):
         sys.exit()
     LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
     LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
+    LOGGER.debug(f"Configuration after update         : \n{pprint(config, indent=4)}")  # noqa : T203
 
     processing_function = partial(
         process_scan,
@@ -476,6 +478,7 @@ def main(args=None):
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
     images_processed = len(results["Image Name"].unique())
+    LOGGER.debug(f"Images processed : {images_processed}")
     LOGGER.info(
         (
             f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
