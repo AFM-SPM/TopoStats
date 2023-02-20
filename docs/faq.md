@@ -10,11 +10,13 @@ the GitHub repository. Developers will endeavour to help you resolve your proble
 
 # General Questions
 
-## My files image files are on a network drive, can I process them there?
+## My files image files are on a mounted Google Drive, can I process them there?
 
-Maybe! We have had mixed success with processing images that are located on network drives. If you find you are
-encountering errors such as `FileExistsError` (see [#201](https://github.com/AFM-SPM/TopoStats/issues/201)) then please
-copy your files to a local drive on your computer for processing and then copy the results back to the network drive.
+Maybe! We have had mixed success with processing images that are located on Google Drive and mounted on your local
+computer.
+If you find you are encountering errors such as `FileExistsError` (see
+[#201](https://github.com/AFM-SPM/TopoStats/issues/201)) then please copy your files to a local drive on your computer
+for processing and then copy the results back to the network drive.
 
 # Common Errors
 
