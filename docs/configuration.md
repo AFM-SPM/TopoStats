@@ -1,31 +1,33 @@
 # Configuration
 
-Configuration for TopoStats is done using a [YAML](https://yaml.org/) configuration file that is specified on the command line when
-invoking. The current configuration file is provided in the TopoStats repository at
+Configuration for TopoStats is done using a [YAML](https://yaml.org/) configuration file that is specified on the
+command line when invoking. The current configuration file is provided in the TopoStats repository at
 [`topostats/default_config.yaml`](https://github.com/AFM-SPM/TopoStats/blob/main/topostats/default_config.yaml) but
 please be aware this may not work with your installed version, particularly if you installed from PyPI.
 
 ## Generating a configuration
 
-You can always [generate a configuration file](usage#generating-configuration-file) appropriate for the version you have
-installed (bar v2.0.0 as this option was added afterwards).
+You can always generate a configuration file appropriate for the version you have installed (bar v2.0.0 as this option
+was added afterwards). This writes the default configuration to the specified filename (i.e. it does not have to be
+called `config.yaml` it could be called `spm-2023-02-20.yaml`)
 
 ``` bash
 run_topostats --create-config-file config.yaml
 ```
 
-This produces the file `config.yaml` which contains comments indicating valid values for many of the
-fields. If no configuration file is provided this default configuration is loaded automatically and used.
+If no configuration file is provided this default configuration is loaded automatically and used.
 
 ## Using a custom configuration
 
-You can modify and edit a configuration and, once saved, you can run TopoStats with this configuration file as shown below.
+If you have generated a configuration file you can modify and edit a configuration it to change the parameters (see
+fields below). Once these changes have been saved, you can run TopoStats with this configuration file as shown below.
 
 ``` bash
 run_topostats --config my_config.yaml
 ```
 
-On completion a copy of the configuration that was used is written to the output directory.
+On completion a copy of the configuration that was used is written to the output directory so you have a record of the
+parameters used to generate the results you have. This file can be used in subsequent runs of TopoStats.
 
 
 ## YAML Structure
