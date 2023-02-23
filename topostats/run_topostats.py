@@ -403,18 +403,29 @@ def process_scan(
                             ).save_figure_black(
                                 background=single_node_stats["node_stats"]["node_area_grain"]
                                 )
-                            plotting_config["plot_dict"]["line_trace"] = {"title": "Heights of Crossing", "cmap": "blu_purp"}
-                            fig, _ = plot_crossing_linetrace_gauss(
-                                single_node_stats["branch_stats"],
-                                **plotting_config["plot_dict"]["line_trace"],
+                            Images(
+                                single_node_stats["node_stats"]["node_area_image"],
+                                data2=single_node_stats["node_stats"]["node_area_skeleton"],
+                                filename=f"mol_{mol_no}_node_{node_no}_node_area",
+                                output_dir=output_dir / "nodes",
+                                zrange=[0, 3.5e-9],
+                                **plotting_config["plot_dict"]["crossings"],
+                            ).save_figure_black(
+                                background=single_node_stats["node_stats"]["node_area_grain"]
                                 )
-                            fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_gauss")
-                            fig, _ = plot_crossing_linetrace_halfmax(
-                                single_node_stats["branch_stats"],
-                                **plotting_config["plot_dict"]["line_trace"],
-                                )
-                            fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax")
-                    
+                            if not single_node_stats["error"]:
+                                plotting_config["plot_dict"]["line_trace"] = {"title": "Heights of Crossing", "cmap": "blu_purp"}
+                                fig, _ = plot_crossing_linetrace_gauss(
+                                    single_node_stats["branch_stats"],
+                                    **plotting_config["plot_dict"]["line_trace"],
+                                    )
+                                fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_gauss")
+                                fig, _ = plot_crossing_linetrace_halfmax(
+                                    single_node_stats["branch_stats"],
+                                    **plotting_config["plot_dict"]["line_trace"],
+                                    )
+                                fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax")
+
                     #np.savetxt("test_skel.txt", dna_traces[direction].skeletons)
                     #np.savetxt("knot_mask.txt", grains.directions[direction]["removed_small_objects"])
                     #np.savetxt("knot_img.txt", nodes.image)
