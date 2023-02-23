@@ -202,7 +202,7 @@ def main(args=None):
 
     all_scan_data = LoadScans(img_files, **config["loading"])
     all_scan_data.get_data()
-    scan_data_dict = all_scan_data.img_dic
+    scan_data_dict = all_scan_data.img_dict
 
     with Pool(processes=config["cores"]) as pool:
         results = defaultdict()

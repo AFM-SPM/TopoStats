@@ -303,3 +303,10 @@ Labels for the plots are generated from the file `topostats/var_to_label.yaml` w
 variable name as the dictionary `key` to its description stored in the dictionary `value`.  If you wish to customise
 these you can do so and pass it to `toposum` using the `--plotting_dictionary` which takes as an argument the path to
 the file you have created.
+
+### Pickles
+
+The option `pickle_plots: True` will save to the specified `output_dir` the file `distribution_plots.pkl` which is a
+binary format that saves the plots that have been generated and saved in nested dictionaries so that they can be loaded
+again. The Notebook `notebooks/01-Summary-statistics-and-plots.ipynb` shows how to load these and make simple
+modifications to the the plots.

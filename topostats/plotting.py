@@ -51,6 +51,13 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
     )
+    parser.add_argument(
+        "--create-label-file",
+        dest="create_label_file",
+        type=str,
+        required=False,
+        help="Filename to write a sample YAML label file to (should end in '.yaml').",
+    )
     return parser
 
 
@@ -343,9 +350,23 @@ def main():
             "https://afm-spm.github.io/TopoStats/configuration.html"
         )
         sys.exit()
+    if args.create_label_file:
+        write_yaml(
+            config,
+            output_dir="./",
+            config_file=args.create_label_file,
+            header_message="Sample label file auto-generated",
+        )
+        LOGGER.info(f"A sample label file has been written to : ./{args.create_label_file}")
+        LOGGER.info(
+            "Please refer to the documentation on how to use the configuration file : \n\n"
+            "https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats\n"
+            "https://afm-spm.github.io/TopoStats/configuration.html"
+        )
+        sys.exit()
 
     # Plot statistics
-    toposum(config)
+    figures = toposum(config)
 
 
 if __name__ == "__main__":
