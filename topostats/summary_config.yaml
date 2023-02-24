@@ -1,4 +1,3 @@
-base_dir: ./
 output_dir: ./output/summary_distributions
 csv_file: ./all_statistics.csv
 file_ext: png

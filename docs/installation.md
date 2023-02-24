@@ -108,6 +108,12 @@ i.e. `pip install -e .`.
 If you wish to develop features or address an existing [issue](https://github.com/AFM-SPM/TopoStats/issues) please refer
 to the [contributing](contributing) section.
 
+If you wish to run the [Jupyter Noteooks](https://jupyter.org/) that reside under `notebooks/` then you can install all
+requirements using
+
+``` bash
+pip install .[notebooks]
+```
 
 ## Tests
 
