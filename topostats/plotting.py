@@ -281,10 +281,13 @@ def toposum(config: dict) -> Dict:
        'violin' is itself a dictionary with two elements 'figures' and 'axes' which correspond to MatplotLib 'fig' and
        'ax' for that plot.
     """
+    if "df" not in config.keys():
+        config["df"] = pd.read_csv(config["csv_file"])
     violin = config.pop("violin")
     all_stats_to_sum = config.pop("stats_to_sum")
     pickle_plots = config.pop("pickle_plots")
     figures = defaultdict()
+
     # Plot each variable on its own graph
     for var in all_stats_to_sum:
         if var in config["df"].columns:

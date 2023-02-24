@@ -62,9 +62,7 @@ def write_yaml(
     # Save the configuration to output directory
     output_config = Path(output_dir) / config_file
     # Revert PosixPath items to string
-    # FIXME : Now need to recursively process the whole dictionary to convert PosixPath to string
-    config["base_dir"] = str(config["base_dir"])
-    config["output_dir"] = str(config["output_dir"])
+    config = path_to_str(config)
     config_yaml = yaml_load(yaml_dump(config))
     if header_message:
         config_yaml.yaml_set_start_comment(f"{header_message} : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -77,6 +75,28 @@ def write_yaml(
             f.write(yaml_dump(config_yaml))
         except YAMLError as exception:
             LOGGER.error(exception)
+
+
+def path_to_str(config: dict) -> Dict:
+    """Recursively traverse a dictionary and convert any Path() objects to strings for writing to YAML.
+
+    Parameters
+    ----------
+    config: dict
+        Dictionary to be converted.
+
+    Returns
+    -------
+    Dict:
+        The same dictionary with any Path() objects converted to string.
+    """
+    for key, value in config.items():
+        if isinstance(value, dict):
+            path_to_str(value)
+        elif isinstance(value, Path):
+            config[key] = str(value)
+
+    return config
 
 
 def get_out_path(

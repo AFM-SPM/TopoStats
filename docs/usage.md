@@ -285,10 +285,10 @@ and generate the plots you want there. A sample notebook is included to show how
 
 Configuration of summary plots is also via a YAML configuration file a description of the fields can be found under
 [configuration](configuration#summary-configuration) page. You can generate a sample configuration by invoking the
-`--create_config_file` option to `toposum`
+`--create-config-file` option to `toposum`
 
 ``` bash
-toposum --create_config_file custom_summary_config.yaml
+toposum --create-config-file custom_summary_config.yaml
 ```
 
 The file `custom_summary_config.yaml` can then be edited to change what plots are generated, where they are saved to and
