@@ -294,7 +294,6 @@ def main(args=None):
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
-    images_processed = len(results["Image Name"].unique())
     LOGGER.debug(f"Images processed : {images_processed}")
     completion_message(config, img_files, summary_config, images_processed)
 
