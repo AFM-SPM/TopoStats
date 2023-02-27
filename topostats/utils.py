@@ -8,7 +8,6 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 
-from topostats.io import get_out_path
 from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
 
@@ -16,29 +15,33 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 ALL_STATISTICS_COLUMNS = (
-    "Molecule Number",
+    "image",
+    "basename",
+    "molecule_number",
+    "area",
+    "area_cartesian_bbox",
+    "aspect_ratio",
+    "banding_angle",
     "centre_x",
     "centre_y",
-    "radius_min",
+    "circular",
+    "contour_lengths",
+    "end_to_end_distance",
+    "height_max",
+    "height_mean",
+    "height_median",
+    "height_min",
+    "max_feret",
+    "min_feret",
     "radius_max",
     "radius_mean",
     "radius_median",
-    "height_min",
-    "height_max",
-    "height_median",
-    "height_mean",
-    "volume",
-    "area",
-    "area_cartesian_bbox",
-    "smallest_bounding_width",
-    "smallest_bounding_length",
+    "radius_min",
     "smallest_bounding_area",
-    "aspect_ratio",
-    "Contour Lengths",
-    "Circular",
-    "End to End Distance",
-    "Image Name",
-    "Basename",
+    "smallest_bounding_length",
+    "smallest_bounding_width",
+    "threshold",
+    "volume",
 )
 
 
@@ -83,9 +86,33 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
                 original_value = config[arg_key]
                 config[arg_key] = arg_value
                 LOGGER.info(f"Updated config config[{arg_key}] : {original_value} > {arg_value} ")
-    config["base_dir"] = convert_path(config["base_dir"])
-    config["output_dir"] = convert_path(config["output_dir"])
+    if "base_dir" in config.keys():
+        config["base_dir"] = convert_path(config["base_dir"])
+    if "output_dir" in config.keys():
+        config["output_dir"] = convert_path(config["output_dir"])
     return config
+
+
+def update_plotting_config(plotting_config: dict) -> dict:
+    """Update the plotting config for each of the plots in plot_dict to ensure that each
+    entry has all the plotting configuration values that are needed."""
+
+    for image, options in plotting_config["plot_dict"].items():
+        plotting_config["plot_dict"][image] = {
+            **options,
+            "save_format": plotting_config["save_format"],
+            "image_set": plotting_config["image_set"],
+            "colorbar": plotting_config["colorbar"],
+            "axes": plotting_config["axes"],
+            "cmap": plotting_config["cmap"],
+            "mask_cmap": plotting_config["mask_cmap"],
+            "zrange": plotting_config["zrange"],
+            "histogram_log_axis": plotting_config["histogram_log_axis"],
+        }
+        if image not in ["z_threshed", "mask_overlay"]:
+            plotting_config["plot_dict"][image].pop("zrange")
+
+    return plotting_config
 
 
 def _get_mask(image: np.ndarray, thresh: float, threshold_direction: str, img_name: str = None) -> np.ndarray:
@@ -203,7 +230,7 @@ def get_thresholds(
     return thresholds
 
 
-def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS) -> pd.DataFrame:
+def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: tuple = ("molecule_number")) -> pd.DataFrame:
     """Create an empty data frame for returning when no results are found.
 
     Parameters
@@ -216,31 +243,5 @@ def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS) -> pd.DataFram
     pd.DataFrame
         Empty Pandas DataFrame.
     """
-    return pd.DataFrame([np.repeat(np.nan, len(columns))], columns=columns)
-
-
-def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], all_stats_df: pd.DataFrame) -> None:
-    """Saves a data frame of grain and tracing statictics at the folder level.
-
-    Parameters
-    ----------
-    output_dir: Union[str, Path]
-        Path of the output directory head.
-    base_dir: Union[str, Path]
-        Path of the base directory where files were found.
-    all_stats_df: pd.DataFrame
-        The dataframe containing all sample statistics run.
-
-    Returns
-    -------
-    None
-        This only saves the dataframes and does not retain them.
-    """
-    dirs = set(all_stats_df["Basename"].values)
-    try:
-        for _dir in dirs:
-            out_path = get_out_path(Path(_dir), base_dir, output_dir)
-            all_stats_df[all_stats_df["Basename"] == _dir].to_csv(out_path / "processed" / "folder_grainstats.csv")
-            LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/folder_grainstats.csv")
-    except TypeError:
-        LOGGER.info("Unable to generate folderwise statistics as 'all_stats_df' is empty")
+    empty_df = pd.DataFrame([np.repeat(np.nan, len(columns))], columns=columns)
+    return empty_df.set_index(index, inplace=True)

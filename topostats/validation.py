@@ -2,7 +2,7 @@
 import logging
 import os
 from pathlib import Path
-from schema import Or, Schema, SchemaError
+from schema import Optional, Or, Schema, SchemaError
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -28,7 +28,7 @@ def validate_config(config: dict, schema: Schema, config_type: str) -> None:
         LOGGER.info(f"The {config_type} is valid.")
     except SchemaError as schema_error:
         raise SchemaError(
-            f"There is an error in your {config_type} configuration."
+            f"There is an error in your {config_type} configuration. "
             "Please refer to the first error message above for details"
         ) from schema_error
 
@@ -50,6 +50,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ".asd",
             ".jpk",
             ".ibw",
+            ".gwy",
             error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw' or '.asd'.",
         ),
         "loading": {
@@ -61,6 +62,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "Adhesion",
                 "Deformation",
                 "Dissipation",
+                "Height Sensor",
                 "Height",  # end of spm channels
                 "HeightTracee",
                 "HeightRetrace",
@@ -92,6 +94,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
             ),
+            "row_alignment_quantile": lambda n: 0.0 <= n <= 1.0,
             "threshold_method": Or(
                 "absolute",
                 "otsu",
@@ -138,7 +141,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
         },
         "grains": {
             "run": Or(True, False, error="Invalid value in config for grains.run, valid values are 'True' or 'False'"),
-            "absolute_smallest_grain_size": int,
+            "smallest_grain_size_nm2": lambda n: n > 0.0,
             "threshold_method": Or(
                 "absolute",
                 "otsu",
@@ -204,16 +207,13 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'grainstats.run', valid values are 'True' or 'False'",
             ),
+            "edge_detection_method": Or(
+                "binary_erosion",
+                "canny",
+            ),
             "cropped_size": Or(
                 float,
                 int,
-            ),
-            "save_cropped_grains": Or(
-                True,
-                False,
-                error=(
-                    "Invalid value in config for 'grainstats.save_cropped_grains, valid values " "are 'True' or 'False'"
-                ),
             ),
         },
         "dnatracing": {
@@ -249,14 +249,34 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "cmap": Or(
                 "afmhot",
                 "nanoscope",
-                error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot' or 'nanoscope",
+                "gwyddion",
+                error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot', 'nanoscope' or 'gwyddion'",
             ),
+            "mask_cmap": str,
             "histogram_log_axis": Or(
                 True,
                 False,
-                error="Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or 'False'",
+                error=(
+                    "Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or "
+                    "'False'"
+                ),
             ),
             "histogram_bins": lambda n: n > 0,
+        },
+        "summary_stats": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for summary_stats.run, valid values are 'True' or 'False'",
+            ),
+            "config": Or(
+                None,
+                str,
+                error=(
+                    "Invalid value in config for summary_stats.config, valid values are 'None' or a path to a "
+                    "config file."
+                ),
+            ),
         },
     }
 )
@@ -582,7 +602,7 @@ PLOTTING_SCHEMA = Schema(
                     "Invalid value in config 'grain_image.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
-            "core_set": True,
+            "core_set": False,
         },
         "grain_mask": {
             "image_type": Or(
@@ -603,5 +623,91 @@ PLOTTING_SCHEMA = Schema(
             ),
             "core_set": bool,
         },
+    }
+)
+
+SUMMARY_SCHEMA = Schema(
+    {
+        "output_dir": Path,
+        "csv_file": str,
+        "file_ext": Or(
+            "png",
+            "pdf",
+            "svg",
+            error=("Invalid value in config 'file_ext', valid values are 'png', 'pdf' or 'svg' "),
+        ),
+        "pickle_plots": Or(
+            True, False, error="Invalid value in config for 'pickle_plots', valid values are 'True' or 'False'"
+        ),
+        "var_to_label": Or(
+            None, str, error="Invalid value in config for 'var_to_label', valid values are 'None' or a str"
+        ),
+        "image_id": str,
+        "molecule_id": str,
+        "hist": Or(
+            True,
+            False,
+            error="Invalid value in config for 'hist', valid values are 'True' or 'False'",
+        ),
+        "bins": lambda n: n > 0,
+        "stat": Or(
+            "count",
+            "frequency",
+            "probability",
+            "percent",
+            "density",
+            error=(
+                "Invalid value in config 'stat', valid values are 'count', 'frequency', "
+                "'probability', 'percent' or 'density'"
+            ),
+        ),
+        "kde": Or(
+            True,
+            False,
+            error="Invalid value in config for 'kde', valid values are 'True' or 'False'",
+        ),
+        "violin": Or(
+            True,
+            False,
+            error="Invalid value in config for 'violin', valid values are 'True' or 'False'",
+        ),
+        "figsize": [lambda n: n > 0],
+        "alpha": lambda n: n > 0,
+        "palette": Or(
+            "colorblind",
+            "deep",
+            "muted",
+            "pastel",
+            "bright",
+            "dark",
+            "Spectral",
+            "Set2",
+            error=(
+                "Invalid value in config 'palette', valid values are 'colorblind', 'deep', "
+                "'muted', 'pastel', 'bright', 'dark', 'Spectral' or 'Set2'"
+            ),
+        ),
+        "stats_to_sum": [
+            Optional("area"),
+            Optional("area_cartesian_bbox"),
+            Optional("aspect_ratio"),
+            Optional("bending_angle"),
+            Optional("contour_lengths"),
+            Optional("end_to_end_distance"),
+            Optional("height_max"),
+            Optional("height_mean"),
+            Optional("height_median"),
+            Optional("height_min"),
+            Optional("max_feret"),
+            Optional("min_feret"),
+            Optional("radius_max"),
+            Optional("radius_mean"),
+            Optional("radius_median"),
+            Optional("radius_min"),
+            Optional("smallest_bounding_area"),
+            Optional("smallest_bounding_length"),
+            Optional("smallest_bounding_width"),
+            Optional("volume"),
+        ],
     }
 )
