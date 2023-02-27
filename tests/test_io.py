@@ -10,6 +10,7 @@ from topostats.io import (
     read_yaml,
     find_files,
     get_out_path,
+    path_to_str,
     save_folder_grainstats,
     LoadScans,
     save_pkl,
@@ -43,6 +44,18 @@ def test_read_yaml() -> None:
     sample_config = read_yaml(RESOURCES / "test.yaml")
 
     TestCase().assertDictEqual(sample_config, CONFIG)
+
+
+def test_path_to_str(tmp_path) -> None:
+    """Test that Path objects are converted to strings."""
+    CONFIG_PATH = {"this": "is", "a": "test", "with": tmp_path, "and": {"nested": tmp_path / "nested"}}
+    CONFIG_STR = path_to_str(CONFIG_PATH)
+
+    assert isinstance(CONFIG_STR, dict)
+    assert isinstance(CONFIG_STR["with"], str)
+    assert CONFIG_STR["with"] == str(tmp_path)
+    assert isinstance(CONFIG_STR["and"]["nested"], str)
+    assert CONFIG_STR["and"]["nested"] == str(tmp_path / "nested")
 
 
 def test_find_files() -> None:

@@ -8,6 +8,7 @@ loading:
   channel: Height
 filter:
   run: true # Options : true, false
+  row_alignment_quantile: 0.5 # Lower values may improve flattening of larger features
   threshold_method: std_dev # Options : otsu, std_dev, absolute
   otsu_threshold_multiplier: 1.0
   threshold_std_dev:
@@ -38,12 +39,13 @@ grains:
     upper: 1.0
   direction: upper # Options: upper, lower, both (defines whether to look for grains above or below thresholds or both)
   # Thresholding by area
-  smallest_grain_size_nm2: 50 # Size in nm^2 of tiny grains/blobs (noise) to remove.
+  smallest_grain_size_nm2: 50 # Size in nm^2 of tiny grains/blobs (noise) to remove, must be > 0.0
   absolute_area_threshold:
     upper: [ 300, 3000 ] # above surface [Low, High] in nm^2 (also takes null)
     lower: [ null, null ] # below surface [Low, High] in nm^2 (also takes null)
 grainstats:
   run: true # Options : true, false
+  edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
   cropped_size: 40.0 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
 dnatracing:
   run: true # Options : true, false

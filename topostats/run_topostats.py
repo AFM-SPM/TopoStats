@@ -13,10 +13,11 @@ import yaml
 import pandas as pd
 from tqdm import tqdm
 
+from topostats._version import get_versions
 from topostats.io import find_files, read_yaml, write_yaml, save_folder_grainstats, LoadScans
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plotting import toposum
-from topostats.processing import process_scan
+from topostats.processing import check_run_steps, completion_message, process_scan
 from topostats.utils import update_config, update_plotting_config
 from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA
 
@@ -105,6 +106,13 @@ def create_parser() -> arg.ArgumentParser:
     parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
     parser.add_argument("-q", "--quiet", dest="quiet", type=bool, required=False, help="Toggle verbosity.")
     parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"Installed version of TopoStats : {get_versions()}",
+        help="Report the current version of TopoStats that is installed.",
+    )
+    parser.add_argument(
         "-w",
         "--warnings",
         dest="warnings",
@@ -155,6 +163,13 @@ def main(args=None):
         config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML plotting configuration file"
     )
 
+    # Check earlier stages of processing are enabled for later.
+    check_run_steps(
+        filter_run=config["filter"]["run"],
+        grains_run=config["grains"]["run"],
+        grainstats_run=config["grainstats"]["run"],
+        dnatracing_run=config["dnatracing"]["run"],
+    )
     # Update the config["plotting"]["plot_dict"] with plotting options
     config["plotting"] = update_plotting_config(config["plotting"])
 
@@ -228,47 +243,37 @@ def main(args=None):
         summary_config["var_to_label"] = yaml.safe_load(plotting_yaml.read())
         LOGGER.info("[plotting] Default variable to labels mapping loaded.")
 
-        # If summary_config["output_dir"] does not match or is not a sub-dir of config["output_dir"] it
-        # needs creating
-        summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
-        summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
-        LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
+        # If we don't have a dataframe there is nothing to plot
+        if isinstance(results, pd.DataFrame):
+            # If summary_config["output_dir"] does not match or is not a sub-dir of config["output_dir"] it
+            # needs creating
+            summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
+            summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
+            LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
 
-        # Plot summaries
-        summary_config["df"] = results.reset_index()
-        toposum(summary_config)
+            # Plot summaries
+            summary_config["df"] = results.reset_index()
+            toposum(summary_config)
+        else:
+            LOGGER.info(
+                "There are no results to plot, either you have disabled grains/grainstats/dnatracing or there "
+                "have been errors, please check the log for further information."
+            )
 
-    results.reset_index(inplace=True)
-    results.set_index(["image", "threshold", "molecule_number"], inplace=True)
-    results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
-    save_folder_grainstats(config["output_dir"], config["base_dir"], results)
+    # Write statistics to CSV
+    if isinstance(results, pd.DataFrame):
+        results.reset_index(inplace=True)
+        results.set_index(["image", "threshold", "molecule_number"], inplace=True)
+        results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
+        save_folder_grainstats(config["output_dir"], config["base_dir"], results)
+        results.reset_index(inplace=True)  # So we can access unique image names
+        images_processed = len(results["image"].unique())
+    else:
+        images_processed = 0
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
-    results.reset_index(inplace=True)  # So we can access unique image names
-    images_processed = len(results["image"].unique())
-    LOGGER.info(
-        (
-            f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
-            f"  Base Directory              : {config['base_dir']}\n"
-            f"  File Extension              : {config['file_ext']}\n"
-            f"  Files Found                 : {len(img_files)}\n"
-            f"  Successfully Processed      : {images_processed} ({(images_processed * 100) / len(img_files)}%)\n"
-            f"  Configuration               : {config['output_dir']}/config.yaml\n"
-            f"  All statistics              : {str(config['output_dir'])}/all_statistics.csv\n"
-            f"  Distribution Plots          : {str(summary_config['output_dir'])}\n\n"
-            f"  Email                       : topostats@sheffield.ac.uk\n"
-            f"  Documentation               : https://afm-spm.github.io/topostats/\n"
-            f"  Source Code                 : https://github.com/AFM-SPM/TopoStats/\n"
-            f"  Bug Reports/Feature Request : https://github.com/AFM-SPM/TopoStats/issues/new/choose\n"
-            f"  Citation File Format        : https://github.com/AFM-SPM/TopoStats/blob/main/CITATION.cff\n\n"
-            f"  If you encounter bugs/issues or have feature requests please report them at the above URL\n"
-            f"  or email us.\n\n"
-            f"  If you have found TopoStats useful please consider citing it. A Citation File Format is\n"
-            f"  linked above and available from the Source Code page.\n"
-            f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
-        )
-    )
+    completion_message(config, img_files, summary_config, images_processed)
 
 
 if __name__ == "__main__":

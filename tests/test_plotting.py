@@ -63,6 +63,7 @@ def test_set_label_keyerror(toposum_object: TopoSum) -> None:
 def test_toposum(summary_config: dict) -> None:
     """Test the toposum function returns a dictionary with figures."""
     summary_config["csv_file"] = RESOURCES / "minicircle_default_all_statistics.csv"
+    summary_config["df"] = pd.read_csv(summary_config["csv_file"])
     summary_config["violin"] = True
     summary_config["stats_to_sum"] = ["area"]
     summary_config["pickle_plots"] = True
