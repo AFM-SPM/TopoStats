@@ -39,6 +39,7 @@ class Filters:
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
         remove_scars: dict = None,
+        quiet: bool = False,
     ):
         """Initialise the class.
 

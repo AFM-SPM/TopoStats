@@ -8,7 +8,6 @@ from functools import partial
 import importlib.resources as pkg_resources
 import logging
 from multiprocessing import Pool
-from pathlib import Path
 from pprint import pprint
 import sys
 import yaml
@@ -17,7 +16,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from topostats._version import get_versions
-from topostats.io import find_images, read_yaml, write_yaml, get_out_path, LoadScans
+from topostats.io import find_files, read_yaml, save_folder_grainstats, write_yaml, LoadScans
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import check_run_steps, completion_message, process_scan

@@ -4,9 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from topostats.io import LoadScans
 from topostats.logs.logs import LOGGER_NAME
-from topostats.run_topostats import process_scan, main as run_topostats_main
+from topostats.run_topostats import main as run_topostats_main
 
 BASE_DIR = Path.cwd()
 
