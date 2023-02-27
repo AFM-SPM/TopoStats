@@ -187,7 +187,6 @@ def main(args=None):
         config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML plotting configuration file"
     )
 
-
     # Check earlier stages of processing are enabled for later.
     check_run_steps(
         filter_run=config["filter"]["run"],
