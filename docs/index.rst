@@ -17,6 +17,8 @@ listed below to find out more.
     workflow
     data_dictionary
     related_software
+    faq
+    glossary
 
 .. toctree::
    :maxdepth: 1
