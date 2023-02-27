@@ -15,6 +15,11 @@ from topostats.io import (
     LoadScans,
     save_pkl,
     load_pkl,
+    read_null_terminated_string,
+    read_u32i,
+    read_64d,
+    read_gwy_component_dtype,
+    read_char,
 )
 
 BASE_DIR = Path.cwd()
@@ -30,6 +35,8 @@ CONFIG = {
     "nested": {"something": "else"},
     "a_list": [1, 2, 3],
 }
+
+# pylint: disable=protected-access
 
 
 def test_read_yaml() -> None:
@@ -59,6 +66,50 @@ def test_find_files() -> None:
     assert len(found_images) == 1
     assert isinstance(found_images[0], Path)
     assert "minicircle.spm" in str(found_images[0])
+
+
+def test_read_null_terminated_string() -> None:
+    """Test reading a null terminated string from a binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        value = read_null_terminated_string(open_binary_file)
+        assert isinstance(value, str)
+        assert value == "test"
+
+
+def test_read_u32i() -> None:
+    """Test reading an unsigned 32 bit integer from a binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(5)
+        value = read_u32i(open_binary_file)
+        assert isinstance(value, int)
+        assert value == 32
+
+
+def test_read_64d() -> None:
+    """Test reading a 64-bit double from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(9)
+        value = read_64d(open_binary_file)
+        assert isinstance(value, float)
+        assert value == 3.141592653589793
+
+
+def test_read_char() -> None:
+    """Test reading a character from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(17)
+        value = read_char(open_binary_file)
+        assert isinstance(value, str)
+        assert value == "Z"
+
+
+def test_read_gwy_component_dtype() -> None:
+    """Test reading a data type of a `.gwy` file component from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(18)
+        value = read_gwy_component_dtype(open_binary_file)
+        assert isinstance(value, str)
+        assert value == "D"
 
 
 @pytest.mark.parametrize(
@@ -181,6 +232,44 @@ def test_load_scan_jpk(load_scan_jpk: LoadScans) -> None:
     assert image.sum() == 286598232.9308627
     assert isinstance(px_to_nm_scaling, float)
     assert px_to_nm_scaling == 1.2770176335964876
+
+
+def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
+    """Test loading of a .gwy file."""
+    load_scan_gwy.img_path = load_scan_gwy.img_paths[0]
+    load_scan_gwy.filename = load_scan_gwy.img_paths[0].stem
+    image, px_to_nm_scaling = load_scan_gwy.load_gwy()
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (512, 512)
+    assert image.sum() == 33836850.232917726
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 0.8468632812499975
+
+
+def test_gwy_read_object(load_scan_dummy: LoadScans) -> None:
+    """Test reading an object of a `.gwy` file object from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(19)
+        test_dict = {}
+        load_scan_dummy._gwy_read_object(open_file=open_binary_file, data_dict=test_dict)
+
+        assert list(test_dict.keys()) == ["test component", "test object component"]
+        assert list(test_dict.values()) == [500, {"test nested component": 3}]
+
+
+def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
+    """Tests reading a component of a `.gwy` file object from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(55)
+        test_dict = {}
+        byte_size = load_scan_dummy._gwy_read_component(
+            initial_byte_pos=55, open_file=open_binary_file, data_dict=test_dict
+        )
+        print(test_dict.items())
+        print(test_dict.values())
+        assert byte_size == 73
+        assert list(test_dict.keys()) == ["test object component"]
+        assert list(test_dict.values()) == [{"test nested component": 3}]
 
 
 # FIXME : Get this test working

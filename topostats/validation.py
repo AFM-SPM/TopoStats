@@ -45,6 +45,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ".asd",
             ".jpk",
             ".ibw",
+            ".gwy",
             error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw' or '.asd'.",
         ),
         "loading": {
