@@ -109,8 +109,8 @@ class dnaTrace(object):
         self.linear_or_circular(self.ordered_traces)
         self.get_fitted_traces()
         self.get_splined_traces()
-        self.find_curvature()
-        # self.find_curvature_old()
+        # self.find_curvature_smoothened()
+        self.find_curvature_original()
         self.save_curvature()
         self.analyse_curvature()
         self.measure_contour_length()
@@ -667,7 +667,7 @@ class dnaTrace(object):
     def findWrithe(self):
         pass
 
-    def find_curvature(self):
+    def find_curvature_smoothened(self):
         for dna_num in sorted(self.simplified_splined_traces.keys()):  # the number of molecules identified
             sub_trace_curve = []
             for i, sub_trace in enumerate(self.simplified_splined_traces[dna_num]):
@@ -753,7 +753,7 @@ class dnaTrace(object):
             # curve[:, 2] = curvature_smoothed
             self.curvature[dna_num] = curve
 
-    def find_curvature_old(self):
+    def find_curvature_original(self):
 
         # Testing with a circle
         # radius = float(1)
