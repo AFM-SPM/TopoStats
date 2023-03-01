@@ -622,6 +622,7 @@ PLOTTING_SCHEMA = Schema(
 
 SUMMARY_SCHEMA = Schema(
     {
+        "base_dir": Path,
         "output_dir": Path,
         "csv_file": str,
         "file_ext": Or(
