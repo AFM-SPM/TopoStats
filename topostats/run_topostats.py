@@ -13,7 +13,7 @@ import yaml
 import pandas as pd
 from tqdm import tqdm
 
-from topostats._version import get_versions
+from topostats._version import __version__
 from topostats.io import find_files, read_yaml, write_yaml, save_folder_grainstats, LoadScans
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plotting import toposum
@@ -109,7 +109,7 @@ def create_parser() -> arg.ArgumentParser:
         "-v",
         "--version",
         action="version",
-        version=f"Installed version of TopoStats : {get_versions()}",
+        version=f"Installed version of TopoStats : {__version__}",
         help="Report the current version of TopoStats that is installed.",
     )
     parser.add_argument(
