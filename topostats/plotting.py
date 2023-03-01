@@ -67,6 +67,7 @@ class TopoSum:
     def __init__(
         self,
         df: Union[pd.DataFrame] = None,
+        base_dir: Union[str, Path] = None,
         csv_file: Union[str, Path] = None,
         stat_to_sum: str = None,
         molecule_id: str = "molecule_number",
@@ -89,6 +90,8 @@ class TopoSum:
         ==========
         df: Union[pd.DataFrame]
             Pandas data frame of data to be summarised.
+        base_dir: Union[str, Path]
+            Base directory from which all paths are relative to.
         csv_file: Union[str, Path]
             CSV file of data to be summarised.
         stat_to_sum: str
@@ -124,6 +127,7 @@ class TopoSum:
         =======
         """
         self.df = df if df is not None else pd.read_csv(csv_file)
+        self.base_dir = base_dir
         self.stat_to_sum = stat_to_sum
         self.molecule_id = molecule_id
         self.image_id = image_id
@@ -366,7 +370,7 @@ def main():
         sys.exit()
 
     # Plot statistics
-    figures = toposum(config)
+    toposum(config)
 
 
 if __name__ == "__main__":
