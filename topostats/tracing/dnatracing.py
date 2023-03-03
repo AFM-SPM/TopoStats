@@ -65,6 +65,7 @@ class dnaTrace(object):
         self.end_to_end_distance = {}
         self.mol_is_circular = {}
         self.curvature = {}
+        self.height_dist_dict = {}
 
         self.number_of_traces = 0
         self.num_circular = 0
@@ -86,6 +87,10 @@ class dnaTrace(object):
         self.purge_obvious_crap()
         self.linear_or_circular(self.disordered_trace)
         self.get_ordered_traces()
+
+        self.get_trace_heights()
+
+        #print(self.ordered_traces)
         self.linear_or_circular(self.ordered_traces)
         self.get_fitted_traces()
         self.get_splined_traces()
@@ -242,6 +247,42 @@ class dnaTrace(object):
 
             elif not self.mol_is_circular[dna_num]:
                 self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.disordered_trace[dna_num].tolist())
+
+    def get_trace_heights(self) -> None:
+        """Take ordered coorinates and return their heights."""
+        for mol_num, coordinates in self.ordered_traces.items():
+            heights = self.gauss_image[coordinates[:,1], coordinates[:,0]]
+            print(heights)
+            distances = self.coord_dist(coordinates, self.pixel_size)
+            self.height_dist_dict[mol_num] = (list(heights), list(distances))
+        
+
+    @staticmethod
+    def coord_dist(coords: np.ndarray, px_2_nm: float = 1) -> np.ndarray:
+        """Takes a list/array of coordinates (Nx2) and produces an array which
+        accumulates a real distance as if traversing from pixel to pixel.
+        
+        Parameters
+        ----------
+        coords: np.ndarray
+            A Nx2 integer array corresponding to the ordered coordinates of a binary trace.
+        px_2_nm: float
+            The pixel to nanometer scaling factor.
+
+        Returns
+        -------
+        np.ndarray
+            An array of length N containing the cumulative sum of the distances.
+        """
+        dist_list = [0]
+        dist = 0
+        for i in range(len(coords)-1):
+            if abs(coords[i]-coords[i+1]).sum() == 2:
+                dist += 2**0.5
+            else:
+                dist += 1
+            dist_list.append(dist)
+        return np.asarray(dist_list) * px_2_nm
 
     def report_basic_stats(self):
         """Report number of circular and linear DNA molecules detected."""
