@@ -277,9 +277,11 @@ def process_scan(
         else:
             LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
             results = create_empty_dataframe()
+            height_traces = {}
     else:
         LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
         results = create_empty_dataframe()
+        height_traces = {}
 
     return image_path, results, height_traces
 
