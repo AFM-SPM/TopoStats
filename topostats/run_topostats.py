@@ -9,6 +9,7 @@ import importlib.resources as pkg_resources
 from multiprocessing import Pool
 import sys
 import yaml
+import json
 
 import pandas as pd
 from tqdm import tqdm
@@ -206,16 +207,23 @@ def main(args=None):
 
     with Pool(processes=config["cores"]) as pool:
         results = defaultdict()
+        height_results = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result in pool.imap_unordered(
+            for img, result, height_traces in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
             ):
                 results[str(img)] = result
+                height_results[str(img)] = height_traces
                 pbar.update()
+    
+    file = json.dumps(height_results)
+    with open(config["output_dir"] / "height_stats.json", "w") as f:
+        f.write(file)
+
     try:
         results = pd.concat(results.values())
     except ValueError as error:
