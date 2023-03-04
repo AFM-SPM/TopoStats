@@ -1,0 +1,70 @@
+# Sample configuration file auto-generated : 2023-03-02 10:16:56
+base_dir: /Users/sylvi/topo_data/Bradley/Regular
+output_dir: output
+warnings: ignore
+cores: 2
+quiet: false
+file_ext: .spm
+loading:
+  channel: Height
+filter:
+  run: true
+  row_alignment_quantile: 0.5
+  threshold_method: std_dev
+  otsu_threshold_multiplier: 1.0
+  threshold_std_dev:
+    lower: 10.0
+    upper: 1.0
+  threshold_absolute:
+    lower: -1.0
+    upper: 1.0
+  gaussian_size: 1.0121397464510862
+  gaussian_mode: nearest
+  remove_scars:
+    run: true
+    removal_iterations: 2
+    threshold_low: 0.25
+    threshold_high: 0.666
+    max_scar_width: 4
+    min_scar_length: 16
+grains:
+  run: true
+  threshold_method: std_dev
+  otsu_threshold_multiplier: 1.0
+  threshold_std_dev:
+    lower: 10.0
+    upper: 1.0
+  threshold_absolute:
+    lower: -1.0
+    upper: 1.0
+  direction: upper
+  smallest_grain_size_nm2: 50
+  absolute_area_threshold:
+    upper:
+    - 3000
+    - 3000000000
+    lower:
+    - 
+    - 
+grainstats:
+  run: true
+  edge_detection_method: binary_erosion
+  cropped_size: 40.0
+dnatracing:
+  run: true
+plotting:
+  run: true
+  save_format: png
+  image_set: all
+  zrange:
+  - -3
+  - 4
+  colorbar: true
+  axes: true
+  cmap: nanoscope
+  mask_cmap: blu
+  histogram_log_axis: false
+  histogram_bins: 200
+summary_stats:
+  run: true
+  config:
