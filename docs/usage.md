@@ -172,6 +172,10 @@ ones you may want to change are....
   which will be   created if it doesn't exist. If you wish for the output to be somewhere else specify it here. If you
   want `Processed` directories to sit within the directories that images are found then simply set the `output_dir` to
   the same value as `base_dir`.
+* `log_level` (default: `info`) the verbosity of output to the console and log file, the options in order of verbosity
+  are `debug` > `info` > `warning` > `error`. If you want less output set to `warning` or `error`. If you encounter
+  errors please set to `debug` and run again and include the log in your [bug
+  report](https://github.com/AFM-SPM/TopoStats/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
 * `cores` (default: `2`) the number of parallel processes to run processing of all found images. Set this to a maximum
   of one less than the number of cores on your computers CPU. If unsure leave as is, but chances are you can increase
   this to at least `4` quite safely.

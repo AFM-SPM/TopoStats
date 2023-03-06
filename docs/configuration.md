@@ -57,6 +57,7 @@ upper:
 Aside from the comments in YAML file itself the fields are described below.
 
 
+
 | Section         | Sub-Section                  | Data Type  | Default        | Description                                                                                                                                                                                                                                                  |
 |:----------------|:-----------------------------|:-----------|:---------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `base_dir`      |                              | string     | `./`           | Directory to recursively search for files within.[^1]                                                                                                                                                                                                        |
@@ -129,6 +130,7 @@ file. The default example can be found in [`topostats/summary_config.yaml`](). T
 | `alpha`        |             | `float`                    | `0.5`             |                                                                                                                         |
 | `palette`      |             | `str`                      | `bright`          | Seaborn color palette. Options `colorblind`, `deep`, `muted`, `pastel`, `bright`, `dark`, `Spectral`, `Set2`            |
 | `stats_to_sum` |             | `list`                     | `str`             | A list of strings of variables to plot, comment (placing a `#` at the start of the line) and uncomment as required. Possible values are `area`, `area_cartesian_bbox`, `aspect_ratio`, `banding_angle`, `contour_lengths`, `end_to_end_distance`, `height_max`, `height_mean`, `height_median`, `height_min`, `radius_max`, `radius_mean`, `radius_median`, `radius_min`, `smallest_bounding_area`, `smallest_bounding_length`, `smallest_bounding_width`, `volume` |
+
 
 ## Validation
 

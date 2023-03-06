@@ -6,7 +6,9 @@ import argparse as arg
 from collections import defaultdict
 from functools import partial
 import importlib.resources as pkg_resources
+import logging
 from multiprocessing import Pool
+from pprint import pprint
 import sys
 import yaml
 
@@ -14,12 +16,18 @@ import pandas as pd
 from tqdm import tqdm
 
 from topostats._version import get_versions
-from topostats.io import find_files, read_yaml, write_yaml, save_folder_grainstats, LoadScans
-from topostats.logs.logs import setup_logger, LOGGER_NAME
+from topostats.io import find_files, read_yaml, save_folder_grainstats, write_yaml, LoadScans
+from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import check_run_steps, completion_message, process_scan
 from topostats.utils import update_config, update_plotting_config
 from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA
+
+# We already setup the logger in __init__.py and it is idempotent so calling it here returns the same object as from
+# __init__.py
+# Ref : https://stackoverflow.com/a/57799639/1444043
+# LOGGER = setup_logger(LOGGER_NAME)
+LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 # pylint: disable=too-many-branches
@@ -27,8 +35,6 @@ from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTIN
 # pylint: disable=too-many-statements
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-nested-blocks
-
-LOGGER = setup_logger(LOGGER_NAME)
 
 
 def create_parser() -> arg.ArgumentParser:
@@ -72,6 +78,14 @@ def create_parser() -> arg.ArgumentParser:
         type=int,
         required=False,
         help="Number of CPU cores to use when processing.",
+    )
+    parser.add_argument(
+        "-l",
+        "--log_level",
+        dest="log_level",
+        type=str,
+        required=False,
+        help="Logging level to use, default is 'info' for verbose output use 'debug'.",
     )
     parser.add_argument(
         "-f",
@@ -136,6 +150,15 @@ def main(args=None):
         config = yaml.safe_load(default_config.read())
     config = update_config(config, args)
 
+    # Set logging level
+    if config["log_level"] == "warning":
+        LOGGER.setLevel("WARNING")
+    elif config["log_level"] == "error":
+        LOGGER.setLevel("ERROR")
+    elif config["log_level"] == "debug":
+        LOGGER.setLevel("DEBUG")
+    else:
+        LOGGER.setLevel("INFO")
     # Validate configuration
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
@@ -185,9 +208,7 @@ def main(args=None):
         sys.exit()
     LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
     LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
-
-    if config["quiet"]:
-        LOGGER.setLevel("ERROR")
+    LOGGER.debug(f"Configuration after update         : \n{pprint(config, indent=4)}")  # noqa : T203
 
     processing_function = partial(
         process_scan,
@@ -273,6 +294,7 @@ def main(args=None):
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
+    LOGGER.debug(f"Images processed : {images_processed}")
     completion_message(config, img_files, summary_config, images_processed)
 
 
