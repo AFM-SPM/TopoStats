@@ -689,6 +689,7 @@ class LoadScans:
             self.filename = img_path.stem
             suffix = img_path.suffix
             LOGGER.info(f"Extracting image from {self.img_path}")
+            LOGGER.debug(f"File extension : {suffix}")
             if suffix == ".spm":
                 self.image, self.pixel_to_nm_scaling = self.load_spm()
                 self.add_to_dic(
