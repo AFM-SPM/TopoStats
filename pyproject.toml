@@ -1,6 +1,131 @@
 [build-system]
-requires = ["setuptools", "wheel", "versioneer[toml]"]
+requires = [
+  "setuptools>=45",
+  "setuptools_scm[toml]>=6.2",
+  "wheel"
+  ]
 build-backend = "setuptools.build_meta"
+
+[project]
+
+name = "topostats"
+description = "Automated Analysis for Atomic Force Microscopy Images of Biomolecules"
+readme = "README.md"
+license = {text = "GNU Lesser GPLv3 only"}
+dynamic = ["version"]
+authors = [
+  {name = "TopoStats Team", email = "topostats@sheffield.ac.uk"},
+  {name = "Alice Pyne", email = "a.l.pyne@sheffield.ac.uk"},
+  {name = "Sylvia Whittle", email = "sylvia.whittle@sheffield.ac.uk"},
+  {name = "Neil Shephard", email = "n.shephard@sheffield.ac.uk"},
+  {name = "Max Gamill", email = "mcgamill1@sheffield.ac.uk"},
+  {name = "Jean Du", email = "mdu12@sheffield.ac.uk"},
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+]
+keywords = [
+  "afm",
+  "image processing"
+]
+requires-python = ">=3.8"
+dependencies = [
+  "igor",
+  "matplotlib",
+  "numpy==1.23.4",
+  "pandas",
+  "pySPM",
+  "pyyaml",
+  "ruamel.yaml",
+  "schema",
+  "scikit-image",
+  "scipy",
+  "seaborn",
+  "tifffile",
+  "tqdm",
+]
+
+[project.optional-dependencies]
+tests =[
+  "py",
+  "pytest",
+  "pytest-cov",
+  "pytest-mpl",
+  "pytest-regtest",
+]
+docs = [
+  "Sphinx",
+  "sphinx_rtd_theme",
+  "numpydoc",
+  "myst_parser",
+  "pydata_sphinx_theme",
+  "sphinx_markdown_tables",
+  "sphinxcontrib-mermaid",
+  "sphinxcontrib-napoleon",
+  "sphinx-autodoc-typehints",
+]
+dev = [
+  "black",
+  "pre-commit",
+  "pylint",
+  "flake8",
+  "flake8-print",
+  "Flake8-pyproject",
+]
+pypi = [
+  "build",
+  "wheel",
+]
+
+[project.urls]
+Source = "https://github.com/AFM-SPM/TopoStats"
+Bug_Tracker = "https://github.com/AFM-SPM/TopoStats/issues"
+Documentation = "https://AFM-SPM.github.io/TopoStats"
+
+[tool.flake8]
+max_line_length=120
+docstring-convention= "numpy"
+exclude = [
+  "*.ipynb",
+  ".git",
+  "__pycache__",
+  "docs/conf.py",
+  "build",
+  "dist",
+  "pygwytracing.py",
+  "topostats/plotting.py",
+  "topostats/tracing/tracingfuncs.py",
+  "topostats/tracing/dnatracing.py",
+  "topostats/tracing/tracing_dna.py",
+  "tests/tracing/test_dnatracing.py",
+]
+extend-ignore = [
+    "E501",
+    "T201",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["topostats"]
+exclude = ["tests"]
+
+[tool.setuptools.package-data]
+topostats = ["*.yaml"]
+
+[tool.setuptools_scm]
+write_to = "topostats/_version.py"
+
 
 [tool.pytest.ini_options]
 minversion = "7.0"
@@ -11,6 +136,14 @@ testpaths = [
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::UserWarning"
+]
+
+[tool.coverage.run]
+source = ["topostats"]
+omit = [
+  "topostats/_version.py",
+  "*tests*",
+  "**/__init__*",
 ]
 
 [tool.black]
@@ -27,10 +160,36 @@ exclude = '''
 )
 '''
 
-[tool.versioneer]
-VCS = "git"
-style = "pep440"
-versionfile_source = "topostats/_version.py"
-versionfile_build = "topostats/_version.py"
-tag_prefix = "v"
-parentdir_prefix = ""
+[tool.ruff]
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+]
+# per-file-ignores = []
+line-length = 120
+target-version = "py310"
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["A", "B", "C", "D", "E", "F", "R", "S", "W", "U"]
+unfixable = []
+
+[project.scripts]
+run_topostats = "topostats.run_topostats:main"
+toposum = "topostats.plotting:main"

@@ -6,7 +6,7 @@ from typing import Dict, Union, List
 import numpy as np
 import pandas as pd
 
-from topostats._version import get_versions
+from topostats._version import __version__
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
@@ -343,12 +343,10 @@ def completion_message(config: Dict, img_files: List, summary_config: Dict, imag
     -------
     None
     """
-    topostats_version = get_versions()
-
     LOGGER.info(
         (
             f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
-            f"  TopoStats Version           : {topostats_version['version']}\n"
+            f"  TopoStats Version           : {__version__}\n"
             f"  Base Directory              : {config['base_dir']}\n"
             f"  File Extension              : {config['file_ext']}\n"
             f"  Files Found                 : {len(img_files)}\n"
