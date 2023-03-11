@@ -8,7 +8,7 @@ from functools import partial
 import importlib.resources as pkg_resources
 import logging
 from multiprocessing import Pool
-from pprint import pprint
+from pprint import pformat
 import sys
 import yaml
 
@@ -118,7 +118,6 @@ def create_parser() -> arg.ArgumentParser:
         help="Whether to save plots.",
     )
     parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
-    parser.add_argument("-q", "--quiet", dest="quiet", type=bool, required=False, help="Toggle verbosity.")
     parser.add_argument(
         "-v",
         "--version",
@@ -208,7 +207,7 @@ def main(args=None):
         sys.exit()
     LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
     LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
-    LOGGER.debug(f"Configuration after update         : \n{pprint(config, indent=4)}")  # noqa : T203
+    LOGGER.debug(f"Configuration after update         : \n{pformat(config, indent=4)}")  # noqa : T203
 
     processing_function = partial(
         process_scan,
