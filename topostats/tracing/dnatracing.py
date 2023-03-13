@@ -72,7 +72,6 @@ class dnaTrace(object):
         self.mean_curvature = {}
         self.curvature_variance = {}
         self.curvature_variance_abs = {}
-        self.central_curvature = {}
         self.central_max_curvature = {}
         self.central_max_curvature_location = {}
         self.bending_angle = {}
@@ -1087,37 +1086,44 @@ class dnaTrace(object):
 
     def measure_bending_angle(self):
         """Calculate the bending angle at the point of highest curvature"""
-        nm_each_side = 10  # nm each side of the max curvature point used to determine bending angle
+        nm_each_side = 10  # nm each side of the reference point used to determine bending angle
+        ref_point = 'centre'  # 'centre' or 'central max curvature'
         for dna_num in sorted(self.splined_traces.keys()):
-            if self.contour_lengths[dna_num] > 80:  # Filtering out molecules that are too small
-                length = len(self.curvature[dna_num])
-                mid_nm = self.curvature[dna_num][int(length / 2), 1]
+            if 80 < self.contour_lengths[dna_num] < 120:  # Filtering out molecules that are too big or too small
+                length_index = len(self.curvature[dna_num])
+                mid_nm = self.curvature[dna_num][int(length_index / 2), 1]
                 start_nm = mid_nm - 10  # Starting point of the middle section, in nm
                 end_nm = mid_nm + 10  # Ending point of the middle section, in nm
-                start = np.argmin(np.abs(self.curvature[dna_num][:, 1] - start_nm))
-                end = np.argmin(np.abs(self.curvature[dna_num][:, 1] - end_nm))
-                self.central_curvature[dna_num] = self.curvature[dna_num][start:end]  # Middle 20 nm of the molecule
-                self.central_max_curvature[dna_num] = np.amax(np.abs(self.central_curvature[dna_num][:, 2]))  # in nm
-                position_in_central = np.argmax(np.abs(self.central_curvature[dna_num][:, 2]))
-                self.central_max_curvature_location[dna_num] = self.central_curvature[dna_num][position_in_central, 1]
-                position = position_in_central + start  # The location of the max curvature point in the entire molecule
+                start_index = np.argmin(np.abs(self.curvature[dna_num][:, 1] - start_nm))
+                end_index = np.argmin(np.abs(self.curvature[dna_num][:, 1] - end_nm))
+                central_curvature = self.curvature[dna_num][start_index:end_index]  # Middle 20 nm of the molecule
+                self.central_max_curvature[dna_num] = np.amax(np.abs(central_curvature[:, 2]))
+                position_in_central = np.argmax(np.abs(central_curvature[:, 2]))
+                self.central_max_curvature_location[dna_num] = central_curvature[position_in_central, 1] # in nm
+                if ref_point == 'central max curvature':  # Point of maximum curvature in central 20 nm
+                    ref_point_nm = self.central_max_curvature_location[dna_num]
+                    # The index of the max curvature point in the entire molecule
+                    ref_point_index = position_in_central + start_index
+                elif ref_point == 'centre':
+                    ref_point_nm = self.contour_lengths[dna_num] / 2
+                    ref_point_index = np.argmin(np.abs(self.curvature[dna_num][:, 1] - self.contour_lengths[dna_num] / 2))
 
                 # Left line that forms the bending angle
-                left_nm = self.central_max_curvature_location[dna_num] - nm_each_side
-                left = np.argmin(np.abs(self.curvature[dna_num][:, 1] - left_nm))
-                xa = self.splined_traces[dna_num][left : position + 1, 0]
-                ya = self.splined_traces[dna_num][left : position + 1, 1]
+                left_nm = ref_point_nm - nm_each_side
+                left_index = np.argmin(np.abs(self.curvature[dna_num][:, 1] - left_nm))
+                xa = self.splined_traces[dna_num][left_index: ref_point_index + 1, 0]
+                ya = self.splined_traces[dna_num][left_index: ref_point_index + 1, 1]
                 ga, _, _, _, _ = stats.linregress(xa, ya)  # Gradient of left line
-                vax = self.splined_traces[dna_num][position, 0] - self.splined_traces[dna_num][left, 0]
+                vax = self.splined_traces[dna_num][ref_point_index, 0] - self.splined_traces[dna_num][left_index, 0]
                 vay = ga * vax  # Left line vector
 
                 # Right line that forms the bending angle
-                right_nm = self.central_max_curvature_location[dna_num] + 10
-                right = np.argmin(np.abs(self.curvature[dna_num][:, 1] - right_nm))
-                xb = self.splined_traces[dna_num][position : right + 1, 0]
-                yb = self.splined_traces[dna_num][position : right + 1, 1]
+                right_nm = ref_point_nm + nm_each_side
+                right_index = np.argmin(np.abs(self.curvature[dna_num][:, 1] - right_nm))
+                xb = self.splined_traces[dna_num][ref_point_index: right_index + 1, 0]
+                yb = self.splined_traces[dna_num][ref_point_index: right_index + 1, 1]
                 gb, _, _, _, _ = stats.linregress(xb, yb)  # Gradient of right line
-                vbx = self.splined_traces[dna_num][position, 0] - self.splined_traces[dna_num][right, 0]
+                vbx = self.splined_traces[dna_num][ref_point_index, 0] - self.splined_traces[dna_num][right_index, 0]
                 vby = gb * vbx  # Right line vector
 
                 # Calculates the bending angle
@@ -1126,7 +1132,7 @@ class dnaTrace(object):
                 bending_angle_r = math.acos(dot_product / mod_of_vector)  # radians
                 bending_angle_d = bending_angle_r / math.pi * 180  # degrees
                 self.bending_angle[dna_num] = bending_angle_d
-            else:  # For molecules that are too short
+            else:  # For molecules that are too long or too short
                 self.central_max_curvature_location[dna_num] = 0
                 self.bending_angle[dna_num] = 0
 
