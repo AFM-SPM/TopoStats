@@ -38,14 +38,14 @@ repos:
   #       types: [python]
   #       args: ["--rcfile=.pylintrc"]
   #       files: \.py$
-  # - repo: local
-  #   hooks:
-  #     - id: pylint
-  #       args: ["--rcfile=.pylintrc"]
-  #       name: Pylint
-  #       entry: python -m pylint
-  #       language: system
-  #       files: \.py$
+  - repo: local
+    hooks:
+      - id: pylint
+        args: ["--rcfile=.pylintrc"]
+        name: Pylint
+        entry: python -m pylint
+        language: system
+        files: \.py$
 
 ci:
   autofix_prs: true
