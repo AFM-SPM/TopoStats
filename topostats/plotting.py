@@ -251,7 +251,7 @@ def plotkde2var(
     return fig
 
 
-def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=10, nm=False, specpath=None):
+def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None):
     """Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
     the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
@@ -568,8 +568,6 @@ def computeStats(data, columns, min, max):
 
 if __name__ == "__main__":
 
-    bins = 20
-
     # import data from the csv file
     path = plotting_config["file"]
     df = importfromfile(path)
@@ -591,8 +589,9 @@ if __name__ == "__main__":
         xmax = plotting_config["plots"][plot]["xmax"]
         ymin = plotting_config["plots"][plot]["ymin"]
         ymax = plotting_config["plots"][plot]["ymax"]
+        bins = plotting_config["plots"][plot]["bins"]
         if plottype == "histogram":
-            plothist(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
+            plothist(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax, bins=bins)
         elif plottype == "histogram2":
             # plothist2var(df, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1='01', label2='02',bins=np.linspace(1, 5, 20))
             plothist2var(df, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1="With protein",
