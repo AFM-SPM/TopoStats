@@ -25,7 +25,7 @@ def validate_config(config: dict, schema: Schema, config_type: str) -> None:
 
     try:
         schema.validate(config)
-        LOGGER.info(f"The {config_type} configuration is valid.")
+        LOGGER.info(f"The {config_type} is valid.")
     except SchemaError as schema_error:
         raise SchemaError(
             f"There is an error in your {config_type} configuration. "
@@ -37,14 +37,20 @@ DEFAULT_CONFIG_SCHEMA = Schema(
     {
         "base_dir": Path,
         "output_dir": Path,
-        "warnings": Or("ignore", error="Invalid value in config for 'warnings', valid values are 'ignore'"),
+        "log_level": Or(
+            "debug",
+            "info",
+            "warning",
+            "error",
+            error="Invalid value in config for 'log_level', valid values are 'info' (default), 'debug', 'error' or 'warning",
+        ),
         "cores": lambda n: 1 <= n <= os.cpu_count(),
-        "quiet": Or(True, False, error="Invalid value in config for 'quiet', valid values are 'True' or 'False'"),
         "file_ext": Or(
             ".spm",
             ".asd",
             ".jpk",
             ".ibw",
+            ".gwy",
             error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw' or '.asd'.",
         ),
         "loading": {

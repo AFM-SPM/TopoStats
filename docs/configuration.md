@@ -1,32 +1,33 @@
 # Configuration
 
-Configuration for TopoStats is done using a [YAML](https://yaml.org/) configuration file that is specified on the command line when
-invoking. The current configuration file is provided in the TopoStats repository at
+Configuration for TopoStats is done using a [YAML](https://yaml.org/) configuration file that is specified on the
+command line when invoking. The current configuration file is provided in the TopoStats repository at
 [`topostats/default_config.yaml`](https://github.com/AFM-SPM/TopoStats/blob/main/topostats/default_config.yaml) but
 please be aware this may not work with your installed version, particularly if you installed from PyPI.
 
 ## Generating a configuration
 
-You can always [generate a configuration file](usage#generating-configuration-file) appropriate for the version you have
-installed (bar v2.0.0 as this option was added afterwards).
+You can always generate a configuration file appropriate for the version you have installed (bar v2.0.0 as this option
+was added afterwards). This writes the default configuration to the specified filename (i.e. it does not have to be
+called `config.yaml` it could be called `spm-2023-02-20.yaml`)
 
 ``` bash
 run_topostats --create-config-file config.yaml
 ```
 
-This produces the file `config.yaml` which contains comments indicating valid values for many of the
-fields. If no configuration file is provided this default configuration is loaded automatically and used.
+If no configuration file is provided this default configuration is loaded automatically and used.
 
 ## Using a custom configuration
 
-You can modify and edit a configuration and, once saved, you can run TopoStats with this configuration file as shown below.
+If you have generated a configuration file you can modify and edit a configuration it to change the parameters (see
+fields below). Once these changes have been saved, you can run TopoStats with this configuration file as shown below.
 
 ``` bash
 run_topostats --config my_config.yaml
 ```
 
-On completion a copy of the configuration that was used is written to the output directory.
-
+On completion a copy of the configuration that was used is written to the output directory so you have a record of the
+parameters used to generate the results you have. This file can be used in subsequent runs of TopoStats.
 
 ## YAML Structure
 
@@ -47,27 +48,22 @@ upper:
   - 400
 ```
 
-
 ## Fields
 
-
-
 Aside from the comments in YAML file itself the fields are described below.
-
 
 | Section         | Sub-Section                  | Data Type  | Default        | Description                                                                                                                                                                                                                                                  |
 |:----------------|:-----------------------------|:-----------|:---------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `base_dir`      |                              | string     | `./`           | Directory to recursively search for files within.[^1]                                                                                                                                                                                                        |
 | `output_dir`    |                              | string     | `./output`     | Directory that output should be saved to.[^1]                                                                                                                                                                                                                |
-| `warnings`      |                              | string     | `ignore`       | Turns off warnings being shown.                                                                                                                                                                                                                              |
 | `cores`         |                              | integer    | `2`            | Number of cores to run parallel processes on.                                                                                                                                                                                                                |
-| `quiet`         |                              | false      |                |                                                                                                                                                                                                                                                              |
+| `log_level`     |                              | string     | `info`         | Verbosity of logging, options are (in increasing order) `warning`, `error`, `info`, `debug`.                                                                                                                                                                 |
 | `file_ext`      |                              | string     | `.spm`         | File extensions to search for.                                                                                                                                                                                                                               |
 | `loading`       | `channel`                    | string     | `Height`       | The channel of data to be processed, what this is will depend on the file-format you are processing and the channel you wish to process.                                                                                                                     |
 | `filter`        | `run`                        | boolean    | `true`         | Whether to run the filtering stage, without this other stages won't run so leave as `true`.                                                                                                                                                                  |
 |                 | `threshold_method`           | str        | `std_dev`      | Threshold method for filtering, options are `ostu`, `std_dev` or `absolute`.                                                                                                                                                                                 |
 |                 | `otsu_threshold_multiplier`  | float      | `1.0`          |                                                                                                                                                                                                                                                              |
-|                 | `threshold_std_dev`          | float      | ` 1.0`         |                                                                                                                                                                                                                                                              |
+|                 | `threshold_std_dev`          | float      | `1.0`         |                                                                                                                                                                                                                                                              |
 |                 | `threshold_absolute_lower`   | float      | `-1.0`         |                                                                                                                                                                                                                                                              |
 |                 | `threshold_absolute_upper`   | float      | `1.0`          |                                                                                                                                                                                                                                                              |
 |                 | `gaussian_size`              | float      | `0.5`          | The number of standard deviations to build the Gaussian kernel and thus affects the degree of blurring. See [skimage.filters.gaussian](https://scikit-image.org/docs/dev/api/skimage.filters.html#skimage.filters.gaussian) and `sigma` for more information |
@@ -79,8 +75,8 @@ Aside from the comments in YAML file itself the fields are described below.
 |                 | `threshold_method`           | float      | `std_dev`      | Threshold method for grain finding.  Options : `otsu`, `std_dev`, `absolute`                                                                                                                                                                                 |
 |                 | `otsu_threshold_multiplier`  |            | `1.0`          | Factor by which the derived Otsu Threshold should be scaled.                                                                                                                                                                                                 |
 |                 | `threshold_std_dev`          |            | `1.0`          |                                                                                                                                                                                                                                                              |
-|                 | `  threshold_absolute_lower` |            | `1.0`          |                                                                                                                                                                                                                                                              |
-|                 | `  threshold_absolute_upper` |            | `1.0`          |                                                                                                                                                                                                                                                              |
+|                 | `threshold_absolute_lower` |            | `1.0`          |                                                                                                                                                                                                                                                              |
+|                 | `threshold_absolute_upper` |            | `1.0`          |                                                                                                                                                                                                                                                              |
 |                 | `absolute_area_threshold`    | dictionary |                |                                                                                                                                                                                                                                                              |
 |                 | `...upper`                   | list       | `[30,3000]`    | Height above surface [Low, High] in nm^2 (also takes null)                                                                                                                                                                                                   |
 |                 | `...lower`                   |            | `[null, null]` | Height below surface [Low, High] in nm^2 (also takes null)                                                                                                                                                                                                   |
@@ -107,7 +103,6 @@ Aside from the comments in YAML file itself the fields are described below.
 
 Plots summarising the distribution of metrics are generated by default. The behaviour is controlled by a configuration
 file. The default example can be found in [`topostats/summary_config.yaml`](). The fields of this file are described below.
-
 
 | Section        | Sub-Section | Data Type                  | Default           | Description                                                                                                             |
 |:---------------|:------------|:---------------------------|:------------------|:------------------------------------------------------------------------------------------------------------------------|
@@ -140,7 +135,6 @@ which denotes the current directory or one or more `../` which means the higher 
 directory. You can always find the current directory you are in using the `pwd` (`p`rint `w`orking `d`irectory). If
 your work is in `/home/user/path/to/my/data` and `pwd` prints `/home/user` then the relative path to your data is
 `./path/to/my/data`. The `cd` command is used to `c`hange `d`irectory.
-
 
 ``` bash
 pwd
