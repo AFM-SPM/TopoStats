@@ -125,6 +125,12 @@ along with information about how to give feedback, report bugs and cite the soft
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
+### Reducing Output
+
+If you find the output too verbose or of no use you can reduce it by setting the `log_level` to either `error` or
+`warning`. This can be done either in the configuration file (see [Configuring TopoStats](#configuring-topostats) below)
+or using the `-l`/`--log-level` flag for example `run_topostats --log_level warning`.
+
 ## Configuring TopoStats
 
 Configuration of TopoStats is done through a [YAML](https://yaml.org/) file and a full description of the fields used

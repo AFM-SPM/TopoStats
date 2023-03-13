@@ -39,7 +39,6 @@ class Filters:
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
         remove_scars: dict = None,
-        quiet: bool = False,
     ):
         """Initialise the class.
 
@@ -101,9 +100,6 @@ class Filters:
             "y_gradient": None,
             "threshold": None,
         }
-
-        if quiet:
-            LOGGER.setLevel("ERROR")
 
     def median_flatten(
         self, image: np.ndarray, mask: np.ndarray = None, row_alignment_quantile: float = 0.5
