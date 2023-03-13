@@ -251,7 +251,7 @@ def plotkde2var(
     return fig
 
 
-def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None):
+def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=10, nm=False, specpath=None):
     """Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
     the if __name__ == '__main__' line, but this can also be changed using the specpath argument."""
@@ -572,11 +572,13 @@ if __name__ == "__main__":
 
     # import data from the csv file
     path = plotting_config["file"]
-    path2 = plotting_config["file2"]
     df = importfromfile(path)
     df = df[df['Bending Angle'] != 0]
-    # df2 = importfromfile(path2)
-    # df2 = df2[df2['Bending Angle'] != 0]
+    df = df[df['Contour Lengths'] < 120]
+    path2 = plotting_config["file2"]
+    if path2 is not None:
+        df2 = importfromfile(path2)
+        df2 = df2[df2['Bending Angle'] != 0]
     extension = plotting_config["extension"]
     output_dir = plotting_config["output_dir"]
 
@@ -592,9 +594,9 @@ if __name__ == "__main__":
         if plottype == "histogram":
             plothist(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
         elif plottype == "histogram2":
-            plothist2var(df, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1='01', label2='02',bins=np.linspace(1, 5, 20))
-            # plothist2var(df, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1="With protein",
-                         # label2="Without protein", bins=np.linspace(20, 180, 17))
+            # plothist2var(df, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1='01', label2='02',bins=np.linspace(1, 5, 20))
+            plothist2var(df, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1="With protein",
+                         label2="Without protein", bins=np.linspace(20, 180, 17))
         elif plottype == "KDE":
             plotkde(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
         elif plottype == "violin":
