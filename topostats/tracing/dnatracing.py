@@ -882,7 +882,7 @@ class traceStats(object):
         self.df.reset_index(drop=True, inplace=True)
         self.df.index.name = "molecule_number"
         # self.df["Experiment Directory"] = str(Path().cwd())
-        self.df["image"] = self.image_path.stem
+        self.df["image"] = self.image_path.name
         self.df["basename"] = str(self.image_path.parent)
 
     def save_trace_stats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True) -> None:
