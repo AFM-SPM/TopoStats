@@ -10,7 +10,6 @@ repos:
       - id: end-of-file-fixer
         types: [python]
       - id: fix-byte-order-marker
-      - id: name-tests-test
       - id: requirements-txt-fixer
       - id: trailing-whitespace
         types: [python, yaml, markdown]
