@@ -51,6 +51,7 @@ dependencies = [
   "seaborn",
   "tifffile",
   "tqdm",
+  "pyfiglet",
 ]
 
 [project.optional-dependencies]
