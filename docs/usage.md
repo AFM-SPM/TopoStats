@@ -139,7 +139,6 @@ can be found under the [configuration](configuration) section.
 Here we will go through generating a configuration file to edit and some of the common changes that you are likely to
 want to make to the default configuration and how to make them.
 
-
 ### Generating Configuration File
 
 TopoStats will use some reasonable default parameters by default, but typically you will want to customise the
@@ -161,12 +160,10 @@ sample_image_scan_2022-12-08-1204.spm
 You can now edit and/or rename the `my_config.yaml`. It can be called anything you want,
 e.g. `todays_first_run_configuration.yaml` is a valid name.
 
-
 ### Editing `config.yaml`
 
 **IMPORTANT** This file is an ASCII text file and  you should use NotePad (Windows), TextEdit (OSX) or Nano/Emacs/Vim
 (GNU/Linux) or any other text editor. Do _not_ use Microsoft Word or any other Word Processor to edit this file.
-
 
 You can now start customising the configuration you are going to run TopoStats with. All fields have defaults but the
 ones you may want to change are....
@@ -189,7 +186,6 @@ ones you may want to change are....
   `.spm` but other file format support is in the pipeline.
 * `plotting` : `image_set` (default `core`) specifies which steps of the processing to plot images of. The value `all`
   gets images for all stages, `core` saves only a subset of images.
-
 
 Most of the other configuration options can be left on their default values for now. Once you have made any changes save
 the file and return to your terminal.
@@ -289,7 +285,6 @@ configured. It uses the plotting library [Seaborn](https://seaborn.pydata.org/) 
 [Matplotlib](https://matplotlib.org/)) to produce basic plots, which are not intended for publication. If you want to
 tweak or customise plots it is recommended to load `all_statistics.csv` into a [Jupyter Notebook](https://jupyter.org)
 and generate the plots you want there. A sample notebook is included to show how to do this.
-
 
 ### Configuring Summary Plots
 

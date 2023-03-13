@@ -2,8 +2,7 @@
 
 This section gives a broad overview of the steps taken in processing images.
 
-
-## Topotracing : Processing a single `.spm` file.
+## Topotracing : Processing a single `.spm` file
 
 Topotracing loads images from `.spm` files and extracts the specified channel, performing various filtering stages
 (`Filters()` class) before finding grains (`Grains()` class) and then calculating statistics for each grain

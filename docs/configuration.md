@@ -29,7 +29,6 @@ run_topostats --config my_config.yaml
 On completion a copy of the configuration that was used is written to the output directory so you have a record of the
 parameters used to generate the results you have. This file can be used in subsequent runs of TopoStats.
 
-
 ## YAML Structure
 
 YAML files have key and value pairs, the first word, e.g. `base_dir` is the key this is followed by a colon to separate
@@ -49,14 +48,9 @@ upper:
   - 400
 ```
 
-
 ## Fields
 
-
-
 Aside from the comments in YAML file itself the fields are described below.
-
-
 
 | Section         | Sub-Section                  | Data Type  | Default        | Description                                                                                                                                                                                                                                                  |
 |:----------------|:-----------------------------|:-----------|:---------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -69,7 +63,7 @@ Aside from the comments in YAML file itself the fields are described below.
 | `filter`        | `run`                        | boolean    | `true`         | Whether to run the filtering stage, without this other stages won't run so leave as `true`.                                                                                                                                                                  |
 |                 | `threshold_method`           | str        | `std_dev`      | Threshold method for filtering, options are `ostu`, `std_dev` or `absolute`.                                                                                                                                                                                 |
 |                 | `otsu_threshold_multiplier`  | float      | `1.0`          |                                                                                                                                                                                                                                                              |
-|                 | `threshold_std_dev`          | float      | ` 1.0`         |                                                                                                                                                                                                                                                              |
+|                 | `threshold_std_dev`          | float      | `1.0`         |                                                                                                                                                                                                                                                              |
 |                 | `threshold_absolute_lower`   | float      | `-1.0`         |                                                                                                                                                                                                                                                              |
 |                 | `threshold_absolute_upper`   | float      | `1.0`          |                                                                                                                                                                                                                                                              |
 |                 | `gaussian_size`              | float      | `0.5`          | The number of standard deviations to build the Gaussian kernel and thus affects the degree of blurring. See [skimage.filters.gaussian](https://scikit-image.org/docs/dev/api/skimage.filters.html#skimage.filters.gaussian) and `sigma` for more information |
@@ -81,8 +75,8 @@ Aside from the comments in YAML file itself the fields are described below.
 |                 | `threshold_method`           | float      | `std_dev`      | Threshold method for grain finding.  Options : `otsu`, `std_dev`, `absolute`                                                                                                                                                                                 |
 |                 | `otsu_threshold_multiplier`  |            | `1.0`          | Factor by which the derived Otsu Threshold should be scaled.                                                                                                                                                                                                 |
 |                 | `threshold_std_dev`          |            | `1.0`          |                                                                                                                                                                                                                                                              |
-|                 | `  threshold_absolute_lower` |            | `1.0`          |                                                                                                                                                                                                                                                              |
-|                 | `  threshold_absolute_upper` |            | `1.0`          |                                                                                                                                                                                                                                                              |
+|                 | `threshold_absolute_lower` |            | `1.0`          |                                                                                                                                                                                                                                                              |
+|                 | `threshold_absolute_upper` |            | `1.0`          |                                                                                                                                                                                                                                                              |
 |                 | `absolute_area_threshold`    | dictionary |                |                                                                                                                                                                                                                                                              |
 |                 | `...upper`                   | list       | `[30,3000]`    | Height above surface [Low, High] in nm^2 (also takes null)                                                                                                                                                                                                   |
 |                 | `...lower`                   |            | `[null, null]` | Height below surface [Low, High] in nm^2 (also takes null)                                                                                                                                                                                                   |
@@ -110,7 +104,6 @@ Aside from the comments in YAML file itself the fields are described below.
 Plots summarising the distribution of metrics are generated by default. The behaviour is controlled by a configuration
 file. The default example can be found in [`topostats/summary_config.yaml`](). The fields of this file are described below.
 
-
 | Section        | Sub-Section | Data Type                  | Default           | Description                                                                                                             |
 |:---------------|:------------|:---------------------------|:------------------|:------------------------------------------------------------------------------------------------------------------------|
 | `output_dir`   |             | `str`                      | `./output/`       | Where output plots should be saved to.                                                                                  |
@@ -130,7 +123,6 @@ file. The default example can be found in [`topostats/summary_config.yaml`](). T
 | `palette`      |             | `str`                      | `bright`          | Seaborn color palette. Options `colorblind`, `deep`, `muted`, `pastel`, `bright`, `dark`, `Spectral`, `Set2`            |
 | `stats_to_sum` |             | `list`                     | `str`             | A list of strings of variables to plot, comment (placing a `#` at the start of the line) and uncomment as required. Possible values are `area`, `area_cartesian_bbox`, `aspect_ratio`, `banding_angle`, `contour_lengths`, `end_to_end_distance`, `height_max`, `height_mean`, `height_median`, `height_min`, `radius_max`, `radius_mean`, `radius_median`, `radius_min`, `smallest_bounding_area`, `smallest_bounding_length`, `smallest_bounding_width`, `volume` |
 
-
 ## Validation
 
 Configuration files are validated against a schema to check that the values in the configuration file are within the
@@ -143,7 +135,6 @@ which denotes the current directory or one or more `../` which means the higher 
 directory. You can always find the current directory you are in using the `pwd` (`p`rint `w`orking `d`irectory). If
 your work is in `/home/user/path/to/my/data` and `pwd` prints `/home/user` then the relative path to your data is
 `./path/to/my/data`. The `cd` command is used to `c`hange `d`irectory.
-
 
 ``` bash
 pwd

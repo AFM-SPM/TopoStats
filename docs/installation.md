@@ -4,7 +4,6 @@
 [discussion](https://github.com/AFM-SPM/TopoStats/discussions) for possible solutions. If your problem isn't covered
 then please do not hesitate to ask a question.
 
-
 TopoStats is a [Python](https://www.python.org) package designed to run at the command line. If you are using Microsoft
 Windows you should use
 [Powershell](https://learn.microsoft.com/en-us/powershell/scripting/learn/ps101/01-getting-started?view=powershell-7.3). You
@@ -81,7 +80,6 @@ git clone https://github.com/AFM-SPM/TopoStats.git
 git clone git@github.com:AFM-SPM/TopoStats.git
 ```
 
-
 #### Cloning Using GitKraken
 
 If you are using GitKraken you can clone the repository by selecting "Clone" and then "GitHub.com" and typing
@@ -90,7 +88,6 @@ If you are using GitKraken you can clone the repository by selecting "Clone" and
 
 Alternatively you can "Clone with URL" and enter `https://github.com/AFM-SPM/TopoStats.git` as the URL to clone from,
 selecting a destination to clone to.
-
 
 #### Installing TopoStats from the Cloned Repository
 
@@ -108,7 +105,6 @@ i.e. `pip install -e .`.
 If you wish to develop features or address an existing [issue](https://github.com/AFM-SPM/TopoStats/issues) please refer
 to the [contributing](contributing) section.
 
-
 ## Tests
 
 One of the major changes in the refactoring is the introduction of unit tests. These require certain packages to be
@@ -117,14 +113,12 @@ installed which are not installed to your virtual environment by
 contribute to the development of TopoStats and making changes to the code base you will likely want to be able to run
 the tests. Install the necessary dependencies to do so with...
 
-
 ``` bash
 cd TopoStats
 git checkout dev
 pip install ".[tests]"
 pytest
 ```
-
 
 ## Git
 
