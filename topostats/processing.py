@@ -76,11 +76,28 @@ def process_scan(
     LOGGER.info(f"Processing : {filename}")
     core_out_path = get_out_path(image_path, base_dir, output_dir).parent / "processed"
     core_out_path.mkdir(parents=True, exist_ok=True)
+    image_stats_out_path = core_out_path / "image_stats.csv"
     filter_out_path = core_out_path / filename / "filters"
     filter_out_path.mkdir(exist_ok=True, parents=True)
     grain_out_path = core_out_path / filename / "grains"
     Path.mkdir(grain_out_path / "upper", parents=True, exist_ok=True)
     Path.mkdir(grain_out_path / "lower", parents=True, exist_ok=True)
+
+    image_stats = {
+        "image_size_x_m": "none",
+        "image_size_y_m": "none",
+        "image_area_m2": "none",
+        "grain_number_upper": "none",
+        "grain_number_lower": "none",
+        "grains_per_m2_upper": "none",
+        "grains_per_m2_lower": "none",
+        "rms_roughness_m": "none",
+    }
+
+    # Record image dimensions
+    image_stats["image_size_x_m"] = image.shape[1] * pixel_to_nm_scaling * 1e-9
+    image_stats["image_size_y_m"] = image.shape[0] * pixel_to_nm_scaling * 1e-9
+    image_stats["image_area_m2"] = image_stats["image_size_x_m"] * image_stats["image_size_y_m"]
 
     # Filter Image
     if filter_config["run"]:
@@ -122,6 +139,11 @@ def process_scan(
             filename=filename,
             **plotting_config["plot_dict"][plot_name],
         ).plot_and_save()
+
+        # Calculate the RMS roughness
+        image_stats["rms_roughness_m"] = np.sqrt(
+            np.mean(np.square(filtered_image.images["zero_average_background"] * 1e-9))
+        )
 
     else:
         LOGGER.error(
@@ -224,8 +246,16 @@ def process_scan(
                     grainstats_df = pd.concat([grainstats["lower"], grainstats["upper"]])
                 elif grains_config["direction"] == "upper":
                     grainstats_df = grainstats["upper"]
+                    image_stats["grain_number_upper"] = grainstats["upper"].shape[0]
+                    image_stats["grains_per_m2_upper"] = (
+                        image_stats["grain_number_upper"] / image_stats["image_area_m2"]
+                    )
                 elif grains_config["direction"] == "lower":
                     grainstats_df = grainstats["lower"]
+                    image_stats["grain_number_lower"] = grainstats["lower"].shape[0]
+                    image_stats["grains_per_m2_lower"] = (
+                        image_stats["grain_number_lower"] / image_stats["image_area_m2"]
+                    )
             except Exception:
                 LOGGER.info(f"[{filename}] : Errors occurred whilst calculating grain statistics.")
                 results = create_empty_dataframe()
@@ -276,6 +306,15 @@ def process_scan(
     else:
         LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
         results = create_empty_dataframe()
+
+    # Save image stats
+    LOGGER.info(f"[{filename}] Saving image stats to csv file.")
+    pd.DataFrame(image_stats, index=[0]).to_csv(image_stats_out_path, index=True)
+    # with image_stats_out_path.open("w") as f:
+    #     try:
+    #         f.write(yaml_dump(image_stats))
+    #     except YAMLError as exception:
+    #         LOGGER.error(exception)
 
     return image_path, results
 
