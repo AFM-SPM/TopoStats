@@ -2,16 +2,18 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0  # Use the ref you want to point at
     hooks:
-      - id: trailing-whitespace
-        types: [python, yaml, markdown]
-      - id: check-docstring-first
       - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
       - id: end-of-file-fixer
         types: [python]
-      - id: requirements-txt-fixer
       - id: fix-byte-order-marker
-      - id: check-yaml
-      - id: check-toml
+      - id: name-tests-test
+      - id: requirements-txt-fixer
+      - id: trailing-whitespace
+        types: [python, yaml, markdown]
 
   - repo: https://github.com/psf/black
     rev: 23.1.0

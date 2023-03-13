@@ -2,7 +2,6 @@
 
 The resulting statistics file has the following fields.
 
-
 | Column / field / feature | Description | Units |
 | --- | --- | --- |
 | `centre_x` | x co-ordinate of object centre. | m |

@@ -38,7 +38,7 @@ The process of removing [tilt](#tilt) from an image.
 ### GitHub
 
 [GitHub](https://www.github.com) is a website for sharing and collaboratively working on software that is version
-controlled using [Git](#Git).
+controlled using [Git](#git).
 
 ### grains
 
