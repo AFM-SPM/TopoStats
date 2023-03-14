@@ -79,6 +79,54 @@ def write_yaml(
             LOGGER.error(exception)
 
 
+def save_array(array: np.ndarray, outpath: Path, filename: str, array_type: str) -> None:
+    """Save a Numpy array to disk.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        Numpy array to be saved.
+    outpath : Path
+        Location array should be saved
+    filename : str
+        Filename of the current image from which the array is derived.
+    array_type : str
+        Short string describing the array type e.g. z_threshold. Ideally should not have periods or spaces in (use
+    underscores '_' instead).
+
+    Examples
+    --------
+    FIXME: Add docs.
+    """
+    np.save(outpath / f"{filename}_{array_type}.npy", array)
+    LOGGER.info(f"[{filename}] Numpy array saved to : {outpath}/{filename}_{array_type}.npy")
+
+
+def load_array(array_path: Union[str, Path]) -> np.ndarray:
+    """Load a Numpy array from file.
+
+    Should have been saved using save_array() or numpy.save().
+
+    Parameters
+    ----------
+    array_path : Union[str, Path]
+        Path to the Numpy array on disk.
+
+    Returns
+    -------
+    np.ndarray
+        Returns the loaded Numpy array.
+
+    Examples
+    --------
+    FIXME: Add docs.
+    """
+    try:
+        return np.load(Path(array_path))
+    except FileNotFoundError as e:
+        raise e
+
+
 def path_to_str(config: dict) -> Dict:
     """Recursively traverse a dictionary and convert any Path() objects to strings for writing to YAML.
 
