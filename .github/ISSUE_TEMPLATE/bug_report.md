@@ -48,7 +48,7 @@ If no configuration file was specified with the `-c`/`--config-file` option the 
 
 ## To Reproduce
 
-If it is possible to share the file that caused the error that would greatly assist in reproducing and investigating the problem. In addition the _exact_ command used that failed should be pasted below.
+If it is possible to share the file (e.g. via cloud services) that caused the error that would greatly assist in reproducing and investigating the problem. In addition the _exact_ command used that failed should be pasted below.
 
 ```
 <-- PASTE FAILING COMMAND HERE -->
@@ -71,7 +71,7 @@ Please report the version of TopoStats you are using. There are several ways of 
 <-- PASTE TOPOSTATS VERSION -->
 ```
 
-## Operating System and Python Versioninformation):**
+## Operating System and Python Version
 
 ### Operating System
 
