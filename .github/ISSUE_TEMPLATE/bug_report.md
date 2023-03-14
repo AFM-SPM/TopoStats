@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**NB** TopoStats `< 2.0` is no longer actively maintained. If you have encountered an issue using this deprecated
+**NB** TopoStats `< 2.0.0` is no longer actively maintained. If you have encountered an issue using this deprecated
 version please try TopoStats `>= 2.0.0`, there are instructions on
 [installation](https://afm-spm.github.io/TopoStats/installation.html),
 [usage](https://afm-spm.github.io/TopoStats/usage.html) and
