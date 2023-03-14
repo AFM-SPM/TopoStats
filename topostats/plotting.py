@@ -30,6 +30,7 @@ def create_parser() -> arg.ArgumentParser:
         description="Summarise and plot histograms, kernel density estimates and scatter plots of TopoStats"
         "grain and DNA Tracing statistics."
     )
+    parser.add_argument("-i", "--input_csv", dest="csv_file", required=False, help="Path to CSV file to plot.")
     parser.add_argument(
         "-c",
         "--config_file",
@@ -38,7 +39,7 @@ def create_parser() -> arg.ArgumentParser:
         help="Path to a YAML configuration file.",
     )
     parser.add_argument(
-        "-p",
+        "-l",
         "--var_to_label",
         dest="var_to_label",
         required=False,
@@ -320,11 +321,11 @@ def toposum(config: dict) -> Dict:
     return figures
 
 
-def main():
+def main(args=None):
     """Run Plotting"""
 
     parser = create_parser()
-    args = parser.parse_args()
+    args = parser.parse_args() if args is None else parser.parse_args(args)
 
     if args.config_file is not None:
         config = read_yaml(args.config_file)
@@ -341,6 +342,8 @@ def main():
         plotting_yaml = pkg_resources.open_text(__package__, "var_to_label.yaml")
         config["var_to_label"] = yaml.safe_load(plotting_yaml.read())
         LOGGER.info("[plotting] Default variable to labels mapping loaded.")
+    if args.csv_file is not None:
+        config["csv_file"] = args.csv_file
 
     # Write sample configuration if asked to do so and exit
     if args.create_config_file:
@@ -359,7 +362,7 @@ def main():
         sys.exit()
     if args.create_label_file:
         write_yaml(
-            config,
+            config["var_to_label"],
             output_dir="./",
             config_file=args.create_label_file,
             header_message="Sample label file auto-generated",
