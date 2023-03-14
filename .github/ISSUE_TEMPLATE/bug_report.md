@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**NB** TopoStats `< 2.0` is no longer actively maintained. If you have encountered an issue using this deprecated
+**NB** TopoStats `< 2.0.0` is no longer actively maintained. If you have encountered an issue using this deprecated
 version please try TopoStats `>= 2.0.0`, there are instructions on
 [installation](https://afm-spm.github.io/TopoStats/installation.html),
 [usage](https://afm-spm.github.io/TopoStats/usage.html) and
@@ -48,7 +48,7 @@ If no configuration file was specified with the `-c`/`--config-file` option the 
 
 ## To Reproduce
 
-If it is possible to share the file that caused the error that would greatly assist in reproducing and investigating the problem. In addition the _exact_ command used that failed should be pasted below.
+If it is possible to share the file (e.g. via cloud services) that caused the error that would greatly assist in reproducing and investigating the problem. In addition the _exact_ command used that failed should be pasted below.
 
 ```
 <-- PASTE FAILING COMMAND HERE -->
@@ -71,7 +71,7 @@ Please report the version of TopoStats you are using. There are several ways of 
 <-- PASTE TOPOSTATS VERSION -->
 ```
 
-## Operating System and Python Versioninformation):**
+## Operating System and Python Version
 
 ### Operating System
 
