@@ -78,7 +78,8 @@ Please report the version of TopoStats you are using. There are several ways of 
 Please let us know what operating system you are using, if you have used more than one then tick all boxes.
 
 * [ ] Windows
-* [ ] MacOS
+* [ ] MacOS Intel (pre-2021)
+* [ ] MacOS M1/M2 (post-2021)
 * [ ] GNU/Linux (please include distribution)
 
 ### Python Version
