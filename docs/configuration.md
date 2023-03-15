@@ -36,12 +36,12 @@ it from the value that it takes, by default `base_dir` takes the value `./` (whi
 the entry in the file is a single line with `base_dir: ./`. Other data structures are available in YAML files including
 nested values and lists.
 
-A list in YAML consists of a key (e.g. `upper:`) followed by the values in square brackets separated by commas such as
-`upper: [ 500, 800 ]`. This means the `upper` key is a list of the values `500` and `800`. Long lists can be split over
+A list in YAML consists of a key (e.g. `above:`) followed by the values in square brackets separated by commas such as
+`above: [ 500, 800 ]`. This means the `above` key is a list of the values `500` and `800`. Long lists can be split over
 separate lines as shown below
 
 ``` yaml
-upper:
+above:
   - 100
   - 200
   - 300
@@ -68,14 +68,14 @@ Aside from the comments in YAML file itself the fields are described below.
 |                 | `gaussian_size`              | float      | `0.5`          | The number of standard deviations to build the Gaussian kernel and thus affects the degree of blurring. See [skimage.filters.gaussian](https://scikit-image.org/docs/dev/api/skimage.filters.html#skimage.filters.gaussian) and `sigma` for more information.|
 |                 | `gaussian_mode`              | string     | `nearest`      |                                                                                                                                                                                                                                                              |
 | `grains`        | `run`                        | boolean    | `true`         | Whether to run grain finding. Options `true`, `false`                                                                                                                                                                                                        |
-|                 | `row_alignment_quantile`     | float       | `0.5`          | Quantile (0.0 to 1.0) to be used to determine the average background for the image. Lower values may improve flattening of large features.                                                                                                                  |
+|                 | `row_alignment_quantile`     | float       | `0.5`          | Quantile (0.0 to 1.0) to be used to determine the average background for the image. below values may improve flattening of large features.                                                                                                                  |
 |                 | `smallest_grain_size_nm2`    | int        | `100`          | The smallest size of grains to be included (in nm^2), anything smaller than this is considered noise and removed. **NB** must be `> 0.0`.                                                                                                                    |
 |                 | `threshold_method`           | float      | `std_dev`      | Threshold method for grain finding.  Options : `otsu`, `std_dev`, `absolute`                                                                                                                                                                                 |
 |                 | `otsu_threshold_multiplier`  |            | `1.0`          | Factor by which the derived Otsu Threshold should be scaled.                                                                                                                                                                                                 |
 |                 | `threshold_std_dev`          | dictionary | `-1.0, 1.0`    | A pair of values that are multiplied by the standard deviation, and then used as the threshold for finding grains below (first) and above (second) the image background.                                                                                     |
 |                 | `threshold_absolute`         | dictionary | `-1.0, 1.0`    | Below (first), above (second) absolute threshold for separating grains from the image background.                                                                                                                                                            |
-|                 | `direction`                  |            | `upper`        | Defines whether to look for grains above or below thresholds or both. Options: `upper`, `lower`, `both`                                                                                                                                                      |
-|                 | `smallest_grain_size`        | int        | `50`           | Catch-all value for the minimum size of grains. Measured in nanometres squared. All grains with area lower than this value are removed.                                                                                                                      |
+|                 | `direction`                  |            | `above`        | Defines whether to look for grains above or below thresholds or both. Options: `above`, `below`, `both`                                                                                                                                                      |
+|                 | `smallest_grain_size`        | int        | `50`           | Catch-all value for the minimum size of grains. Measured in nanometres squared. All grains with area below than this value are removed.                                                                                                                      |
 |                 | `absolute_area_threshold`    | dictionary | `[300, 3000], [null, null]` | Area thresholds for above the image backround (first) and below the image background (second), which grain sizes are permitted, measured in nanometres squared. All grains outside this area range are removed.                                 |
 | `grainstats`    | `run`                        | boolean    | `true`         | Whether to calculate grain statistics. Options : `true`, `false`                                                                                                                                                                                             |
 |                 | `cropped_size`               | float      | `40.0`         | Force cropping of grains to this length (in nm) of square cropped images (can take `-1` for grain-sized box)                                                                                                                                                 |

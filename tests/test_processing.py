@@ -13,9 +13,9 @@ BASE_DIR = Path.cwd()
 
 # Can't see a way of paramterising with pytest-regtest as it writes to a file based on the file/function
 # so instead we run three regression tests.
-def test_process_scan_lower(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
+def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly"""
-    process_scan_config["grains"]["direction"] = "lower"
+    process_scan_config["grains"]["direction"] = "below"
     img_dic = load_scan_data.img_dict
     _, results = process_scan(
         img_path_px2nm=img_dic["minicircle"],
@@ -32,7 +32,7 @@ def test_process_scan_lower(regtest, tmp_path, process_scan_config: dict, load_s
     print(results.to_string(), file=regtest)  # noqa: T201
 
 
-def test_process_scan_upper(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
+def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly"""
     img_dic = load_scan_data.img_dict
     _, results = process_scan(
@@ -96,16 +96,16 @@ def test_save_cropped_grains(
     )
 
     assert (
-        Path.exists(tmp_path / "tests/resources/processed/minicircle/grains/upper" / "minicircle_grain_image_0.png")
+        Path.exists(tmp_path / "tests/resources/processed/minicircle/grains/above" / "minicircle_grain_image_0.png")
         == expected
     )
     assert (
-        Path.exists(tmp_path / "tests/resources/processed/minicircle/grains/upper" / "minicircle_grain_mask_0.png")
+        Path.exists(tmp_path / "tests/resources/processed/minicircle/grains/above" / "minicircle_grain_mask_0.png")
         == expected
     )
     assert (
         Path.exists(
-            tmp_path / "tests/resources/processed/minicircle/grains/upper" / "minicircle_grain_mask_image_0.png"
+            tmp_path / "tests/resources/processed/minicircle/grains/above" / "minicircle_grain_mask_image_0.png"
         )
         == expected
     )
@@ -132,7 +132,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
 
     assert (
         imghdr.what(
-            tmp_path / "tests/resources/processed/minicircle/grains/upper" / f"minicircle_grain_image_0.{extension}"
+            tmp_path / "tests/resources/processed/minicircle/grains/above" / f"minicircle_grain_image_0.{extension}"
         )
         == extension
     )
@@ -269,7 +269,7 @@ def test_check_run_steps(
             True,
             True,
             "There are 15 circular and 6 linear DNA molecules found in the image",
-            "Combining upper grain statistics and dnatracing statistics",
+            "Combining above grain statistics and dnatracing statistics",
         ),
     ],
 )

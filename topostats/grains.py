@@ -37,8 +37,8 @@ class Grains:
         threshold_std_dev: dict = None,
         threshold_absolute: dict = None,
         absolute_area_threshold: dict = {
-            "upper": [None, None],
-            "lower": [None, None],
+            "above": [None, None],
+            "below": [None, None],
         },
         direction: str = None,
         smallest_grain_size_nm2: float = None,
@@ -54,17 +54,17 @@ class Grains:
         pixel_to_nm_scaling: float
             Sacling of pixels to nanometre.
         threshold_multiplier : Union[int, float]
-            Factor by which lower threshold is to be scaled prior to masking.
+            Factor by which below threshold is to be scaled prior to masking.
         threshold_method: str
             Method for determining threshold to mask values, default is 'otsu'.
         threshold_std_dev: dict
-            Dictionary of 'lower' and 'upper' factors by which standard deviation is multiplied to derive the threshold if threshold_method is 'std_dev'.
+            Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold if threshold_method is 'std_dev'.
         threshold_absolute: dict
-            Dictionary of absolute 'lower' and 'upper' thresholds for grain finding.
+            Dictionary of absolute 'below' and 'above' thresholds for grain finding.
         absolute_area_threshold: dict
-            Dictionary of upper and lower grain's area thresholds
+            Dictionary of above and below grain's area thresholds
         direction: str
-            Direction for which grains are to be detected, valid values are upper, lower and both.
+            Direction for which grains are to be detected, valid values are above, below and both.
         """
         self.image = image
         self.filename = filename
@@ -75,7 +75,7 @@ class Grains:
         self.threshold_absolute = threshold_absolute
         self.absolute_area_threshold = absolute_area_threshold
         # Only detect grains for the desired direction
-        self.direction = [direction] if direction != "both" else ["upper", "lower"]
+        self.direction = [direction] if direction != "both" else ["above", "below"]
         self.smallest_grain_size_nm2 = smallest_grain_size_nm2
         self.thresholds = None
         self.images = {
@@ -130,7 +130,7 @@ class Grains:
     def calc_minimum_grain_size(self, image: np.ndarray) -> float:
         """Calculate the minimum grain size in pixels squared.
 
-        Very small objects are first removed via thresholding before calculating the lower extreme.
+        Very small objects are first removed via thresholding before calculating the below extreme.
         """
         region_properties = self.get_region_properties(image)
         grain_areas = np.array([grain.area for grain in region_properties])
@@ -205,7 +205,7 @@ class Grains:
             Image array where the background == 0 and grains are labelled as integers > 0.
         area_thresholds: list
             List of area thresholds (in nanometres squared, not pixels squared), first should be
-            the lower (smaller) threshold, second upper (larger) threshold.
+            the below (smaller) threshold, second above (larger) threshold.
 
         Returns
         -------
@@ -214,23 +214,23 @@ class Grains:
 
         """
         image_cp = image.copy()
-        lower, upper = area_thresholds
+        below, above = area_thresholds
         # if one value is None adjust for comparison
-        if upper is None:
-            upper = image.size * self.pixel_to_nm_scaling**2
-        if lower is None:
-            lower = 0
+        if above is None:
+            above = image.size * self.pixel_to_nm_scaling**2
+        if below is None:
+            below = 0
         # Get array of grain numbers (discounting zero)
         uniq = np.delete(np.unique(image), 0)
         grain_count = 0
         LOGGER.info(
-            f"[{self.filename}] : Area thresholding grains | Thresholds: L:{lower / self.pixel_to_nm_scaling**2:.2f},"
-            "U:{upper / self.pixel_to_nm_scaling**2:.2f} px^2, L:{lower:.2f}, U:{upper:.2f} nm^2."
+            f"[{self.filename}] : Area thresholding grains | Thresholds: L:{below / self.pixel_to_nm_scaling**2:.2f},"
+            "U:{above / self.pixel_to_nm_scaling**2:.2f} px^2, L:{below:.2f}, U:{above:.2f} nm^2."
         )
         for grain_no in uniq:  # Calculate grian area in nm^2
             grain_area = np.sum(image_cp == grain_no) * (self.pixel_to_nm_scaling**2)
             # Compare area in nm^2 to area thresholds
-            if grain_area > upper or grain_area < lower:
+            if grain_area > above or grain_area < below:
                 image_cp[image_cp == grain_no] = 0
             else:
                 grain_count += 1
