@@ -174,6 +174,10 @@ class Images:
                         fig, ax = self.save_figure()
                     else:
                         self.save_array_figure()
+                    LOGGER.info(
+                        f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}"
+                        f".{self.save_format}"
+                    )
         return fig, ax
 
     def save_figure(self):
@@ -237,9 +241,6 @@ class Images:
                 )
             else:
                 plt.savefig((self.output_dir / f"{self.filename}.{self.save_format}"), dpi=self.dpi)
-                LOGGER.info(
-                    f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.save_format}"
-                )
         else:
             plt.xlabel("Nanometres")
             plt.ylabel("Nanometres")
