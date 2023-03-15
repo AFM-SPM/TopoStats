@@ -174,7 +174,9 @@ class Images:
                         fig, ax = self.save_figure()
                     else:
                         self.save_array_figure()
-        LOGGER.info(f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}")
+        LOGGER.info(
+            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}" f".{self.save_format}"
+        )
         return fig, ax
 
     def save_figure(self):

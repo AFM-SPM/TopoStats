@@ -23,14 +23,20 @@ repos:
         types: [python]
         additional_dependencies: ['click==8.0.4']
         args: ["--extend-exclude", "topostats/plotting.py"]
+      - id: black-jupyter
 
-  # - repo: https://github.com/pycqa/flake8.git
-  #   rev: 6.0.0
-  #   hooks:
-  #     - id: flake8
-  #       args: ["--extend-exclude=topostats/_version.py"]
-  #       additional_dependencies: [flake8-print, Flake8-pyproject]
-  #       types: [python]
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.6.1
+    hooks:
+      - id: nbstripout
+
+  - repo: https://github.com/pycqa/flake8.git
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        args: ["--extend-exclude=topostats/_version.py"]
+        additional_dependencies: [flake8-print, Flake8-pyproject]
+        types: [python]
   # - repo: https://github.com/pycqa/pylint.git
   #   rev: 2.15.9
   #   hooks:

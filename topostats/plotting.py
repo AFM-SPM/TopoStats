@@ -30,6 +30,7 @@ def create_parser() -> arg.ArgumentParser:
         description="Summarise and plot histograms, kernel density estimates and scatter plots of TopoStats"
         "grain and DNA Tracing statistics."
     )
+    parser.add_argument("-i", "--input_csv", dest="csv_file", required=False, help="Path to CSV file to plot.")
     parser.add_argument(
         "-c",
         "--config_file",
@@ -38,7 +39,7 @@ def create_parser() -> arg.ArgumentParser:
         help="Path to a YAML configuration file.",
     )
     parser.add_argument(
-        "-p",
+        "-l",
         "--var_to_label",
         dest="var_to_label",
         required=False,
@@ -51,6 +52,13 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
     )
+    parser.add_argument(
+        "--create-label-file",
+        dest="create_label_file",
+        type=str,
+        required=False,
+        help="Filename to write a sample YAML label file to (should end in '.yaml').",
+    )
     return parser
 
 
@@ -60,6 +68,7 @@ class TopoSum:
     def __init__(
         self,
         df: Union[pd.DataFrame] = None,
+        base_dir: Union[str, Path] = None,
         csv_file: Union[str, Path] = None,
         stat_to_sum: str = None,
         molecule_id: str = "molecule_number",
@@ -82,6 +91,8 @@ class TopoSum:
         ==========
         df: Union[pd.DataFrame]
             Pandas data frame of data to be summarised.
+        base_dir: Union[str, Path]
+            Base directory from which all paths are relative to.
         csv_file: Union[str, Path]
             CSV file of data to be summarised.
         stat_to_sum: str
@@ -117,6 +128,7 @@ class TopoSum:
         =======
         """
         self.df = df if df is not None else pd.read_csv(csv_file)
+        self.base_dir = base_dir
         self.stat_to_sum = stat_to_sum
         self.molecule_id = molecule_id
         self.image_id = image_id
@@ -309,11 +321,11 @@ def toposum(config: dict) -> Dict:
     return figures
 
 
-def main():
+def main(args=None):
     """Run Plotting"""
 
     parser = create_parser()
-    args = parser.parse_args()
+    args = parser.parse_args() if args is None else parser.parse_args(args)
 
     if args.config_file is not None:
         config = read_yaml(args.config_file)
@@ -330,6 +342,8 @@ def main():
         plotting_yaml = pkg_resources.open_text(__package__, "var_to_label.yaml")
         config["var_to_label"] = yaml.safe_load(plotting_yaml.read())
         LOGGER.info("[plotting] Default variable to labels mapping loaded.")
+    if args.csv_file is not None:
+        config["csv_file"] = args.csv_file
 
     # Write sample configuration if asked to do so and exit
     if args.create_config_file:
@@ -340,6 +354,20 @@ def main():
             header_message="Sample configuration file auto-generated",
         )
         LOGGER.info(f"A sample configuration has been written to : ./{args.create_config_file}")
+        LOGGER.info(
+            "Please refer to the documentation on how to use the configuration file : \n\n"
+            "https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats\n"
+            "https://afm-spm.github.io/TopoStats/configuration.html"
+        )
+        sys.exit()
+    if args.create_label_file:
+        write_yaml(
+            config["var_to_label"],
+            output_dir="./",
+            config_file=args.create_label_file,
+            header_message="Sample label file auto-generated",
+        )
+        LOGGER.info(f"A sample label file has been written to : ./{args.create_label_file}")
         LOGGER.info(
             "Please refer to the documentation on how to use the configuration file : \n\n"
             "https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats\n"

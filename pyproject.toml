@@ -55,7 +55,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-tests =[
+tests = [
   "py",
   "pytest",
   "pytest-cov",
@@ -84,6 +84,12 @@ dev = [
 pypi = [
   "build",
   "wheel",
+]
+notebooks = [
+  "ipython",
+  "ipywidgets",
+  "jupyter_contrib_nbextensions",
+  "jupyterthemes",
 ]
 
 [project.urls]
