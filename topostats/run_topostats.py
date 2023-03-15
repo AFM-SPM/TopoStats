@@ -15,7 +15,7 @@ import yaml
 import pandas as pd
 from tqdm import tqdm
 
-from topostats._version import __version__
+from topostats import __version__
 from topostats.io import find_files, read_yaml, save_folder_grainstats, write_yaml, LoadScans
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum

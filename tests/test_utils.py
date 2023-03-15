@@ -9,8 +9,8 @@ from topostats.utils import convert_path, update_config, get_thresholds, update_
 
 THRESHOLD_OPTIONS = {
     "otsu_threshold_multiplier": 1.7,
-    "threshold_std_dev": {"lower": 10.0, "upper": 1.0},
-    "absolute": {"lower": -1.5, "upper": 1.5},
+    "threshold_std_dev": {"below": 10.0, "above": 1.0},
+    "absolute": {"below": -1.5, "above": 1.5},
 }
 
 
@@ -58,14 +58,14 @@ def test_get_thresholds_otsu(image_random: np.ndarray) -> None:
     thresholds = get_thresholds(image=image_random, threshold_method="otsu", **THRESHOLD_OPTIONS)
 
     assert isinstance(thresholds, dict)
-    assert thresholds == {"upper": 0.8466799787547299}
+    assert thresholds == {"above": 0.8466799787547299}
 
 
 def test_get_thresholds_stddev(image_random: np.ndarray) -> None:
     """Test of get_thresholds() method with mean threshold."""
     thresholds = get_thresholds(image=image_random, threshold_method="std_dev", **THRESHOLD_OPTIONS)
     assert isinstance(thresholds, dict)
-    assert thresholds == {"lower": -2.3866804917165663, "upper": 0.7886033762450778}
+    assert thresholds == {"below": -2.3866804917165663, "above": 0.7886033762450778}
 
     with pytest.raises(TypeError):
         thresholds = get_thresholds(image=image_random, threshold_method="std_dev")
@@ -75,7 +75,7 @@ def test_get_thresholds_absolute(image_random: np.ndarray) -> None:
     """Test of get_thresholds() method with absolute threshold."""
     thresholds = get_thresholds(image=image_random, threshold_method="absolute", **THRESHOLD_OPTIONS)
     assert isinstance(thresholds, dict)
-    assert thresholds == {"upper": 1.5, "lower": -1.5}
+    assert thresholds == {"above": 1.5, "below": -1.5}
 
 
 def test_get_thresholds_type_error(image_random: np.ndarray) -> None:

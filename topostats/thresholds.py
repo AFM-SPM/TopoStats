@@ -37,7 +37,7 @@ def _get_threshold(method: str = "otsu") -> Callable:
     Parameters
     ----------
     method : str
-        Threshold method to use, currently supports otsu (default), std_dev_lower, std_dev_upper, minimum, mean and yen.
+        Threshold method to use, currently supports otsu (default), mean, minimum, mean yen, and triangle.
 
     Returns
     -------

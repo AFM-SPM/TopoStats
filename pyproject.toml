@@ -80,6 +80,7 @@ dev = [
   "flake8",
   "flake8-print",
   "Flake8-pyproject",
+  "pyupgrade",
 ]
 pypi = [
   "build",

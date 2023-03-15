@@ -251,7 +251,7 @@ def test_random_grain_stats(caplog, tmp_path: Path) -> None:
         labelled_data=None,
         pixel_to_nanometre_scaling=0.5,
         image_name="random",
-        direction="upper",
+        direction="above",
         base_output_dir=tmp_path,
     )
     grainstats.calculate_stats()

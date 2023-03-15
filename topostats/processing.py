@@ -6,7 +6,7 @@ from typing import Dict, Union, List
 import numpy as np
 import pandas as pd
 
-from topostats._version import __version__
+from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
@@ -79,8 +79,8 @@ def process_scan(
     filter_out_path = core_out_path / filename / "filters"
     filter_out_path.mkdir(exist_ok=True, parents=True)
     grain_out_path = core_out_path / filename / "grains"
-    Path.mkdir(grain_out_path / "upper", parents=True, exist_ok=True)
-    Path.mkdir(grain_out_path / "lower", parents=True, exist_ok=True)
+    Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
+    Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
 
     # Filter Image
     if filter_config["run"]:
@@ -228,11 +228,11 @@ def process_scan(
                             ).plot_and_save()
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
-                    grainstats_df = pd.concat([grainstats["lower"], grainstats["upper"]])
-                elif grains_config["direction"] == "upper":
-                    grainstats_df = grainstats["upper"]
-                elif grains_config["direction"] == "lower":
-                    grainstats_df = grainstats["lower"]
+                    grainstats_df = pd.concat([grainstats["below"], grainstats["above"]])
+                elif grains_config["direction"] == "above":
+                    grainstats_df = grainstats["above"]
+                elif grains_config["direction"] == "below":
+                    grainstats_df = grainstats["below"]
             except Exception:
                 LOGGER.info(f"[{filename}] : Errors occurred whilst calculating grain statistics.")
                 results = create_empty_dataframe()
@@ -256,13 +256,13 @@ def process_scan(
                         tracing_stats[direction].df["threshold"] = direction
                     # Set tracing_stats_df in light of direction
                     if grains_config["direction"] == "both":
-                        tracing_stats_df = pd.concat([tracing_stats["lower"].df, tracing_stats["upper"].df])
-                    elif grains_config["direction"] == "upper":
-                        tracing_stats_df = tracing_stats["upper"].df
-                    elif grains_config["direction"] == "lower":
-                        tracing_stats_df = tracing_stats["lower"].df
+                        tracing_stats_df = pd.concat([tracing_stats["below"].df, tracing_stats["above"].df])
+                    elif grains_config["direction"] == "above":
+                        tracing_stats_df = tracing_stats["above"].df
+                    elif grains_config["direction"] == "below":
+                        tracing_stats_df = tracing_stats["below"].df
                     LOGGER.info(f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics")
-                    # NB - Merge on image, molecule and threshold because we may have upper and lower molecueles which
+                    # NB - Merge on image, molecule and threshold because we may have above and below molecueles which
                     #      gives duplicate molecule numbers as they are processed separately
                     results = grainstats_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"])
                 else:
@@ -351,27 +351,25 @@ def completion_message(config: Dict, img_files: List, summary_config: Dict, imag
     None
     """
     LOGGER.info(
-        (
-            f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
-            f"  TopoStats Version           : {__version__}\n"
-            f"  Base Directory              : {config['base_dir']}\n"
-            f"  File Extension              : {config['file_ext']}\n"
-            f"  Files Found                 : {len(img_files)}\n"
-            f"  Successfully Processed^1    : {images_processed} ({(images_processed * 100) / len(img_files)}%)\n"
-            f"  Configuration               : {config['output_dir']}/config.yaml\n"
-            f"  All statistics              : {str(config['output_dir'])}/all_statistics.csv\n"
-            f"  Distribution Plots          : {str(summary_config['output_dir'])}\n\n"
-            f"  Email                       : topostats@sheffield.ac.uk\n"
-            f"  Documentation               : https://afm-spm.github.io/topostats/\n"
-            f"  Source Code                 : https://github.com/AFM-SPM/TopoStats/\n"
-            f"  Bug Reports/Feature Request : https://github.com/AFM-SPM/TopoStats/issues/new/choose\n"
-            f"  Citation File Format        : https://github.com/AFM-SPM/TopoStats/blob/main/CITATION.cff\n\n"
-            f"  ^1 Successful processing of an image is detection of grains and calculation of at least\n"
-            f"     grain statistics. If these have been disabled the percentage will be 0.\n\n"
-            f"  If you encounter bugs/issues or have feature requests please report them at the above URL\n"
-            f"  or email us.\n\n"
-            f"  If you have found TopoStats useful please consider citing it. A Citation File Format is\n"
-            f"  linked above and available from the Source Code page.\n"
-            f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
-        )
+        f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+        f"  TopoStats Version           : {__version__}\n"
+        f"  Base Directory              : {config['base_dir']}\n"
+        f"  File Extension              : {config['file_ext']}\n"
+        f"  Files Found                 : {len(img_files)}\n"
+        f"  Successfully Processed^1    : {images_processed} ({(images_processed * 100) / len(img_files)}%)\n"
+        f"  Configuration               : {config['output_dir']}/config.yaml\n"
+        f"  All statistics              : {str(config['output_dir'])}/all_statistics.csv\n"
+        f"  Distribution Plots          : {str(summary_config['output_dir'])}\n\n"
+        f"  Email                       : topostats@sheffield.ac.uk\n"
+        f"  Documentation               : https://afm-spm.github.io/topostats/\n"
+        f"  Source Code                 : https://github.com/AFM-SPM/TopoStats/\n"
+        f"  Bug Reports/Feature Request : https://github.com/AFM-SPM/TopoStats/issues/new/choose\n"
+        f"  Citation File Format        : https://github.com/AFM-SPM/TopoStats/blob/main/CITATION.cff\n\n"
+        f"  ^1 Successful processing of an image is detection of grains and calculation of at least\n"
+        f"     grain statistics. If these have been disabled the percentage will be 0.\n\n"
+        f"  If you encounter bugs/issues or have feature requests please report them at the above URL\n"
+        f"  or email us.\n\n"
+        f"  If you have found TopoStats useful please consider citing it. A Citation File Format is\n"
+        f"  linked above and available from the Source Code page.\n"
+        f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
     )

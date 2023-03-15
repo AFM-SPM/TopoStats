@@ -106,22 +106,22 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
-                "lower": lambda n: n > 0,
-                "upper": lambda n: n > 0,
+                "below": lambda n: n > 0,
+                "above": lambda n: n > 0,
             },
             "threshold_absolute": {
-                "lower": Or(
+                "below": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for filter.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
-                "upper": Or(
+                "above": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for filter.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
             },
@@ -153,42 +153,42 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
-                "lower": lambda n: n > 0,
-                "upper": lambda n: n > 0,
+                "below": lambda n: n > 0,
+                "above": lambda n: n > 0,
             },
             "threshold_absolute": {
-                "lower": Or(
+                "below": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for grains.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
-                "upper": Or(
+                "above": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for grains.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
             },
             "absolute_area_threshold": {
-                "upper": [
+                "above": [
                     Or(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.absolute_area_threshold.upper', valid values "
+                            "Invalid value in config for 'grains.absolute_area_threshold.above', valid values "
                             "are int or null"
                         ),
                     )
                 ],
-                "lower": [
+                "below": [
                     Or(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.absolute_area_threshold.lower', valid values "
+                            "Invalid value in config for 'grains.absolute_area_threshold.below', valid values "
                             "are int or null"
                         ),
                     )
@@ -196,9 +196,9 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             },
             "direction": Or(
                 "both",
-                "lower",
-                "upper",
-                error="Invalid direction for grains.direction valid values are 'both', 'lower' or 'upper",
+                "below",
+                "above",
+                error="Invalid direction for grains.direction valid values are 'both', 'below' or 'above",
             ),
         },
         "grainstats": {

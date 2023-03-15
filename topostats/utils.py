@@ -134,10 +134,10 @@ def _get_mask(image: np.ndarray, thresh: float, threshold_direction: str, img_na
     np.array
         Numpy array of image with objects coloured.
     """
-    if threshold_direction == "upper":
-        LOGGER.info(f"[{img_name}] : Masking (upper) Threshold: {thresh}")
+    if threshold_direction == "above":
+        LOGGER.info(f"[{img_name}] : Masking (above) Threshold: {thresh}")
         return image > thresh
-    LOGGER.info(f"[{img_name}] : Masking (lower) Threshold: {thresh}")
+    LOGGER.info(f"[{img_name}] : Masking (below) Threshold: {thresh}")
     return image < thresh
     # LOGGER.fatal(f"[{img_name}] : Threshold direction invalid: {threshold_direction}")
 
@@ -151,8 +151,8 @@ def get_mask(image: np.ndarray, thresholds: dict, img_name: str = None) -> np.nd
         2D Numpy array of the image to have a mask derived for.
 
     thresholds: dict
-        Dictionary of thresholds, at a bare minimum must have key 'lower' with an associated value, second key is
-        to have an 'upper' threshold.
+        Dictionary of thresholds, at a bare minimum must have key 'below' with an associated value, second key is
+        to have an 'above' threshold.
     img_name: str
         Image name that is being masked.
 
@@ -162,16 +162,16 @@ def get_mask(image: np.ndarray, thresholds: dict, img_name: str = None) -> np.nd
         2D Numpy boolean array of points to mask.
     """
     # Both thresholds are applicable
-    if "lower" in thresholds and "upper" in thresholds:
-        mask_upper = _get_mask(image, thresh=thresholds["upper"], threshold_direction="upper", img_name=img_name)
-        mask_lower = _get_mask(image, thresh=thresholds["lower"], threshold_direction="lower", img_name=img_name)
+    if "below" in thresholds and "above" in thresholds:
+        mask_above = _get_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
+        mask_below = _get_mask(image, thresh=thresholds["below"], threshold_direction="below", img_name=img_name)
         # Masks are combined to remove both the extreme high and extreme low data points.
-        return mask_upper + mask_lower
-    # Only lower threshold is applicable
-    if "lower" in thresholds:
-        return _get_mask(image, thresh=thresholds["lower"], threshold_direction="lower", img_name=img_name)
-    # Only upper threshold is applicable
-    return _get_mask(image, thresh=thresholds["upper"], threshold_direction="upper", img_name=img_name)
+        return mask_above + mask_below
+    # Only below threshold is applicable
+    if "below" in thresholds:
+        return _get_mask(image, thresh=thresholds["below"], threshold_direction="below", img_name=img_name)
+    # Only above threshold is applicable
+    return _get_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
 
 
 # pylint: disable=unused-argument
@@ -192,32 +192,32 @@ def get_thresholds(
     threshold_method : str
         Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
     threshold_std_dev : dict
-        Dict of upper and lower thresholds for the standard deviation method.
+        Dict of above and below thresholds for the standard deviation method.
     absolute : tuple
-        Dict of lower and upper thresholds.
+        Dict of below and above thresholds.
     **kwargs:
 
     Returns
     -------
     Dict
-        Dictionary of thresholds, contains keys 'lower' and optionally 'upper'.
+        Dictionary of thresholds, contains keys 'below' and optionally 'above'.
     """
     thresholds = defaultdict()
     if threshold_method == "otsu":
-        thresholds["upper"] = threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)
+        thresholds["above"] = threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)
     elif threshold_method == "std_dev":
         try:
-            if threshold_std_dev["lower"] is not None:
-                thresholds["lower"] = threshold(image, method="mean") - threshold_std_dev["lower"] * np.nanstd(image)
-            if threshold_std_dev["upper"] is not None:
-                thresholds["upper"] = threshold(image, method="mean") + threshold_std_dev["upper"] * np.nanstd(image)
+            if threshold_std_dev["below"] is not None:
+                thresholds["below"] = threshold(image, method="mean") - threshold_std_dev["below"] * np.nanstd(image)
+            if threshold_std_dev["above"] is not None:
+                thresholds["above"] = threshold(image, method="mean") + threshold_std_dev["above"] * np.nanstd(image)
         except TypeError as typeerror:
             raise typeerror
     elif threshold_method == "absolute":
-        if absolute["lower"] is not None:
-            thresholds["lower"] = absolute["lower"]
-        if absolute["upper"] is not None:
-            thresholds["upper"] = absolute["upper"]
+        if absolute["below"] is not None:
+            thresholds["below"] = absolute["below"]
+        if absolute["above"] is not None:
+            thresholds["above"] = absolute["above"]
     else:
         if not isinstance(threshold_method, str):
             raise TypeError(

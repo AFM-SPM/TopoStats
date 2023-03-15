@@ -264,7 +264,7 @@ to the same value as `base_dir`.
 Within each `Processed` directory is a directory for each file found with the specified `file_ext` and within these are
 the resulting images from processing scans. If the `plotting` : `image_set` is `core` then there is a single image for
 each. If this option is `all` then there is also a sub-directory for each image found within which there are the
-directories `filters`, `grains/lower` and `grains/upper` which contain additional images from the processing stages and
+directories `filters`, `grains/below` and `grains/above` which contain additional images from the processing stages and
 an accompanying histogram for each image showing the distribution of pixel heights for that image.
 
 ## Summary Plots
