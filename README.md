@@ -1,5 +1,4 @@
 <div align="center">
-
 [![PyPI version](https://badge.fury.io/py/topostats.svg)](https://badge.fury.io/py/topostats)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/topostats)
 [![Documentation Status](https://readthedocs.org/projects/topostats/badge/?version=dev)](https://topostats.readthedocs.io/en/dev/?badge=dev)
