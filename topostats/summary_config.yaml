@@ -1,3 +1,4 @@
+base_dir: ./ # Directory from which all files and directories are relative to ("./" is the default current directory)
 output_dir: ./output/summary_distributions
 csv_file: ./all_statistics.csv
 file_ext: png

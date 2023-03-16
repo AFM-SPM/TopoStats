@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from topostats.logs.logs import LOGGER_NAME
 from topostats.run_topostats import main as run_topostats_main
 
 BASE_DIR = Path.cwd()
@@ -28,3 +29,14 @@ def test_run_topostats_process_all(caplog) -> None:
     run_topostats_main(args=["--config", f"{BASE_DIR / 'topostats' / 'default_config.yaml'}"])
     assert "~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~" in caplog.text
     assert "Successfully Processed^1    : 1 (100.0%)" in caplog.text
+
+
+def test_run_topostats_process_debug(caplog) -> None:
+    """Test run_topostats with debugging and check DEBUG messages are logged"""
+    # Set the logging level of the topostats logger
+    with caplog.at_level(logging.DEBUG, logger=LOGGER_NAME):
+        run_topostats_main(args=["--config", f"{BASE_DIR / 'topostats' / 'default_config.yaml'}", "-l", "debug"])
+        assert "Configuration after update         :" in caplog.text
+        assert "File extension : .spm" in caplog.text
+        assert "Images processed : 1" in caplog.text
+        assert "~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~" in caplog.text

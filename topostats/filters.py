@@ -39,7 +39,6 @@ class Filters:
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
         remove_scars: dict = None,
-        quiet: bool = False,
     ):
         """Initialise the class.
 
@@ -66,8 +65,6 @@ class Filters:
             absolute threshold values for flattening.
         remove_scars: dict
             Dictionary containing configuration parameters for the scar removal function.
-        quiet: bool
-            Whether to silence output.
         """
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
@@ -103,9 +100,6 @@ class Filters:
             "y_gradient": None,
             "threshold": None,
         }
-
-        if quiet:
-            LOGGER.setLevel("ERROR")
 
     def median_flatten(
         self, image: np.ndarray, mask: np.ndarray = None, row_alignment_quantile: float = 0.5
@@ -181,6 +175,8 @@ processed, please refer to <url to page where we document common problems> for m
         # Calculate medians
         medians_x = [np.nanmedian(read_matrix[:, i]) for i in range(read_matrix.shape[1])]
         medians_y = [np.nanmedian(read_matrix[j, :]) for j in range(read_matrix.shape[0])]
+        LOGGER.debug(f"[{self.filename}] [remove_tilt] medians_x   : {medians_x}")
+        LOGGER.debug(f"[{self.filename}] [remove_tilt] medians_y   : {medians_y}")
 
         # Fit linear x
         px = np.polyfit(range(0, len(medians_x)), medians_x, 1)

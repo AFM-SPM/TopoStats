@@ -1,11 +1,15 @@
 """Tests for the plotting module."""
+import importlib.resources as pkg_resources
 from pathlib import Path
+import yaml
 
 from matplotlib.figure import Figure
 import pandas as pd
 import pytest
 
+import topostats
 from topostats.plotting import TopoSum, toposum
+from topostats.plotting import main as plotting_main
 
 # pylint: disable=protected-access
 
@@ -37,6 +41,32 @@ def test_outfile(toposum_object: TopoSum) -> None:
     outfile = toposum_object._outfile(plot_suffix="testing")
     assert isinstance(outfile, str)
     assert outfile == "area_testing"
+
+
+def test_args_input_csv() -> None:
+    """Test modifying the configuration value for the input CSV to be summarised."""
+    assert True
+
+
+def test_var_to_label_config(tmp_path: Path) -> None:
+    """Test the var_to_label configuration file is created correctly."""
+    with pytest.raises(SystemExit):
+        plotting_main(
+            args=[
+                "--create-label-file",
+                f"{tmp_path / 'var_to_label_config.yaml'}",
+                "--input_csv",
+                f"{str(RESOURCES / 'minicircle_default_all_statistics.csv')}",
+            ]
+        )
+    var_to_label_config = tmp_path / "var_to_label_config.yaml"
+    with var_to_label_config.open("r", encoding="utf-8") as f:
+        var_to_label_str = f.read()
+    var_to_label = yaml.safe_load(var_to_label_str)
+    plotting_yaml = pkg_resources.open_text(topostats.__package__, "var_to_label.yaml")
+    expected_var_to_label = yaml.safe_load(plotting_yaml.read())
+
+    assert var_to_label == expected_var_to_label
 
 
 @pytest.mark.parametrize(

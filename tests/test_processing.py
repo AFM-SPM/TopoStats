@@ -16,7 +16,7 @@ BASE_DIR = Path.cwd()
 def test_process_scan_lower(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly"""
     process_scan_config["grains"]["direction"] = "lower"
-    img_dic = load_scan_data.img_dic
+    img_dic = load_scan_data.img_dict
     _, results = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
@@ -34,7 +34,7 @@ def test_process_scan_lower(regtest, tmp_path, process_scan_config: dict, load_s
 
 def test_process_scan_upper(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly"""
-    img_dic = load_scan_data.img_dic
+    img_dic = load_scan_data.img_dict
     _, results = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
@@ -53,7 +53,7 @@ def test_process_scan_upper(regtest, tmp_path, process_scan_config: dict, load_s
 def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly"""
     process_scan_config["grains"]["direction"] = "both"
-    img_dic = load_scan_data.img_dic
+    img_dic = load_scan_data.img_dict
     _, results = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
@@ -83,7 +83,7 @@ def test_save_cropped_grains(
     process_scan_config["plotting"]["image_set"] = image_set
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
 
-    img_dic = load_scan_data.img_dic
+    img_dic = load_scan_data.img_dict
     _, _ = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
@@ -118,7 +118,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     process_scan_config["plotting"]["save_format"] = extension
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
 
-    img_dic = load_scan_data.img_dic
+    img_dic = load_scan_data.img_dict
     _, _ = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
@@ -290,7 +290,7 @@ def test_process_stages(
     Currently there is no test for having later stages (e.g. DNA Tracing or Grainstats) enabled when Filters and/or
     Grainstats are disabled. Whislt possible it is expected that users understand the need to run earlier stages before
     later staged can run and do not disable earlier stages."""
-    img_dic = load_scan_data.img_dic
+    img_dic = load_scan_data.img_dict
     process_scan_config["filter"]["run"] = filter_run
     process_scan_config["grains"]["run"] = grains_run
     process_scan_config["grainstats"]["run"] = grainstats_run

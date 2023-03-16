@@ -21,7 +21,6 @@ The resulting statistics are written to a [CSV file](data_dictionary) and option
 various stages of the processing as well as cropped images of each grain. The amount of images produced is also
 configurable.
 
-
 An schematic overview of the classes and methods that are run in processing files can be found in the
 [workflows](workflows) page along with more detailed information on [installation](installation), [usage](usage),
 [configuration](configuration) and [contributing](contributing).

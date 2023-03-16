@@ -323,7 +323,7 @@ class LoadScans:
         self.filename = None
         self.image = None
         self.pixel_to_nm_scaling = None
-        self.img_dic = {}
+        self.img_dict = {}
 
     def load_spm(self) -> tuple:
         """Extract image and pixel to nm scaling from the Bruker .spm file.
@@ -689,6 +689,7 @@ class LoadScans:
             self.filename = img_path.stem
             suffix = img_path.suffix
             LOGGER.info(f"Extracting image from {self.img_path}")
+            LOGGER.debug(f"File extension : {suffix}")
             if suffix == ".spm":
                 self.image, self.pixel_to_nm_scaling = self.load_spm()
                 self.add_to_dic(
@@ -731,7 +732,7 @@ class LoadScans:
         px_2_nm: float
             The length of a pixel in nm.
         """
-        self.img_dic[filename] = {"image": image, "img_path": img_path, "px_2_nm": px_2_nm}
+        self.img_dict[filename] = {"image": image, "img_path": img_path, "px_2_nm": px_2_nm}
 
 
 def save_pkl(outfile: Path, to_pkl: dict) -> None:
@@ -773,7 +774,7 @@ def load_pkl(infile: Path) -> Any:
     from topostats.io import load_plots
 
     pkl_path = "output/distribution_plots.pkl"
-    my_plots = load_plots(pkl_path)
+    my_plots = load_pkl(pkl_path)
     # Show the type of my_plots which is a dictionary of nested dictionaries
     type(my_plots)
     # Show the keys are various levels of nesting.
