@@ -149,7 +149,7 @@ def main(args=None):
         default_config = pkg_resources.open_text(__package__, "default_config.yaml")
         config = yaml.safe_load(default_config.read())
     config = update_config(config, args)
-
+    print(f"What is 5 / 0 {5 /0}")
     # Set logging level
     if config["log_level"] == "warning":
         LOGGER.setLevel("WARNING")
