@@ -52,16 +52,16 @@ class Filters:
             Value for converting pixels to nanometers.
         row_alignment_quantile: float
             Quantile (0.0 to 1.0) to be used to determine the average background for the image.
-            Lower values may improve flattening of large features.
+            below values may improve flattening of large features.
         threshold_method: str
             Method for thresholding, default 'otsu', valid options 'otsu', 'std_dev' and 'absolute'.
         otsu_threshold_multiplier: float
             Value for scaling the derived Otsu threshold (optional).
         threshold_std_dev: dict
-            If using the 'std_dev' threshold method. Dictionary that contains upper and lower
+            If using the 'std_dev' threshold method. Dictionary that contains above and below
             threshold values for the number of standard deviations from the mean to threshold.
         threshold_absolute: dict
-            If using the 'absolute' threshold method. Dictionary that contains upper and lower
+            If using the 'absolute' threshold method. Dictionary that contains above and below
             absolute threshold values for flattening.
         remove_scars: dict
             Dictionary containing configuration parameters for the scar removal function.

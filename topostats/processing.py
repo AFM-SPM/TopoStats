@@ -79,8 +79,8 @@ def process_scan(
     filter_out_path = core_out_path / filename / "filters"
     filter_out_path.mkdir(exist_ok=True, parents=True)
     grain_out_path = core_out_path / filename / "grains"
-    Path.mkdir(grain_out_path / "upper", parents=True, exist_ok=True)
-    Path.mkdir(grain_out_path / "lower", parents=True, exist_ok=True)
+    Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
+    Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
 
     # Filter Image
     if filter_config["run"]:
@@ -221,11 +221,11 @@ def process_scan(
                             ).plot_and_save()
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
-                    grainstats_df = pd.concat([grainstats["lower"], grainstats["upper"]])
-                elif grains_config["direction"] == "upper":
-                    grainstats_df = grainstats["upper"]
-                elif grains_config["direction"] == "lower":
-                    grainstats_df = grainstats["lower"]
+                    grainstats_df = pd.concat([grainstats["below"], grainstats["above"]])
+                elif grains_config["direction"] == "above":
+                    grainstats_df = grainstats["above"]
+                elif grains_config["direction"] == "below":
+                    grainstats_df = grainstats["below"]
             except Exception:
                 LOGGER.info(f"[{filename}] : Errors occurred whilst calculating grain statistics.")
                 results = create_empty_dataframe()
@@ -249,13 +249,13 @@ def process_scan(
                         tracing_stats[direction].df["threshold"] = direction
                     # Set tracing_stats_df in light of direction
                     if grains_config["direction"] == "both":
-                        tracing_stats_df = pd.concat([tracing_stats["lower"].df, tracing_stats["upper"].df])
-                    elif grains_config["direction"] == "upper":
-                        tracing_stats_df = tracing_stats["upper"].df
-                    elif grains_config["direction"] == "lower":
-                        tracing_stats_df = tracing_stats["lower"].df
+                        tracing_stats_df = pd.concat([tracing_stats["below"].df, tracing_stats["above"].df])
+                    elif grains_config["direction"] == "above":
+                        tracing_stats_df = tracing_stats["above"].df
+                    elif grains_config["direction"] == "below":
+                        tracing_stats_df = tracing_stats["below"].df
                     LOGGER.info(f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics")
-                    # NB - Merge on image, molecule and threshold because we may have upper and lower molecueles which
+                    # NB - Merge on image, molecule and threshold because we may have above and below molecueles which
                     #      gives duplicate molecule numbers as they are processed separately
                     results = grainstats_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"])
                 else:
