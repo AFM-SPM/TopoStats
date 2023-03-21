@@ -13,10 +13,15 @@ version please try TopoStats `>= 2.0.0`, there are instructions on
 [usage](https://afm-spm.github.io/TopoStats/usage.html) and
 [configuration](https://afm-spm.github.io/TopoStats/configuration.html).
 
+By default TopoStats will process images in parallel to speed up processing. In order to identify the problematic image
+you should re-run your analyses using the `--cores 1` option so that images are processed sequentially. This makes it
+possible to identify which image causes the problem.
+
 ## Checklist
 
 Please try and tick off each of these items when filing the bug report. There are further instructions on each below.
 
+* [ ] Re-run analysis with `run_topostats --core 1`.
 * [ ] Describe the bug.
 * [ ] Include the configuration file.
 * [ ] Copy of the output.
