@@ -244,4 +244,5 @@ def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: tuple =
         Empty Pandas DataFrame.
     """
     empty_df = pd.DataFrame([np.repeat(np.nan, len(columns))], columns=columns)
-    return empty_df.set_index(index, inplace=True)
+    empty_df.set_index(index, inplace=True)
+    return empty_df
