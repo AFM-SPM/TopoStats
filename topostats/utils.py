@@ -230,7 +230,7 @@ def get_thresholds(
     return thresholds
 
 
-def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: tuple = ("molecule_number")) -> pd.DataFrame:
+def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: tuple = "molecule_number") -> pd.DataFrame:
     """Create an empty data frame for returning when no results are found.
 
     Parameters
