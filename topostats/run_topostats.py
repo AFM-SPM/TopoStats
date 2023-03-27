@@ -292,9 +292,9 @@ def main(args=None):
         results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
         save_folder_grainstats(config["output_dir"], config["base_dir"], results)
         results.reset_index(inplace=True)  # So we can access unique image names
-        images_processed = len(results["image"].unique())
     else:
-        images_processed = results["image"].shape[0] - results.isna().all(axis=1).sum()
+        LOGGER.warning("There are no grainstats or dnatracing statistics to write to CSV.")
+    images_processed = results["image"].shape[0] - results.isna().all(axis=1).sum()
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
