@@ -295,9 +295,9 @@ def toposum(config: dict) -> Dict:
     """
     if "df" not in config.keys():
         config["df"] = pd.read_csv(config["csv_file"])
-    if config["df"].empty:
-        LOGGER.info("[plotting] No stats in DataFrame. Exiting...")
-        sys.exit()
+    if config["df"].isna().values.all():
+        LOGGER.info("[plotting] No statistics in DataFrame. Exiting...")
+        return None
     violin = config.pop("violin")
     all_stats_to_sum = config.pop("stats_to_sum")
     pickle_plots = config.pop("pickle_plots")

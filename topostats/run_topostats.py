@@ -263,8 +263,8 @@ def main(args=None):
         summary_config["var_to_label"] = yaml.safe_load(plotting_yaml.read())
         LOGGER.info("[plotting] Default variable to labels mapping loaded.")
 
-        # If we don't have a dataframe there is nothing to plot
-        if isinstance(results, pd.DataFrame):
+        # If we don't have a dataframe and it is all NaN there is nothing to plot
+        if isinstance(results, pd.DataFrame) and not results.isna().values.all():
             # If summary_config["output_dir"] does not match or is not a sub-dir of config["output_dir"] it
             # needs creating
             summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
@@ -275,13 +275,18 @@ def main(args=None):
             summary_config["df"] = results.reset_index()
             toposum(summary_config)
         else:
-            LOGGER.info(
-                "There are no results to plot, either you have disabled grains/grainstats/dnatracing or there "
-                "have been errors, please check the log for further information."
+            LOGGER.warning(
+                "There are no results to plot, either...\n\n"
+                "* you have disabled grains/grainstats/dnatracing.\n"
+                "* no grains have been detected across all scans.\n"
+                "* there have been errors.\n\n"
+                "If you are not expecting to detect grains please consider disabling"
+                "grains/grainstats/dnatracing/plotting/summary_stats. If you are expecting to detect grains"
+                "please check log-files for further information."
             )
 
-    # Write statistics to CSV
-    if isinstance(results, pd.DataFrame):
+    # Write statistics to CSV if there is data.
+    if isinstance(results, pd.DataFrame) and not results.isna().values.all():
         results.reset_index(inplace=True)
         results.set_index(["image", "threshold", "molecule_number"], inplace=True)
         results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
@@ -289,7 +294,7 @@ def main(args=None):
         results.reset_index(inplace=True)  # So we can access unique image names
         images_processed = len(results["image"].unique())
     else:
-        images_processed = 0
+        images_processed = results["image"].shape[0] - results.isna().all(axis=1).sum()
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
