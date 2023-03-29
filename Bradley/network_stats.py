@@ -9,25 +9,28 @@ def get_node_centroids(binary_img) -> tuple:
     points = np.ndarray((len(regions), 2))
     for props_index, props in enumerate(regions):
         points[props_index, :] = props.centroid
-    
+
     return points
+
 
 def polygon_perimeter(points: np.ndarray):
     points = np.append(points, points[0]).reshape(-1, 2)
     perimeter = 0
-    for i in range(len(points)-1):
+    for i in range(len(points) - 1):
         point1 = points[i, :]
-        point2 = points[i+1, :]
-        perimeter += np.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)
+        point2 = points[i + 1, :]
+        perimeter += np.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
     return perimeter
+
 
 def network_area(points: np.ndarray):
     points = np.append(points, points[0]).reshape(-1, 2)
     area = 0
-    for index in range(len(points)-1):
-        matrix = points[index:index+2, :].T
+    for index in range(len(points) - 1):
+        matrix = points[index : index + 2, :].T
         area += np.linalg.det(matrix)
-    return np.round(area/2, 5)
+    return np.round(area / 2, 5)
+
 
 def node_stats(labelled_image: np.ndarray, image: np.ndarray):
     region_props = regionprops(label_image=labelled_image)
@@ -45,12 +48,13 @@ def node_stats(labelled_image: np.ndarray, image: np.ndarray):
         mean_heights[props_index] = np.mean(region_values)
 
     return {
-        'node areas': areas,
-        'node volumes': volumes,
-        'node max_heights': max_heights,
-        'node mean_heights': mean_heights,
-        'number of nodes': len(region_props),
+        "node areas": areas,
+        "node volumes": volumes,
+        "node max_heights": max_heights,
+        "node mean_heights": mean_heights,
+        "number of nodes": len(region_props),
     }
+
 
 def is_clockwise(p_1: tuple, p_2: tuple, p_3: tuple) -> bool:
     """Function to determine if three points make a clockwise or counter-clockwise turn.
@@ -72,6 +76,7 @@ def is_clockwise(p_1: tuple, p_2: tuple, p_3: tuple) -> bool:
 
     rotation_matrix = np.array(((p_1[0], p_1[1], 1), (p_2[0], p_2[1], 1), (p_3[0], p_3[1], 1)))
     return not np.linalg.det(rotation_matrix) > 0
+
 
 def get_triangle_height(base_point_1: np.array, base_point_2: np.array, top_point: np.array) -> float:
     """Returns the height of a triangle defined by the input point vectors.
@@ -97,6 +102,7 @@ def get_triangle_height(base_point_1: np.array, base_point_2: np.array, top_poin
     a_c = base_point_1 - top_point
     return np.linalg.norm(np.cross(a_b, a_c)) / np.linalg.norm(a_b)
 
+
 def network_feret_diameters(edges: np.ndarray) -> float:
     """Returns the minimum and maximum feret diameters for a grain.
     These are defined as the smallest and greatest distances between
@@ -117,12 +123,12 @@ def network_feret_diameters(edges: np.ndarray) -> float:
 
     # Sort the vectors by x coordinate then y coordinate
     sorted_indices = np.lexsort((edges[:, 1], edges[:, 0]))
-    sorted = edges[sorted_indices]
+    sorted_points = edges[sorted_indices]
 
     # Construct upper and lower hulls for the edge points.
     upper_hull = []
     lower_hull = []
-    for point in sorted:
+    for point in sorted_points:
         print(point)
         while len(lower_hull) > 1 and is_clockwise(lower_hull[-2], lower_hull[-1], point):
             lower_hull.pop()
@@ -130,7 +136,7 @@ def network_feret_diameters(edges: np.ndarray) -> float:
         while len(upper_hull) > 1 and not is_clockwise(upper_hull[-2], upper_hull[-1], point):
             upper_hull.pop()
         upper_hull.append(point)
-    
+
     upper_hull = np.array(upper_hull)
     lower_hull = np.array(lower_hull)
 
@@ -205,6 +211,7 @@ def network_feret_diameters(edges: np.ndarray) -> float:
 
     return min_feret, max_feret
 
+
 def rim_curvature(xs: np.ndarray, ys: np.ndarray):
     extension_length = xs.shape[0]
     xs_extended = np.append(xs, xs)
@@ -215,6 +222,6 @@ def rim_curvature(xs: np.ndarray, ys: np.ndarray):
     dy = np.gradient(ys_extended)
     d2x = np.gradient(dx)
     d2y = np.gradient(dy)
-    curv = np.abs(dx * d2y - d2x * dy) / (dx * dx + dy * dy)**1.5
-    curv = curv[extension_length:(len(curv)-extension_length)+1]
+    curv = np.abs(dx * d2y - d2x * dy) / (dx * dx + dy * dy) ** 1.5
+    curv = curv[extension_length : (len(curv) - extension_length) + 1]
     return curv
