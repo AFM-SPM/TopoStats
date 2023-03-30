@@ -2,7 +2,6 @@ import numpy as np
 from skimage.measure import regionprops
 from skimage.morphology import label
 
-
 def get_node_centroids(binary_img) -> tuple:
     labelled = label(binary_img)
     regions = regionprops(labelled)
@@ -22,7 +21,7 @@ def point_in_polygon(point: np.ndarray, polygon: np.ndarray):
         x1, y1 = polygon[index, :]
         x2, y2 = polygon[index + 1, :]
 
-        if (y < max(y1, y2)) and (y >= min(y1, y2)):
+        if (y < y1) != (y < y2):
             # if x is to the left of the intersection point.
             # x - x1 < (y - y1) / m
             # intersection's x-coord is x1 plus the difference of the point and
@@ -34,6 +33,24 @@ def point_in_polygon(point: np.ndarray, polygon: np.ndarray):
     else:
         return True
 
+def network_density(nodes: np.ndarray, image: np.ndarray, px_to_nm: float):
+    # Step over whole image
+    stepsize_px = 10
+    kernel_size = 5
+    density_map = np.zeros((np.floor(image.shape[0] / stepsize_px), np.floor(image.shape[1] / stepsize_px)))
+    for j in range(density_map.shape[0]):
+        for i in range(density_map.shape[1]):
+            
+            # Calculate local density
+            area = stepsize_px**2 * px_to_nm**2
+            x = i * stepsize_px
+            y = j * stepsize_px
+            if point_in_polygon(np.array(x, y), nodes):
+                volume = np.sum(image[y-kernel_size:y+kernel_size, x-kernel_size:x+kernel_size])
+                density = volume / area
+                density_map[i, j] = density
+
+    return density_map
 
 def polygon_perimeter(points: np.ndarray):
     points = np.append(points, points[0]).reshape(-1, 2)
