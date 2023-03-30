@@ -13,6 +13,28 @@ def get_node_centroids(binary_img) -> tuple:
     return points
 
 
+def point_in_polygon(point: np.ndarray, polygon: np.ndarray):
+    count = 0
+    x = point[0]
+    y = point[1]
+
+    for index in range(polygon.shape[0] - 1):
+        x1, y1 = polygon[index, :]
+        x2, y2 = polygon[index + 1, :]
+
+        if (y < max(y1, y2)) and (y >= min(y1, y2)):
+            # if x is to the left of the intersection point.
+            # x - x1 < (y - y1) / m
+            # intersection's x-coord is x1 plus the difference of the point and
+            # p1's y coord, divided by the gradient.
+            if x < (x2 - x1) * (y - y1) / (y2 - y1) + x1:
+                count += 1
+    if count % 2 == 0:
+        return False
+    else:
+        return True
+
+
 def polygon_perimeter(points: np.ndarray):
     points = np.append(points, points[0]).reshape(-1, 2)
     perimeter = 0
