@@ -212,6 +212,7 @@ class joeSkeletonize:
             The single pixel thick, skeletonised array.
         """
         self.mask = np.pad(self.mask, 1) # pad to avoid hitting border
+        self.image = np.pad(self.mask, 1) # pad to make same as mask
         while not self.skeleton_converged:
             self._do_skeletonising_iteration()
         # When skeleton converged do an additional iteration of thinning to remove hanging points
@@ -591,7 +592,7 @@ class joePrune:
             single_skeleton[single_skeleton != i] = 0
             single_skeleton[single_skeleton == i] = 1
             pruned_skeleton_mask += self._prune_single_skeleton(single_skeleton)
-            #pruned_skeleton_mask = self._remove_low_dud_branches(pruned_skeleton_mask, self.image)
+            pruned_skeleton_mask = self._remove_low_dud_branches(pruned_skeleton_mask, self.image)
             pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton('zhang') # reskel to remove nibs
         return pruned_skeleton_mask
 
