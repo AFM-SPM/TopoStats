@@ -6,11 +6,11 @@ from typing import Dict, Union, List
 import numpy as np
 import pandas as pd
 
-from topostats._version import __version__
+from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import get_out_path
+from topostats.io import get_out_path, save_array
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
@@ -122,6 +122,13 @@ def process_scan(
             filename=filename,
             **plotting_config["plot_dict"][plot_name],
         ).plot_and_save()
+        # Save the z_threshed image (aka "Height_Thresholded") numpy array
+        save_array(
+            array=filtered_image.images["gaussian_filtered"],
+            outpath=core_out_path,
+            filename=filename,
+            array_type="height_thresholded",
+        )
 
     else:
         LOGGER.error(

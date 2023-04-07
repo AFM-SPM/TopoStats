@@ -170,13 +170,13 @@ def small_mask() -> np.ndarray:
 
 
 @pytest.fixture
-def synthetic_scars_image() -> np.array:
+def synthetic_scars_image() -> np.ndarray:
     """Small synthetic image for testing scar removal."""
     return np.load(RESOURCES / "test_scars_synthetic_scar_image.npy")
 
 
 @pytest.fixture
-def synthetic_marked_scars() -> np.array:
+def synthetic_marked_scars() -> np.ndarray:
     """Small synthetic boolean array of marked scar coordinates corresponding to synthetic_scars_image."""
     return np.load(RESOURCES / "test_scars_synthetic_mark_scars.npy")
 
