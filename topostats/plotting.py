@@ -593,15 +593,22 @@ def plot_crossing_linetrace_halfmax(branch_stats_dict, cmap, title):
     fig, ax = plt.subplots(1, 1)
     cmp = Colormap(cmap).get_cmap()
     total_branches = len(branch_stats_dict)
+
+    fwhms = []
     for branch_idx, values in branch_stats_dict.items():
-        fwhm, hm_vals, m_vals = values["fwhm2"]
+        fwhms.append(values["fwhm2"][0])
+    branch_idx_order = np.array(list(branch_stats_dict.keys()))[np.argsort(np.array(fwhms))]
+    c = 0
+    for branch_idx in branch_idx_order:
+        fwhm, hm_vals, m_vals = branch_stats_dict[branch_idx]["fwhm2"]
         if total_branches == 1:
             cmap_ratio = 0
         else:
-            cmap_ratio = branch_idx / (total_branches - 1) # 1 branch and ZDE avoided in dnatracing
-        heights = values["heights"]
-        dist_offset = values["distances"][m_vals[0]]
-        x = values["distances"] - dist_offset
+            cmap_ratio = c / (total_branches - 1)
+        c += 1
+        heights = branch_stats_dict[branch_idx]["heights"]
+        dist_offset = branch_stats_dict[branch_idx]["distances"][m_vals[0]]
+        x = branch_stats_dict[branch_idx]["distances"] - dist_offset
         ax.plot(x, heights, label=f"Branch: {branch_idx}", c=cmp(cmap_ratio))
 
         # plot the high point lines
