@@ -107,7 +107,7 @@ def test_toposum(summary_config: dict) -> None:
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_kde(summary_config: dict) -> None:
-    """Regression test for plotkde()."""
+    """Regression test for sns_plot() with a single KDE."""
     summary_config["hist"] = False
     _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
     fig, _ = _toposum.sns_plot()
@@ -116,7 +116,7 @@ def test_plot_kde(summary_config: dict) -> None:
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_kde_multiple_images(summary_config: dict, toposum_multiple_images: pd.DataFrame) -> None:
-    """Regression test for plotkde()."""
+    """Regression test for sns_plot() with multiple KDE."""
     summary_config["hist"] = False
     _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
     _toposum.melted_data = toposum_multiple_images
@@ -126,7 +126,7 @@ def test_plot_kde_multiple_images(summary_config: dict, toposum_multiple_images:
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_hist(summary_config: dict) -> None:
-    """Regression test for plotkde()."""
+    """Regression test for sns_plot() with a single histogram."""
     summary_config["kde"] = False
     _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
     fig, _ = _toposum.sns_plot()
@@ -135,7 +135,7 @@ def test_plot_hist(summary_config: dict) -> None:
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_hist_multiple_images(summary_config: dict, toposum_multiple_images: pd.DataFrame) -> None:
-    """Regression test for plotkde()."""
+    """Regression test for sns_plot() with multiple overlaid histograms."""
     summary_config["kde"] = False
     _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
     _toposum.melted_data = toposum_multiple_images
@@ -162,7 +162,7 @@ def test_plot_hist_kde_multiple_images(summary_config: dict, toposum_multiple_im
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_violin(summary_config: dict) -> None:
-    """Test plotting Kernel Density Estimate and Histogram for area."""
+    """Test plotting Kernel Density Estimate and Histogram for area for a single image."""
     _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
     fig, _ = _toposum.sns_violinplot()
     return fig
@@ -170,7 +170,7 @@ def test_plot_violin(summary_config: dict) -> None:
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_violin_multiple_images(summary_config: dict, toposum_multiple_images: pd.DataFrame) -> None:
-    """Test plotting Kernel Density Estimate and Histogram for area."""
+    """Test plotting Kernel Density Estimate and Histogram for area with multiple images."""
     _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
     _toposum.melted_data = toposum_multiple_images
     fig, _ = _toposum.sns_violinplot()
