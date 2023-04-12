@@ -161,8 +161,6 @@ def main(args=None):
     # Validate configuration
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
-    config["output_dir"].mkdir(parents=True, exist_ok=True)
-
     # Write sample configuration if asked to do so and exit
     if args.create_config_file:
         write_yaml(
@@ -178,6 +176,10 @@ def main(args=None):
             "https://afm-spm.github.io/TopoStats/configuration.html"
         )
         sys.exit()
+
+    # Create base output directory
+    config["output_dir"].mkdir(parents=True, exist_ok=True)
+
     # Load plotting_dictionary and validate
     plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
