@@ -1,6 +1,99 @@
 import numpy as np
 from skimage.measure import regionprops
 from skimage.morphology import label
+from skimage.filters import gaussian
+
+def draw_line(img, p1, p2):
+    img = img.copy()
+    x1, y1 = p1
+    x2, y2 = p2
+    # Swap axes if y diff is smaller than x diff
+    swap = abs(x2 - x1) < abs(y2 - y1)
+    if swap:
+        img = img.T
+        x1, y1, x2, y2 = y1, x1, y2, x2
+    # Swap line direction if x2 < x1
+    if x2 < x1:
+        x1, y1, x2, y2 = x2, y2, x1, y1
+    # Draw line endpoints
+    img[x1, y1] = True
+    img[x2, y2] = True
+    # Find intermediary points
+    x = np.arange(x1 + 1, x2)
+    y = np.round(((y2 - y1) / (x2 - x1)) * (x - x1) + y1).astype(int)
+    # Write intermediary points
+    img[x, y] = True
+    
+    return img if not swap else img.T
+
+def create_near_outline_mask(image_shape: tuple, nodes: np.ndarray, gaussian_sigma: int):
+
+    line_mask = np.zeros(image_shape)
+    for index in range(len(nodes)-1):
+        p1 = nodes[index, :]
+        p1 = np.round(p1).astype(int)
+        p2 = nodes[index+1, :]
+        p2 = np.round(p2).astype(int)
+        line_mask = draw_line(line_mask, p1, p2)
+
+    blurred_line_mask = gaussian(line_mask, sigma=gaussian_sigma)
+    
+    return line_mask, blurred_line_mask
+
+def distance_to_outline(outline_mask, point):
+    nonzero = np.argwhere(outline_mask == True)
+    diffs = nonzero - point
+    dists_squared = diffs[:, 0]**2 + diffs[:, 1]**2
+    return np.min(dists_squared)
+
+def network_density_internal(nodes: np.ndarray, image: np.ndarray, px_to_nm: float, stepsize_px: int, kernel_size: int, gaussian_sigma: int):
+    # fig, ax = plt.subplots()
+    # ax.imshow(image)
+    density_map = np.zeros((int(np.floor(image.shape[0] / stepsize_px)), int(np.floor(image.shape[1] / stepsize_px))))
+    internal_density_map = np.zeros(density_map.shape)
+    near_outline_density_map = np.zeros(density_map.shape)
+    densities_internal = []
+    distances_internal = []
+    densities_near_outline = []
+    distances_near_outline = []
+
+    print(f'density map dimensions: {internal_density_map.shape}')
+
+    outline_mask, near_outline_mask = create_near_outline_mask(image.shape, nodes, gaussian_sigma)
+
+    for j in range(internal_density_map.shape[0]):
+        for i in range(internal_density_map.shape[1]):
+            x = i * stepsize_px
+            y = j * stepsize_px
+
+            density = np.median(image[y-kernel_size:y+kernel_size, x-kernel_size:x+kernel_size])
+            density_map[j, i] = density
+
+            # volume = np.sum(image[y-kernel_size:y+kernel_size, x-kernel_size:x+kernel_size])
+            # density = volume / area
+            # area = stepsize_px**2 * px_to_nm**2
+
+            in_polygon = point_in_polygon(np.array([y, x]), nodes)
+            if near_outline_mask[y, x]:
+                near_outline = True
+            else:
+                near_outline = False
+
+            # color = 'green' if in_polygon else 'red'
+            # ax.plot(y, x, marker='.', color=color)
+            if in_polygon and not near_outline:
+                internal_density_map[j, i] = density
+                densities_internal.append(density)
+                distances_internal.append(distance_to_outline(outline_mask, np.array([y, x])))
+            elif near_outline:
+                densities_near_outline.append(density)
+                distances_near_outline.append(distance_to_outline(outline_mask, np.array([y, x])))
+                near_outline_density_map[j, i] = density
+
+    # plt.plot(nodes[:, 1], nodes[:, 0], color='black')
+    # plt.show()
+    return density_map, internal_density_map, near_outline_density_map, densities_internal, distances_internal, densities_near_outline, distances_near_outline
+
 
 def get_node_centroids(binary_img) -> tuple:
     labelled = label(binary_img)
