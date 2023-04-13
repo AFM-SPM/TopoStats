@@ -3,7 +3,19 @@ from skimage.measure import regionprops
 from skimage.morphology import label
 from skimage.filters import gaussian
 
-def draw_line(img, p1, p2):
+
+def draw_line(img: np.ndarray, p1: np.ndarray, p2: np.ndarray):
+    """Draw a line on a numpy 2d array, from p1 to p2.
+    
+    Parameters
+    ----------
+    img: np.ndarray
+        Numpy image to draw the line on.
+    p1: np.ndarray
+        First point for the line.
+    p2: np.ndarray
+        Second point for the line.
+    """
     img = img.copy()
     x1, y1 = p1
     x2, y2 = p2
@@ -23,30 +35,58 @@ def draw_line(img, p1, p2):
     y = np.round(((y2 - y1) / (x2 - x1)) * (x - x1) + y1).astype(int)
     # Write intermediary points
     img[x, y] = True
-    
+
     return img if not swap else img.T
 
-def create_near_outline_mask(image_shape: tuple, nodes: np.ndarray, gaussian_sigma: int):
 
+def create_near_outline_mask(image_shape: tuple, nodes: np.ndarray, gaussian_sigma: int):
+    """Create masks for points on the outline, and for points near the outline. Returns two numpy boolean 2d
+    arrays, one for pixels that are on the outline for the grain and one for pixel near the outline for the
+    grain.
+    
+    Parameters
+    ----------
+    image_shape: tuple
+        Shape of the image containing the grain. Used for constructing a binary mask of the correct shape.
+    nodes: np.ndarray
+        Numpy 2d array of node points, eg: [[1, 2], [3, 8], [9, 2]]. Used for creating the dot-to-dot
+        outline.
+    gaussian_sigma: int
+        In order to provide a fast way of getting points near the outline, instead of calculating the
+        distance for each pixel, we just blur the outline. It is difficult to get a precise set distance,
+        but reduces computation significantly.
+    
+    Returns
+    -------
+    line_mask: np.ndarray
+        Binary mask of pixels that are on the outline.
+    blurred_line_mask: np.ndarray
+        Binary mask of pixels that are near to the outline based on a gaussian blur of the outline.
+    """
+    
     line_mask = np.zeros(image_shape)
-    for index in range(len(nodes)-1):
+    for index in range(len(nodes) - 1):
         p1 = nodes[index, :]
         p1 = np.round(p1).astype(int)
-        p2 = nodes[index+1, :]
+        p2 = nodes[index + 1, :]
         p2 = np.round(p2).astype(int)
         line_mask = draw_line(line_mask, p1, p2)
 
     blurred_line_mask = gaussian(line_mask, sigma=gaussian_sigma)
-    
+
     return line_mask, blurred_line_mask
+
 
 def distance_to_outline(outline_mask, point):
     nonzero = np.argwhere(outline_mask == True)
     diffs = nonzero - point
-    dists_squared = diffs[:, 0]**2 + diffs[:, 1]**2
+    dists_squared = diffs[:, 0] ** 2 + diffs[:, 1] ** 2
     return np.min(dists_squared)
 
-def network_density_internal(nodes: np.ndarray, image: np.ndarray, px_to_nm: float, stepsize_px: int, kernel_size: int, gaussian_sigma: int):
+
+def network_density_internal(
+    nodes: np.ndarray, image: np.ndarray, px_to_nm: float, stepsize_px: int, kernel_size: int, gaussian_sigma: int
+):
     # fig, ax = plt.subplots()
     # ax.imshow(image)
     density_map = np.zeros((int(np.floor(image.shape[0] / stepsize_px)), int(np.floor(image.shape[1] / stepsize_px))))
@@ -57,7 +97,7 @@ def network_density_internal(nodes: np.ndarray, image: np.ndarray, px_to_nm: flo
     densities_near_outline = []
     distances_near_outline = []
 
-    print(f'density map dimensions: {internal_density_map.shape}')
+    print(f"density map dimensions: {internal_density_map.shape}")
 
     outline_mask, near_outline_mask = create_near_outline_mask(image.shape, nodes, gaussian_sigma)
 
@@ -66,7 +106,7 @@ def network_density_internal(nodes: np.ndarray, image: np.ndarray, px_to_nm: flo
             x = i * stepsize_px
             y = j * stepsize_px
 
-            density = np.median(image[y-kernel_size:y+kernel_size, x-kernel_size:x+kernel_size])
+            density = np.median(image[y - kernel_size : y + kernel_size, x - kernel_size : x + kernel_size])
             density_map[j, i] = density
 
             # volume = np.sum(image[y-kernel_size:y+kernel_size, x-kernel_size:x+kernel_size])
@@ -92,7 +132,15 @@ def network_density_internal(nodes: np.ndarray, image: np.ndarray, px_to_nm: flo
 
     # plt.plot(nodes[:, 1], nodes[:, 0], color='black')
     # plt.show()
-    return density_map, internal_density_map, near_outline_density_map, densities_internal, distances_internal, densities_near_outline, distances_near_outline
+    return (
+        density_map,
+        internal_density_map,
+        near_outline_density_map,
+        densities_internal,
+        distances_internal,
+        densities_near_outline,
+        distances_near_outline,
+    )
 
 
 def get_node_centroids(binary_img) -> tuple:
@@ -126,6 +174,7 @@ def point_in_polygon(point: np.ndarray, polygon: np.ndarray):
     else:
         return True
 
+
 def network_density(nodes: np.ndarray, image: np.ndarray, px_to_nm: float):
     # Step over whole image
     stepsize_px = 10
@@ -133,17 +182,17 @@ def network_density(nodes: np.ndarray, image: np.ndarray, px_to_nm: float):
     density_map = np.zeros((np.floor(image.shape[0] / stepsize_px), np.floor(image.shape[1] / stepsize_px)))
     for j in range(density_map.shape[0]):
         for i in range(density_map.shape[1]):
-            
             # Calculate local density
             area = stepsize_px**2 * px_to_nm**2
             x = i * stepsize_px
             y = j * stepsize_px
             if point_in_polygon(np.array(x, y), nodes):
-                volume = np.sum(image[y-kernel_size:y+kernel_size, x-kernel_size:x+kernel_size])
+                volume = np.sum(image[y - kernel_size : y + kernel_size, x - kernel_size : x + kernel_size])
                 density = volume / area
                 density_map[i, j] = density
 
     return density_map
+
 
 def polygon_perimeter(points: np.ndarray):
     points = np.append(points, points[0]).reshape(-1, 2)
@@ -165,6 +214,20 @@ def network_area(points: np.ndarray):
 
 
 def node_stats(labelled_image: np.ndarray, image: np.ndarray):
+    """Calculate various grain statistics from a labelled image.
+    
+    Parameters
+    ----------
+    labelled_image: np.ndarray
+        Labelled image of grains. Each label is an integer value from 1 to n where
+        n is the number of grains. The labels act as masks for the grains.
+    image: np.ndarray
+        The original image, used to calculate stats about the grains.
+    Returns
+    -------
+    dict
+        Dictionary of grain statistics for the image"""
+
     region_props = regionprops(label_image=labelled_image)
     areas = np.zeros(len(region_props))
     volumes = np.zeros(len(region_props))
@@ -345,6 +408,20 @@ def network_feret_diameters(edges: np.ndarray) -> float:
 
 
 def rim_curvature(xs: np.ndarray, ys: np.ndarray):
+    """Calculate the curvature of a set of points. Uses the standard curvature definition of the derivative of the
+    tangent vector.
+    
+    Parameters:
+    ----------
+    xs: np.ndarray
+        One dimensional numpy array of x-coordinates of the points
+    ys: np.ndarray
+        One dimensional numpy array of y-coordinates of the points
+    Returns:
+    -------
+    np.ndarray
+        One-dimensional numpy array of curvatures for the spline.
+    """
     extension_length = xs.shape[0]
     xs_extended = np.append(xs, xs)
     xs_extended = np.append(xs_extended, xs)
