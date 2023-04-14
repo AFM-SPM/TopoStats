@@ -285,10 +285,12 @@ def process_scan(
                 # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
                 plot_name = "mask_overlay"
                 plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
+                binary_mask = grains.directions[direction]["removed_small_objects"].copy()
+                binary_mask[binary_mask != 0] = 1
                 Images(
                     filtered_image.images["gaussian_filtered"],
                     filename=f"{filename}_{direction}_masked",
-                    data2=grains.directions[direction]["removed_small_objects"],
+                    data2=binary_mask,
                     mask_cmap="green_black",
                     **plotting_config["plot_dict"][plot_name],
                 ).plot_and_save()
@@ -348,6 +350,16 @@ def process_scan(
                     )
                     dna_traces[direction].trace_dna()
 
+                    """
+                    Images(
+                        filtered_image.images["gaussian_filtered"],
+                        filename=f"{filename}_{direction}_smooth_masked",
+                        data2=dna_traces[direction].smoothed_grains,
+                        mask_cmap="green_black",
+                        **plotting_config["plot_dict"][plot_name],
+                    ).plot_and_save()
+                    """
+
                     plot_name = "pruned_skeletons"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                     Images(
@@ -384,7 +396,7 @@ def process_scan(
                         Images(
                             filtered_image.images["gaussian_filtered"],
                             data2=data2s[i],
-                            zrange=[0,3],
+                            zrange=[0, 3.5],
                             **plotting_config["plot_dict"][plot_name],
                         ).save_figure_black(
                                 background=grains.directions[direction]["removed_small_objects"],
@@ -395,6 +407,17 @@ def process_scan(
                         for node_no, single_node_stats in mol_stats.items():
                             Images(
                                 single_node_stats["node_stats"]["node_area_image"],
+                                data2=single_node_stats["node_stats"]["node_area_skeleton"],
+                                filename=f"mol_{mol_no}_node_{node_no}_node_area",
+                                output_dir=output_dir / "nodes",
+                                zrange=[0, 3.5e-9],
+                                **plotting_config["plot_dict"]["zoom_node"],
+                            ).save_figure_black(
+                                background=single_node_stats["node_stats"]["node_area_grain"]
+                                )
+                            
+                            Images(
+                                single_node_stats["node_stats"]["node_area_image"],
                                 data2=single_node_stats["node_stats"]["node_branch_mask"],
                                 filename=f"mol_{mol_no}_node_{node_no}_crossings",
                                 output_dir=output_dir / "nodes",
@@ -403,32 +426,27 @@ def process_scan(
                             ).save_figure_black(
                                 background=single_node_stats["node_stats"]["node_area_grain"]
                                 )
-                            Images(
-                                single_node_stats["node_stats"]["node_area_image"],
-                                data2=single_node_stats["node_stats"]["node_area_skeleton"],
-                                filename=f"mol_{mol_no}_node_{node_no}_node_area",
-                                output_dir=output_dir / "nodes",
-                                zrange=[0, 3.5e-9],
-                                **plotting_config["plot_dict"]["crossings"],
-                            ).save_figure_black(
-                                background=single_node_stats["node_stats"]["node_area_grain"]
-                                )
+ 
+                            if single_node_stats["node_stats"]["node_avg_mask"] is not None:
+                                Images(
+                                    single_node_stats["node_stats"]["node_area_image"],
+                                    data2=single_node_stats["node_stats"]["node_avg_mask"],
+                                    filename=f"mol_{mol_no}_node_{node_no}_average_crossings",
+                                    output_dir=output_dir / "nodes",
+                                    zrange=[0, 3.5e-9],
+                                    **plotting_config["plot_dict"]["tripple_crossings"],
+                                ).save_figure_black(
+                                    background=single_node_stats["node_stats"]["node_area_grain"]
+                                    )
+                            
                             if not single_node_stats["error"]:
                                 plotting_config["plot_dict"]["line_trace"] = {"title": "Heights of Crossing", "cmap": "blu_purp"}
-                                fig, _ = plot_crossing_linetrace_gauss(
-                                    single_node_stats["branch_stats"],
-                                    **plotting_config["plot_dict"]["line_trace"],
-                                    )
-                                fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_gauss")
                                 fig, _ = plot_crossing_linetrace_halfmax(
                                     single_node_stats["branch_stats"],
                                     **plotting_config["plot_dict"]["line_trace"],
                                     )
-                                fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax")
+                                fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg", format="svg")
 
-                    #np.savetxt("test_skel.txt", dna_traces[direction].skeletons)
-                    #np.savetxt("knot_mask.txt", grains.directions[direction]["removed_small_objects"])
-                    #np.savetxt("knot_img.txt", nodes.image)
                     
                     """
                     # ------- branch vector img -------
@@ -471,20 +489,8 @@ def process_scan(
                     ax.add_patch(arc)
                     ax.text(11.5, 12, "%0.2f"%float(angles[1])+u"\u00b0", fontsize='xx-large', weight='bold')
                     fig.savefig("vector_angle_img.png")
-
-                    # ------- avg trace fig -------
-                    plot_name = "test"
-                    plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
-                    fig, ax = Images(
-                        data=node_stats[direction][1][1]["node_stats"]["node_area_image"],
-                        data2=nodes.test3,
-                        mask_cmap="blu_purp",
-                        zrange=[0, 3.5e-9],
-                        **plotting_config["plot_dict"][plot_name],
-                    ).save_figure_black(
-                        background=node_stats[direction][1][1]["node_stats"]["node_area_grain"]
-                        )
-                """
+                    """
+ 
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
                     tracing_stats_df = pd.concat([tracing_stats["lower"].df, tracing_stats["upper"].df])
@@ -506,6 +512,12 @@ def process_scan(
                 )
                 results = create_empty_dataframe()
             """
+        else:
+            results = create_empty_dataframe()
+            results["Image Name"] = filename
+            results["Basename"] = image_path.parent
+            node_stats = {"upper": None, "lower": None}
+
     return image_path, results, node_stats
 
 
