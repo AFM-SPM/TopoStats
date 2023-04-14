@@ -266,3 +266,7 @@ def convolve_skelly(skeleton) -> np.ndarray:
     conv[conv == 3] = 1  # skelly = 1
     conv[conv > 3] = 3  # nodes = 3
     return conv
+
+class ResolutionError(Exception):
+    "Raised when the image resolution is too small for accuurate tracing."
+    pass
