@@ -38,7 +38,7 @@ class Images:
         image_type: str = "non-binary",
         image_set: str = "core",
         core_set: bool = False,
-        pixel_interpolation: str = None,
+        pixel_interpolation: Union[str, None] = None,
         cmap: str = "nanoscope",
         mask_cmap: str = "jet_r",
         region_properties: dict = None,
@@ -74,8 +74,8 @@ class Images:
             The set of images to process - core or all.
         core_set : bool
             Flag to identify image as part of the core image set or not.
-        pixel_interpolation: str
-            Interpolation to use (default 'none').
+        pixel_interpolation: Union[str, None]
+            Interpolation to use (default: null).
         cmap : str
             Colour map to use (default 'nanoscope', 'afmhot' also available).
         mask_cmap : str
