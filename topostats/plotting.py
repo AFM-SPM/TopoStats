@@ -594,28 +594,21 @@ def plot_crossing_linetrace_halfmax(branch_stats_dict, cmap, title):
     cmp = Colormap(cmap).get_cmap()
     total_branches = len(branch_stats_dict)
 
-    fwhms = []
-    for branch_idx, values in branch_stats_dict.items():
-        fwhms.append(values["fwhm2"][0])
-    branch_idx_order = np.array(list(branch_stats_dict.keys()))[np.argsort(np.array(fwhms))]
-    c = 0
-    for branch_idx in branch_idx_order:
-        fwhm, hm_vals, m_vals = branch_stats_dict[branch_idx]["fwhm2"]
+    for branch_idx, branch_values in branch_stats_dict.items():
         if total_branches == 1:
             cmap_ratio = 0
         else:
-            cmap_ratio = c / (total_branches - 1)
-        c += 1
-        heights = branch_stats_dict[branch_idx]["heights"]
-        dist_offset = branch_stats_dict[branch_idx]["distances"][m_vals[0]]
-        x = branch_stats_dict[branch_idx]["distances"] - dist_offset
+            cmap_ratio = branch_idx / (total_branches - 1)
+        fwhm, hm_vals, m_vals = branch_values["fwhm2"]
+        heights = branch_values["heights"]
+        x = branch_values["distances"]
         ax.plot(x, heights, label=f"Branch: {branch_idx}", c=cmp(cmap_ratio))
 
         # plot the high point lines
-        plt.plot([0, m_vals[1]] - dist_offset, [m_vals[2] ,m_vals[2]], c=cmp(cmap_ratio), label=f"FWHM: {fwhm:.1f}")
+        plt.plot([-15, m_vals[1]], [m_vals[2] ,m_vals[2]], c=cmp(cmap_ratio), label=f"FWHM: {fwhm:.1f}")
         # plot the half max lines
-        plt.plot([hm_vals[0], hm_vals[0]] - dist_offset,[hm_vals[2], 0] + heights.min(), c=cmp(cmap_ratio))
-        plt.plot([hm_vals[1], hm_vals[1]] - dist_offset,[hm_vals[2], 0] + heights.min(), c=cmp(cmap_ratio))
+        plt.plot([hm_vals[0], hm_vals[0]],[hm_vals[2], 0] + heights.min(), c=cmp(cmap_ratio))
+        plt.plot([hm_vals[1], hm_vals[1]],[hm_vals[2], 0] + heights.min(), c=cmp(cmap_ratio))
     
     ax.set_xlabel("Distance from Node (nm)")
     ax.set_ylabel("Height")
