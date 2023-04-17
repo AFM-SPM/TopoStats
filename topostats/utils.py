@@ -97,18 +97,11 @@ def update_plotting_config(plotting_config: dict) -> dict:
     """Update the plotting config for each of the plots in plot_dict to ensure that each
     entry has all the plotting configuration values that are needed."""
 
+    main_config = plotting_config.copy()
+    for opt in ["plot_dict", "run"]:
+        main_config.pop(opt)
     for image, options in plotting_config["plot_dict"].items():
-        plotting_config["plot_dict"][image] = {
-            **options,
-            "save_format": plotting_config["save_format"],
-            "image_set": plotting_config["image_set"],
-            "colorbar": plotting_config["colorbar"],
-            "axes": plotting_config["axes"],
-            "cmap": plotting_config["cmap"],
-            "mask_cmap": plotting_config["mask_cmap"],
-            "zrange": plotting_config["zrange"],
-            "histogram_log_axis": plotting_config["histogram_log_axis"],
-        }
+        plotting_config["plot_dict"][image] = {**options, **main_config}
         if image not in ["z_threshed", "mask_overlay"]:
             plotting_config["plot_dict"][image].pop("zrange")
 
