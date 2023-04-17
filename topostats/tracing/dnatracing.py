@@ -1040,10 +1040,8 @@ class nodeStats():
             self.skeleton = self.skeletons.copy()
             self.skeleton[labelled_skeletons != skeleton_no] = 0
             self.conv_skelly = convolve_skelly(self.skeleton)
-            np.savetxt("test.txt", self.conv_skelly)
             if len(self.conv_skelly[self.conv_skelly==3]) != 0: # check if any nodes
                 self.connect_close_nodes(node_width=6)
-                np.savetxt("test1.txt", self.connected_nodes)
                 self.highlight_node_centres(self.connected_nodes)
                 self.analyse_nodes(box_length=20)
                 self.full_dict[skeleton_no] = self.node_dict
@@ -1133,7 +1131,7 @@ class nodeStats():
             # iterate through branches to order
             labeled_area = label(branch_mask) # labeling the branch mask may not be the best way to do this due to a pissoble single connection
             LOGGER.info(f"No. branches from node {node_no}: {labeled_area.max()}")
-            
+
             # for cats paper figures - should be removed
             if node_no == 0:
                 self.test = labeled_area
@@ -1204,9 +1202,8 @@ class nodeStats():
                     distances = self.coord_dist(branch_coords)
                     zero_dist = distances[np.where(np.all(branch_coords == centre, axis=1))]
                     if average_trace_advised:
-                        distances, heights, mask, all_vals = self.average_height_trace(image_area, single_branch, zero_dist)
+                        distances, heights, mask, _ = self.average_height_trace(image_area, single_branch, zero_dist)
                         avg_img[mask!=0] = i + 1
-                        self.test = all_vals[0], all_vals[1]
                         # add in mid dist adjustment
                     else:
                         heights = self.image[branch_coords_img[:, 0], branch_coords_img[:, 1]]
@@ -1241,7 +1238,6 @@ class nodeStats():
                 angles = np.arccos(cos_angles) / np.pi * 180
                 for i, angle in enumerate(angles):
                     matched_branches[i]["angles"] = angle
-                    print(f"Node {real_node_count} branch {i} angle: {angle}")
 
                 if node_no == 0:
                     self.test4 = vectors

@@ -447,8 +447,6 @@ def process_scan(
                                     )
                                 fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg", format="svg")
 
-                    
-                    """
                     # ------- branch vector img -------
                     vectors = nodes.test2
                     plot_name = "test"
@@ -457,6 +455,7 @@ def process_scan(
                         data=node_stats[direction][1][1]["node_stats"]["node_area_image"],
                         data2=nodes.test,
                         mask_cmap="viridis",
+                        filename="branch_vectors.tiff",
                         **plotting_config["plot_dict"][plot_name],
                     ).save_figure_black(
                         background=node_stats[direction][1][1]["node_stats"]["node_area_grain"]
@@ -465,7 +464,7 @@ def process_scan(
                     col = ["m","b","g","y"]
                     for i, vector in enumerate(np.asarray(vectors)): #[:,::-1]):
                         ax.arrow(10.25, 10.5, vector[1]*4, vector[0]*-4, width=0.3, color=col[i])
-                    fig.savefig("vector_img.png")
+                    fig.savefig("cats2/vector_img.tiff")
                     
                     # ------- branch vector + angles fig -------
                     vectors = nodes.test4
@@ -476,6 +475,7 @@ def process_scan(
                         data=node_stats[direction][1][1]["node_stats"]["node_area_image"],
                         data2=node_stats[direction][1][1]["node_stats"]["node_branch_mask"],
                         mask_cmap="blu_purp",
+                        filename="test",
                         **plotting_config["plot_dict"][plot_name],
                     ).save_figure_black(
                         background=node_stats[direction][1][1]["node_stats"]["node_area_grain"]
@@ -485,11 +485,11 @@ def process_scan(
                     ax.arrow(10.25-4, 10.75, vectors[0][1]*8, vectors[0][0]*-8, width=0.3, color=col[0])
                     ax.arrow(10.25, 10.75+4, vectors[1][1]*8, vectors[1][0]*-8, width=0.3, color=col[1])
                     
-                    arc = Arc((10.15, 10.65), 3.7, 3.7, -4, 0, angles[1], lw=4)
+                    arc = Arc((10.05, 10.50), 7.2, 7.2, -2, 0, angles[1], lw=10, color="white")
                     ax.add_patch(arc)
-                    ax.text(11.5, 12, "%0.2f"%float(angles[1])+u"\u00b0", fontsize='xx-large', weight='bold')
-                    fig.savefig("vector_angle_img.png")
-                    """
+                    ax.text(12.5, 14, "%0.2f"%float(angles[1])+"\u00b0", fontsize=40, weight='bold', color="white") #'xx-large
+                    fig.savefig("cats2/vector_angle_img.tiff")
+
  
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":

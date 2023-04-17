@@ -730,7 +730,6 @@ PLOTTING_SCHEMA = Schema(
                 "cmap": str,
             },
             "test": {
-                "filename": str,
                 "title": str,
                 "image_type": Or(
                     "binary",

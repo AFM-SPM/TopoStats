@@ -210,7 +210,7 @@ class Images:
                         shape[0] * self.pixel_to_nm_scaling,
                     ),
                     interpolation=self.interpolation,
-                    alpha=0.4,
+                    alpha=1,#0.4,
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.5), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
@@ -296,7 +296,7 @@ class Images:
                         shape[0] * self.pixel_to_nm_scaling,
                     ),
                     interpolation=self.interpolation,
-                    #alpha=0.7,
+                    alpha=1,#0.3,
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
