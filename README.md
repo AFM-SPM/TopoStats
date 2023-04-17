@@ -1,3 +1,5 @@
+# TopoStats
+
 <div align="center">
 
 [![PyPI version](https://badge.fury.io/py/topostats.svg)](https://badge.fury.io/py/topostats)
@@ -16,8 +18,6 @@ status](https://results.pre-commit.ci/badge/github/AFM-SPM/TopoStats/main.svg)](
 </div>
 
 --------------------------------------------------------------------------------
-
-# TopoStats
 
 An AFM image analysis program to batch process data and obtain statistics from images.
 

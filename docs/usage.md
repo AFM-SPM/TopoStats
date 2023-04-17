@@ -125,6 +125,12 @@ along with information about how to give feedback, report bugs and cite the soft
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
+### Reducing Output
+
+If you find the output too verbose or of no use you can reduce it by setting the `log_level` to either `error` or
+`warning`. This can be done either in the configuration file (see [Configuring TopoStats](#configuring-topostats) below)
+or using the `-l`/`--log-level` flag for example `run_topostats --log_level warning`.
+
 ## Configuring TopoStats
 
 Configuration of TopoStats is done through a [YAML](https://yaml.org/) file and a full description of the fields used
@@ -132,7 +138,6 @@ can be found under the [configuration](configuration) section.
 
 Here we will go through generating a configuration file to edit and some of the common changes that you are likely to
 want to make to the default configuration and how to make them.
-
 
 ### Generating Configuration File
 
@@ -155,12 +160,10 @@ sample_image_scan_2022-12-08-1204.spm
 You can now edit and/or rename the `my_config.yaml`. It can be called anything you want,
 e.g. `todays_first_run_configuration.yaml` is a valid name.
 
-
 ### Editing `config.yaml`
 
 **IMPORTANT** This file is an ASCII text file and  you should use NotePad (Windows), TextEdit (OSX) or Nano/Emacs/Vim
 (GNU/Linux) or any other text editor. Do _not_ use Microsoft Word or any other Word Processor to edit this file.
-
 
 You can now start customising the configuration you are going to run TopoStats with. All fields have defaults but the
 ones you may want to change are....
@@ -172,6 +175,10 @@ ones you may want to change are....
   which will be   created if it doesn't exist. If you wish for the output to be somewhere else specify it here. If you
   want `Processed` directories to sit within the directories that images are found then simply set the `output_dir` to
   the same value as `base_dir`.
+* `log_level` (default: `info`) the verbosity of output to the console and log file, the options in order of verbosity
+  are `debug` > `info` > `warning` > `error`. If you want less output set to `warning` or `error`. If you encounter
+  errors please set to `debug` and run again and include the log in your [bug
+  report](https://github.com/AFM-SPM/TopoStats/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
 * `cores` (default: `2`) the number of parallel processes to run processing of all found images. Set this to a maximum
   of one less than the number of cores on your computers CPU. If unsure leave as is, but chances are you can increase
   this to at least `4` quite safely.
@@ -179,7 +186,6 @@ ones you may want to change are....
   `.spm` but other file format support is in the pipeline.
 * `plotting` : `image_set` (default `core`) specifies which steps of the processing to plot images of. The value `all`
   gets images for all stages, `core` saves only a subset of images.
-
 
 Most of the other configuration options can be left on their default values for now. Once you have made any changes save
 the file and return to your terminal.
@@ -258,7 +264,7 @@ to the same value as `base_dir`.
 Within each `Processed` directory is a directory for each file found with the specified `file_ext` and within these are
 the resulting images from processing scans. If the `plotting` : `image_set` is `core` then there is a single image for
 each. If this option is `all` then there is also a sub-directory for each image found within which there are the
-directories `filters`, `grains/lower` and `grains/upper` which contain additional images from the processing stages and
+directories `filters`, `grains/below` and `grains/above` which contain additional images from the processing stages and
 an accompanying histogram for each image showing the distribution of pixel heights for that image.
 
 ## Summary Plots
@@ -280,15 +286,14 @@ configured. It uses the plotting library [Seaborn](https://seaborn.pydata.org/) 
 tweak or customise plots it is recommended to load `all_statistics.csv` into a [Jupyter Notebook](https://jupyter.org)
 and generate the plots you want there. A sample notebook is included to show how to do this.
 
-
 ### Configuring Summary Plots
 
 Configuration of summary plots is also via a YAML configuration file a description of the fields can be found under
 [configuration](configuration#summary-configuration) page. You can generate a sample configuration by invoking the
-`--create_config_file` option to `toposum`
+`--create-config-file` option to `toposum`
 
 ``` bash
-toposum --create_config_file custom_summary_config.yaml
+toposum --create-config-file custom_summary_config.yaml
 ```
 
 The file `custom_summary_config.yaml` can then be edited to change what plots are generated, where they are saved to and
@@ -303,3 +308,10 @@ Labels for the plots are generated from the file `topostats/var_to_label.yaml` w
 variable name as the dictionary `key` to its description stored in the dictionary `value`.  If you wish to customise
 these you can do so and pass it to `toposum` using the `--plotting_dictionary` which takes as an argument the path to
 the file you have created.
+
+### Pickles
+
+The option `pickle_plots: True` will save to the specified `output_dir` the file `distribution_plots.pkl` which is a
+binary format that saves the plots that have been generated and saved in nested dictionaries so that they can be loaded
+again. The Notebook `notebooks/02-Summary-statistics-and-plots.ipynb` shows how to load these and make simple
+modifications to the the plots.

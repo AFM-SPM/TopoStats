@@ -1,11 +1,15 @@
 """Tests for the plotting module."""
+import importlib.resources as pkg_resources
 from pathlib import Path
+import yaml
 
 from matplotlib.figure import Figure
 import pandas as pd
 import pytest
 
+import topostats
 from topostats.plotting import TopoSum, toposum
+from topostats.plotting import main as plotting_main
 
 # pylint: disable=protected-access
 
@@ -39,6 +43,32 @@ def test_outfile(toposum_object: TopoSum) -> None:
     assert outfile == "area_testing"
 
 
+def test_args_input_csv() -> None:
+    """Test modifying the configuration value for the input CSV to be summarised."""
+    assert True
+
+
+def test_var_to_label_config(tmp_path: Path) -> None:
+    """Test the var_to_label configuration file is created correctly."""
+    with pytest.raises(SystemExit):
+        plotting_main(
+            args=[
+                "--create-label-file",
+                f"{tmp_path / 'var_to_label_config.yaml'}",
+                "--input_csv",
+                f"{str(RESOURCES / 'minicircle_default_all_statistics.csv')}",
+            ]
+        )
+    var_to_label_config = tmp_path / "var_to_label_config.yaml"
+    with var_to_label_config.open("r", encoding="utf-8") as f:
+        var_to_label_str = f.read()
+    var_to_label = yaml.safe_load(var_to_label_str)
+    plotting_yaml = pkg_resources.open_text(topostats.__package__, "var_to_label.yaml")
+    expected_var_to_label = yaml.safe_load(plotting_yaml.read())
+
+    assert var_to_label == expected_var_to_label
+
+
 @pytest.mark.parametrize(
     "var,expected_label",
     [
@@ -63,6 +93,7 @@ def test_set_label_keyerror(toposum_object: TopoSum) -> None:
 def test_toposum(summary_config: dict) -> None:
     """Test the toposum function returns a dictionary with figures."""
     summary_config["csv_file"] = RESOURCES / "minicircle_default_all_statistics.csv"
+    summary_config["df"] = pd.read_csv(summary_config["csv_file"])
     summary_config["violin"] = True
     summary_config["stats_to_sum"] = ["area"]
     summary_config["pickle_plots"] = True
@@ -76,7 +107,7 @@ def test_toposum(summary_config: dict) -> None:
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_kde(summary_config: dict) -> None:
-    """Regression test for plotkde()."""
+    """Regression test for sns_plot() with a single KDE."""
     summary_config["hist"] = False
     _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
     fig, _ = _toposum.sns_plot()
@@ -85,7 +116,7 @@ def test_plot_kde(summary_config: dict) -> None:
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_kde_multiple_images(summary_config: dict, toposum_multiple_images: pd.DataFrame) -> None:
-    """Regression test for plotkde()."""
+    """Regression test for sns_plot() with multiple KDE."""
     summary_config["hist"] = False
     _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
     _toposum.melted_data = toposum_multiple_images
@@ -95,7 +126,7 @@ def test_plot_kde_multiple_images(summary_config: dict, toposum_multiple_images:
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_hist(summary_config: dict) -> None:
-    """Regression test for plotkde()."""
+    """Regression test for sns_plot() with a single histogram."""
     summary_config["kde"] = False
     _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
     fig, _ = _toposum.sns_plot()
@@ -104,7 +135,7 @@ def test_plot_hist(summary_config: dict) -> None:
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_hist_multiple_images(summary_config: dict, toposum_multiple_images: pd.DataFrame) -> None:
-    """Regression test for plotkde()."""
+    """Regression test for sns_plot() with multiple overlaid histograms."""
     summary_config["kde"] = False
     _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
     _toposum.melted_data = toposum_multiple_images
@@ -131,7 +162,7 @@ def test_plot_hist_kde_multiple_images(summary_config: dict, toposum_multiple_im
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_violin(summary_config: dict) -> None:
-    """Test plotting Kernel Density Estimate and Histogram for area."""
+    """Test plotting Kernel Density Estimate and Histogram for area for a single image."""
     _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
     fig, _ = _toposum.sns_violinplot()
     return fig
@@ -139,7 +170,7 @@ def test_plot_violin(summary_config: dict) -> None:
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
 def test_plot_violin_multiple_images(summary_config: dict, toposum_multiple_images: pd.DataFrame) -> None:
-    """Test plotting Kernel Density Estimate and Histogram for area."""
+    """Test plotting Kernel Density Estimate and Histogram for area with multiple images."""
     _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
     _toposum.melted_data = toposum_multiple_images
     fig, _ = _toposum.sns_violinplot()

@@ -174,7 +174,9 @@ class Images:
                         fig, ax = self.save_figure()
                     else:
                         self.save_array_figure()
-        LOGGER.info(f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}")
+        LOGGER.info(
+            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}" f".{self.save_format}"
+        )
         return fig, ax
 
     def save_figure(self):
@@ -287,7 +289,7 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
         Matplotlib.pyplot axes object.
     """
     for region in region_properties:
-        min_y, min_x, max_y, max_x = [x * pixel_to_nm_scaling for x in region.bbox]
+        min_y, min_x, max_y, max_x = (x * pixel_to_nm_scaling for x in region.bbox)
         # Correct y-axis
         min_y = (shape[0] * pixel_to_nm_scaling) - min_y
         max_y = (shape[0] * pixel_to_nm_scaling) - max_y

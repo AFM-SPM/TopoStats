@@ -6,19 +6,28 @@ import argparse as arg
 from collections import defaultdict
 from functools import partial
 import importlib.resources as pkg_resources
+import logging
 from multiprocessing import Pool
+from pprint import pformat
 import sys
 import yaml
 
 import pandas as pd
 from tqdm import tqdm
 
-from topostats.io import find_files, read_yaml, write_yaml, save_folder_grainstats, LoadScans
-from topostats.logs.logs import setup_logger, LOGGER_NAME
+from topostats import __version__
+from topostats.io import find_files, read_yaml, save_folder_grainstats, write_yaml, LoadScans
+from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
-from topostats.processing import process_scan
+from topostats.processing import check_run_steps, completion_message, process_scan
 from topostats.utils import update_config, update_plotting_config
 from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA
+
+# We already setup the logger in __init__.py and it is idempotent so calling it here returns the same object as from
+# __init__.py
+# Ref : https://stackoverflow.com/a/57799639/1444043
+# LOGGER = setup_logger(LOGGER_NAME)
+LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 # pylint: disable=too-many-branches
@@ -26,8 +35,6 @@ from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTIN
 # pylint: disable=too-many-statements
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-nested-blocks
-
-LOGGER = setup_logger(LOGGER_NAME)
 
 
 def create_parser() -> arg.ArgumentParser:
@@ -73,6 +80,14 @@ def create_parser() -> arg.ArgumentParser:
         help="Number of CPU cores to use when processing.",
     )
     parser.add_argument(
+        "-l",
+        "--log_level",
+        dest="log_level",
+        type=str,
+        required=False,
+        help="Logging level to use, default is 'info' for verbose output use 'debug'.",
+    )
+    parser.add_argument(
         "-f",
         "--file_ext",
         dest="file_ext",
@@ -103,7 +118,13 @@ def create_parser() -> arg.ArgumentParser:
         help="Whether to save plots.",
     )
     parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
-    parser.add_argument("-q", "--quiet", dest="quiet", type=bool, required=False, help="Toggle verbosity.")
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"Installed version of TopoStats : {__version__}",
+        help="Report the current version of TopoStats that is installed.",
+    )
     parser.add_argument(
         "-w",
         "--warnings",
@@ -128,10 +149,17 @@ def main(args=None):
         config = yaml.safe_load(default_config.read())
     config = update_config(config, args)
 
+    # Set logging level
+    if config["log_level"] == "warning":
+        LOGGER.setLevel("WARNING")
+    elif config["log_level"] == "error":
+        LOGGER.setLevel("ERROR")
+    elif config["log_level"] == "debug":
+        LOGGER.setLevel("DEBUG")
+    else:
+        LOGGER.setLevel("INFO")
     # Validate configuration
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
-
-    config["output_dir"].mkdir(parents=True, exist_ok=True)
 
     # Write sample configuration if asked to do so and exit
     if args.create_config_file:
@@ -148,6 +176,10 @@ def main(args=None):
             "https://afm-spm.github.io/TopoStats/configuration.html"
         )
         sys.exit()
+
+    # Create base output directory
+    config["output_dir"].mkdir(parents=True, exist_ok=True)
+
     # Load plotting_dictionary and validate
     plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
@@ -155,6 +187,13 @@ def main(args=None):
         config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML plotting configuration file"
     )
 
+    # Check earlier stages of processing are enabled for later.
+    check_run_steps(
+        filter_run=config["filter"]["run"],
+        grains_run=config["grains"]["run"],
+        grainstats_run=config["grainstats"]["run"],
+        dnatracing_run=config["dnatracing"]["run"],
+    )
     # Update the config["plotting"]["plot_dict"] with plotting options
     config["plotting"] = update_plotting_config(config["plotting"])
 
@@ -170,9 +209,7 @@ def main(args=None):
         sys.exit()
     LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
     LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
-
-    if config["quiet"]:
-        LOGGER.setLevel("ERROR")
+    LOGGER.debug(f"Configuration after update         : \n{pformat(config, indent=4)}")  # noqa : T203
 
     processing_function = partial(
         process_scan,
@@ -187,7 +224,7 @@ def main(args=None):
 
     all_scan_data = LoadScans(img_files, **config["loading"])
     all_scan_data.get_data()
-    scan_data_dict = all_scan_data.img_dic
+    scan_data_dict = all_scan_data.img_dict
 
     with Pool(processes=config["cores"]) as pool:
         results = defaultdict()
@@ -228,47 +265,38 @@ def main(args=None):
         summary_config["var_to_label"] = yaml.safe_load(plotting_yaml.read())
         LOGGER.info("[plotting] Default variable to labels mapping loaded.")
 
-        # If summary_config["output_dir"] does not match or is not a sub-dir of config["output_dir"] it
-        # needs creating
-        summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
-        summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
-        LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
+        # If we don't have a dataframe there is nothing to plot
+        if isinstance(results, pd.DataFrame):
+            # If summary_config["output_dir"] does not match or is not a sub-dir of config["output_dir"] it
+            # needs creating
+            summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
+            summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
+            LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
 
-        # Plot summaries
-        summary_config["df"] = results.reset_index()
-        toposum(summary_config)
+            # Plot summaries
+            summary_config["df"] = results.reset_index()
+            toposum(summary_config)
+        else:
+            LOGGER.info(
+                "There are no results to plot, either you have disabled grains/grainstats/dnatracing or there "
+                "have been errors, please check the log for further information."
+            )
 
-    results.reset_index(inplace=True)
-    results.set_index(["image", "threshold", "molecule_number"], inplace=True)
-    results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
-    save_folder_grainstats(config["output_dir"], config["base_dir"], results)
+    # Write statistics to CSV
+    if isinstance(results, pd.DataFrame):
+        results.reset_index(inplace=True)
+        results.set_index(["image", "threshold", "molecule_number"], inplace=True)
+        results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
+        save_folder_grainstats(config["output_dir"], config["base_dir"], results)
+        results.reset_index(inplace=True)  # So we can access unique image names
+        images_processed = len(results["image"].unique())
+    else:
+        images_processed = 0
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
-    results.reset_index(inplace=True)  # So we can access unique image names
-    images_processed = len(results["image"].unique())
-    LOGGER.info(
-        (
-            f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
-            f"  Base Directory              : {config['base_dir']}\n"
-            f"  File Extension              : {config['file_ext']}\n"
-            f"  Files Found                 : {len(img_files)}\n"
-            f"  Successfully Processed      : {images_processed} ({(images_processed * 100) / len(img_files)}%)\n"
-            f"  Configuration               : {config['output_dir']}/config.yaml\n"
-            f"  All statistics              : {str(config['output_dir'])}/all_statistics.csv\n"
-            f"  Distribution Plots          : {str(summary_config['output_dir'])}\n\n"
-            f"  Email                       : topostats@sheffield.ac.uk\n"
-            f"  Documentation               : https://afm-spm.github.io/topostats/\n"
-            f"  Source Code                 : https://github.com/AFM-SPM/TopoStats/\n"
-            f"  Bug Reports/Feature Request : https://github.com/AFM-SPM/TopoStats/issues/new/choose\n"
-            f"  Citation File Format        : https://github.com/AFM-SPM/TopoStats/blob/main/CITATION.cff\n\n"
-            f"  If you encounter bugs/issues or have feature requests please report them at the above URL\n"
-            f"  or email us.\n\n"
-            f"  If you have found TopoStats useful please consider citing it. A Citation File Format is\n"
-            f"  linked above and available from the Source Code page.\n"
-            f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
-        )
-    )
+    LOGGER.debug(f"Images processed : {images_processed}")
+    completion_message(config, img_files, summary_config, images_processed)
 
 
 if __name__ == "__main__":

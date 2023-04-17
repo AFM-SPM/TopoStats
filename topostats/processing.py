@@ -1,15 +1,16 @@
 """Functions for procesing data."""
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 import numpy as np
 import pandas as pd
 
+from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import get_out_path
+from topostats.io import get_out_path, save_array
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
@@ -78,8 +79,8 @@ def process_scan(
     filter_out_path = core_out_path / filename / "filters"
     filter_out_path.mkdir(exist_ok=True, parents=True)
     grain_out_path = core_out_path / filename / "grains"
-    Path.mkdir(grain_out_path / "upper", parents=True, exist_ok=True)
-    Path.mkdir(grain_out_path / "lower", parents=True, exist_ok=True)
+    Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
+    Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
 
     # Filter Image
     if filter_config["run"]:
@@ -121,6 +122,19 @@ def process_scan(
             filename=filename,
             **plotting_config["plot_dict"][plot_name],
         ).plot_and_save()
+        # Save the z_threshed image (aka "Height_Thresholded") numpy array
+        save_array(
+            array=filtered_image.images["gaussian_filtered"],
+            outpath=core_out_path,
+            filename=filename,
+            array_type="height_thresholded",
+        )
+
+    else:
+        LOGGER.error(
+            "You have not included running the initial filter stage. This is required for all subsequent "
+            "stages of processing. Please check your configuration file."
+        )
 
     # Find Grains :
     if grains_config["run"]:
@@ -214,13 +228,14 @@ def process_scan(
                             ).plot_and_save()
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
-                    grainstats_df = pd.concat([grainstats["lower"], grainstats["upper"]])
-                elif grains_config["direction"] == "upper":
-                    grainstats_df = grainstats["upper"]
-                elif grains_config["direction"] == "lower":
-                    grainstats_df = grainstats["lower"]
+                    grainstats_df = pd.concat([grainstats["below"], grainstats["above"]])
+                elif grains_config["direction"] == "above":
+                    grainstats_df = grainstats["above"]
+                elif grains_config["direction"] == "below":
+                    grainstats_df = grainstats["below"]
             except Exception:
                 LOGGER.info(f"[{filename}] : Errors occurred whilst calculating grain statistics.")
+                results = create_empty_dataframe()
             # Run dnatracing
             try:
                 if dnatracing_config["run"]:
@@ -241,22 +256,120 @@ def process_scan(
                         tracing_stats[direction].df["threshold"] = direction
                     # Set tracing_stats_df in light of direction
                     if grains_config["direction"] == "both":
-                        tracing_stats_df = pd.concat([tracing_stats["lower"].df, tracing_stats["upper"].df])
-                    elif grains_config["direction"] == "upper":
-                        tracing_stats_df = tracing_stats["upper"].df
-                    elif grains_config["direction"] == "lower":
-                        tracing_stats_df = tracing_stats["lower"].df
+                        tracing_stats_df = pd.concat([tracing_stats["below"].df, tracing_stats["above"].df])
+                    elif grains_config["direction"] == "above":
+                        tracing_stats_df = tracing_stats["above"].df
+                    elif grains_config["direction"] == "below":
+                        tracing_stats_df = tracing_stats["below"].df
                     LOGGER.info(f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics")
-                    # NB - Merge on molecule and threshold because we may have upper and lower molecueles which gives
-                    #      duplicate molecule numbers as they are processed separately
-                    results = grainstats_df.merge(tracing_stats_df, on=["molecule_number", "threshold"])
+                    # NB - Merge on image, molecule and threshold because we may have above and below molecueles which
+                    #      gives duplicate molecule numbers as they are processed separately
+                    results = grainstats_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"])
                 else:
+                    LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
                     results = grainstats_df
-                    results["image"] = filename
                     results["basename"] = image_path.parent
             except Exception:
                 # If no results we need a dummy dataframe to return.
-                LOGGER.info(f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics.")
-                results = create_empty_dataframe()
+                LOGGER.info(
+                    f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, "
+                    "returning grain statistics"
+                )
+                results = grainstats_df
+                results["basename"] = image_path.parent
+        else:
+            LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
+            results = create_empty_dataframe()
+    else:
+        LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
+        results = create_empty_dataframe()
 
     return image_path, results
+
+
+def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
+    """Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
+
+    This checks that earlier steps required are enabled.
+
+    Parameters
+    ----------
+    filter_run: bool
+        Flag for running Filtering.
+    grains_run: bool
+        Flag for running Grains.
+    grainstats_run: bool
+        Flag for running GrainStats.
+    dnatracing_run: bool
+        Flag for running DNA Tracing.
+
+    Returns
+    -------
+    None
+    """
+    if dnatracing_run:
+        if grainstats_run is False:
+            LOGGER.error("DNA tracing enabled but Grainstats disabled. Please check your configuration file.")
+        elif grains_run is False:
+            LOGGER.error("DNA tracing enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("DNA tracing enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif grainstats_run:
+        if grains_run is False:
+            LOGGER.error("Grainstats enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("Grainstats enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif grains_run:
+        if filter_run is False:
+            LOGGER.error("Grains enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    else:
+        LOGGER.info("Configuration run options are consistent, processing can proceed.")
+
+
+def completion_message(config: Dict, img_files: List, summary_config: Dict, images_processed: int) -> None:
+    """Print a completion message summarising images processed.
+
+    Parameters
+    ----------
+    config: dict
+        Configuration dictionary.
+    img_files: list()
+        List of found image paths.
+    summary_config: dict(
+        Configuration for plotting summary statistics.
+    images_processed: int
+        Pandas DataFrame of results.
+
+    Results
+    -------
+    None
+    """
+    LOGGER.info(
+        f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+        f"  TopoStats Version           : {__version__}\n"
+        f"  Base Directory              : {config['base_dir']}\n"
+        f"  File Extension              : {config['file_ext']}\n"
+        f"  Files Found                 : {len(img_files)}\n"
+        f"  Successfully Processed^1    : {images_processed} ({(images_processed * 100) / len(img_files)}%)\n"
+        f"  Configuration               : {config['output_dir']}/config.yaml\n"
+        f"  All statistics              : {str(config['output_dir'])}/all_statistics.csv\n"
+        f"  Distribution Plots          : {str(summary_config['output_dir'])}\n\n"
+        f"  Email                       : topostats@sheffield.ac.uk\n"
+        f"  Documentation               : https://afm-spm.github.io/topostats/\n"
+        f"  Source Code                 : https://github.com/AFM-SPM/TopoStats/\n"
+        f"  Bug Reports/Feature Request : https://github.com/AFM-SPM/TopoStats/issues/new/choose\n"
+        f"  Citation File Format        : https://github.com/AFM-SPM/TopoStats/blob/main/CITATION.cff\n\n"
+        f"  ^1 Successful processing of an image is detection of grains and calculation of at least\n"
+        f"     grain statistics. If these have been disabled the percentage will be 0.\n\n"
+        f"  If you encounter bugs/issues or have feature requests please report them at the above URL\n"
+        f"  or email us.\n\n"
+        f"  If you have found TopoStats useful please consider citing it. A Citation File Format is\n"
+        f"  linked above and available from the Source Code page.\n"
+        f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+    )

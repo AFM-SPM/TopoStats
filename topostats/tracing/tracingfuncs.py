@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import math
 
 
-class getSkeleton(object):
+class getSkeleton:
 
     """Skeltonisation algorithm based on the paper "A Fast Parallel Algorithm for
     Thinning Digital Patterns" by Zhang et al., 1984"""

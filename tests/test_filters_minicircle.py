@@ -33,21 +33,21 @@ def test_remove_quadratic_unmasked(minicircle_initial_quadratic_removal: Filters
 def test_get_threshold_otsu(minicircle_threshold_otsu: np.array) -> None:
     """Test calculation of threshold."""
     assert isinstance(minicircle_threshold_otsu.thresholds, dict)
-    assert minicircle_threshold_otsu.thresholds["upper"] == pytest.approx(-0.7471511148088736)
+    assert minicircle_threshold_otsu.thresholds["above"] == pytest.approx(-0.7471511148088736)
 
 
 def test_get_threshold_stddev(minicircle_threshold_stddev: np.array) -> None:
     """Test calculation of threshold."""
     assert isinstance(minicircle_threshold_stddev.thresholds, dict)
     assert minicircle_threshold_stddev.thresholds == pytest.approx(
-        {"lower": -8.283235478318018, "upper": -0.9269936645505799}
+        {"below": -8.283235478318018, "above": -0.9269936645505799}
     )
 
 
 def test_get_threshold_abs(minicircle_threshold_abs: np.array) -> None:
     """Test calculation of threshold."""
     assert isinstance(minicircle_threshold_abs.thresholds, dict)
-    assert minicircle_threshold_abs.thresholds == {"upper": 1.5, "lower": -1.5}
+    assert minicircle_threshold_abs.thresholds == {"above": 1.5, "below": -1.5}
 
 
 def test_get_mask(minicircle_mask: Filters) -> None:

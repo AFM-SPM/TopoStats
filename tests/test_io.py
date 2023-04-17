@@ -6,7 +6,24 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from topostats.io import read_yaml, find_files, get_out_path, save_folder_grainstats, LoadScans, save_pkl, load_pkl
+from topostats.io import (
+    read_yaml,
+    write_yaml,
+    save_array,
+    load_array,
+    find_files,
+    get_out_path,
+    path_to_str,
+    save_folder_grainstats,
+    LoadScans,
+    save_pkl,
+    load_pkl,
+    read_null_terminated_string,
+    read_u32i,
+    read_64d,
+    read_gwy_component_dtype,
+    read_char,
+)
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
@@ -22,12 +39,61 @@ CONFIG = {
     "a_list": [1, 2, 3],
 }
 
+# pylint: disable=protected-access
+
 
 def test_read_yaml() -> None:
     """Test reading of YAML file."""
     sample_config = read_yaml(RESOURCES / "test.yaml")
 
     TestCase().assertDictEqual(sample_config, CONFIG)
+
+
+def test_write_yaml(tmp_path: Path) -> None:
+    """Test writing of dictionary to YAML."""
+    write_yaml(
+        config=CONFIG,
+        output_dir=tmp_path,
+        config_file="test.yaml",
+        header_message="This is a test YAML configuration file",
+    )
+    outfile = tmp_path / "test.yaml"
+    assert outfile.is_file()
+
+
+def test_path_to_str(tmp_path: Path) -> None:
+    """Test that Path objects are converted to strings."""
+    CONFIG_PATH = {"this": "is", "a": "test", "with": tmp_path, "and": {"nested": tmp_path / "nested"}}
+    CONFIG_STR = path_to_str(CONFIG_PATH)
+
+    assert isinstance(CONFIG_STR, dict)
+    assert isinstance(CONFIG_STR["with"], str)
+    assert CONFIG_STR["with"] == str(tmp_path)
+    assert isinstance(CONFIG_STR["and"]["nested"], str)
+    assert CONFIG_STR["and"]["nested"] == str(tmp_path / "nested")
+
+
+def test_save_array(synthetic_scars_image: np.ndarray, tmp_path: Path) -> None:
+    """Test saving Numpy arrays."""
+    save_array(array=synthetic_scars_image, outpath=tmp_path, filename="test", array_type="synthetic")
+
+    outfile = tmp_path / "test_synthetic.npy"
+    assert outfile.is_file()
+
+
+def test_load_array() -> None:
+    """Test loading Numpy arrays."""
+    target = load_array(RESOURCES / "test_scars_synthetic_scar_image.npy")
+    expected = np.load(RESOURCES / "test_scars_synthetic_scar_image.npy")
+
+    np.testing.assert_array_equal(target, expected)
+
+
+@pytest.mark.parametrize("non_existant_file", [("does_not_exist.npy"), ("does_not_exist.np"), ("does_not_exist.csv")])
+def test_load_array_file_not_found(non_existant_file: str) -> None:
+    """Test exceptions when trying to load arrays that don't exist."""
+    with pytest.raises(FileNotFoundError):
+        assert load_array(non_existant_file)
 
 
 def test_find_files() -> None:
@@ -38,6 +104,50 @@ def test_find_files() -> None:
     assert len(found_images) == 1
     assert isinstance(found_images[0], Path)
     assert "minicircle.spm" in str(found_images[0])
+
+
+def test_read_null_terminated_string() -> None:
+    """Test reading a null terminated string from a binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        value = read_null_terminated_string(open_binary_file)
+        assert isinstance(value, str)
+        assert value == "test"
+
+
+def test_read_u32i() -> None:
+    """Test reading an unsigned 32 bit integer from a binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(5)
+        value = read_u32i(open_binary_file)
+        assert isinstance(value, int)
+        assert value == 32
+
+
+def test_read_64d() -> None:
+    """Test reading a 64-bit double from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(9)
+        value = read_64d(open_binary_file)
+        assert isinstance(value, float)
+        assert value == 3.141592653589793
+
+
+def test_read_char() -> None:
+    """Test reading a character from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(17)
+        value = read_char(open_binary_file)
+        assert isinstance(value, str)
+        assert value == "Z"
+
+
+def test_read_gwy_component_dtype() -> None:
+    """Test reading a data type of a `.gwy` file component from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(18)
+        value = read_gwy_component_dtype(open_binary_file)
+        assert isinstance(value, str)
+        assert value == "D"
 
 
 @pytest.mark.parametrize(
@@ -162,6 +272,44 @@ def test_load_scan_jpk(load_scan_jpk: LoadScans) -> None:
     assert px_to_nm_scaling == 1.2770176335964876
 
 
+def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
+    """Test loading of a .gwy file."""
+    load_scan_gwy.img_path = load_scan_gwy.img_paths[0]
+    load_scan_gwy.filename = load_scan_gwy.img_paths[0].stem
+    image, px_to_nm_scaling = load_scan_gwy.load_gwy()
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (512, 512)
+    assert image.sum() == 33836850.232917726
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 0.8468632812499975
+
+
+def test_gwy_read_object(load_scan_dummy: LoadScans) -> None:
+    """Test reading an object of a `.gwy` file object from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(19)
+        test_dict = {}
+        load_scan_dummy._gwy_read_object(open_file=open_binary_file, data_dict=test_dict)
+
+        assert list(test_dict.keys()) == ["test component", "test object component"]
+        assert list(test_dict.values()) == [500, {"test nested component": 3}]
+
+
+def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
+    """Tests reading a component of a `.gwy` file object from an open binary file."""
+    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+        open_binary_file.seek(55)
+        test_dict = {}
+        byte_size = load_scan_dummy._gwy_read_component(
+            initial_byte_pos=55, open_file=open_binary_file, data_dict=test_dict
+        )
+        print(test_dict.items())
+        print(test_dict.values())
+        assert byte_size == 73
+        assert list(test_dict.keys()) == ["test object component"]
+        assert list(test_dict.values()) == [{"test nested component": 3}]
+
+
 # FIXME : Get this test working
 # @pytest.mark.parametrize(
 #     "unit, x, y, expected",
@@ -198,14 +346,14 @@ def test_load_scan_get_data(
     """Test the LoadScan.get_data() method."""
     scan = request.getfixturevalue(load_scan_object)
     scan.get_data()
-    assert len(scan.img_dic) == length
-    assert isinstance(scan.img_dic[filename]["image"], np.ndarray)
-    assert scan.img_dic[filename]["image"].shape == image_shape
-    assert scan.img_dic[filename]["image"].sum() == image_sum
-    assert isinstance(scan.img_dic[filename]["img_path"], Path)
-    assert scan.img_dic[filename]["img_path"] == RESOURCES / filename
-    assert isinstance(scan.img_dic[filename]["px_2_nm"], float)
-    assert scan.img_dic[filename]["px_2_nm"] == pixel_to_nm_scaling
+    assert len(scan.img_dict) == length
+    assert isinstance(scan.img_dict[filename]["image"], np.ndarray)
+    assert scan.img_dict[filename]["image"].shape == image_shape
+    assert scan.img_dict[filename]["image"].sum() == image_sum
+    assert isinstance(scan.img_dict[filename]["img_path"], Path)
+    assert scan.img_dict[filename]["img_path"] == RESOURCES / filename
+    assert isinstance(scan.img_dict[filename]["px_2_nm"], float)
+    assert scan.img_dict[filename]["px_2_nm"] == pixel_to_nm_scaling
 
 
 def test_save_pkl(summary_config: dict, tmp_path) -> None:

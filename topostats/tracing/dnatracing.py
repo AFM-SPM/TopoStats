@@ -21,7 +21,7 @@ from topostats.tracing.tracingfuncs import genTracingFuncs, getSkeleton, reorder
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-class dnaTrace(object):
+class dnaTrace:
     """
     This class gets all the useful functions from the old tracing code and staples
     them together to create an object that contains the traces for each DNA molecule
@@ -752,7 +752,7 @@ class dnaTrace(object):
         plt.axvline(curvature[int(length / 6 * 3)][1] * self.pixel_size, color="#009E74")
         plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size, color="#0071B2")
         plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size, color="#CC79A7")
-        plt.savefig("%s_%s_curvature.png" % (savename, dna_num))
+        plt.savefig(f"{savename}_{dna_num}_curvature.png")
         plt.close()
 
     def measure_contour_length(self):
@@ -817,10 +817,10 @@ class dnaTrace(object):
                 coordinates_array = np.array([[x, y]])
 
         coordinates = pd.DataFrame(coordinates_array)
-        coordinates.to_csv("%s_%s.csv" % (savename, dna_num))
+        coordinates.to_csv(f"{savename}_{dna_num}.csv")
 
         plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], "ko")
-        plt.savefig("%s_%s_coordinates.png" % (savename, dna_num))
+        plt.savefig(f"{savename}_{dna_num}_coordinates.png")
 
     def measure_end_to_end_distance(self):
         """Calculate the Euclidean distance between the start and end of linear molecules.
@@ -845,7 +845,7 @@ class dnaTrace(object):
         # }
 
 
-class traceStats(object):
+class traceStats:
     """Combine and save trace statistics."""
 
     def __init__(self, trace_object: dnaTrace, image_path: Union[str, Path]) -> None:

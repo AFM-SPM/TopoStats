@@ -1,2 +1,5 @@
+# pyupgrade
+4f2a688bef5698a9d8f914a34a29199c9b829bdb # Lint code base with pyupgrade
+
 # pre-commit.ci - ignore updates to codebase made by pre-commit.ci
 5244539071197ce9accfd378bd9f5e557bbc0a49

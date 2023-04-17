@@ -6,12 +6,14 @@ from typing import Union, List, Tuple, Dict
 
 import numpy as np
 import skimage.measure as skimage_measure
+import skimage.morphology as skimage_morphology
 import skimage.feature as skimage_feature
 import scipy.ndimage
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from topostats.logs.logs import LOGGER_NAME
+from topostats.utils import create_empty_dataframe
 
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-instance-attributes
@@ -63,6 +65,7 @@ class GrainStats:
         direction: str,
         base_output_dir: Union[str, Path],
         image_name: str = None,
+        edge_detection_method: str = "binary_erosion",
         cropped_size: float = -1,
         plot_opts: dict = None,
         metre_scaling_factor: float = 1e-9,
@@ -78,11 +81,14 @@ class GrainStats:
         pixel_to_nanometre_scaling : float
             Floating point value that defines the scaling factor between nanometres and pixels.
         direction: str
-            Direction for which grains have been detected ("upper" or "lower").
+            Direction for which grains have been detected ("above" or "below").
         base_output_dir : Path
             Path to the folder that will store the grain stats output images and data.
         image_name : str
             The name of the file being processed.
+        edge_detection_method : str
+            Method used for detecting the edges of grain masks before calculating statistics on them.
+            Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
         cropped_size : float
             Length of square side (in nm) to crop grains to.
         plot_opts : dict
@@ -99,6 +105,7 @@ class GrainStats:
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
         self.image_name = image_name
+        self.edge_detection_method = edge_detection_method
         self.cropped_size = cropped_size
         self.plot_opts = plot_opts
         self.metre_scaling_factor = metre_scaling_factor
@@ -173,6 +180,15 @@ class GrainStats:
         # There are multiple entries for each grain.
         for index, region in enumerate(region_properties):
             LOGGER.info(f"[{self.image_name}] : Processing grain: {index}")
+
+            # Skip grain if too small to calculate stats for
+            LOGGER.debug(f"[{self.image_name}] : Grain size: {region.image.size}")
+            if min(region.image.shape) < 5:
+                LOGGER.info(
+                    f"[{self.image_name}] : Skipping grain due to being too small (size: {region.image.shape}) to calculate stats for."
+                )
+                continue
+
             # Create directory for each grain's plots
             output_grain = self.base_output_dir / self.direction
             # Obtain cropped grain mask and image
@@ -223,7 +239,7 @@ class GrainStats:
                     )
 
             points = self.calculate_points(grain_mask)
-            edges = self.calculate_edges(grain_mask)
+            edges = self.calculate_edges(grain_mask, edge_detection_method=self.edge_detection_method)
             radius_stats = self.calculate_radius_stats(edges, points)
             # hull, hull_indices, hull_simplexes = self.convex_hull(edges, output_grain)
             _, _, hull_simplexes = self.convex_hull(edges, output_grain)
@@ -276,11 +292,14 @@ class GrainStats:
                 "min_feret": min_feret * length_scaling_factor,
             }
             stats_array.append(stats)
+        if len(stats_array) > 0:
+            grainstats_df = pd.DataFrame(data=stats_array)
+        else:
+            grainstats_df = create_empty_dataframe()
+        grainstats_df.index.name = "molecule_number"
+        grainstats_df["image"] = self.image_name
 
-        grainstats = pd.DataFrame(data=stats_array)
-        grainstats.index.name = "molecule_number"
-
-        return grainstats, grains_plot_data
+        return grainstats_df, grains_plot_data
 
     @staticmethod
     def calculate_points(grain_mask: np.ndarray):
@@ -305,7 +324,7 @@ class GrainStats:
         return points
 
     @staticmethod
-    def calculate_edges(grain_mask: np.ndarray):
+    def calculate_edges(grain_mask: np.ndarray, edge_detection_method: str):
         """Class method that takes a 2D boolean numpy array image of a grain and returns a python list of the
         coordinates of the edges of the grain.
 
@@ -313,6 +332,9 @@ class GrainStats:
         ----------
         grain_mask : np.ndarray
             A 2D numpy array image of a grain. Data in the array must be boolean.
+        edge_detection_method : str
+            Method used for detecting the edges of grain masks before calculating statistics on them.
+            Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
 
         Returns
         -------
@@ -321,8 +343,22 @@ class GrainStats:
         """
         # Fill any holes
         filled_grain_mask = scipy.ndimage.binary_fill_holes(grain_mask)
-        # Get outer edge using canny filtering
-        edges = skimage_feature.canny(filled_grain_mask, sigma=3)
+
+        if edge_detection_method == "binary_erosion":
+            # Add padding (needed for erosion)
+            padded = np.pad(filled_grain_mask, 1)
+            # Erode by 1 pixel
+            eroded = skimage_morphology.binary_erosion(padded)
+            # Remove padding
+            eroded = eroded[1:-1, 1:-1]
+
+            # Edges is equal to the difference between the
+            # original image and the eroded image.
+            edges = filled_grain_mask.astype(int) - eroded.astype(int)
+        else:
+            # Get outer edge using canny filtering
+            edges = skimage_feature.canny(filled_grain_mask, sigma=3)
+
         nonzero_coordinates = edges.nonzero()
         # Get vector representation of the points
         # FIXME : Switched to list comprehension but should be unnecessary to create this as a list as we can use
