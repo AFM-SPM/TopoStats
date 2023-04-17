@@ -335,7 +335,7 @@ def network_feret_diameters(edges: np.ndarray) -> float:
     upper_hull = []
     lower_hull = []
     for point in sorted_points:
-        print(point)
+        # print(point)
         while len(lower_hull) > 1 and is_clockwise(lower_hull[-2], lower_hull[-1], point):
             lower_hull.pop()
         lower_hull.append(point)
@@ -443,5 +443,5 @@ def rim_curvature(xs: np.ndarray, ys: np.ndarray):
     d2x = np.gradient(dx)
     d2y = np.gradient(dy)
     curv = np.abs(dx * d2y - d2x * dy) / (dx * dx + dy * dy) ** 1.5
-    curv = curv[extension_length : (len(curv) - extension_length) + 1]
+    curv = curv[extension_length : (len(curv) - extension_length)]
     return curv
