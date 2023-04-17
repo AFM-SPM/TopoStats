@@ -75,7 +75,7 @@ class Images:
         core_set : bool
             Flag to identify image as part of the core image set or not.
         pixel_interpolation: Union[str, None]
-            Interpolation to use (default: null).
+            Interpolation to use (default: None).
         cmap : str
             Colour map to use (default 'nanoscope', 'afmhot' also available).
         mask_cmap : str
