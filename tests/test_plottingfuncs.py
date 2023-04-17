@@ -12,6 +12,12 @@ from topostats.io import LoadScans
 from topostats.plottingfuncs import Images
 
 
+DPI = 300.0
+RNG = np.random.default_rng(seed=1000)
+array = RNG.random((10, 10))
+mask = RNG.uniform(low=0, high=1, size=array.shape) > 0.5
+
+
 @pytest.mark.parametrize(
     "masked_array, axes_colorbar, region_properties",
     [(np.random.rand(10, 10), True, None), (None, True, None), (None, False, True)],
@@ -198,11 +204,6 @@ def test_plot_and_save_non_square_bounding_box(
     return fig
 
 
-RNG = np.random.default_rng(seed=1000)
-array = RNG.random((10, 10))
-mask = RNG.uniform(low=0, high=1, size=array.shape) > 0.5
-
-
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
     """Test the plotting of a mask with a different colourmap (blu)."""
@@ -212,6 +213,19 @@ def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
         output_dir=tmp_path,
         filename="colour.png",
         masked_array=mask,
+        **plotting_config,
+    ).plot_and_save()
+    return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/", savefig_kwargs={"dpi": DPI})
+def test_high_dpi(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmp_path: Path) -> None:
+    """Test plotting with high DPI."""
+    plotting_config["dpi"] = DPI
+    fig, _ = Images(
+        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
+        output_dir=tmp_path,
+        filename="high_dpi",
         **plotting_config,
     ).plot_and_save()
     return fig

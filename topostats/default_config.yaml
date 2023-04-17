@@ -61,6 +61,7 @@ plotting:
   mask_cmap: blu # Options : blu, jet_r and any in matplotlib
   histogram_log_axis: false # Options : true, false
   histogram_bins: 200 # Number of bins for histogram plots to use
+  dpi: 100 # Dots Per Inch used in figures, if set to "figure" will use Matplotlib default
 summary_stats:
   run: true # Whether to make summary plots for output data
   config: null
