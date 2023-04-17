@@ -205,6 +205,17 @@ def polygon_perimeter(points: np.ndarray):
 
 
 def network_area(points: np.ndarray):
+    """Use the shoelace algorithm to calculate the area of an arbitrary polygon defined by a set of points.
+    
+    Parameters
+    ----------
+    points: np.ndarray
+        2D numpy array of point coordinates defining the polygon
+    Returns
+    -------
+    float
+        Area of the polygon
+    """
     points = np.append(points, points[0]).reshape(-1, 2)
     area = 0
     for index in range(len(points) - 1):
