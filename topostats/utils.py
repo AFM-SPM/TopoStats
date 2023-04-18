@@ -2,7 +2,7 @@
 from argparse import Namespace
 import logging
 from pathlib import Path
-from typing import Union, List, Dict
+from typing import Union, Dict
 from collections import defaultdict
 
 import numpy as np
@@ -15,29 +15,33 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 ALL_STATISTICS_COLUMNS = (
-    "Molecule Number",
+    "image",
+    "basename",
+    "molecule_number",
+    "area",
+    "area_cartesian_bbox",
+    "aspect_ratio",
+    "banding_angle",
     "centre_x",
     "centre_y",
-    "radius_min",
+    "circular",
+    "contour_lengths",
+    "end_to_end_distance",
+    "height_max",
+    "height_mean",
+    "height_median",
+    "height_min",
+    "max_feret",
+    "min_feret",
     "radius_max",
     "radius_mean",
     "radius_median",
-    "height_min",
-    "height_max",
-    "height_median",
-    "height_mean",
-    "volume",
-    "area",
-    "area_cartesian_bbox",
-    "smallest_bounding_width",
-    "smallest_bounding_length",
+    "radius_min",
     "smallest_bounding_area",
-    "aspect_ratio",
-    "Contour Lengths",
-    "Circular",
-    "End to End Distance",
-    "Image Name",
-    "Basename",
+    "smallest_bounding_length",
+    "smallest_bounding_width",
+    "threshold",
+    "volume",
 )
 
 
@@ -55,64 +59,6 @@ def convert_path(path: Union[str, Path]) -> Path:
         pathlib Path
     """
     return Path().cwd() if path == "./" else Path(path).expanduser()
-
-
-def find_images(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> List:
-    """Scan the specified directory for images with the given file extension.
-
-    Parameters
-    ----------
-    base_dir: Union[str, Path]
-        Directory to recursively search for files, if not specified the current directory is scanned.
-    file_ext: str
-        File extension to search for.
-
-    Returns
-    -------
-    List
-        List of files found with the extension in the given directory.
-    """
-    base_dir = Path("./") if base_dir is None else Path(base_dir)
-    return list(base_dir.glob("**/*" + file_ext))
-
-
-def get_out_path(
-    image_path: Union[str, Path] = None, base_dir: Union[str, Path] = None, output_dir: Union[str, Path] = None
-) -> Path:
-    """Adds the image path relative to the base directory to the output directory.
-
-    Parameters
-    ----------
-    image_path: Path
-        The path of the current image.
-    base_dir: Path
-        Directory to recursively search for files.
-    output_dir: Path
-        The output directory specified in the configuration file.
-
-    Returns
-    -------
-    Path
-        The output path that mirrors the input path structure.
-    """
-    # If image_path is relative and doesn't include base_dir then a ValueError is raisedin which
-    # case we just want to append the image_path to the output_dir
-    try:
-        # Remove the filename if there is a suffix, not always the case as
-        # get_out_path is called from folder_grainstats()
-        if image_path.suffix:
-            return output_dir / image_path.parent.relative_to(base_dir)
-        else:
-            return output_dir / image_path.relative_to(base_dir)
-    except ValueError:
-        if image_path.suffix:
-            return output_dir / image_path.parent
-        else:
-            return output_dir / image_path
-    # AttributeError is raised if image_path is a string (since it isn't a Path() object with a .suffix)
-    except AttributeError:
-        LOGGER.error("A string form of a Path has been passed to 'get_out_path()' for image_path")
-        raise
 
 
 def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
@@ -140,12 +86,29 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
                 original_value = config[arg_key]
                 config[arg_key] = arg_value
                 LOGGER.info(f"Updated config config[{arg_key}] : {original_value} > {arg_value} ")
-    config["base_dir"] = convert_path(config["base_dir"])
-    config["output_dir"] = convert_path(config["output_dir"])
+    if "base_dir" in config.keys():
+        config["base_dir"] = convert_path(config["base_dir"])
+    if "output_dir" in config.keys():
+        config["output_dir"] = convert_path(config["output_dir"])
     return config
 
 
-def _get_mask(image: np.ndarray, threshold: float, threshold_direction: str, img_name: str = None) -> np.ndarray:
+def update_plotting_config(plotting_config: dict) -> dict:
+    """Update the plotting config for each of the plots in plot_dict to ensure that each
+    entry has all the plotting configuration values that are needed."""
+
+    main_config = plotting_config.copy()
+    for opt in ["plot_dict", "run"]:
+        main_config.pop(opt)
+    for image, options in plotting_config["plot_dict"].items():
+        plotting_config["plot_dict"][image] = {**options, **main_config}
+        if image not in ["z_threshed", "mask_overlay"]:
+            plotting_config["plot_dict"][image].pop("zrange")
+
+    return plotting_config
+
+
+def _get_mask(image: np.ndarray, thresh: float, threshold_direction: str, img_name: str = None) -> np.ndarray:
     """Calculate a mask for pixels that exceed the threshold
 
     Parameters
@@ -164,12 +127,11 @@ def _get_mask(image: np.ndarray, threshold: float, threshold_direction: str, img
     np.array
         Numpy array of image with objects coloured.
     """
-    if threshold_direction == "upper":
-        LOGGER.info(f"[{img_name}] : Masking (upper) Threshold: {threshold}")
-        return image > threshold
-    if threshold_direction == "lower":
-        LOGGER.info(f"[{img_name}] : Masking (lower) Threshold: {threshold}")
-        return image < threshold
+    if threshold_direction == "above":
+        LOGGER.info(f"[{img_name}] : Masking (above) Threshold: {thresh}")
+        return image > thresh
+    LOGGER.info(f"[{img_name}] : Masking (below) Threshold: {thresh}")
+    return image < thresh
     # LOGGER.fatal(f"[{img_name}] : Threshold direction invalid: {threshold_direction}")
 
 
@@ -182,8 +144,8 @@ def get_mask(image: np.ndarray, thresholds: dict, img_name: str = None) -> np.nd
         2D Numpy array of the image to have a mask derived for.
 
     thresholds: dict
-        Dictionary of thresholds, at a bare minimum must have key 'lower' with an associated value, second key is
-        to have an 'upper' threshold.
+        Dictionary of thresholds, at a bare minimum must have key 'below' with an associated value, second key is
+        to have an 'above' threshold.
     img_name: str
         Image name that is being masked.
 
@@ -193,18 +155,19 @@ def get_mask(image: np.ndarray, thresholds: dict, img_name: str = None) -> np.nd
         2D Numpy boolean array of points to mask.
     """
     # Both thresholds are applicable
-    if "lower" in thresholds and "upper" in thresholds:
-        mask_upper = _get_mask(image, threshold=thresholds["upper"], threshold_direction="upper", img_name=img_name)
-        mask_lower = _get_mask(image, threshold=thresholds["lower"], threshold_direction="lower", img_name=img_name)
+    if "below" in thresholds and "above" in thresholds:
+        mask_above = _get_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
+        mask_below = _get_mask(image, thresh=thresholds["below"], threshold_direction="below", img_name=img_name)
         # Masks are combined to remove both the extreme high and extreme low data points.
-        return mask_upper + mask_lower
-    # Only lower threshold is applicable
-    if "lower" in thresholds:
-        return _get_mask(image, threshold=thresholds["lower"], threshold_direction="lower", img_name=img_name)
-    # Only upper threshold is applicable
-    return _get_mask(image, threshold=thresholds["upper"], threshold_direction="upper", img_name=img_name)
+        return mask_above + mask_below
+    # Only below threshold is applicable
+    if "below" in thresholds:
+        return _get_mask(image, thresh=thresholds["below"], threshold_direction="below", img_name=img_name)
+    # Only above threshold is applicable
+    return _get_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
 
 
+# pylint: disable=unused-argument
 def get_thresholds(
     image: np.ndarray,
     threshold_method: str,
@@ -222,32 +185,32 @@ def get_thresholds(
     threshold_method : str
         Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
     threshold_std_dev : dict
-        Dict of upper and lower thresholds for the standard deviation method.
+        Dict of above and below thresholds for the standard deviation method.
     absolute : tuple
-        Dict of lower and upper thresholds.
+        Dict of below and above thresholds.
     **kwargs:
 
     Returns
     -------
     Dict
-        Dictionary of thresholds, contains keys 'lower' and optionally 'upper'.
+        Dictionary of thresholds, contains keys 'below' and optionally 'above'.
     """
     thresholds = defaultdict()
     if threshold_method == "otsu":
-        thresholds["upper"] = threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)
+        thresholds["above"] = threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)
     elif threshold_method == "std_dev":
         try:
-            if threshold_std_dev["lower"] is not None:
-                thresholds["lower"] = threshold(image, method="mean") - threshold_std_dev["lower"] * np.nanstd(image)
-            if threshold_std_dev["upper"] is not None:
-                thresholds["upper"] = threshold(image, method="mean") + threshold_std_dev["upper"] * np.nanstd(image)
+            if threshold_std_dev["below"] is not None:
+                thresholds["below"] = threshold(image, method="mean") - threshold_std_dev["below"] * np.nanstd(image)
+            if threshold_std_dev["above"] is not None:
+                thresholds["above"] = threshold(image, method="mean") + threshold_std_dev["above"] * np.nanstd(image)
         except TypeError as typeerror:
             raise typeerror
     elif threshold_method == "absolute":
-        if absolute["lower"] is not None:
-            thresholds["lower"] = absolute["lower"]
-        if absolute["upper"] is not None:
-            thresholds["upper"] = absolute["upper"]
+        if absolute["below"] is not None:
+            thresholds["below"] = absolute["below"]
+        if absolute["above"] is not None:
+            thresholds["above"] = absolute["above"]
     else:
         if not isinstance(threshold_method, str):
             raise TypeError(
@@ -260,7 +223,7 @@ def get_thresholds(
     return thresholds
 
 
-def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS) -> pd.DataFrame:
+def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: tuple = ("molecule_number")) -> pd.DataFrame:
     """Create an empty data frame for returning when no results are found.
 
     Parameters
@@ -273,31 +236,5 @@ def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS) -> pd.DataFram
     pd.DataFrame
         Empty Pandas DataFrame.
     """
-    return pd.DataFrame([np.repeat(np.nan, len(columns))], columns=columns)
-
-
-def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], all_stats_df: pd.DataFrame) -> None:
-    """Creates saves a data frame of grain and tracing statictics at the folder level.
-
-    Parameters
-    ----------
-    output_dir: Union[str, Path]
-        Path of the output directory head.
-    base_dir: Union[str, Path]
-        Path of the base directory where files were found.
-    all_stats_df: pd.DataFrame
-        The dataframe containing all sample statistics run.
-
-    Returns
-    -------
-    None
-        This only saves the dataframes and does not retain them.
-    """
-    dirs = set(all_stats_df["Basename"].values)
-    try:
-        for _dir in dirs:
-            out_path = get_out_path(Path(_dir), base_dir, output_dir)
-            all_stats_df[all_stats_df["Basename"] == _dir].to_csv(out_path / "Processed" / "folder_grainstats.csv")
-            LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/Processed/folder_grainstats.csv")
-    except TypeError:
-        LOGGER.info("Unable to generate folderwise statistics as 'all_statis_df' is empty")
+    empty_df = pd.DataFrame([np.repeat(np.nan, len(columns))], columns=columns)
+    return empty_df.set_index(index, inplace=True)

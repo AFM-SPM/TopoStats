@@ -6,7 +6,7 @@ from typing import List, Dict
 import numpy as np
 
 from skimage.segmentation import clear_border
-from skimage.morphology import remove_small_objects, label
+from skimage import morphology
 from skimage.measure import regionprops
 from skimage.color import label2rgb
 
@@ -19,7 +19,9 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=fixme
 # pylint: disable=line-too-long
 # pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-arguments
 # pylint: disable=bare-except
+# pylint: disable=dangerous-default-value
 
 
 class Grains:
@@ -35,11 +37,11 @@ class Grains:
         threshold_std_dev: dict = None,
         threshold_absolute: dict = None,
         absolute_area_threshold: dict = {
-            "upper": [None, None],
-            "lower": [None, None],
+            "above": [None, None],
+            "below": [None, None],
         },
         direction: str = None,
-        absolute_smallest_grain_size: float = None,
+        smallest_grain_size_nm2: float = None,
     ):
         """Initialise the class.
 
@@ -52,17 +54,17 @@ class Grains:
         pixel_to_nm_scaling: float
             Sacling of pixels to nanometre.
         threshold_multiplier : Union[int, float]
-            Factor by which lower threshold is to be scaled prior to masking.
+            Factor by which below threshold is to be scaled prior to masking.
         threshold_method: str
             Method for determining threshold to mask values, default is 'otsu'.
         threshold_std_dev: dict
-            Dictionary of 'lower' and 'upper' factors by which standard deviation is multiplied to derive the threshold if threshold_method is 'std_dev'.
+            Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold if threshold_method is 'std_dev'.
         threshold_absolute: dict
-            Dictionary of absolute 'lower' and 'upper' thresholds for grain finding.
+            Dictionary of absolute 'below' and 'above' thresholds for grain finding.
         absolute_area_threshold: dict
-            Dictionary of upper and lower grain's area thresholds
+            Dictionary of above and below grain's area thresholds
         direction: str
-            Direction for which grains are to be detected, valid values are upper, lower and both.
+            Direction for which grains are to be detected, valid values are above, below and both.
         """
         self.image = image
         self.filename = filename
@@ -73,8 +75,8 @@ class Grains:
         self.threshold_absolute = threshold_absolute
         self.absolute_area_threshold = absolute_area_threshold
         # Only detect grains for the desired direction
-        self.direction = [direction] if direction != "both" else ["upper", "lower"]
-        self.absolute_smallest_grain_size = absolute_smallest_grain_size
+        self.direction = [direction] if direction != "both" else ["above", "below"]
+        self.smallest_grain_size_nm2 = smallest_grain_size_nm2
         self.thresholds = None
         self.images = {
             "mask_grains": None,
@@ -123,12 +125,12 @@ class Grains:
             Numpy array of image with objects coloured.
         """
         LOGGER.info(f"[{self.filename}] : Labelling Regions")
-        return label(image, background=0)
+        return morphology.label(image, background=0)
 
     def calc_minimum_grain_size(self, image: np.ndarray) -> float:
-        """Calculate the minimum grain size.
+        """Calculate the minimum grain size in pixels squared.
 
-        Very small objects are first removed via thresholding before calculating the lower extreme.
+        Very small objects are first removed via thresholding before calculating the below extreme.
         """
         region_properties = self.get_region_properties(image)
         grain_areas = np.array([grain.area for grain in region_properties])
@@ -143,8 +145,8 @@ class Grains:
         else:
             self.minimum_grain_size = -1
 
-    def remove_noise(self, image: np.ndarray) -> np.ndarray:
-        """Removes noise which are objects smaller than the 'absolute_smallest_grain_size'.
+    def remove_noise(self, image: np.ndarray, **kwargs) -> np.ndarray:
+        """Removes noise which are objects smaller than the 'smallest_grain_size_nm2'.
 
         This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.
 
@@ -156,23 +158,40 @@ class Grains:
         Returns
         -------
         np.ndarray
-            2D Numpy array of image with objects < absolute_smallest_grain_size removed.
+            2D Numpy array of image with objects < smallest_grain_size_nm2 removed.
         """
-        LOGGER.info(f"[{self.filename}] : Removing noise (< {self.absolute_smallest_grain_size})")
-        return remove_small_objects(image, min_size=self.absolute_smallest_grain_size)
+        LOGGER.info(
+            f"[{self.filename}] : Removing noise (< {self.smallest_grain_size_nm2} nm^2"
+            "{self.smallest_grain_size_nm2 / (self.pixel_to_nm_scaling**2):.2f} px^2)"
+        )
+        return morphology.remove_small_objects(
+            image, min_size=self.smallest_grain_size_nm2 / (self.pixel_to_nm_scaling**2), **kwargs
+        )
 
     def remove_small_objects(self, image: np.array, **kwargs):
-        """Remove small objects."""
+        """Remove small objects from the input image. Threshold determined by the minimum_grain_size variable of the
+        Grains class which is in pixels squared.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            2D Numpy image to remove small objects from.
+        Returns
+        -------
+        np.ndarray
+            2D Numpy array of image with objects < minimum_grain_size removed.
+        """
         # If self.minimum_grain_size is -1, then this means that
         # there were no grains to calculate the minimum grian size from.
         if self.minimum_grain_size != -1:
-            small_objects_removed = remove_small_objects(
+            small_objects_removed = morphology.remove_small_objects(
                 image,
-                min_size=(self.minimum_grain_size * self.pixel_to_nm_scaling),
+                min_size=self.minimum_grain_size,  # minimum_grain_size is in pixels squared
                 **kwargs,
             )
             LOGGER.info(
-                f"[{self.filename}] : Removed small objects (< {self.minimum_grain_size * self.pixel_to_nm_scaling})"
+                f"[{self.filename}] : Removed small objects (< \
+{self.minimum_grain_size} px^2 / {self.minimum_grain_size / (self.pixel_to_nm_scaling)**2} nm^2)"
             )
             return small_objects_removed > 0.0
         return image
@@ -185,7 +204,8 @@ class Grains:
         image: np.ndarray
             Image array where the background == 0 and grains are labelled as integers > 0.
         area_thresholds: list
-            List of area thresholds, first should be the lower threshold, second upper threshold.
+            List of area thresholds (in nanometres squared, not pixels squared), first should be
+            the below (smaller) threshold, second above (larger) threshold.
 
         Returns
         -------
@@ -194,17 +214,23 @@ class Grains:
 
         """
         image_cp = image.copy()
-        lower, upper = area_thresholds
+        below, above = area_thresholds
         # if one value is None adjust for comparison
-        if upper is None:
-            upper = image.size * self.pixel_to_nm_scaling**2
-        if lower is None:
-            lower = 0
+        if above is None:
+            above = image.size * self.pixel_to_nm_scaling**2
+        if below is None:
+            below = 0
+        # Get array of grain numbers (discounting zero)
         uniq = np.delete(np.unique(image), 0)
         grain_count = 0
-        for grain_no in uniq:
+        LOGGER.info(
+            f"[{self.filename}] : Area thresholding grains | Thresholds: L:{below / self.pixel_to_nm_scaling**2:.2f},"
+            "U:{above / self.pixel_to_nm_scaling**2:.2f} px^2, L:{below:.2f}, U:{above:.2f} nm^2."
+        )
+        for grain_no in uniq:  # Calculate grian area in nm^2
             grain_area = np.sum(image_cp == grain_no) * (self.pixel_to_nm_scaling**2)
-            if grain_area > upper or grain_area < lower:
+            # Compare area in nm^2 to area thresholds
+            if grain_area > above or grain_area < below:
                 image_cp[image_cp == grain_no] = 0
             else:
                 grain_count += 1
@@ -277,7 +303,7 @@ class Grains:
                 self.directions[direction] = defaultdict()
                 self.directions[direction]["mask_grains"] = _get_mask(
                     self.image,
-                    threshold=self.thresholds[direction],
+                    thresh=self.thresholds[direction],
                     threshold_direction=direction,
                     img_name=self.filename,
                 )
@@ -287,10 +313,12 @@ class Grains:
                 self.directions[direction]["tidied_border"] = self.tidy_border(
                     self.directions[direction]["labelled_regions_01"]
                 )
+                LOGGER.info(f"[{self.filename}] : Removing noise ({direction})")
                 self.directions[direction]["removed_noise"] = self.area_thresholding(
                     self.directions[direction]["tidied_border"],
-                    [self.absolute_smallest_grain_size * self.pixel_to_nm_scaling, None],
+                    [self.smallest_grain_size_nm2, None],
                 )
+                LOGGER.info(f"[{self.filename}] : Removing small / large grains ({direction})")
                 # if no area thresholds specified, use otsu
                 if self.absolute_area_threshold[direction].count(None) == 2:
                     self.calc_minimum_grain_size(self.directions[direction]["removed_noise"])

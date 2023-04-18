@@ -2,6 +2,8 @@
 from pathlib import Path
 
 import pytest
+from matplotlib.figure import Figure
+from matplotlib.axes import Axes
 import numpy as np
 from skimage import io
 
@@ -10,12 +12,18 @@ from topostats.io import LoadScans
 from topostats.plottingfuncs import Images
 
 
+DPI = 300.0
+RNG = np.random.default_rng(seed=1000)
+array = RNG.random((10, 10))
+mask = RNG.uniform(low=0, high=1, size=array.shape) > 0.5
+
+
 @pytest.mark.parametrize(
-    "data2, axes_colorbar, region_properties",
+    "masked_array, axes_colorbar, region_properties",
     [(np.random.rand(10, 10), True, None), (None, True, None), (None, False, True)],
 )
 def test_save_figure(
-    data2: np.ndarray,
+    masked_array: np.ndarray,
     axes_colorbar: bool,
     region_properties: bool,
     image_random: np.ndarray,
@@ -29,14 +37,14 @@ def test_save_figure(
         data=image_random,
         output_dir=tmp_path,
         filename="result",
-        data2=data2,
+        masked_array=masked_array,
         colorbar=axes_colorbar,
         axes=axes_colorbar,
         region_properties=region_properties,
     ).save_figure()
     assert Path(tmp_path / "result.png").exists()
-    assert fig is not None
-    assert ax is not None
+    assert isinstance(fig, Figure)
+    assert isinstance(ax, Axes)
 
 
 def test_save_array_figure(tmp_path: Path):
@@ -50,13 +58,14 @@ def test_save_array_figure(tmp_path: Path):
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_no_colorbar(load_scan_data: LoadScans, tmp_path: Path) -> None:
+def test_plot_and_save_no_colorbar(load_scan_spm: LoadScans, tmp_path: Path) -> None:
     """Test plotting without colorbar"""
+    load_scan_spm.get_data()
     fig, _ = Images(
-        data=load_scan_data.image,
+        data=load_scan_spm.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
-        pixel_to_nm_scaling=load_scan_data.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=load_scan_spm.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=False,
         axes=True,
@@ -66,22 +75,24 @@ def test_plot_and_save_no_colorbar(load_scan_data: LoadScans, tmp_path: Path) ->
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_histogram_and_save(load_scan_data: LoadScans, tmp_path: Path) -> None:
+def test_plot_histogram_and_save(load_scan_spm: LoadScans, tmp_path: Path) -> None:
     """Test plotting histograms"""
+    load_scan_spm.get_data()
     fig, _ = Images(
-        load_scan_data.image, output_dir=tmp_path, filename="histogram", image_set="all"
+        load_scan_spm.image, output_dir=tmp_path, filename="histogram", image_set="all"
     ).plot_histogram_and_save()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_colorbar(load_scan_data: LoadScans, tmp_path: Path) -> None:
+def test_plot_and_save_colorbar(load_scan_spm: LoadScans, tmp_path: Path) -> None:
     """Test plotting with colorbar"""
+    load_scan_spm.get_data()
     fig, _ = Images(
-        data=load_scan_data.image,
+        data=load_scan_spm.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
-        pixel_to_nm_scaling=load_scan_data.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=load_scan_spm.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=True,
         axes=True,
@@ -91,11 +102,12 @@ def test_plot_and_save_colorbar(load_scan_data: LoadScans, tmp_path: Path) -> No
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_no_axes(load_scan_data: LoadScans, plotting_config: dict, tmp_path: Path) -> None:
+def test_plot_and_save_no_axes(load_scan_spm: LoadScans, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes"""
     plotting_config["axes"] = False
+    load_scan_spm.get_data()
     fig, _ = Images(
-        data=load_scan_data.image,
+        data=load_scan_spm.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
         title="Raw Height",
@@ -104,31 +116,33 @@ def test_plot_and_save_no_axes(load_scan_data: LoadScans, plotting_config: dict,
     return fig
 
 
-def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScans, plotting_config: dict, tmp_path: Path) -> None:
+def test_plot_and_save_no_axes_no_colorbar(load_scan_spm: LoadScans, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes and without the colourbar."""
     plotting_config["axes"] = False
     plotting_config["colorbar"] = False
+    load_scan_spm.get_data()
     Images(
-        data=load_scan_data.image,
+        data=load_scan_spm.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
         title="Raw Height",
         **plotting_config,
     ).plot_and_save()
     img = io.imread(tmp_path / "01-raw_heightmap.png")
-    assert np.sum(img) == 448788105
+    assert np.sum(img) == 461143075
     assert img.shape == (1024, 1024, 4)
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_colorbar_afmhot(load_scan_data: LoadScans, tmp_path: Path, plotting_config: dict) -> None:
+def test_plot_and_save_colorbar_afmhot(load_scan_spm: LoadScans, tmp_path: Path, plotting_config: dict) -> None:
     """Test plotting with colorbar"""
     plotting_config["cmap"] = "afmhot"
+    load_scan_spm.get_data()
     fig, _ = Images(
-        data=load_scan_data.image,
+        data=load_scan_spm.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
-        pixel_to_nm_scaling=load_scan_data.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=load_scan_spm.pixel_to_nm_scaling,
         title="Raw Height",
         colorbar=True,
         axes=True,
@@ -148,7 +162,7 @@ def test_plot_and_save_bounding_box(
     """Test plotting bounding boxes"""
     plotting_config["image_type"] = "binary"
     fig, _ = Images(
-        data=minicircle_grain_coloured.directions["upper"]["coloured_regions"],
+        data=minicircle_grain_coloured.directions["above"]["coloured_regions"],
         output_dir=tmp_path,
         filename="15-coloured_regions",
         pixel_to_nm_scaling=minicircle_grain_coloured.pixel_to_nm_scaling,
@@ -192,5 +206,32 @@ def test_plot_and_save_non_square_bounding_box(
         title="Coloured Regions",
         **plotting_config,
         region_properties=minicircle_grain_region_properties_post_removal,
+    ).plot_and_save()
+    return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
+    """Test the plotting of a mask with a different colourmap (blu)."""
+    plotting_config["mask_cmap"] = "blu"
+    fig, _ = Images(
+        data=array,
+        output_dir=tmp_path,
+        filename="colour.png",
+        masked_array=mask,
+        **plotting_config,
+    ).plot_and_save()
+    return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/", savefig_kwargs={"dpi": DPI})
+def test_high_dpi(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmp_path: Path) -> None:
+    """Test plotting with high DPI."""
+    plotting_config["dpi"] = DPI
+    fig, _ = Images(
+        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
+        output_dir=tmp_path,
+        filename="high_dpi",
+        **plotting_config,
     ).plot_and_save()
     return fig

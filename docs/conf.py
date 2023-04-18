@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Configuration file for the Sphinx documentation builder.
 #
@@ -14,17 +13,13 @@
 #
 import os
 import sys
-
-import sphinx_rtd_theme
-
-import topostats
+from importlib.metadata import version
 
 sys.path.insert(0, os.path.abspath(".."))
 
 # Mock imports (things that can't be installed at do building time)
 
 autodoc_mock_imports = ["pygtk", "gwy", "numpy", "pandas", "matplotlib", "seaborn", "scipy", "skimage", "pySPM"]
-import matplotlib
 
 # -- Project information -----------------------------------------------------
 
@@ -33,9 +28,9 @@ copyright = "2021, TopoStats authors"
 author = "TopoStats authors"
 
 # The short X.Y version
-version = ""
-# The full version, including alpha/beta/rc tags
-release = topostats.__version__
+release = version("topostats")
+# for example take major/minor
+version = ".".join(release.split(".")[:2])
 
 
 # -- General configuration ---------------------------------------------------

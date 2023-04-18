@@ -42,52 +42,155 @@ def test_is_clockwise_anti_clockwise(grainstats: GrainStats) -> None:
     assert not clockwise
 
 
-def test_calculate_edges(grainstats: GrainStats) -> None:
+@pytest.mark.parametrize(
+    "method, grain_mask, expected_coords",
+    [
+        (
+            "binary_erosion",
+            [
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 0, 0, 1, 1, 0],
+                [0, 1, 1, 0, 0, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            [
+                [1, 1],
+                [1, 2],
+                [1, 3],
+                [1, 4],
+                [1, 5],
+                [1, 6],
+                [2, 1],
+                [2, 6],
+                [3, 1],
+                [3, 6],
+                [4, 1],
+                [4, 6],
+                [5, 1],
+                [5, 6],
+                [6, 1],
+                [6, 2],
+                [6, 3],
+                [6, 4],
+                [6, 5],
+                [6, 6],
+            ],
+        ),
+        (
+            "binary_erosion",
+            [
+                [0, 0, 0],
+                [0, 1, 0],
+                [0, 0, 0],
+            ],
+            [
+                [1, 1],
+            ],
+        ),
+        (
+            "binary_erosion",
+            [
+                [0, 1, 0],
+                [1, 0, 1],
+                [0, 1, 0],
+            ],
+            [
+                [0, 1],
+                [1, 0],
+                [1, 2],
+                [2, 1],
+            ],
+        ),
+        (
+            "binary_erosion",
+            [
+                [0, 1, 0],
+                [1, 1, 1],
+                [1, 1, 1],
+            ],
+            [
+                [0, 1],
+                [1, 0],
+                [1, 2],
+                [2, 0],
+                [2, 1],
+                [2, 2],
+            ],
+        ),
+        (
+            "canny",
+            [
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 0, 0, 1, 1, 0],
+                [0, 1, 1, 0, 0, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            [
+                [1, 1],
+                [1, 2],
+                [1, 3],
+                [1, 4],
+                [1, 5],
+                [1, 6],
+                [2, 1],
+                [2, 6],
+                [3, 1],
+                [3, 6],
+                [4, 1],
+                [4, 6],
+                [5, 1],
+                [5, 6],
+                [6, 1],
+                [6, 2],
+                [6, 3],
+                [6, 4],
+                [6, 5],
+                [6, 6],
+            ],
+        ),
+        (
+            "canny",
+            [
+                [0, 0, 0],
+                [0, 1, 0],
+                [0, 0, 0],
+            ],
+            [],
+        ),
+        (
+            "canny",
+            [
+                [0, 1, 0],
+                [1, 0, 1],
+                [0, 1, 0],
+            ],
+            [],
+        ),
+        (
+            "canny",
+            [
+                [0, 1, 0],
+                [1, 1, 1],
+                [1, 1, 1],
+            ],
+            [],
+        ),
+    ],
+)
+def test_calculate_edges(grainstats: GrainStats, method, grain_mask, expected_coords) -> None:
     """Test calculation of edges."""
-    grain_mask = np.array(
-        [
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 1, 1, 1, 1, 1, 0],
-            [0, 1, 1, 1, 1, 1, 1, 0],
-            [0, 1, 1, 0, 0, 1, 1, 0],
-            [0, 1, 1, 0, 0, 1, 1, 0],
-            [0, 1, 1, 1, 1, 1, 1, 0],
-            [0, 1, 1, 1, 1, 1, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-        ]
-    )
-    edges = grainstats.calculate_edges(grain_mask)
-    target = np.array(
-        [
-            [1, 1],
-            [1, 2],
-            [1, 3],
-            [1, 4],
-            [1, 5],
-            [1, 6],
-            [2, 1],
-            [2, 6],
-            [3, 1],
-            [3, 6],
-            [4, 1],
-            [4, 6],
-            [5, 1],
-            [5, 6],
-            [6, 1],
-            [6, 2],
-            [6, 3],
-            [6, 4],
-            [6, 5],
-            [6, 6],
-        ]
-    )
+    edges = grainstats.calculate_edges(grain_mask, edge_detection_method=method)
+
     assert isinstance(edges, list)
-    assert len(edges) == 20
-    assert len(edges[0]) == 2
-    assert len(edges[-1]) == 2
-    # assert isinstance(edges, np.ndarray)
-    # assert edges.shape == (20, 2)
-    np.testing.assert_array_equal(edges, target)
+    np.testing.assert_array_equal(edges, expected_coords)
 
 
 def test_calculate_centroid(grainstats: GrainStats) -> None:
@@ -148,7 +251,7 @@ def test_random_grain_stats(caplog, tmp_path: Path) -> None:
         labelled_data=None,
         pixel_to_nanometre_scaling=0.5,
         image_name="random",
-        direction="upper",
+        direction="above",
         base_output_dir=tmp_path,
     )
     grainstats.calculate_stats()

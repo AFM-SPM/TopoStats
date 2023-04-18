@@ -1,3 +1,5 @@
+# TopoStats
+
 <div align="center">
 
 [![PyPI version](https://badge.fury.io/py/topostats.svg)](https://badge.fury.io/py/topostats)
@@ -9,13 +11,13 @@
 [![Python 3.8](https://img.shields.io/badge/python-3.8-blue.svg)](https://www.python.org/downloads/release/python-380/)
 [![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/release/python-390/)
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-360/)
+[![pre-commit.ci
+status](https://results.pre-commit.ci/badge/github/AFM-SPM/TopoStats/main.svg)](https://results.pre-commit.ci/latest/github/AFM-SPM/TopoStats/main)
 
 | [Installation](#installation) | [Tutorials and Examples](#tutorials-and-examples) | [Contributing](contributing.md) | [Licence](#licence) | [Citation](#citation) |
 </div>
 
 --------------------------------------------------------------------------------
-
-# TopoStats
 
 An AFM image analysis program to batch process data and obtain statistics from images.
 

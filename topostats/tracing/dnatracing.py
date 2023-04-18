@@ -21,7 +21,7 @@ from topostats.tracing.tracingfuncs import genTracingFuncs, getSkeleton, reorder
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-class dnaTrace(object):
+class dnaTrace:
     """
     This class gets all the useful functions from the old tracing code and staples
     them together to create an object that contains the traces for each DNA molecule
@@ -96,7 +96,6 @@ class dnaTrace(object):
         self.report_basic_stats()
 
     def get_numpy_arrays(self):
-
         """Function to get each grain as a numpy array which is stored in a
         dictionary
 
@@ -192,14 +191,11 @@ class dnaTrace(object):
             # self.skeletons[grain_num] = np.argwhere(skel == 1)
 
     def purge_obvious_crap(self):
-
         for dna_num in sorted(self.disordered_trace.keys()):
-
             if len(self.disordered_trace[dna_num]) < 10:
                 self.disordered_trace.pop(dna_num, None)
 
     def linear_or_circular(self, traces):
-
         """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace
 
         This function is sensitive to branches from the skeleton so might need to implement a function to remove them"""
@@ -208,13 +204,11 @@ class dnaTrace(object):
         self.num_linear = 0
 
         for dna_num in sorted(traces.keys()):
-
             points_with_one_neighbour = 0
             fitted_trace_list = traces[dna_num].tolist()
 
             # For loop determines how many neighbours a point has - if only one it is an end
             for x, y in fitted_trace_list:
-
                 if genTracingFuncs.countNeighbours(x, y, fitted_trace_list) == 1:
                     points_with_one_neighbour += 1
                 else:
@@ -228,13 +222,10 @@ class dnaTrace(object):
                 self.num_linear += 1
 
     def get_ordered_traces(self):
-
         for dna_num in sorted(self.disordered_trace.keys()):
-
             circle_tracing = True
 
             if self.mol_is_circular[dna_num]:
-
                 self.ordered_traces[dna_num], trace_completed = reorderTrace.circularTrace(
                     self.disordered_trace[dna_num]
                 )
@@ -264,7 +255,6 @@ class dnaTrace(object):
         """
 
         for dna_num in sorted(self.ordered_traces.keys()):
-
             individual_skeleton = self.ordered_traces[dna_num]
 
             # This indexes a 3 nm height profile perpendicular to DNA backbone
@@ -409,7 +399,6 @@ class dnaTrace(object):
 
         # FIXME : Iterate over self.fitted_traces directly use either self.fitted_traces.values() or self.fitted_trace.items()
         for dna_num in sorted(self.fitted_traces.keys()):
-
             self.splining_success = True
             nbr = len(self.fitted_traces[dna_num][:, 0])
 
@@ -429,7 +418,6 @@ class dnaTrace(object):
                     break
                 step_size = -1
             if self.mol_is_circular[dna_num]:
-
                 # if nbr/step_size > 4: #the degree of spline fit is 3 so there cannot be less than 3 points in splined trace
 
                 # ev_array = np.linspace(0, 1, nbr * step_size)
@@ -473,7 +461,9 @@ class dnaTrace(object):
                             tck, u = interp.splprep([x, y], s=0, per=2, quiet=1)
                             out = interp.splev(np.linspace(0, 1, nbr * step_size), tck)
                             splined_trace = np.column_stack((out[0], out[1]))
-                        except ValueError:  # sometimes even the ordered_traces are too bugged out so just delete these traces
+                        except (
+                            ValueError
+                        ):  # sometimes even the ordered_traces are too bugged out so just delete these traces
                             self.mol_is_circular.pop(dna_num)
                             self.disordered_trace.pop(dna_num)
                             self.grains.pop(dna_num)
@@ -546,7 +536,6 @@ class dnaTrace(object):
                 self.splined_traces[dna_num] = self.fitted_traces[dna_num]
 
     def show_traces(self):
-
         plt.pcolormesh(self.gauss_image, vmax=-3e-9, vmin=3e-9)
         plt.colorbar()
         for dna_num in sorted(self.disordered_trace.keys()):
@@ -562,7 +551,6 @@ class dnaTrace(object):
     def saveTraceFigures(
         self, filename: Union[str, Path], channel_name: str, vmaxval, vminval, output_dir: Union[str, Path] = None
     ):
-
         # if directory_name:
         #     filename_with_ext = self._checkForSaveDirectory(filename_with_ext, directory_name)
 
@@ -660,7 +648,6 @@ class dnaTrace(object):
 
     # FIXME : Replace with Path() (.mkdir(parent=True, exists=True) negate need to handle errors.)
     def _checkForSaveDirectory(self, filename, new_directory_name):
-
         split_directory_path = os.path.split(filename)
 
         try:
@@ -676,7 +663,6 @@ class dnaTrace(object):
         pass
 
     def find_curvature(self):
-
         # FIXME : Iterate directly over self.splined_traces.values() or self.splined_traces.items()
         for dna_num in sorted(self.splined_traces.keys()):  # the number of molecules identified
             # splined_traces is a dictionary, where the keys are the number of the molecule, and the values are a
@@ -725,7 +711,6 @@ class dnaTrace(object):
                 self.curvature[dna_num] = curve
 
     def saveCurvature(self):
-
         # FIXME : Iterate directly over self.splined_traces.values() or self.splined_traces.items()
         # roc_array = np.zeros(shape=(1, 3))
         for dna_num in sorted(self.curvature.keys()):
@@ -747,7 +732,6 @@ class dnaTrace(object):
         roc_stats.to_csv(savename + ".csv")
 
     def plotCurvature(self, dna_num):
-
         """Plot the curvature of the chosen molecule as a function of the contour length (in metres)"""
 
         curvature = np.array(self.curvature[dna_num])
@@ -768,18 +752,16 @@ class dnaTrace(object):
         plt.axvline(curvature[int(length / 6 * 3)][1] * self.pixel_size, color="#009E74")
         plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size, color="#0071B2")
         plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size, color="#CC79A7")
-        plt.savefig("%s_%s_curvature.png" % (savename, dna_num))
+        plt.savefig(f"{savename}_{dna_num}_curvature.png")
         plt.close()
 
     def measure_contour_length(self):
-
         """Measures the contour length for each of the splined traces taking into
         account whether the molecule is circular or linear
 
         Contour length units are nm"""
 
         for dna_num in sorted(self.splined_traces.keys()):
-
             if self.mol_is_circular[dna_num]:
                 for num, i in enumerate(self.splined_traces[dna_num]):
                     x1 = self.splined_traces[dna_num][num - 1, 0]
@@ -792,7 +774,7 @@ class dnaTrace(object):
                     except NameError:
                         hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
 
-                self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size * 1e9
+                self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size
                 del hypotenuse_array
 
             else:
@@ -808,12 +790,11 @@ class dnaTrace(object):
                         except NameError:
                             hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
                     except IndexError:  # IndexError happens at last point in array
-                        self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size * 1e9
+                        self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size
                         del hypotenuse_array
                         break
 
     def writeContourLengths(self, filename, channel_name):
-
         if not self.contour_lengths:
             self.measure_contour_length()
 
@@ -836,10 +817,10 @@ class dnaTrace(object):
                 coordinates_array = np.array([[x, y]])
 
         coordinates = pd.DataFrame(coordinates_array)
-        coordinates.to_csv("%s_%s.csv" % (savename, dna_num))
+        coordinates.to_csv(f"{savename}_{dna_num}.csv")
 
         plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], "ko")
-        plt.savefig("%s_%s_coordinates.png" % (savename, dna_num))
+        plt.savefig(f"{savename}_{dna_num}_coordinates.png")
 
     def measure_end_to_end_distance(self):
         """Calculate the Euclidean distance between the start and end of linear molecules.
@@ -855,7 +836,7 @@ class dnaTrace(object):
                 y1 = self.splined_traces[dna_num][0, 1]
                 x2 = self.splined_traces[dna_num][-1, 0]
                 y2 = self.splined_traces[dna_num][-1, 1]
-                self.end_to_end_distance[dna_num] = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_size * 1e9
+                self.end_to_end_distance[dna_num] = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_size
         # self.end_to_end_distance = {
         #     dna_num: math.hypot((trace[0, 0] - trace[-1, 0]), (trace[0, 1] - trace[-1, 1]))
         #     if self.mol_is_circular[dna_num]
@@ -864,7 +845,7 @@ class dnaTrace(object):
         # }
 
 
-class traceStats(object):
+class traceStats:
     """Combine and save trace statistics."""
 
     def __init__(self, trace_object: dnaTrace, image_path: Union[str, Path]) -> None:
@@ -894,15 +875,15 @@ class traceStats(object):
         stats = OrderedDict()
         for mol_num, _ in self.trace_object.ordered_traces.items():
             stats[mol_num] = {}
-            stats[mol_num]["Contour Lengths"] = self.trace_object.contour_lengths[mol_num]
-            stats[mol_num]["Circular"] = self.trace_object.mol_is_circular[mol_num]
-            stats[mol_num]["End to End Distance"] = self.trace_object.end_to_end_distance[mol_num]
+            stats[mol_num]["contour_lengths"] = self.trace_object.contour_lengths[mol_num]
+            stats[mol_num]["circular"] = self.trace_object.mol_is_circular[mol_num]
+            stats[mol_num]["end_to_end_distance"] = self.trace_object.end_to_end_distance[mol_num]
         self.df = pd.DataFrame.from_dict(data=stats, orient="index")
         self.df.reset_index(drop=True, inplace=True)
-        self.df.index.name = "Molecule Number"
+        self.df.index.name = "molecule_number"
         # self.df["Experiment Directory"] = str(Path().cwd())
-        self.df["Image Name"] = self.image_path.name
-        self.df["Basename"] = str(self.image_path.parent)
+        self.df["image"] = self.image_path.name
+        self.df["basename"] = str(self.image_path.parent)
 
     def save_trace_stats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True) -> None:
         """Write trace statistics to JSON and/or CSV.

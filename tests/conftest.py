@@ -13,6 +13,7 @@ from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, LoadScans
+from topostats.plotting import TopoSum
 from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import get_thresholds, get_mask, _get_mask
 
@@ -37,7 +38,7 @@ def default_config() -> Dict:
     config["filter"]["threshold_method"] = "otsu"
     config["grains"]["threshold_method"] = "otsu"
     config["grains"]["otsu_threshold_multiplier"] = 1.7
-    config["grains"]["absolute_area_threshold"]["upper"] = [400, 600]
+    config["grains"]["absolute_area_threshold"]["above"] = [400, 600]
     return config
 
 
@@ -45,8 +46,8 @@ def default_config() -> Dict:
 def process_scan_config() -> Dict:
     """Sample configuration"""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
-    config["grains"]["threshold_std_dev"]["lower"] = 1.0
-    config["grains"]["absolute_area_threshold"]["upper"] = [500, 800]
+    config["grains"]["threshold_std_dev"]["below"] = 1.0
+    config["grains"]["absolute_area_threshold"]["above"] = [500, 800]
     config["plotting"]["zrange"] = [0, 3]
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
@@ -59,6 +60,44 @@ def plot_dict() -> Dict:
     popped."""
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
     return yaml.safe_load(plotting_dictionary.read())
+
+
+@pytest.fixture
+def summary_config() -> Dict:
+    """Sample summary configuration"""
+    summary_yaml = pkg_resources.open_text(topostats, "summary_config.yaml")
+    summary_config = yaml.safe_load(summary_yaml.read())
+    # Tweak configuration (for now) to match the tests
+    summary_config.pop("violin")
+    summary_config.pop("csv_file")
+    summary_config.pop("stats_to_sum")
+    summary_config.pop("pickle_plots")
+    summary_config["figsize"] = (15, 12)
+    summary_config["kde"] = True
+    summary_config["hist"] = True
+    summary_config["stat_to_sum"] = "area"
+    plotting_yaml = pkg_resources.open_text(topostats, "var_to_label.yaml")
+    summary_config["var_to_label"] = yaml.safe_load(plotting_yaml.read())
+    return summary_config
+
+
+@pytest.fixture
+def toposum_object(summary_config: Dict) -> TopoSum:
+    """Set up a fixture for testing plotting."""
+    toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
+    return toposum
+
+
+@pytest.fixture
+def toposum_multiple_images(toposum_object: TopoSum) -> pd.DataFrame:
+    """Duplicate the melted dataframe so tests with multiple images can be made."""
+    larger_data = toposum_object.melted_data.copy()
+    larger_data["Image"] = "larger.spm"
+    larger_data["value"] = larger_data["value"] * 1.1
+    smaller_data = toposum_object.melted_data.copy()
+    smaller_data["Image"] = "smaller.spm"
+    smaller_data["value"] = smaller_data["value"] * 0.95
+    return pd.concat([toposum_object.melted_data, larger_data, smaller_data])
 
 
 @pytest.fixture
@@ -88,7 +127,7 @@ def grains_config(default_config: Dict) -> Dict:
 def grainstats_config(default_config: Dict) -> Dict:
     """Configurations for grainstats"""
     config = default_config["grainstats"]
-    config["direction"] = "upper"
+    config["direction"] = "above"
     config.pop("run")
     return config
 
@@ -105,6 +144,7 @@ def dnatracing_config(default_config: Dict) -> Dict:
 def plotting_config(default_config: Dict) -> Dict:
     """Configurations for filtering"""
     config = default_config["plotting"]
+    config["image_set"] = "all"
     config.pop("run")
     config.pop("plot_dict")
     return config
@@ -127,6 +167,18 @@ def small_array() -> np.ndarray:
 def small_mask() -> np.ndarray:
     """Small (10x10) mask array for testing."""
     return RNG.uniform(low=0, high=1, size=SMALL_ARRAY_SIZE) > 0.5
+
+
+@pytest.fixture
+def synthetic_scars_image() -> np.ndarray:
+    """Small synthetic image for testing scar removal."""
+    return np.load(RESOURCES / "test_scars_synthetic_scar_image.npy")
+
+
+@pytest.fixture
+def synthetic_marked_scars() -> np.ndarray:
+    """Small synthetic boolean array of marked scar coordinates corresponding to synthetic_scars_image."""
+    return np.load(RESOURCES / "test_scars_synthetic_mark_scars.npy")
 
 
 @pytest.fixture
@@ -191,13 +243,13 @@ def test_load_scan_minicircle() -> LoadScans:
 
 
 @pytest.fixture
-def test_filters(load_scan: LoadScans, filter_config: dict) -> Filters:
+def test_filters(load_scan_spm: LoadScans, filter_config: dict) -> Filters:
     """Filters class for testing."""
-    load_scan.get_data()
+    load_scan_spm.get_data()
     filters = Filters(
-        image=load_scan.image,
-        filename=load_scan.filename,
-        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
+        image=load_scan_spm.image,
+        filename=load_scan_spm.filename,
+        pixel_to_nm_scaling=load_scan_spm.pixel_to_nm_scaling,
         **filter_config,
     )
     return filters
@@ -243,6 +295,21 @@ def random_filters(test_filters_random_with_mask: Filters) -> Filters:
 
 
 @pytest.fixture
+def remove_scars_config(synthetic_scars_image: np.ndarray, default_config: dict) -> dict:
+    """Configuration for testing scar removal."""
+    config = default_config["filter"]["remove_scars"]
+    config["img"] = synthetic_scars_image
+    config["filename"] = " "
+    config["removal_iterations"] = 2
+    config["threshold_low"] = 1.5
+    config["threshold_high"] = 1.8
+    config["max_scar_width"] = 2
+    config["min_scar_length"] = 1
+    config.pop("run")
+    return config
+
+
+@pytest.fixture
 def random_grains(grains_config: dict, random_filters: Filters) -> Grains:
     """Grains object based on random image which has no grains."""
     grains = Grains(
@@ -256,12 +323,13 @@ def random_grains(grains_config: dict, random_filters: Filters) -> Grains:
 
 
 @pytest.fixture
-def small_array_filters(small_array: np.ndarray, load_scan: LoadScans, filter_config: dict) -> Grains:
+def small_array_filters(small_array: np.ndarray, load_scan_spm: LoadScans, filter_config: dict) -> Grains:
     """Filters object based on small_array."""
+    load_scan_spm.get_data()
     filter_obj = Filters(
-        image=load_scan.image,
-        filename=load_scan.filename,
-        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
+        image=load_scan_spm.image,
+        filename=load_scan_spm.filename,
+        pixel_to_nm_scaling=load_scan_spm.pixel_to_nm_scaling,
         **filter_config,
     )
     filter_obj.pixel_to_nm_scaling = 0.5
@@ -271,18 +339,24 @@ def small_array_filters(small_array: np.ndarray, load_scan: LoadScans, filter_co
 
 # IO fixtures
 @pytest.fixture
-def load_scan(loading_config: dict) -> LoadScans:
+def load_scan_dummy() -> LoadScans:
+    """Instantiate a dummy LoadScans object for use in testing `.gwy` IO methods."""
+    return LoadScans(img_paths="dummy", channel="dummy")
+
+
+@pytest.fixture
+def load_scan_spm(loading_config: dict) -> LoadScans:
     """Instantiate a LoadScans object from a .spm file."""
     scan_loader = LoadScans([RESOURCES / "minicircle.spm"], **loading_config)
     return scan_loader
 
 
-@pytest.fixture
-def load_scan_data() -> LoadScans:
-    """Instance of a LoadScans object after applying the get_data func."""
-    scan_data = LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
-    scan_data.get_data()
-    return scan_data
+# @pytest.fixture
+# def load_scan_spm() -> LoadScans:
+#     """Instance of a LoadScans object after applying the get_data func."""
+#     scan_data = LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
+#     scan_data.get_data()
+#     return scan_data
 
 
 @pytest.fixture
@@ -306,15 +380,22 @@ def load_scan_asd() -> LoadScans:
     return scan_loader
 
 
+@pytest.fixture
+def load_scan_gwy() -> LoadScans:
+    """Instantiate a LoadScans object from a .gwy file."""
+    scan_loader = LoadScans([RESOURCES / "file.gwy"], channel="dummy_channel")
+    return scan_loader
+
+
 # Minicircle fixtures
 @pytest.fixture
-def minicircle(load_scan: LoadScans, filter_config: dict) -> Filters:
+def minicircle(load_scan_spm: LoadScans, filter_config: dict) -> Filters:
     """Instantiate a Filters object, creates the output directory and loads the image."""
-    load_scan.get_data()
+    load_scan_spm.get_data()
     filters = Filters(
-        image=load_scan.image,
-        filename=load_scan.filename,
-        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
+        image=load_scan_spm.image,
+        filename=load_scan_spm.filename,
+        pixel_to_nm_scaling=load_scan_spm.pixel_to_nm_scaling,
         **filter_config,
     )
     return filters
@@ -363,7 +444,7 @@ def minicircle_threshold_stddev(minicircle_initial_tilt_removal: Filters) -> Fil
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        threshold_std_dev={"lower": 10.0, "upper": 1.0},
+        threshold_std_dev={"below": 10.0, "above": 1.0},
     )
     return minicircle_initial_tilt_removal
 
@@ -375,7 +456,7 @@ def minicircle_threshold_abs(minicircle_initial_tilt_removal: Filters) -> Filter
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="absolute",
         otsu_threshold_multiplier=None,
-        absolute={"lower": -1.5, "upper": 1.5},
+        absolute={"below": -1.5, "above": 1.5},
     )
     return minicircle_initial_tilt_removal
 
@@ -461,7 +542,7 @@ def minicircle_grain_threshold_stddev(minicircle_grains: np.array, grains_config
         image=minicircle_grains.image,
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        threshold_std_dev={"lower": 10.0, "upper": 1.0},
+        threshold_std_dev={"below": 10.0, "above": 1.0},
         absolute=None,
     )
     return minicircle_grains
@@ -474,7 +555,7 @@ def minicircle_grain_threshold_abs(minicircle_grains: np.array) -> Grains:
         image=minicircle_grains.image,
         threshold_method="absolute",
         otsu_threshold_multiplier=None,
-        absolute={"lower": -1.0, "upper": 1.0},
+        absolute={"below": -1.0, "above": 1.0},
     )
     return minicircle_grains
 
@@ -482,11 +563,11 @@ def minicircle_grain_threshold_abs(minicircle_grains: np.array) -> Grains:
 @pytest.fixture
 def minicircle_grain_mask(minicircle_grain_threshold_otsu: Grains) -> Grains:
     """Boolean mask."""
-    minicircle_grain_threshold_otsu.directions["upper"] = {}
-    minicircle_grain_threshold_otsu.directions["upper"]["mask_grains"] = _get_mask(
+    minicircle_grain_threshold_otsu.directions["above"] = {}
+    minicircle_grain_threshold_otsu.directions["above"]["mask_grains"] = _get_mask(
         image=minicircle_grain_threshold_otsu.image,
-        threshold=minicircle_grain_threshold_otsu.thresholds["upper"],
-        threshold_direction="upper",
+        thresh=minicircle_grain_threshold_otsu.thresholds["above"],
+        threshold_direction="above",
         img_name=minicircle_grain_threshold_otsu.filename,
     )
     return minicircle_grain_threshold_otsu
@@ -495,8 +576,8 @@ def minicircle_grain_mask(minicircle_grain_threshold_otsu: Grains) -> Grains:
 @pytest.fixture
 def minicircle_grain_clear_border(minicircle_grain_mask: np.array) -> Grains:
     """Cleared borders."""
-    minicircle_grain_mask.directions["upper"]["tidied_border"] = minicircle_grain_mask.tidy_border(
-        minicircle_grain_mask.directions["upper"]["mask_grains"]
+    minicircle_grain_mask.directions["above"]["tidied_border"] = minicircle_grain_mask.tidy_border(
+        minicircle_grain_mask.directions["above"]["mask_grains"]
     )
     return minicircle_grain_mask
 
@@ -504,8 +585,8 @@ def minicircle_grain_clear_border(minicircle_grain_mask: np.array) -> Grains:
 @pytest.fixture
 def minicircle_grain_remove_noise(minicircle_grain_clear_border: np.array) -> Grains:
     """Fixture to test removing noise."""
-    minicircle_grain_clear_border.directions["upper"]["removed_noise"] = minicircle_grain_clear_border.remove_noise(
-        minicircle_grain_clear_border.directions["upper"]["tidied_border"]
+    minicircle_grain_clear_border.directions["above"]["removed_noise"] = minicircle_grain_clear_border.remove_noise(
+        minicircle_grain_clear_border.directions["above"]["tidied_border"]
     )
     return minicircle_grain_clear_border
 
@@ -513,9 +594,9 @@ def minicircle_grain_remove_noise(minicircle_grain_clear_border: np.array) -> Gr
 @pytest.fixture
 def minicircle_grain_labelled_all(minicircle_grain_remove_noise: np.array) -> Grains:
     """Labelled regions."""
-    minicircle_grain_remove_noise.directions["upper"][
+    minicircle_grain_remove_noise.directions["above"][
         "labelled_regions_01"
-    ] = minicircle_grain_remove_noise.label_regions(minicircle_grain_remove_noise.directions["upper"]["removed_noise"])
+    ] = minicircle_grain_remove_noise.label_regions(minicircle_grain_remove_noise.directions["above"]["removed_noise"])
     return minicircle_grain_remove_noise
 
 
@@ -523,7 +604,7 @@ def minicircle_grain_labelled_all(minicircle_grain_remove_noise: np.array) -> Gr
 def minicircle_minimum_grain_size(minicircle_grain_labelled_all: np.array) -> float:
     """Minimum grain size."""
     minicircle_grain_labelled_all.calc_minimum_grain_size(
-        minicircle_grain_labelled_all.directions["upper"]["labelled_regions_01"]
+        minicircle_grain_labelled_all.directions["above"]["labelled_regions_01"]
     )
     return minicircle_grain_labelled_all
 
@@ -531,10 +612,10 @@ def minicircle_minimum_grain_size(minicircle_grain_labelled_all: np.array) -> fl
 @pytest.fixture
 def minicircle_small_objects_removed(minicircle_minimum_grain_size: np.array) -> Grains:
     """Small objects removed."""
-    minicircle_minimum_grain_size.directions["upper"][
+    minicircle_minimum_grain_size.directions["above"][
         "removed_small_objects"
     ] = minicircle_minimum_grain_size.remove_small_objects(
-        minicircle_minimum_grain_size.directions["upper"]["labelled_regions_01"]
+        minicircle_minimum_grain_size.directions["above"]["labelled_regions_01"]
     )
     return minicircle_minimum_grain_size
 
@@ -543,10 +624,10 @@ def minicircle_small_objects_removed(minicircle_minimum_grain_size: np.array) ->
 def minicircle_area_thresholding(minicircle_grain_labelled_all: np.array) -> Grains:
     """Small objects removed."""
     absolute_area_thresholds = [400, 600]
-    minicircle_grain_labelled_all.directions["upper"][
+    minicircle_grain_labelled_all.directions["above"][
         "removed_small_objects"
     ] = minicircle_grain_labelled_all.area_thresholding(
-        image=minicircle_grain_labelled_all.directions["upper"]["labelled_regions_01"],
+        image=minicircle_grain_labelled_all.directions["above"]["labelled_regions_01"],
         area_thresholds=absolute_area_thresholds,
     )
     return minicircle_grain_labelled_all
@@ -555,10 +636,10 @@ def minicircle_area_thresholding(minicircle_grain_labelled_all: np.array) -> Gra
 @pytest.fixture
 def minicircle_grain_labelled_post_removal(minicircle_small_objects_removed: np.array) -> Grains:
     """Labelled regions."""
-    minicircle_small_objects_removed.directions["upper"][
+    minicircle_small_objects_removed.directions["above"][
         "labelled_regions_02"
     ] = minicircle_small_objects_removed.label_regions(
-        minicircle_small_objects_removed.directions["upper"]["removed_small_objects"]
+        minicircle_small_objects_removed.directions["above"]["removed_small_objects"]
     )
     return minicircle_small_objects_removed
 
@@ -567,17 +648,17 @@ def minicircle_grain_labelled_post_removal(minicircle_small_objects_removed: np.
 def minicircle_grain_region_properties_post_removal(minicircle_grain_labelled_post_removal: np.array) -> np.array:
     """Region properties."""
     return minicircle_grain_labelled_post_removal.get_region_properties(
-        minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"]
+        minicircle_grain_labelled_post_removal.directions["above"]["labelled_regions_02"]
     )
 
 
 @pytest.fixture
 def minicircle_grain_coloured(minicircle_grain_labelled_post_removal: np.array) -> Grains:
     """Coloured regions."""
-    minicircle_grain_labelled_post_removal.directions["upper"][
+    minicircle_grain_labelled_post_removal.directions["above"][
         "coloured_regions"
     ] = minicircle_grain_labelled_post_removal.colour_regions(
-        minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"]
+        minicircle_grain_labelled_post_removal.directions["above"]["labelled_regions_02"]
     )
     return minicircle_grain_labelled_post_removal
 
@@ -601,15 +682,16 @@ def grainstats(image_random: np.array, grainstats_config: dict, tmp_path) -> Gra
 def minicircle_grainstats(
     minicircle_grain_gaussian_filter: Filters,
     minicircle_grain_labelled_post_removal: Grains,
-    load_scan: LoadScans,
+    load_scan_spm: LoadScans,
     grainstats_config: dict,
     tmp_path: Path,
 ) -> GrainStats:
     """GrainStats object."""
+    load_scan_spm.get_data()
     return GrainStats(
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
-        labelled_data=minicircle_grain_labelled_post_removal.directions["upper"]["labelled_regions_02"],
-        pixel_to_nanometre_scaling=load_scan.pixel_to_nm_scaling,
+        labelled_data=minicircle_grain_labelled_post_removal.directions["above"]["labelled_regions_02"],
+        pixel_to_nanometre_scaling=load_scan_spm.pixel_to_nm_scaling,
         base_output_dir=tmp_path,
         plot_opts={
             "grain_image": {"core_set": True},
@@ -650,7 +732,7 @@ def minicircle_dnatracing(
     """dnaTrace object instantiated with minicircle data."""
     dna_traces = dnaTrace(
         full_image_data=minicircle_grain_coloured.image.T,
-        grains=minicircle_grain_coloured.directions["upper"]["labelled_regions_02"],
+        grains=minicircle_grain_coloured.directions["above"]["labelled_regions_02"],
         filename=minicircle_grain_gaussian_filter.filename,
         pixel_size=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
         **dnatracing_config,
