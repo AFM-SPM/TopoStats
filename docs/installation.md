@@ -41,10 +41,13 @@ There are two options for installing TopoStats depending on your usage
 
 ### PyPI Installation
 
-After activating your `topostats` Conda environment you can install TopoStats from PyPI using the following command.
+After activating your `topostats` Conda environment you can install TopoStats from PyPI using the following command. It
+forces the [`libasd`](https://github.com/ToruNiina/libasd) library to be built from source rather than using a
+pre-packaged "wheel", this is required for newer Apple Macs as no binary is available and because some versions of the
+"wheel" packages are broken for some operating systems (this may change in the future).
 
 ``` bash
-pip install topostats
+pip install --no-binary libasd topostats
 ```
 
 This will install TopoStats under your virtual environment and the command `run_topostats` will be available at the
@@ -57,7 +60,7 @@ pip install --upgrade topostats
 You can always install a specific version from PyPI
 
 ``` bash
-pip install topostats==2.0.0
+pip install --no-binary libasd topostats==2.0.0
 ```
 
 For more information on using `pip` to install and manage packages please refer to the [pip
