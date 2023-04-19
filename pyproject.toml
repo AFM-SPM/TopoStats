@@ -64,23 +64,24 @@ tests = [
 ]
 docs = [
   "Sphinx",
-  "sphinx_rtd_theme",
-  "numpydoc",
   "myst_parser",
+  "numpydoc",
   "pydata_sphinx_theme",
-  "sphinx_markdown_tables",
-  "sphinxcontrib-mermaid",
-  "sphinxcontrib-napoleon",
+  "sphinx-autoapi",
   "sphinx-autodoc-typehints",
   "sphinx-multiversion",
+  "sphinx_markdown_tables",
+  "sphinx_rtd_theme",
+  "sphinxcontrib-mermaid",
+  "sphinxcontrib-napoleon",
 ]
 dev = [
+  "Flake8-pyproject",
   "black",
-  "pre-commit",
-  "pylint",
   "flake8",
   "flake8-print",
-  "Flake8-pyproject",
+  "pre-commit",
+  "pylint",
   "pyupgrade",
 ]
 pypi = [
