@@ -43,6 +43,7 @@ version = ".".join(release.split(".")[:2])
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "autoapi.extension",
     "sphinx.ext.autodoc",
     "sphinx_autodoc_typehints",
     "sphinx.ext.viewcode",
@@ -199,7 +200,10 @@ epub_exclude_files = ["search.html"]
 # -- Extension configuration -------------------------------------------------
 numpydoc_class_members_toctree = False
 
-# sphinx-multiversion (https://holzhaus.github.io/sphinx-multiversion/master/configuration.html)
+# sphinx-autoapi https://sphinx-autoapi.readthedocs.io/en/latest/
+autoapi_dirs = ["../topostats"]
+
+# sphinx-multiversion https://holzhaus.github.io/sphinx-multiversion/master/configuration.html
 smv_tag_whitelist = r"^v\d+.*$"  # Tags begining with v#
 smv_branch_whitelist = r"^main$"  # main branch
 # If testing changes locally comment out the above and the smv_branch_whitelist below instead. Replace the branch name
