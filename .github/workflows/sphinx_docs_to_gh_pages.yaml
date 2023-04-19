@@ -3,8 +3,8 @@ name: Sphinx docs to gh-pages
 
 on:
   push:
-    tags:
-      - v*
+    # tags:
+    #   - v*
   workflow_dispatch:        # Un comment line if you also want to trigger action manually
 
 jobs:
