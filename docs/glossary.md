@@ -17,7 +17,7 @@ where columns of data are separated by commas.
 
 ### DNA
 
-[Deoxribonucleic acid (DNA)](https://en.wikipedia.org/wiki/DNA) is a double-helix polymer of four molecules Cytosine,
+[Deoxyribonucleic acid (DNA)](https://en.wikipedia.org/wiki/DNA) is a double-helix polymer of four molecules Cytosine,
 Guanine, Adenine and Thymine. It is the genetic material of the vast majority of organisms (some viruses use
 [Ribonucleic Acid (RNA)](https://en.wikipedia.org/wiki/RNA) as their genetic material).
 
