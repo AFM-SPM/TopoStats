@@ -6,7 +6,7 @@ from skimage.filters import gaussian
 
 def draw_line(img: np.ndarray, p1: np.ndarray, p2: np.ndarray):
     """Draw a line on a numpy 2d array, from p1 to p2.
-    
+
     Parameters
     ----------
     img: np.ndarray
@@ -43,7 +43,7 @@ def create_near_outline_mask(image_shape: tuple, nodes: np.ndarray, gaussian_sig
     """Create masks for points on the outline, and for points near the outline. Returns two numpy boolean 2d
     arrays, one for pixels that are on the outline for the grain and one for pixel near the outline for the
     grain.
-    
+
     Parameters
     ----------
     image_shape: tuple
@@ -55,7 +55,7 @@ def create_near_outline_mask(image_shape: tuple, nodes: np.ndarray, gaussian_sig
         In order to provide a fast way of getting points near the outline, instead of calculating the
         distance for each pixel, we just blur the outline. It is difficult to get a precise set distance,
         but reduces computation significantly.
-    
+
     Returns
     -------
     line_mask: np.ndarray
@@ -63,7 +63,7 @@ def create_near_outline_mask(image_shape: tuple, nodes: np.ndarray, gaussian_sig
     blurred_line_mask: np.ndarray
         Binary mask of pixels that are near to the outline based on a gaussian blur of the outline.
     """
-    
+
     line_mask = np.zeros(image_shape)
     for index in range(len(nodes) - 1):
         p1 = nodes[index, :]
@@ -206,7 +206,7 @@ def polygon_perimeter(points: np.ndarray):
 
 def network_area(points: np.ndarray):
     """Use the shoelace algorithm to calculate the area of an arbitrary polygon defined by a set of points.
-    
+
     Parameters
     ----------
     points: np.ndarray
@@ -226,7 +226,7 @@ def network_area(points: np.ndarray):
 
 def node_stats(labelled_image: np.ndarray, image: np.ndarray):
     """Calculate various grain statistics from a labelled image.
-    
+
     Parameters
     ----------
     labelled_image: np.ndarray
@@ -418,10 +418,10 @@ def network_feret_diameters(edges: np.ndarray) -> float:
     return min_feret, max_feret
 
 
-def rim_curvature(xs: np.ndarray, ys: np.ndarray):
+def _rim_curvature(xs: np.ndarray, ys: np.ndarray):
     """Calculate the curvature of a set of points. Uses the standard curvature definition of the derivative of the
     tangent vector.
-    
+
     Parameters:
     ----------
     xs: np.ndarray
@@ -445,3 +445,100 @@ def rim_curvature(xs: np.ndarray, ys: np.ndarray):
     curv = np.abs(dx * d2y - d2x * dy) / (dx * dx + dy * dy) ** 1.5
     curv = curv[extension_length : (len(curv) - extension_length)]
     return curv
+
+
+def _interpolate_between_two_points(p1: np.ndarray, p2: np.ndarray, interpolation_number: int):
+    """Interpolate between two points, adding in interpolation_number number of points between them.
+
+    Parameters
+    ----------
+    p1: np.ndarray
+        Numpy array in the form of [x, y], defining the first point to interpolate between.
+    p2: np.ndarray
+        Numpy array in the form of [x, y], defining the second point to interpolate between.
+    interpolation_number: int
+        Number of points to add between p1 and p2.
+
+    Returns
+    -------
+    np.ndarray
+        2D numpy array of interpolated points starting with p1, and ending in p2.
+    """
+
+    # get x and y values of each point
+    x1, y1 = p1
+    x2, y2 = p2
+
+    if x1 == x2:
+        # if the two points have the same x-coordinate,
+        # generate n equally spaced y-coordinates instead
+        y = np.linspace(y1, y2, interpolation_number + 1)
+        x = [x1] * 5
+    else:
+        # generate n equally spaced points between p1 and p2
+        x = np.linspace(x1, x2, interpolation_number + 1)
+        y = np.linspace(y1, y2, interpolation_number + 1)
+
+    # combine x and y values to get the interpolated points
+    points = np.column_stack((x[1:-1], y[1:-1]))
+
+    return points
+
+
+def _interpolate_set_of_points(points: np.ndarray, interpolation_number: int):
+    """
+    Takes a set of points and interoplates between them with the number of interpolated values being set by interpolation_number.
+
+    Parameters
+    ----------
+    points: np.ndarray
+        2D numpy array of points to interpolate between.
+    interpolation_number: int
+        Number of interpolated points to add between points in the input array.
+
+    Returns
+    -------
+    np.ndarray
+        2D numpy array of interpolated points.
+    """
+
+    interpolated_points = np.zeros(((points.shape[0] - 1) * interpolation_number + 1, 2))
+    for index in range(points.shape[0]):
+        interpolated_points[index * interpolation_number, :] = points[index]
+    # print(interpolated)
+    for index in range(points.shape[0] - 1):
+        interp = _interpolate_between_two_points(
+            points[index], points[index + 1], interpolation_number=interpolation_number
+        )
+
+        interpolated_points[index * interpolation_number, :] = points[index]
+        for i in range(interp.shape[0]):
+            interpolated_points[index * interpolation_number + i + 1, :] = interp[i]
+
+    return interpolated_points
+
+
+def interpolate_and_get_curvature(points: np.ndarray, interpolation_number: int):
+    """Calculates the curvature by firstly interpolating between each point, to increase the accuracy of the curvature
+    calculation.
+
+    Parameters
+    ----------
+    points: np.ndarray
+        2D numpy array of points.
+    interpolation_number: int
+        Number of points to interpolate between each data point
+    Returns
+    -------
+    interpolated_points_curvature: np.ndarray
+        1D numpy array of curvature values for the interpolated points.
+    node_curvatures: np.ndarray
+        1D numpy array of curvature values for just the input points, meaning that this allows direct attribution of
+        curvature values to nodes. The nth curvuature value corresponds to the nth node.
+    """
+
+    interpolated_points = _interpolate_set_of_points(points, interpolation_number=interpolation_number)
+    interpolated_points_curvature = _rim_curvature(interpolated_points[:, 1], interpolated_points[:, 0])
+    node_curvatures = interpolated_points_curvature[::interpolation_number]
+
+    return interpolated_points_curvature, node_curvatures
