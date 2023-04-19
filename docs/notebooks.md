@@ -11,6 +11,7 @@ be found in the `notebook/` directory after cloning the GitHub repository.
 | `00-Walkthrough-minicircle.ipynb`       | Step-by-step walkthrough of processing `minicircle.spm` from the `tests/resources/` directory.                          |
 | `01-Walthrhgouh-interactive.ipynb`      | **Work in Progress** As above but uploading a single scan. Will be deployed in Google Colab/Binder for interactive use. |
 | `02-Summary-statistics-and-plots.ipynb` | Plotting statistics interactively.                                                                                      |
+| `03-Plotting-scans.ipynb`               | Plotting NumPy arrays of scans from different stages of processing.                                                     |
 
 
 ## Installation

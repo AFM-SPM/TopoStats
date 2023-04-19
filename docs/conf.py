@@ -24,7 +24,7 @@ autodoc_mock_imports = ["pygtk", "gwy", "numpy", "pandas", "matplotlib", "seabor
 # -- Project information -----------------------------------------------------
 
 project = "TopoStats"
-copyright = "2021, TopoStats authors"
+copyright = "2023, TopoStats authors"
 author = "TopoStats authors"
 
 # The short X.Y version
@@ -53,11 +53,19 @@ extensions = [
     "myst_parser",
     "numpydoc",
     "sphinx_markdown_tables",
+    "sphinx_multiversion",
     "sphinxcontrib.mermaid",
 ]
 
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
+
+html_sidebars = {
+    "**": [
+        "versioning.html",
+    ],
+}
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -190,3 +198,17 @@ epub_exclude_files = ["search.html"]
 
 # -- Extension configuration -------------------------------------------------
 numpydoc_class_members_toctree = False
+
+# sphinx-multiversion (https://holzhaus.github.io/sphinx-multiversion/master/configuration.html)
+smv_tag_whitelist = r"^v\d+.*$"  # Tags begining with v#
+smv_branch_whitelist = r"^main$"  # main branch
+# If testing changes locally comment out the above and the smv_branch_whitelist below instead. Replace the branch name
+# you are working on ("ns-rse/466-doc-versions" in the example below) with the branch you are working on and run...
+#
+# cd docs
+# sphinx-multiversion . _build/html
+#
+# smv_branch_whitelist = r"^(main|ns-rse/466-doc-versions)$"  # main branch
+smv_released_pattern = r"^tags/.*$"  # Tags only
+# smv_released_pattern = r"^(/.*)|(main).*$"  # Tags and HEAD of main
+smv_outputdir_format = "{ref.name}"

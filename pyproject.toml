@@ -72,6 +72,7 @@ docs = [
   "sphinxcontrib-mermaid",
   "sphinxcontrib-napoleon",
   "sphinx-autodoc-typehints",
+  "sphinx-multiversion",
 ]
 dev = [
   "black",
