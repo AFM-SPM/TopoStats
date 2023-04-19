@@ -34,7 +34,8 @@ def read_yaml(filename: Union[str, Path]) -> Dict:
     Returns
     -------
     Dict
-        Dictionary of the file."""
+        Dictionary of the file.
+    """
 
     with Path(filename).open(encoding="utf-8") as f:
         try:
@@ -93,10 +94,6 @@ def save_array(array: np.ndarray, outpath: Path, filename: str, array_type: str)
     array_type : str
         Short string describing the array type e.g. z_threshold. Ideally should not have periods or spaces in (use
     underscores '_' instead).
-
-    Examples
-    --------
-    FIXME: Add docs.
     """
     np.save(outpath / f"{filename}_{array_type}.npy", array)
     LOGGER.info(f"[{filename}] Numpy array saved to : {outpath}/{filename}_{array_type}.npy")
@@ -116,10 +113,6 @@ def load_array(array_path: Union[str, Path]) -> np.ndarray:
     -------
     np.ndarray
         Returns the loaded Numpy array.
-
-    Examples
-    --------
-    FIXME: Add docs.
     """
     try:
         return np.load(Path(array_path))
