@@ -29,10 +29,14 @@ listed below to find out more.
    topostats.grains
    topostats.grainstats
    topostats.io
+   topostats.plotting
    topostats.plottingfuncs
    topostats.run_topostats
+   topostats.theme
+   topostats.thresholds
    topostats.tracing
    topostats.utils
+   topostats.validation
 
 Indices and tables
 ==================
