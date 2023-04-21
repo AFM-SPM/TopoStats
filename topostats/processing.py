@@ -350,6 +350,11 @@ def completion_message(config: Dict, img_files: List, summary_config: Dict, imag
     -------
     None
     """
+
+    if summary_config is not None:
+        distribution_plots_message = str(summary_config["output_dir"])
+    else:
+        distribution_plots_message = "Disabled. Enable in config 'summary_stats/run' if needed."
     LOGGER.info(
         f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
         f"  TopoStats Version           : {__version__}\n"
@@ -359,7 +364,7 @@ def completion_message(config: Dict, img_files: List, summary_config: Dict, imag
         f"  Successfully Processed^1    : {images_processed} ({(images_processed * 100) / len(img_files)}%)\n"
         f"  Configuration               : {config['output_dir']}/config.yaml\n"
         f"  All statistics              : {str(config['output_dir'])}/all_statistics.csv\n"
-        f"  Distribution Plots          : {str(summary_config['output_dir'])}\n\n"
+        f"  Distribution Plots          : {distribution_plots_message}\n\n"
         f"  Email                       : topostats@sheffield.ac.uk\n"
         f"  Documentation               : https://afm-spm.github.io/topostats/\n"
         f"  Source Code                 : https://github.com/AFM-SPM/TopoStats/\n"
