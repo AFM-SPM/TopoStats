@@ -245,7 +245,6 @@ def main(args=None):
         LOGGER.error(error)
 
     # Summary Statistics and Plots
-    summary_config = None
     if config["summary_stats"]["run"]:
         # Load summary plots/statistics configuration and validate, location depends on command line args or value in
         # any config file given, if neither are provided the default topostats/summary_config.yaml is loaded
@@ -282,6 +281,8 @@ def main(args=None):
                 "There are no results to plot, either you have disabled grains/grainstats/dnatracing or there "
                 "have been errors, please check the log for further information."
             )
+    else:
+        summary_config = None
 
     # Write statistics to CSV
     if isinstance(results, pd.DataFrame):
