@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import pytest
 
-from topostats.tracing.dnatracing import dnaTrace, traceStats
+from topostats.tracing.dnatracing import dnaTrace, traceStats, nodeStats
 
 # pylint: disable=protected-access
 
@@ -101,3 +101,28 @@ def test_dnatracing_get_disordered_trace(dnatracing_disordered_traces: dnaTrace)
 def test_tracestats(regtest, minicircle_tracestats: traceStats) -> None:
     """Regression tests for DNA trace statistics."""
     print(minicircle_tracestats.to_string(), file=regtest)
+
+
+@pytest.mark.parametrize(
+    "start, mid, end, expected",
+    [
+        (np.array([2,0]), np.array([2,2]), np.array([2,4]), np.array([[2,4],[2,3],[2,2],[2,1],[2,0]])[::-1]),
+        (np.array([4,0]), np.array([2,2]), np.array([0,4]), np.array([[0,4],[1,3],[2,2],[3,1],[4,0]])[::-1]),
+        (np.array([4,2]), np.array([2,2]), np.array([0,2]), np.array([[0,2],[1,2],[2,2],[3,2],[4,2]])[::-1]),
+        (np.array([4,4]), np.array([2,2]), np.array([0,0]), np.array([[0,0],[1,1],[2,2],[3,3],[4,4]])[::-1]),
+        (np.array([2,4]), np.array([2,2]), np.array([2,0]), np.array([[2,4],[2,3],[2,2],[2,1],[2,0]])),
+        (np.array([0,4]), np.array([2,2]), np.array([4,0]), np.array([[0,4],[1,3],[2,2],[3,1],[4,0]])),
+        (np.array([0,2]), np.array([2,2]), np.array([4,2]), np.array([[0,2],[1,2],[2,2],[3,2],[4,2]])),
+        (np.array([0,0]), np.array([2,2]), np.array([4,4]), np.array([[0,0],[1,1],[2,2],[3,3],[4,4]])),
+    ],
+)
+def test_binary_line(start: np.ndarray, mid: np.ndarray, end: np.ndarray, expected: np.ndarray) -> None:
+    """Tests the binary line formation across 8 star directions through a midpoint."""
+    a = nodeStats.binary_line(start, mid)
+    assert a.shape[1] == 2 # ensure 2D coords
+    b = nodeStats.binary_line(mid, end)
+    comb = np.append(a,b, axis=0)
+    unique_combs_idxs = np.unique(comb, axis=0, return_index=True)[1]
+    unique_combs = np.array([comb[i] for i in sorted(unique_combs_idxs)])
+    assert((unique_combs==expected).all(axis=0).sum() == 2)
+
