@@ -96,7 +96,7 @@ class dnaTrace(object):
         for grain_num, grain in self.grains.items():
             skeleton = getSkeleton(self.gauss_image, grain).get_skeleton(self.skeletonisation_method)
             self.orig_skeleton_dict[grain_num] = skeleton
-            LOGGER.info(f"[{self.filename}] {label(skeleton).max()-1} breakages in skeleton {grain_num}")
+            LOGGER.info(f"[{self.filename}] {(convolve_skelly(skeleton)==2).sum()} endpoints in skeleton {grain_num}")
             pruned_skeleton = pruneSkeleton(self.gauss_image, skeleton).prune_skeleton(self.pruning_method)
             self.skeleton_dict[grain_num] = pruned_skeleton
             self.purge_obvious_crap(self.skeleton_dict)
@@ -1531,15 +1531,12 @@ class nodeStats():
         slope = (end-start)[1] / (end-start)[0]
         
         if abs(slope) > 1: # swap x and y if slope will cause skips
-            start = start[::-1]
-            end = end[::-1]
+            start, end = start[::-1], end[::-1]
             slope = 1/slope
             m_swap = True
         
         if start[0] > end[0]: # swap x coords if coords wrong way arround
-            start_temp = start
-            start = end
-            end = start_temp
+            start, end = end, start
             x_swap = True
         
         # code assumes slope < 1 hence swap
@@ -1781,7 +1778,6 @@ class nodeStats():
         continious trace of the molecule.
         """
         LOGGER.info("Compiling the trace.")
-        skel = self.skeleton.copy()
 
         # iterate throught the dict to get branch coords, heights and fwhms 
         node_centre_coords = []
@@ -1799,65 +1795,28 @@ class nodeStats():
                 crossing_distances.append(branch_stats['distances'])
                 fwhms.append(branch_stats["fwhm2"][0])
 
-        # get image minus the corssing areas
-        minus = skel.copy()
-        for i, area in enumerate(node_area_box):
-            x, y = node_centre_coords[i]
-            area = np.array(area)//2
-            minus[x-area[0]:x+area[0], y-area[1]:y+area[1]] = 0
-        minus = label(minus)
+        # get image minus the crossing areas
+        minus = self.get_minus_img(node_area_box, node_centre_coords)
+        # get crossing image
+        crossings = self.get_crossing_img(crossing_coords, minus.max()+1) 
+        # combine branches and segments
+        both_img = self.get_both_img(minus, crossings)
+
         # order minus segments
         ordered = []
         for i in range(1, minus.max()+1):
             arr = np.where(minus, minus==i, 0)
             print(self.order_branch(arr, [0,0]).shape)
             ordered.append(self.order_branch(arr, [0,0])) # orientated later
-
-        # get crossing image
-        crossings = np.zeros_like(skel)
-        for i, coords in enumerate(crossing_coords):
-            coords = np.asarray(coords)
-            crossings[coords[:,0], coords[:,1]] = i+minus.max()+1
-            
         # combine ordered indexes
         for i in crossing_coords:
             ordered.append(i)
-            
-        # combine branches and segments
-        both_coord = minus.copy()
-        for i, area in enumerate(node_area_box):
-            x,y = node_centre_coords[i]
-            area = np.array(area)//2
-            both_coord[x-area[0]:x+area[0], y-area[1]:y+area[1]] = 0
-        both_coord[crossings != 0] = crossings[crossings != 0]
 
-        #np.savetxt("knot2/both_coords.txt", both_coord)
+        np.savetxt("knot2/both_coords.txt", both_img)
         for i, val in enumerate(ordered):
             np.savetxt(f"knot2/ordered_{i}.txt", val)
 
-        """
-        # cycle through the ordered image and array to find next in path
-        #   possible issue with close nodes whose branch coords may extend through the other node
-        #   causing a missmatch in the next to be selected for ordering
-        remaining = both_coord.copy()
-        coord_trace = []
-        # get first segment
-        coord_trace.append(ordered[0])
-        remaining[remaining==1] = 0
-        # check what's around the last coord
-        x, y = coord_trace[-1]
-        print(np.unique(remaining[x-1:x+2, y-1:y+2])) # should only be one value
-        idx = remaining[x-1:x+2, y-1:y+2].max()
-        if idx != 0: # idx==0 for non-crossing structures i.e. circles
-            while idx != 0: # either cycled through all or hits terminus
-                x, y = coord_trace[-1]
-                print(np.unique(remaining[x-1:x+2, y-1:y+2]))
-                idx = remaining[x-1:x+2, y-1:y+2].max() # should only be one value
-                if abs(coord_trace[-1] - ordered[idx][0]) < abs(coord_trace[-1] - ordered[idx][-1]):
-                    coord_trace.append(ordered[idx])
-                else:
-                    coord_trace.append(ordered[idx][::-1])
-                remaining[remaining==idx+1] = 0
+        trace_coords = self.trace_mol(ordered, both_img)
 
         # I could use the traced coords, remove the node centre coords, and re-label segments
         #   following 1, 2, 3... around the mol which should look like the Planar Diagram formation
@@ -1865,5 +1824,64 @@ class nodeStats():
         #   determine which in in-undergoing and assign labels counter-clockwise
         
 
-        return coord_trace, 
-        """
+        #return coord_trace
+    
+    def get_minus_img(self, node_area_box, node_centre_coords):
+        minus = self.skeleton.copy()
+        for i, area in enumerate(node_area_box):
+            x, y = node_centre_coords[i]
+            area = np.array(area)//2
+            minus[x-area[0]:x+area[0], y-area[1]:y+area[1]] = 0
+        return label(minus)
+    
+    def get_crossing_img(self, crossing_coords, label_offset):
+        crossings = np.zeros_like(self.skeleton)
+        for i, coords in enumerate(crossing_coords):
+            coords = np.asarray(coords)
+            crossings[coords[:,0], coords[:,1]] = i + label_offset
+        return crossings
+    
+    @staticmethod
+    def get_both_img(minus_img, crossing_img):
+        both_img = minus_img.copy()
+        both_img[crossing_img != 0] = crossing_img[crossing_img != 0]
+        return both_img
+
+    
+    @staticmethod
+    def trace_mol(ordered_segment_coords, both_img):
+        remaining = both_img.copy().astype(np.int32) # image
+        # get first segment
+        idx = 0 # set index
+        coord_trace = ordered_segment_coords[idx].astype(np.int32).copy() # add ordered segment to trace
+        remaining[remaining==idx+1] = 0 # remove segment from image
+        x, y = coord_trace[-1] # find end coords of trace
+        idx = remaining[x-1:x+2, y-1:y+2].max() - 1 # find local area of end coord to find next index
+
+        mol_coords = []
+        mol_num = 0
+        while len(np.unique(remaining)) > 1:
+            mol_num += 1
+            while idx > -1: # either cycled through all or hits terminus -> all will be just background
+                if abs(coord_trace[-1] - ordered_segment_coords[idx][0]).sum() < abs(coord_trace[-1] - ordered_segment_coords[idx][-1]).sum():
+                    coord_trace = np.append(coord_trace, ordered_segment_coords[idx].astype(np.int32), axis=0)
+                else:
+                    coord_trace = np.append(coord_trace, ordered_segment_coords[idx][::-1].astype(np.int32), axis=0)
+                x, y = coord_trace[-1]
+                remaining[remaining==idx+1] = 0
+                idx = remaining[x-1:x+2, y-1:y+2].max() - 1 # should only be one value
+            mol_coords.append(coord_trace)
+            try:
+                idx = np.unique(remaining)[1] - 1 # avoid choosing 0
+                coord_trace = ordered_segment_coords[idx].astype(np.int32).copy()
+            except: # index of -1 out of range
+                break
+
+            print(f"Mols in trace: {len(mol_coords)}")
+
+            return mol_coords
+        
+    def get_pds(trace_coords, node_centres):
+        for c in node_centres:
+            for mol_coords in trace_coords: # iterates thorugh mols first
+                c in mol_coords
