@@ -203,3 +203,4 @@ unfixable = []
 [project.scripts]
 run_topostats = "topostats.run_topostats:main"
 toposum = "topostats.plotting:main"
+topostats = "topostats.entry_point:main"
