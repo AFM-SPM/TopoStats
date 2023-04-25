@@ -201,4 +201,4 @@ fixable = ["A", "B", "C", "D", "E", "F", "R", "S", "W", "U"]
 unfixable = []
 
 [project.scripts]
-topostats = "topostats.entry_point:main"
+topostats = "topostats.entry_point:entry_point"

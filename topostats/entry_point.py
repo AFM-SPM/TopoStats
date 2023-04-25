@@ -157,11 +157,12 @@ def create_parser() -> arg.ArgumentParser:
     return parser
 
 
-def main():
+def entry_point(manually_provided_args=None):
     """Entry point for all TopoStats programs."""
 
+    # Parse command line options, load config (or default) and update with command line options
     parser = create_parser()
-    args = parser.parse_args()
+    args = parser.parse_args() if manually_provided_args is None else parser.parse_args(manually_provided_args)
     if not args.programs:
         # no program specified, print help and exit
         parser.print_help()
