@@ -9,7 +9,7 @@ import pytest
 
 import topostats
 from topostats.plotting import TopoSum, toposum
-from topostats.plotting import main as plotting_main
+from topostats.entry_point import entry_point
 
 # pylint: disable=protected-access
 
@@ -51,8 +51,9 @@ def test_args_input_csv() -> None:
 def test_var_to_label_config(tmp_path: Path) -> None:
     """Test the var_to_label configuration file is created correctly."""
     with pytest.raises(SystemExit):
-        plotting_main(
-            args=[
+        entry_point(
+            manually_provided_args=[
+                "summary",
                 "--create-label-file",
                 f"{tmp_path / 'var_to_label_config.yaml'}",
                 "--input_csv",
