@@ -281,6 +281,8 @@ def main(args=None):
                 "There are no results to plot, either you have disabled grains/grainstats/dnatracing or there "
                 "have been errors, please check the log for further information."
             )
+    else:
+        summary_config = None
 
     # Write statistics to CSV
     if isinstance(results, pd.DataFrame):
