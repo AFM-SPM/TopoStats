@@ -12,7 +12,7 @@ was added afterwards). This writes the default configuration to the specified fi
 called `config.yaml` it could be called `spm-2023-02-20.yaml`)
 
 ``` bash
-run_topostats --create-config-file config.yaml
+topostats process --create_config_file config.yaml
 ```
 
 If no configuration file is provided this default configuration is loaded automatically and used.
@@ -23,7 +23,7 @@ If you have generated a configuration file you can modify and edit a configurati
 fields below). Once these changes have been saved, you can run TopoStats with this configuration file as shown below.
 
 ``` bash
-run_topostats --config my_config.yaml
+topostats process --config my_config.yaml
 ```
 
 On completion a copy of the configuration that was used is written to the output directory so you have a record of the
@@ -103,7 +103,7 @@ file. The default example can be found in [`topostats/summary_config.yaml`](). T
 | Section        | Sub-Section | Data Type                  | Default           | Description                                                                                                             |
 |:---------------|:------------|:---------------------------|:------------------|:------------------------------------------------------------------------------------------------------------------------|
 | `output_dir`   |             | `str`                      | `./output/`       | Where output plots should be saved to.                                                                                  |
-| `csv_file`     |             | `str`                      | `null`            | Where the results file should be loaded when running `toposum`                                                          |
+| `csv_file`     |             | `str`                      | `null`            | Where the results file should be loaded when running `topostats summary`                                                |
 | `file_ext`     |             | `str`                      | `png`             | File type to save images as.                                                                                            |
 | `pickle_plots` |             | `bool`                     | True              | Whether to save images to a Python pickle.                                                                              |
 | `var_to_label` |             | `str`                      | `null`            | Optional YAML file that maps variable names to labels, uses `topostats/var_to_label.yaml` if null.                      |

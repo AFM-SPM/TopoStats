@@ -25,6 +25,7 @@ listed below to find out more.
    :maxdepth: 1
    :caption: API
 
+   topostats.entry_point
    topostats.filters
    topostats.grains
    topostats.grainstats
