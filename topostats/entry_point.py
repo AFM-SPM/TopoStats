@@ -1,6 +1,7 @@
 """Entry point for all TopoStats programs. Parses command-line arguments and passes input on to the relevant
 functions / modules.
 """
+
 import sys
 import argparse as arg
 
@@ -22,9 +23,7 @@ def create_parser() -> arg.ArgumentParser:
         help="Report the current version of TopoStats that is installed",
     )
 
-    subparsers = parser.add_subparsers(
-        title="programs", description="Available programs, listed below:", dest="programs"
-    )
+    subparsers = parser.add_subparsers(title="program", description="Available programs, listed below:", dest="program")
 
     # run_topostats parser
     process_parser = subparsers.add_parser(
@@ -157,19 +156,21 @@ def create_parser() -> arg.ArgumentParser:
     return parser
 
 
-def entry_point(manually_provided_args=None):
+def entry_point(manually_provided_args=None, testing=False):
     """Entry point for all TopoStats programs."""
 
     # Parse command line options, load config (or default) and update with command line options
     parser = create_parser()
     args = parser.parse_args() if manually_provided_args is None else parser.parse_args(manually_provided_args)
-    if not args.programs:
+    if not args.program:
         # no program specified, print help and exit
         parser.print_help()
         sys.exit()
 
-    print("args:")
-    print(args)
+    if testing:
+        return args
 
     # call the relevant function
     args.func(args)
+
+    return None
