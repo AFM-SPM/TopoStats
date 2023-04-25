@@ -1,4 +1,4 @@
-"""Plotting and summary of Statistics"""
+"""Plotting and summary of TopoStats output statistics."""
 from collections import defaultdict
 import importlib.resources as pkg_resources
 import logging

@@ -28,7 +28,9 @@ def create_parser() -> arg.ArgumentParser:
 
     # run_topostats parser
     process_parser = subparsers.add_parser(
-        "process", description="Process AFM images. Additional arguments over-ride those in the configuration file."
+        "process",
+        description="Process AFM images. Additional arguments over-ride those in the configuration file.",
+        help="Process AFM images. Additional arguments over-ride those in the configuration file.",
     )
     process_parser.add_argument(
         "-c",
@@ -116,7 +118,11 @@ def create_parser() -> arg.ArgumentParser:
     process_parser.set_defaults(func=run_topostats)
 
     # toposum parser
-    toposum_parser = subparsers.add_parser("summary")
+    toposum_parser = subparsers.add_parser(
+        "summary",
+        description="Plotting and summary of TopoStats output statistics.",
+        help="Plotting and summary of TopoStats output statistics.",
+    )
     toposum_parser.add_argument("-i", "--input_csv", dest="csv_file", required=False, help="Path to CSV file to plot.")
     toposum_parser.add_argument(
         "-c",
