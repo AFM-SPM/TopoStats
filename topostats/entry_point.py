@@ -4,6 +4,7 @@ functions / modules.
 import sys
 import argparse as arg
 
+from topostats import __version__
 from topostats.run_topostats import run_topostats
 from topostats.plotting import run_toposum
 
@@ -12,6 +13,13 @@ def create_parser() -> arg.ArgumentParser:
     """Create a parser for reading options."""
     parser = arg.ArgumentParser(
         description="Run various programs relating to AFM data. Add the name of the program you wish to run."
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"Installed version of TopoStats: {__version__}",
+        help="Report the current version of TopoStats that is installed",
     )
 
     subparsers = parser.add_subparsers(
@@ -145,8 +153,6 @@ def create_parser() -> arg.ArgumentParser:
 
 def main():
     """Entry point for all TopoStats programs."""
-
-    print("running topostats main command")
 
     parser = create_parser()
     args = parser.parse_args()
