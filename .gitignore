@@ -46,3 +46,6 @@ _build/
 
 # Tests and docs
 .coverage
+
+# Ignore topostats/_version.py as per setuptools_scm
+topostats/_version.py
