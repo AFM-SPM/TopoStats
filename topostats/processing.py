@@ -85,6 +85,7 @@ def process_scan(
     # Filter Image
     if filter_config["run"]:
         filter_config.pop("run")
+        LOGGER.info(f"image dimensions: {image.shape}")
         LOGGER.info(f"[{filename}] : *** Filtering ***")
         filtered_image = Filters(
             image,
