@@ -263,7 +263,7 @@ def main(args=None):
         summary_config["var_to_label"] = yaml.safe_load(plotting_yaml.read())
         LOGGER.info("[plotting] Default variable to labels mapping loaded.")
 
-        # If we don't have a dataframe and it is all NaN there is nothing to plot
+        # If we don't have a dataframe or we do and it is all NaN there is nothing to plot
         if isinstance(results, pd.DataFrame) and not results.isna().values.all():
             # If summary_config["output_dir"] does not match or is not a sub-dir of config["output_dir"] it
             # needs creating
@@ -282,7 +282,7 @@ def main(args=None):
                 "* there have been errors.\n\n"
                 "If you are not expecting to detect grains please consider disabling"
                 "grains/grainstats/dnatracing/plotting/summary_stats. If you are expecting to detect grains"
-                "please check log-files for further information."
+                " please check log-files for further information."
             )
 
     # Write statistics to CSV if there is data.
