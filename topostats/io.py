@@ -67,11 +67,17 @@ def write_yaml(
     # Revert PosixPath items to string
     config = path_to_str(config)
     config_yaml = yaml_load(yaml_dump(config))
+    documentation_reference = (
+        "For more information on configuration : https://afm-spm.github.io/TopoStats/main/configuration.html"
+    )
     if header_message:
-        config_yaml.yaml_set_start_comment(f"{header_message} : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        config_yaml.yaml_set_start_comment(
+            f"{header_message} : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n" + documentation_reference
+        )
     else:
         config_yaml.yaml_set_start_comment(
-            f"Configuration from TopoStats run completed : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            f"Configuration from TopoStats run completed : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            + documentation_reference
         )
     with output_config.open("w") as f:
         try:
