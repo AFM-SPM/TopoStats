@@ -16,6 +16,12 @@ repos:
       - id: trailing-whitespace
         types: [python, yaml, markdown]
 
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.6.0
+    hooks:
+      - id: markdownlint-cli2
+        args: [.markdownlin-cli2.yaml]
+
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.3.2
     hooks:
