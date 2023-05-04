@@ -7,8 +7,8 @@ Input directories are recursively searched for files of a given type. Each image
 images can be processed in parallel.
 
 Once an image has been loaded the specified channel of data extracted along with the pixel to nanometre scaling. This
-data is then aligned and the tilt is removed. Configurable thresholds are then used to generate masks and a second round of tilt
-removal and row alignment is performed.
+data is then aligned and the tilt is removed. Configurable thresholds are then used to generate masks and a second round
+of tilt removal and row alignment is performed.
 
 Molecules/regions of interest known as Grains are then detected based on user specified thresholds and the detected
 regions are labelled and have preliminary statistics calculated. The labelled regions of each grain then have individual

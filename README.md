@@ -14,7 +14,8 @@
 [![pre-commit.ci
 status](https://results.pre-commit.ci/badge/github/AFM-SPM/TopoStats/main.svg)](https://results.pre-commit.ci/latest/github/AFM-SPM/TopoStats/main)
 
-| [Installation](#installation) | [Tutorials and Examples](#tutorials-and-examples) | [Contributing](contributing.md) | [Licence](#licence) | [Citation](#citation) |
+| [Installation](#installation) | [Tutorials and Examples](#tutorials-and-examples) | [Contributing](contributing.md) |
+| [Licence](#licence) | [Citation](#citation) |
 </div>
 
 --------------------------------------------------------------------------------

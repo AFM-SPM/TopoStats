@@ -6,8 +6,8 @@ then please do not hesitate to ask a question.
 
 TopoStats is a [Python](https://www.python.org) package designed to run at the command line. If you are using Microsoft
 Windows you should use
-[Powershell](https://learn.microsoft.com/en-us/powershell/scripting/learn/ps101/01-getting-started?view=powershell-7.3). You
-may have Python installed on your system but should use a [Python Virtual
+[Powershell](https://learn.microsoft.com/en-us/powershell/scripting/learn/ps101/01-getting-started?view=powershell-7.3).
+You may have Python installed on your system but should use a [Python Virtual
 Environment](https://realpython.com/python-virtual-environments-a-primer/) such as
 [Miniconda](https://docs.conda.io/en/latest/miniconda.html) and install and use TopoStats under the Virtual
 Environment. The versions of Python supported are Python >=3.8 and so when creating your virtual environment you should
@@ -72,9 +72,8 @@ an [issue](https://github.com/AFM-SPM/TopoStats/issues)).
 * If you have found an issue in a released version and want to see if it has been fixed in the unreleased version.
 * If you wish to develop and extend TopoStats with new features yourself.
 
-
-If you do not have Git already installed please see [Git](installation#git). If you intend to contribute to the development of
-TopoStats please read through the [contributing](contributing) section.
+If you do not have Git already installed please see [Git](installation#git). If you intend to contribute to the
+development of TopoStats please read through the [contributing](contributing) section.
 
 If you are familiar with the command line then you can clone and install TopoStats with the following _after_ activating
 your virtual environment.
