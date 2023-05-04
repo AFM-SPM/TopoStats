@@ -204,7 +204,7 @@ numpydoc_class_members_toctree = False
 autoapi_dirs = ["../topostats"]
 
 # sphinx-multiversion https://holzhaus.github.io/sphinx-multiversion/master/configuration.html
-# smv_tag_whitelist = r"^v\d+.*$"  # Tags begining with v#
+smv_tag_whitelist = r"^v\d+.*$"  # Tags begining with v#
 smv_branch_whitelist = r"^main$"  # main branch
 # If testing changes locally comment out the above and the smv_branch_whitelist below instead. Replace the branch name
 # you are working on ("ns-rse/466-doc-versions" in the example below) with the branch you are working on and run...
@@ -212,7 +212,7 @@ smv_branch_whitelist = r"^main$"  # main branch
 # cd docs
 # sphinx-multiversion . _build/html
 #
-smv_branch_whitelist = r"^(main|ns-rse/update-readme)$"  # main branch
+# smv_branch_whitelist = r"^(main|ns-rse/466-doc-versions)$"  # main branch
 smv_released_pattern = r"^tags/.*$"  # Tags only
 # smv_released_pattern = r"^(/.*)|(main).*$"  # Tags and HEAD of main
 smv_outputdir_format = "{ref.name}"
