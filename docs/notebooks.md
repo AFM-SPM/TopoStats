@@ -17,7 +17,7 @@ be found in the `notebook/` directory after cloning the GitHub repository.
 ## Installation
 
 To be able to run the Notebooks you need some additional Python packages installed. You will have to clone the
-repository from GitHub (see [installation](installation#cloning-from-github)) and then install the Notebook dependencies
+repository from GitHub (see [installation](installation)) and then install the Notebook dependencies
 with the following commands under your Virtual Environment (e.g. Conda)...
 
 ``` bash
@@ -27,7 +27,8 @@ pip install .[notebooks]
 
 ## Running Notebooks
 
-Start a Jupyter server under the Virtual Environment you have installed the dependencies from.
+Start a Jupyter server under the Virtual Environment you have installed the dependencies from and a web-browser page
+will open from which you can choose which notebook to launch.
 
 ``` bash
 cd TopoStats/notebooks

@@ -25,19 +25,6 @@ listed below to find out more.
    :maxdepth: 1
    :caption: API
 
-   topostats.filters
-   topostats.grains
-   topostats.grainstats
-   topostats.io
-   topostats.plotting
-   topostats.plottingfuncs
-   topostats.run_topostats
-   topostats.theme
-   topostats.thresholds
-   topostats.tracing
-   topostats.utils
-   topostats.validation
-
 Indices and tables
 ==================
 
