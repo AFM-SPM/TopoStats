@@ -6,12 +6,12 @@ then please do not hesitate to ask a question.
 
 TopoStats is a [Python](https://www.python.org) package designed to run at the command line. If you are using Microsoft
 Windows you should use
-[Powershell](https://learn.microsoft.com/en-us/powershell/scripting/learn/ps101/01-getting-started?view=powershell-7.3). You
-may have Python installed on your system but should use a [Python Virtual
+[Powershell](https://learn.microsoft.com/en-us/powershell/scripting/learn/ps101/01-getting-started?view=powershell-7.3).
+You may have Python installed on your system but should use a [Python Virtual
 Environment](https://realpython.com/python-virtual-environments-a-primer/) such as
-[Miniconda](https://docs.conda.io/en/latest/miniconda.html) and install it under the Virtual Environment. The versions
-of Python supported are Python >=3.8 and so when creating your virtual environment you should specify this `3.8` as the
-minimum.
+[Miniconda](https://docs.conda.io/en/latest/miniconda.html) and install and use TopoStats under the Virtual
+Environment. The versions of Python supported are Python >=3.8 and so when creating your virtual environment you should
+specify this `3.8` as the minimum.
 
 ## Setting up Conda
 
@@ -65,11 +65,15 @@ documentation](https://pip.pypa.io/en/stable/user_guide/).
 
 ### Cloning from GitHub
 
-**NB** Cloning and installing from GitHub is only required if you wish to contribute to or debug problems with
-TopoStats, if you only intend on using it then please install from PyPI.
+You may wish to consider cloning and installing TopoStats from GitHub if...
 
-If you do not have Git already installed please see [Git](#git). If you intend to contribute to the development of
-TopoStats please read through the [contributing](contributing) section.
+* You wish to try out new features that have been developed since the last release (if you find problems please create
+an [issue](https://github.com/AFM-SPM/TopoStats/issues)).
+* If you have found an issue in a released version and want to see if it has been fixed in the unreleased version.
+* If you wish to develop and extend TopoStats with new features yourself.
+
+If you do not have Git already installed please see [Git](installation#git). If you intend to contribute to the
+development of TopoStats please read through the [contributing](contributing) section.
 
 If you are familiar with the command line then you can clone and install TopoStats with the following _after_ activating
 your virtual environment.
@@ -102,14 +106,15 @@ pip install .
 If you wish to make changes to the code and test then make a `git branch`, make your changes and install in editable mode,
 i.e. `pip install -e .`.
 
-If you wish to develop features or address an existing [issue](https://github.com/AFM-SPM/TopoStats/issues) please refer
-to the [contributing](contributing) section.
+If you plan to contribute to development by adding features or address an existing
+[issue](https://github.com/AFM-SPM/TopoStats/issues) please refer to the [contributing](contributing) section.
 
-If you wish to run the [Jupyter Noteooks](https://jupyter.org/) that reside under `notebooks/` then you can install all
-requirements using
+We include [notebooks](notebooks) which show how to use different aspects of TopoStats. If you wish to try these out the
+[Jupyter Noteooks](https://jupyter.org/) then you can install the dependencies that are required from the cloned
+TopoStats repository using...
 
 ``` bash
-pip install .[notebooks]
+pip install ".[notebooks]"
 ```
 
 ## Tests
