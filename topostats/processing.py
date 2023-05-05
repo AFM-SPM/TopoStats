@@ -156,45 +156,47 @@ def process_scan(
         if grains.region_properties is None:
             LOGGER.warning(f"[{filename}] : No region properties found for grains.")
             results = create_empty_dataframe()
-        # Optionally plot grain finding stage
-        if plotting_config["run"] and grains.region_properties is not None:
-            plotting_config.pop("run")
-            LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
-            for direction, image_arrays in grains.directions.items():
-                for plot_name, array in image_arrays.items():
-                    plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path / f"{direction}"
-                    Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
-                # Make a plot of coloured regions with bounding boxes
-                plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path / f"{direction}"
-                Images(
-                    grains.directions[direction]["coloured_regions"],
-                    **plotting_config["plot_dict"]["bounding_boxes"],
-                    region_properties=grains.region_properties[direction],
-                ).plot_and_save()
-                plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path / f"{direction}"
-                Images(
-                    grains.directions[direction]["labelled_regions_02"],
-                    **plotting_config["plot_dict"]["coloured_boxes"],
-                    region_properties=grains.region_properties[direction],
-                ).plot_and_save()
-                # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
-                plot_name = "mask_overlay"
-                plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
-                Images(
-                    filtered_image.images["gaussian_filtered"],
-                    filename=f"{filename}_{direction}_masked",
-                    masked_array=grains.directions[direction]["removed_small_objects"],
-                    **plotting_config["plot_dict"][plot_name],
-                ).plot_and_save()
+        # Optionally plot grain finding stage if we have found grains and plotting is required
+        if len(grains.region_properties) > 0:
+            if plotting_config["run"]:
+                plotting_config.pop("run")
+                LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
+                for direction, image_arrays in grains.directions.items():
+                    for plot_name, array in image_arrays.items():
+                        plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path / f"{direction}"
+                        Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
+                    # Make a plot of coloured regions with bounding boxes
+                    plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path / f"{direction}"
+                    Images(
+                        grains.directions[direction]["coloured_regions"],
+                        **plotting_config["plot_dict"]["bounding_boxes"],
+                        region_properties=grains.region_properties[direction],
+                    ).plot_and_save()
+                    plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path / f"{direction}"
+                    Images(
+                        grains.directions[direction]["labelled_regions_02"],
+                        **plotting_config["plot_dict"]["coloured_boxes"],
+                        region_properties=grains.region_properties[direction],
+                    ).plot_and_save()
+                    # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
+                    plot_name = "mask_overlay"
+                    plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
+                    Images(
+                        filtered_image.images["gaussian_filtered"],
+                        filename=f"{filename}_{direction}_masked",
+                        masked_array=grains.directions[direction]["removed_small_objects"],
+                        **plotting_config["plot_dict"][plot_name],
+                    ).plot_and_save()
 
-            plotting_config["run"] = True
+                plotting_config["run"] = True
+        else:
+            LOGGER.info(f"[{filename}] : No grains to plot.")
 
         # Grainstats :
         #
-        # There are two layers to process those above the given threshold and those below, use dictionary comprehension
-        # to pass over these.
-        if grainstats_config["run"]:
-            if grains.region_properties is not None:
+        # If grains have ben found we calculate statistics if required to
+        if len(grains.region_properties) > 0:
+            if grainstats_config["run"]:
                 grainstats_config.pop("run")
                 # Grain Statistics :
                 try:
@@ -205,6 +207,7 @@ def process_scan(
                         if key in ["grain_image", "grain_mask", "grain_mask_image"]
                     }
                     grainstats = {}
+                    # There are two layers to process those above the given threshold and those below
                     for direction, _ in grains.directions.items():
                         grainstats[direction], grains_plot_data = GrainStats(
                             data=filtered_image.images["gaussian_filtered"],
@@ -284,12 +287,10 @@ def process_scan(
                     results = grainstats_df
                     results["basename"] = image_path.parent
             else:
-                LOGGER.info(
-                    f"[{filename}] No region properties have been calculated for the image grains, "
-                    "skipping calculation of grain statistics."
-                )
+                LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
+                results = create_empty_dataframe()
         else:
-            LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
+            LOGGER.info(f"[{filename}] No grains detected skipping calculation of grain statistics and DNA tracing.")
             results = create_empty_dataframe()
     else:
         LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")

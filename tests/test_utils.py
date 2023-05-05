@@ -4,7 +4,14 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from topostats.utils import convert_path, update_config, get_thresholds, update_plotting_config
+from topostats.utils import (
+    convert_path,
+    update_config,
+    get_thresholds,
+    update_plotting_config,
+    create_empty_dataframe,
+    ALL_STATISTICS_COLUMNS,
+)
 
 
 THRESHOLD_OPTIONS = {
@@ -88,3 +95,12 @@ def test_get_thresholds_value_error(image_random: np.ndarray) -> None:
     """Test a ValueError is raised if an invalid value is passed to get_thresholds()"""
     with pytest.raises(ValueError):
         get_thresholds(image=image_random, threshold_method="mean", **THRESHOLD_OPTIONS)
+
+
+def test_create_empty_dataframe() -> None:
+    """Test the empty dataframe is created correctly."""
+    empty_df = create_empty_dataframe(ALL_STATISTICS_COLUMNS)
+
+    assert empty_df.index.name == "molecule_number"
+    assert empty_df.shape == (0, 26)
+    assert {"image", "basename", "area"}.intersection(empty_df.columns)
