@@ -154,7 +154,7 @@ def process_scan(
             LOGGER.warning(f"[{filename}] : No image, it is all masked.")
             results = create_empty_dataframe()
         if grains.region_properties is None:
-            LOGGER.warning(f"[{filename}] : No region properties found for grains.")
+            LOGGER.warning(f"[{filename}] : No grains have been detected, skipping calculation of grain statistics.")
             results = create_empty_dataframe()
         # Optionally plot grain finding stage if we have found grains and plotting is required
         if len(grains.region_properties) > 0:
