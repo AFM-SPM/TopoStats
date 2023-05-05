@@ -237,5 +237,5 @@ def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: tuple =
         Empty Pandas DataFrame.
     """
     empty_df = pd.DataFrame(columns=columns)
-    empty_df.index.names = [index]
+    empty_df = empty_df.set_index(index)
     return empty_df

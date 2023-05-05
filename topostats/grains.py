@@ -224,8 +224,8 @@ class Grains:
         uniq = np.delete(np.unique(image), 0)
         grain_count = 0
         LOGGER.info(
-            f"[{self.filename}] : Area thresholding grains | Thresholds: L:{below / self.pixel_to_nm_scaling**2:.2f},"
-            "U:{above / self.pixel_to_nm_scaling**2:.2f} px^2, L:{below:.2f}, U:{above:.2f} nm^2."
+            f"[{self.filename}] : Area thresholding grains | Thresholds: L: {(below / self.pixel_to_nm_scaling**2):.2f},"
+            f"U: {(above / self.pixel_to_nm_scaling**2):.2f} px^2, L: {below:.2f}, U: {above:.2f} nm^2."
         )
         for grain_no in uniq:  # Calculate grian area in nm^2
             grain_area = np.sum(image_cp == grain_no) * (self.pixel_to_nm_scaling**2)

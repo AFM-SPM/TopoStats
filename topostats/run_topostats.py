@@ -267,15 +267,21 @@ def main(args=None):
 
         # If we don't have a dataframe or we do and it is all NaN there is nothing to plot
         if isinstance(results, pd.DataFrame) and not results.isna().values.all():
-            # If summary_config["output_dir"] does not match or is not a sub-dir of config["output_dir"] it
-            # needs creating
-            summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
-            summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
-            LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
+            if results.shape[0] > 1:
+                # If summary_config["output_dir"] does not match or is not a sub-dir of config["output_dir"] it
+                # needs creating
+                summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
+                summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
+                LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
 
-            # Plot summaries
-            summary_config["df"] = results.reset_index()
-            toposum(summary_config)
+                # Plot summaries
+                summary_config["df"] = results.reset_index()
+                toposum(summary_config)
+            else:
+                LOGGER.warning(
+                    "There are fewer than two grains that have been detected, so"
+                    " summary plots cannot be made for this image."
+                )
         else:
             LOGGER.warning(
                 "There are no results to plot, either...\n\n"
