@@ -102,5 +102,6 @@ def test_create_empty_dataframe() -> None:
     empty_df = create_empty_dataframe(ALL_STATISTICS_COLUMNS)
 
     assert empty_df.index.name == "molecule_number"
+    assert "molecule_number" not in empty_df.columns
     assert empty_df.shape == (0, 26)
     assert {"image", "basename", "area"}.intersection(empty_df.columns)
