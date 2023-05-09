@@ -15,6 +15,7 @@ from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import create_empty_dataframe
+from topostats.roughness import roughness_rms
 
 # pylint: disable=broad-except
 # pylint: disable=line-too-long
@@ -82,6 +83,30 @@ def process_scan(
     Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
     Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
 
+    # Image statistics
+    image_stats = {
+        "filename": filename,
+        "image_size_x_m": None,
+        "image_size_y_m": None,
+        "image_area_m2": None,
+        "image_size_x_px": None,
+        "image_size_y_px": None,
+        "image_area_px2": None,
+        "grains_number_above": None,
+        "grains_per_m2_above": None,
+        "grains_number_below": None,
+        "grains_per_m2_below": None,
+        "rms_roughness": None,
+    }
+
+    # Record image dimensions
+    image_stats["image_size_x_m"] = image.shape[1] * pixel_to_nm_scaling * 1e-9
+    image_stats["image_size_y_m"] = image.shape[0] * pixel_to_nm_scaling * 1e-9
+    image_stats["image_area_m2"] = image_stats["image_size_x_m"] * image_stats["image_size_y_m"]
+    image_stats["image_size_x_px"] = image.shape[1]
+    image_stats["image_size_y_px"] = image.shape[0]
+    image_stats["image_area_px2"] = image_stats["image_size_x_px"] * image_stats["image_size_y_px"]
+
     # Filter Image
     if filter_config["run"]:
         filter_config.pop("run")
@@ -131,11 +156,17 @@ def process_scan(
             array_type="height_thresholded",
         )
 
+        # Calculate the RMS roughness of the sample on the flattened image. Do not use blurred flattened image.
+        image_stats["rms_roughness"] = roughness_rms(filtered_image.images["zero_average_background"]) * 1e-9
+
     else:
         LOGGER.error(
             "You have not included running the initial filter stage. This is required for all subsequent "
             "stages of processing. Please check your configuration file."
         )
+
+        # Calculate the RMS roughness of the sample on the raw image since the flattening was turned off
+        image_stats["rms_roughness"] = roughness_rms(image) * 1e-9
 
     # Find Grains :
     if grains_config["run"]:
@@ -235,10 +266,26 @@ def process_scan(
                     # Set tracing_stats_df in light of direction
                     if grains_config["direction"] == "both":
                         grainstats_df = pd.concat([grainstats["below"], grainstats["above"]])
+                        image_stats["grains_number_above"] = grainstats["above"].shape[0]
+                        image_stats["grains_per_m2_above"] = (
+                            image_stats["grains_number_above"] / image_stats["image_area_m2"]
+                        )
+                        image_stats["grains_number_below"] = grainstats["below"].shape[0]
+                        image_stats["grains_per_m2_below"] = (
+                            image_stats["grains_number_below"] / image_stats["image_area_m2"]
+                        )
                     elif grains_config["direction"] == "above":
                         grainstats_df = grainstats["above"]
+                        image_stats["grains_number_above"] = grainstats["above"].shape[0]
+                        image_stats["grains_per_m2_above"] = (
+                            image_stats["grains_number_above"] / image_stats["image_area_m2"]
+                        )
                     elif grains_config["direction"] == "below":
                         grainstats_df = grainstats["below"]
+                        image_stats["grains_number_below"] = grainstats["below"].shape[0]
+                        image_stats["grains_per_m2_below"] = (
+                            image_stats["grains_number_below"] / image_stats["image_area_m2"]
+                        )
                 except Exception:
                     LOGGER.info(f"[{filename}] : Errors occurred whilst calculating grain statistics.")
                     results = create_empty_dataframe()
@@ -297,7 +344,12 @@ def process_scan(
         LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
         results = create_empty_dataframe()
 
-    return image_path, results
+    # Set the index to zero since we are only adding one row. Will crash otherwise since we are not
+    # passing iterables.
+    image_stats_df = pd.DataFrame(image_stats, index=[0])
+    image_stats_df.set_index("filename", inplace=True)
+
+    return image_path, results, image_stats_df, core_out_path
 
 
 def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
