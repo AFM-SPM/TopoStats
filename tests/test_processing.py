@@ -314,12 +314,11 @@ def test_process_stages(
     assert log_msg2 in caplog.text
 
 
-def test_process_scan_region_properties_is_none(
-    process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path, caplog
-) -> None:
-    """Test capturing disabling GrainStats where no grains have been found."""
+def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path, caplog) -> None:
+    """Test handling no grains found during grains.find_grains()."""
     img_dic = load_scan_data.img_dict
-    process_scan_config["grains"]["absolute_area_threshold"] = [4000, 9000]
+    process_scan_config["grains"]["threshold_std_dev"]["above"] = 1000
+    process_scan_config["filter"]["remove_scars"]["run"] = "false"
     _, _, _, _ = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
@@ -330,5 +329,6 @@ def test_process_scan_region_properties_is_none(
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
-    assert "No grains to plot" in caplog.text
-    assert "No grains detected skipping calculation of grain statistics and DNA tracing." in caplog.text
+    assert "Grains found for direction above : 0" in caplog.text
+    assert "There are 0 circular and 0 linear DNA molecules found in the image" in caplog.text
+    assert "No grains exist for the above direction. Skipping grainstats and DNAtracing." in caplog.text
