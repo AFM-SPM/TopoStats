@@ -232,12 +232,20 @@ def main(args=None):
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result in pool.imap_unordered(
+            for img, result, image_stats_df, img_out_path in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
             ):
                 results[str(img)] = result
                 pbar.update()
+
+                # Save image stats
+                LOGGER.info(f"[{img.name}] Saving image stats to csv.")
+                image_stats_df.to_csv(img_out_path / "image_stats.csv")
+
+                # Display completion message for the image
+                LOGGER.info(f"[{img.name}] Processing completed.")
+
     try:
         results = pd.concat(results.values())
     except ValueError as error:
