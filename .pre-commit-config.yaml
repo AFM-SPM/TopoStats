@@ -17,13 +17,13 @@ repos:
         types: [python, yaml, markdown]
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.6.0
+    rev: v0.7.1
     hooks:
       - id: markdownlint-cli2
         args: [.markdownlint-cli2.yaml]
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.2
+    rev: v3.4.0
     hooks:
       - id: pyupgrade
         args: [--py38-plus]
