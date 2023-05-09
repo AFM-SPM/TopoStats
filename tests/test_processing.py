@@ -18,7 +18,7 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
     """Regression test for checking the process_scan functions correctly"""
     process_scan_config["grains"]["direction"] = "below"
     img_dic = load_scan_data.img_dict
-    _, results = process_scan(
+    _, results, img_stats, _ = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -30,13 +30,14 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
     )
     # Remove the basename column as this differs on CI
     results.drop(["basename"], axis=1, inplace=True)
+    print(img_stats.to_string(), file=regtest)  # noqa: T201
     print(results.to_string(), file=regtest)  # noqa: T201
 
 
 def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly"""
     img_dic = load_scan_data.img_dict
-    _, results = process_scan(
+    _, results, img_stats, _ = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -48,6 +49,7 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
     )
     # Remove the Basename column as this differs on CI
     results.drop(["basename"], axis=1, inplace=True)
+    print(img_stats.to_string(), file=regtest)  # noqa: T201
     print(results.to_string(), file=regtest)  # noqa: T201
 
 
@@ -55,7 +57,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     """Regression test for checking the process_scan functions correctly"""
     process_scan_config["grains"]["direction"] = "both"
     img_dic = load_scan_data.img_dict
-    _, results = process_scan(
+    _, results, img_stats, _ = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -67,6 +69,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     )
     # Remove the Basename column as this differs on CI
     results.drop(["basename"], axis=1, inplace=True)
+    print(img_stats.to_string(), file=regtest)  # noqa: T201
     print(results.to_string(), file=regtest)  # noqa: T201
 
 
@@ -85,7 +88,7 @@ def test_save_cropped_grains(
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
 
     img_dic = load_scan_data.img_dict
-    _, _ = process_scan(
+    _, _, _, _ = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -120,7 +123,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
 
     img_dic = load_scan_data.img_dict
-    _, _ = process_scan(
+    _, _, _, _ = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -296,7 +299,7 @@ def test_process_stages(
     process_scan_config["grains"]["run"] = grains_run
     process_scan_config["grainstats"]["run"] = grainstats_run
     process_scan_config["dnatracing"]["run"] = dnatracing_run
-    _, _ = process_scan(
+    _, _, _, _ = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -317,7 +320,7 @@ def test_process_scan_region_properties_is_none(
     """Test capturing disabling GrainStats where no grains have been found."""
     img_dic = load_scan_data.img_dict
     process_scan_config["grains"]["absolute_area_threshold"] = [4000, 9000]
-    _, _ = process_scan(
+    _, _, _, _ = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
