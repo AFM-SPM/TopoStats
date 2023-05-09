@@ -20,7 +20,7 @@ repos:
     rev: v0.6.0
     hooks:
       - id: markdownlint-cli2
-        args: [.markdownlint-cli2.yaml]
+        args: []
 
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.3.2
