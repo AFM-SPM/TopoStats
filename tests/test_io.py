@@ -356,6 +356,25 @@ def test_load_scan_get_data(
     assert scan.img_dict[filename]["px_2_nm"] == pixel_to_nm_scaling
 
 
+@pytest.mark.parametrize(
+    "x, y, log_msg",
+    [
+        (100, 100, "Image added to processing"),
+        (9, 100, "Skipping, image too small"),
+        (100, 9, "Skipping, image too small"),
+    ],
+)
+def test_load_scan_get_data_check_image_size(
+    load_scan: LoadScans, x: int, y: int, log_msg: str, caplog, tmp_path
+) -> None:
+    """Test errors are raised when images that are too small are passed."""
+    load_scan.filename = "minicircle"
+    load_scan.img_path = tmp_path
+    load_scan.image = np.ndarray((x, y))
+    load_scan._check_image_size()
+    assert log_msg in caplog.text
+
+
 def test_save_pkl(summary_config: dict, tmp_path) -> None:
     """Test saving a pickle."""
     outfile = tmp_path / "test.pkl"
