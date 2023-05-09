@@ -86,10 +86,10 @@ class Grains:
             # "labelled_regions": None,
             # "coloured_regions": None,
         }
-        self.directions = {}
+        self.directions = defaultdict()
         self.minimum_grain_size = None
-        self.region_properties = {}
-        self.bounding_boxes = {}
+        self.region_properties = defaultdict()
+        self.bounding_boxes = defaultdict()
         self.grainstats = None
         self.number_of_grains_found = {}
 
@@ -297,8 +297,6 @@ class Grains:
             threshold_std_dev=self.threshold_std_dev,
             absolute=self.threshold_absolute,
         )
-        # try:
-        # region_props_count = 0
         for direction in self.direction:
             LOGGER.info(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
             self.directions[direction] = {}
@@ -344,10 +342,3 @@ class Grains:
             )
             self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
             LOGGER.info(f"[{self.filename}] : Extracted bounding boxes ({direction})")
-
-            # region_props_count += len(self.region_properties[direction])
-        # if region_props_count == 0:
-        #     self.region_properties = None
-        # FIXME : Identify what exception is raised with images without grains and replace broad except
-        # except:  # noqa: E722
-        #     LOGGER.info(f"[{self.filename}] : No grains found.")
