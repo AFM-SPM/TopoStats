@@ -1018,6 +1018,8 @@ class nodeStats():
         self.test4 = None
         self.test5 = None
         self.full_dict = {}
+        self.mol_coords = {}
+        self.visuals = {}
 
     def get_node_stats(self) -> dict:
         """The workflow for obtaining the node statistics.
@@ -1044,11 +1046,10 @@ class nodeStats():
                 self.connect_close_nodes(node_width=6)
                 self.highlight_node_centres(self.connected_nodes)
                 self.analyse_nodes(box_length=20)
-                self.compile_trace()
+                self.mol_coords[skeleton_no], self.visuals[skeleton_no] = self.compile_trace()
                 self.full_dict[skeleton_no] = self.node_dict
             else:
                 self.full_dict[skeleton_no] = {}
-        return self.full_dict
 
     def connect_close_nodes(self, node_width: float = 2.85) -> None:
         """Looks to see if nodes are within the node_width boundary (2.85nm) and thus
@@ -1205,6 +1206,9 @@ class nodeStats():
                     distances = self.coord_dist(branch_coords)
                     zero_dist = distances[np.where(np.all(branch_coords == centre, axis=1))]
                     if average_trace_advised:
+                        #np.savetxt("knot2/area.txt",image_area)
+                        #np.savetxt("knot2/single_branch.txt",single_branch)
+                        #print("ZD: ", zero_dist)
                         distances, heights, mask, _ = self.average_height_trace(image_area, single_branch, zero_dist)
                         # add in mid dist adjustment
                         matched_branches[i]["avg_mask"] = mask
@@ -1258,12 +1262,6 @@ class nodeStats():
                 if node_no == 0:
                     self.test4 = vectors
                     self.test5 = angles
-
-                # make branches mask with biggest fwhm plotted first
-                nodes_and_branches = np.zeros_like(self.image)
-                for branch_num, values in matched_branches.items():
-                    coords = values["ordered_coords"]
-                    nodes_and_branches[coords[:,0], coords[:,1]] = branch_num + 1
 
                 """
                 except ValueError:
@@ -1455,7 +1453,7 @@ class nodeStats():
         centre_fraction = int(len(heights)*0.2) # incase zone approaches another node, look at centre for max
         high_idx = np.argmax(heights[centre_fraction:-centre_fraction]) + centre_fraction
         heights_norm = heights.copy() - heights.min() # lower graph so min is 0
-        hm = heights_norm.max()/2 # half max value
+        hm = heights_norm.max()/2 # half max value -> try to make it the same as other crossing branch?
         
         # get array halves to find first points that cross hm
         arr1 = heights_norm[:high_idx][::-1]
@@ -1630,10 +1628,21 @@ class nodeStats():
         
         # want to get a 3 pixel line trace, one on each side of orig
         dilate = ndimage.binary_dilation(branch_mask, iterations=1)
+        dilate_minus = dilate.copy()
+        dilate_minus[branch_mask == 1] = 0
         dilate2 = ndimage.binary_dilation(dilate)
         dilate2[(dilate == 1) | (branch_mask == 1)] = 0
         labels = label(dilate2)
-        
+        # reduce binary dilation distance
+        paralell = np.zeros_like(branch_mask).astype(np.int32)
+        for i in range(1, labels.max()+1):
+            single = labels.copy()
+            single[single != i] = 0
+            single[single == i] = 1
+            sing_dil = ndimage.binary_dilation(single)
+            paralell[(sing_dil == dilate_minus) & (sing_dil == 1)] = i
+        labels = paralell.copy()
+        #print(np.unique(labels, return_index=True))
         # if parallel trace out and back in zone, can get > 2 labels
         labels = self._remove_re_entering_branches(labels, remaining_branches=2)
         # if parallel trace doesn't exit window, can get 1 label
@@ -1806,26 +1815,67 @@ class nodeStats():
         ordered = []
         for i in range(1, minus.max()+1):
             arr = np.where(minus, minus==i, 0)
-            print(self.order_branch(arr, [0,0]).shape)
             ordered.append(self.order_branch(arr, [0,0])) # orientated later
         # combine ordered indexes
         for i in crossing_coords:
             ordered.append(i)
 
-        np.savetxt("knot2/both_coords.txt", both_img)
-        for i, val in enumerate(ordered):
-            np.savetxt(f"knot2/ordered_{i}.txt", val)
+        #np.savetxt("knot2/both_coords.txt", both_img)
+        #for i, val in enumerate(ordered):
+            #np.savetxt(f"knot2/ordered_{i}.txt", val)
 
-        trace_coords = self.trace_mol(ordered, both_img)
+        print("Getting coord trace")
+        coord_trace = self.trace_mol(ordered, both_img)
+
+        # visual over under img
+        visual = self.get_visual_img(coord_trace, fwhms, crossing_coords)
 
         # I could use the traced coords, remove the node centre coords, and re-label segments
         #   following 1, 2, 3... around the mol which should look like the Planar Diagram formation
         #   (https://topoly.cent.uw.edu.pl/dictionary.html#codes). Then look at each corssing zone again,
         #   determine which in in-undergoing and assign labels counter-clockwise
-        
+        print("Getting PD Codes:")
+        pd_codes = self.get_pds(coord_trace, node_centre_coords, fwhms, crossing_coords)
 
-        #return coord_trace
+        return coord_trace, visual
     
+    def get_visual_img(self, coord_trace, fwhms, crossing_coords):
+        # put down traces
+        img = np.zeros_like(self.skeleton)
+        for mol_no, coords in enumerate(coord_trace):
+            temp_img = np.zeros_like(img)
+            temp_img[coords[:,0], coords[:,1]] = 1
+            temp_img = binary_dilation(temp_img)
+            img[temp_img != 0] = mol_no + 1
+        
+        fwhms = np.array(fwhms).reshape(-1,2)
+        crossing_coords = np.array(crossing_coords).reshape(-1,2)
+        lower_idxs = fwhms.argmin(axis=1)
+        upper_idxs = fwhms.argmax(axis=1)
+        if len(coord_trace) > 1:
+            for type_idxs in [lower_idxs, upper_idxs]:
+                for (crossing, type_idx) in zip(crossing_coords, type_idxs):
+                    temp_img = np.zeros_like(img)
+                    cross_coords = crossing[type_idx]
+                    # decide which val
+                    matching_coords = np.array([])
+                    for trace in coord_trace:
+                        c = 0
+                        # get overlaps between segment coords and crossing under coords
+                        for cross_coord in cross_coords:
+                            c += ((trace == cross_coord).sum(axis=1)==2).sum()
+                        matching_coords = np.append(matching_coords, c)
+                    val = matching_coords.argmax() + 1
+                    temp_img[cross_coords[:,0], cross_coords[:,1]] = 1
+                    temp_img = binary_dilation(temp_img)
+                    img[temp_img != 0] = val
+        else:
+            # make plot where overs are one colour and unders another
+            pass
+
+        return img
+
+
     def get_minus_img(self, node_area_box, node_centre_coords):
         minus = self.skeleton.copy()
         for i, area in enumerate(node_area_box):
@@ -1847,7 +1897,6 @@ class nodeStats():
         both_img[crossing_img != 0] = crossing_img[crossing_img != 0]
         return both_img
 
-    
     @staticmethod
     def trace_mol(ordered_segment_coords, both_img):
         remaining = both_img.copy().astype(np.int32) # image
@@ -1877,11 +1926,113 @@ class nodeStats():
             except: # index of -1 out of range
                 break
 
-            print(f"Mols in trace: {len(mol_coords)}")
+        print(f"Mols in trace: {len(mol_coords)}")
 
-            return mol_coords
+
+
+        return mol_coords
         
-    def get_pds(trace_coords, node_centres):
-        for c in node_centres:
-            for mol_coords in trace_coords: # iterates thorugh mols first
-                c in mol_coords
+    def get_pds(self, trace_coords, node_centres, fwhms, crossing_coords):
+        # find idxs of branches from start
+        for mol_trace in trace_coords:
+            node_coord_idxs = np.array([]).astype(np.int32)
+            global_node_idxs = np.array([]).astype(np.int32)
+            img = np.zeros_like(self.skeleton.copy())
+            for i, c in enumerate(node_centres):
+                node_coord_idx = np.where((mol_trace[:,0]==c[0]) & (mol_trace[:,1]==c[1]))
+                node_coord_idxs = np.append(node_coord_idxs, node_coord_idx)
+                global_node_idx = np.zeros_like(node_coord_idx) + i
+                global_node_idxs = np.append(global_node_idxs, global_node_idx)
+
+            ordered_node_coord_idxs, ordered_node_idx_idxs = np.sort(node_coord_idxs), np.argsort(node_coord_idxs)
+            global_node_idxs = global_node_idxs[ordered_node_idx_idxs]
+
+            # iterate though nodes and label segments to node
+            img[mol_trace[0:ordered_node_coord_idxs[0],0], 
+                mol_trace[0:ordered_node_coord_idxs[0],1]] = 1
+            for i in range(0, len(ordered_node_coord_idxs)-1):
+                img[mol_trace[ordered_node_coord_idxs[i]:ordered_node_coord_idxs[i+1],0], 
+                    mol_trace[ordered_node_coord_idxs[i]:ordered_node_coord_idxs[i+1],1]] = i + 2
+            img[mol_trace[ordered_node_coord_idxs[-1]:-1,0], 
+                mol_trace[ordered_node_coord_idxs[-1]:-1,1]] = 1 # rejoins start at 1
+            
+            # want to generate PD code by looking at each node and decide which 
+            #   img label is the under-in one, then append anti-clockwise labels
+            #   - We'll have to match the node number to the node order
+            #   - Then check the FWHMs to see lowest
+            #   - Use lowest FWHM index to get the under branch coords
+            #   - Count overlapping coords between under branch coords and each ordered segment
+            #   - Get img label of two highest count (in and out)
+            #   - Under-in = lowest of two indexes
+            
+            fwhms = np.array(fwhms).reshape(-1,2)
+            crossing_coords = np.array(crossing_coords).reshape(-1,2)
+            #print(fwhms)
+            #print("global node idxs", fwhms[global_node_idxs])
+            for i, global_node_idx in enumerate(global_node_idxs):
+                #print(f"\n----Trace Node Num: {i+1}, Global Node Num: {global_node_idx}----")
+                under_branch_idx = fwhms[global_node_idx].argmin()
+                #print("under_branch_idx: ",under_branch_idx )
+                matching_coords = np.array([])
+                x, y = node_centres[global_node_idx]
+                node_area = img[x-3:x+4, y-3:y+4]
+                uniq_labels = np.unique(node_area)
+                uniq_labels = uniq_labels[uniq_labels!=0]
+
+                for label2 in uniq_labels:
+                    c=0
+                    # get overlaps between segment coords and crossing under coords
+                    for ordered_branch_coord in crossing_coords[global_node_idx][under_branch_idx]: #for global_node[4] branch index is incorrect
+                        c += ((np.stack(np.where(img==label2)).T == ordered_branch_coord).sum(axis=1)==2).sum()
+                    matching_coords = np.append(matching_coords, c)
+                    #print(f"Segment: {label}, Matches: {c}")
+                highest_count_labels = [uniq_labels[i] for i in np.argsort(matching_coords)[-2:]]
+                under_in = min(highest_count_labels) # under-in for global_node[4] is incorrect
+                #print(f"Under-in: {under_in}")
+                anti_clock = list(self.vals_anticlock(node_area, under_in))
+                
+                if len(anti_clock) == 2: # mol passes over/under another mol (maybe && [i]+1 == [i+1])
+                    print(f"passive: X{anti_clock}") 
+                elif len(anti_clock) == 3: # trival crossing (maybe also applies to Y's therefore maybe && consec when sorted)
+                    print(f"trivial: X{anti_clock}")
+                else:
+                    print(f"Real crossing: X{anti_clock}")
+
+        return None
+
+    @staticmethod
+    def make_arr_consec(arr):
+        for i, val in enumerate(arr):
+            if i not in arr:
+                arr[arr >= i] += -1
+        return arr
+
+    @staticmethod     
+    def vals_anticlock(area, start_lbl):
+        """Gets the first occurance of values around the edges of an array in an anti-clockwise direction from the start point.
+
+        Parameters
+        ----------
+        area : np.ndarray
+            The labeled image array you want to observe around
+        start_lbl : int
+            The value to start the anti-clockwise labeling from. Must be an value on the edge of the area array.
+
+        Returns
+        -------
+        np.ndarray
+            An array of the labeled area values in an anti-clockwise direction from the startpoint.
+        """
+        top = area[0,:][area[0,:]!=0][::-1]
+        left = area[:,0][area[:,0]!=0]
+        bottom = area[-1,:][area[-1,:]!=0]
+        right = area[:-1][area[:-1]!=0][::-1]
+        total = np.concatenate([top, left, bottom, right])
+        
+        # prevent multiple occurances while retaining order
+        uniq_total_idxs = np.unique(total, return_index=True)[1]
+        total = np.array([total[i] for i in sorted(uniq_total_idxs)])
+        start_idx = np.where(total==start_lbl)[0]
+        
+        return np.roll(total, -start_idx)
+            
