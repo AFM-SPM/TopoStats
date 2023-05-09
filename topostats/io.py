@@ -750,20 +750,24 @@ class LoadScans:
             # Check that the file extension is supported
             if suffix in suffix_to_loader:
                 self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
-                # Ensure the image is large enough in both dimensions to be processed, if not, do not add to image
-                # dictionary
-                if self.image.shape[0] < self.MINIMUM_IMAGE_SIZE or self.image.shape[1] < self.MINIMUM_IMAGE_SIZE:
-                    LOGGER.warning(f"Image {self.filename} too small: {self.image.shape} this image will be skipped.")
-                else:
-                    self.add_to_dic(
-                        self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
-                    )
+                self._check_image_size()
             else:
                 raise ValueError(
                     f"File type {suffix} not yet supported. Please make an issue at \
                 https://github.com/AFM-SPM/TopoStats/issues, or email topostats@sheffield.ac.uk to request support for \
                 this file type."
                 )
+
+    def _check_image_size(self) -> None:
+        """Check the image is above a minimum size in both dimensions.
+
+        Images that do not meet the minimum size are not included for processing.
+        """
+        if self.image.shape[0] < self.MINIMUM_IMAGE_SIZE or self.image.shape[1] < self.MINIMUM_IMAGE_SIZE:
+            LOGGER.warning(f"[{self.filename}] Skipping, image too small: {self.image.shape}")
+        else:
+            self.add_to_dic(self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling)
+            LOGGER.info(f"[{self.filename}] Image added to processing.")
 
     def add_to_dic(self, filename: str, image: np.ndarray, img_path: Path, px_2_nm: float) -> None:
         """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under
