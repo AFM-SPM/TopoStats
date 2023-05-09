@@ -371,6 +371,7 @@ class LoadScans:
         self.image = None
         self.pixel_to_nm_scaling = None
         self.img_dict = {}
+        self.MINIMUM_IMAGE_SIZE = 10
 
     def load_spm(self) -> tuple:
         """Extract image and pixel to nm scaling from the Bruker .spm file.
@@ -731,38 +732,42 @@ class LoadScans:
         """Method to extract image, filepath and pixel to nm scaling value, and append these to the
         img_dic object.
         """
+
+        suffix_to_loader = {
+            ".spm": self.load_spm,
+            ".jpk": self.load_jpk,
+            ".ibw": self.load_ibw,
+            ".gwy": self.load_gwy,
+        }
+
         for img_path in self.img_paths:
             self.img_path = img_path
             self.filename = img_path.stem
             suffix = img_path.suffix
             LOGGER.info(f"Extracting image from {self.img_path}")
             LOGGER.debug(f"File extension : {suffix}")
-            if suffix == ".spm":
-                self.image, self.pixel_to_nm_scaling = self.load_spm()
-                self.add_to_dic(
-                    self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
-                )
-            elif suffix == ".jpk":
-                self.image, self.pixel_to_nm_scaling = self.load_jpk()
-                self.add_to_dic(
-                    self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
-                )
-            elif suffix == ".ibw":
-                self.image, self.pixel_to_nm_scaling = self.load_ibw()
-                self.add_to_dic(
-                    self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
-                )
-            elif suffix == ".gwy":
-                self.image, self.pixel_to_nm_scaling = self.load_gwy()
-                self.add_to_dic(
-                    self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
-                )
+
+            # Check that the file extension is supported
+            if suffix in suffix_to_loader:
+                self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
+                self._check_image_size()
             else:
                 raise ValueError(
                     f"File type {suffix} not yet supported. Please make an issue at \
                 https://github.com/AFM-SPM/TopoStats/issues, or email topostats@sheffield.ac.uk to request support for \
                 this file type."
                 )
+
+    def _check_image_size(self) -> None:
+        """Check the image is above a minimum size in both dimensions.
+
+        Images that do not meet the minimum size are not included for processing.
+        """
+        if self.image.shape[0] < self.MINIMUM_IMAGE_SIZE or self.image.shape[1] < self.MINIMUM_IMAGE_SIZE:
+            LOGGER.warning(f"[{self.filename}] Skipping, image too small: {self.image.shape}")
+        else:
+            self.add_to_dic(self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling)
+            LOGGER.info(f"[{self.filename}] Image added to processing.")
 
     def add_to_dic(self, filename: str, image: np.ndarray, img_path: Path, px_2_nm: float) -> None:
         """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under
