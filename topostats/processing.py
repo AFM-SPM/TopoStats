@@ -150,17 +150,17 @@ def process_scan(
             grains.find_grains()
             for direction, _ in grains.directions.items():
                 LOGGER.info(
-                    f"[{filename}] : Grains found for direction {direction} : {grains.number_of_grains_found[direction]}"
+                    f"[{filename}] : Grains found for direction {direction} : {len(grains.region_properties[direction])}"
                 )
-                if grains.number_of_grains_found[direction] == 0:
+                if len(grains.region_properties[direction]) == 0:
                     LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
         except Exception as e:
             LOGGER.error(f"[{filename}] : An error occured during grain finding, skipping grainstats and dnatracing.")
             LOGGER.error(f"[{filename}] : The error: {e}")
             results = create_empty_dataframe()
         else:
-            for direction, number_of_grains in grains.number_of_grains_found.items():
-                if number_of_grains == 0:
+            for direction, region_props in grains.region_properties.items():
+                if len(region_props) == 0:
                     LOGGER.warning(f"[{filename}] : No grains found for the {direction} direction.")
             # Optionally plot grain finding stage if we have found grains and plotting is required
             if plotting_config["run"]:
@@ -214,7 +214,7 @@ def process_scan(
                     grainstats = {}
                     # There are two layers to process those above the given threshold and those below
                     for direction, _ in grains.directions.items():
-                        if grains.number_of_grains_found[direction] == 0:
+                        if len(grains.region_properties[direction]) == 0:
                             LOGGER.warning(
                                 f"[{filename}] : No grains exist for the {direction} direction. Skipping grainstats and DNAtracing."
                             )

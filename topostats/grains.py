@@ -91,7 +91,6 @@ class Grains:
         self.region_properties = defaultdict()
         self.bounding_boxes = defaultdict()
         self.grainstats = None
-        self.number_of_grains_found = {}
 
     def tidy_border(self, image: np.array, **kwargs) -> np.array:
         """Remove grains touching the border.
@@ -332,7 +331,6 @@ class Grains:
             self.directions[direction]["labelled_regions_02"] = self.label_regions(
                 self.directions[direction]["removed_small_objects"]
             )
-            self.number_of_grains_found[direction] = np.max(self.directions[direction]["labelled_regions_02"])
             self.region_properties[direction] = self.get_region_properties(
                 self.directions[direction]["labelled_regions_02"]
             )
