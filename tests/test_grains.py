@@ -70,3 +70,40 @@ def test_known_array_threshold(area_thresh_nm, expected) -> None:
 #     # FIXME : I can see for myself that the error message is logged but the assert fails as caplog.text is empty?
 #     # assert "No gains found." in caplog.text
 #     assert True
+
+
+def test_area_thresholding():
+    """Test the area_thresholding() method of the Grains class."""
+
+    grains_object = Grains(
+        image=None,
+        filename="",
+        pixel_to_nm_scaling=1.0,
+    )
+
+    test_img = np.array(
+        [
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 1, 0, 3, 3, 0],
+            [0, 0, 1, 0, 3, 3, 0],
+            [0, 0, 0, 0, 0, 3, 0],
+            [0, 2, 0, 2, 0, 3, 0],
+            [0, 2, 2, 2, 0, 3, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+        ]
+    )
+    area_thresholds = [4.0, 6.0]
+    expected = np.array(
+        [
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0, 0, 0],
+            [0, 1, 1, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+        ]
+    )
+    result = grains_object.area_thresholding(test_img, area_thresholds=area_thresholds)
+
+    np.testing.assert_array_equal(result, expected)
