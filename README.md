@@ -13,6 +13,7 @@
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-360/)
 [![pre-commit.ci
 status](https://results.pre-commit.ci/badge/github/AFM-SPM/TopoStats/main.svg)](https://results.pre-commit.ci/latest/github/AFM-SPM/TopoStats/main)
+[![](https://img.shields.io/badge/ORDA--DOI-10.15131%2Fshef.data.22633528.v.1-lightgrey)](https://figshare.shef.ac.uk/articles/software/TopoStats/22633528/1)
 
 | [Installation](#installation) | [Tutorials and Examples](#tutorials-and-examples) | [Contributing](contributing.md) |
 | [Licence](#licence) | [Citation](#citation) |
