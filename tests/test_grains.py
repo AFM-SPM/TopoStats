@@ -72,6 +72,45 @@ def test_known_array_threshold(area_thresh_nm, expected) -> None:
 #     assert True
 
 
+def test_remove_small_objects():
+    """Test the remove_small_objects method of the Grains class."""
+
+    grains_object = Grains(
+        image=None,
+        filename="",
+        pixel_to_nm_scaling=1.0,
+    )
+
+    test_img = np.array(
+        [
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 1, 0, 3, 3, 0],
+            [0, 0, 1, 0, 3, 3, 0],
+            [0, 0, 0, 0, 0, 3, 0],
+            [0, 2, 0, 2, 0, 3, 0],
+            [0, 2, 2, 2, 0, 3, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+        ]
+    )
+
+    expected = np.array(
+        [
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 1, 0],
+            [0, 0, 0, 0, 1, 1, 0],
+            [0, 0, 0, 0, 0, 1, 0],
+            [0, 1, 0, 1, 0, 1, 0],
+            [0, 1, 1, 1, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+        ]
+    )
+
+    grains_object.minimum_grain_size = 5
+    result = grains_object.remove_small_objects(test_img)
+
+    np.testing.assert_array_equal(result, expected)
+
+
 def test_area_thresholding():
     """Test the area_thresholding() method of the Grains class."""
 
