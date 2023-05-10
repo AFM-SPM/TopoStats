@@ -1871,8 +1871,22 @@ class nodeStats():
                     img[temp_img != 0] = val
         else:
             # make plot where overs are one colour and unders another
-            pass
-
+            for i, type_idxs in enumerate([lower_idxs, upper_idxs]):
+                for (crossing, type_idx) in zip(crossing_coords, type_idxs):
+                    temp_img = np.zeros_like(img)
+                    cross_coords = crossing[type_idx]
+                    # decide which val
+                    matching_coords = np.array([])
+                    c = 0
+                    # get overlaps between segment coords and crossing under coords
+                    for cross_coord in cross_coords:
+                        c += ((coord_trace[0] == cross_coord).sum(axis=1)==2).sum()
+                    matching_coords = np.append(matching_coords, c)
+                    val = matching_coords.argmax() + 1
+                    temp_img[cross_coords[:,0], cross_coords[:,1]] = 1
+                    temp_img = binary_dilation(temp_img)
+                    img[temp_img != 0] = i + 2
+            print(np.unique(img))
         return img
 
 
