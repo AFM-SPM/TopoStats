@@ -109,27 +109,32 @@ removed_small_objects:
   title: "Small Objects Removed"
   image_type: "binary"
   core_set: false
+grains_removed_based_on_height:
+  filename: "19-grains_removed_based_on_height"
+  title: "Grains removed based on height"
+  image_type: "binary"
+  core_set: false
 mask_overlay:
   title: "Height Thresholded with Mask"
   image_type: "non-binary"
   core_set: true
 labelled_regions_02:
-  filename: "19-labelled_regions"
+  filename: "20-labelled_regions"
   title: "Labelled Regions"
   image_type: "binary"
   core_set: false
 coloured_regions:
-  filename: "20-coloured_regions"
+  filename: "21-coloured_regions"
   title: "Coloured Regions"
   image_type: "binary"
   core_set: false
 bounding_boxes:
-  filename: "21-bounding_boxes"
+  filename: "22-bounding_boxes"
   title: "Bounding Boxes"
   image_type: "binary"
   core_set: false
 coloured_boxes:
-  filename: "22-labelled_image_bboxes"
+  filename: "23-labelled_image_bboxes"
   title: "Labelled Image with Bounding Boxes"
   image_type: "binary"
   core_set: false
