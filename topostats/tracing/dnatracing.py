@@ -16,7 +16,8 @@ from skimage import morphology
 from skimage.filters import gaussian
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.tracing.tracingfuncs import genTracingFuncs, getSkeleton, reorderTrace
+from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
+from topostats.tracing.skeletonize import getSkeleton, pruneSkeleton
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -184,10 +185,9 @@ class dnaTrace(object):
             very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
             try:
-                dna_skeleton = getSkeleton(
-                    self.gauss_image, smoothed_grain, self.number_of_columns, self.number_of_rows, self.pixel_size
-                )
-                self.disordered_trace[grain_num] = dna_skeleton.output_skeleton
+                dna_skeleton = getSkeleton(self.gauss_image, smoothed_grain).get_skeleton(method="joe")
+                dna_skeleton = pruneSkeleton(self.gauss_image, dna_skeleton).prune_skeleton(method="joe")
+                self.disordered_trace[grain_num] = np.argwhere(dna_skeleton==1)
             except IndexError:
                 # Some gwyddion grains touch image border causing IndexError
                 # These grains are deleted
@@ -214,7 +214,7 @@ class dnaTrace(object):
 
             # For loop determines how many neighbours a point has - if only one it is an end
             for x, y in fitted_trace_list:
-                if genTracingFuncs.countNeighbours(x, y, fitted_trace_list) == 1:
+                if genTracingFuncs.count_and_get_neighbours(x, y, fitted_trace_list)[0] == 1:
                     points_with_one_neighbour += 1
                 else:
                     pass
@@ -252,11 +252,9 @@ class dnaTrace(object):
         """Take ordered coorinates and return their heights."""
         for mol_num, coordinates in self.ordered_traces.items():
             heights = self.gauss_image[coordinates[:,1], coordinates[:,0]]
-            print(heights)
             distances = self.coord_dist(coordinates, self.pixel_size)
             self.height_dist_dict[mol_num] = (list(heights), list(distances))
         
-
     @staticmethod
     def coord_dist(coords: np.ndarray, px_2_nm: float = 1) -> np.ndarray:
         """Takes a list/array of coordinates (Nx2) and produces an array which
