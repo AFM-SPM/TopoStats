@@ -1046,10 +1046,19 @@ class nodeStats():
                 self.connect_close_nodes(node_width=6)
                 self.highlight_node_centres(self.connected_nodes)
                 self.analyse_nodes(box_length=20)
-                self.mol_coords[skeleton_no], self.visuals[skeleton_no] = self.compile_trace()
+                if self.check_node_errorless():
+                    self.mol_coords[skeleton_no], self.visuals[skeleton_no] = self.compile_trace()
                 self.full_dict[skeleton_no] = self.node_dict
             else:
                 self.full_dict[skeleton_no] = {}
+
+    def check_node_errorless(self):
+        for _, vals in self.node_dict.items():
+            if vals['error']:
+                return False
+            else:
+                pass
+        return True
 
     def connect_close_nodes(self, node_width: float = 2.85) -> None:
         """Looks to see if nodes are within the node_width boundary (2.85nm) and thus
@@ -1795,10 +1804,10 @@ class nodeStats():
         crossing_heights = []
         crossing_distances = []
         fwhms = []
-        for node_num, stats in self.node_dict.items():
+        for _, stats in self.node_dict.items():
             node_centre_coords.append(stats['node_stats']['node_mid_coords'])
             node_area_box.append(stats['node_stats']['node_area_image'].shape)
-            for branch_no, branch_stats in stats['branch_stats'].items():
+            for _, branch_stats in stats['branch_stats'].items():
                 crossing_coords.append(branch_stats['ordered_coords'])
                 crossing_heights.append(branch_stats['heights'])
                 crossing_distances.append(branch_stats['distances'])
@@ -1948,6 +1957,7 @@ class nodeStats():
         
     def get_pds(self, trace_coords, node_centres, fwhms, crossing_coords):
         # find idxs of branches from start
+        print("Mols found:", len(trace_coords))
         for mol_trace in trace_coords:
             node_coord_idxs = np.array([]).astype(np.int32)
             global_node_idxs = np.array([]).astype(np.int32)
@@ -2006,7 +2016,7 @@ class nodeStats():
                 anti_clock = list(self.vals_anticlock(node_area, under_in))
                 
                 if len(anti_clock) == 2: # mol passes over/under another mol (maybe && [i]+1 == [i+1])
-                    print(f"passive: X{anti_clock}") 
+                    print(f"passive: X{anti_clock}")
                 elif len(anti_clock) == 3: # trival crossing (maybe also applies to Y's therefore maybe && consec when sorted)
                     print(f"trivial: X{anti_clock}")
                 else:
