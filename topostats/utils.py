@@ -250,12 +250,12 @@ def folder_grainstats(output_dir: Union[str, Path], base_dir: Union[str, Path], 
 def convolve_skelly(skeleton) -> np.ndarray:
     """Convolves the skeleton with a 3x3 ones kernel to produce an array
     of the skeleton as 1, endpoints as 2, and nodes as 3.
-    
+
     Parameters
     ----------
     skeleton: np.ndarray
         Single pixel thick binary trace(s) within an array.
-    
+
     Returns
     -------
     np.ndarray
@@ -266,6 +266,7 @@ def convolve_skelly(skeleton) -> np.ndarray:
     conv[conv == 3] = 1  # skelly = 1
     conv[conv > 3] = 3  # nodes = 3
     return conv
+
 
 class ResolutionError(Exception):
     "Raised when the image resolution is too small for accuurate tracing."

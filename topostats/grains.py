@@ -251,8 +251,8 @@ class Grains:
     @staticmethod
     def gaussian_grains(image) -> None:
         """Applies a gaussian to each individual grain to smooth it"""
-        image = gaussian(image, sigma=max(image.shape)/256)
-        image[image > threshold_otsu(image)*1.3] = 1
+        image = gaussian(image, sigma=max(image.shape) / 256)
+        image[image > threshold_otsu(image) * 1.3] = 1
         image[image != 1] = 0
         return image
 

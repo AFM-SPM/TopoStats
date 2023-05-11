@@ -16,20 +16,20 @@ from topostats.io import read_yaml
 from topostats.tracing.dnatracing import nodeStats
 from topostats.theme import Colormap
 
-#plotting_config = read_yaml(Path("./config/plotting_config.yml"))
+# plotting_config = read_yaml(Path("./config/plotting_config.yml"))
 
 # Need to define extension for tests to pass
-#extension = ".png"
+# extension = ".png"
 
 # Set seaborn to override matplotlib for plot output
-#sns.set()
-#sns.set_style("white", {"font.family": ["sans-serif"]})
+# sns.set()
+# sns.set_style("white", {"font.family": ["sans-serif"]})
 # The four preset contexts, in order of relative size, are paper, notebook, talk, and poster.
 # The notebook style is the default
 # sns.set_context("notebook", font_scale=1.5)
-#sns.set_context("poster", font_scale=1.4)
+# sns.set_context("poster", font_scale=1.4)
 # plt.style.use("dark_background")
-#sns.set_palette(sns.color_palette("bright"))
+# sns.set_palette(sns.color_palette("bright"))
 
 colname2label = {
     "grain_bound_len": "Circumference / %s",
@@ -563,6 +563,7 @@ def computeStats(data, columns, min, max):
 #     else:
 #         summary = data[metrics].summary()
 
+
 def plot_crossing_linetrace_gauss(branch_stats_dict, cmap, title):
     """Plots the heightmap lines traces of the branches found in the 'branch_stats' dictionary, and their gaussian"""
     fig, ax = plt.subplots(1, 1)
@@ -579,14 +580,21 @@ def plot_crossing_linetrace_gauss(branch_stats_dict, cmap, title):
         try:
             popt = values["gaussian_fit"]
             fwhm = values["fwhm"]
-            ax.plot(x, nodeStats.gaussian(x, popt[0], popt[1], popt[2]) + heights.min(), label=f"FWHM: {fwhm:.1f}", c=cmp(cmap_ratio), linestyle='dashed')
+            ax.plot(
+                x,
+                nodeStats.gaussian(x, popt[0], popt[1], popt[2]) + heights.min(),
+                label=f"FWHM: {fwhm:.1f}",
+                c=cmp(cmap_ratio),
+                linestyle="dashed",
+            )
         except KeyError:
-            pass # if no gaussian params found then skip this bit of the plot
+            pass  # if no gaussian params found then skip this bit of the plot
     ax.set_xlabel("Pixel of Branch")
     ax.set_ylabel("Height")
     ax.set_title(title)
     ax.legend()
     return fig, ax
+
 
 def plot_crossing_linetrace_halfmax(branch_stats_dict, cmap, title):
     """Plots the heightmap lines traces of the branches found in the 'branch_stats' dictionary, and their meetings."""
@@ -610,16 +618,17 @@ def plot_crossing_linetrace_halfmax(branch_stats_dict, cmap, title):
         ax.plot(x, heights, label=f"Branch: {branch_idx}", c=cmp(cmap_ratio))
 
         # plot the high point lines
-        plt.plot([-15, m_vals[1]], [m_vals[2] ,m_vals[2]], c=cmp(cmap_ratio), label=f"FWHM: {fwhm:.1f}")
+        plt.plot([-15, m_vals[1]], [m_vals[2], m_vals[2]], c=cmp(cmap_ratio), label=f"FWHM: {fwhm:.1f}")
         # plot the half max lines
-        plt.plot([hm_vals[0], hm_vals[0]],[hm_vals[2], 0] + heights.min(), c=cmp(cmap_ratio))
-        plt.plot([hm_vals[1], hm_vals[1]],[hm_vals[2], 0] + heights.min(), c=cmp(cmap_ratio))
-    
+        plt.plot([hm_vals[0], hm_vals[0]], [hm_vals[2], 0] + heights.min(), c=cmp(cmap_ratio))
+        plt.plot([hm_vals[1], hm_vals[1]], [hm_vals[2], 0] + heights.min(), c=cmp(cmap_ratio))
+
     ax.set_xlabel("Distance from Node (nm)")
     ax.set_ylabel("Height")
     ax.set_title(title)
     ax.legend()
     return fig, ax
+
 
 if __name__ == "__main__":
 

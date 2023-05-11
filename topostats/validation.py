@@ -216,20 +216,20 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 True,
                 False,
                 error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
-                ),
-                "skeletonisation_method": Or(
-                    "zhang",
-                    "lee",
-                    "thin",
-                    "medial_axis",
-                    "joe",
-                    error="Invalid value in config for 'filter.skeletonisation_method', valid values are 'zhang', 'lee', 'thin', 'medial_axis', 'joe'",
-                ),
-                "pruning_method": Or(
-                    "joe",
-                    "max",
-                    error="Invalid value in config for 'filter.pruning_method', valid values are 'joe'",
-            )
+            ),
+            "skeletonisation_method": Or(
+                "zhang",
+                "lee",
+                "thin",
+                "medial_axis",
+                "joe",
+                error="Invalid value in config for 'filter.skeletonisation_method', valid values are 'zhang', 'lee', 'thin', 'medial_axis', 'joe'",
+            ),
+            "pruning_method": Or(
+                "joe",
+                "max",
+                error="Invalid value in config for 'filter.pruning_method', valid values are 'joe'",
+            ),
         },
         "plotting": {
             "run": Or(
@@ -614,47 +614,44 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
         },
         "orig_grains": {
-                "filename": str,
-                "title": str,
-                "image_type": Or(
-                    "binary",
-                    "non-binary",
-                    error=(
-                        "Invalid value in config 'coloured_boxes.image_type', valid values "
-                        "are 'binary' or 'non-binary'"
-                    )
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
-                "mask_cmap": str,
-                "core_set": bool,
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
         },
         "smoothed_grains": {
-                "filename": str,
-                "title": str,
-                "image_type": Or(
-                    "binary",
-                    "non-binary",
-                    error=(
-                        "Invalid value in config 'coloured_boxes.image_type', valid values "
-                        "are 'binary' or 'non-binary'"
-                    )
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
-                "mask_cmap": str,
-                "core_set": bool,
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
         },
         "orig_skeletons": {
-                "filename": str,
-                "title": str,
-                "image_type": Or(
-                    "binary",
-                    "non-binary",
-                    error=(
-                        "Invalid value in config 'coloured_boxes.image_type', valid values "
-                        "are 'binary' or 'non-binary'"
-                    )
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
-                "mask_cmap": str,
-                "core_set": bool,
-                "dpi": int,
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "dpi": int,
         },
         "pruned_skeletons": {
             "filename": str,
@@ -663,84 +660,78 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
-                )
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
             ),
             "mask_cmap": str,
             "core_set": bool,
             "dpi": int,
-            },
-            "nodes":{
-                "filename": str,
-                "title": str,
-                "image_type": Or(
-                    "binary",
-                    "non-binary",
-                    error=(
-                        "Invalid value in config 'coloured_boxes.image_type', valid values "
-                        "are 'binary' or 'non-binary'"
-                    )
+        },
+        "nodes": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
-                "mask_cmap":str,
-                "core_set": bool,
-                "dpi": int,
-            },
-            "zoom_node":{
-                "title": str,
-                "image_type": Or(
-                    "binary",
-                    "non-binary",
-                    error=(
-                        "Invalid value in config 'coloured_boxes.image_type', valid values "
-                        "are 'binary' or 'non-binary'"
-                    )
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "dpi": int,
+        },
+        "zoom_node": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
-                "mask_cmap": str,
-                "core_set": bool,
-            },
-            "crossings":{
-                "title": str,
-                "image_type": Or(
-                    "binary",
-                    "non-binary",
-                    error=(
-                        "Invalid value in config 'coloured_boxes.image_type', valid values "
-                        "are 'binary' or 'non-binary'"
-                    )
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+        },
+        "crossings": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
-                "mask_cmap": str,
-                "core_set": bool,
-            },
-            "tripple_crossings":{
-                "title": str,
-                "image_type": Or(
-                    "binary",
-                    "non-binary",
-                    error=(
-                        "Invalid value in config 'coloured_boxes.image_type', valid values "
-                        "are 'binary' or 'non-binary'"
-                    )
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+        },
+        "tripple_crossings": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
-                "mask_cmap": str,
-                "core_set": bool,
-            },
-            "line_trace":{
-                "title": str,
-                "cmap": str,
-            },
-            "test": {
-                "title": str,
-                "image_type": Or(
-                    "binary",
-                    "non-binary",
-                    error=(
-                        "Invalid value in config 'coloured_boxes.image_type', valid values "
-                        "are 'binary' or 'non-binary'"
-                    )
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+        },
+        "line_trace": {
+            "title": str,
+            "cmap": str,
+        },
+        "test": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
-                "core_set": bool,
-                "dpi": int,
-            }
+            ),
+            "core_set": bool,
+            "dpi": int,
+        },
     }
 )

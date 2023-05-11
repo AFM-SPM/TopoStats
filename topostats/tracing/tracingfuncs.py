@@ -99,7 +99,9 @@ class reorderTrace:
         # Randomly choose one of the neighbouring points as the next point
         x_n = ordered_points[0][0]
         y_n = ordered_points[0][1]
-        no_of_neighbours, neighbour_array = genTracingFuncs.count_and_get_neighbours(x_n, y_n, remaining_unordered_coords)
+        no_of_neighbours, neighbour_array = genTracingFuncs.count_and_get_neighbours(
+            x_n, y_n, remaining_unordered_coords
+        )
         ordered_points.append(neighbour_array[0])
         remaining_unordered_coords.pop(remaining_unordered_coords.index(neighbour_array[0]))
 
@@ -224,7 +226,6 @@ class reorderTrace:
 
 
 class genTracingFuncs:
-
     @staticmethod
     def count_and_get_neighbours(x, y, trace_coordinates):
 

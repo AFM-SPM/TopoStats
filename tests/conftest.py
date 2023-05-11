@@ -671,17 +671,20 @@ def dnatracing_dilate(test_dnatracing: dnaTrace) -> dnaTrace:
     test_dnatracing.dilate_grains()
     return test_dnatracing
 
+
 @pytest.fixture
 def dnatracing_disordered_traces(dnatracing_dilate: dnaTrace) -> dnaTrace:
     """Get disordered grain coords."""
     dnatracing_dilate.get_disordered_trace()
     return dnatracing_dilate
 
+
 @pytest.fixture
 def dnatracing_trace(test_dnatracing: dnaTrace) -> dnaTrace:
     """Run the tracing pipeline on the dnatracing object."""
     test_dnatracing.trace_dna()
     return test_dnatracing
+
 
 @pytest.fixture
 def minicircle_dnatracing(
