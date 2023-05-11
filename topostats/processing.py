@@ -192,7 +192,7 @@ def process_scan(
                     Images(
                         filtered_image.images["gaussian_filtered"],
                         filename=f"{filename}_{direction}_masked",
-                        masked_array=grains.directions[direction]["removed_small_objects"],
+                        masked_array=grains.directions[direction]["grains_removed_based_on_height"],
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
 
