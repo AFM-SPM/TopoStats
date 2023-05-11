@@ -17,7 +17,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from scipy.ndimage import binary_dilation
-from  matplotlib.patches import Arc
+from matplotlib.patches import Arc
 
 from topostats.filters import Filters
 from topostats.grains import Grains
@@ -133,6 +133,7 @@ def create_parser() -> arg.ArgumentParser:
     )
     return parser
 
+
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
@@ -142,6 +143,7 @@ class NpEncoder(json.JSONEncoder):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         return super(NpEncoder, self).default(obj)
+
 
 def process_scan(
     img_path_px2nm: Dict[str, Union[np.ndarray, Path, float]],
@@ -297,7 +299,6 @@ def process_scan(
 
             plotting_config["run"] = True
 
-
         # Grainstats :
         #
         # There are two layers to process those above the given threshold and those below, use dictionary comprehension
@@ -305,7 +306,7 @@ def process_scan(
         if grainstats_config["run"] and grains.region_properties is not None:
             grainstats_config.pop("run")
             # Grain Statistics :
-            #try:
+            # try:
             LOGGER.info(f"[{filename}] : *** Grain Statistics ***")
             grain_plot_dict = {
                 key: value
@@ -332,7 +333,7 @@ def process_scan(
                 grainstats_df = grainstats["upper"]["statistics"]
             elif grains_config["direction"] == "lower":
                 grainstats_df = grainstats["lower"]["statistics"]
-            
+
             # Run dnatracing
             if dnatracing_config["run"]:
                 dnatracing_config.pop("run")
@@ -367,18 +368,18 @@ def process_scan(
                         data2=binary_dilation(dna_traces[direction].skeletons),
                         **plotting_config["plot_dict"][plot_name],
                     ).save_figure_black(
-                            background=grains.directions[direction]["removed_small_objects"],
-                            )
+                        background=grains.directions[direction]["removed_small_objects"],
+                    )
 
                     tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
                     tracing_stats[direction].df["threshold"] = direction
-                    
+
                     nodes = nodeStats(
                         image=dna_traces[direction].full_image_data,
                         grains=grains.directions[direction]["removed_small_objects"],
                         skeletons=dna_traces[direction].skeletons,
-                        px_2_nm=pixel_to_nm_scaling
-                        )
+                        px_2_nm=pixel_to_nm_scaling,
+                    )
                     node_stats[direction] = nodes.get_node_stats()
 
                     # Plot dnatracing images
@@ -387,10 +388,16 @@ def process_scan(
 
                     fitted_coords = dna_traces[direction].fitted_traces[1]
                     fitted_img = np.zeros_like(dna_traces[direction].skeletons)
-                    fitted_img[fitted_coords[:,0], fitted_coords[:,1]] = 1
+                    fitted_img[fitted_coords[:, 0], fitted_coords[:, 1]] = 1
 
                     plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes"]
-                    data2s = [dna_traces[direction].grains_orig, dna_traces[direction].smoothed_grains, dna_traces[direction].orig_skeletons, dna_traces[direction].skeletons, nodes.all_connected_nodes]
+                    data2s = [
+                        dna_traces[direction].grains_orig,
+                        dna_traces[direction].smoothed_grains,
+                        dna_traces[direction].orig_skeletons,
+                        dna_traces[direction].skeletons,
+                        nodes.all_connected_nodes,
+                    ]
                     for i, plot_name in enumerate(plot_names):
                         plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                         Images(
@@ -399,8 +406,8 @@ def process_scan(
                             zrange=[0, 3.5],
                             **plotting_config["plot_dict"][plot_name],
                         ).save_figure_black(
-                                background=grains.directions[direction]["removed_small_objects"],
-                                )
+                            background=grains.directions[direction]["removed_small_objects"],
+                        )
 
                     # plot nodes and line traces
                     for mol_no, mol_stats in node_stats[direction].items():
@@ -412,10 +419,8 @@ def process_scan(
                                 output_dir=output_dir / "nodes",
                                 zrange=[0, 3.5e-9],
                                 **plotting_config["plot_dict"]["zoom_node"],
-                            ).save_figure_black(
-                                background=single_node_stats["node_stats"]["node_area_grain"]
-                                )
-                            
+                            ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
+
                             Images(
                                 single_node_stats["node_stats"]["node_area_image"],
                                 data2=single_node_stats["node_stats"]["node_branch_mask"],
@@ -423,10 +428,8 @@ def process_scan(
                                 output_dir=output_dir / "nodes",
                                 zrange=[0, 3.5e-9],
                                 **plotting_config["plot_dict"]["crossings"],
-                            ).save_figure_black(
-                                background=single_node_stats["node_stats"]["node_area_grain"]
-                                )
- 
+                            ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
+
                             if single_node_stats["node_stats"]["node_avg_mask"] is not None:
                                 Images(
                                     single_node_stats["node_stats"]["node_area_image"],
@@ -435,17 +438,21 @@ def process_scan(
                                     output_dir=output_dir / "nodes",
                                     zrange=[0, 3.5e-9],
                                     **plotting_config["plot_dict"]["tripple_crossings"],
-                                ).save_figure_black(
-                                    background=single_node_stats["node_stats"]["node_area_grain"]
-                                    )
-                            
+                                ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
+
                             if not single_node_stats["error"]:
-                                plotting_config["plot_dict"]["line_trace"] = {"title": "Heights of Crossing", "cmap": "blu_purp"}
+                                plotting_config["plot_dict"]["line_trace"] = {
+                                    "title": "Heights of Crossing",
+                                    "cmap": "blu_purp",
+                                }
                                 fig, _ = plot_crossing_linetrace_halfmax(
                                     single_node_stats["branch_stats"],
                                     **plotting_config["plot_dict"]["line_trace"],
-                                    )
-                                fig.savefig(output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg", format="svg")
+                                )
+                                fig.savefig(
+                                    output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg",
+                                    format="svg",
+                                )
 
                     # ------- branch vector img -------
                     vectors = nodes.test2
@@ -457,15 +464,13 @@ def process_scan(
                         mask_cmap="viridis",
                         filename="branch_vectors.tiff",
                         **plotting_config["plot_dict"][plot_name],
-                    ).save_figure_black(
-                        background=node_stats[direction][1][1]["node_stats"]["node_area_grain"]
-                        )
-                    
-                    col = ["m","b","g","y"]
-                    for i, vector in enumerate(np.asarray(vectors)): #[:,::-1]):
-                        ax.arrow(10.25, 10.5, vector[1]*4, vector[0]*-4, width=0.3, color=col[i])
+                    ).save_figure_black(background=node_stats[direction][1][1]["node_stats"]["node_area_grain"])
+
+                    col = ["m", "b", "g", "y"]
+                    for i, vector in enumerate(np.asarray(vectors)):  # [:,::-1]):
+                        ax.arrow(10.25, 10.5, vector[1] * 4, vector[0] * -4, width=0.3, color=col[i])
                     fig.savefig("cats2/vector_img.tiff")
-                    
+
                     # ------- branch vector + angles fig -------
                     vectors = nodes.test4
                     angles = nodes.test5
@@ -477,20 +482,19 @@ def process_scan(
                         mask_cmap="blu_purp",
                         filename="test",
                         **plotting_config["plot_dict"][plot_name],
-                    ).save_figure_black(
-                        background=node_stats[direction][1][1]["node_stats"]["node_area_grain"]
-                        )
-                    
-                    col = ["b","m"]
-                    ax.arrow(10.25-4, 10.75, vectors[0][1]*8, vectors[0][0]*-8, width=0.3, color=col[0])
-                    ax.arrow(10.25, 10.75+4, vectors[1][1]*8, vectors[1][0]*-8, width=0.3, color=col[1])
-                    
+                    ).save_figure_black(background=node_stats[direction][1][1]["node_stats"]["node_area_grain"])
+
+                    col = ["b", "m"]
+                    ax.arrow(10.25 - 4, 10.75, vectors[0][1] * 8, vectors[0][0] * -8, width=0.3, color=col[0])
+                    ax.arrow(10.25, 10.75 + 4, vectors[1][1] * 8, vectors[1][0] * -8, width=0.3, color=col[1])
+
                     arc = Arc((10.05, 10.50), 7.2, 7.2, -2, 0, angles[1], lw=10, color="white")
                     ax.add_patch(arc)
-                    ax.text(12.5, 14, "%0.2f"%float(angles[1])+"\u00b0", fontsize=40, weight='bold', color="white") #'xx-large
+                    ax.text(
+                        12.5, 14, "%0.2f" % float(angles[1]) + "\u00b0", fontsize=40, weight="bold", color="white"
+                    )  #'xx-large
                     fig.savefig("cats2/vector_angle_img.tiff")
 
- 
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
                     tracing_stats_df = pd.concat([tracing_stats["lower"].df, tracing_stats["upper"].df])
@@ -625,7 +629,7 @@ def main(args=None):
     results = pd.concat(results.values())
     results.reset_index()
     results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)
-    with open(config["output_dir"] / 'all_node_stats.json', 'w', encoding='utf8') as json_file:
+    with open(config["output_dir"] / "all_node_stats.json", "w", encoding="utf8") as json_file:
         json.dump(node_results, json_file, cls=NpEncoder)
     folder_grainstats(config["output_dir"], config["base_dir"], results)
     # Write config to file

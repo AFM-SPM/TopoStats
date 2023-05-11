@@ -125,3 +125,5 @@ graph TD;
   style C1 fill:#FE6100,stroke:#000000
 
 ```
+
+For an overview of how knots and overlapping nodes are processed see the page on [Knot detangling](workflow_knot_detangling)
