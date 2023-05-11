@@ -215,8 +215,20 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "run": Or(
                 True,
                 False,
-                error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
-            )
+                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+            ),
+            "skeletonisation_method": Or(
+                "zhang",
+                "lee",
+                "thin",
+                "medial_axis",
+                "joe",
+                error="Invalid value for dnatracing.run, valid values are 'zhang', 'lee', 'thin', 'medial_axis' or 'joe'"
+            ),
+            "pruning_method": Or(
+                "joe",
+                error="Invalid value for dnatracing.run, valid values are 'joe'"
+            ),
         },
         "plotting": {
             "run": Or(

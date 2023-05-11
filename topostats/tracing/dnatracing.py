@@ -42,6 +42,8 @@ class dnaTrace(object):
         filename,
         pixel_size,
         convert_nm_to_m: bool = True,
+        skeletonisation_method: str = "joe",
+        pruning_method: str = "joe",
     ):
         self.full_image_data = full_image_data * 1e-9 if convert_nm_to_m else full_image_data
         # self.grains_orig = [x for row in grains for x in row]
@@ -52,6 +54,8 @@ class dnaTrace(object):
         # self.number_of_rows = number_of_rows
         self.number_of_rows = self.full_image_data.shape[0]
         self.number_of_columns = self.full_image_data.shape[1]
+        self.skeletonisation_method = skeletonisation_method
+        self.pruning_method = pruning_method
         self.sigma = 0.7 / (self.pixel_size * 1e9)
 
         self.gauss_image = []
@@ -185,8 +189,8 @@ class dnaTrace(object):
             very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
             try:
-                dna_skeleton = getSkeleton(self.gauss_image, smoothed_grain).get_skeleton(method="joe")
-                dna_skeleton = pruneSkeleton(self.gauss_image, dna_skeleton).prune_skeleton(method="joe")
+                dna_skeleton = getSkeleton(self.gauss_image, smoothed_grain).get_skeleton(method=self.skeletonisation_method)
+                dna_skeleton = pruneSkeleton(self.gauss_image, dna_skeleton).prune_skeleton(method=self.pruning_method)
                 self.disordered_trace[grain_num] = np.argwhere(dna_skeleton==1)
             except IndexError:
                 # Some gwyddion grains touch image border causing IndexError
