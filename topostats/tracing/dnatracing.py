@@ -99,7 +99,9 @@ class dnaTrace(object):
         for grain_num, grain in self.grains.items():
             skeleton = getSkeleton(self.gauss_image, grain).get_skeleton(self.skeletonisation_method)
             pruned_skeleton = pruneSkeleton(self.gauss_image, skeleton).prune_skeleton(self.pruning_method)
-            self.skeleton_dict[grain_num] = pruned_skeleton #if pruned_skeleton[pruned_skeleton==1].size < 10 else pass
+            self.skeleton_dict[
+                grain_num
+            ] = pruned_skeleton  # if pruned_skeleton[pruned_skeleton==1].size < 10 else pass
         self.get_disordered_trace()
         # self.isMolLooped()
         self.purge_obvious_crap()
@@ -238,7 +240,7 @@ class dnaTrace(object):
                     self.mol_is_circular[dna_num] = False
                     try:
                         self.ordered_traces[dna_num] = reorderTrace.linearTrace(self.ordered_traces[dna_num].tolist())
-                    except UnboundLocalError: # unsure how the ULE appears and why that means we remove the grain?
+                    except UnboundLocalError:  # unsure how the ULE appears and why that means we remove the grain?
                         self.mol_is_circular.pop(dna_num)
                         self.disordered_traces.pop(dna_num)
                         self.grains.pop(dna_num)
@@ -495,7 +497,11 @@ class dnaTrace(object):
             simplified_splined_traces_1 = self.splined_traces[dna_num][::3]
             simplified_splined_traces_2 = self.splined_traces[dna_num][1::3]
             simplified_splined_traces_3 = self.splined_traces[dna_num][2::3]
-            self.simplified_splined_traces[dna_num] = (simplified_splined_traces_1, simplified_splined_traces_2, simplified_splined_traces_3)
+            self.simplified_splined_traces[dna_num] = (
+                simplified_splined_traces_1,
+                simplified_splined_traces_2,
+                simplified_splined_traces_3,
+            )
 
     def show_traces(self):
 
@@ -706,18 +712,12 @@ class dnaTrace(object):
                     curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
                     if i < (length - 1):
                         contour = contour + self.pixel_size * 1e9 * math.hypot(
-                            (
-                                sub_trace[(i + 1), 0]
-                                - sub_trace[i, 0]
-                            ),
-                            (
-                                sub_trace[(i + 1), 1]
-                                - sub_trace[i, 1]
-                            ),
+                            (sub_trace[(i + 1), 0] - sub_trace[i, 0]),
+                            (sub_trace[(i + 1), 1] - sub_trace[i, 1]),
                         )
                 curve = np.array(curve)
                 sub_trace_curve.append(curve)
-            print('Test Point')
+            print("Test Point")
             print(dna_num)
             print(len(sub_trace_curve[0]))
             print(sub_trace_curve[0])
@@ -732,7 +732,7 @@ class dnaTrace(object):
                 sub_trace_curve[2] = np.append(sub_trace_curve[2], [sub_trace_curve[0][-1]], axis=0)
             elif len(sub_trace_curve[1]) > len(sub_trace_curve[2]):
                 last_element = np.average([sub_trace_curve[0][-1], sub_trace_curve[1][-1]], axis=0)
-                print('Test Point 1.5')
+                print("Test Point 1.5")
                 print(sub_trace_curve[0][-1])
                 print(sub_trace_curve[1][-1])
                 print(last_element)
@@ -740,10 +740,10 @@ class dnaTrace(object):
                 print(len(sub_trace_curve[2]))
 
             trace_curve_total = np.add(sub_trace_curve[0], sub_trace_curve[1], sub_trace_curve[2])
-            print('Test Point 2')
-            print('Test Point 3')
+            print("Test Point 2")
+            print("Test Point 3")
             # overall_curve = np.average([sub_trace_curve[0], sub_trace_curve[1], sub_trace_curve[2]], axis=0)
-            overall_curve = trace_curve_total/3
+            overall_curve = trace_curve_total / 3
             print(overall_curve)
             print(len(overall_curve))
 
@@ -809,10 +809,10 @@ class dnaTrace(object):
                 d2x = np.gradient(dx)
                 d2y = np.gradient(dy)
 
-                dx = dx[length: 2 * length]
-                dy = dy[length: 2 * length]
-                d2x = d2x[length: 2 * length]
-                d2y = d2y[length: 2 * length]
+                dx = dx[length : 2 * length]
+                dy = dy[length : 2 * length]
+                d2x = d2x[length : 2 * length]
+                d2y = d2y[length : 2 * length]
             else:
                 dx = np.gradient(self.splined_traces[dna_num], axis=0, edge_order=2)[:, 0]
                 dy = np.gradient(self.splined_traces[dna_num], axis=0, edge_order=2)[:, 1]
@@ -825,14 +825,8 @@ class dnaTrace(object):
                 curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
                 if i < (length - 1):
                     contour = contour + self.pixel_size * 1e9 * math.hypot(
-                        (
-                                self.splined_traces[dna_num][(i + 1), 0]
-                                - self.splined_traces[dna_num][i, 0]
-                        ),
-                        (
-                                self.splined_traces[dna_num][(i + 1), 1]
-                                - self.splined_traces[dna_num][i, 1]
-                        ),
+                        (self.splined_traces[dna_num][(i + 1), 0] - self.splined_traces[dna_num][i, 0]),
+                        (self.splined_traces[dna_num][(i + 1), 1] - self.splined_traces[dna_num][i, 1]),
                     )
             curve = np.array(curve)
             # curvature_smoothed = scipy.ndimage.gaussian_filter(curve[:, 2], 10, mode='nearest')
@@ -1087,7 +1081,7 @@ class dnaTrace(object):
     def measure_bending_angle(self):
         """Calculate the bending angle at the point of highest curvature"""
         nm_each_side = 10  # nm each side of the reference point used to determine bending angle
-        ref_point = 'centre'  # 'centre' or 'central max curvature'
+        ref_point = "centre"  # 'centre' or 'central max curvature'
         for dna_num in sorted(self.splined_traces.keys()):
             if 80 < self.contour_lengths[dna_num] < 120:  # Filtering out molecules that are too big or too small
                 length_index = len(self.curvature[dna_num])
@@ -1099,39 +1093,72 @@ class dnaTrace(object):
                 central_curvature = self.curvature[dna_num][start_index:end_index]  # Middle 20 nm of the molecule
                 self.central_max_curvature[dna_num] = np.amax(np.abs(central_curvature[:, 2]))
                 position_in_central = np.argmax(np.abs(central_curvature[:, 2]))
-                self.central_max_curvature_location[dna_num] = central_curvature[position_in_central, 1] # in nm
-                if ref_point == 'central max curvature':  # Point of maximum curvature in central 20 nm
+                self.central_max_curvature_location[dna_num] = central_curvature[position_in_central, 1]  # in nm
+                if ref_point == "central max curvature":  # Point of maximum curvature in central 20 nm
                     ref_point_nm = self.central_max_curvature_location[dna_num]
                     # The index of the max curvature point in the entire molecule
                     ref_point_index = position_in_central + start_index
-                elif ref_point == 'centre':
+                elif ref_point == "centre":
                     ref_point_nm = self.contour_lengths[dna_num] / 2
-                    ref_point_index = np.argmin(np.abs(self.curvature[dna_num][:, 1] - self.contour_lengths[dna_num] / 2))
+                    ref_point_index = np.argmin(
+                        np.abs(self.curvature[dna_num][:, 1] - self.contour_lengths[dna_num] / 2)
+                    )
 
+                print("Number: %d" % dna_num)
                 # Left line that forms the bending angle
                 left_nm = ref_point_nm - nm_each_side
                 left_index = np.argmin(np.abs(self.curvature[dna_num][:, 1] - left_nm))
-                xa = self.splined_traces[dna_num][left_index: ref_point_index + 1, 0]
-                ya = self.splined_traces[dna_num][left_index: ref_point_index + 1, 1]
-                ga, _, _, _, _ = stats.linregress(xa, ya)  # Gradient of left line
+                xa = self.splined_traces[dna_num][left_index : ref_point_index + 1, 0]
+                ya = self.splined_traces[dna_num][left_index : ref_point_index + 1, 1]
+                ga, ia, _, _, _ = stats.linregress(xa, ya)  # Gradient and intercept of left line
                 vax = self.splined_traces[dna_num][ref_point_index, 0] - self.splined_traces[dna_num][left_index, 0]
                 vay = ga * vax  # Left line vector
+                # vay = ga * self.splined_traces[dna_num][ref_point_index, 0] + ia - (
+                # ga * self.splined_traces[dna_num][left_index, 0] + ia)
+
+                print("Left points:")
+                print(xa)
+                print(ya)
+                print("Left point nm: %f" % left_nm)
+                print("Left point index: %d" % left_index)
+                print("Left line gradient: %f" % ga)
+                print("Left line intercept: %f" % ia)
+                print("Left vector x: %f" % vax)
+                print("Left vector y: %f" % vay)
 
                 # Right line that forms the bending angle
                 right_nm = ref_point_nm + nm_each_side
                 right_index = np.argmin(np.abs(self.curvature[dna_num][:, 1] - right_nm))
-                xb = self.splined_traces[dna_num][ref_point_index: right_index + 1, 0]
-                yb = self.splined_traces[dna_num][ref_point_index: right_index + 1, 1]
-                gb, _, _, _, _ = stats.linregress(xb, yb)  # Gradient of right line
+                xb = self.splined_traces[dna_num][ref_point_index : right_index + 1, 0]
+                yb = self.splined_traces[dna_num][ref_point_index : right_index + 1, 1]
+                gb, ib, _, _, _ = stats.linregress(xb, yb)  # Gradient and intercept of right line
                 vbx = self.splined_traces[dna_num][ref_point_index, 0] - self.splined_traces[dna_num][right_index, 0]
                 vby = gb * vbx  # Right line vector
+                # vby = self.splined_traces[dna_num][ref_point_index, 1] - (
+                # gb * self.splined_traces[dna_num][right_index, 0] + ib)
+                print("Right points")
+                print(xb)
+                print(yb)
+                print("Right point nm: %f" % right_nm)
+                print("Right point index: %d" % right_index)
+                print("Right line gradient: %f" % gb)
+                print("Right line intercept: %f" % ib)
+                print("Right vector x: %f" % vbx)
+                print("Right vector y: %f" % vby)
 
                 # Calculates the bending angle
-                dot_product = vax * vbx + vay * vby
-                mod_of_vector = math.sqrt(vax**2 + vay**2) * math.sqrt(vbx**2 + vby**2)
-                bending_angle_r = math.acos(dot_product / mod_of_vector)  # radians
-                bending_angle_d = bending_angle_r / math.pi * 180  # degrees
-                self.bending_angle[dna_num] = bending_angle_d
+                if -20 < ga < 20 and -20 < gb < 20:
+                    dot_product = vax * vbx + vay * vby
+                    print("Vector dot product: %f" % dot_product)
+                    mod_of_vector = math.sqrt(vax**2 + vay**2) * math.sqrt(vbx**2 + vby**2)
+                    print("Vector mod: %f" % mod_of_vector)
+                    bending_angle_r = math.acos(dot_product / mod_of_vector)  # radians
+                    bending_angle_d = bending_angle_r / math.pi * 180  # degrees
+                    self.bending_angle[dna_num] = bending_angle_d
+                    print("Bending angle radians %f" % bending_angle_r)
+                    print("Bending angle degrees %f" % bending_angle_d)
+                else:
+                    self.bending_angle[dna_num] = 0
             else:  # For molecules that are too long or too short
                 self.central_max_curvature_location[dna_num] = 0
                 self.bending_angle[dna_num] = 0

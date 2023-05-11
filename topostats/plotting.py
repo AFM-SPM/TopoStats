@@ -591,7 +591,7 @@ if __name__ == "__main__":
         ymax = plotting_config["plots"][plot]["ymax"]
         bins = plotting_config["plots"][plot]["bins"]
         if plottype == "histogram":
-            plothist(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax, bins=bins)
+            plothist(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax, bins=np.linspace(0, 180, 19))
         elif plottype == "histogram2":
             # plothist2var(df, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1='01', label2='02',bins=np.linspace(1, 5, 20))
             plothist2var(df, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1="With protein",
