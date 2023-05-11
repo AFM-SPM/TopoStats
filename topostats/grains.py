@@ -40,6 +40,10 @@ class Grains:
             "above": [None, None],
             "below": [None, None],
         },
+        grain_height_removal_thresholds_std_dev: dict = {
+            "above": None,
+            "below": None,
+        },
         direction: str = None,
         smallest_grain_size_nm2: float = None,
     ):
@@ -74,6 +78,7 @@ class Grains:
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute = threshold_absolute
         self.absolute_area_threshold = absolute_area_threshold
+        self.grain_height_removal_thresholds_std_dev = grain_height_removal_thresholds_std_dev
         # Only detect grains for the desired direction
         self.direction = [direction] if direction != "both" else ["above", "below"]
         self.smallest_grain_size_nm2 = smallest_grain_size_nm2
@@ -237,6 +242,100 @@ class Grains:
                 image_cp[image_cp == grain_no] = grain_count
         return image_cp
 
+    def remove_grain_masks_based_on_height(
+        self, image: np.ndarray, labelled_mask: np.ndarray, height_thresholds_std_dev_mult: tuple, direction: str
+    ):
+        """Removes grains from a labelled mask based on the median height of the grains. Takes two values (lower, upper)
+        in a tuple, height_thresholds_std_dev_mult, which get multiplied by the standard deviation of the data image
+        to act as thresholds. Grains whose median value is less or greater than these values respectively are removed
+        from the mask.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            Numpy 2D image array of the data image that contains the heightmap data for the grains.
+        labelled_mask: np.ndarray
+            Numpy 2D image array consisting of integer values. 0 is the background and the mask for each grain is an integer
+            unique to that grain, eg: grain 1 will have pixel values of all 1, grain 2 will have values of 2, etc.
+        height_thresholds_std_dev_mult: list
+            A two element tuple whose values correspond to multpliers that get applied to the standard deviation of the
+            data image. For example, for the values (1.0, 2.0), and an image whose standard deviation is 3.0, the lower
+            grain height threshold would be 1.0 * 3.0 = 3.0, and the upper height threshold would be 2.0 * 3.0 = 6.0.
+            So any grain grain mask whose median pixel value is outside of the range 3.0 to 6.0, will be removed.
+        direction: str
+            A string, either 'above', or 'below', used to ensure the upper / lower thresholds are applied correctly.
+
+        Returns
+        -------
+        np.ndarray
+            Numpy 2D image array of the same format as the labelled_mask input, where the background pixels are 0, and
+            grain masks are integers starting at 1, for each grain.
+        """
+
+        labelled_mask = labelled_mask.copy()
+
+        # We need to swap the directions if the threshold direction is below, since
+        # the upper value will actually be lower. Eg: -4.5 is less than -2.0.
+        if direction == "below":
+            lower_height_threshold_std_mult = height_thresholds_std_dev_mult[1]
+            upper_height_threshold_std_mult = height_thresholds_std_dev_mult[0]
+        elif direction == "above":
+            lower_height_threshold_std_mult = height_thresholds_std_dev_mult[0]
+            upper_height_threshold_std_mult = height_thresholds_std_dev_mult[1]
+        else:
+            raise ValueError(f"Direction {direction} not valid. Allowed values: above, below")
+
+        # If both threshold multipliers None, simply return the input mask
+        if lower_height_threshold_std_mult is None and upper_height_threshold_std_mult is None:
+            LOGGER.info(f"[{self.filename}] : threshold for the height based removal of grains is None, skipping.")
+            return labelled_mask
+
+        # Contingency for one of the threshold multipliers being None
+        if lower_height_threshold_std_mult is None:
+            lower_height_threshold = np.inf
+        else:
+            lower_height_threshold = np.mean(image) + np.std(image) * lower_height_threshold_std_mult
+        if upper_height_threshold_std_mult is None:
+            upper_height_threshold = -np.inf
+        else:
+            upper_height_threshold = np.mean(image) + np.std(image) * upper_height_threshold_std_mult
+
+        LOGGER.debug(
+            f"[{self.filename}] : remove_grain_masks_based_on_height : upper threshold: {upper_height_threshold}"
+        )
+        LOGGER.debug(
+            f"[{self.filename}] : remove_grain_masks_based_on_height : lower threshold: {lower_height_threshold}"
+        )
+
+        # For labelled region in mask
+        unique_values = np.delete(np.unique(labelled_mask), 0)
+        grain_count = 0
+        for grain_number in unique_values:
+            LOGGER.debug(f"[{self.filename}] : remove_grain_masks_based_on_height : grain_number: {grain_number}")
+            # Get corresponding pixels
+            grain_pixels = image[labelled_mask == grain_number]
+            # Calculate the median value
+            median_grain_value = np.median(grain_pixels)
+            # Check if median value is outside of the thresholds
+            if median_grain_value > upper_height_threshold:
+                LOGGER.debug(
+                    f"[{self.filename}] : remove_grain_masks_based_on_height : grain {grain_number} median {median_grain_value} greater than threshold {upper_height_threshold}"
+                )
+                labelled_mask[labelled_mask == grain_number] = 0
+            elif median_grain_value < lower_height_threshold:
+                LOGGER.debug(
+                    f"[{self.filename}] : remove_grain_masks_based_on_height : grain {grain_number} median {median_grain_value} less than threshold {lower_height_threshold}"
+                )
+                labelled_mask[labelled_mask == grain_number] = 0
+            else:
+                LOGGER.debug(
+                    f"[{self.filename}] : remove_grain_masks_based_on_height : grain {grain_number} median {median_grain_value} NOT greater than threshold"
+                )
+                grain_count += 1
+                labelled_mask[labelled_mask == grain_number] = grain_count
+
+        return labelled_mask
+
     def colour_regions(self, image: np.array, **kwargs) -> np.array:
         """Colour the regions.
 
@@ -328,8 +427,15 @@ class Grains:
                     self.directions[direction]["removed_noise"],
                     self.absolute_area_threshold[direction],
                 )
+            # Ignore grains based on height
+            self.directions[direction]["grains_removed_based_on_height"] = self.remove_grain_masks_based_on_height(
+                image=self.image,
+                labelled_mask=self.directions[direction]["removed_small_objects"],
+                height_thresholds_std_dev_mult=self.grain_height_removal_thresholds_std_dev[direction],
+                direction=direction,
+            )
             self.directions[direction]["labelled_regions_02"] = self.label_regions(
-                self.directions[direction]["removed_small_objects"]
+                self.directions[direction]["grains_removed_based_on_height"]
             )
             self.region_properties[direction] = self.get_region_properties(
                 self.directions[direction]["labelled_regions_02"]
