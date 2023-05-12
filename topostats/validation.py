@@ -630,6 +630,18 @@ PLOTTING_SCHEMA = Schema(
             ),
             "core_set": bool,
         },
+        "ordered_traces": {
+            "filename": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'grain_mask_image.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        }
     }
 )
 

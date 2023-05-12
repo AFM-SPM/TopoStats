@@ -64,6 +64,7 @@ class dnaTrace(object):
         self.skeletons = {}
         self.disordered_trace = {}
         self.ordered_traces = {}
+        self.ordered_img = None
         self.fitted_traces = {}
         self.splined_traces = {}
         self.contour_lengths = {}
@@ -92,7 +93,7 @@ class dnaTrace(object):
         self.purge_obvious_crap()
         self.linear_or_circular(self.disordered_trace)
         self.get_ordered_traces()
-
+        self.ordered_img = self.dict_to_binary_image(self.ordered_traces)
         self.get_trace_heights()
 
         #print(self.ordered_traces)
@@ -137,6 +138,23 @@ class dnaTrace(object):
 
     # FIXME : It is straight-forward to get bounding boxes for grains, need to then have a dictionary of original image
     #         and label for each grain to then be processed.
+
+    def dict_to_binary_image(self, coord_dict):
+        """Construct a binary image from point coordinates.
+        Parameters
+        ----------
+        coord_dict: dict
+            A dictionary of x and y coordinates.
+        Returns
+        -------
+        np.ndarray
+            Image of the point coordinates.
+        """
+        img = np.zeros_like(self.full_image_data)
+        for grain_num, coords in coord_dict.items():
+            img[coords[:, 0], coords[:, 1]] = grain_num
+        return img
+
     def _get_bounding_box(array: np.ndarray) -> np.ndarray:
         """Calculate bounding box for each grain."""
         rows = grain_array.any(axis=1)

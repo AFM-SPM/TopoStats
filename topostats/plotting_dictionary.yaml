@@ -142,3 +142,7 @@ grain_mask:
 grain_mask_image:
   image_type: "non-binary"
   core_set: false
+ordered_traces:
+  filename: "23-ordered_traces"
+  image_type: "non-binary"
+  core_set: false
