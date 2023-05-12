@@ -36,10 +36,11 @@ class dnaTrace:
 
     def __init__(
         self,
-        full_image_data,
+        full_image_data: np.ndarray,
         grains,
-        filename,
-        pixel_size,
+        filename: str,
+        pixel_size: float,
+        crap_threshold: int = 10,
         convert_nm_to_m: bool = True,
     ):
         self.full_image_data = full_image_data * 1e-9 if convert_nm_to_m else full_image_data
@@ -47,6 +48,7 @@ class dnaTrace:
         self.grains_orig = grains
         self.filename = filename
         self.pixel_size = pixel_size * 1e-9 if convert_nm_to_m else pixel_size
+        self.crap_threshold = crap_threshold
         # self.number_of_columns = number_of_columns
         # self.number_of_rows = number_of_rows
         self.number_of_rows = self.full_image_data.shape[0]
@@ -69,7 +71,7 @@ class dnaTrace:
         self.number_of_traces = 0
         self.num_circular = 0
         self.num_linear = 0
-
+        self.unprocessed_grains = 0
         self.neighbours = 5  # The number of neighbours used for the curvature measurement
 
         # supresses scipy splining warnings
@@ -112,14 +114,7 @@ class dnaTrace:
             # Skip the background
             if grain_num != 0:
                 # Saves each grain as a multidim numpy array
-                # single_grain_1d = np.array([1 if i == grain_num else 0 for i in self.grains_orig])
-                # self.grains[int(grain_num)] = np.reshape(single_grain_1d, (self.number_of_columns, self.number_of_rows))
-                self.grains[int(grain_num)] = self._get_grain_array(grain_num)
-        # FIXME : This should be a method of its own, but strange that apparently Gaussian filtered image is filtered again
-        # Get a 7 A gauss filtered version of the original image
-        # used in refining the pixel positions in fitted_traces()
-        # sigma = 0.7 / (self.pixel_size * 1e9)
-        # self.gauss_image = filters.gaussian(self.full_image_data, sigma)
+                self.grains[int(grain_num) - 1] = self._get_grain_array(grain_num)
 
     def _get_grain_array(self, grain_number: int) -> np.ndarray:
         """Extract a single grains."""
@@ -191,9 +186,12 @@ class dnaTrace:
             # self.skeletons[grain_num] = np.argwhere(skel == 1)
 
     def purge_obvious_crap(self):
+        all_grains = len(self.disordered_trace)
         for dna_num in sorted(self.disordered_trace.keys()):
-            if len(self.disordered_trace[dna_num]) < 10:
+            if len(self.disordered_trace[dna_num]) < self.crap_threshold:
                 self.disordered_trace.pop(dna_num, None)
+        self.unprocessed_grains = all_grains - len(self.disordered_trace)
+        LOGGER.info(f"[{self.filename}] : Crap grains removed : {self.unprocessed_grains}")
 
     def linear_or_circular(self, traces):
         """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace
@@ -879,11 +877,10 @@ class traceStats:
             stats[mol_num]["circular"] = self.trace_object.mol_is_circular[mol_num]
             stats[mol_num]["end_to_end_distance"] = self.trace_object.end_to_end_distance[mol_num]
         self.df = pd.DataFrame.from_dict(data=stats, orient="index")
-        self.df.reset_index(drop=True, inplace=True)
+        # self.df.reset_index(drop=True, inplace=True)
         self.df.index.name = "molecule_number"
         # self.df["Experiment Directory"] = str(Path().cwd())
         self.df["image"] = self.image_path.name
-        self.df["basename"] = str(self.image_path.parent)
 
     def save_trace_stats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True) -> None:
         """Write trace statistics to JSON and/or CSV.

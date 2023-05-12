@@ -221,7 +221,8 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 True,
                 False,
                 error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
-            )
+            ),
+            "crap_threshold": lambda n: n > 0.0,
         },
         "plotting": {
             "run": Or(

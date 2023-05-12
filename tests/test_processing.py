@@ -3,6 +3,7 @@ from pathlib import Path
 
 # pylint: disable=deprecated-module
 import imghdr
+import numpy as np
 import pytest
 
 from topostats.io import LoadScans
@@ -315,7 +316,7 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
     """Test handling no grains found during grains.find_grains()."""
     img_dic = load_scan_data.img_dict
     process_scan_config["grains"]["threshold_std_dev"]["above"] = 1000
-    process_scan_config["filter"]["remove_scars"]["run"] = "false"
+    process_scan_config["filter"]["remove_scars"]["run"] = False
     _, _ = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,
@@ -329,3 +330,33 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
     assert "Grains found for direction above : 0" in caplog.text
     assert "There are 0 circular and 0 linear DNA molecules found in the image" in caplog.text
     assert "No grains exist for the above direction. Skipping grainstats and DNAtracing." in caplog.text
+
+
+def test_process_scan_align_grainstats_dnatracing(
+    process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path
+) -> None:
+    """Test that molecule numbers from dnatracing align with those from grainstats when some grains are removed from
+    tracing because they are too small.
+
+    By setting processing parameters as below two molecules are pruged for being too small after skeletonisation and so
+    do not have DNA tracing statistics (but they do have Grain Statistics)."""
+    img_dic = load_scan_data.img_dict
+    process_scan_config["filter"]["remove_scars"]["run"] = False
+    process_scan_config["grains"]["absolute_area_threshold"]["above"] = [150, 3000]
+    process_scan_config["dnatracing"]["crap_threshold"] = 10
+    _, results = process_scan(
+        img_path_px2nm=img_dic["minicircle"],
+        base_dir=BASE_DIR,
+        filter_config=process_scan_config["filter"],
+        grains_config=process_scan_config["grains"],
+        grainstats_config=process_scan_config["grainstats"],
+        dnatracing_config=process_scan_config["dnatracing"],
+        plotting_config=process_scan_config["plotting"],
+        output_dir=tmp_path,
+    )
+    tracing_to_check = ["contour_lengths", "circular", "end_to_end_distance"]
+    assert results.shape == (24, 25)
+    assert np.isnan(results.loc[8, "contour_lengths"])
+    assert np.isnan(sum(results.loc[8, tracing_to_check]))
+    assert np.isnan(results.loc[22, "contour_lengths"])
+    assert np.isnan(sum(results.loc[22, tracing_to_check]))
