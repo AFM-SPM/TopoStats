@@ -77,10 +77,11 @@ def process_scan(
     core_out_path = get_out_path(image_path, base_dir, output_dir).parent / "processed"
     core_out_path.mkdir(parents=True, exist_ok=True)
     filter_out_path = core_out_path / filename / "filters"
-    filter_out_path.mkdir(exist_ok=True, parents=True)
     grain_out_path = core_out_path / filename / "grains"
-    Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
-    Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
+    if plotting_config["image_set"] == "all":
+        filter_out_path.mkdir(exist_ok=True, parents=True)
+        Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
+        Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
 
     # Filter Image
     if filter_config["run"]:
