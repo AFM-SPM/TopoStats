@@ -219,7 +219,7 @@ def main(args=None):
                 results[str(img)] = result
                 height_results[str(img)] = height_traces
                 pbar.update()
-
+    
     file = json.dumps(height_results)
     with open(config["output_dir"] / "height_stats.json", "w") as f:
         f.write(file)
