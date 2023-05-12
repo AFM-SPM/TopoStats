@@ -223,9 +223,12 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "thin",
                 "medial_axis",
                 "joe",
-                error="Invalid value for dnatracing.run, valid values are 'zhang', 'lee', 'thin', 'medial_axis' or 'joe'",
+                error="Invalid value for dnatracing.run, valid values are 'zhang', 'lee', 'thin', 'medial_axis' or 'joe'"
             ),
-            "pruning_method": Or("joe", error="Invalid value for dnatracing.run, valid values are 'joe'"),
+            "pruning_method": Or(
+                "joe",
+                error="Invalid value for dnatracing.run, valid values are 'joe'"
+            ),
         },
         "plotting": {
             "run": Or(
@@ -617,18 +620,6 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
         },
         "grain_mask_image": {
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'grain_mask_image.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "core_set": bool,
-        },
-        "ordered_traces": {
-            "filename": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
