@@ -96,7 +96,7 @@ class dnaTrace(object):
         self.ordered_img = self.dict_to_binary_image(self.ordered_traces)
         self.get_trace_heights()
 
-        #print(self.ordered_traces)
+        # print(self.ordered_traces)
         self.linear_or_circular(self.ordered_traces)
         self.get_fitted_traces()
         self.get_splined_traces()
@@ -207,9 +207,11 @@ class dnaTrace(object):
             very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
             try:
-                dna_skeleton = getSkeleton(self.gauss_image, smoothed_grain).get_skeleton(method=self.skeletonisation_method)
+                dna_skeleton = getSkeleton(self.gauss_image, smoothed_grain).get_skeleton(
+                    method=self.skeletonisation_method
+                )
                 dna_skeleton = pruneSkeleton(self.gauss_image, dna_skeleton).prune_skeleton(method=self.pruning_method)
-                self.disordered_trace[grain_num] = np.argwhere(dna_skeleton==1)
+                self.disordered_trace[grain_num] = np.argwhere(dna_skeleton == 1)
             except IndexError:
                 # Some gwyddion grains touch image border causing IndexError
                 # These grains are deleted
@@ -273,15 +275,15 @@ class dnaTrace(object):
     def get_trace_heights(self) -> None:
         """Take ordered coorinates and return their heights."""
         for mol_num, coordinates in self.ordered_traces.items():
-            heights = self.gauss_image[coordinates[:,1], coordinates[:,0]]
+            heights = self.gauss_image[coordinates[:, 1], coordinates[:, 0]]
             distances = self.coord_dist(coordinates, self.pixel_size)
             self.height_dist_dict[mol_num] = (list(heights), list(distances))
-        
+
     @staticmethod
     def coord_dist(coords: np.ndarray, px_2_nm: float = 1) -> np.ndarray:
         """Takes a list/array of coordinates (Nx2) and produces an array which
         accumulates a real distance as if traversing from pixel to pixel.
-        
+
         Parameters
         ----------
         coords: np.ndarray
@@ -296,8 +298,8 @@ class dnaTrace(object):
         """
         dist_list = [0]
         dist = 0
-        for i in range(len(coords)-1):
-            if abs(coords[i]-coords[i+1]).sum() == 2:
+        for i in range(len(coords) - 1):
+            if abs(coords[i] - coords[i + 1]).sum() == 2:
                 dist += 2**0.5
             else:
                 dist += 1

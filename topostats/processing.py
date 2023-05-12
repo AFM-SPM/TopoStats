@@ -234,7 +234,7 @@ def process_scan(
                 results = create_empty_dataframe()
             # Run dnatracing
 
-            #try:
+            # try:
             if dnatracing_config["run"]:
                 dnatracing_config.pop("run")
                 LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
@@ -260,11 +260,11 @@ def process_scan(
                     data2[data2 != 0] = 1
                     print(np.unique(dna_traces[direction].ordered_img))
                     Images(
-                            filtered_image.images["gaussian_filtered"],
-                            masked_array = data2,
-                            output_dir = tracing_out_path / direction,
-                            **plotting_config["plot_dict"][plot_name]
-                        ).plot_and_save()
+                        filtered_image.images["gaussian_filtered"],
+                        masked_array=data2,
+                        output_dir=tracing_out_path / direction,
+                        **plotting_config["plot_dict"][plot_name],
+                    ).plot_and_save()
                     print("output directory:", output_dir)
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":

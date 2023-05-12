@@ -223,12 +223,9 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "thin",
                 "medial_axis",
                 "joe",
-                error="Invalid value for dnatracing.run, valid values are 'zhang', 'lee', 'thin', 'medial_axis' or 'joe'"
+                error="Invalid value for dnatracing.run, valid values are 'zhang', 'lee', 'thin', 'medial_axis' or 'joe'",
             ),
-            "pruning_method": Or(
-                "joe",
-                error="Invalid value for dnatracing.run, valid values are 'joe'"
-            ),
+            "pruning_method": Or("joe", error="Invalid value for dnatracing.run, valid values are 'joe'"),
         },
         "plotting": {
             "run": Or(
@@ -641,7 +638,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-        }
+        },
     }
 )
 
