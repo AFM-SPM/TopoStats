@@ -64,6 +64,7 @@ class dnaTrace(object):
         self.skeletons = {}
         self.disordered_trace = {}
         self.ordered_traces = {}
+        self.ordered_img = None
         self.fitted_traces = {}
         self.splined_traces = {}
         self.contour_lengths = {}
@@ -92,10 +93,10 @@ class dnaTrace(object):
         self.purge_obvious_crap()
         self.linear_or_circular(self.disordered_trace)
         self.get_ordered_traces()
-
+        self.ordered_img = self.dict_to_binary_image(self.ordered_traces)
         self.get_trace_heights()
 
-        #print(self.ordered_traces)
+        # print(self.ordered_traces)
         self.linear_or_circular(self.ordered_traces)
         self.get_fitted_traces()
         self.get_splined_traces()
@@ -137,6 +138,23 @@ class dnaTrace(object):
 
     # FIXME : It is straight-forward to get bounding boxes for grains, need to then have a dictionary of original image
     #         and label for each grain to then be processed.
+
+    def dict_to_binary_image(self, coord_dict):
+        """Construct a binary image from point coordinates.
+        Parameters
+        ----------
+        coord_dict: dict
+            A dictionary of x and y coordinates.
+        Returns
+        -------
+        np.ndarray
+            Image of the point coordinates.
+        """
+        img = np.zeros_like(self.full_image_data)
+        for grain_num, coords in coord_dict.items():
+            img[coords[:, 0], coords[:, 1]] = grain_num
+        return img
+
     def _get_bounding_box(array: np.ndarray) -> np.ndarray:
         """Calculate bounding box for each grain."""
         rows = grain_array.any(axis=1)
@@ -189,9 +207,11 @@ class dnaTrace(object):
             very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
             try:
-                dna_skeleton = getSkeleton(self.gauss_image, smoothed_grain).get_skeleton(method=self.skeletonisation_method)
+                dna_skeleton = getSkeleton(self.gauss_image, smoothed_grain).get_skeleton(
+                    method=self.skeletonisation_method
+                )
                 dna_skeleton = pruneSkeleton(self.gauss_image, dna_skeleton).prune_skeleton(method=self.pruning_method)
-                self.disordered_trace[grain_num] = np.argwhere(dna_skeleton==1)
+                self.disordered_trace[grain_num] = np.argwhere(dna_skeleton == 1)
             except IndexError:
                 # Some gwyddion grains touch image border causing IndexError
                 # These grains are deleted
@@ -255,15 +275,15 @@ class dnaTrace(object):
     def get_trace_heights(self) -> None:
         """Take ordered coorinates and return their heights."""
         for mol_num, coordinates in self.ordered_traces.items():
-            heights = self.gauss_image[coordinates[:,1], coordinates[:,0]]
+            heights = self.gauss_image[coordinates[:, 1], coordinates[:, 0]]
             distances = self.coord_dist(coordinates, self.pixel_size)
             self.height_dist_dict[mol_num] = (list(heights), list(distances))
-        
+
     @staticmethod
     def coord_dist(coords: np.ndarray, px_2_nm: float = 1) -> np.ndarray:
         """Takes a list/array of coordinates (Nx2) and produces an array which
         accumulates a real distance as if traversing from pixel to pixel.
-        
+
         Parameters
         ----------
         coords: np.ndarray
@@ -278,8 +298,8 @@ class dnaTrace(object):
         """
         dist_list = [0]
         dist = 0
-        for i in range(len(coords)-1):
-            if abs(coords[i]-coords[i+1]).sum() == 2:
+        for i in range(len(coords) - 1):
+            if abs(coords[i] - coords[i + 1]).sum() == 2:
                 dist += 2**0.5
             else:
                 dist += 1
