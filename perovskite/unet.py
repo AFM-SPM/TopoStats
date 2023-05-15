@@ -1,64 +1,87 @@
+"""A U-NET model for segmentation of Perovskite grains."""
+
 from keras.models import Model
-from keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D, concatenate, Conv2DTranspose, BatchNormalization, Dropout, Lambda
+from keras.layers import (
+    Input,
+    Conv2D,
+    MaxPooling2D,
+    UpSampling2D,
+    concatenate,
+    Conv2DTranspose,
+    BatchNormalization,
+    Dropout,
+    Lambda,
+)
+
 
 def unet_model(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS):
+    """U-NET model definition function."""
+    
     inputs = Input((IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS))
-    s = inputs
 
     # Downsampling
-    c1 = Conv2D(16, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(s)
-    c1 = Dropout(0.1)(c1)
-    c1 = Conv2D(16, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c1)
-    p1 = MaxPooling2D((2, 2))(c1)
+    # Downsample with increasing numbers of filters to try to capture more complex features (first argument)
+    # Dropout is used to try to prevent overfitting. Increase if overfitting happens.
+    # Dropout increases deeper into the model to further help prevent overfitting.
 
-    c2 = Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(p1)
-    c2 = Dropout(0.1)(c2)
-    c2 = Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c2)
-    p2 = MaxPooling2D((2, 2))(c2)
+    conv1 = Conv2D(16, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(inputs)
+    conv1 = Dropout(0.1)(conv1)
+    conv1 = Conv2D(16, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(conv1)
+    pooled1 = MaxPooling2D((2, 2))(conv1)
 
-    c3 = Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(p2)
-    c3 = Dropout(0.2)(c3)
-    c3 = Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c3)
-    p3 = MaxPooling2D((2, 2))(c3)
+    conv2 = Conv2D(32, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(pooled1)
+    conv2 = Dropout(0.1)(conv2)
+    conv2 = Conv2D(32, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(conv2)
+    pooled2 = MaxPooling2D((2, 2))(conv2)
 
-    c4 = Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(p3)
-    c4 = Dropout(0.2)(c4)
-    c4 = Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c4)
-    p4 = MaxPooling2D(pool_size=(2, 2))(c4)
+    conv3 = Conv2D(64, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(pooled2)
+    conv3 = Dropout(0.2)(conv3)
+    conv3 = Conv2D(64, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(conv3)
+    pooled3 = MaxPooling2D((2, 2))(conv3)
 
-    c5 = Conv2D(256, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(p4)
-    c5 = Dropout(0.3)(c5)
-    c5 = Conv2D(256, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c5)
+    conv4 = Conv2D(128, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(pooled3)
+    conv4 = Dropout(0.2)(conv4)
+    conv4 = Conv2D(128, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(conv4)
+    pooled4 = MaxPooling2D(pool_size=(2, 2))(conv4)
+
+    conv5 = Conv2D(256, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(pooled4)
+    conv5 = Dropout(0.3)(conv5)
+    conv5 = Conv2D(256, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(conv5)
 
     # Upsampling
-    u6 = Conv2DTranspose(128, (2, 2), strides=(2, 2), padding='same')(c5)
-    u6 = concatenate([u6, c4])
-    c6 = Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(u6)
-    c6 = Dropout(0.2)(c6)
-    c6 = Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c6)
+    # Conv2DTranspose is used as a sort of inverse convolution, to upsample the image
+    # A concatenation is used to force context from the original image, providing information about what context a
+    # feature stems from.
 
-    u7 = Conv2DTranspose(64, (2, 2), strides=(2, 2), padding='same')(c6)
-    u7 = concatenate([u7, c3])
-    c7 = Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(u7)
-    c7 = Dropout(0.2)(c7)
-    c7 = Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c7)
+    up6 = Conv2DTranspose(128, kernel_size=(2, 2), strides=(2, 2), padding="same")(conv5)
+    up6 = concatenate([up6, conv4])
+    conv6 = Conv2D(128, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(up6)
+    conv6 = Dropout(0.2)(conv6)
+    conv6 = Conv2D(128, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(conv6)
 
-    u8 = Conv2DTranspose(32, (2, 2), strides=(2, 2), padding='same')(c7)
-    u8 = concatenate([u8, c2])
-    c8 = Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(u8)
-    c8 = Dropout(0.1)(c8)
-    c8 = Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c8)
+    up7 = Conv2DTranspose(64, kernel_size=(2, 2), strides=(2, 2), padding="same")(conv6)
+    up7 = concatenate([up7, conv3])
+    conv7 = Conv2D(64, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(up7)
+    conv7 = Dropout(0.2)(conv7)
+    conv7 = Conv2D(64, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(conv7)
 
-    u9 = Conv2DTranspose(16, (2, 2), strides=(2, 2), padding='same')(c8)
-    u9 = concatenate([u9, c1], axis=3)
-    c9 = Conv2D(16, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(u9)
-    c9 = Dropout(0.1)(c9)
-    c9 = Conv2D(16, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c9)
+    up8 = Conv2DTranspose(32, kernel_size=(2, 2), strides=(2, 2), padding="same")(conv7)
+    up8 = concatenate([up8, conv2])
+    conv8 = Conv2D(32, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(up8)
+    conv8 = Dropout(0.1)(conv8)
+    conv8 = Conv2D(32, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(conv8)
 
-    outputs = Conv2D(1, (1, 1), activation='sigmoid')(c9)
+    up9 = Conv2DTranspose(16, kernel_size=(2, 2), strides=(2, 2), padding="same")(conv8)
+    up9 = concatenate([up9, conv1], axis=3)
+    conv9 = Conv2D(16, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(up9)
+    conv9 = Dropout(0.1)(conv9)
+    conv9 = Conv2D(16, kernel_size=(3, 3), activation="relu", kernel_initializer="he_normal", padding="same")(conv9)
+
+    # Make predictions of classes based on the culminated data
+    outputs = Conv2D(1, kernel_size=(1, 1), activation="sigmoid")(conv9)
 
     model = Model(inputs=[inputs], outputs=[outputs])
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
     model.summary()
 
     return model
