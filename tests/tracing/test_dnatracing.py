@@ -22,7 +22,8 @@ DILTATE_TARGETS = {
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        ]),
+        ]
+    ),
     2: np.asarray(
         [
             [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
@@ -34,7 +35,8 @@ DILTATE_TARGETS = {
             [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
             [0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
             [0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
-        ]),
+        ]
+    ),
     3: np.asarray(
         [
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
@@ -46,8 +48,9 @@ DILTATE_TARGETS = {
             [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
             [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-        ])
-    }
+        ]
+    ),
+}
 
 multigrain = np.array(
     [
@@ -60,13 +63,14 @@ multigrain = np.array(
         [0, 0, 3, 3, 3, 3, 0, 0, 0, 0, 0],
         [3, 3, 0, 0, 0, 0, 3, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0],
-    ])
+    ]
+)
 
 
 def test_binary_img_to_dict() -> None:
     """Test that a binary image can be separated into arrays."""
     mask = multigrain.copy()
-    mask[mask !=0 ] = 0
+    mask[mask != 0] = 0
     test_dict = dnaTrace.binary_img_to_dict(multigrain)
     assert len(test_dict) == 3
     for grain in range(1, 3 + 1):
@@ -76,7 +80,7 @@ def test_binary_img_to_dict() -> None:
 
 def test_dilate(dnatracing_dilate: dnaTrace) -> None:
     """Tests dilate function outputs."""
-    assert len(dnatracing_dilate.grains) == 3 # ensure is not empty
+    assert len(dnatracing_dilate.grains) == 3  # ensure is not empty
     for grain_no, grain_array in dnatracing_dilate.grains.items():
         assert grain_array.shape == DILTATE_TARGETS[grain_no].shape
         assert (grain_array == DILTATE_TARGETS[grain_no]).all()
@@ -86,7 +90,6 @@ def test_dnatracing_get_disordered_trace(dnatracing_disordered_traces: dnaTrace)
     """Tests grain coordinates are extracted."""
     for grain_no, coords in dnatracing_disordered_traces.disordered_traces.items():
         assert len(coords) == DILATE_TARGETS[grain_no].sum()
-
 
 
 # @pytest.mark.mpl_image_compare(baseline_dir="../resources/img/")
@@ -106,23 +109,42 @@ def test_tracestats(regtest, minicircle_tracestats: traceStats) -> None:
 @pytest.mark.parametrize(
     "start, mid, end, expected",
     [
-        (np.array([2,0]), np.array([2,2]), np.array([2,4]), np.array([[2,4],[2,3],[2,2],[2,1],[2,0]])[::-1]),
-        (np.array([4,0]), np.array([2,2]), np.array([0,4]), np.array([[0,4],[1,3],[2,2],[3,1],[4,0]])[::-1]),
-        (np.array([4,2]), np.array([2,2]), np.array([0,2]), np.array([[0,2],[1,2],[2,2],[3,2],[4,2]])[::-1]),
-        (np.array([4,4]), np.array([2,2]), np.array([0,0]), np.array([[0,0],[1,1],[2,2],[3,3],[4,4]])[::-1]),
-        (np.array([2,4]), np.array([2,2]), np.array([2,0]), np.array([[2,4],[2,3],[2,2],[2,1],[2,0]])),
-        (np.array([0,4]), np.array([2,2]), np.array([4,0]), np.array([[0,4],[1,3],[2,2],[3,1],[4,0]])),
-        (np.array([0,2]), np.array([2,2]), np.array([4,2]), np.array([[0,2],[1,2],[2,2],[3,2],[4,2]])),
-        (np.array([0,0]), np.array([2,2]), np.array([4,4]), np.array([[0,0],[1,1],[2,2],[3,3],[4,4]])),
+        (
+            np.array([2, 0]),
+            np.array([2, 2]),
+            np.array([2, 4]),
+            np.array([[2, 4], [2, 3], [2, 2], [2, 1], [2, 0]])[::-1],
+        ),
+        (
+            np.array([4, 0]),
+            np.array([2, 2]),
+            np.array([0, 4]),
+            np.array([[0, 4], [1, 3], [2, 2], [3, 1], [4, 0]])[::-1],
+        ),
+        (
+            np.array([4, 2]),
+            np.array([2, 2]),
+            np.array([0, 2]),
+            np.array([[0, 2], [1, 2], [2, 2], [3, 2], [4, 2]])[::-1],
+        ),
+        (
+            np.array([4, 4]),
+            np.array([2, 2]),
+            np.array([0, 0]),
+            np.array([[0, 0], [1, 1], [2, 2], [3, 3], [4, 4]])[::-1],
+        ),
+        (np.array([2, 4]), np.array([2, 2]), np.array([2, 0]), np.array([[2, 4], [2, 3], [2, 2], [2, 1], [2, 0]])),
+        (np.array([0, 4]), np.array([2, 2]), np.array([4, 0]), np.array([[0, 4], [1, 3], [2, 2], [3, 1], [4, 0]])),
+        (np.array([0, 2]), np.array([2, 2]), np.array([4, 2]), np.array([[0, 2], [1, 2], [2, 2], [3, 2], [4, 2]])),
+        (np.array([0, 0]), np.array([2, 2]), np.array([4, 4]), np.array([[0, 0], [1, 1], [2, 2], [3, 3], [4, 4]])),
     ],
 )
 def test_binary_line(start: np.ndarray, mid: np.ndarray, end: np.ndarray, expected: np.ndarray) -> None:
     """Tests the binary line formation across 8 star directions through a midpoint."""
     a = nodeStats.binary_line(start, mid)
-    assert a.shape[1] == 2 # ensure 2D coords
+    assert a.shape[1] == 2  # ensure 2D coords
     b = nodeStats.binary_line(mid, end)
-    comb = np.append(a,b, axis=0)
+    comb = np.append(a, b, axis=0)
     unique_combs_idxs = np.unique(comb, axis=0, return_index=True)[1]
     unique_combs = np.array([comb[i] for i in sorted(unique_combs_idxs)])
-    assert((unique_combs==expected).all(axis=0).sum() == 2)
-
+    assert (unique_combs == expected).all(axis=0).sum() == 2

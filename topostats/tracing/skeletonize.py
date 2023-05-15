@@ -218,7 +218,7 @@ class joeSkeletonize:
         #self.final_skeletonisation_iteration()
         self.mask = getSkeleton(self.image, self.mask).get_skeleton(method='zhang')
 
-        return self.mask[1:-1,1:-1] # unpad
+        return self.mask[1:-1, 1:-1]  # unpad
 
     def _do_skeletonising_iteration(self) -> None:
         """Do an iteration of skeletonisation - check for the local binary pixel
@@ -233,25 +233,25 @@ class joeSkeletonize:
                 pixels_to_delete.append(point)
 
         # remove points based on height (lowest 60%)
-        pixels_to_delete = np.asarray(pixels_to_delete) # turn into array
-        if pixels_to_delete.shape != (0,): # ensure array not empty
-            heights = self.image[pixels_to_delete[:,0], pixels_to_delete[:,1]] # get heights of pixels
-            hight_sort_idx = np.argsort(heights)[:int(np.ceil(len(heights)*0.6))] # idx of lowest 60%
-            self.mask[pixels_to_delete[hight_sort_idx,0], pixels_to_delete[hight_sort_idx,1]] = 0 # remove lowest 60%
-        
+        pixels_to_delete = np.asarray(pixels_to_delete)  # turn into array
+        if pixels_to_delete.shape != (0,):  # ensure array not empty
+            heights = self.image[pixels_to_delete[:, 0], pixels_to_delete[:, 1]]  # get heights of pixels
+            hight_sort_idx = np.argsort(heights)[: int(np.ceil(len(heights) * 0.6))]  # idx of lowest 60%
+            self.mask[pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]] = 0  # remove lowest 60%
+
         pixels_to_delete = []
         # Sub-iteration 2 - binary check
         mask_coordinates = np.argwhere(self.mask == 1).tolist()
         for point in mask_coordinates:
             if self._delete_pixel_subit2(point):
                 pixels_to_delete.append(point)
-        
+
         # remove points based on height (lowest 60%)
         pixels_to_delete = np.asarray(pixels_to_delete)
         if pixels_to_delete.shape != (0,):
-            heights = self.image[pixels_to_delete[:,0], pixels_to_delete[:,1]]
-            hight_sort_idx = np.argsort(heights)[:int(np.ceil(len(heights)*0.6))] # idx of lowest 60%
-            self.mask[pixels_to_delete[hight_sort_idx,0], pixels_to_delete[hight_sort_idx,1]] = 0
+            heights = self.image[pixels_to_delete[:, 0], pixels_to_delete[:, 1]]
+            hight_sort_idx = np.argsort(heights)[: int(np.ceil(len(heights) * 0.6))]  # idx of lowest 60%
+            self.mask[pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]] = 0
 
         if len(pixels_to_delete) == 0:
             self.skeleton_converged = True
@@ -592,8 +592,8 @@ class joePrune:
             single_skeleton[single_skeleton != i] = 0
             single_skeleton[single_skeleton == i] = 1
             pruned_skeleton_mask += self._prune_single_skeleton(single_skeleton)
-            #pruned_skeleton_mask = self._remove_low_dud_branches(pruned_skeleton_mask, self.image)
-            #pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton('zhang') # reskel to remove nibs
+            # pruned_skeleton_mask = self._remove_low_dud_branches(pruned_skeleton_mask, self.image)
+            # pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton('zhang') # reskel to remove nibs
         return pruned_skeleton_mask
 
     def _prune_single_skeleton(self, single_skeleton: np.ndarray) -> np.ndarray:
@@ -631,7 +631,9 @@ class joePrune:
                 temp_coordinates.pop(temp_coordinates.index([branch_x, branch_y]))
 
                 while branch_continues:
-                    no_of_neighbours, neighbours = genTracingFuncs.count_and_get_neighbours(branch_x, branch_y, temp_coordinates)
+                    no_of_neighbours, neighbours = genTracingFuncs.count_and_get_neighbours(
+                        branch_x, branch_y, temp_coordinates
+                    )
 
                     # If branch continues
                     if no_of_neighbours == 1:
@@ -696,9 +698,9 @@ class joePrune:
         skeleton_rtn = skeleton.copy()
         conv = convolve_skelly(skeleton)
         nodeless = skeleton.copy()
-        nodeless[conv==3] = 0
+        nodeless[conv == 3] = 0
         segments = label(nodeless)
-        median_heights = [np.median(image[segments==i]) for i in range(1, segments.max()+1)]
+        median_heights = [np.median(image[segments == i]) for i in range(1, segments.max() + 1)]
         if threshold is None:
             q75, q25 = np.percentile(median_heights, [75, 25])
             iqr = q75 - q25
@@ -713,6 +715,7 @@ class joePrune:
 
 class maxPrune:
     """A class for pruning small branches based on convolutions."""
+
     def __init__(self, image: np.ndarray, skeleton: np.ndarray) -> np.ndarray:
         """Initialise the class.
 
@@ -744,9 +747,11 @@ class maxPrune:
             single_skeleton = self.skeleton.copy()
             single_skeleton[single_skeleton != i] = 0
             single_skeleton[single_skeleton == i] = 1
-            pruned_skeleton_mask += self._prune_single_skeleton(single_skeleton) # maybe need to add other option for large images of like 20px
-            #pruned_skeleton_mask = self._remove_low_dud_branches(pruned_skeleton_mask, self.image)
-            pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton('zhang')
+            pruned_skeleton_mask += self._prune_single_skeleton(
+                single_skeleton
+            )  # maybe need to add other option for large images of like 20px
+            # pruned_skeleton_mask = self._remove_low_dud_branches(pruned_skeleton_mask, self.image)
+            pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton("zhang")
         return pruned_skeleton_mask
 
     def _prune_single_skeleton(self, single_skeleton: np.ndarray, threshold: float = 0.15) -> np.ndarray:
@@ -767,7 +772,7 @@ class maxPrune:
         conv_skelly = convolve_skelly(self.skeleton)
         nodeless = self.skeleton.copy()
         nodeless[conv_skelly == 3] = 0
-        
+
         nodeless_labels = label(nodeless)
         for i in range(1, nodeless_labels.max() + 1):
             vals = conv_skelly[nodeless_labels == i]
@@ -787,9 +792,9 @@ class maxPrune:
         skeleton_rtn = skeleton.copy()
         conv = convolve_skelly(skeleton)
         nodeless = skeleton.copy()
-        nodeless[conv==3] = 0
+        nodeless[conv == 3] = 0
         segments = label(nodeless)
-        median_heights = [np.median(image[segments==i]) for i in range(1, segments.max()+1)]
+        median_heights = [np.median(image[segments == i]) for i in range(1, segments.max() + 1)]
         if threshold is None:
             q75, q25 = np.percentile(median_heights, [75, 25])
             iqr = q75 - q25
