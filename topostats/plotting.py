@@ -595,7 +595,7 @@ if __name__ == "__main__":
         elif plottype == "histogram2":
             # plothist2var(df, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1='01', label2='02',bins=np.linspace(1, 5, 20))
             plothist2var(df, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1="With protein",
-                         label2="Without protein", bins=np.linspace(20, 180, 17))
+                         label2="Without protein", bins=np.linspace(0, 180, 19))
         elif plottype == "KDE":
             plotkde(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
         elif plottype == "violin":

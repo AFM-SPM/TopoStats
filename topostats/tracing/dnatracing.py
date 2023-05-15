@@ -1083,7 +1083,8 @@ class dnaTrace(object):
         nm_each_side = 10  # nm each side of the reference point used to determine bending angle
         ref_point = "centre"  # 'centre' or 'central max curvature'
         for dna_num in sorted(self.splined_traces.keys()):
-            if 80 < self.contour_lengths[dna_num] < 120:  # Filtering out molecules that are too big or too small
+            if 80 < self.contour_lengths[dna_num] < 120 and not self.mol_is_circular[dna_num]:
+                # Filtering out molecules that are too big or too small, as well as circular molecules
                 length_index = len(self.curvature[dna_num])
                 mid_nm = self.curvature[dna_num][int(length_index / 2), 1]
                 start_nm = mid_nm - 10  # Starting point of the middle section, in nm
