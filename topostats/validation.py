@@ -222,7 +222,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
             ),
-            "crap_threshold": lambda n: n > 0.0,
+            "min_skeleton_size": lambda n: n > 0.0,
         },
         "plotting": {
             "run": Or(

@@ -343,7 +343,7 @@ def test_process_scan_align_grainstats_dnatracing(
     img_dic = load_scan_data.img_dict
     process_scan_config["filter"]["remove_scars"]["run"] = False
     process_scan_config["grains"]["absolute_area_threshold"]["above"] = [150, 3000]
-    process_scan_config["dnatracing"]["crap_threshold"] = 10
+    process_scan_config["dnatracing"]["min_skeleton_size"] = 10
     _, results = process_scan(
         img_path_px2nm=img_dic["minicircle"],
         base_dir=BASE_DIR,

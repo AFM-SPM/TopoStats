@@ -40,7 +40,7 @@ class dnaTrace:
         grains,
         filename: str,
         pixel_size: float,
-        crap_threshold: int = 10,
+        min_skeleton_size: int = 10,
         convert_nm_to_m: bool = True,
     ):
         self.full_image_data = full_image_data * 1e-9 if convert_nm_to_m else full_image_data
@@ -48,7 +48,7 @@ class dnaTrace:
         self.grains_orig = grains
         self.filename = filename
         self.pixel_size = pixel_size * 1e-9 if convert_nm_to_m else pixel_size
-        self.crap_threshold = crap_threshold
+        self.min_skeleton_size = min_skeleton_size
         # self.number_of_columns = number_of_columns
         # self.number_of_rows = number_of_rows
         self.number_of_rows = self.full_image_data.shape[0]
@@ -188,7 +188,7 @@ class dnaTrace:
     def purge_obvious_crap(self):
         all_grains = len(self.disordered_trace)
         for dna_num in sorted(self.disordered_trace.keys()):
-            if len(self.disordered_trace[dna_num]) < self.crap_threshold:
+            if len(self.disordered_trace[dna_num]) < self.min_skeleton_size:
                 self.disordered_trace.pop(dna_num, None)
         self.unprocessed_grains = all_grains - len(self.disordered_trace)
         LOGGER.info(f"[{self.filename}] : Crap grains removed : {self.unprocessed_grains}")
