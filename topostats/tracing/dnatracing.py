@@ -1112,10 +1112,13 @@ class dnaTrace(object):
                 xa = self.splined_traces[dna_num][left_index : ref_point_index + 1, 0]
                 ya = self.splined_traces[dna_num][left_index : ref_point_index + 1, 1]
                 ga, ia, _, _, _ = stats.linregress(xa, ya)  # Gradient and intercept of left line
-                vax = self.splined_traces[dna_num][ref_point_index, 0] - self.splined_traces[dna_num][left_index, 0]
-                vay = ga * vax  # Left line vector
-                # vay = ga * self.splined_traces[dna_num][ref_point_index, 0] + ia - (
-                # ga * self.splined_traces[dna_num][left_index, 0] + ia)
+                # Left line vector
+                if -1 <= ga <= 1:
+                    vax = self.splined_traces[dna_num][ref_point_index, 0] - self.splined_traces[dna_num][left_index, 0]
+                    vay = ga * vax
+                else:
+                    vay = self.splined_traces[dna_num][ref_point_index, 1] - self.splined_traces[dna_num][left_index, 1]
+                    vax = vay / ga
 
                 print("Left points:")
                 print(xa)
@@ -1133,10 +1136,13 @@ class dnaTrace(object):
                 xb = self.splined_traces[dna_num][ref_point_index : right_index + 1, 0]
                 yb = self.splined_traces[dna_num][ref_point_index : right_index + 1, 1]
                 gb, ib, _, _, _ = stats.linregress(xb, yb)  # Gradient and intercept of right line
-                vbx = self.splined_traces[dna_num][ref_point_index, 0] - self.splined_traces[dna_num][right_index, 0]
-                vby = gb * vbx  # Right line vector
-                # vby = self.splined_traces[dna_num][ref_point_index, 1] - (
-                # gb * self.splined_traces[dna_num][right_index, 0] + ib)
+                # Right line vector
+                if -1 <= gb <= 1:
+                    vbx = self.splined_traces[dna_num][ref_point_index, 0] - self.splined_traces[dna_num][right_index, 0]
+                    vby = gb * vbx
+                else:
+                    vby = self.splined_traces[dna_num][ref_point_index, 1] - self.splined_traces[dna_num][right_index, 1]
+                    vbx = vby / gb
                 print("Right points")
                 print(xb)
                 print(yb)
@@ -1148,18 +1154,18 @@ class dnaTrace(object):
                 print("Right vector y: %f" % vby)
 
                 # Calculates the bending angle
-                if -20 < ga < 20 and -20 < gb < 20:
-                    dot_product = vax * vbx + vay * vby
-                    print("Vector dot product: %f" % dot_product)
-                    mod_of_vector = math.sqrt(vax**2 + vay**2) * math.sqrt(vbx**2 + vby**2)
-                    print("Vector mod: %f" % mod_of_vector)
-                    bending_angle_r = math.acos(dot_product / mod_of_vector)  # radians
-                    bending_angle_d = bending_angle_r / math.pi * 180  # degrees
-                    self.bending_angle[dna_num] = bending_angle_d
-                    print("Bending angle radians %f" % bending_angle_r)
-                    print("Bending angle degrees %f" % bending_angle_d)
-                else:
-                    self.bending_angle[dna_num] = 0
+                # if -20 < ga < 20 and -20 < gb < 20:
+                dot_product = vax * vbx + vay * vby
+                print("Vector dot product: %f" % dot_product)
+                mod_of_vector = math.sqrt(vax**2 + vay**2) * math.sqrt(vbx**2 + vby**2)
+                print("Vector mod: %f" % mod_of_vector)
+                bending_angle_r = math.acos(dot_product / mod_of_vector)  # radians
+                bending_angle_d = bending_angle_r / math.pi * 180  # degrees
+                self.bending_angle[dna_num] = bending_angle_d
+                print("Bending angle radians %f" % bending_angle_r)
+                print("Bending angle degrees %f" % bending_angle_d)
+                # else:
+                #     self.bending_angle[dna_num] = 0
             else:  # For molecules that are too long or too short
                 self.central_max_curvature_location[dna_num] = 0
                 self.bending_angle[dna_num] = 0
