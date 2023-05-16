@@ -40,6 +40,8 @@ class Colormap:
             self.cmap = self.pink_black()
         elif name.lower() == "green_black":
             self.cmap = self.green_black()
+        elif name.lower() == "green_green":
+            self.cmap = self.green_green()
         else:
             # Get one of the matplotlib colormaps
             self.cmap = mpl.colormaps[name]
@@ -141,3 +143,8 @@ class Colormap:
     def green_black():
         "RGBA colour map of just the colour blue."
         return ListedColormap([[0 / 256, 1, 139 / 256], [0, 0, 0]], "green_black", N=256)
+    
+    @staticmethod
+    def green_green():
+        "RGBA colour map of just the colour blue."
+        return ListedColormap([[0 / 256, 1, 139 / 256], [0 / 256, 144 / 256, 70 / 256]], "green_black", N=256)
