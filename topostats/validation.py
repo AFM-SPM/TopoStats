@@ -721,17 +721,5 @@ PLOTTING_SCHEMA = Schema(
             "title": str,
             "cmap": str,
         },
-        "test": {
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "core_set": bool,
-            "dpi": int,
-        },
     }
 )

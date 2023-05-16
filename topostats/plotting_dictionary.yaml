@@ -175,17 +175,21 @@ nodes:
   mask_cmap: "green_black"
   core_set: false
   dpi: 1000
+zoom_node:
+  title: "Zoom of Node Skeleton"
+  image_type: "non-binary"
+  core_set: false
+  mask_cmap: "green_black"
 crossings:
   title: "Crossing and Skeleton Branches"
   image_type: "non-binary"
   core_set: false
-  mask_cmap: "blu_purp"
+  mask_cmap: "green_green"
+tripple_crossings:
+  title: "Image with Main and Paralell Traces"
+  image_type: "non-binary"
+  mask_cmap: "green_green"
+  core_set: false
 line_trace:
   title: "Heights of Crossing"
   cmap: "blu_purp"
-test:
-  filename: "test"
-  title: "The test image"
-  image_type: "non-binary"
-  core_set: false
-  dpi: 1000
