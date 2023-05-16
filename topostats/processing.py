@@ -290,10 +290,12 @@ def process_scan(
                                 f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics"
                             )
                             # NB - Merge on image, molecule and threshold because we may have above and below molecueles which
-                            #      gives duplicate molecule numbers as they are processed separately
+                            #      gives duplicate molecule numbers as they are processed separately, if tracing stats
+                            #      are not available (because skeleton was too small), grainstats are still retained.
                             results = grainstats_df.merge(
-                                tracing_stats_df, on=["image", "threshold", "molecule_number"]
+                                tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left"
                             )
+                            results["basename"] = image_path.parent
                         else:
                             LOGGER.info(
                                 f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame."

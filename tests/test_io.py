@@ -229,7 +229,7 @@ def test_get_out_path_attributeerror() -> None:
 def test_save_folder_grainstats(tmp_path: Path, minicircle_tracestats: pd.DataFrame) -> None:
     """Test a folder-wide grainstats file is made"""
     input_path = tmp_path / "minicircle"
-    minicircle_tracestats["Basename"] = input_path / "subfolder"
+    minicircle_tracestats["basename"] = input_path
     out_path = tmp_path / "subfolder"
     Path.mkdir(out_path, parents=True)
     save_folder_grainstats(out_path, input_path, minicircle_tracestats)
