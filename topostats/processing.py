@@ -157,7 +157,7 @@ def process_scan(
         )
 
         # Calculate the RMS roughness of the sample on the flattened image. Do not use blurred flattened image.
-        image_stats["rms_roughness"] = roughness_rms(filtered_image.images["zero_average_background"]) * 1e-9
+        image_stats["rms_roughness"] = roughness_rms(filtered_image.images["gaussian_filtered"]) * 1e-9
 
     else:
         LOGGER.error(
