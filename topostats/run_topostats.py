@@ -228,23 +228,28 @@ def main(args=None):
 
     with Pool(processes=config["cores"]) as pool:
         results = defaultdict()
+        image_stats_df_list = []
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result, image_stats_df, img_out_path in pool.imap_unordered(
+            for img, result, image_stats_df in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
             ):
                 results[str(img)] = result
                 pbar.update()
 
-                # Save image stats
-                LOGGER.info(f"[{img.name}] Saving image stats to csv.")
-                image_stats_df.to_csv(img_out_path / "image_stats.csv")
+                # Add the dataframe to the list for later concatenation
+                image_stats_df_list.append(image_stats_df)
 
                 # Display completion message for the image
                 LOGGER.info(f"[{img.name}] Processing completed.")
+
+    # Concatenate the list of dataframes and save the resulting dataframe to csv.
+    LOGGER.info("Saving image stats dataframe to csv.")
+    image_stats_results = pd.concat(image_stats_df_list)
+    image_stats_results.to_csv(config["output_dir"] / "image_stats.csv")
 
     try:
         results = pd.concat(results.values())
