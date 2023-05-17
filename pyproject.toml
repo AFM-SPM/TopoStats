@@ -7,7 +7,6 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-
 name = "topostats"
 description = "Automated Analysis for Atomic Force Microscopy Images of Biomolecules"
 readme = "README.md"
