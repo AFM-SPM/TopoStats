@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - v*
+  workflow_dispatch:        # Uncomment line if you also want to trigger action manually
+
 jobs:
   build-release:
     runs-on: ubuntu-latest
