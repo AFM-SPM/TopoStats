@@ -19,7 +19,9 @@ plots:
     xmax:
     ymin:
     ymax:
-    bins: 20
+    bins_number: 20
+    bins_start:
+    bins_end:
   plot_2:
     data:
     group:
@@ -31,3 +33,6 @@ plots:
     xmax:
     ymin:
     ymax:
+    bins_number:
+    bins_start:
+    bins_end:
