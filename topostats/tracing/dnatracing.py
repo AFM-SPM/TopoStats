@@ -1120,16 +1120,6 @@ class dnaTrace(object):
                     vay = self.splined_traces[dna_num][ref_point_index, 1] - self.splined_traces[dna_num][left_index, 1]
                     vax = vay / ga
 
-                print("Left points:")
-                print(xa)
-                print(ya)
-                print("Left point nm: %f" % left_nm)
-                print("Left point index: %d" % left_index)
-                print("Left line gradient: %f" % ga)
-                print("Left line intercept: %f" % ia)
-                print("Left vector x: %f" % vax)
-                print("Left vector y: %f" % vay)
-
                 # Right line that forms the bending angle
                 right_nm = ref_point_nm + nm_each_side
                 right_index = np.argmin(np.abs(self.curvature[dna_num][:, 1] - right_nm))
@@ -1138,34 +1128,22 @@ class dnaTrace(object):
                 gb, ib, _, _, _ = stats.linregress(xb, yb)  # Gradient and intercept of right line
                 # Right line vector
                 if -1 <= gb <= 1:
-                    vbx = self.splined_traces[dna_num][ref_point_index, 0] - self.splined_traces[dna_num][right_index, 0]
+                    vbx = (
+                        self.splined_traces[dna_num][ref_point_index, 0] - self.splined_traces[dna_num][right_index, 0]
+                    )
                     vby = gb * vbx
                 else:
-                    vby = self.splined_traces[dna_num][ref_point_index, 1] - self.splined_traces[dna_num][right_index, 1]
+                    vby = (
+                        self.splined_traces[dna_num][ref_point_index, 1] - self.splined_traces[dna_num][right_index, 1]
+                    )
                     vbx = vby / gb
-                print("Right points")
-                print(xb)
-                print(yb)
-                print("Right point nm: %f" % right_nm)
-                print("Right point index: %d" % right_index)
-                print("Right line gradient: %f" % gb)
-                print("Right line intercept: %f" % ib)
-                print("Right vector x: %f" % vbx)
-                print("Right vector y: %f" % vby)
 
                 # Calculates the bending angle
-                # if -20 < ga < 20 and -20 < gb < 20:
                 dot_product = vax * vbx + vay * vby
-                print("Vector dot product: %f" % dot_product)
                 mod_of_vector = math.sqrt(vax**2 + vay**2) * math.sqrt(vbx**2 + vby**2)
-                print("Vector mod: %f" % mod_of_vector)
                 bending_angle_r = math.acos(dot_product / mod_of_vector)  # radians
                 bending_angle_d = bending_angle_r / math.pi * 180  # degrees
                 self.bending_angle[dna_num] = bending_angle_d
-                print("Bending angle radians %f" % bending_angle_r)
-                print("Bending angle degrees %f" % bending_angle_d)
-                # else:
-                #     self.bending_angle[dna_num] = 0
             else:  # For molecules that are too long or too short
                 self.central_max_curvature_location[dna_num] = 0
                 self.bending_angle[dna_num] = 0
