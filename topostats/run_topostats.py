@@ -249,6 +249,7 @@ def main(args=None):
     # Concatenate the list of dataframes and save the resulting dataframe to csv.
     LOGGER.info("Saving image stats dataframe to csv.")
     image_stats_results = pd.concat(image_stats_df_list)
+    image_stats_results = image_stats_results.sort_index()
     image_stats_results.to_csv(config["output_dir"] / "image_stats.csv")
 
     try:
