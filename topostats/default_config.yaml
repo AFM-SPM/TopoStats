@@ -47,7 +47,7 @@ grains:
   # Standard deviation multiplier for height thresholds for grain median heights. Removes grains whose median is [higher, lower] than these values.
   grain_height_removal_thresholds_std_dev:
     below: [null, null] # Minimum, maximum std dev multiplier for grain median heights for the below direction.
-    above: [2.0, 4.0] # Minimum, maximum std dev multiplier for grain median heights for the above direction.
+    above: [null, null] # Minimum, maximum std dev multiplier for grain median heights for the above direction.
 grainstats:
   run: true # Options : true, false
   edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
