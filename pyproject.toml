@@ -87,6 +87,7 @@ dev = [
 pypi = [
   "build",
   "wheel",
+  "setuptools_scm[toml]"
 ]
 notebooks = [
   "ipython",
