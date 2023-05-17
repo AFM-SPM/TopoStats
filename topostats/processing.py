@@ -366,7 +366,7 @@ def process_scan(
     image_stats_df = pd.DataFrame(image_stats, index=[0])
     image_stats_df.set_index("filename", inplace=True)
 
-    return image_path, results, image_stats_df, core_out_path
+    return image_path, results, image_stats_df
 
 
 def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
