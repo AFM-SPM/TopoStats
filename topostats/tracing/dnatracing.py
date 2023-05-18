@@ -22,7 +22,7 @@ from topostats.tracing.skeletonize import getSkeleton, pruneSkeleton
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-class dnaTrace(object):
+class dnaTrace:
     """
     This class gets all the useful functions from the old tracing code and staples
     them together to create an object that contains the traces for each DNA molecule
@@ -37,10 +37,11 @@ class dnaTrace(object):
 
     def __init__(
         self,
-        full_image_data,
+        full_image_data: np.ndarray,
         grains,
-        filename,
-        pixel_size,
+        filename: str,
+        pixel_size: float,
+        min_skeleton_size: int = 10,
         convert_nm_to_m: bool = True,
         skeletonisation_method: str = "joe",
         pruning_method: str = "joe",
@@ -49,6 +50,7 @@ class dnaTrace(object):
         self.grains_orig = np.where(grains != 0, 1, 0)
         self.filename = filename
         self.pixel_size = pixel_size * 1e-9 if convert_nm_to_m else pixel_size
+        self.min_skeleton_size = min_skeleton_size
         self.skeletonisation_method = skeletonisation_method
         self.pruning_method = pruning_method
         self.number_of_rows = self.full_image_data.shape[0]
@@ -79,6 +81,8 @@ class dnaTrace(object):
         self.number_of_traces = 0
         self.num_circular = 0
         self.num_linear = 0
+        self.unprocessed_grains = 0
+        self.neighbours = 5  # The number of neighbours used for the curvature measurement
 
         self.n_points = 200
         self.displacement = 0
@@ -88,7 +92,7 @@ class dnaTrace(object):
         # supresses scipy splining warnings
         warnings.filterwarnings("ignore")
 
-        LOGGER.info("Performing DNA Tracing")
+        LOGGER.debug(f"[{self.filename}] Performing DNA Tracing")
 
     def trace_dna(self):
         """Perform DNA tracing."""
@@ -177,6 +181,11 @@ class dnaTrace(object):
         """
         return array[bounding_box[0] : bounding_box[1], bounding_box[2] : bounding_box[3]]
 
+    def gaussian_filter(self, **kwargs) -> np.array:
+        """Apply Gaussian filter"""
+        self.gauss_image = gaussian(self.full_image_data, sigma=self.sigma, **kwargs)
+        LOGGER.info(f"[{self.filename}] : Gaussian filter applied.")
+
     def get_disordered_trace(self):
         """Puts skeletons into dictionary"""
         for grain_num, skeleton in self.skeleton_dict.items():
@@ -187,13 +196,14 @@ class dnaTrace(object):
                 self.grains.pop(grain_num)
 
     def purge_obvious_crap(self):
-
+        all_grains = len(self.disordered_traces)
         for dna_num in sorted(self.disordered_traces.keys()):
-
-            if len(self.disordered_traces[dna_num]) < 10:
+            if len(self.disordered_traces[dna_num]) < self.min_skeleton_size:
                 self.disordered_traces.pop(dna_num, None)
+        self.unprocessed_grains = all_grains - len(self.disordered_traces)
+        LOGGER.info(f"[{self.filename}] : Crap grains removed : {self.unprocessed_grains}")
 
-    def linear_or_circular(self, traces: dict):
+    def linear_or_circular(self, traces):
         """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace.
         This function is sensitive to branches from the skeleton so might need to implement a function to remove them
 
@@ -209,6 +219,7 @@ class dnaTrace(object):
         for dna_num in sorted(traces.keys()):
             points_with_one_neighbour = 0
             fitted_trace_list = traces[dna_num].tolist()
+
             # For loop determines how many neighbours a point has - if only one it is an end
             for x, y in fitted_trace_list:
 
@@ -231,7 +242,6 @@ class dnaTrace(object):
             circle_tracing = True
 
             if self.mol_is_circular[dna_num]:
-
                 self.ordered_traces[dna_num], trace_completed = reorderTrace.circularTrace(
                     self.disordered_traces[dna_num]
                 )
@@ -261,7 +271,6 @@ class dnaTrace(object):
         """
 
         for dna_num in sorted(self.ordered_traces.keys()):
-
             individual_skeleton = self.ordered_traces[dna_num]
 
             # This indexes a 3 nm height profile perpendicular to DNA backbone
@@ -717,35 +726,17 @@ class dnaTrace(object):
                         )
                 curve = np.array(curve)
                 sub_trace_curve.append(curve)
-            print("Test Point")
-            print(dna_num)
-            print(len(sub_trace_curve[0]))
-            print(sub_trace_curve[0])
-            print(len(sub_trace_curve[1]))
-            print(sub_trace_curve[1])
-            print(len(sub_trace_curve[2]))
-            print(sub_trace_curve[2])
-            print(sub_trace_curve)
-            print(type(sub_trace_curve))
+
             if len(sub_trace_curve[0]) > len(sub_trace_curve[1]):
                 sub_trace_curve[1] = np.append(sub_trace_curve[1], [sub_trace_curve[0][-1]], axis=0)
                 sub_trace_curve[2] = np.append(sub_trace_curve[2], [sub_trace_curve[0][-1]], axis=0)
             elif len(sub_trace_curve[1]) > len(sub_trace_curve[2]):
                 last_element = np.average([sub_trace_curve[0][-1], sub_trace_curve[1][-1]], axis=0)
-                print("Test Point 1.5")
-                print(sub_trace_curve[0][-1])
-                print(sub_trace_curve[1][-1])
-                print(last_element)
                 sub_trace_curve[2] = np.append(sub_trace_curve[2], [last_element], axis=0)
-                print(len(sub_trace_curve[2]))
 
             trace_curve_total = np.add(sub_trace_curve[0], sub_trace_curve[1], sub_trace_curve[2])
-            print("Test Point 2")
-            print("Test Point 3")
             # overall_curve = np.average([sub_trace_curve[0], sub_trace_curve[1], sub_trace_curve[2]], axis=0)
             overall_curve = trace_curve_total / 3
-            print(overall_curve)
-            print(len(overall_curve))
 
             curve = np.array(overall_curve)
             # curvature_smoothed = scipy.ndimage.gaussian_filter(curve[:, 2], 10, mode='nearest')
@@ -949,10 +940,8 @@ class dnaTrace(object):
         Contour length units are nm"""
 
         for dna_num in sorted(self.splined_traces.keys()):
-
             if self.mol_is_circular[dna_num]:
                 for num, i in enumerate(self.splined_traces[dna_num]):
-
                     x1 = self.splined_traces[dna_num][num - 1, 0]
                     y1 = self.splined_traces[dna_num][num - 1, 1]
                     x2 = self.splined_traces[dna_num][num, 0]
@@ -1105,7 +1094,6 @@ class dnaTrace(object):
                         np.abs(self.curvature[dna_num][:, 1] - self.contour_lengths[dna_num] / 2)
                     )
 
-                print("Number: %d" % dna_num)
                 # Left line that forms the bending angle
                 left_nm = ref_point_nm - nm_each_side
                 left_index = np.argmin(np.abs(self.curvature[dna_num][:, 1] - left_nm))
@@ -1148,8 +1136,7 @@ class dnaTrace(object):
                 self.central_max_curvature_location[dna_num] = 0
                 self.bending_angle[dna_num] = 0
 
-
-class traceStats(object):
+class traceStats:
     """Combine and save trace statistics."""
 
     def __init__(self, trace_object: dnaTrace, image_path: Union[str, Path]) -> None:
@@ -1179,22 +1166,21 @@ class traceStats(object):
         stats = OrderedDict()
         for mol_num, _ in self.trace_object.ordered_traces.items():
             stats[mol_num] = {}
-            stats[mol_num]["Contour Lengths"] = self.trace_object.contour_lengths[mol_num]
-            stats[mol_num]["Circular"] = self.trace_object.mol_is_circular[mol_num]
-            stats[mol_num]["End to End Distance"] = self.trace_object.end_to_end_distance[mol_num]
-            stats[mol_num]["Max Curvature"] = self.trace_object.max_curvature[mol_num]
-            stats[mol_num]["Max Curvature Location"] = self.trace_object.max_curvature_location[mol_num]
-            stats[mol_num]["Mean Curvature"] = self.trace_object.mean_curvature[mol_num]
-            stats[mol_num]["Variance of Curvature"] = self.trace_object.curvature_variance[mol_num]
-            stats[mol_num]["Variance of Absolute Curvature"] = self.trace_object.curvature_variance_abs[mol_num]
-            stats[mol_num]["Middle Max Curvature Location"] = self.trace_object.central_max_curvature_location[mol_num]
-            stats[mol_num]["Bending Angle"] = self.trace_object.bending_angle[mol_num]
+            stats[mol_num]["contour_lengths"] = self.trace_object.contour_lengths[mol_num]
+            stats[mol_num]["circular"] = self.trace_object.mol_is_circular[mol_num]
+            stats[mol_num]["end_to_end_distance"] = self.trace_object.end_to_end_distance[mol_num]
+            stats[mol_num]["max_curvature"] = self.trace_object.max_curvature[mol_num]
+            stats[mol_num]["max_curvature_location"] = self.trace_object.max_curvature_location[mol_num]
+            stats[mol_num]["mean_curvature"] = self.trace_object.mean_curvature[mol_num]
+            stats[mol_num]["variance_of_curvature"] = self.trace_object.curvature_variance[mol_num]
+            stats[mol_num]["variance_of_absolute_curvature"] = self.trace_object.curvature_variance_abs[mol_num]
+            stats[mol_num]["middle_max_curvature_location"] = self.trace_object.central_max_curvature_location[mol_num]
+            stats[mol_num]["bending_angle"] = self.trace_object.bending_angle[mol_num]
         self.df = pd.DataFrame.from_dict(data=stats, orient="index")
-        self.df.reset_index(drop=True, inplace=True)
-        self.df.index.name = "Molecule Number"
+        # self.df.reset_index(drop=True, inplace=True)
+        self.df.index.name = "molecule_number"
         # self.df["Experiment Directory"] = str(Path().cwd())
-        self.df["Image Name"] = self.image_path.name
-        self.df["Basename"] = str(self.image_path.parent)
+        self.df["image"] = self.image_path.name
 
     def save_trace_stats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True) -> None:
         """Write trace statistics to JSON and/or CSV.

@@ -1,11 +1,13 @@
 # Contributing
 
-This document explains how, technically, to contribute to this project. A code of conduct may be available in the root of this repository, or included in the readme.
+This document explains how, technically, to contribute to this project. A code of conduct may be available in the root
+of this repository, or included in the readme.
 
 ## Contribution Workflow
 
 * Check the issues and draft pull requests to see if anyone is working on something similar.
-* Make a branch for your contribution. If it is a bug fix for the current working version then you should branch from `master`. If you are working on new features then please branch from `dev`.
+* Make a branch for your contribution. If it is a bug fix for the current working version then you should branch from
+  `master`. If you are working on new features then please branch from `dev`.
 * Implement your feature, bug fix, documentation, etc. using commits.
 * Push your changes.
 *Make a pull request against the branch from which you originally branched from (`master` for bug fixes; `dev` for new features).
@@ -14,7 +16,8 @@ You are advised to make a draft pull request as soon as you start work so nobody
 
 ## Software Architecture
 
-`topostats` is currently arranged as a Python module in the `topostats/` folder. Other scripts in this repository are not currently considered core elements of `topostats` apart from `Plotting.py`.
+`topostats` is currently arranged as a Python module in the `topostats/` folder. Other scripts in this repository are
+not currently considered core elements of `topostats` apart from `Plotting.py`.
 
 Currently the `topostats` module consists of:
 
@@ -23,7 +26,8 @@ Currently the `topostats` module consists of:
 * `pygwytracing.py` The "main" routine.
 * `tracingfuncs.py` Skeletonises and generates backbone traces from masks.
 
-The current working plan is to move to a more modular architecture with new (and existing) functionality being grouped by theme within files. We expect to add such files as:
+The current working plan is to move to a more modular architecture with new (and existing) functionality being grouped
+by theme within files. We expect to add such files as:
 
 * `filters.py` Raster image filters (e.g. Gaussian blur).
 * `morphology.py` Morphological operations (e.g. identify connected components).
@@ -31,9 +35,11 @@ The current working plan is to move to a more modular architecture with new (and
 * `file_io.py` Input and output (e.g. load proprietary AFM data formats).
 * `plottingfuncs.py` Output plot functions (e.g. generate various plots for raw and processed AFM datasets).
 
-These can then be called by a "main" routine that performs batch analysis, and functions within them tested in isolation using `pytest` and reused in arbitrary contexts.
+These can then be called by a "main" routine that performs batch analysis, and functions within them tested in isolation
+using `pytest` and reused in arbitrary contexts.
 
-Object oriented approaches will be used where appropriate, but not seen as inherently superior to "functional" approaches which can be easier to maintain. Existing object orientation will be reviewed with this in mind.
+Object oriented approaches will be used where appropriate, but not seen as inherently superior to "functional"
+approaches which can be easier to maintain. Existing object orientation will be reviewed with this in mind.
 
 ## Coding Style
 
@@ -60,7 +66,7 @@ Object oriented approaches will be used where appropriate, but not seen as inher
 
 To run tests:
 
-```
+```bash
 python -m pytest
 ```
 
@@ -68,10 +74,10 @@ python -m pytest
 
 Here is an example of how to add / update tests that rely on creating _.csv.bz2 files:
 Place the following in the test before generating/calling the fixture from `conftest.py` in the test arguments, run it, then
-comment it out / remove it, then run it again with the fixture and check if the test passes. This generates the data and 
-saves it such that next time you run the tests, it will get picked up for testing against. 
+comment it out / remove it, then run it again with the fixture and check if the test passes. This generates the data and
+saves it such that next time you run the tests, it will get picked up for testing against.
 
-```
+```bash
 import pandas as pd
 df = pd.DataFrame(quadratic_removed)
 df.to_csv("tests/resources/image_random_remove_quadratic.csv.bz2", index=False, header=False)
@@ -88,31 +94,30 @@ df.to_csv("tests/resources/image_random_remove_quadratic.csv.bz2", index=False, 
 3. Click "Reopen in container".
 4. Run the debugger as normal.
 
-
 ## Using pycharm and GitHub
 
 Check the issues and draft pull requests.
 
-![](assets/issues-prs.png)
+![Check the issues and draft pull requests.](assets/issues-prs.png)
 
 Make a branch for your contribution.
 
-![](assets/pycharm-branch.png)
+![Make a branch for your contribution.](assets/pycharm-branch.png)
 
 Add any new files to `git` (i.e. stage them).
 
-![](assets/stage.png)
+![Add any new files to `git` (i.e. stage them).](assets/stage.png)
 
 Commit the changes (with a sensible message).
 
-![](assets/commit.png)
+![Commit the changes (with a sensible message).](assets/commit.png)
 
 > Add / commit multiple times to break your contribution into easy to follow chunks.
 
 Push changes.
 
-![](assets/push.png)
+![Push changes.](assets/push.png)
 
 Make a pull request.
 
-![](assets/pull-request.png)
+![Make a pull request.](assets/pull-request.png)

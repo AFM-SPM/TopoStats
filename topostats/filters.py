@@ -22,6 +22,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-branches
 # pylint: disable=dangerous-default-value
 
+
 class Filters:
     """Class for filtering scans."""
 
@@ -30,6 +31,7 @@ class Filters:
         image: np.ndarray,
         filename: str,
         pixel_to_nm_scaling: float,
+        row_alignment_quantile: float = 0.5,
         threshold_method: str = "otsu",
         otsu_threshold_multiplier: float = 1.7,
         threshold_std_dev: dict = None,
@@ -37,7 +39,6 @@ class Filters:
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
         remove_scars: dict = None,
-        quiet: bool = False,
     ):
         """Initialise the class.
 
@@ -49,25 +50,27 @@ class Filters:
             The filename (used for logging outputs only).
         pixel_to_nm_scaling: float
             Value for converting pixels to nanometers.
+        row_alignment_quantile: float
+            Quantile (0.0 to 1.0) to be used to determine the average background for the image.
+            below values may improve flattening of large features.
         threshold_method: str
             Method for thresholding, default 'otsu', valid options 'otsu', 'std_dev' and 'absolute'.
         otsu_threshold_multiplier: float
             Value for scaling the derived Otsu threshold (optional).
         threshold_std_dev: dict
-            If using the 'std_dev' threshold method. Dictionary that contains upper and lower
+            If using the 'std_dev' threshold method. Dictionary that contains above and below
             threshold values for the number of standard deviations from the mean to threshold.
         threshold_absolute: dict
-            If using the 'absolute' threshold method. Dictionary that contains upper and lower
+            If using the 'absolute' threshold method. Dictionary that contains above and below
             absolute threshold values for flattening.
         remove_scars: dict
             Dictionary containing configuration parameters for the scar removal function.
-        quiet: bool
-            Whether to silence output.
         """
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.gaussian_size = gaussian_size
         self.gaussian_mode = gaussian_mode
+        self.row_alignment_quantile = row_alignment_quantile
         self.threshold_method = threshold_method
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
         self.threshold_std_dev = threshold_std_dev
@@ -98,10 +101,9 @@ class Filters:
             "threshold": None,
         }
 
-        if quiet:
-            LOGGER.setLevel("ERROR")
-
-    def median_flatten(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
+    def median_flatten(
+        self, image: np.ndarray, mask: np.ndarray = None, row_alignment_quantile: float = 0.5
+    ) -> np.ndarray:
         """
         Uses the method of median differences to flatten the rows of an image, aligning the rows and centering the
         median around zero. When used with a mask, this has the effect of centering the background data on zero.
@@ -113,6 +115,8 @@ class Filters:
             2-D image of the data to align the rows of.
         mask: np.ndarray
             Boolean array of points to mask out (ignore).
+        row_alignment_quantile: float
+            Quantile (0.0 to 1.0) used for defining the average background.
 
         Returns
         -------
@@ -129,7 +133,7 @@ class Filters:
 
         for row in range(image.shape[0]):
             # Get the median of the row
-            m = np.nanmedian(read_matrix[row, :])
+            m = np.nanquantile(read_matrix[row, :], row_alignment_quantile)
             if not np.isnan(m):
                 image[row, :] -= m
             else:
@@ -171,6 +175,8 @@ processed, please refer to <url to page where we document common problems> for m
         # Calculate medians
         medians_x = [np.nanmedian(read_matrix[:, i]) for i in range(read_matrix.shape[1])]
         medians_y = [np.nanmedian(read_matrix[j, :]) for j in range(read_matrix.shape[0])]
+        LOGGER.debug(f"[{self.filename}] [remove_tilt] medians_x   : {medians_x}")
+        LOGGER.debug(f"[{self.filename}] [remove_tilt] medians_y   : {medians_y}")
 
         # Fit linear x
         px = np.polyfit(range(0, len(medians_x)), medians_x, 1)
@@ -319,7 +325,9 @@ processed, please refer to <url to page where we document common problems> for m
         filter.filter_image()
 
         """
-        self.images["initial_median_flatten"] = self.median_flatten(self.images["pixels"], mask=None)
+        self.images["initial_median_flatten"] = self.median_flatten(
+            self.images["pixels"], mask=None, row_alignment_quantile=self.row_alignment_quantile
+        )
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_median_flatten"], mask=None)
         self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None)
 
@@ -349,7 +357,7 @@ processed, please refer to <url to page where we document common problems> for m
             image=self.images["initial_scar_removal"], thresholds=self.thresholds, img_name=self.filename
         )
         self.images["masked_median_flatten"] = self.median_flatten(
-            self.images["initial_tilt_removal"], self.images["mask"]
+            self.images["initial_tilt_removal"], self.images["mask"], row_alignment_quantile=self.row_alignment_quantile
         )
         self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_median_flatten"], self.images["mask"])
         self.images["masked_quadratic_removal"] = self.remove_quadratic(

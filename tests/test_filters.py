@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 from skimage.filters import gaussian
+import pytest
 
 from topostats.filters import Filters
 
@@ -14,15 +15,27 @@ TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
+RNG = np.random.default_rng(seed=1000)
 
-def test_median_flatten_no_mask(test_filters_random: Filters, image_random_median_flattened: np.array) -> None:
+
+@pytest.mark.parametrize(
+    "row_alignment_quantile, image, expected",
+    [
+        (0.5, RNG.random((20, 20)), np.load(RESOURCES / "test_median_flatten_0.5.npy")),
+        (0.2, RNG.random((20, 20)), np.load(RESOURCES / "test_median_flatten_0.2.npy")),
+    ],
+)
+def test_median_flatten_no_mask(
+    test_filters_random: Filters, row_alignment_quantile: float, image: np.ndarray, expected: np.ndarray
+) -> None:
     """Test aligning of rows by median height."""
-    median_flattened = test_filters_random.median_flatten(test_filters_random.images["pixels"], mask=None)
+    median_flattened = test_filters_random.median_flatten(
+        image, mask=None, row_alignment_quantile=row_alignment_quantile
+    )
 
     assert isinstance(median_flattened, np.ndarray)
-    assert median_flattened.shape == (1024, 1024)
-
-    np.testing.assert_allclose(median_flattened, image_random_median_flattened, **TOLERANCE)
+    assert median_flattened.shape == (20, 20)
+    np.testing.assert_allclose(median_flattened, expected, **TOLERANCE)
 
 
 def test_remove_tilt_no_mask(test_filters_random: Filters, image_random_remove_x_y_tilt: np.array) -> None:
@@ -64,6 +77,7 @@ def test_calc_gradient(test_filters_random: Filters, image_random: np.ndarray) -
 # FIXME : sum of half of the array values is vastly smaller and so test fails. What is strange is that
 #         test_filters_minicircle.test_average_background() *DOESN'T* fail
 def test_non_square_img(test_filters_random: Filters):
+    """Test median flattening on non-square images"""
     test_filters_random.images["pixels"] = test_filters_random.images["pixels"][:, 0:512]
     test_filters_random.images["zero_averaged_background"] = test_filters_random.median_flatten(
         image=test_filters_random.images["pixels"], mask=None
