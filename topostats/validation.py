@@ -203,21 +203,21 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "grain_height_removal_thresholds_std_dev": {
                 "above": [
                     Or(
-                        float,
+                        lambda n: n > 0,
                         None,
                         error=(
                             "Invalid value in config for 'grains.grain_height_removal_threshold_std_dev', valid "
-                            "values are float or null."
+                            "values are float > 0 or null."
                         ),
                     ),
                 ],
                 "below": [
                     Or(
-                        float,
+                        lambda n: n > 0,
                         None,
                         error=(
                             "Invalid value in config for 'grains.grain_height_removal_threshold_std_dev', valid "
-                            "values are float or null."
+                            "values are float > 0 or null."
                         ),
                     ),
                 ],
