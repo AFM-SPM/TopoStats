@@ -1003,7 +1003,7 @@ class nodeStats:
         self.image = image
         self.grains = grains
         self.skeletons = skeletons
-        self.px_2_nm = 1 #px_2_nm
+        self.px_2_nm = px_2_nm
         """
         a = np.zeros((100,100))
         a[21:80, 20] = 1
@@ -1051,7 +1051,7 @@ class nodeStats:
         """
         labelled_skeletons = label(self.skeletons)
         for skeleton_no in range(1, labelled_skeletons.max() + 1):
-            LOGGER.info(f"Processing Mol: {skeleton_no}")
+            LOGGER.info(f"Processing Grain: {skeleton_no}")
             self.skeleton = self.skeletons.copy()
             self.skeleton[labelled_skeletons != skeleton_no] = 0
             self.conv_skelly = convolve_skelly(self.skeleton)
@@ -1199,7 +1199,6 @@ class nodeStats:
                 pairs = self.pair_vectors(np.asarray(vectors))
 
                 # join matching branches through node
-                print("GOT TO MB")
                 matched_branches = {}
                 branch_img = np.zeros_like(node_area)  # initialising paired branch img
                 avg_img = np.zeros_like(node_area)
@@ -1860,7 +1859,6 @@ class nodeStats:
             crossing_distances.append(temp_distances)
             fwhms.append(temp_fwhms)
 
-
         # get image minus the crossing areas
         minus = self.get_minus_img(node_area_box, node_centre_coords)
         # get crossing image
@@ -2056,7 +2054,7 @@ class nodeStats:
             #   - Use lowest FWHM index to get the under branch coords
             #   - Count overlapping coords between under branch coords and each ordered segment
             #   - Get img label of two highest count (in and out)
-            #   - Under-in = lowest of two indexes
+            #   - Under-in = lowest of two indexes ?? (back 2 start?)
 
             #print("global node idxs", global_node_idxs)
             for i, global_node_idx in enumerate(global_node_idxs):
@@ -2077,9 +2075,13 @@ class nodeStats:
                     ]:  # for global_node[4] branch index is incorrect
                         c += ((np.stack(np.where(img == label2)).T == ordered_branch_coord).sum(axis=1) == 2).sum()
                     matching_coords = np.append(matching_coords, c)
-                    # print(f"Segment: {label}, Matches: {c}")
+                    #print(f"Segment: {label2.max()}, Matches: {c}")
                 highest_count_labels = [uniq_labels[i] for i in np.argsort(matching_coords)[-2:]]
-                under_in = min(highest_count_labels)  # under-in for global_node[4] is incorrect
+                print(highest_count_labels)
+                if abs(highest_count_labels[0] - highest_count_labels[1]) > 1: # assumes matched branch
+                    under_in = max(highest_count_labels)
+                else:
+                    under_in = min(highest_count_labels)  # under-in for global_node[4] is incorrect
                 # print(f"Under-in: {under_in}")
                 anti_clock = list(self.vals_anticlock(node_area, under_in))
                 
