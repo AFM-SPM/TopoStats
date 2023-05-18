@@ -1,8 +1,7 @@
 """Test end-to-end running of topostats."""
 from pathlib import Path
 
-# pylint: disable=deprecated-module
-import imghdr
+import filetype
 import numpy as np
 import pytest
 
@@ -113,7 +112,7 @@ def test_save_cropped_grains(
     )
 
 
-@pytest.mark.parametrize("extension", [("png"), ("tiff")])
+@pytest.mark.parametrize("extension", [("png"), ("tif")])
 def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path, extension: str):
     """Tests if save format applied to cropped images"""
     process_scan_config["plotting"]["image_set"] = "all"
@@ -132,12 +131,10 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
         output_dir=tmp_path,
     )
 
-    assert (
-        imghdr.what(
-            tmp_path / "tests/resources/processed/minicircle/grains/above" / f"minicircle_grain_image_0.{extension}"
-        )
-        == extension
+    guess = filetype.guess(
+        tmp_path / "tests/resources/processed/minicircle/grains/above" / f"minicircle_grain_image_0.{extension}"
     )
+    assert guess.extension == extension
 
 
 @pytest.mark.parametrize(
