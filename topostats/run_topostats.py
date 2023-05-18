@@ -361,16 +361,6 @@ def process_scan(
                     ).plot_and_save()
                     """
 
-                    plot_name = "pruned_skeletons"
-                    plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
-                    Images(
-                        filtered_image.images["gaussian_filtered"],
-                        data2=binary_dilation(dna_traces[direction].skeletons),
-                        **plotting_config["plot_dict"][plot_name],
-                    ).save_figure_black(
-                        background=grains.directions[direction]["removed_small_objects"],
-                    )
-
                     tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
                     tracing_stats[direction].df["threshold"] = direction
 
@@ -412,6 +402,17 @@ def process_scan(
 
                     # plot nodes and line traces
                     for mol_no, mol_stats in node_stats[direction].items():
+                        visual = nodes.visuals[mol_no]
+                        if visual is not None:
+                            print("plotting visual")
+                            Images(
+                                dna_traces[direction].full_image_data,
+                                data2=visual,
+                                output_dir=output_dir,
+                                zrange=[0, 3.5e-9],
+                                **plotting_config["plot_dict"]["visual"],
+                            ).save_figure_black(background=grains.directions[direction]["removed_small_objects"])
+
                         for node_no, single_node_stats in mol_stats.items():
                             Images(
                                 single_node_stats["node_stats"]["node_area_image"],
