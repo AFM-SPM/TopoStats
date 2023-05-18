@@ -7,7 +7,6 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-
 name = "topostats"
 description = "Automated Analysis for Atomic Force Microscopy Images of Biomolecules"
 readme = "README.md"
@@ -130,6 +129,7 @@ include-package-data = true
 where = ["."]
 include = ["topostats"]
 exclude = ["tests"]
+namespaces = false
 
 [tool.setuptools.package-data]
 topostats = ["*.yaml"]
