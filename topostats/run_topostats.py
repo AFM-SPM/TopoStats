@@ -380,7 +380,8 @@ def process_scan(
                         skeletons=dna_traces[direction].skeletons,
                         px_2_nm=pixel_to_nm_scaling,
                     )
-                    node_stats[direction] = nodes.get_node_stats()
+                    nodes.get_node_stats()
+                    node_stats[direction] = nodes.full_dict
 
                     # Plot dnatracing images
                     LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
@@ -455,6 +456,7 @@ def process_scan(
                                 )
 
                     # ------- branch vector img -------
+                    """
                     vectors = nodes.test2
                     plot_name = "test"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
@@ -494,6 +496,7 @@ def process_scan(
                         12.5, 14, "%0.2f" % float(angles[1]) + "\u00b0", fontsize=40, weight="bold", color="white"
                     )  #'xx-large
                     fig.savefig("cats2/vector_angle_img.tiff")
+                    """
 
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":

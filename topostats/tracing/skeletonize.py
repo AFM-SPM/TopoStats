@@ -211,7 +211,7 @@ class joeSkeletonize:
             The single pixel thick, skeletonised array.
         """
         self.mask = np.pad(self.mask, 1) # pad to avoid hitting border
-        self.image = np.pad(self.mask, 1) # pad to make same as mask
+        #self.image = np.pad(self.mask, 1) # pad to make same as mask
         while not self.skeleton_converged:
             self._do_skeletonising_iteration()
         # When skeleton converged do an additional iteration of thinning to remove hanging points

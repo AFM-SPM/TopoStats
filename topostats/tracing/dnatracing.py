@@ -1004,7 +1004,7 @@ class nodeStats:
         self.grains = grains
         self.skeletons = skeletons
         self.px_2_nm = 1 #px_2_nm
-        
+        """
         a = np.zeros((100,100))
         a[21:80, 20] = 1
         a[21:80, 50] = 1
@@ -1016,7 +1016,7 @@ class nodeStats:
         self.grains = ndimage.binary_dilation(a, iterations=3)
         self.image = np.ones((100,100))
         self.skeletons = a
-        
+        """
 
         self.skeleton = None
         self.conv_skelly = None
@@ -1843,31 +1843,29 @@ class nodeStats:
         crossing_heights = []
         crossing_distances = []
         fwhms = []
-        for smth, stats in self.node_dict.items():
+        for _, stats in self.node_dict.items():
             node_centre_coords.append(stats['node_stats']['node_mid_coords'])
             node_area_box.append(stats['node_stats']['node_area_image'].shape)
+            temp_coords = []
+            temp__heights = []
+            temp_distances = []
+            temp_fwhms = []
             for _, branch_stats in stats['branch_stats'].items():
-                crossing_coords.append(branch_stats['ordered_coords'])
-                print(len(branch_stats['ordered_coords']))
-                crossing_heights.append(branch_stats['heights'])
-                crossing_distances.append(branch_stats['distances'])
-                fwhms.append(branch_stats["fwhm2"][0])
-            
-        
-        # crossing_coords = np.array(crossing_coords).reshape(-1)
-        print("PRE: ")
-        print(crossing_coords[0])
-        crossing_coords[0] = np.append(crossing_coords[0], [0,0], axis=1)
-        print(crossing_coords[0])
-        #print(crossing_coords)
-        print(type(crossing_coords))
-        print(type(crossing_coords[0]))
-        print(np.array(crossing_coords).shape)
+                temp_coords.append(branch_stats['ordered_coords'])
+                temp__heights.append(branch_stats['heights'])
+                temp_distances.append(branch_stats['distances'])
+                temp_fwhms.append(branch_stats["fwhm2"][0])
+            crossing_coords.append(temp_coords)
+            crossing_heights.append(temp__heights)
+            crossing_distances.append(temp_distances)
+            fwhms.append(temp_fwhms)
+
 
         # get image minus the crossing areas
         minus = self.get_minus_img(node_area_box, node_centre_coords)
         # get crossing image
         crossings = self.get_crossing_img(crossing_coords, minus.max() + 1)
+        print(np.unique(crossings))
         # combine branches and segments
         both_img = self.get_both_img(minus, crossings)
 
@@ -1877,18 +1875,20 @@ class nodeStats:
             arr = np.where(minus, minus == i, 0)
             ordered.append(self.order_branch(arr, [0, 0]))  # orientated later
         # combine ordered indexes
-        for i in crossing_coords:
-            ordered.append(i)
+        for node_crossing_coords in crossing_coords:
+            for single_cross in node_crossing_coords:
+                ordered.append(np.array(single_cross))
+        print("LEN: ", len(ordered))
 
-        # np.savetxt("knot2/both_coords.txt", both_img)
-        # for i, val in enumerate(ordered):
-        # np.savetxt(f"knot2/ordered_{i}.txt", val)
-
+        #np.savetxt("/Users/Maxgamill/Desktop/both.txt", both_img)
         print("Getting coord trace")
         coord_trace = self.trace_mol(ordered, both_img)
+        #np.savetxt("/Users/Maxgamill/Desktop/trace.txt", coord_trace[0])
 
         # visual over under img
         visual = self.get_visual_img(coord_trace, fwhms, crossing_coords)
+
+        #np.savetxt("/Users/Maxgamill/Desktop/visual.txt", visual)
 
         # I could use the traced coords, remove the node centre coords, and re-label segments
         #   following 1, 2, 3... around the mol which should look like the Planar Diagram formation
@@ -1898,59 +1898,6 @@ class nodeStats:
         pd_codes = self.get_pds(coord_trace, node_centre_coords, fwhms, crossing_coords)
 
         return coord_trace, visual
-
-    def get_visual_img(self, coord_trace, fwhms, crossing_coords):
-        # put down traces
-        img = np.zeros_like(self.skeleton)
-        for mol_no, coords in enumerate(coord_trace):
-            temp_img = np.zeros_like(img)
-            temp_img[coords[:, 0], coords[:, 1]] = 1
-            temp_img = binary_dilation(temp_img)
-            img[temp_img != 0] = mol_no + 1
-
-        fwhms = np.array(fwhms).reshape(-1, 2)
-        crossing_coords = np.array(crossing_coords).reshape(-1, 2)
-        print("Crossings: ")
-        print(crossing_coords)
-        print(type(crossing_coords))
-        print(type(crossing_coords[0]))
-        lower_idxs = fwhms.argmin(axis=1)
-        upper_idxs = fwhms.argmax(axis=1)
-        if len(coord_trace) > 1:
-            for type_idxs in [lower_idxs, upper_idxs]:
-                for (crossing, type_idx) in zip(crossing_coords, type_idxs):
-                    temp_img = np.zeros_like(img)
-                    cross_coords = crossing[type_idx]
-                    # decide which val
-                    matching_coords = np.array([])
-                    for trace in coord_trace:
-                        c = 0
-                        # get overlaps between segment coords and crossing under coords
-                        for cross_coord in cross_coords:
-                            c += ((trace == cross_coord).sum(axis=1) == 2).sum()
-                        matching_coords = np.append(matching_coords, c)
-                    val = matching_coords.argmax() + 1
-                    temp_img[cross_coords[:, 0], cross_coords[:, 1]] = 1
-                    temp_img = binary_dilation(temp_img)
-                    img[temp_img != 0] = val
-        else:
-            # make plot where overs are one colour and unders another
-            for i, type_idxs in enumerate([lower_idxs, upper_idxs]):
-                for (crossing, type_idx) in zip(crossing_coords, type_idxs):
-                    temp_img = np.zeros_like(img)
-                    cross_coords = crossing[type_idx]
-                    # decide which val
-                    matching_coords = np.array([])
-                    c = 0
-                    # get overlaps between segment coords and crossing under coords
-                    for cross_coord in cross_coords:
-                        c += ((coord_trace[0] == cross_coord).sum(axis=1) == 2).sum()
-                    matching_coords = np.append(matching_coords, c)
-                    val = matching_coords.argmax() + 1
-                    temp_img[cross_coords[:, 0], cross_coords[:, 1]] = 1
-                    temp_img = binary_dilation(temp_img)
-                    img[temp_img != 0] = i + 2
-        return img
 
     def get_minus_img(self, node_area_box, node_centre_coords):
         minus = self.skeleton.copy()
@@ -1962,9 +1909,10 @@ class nodeStats:
 
     def get_crossing_img(self, crossing_coords, label_offset):
         crossings = np.zeros_like(self.skeleton)
-        for i, coords in enumerate(crossing_coords):
-            coords = np.asarray(coords)
-            crossings[coords[:, 0], coords[:, 1]] = i + label_offset
+        for i, node_crossing_coords in enumerate(crossing_coords):
+            for j, single_cross_coords in enumerate(node_crossing_coords):
+                #print(i,j, 2*i + j)
+                crossings[single_cross_coords[:, 0], single_cross_coords[:, 1]] = 2*i + j + label_offset
         return crossings
 
     @staticmethod
@@ -2008,10 +1956,71 @@ class nodeStats:
         print(f"Mols in trace: {len(mol_coords)}")
 
         return mol_coords
+    
+    @staticmethod
+    def get_trace_idxs(fwhms: list) -> tuple:
+        # node fwhms can be a list of different lengths so cannot use np arrays
+        under_idxs = []
+        over_idxs = []
+        for node_fwhms in fwhms:
+            order = np.argsort(node_fwhms)
+            under_idxs.append(order[0])
+            over_idxs.append(order[-1])
+        return under_idxs, over_idxs
+
+    def get_visual_img(self, coord_trace, fwhms, crossing_coords):
+        # put down traces
+        img = np.zeros_like(self.skeleton)
+        for mol_no, coords in enumerate(coord_trace):
+            temp_img = np.zeros_like(img)
+            temp_img[coords[:, 0], coords[:, 1]] = 1
+            temp_img = binary_dilation(temp_img)
+            img[temp_img != 0] = mol_no + 1
+
+        np.savetxt("/Users/Maxgamill/Desktop/preimg.txt", img)
+
+        print("Crossings: ")
+        lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
+
+        if len(coord_trace) > 1:
+            for type_idxs in [lower_idxs, upper_idxs]:
+                for (node_crossing_coords, type_idx) in zip(crossing_coords, type_idxs):
+                    temp_img = np.zeros_like(img)
+                    cross_coords = node_crossing_coords[type_idx]
+                    # decide which val
+                    matching_coords = np.array([])
+                    for trace in coord_trace:
+                        c = 0
+                        # get overlaps between segment coords and crossing under coords
+                        for cross_coord in cross_coords:
+                            c += ((trace == cross_coord).sum(axis=1) == 2).sum()
+                        matching_coords = np.append(matching_coords, c)
+                    val = matching_coords.argmax() + 1
+                    temp_img[cross_coords[:, 0], cross_coords[:, 1]] = 1
+                    temp_img = binary_dilation(temp_img)
+                    img[temp_img != 0] = val
+        else:
+            # make plot where overs are one colour and unders another
+            for i, type_idxs in enumerate([lower_idxs, upper_idxs]):
+                for (crossing, type_idx) in zip(crossing_coords, type_idxs):
+                    temp_img = np.zeros_like(img)
+                    cross_coords = crossing[type_idx]
+                    # decide which val
+                    matching_coords = np.array([])
+                    c = 0
+                    # get overlaps between segment coords and crossing under coords
+                    for cross_coord in cross_coords:
+                        c += ((coord_trace[0] == cross_coord).sum(axis=1) == 2).sum()
+                    matching_coords = np.append(matching_coords, c)
+                    val = matching_coords.argmax() + 1
+                    temp_img[cross_coords[:, 0], cross_coords[:, 1]] = 1
+                    temp_img = binary_dilation(temp_img)
+                    img[temp_img != 0] = i + 2
+        return img
+            
 
     def get_pds(self, trace_coords, node_centres, fwhms, crossing_coords):
         # find idxs of branches from start
-        print("Mols found:", len(trace_coords))
         for mol_trace in trace_coords:
             node_coord_idxs = np.array([]).astype(np.int32)
             global_node_idxs = np.array([]).astype(np.int32)
@@ -2024,6 +2033,8 @@ class nodeStats:
 
             ordered_node_coord_idxs, ordered_node_idx_idxs = np.sort(node_coord_idxs), np.argsort(node_coord_idxs)
             global_node_idxs = global_node_idxs[ordered_node_idx_idxs]
+
+            under_branch_idxs, _ = self.get_trace_idxs(fwhms)
 
             # iterate though nodes and label segments to node
             img[mol_trace[0 : ordered_node_coord_idxs[0], 0], mol_trace[0 : ordered_node_coord_idxs[0], 1]] = 1
@@ -2047,14 +2058,11 @@ class nodeStats:
             #   - Get img label of two highest count (in and out)
             #   - Under-in = lowest of two indexes
 
-            fwhms = np.array(fwhms).reshape(-1, 2)
-            crossing_coords = np.array(crossing_coords).reshape(-1, 2)
-            # print(fwhms)
-            # print("global node idxs", fwhms[global_node_idxs])
+            #print("global node idxs", global_node_idxs)
             for i, global_node_idx in enumerate(global_node_idxs):
-                # print(f"\n----Trace Node Num: {i+1}, Global Node Num: {global_node_idx}----")
-                under_branch_idx = fwhms[global_node_idx].argmin()
-                # print("under_branch_idx: ",under_branch_idx )
+                #print(f"\n----Trace Node Num: {i+1}, Global Node Num: {global_node_idx}----")
+                under_branch_idx = under_branch_idxs[global_node_idx]
+                #print("under_branch_idx: ", under_branch_idx)
                 matching_coords = np.array([])
                 x, y = node_centres[global_node_idx]
                 node_area = img[x - 3 : x + 4, y - 3 : y + 4]
