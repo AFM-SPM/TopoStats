@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - v*
+  workflow_dispatch:        # Uncomment line if you also want to trigger action manually
+
 jobs:
   build-release:
     runs-on: ubuntu-latest
@@ -18,11 +20,12 @@ jobs:
           python-version: 3.9
       - name: Installing the package
         run: |
-          pip3 install versioneer
           pip3 install .
           pip3 install .[pypi]
       - name: Build package
         run: |
+          pip3 install --upgrade setuptools
+          export DEB_PYTHON_INSTALL_LAYOUT=deb_system
           python -m build --no-isolation
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

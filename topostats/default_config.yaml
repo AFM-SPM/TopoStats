@@ -54,6 +54,7 @@ grainstats:
   cropped_size: 40.0 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
 dnatracing:
   run: true # Options : true, false
+  min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.
 plotting:
   run: true # Options : true, false
   save_format: png # Options : see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
