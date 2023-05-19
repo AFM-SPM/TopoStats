@@ -1196,6 +1196,7 @@ class nodeStats:
                         branch[labeled_area == branch_no] = 1
                         # order branch
                         ordered = self.order_branch(branch, centre)
+                        print("ordered: ", ordered)
                         # identify vector
                         vector = self.get_vector(ordered, centre)
                         # add to list
@@ -1214,6 +1215,8 @@ class nodeStats:
                         matched_branches[i] = {}
                         branch_1_coords = ordered_branches[branch_1]
                         branch_2_coords = ordered_branches[branch_2]
+                        print(f"B1 max, min: [{max(branch_1_coords[:,0]), min(branch_1_coords[:,0])}], [{max(branch_1_coords[:,1]), min(branch_1_coords[:,1])}]")
+                        print(f"B2 max, min: [{min(branch_2_coords[:,0]), min(branch_2_coords[:,0])}], [{max(branch_2_coords[:,1]), min(branch_2_coords[:,1])}]")
                         # find close ends by rearranging branch coords
                         branch_1_coords, branch_2_coords = self.order_branches(branch_1_coords, branch_2_coords)
                         # Linearly interpolate across the node
@@ -1230,6 +1233,7 @@ class nodeStats:
                         branch_coords = np.append(branch_coords, branch_2_coords, axis=0)
                         # make images of single branch joined and multiple branches joined
                         single_branch = np.zeros_like(node_area)
+                        print(single_branch.shape)
                         single_branch[branch_coords[:, 0], branch_coords[:, 1]] = 1
                         single_branch = getSkeleton(image_area, single_branch).get_skeleton("zhang")
                         # calc image-wide coords
@@ -1338,7 +1342,7 @@ class nodeStats:
         """
         binary_image = np.pad(binary_image, 1).astype(int)
         if len(np.argwhere(binary_image == 1)) < 3: # if < 3 coords just return them
-            return np.argwhere(binary_image == 1)
+            return np.argwhere(binary_image == 1) - [1, 1]
         
         # get branch starts
         endpoints_highlight = ndimage.convolve(binary_image, np.ones((3, 3)))
@@ -1374,8 +1378,10 @@ class nodeStats:
             current_point = ordered[-1]  # get last point
             area, _ = self.local_area_sum(binary_image, current_point)  # look at local area
             local_next_point =  np.argwhere(area.reshape((3, 3,)) == 1) - (1, 1)
-        # TODO: remove extra 0's that might be leftover?
-        return np.array(ordered) - [1, 1]  # remove padding
+
+        ordered_coords = np.array(ordered) - [1, 1]
+        print("ordered2_minus: ", ordered_coords)
+        return ordered_coords # remove padding
 
     @staticmethod
     def local_area_sum(binary_map, point):
@@ -1867,7 +1873,7 @@ class nodeStats:
             crossing_distances.append(temp_distances)
             fwhms.append(temp_fwhms)
 
-        print(fwhms)
+        #print(fwhms)
 
         # get image minus the crossing areas
         minus = self.get_minus_img(node_area_box, node_centre_coords)
@@ -1875,7 +1881,7 @@ class nodeStats:
         # get crossing image
         crossings = self.get_crossing_img(crossing_coords, minus.max() + 1)
         print("Cross :", np.unique(crossings))
-        print(crossing_coords)
+        #print(crossing_coords)
         # combine branches and segments
         both_img = self.get_both_img(minus, crossings)
 
