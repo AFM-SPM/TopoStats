@@ -60,6 +60,7 @@ tests = [
   "pytest-cov",
   "pytest-mpl",
   "pytest-regtest",
+  "filetype",
 ]
 docs = [
   "Sphinx",
