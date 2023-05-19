@@ -1003,8 +1003,9 @@ class nodeStats:
         self.image = image
         self.grains = grains
         self.skeletons = skeletons
-        self.px_2_nm = px_2_nm
-        """
+        self.px_2_nm = 1 #px_2_nm
+        
+
         a = np.zeros((100,100))
         a[21:80, 20] = 1
         a[21:80, 50] = 1
@@ -1016,7 +1017,7 @@ class nodeStats:
         self.grains = ndimage.binary_dilation(a, iterations=3)
         self.image = np.ones((100,100))
         self.skeletons = a
-        """
+        
 
         self.skeleton = None
         self.conv_skelly = None
@@ -1893,7 +1894,7 @@ class nodeStats:
         #   (https://topoly.cent.uw.edu.pl/dictionary.html#codes). Then look at each corssing zone again,
         #   determine which in in-undergoing and assign labels counter-clockwise
         print("Getting PD Codes:")
-        pd_codes = self.get_pds(coord_trace, node_centre_coords, fwhms, crossing_coords)
+        #pd_codes = self.get_pds(coord_trace, node_centre_coords, fwhms, crossing_coords)
 
         return coord_trace, visual
 
@@ -1907,10 +1908,11 @@ class nodeStats:
 
     def get_crossing_img(self, crossing_coords, label_offset):
         crossings = np.zeros_like(self.skeleton)
-        for i, node_crossing_coords in enumerate(crossing_coords):
-            for j, single_cross_coords in enumerate(node_crossing_coords):
-                #print(i,j, 2*i + j)
-                crossings[single_cross_coords[:, 0], single_cross_coords[:, 1]] = 2*i + j + label_offset
+        i = 0
+        for node_crossing_coords in crossing_coords:
+            for single_cross_coords in node_crossing_coords:
+                crossings[single_cross_coords[:, 0], single_cross_coords[:, 1]] = i + label_offset
+                i += 1
         return crossings
 
     @staticmethod
