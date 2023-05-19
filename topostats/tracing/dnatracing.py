@@ -1003,9 +1003,9 @@ class nodeStats:
         self.image = image
         self.grains = grains
         self.skeletons = skeletons
-        self.px_2_nm = 1 #px_2_nm
+        self.px_2_nm = px_2_nm
         
-
+        """
         a = np.zeros((100,100))
         a[21:80, 20] = 1
         a[21:80, 50] = 1
@@ -1017,7 +1017,7 @@ class nodeStats:
         self.grains = ndimage.binary_dilation(a, iterations=3)
         self.image = np.ones((100,100))
         self.skeletons = a
-        
+        """
 
         self.skeleton = None
         self.conv_skelly = None
@@ -1165,139 +1165,146 @@ class nodeStats:
             # stop processing if nib (node has 2 branches)
             if labeled_area.max() <= 2:
                 LOGGER.info(f"node {node_no} has only two branches - skipped & nodes removed")
-                pass
                 # sometimes removal of nibs can cause problems when re-indexing nodes
+                print(f"{len(node_coords)} pixels in nib node")
+                print(f"Node centre: {[x, y]}")
+                np.savetxt("/Users/Maxgamill/Desktop/nib.txt", self.node_centre_mask)
+                temp = self.node_centre_mask.copy()
+                temp_node_coords = node_coords.copy()
+                temp_node_coords += ([x, y] - centre)
+                temp[temp_node_coords[:,0], temp_node_coords[:,1]] = 1
+                np.savetxt("/Users/Maxgamill/Desktop/nib2.txt", temp)
                 # node_coords += ([x, y] - centre) # get whole image coords
                 # self.node_centre_mask[x, y] = 1 # remove these from node_centre_mask
                 # self.connected_nodes[node_coords[:,0], node_coords[:,1]] = 1 # remove these from connected_nodes
             else:
-                # try:
-                # check wether resolution good enough to trace
-                res = self.px_2_nm <= 1000 / 512
-                if not res:
-                    print("Res Error")
-                    raise ResolutionError
+                try:
+                    # check wether resolution good enough to trace
+                    res = self.px_2_nm <= 1000 / 512
+                    if not res:
+                        print("Res Error")
+                        raise ResolutionError
 
-                real_node_count += 1
-                print(f"Real node: {real_node_count}")
-                ordered_branches = []
-                vectors = []
-                for branch_no in range(1, labeled_area.max() + 1):
-                    # get image of just branch
-                    branch = labeled_area.copy()
-                    branch[labeled_area != branch_no] = 0
-                    branch[labeled_area == branch_no] = 1
-                    # order branch
-                    ordered = self.order_branch(branch, centre)
-                    # identify vector
-                    vector = self.get_vector(ordered, centre)
-                    # add to list
-                    vectors.append(vector)
-                    ordered_branches.append(ordered)
-                if node_no == 0:
-                    self.test2 = vectors
-                # pair vectors
-                pairs = self.pair_vectors(np.asarray(vectors))
+                    real_node_count += 1
+                    print(f"Real node: {real_node_count}")
+                    ordered_branches = []
+                    vectors = []
+                    for branch_no in range(1, labeled_area.max() + 1):
+                        # get image of just branch
+                        branch = labeled_area.copy()
+                        branch[labeled_area != branch_no] = 0
+                        branch[labeled_area == branch_no] = 1
+                        # order branch
+                        ordered = self.order_branch(branch, centre)
+                        # identify vector
+                        vector = self.get_vector(ordered, centre)
+                        # add to list
+                        vectors.append(vector)
+                        ordered_branches.append(ordered)
+                    if node_no == 0:
+                        self.test2 = vectors
+                    # pair vectors
+                    pairs = self.pair_vectors(np.asarray(vectors))
 
-                # join matching branches through node
-                matched_branches = {}
-                branch_img = np.zeros_like(node_area)  # initialising paired branch img
-                avg_img = np.zeros_like(node_area)
-                for i, (branch_1, branch_2) in enumerate(pairs):
-                    matched_branches[i] = {}
-                    branch_1_coords = ordered_branches[branch_1]
-                    branch_2_coords = ordered_branches[branch_2]
-                    # find close ends by rearranging branch coords
-                    branch_1_coords, branch_2_coords = self.order_branches(branch_1_coords, branch_2_coords)
-                    # Linearly interpolate across the node
-                    #   binary line needs to consider previous pixel as it can make kinks (non-skelly bits)
-                    #   which can cause a pixel to be missed when ordering the traces
-                    crossing1 = self.binary_line(branch_1_coords[-1], centre)
-                    crossing2 = self.binary_line(centre, branch_2_coords[0])
-                    crossing = np.append(crossing1, crossing2).reshape(-1, 2)
-                    # remove the duplicate crossing coords
-                    uniq_cross_idxs = np.unique(crossing, axis=0, return_index=True)[1]
-                    crossing = np.array([crossing[i] for i in sorted(uniq_cross_idxs)])
-                    # Branch coords and crossing
-                    branch_coords = np.append(branch_1_coords, crossing[1:-1], axis=0)
-                    branch_coords = np.append(branch_coords, branch_2_coords, axis=0)
-                    # make images of single branch joined and multiple branches joined
-                    single_branch = np.zeros_like(node_area)
-                    single_branch[branch_coords[:, 0], branch_coords[:, 1]] = 1
-                    single_branch = getSkeleton(image_area, single_branch).get_skeleton("zhang")
-                    # calc image-wide coords
-                    branch_coords_img = branch_coords + ([x, y] - centre)
-                    matched_branches[i]["ordered_coords"] = branch_coords_img
-                    matched_branches[i]["ordered_coords_local"] = branch_coords
-                    # get heights and trace distance of branch
-                    distances = self.coord_dist(branch_coords)
-                    zero_dist = distances[np.where(np.all(branch_coords == centre, axis=1))]
-                    if average_trace_advised:
-                        # np.savetxt("knot2/area.txt",image_area)
-                        # np.savetxt("knot2/single_branch.txt",single_branch)
-                        # print("ZD: ", zero_dist)
-                        distances, heights, mask, _ = self.average_height_trace(image_area, single_branch, zero_dist)
-                        # add in mid dist adjustment
-                        matched_branches[i]["avg_mask"] = mask
-                    else:
-                        heights = self.image[branch_coords_img[:, 0], branch_coords_img[:, 1]]
-                        distances = distances - zero_dist
-                    matched_branches[i]["heights"] = heights
-                    matched_branches[i]["distances"] = distances
+                    # join matching branches through node
+                    matched_branches = {}
+                    branch_img = np.zeros_like(node_area)  # initialising paired branch img
+                    avg_img = np.zeros_like(node_area)
+                    for i, (branch_1, branch_2) in enumerate(pairs):
+                        matched_branches[i] = {}
+                        branch_1_coords = ordered_branches[branch_1]
+                        branch_2_coords = ordered_branches[branch_2]
+                        # find close ends by rearranging branch coords
+                        branch_1_coords, branch_2_coords = self.order_branches(branch_1_coords, branch_2_coords)
+                        # Linearly interpolate across the node
+                        #   binary line needs to consider previous pixel as it can make kinks (non-skelly bits)
+                        #   which can cause a pixel to be missed when ordering the traces
+                        crossing1 = self.binary_line(branch_1_coords[-1], centre)
+                        crossing2 = self.binary_line(centre, branch_2_coords[0])
+                        crossing = np.append(crossing1, crossing2).reshape(-1, 2)
+                        # remove the duplicate crossing coords
+                        uniq_cross_idxs = np.unique(crossing, axis=0, return_index=True)[1]
+                        crossing = np.array([crossing[i] for i in sorted(uniq_cross_idxs)])
+                        # Branch coords and crossing
+                        branch_coords = np.append(branch_1_coords, crossing[1:-1], axis=0)
+                        branch_coords = np.append(branch_coords, branch_2_coords, axis=0)
+                        # make images of single branch joined and multiple branches joined
+                        single_branch = np.zeros_like(node_area)
+                        single_branch[branch_coords[:, 0], branch_coords[:, 1]] = 1
+                        single_branch = getSkeleton(image_area, single_branch).get_skeleton("zhang")
+                        # calc image-wide coords
+                        branch_coords_img = branch_coords + ([x, y] - centre)
+                        matched_branches[i]["ordered_coords"] = branch_coords_img
+                        matched_branches[i]["ordered_coords_local"] = branch_coords
+                        # get heights and trace distance of branch
+                        distances = self.coord_dist(branch_coords)
+                        zero_dist = distances[np.where(np.all(branch_coords == centre, axis=1))]
+                        if average_trace_advised:
+                            # np.savetxt("knot2/area.txt",image_area)
+                            # np.savetxt("knot2/single_branch.txt",single_branch)
+                            # print("ZD: ", zero_dist)
+                            distances, heights, mask, _ = self.average_height_trace(image_area, single_branch, zero_dist)
+                            # add in mid dist adjustment
+                            matched_branches[i]["avg_mask"] = mask
+                        else:
+                            heights = self.image[branch_coords_img[:, 0], branch_coords_img[:, 1]]
+                            distances = distances - zero_dist
+                        matched_branches[i]["heights"] = heights
+                        matched_branches[i]["distances"] = distances
 
-                    # identify over/under
-                    fwhm2 = self.fwhm2(heights, distances)
-                    matched_branches[i]["fwhm2"] = fwhm2
+                        # identify over/under
+                        fwhm2 = self.fwhm2(heights, distances)
+                        matched_branches[i]["fwhm2"] = fwhm2
 
-                # add paired and unpaired branches to image plot
-                fwhms = []
-                for branch_idx, values in matched_branches.items():
-                    fwhms.append(values["fwhm2"][0])
-                branch_idx_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(fwhms))]
+                    # add paired and unpaired branches to image plot
+                    fwhms = []
+                    for branch_idx, values in matched_branches.items():
+                        fwhms.append(values["fwhm2"][0])
+                    branch_idx_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(fwhms))]
 
-                for i, branch_idx in enumerate(branch_idx_order):
-                    branch_coords = matched_branches[branch_idx]["ordered_coords_local"]
-                    branch_img[branch_coords[:, 0], branch_coords[:, 1]] = i + 1  # add to branch img
-                    if average_trace_advised:  # add avg traces
-                        avg_img[matched_branches[branch_idx]["avg_mask"] != 0] = i + 1
-                    else:
-                        avg_img = None
+                    for i, branch_idx in enumerate(branch_idx_order):
+                        branch_coords = matched_branches[branch_idx]["ordered_coords_local"]
+                        branch_img[branch_coords[:, 0], branch_coords[:, 1]] = i + 1  # add to branch img
+                        if average_trace_advised:  # add avg traces
+                            avg_img[matched_branches[branch_idx]["avg_mask"] != 0] = i + 1
+                        else:
+                            avg_img = None
 
-                unpaired_branches = np.delete(np.arange(0, labeled_area.max()), pairs.flatten())
-                LOGGER.info(f"Unpaired branches: {unpaired_branches}")
-                branch_label = branch_img.max()
-                for i in unpaired_branches:  # carries on from loop variable i
-                    branch_label += 1
-                    branch_img[ordered_branches[i][:, 0], ordered_branches[i][:, 1]] = branch_label
+                    unpaired_branches = np.delete(np.arange(0, labeled_area.max()), pairs.flatten())
+                    LOGGER.info(f"Unpaired branches: {unpaired_branches}")
+                    branch_label = branch_img.max()
+                    for i in unpaired_branches:  # carries on from loop variable i
+                        branch_label += 1
+                        branch_img[ordered_branches[i][:, 0], ordered_branches[i][:, 1]] = branch_label
 
-                if node_no == 0:
-                    self.test3 = avg_img
+                    if node_no == 0:
+                        self.test3 = avg_img
 
-                # calc crossing angle
-                # get full branch vectors
-                vectors = []
-                for branch_no, values in matched_branches.items():
-                    vectors.append(self.get_vector(values["ordered_coords"], centre))
-                # calc angles to first vector i.e. first should always be 0
-                cos_angles = self.calc_angles(np.asarray(vectors))[0]
-                cos_angles[cos_angles > 1] = 1  # floating point sometimes causes nans for 1's
-                angles = np.arccos(cos_angles) / np.pi * 180
-                for i, angle in enumerate(angles):
-                    matched_branches[i]["angles"] = angle
+                    # calc crossing angle
+                    # get full branch vectors
+                    vectors = []
+                    for branch_no, values in matched_branches.items():
+                        vectors.append(self.get_vector(values["ordered_coords"], centre))
+                    # calc angles to first vector i.e. first should always be 0
+                    cos_angles = self.calc_angles(np.asarray(vectors))[0]
+                    cos_angles[cos_angles > 1] = 1  # floating point sometimes causes nans for 1's
+                    angles = np.arccos(cos_angles) / np.pi * 180
+                    for i, angle in enumerate(angles):
+                        matched_branches[i]["angles"] = angle
 
-                if node_no == 0:
-                    self.test4 = vectors
-                    self.test5 = angles
+                    if node_no == 0:
+                        self.test4 = vectors
+                        self.test5 = angles
 
-                """
+                
                 except ValueError:
                     LOGGER.error(f"Node {node_no} too complex, see images for details.")
                     error = True
                 except ResolutionError:
                     LOGGER.info(f"Node stats skipped as resolution too low: {self.px_2_nm}nm per pixel")
                     error = True
-                """
-
+                
+                print("Error: ", error)
                 self.node_dict[real_node_count] = {
                     "error": error,
                     "branch_stats": matched_branches,
@@ -1311,11 +1318,8 @@ class nodeStats:
                     },
                 }
 
-                print("MB Keys: ", matched_branches.keys())
-
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
             self.node_dict = self.node_dict
-            print("Node keys: ", self.node_dict.keys())
 
     def order_branch(self, binary_image: np.ndarray, anchor: list):
         """Orders a linear branch by identifing an endpoint, and looking at the local area of the point to find the next.
@@ -1333,6 +1337,9 @@ class nodeStats:
             An array of ordered cordinates.
         """
         binary_image = np.pad(binary_image, 1).astype(int)
+        if len(np.argwhere(binary_image == 1)) < 3: # if < 3 coords just return them
+            return np.argwhere(binary_image == 1)
+        
         # get branch starts
         endpoints_highlight = ndimage.convolve(binary_image, np.ones((3, 3)))
         endpoints_highlight[binary_image == 0] = 0
@@ -1860,26 +1867,37 @@ class nodeStats:
             crossing_distances.append(temp_distances)
             fwhms.append(temp_fwhms)
 
+        print(fwhms)
+
         # get image minus the crossing areas
         minus = self.get_minus_img(node_area_box, node_centre_coords)
+        print("Minus: ", np.unique(minus))
         # get crossing image
         crossings = self.get_crossing_img(crossing_coords, minus.max() + 1)
-        print(np.unique(crossings))
+        print("Cross :", np.unique(crossings))
+        print(crossing_coords)
         # combine branches and segments
         both_img = self.get_both_img(minus, crossings)
+
+        np.savetxt("/Users/Maxgamill/Desktop/minus.txt", minus)
+        print("Cross :", np.unique(crossings))
+        np.savetxt("/Users/Maxgamill/Desktop/cross.txt", crossings)
+        np.savetxt("/Users/Maxgamill/Desktop/both.txt", both_img)
+        np.savetxt("/Users/Maxgamill/Desktop/skel.txt", self.skeleton)
 
         # order minus segments
         ordered = []
         for i in range(1, minus.max() + 1):
             arr = np.where(minus, minus == i, 0)
+            np.savetxt("/Users/Maxgamill/Desktop/arr.txt", arr)
             ordered.append(self.order_branch(arr, [0, 0]))  # orientated later
+
         # combine ordered indexes
         for node_crossing_coords in crossing_coords:
             for single_cross in node_crossing_coords:
                 ordered.append(np.array(single_cross))
         print("LEN: ", len(ordered))
 
-        #np.savetxt("/Users/Maxgamill/Desktop/both.txt", both_img)
         print("Getting coord trace")
         coord_trace = self.trace_mol(ordered, both_img)
         #np.savetxt("/Users/Maxgamill/Desktop/trace.txt", coord_trace[0])
@@ -1901,6 +1919,8 @@ class nodeStats:
     def get_minus_img(self, node_area_box, node_centre_coords):
         minus = self.skeleton.copy()
         for i, area in enumerate(node_area_box):
+            print("Area: ", node_area_box)
+
             x, y = node_centre_coords[i]
             area = np.array(area) // 2
             minus[x - area[0] : x + area[0], y - area[1] : y + area[1]] = 0
@@ -2079,7 +2099,6 @@ class nodeStats:
                     matching_coords = np.append(matching_coords, c)
                     #print(f"Segment: {label2.max()}, Matches: {c}")
                 highest_count_labels = [uniq_labels[i] for i in np.argsort(matching_coords)[-2:]]
-                print(highest_count_labels)
                 if abs(highest_count_labels[0] - highest_count_labels[1]) > 1: # assumes matched branch
                     under_in = max(highest_count_labels)
                 else:
