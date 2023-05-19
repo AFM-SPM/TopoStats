@@ -70,3 +70,111 @@ def test_known_array_threshold(area_thresh_nm, expected) -> None:
 #     # FIXME : I can see for myself that the error message is logged but the assert fails as caplog.text is empty?
 #     # assert "No gains found." in caplog.text
 #     assert True
+
+
+def test_remove_small_objects():
+    """Test the remove_small_objects method of the Grains class."""
+
+    grains_object = Grains(
+        image=None,
+        filename="",
+        pixel_to_nm_scaling=1.0,
+    )
+
+    test_img = np.array(
+        [
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 1, 0, 3, 3, 0],
+            [0, 0, 1, 0, 3, 3, 0],
+            [0, 0, 0, 0, 0, 3, 0],
+            [0, 2, 0, 2, 0, 3, 0],
+            [0, 2, 2, 2, 0, 3, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+        ]
+    )
+
+    expected = np.array(
+        [
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 1, 0],
+            [0, 0, 0, 0, 1, 1, 0],
+            [0, 0, 0, 0, 0, 1, 0],
+            [0, 1, 0, 1, 0, 1, 0],
+            [0, 1, 1, 1, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+        ]
+    )
+
+    grains_object.minimum_grain_size = 5
+    result = grains_object.remove_small_objects(test_img)
+
+    np.testing.assert_array_equal(result, expected)
+
+
+@pytest.mark.parametrize(
+    "test_labelled_image, area_thresholds, expected",
+    [
+        (
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 0, 3, 3, 0],
+                    [0, 0, 1, 0, 3, 3, 0],
+                    [0, 0, 0, 0, 0, 3, 0],
+                    [0, 2, 0, 2, 0, 3, 0],
+                    [0, 2, 2, 2, 0, 3, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            [4.0, 6.0],
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 1, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+        ),
+        (
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 0, 3, 3, 0],
+                    [0, 0, 1, 0, 3, 3, 0],
+                    [0, 0, 0, 0, 0, 3, 0],
+                    [0, 2, 0, 2, 0, 3, 0],
+                    [0, 2, 2, 2, 0, 3, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            [None, None],
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 0, 3, 3, 0],
+                    [0, 0, 1, 0, 3, 3, 0],
+                    [0, 0, 0, 0, 0, 3, 0],
+                    [0, 2, 0, 2, 0, 3, 0],
+                    [0, 2, 2, 2, 0, 3, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+        ),
+    ],
+)
+def test_area_thresholding(test_labelled_image, area_thresholds, expected):
+    """Test the area_thresholding() method of the Grains class."""
+
+    grains_object = Grains(
+        image=None,
+        filename="",
+        pixel_to_nm_scaling=1.0,
+    )
+
+    result = grains_object.area_thresholding(test_labelled_image, area_thresholds=area_thresholds)
+
+    np.testing.assert_array_equal(result, expected)

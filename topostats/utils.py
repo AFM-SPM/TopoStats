@@ -21,7 +21,7 @@ ALL_STATISTICS_COLUMNS = (
     "area",
     "area_cartesian_bbox",
     "aspect_ratio",
-    "banding_angle",
+    "bending_angle",
     "centre_x",
     "centre_y",
     "circular",
