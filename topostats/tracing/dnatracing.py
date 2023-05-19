@@ -1340,25 +1340,25 @@ class nodeStats:
         np.ndarray
             An array of ordered cordinates.
         """
-        binary_image = np.pad(binary_image, 1).astype(int)
         if len(np.argwhere(binary_image == 1)) < 3: # if < 3 coords just return them
-            return np.argwhere(binary_image == 1) - [1, 1]
+            return np.argwhere(binary_image == 1)
+        
+        binary_image = np.pad(binary_image, 1).astype(int)
         
         # get branch starts
         endpoints_highlight = ndimage.convolve(binary_image, np.ones((3, 3)))
         endpoints_highlight[binary_image == 0] = 0
         endpoints = np.argwhere(endpoints_highlight == 2)
 
-        # as > 1 endpoint, find one closest to anchor
-        dist_vals = abs((endpoints - anchor).sum(axis=1))
-        start = endpoints[np.argmin(dist_vals)]
-
-        # initialise points
-        all_points = np.stack(np.where(binary_image == 1)).T
-        no_points = len(all_points)
+        print(len(endpoints))
+        if len(endpoints) != 0:
+            # as > 1 endpoint, find one closest to anchor
+            dist_vals = abs((endpoints - anchor).sum(axis=1))
+            start = endpoints[np.argmin(dist_vals)]
+        else: # will be circular so pick the first coord (is this always the case?)
+            start = np.argwhere(binary_image == 1)[0]
 
         # add starting point to ordered array
-        #ordered = np.zeros_like(all_points)
         ordered = []
         ordered.append(start)
         binary_image[start[0], start[1]] = 0  # remove from array
