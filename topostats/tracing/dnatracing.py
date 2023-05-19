@@ -142,7 +142,7 @@ class dnaTrace:
         dictionary = {}
         labelled_img = label(img)
         for grain_num in range(1, labelled_img.max() + 1):
-            dictionary[grain_num] = np.where(labelled_img == grain_num, 1, 0)
+            dictionary[grain_num-1] = np.where(labelled_img == grain_num, 1, 0)
         return dictionary
 
     def dilate_grains(self) -> None:
