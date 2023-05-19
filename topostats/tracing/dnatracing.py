@@ -92,7 +92,7 @@ class dnaTrace(object):
         # What purpose does binary dilation serve here? Name suggests some sort of smoothing around the edges and
         # the resulting array is used as a mask during the skeletonising process.
         self.smooth_grains()
-        self.smoothed_grains = self.concat_images_in_dict(image_dict=self.grains)
+        self.smoothed_grains = self.concat_images_in_dict(self.full_image_data.shape, image_dict=self.grains)
         for grain_num, grain in self.grains.items():
             skeleton = getSkeleton(self.gauss_image, grain).get_skeleton(self.skeletonisation_method)
             self.orig_skeleton_dict[grain_num] = skeleton
@@ -100,14 +100,14 @@ class dnaTrace(object):
             pruned_skeleton = pruneSkeleton(self.gauss_image, skeleton).prune_skeleton(self.pruning_method)
             self.skeleton_dict[grain_num] = pruned_skeleton
             self.purge_obvious_crap(self.skeleton_dict)
-        self.orig_skeletons = self.concat_images_in_dict(image_dict=self.orig_skeleton_dict)
-        self.skeletons = self.concat_images_in_dict(image_dict=self.skeleton_dict)
+        self.orig_skeletons = self.concat_images_in_dict(self.full_image_data.shape, image_dict=self.orig_skeleton_dict)
+        self.skeletons = self.concat_images_in_dict(self.full_image_data.shape, image_dict=self.skeleton_dict)
         self.get_disordered_trace()
-        self.disordered_trace_img = self.dict_to_binary_image(self.disordered_traces)
+        self.disordered_trace_img = self.dict_to_binary_image(self.full_image_data.shape, self.disordered_traces)
         # self.isMolLooped()
         self.linear_or_circular(self.disordered_traces)
         self.get_ordered_traces()
-        self.ordered_trace_img = self.dict_to_binary_image(self.ordered_traces)
+        self.ordered_trace_img = self.dict_to_binary_image(self.full_image_data.shape, self.ordered_traces)
         self.linear_or_circular(self.ordered_traces)
         self.get_fitted_traces()
         self.get_splined_traces()
@@ -228,11 +228,14 @@ class dnaTrace(object):
         """
         return array[bounding_box[0] : bounding_box[1], bounding_box[2] : bounding_box[3]]
 
-    def dict_to_binary_image(self, coord_dict):
+    @staticmethod
+    def dict_to_binary_image(image_size, coord_dict):
         """Construct a binary image from point coordinates.
 
         Parameters
         ----------
+        image_size: tuple
+            The size of the image to be created.
         coord_dict: dict
             A dictionary of x and y coordinates.
 
@@ -241,14 +244,15 @@ class dnaTrace(object):
         np.ndarray
             Image of the point coordinates.
         """
-        img = np.zeros_like(self.full_image_data)
+        img = np.zeros(image_size)
         for grain_num, coords in coord_dict.items():
             img[coords[:, 0], coords[:, 1]] = grain_num
         return img
 
-    def concat_images_in_dict(self, image_dict: dict):
+    @staticmethod
+    def concat_images_in_dict(image_size, image_dict: dict):
         """Concatonates the skeletons in the skeleton dictionary onto one image"""
-        skeletons = np.zeros_like(self.grains_orig)
+        skeletons = np.zeros(image_size)
         for skeleton in image_dict.values():
             skeletons += skeleton
         return skeletons
@@ -1034,6 +1038,7 @@ class nodeStats:
         self.full_dict = {}
         self.mol_coords = {}
         self.visuals = {}
+        self.all_visuals_img = None
 
     def get_node_stats(self) -> dict:
         """The workflow for obtaining the node statistics.
@@ -1065,6 +1070,7 @@ class nodeStats:
                 self.full_dict[skeleton_no] = self.node_dict
             else:
                 self.full_dict[skeleton_no] = {}
+        self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
 
     def check_node_errorless(self):
         for _, vals in self.node_dict.items():
@@ -1196,7 +1202,7 @@ class nodeStats:
                         branch[labeled_area == branch_no] = 1
                         # order branch
                         ordered = self.order_branch(branch, centre)
-                        print("ordered: ", ordered)
+                        #print("ordered: ", ordered)
                         # identify vector
                         vector = self.get_vector(ordered, centre)
                         # add to list
@@ -1233,7 +1239,6 @@ class nodeStats:
                         branch_coords = np.append(branch_coords, branch_2_coords, axis=0)
                         # make images of single branch joined and multiple branches joined
                         single_branch = np.zeros_like(node_area)
-                        print(single_branch.shape)
                         single_branch[branch_coords[:, 0], branch_coords[:, 1]] = 1
                         single_branch = getSkeleton(image_area, single_branch).get_skeleton("zhang")
                         # calc image-wide coords
@@ -1350,7 +1355,6 @@ class nodeStats:
         endpoints_highlight[binary_image == 0] = 0
         endpoints = np.argwhere(endpoints_highlight == 2)
 
-        print(len(endpoints))
         if len(endpoints) != 0:
             # as > 1 endpoint, find one closest to anchor
             dist_vals = abs((endpoints - anchor).sum(axis=1))
@@ -1379,9 +1383,7 @@ class nodeStats:
             area, _ = self.local_area_sum(binary_image, current_point)  # look at local area
             local_next_point =  np.argwhere(area.reshape((3, 3,)) == 1) - (1, 1)
 
-        ordered_coords = np.array(ordered) - [1, 1]
-        print("ordered2_minus: ", ordered_coords)
-        return ordered_coords # remove padding
+        return np.array(ordered) - [1, 1] # remove padding
 
     @staticmethod
     def local_area_sum(binary_map, point):
