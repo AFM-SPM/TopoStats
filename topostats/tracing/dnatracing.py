@@ -1689,16 +1689,6 @@ class nodeStats:
         dilate2 = ndimage.binary_dilation(dilate)
         dilate2[(dilate == 1) | (branch_mask == 1)] = 0
         labels = label(dilate2)
-        # reduce binary dilation distance
-        paralell = np.zeros_like(branch_mask).astype(np.int32)
-        for i in range(1, labels.max() + 1):
-            single = labels.copy()
-            single[single != i] = 0
-            single[single == i] = 1
-            sing_dil = ndimage.binary_dilation(single)
-            paralell[(sing_dil == dilate_minus) & (sing_dil == 1)] = i
-        labels = paralell.copy()
-        # print(np.unique(labels, return_index=True))
         # if parallel trace out and back in zone, can get > 2 labels
         labels = self._remove_re_entering_branches(labels, remaining_branches=2)
         # if parallel trace doesn't exit window, can get 1 label
@@ -1712,6 +1702,17 @@ class nodeStats:
             trace_coords_remove = para_trace_coords[min_idxs]
             labels[trace_coords_remove[:, 0], trace_coords_remove[:, 1]] = 0
             labels = label(labels)
+
+        # reduce binary dilation distance
+        paralell = np.zeros_like(branch_mask).astype(np.int32)
+        for i in range(1, labels.max() + 1):
+            single = labels.copy()
+            single[single != i] = 0
+            single[single == i] = 1
+            sing_dil = ndimage.binary_dilation(single)
+            paralell[(sing_dil == dilate_minus) & (sing_dil == 1)] = i
+        labels = paralell.copy()
+        # print(np.unique(labels, return_index=True))
 
         binary = labels.copy()
         binary[binary != 0] = 1
