@@ -377,10 +377,6 @@ def process_scan(
                     LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
                     output_dir = Path(dna_tracing_out_path / f"{direction}")
 
-                    fitted_coords = dna_traces[direction].fitted_traces[1]
-                    fitted_img = np.zeros_like(dna_traces[direction].skeletons)
-                    fitted_img[fitted_coords[:, 0], fitted_coords[:, 1]] = 1
-
                     plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes"]
                     data2s = [
                         dna_traces[direction].grains_orig,
