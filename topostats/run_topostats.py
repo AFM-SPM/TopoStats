@@ -399,6 +399,7 @@ def process_scan(
                     # plot nodes and line traces
                     for mol_no, mol_stats in node_stats[direction].items():
                         for node_no, single_node_stats in mol_stats.items():
+                            # plot node + skeleton
                             Images(
                                 single_node_stats["node_stats"]["node_area_image"],
                                 data2=single_node_stats["node_stats"]["node_area_skeleton"],
@@ -407,7 +408,7 @@ def process_scan(
                                 zrange=[0, 3.5e-9],
                                 **plotting_config["plot_dict"]["zoom_node"],
                             ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
-
+                            # plot branch mask
                             Images(
                                 single_node_stats["node_stats"]["node_area_image"],
                                 data2=single_node_stats["node_stats"]["node_branch_mask"],
@@ -416,7 +417,7 @@ def process_scan(
                                 zrange=[0, 3.5e-9],
                                 **plotting_config["plot_dict"]["crossings"],
                             ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
-
+                            # plot avg branch mask
                             if single_node_stats["node_stats"]["node_avg_mask"] is not None:
                                 Images(
                                     single_node_stats["node_stats"]["node_area_image"],
@@ -426,7 +427,7 @@ def process_scan(
                                     zrange=[0, 3.5e-9],
                                     **plotting_config["plot_dict"]["tripple_crossings"],
                                 ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
-
+                            # Plot crossing height linetrace 
                             if not single_node_stats["error"]:
                                 plotting_config["plot_dict"]["line_trace"] = {
                                     "title": "Heights of Crossing",
@@ -440,10 +441,25 @@ def process_scan(
                                     output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg",
                                     format="svg",
                                 )
+                        # plot the molecules on their own
+                        if len(nodes.mol_coords[mol_no]) > 1:
+                            for inner_mol_no, coords in enumerate(nodes.mol_coords[mol_no]):
+                                single_mol = np.zeros_like(dna_traces[direction].full_image_data)
+                                single_mol[coords[:,0], coords[:,1]] = 1
+                                single_mol = binary_dilation(single_mol)
+                                Images(
+                                dna_traces[direction].full_image_data,
+                                data2=single_mol,
+                                output_dir=output_dir,
+                                filename=f"Grain_{mol_no}_separated_mol_{inner_mol_no}",
+                                zrange=[0, 3.5e-9],
+                                **plotting_config["plot_dict"]["single_mol"],
+                            ).save_figure_black(background=grains.directions[direction]["removed_small_objects"])
+
+
                     # plot the visual image for the whole image
                     visual = nodes.all_visuals_img
                     if visual is not None:
-                        print("plotting visual")
                         Images(
                             dna_traces[direction].full_image_data,
                             data2=visual,

@@ -200,4 +200,10 @@ visual:
   mask_cmap: "blu_purp"
   core_set: false
   dpi: 500
+single_mol:
+  title: "Separated Molecule"
+  image_type: "non-binary"
+  mask_cmap: "blu_purp"
+  core_set: false
+  dpi: 500
   
