@@ -1,5 +1,6 @@
 file: ./output/all_statistics.csv
 file2: null
+file3: null
 # Consider compatibility for multiple (or at least two) files
 output_dir: ./plots
 extension: '.png'
@@ -13,7 +14,9 @@ plots:
     # Available parameters:
     plottype: histogram2
     # Available types: KDE, histogram, violin, dist, histogram2, dist2
-    color: blue
+    color1: blue
+    color2:
+    color3:
     nm: False
     xmin:
     xmax:
@@ -22,12 +25,17 @@ plots:
     bins_number: 20
     bins_start:
     bins_end:
+    label1:
+    label2:
+    label3:
   plot_2:
     data:
     group:
     parameter: 'height_max'
     plottype: KDE
-    color: red
+    color1: red
+    color2:
+    color3:
     nm: True
     xmin:
     xmax:
@@ -36,3 +44,6 @@ plots:
     bins_number:
     bins_start:
     bins_end:
+    label1:
+    label2:
+    label3:

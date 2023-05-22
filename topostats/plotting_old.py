@@ -48,8 +48,8 @@ colname2label = {
     "grain_min_volume": "Minimum Volume / $\mathregular{%s^3}$",
     "grain_zero_volume": "Zero Volume / $\mathregular{%s^3}$",
     "grain_laplace_volume": "Laplacian Volume / $\mathregular{%s^3}$",
-    "End to End Distance": "End to End Distance / nm",
-    "Contour Lengths": "Contour Lengths / nm",
+    "end_to_end_distance": "End to End Distance / nm",
+    "contour_lengths": "Contour Lengths / nm",
     "raidus_min": "Minimum Radius / nm",
     "radius_max": "Maximum Radius / nm",
     "radius_mean": "Mean Radius / nm",
@@ -65,7 +65,7 @@ colname2label = {
     "smallest_bounding_length": "Smallest Bounding Length / nm",
     "smallest_bounding_area": "Smallest Bounding Area / $\mathregular{nm^2}$",
     "aspect_ratio": "Aspect Ratio",
-    "Bending Angle": "Bending Angle / degrees",
+    "bending_angle": "Bending Angle / degrees",
 }
 
 
@@ -296,11 +296,17 @@ def plothist2var(
     df,
     plotarg,
     df2=None,
+    df3=None,
     plotarg2=None,
+    plotarg3=None,
     label1=None,
     label2=None,
+    label3='Damaged with protein',
     xmin=None,
     xmax=None,
+    color1='#B45F06',
+    color2='#0B5394',
+    color3='#52C932',
     nm=False,
     specpath=None,
     bins=12,  # Missing argument defined outside scope of function required within for testing
@@ -317,6 +323,8 @@ def plothist2var(
         df2 = df
     if plotarg2 is None:
         plotarg2 = plotarg
+    if plotarg3 is None:
+        plotarg3 = plotarg
 
     print("Plotting histogram of %s and %s" % (label1, label2))
 
@@ -333,8 +341,14 @@ def plothist2var(
 
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
-    dfnew[plotarg].plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, color='#B45F06', density=True)
-    dfnew2[plotarg2].plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, color='#0B5394', density=True, histtype="barstacked")
+    dfnew[plotarg].plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, color=color1, density=True)
+    dfnew2[plotarg2].plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, color=color2, density=True, histtype="barstacked")
+
+    # For the third set of data
+    if df3 is not None:
+        dfnew3 = df3.copy()
+        dfnew3[plotarg3] = dataunitconversion(df3[plotarg3], plotarg3, nm)
+        dfnew3[plotarg3].plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, color=color3, density=True, histtype="barstacked")
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
@@ -342,7 +356,10 @@ def plothist2var(
     plt.ylabel("Probability Density", alpha=1)
     plt.ticklabel_format(axis="both", style="sci", scilimits=(-3, 3))
     handles, labels = ax.get_legend_handles_labels()
-    ax.legend(labels=[label1, label2])
+    if label3 is not None:
+        ax.legend(labels=[label1, label2, label3])
+    else:
+        ax.legend(labels=[label1, label2])
     # Need to return fig in order to test
     plt.savefig(savename)
     return fig
@@ -571,12 +588,19 @@ if __name__ == "__main__":
     # import data from the csv file
     path = plotting_config["file"]
     df = importfromfile(path)
-    df = df[df['Bending Angle'] != 0]
-    df = df[df['Contour Lengths'] < 120]
+    df = df[df['bending_angle'] != 0]
     path2 = plotting_config["file2"]
+    path3 = plotting_config["file3"]
     if path2 is not None:
         df2 = importfromfile(path2)
-        df2 = df2[df2['Bending Angle'] != 0]
+        df2 = df2[df2['bending_angle'] != 0]
+    else:
+        df2 = None
+    if path3 is not None:
+        df3 = importfromfile(path3)
+        df3 = df3[df3['bending_angle'] != 0]
+    else:
+        df3 = None
     extension = plotting_config["extension"]
     output_dir = plotting_config["output_dir"]
 
@@ -592,12 +616,19 @@ if __name__ == "__main__":
         bins = plotting_config["plots"][plot]["bins_number"]
         start = plotting_config["plots"][plot]["bins_start"]
         end = plotting_config["plots"][plot]["bins_end"]
+        label1 = plotting_config["plots"][plot]["label1"]
+        label2 = plotting_config["plots"][plot]["label2"]
+        label3 = plotting_config["plots"][plot]["label3"]
+        color1 = plotting_config["plots"][plot]["color1"]
+        color2 = plotting_config["plots"][plot]["color2"]
+        color3 = plotting_config["plots"][plot]["color3"]
         if plottype == "histogram":
             plothist(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax, bins=np.linspace(start, end, bins))
         elif plottype == "histogram2":
             # plothist2var(df, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1='01', label2='02',bins=np.linspace(1, 5, 20))
-            plothist2var(df, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1="With protein",
-                         label2="Without protein", bins=np.linspace(start, end, bins))
+            plothist2var(df, parameter, df2=df2, df3=df3, nm=nm, xmin=xmin, xmax=xmax, label1=label1,
+                         label2=label2, label3=label3, color1=color1, color2=color2, color3=color3,
+                         bins=np.linspace(start, end, bins))
         elif plottype == "KDE":
             plotkde(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
         elif plottype == "violin":
