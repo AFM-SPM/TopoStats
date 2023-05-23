@@ -17,6 +17,33 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
 
+def test_melt_data():
+    """Test the melt_data method of the TopoSum class"""
+
+    df_to_melt = {
+        "Image": ["im1", "im1", "im1", "im2", "im2", "im3", "im3"],
+        "threshold": ["above", "above", "above", "below", "below", "above", "above"],
+        "molecule_number": [0, 1, 2, 0, 1, 0, 1],
+        "basename": ["super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub2", "super/sub2"],
+        "area": [10, 20, 30, 40, 50, 60, 70],
+    }
+
+    df_to_melt = pd.DataFrame(df_to_melt)
+
+    melted_data = TopoSum.melt_data(df=df_to_melt, stat_to_summarize="area", var_to_label={"area": "AREA"})
+
+    expected = {
+        "molecule_number": [0, 1, 2, 0, 1, 0, 1],
+        "basename": ["super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub2", "super/sub2"],
+        "variable": ["AREA", "AREA", "AREA", "AREA", "AREA", "AREA", "AREA"],
+        "value": [10, 20, 30, 40, 50, 60, 70],
+    }
+
+    expected = pd.DataFrame(expected)
+
+    pd.testing.assert_frame_equal(melted_data, expected)
+
+
 def test_df_from_csv(minicircle_all_statistics: pd.DataFrame, toposum_object: TopoSum) -> None:
     """Test loading of CSV file."""
     assert isinstance(toposum_object.df, pd.DataFrame)
