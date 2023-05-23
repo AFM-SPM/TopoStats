@@ -179,10 +179,10 @@ class TopoSum:
         fig, ax = self._setup_figure()
         if self.hist and not self.kde:
             outfile = self._outfile("hist")
-            sns.histplot(data=self.melted_data, x="value", bins=self.bins, stat=self.stat, hue=self.image_id)
+            sns.histplot(data=self.melted_data, x="value", bins=self.bins, stat=self.stat, hue="basename")
         if self.kde and not self.hist:
             outfile = self._outfile("kde")
-            sns.kdeplot(data=self.melted_data, x="value", hue=self.image_id)
+            sns.kdeplot(data=self.melted_data, x="value", hue="basename")
         if self.hist and self.kde:
             outfile = self._outfile("hist_kde")
             sns.histplot(
@@ -190,7 +190,7 @@ class TopoSum:
                 x="value",
                 bins=self.bins,
                 stat=self.stat,
-                hue=self.image_id,
+                hue="basename",
                 kde=True,
                 kde_kws={"cut": self.cut},
             )
@@ -203,7 +203,7 @@ class TopoSum:
     def sns_violinplot(self) -> None:
         """Violin plot of data."""
         fig, ax = self._setup_figure()
-        sns.violinplot(data=self.melted_data, x=self.image_id, y="value", hue=self.image_id, alpha=self.alpha)
+        sns.violinplot(data=self.melted_data, x="basename", y="value", hue="basename", alpha=self.alpha)
         plt.title(self.label)
         plt.xlabel("Image")
         plt.ylabel(self.label)
