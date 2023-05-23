@@ -147,7 +147,9 @@ class TopoSum:
         self.melted_data = None
         self.summary_data = None
         self.label = None
-        self.sns_melt_data()
+
+        # melt the data given in the init method
+        self.melted_data = self.melt_data(self.df, stat_to_summarize=self.stat_to_sum, var_to_label=self.var_to_label)
         self.set_palette()
         self._set_label(self.stat_to_sum)
 
@@ -218,15 +220,25 @@ class TopoSum:
     #     self.save_plot(outfile)
     #     return fig, ax
 
-    def sns_melt_data(self) -> pd.DataFrame:
+    @staticmethod
+    def melt_data(df: pd.DataFrame, stat_to_summarize: str, var_to_label: dict) -> pd.DataFrame:
         """Melt a dataframe into long format for plotting with Seaborn."""
-        self.melted_data = pd.melt(
-            self.df.reset_index(), id_vars=[self.molecule_id, self.image_id], value_vars=self.stat_to_sum
-        )
-        self.melted_data["variable"] = self.melted_data["variable"].map(self.var_to_label)
-        self.melted_data.rename({"image": "Image"}, axis=1, inplace=True)
-        self.image_id = "Image"
+        print("MELTING DATAFRAME")
+        df.to_csv("./non_melted_data.csv")
+        print("------------ NON-MELTED DATA ---------------")
+        print(df)
+        print("---------------------------")
+        melted_data = pd.melt(df.reset_index(), id_vars=["molecule_number", "basename"], value_vars=stat_to_summarize)
+        print("------------ MELTED DATA ---------------")
+        print(melted_data)
+        print("---------------------------")
+        melted_data.to_csv("./melted_data.csv")
+        melted_data["variable"] = melted_data["variable"].map(var_to_label)
+        melted_data.rename({"image": "Image"}, axis=1, inplace=True)
+        # self.image_id = "Image"
         LOGGER.info("[plotting] Data has been melted to long format for plotting.")
+
+        return melted_data
 
     def set_xlim(self, percent: float = 0.1) -> None:
         """Set the range of the x-axis.
