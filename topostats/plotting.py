@@ -150,6 +150,7 @@ class TopoSum:
 
         # melt the data given in the init method
         self.melted_data = self.melt_data(self.df, stat_to_summarize=self.stat_to_sum, var_to_label=self.var_to_label)
+        TopoSum.convert_basename_to_relative_paths(df=self.melted_data)
         self.set_palette()
         self._set_label(self.stat_to_sum)
 
