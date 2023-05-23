@@ -44,6 +44,22 @@ def test_melt_data():
     pd.testing.assert_frame_equal(melted_data, expected)
 
 
+@pytest.mark.parametrize(
+    "input_paths, expected_paths",
+    [
+        ([Path("a/b/c/d"), Path("a/b/e/f"), Path("a/b/g"), Path("a/b/h")], ["c/d", "e/f", "g", "h"]),
+        ([Path("g"), Path("a/b/e/f"), Path("a/b/g"), Path("a/b/h")], ["g", "a/b/e/f", "a/b/g", "a/b/h"]),
+        (["a/b/c/d", "a/b/e/f", "a/b/g", "a/b/h"], ["c/d", "e/f", "g", "h"]),
+        (["g", "a/b/e/f", "a/b/g", "a/b/h"], ["g", "a/b/e/f", "a/b/g", "a/b/h"]),
+    ],
+)
+def test_get_paths_relative_to_deepest_common_path(input_paths: list, expected_paths: list):
+    """Test the get_paths_relative_to_deepest_common_path method of the TopoSum class."""
+
+    relative_paths = TopoSum.get_paths_relative_to_deepest_common_path(input_paths)
+
+    assert relative_paths == expected_paths
+
 def test_df_from_csv(minicircle_all_statistics: pd.DataFrame, toposum_object: TopoSum) -> None:
     """Test loading of CSV file."""
     assert isinstance(toposum_object.df, pd.DataFrame)
