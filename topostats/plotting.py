@@ -223,18 +223,9 @@ class TopoSum:
     @staticmethod
     def melt_data(df: pd.DataFrame, stat_to_summarize: str, var_to_label: dict) -> pd.DataFrame:
         """Melt a dataframe into long format for plotting with Seaborn."""
-        print("MELTING DATAFRAME")
-        df.to_csv("./non_melted_data.csv")
-        print("------------ NON-MELTED DATA ---------------")
-        print(df)
-        print("---------------------------")
         melted_data = pd.melt(df.reset_index(), id_vars=["molecule_number", "basename"], value_vars=stat_to_summarize)
-        print("------------ MELTED DATA ---------------")
-        print(melted_data)
-        print("---------------------------")
-        melted_data.to_csv("./melted_data.csv")
         melted_data["variable"] = melted_data["variable"].map(var_to_label)
-        melted_data.rename({"image": "Image"}, axis=1, inplace=True)
+        # melted_data.rename({"image": "Image"}, axis=1, inplace=True)
         # self.image_id = "Image"
         LOGGER.info("[plotting] Data has been melted to long format for plotting.")
 
