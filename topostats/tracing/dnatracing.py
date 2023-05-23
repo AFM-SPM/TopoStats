@@ -1021,6 +1021,7 @@ class nodeStats:
         self.grains = ndimage.binary_dilation(a, iterations=3)
         self.image = np.ones((100,100))
         self.skeletons = a
+        self.px_2_nm = 1
         """
 
         self.skeleton = None
@@ -1173,7 +1174,6 @@ class nodeStats:
                 LOGGER.info(f"node {node_no} has only two branches - skipped & nodes removed")
                 # sometimes removal of nibs can cause problems when re-indexing nodes
                 print(f"{len(node_coords)} pixels in nib node")
-                print(f"Node centre: {[x, y]}")
                 np.savetxt("/Users/Maxgamill/Desktop/nib.txt", self.node_centre_mask)
                 temp = self.node_centre_mask.copy()
                 temp_node_coords = node_coords.copy()
@@ -1221,8 +1221,6 @@ class nodeStats:
                         matched_branches[i] = {}
                         branch_1_coords = ordered_branches[branch_1]
                         branch_2_coords = ordered_branches[branch_2]
-                        print(f"B1 max, min: [{max(branch_1_coords[:,0]), min(branch_1_coords[:,0])}], [{max(branch_1_coords[:,1]), min(branch_1_coords[:,1])}]")
-                        print(f"B2 max, min: [{min(branch_2_coords[:,0]), min(branch_2_coords[:,0])}], [{max(branch_2_coords[:,1]), min(branch_2_coords[:,1])}]")
                         # find close ends by rearranging branch coords
                         branch_1_coords, branch_2_coords = self.order_branches(branch_1_coords, branch_2_coords)
                         # Linearly interpolate across the node
@@ -1305,17 +1303,18 @@ class nodeStats:
                         self.test4 = vectors
                         self.test5 = angles
 
-                
                 except ValueError:
                     LOGGER.error(f"Node {node_no} too complex, see images for details.")
                     error = True
                 except ResolutionError:
                     LOGGER.info(f"Node stats skipped as resolution too low: {self.px_2_nm}nm per pixel")
                     error = True
-                
+
                 print("Error: ", error)
                 self.node_dict[real_node_count] = {
                     "error": error,
+                    "px_2_nm": self.px_2_nm,
+                    "crossing_type": None,
                     "branch_stats": matched_branches,
                     "node_stats": {
                         "node_mid_coords": [x, y],
@@ -1880,16 +1879,13 @@ class nodeStats:
 
         # get image minus the crossing areas
         minus = self.get_minus_img(node_area_box, node_centre_coords)
-        print("Minus: ", np.unique(minus))
         # get crossing image
         crossings = self.get_crossing_img(crossing_coords, minus.max() + 1)
-        print("Cross :", np.unique(crossings))
         #print(crossing_coords)
         # combine branches and segments
         both_img = self.get_both_img(minus, crossings)
 
         np.savetxt("/Users/Maxgamill/Desktop/minus.txt", minus)
-        print("Cross :", np.unique(crossings))
         np.savetxt("/Users/Maxgamill/Desktop/cross.txt", crossings)
         np.savetxt("/Users/Maxgamill/Desktop/both.txt", both_img)
         np.savetxt("/Users/Maxgamill/Desktop/skel.txt", self.skeleton)
@@ -1921,15 +1917,13 @@ class nodeStats:
         #   (https://topoly.cent.uw.edu.pl/dictionary.html#codes). Then look at each corssing zone again,
         #   determine which in in-undergoing and assign labels counter-clockwise
         print("Getting PD Codes:")
-        #pd_codes = self.get_pds(coord_trace, node_centre_coords, fwhms, crossing_coords)
+        pd_codes = self.get_pds(coord_trace, node_centre_coords, fwhms, crossing_coords)
 
         return coord_trace, visual
 
     def get_minus_img(self, node_area_box, node_centre_coords):
         minus = self.skeleton.copy()
         for i, area in enumerate(node_area_box):
-            print("Area: ", node_area_box)
-
             x, y = node_centre_coords[i]
             area = np.array(area) // 2
             minus[x - area[0] : x + area[0], y - area[1] : y + area[1]] = 0
@@ -2008,7 +2002,6 @@ class nodeStats:
 
         np.savetxt("/Users/Maxgamill/Desktop/preimg.txt", img)
 
-        print("Crossings: ")
         lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
 
         if len(coord_trace) > 1:
@@ -2050,10 +2043,11 @@ class nodeStats:
 
     def get_pds(self, trace_coords, node_centres, fwhms, crossing_coords):
         # find idxs of branches from start
-        for mol_trace in trace_coords:
+        for mol_num, mol_trace in enumerate(trace_coords):
+            print(f"Molecule {mol_num}")
             node_coord_idxs = np.array([]).astype(np.int32)
             global_node_idxs = np.array([]).astype(np.int32)
-            img = np.zeros_like(self.skeleton.copy())
+            img = np.zeros_like(self.skeleton.copy()).astype(np.int32)
             for i, c in enumerate(node_centres):
                 node_coord_idx = np.where((mol_trace[:, 0] == c[0]) & (mol_trace[:, 1] == c[1]))
                 node_coord_idxs = np.append(node_coord_idxs, node_coord_idx)
@@ -2117,10 +2111,13 @@ class nodeStats:
                 
                 if len(anti_clock) == 2: # mol passes over/under another mol (maybe && [i]+1 == [i+1])
                     print(f"passive: X{anti_clock}")
+                    self.node_dict[global_node_idx+1]["crossing_type"] = "passive"
                 elif len(anti_clock) == 3: # trival crossing (maybe also applies to Y's therefore maybe && consec when sorted)
                     print(f"trivial: X{anti_clock}")
+                    self.node_dict[global_node_idx+1]["crossing_type"] = "trivial"
                 else:
                     print(f"Real crossing: X{anti_clock}")
+                    self.node_dict[global_node_idx+1]["crossing_type"] = "real"
 
         return None
 
