@@ -1,4 +1,5 @@
 """Plotting and summary of Statistics"""
+import os
 import argparse as arg
 from collections import defaultdict
 import importlib.resources as pkg_resources
@@ -7,7 +8,6 @@ from pathlib import Path
 import sys
 from typing import Union, Dict
 import yaml
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
@@ -275,9 +275,33 @@ class TopoSum:
         self.label = self.var_to_label[var]
         LOGGER.debug(f"[plotting] self.label     : {self.label}")
 
-    def summarise_by_image(self):
-        """Summarise statistics by image."""
-        self.summary_data = self.df.groupby(["image", "threshold"]).describe()
+    @staticmethod
+    def get_paths_relative_to_deepest_common_path(paths: list):
+        """From a list of paths, create a list of these paths but where
+        each path is relative to all path's closest common parent. For
+        example, ['a/b/c', 'a/b/d', 'a/b/e/f'] would return ['c', 'd', 'e/f']
+
+        Parameters
+        ----------
+        paths: list
+            List of string or pathlib paths.
+
+        Returns
+        -------
+        relative_paths: list
+            List of string paths, relative to the common parent.
+        """
+
+        # Ensure paths are all pathlib paths, and not strings
+        paths = [Path(path) for path in paths]
+
+        deepest_common_path = os.path.commonpath(paths)
+        # Have to convert to strings else the dataframe values will be slightly different
+        # to what is expected.
+        relative_paths = [str(path.relative_to(deepest_common_path)) for path in paths]
+
+        return relative_paths
+
 
 
 def toposum(config: dict) -> Dict:
