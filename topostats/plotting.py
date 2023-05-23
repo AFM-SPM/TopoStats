@@ -206,7 +206,7 @@ class TopoSum:
         fig, ax = self._setup_figure()
         sns.violinplot(data=self.melted_data, x="basename", y="value", hue="basename", alpha=self.alpha)
         plt.title(self.label)
-        plt.xlabel("Image")
+        plt.xlabel("directory")
         plt.ylabel(self.label)
         outfile = self._outfile("violin")
         self.save_plot(outfile)
@@ -296,12 +296,15 @@ class TopoSum:
         # Ensure paths are all pathlib paths, and not strings
         paths = [Path(path) for path in paths]
 
-        deepest_common_path = os.path.commonpath(paths)
-        # Have to convert to strings else the dataframe values will be slightly different
-        # to what is expected.
-        relative_paths = [str(path.relative_to(deepest_common_path)) for path in paths]
-
-        return relative_paths
+        if len(paths) > 1:
+            deepest_common_path = os.path.commonpath(paths)
+            # Have to convert to strings else the dataframe values will be slightly different
+            # to what is expected.
+            relative_paths = [str(path.relative_to(deepest_common_path)) for path in paths]
+            return relative_paths
+        # If the paths list is only 1 long, then the relative path will be '.', which we don't want.
+        # we want the relative path to be the full path probably
+        return [str(path) for path in paths]
 
     @staticmethod
     def convert_basename_to_relative_paths(df: pd.DataFrame):
