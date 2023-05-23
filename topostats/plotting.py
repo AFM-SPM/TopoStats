@@ -302,6 +302,32 @@ class TopoSum:
 
         return relative_paths
 
+    @staticmethod
+    def convert_basename_to_relative_paths(df: pd.DataFrame):
+        """Converts the paths in the 'basename' column in a dataframe from being
+        absolute paths, to paths relative to the deepest common parent. For example
+        if the 'basename' column has the following paths: ['/usr/topo/data/a/b', '/usr
+        /topo/data/c/d'], the output will be: ['a/b', 'c/d'].
+
+        Parameters
+        ----------
+        df: pd.DataFrame
+            A pandas dataframe containing a column 'basename' which contains the paths
+            indicating the locations of the image data files.
+
+        Returns
+        -------
+        df: pd.DataFrame
+            A pandas dataframe where the 'basename' column has paths relative to a common
+            parent.
+        """
+
+        paths = df["basename"].tolist()
+        paths = [Path(path) for path in paths]
+        relative_paths = TopoSum.get_paths_relative_to_deepest_common_path(paths=paths)
+        df["basename"] = relative_paths
+
+        return df
 
 
 def toposum(config: dict) -> Dict:
