@@ -292,11 +292,11 @@ class Grains:
 
         # Contingency for one of the threshold multipliers being None
         if lower_height_threshold_std_mult is None:
-            lower_height_threshold = np.inf
+            lower_height_threshold = -np.inf
         else:
             lower_height_threshold = np.mean(image) + np.std(image) * lower_height_threshold_std_mult
         if upper_height_threshold_std_mult is None:
-            upper_height_threshold = -np.inf
+            upper_height_threshold = np.inf
         else:
             upper_height_threshold = np.mean(image) + np.std(image) * upper_height_threshold_std_mult
 
