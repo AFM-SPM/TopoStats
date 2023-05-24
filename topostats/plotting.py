@@ -198,7 +198,6 @@ class TopoSum:
         plt.ticklabel_format(axis="both", style="sci", scilimits=(-3, 3))
         plt.title(self.label)
         self.set_xlim()
-        plt.legend(title="folder")
         self.save_plot(outfile)
         return fig, ax
 
@@ -209,7 +208,6 @@ class TopoSum:
         plt.title(self.label)
         plt.xlabel("directory")
         plt.ylabel(self.label)
-        plt.legend(title="folder")
         outfile = self._outfile("violin")
         self.save_plot(outfile)
         return fig, ax
@@ -295,7 +293,7 @@ class TopoSum:
             List of string paths, relative to the common parent.
         """
 
-        # If the paths list consists of all the same path, then the relative path will 
+        # If the paths list consists of all the same path, then the relative path will
         # be '.', which we don't want. we want the relative path to be the full path probably.
         # len(set(my_list)) == 1 determines if all the elements in a list are the same.
         if len(set(paths)) == 1:
