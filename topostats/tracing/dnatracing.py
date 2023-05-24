@@ -15,7 +15,7 @@ import seaborn as sns
 from scipy import ndimage, spatial, optimize, interpolate as interp
 from skimage.morphology import label, binary_dilation
 from skimage.filters import gaussian, threshold_otsu
-from topoly import jones, homfly
+from topoly import jones, homfly, params
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
@@ -2077,7 +2077,7 @@ class nodeStats:
                     ] = (
                         i + 2
                     )
-                if sum(abs(mol_trace[0]-mol_trace[-1])) <= 2: # check if mol circular via start and end dist - should do root(2)
+                if sum(abs(mol_trace[0]-mol_trace[-1])) <= 2: # check if mol circular via start and end dist - should probs do root(2)
                     j = 1 # rejoins start at 1
                 else:
                     j = i + 1 # doesn't rejoin start
@@ -2097,6 +2097,7 @@ class nodeStats:
                 #   - Under-in = lowest of two indexes ?? (back 2 start?)
 
                 #print("global node idxs", global_node_idxs)
+                pd_code = ''
                 for i, global_node_idx in enumerate(global_node_idxs):
                     #print(f"\n----Trace Node Num: {i+1}, Global Node Num: {global_node_idx}----")
                     under_branch_idx = under_branch_idxs[global_node_idx]
@@ -2117,31 +2118,37 @@ class nodeStats:
                         ]:  # for global_node[4] branch index is incorrect
                             c += ((np.stack(np.where(img == label2)).T == ordered_branch_coord).sum(axis=1) == 2).sum()
                         matching_coords = np.append(matching_coords, c)
-                        print(f"Segment: {label2.max()}, Matches: {c}")
+                        #print(f"Segment: {label2.max()}, Matches: {c}")
                     highest_count_labels = [uniq_labels[i] for i in np.argsort(matching_coords)[-2:]]
-                    print("highest count: ", highest_count_labels)
+                    #print("highest count: ", highest_count_labels)
                     if abs(highest_count_labels[0] - highest_count_labels[1]) > 1: # assumes matched branch
                         under_in = max(highest_count_labels)
                     else:
                         under_in = min(highest_count_labels)  # under-in for global_node[4] is incorrect
                     # print(f"Under-in: {under_in}")
                     anti_clock = list(self.vals_anticlock(node_area, under_in))
-                    try:
-                        knot_type = homfly(anti_clock)
-                        print("Topology Classification: ", knot_type)
-                        self.node_dict["topology"] = knot_type
-                    except:
-                        print("Error in PD Calculation")
 
                     if len(anti_clock) == 2: # mol passes over/under another mol (maybe && [i]+1 == [i+1])
-                        print(f"passive: X{anti_clock}")
+                        pd = f"V{anti_clock};"
                         self.node_dict[global_node_idx+1]["crossing_type"] = "passive"
                     elif len(anti_clock) == 3: # trival crossing (maybe also applies to Y's therefore maybe && consec when sorted)
-                        print(f"trivial: X{anti_clock}")
+                        pd = f"Y{anti_clock};"
                         self.node_dict[global_node_idx+1]["crossing_type"] = "trivial"
                     else:
-                        print(f"Real crossing: X{anti_clock}")
+                        pd = f"X{anti_clock};"
                         self.node_dict[global_node_idx+1]["crossing_type"] = "real"
+                    print(f"Crossing PD: {pd}")
+                    pd_code += pd
+                
+                print(f"Total PD code: {pd_code}")
+                try:
+                    topology = None #homfly(pd_code, closure=params.Closure.CLOSED, chiral = True) Need to fix cat pd codes first
+                    print(f"Topology: {topology}")
+                    self.node_dict["topology"] = topology
+                except:
+                    topology = None
+                    print("Topology undetermined")
+                
 
         return None
 
