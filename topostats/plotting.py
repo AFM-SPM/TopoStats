@@ -293,18 +293,19 @@ class TopoSum:
             List of string paths, relative to the common parent.
         """
 
+        # Ensure paths are all pathlib paths, and not strings
+        paths = [Path(path) for path in paths]
+
         # If the paths list consists of all the same path, then the relative path will
         # be '.', which we don't want. we want the relative path to be the full path probably.
         # len(set(my_list)) == 1 determines if all the elements in a list are the same.
         if len(set(paths)) == 1:
-            return [str(path) for path in paths]
+            return [str(path.as_posix()) for path in paths]
 
-        # Ensure paths are all pathlib paths, and not strings
-        paths = [Path(path) for path in paths]
         deepest_common_path = os.path.commonpath(paths)
         # Have to convert to strings else the dataframe values will be slightly different
         # to what is expected.
-        return [str(path.relative_to(deepest_common_path)) for path in paths]
+        return [str(path.relative_to(deepest_common_path).as_posix()) for path in paths]
 
     @staticmethod
     def convert_basename_to_relative_paths(df: pd.DataFrame):
