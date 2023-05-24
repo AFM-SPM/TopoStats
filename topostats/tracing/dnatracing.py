@@ -15,6 +15,7 @@ import seaborn as sns
 from scipy import ndimage, spatial, optimize, interpolate as interp
 from skimage.morphology import label, binary_dilation
 from skimage.filters import gaussian, threshold_otsu
+from topoly import jones, homfly
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
@@ -1068,6 +1069,7 @@ class nodeStats:
                 self.analyse_nodes(box_length=20)
                 if self.check_node_errorless():
                     self.mol_coords[skeleton_no], self.visuals[skeleton_no] = self.compile_trace()
+                    pass
                 self.full_dict[skeleton_no] = self.node_dict
             else:
                 self.full_dict[skeleton_no] = {}
@@ -1905,6 +1907,10 @@ class nodeStats:
 
         print("Getting coord trace")
         coord_trace = self.trace_mol(ordered, both_img)
+
+        for trace in coord_trace:
+            print("DISTANCE: ", self.coord_dist(trace, self.px_2_nm)[-1])
+
         #np.savetxt("/Users/Maxgamill/Desktop/trace.txt", coord_trace[0])
 
         # visual over under img
@@ -2039,7 +2045,6 @@ class nodeStats:
                     temp_img = binary_dilation(temp_img)
                     img[temp_img != 0] = i + 2
         return img
-            
 
     def get_pds(self, trace_coords, node_centres, fwhms, crossing_coords):
         # find idxs of branches from start
@@ -2057,67 +2062,86 @@ class nodeStats:
             ordered_node_coord_idxs, ordered_node_idx_idxs = np.sort(node_coord_idxs), np.argsort(node_coord_idxs)
             global_node_idxs = global_node_idxs[ordered_node_idx_idxs]
 
-            under_branch_idxs, _ = self.get_trace_idxs(fwhms)
-
-            # iterate though nodes and label segments to node
-            img[mol_trace[0 : ordered_node_coord_idxs[0], 0], mol_trace[0 : ordered_node_coord_idxs[0], 1]] = 1
-            for i in range(0, len(ordered_node_coord_idxs) - 1):
+            # break out from trace loop if "molecule" trace segment contains no nodes
+            if len(node_coord_idxs) == 0:
+                print("Segment doesn't cross nodes")
+            else:
+                under_branch_idxs, _ = self.get_trace_idxs(fwhms)
+                # iterate though nodes and label segments to node
+                img[mol_trace[0 : ordered_node_coord_idxs[0], 0], mol_trace[0 : ordered_node_coord_idxs[0], 1]] = 1
+                print("ORDERED: ", ordered_node_coord_idxs)
+                for i in range(0, len(ordered_node_coord_idxs) - 1):
+                    img[
+                        mol_trace[ordered_node_coord_idxs[i] : ordered_node_coord_idxs[i + 1], 0],
+                        mol_trace[ordered_node_coord_idxs[i] : ordered_node_coord_idxs[i + 1], 1],
+                    ] = (
+                        i + 2
+                    )
+                if sum(abs(mol_trace[0]-mol_trace[-1])) <= 2: # check if mol circular via start and end dist - should do root(2)
+                    j = 1 # rejoins start at 1
+                else:
+                    j = i + 1 # doesn't rejoin start
                 img[
-                    mol_trace[ordered_node_coord_idxs[i] : ordered_node_coord_idxs[i + 1], 0],
-                    mol_trace[ordered_node_coord_idxs[i] : ordered_node_coord_idxs[i + 1], 1],
-                ] = (
-                    i + 2
-                )
-            img[
-                mol_trace[ordered_node_coord_idxs[-1] : -1, 0], mol_trace[ordered_node_coord_idxs[-1] : -1, 1]
-            ] = 1  # rejoins start at 1
-
-            # want to generate PD code by looking at each node and decide which
-            #   img label is the under-in one, then append anti-clockwise labels
-            #   - We'll have to match the node number to the node order
-            #   - Then check the FWHMs to see lowest
-            #   - Use lowest FWHM index to get the under branch coords
-            #   - Count overlapping coords between under branch coords and each ordered segment
-            #   - Get img label of two highest count (in and out)
-            #   - Under-in = lowest of two indexes ?? (back 2 start?)
-
-            #print("global node idxs", global_node_idxs)
-            for i, global_node_idx in enumerate(global_node_idxs):
-                #print(f"\n----Trace Node Num: {i+1}, Global Node Num: {global_node_idx}----")
-                under_branch_idx = under_branch_idxs[global_node_idx]
-                #print("under_branch_idx: ", under_branch_idx)
-                matching_coords = np.array([])
-                x, y = node_centres[global_node_idx]
-                node_area = img[x - 3 : x + 4, y - 3 : y + 4]
-                uniq_labels = np.unique(node_area)
-                uniq_labels = uniq_labels[uniq_labels != 0]
-
-                for label2 in uniq_labels:
-                    c = 0
-                    # get overlaps between segment coords and crossing under coords
-                    for ordered_branch_coord in crossing_coords[global_node_idx][
-                        under_branch_idx
-                    ]:  # for global_node[4] branch index is incorrect
-                        c += ((np.stack(np.where(img == label2)).T == ordered_branch_coord).sum(axis=1) == 2).sum()
-                    matching_coords = np.append(matching_coords, c)
-                    #print(f"Segment: {label2.max()}, Matches: {c}")
-                highest_count_labels = [uniq_labels[i] for i in np.argsort(matching_coords)[-2:]]
-                if abs(highest_count_labels[0] - highest_count_labels[1]) > 1: # assumes matched branch
-                    under_in = max(highest_count_labels)
-                else:
-                    under_in = min(highest_count_labels)  # under-in for global_node[4] is incorrect
-                # print(f"Under-in: {under_in}")
-                anti_clock = list(self.vals_anticlock(node_area, under_in))
+                    mol_trace[ordered_node_coord_idxs[-1] : -1, 0], mol_trace[ordered_node_coord_idxs[-1] : -1, 1]
+                ] = j  
                 
-                if len(anti_clock) == 2: # mol passes over/under another mol (maybe && [i]+1 == [i+1])
-                    print(f"passive: X{anti_clock}")
-                    self.node_dict[global_node_idx+1]["crossing_type"] = "passive"
-                elif len(anti_clock) == 3: # trival crossing (maybe also applies to Y's therefore maybe && consec when sorted)
-                    print(f"trivial: X{anti_clock}")
-                    self.node_dict[global_node_idx+1]["crossing_type"] = "trivial"
-                else:
-                    print(f"Real crossing: X{anti_clock}")
-                    self.node_dict[global_node_idx+1]["crossing_type"] = "real"
+                np.savetxt("/Users/Maxgamill/Desktop/smth.txt", img)
+                
+                # want to generate PD code by looking at each node and decide which
+                #   img label is the under-in one, then append anti-clockwise labels
+                #   - We'll have to match the node number to the node order
+                #   - Then check the FWHMs to see lowest
+                #   - Use lowest FWHM index to get the under branch coords
+                #   - Count overlapping coords between under branch coords and each ordered segment
+                #   - Get img label of two highest count (in and out)
+                #   - Under-in = lowest of two indexes ?? (back 2 start?)
+
+                #print("global node idxs", global_node_idxs)
+                for i, global_node_idx in enumerate(global_node_idxs):
+                    #print(f"\n----Trace Node Num: {i+1}, Global Node Num: {global_node_idx}----")
+                    under_branch_idx = under_branch_idxs[global_node_idx]
+                    #print("under_branch_idx: ", under_branch_idx)
+                    matching_coords = np.array([])
+                    x, y = node_centres[global_node_idx]
+                    node_area = img[x - 3 : x + 4, y - 3 : y + 4]
+                    uniq_labels = np.unique(node_area)
+                    uniq_labels = uniq_labels[uniq_labels != 0]
+                    print("uniq labels: ", uniq_labels)
+                    np.savetxt("/Users/Maxgamill/Desktop/na.txt", node_area)
+
+                    for label2 in uniq_labels:
+                        c = 0
+                        # get overlaps between segment coords and crossing under coords
+                        for ordered_branch_coord in crossing_coords[global_node_idx][
+                            under_branch_idx
+                        ]:  # for global_node[4] branch index is incorrect
+                            c += ((np.stack(np.where(img == label2)).T == ordered_branch_coord).sum(axis=1) == 2).sum()
+                        matching_coords = np.append(matching_coords, c)
+                        print(f"Segment: {label2.max()}, Matches: {c}")
+                    highest_count_labels = [uniq_labels[i] for i in np.argsort(matching_coords)[-2:]]
+                    print("highest count: ", highest_count_labels)
+                    if abs(highest_count_labels[0] - highest_count_labels[1]) > 1: # assumes matched branch
+                        under_in = max(highest_count_labels)
+                    else:
+                        under_in = min(highest_count_labels)  # under-in for global_node[4] is incorrect
+                    # print(f"Under-in: {under_in}")
+                    anti_clock = list(self.vals_anticlock(node_area, under_in))
+                    try:
+                        knot_type = homfly(anti_clock)
+                        print("Topology Classification: ", knot_type)
+                        self.node_dict["topology"] = knot_type
+                    except:
+                        print("Error in PD Calculation")
+
+                    if len(anti_clock) == 2: # mol passes over/under another mol (maybe && [i]+1 == [i+1])
+                        print(f"passive: X{anti_clock}")
+                        self.node_dict[global_node_idx+1]["crossing_type"] = "passive"
+                    elif len(anti_clock) == 3: # trival crossing (maybe also applies to Y's therefore maybe && consec when sorted)
+                        print(f"trivial: X{anti_clock}")
+                        self.node_dict[global_node_idx+1]["crossing_type"] = "trivial"
+                    else:
+                        print(f"Real crossing: X{anti_clock}")
+                        self.node_dict[global_node_idx+1]["crossing_type"] = "real"
 
         return None
 
