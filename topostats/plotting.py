@@ -277,7 +277,7 @@ class TopoSum:
         LOGGER.debug(f"[plotting] self.label     : {self.label}")
 
     @staticmethod
-    def get_paths_relative_to_deepest_common_path(paths: list) -> list:
+    def get_paths_relative_to_deepest_common_path(paths: list[Path]) -> list:
         """From a list of paths, create a list of these paths but where
         each path is relative to all path's closest common parent. For
         example, ['a/b/c', 'a/b/d', 'a/b/e/f'] would return ['c', 'd', 'e/f']
