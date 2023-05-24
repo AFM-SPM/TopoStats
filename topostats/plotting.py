@@ -198,6 +198,7 @@ class TopoSum:
         plt.ticklabel_format(axis="both", style="sci", scilimits=(-3, 3))
         plt.title(self.label)
         self.set_xlim()
+        plt.legend(title="folder")
         self.save_plot(outfile)
         return fig, ax
 
@@ -208,6 +209,7 @@ class TopoSum:
         plt.title(self.label)
         plt.xlabel("directory")
         plt.ylabel(self.label)
+        plt.legend(title="folder")
         outfile = self._outfile("violin")
         self.save_plot(outfile)
         return fig, ax
