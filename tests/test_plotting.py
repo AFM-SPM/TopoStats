@@ -44,6 +44,33 @@ def test_melt_data():
     pd.testing.assert_frame_equal(melted_data, expected)
 
 
+def test_convert_basename_to_relative_paths():
+    """Test the convert_basename_to_relative_paths method of the TopoSum class."""
+    input_df = {
+        "Image": ["im1", "im2", "im3", "im4"],
+        "threshold": ["above", "above", "above", "above"],
+        "molecule_number": [0, 0, 0, 0],
+        "basename": ["super/sub1", "super/sub2", "super/sub3", "super/sub3/sub4"],
+        "area": [10, 20, 30, 40],
+    }
+
+    input_df = pd.DataFrame(input_df)
+
+    result = TopoSum.convert_basename_to_relative_paths(input_df)
+
+    expected = {
+        "Image": ["im1", "im2", "im3", "im4"],
+        "threshold": ["above", "above", "above", "above"],
+        "molecule_number": [0, 0, 0, 0],
+        "basename": ["sub1", "sub2", "sub3", "sub3/sub4"],
+        "area": [10, 20, 30, 40],
+    }
+
+    expected = pd.DataFrame(expected)
+
+    pd.testing.assert_frame_equal(expected, result)
+
+
 @pytest.mark.parametrize(
     "input_paths, expected_paths",
     [
