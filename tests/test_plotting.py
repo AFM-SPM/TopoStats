@@ -50,7 +50,8 @@ def test_melt_data():
         ([Path("a/b/c/d"), Path("a/b/e/f"), Path("a/b/g"), Path("a/b/h")], ["c/d", "e/f", "g", "h"]),
         (["a/b/c/d", "a/b/e/f", "a/b/g", "a/b/h"], ["c/d", "e/f", "g", "h"]),
         (["g", "a/b/e/f", "a/b/g", "a/b/h"], ["g", "a/b/e/f", "a/b/g", "a/b/h"]),
-        (["a/b/c/d"], ["a/b/c/d"])
+        (["a/b/c/d"], ["a/b/c/d"]),
+        (["a/b/c/d", "a/b/c/d"], ["a/b/c/d", "a/b/c/d"])
     ],
 )
 def test_get_paths_relative_to_deepest_common_path(input_paths: list, expected_paths: list):
