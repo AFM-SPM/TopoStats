@@ -86,6 +86,7 @@ class TopoSum:
         file_ext: str = "png",
         output_dir: Union[str, Path] = ".",
         var_to_label: dict = None,
+        hue: str = "basename",
     ) -> None:
         """Initialise the class.
 
@@ -125,6 +126,8 @@ class TopoSum:
             Location to save plots to.
         var_to_label: dict
             Variable to label dictionary for automatically adding titles to plots.
+        hue: str
+            Dataframe column to group plots by.
 
         Returns
         =======
@@ -146,6 +149,7 @@ class TopoSum:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.var_to_label = var_to_label
+        self.hue = hue
         self.melted_data = None
         self.summary_data = None
         self.label = None
@@ -182,10 +186,10 @@ class TopoSum:
         fig, ax = self._setup_figure()
         if self.hist and not self.kde:
             outfile = self._outfile("hist")
-            sns.histplot(data=self.melted_data, x="value", bins=self.bins, stat=self.stat, hue="basename")
+            sns.histplot(data=self.melted_data, x="value", bins=self.bins, stat=self.stat, hue=self.hue)
         if self.kde and not self.hist:
             outfile = self._outfile("kde")
-            sns.kdeplot(data=self.melted_data, x="value", hue="basename")
+            sns.kdeplot(data=self.melted_data, x="value", hue=self.hue)
         if self.hist and self.kde:
             outfile = self._outfile("hist_kde")
             sns.histplot(
@@ -193,7 +197,7 @@ class TopoSum:
                 x="value",
                 bins=self.bins,
                 stat=self.stat,
-                hue="basename",
+                hue=self.hue,
                 kde=True,
                 kde_kws={"cut": self.cut},
             )
@@ -206,7 +210,7 @@ class TopoSum:
     def sns_violinplot(self) -> None:
         """Violin plot of data."""
         fig, ax = self._setup_figure()
-        sns.violinplot(data=self.melted_data, x="basename", y="value", hue="basename", alpha=self.alpha)
+        sns.violinplot(data=self.melted_data, x=self.hue, y="value", hue=self.hue, alpha=self.alpha)
         plt.title(self.label)
         plt.xlabel("directory")
         plt.ylabel(self.label)
@@ -279,7 +283,7 @@ class TopoSum:
         LOGGER.debug(f"[plotting] self.label     : {self.label}")
 
     @staticmethod
-    def get_relative_paths(paths: List[Path]) -> list:
+    def get_relative_paths(paths: List[Path]) -> List[str]:
         """From a list of paths, create a list of these paths but where
         each path is relative to all path's closest common parent. For
         example, ['a/b/c', 'a/b/d', 'a/b/e/f'] would return ['c', 'd', 'e/f']
