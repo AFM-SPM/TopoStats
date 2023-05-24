@@ -91,7 +91,7 @@ def toposum_object_single_directory(summary_config: Dict) -> TopoSum:
 
 @pytest.fixture
 def toposum_object_multiple_directories(summary_config: Dict) -> TopoSum:
-    """Set up a TopoSum object fixture for testing plotting, using a dataframe containing data from a several
+    """Set up a TopoSum object fixture for testing plotting, using a dataframe containing data from several
     directories."""
     toposum = TopoSum(csv_file=RESOURCES / "toposum_all_statistics_multiple_directories.csv", **summary_config)
     return toposum
