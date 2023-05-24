@@ -2144,10 +2144,10 @@ class nodeStats:
                 try:
                     topology = None #homfly(pd_code, closure=params.Closure.CLOSED, chiral = True) Need to fix cat pd codes first
                     print(f"Topology: {topology}")
-                    self.node_dict["topology"] = topology
                 except:
                     topology = None
                     print("Topology undetermined")
+                self.node_dict["topology"] = topology
                 
 
         return None
