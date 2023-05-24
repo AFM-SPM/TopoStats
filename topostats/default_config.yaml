@@ -39,15 +39,15 @@ grains:
     below: -1.0 # Threshold for grains below the image background
     above: 1.0 # Threshold for grains above the image background
   direction: above # Options: above, below, both (defines whether to look for grains above or below thresholds or both)
+  # Standard deviation multiplier for height thresholds for grain median heights. Removes grains whose median is [higher, lower] than these values.
+  grain_height_removal_thresholds_std_dev:
+    below: [null, null] # Minimum, maximum std dev multiplier for grain median heights for the below direction.
+    above: [null, null] # Minimum, maximum std dev multiplier for grain median heights for the above direction.
   # Thresholding by area
   smallest_grain_size_nm2: 50 # Size in nm^2 of tiny grains/blobs (noise) to remove, must be > 0.0
   absolute_area_threshold:
     above: [0, 10000000] # above surface [Low, High] in nm^2 (also takes null)
     below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
-  # Standard deviation multiplier for height thresholds for grain median heights. Removes grains whose median is [higher, lower] than these values.
-  grain_height_removal_thresholds_std_dev:
-    below: [null, null] # Minimum, maximum std dev multiplier for grain median heights for the below direction.
-    above: [null, null] # Minimum, maximum std dev multiplier for grain median heights for the above direction.
 grainstats:
   run: true # Options : true, false
   edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
