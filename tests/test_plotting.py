@@ -54,10 +54,10 @@ def test_melt_data():
         (["a/b/c/d", "a/b/c/d"], ["a/b/c/d", "a/b/c/d"]),
     ],
 )
-def test_get_paths_relative_to_deepest_common_path(input_paths: list, expected_paths: list):
+def test_get_relative_paths(input_paths: list, expected_paths: list):
     """Test the get_paths_relative_to_deepest_common_path method of the TopoSum class."""
 
-    relative_paths = TopoSum.get_paths_relative_to_deepest_common_path(input_paths)
+    relative_paths = TopoSum.get_relative_paths(input_paths)
 
     assert relative_paths == expected_paths
 

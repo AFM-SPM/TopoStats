@@ -2,11 +2,13 @@
 import os
 import argparse as arg
 from collections import defaultdict
+
+
 import importlib.resources as pkg_resources
 import logging
 from pathlib import Path
 import sys
-from typing import Union, Dict
+from typing import Union, Dict, List
 import yaml
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -277,7 +279,7 @@ class TopoSum:
         LOGGER.debug(f"[plotting] self.label     : {self.label}")
 
     @staticmethod
-    def get_paths_relative_to_deepest_common_path(paths: list[Path]) -> list:
+    def get_relative_paths(paths: List[Path]) -> list:
         """From a list of paths, create a list of these paths but where
         each path is relative to all path's closest common parent. For
         example, ['a/b/c', 'a/b/d', 'a/b/e/f'] would return ['c', 'd', 'e/f']
@@ -329,7 +331,7 @@ class TopoSum:
 
         paths = df["basename"].tolist()
         paths = [Path(path) for path in paths]
-        relative_paths = TopoSum.get_paths_relative_to_deepest_common_path(paths=paths)
+        relative_paths = TopoSum.get_relative_paths(paths=paths)
         df["basename"] = relative_paths
 
         return df
