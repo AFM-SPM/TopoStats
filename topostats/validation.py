@@ -25,7 +25,7 @@ def validate_config(config: dict, schema: Schema, config_type: str) -> None:
 
     try:
         schema.validate(config)
-        LOGGER.info(f"The {config_type} configuration is valid.")
+        LOGGER.info(f"The {config_type} is valid.")
     except SchemaError as schema_error:
         raise SchemaError(
             f"There is an error in your {config_type} configuration. "
@@ -37,9 +37,14 @@ DEFAULT_CONFIG_SCHEMA = Schema(
     {
         "base_dir": Path,
         "output_dir": Path,
-        "warnings": Or("ignore", error="Invalid value in config for 'warnings', valid values are 'ignore'"),
+        "log_level": Or(
+            "debug",
+            "info",
+            "warning",
+            "error",
+            error="Invalid value in config for 'log_level', valid values are 'info' (default), 'debug', 'error' or 'warning",
+        ),
         "cores": lambda n: 1 <= n <= os.cpu_count(),
-        "quiet": Or(True, False, error="Invalid value in config for 'quiet', valid values are 'True' or 'False'"),
         "file_ext": Or(
             ".spm",
             ".asd",
@@ -101,22 +106,22 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
-                "lower": lambda n: n > 0,
-                "upper": lambda n: n > 0,
+                "below": lambda n: n > 0,
+                "above": lambda n: n > 0,
             },
             "threshold_absolute": {
-                "lower": Or(
+                "below": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for filter.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
-                "upper": Or(
+                "above": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for filter.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
             },
@@ -148,42 +153,42 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
-                "lower": lambda n: n > 0,
-                "upper": lambda n: n > 0,
+                "below": lambda n: n > 0,
+                "above": lambda n: n > 0,
             },
             "threshold_absolute": {
-                "lower": Or(
+                "below": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for grains.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
-                "upper": Or(
+                "above": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for grains.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
             },
             "absolute_area_threshold": {
-                "upper": [
+                "above": [
                     Or(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.absolute_area_threshold.upper', valid values "
+                            "Invalid value in config for 'grains.absolute_area_threshold.above', valid values "
                             "are int or null"
                         ),
                     )
                 ],
-                "lower": [
+                "below": [
                     Or(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.absolute_area_threshold.lower', valid values "
+                            "Invalid value in config for 'grains.absolute_area_threshold.below', valid values "
                             "are int or null"
                         ),
                     )
@@ -191,9 +196,9 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             },
             "direction": Or(
                 "both",
-                "lower",
-                "upper",
-                error="Invalid direction for grains.direction valid values are 'both', 'lower' or 'upper",
+                "below",
+                "above",
+                error="Invalid direction for grains.direction valid values are 'both', 'below' or 'above",
             ),
         },
         "grainstats": {
@@ -217,18 +222,16 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
             ),
+            "min_skeleton_size": lambda n: n > 0.0,
             "skeletonisation_method": Or(
                 "zhang",
                 "lee",
                 "thin",
                 "medial_axis",
                 "joe",
-                error="Invalid value for dnatracing.run, valid values are 'zhang', 'lee', 'thin', 'medial_axis' or 'joe'"
+                error="Invalid value for dnatracing.run, valid values are 'zhang', 'lee', 'thin', 'medial_axis' or 'joe'",
             ),
-            "pruning_method": Or(
-                "joe",
-                error="Invalid value for dnatracing.run, valid values are 'joe'"
-            ),
+            "pruning_method": Or("joe", error="Invalid value for dnatracing.run, valid values are 'joe'"),
         },
         "plotting": {
             "run": Or(
@@ -241,6 +244,27 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "all",
                 "core",
                 error="Invalid value in config for 'plotting.image_set', valid values " "are 'all' or 'core'",
+            ),
+            "pixel_interpolation": Or(
+                None,
+                "none",
+                "bessel",
+                "bicubic",
+                "bilinear",
+                "catrom",
+                "gaussian",
+                "hamming",
+                "hanning",
+                "hermite",
+                "kaiser",
+                "lanczos",
+                "mitchell",
+                "nearest",
+                "quadric",
+                "sinc",
+                "spline16",
+                "spline36",
+                error="Invalid interpolation value. See https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html for options.",
             ),
             "zrange": list,
             "colorbar": Or(
@@ -269,6 +293,9 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 ),
             ),
             "histogram_bins": lambda n: n > 0,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "summary_stats": {
             "run": Or(
@@ -635,6 +662,7 @@ PLOTTING_SCHEMA = Schema(
 
 SUMMARY_SCHEMA = Schema(
     {
+        "base_dir": Path,
         "output_dir": Path,
         "csv_file": str,
         "file_ext": Or(

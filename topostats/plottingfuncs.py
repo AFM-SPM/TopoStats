@@ -38,7 +38,7 @@ class Images:
         image_type: str = "non-binary",
         image_set: str = "core",
         core_set: bool = False,
-        interpolation: str = "nearest",
+        pixel_interpolation: Union[str, None] = None,
         cmap: str = "nanoscope",
         mask_cmap: str = "jet_r",
         region_properties: dict = None,
@@ -74,8 +74,8 @@ class Images:
             The set of images to process - core or all.
         core_set : bool
             Flag to identify image as part of the core image set or not.
-        interpolation: str
-            Interpolation to use (default 'nearest').
+        pixel_interpolation: Union[str, None]
+            Interpolation to use (default: None).
         cmap : str
             Colour map to use (default 'nanoscope', 'afmhot' also available).
         mask_cmap : str
@@ -108,7 +108,7 @@ class Images:
         self.image_type = image_type
         self.image_set = image_set
         self.core_set = core_set
-        self.interpolation = interpolation
+        self.interpolation = pixel_interpolation
         self.cmap = Colormap(cmap).get_cmap()
         self.mask_cmap = Colormap(mask_cmap).get_cmap()
         self.region_properties = region_properties
@@ -174,7 +174,9 @@ class Images:
                         fig, ax = self.save_figure()
                     else:
                         self.save_array_figure()
-        LOGGER.info(f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}")
+        LOGGER.info(
+            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}" f".{self.save_format}"
+        )
         return fig, ax
 
     def save_figure(self):
@@ -287,7 +289,7 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
         Matplotlib.pyplot axes object.
     """
     for region in region_properties:
-        min_y, min_x, max_y, max_x = [x * pixel_to_nm_scaling for x in region.bbox]
+        min_y, min_x, max_y, max_x = (x * pixel_to_nm_scaling for x in region.bbox)
         # Correct y-axis
         min_y = (shape[0] * pixel_to_nm_scaling) - min_y
         max_y = (shape[0] * pixel_to_nm_scaling) - max_y

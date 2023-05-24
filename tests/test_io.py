@@ -8,6 +8,9 @@ import pytest
 
 from topostats.io import (
     read_yaml,
+    write_yaml,
+    save_array,
+    load_array,
     find_files,
     get_out_path,
     path_to_str,
@@ -46,7 +49,19 @@ def test_read_yaml() -> None:
     TestCase().assertDictEqual(sample_config, CONFIG)
 
 
-def test_path_to_str(tmp_path) -> None:
+def test_write_yaml(tmp_path: Path) -> None:
+    """Test writing of dictionary to YAML."""
+    write_yaml(
+        config=CONFIG,
+        output_dir=tmp_path,
+        config_file="test.yaml",
+        header_message="This is a test YAML configuration file",
+    )
+    outfile = tmp_path / "test.yaml"
+    assert outfile.is_file()
+
+
+def test_path_to_str(tmp_path: Path) -> None:
     """Test that Path objects are converted to strings."""
     CONFIG_PATH = {"this": "is", "a": "test", "with": tmp_path, "and": {"nested": tmp_path / "nested"}}
     CONFIG_STR = path_to_str(CONFIG_PATH)
@@ -56,6 +71,29 @@ def test_path_to_str(tmp_path) -> None:
     assert CONFIG_STR["with"] == str(tmp_path)
     assert isinstance(CONFIG_STR["and"]["nested"], str)
     assert CONFIG_STR["and"]["nested"] == str(tmp_path / "nested")
+
+
+def test_save_array(synthetic_scars_image: np.ndarray, tmp_path: Path) -> None:
+    """Test saving Numpy arrays."""
+    save_array(array=synthetic_scars_image, outpath=tmp_path, filename="test", array_type="synthetic")
+
+    outfile = tmp_path / "test_synthetic.npy"
+    assert outfile.is_file()
+
+
+def test_load_array() -> None:
+    """Test loading Numpy arrays."""
+    target = load_array(RESOURCES / "test_scars_synthetic_scar_image.npy")
+    expected = np.load(RESOURCES / "test_scars_synthetic_scar_image.npy")
+
+    np.testing.assert_array_equal(target, expected)
+
+
+@pytest.mark.parametrize("non_existant_file", [("does_not_exist.npy"), ("does_not_exist.np"), ("does_not_exist.csv")])
+def test_load_array_file_not_found(non_existant_file: str) -> None:
+    """Test exceptions when trying to load arrays that don't exist."""
+    with pytest.raises(FileNotFoundError):
+        assert load_array(non_existant_file)
 
 
 def test_find_files() -> None:
@@ -191,7 +229,7 @@ def test_get_out_path_attributeerror() -> None:
 def test_save_folder_grainstats(tmp_path: Path, minicircle_tracestats: pd.DataFrame) -> None:
     """Test a folder-wide grainstats file is made"""
     input_path = tmp_path / "minicircle"
-    minicircle_tracestats["Basename"] = input_path / "subfolder"
+    minicircle_tracestats["basename"] = input_path
     out_path = tmp_path / "subfolder"
     Path.mkdir(out_path, parents=True)
     save_folder_grainstats(out_path, input_path, minicircle_tracestats)
@@ -308,14 +346,33 @@ def test_load_scan_get_data(
     """Test the LoadScan.get_data() method."""
     scan = request.getfixturevalue(load_scan_object)
     scan.get_data()
-    assert len(scan.img_dic) == length
-    assert isinstance(scan.img_dic[filename]["image"], np.ndarray)
-    assert scan.img_dic[filename]["image"].shape == image_shape
-    assert scan.img_dic[filename]["image"].sum() == image_sum
-    assert isinstance(scan.img_dic[filename]["img_path"], Path)
-    assert scan.img_dic[filename]["img_path"] == RESOURCES / filename
-    assert isinstance(scan.img_dic[filename]["px_2_nm"], float)
-    assert scan.img_dic[filename]["px_2_nm"] == pixel_to_nm_scaling
+    assert len(scan.img_dict) == length
+    assert isinstance(scan.img_dict[filename]["image"], np.ndarray)
+    assert scan.img_dict[filename]["image"].shape == image_shape
+    assert scan.img_dict[filename]["image"].sum() == image_sum
+    assert isinstance(scan.img_dict[filename]["img_path"], Path)
+    assert scan.img_dict[filename]["img_path"] == RESOURCES / filename
+    assert isinstance(scan.img_dict[filename]["px_2_nm"], float)
+    assert scan.img_dict[filename]["px_2_nm"] == pixel_to_nm_scaling
+
+
+@pytest.mark.parametrize(
+    "x, y, log_msg",
+    [
+        (100, 100, "Image added to processing"),
+        (9, 100, "Skipping, image too small"),
+        (100, 9, "Skipping, image too small"),
+    ],
+)
+def test_load_scan_get_data_check_image_size(
+    load_scan: LoadScans, x: int, y: int, log_msg: str, caplog, tmp_path
+) -> None:
+    """Test errors are raised when images that are too small are passed."""
+    load_scan.filename = "minicircle"
+    load_scan.img_path = tmp_path
+    load_scan.image = np.ndarray((x, y))
+    load_scan._check_image_size()
+    assert log_msg in caplog.text
 
 
 def test_save_pkl(summary_config: dict, tmp_path) -> None:

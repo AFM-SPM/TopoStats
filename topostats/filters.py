@@ -39,7 +39,6 @@ class Filters:
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
         remove_scars: dict = None,
-        quiet: bool = False,
     ):
         """Initialise the class.
 
@@ -53,21 +52,19 @@ class Filters:
             Value for converting pixels to nanometers.
         row_alignment_quantile: float
             Quantile (0.0 to 1.0) to be used to determine the average background for the image.
-            Lower values may improve flattening of large features.
+            below values may improve flattening of large features.
         threshold_method: str
             Method for thresholding, default 'otsu', valid options 'otsu', 'std_dev' and 'absolute'.
         otsu_threshold_multiplier: float
             Value for scaling the derived Otsu threshold (optional).
         threshold_std_dev: dict
-            If using the 'std_dev' threshold method. Dictionary that contains upper and lower
+            If using the 'std_dev' threshold method. Dictionary that contains above and below
             threshold values for the number of standard deviations from the mean to threshold.
         threshold_absolute: dict
-            If using the 'absolute' threshold method. Dictionary that contains upper and lower
+            If using the 'absolute' threshold method. Dictionary that contains above and below
             absolute threshold values for flattening.
         remove_scars: dict
             Dictionary containing configuration parameters for the scar removal function.
-        quiet: bool
-            Whether to silence output.
         """
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
@@ -103,9 +100,6 @@ class Filters:
             "y_gradient": None,
             "threshold": None,
         }
-
-        if quiet:
-            LOGGER.setLevel("ERROR")
 
     def median_flatten(
         self, image: np.ndarray, mask: np.ndarray = None, row_alignment_quantile: float = 0.5
@@ -181,6 +175,8 @@ processed, please refer to <url to page where we document common problems> for m
         # Calculate medians
         medians_x = [np.nanmedian(read_matrix[:, i]) for i in range(read_matrix.shape[1])]
         medians_y = [np.nanmedian(read_matrix[j, :]) for j in range(read_matrix.shape[0])]
+        LOGGER.debug(f"[{self.filename}] [remove_tilt] medians_x   : {medians_x}")
+        LOGGER.debug(f"[{self.filename}] [remove_tilt] medians_y   : {medians_y}")
 
         # Fit linear x
         px = np.polyfit(range(0, len(medians_x)), medians_x, 1)
