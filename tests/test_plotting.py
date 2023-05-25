@@ -44,51 +44,6 @@ def test_melt_data():
     pd.testing.assert_frame_equal(melted_data, expected)
 
 
-def test_convert_basename_to_relative_paths():
-    """Test the convert_basename_to_relative_paths method of the TopoSum class."""
-    input_df = {
-        "Image": ["im1", "im2", "im3", "im4"],
-        "threshold": ["above", "above", "above", "above"],
-        "molecule_number": [0, 0, 0, 0],
-        "basename": ["super/sub1", "super/sub2", "super/sub3", "super/sub3/sub4"],
-        "area": [10, 20, 30, 40],
-    }
-
-    input_df = pd.DataFrame(input_df)
-
-    result = TopoSum.convert_basename_to_relative_paths(input_df)
-
-    expected = {
-        "Image": ["im1", "im2", "im3", "im4"],
-        "threshold": ["above", "above", "above", "above"],
-        "molecule_number": [0, 0, 0, 0],
-        "basename": ["sub1", "sub2", "sub3", "sub3/sub4"],
-        "area": [10, 20, 30, 40],
-    }
-
-    expected = pd.DataFrame(expected)
-
-    pd.testing.assert_frame_equal(expected, result)
-
-
-@pytest.mark.parametrize(
-    "input_paths, expected_paths",
-    [
-        ([Path("a/b/c/d"), Path("a/b/e/f"), Path("a/b/g"), Path("a/b/h")], ["c/d", "e/f", "g", "h"]),
-        (["a/b/c/d", "a/b/e/f", "a/b/g", "a/b/h"], ["c/d", "e/f", "g", "h"]),
-        (["g", "a/b/e/f", "a/b/g", "a/b/h"], ["g", "a/b/e/f", "a/b/g", "a/b/h"]),
-        (["a/b/c/d"], ["a/b/c/d"]),
-        (["a/b/c/d", "a/b/c/d"], ["a/b/c/d", "a/b/c/d"]),
-    ],
-)
-def test_get_relative_paths(input_paths: list, expected_paths: list):
-    """Test the get_paths_relative_to_deepest_common_path method of the TopoSum class."""
-
-    relative_paths = TopoSum.get_relative_paths(input_paths)
-
-    assert relative_paths == expected_paths
-
-
 def test_df_from_csv(toposum_object_multiple_directories: TopoSum) -> None:
     """Test loading of CSV file."""
     assert isinstance(toposum_object_multiple_directories.df, pd.DataFrame)

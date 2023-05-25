@@ -23,6 +23,8 @@ from topostats.io import (
     read_64d,
     read_gwy_component_dtype,
     read_char,
+    get_relative_paths,
+    convert_basename_to_relative_paths,
 )
 
 BASE_DIR = Path.cwd()
@@ -148,6 +150,51 @@ def test_read_gwy_component_dtype() -> None:
         value = read_gwy_component_dtype(open_binary_file)
         assert isinstance(value, str)
         assert value == "D"
+
+
+@pytest.mark.parametrize(
+    "input_paths, expected_paths",
+    [
+        ([Path("a/b/c/d"), Path("a/b/e/f"), Path("a/b/g"), Path("a/b/h")], ["c/d", "e/f", "g", "h"]),
+        (["a/b/c/d", "a/b/e/f", "a/b/g", "a/b/h"], ["c/d", "e/f", "g", "h"]),
+        (["g", "a/b/e/f", "a/b/g", "a/b/h"], ["g", "a/b/e/f", "a/b/g", "a/b/h"]),
+        (["a/b/c/d"], ["a/b/c/d"]),
+        (["a/b/c/d", "a/b/c/d"], ["a/b/c/d", "a/b/c/d"]),
+    ],
+)
+def test_get_relative_paths(input_paths: list, expected_paths: list):
+    """Test the get_paths_relative_to_deepest_common_path function."""
+
+    relative_paths = get_relative_paths(input_paths)
+
+    assert relative_paths == expected_paths
+
+
+def test_convert_basename_to_relative_paths():
+    """Test the convert_basename_to_relative_paths function."""
+    input_df = {
+        "Image": ["im1", "im2", "im3", "im4"],
+        "threshold": ["above", "above", "above", "above"],
+        "molecule_number": [0, 0, 0, 0],
+        "basename": ["super/sub1", "super/sub2", "super/sub3", "super/sub3/sub4"],
+        "area": [10, 20, 30, 40],
+    }
+
+    input_df = pd.DataFrame(input_df)
+
+    result = convert_basename_to_relative_paths(input_df)
+
+    expected = {
+        "Image": ["im1", "im2", "im3", "im4"],
+        "threshold": ["above", "above", "above", "above"],
+        "molecule_number": [0, 0, 0, 0],
+        "basename": ["sub1", "sub2", "sub3", "sub3/sub4"],
+        "area": [10, 20, 30, 40],
+    }
+
+    expected = pd.DataFrame(expected)
+
+    pd.testing.assert_frame_equal(expected, result)
 
 
 @pytest.mark.parametrize(
