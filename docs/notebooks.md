@@ -20,7 +20,7 @@ with the following commands under your Virtual Environment (e.g. Conda)...
 
 ``` bash
 cd TopoStats
-pip install .[notebooks]
+pip install ".[notebooks]"
 ```
 
 ## Running Notebooks
