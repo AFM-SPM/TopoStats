@@ -1,20 +1,18 @@
 """Plotting and summary of Statistics"""
-import os
 import argparse as arg
 from collections import defaultdict
-
 
 import importlib.resources as pkg_resources
 import logging
 from pathlib import Path
 import sys
-from typing import Union, Dict, List
+from typing import Union, Dict
 import yaml
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-from topostats.io import read_yaml, save_pkl, write_yaml
+from topostats.io import read_yaml, save_pkl, write_yaml, convert_basename_to_relative_paths
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import update_config
 
@@ -156,7 +154,7 @@ class TopoSum:
 
         # melt the data given in the init method
         self.melted_data = self.melt_data(self.df, stat_to_summarize=self.stat_to_sum, var_to_label=self.var_to_label)
-        TopoSum.convert_basename_to_relative_paths(df=self.melted_data)
+        convert_basename_to_relative_paths(df=self.melted_data)
         self.set_palette()
         self._set_label(self.stat_to_sum)
 
@@ -281,64 +279,6 @@ class TopoSum:
         """
         self.label = self.var_to_label[var]
         LOGGER.debug(f"[plotting] self.label     : {self.label}")
-
-    @staticmethod
-    def get_relative_paths(paths: List[Path]) -> List[str]:
-        """From a list of paths, create a list of these paths but where
-        each path is relative to all path's closest common parent. For
-        example, ['a/b/c', 'a/b/d', 'a/b/e/f'] would return ['c', 'd', 'e/f']
-
-        Parameters
-        ----------
-        paths: list
-            List of string or pathlib paths.
-
-        Returns
-        -------
-        relative_paths: list
-            List of string paths, relative to the common parent.
-        """
-
-        # Ensure paths are all pathlib paths, and not strings
-        paths = [Path(path) for path in paths]
-
-        # If the paths list consists of all the same path, then the relative path will
-        # be '.', which we don't want. we want the relative path to be the full path probably.
-        # len(set(my_list)) == 1 determines if all the elements in a list are the same.
-        if len(set(paths)) == 1:
-            return [str(path.as_posix()) for path in paths]
-
-        deepest_common_path = os.path.commonpath(paths)
-        # Have to convert to strings else the dataframe values will be slightly different
-        # to what is expected.
-        return [str(path.relative_to(deepest_common_path).as_posix()) for path in paths]
-
-    @staticmethod
-    def convert_basename_to_relative_paths(df: pd.DataFrame):
-        """Converts the paths in the 'basename' column in a dataframe from being
-        absolute paths, to paths relative to the deepest common parent. For example
-        if the 'basename' column has the following paths: ['/usr/topo/data/a/b', '/usr
-        /topo/data/c/d'], the output will be: ['a/b', 'c/d'].
-
-        Parameters
-        ----------
-        df: pd.DataFrame
-            A pandas dataframe containing a column 'basename' which contains the paths
-            indicating the locations of the image data files.
-
-        Returns
-        -------
-        df: pd.DataFrame
-            A pandas dataframe where the 'basename' column has paths relative to a common
-            parent.
-        """
-
-        paths = df["basename"].tolist()
-        paths = [Path(path) for path in paths]
-        relative_paths = TopoSum.get_relative_paths(paths=paths)
-        df["basename"] = relative_paths
-
-        return df
 
 
 def toposum(config: dict) -> Dict:
