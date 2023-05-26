@@ -750,7 +750,7 @@ class LoadScans:
             # Check that the file extension is supported
             if suffix in suffix_to_loader:
                 self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
-                self._check_image_size()
+                self._check_image_size_and_add_to_dict()
             else:
                 raise ValueError(
                     f"File type {suffix} not yet supported. Please make an issue at \
@@ -758,7 +758,7 @@ class LoadScans:
                 this file type."
                 )
 
-    def _check_image_size(self) -> None:
+    def _check_image_size_and_add_to_dict(self) -> None:
         """Check the image is above a minimum size in both dimensions.
 
         Images that do not meet the minimum size are not included for processing.
