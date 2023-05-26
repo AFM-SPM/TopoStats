@@ -364,14 +364,14 @@ def test_load_scan_get_data(
         (100, 9, "Skipping, image too small"),
     ],
 )
-def test_load_scan_get_data_check_image_size(
+def test_load_scan_get_data_check_image_size_and_add_to_dict(
     load_scan: LoadScans, x: int, y: int, log_msg: str, caplog, tmp_path
 ) -> None:
     """Test errors are raised when images that are too small are passed."""
     load_scan.filename = "minicircle"
     load_scan.img_path = tmp_path
     load_scan.image = np.ndarray((x, y))
-    load_scan._check_image_size()
+    load_scan._check_image_size_and_add_to_dict()
     assert log_msg in caplog.text
 
 
