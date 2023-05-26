@@ -391,7 +391,7 @@ class LoadScans:
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
             raise
-        except Exception:
+        except Exception as e:
             # trying to return the error with options of possible channel values
             labels = []
             for channel in [layer[b"@2:Image Data"][0] for layer in scan.layers]:
@@ -399,7 +399,7 @@ class LoadScans:
                 # channel_description = channel.decode('latin1').split('"')[1] # incase the blank field raises quesions?
                 labels.append(channel_name)
             LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
-            raise
+            raise e
 
         return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
 
@@ -749,8 +749,15 @@ class LoadScans:
 
             # Check that the file extension is supported
             if suffix in suffix_to_loader:
-                self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
-                self._check_image_size_and_add_to_dict()
+                try:
+                    self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
+                except Exception as e:
+                    if "Channel" in str(e) and "not found" in str(e):
+                        LOGGER.warning(f"[{self.filename}] Channel {self.channel} not found, skipping image.")
+                    else:
+                        raise
+                else:
+                    self._check_image_size_and_add_to_dict()
             else:
                 raise ValueError(
                     f"File type {suffix} not yet supported. Please make an issue at \
