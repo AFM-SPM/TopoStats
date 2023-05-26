@@ -230,8 +230,6 @@ class TopoSum:
         """Melt a dataframe into long format for plotting with Seaborn."""
         melted_data = pd.melt(df.reset_index(), id_vars=["molecule_number", "basename"], value_vars=stat_to_summarize)
         melted_data["variable"] = melted_data["variable"].map(var_to_label)
-        # melted_data.rename({"image": "Image"}, axis=1, inplace=True)
-        # self.image_id = "Image"
         LOGGER.info("[plotting] Data has been melted to long format for plotting.")
 
         return melted_data
