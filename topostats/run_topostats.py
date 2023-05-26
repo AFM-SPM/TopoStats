@@ -10,6 +10,7 @@ import logging
 from multiprocessing import Pool
 from pprint import pformat
 import sys
+import shutil
 import yaml
 
 import pandas as pd
@@ -163,12 +164,12 @@ def main(args=None):
 
     # Write sample configuration if asked to do so and exit
     if args.create_config_file:
-        write_yaml(
-            config,
-            output_dir="./",
-            config_file=args.create_config_file,
-            header_message="Sample configuration file auto-generated",
-        )
+        default_config_path = pkg_resources.path(__package__, "default_config.yaml")
+        if ".yaml" not in args.create_config_file and ".yml" not in args.create_config_file:
+            create_config_path = "./" + args.create_config_file + ".yaml"
+        else:
+            create_config_path = "./" + args.create_config_file
+        shutil.copy(src=default_config_path, dst=create_config_path)
         LOGGER.info(f"A sample configuration has been written to : ./{args.create_config_file}")
         LOGGER.info(
             "Please refer to the documentation on how to use the configuration file : \n\n"
