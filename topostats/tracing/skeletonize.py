@@ -51,7 +51,8 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         module. See also the `examples
         <https://scikit-image.org/docs/stable/auto_examples/edges/plot_skeleton.html>_
         """
-        return self._get_skeletonize(method)
+        skeletor = self._get_skeletonize(method)
+        return skeletor(self.mask)
 
     def _get_skeletonize(self, method: str = "zhang") -> Callable:
         """Creator component which determines which skeletonize method to use.
@@ -67,13 +68,13 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
             Returns the function appropriate for the required skeletonizing method.
         """
         if method == "zhang":
-            return self._skeletonize_zhang(self.mask)
+            return self._skeletonize_zhang
         if method == "lee":
-            return self._skeletonize_lee(self.mask)
+            return self._skeletonize_lee
         if method == "medial_axis":
-            return self._skeletonize_medial_axis(self.mask)
+            return self._skeletonize_medial_axis
         if method == "thin":
-            return self._skeletonize_thin(self.mask)
+            return self._skeletonize_thin
         raise ValueError(method)
 
     @staticmethod
@@ -88,7 +89,7 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         Returns
         -------
         np.ndarray
-            The mask array reduce to a single pixel thickness
+            The mask array reduced to a single pixel thickness
         """
         return skeletonize(image, method="zhang")
 
@@ -104,7 +105,7 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         Returns
         -------
         np.ndarray
-            The mask array reduce to a single pixel thickness
+            The mask array reduced to a single pixel thickness
         """
         return skeletonize(image, method="lee")
 
@@ -120,7 +121,7 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         Returns
         -------
         np.ndarray
-            The mask array reduce to a single pixel thickness
+            The mask array reduced to a single pixel thickness
         """
         return medial_axis(image, return_distance=False)
 
@@ -136,6 +137,6 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         Returns
         -------
         np.ndarray
-            The mask array reduce to a single pixel thickness
+            The mask array reduced to a single pixel thickness
         """
         return thin(image)
