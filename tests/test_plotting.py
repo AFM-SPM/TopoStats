@@ -142,7 +142,7 @@ def test_plot_kde(toposum_object_single_directory: TopoSum) -> None:
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plot_kde_multiple_images(toposum_object_multiple_directories: TopoSum) -> None:
+def test_plot_kde_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
     """Regression test for sns_plot() with multiple KDE."""
     toposum_object_multiple_directories.hist = False
     fig, _ = toposum_object_multiple_directories.sns_plot()
@@ -158,7 +158,7 @@ def test_plot_hist(toposum_object_single_directory: TopoSum) -> None:
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plot_hist_multiple_images(toposum_object_multiple_directories: TopoSum) -> None:
+def test_plot_hist_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
     """Regression test for sns_plot() with multiple overlaid histograms."""
     toposum_object_multiple_directories.kde = False
     fig, _ = toposum_object_multiple_directories.sns_plot()
@@ -173,7 +173,7 @@ def test_plot_hist_kde(toposum_object_single_directory: TopoSum) -> None:
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plot_hist_kde_multiple_images(toposum_object_multiple_directories: TopoSum) -> None:
+def test_plot_hist_kde_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
     """Test plotting Kernel Density Estimate and Histogram for area."""
     fig, _ = toposum_object_multiple_directories.sns_plot()
     return fig
@@ -187,7 +187,7 @@ def test_plot_violin(toposum_object_single_directory: TopoSum) -> None:
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plot_violin_multiple_images(toposum_object_multiple_directories: TopoSum) -> None:
+def test_plot_violin_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
     """Test plotting Kernel Density Estimate and Histogram for area with multiple images."""
     fig, _ = toposum_object_multiple_directories.sns_violinplot()
     return fig
