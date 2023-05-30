@@ -10,6 +10,7 @@ import logging
 from multiprocessing import Pool
 from pprint import pformat
 import sys
+from pathlib import Path
 import yaml
 
 import pandas as pd
@@ -173,7 +174,7 @@ def main(args=None):
     if args.create_config_file and args.config_file:
         raise ValueError("--create-config-file and --config cannot be used together.")
     if args.create_config_file:
-        write_config_with_comments(config=default_config, filename=args.create_config_file)
+        write_config_with_comments(config=default_config, output_dir=Path.cwd(), filename=args.create_config_file)
         sys.exit()
 
     # Create base output directory

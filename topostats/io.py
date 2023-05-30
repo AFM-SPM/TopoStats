@@ -89,9 +89,7 @@ def write_yaml(
     config_yaml = yaml_load(yaml_dump(config))
 
     if header_message:
-        config_yaml.yaml_set_start_comment(
-            f"{header_message} : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n" + CONFIG_DOCUMENTATION_REFERENCE
-        )
+        config_yaml.yaml_set_start_comment(f"{header_message} : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE)
     else:
         config_yaml.yaml_set_start_comment(
             f"Configuration from TopoStats run completed : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
@@ -103,7 +101,7 @@ def write_yaml(
             LOGGER.error(exception)
 
 
-def write_config_with_comments(config: str, filename: str = "config.yaml"):
+def write_config_with_comments(config: str, output_dir: Path, filename: str = "config.yaml") -> None:
     """
     Create a config file, retaining the comments by writing it as a string
     rather than using a yaml handling package.
@@ -112,20 +110,22 @@ def write_config_with_comments(config: str, filename: str = "config.yaml"):
     ----------
     config: str
         A string of the entire configuration file to be saved.
+    output_dir: Path
+        A pathlib path of where to create the config file.
     filename: str
         A name for the configuration file. Can have a ".yaml" on the end.
     """
 
     if ".yaml" not in filename and ".yml" not in filename:
-        create_config_path = "./" + filename + ".yaml"
+        create_config_path = output_dir / f"{filename}.yaml"
     else:
-        create_config_path = "./" + filename
+        create_config_path = output_dir / filename
 
-    with open(f"./{create_config_path}", "w", encoding="utf-8") as f:
+    with open(f"{create_config_path}", "w", encoding="utf-8") as f:
         f.write(f"# Config file generated {get_date_time()}\n")
         f.write(f"# {CONFIG_DOCUMENTATION_REFERENCE}")
         f.write(config)
-    LOGGER.info(f"A sample configuration has been written to : ./{filename}")
+    LOGGER.info(f"A sample configuration has been written to : {str(create_config_path)}")
     LOGGER.info(CONFIG_DOCUMENTATION_REFERENCE)
 
 
