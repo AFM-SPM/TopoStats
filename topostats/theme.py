@@ -143,7 +143,7 @@ class Colormap:
     def green_black():
         "RGBA colour map of just the colour blue."
         return ListedColormap([[0 / 256, 1, 139 / 256], [0, 0, 0]], "green_black", N=256)
-    
+
     @staticmethod
     def green_green():
         "RGBA colour map of just the colour blue."

@@ -1009,7 +1009,7 @@ class nodeStats:
         self.grains = grains
         self.skeletons = skeletons
         self.px_2_nm = px_2_nm
-        
+
         """
         a = np.zeros((100,100))
         a[21:80, 20] = 1
@@ -1077,7 +1077,7 @@ class nodeStats:
 
     def check_node_errorless(self):
         for _, vals in self.node_dict.items():
-            if vals['error']:
+            if vals["error"]:
                 return False
             else:
                 pass
@@ -1144,7 +1144,7 @@ class nodeStats:
         LOGGER.info(f"Branch height traces will be averaged: {average_trace_advised}")
 
         # iterate over the nodes to find areas
-        #node_dict = {}
+        # node_dict = {}
         matched_branches = None
         branch_img = None
         avg_img = None
@@ -1179,8 +1179,8 @@ class nodeStats:
                 np.savetxt("/Users/Maxgamill/Desktop/nib.txt", self.node_centre_mask)
                 temp = self.node_centre_mask.copy()
                 temp_node_coords = node_coords.copy()
-                temp_node_coords += ([x, y] - centre)
-                temp[temp_node_coords[:,0], temp_node_coords[:,1]] = 1
+                temp_node_coords += [x, y] - centre
+                temp[temp_node_coords[:, 0], temp_node_coords[:, 1]] = 1
                 np.savetxt("/Users/Maxgamill/Desktop/nib2.txt", temp)
                 # node_coords += ([x, y] - centre) # get whole image coords
                 # self.node_centre_mask[x, y] = 1 # remove these from node_centre_mask
@@ -1204,7 +1204,7 @@ class nodeStats:
                         branch[labeled_area == branch_no] = 1
                         # order branch
                         ordered = self.order_branch(branch, centre)
-                        #print("ordered: ", ordered)
+                        # print("ordered: ", ordered)
                         # identify vector
                         vector = self.get_vector(ordered, centre)
                         # add to list
@@ -1252,7 +1252,9 @@ class nodeStats:
                             # np.savetxt("knot2/area.txt",image_area)
                             # np.savetxt("knot2/single_branch.txt",single_branch)
                             # print("ZD: ", zero_dist)
-                            distances, heights, mask, _ = self.average_height_trace(image_area, single_branch, zero_dist)
+                            distances, heights, mask, _ = self.average_height_trace(
+                                image_area, single_branch, zero_dist
+                            )
                             # add in mid dist adjustment
                             matched_branches[i]["avg_mask"] = mask
                         else:
@@ -1346,11 +1348,11 @@ class nodeStats:
         np.ndarray
             An array of ordered cordinates.
         """
-        if len(np.argwhere(binary_image == 1)) < 3: # if < 3 coords just return them
+        if len(np.argwhere(binary_image == 1)) < 3:  # if < 3 coords just return them
             return np.argwhere(binary_image == 1)
-        
+
         binary_image = np.pad(binary_image, 1).astype(int)
-        
+
         # get branch starts
         endpoints_highlight = ndimage.convolve(binary_image, np.ones((3, 3)))
         endpoints_highlight[binary_image == 0] = 0
@@ -1360,7 +1362,7 @@ class nodeStats:
             # as > 1 endpoint, find one closest to anchor
             dist_vals = abs((endpoints - anchor).sum(axis=1))
             start = endpoints[np.argmin(dist_vals)]
-        else: # will be circular so pick the first coord (is this always the case?)
+        else:  # will be circular so pick the first coord (is this always the case?)
             start = np.argwhere(binary_image == 1)[0]
 
         # add starting point to ordered array
@@ -1369,22 +1371,38 @@ class nodeStats:
         binary_image[start[0], start[1]] = 0  # remove from array
 
         # iterate to order the rest of the points
-        #for i in range(no_points - 1):
+        # for i in range(no_points - 1):
         current_point = ordered[-1]  # get last point
         area, _ = self.local_area_sum(binary_image, current_point)  # look at local area
-        local_next_point =  np.argwhere(area.reshape((3, 3,)) == 1) - (1, 1)
+        local_next_point = np.argwhere(
+            area.reshape(
+                (
+                    3,
+                    3,
+                )
+            )
+            == 1
+        ) - (1, 1)
         while len(local_next_point) != 0:
             next_point = (current_point + local_next_point)[0]
             # find where to go next
-            #ordered[i + 1] += next_point  # add to ordered array
+            # ordered[i + 1] += next_point  # add to ordered array
             ordered.append(next_point)
             binary_image[next_point[0], next_point[1]] = 0  # set value to zero
-            
+
             current_point = ordered[-1]  # get last point
             area, _ = self.local_area_sum(binary_image, current_point)  # look at local area
-            local_next_point =  np.argwhere(area.reshape((3, 3,)) == 1) - (1, 1)
+            local_next_point = np.argwhere(
+                area.reshape(
+                    (
+                        3,
+                        3,
+                    )
+                )
+                == 1
+            ) - (1, 1)
 
-        return np.array(ordered) - [1, 1] # remove padding
+        return np.array(ordered) - [1, 1]  # remove padding
 
     @staticmethod
     def local_area_sum(binary_map, point):
@@ -1861,29 +1879,29 @@ class nodeStats:
         crossing_distances = []
         fwhms = []
         for _, stats in self.node_dict.items():
-            node_centre_coords.append(stats['node_stats']['node_mid_coords'])
-            node_area_box.append(stats['node_stats']['node_area_image'].shape)
+            node_centre_coords.append(stats["node_stats"]["node_mid_coords"])
+            node_area_box.append(stats["node_stats"]["node_area_image"].shape)
             temp_coords = []
             temp__heights = []
             temp_distances = []
             temp_fwhms = []
-            for _, branch_stats in stats['branch_stats'].items():
-                temp_coords.append(branch_stats['ordered_coords'])
-                temp__heights.append(branch_stats['heights'])
-                temp_distances.append(branch_stats['distances'])
+            for _, branch_stats in stats["branch_stats"].items():
+                temp_coords.append(branch_stats["ordered_coords"])
+                temp__heights.append(branch_stats["heights"])
+                temp_distances.append(branch_stats["distances"])
                 temp_fwhms.append(branch_stats["fwhm2"][0])
             crossing_coords.append(temp_coords)
             crossing_heights.append(temp__heights)
             crossing_distances.append(temp_distances)
             fwhms.append(temp_fwhms)
 
-        #print(fwhms)
+        # print(fwhms)
 
         # get image minus the crossing areas
         minus = self.get_minus_img(node_area_box, node_centre_coords)
         # get crossing image
         crossings = self.get_crossing_img(crossing_coords, minus.max() + 1)
-        #print(crossing_coords)
+        # print(crossing_coords)
         # combine branches and segments
         both_img = self.get_both_img(minus, crossings)
 
@@ -1911,12 +1929,12 @@ class nodeStats:
         for trace in coord_trace:
             print("DISTANCE: ", self.coord_dist(trace, self.px_2_nm)[-1])
 
-        #np.savetxt("/Users/Maxgamill/Desktop/trace.txt", coord_trace[0])
+        # np.savetxt("/Users/Maxgamill/Desktop/trace.txt", coord_trace[0])
 
         # visual over under img
         visual = self.get_visual_img(coord_trace, fwhms, crossing_coords)
 
-        #np.savetxt("/Users/Maxgamill/Desktop/visual.txt", visual)
+        # np.savetxt("/Users/Maxgamill/Desktop/visual.txt", visual)
 
         # I could use the traced coords, remove the node centre coords, and re-label segments
         #   following 1, 2, 3... around the mol which should look like the Planar Diagram formation
@@ -1985,7 +2003,7 @@ class nodeStats:
         print(f"Mols in trace: {len(mol_coords)}")
 
         return mol_coords
-    
+
     @staticmethod
     def get_trace_idxs(fwhms: list) -> tuple:
         # node fwhms can be a list of different lengths so cannot use np arrays
@@ -2077,16 +2095,16 @@ class nodeStats:
                     ] = (
                         i + 2
                     )
-                if sum(abs(mol_trace[0]-mol_trace[-1])) <= 2: # check if mol circular via start and end dist - should probs do root(2)
-                    j = 1 # rejoins start at 1
+                if (
+                    sum(abs(mol_trace[0] - mol_trace[-1])) <= 2
+                ):  # check if mol circular via start and end dist - should probs do root(2)
+                    j = 1  # rejoins start at 1
                 else:
-                    j = i + 1 # doesn't rejoin start
-                img[
-                    mol_trace[ordered_node_coord_idxs[-1] : -1, 0], mol_trace[ordered_node_coord_idxs[-1] : -1, 1]
-                ] = j  
-                
+                    j = i + 1  # doesn't rejoin start
+                img[mol_trace[ordered_node_coord_idxs[-1] : -1, 0], mol_trace[ordered_node_coord_idxs[-1] : -1, 1]] = j
+
                 np.savetxt("/Users/Maxgamill/Desktop/smth.txt", img)
-                
+
                 # want to generate PD code by looking at each node and decide which
                 #   img label is the under-in one, then append anti-clockwise labels
                 #   - We'll have to match the node number to the node order
@@ -2096,12 +2114,12 @@ class nodeStats:
                 #   - Get img label of two highest count (in and out)
                 #   - Under-in = lowest of two indexes ?? (back 2 start?)
 
-                #print("global node idxs", global_node_idxs)
-                pd_code = ''
+                # print("global node idxs", global_node_idxs)
+                pd_code = ""
                 for i, global_node_idx in enumerate(global_node_idxs):
-                    #print(f"\n----Trace Node Num: {i+1}, Global Node Num: {global_node_idx}----")
+                    # print(f"\n----Trace Node Num: {i+1}, Global Node Num: {global_node_idx}----")
                     under_branch_idx = under_branch_idxs[global_node_idx]
-                    #print("under_branch_idx: ", under_branch_idx)
+                    # print("under_branch_idx: ", under_branch_idx)
                     matching_coords = np.array([])
                     x, y = node_centres[global_node_idx]
                     node_area = img[x - 3 : x + 4, y - 3 : y + 4]
@@ -2118,37 +2136,38 @@ class nodeStats:
                         ]:  # for global_node[4] branch index is incorrect
                             c += ((np.stack(np.where(img == label2)).T == ordered_branch_coord).sum(axis=1) == 2).sum()
                         matching_coords = np.append(matching_coords, c)
-                        #print(f"Segment: {label2.max()}, Matches: {c}")
+                        # print(f"Segment: {label2.max()}, Matches: {c}")
                     highest_count_labels = [uniq_labels[i] for i in np.argsort(matching_coords)[-2:]]
-                    #print("highest count: ", highest_count_labels)
-                    if abs(highest_count_labels[0] - highest_count_labels[1]) > 1: # assumes matched branch
+                    # print("highest count: ", highest_count_labels)
+                    if abs(highest_count_labels[0] - highest_count_labels[1]) > 1:  # assumes matched branch
                         under_in = max(highest_count_labels)
                     else:
                         under_in = min(highest_count_labels)  # under-in for global_node[4] is incorrect
                     # print(f"Under-in: {under_in}")
                     anti_clock = list(self.vals_anticlock(node_area, under_in))
 
-                    if len(anti_clock) == 2: # mol passes over/under another mol (maybe && [i]+1 == [i+1])
+                    if len(anti_clock) == 2:  # mol passes over/under another mol (maybe && [i]+1 == [i+1])
                         pd = f"V{anti_clock};"
-                        self.node_dict[global_node_idx+1]["crossing_type"] = "passive"
-                    elif len(anti_clock) == 3: # trival crossing (maybe also applies to Y's therefore maybe && consec when sorted)
+                        self.node_dict[global_node_idx + 1]["crossing_type"] = "passive"
+                    elif (
+                        len(anti_clock) == 3
+                    ):  # trival crossing (maybe also applies to Y's therefore maybe && consec when sorted)
                         pd = f"Y{anti_clock};"
-                        self.node_dict[global_node_idx+1]["crossing_type"] = "trivial"
+                        self.node_dict[global_node_idx + 1]["crossing_type"] = "trivial"
                     else:
                         pd = f"X{anti_clock};"
-                        self.node_dict[global_node_idx+1]["crossing_type"] = "real"
+                        self.node_dict[global_node_idx + 1]["crossing_type"] = "real"
                     print(f"Crossing PD: {pd}")
                     pd_code += pd
-                
+
                 print(f"Total PD code: {pd_code}")
                 try:
-                    topology = None #homfly(pd_code, closure=params.Closure.CLOSED, chiral = True) Need to fix cat pd codes first
+                    topology = None  # homfly(pd_code, closure=params.Closure.CLOSED, chiral = True) Need to fix cat pd codes first
                     print(f"Topology: {topology}")
                 except:
                     topology = None
                     print("Topology undetermined")
                 self.node_dict["topology"] = topology
-                
 
         return None
 
