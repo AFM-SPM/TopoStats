@@ -20,6 +20,9 @@ from topostats.logs.logs import LOGGER_NAME
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
+CONFIG_DOCUMENTATION_REFERENCE = """For more information on configuration and how to use it:
+# https://afm-spm.github.io/TopoStats/main/configuration.html\n"""
+
 # pylint: disable=broad-except
 
 
@@ -46,6 +49,23 @@ def read_yaml(filename: Union[str, Path]) -> Dict:
             return {}
 
 
+def get_date_time() -> str:
+    """
+    Get a date and time for adding to generated files or logging.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    str
+        A string of the current date and time, formatted appropriately.
+    """
+
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def write_yaml(
     config: dict, output_dir: Union[str, Path], config_file: str = "config.yaml", header_message: str = None
 ) -> None:
@@ -67,23 +87,46 @@ def write_yaml(
     # Revert PosixPath items to string
     config = path_to_str(config)
     config_yaml = yaml_load(yaml_dump(config))
-    documentation_reference = (
-        "For more information on configuration : https://afm-spm.github.io/TopoStats/main/configuration.html"
-    )
+
     if header_message:
-        config_yaml.yaml_set_start_comment(
-            f"{header_message} : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n" + documentation_reference
-        )
+        config_yaml.yaml_set_start_comment(f"{header_message} : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE)
     else:
         config_yaml.yaml_set_start_comment(
-            f"Configuration from TopoStats run completed : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-            + documentation_reference
+            f"Configuration from TopoStats run completed : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
         )
     with output_config.open("w") as f:
         try:
             f.write(yaml_dump(config_yaml))
         except YAMLError as exception:
             LOGGER.error(exception)
+
+
+def write_config_with_comments(config: str, output_dir: Path, filename: str = "config.yaml") -> None:
+    """
+    Create a config file, retaining the comments by writing it as a string
+    rather than using a yaml handling package.
+
+    Parameters
+    ----------
+    config: str
+        A string of the entire configuration file to be saved.
+    output_dir: Path
+        A pathlib path of where to create the config file.
+    filename: str
+        A name for the configuration file. Can have a ".yaml" on the end.
+    """
+
+    if ".yaml" not in filename and ".yml" not in filename:
+        create_config_path = output_dir / f"{filename}.yaml"
+    else:
+        create_config_path = output_dir / filename
+
+    with open(f"{create_config_path}", "w", encoding="utf-8") as f:
+        f.write(f"# Config file generated {get_date_time()}\n")
+        f.write(f"# {CONFIG_DOCUMENTATION_REFERENCE}")
+        f.write(config)
+    LOGGER.info(f"A sample configuration has been written to : {str(create_config_path)}")
+    LOGGER.info(CONFIG_DOCUMENTATION_REFERENCE)
 
 
 def save_array(array: np.ndarray, outpath: Path, filename: str, array_type: str) -> None:

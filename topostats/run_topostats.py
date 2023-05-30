@@ -10,13 +10,21 @@ import logging
 from multiprocessing import Pool
 from pprint import pformat
 import sys
+from pathlib import Path
 import yaml
 
 import pandas as pd
 from tqdm import tqdm
 
 from topostats import __version__
-from topostats.io import find_files, read_yaml, save_folder_grainstats, write_yaml, LoadScans
+from topostats.io import (
+    find_files,
+    read_yaml,
+    save_folder_grainstats,
+    write_yaml,
+    write_config_with_comments,
+    LoadScans,
+)
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import check_run_steps, completion_message, process_scan
@@ -142,11 +150,12 @@ def main(args=None):
     # Parse command line options, load config (or default) and update with command line options
     parser = create_parser()
     args = parser.parse_args() if args is None else parser.parse_args(args)
-    if args.config_file is not None:
-        config = read_yaml(args.config_file)
+    if args.config_file is None:
+        default_config = pkg_resources.open_text(__package__, "default_config.yaml").read()
+        config = yaml.safe_load(default_config)
     else:
-        default_config = pkg_resources.open_text(__package__, "default_config.yaml")
-        config = yaml.safe_load(default_config.read())
+        config = read_yaml(args.config_file)
+
     config = update_config(config, args)
 
     # Set logging level
@@ -162,19 +171,10 @@ def main(args=None):
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
     # Write sample configuration if asked to do so and exit
+    if args.create_config_file and args.config_file:
+        raise ValueError("--create-config-file and --config cannot be used together.")
     if args.create_config_file:
-        write_yaml(
-            config,
-            output_dir="./",
-            config_file=args.create_config_file,
-            header_message="Sample configuration file auto-generated",
-        )
-        LOGGER.info(f"A sample configuration has been written to : ./{args.create_config_file}")
-        LOGGER.info(
-            "Please refer to the documentation on how to use the configuration file : \n\n"
-            "https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats\n"
-            "https://afm-spm.github.io/TopoStats/configuration.html"
-        )
+        write_config_with_comments(config=default_config, output_dir=Path.cwd(), filename=args.create_config_file)
         sys.exit()
 
     # Create base output directory
