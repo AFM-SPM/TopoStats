@@ -2,12 +2,15 @@
 from pathlib import Path
 from unittest import TestCase
 
+from datetime import datetime
 import numpy as np
 import pandas as pd
 import pytest
 
 from topostats.io import (
     read_yaml,
+    get_date_time,
+    write_config_with_comments,
     write_yaml,
     save_array,
     load_array,
@@ -42,11 +45,40 @@ CONFIG = {
 # pylint: disable=protected-access
 
 
+def test_get_date_time() -> None:
+    """Test the fetching of a formatted date and time string."""
+
+    assert datetime.strptime(get_date_time(), "%Y-%m-%d %H:%M:%S")
+
+
 def test_read_yaml() -> None:
     """Test reading of YAML file."""
     sample_config = read_yaml(RESOURCES / "test.yaml")
 
     TestCase().assertDictEqual(sample_config, CONFIG)
+
+
+def test_write_config_with_comments(tmp_path: Path) -> None:
+    """
+    Test that the function write_yaml_with_comments successfully writes the default
+    config with comments to a file.
+    """
+
+    # Read default config with comments
+    with open(BASE_DIR / "topostats" / "default_config.yaml", encoding="utf-8") as f:
+        default_config_string = f.read()
+
+    # Write default config with comments to file
+    write_config_with_comments(config=default_config_string, output_dir=tmp_path, filename="test_config_with_comments")
+
+    # Read the written config
+    with open(tmp_path / "test_config_with_comments.yaml", encoding="utf-8") as f:
+        written_config = f.read()
+
+    # Validate that the written config has comments in it
+    assert default_config_string in written_config
+    assert "Config file generated" in written_config
+    assert "For more information on configuration and how to use it" in written_config
 
 
 def test_write_yaml(tmp_path: Path) -> None:
