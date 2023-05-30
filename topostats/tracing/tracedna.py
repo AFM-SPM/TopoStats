@@ -81,8 +81,8 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.skeletonisation_method = skeletonisation_method
         self.min_branch_size = min_branch_size
-        self.ends = None
-        self._circle = None
+        self.ends: int = None
+        self.circle: bool = None
 
     def trace_dna(self):
         """Perform DNA tracing on a single grain."""
@@ -102,7 +102,7 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         # self.purge_obvious_crap()
         # self.determine_linear()
         # self.circle()
-        # self.order(self._circle)
+        # self.order(self.circle)
         # self.determine_morphology()
         # self.get_fitted_traces()
         # self.get_splined_traces()
@@ -157,17 +157,9 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
     # def get_disordered_trace(self) -> None:
     #     """Something"""
 
-    @property
-    def circle(self) -> bool:
-        """Whether the grain is circular."""
-        return self._circle
-
-    # @circle.setter
-    # def circle(self):
-    #     """Set whether circle or not"""
-    #     self._count_adjacent
-    #     self._inverse_mask()
-    #     self._circle = self._count_ends() == 0
+    def is_circle(self):
+        """Determine whether circlular or not"""
+        self.circle = self.ends == 0
 
     # pylint: disable=line-too-long
     def _count_ends(self):

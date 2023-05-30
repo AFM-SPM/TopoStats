@@ -38,7 +38,7 @@ class orderTrace:  # pylint: disable=too-few-public-methods
             Returns the appropriate method for ordering the coordinates.
 
         """
-        if shape == "lienar":
+        if shape == "linear":
             return self._linear()
         if shape == "circle":
             return self._circle()
@@ -47,13 +47,13 @@ class orderTrace:  # pylint: disable=too-few-public-methods
     def _linear(self) -> np.ndarray:
         """Order linear skeleton."""
 
+    def _circle(self) -> np.ndarray:
+        """Order circular skeleton."""
+
     #    def _dilate(self):
 
     def _find_end_point(self):
         """Find end-points of linear grains."""
-
-    def _circle(self) -> np.ndarray:
-        """Order circular skeleton."""
 
 
 class Neighbours:  # pylint: disable=too-few-public-methods

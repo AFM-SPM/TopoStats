@@ -1206,3 +1206,32 @@ def test_count_ends_unusual(tracedna: traceDNA, binary_array: np.ndarray, expect
     tracedna._count_ends()
     assert tracedna.ends == expected
     assert f"There is something weird about this skeleton! It has {expected} ends" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "binary_array,circle",
+    [
+        (ADJACENT_GRAINS["single_L"], False),
+        (ADJACENT_GRAINS["double_L"], False),
+        (ADJACENT_GRAINS["diagonal_end_single_L"], False),
+        (ADJACENT_GRAINS["diagonal_end_straight"], False),
+        (ADJACENT_GRAINS["vertical"], False),
+        (ADJACENT_GRAINS["horizontal"], False),
+        (ADJACENT_GRAINS["diagonal1"], False),
+        (ADJACENT_GRAINS["diagonal2"], False),
+        (ADJACENT_GRAINS["diagonal3"], False),
+        (ADJACENT_GRAINS["circle"], True),
+        (ADJACENT_GRAINS["blob"], True),
+        (ADJACENT_GRAINS["cross"], False),
+        (ADJACENT_GRAINS["three_ends"], False),
+        (ADJACENT_GRAINS["six_ends"], False),
+    ],
+)
+def test_circle(tracedna: traceDNA, binary_array: np.ndarray, circle: bool) -> None:
+    """Test setting of circle property."""
+    tracedna.grain["skeleton"] = binary_array
+    tracedna._inverse_mask()
+    tracedna._count_adjacent()
+    tracedna._count_ends()
+    tracedna.is_circle()
+    assert tracedna.circle == circle
