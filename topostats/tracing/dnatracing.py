@@ -15,7 +15,7 @@ import seaborn as sns
 from scipy import ndimage, spatial, optimize, interpolate as interp
 from skimage.morphology import label, binary_dilation
 from skimage.filters import gaussian, threshold_otsu
-from topoly import jones, homfly, params
+#from topoly import jones, homfly, params
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
