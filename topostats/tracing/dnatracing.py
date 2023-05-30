@@ -1176,12 +1176,12 @@ class nodeStats:
                 LOGGER.info(f"node {node_no} has only two branches - skipped & nodes removed")
                 # sometimes removal of nibs can cause problems when re-indexing nodes
                 print(f"{len(node_coords)} pixels in nib node")
-                np.savetxt("/Users/Maxgamill/Desktop/nib.txt", self.node_centre_mask)
+                #np.savetxt("/Users/Maxgamill/Desktop/nib.txt", self.node_centre_mask)
                 temp = self.node_centre_mask.copy()
                 temp_node_coords = node_coords.copy()
                 temp_node_coords += ([x, y] - centre)
                 temp[temp_node_coords[:,0], temp_node_coords[:,1]] = 1
-                np.savetxt("/Users/Maxgamill/Desktop/nib2.txt", temp)
+                #np.savetxt("/Users/Maxgamill/Desktop/nib2.txt", temp)
                 # node_coords += ([x, y] - centre) # get whole image coords
                 # self.node_centre_mask[x, y] = 1 # remove these from node_centre_mask
                 # self.connected_nodes[node_coords[:,0], node_coords[:,1]] = 1 # remove these from connected_nodes
@@ -1887,16 +1887,16 @@ class nodeStats:
         # combine branches and segments
         both_img = self.get_both_img(minus, crossings)
 
-        np.savetxt("/Users/Maxgamill/Desktop/minus.txt", minus)
-        np.savetxt("/Users/Maxgamill/Desktop/cross.txt", crossings)
-        np.savetxt("/Users/Maxgamill/Desktop/both.txt", both_img)
-        np.savetxt("/Users/Maxgamill/Desktop/skel.txt", self.skeleton)
+        #np.savetxt("/Users/Maxgamill/Desktop/minus.txt", minus)
+        #np.savetxt("/Users/Maxgamill/Desktop/cross.txt", crossings)
+        #np.savetxt("/Users/Maxgamill/Desktop/both.txt", both_img)
+        #np.savetxt("/Users/Maxgamill/Desktop/skel.txt", self.skeleton)
 
         # order minus segments
         ordered = []
         for i in range(1, minus.max() + 1):
             arr = np.where(minus, minus == i, 0)
-            np.savetxt("/Users/Maxgamill/Desktop/arr.txt", arr)
+            #np.savetxt("/Users/Maxgamill/Desktop/arr.txt", arr)
             ordered.append(self.order_branch(arr, [0, 0]))  # orientated later
 
         # combine ordered indexes
@@ -2006,7 +2006,7 @@ class nodeStats:
             temp_img = binary_dilation(temp_img)
             img[temp_img != 0] = mol_no + 1
 
-        np.savetxt("/Users/Maxgamill/Desktop/preimg.txt", img)
+        #np.savetxt("/Users/Maxgamill/Desktop/preimg.txt", img)
 
         lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
 
@@ -2085,7 +2085,7 @@ class nodeStats:
                     mol_trace[ordered_node_coord_idxs[-1] : -1, 0], mol_trace[ordered_node_coord_idxs[-1] : -1, 1]
                 ] = j  
                 
-                np.savetxt("/Users/Maxgamill/Desktop/smth.txt", img)
+                #np.savetxt("/Users/Maxgamill/Desktop/smth.txt", img)
                 
                 # want to generate PD code by looking at each node and decide which
                 #   img label is the under-in one, then append anti-clockwise labels
@@ -2108,7 +2108,7 @@ class nodeStats:
                     uniq_labels = np.unique(node_area)
                     uniq_labels = uniq_labels[uniq_labels != 0]
                     print("uniq labels: ", uniq_labels)
-                    np.savetxt("/Users/Maxgamill/Desktop/na.txt", node_area)
+                    #np.savetxt("/Users/Maxgamill/Desktop/na.txt", node_area)
 
                     for label2 in uniq_labels:
                         c = 0
