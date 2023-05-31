@@ -17,28 +17,56 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
 
-def test_df_from_csv(minicircle_all_statistics: pd.DataFrame, toposum_object: TopoSum) -> None:
+def test_melt_data():
+    """Test the melt_data method of the TopoSum class"""
+
+    df_to_melt = {
+        "Image": ["im1", "im1", "im1", "im2", "im2", "im3", "im3"],
+        "threshold": ["above", "above", "above", "below", "below", "above", "above"],
+        "molecule_number": [0, 1, 2, 0, 1, 0, 1],
+        "basename": ["super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub2", "super/sub2"],
+        "area": [10, 20, 30, 40, 50, 60, 70],
+    }
+
+    df_to_melt = pd.DataFrame(df_to_melt)
+
+    melted_data = TopoSum.melt_data(df=df_to_melt, stat_to_summarize="area", var_to_label={"area": "AREA"})
+
+    expected = {
+        "molecule_number": [0, 1, 2, 0, 1, 0, 1],
+        "basename": ["super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub2", "super/sub2"],
+        "variable": ["AREA", "AREA", "AREA", "AREA", "AREA", "AREA", "AREA"],
+        "value": [10, 20, 30, 40, 50, 60, 70],
+    }
+
+    expected = pd.DataFrame(expected)
+
+    pd.testing.assert_frame_equal(melted_data, expected)
+
+
+def test_df_from_csv(toposum_object_multiple_directories: TopoSum) -> None:
     """Test loading of CSV file."""
-    assert isinstance(toposum_object.df, pd.DataFrame)
-    pd.testing.assert_frame_equal(minicircle_all_statistics, toposum_object.df)
+    assert isinstance(toposum_object_multiple_directories.df, pd.DataFrame)
+    expected = pd.read_csv(RESOURCES / "toposum_all_statistics_multiple_directories.csv", header=0)
+    pd.testing.assert_frame_equal(expected, toposum_object_multiple_directories.df)
 
 
-def test_toposum_class(toposum_object: TopoSum) -> None:
+def test_toposum_class(toposum_object_multiple_directories: TopoSum) -> None:
     """Check the TopoSum class has been correctly instantiated."""
-    assert isinstance(toposum_object.df, pd.DataFrame)
-    assert isinstance(toposum_object.stat_to_sum, str)
-    assert isinstance(toposum_object.molecule_id, str)
-    assert isinstance(toposum_object.image_id, str)
-    assert isinstance(toposum_object.hist, bool)
-    assert isinstance(toposum_object.kde, bool)
-    assert isinstance(toposum_object.file_ext, str)
-    assert isinstance(toposum_object.output_dir, Path)
-    assert isinstance(toposum_object.var_to_label, dict)
+    assert isinstance(toposum_object_multiple_directories.df, pd.DataFrame)
+    assert isinstance(toposum_object_multiple_directories.stat_to_sum, str)
+    assert isinstance(toposum_object_multiple_directories.molecule_id, str)
+    assert isinstance(toposum_object_multiple_directories.image_id, str)
+    assert isinstance(toposum_object_multiple_directories.hist, bool)
+    assert isinstance(toposum_object_multiple_directories.kde, bool)
+    assert isinstance(toposum_object_multiple_directories.file_ext, str)
+    assert isinstance(toposum_object_multiple_directories.output_dir, Path)
+    assert isinstance(toposum_object_multiple_directories.var_to_label, dict)
 
 
-def test_outfile(toposum_object: TopoSum) -> None:
+def test_outfile(toposum_object_multiple_directories: TopoSum) -> None:
     """Check fig and ax returned"""
-    outfile = toposum_object._outfile(plot_suffix="testing")
+    outfile = toposum_object_multiple_directories._outfile(plot_suffix="testing")
     assert isinstance(outfile, str)
     assert outfile == "area_testing"
 
@@ -78,16 +106,16 @@ def test_var_to_label_config(tmp_path: Path) -> None:
         ("grain_curvature1", "Smaller Curvature"),
     ],
 )
-def test_set_label(toposum_object: TopoSum, var: str, expected_label: str) -> None:
+def test_set_label(toposum_object_multiple_directories: TopoSum, var: str, expected_label: str) -> None:
     """Test labels are returned correctly."""
-    toposum_object._set_label(var)
-    assert toposum_object.label == expected_label
+    toposum_object_multiple_directories._set_label(var)
+    assert toposum_object_multiple_directories.label == expected_label
 
 
-def test_set_label_keyerror(toposum_object: TopoSum) -> None:
+def test_set_label_keyerror(toposum_object_multiple_directories: TopoSum) -> None:
     """Test labels are returned correctly."""
     with pytest.raises(KeyError):
-        toposum_object._set_label("non_existent_stat")
+        toposum_object_multiple_directories._set_label("non_existent_stat")
 
 
 def test_toposum(summary_config: dict) -> None:
@@ -106,72 +134,60 @@ def test_toposum(summary_config: dict) -> None:
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plot_kde(summary_config: dict) -> None:
+def test_plot_kde(toposum_object_single_directory: TopoSum) -> None:
     """Regression test for sns_plot() with a single KDE."""
-    summary_config["hist"] = False
-    _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
-    fig, _ = _toposum.sns_plot()
+    toposum_object_single_directory.hist = False
+    fig, _ = toposum_object_single_directory.sns_plot()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plot_kde_multiple_images(summary_config: dict, toposum_multiple_images: pd.DataFrame) -> None:
+def test_plot_kde_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
     """Regression test for sns_plot() with multiple KDE."""
-    summary_config["hist"] = False
-    _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
-    _toposum.melted_data = toposum_multiple_images
-    fig, _ = _toposum.sns_plot()
+    toposum_object_multiple_directories.hist = False
+    fig, _ = toposum_object_multiple_directories.sns_plot()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plot_hist(summary_config: dict) -> None:
+def test_plot_hist(toposum_object_single_directory: TopoSum) -> None:
     """Regression test for sns_plot() with a single histogram."""
-    summary_config["kde"] = False
-    _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
-    fig, _ = _toposum.sns_plot()
+    toposum_object_single_directory.kde = False
+    fig, _ = toposum_object_single_directory.sns_plot()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plot_hist_multiple_images(summary_config: dict, toposum_multiple_images: pd.DataFrame) -> None:
+def test_plot_hist_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
     """Regression test for sns_plot() with multiple overlaid histograms."""
-    summary_config["kde"] = False
-    _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
-    _toposum.melted_data = toposum_multiple_images
-    fig, _ = _toposum.sns_plot()
+    toposum_object_multiple_directories.kde = False
+    fig, _ = toposum_object_multiple_directories.sns_plot()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plot_hist_kde(summary_config: dict) -> None:
+def test_plot_hist_kde(toposum_object_single_directory: TopoSum) -> None:
     """Test plotting Kernel Density Estimate and Histogram for area."""
-    _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
-    fig, _ = _toposum.sns_plot()
+    fig, _ = toposum_object_single_directory.sns_plot()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plot_hist_kde_multiple_images(summary_config: dict, toposum_multiple_images: pd.DataFrame) -> None:
+def test_plot_hist_kde_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
     """Test plotting Kernel Density Estimate and Histogram for area."""
-    _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
-    _toposum.melted_data = toposum_multiple_images
-    fig, _ = _toposum.sns_plot()
+    fig, _ = toposum_object_multiple_directories.sns_plot()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plot_violin(summary_config: dict) -> None:
+def test_plot_violin(toposum_object_single_directory: TopoSum) -> None:
     """Test plotting Kernel Density Estimate and Histogram for area for a single image."""
-    _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
-    fig, _ = _toposum.sns_violinplot()
+    fig, _ = toposum_object_single_directory.sns_violinplot()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plot_violin_multiple_images(summary_config: dict, toposum_multiple_images: pd.DataFrame) -> None:
+def test_plot_violin_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
     """Test plotting Kernel Density Estimate and Histogram for area with multiple images."""
-    _toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
-    _toposum.melted_data = toposum_multiple_images
-    fig, _ = _toposum.sns_violinplot()
+    fig, _ = toposum_object_multiple_directories.sns_violinplot()
     return fig
