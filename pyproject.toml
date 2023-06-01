@@ -58,6 +58,7 @@ tests = [
   "py",
   "pytest",
   "pytest-cov",
+  "pytest-lazy-fixture",
   "pytest-mpl",
   "pytest-regtest",
   "filetype",
