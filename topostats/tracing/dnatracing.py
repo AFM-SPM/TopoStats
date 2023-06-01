@@ -792,34 +792,6 @@ class dnaTrace:
                         del hypotenuse_array
                         break
 
-    def writeContourLengths(self, filename, channel_name):
-        if not self.contour_lengths:
-            self.measure_contour_length()
-
-        with open(f"{filename}_{channel_name}_contours.txt", "w") as writing_file:
-            writing_file.write("#units: nm\n")
-            for dna_num in sorted(self.contour_lengths.keys()):
-                writing_file.write("%f \n" % self.contour_lengths[dna_num])
-
-    # FIXME : This method doesn't appear to be used here nor within pygwytracing, can it be removed?
-    def writeCoordinates(self, dna_num):
-        # FIXME: Replace with Path()
-        if not os.path.exists(os.path.join(os.path.dirname(self.filename), "Coordinates")):
-            os.mkdir(os.path.join(os.path.dirname(self.filename), "Coordinates"))
-        directory = os.path.join(os.path.dirname(self.filename), "Coordinates")
-        savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
-        for i, (x, y) in enumerate(self.splined_traces[dna_num]):
-            try:
-                coordinates_array = np.append(coordinates_array, np.array([[x, y]]), axis=0)
-            except NameError:
-                coordinates_array = np.array([[x, y]])
-
-        coordinates = pd.DataFrame(coordinates_array)
-        coordinates.to_csv(f"{savename}_{dna_num}.csv")
-
-        plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], "ko")
-        plt.savefig(f"{savename}_{dna_num}_coordinates.png")
-
     def measure_end_to_end_distance(self):
         """Calculate the Euclidean distance between the start and end of linear molecules.
         The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
