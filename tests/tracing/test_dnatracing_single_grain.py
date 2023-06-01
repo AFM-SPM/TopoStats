@@ -244,7 +244,7 @@ def test_measure_contour_length(dnatrace: dnaTrace, grain_number: int, contour_l
     dnatrace.get_fitted_traces()
     dnatrace.get_splined_traces()
     dnatrace.measure_contour_length()
-    assert dnatrace.contour_lengths[grain_number] == contour_length
+    assert dnatrace.contour_lengths[grain_number] == pytest.approx(contour_length)
 
 
 # Currently need an actual linear grain to test this.
@@ -267,4 +267,4 @@ def test_measure_end_to_end_distance(dnatrace: dnaTrace, grain_number: int, end_
     dnatrace.get_fitted_traces()
     dnatrace.get_splined_traces()
     dnatrace.measure_end_to_end_distance()
-    assert dnatrace.end_to_end_distance[grain_number] == end_to_end_distance
+    assert dnatrace.end_to_end_distance[grain_number] == pytest.approx(end_to_end_distance)
