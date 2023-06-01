@@ -588,17 +588,17 @@ if __name__ == "__main__":
     # import data from the csv file
     path = plotting_config["file"]
     df = importfromfile(path)
-    df = df[df['bending_angle'] != 0]
+    # df = df[df['bending_angle'] != 0]
     path2 = plotting_config["file2"]
     path3 = plotting_config["file3"]
     if path2 is not None:
         df2 = importfromfile(path2)
-        df2 = df2[df2['bending_angle'] != 0]
+        # df2 = df2[df2['bending_angle'] != 0]
     else:
         df2 = None
     if path3 is not None:
         df3 = importfromfile(path3)
-        df3 = df3[df3['bending_angle'] != 0]
+        # df3 = df3[df3['bending_angle'] != 0]
     else:
         df3 = None
     extension = plotting_config["extension"]
