@@ -16,8 +16,9 @@ import yaml
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-from scipy.ndimage import binary_dilation
-from matplotlib.patches import Arc
+
+# from scipy.ndimage import binary_dilation
+# from matplotlib.patches import Arc
 
 from topostats.filters import Filters
 from topostats.grains import Grains
@@ -25,8 +26,9 @@ from topostats.grainstats import GrainStats
 from topostats.io import find_images, read_yaml, write_yaml, get_out_path, LoadScans
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
-from topostats.plotting import plot_crossing_linetrace_gauss, plot_crossing_linetrace_halfmax
-from topostats.tracing.dnatracing import dnaTrace, traceStats, nodeStats
+
+# from topostats.plotting import plot_crossing_linetrace_gauss, plot_crossing_linetrace_halfmax
+from topostats.tracing.dnatracing import dnaTrace, traceStats
 from topostats.utils import (
     update_config,
     create_empty_dataframe,
@@ -135,14 +137,16 @@ def create_parser() -> arg.ArgumentParser:
 
 
 class NpEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        if isinstance(obj, np.floating):
-            return float(obj)
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return super(NpEncoder, self).default(obj)
+    """This is a placeholder"""
+
+    def default(self, o):
+        if isinstance(o, np.integer):
+            return int(o)
+        if isinstance(o, np.floating):
+            return float(o)
+        if isinstance(o, np.ndarray):
+            return o.tolist()
+        return super().default(o)
 
 
 def process_scan(
@@ -314,7 +318,7 @@ def process_scan(
                 if key in ["grain_image", "grain_mask", "grain_mask_image"]
             }
             grainstats = {}
-            for direction in grains.directions.keys():
+            for direction in grains.directions.items():
                 grainstats[direction] = GrainStats(
                     data=filtered_image.images["gaussian_filtered"],
                     labelled_data=grains.directions[direction]["labelled_regions_02"],
@@ -340,7 +344,7 @@ def process_scan(
                 LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
                 dna_traces = defaultdict()
                 tracing_stats = defaultdict()
-                node_stats = defaultdict()
+                # node_stats = defaultdict()
                 for direction, _ in grainstats.items():
                     dna_traces[direction] = dnaTrace(
                         full_image_data=filtered_image.images["gaussian_filtered"],
@@ -351,6 +355,7 @@ def process_scan(
                     )
                     dna_traces[direction].trace_dna()
 
+                    # pylint: disable=W0105
                     """
                     Images(
                         filtered_image.images["gaussian_filtered"],
@@ -364,6 +369,7 @@ def process_scan(
                     tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
                     tracing_stats[direction].df["threshold"] = direction
 
+                    """
                     nodes = nodeStats(
                         image=dna_traces[direction].full_image_data,
                         grains=grains.directions[direction]["removed_small_objects"],
@@ -372,18 +378,18 @@ def process_scan(
                     )
                     nodes.get_node_stats()
                     node_stats[direction] = nodes.full_dict
-
+                    """
                     # Plot dnatracing images
                     LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
                     output_dir = Path(dna_tracing_out_path / f"{direction}")
 
-                    plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes"]
+                    plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons"]
                     data2s = [
                         dna_traces[direction].grains_orig,
                         dna_traces[direction].smoothed_grains,
                         dna_traces[direction].orig_skeletons,
                         dna_traces[direction].skeletons,
-                        nodes.all_connected_nodes,
+                        # nodes.all_connected_nodes,
                     ]
                     for i, plot_name in enumerate(plot_names):
                         plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
@@ -395,7 +401,7 @@ def process_scan(
                         ).save_figure_black(
                             background=grains.directions[direction]["removed_small_objects"],
                         )
-
+                    """
                     # plot nodes and line traces
                     for mol_no, mol_stats in node_stats[direction].items():
                         for node_no, single_node_stats in mol_stats.items():
@@ -427,7 +433,7 @@ def process_scan(
                                     zrange=[0, 3.5e-9],
                                     **plotting_config["plot_dict"]["tripple_crossings"],
                                 ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
-                            # Plot crossing height linetrace 
+                            # Plot crossing height linetrace
                             if not single_node_stats["error"]:
                                 plotting_config["plot_dict"]["line_trace"] = {
                                     "title": "Heights of Crossing",
@@ -469,7 +475,6 @@ def process_scan(
                         ).save_figure_black(background=grains.directions[direction]["removed_small_objects"])
 
                     # ------- branch vector img -------
-                    """
                     vectors = nodes.test2
                     plot_name = "test"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
@@ -510,7 +515,6 @@ def process_scan(
                     )  #'xx-large
                     fig.savefig("cats2/vector_angle_img.tiff")
                     """
-
                 # Set tracing_stats_df in light of direction
                 if grains_config["direction"] == "both":
                     tracing_stats_df = pd.concat([tracing_stats["lower"].df, tracing_stats["upper"].df])
@@ -525,6 +529,7 @@ def process_scan(
                 results["Image Name"] = filename
                 results["Basename"] = image_path.parent
 
+            # pylint: disable=W0105
             """except Exception:
                 # If no results we need a dummy dataframe to return.
                 LOGGER.info(
@@ -536,9 +541,9 @@ def process_scan(
             results = create_empty_dataframe()
             results["Image Name"] = filename
             results["Basename"] = image_path.parent
-            node_stats = {"upper": None, "lower": None}
+        # node_stats = {"upper": None, "lower": None}
 
-    return image_path, results, node_stats
+    return image_path, results  # , node_stats
 
 
 def main(args=None):
@@ -630,23 +635,20 @@ def main(args=None):
 
     with Pool(processes=config["cores"]) as pool:
         results = defaultdict()
-        node_results = defaultdict()
+        # node_results = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result, node_result in pool.imap_unordered(
+            for img, result in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
             ):
                 results[str(img)] = result
-                node_results[str(img)] = node_result
                 pbar.update()
     results = pd.concat(results.values())
     results.reset_index()
     results.to_csv(config["output_dir"] / "all_statistics.csv", index=False)
-    with open(config["output_dir"] / "all_node_stats.json", "w", encoding="utf8") as json_file:
-        json.dump(node_results, json_file, cls=NpEncoder)
     folder_grainstats(config["output_dir"], config["base_dir"], results)
     # Write config to file
     config["plotting"].pop("plot_dict")
