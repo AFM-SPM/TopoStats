@@ -42,8 +42,14 @@ def test_update_config(caplog) -> None:
 
 
 @pytest.mark.parametrize(
-    "image_name, core_set, title, zrange",
-    [("extracted_channel", False, "Raw Height", KeyError()), ("z_threshed", True, "Height Thresholded", [0, 3])],
+    "image_name, core_set, title, image_type, zrange",
+    [
+        ("extracted_channel", False, "Raw Height", "non-binary", [0, 3]),
+        ("z_threshed", True, "Height Thresholded", "non-binary", [0, 3]),
+        ("grain_image", False, "", [0, 3]),  # non-binary image
+        ("grain_mask", False, "", [None, None]),  # binary image
+        ("grain_mask_image", False, "", [0, 3]),  # non-binary image
+    ],
 )
 def test_update_plotting_config(
     process_scan_config: dict, image_name: str, core_set: bool, title: str, zrange: tuple
@@ -52,12 +58,13 @@ def test_update_plotting_config(
     for each image in the plotting dictionary plot_dict."""
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
     assert process_scan_config["plotting"]["plot_dict"][image_name]["core_set"] == core_set
-    assert process_scan_config["plotting"]["plot_dict"][image_name]["title"] == title
-    if image_name == "extracted_channel":
-        with pytest.raises(KeyError):
-            _ = process_scan_config["plotting"]["plot_dict"][image_name]["zrange"]
-    else:
-        assert process_scan_config["plotting"]["plot_dict"][image_name]["zrange"] == zrange
+    # Only check titles for images that have titles. grain_image, grain_mask, grain_mask_image don't
+    # have titles since they're created dynamically.
+    if title in ["extracted_channel", "z_threshed"]:
+        assert process_scan_config["plotting"]["plot_dict"][image_name]["title"] == title
+    # Ensure that both types (binary, non-binary) of image have the correct z-ranges
+    # ([None, None] for binary, user defined for non-binary)
+    assert process_scan_config["plotting"]["plot_dict"][image_name]["zrange"] == zrange
 
 
 def test_get_thresholds_otsu(image_random: np.ndarray) -> None:
