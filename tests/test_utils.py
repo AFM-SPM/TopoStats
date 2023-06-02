@@ -44,8 +44,8 @@ def test_update_config(caplog) -> None:
 @pytest.mark.parametrize(
     "image_name, core_set, title, zrange",
     [
-        ("extracted_channel", False, "Raw Height", "non-binary", [0, 3]),
-        ("z_threshed", True, "Height Thresholded", "non-binary", [0, 3]),
+        ("extracted_channel", False, "Raw Height", [0, 3]),
+        ("z_threshed", True, "Height Thresholded", [0, 3]),
         ("grain_image", False, "", [0, 3]),  # non-binary image
         ("grain_mask", False, "", [None, None]),  # binary image
         ("grain_mask_image", False, "", [0, 3]),  # non-binary image
