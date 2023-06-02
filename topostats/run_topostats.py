@@ -318,7 +318,7 @@ def process_scan(
                 if key in ["grain_image", "grain_mask", "grain_mask_image"]
             }
             grainstats = {}
-            for direction in grains.directions.items():
+            for direction, value in grains.directions.items():
                 grainstats[direction] = GrainStats(
                     data=filtered_image.images["gaussian_filtered"],
                     labelled_data=grains.directions[direction]["labelled_regions_02"],
