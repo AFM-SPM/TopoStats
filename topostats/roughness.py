@@ -4,7 +4,8 @@ import numpy as np
 
 
 def roughness_rms(image: np.ndarray) -> float:
-    """Calculate the rms roughness of a heightmap image.
+    """Calculate the root-mean-square roughness of a heightmap image.
+
     Parameters
     ----------
     image: np.ndarray
