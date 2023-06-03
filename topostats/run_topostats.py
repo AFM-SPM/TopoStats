@@ -233,7 +233,7 @@ def main(args=None):
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result, individual_image_stats in pool.imap_unordered(
+            for img, result, individual_image_stats_df in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
             ):
@@ -241,16 +241,15 @@ def main(args=None):
                 pbar.update()
 
                 # Add the dataframe to the results dict
-                image_stats_all[str(img)] = individual_image_stats
+                image_stats_all[str(img)] = individual_image_stats_df
 
                 # Display completion message for the image
                 LOGGER.info(f"[{img.name}] Processing completed.")
 
     LOGGER.info("Saving image stats dataframe to csv.")
-    # Convert the nested dictionary to a DataFrame. orient='index' ensures that
-    # the keys are used as the index column
-    image_stats_all_df = pd.DataFrame.from_dict(image_stats_all, orient="index")
-    image_stats_all_df.index.rename("image", inplace=True)
+    # Concatenate all the dictionary's values into a dataframe. Ignore the keys since
+    # the dataframes have the file names in them already.
+    image_stats_all_df = pd.concat(image_stats_all.values())
     image_stats_all_df.to_csv(config["output_dir"] / "image_stats.csv")
 
     try:

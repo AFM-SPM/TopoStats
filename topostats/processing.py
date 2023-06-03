@@ -85,6 +85,7 @@ def process_scan(
         Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
 
     # Filter Image
+    filtered_image = None  # To be able to tell later on if filter_config has been run
     if filter_config["run"]:
         filter_config.pop("run")
         LOGGER.info(f"[{filename}] Image dimensions: {image.shape}")
@@ -319,9 +320,17 @@ def process_scan(
         results = create_empty_dataframe()
 
     # Get image statistics
+    LOGGER.info(f"[{filename}] : *** Image Statistics ***")
+    # Provide the raw image if image has not been flattened, else provide the flattened image.
+    if filtered_image is not None:
+        image_for_image_stats = filtered_image.images["gaussian_filtered"]
+    else:
+        image_for_image_stats = image
+
     image_stats = image_statistics(
-        image=filtered_image.images["gaussian_filtered"],
-        grainstats=grainstats_df,
+        image=image_for_image_stats,
+        filename=filename,
+        results_df=results,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
     )
 
