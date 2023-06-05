@@ -15,7 +15,6 @@ import yaml
 import pandas as pd
 from tqdm import tqdm
 
-from topostats import __version__
 from topostats.io import (
     find_files,
     read_yaml,
