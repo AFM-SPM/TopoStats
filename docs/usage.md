@@ -1,7 +1,7 @@
 # Usage
 
 After having [installed](installation) TopoStats you are ready to run it. For convenience TopoStats provides a command
-line interface `topostats` that will load a default configuration file and process all images with reasonable
+line interface `run_topostats` that will load a default configuration file and process all images with reasonable
 default configuration options.
 
 However, because the location of your image files can not be known in advance you must make a copy of the default
@@ -80,11 +80,11 @@ shell/terminal you will therefore need to do two things.
 1. Navigate to the location of the scans you wish to process using `cd /path/to/where/scans/are/located`.
 2. Activate the virtual environment under which you installed TopoStats (refer to [installed](installation) if unsure).
 
-You can now run topostats by invoking `topostats process` and you should start to see some output similar to that below.
+You can now run topostats by invoking `run_topostats` and you should start to see some output similar to that below.
 
 ``` bash
 cd /path/to/where/scans/are/located
-topostats process
+run_topostats
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Plotting configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration file loaded from      : None
@@ -151,7 +151,7 @@ write the current default configuration to that file.
 **NB** - This feature is only available in versions > v2.0.0 as it was introduced after v2.0.0 was released.
 
 ``` bash
-topostats process --create-config-file my_config.yaml
+run_topostats --create-config-file my_config.yaml
 ls -l
 my_config.yaml
 sample_image_scan_2022-12-08-1204.spm
@@ -169,7 +169,7 @@ You can now start customising the configuration you are going to run TopoStats w
 ones you may want to change are....
 
 * `base_dir` (default: `./`) the directory in which to search for scans. By default this is `./` which represents the
-  directory from which `topostats process` is called and it is good practice to have one configuration file per batch of
+  directory from which `run_topostats` is called and it is good practice to have one configuration file per batch of
   scans that are being processed.
 * `output_dir` (default: `output`) the location where the output is saved, by default this is the directory `output`
   which will be   created if it doesn't exist. If you wish for the output to be somewhere else specify it here. If you
@@ -192,7 +192,7 @@ the file and return to your terminal.
 
 ### Running TopoStats with `my_config.yaml`
 
-To use your new configuration file you need to inform `topostats process` to use that file rather than the defaults, this is
+To use your new configuration file you need to inform `run_topostats` to use that file rather than the defaults, this is
 done using the `--config config.yaml` file.
 
 **NB** this assumes that you are in the same directory as your scans where you have saved the `my_config.yaml` file that
@@ -200,7 +200,7 @@ you edited. That doesn't _have_ to be the case but it makes life easier for if y
 and relative paths.
 
 ``` bash
-topostats process --config my_config.yaml
+run_topostats --config my_config.yaml
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Plotting configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration file loaded from      : None
@@ -218,7 +218,7 @@ On successful completion you should see the same message noted above.
 ## Output
 
 The output from running TopoStats is saved in the location defined in the configuration file by `output_dir`. The
-default is the directory `output` within the directory from which `topostats process` was run. This may differ if you have
+default is the directory `output` within the directory from which `run_topostats`. This may differ if you have
 used your own customised configuration file.
 
 At the top level of the output directory are two files `config.yaml` and `all_statistics.csv`
@@ -278,7 +278,7 @@ is `output/summary_distributions`. If you have used a custom configuration file 
 output you will have a `summary_distributions` directory present.
 
 Sometimes you may have a `all_statistics.csv` from a run and wish to plot distributions of additional statistics that
-were not already plotted. This can be achieved using the command line programme `topostats summary` which is included.
+were not already plotted. This can be achieved using the command line programme `toposum` which is included.
 
 **NB** Because of the inherent complexity of plots this script is, by design, limited in the scope to which plots can be
 configured. It uses the plotting library [Seaborn](https://seaborn.pydata.org/) (which is built on top of
@@ -290,10 +290,10 @@ and generate the plots you want there. A sample notebook is included to show how
 
 Configuration of summary plots is also via a YAML configuration file a description of the fields can be found under
 [configuration](configuration#summary-configuration) page. You can generate a sample configuration by invoking the
-`--create-config-file` option to `topostats summary`
+`--create-config-file` option to `toposum`
 
 ``` bash
-topostats summary --create-config-file custom_summary_config.yaml
+toposum --create-config-file custom_summary_config.yaml
 ```
 
 The file `custom_summary_config.yaml` can then be edited to change what plots are generated, where they are saved to and
@@ -306,7 +306,7 @@ and uncommenting the statistic names under `stats_to_sum`.
 
 Labels for the plots are generated from the file `topostats/var_to_label.yaml` which provides a dictionary that maps the
 variable name as the dictionary `key` to its description stored in the dictionary `value`.  If you wish to customise
-these you can do so and pass it to `topostats summary` using the `--plotting_dictionary` which takes as an argument the path to
+these you can do so and pass it to `toposum` using the `--plotting_dictionary` which takes as an argument the path to
 the file you have created.
 
 ### Pickles

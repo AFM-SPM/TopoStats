@@ -47,7 +47,7 @@ After activating your `topostats` Conda environment you can install TopoStats fr
 pip install topostats
 ```
 
-This will install TopoStats under your virtual environment and the command `topostats` will be available at the
+This will install TopoStats under your virtual environment and the command `run_topostats` will be available at the
 command line. You can upgrade `topostats` by using the `--upgrade` flag...
 
 ``` bash

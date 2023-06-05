@@ -43,11 +43,11 @@ instructions](https://afm-spm.github.io/TopoStats/main/installation.html).
 For a full description of usage please refer to the [usage](https://afm-spm.github.io/TopoStats/main/usage.html) documentation.
 
 A default configuration is loaded automatically and so the simplest method of processing images is to run
-`topostats process` in the same directory as your scans _after_ having activated the virtual environment in which you have
+`run_topostats` in the same directory as your scans _after_ having activated the virtual environment in which you have
 installed TopoStats
 
 ``` bash
-topostats process
+run_topostats
 ```
 
 If you have your own YAML configuration file (see [Usage : Configuring
@@ -56,20 +56,20 @@ the argument for `--config <config_file>.yaml` that points to your file.
 
 ``` bash
 # Edit and save my_config.yaml then run TopoStats with this configuration file
-topostats process --config my_config.yaml
+run_topostats --config my_config.yaml
 ```
 
 The configuration file is validated before analysis begins and if there are problems you will see errors messages that
 are hopefully useful in resolving the error(s) in your modified configuration.
 
-You can generate a sample configuration file using the `--create_config_file` argument which takes a single argument,
+You can generate a sample configuration file using the `--create-config-file` argument which takes a single argument,
 the name of the file to save the configuration to (e.g. `config.yaml` or `settings.yaml`). This will _not_  run any
 analyses but will instead write the default configuration to the file `config.yaml` in the current directory.
 
 **NB** - This feature is only available in versions > v2.0.0 as it was introduced after v2.0.0 was released.
 
 ``` bash
-topostats process --create_config_file config.yaml
+run_topostats --create-config-file config.yaml
 ```
 
 ### Notebooks

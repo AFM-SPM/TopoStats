@@ -21,12 +21,12 @@ possible to identify which image causes the problem.
 
 Please try and tick off each of these items when filing the bug report. There are further instructions on each below.
 
-* [ ] Re-run analysis with `topostats process --core 1`.
+* [ ] Re-run analysis with `run_topostats --core 1`.
 * [ ] Describe the bug.
 * [ ] Include the configuration file.
 * [ ] Copy of the output.
 * [ ] The exact command that failed. This is what you typed at the command line, including any options.
-* [ ] TopoStats version, this is reported by `topostats --version`
+* [ ] TopoStats version, this is reported by `run_topostats --version`
 * [ ] Operating System and Python Version
 
 ## Describe the bug
@@ -44,7 +44,7 @@ Please copy and paste the output that is shown below within the `\`` (triple-bac
 ## Include the configuration file
 
 If no configuration file was specified with the `-c`/`--config-file` option the defaults were used, please use the
-`topostats process --create_config_file crash.yaml` to save these to the `crash.yaml` file and copy the contents below.
+`run_topostats --create-config-file crash.yaml` to save these to the `crash.yaml` file and copy the contents below.
 
 ``` yaml
 <-- PASTE CONTENT OF crash.yaml HERE -->
@@ -67,7 +67,7 @@ directory unless you have customised the configuration).
 ## TopoStats version
 
 Please report the version of TopoStats you are using. There are several ways of doing this, either with `pip` or
-`topostats --version`. Please copy and paste all output from either of the following commands.
+`run_topostats`. Please copy and paste all output from either of the following commands.
 
 * `pip show topostats`
 * `run_topostats --version`
