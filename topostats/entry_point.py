@@ -176,7 +176,7 @@ def entry_point(manually_provided_args=None, testing=False) -> None:
     return None
 
 
-def create_legacy_process_parser() -> arg.ArgumentParser:
+def create_legacy_run_topostats_parser() -> arg.ArgumentParser:
     """Create a parser reading options for the 'run_topostats' processing entry point."""
     parser = arg.ArgumentParser(
         description="Process AFM images. Additional arguments over-ride those in the configuration file."
@@ -313,16 +313,29 @@ def create_legacy_toposum_parser() -> arg.ArgumentParser:
     return parser
 
 
-def legacy_process_entry_point(args=None) -> None:
+def legacy_run_topostats_entry_point(args=None, testing=False) -> None:
     """Legacy entry point for the run_topostats processing function."""
 
-    parser = create_legacy_process_parser()
+    parser = create_legacy_run_topostats_parser()
     args = parser.parse_args() if args is None else parser.parse_args(args)
+
+    if testing:
+        return args
+
     run_topostats(args=args)
 
+    return None
 
-def legacy_toposum_entry_point(args=None) -> None:
+
+def legacy_toposum_entry_point(args=None, testing=False) -> None:
     """Legacy entry point for the toposum summarizing function."""
+
     parser = create_legacy_toposum_parser()
     args = parser.parse_args() if args is None else parser.parse_args(args)
+
+    if testing:
+        return args
+
     run_toposum(args=args)
+
+    return None

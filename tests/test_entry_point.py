@@ -1,8 +1,15 @@
 """Test the entry point of TopoStats and its ability to correctly direct to programs."""
 
+import os
+from pathlib import Path
+from typing import Callable
 import pytest
 
-from topostats.entry_point import entry_point
+from topostats.entry_point import (
+    entry_point,
+    legacy_run_topostats_entry_point,
+    legacy_toposum_entry_point,
+)
 from topostats.run_topostats import run_topostats
 from topostats.plotting import run_toposum
 
@@ -62,6 +69,16 @@ def test_entry_point_summary_help(capsys, option):
         ),
         (
             [
+                "process",
+                "--config",
+                "dummy/config/dir/config.yaml",
+            ],
+            run_topostats,
+            "config_file",
+            "dummy/config/dir/config.yaml",
+        ),
+        (
+            [
                 "summary",
                 "-l dummy/config/dir/var_to_label.yaml",
             ],
@@ -71,7 +88,9 @@ def test_entry_point_summary_help(capsys, option):
         ),
     ],
 )
-def test_entry_point(options, expected_function, expected_arg_name, expected_arg_value):
+def test_entry_point(
+    options: list, expected_function: Callable, expected_arg_name: str, expected_arg_value: str
+) -> None:
     """Test the entry point, ensuring the correct function is called for each program, and arguments
     are carried through."""
 
@@ -84,3 +103,80 @@ def test_entry_point(options, expected_function, expected_arg_name, expected_arg
 
     # check that the argument has successfully been passed through into the dictionary
     assert returned_args_dict[expected_arg_name] == expected_arg_value
+
+
+def test_entry_point_create_config_file(tmp_path: Path) -> None:
+    """Test that the entry point is able to produce a default config file when asked to."""
+
+    with pytest.raises(SystemExit):
+        entry_point(manually_provided_args=["process", "--create_config_file", f"{tmp_path}/test_create_config.yaml"])
+
+    assert os.path.isfile(f"{tmp_path}/test_create_config.yaml")
+
+
+# Test that the right functions are returned with the right arguments
+@pytest.mark.parametrize(
+    "options, expected_arg_name, expected_arg_value",
+    [
+        (
+            [
+                "-c dummy/config/dir/config.yaml",
+            ],
+            "config_file",
+            " dummy/config/dir/config.yaml",
+        ),
+        (
+            [
+                "--config",
+                "dummy/config/dir/config.yaml",
+            ],
+            "config_file",
+            "dummy/config/dir/config.yaml",
+        ),
+    ],
+)
+def test_legacy_run_topostats_entry_point(options: list, expected_arg_name: str, expected_arg_value: str) -> None:
+    """Test the run_topostats legacy entry point, ensuring the arguments
+    are parsed and carried through correctly."""
+
+    returned_args = legacy_run_topostats_entry_point(options, testing=True)
+    # Convert argparse's Namespace object to dictionary
+    returned_args_dict = vars(returned_args)
+
+    assert returned_args_dict[expected_arg_name] == expected_arg_value
+
+
+def test_legacy_run_topostats_entry_point_create_config_file(tmp_path: Path) -> None:
+    """Test that the run_topostats legacy entry point is able to produce a default config file
+    when asked to."""
+
+    with pytest.raises(SystemExit):
+        legacy_run_topostats_entry_point(
+            args=["--create-config-file", f"{tmp_path}/test_legacy_run_topostats_create_config.yaml"]
+        )
+
+    assert os.path.isfile(f"{tmp_path}/test_legacy_run_topostats_create_config.yaml")
+
+
+def test_legacy_toposum_entry_point_create_config_file(tmp_path: Path) -> None:
+    """Test that the toposum legacy entry point is able to produce a default config file
+    when asked to."""
+
+    with pytest.raises(SystemExit):
+        legacy_toposum_entry_point(
+            args=["--create-config-file", f"{tmp_path}/test_legacy_toposum_create_config_file.yaml"]
+        )
+
+    assert os.path.isfile(f"{tmp_path}/test_legacy_toposum_create_config_file.yaml")
+
+
+def test_legacy_toposum_entry_point_create_label_file(tmp_path: Path) -> None:
+    """Test that the toposum legacy entry point is able to produce a default label file
+    when asked to."""
+
+    with pytest.raises(SystemExit):
+        legacy_toposum_entry_point(
+            args=["--create-label-file", f"{tmp_path}/test_legacy_toposum_create_label_file.yaml"]
+        )
+
+    assert os.path.isfile(f"{tmp_path}/test_legacy_toposum_create_label_file.yaml")
