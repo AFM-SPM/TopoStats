@@ -246,7 +246,7 @@ def main(args=None):
                 # Display completion message for the image
                 LOGGER.info(f"[{img.name}] Processing completed.")
 
-    LOGGER.info("Saving image stats dataframe to csv.")
+    LOGGER.info(f"Saving image stats to : {config['output_dir']}/image_stats.csv.")
     # Concatenate all the dictionary's values into a dataframe. Ignore the keys since
     # the dataframes have the file names in them already.
     image_stats_all_df = pd.concat(image_stats_all.values())
