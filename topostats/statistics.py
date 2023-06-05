@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 
 from topostats.logs.logs import setup_logger, LOGGER_NAME
-from topostats.roughness import roughness_rms
 
 LOGGER = setup_logger(LOGGER_NAME)
 
@@ -79,3 +78,18 @@ def image_statistics(
     image_stats_df.set_index("Image", inplace=True)
 
     return image_stats_df
+
+
+def roughness_rms(image: np.ndarray) -> float:
+    """Calculate the root-mean-square roughness of a heightmap image.
+
+    Parameters
+    ----------
+    image: np.ndarray
+        2D numpy array of heightmap data to calculate the roughness of
+
+    Returns:
+    float
+        The RMS roughness of the input array.
+    """
+    return np.sqrt(np.mean(np.square(image)))
