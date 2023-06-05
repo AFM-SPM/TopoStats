@@ -20,7 +20,7 @@ a member of AFM-SPM Organisation. If you are a member then you can [clone the
 repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) and make
 contributions directly.
 
-``` bash
+```bash
 # Member of AFM-SPM Organisation
 git clone git@github.com:AFM-SPM/TopoStats.git
 # Non-member of AFM-SPM cloning fork
@@ -32,7 +32,7 @@ git clone git@github.com:<YOUR_GITHUB_USERNAME>/TopoStats.git
 If you are going to contribute you should install the additional dependencies for undertaking such work. There are three
 groups of additional dependencies, `dev`, `docs` and `tests` and you should install all three using `pip` as shown below.
 
-``` bash
+```bash
 cd TopoStats
 pip install ".[dev,docs,tests]"
 ```
@@ -55,7 +55,7 @@ use the later but you are of course free to use your chosen method of managing G
 
 In this example we branch from `dev` and create a new branch called `ns-rse/000-fix-an-issue`.
 
-``` bash
+```bash
 # Ensure you are up-to-date on the main branch
 git checkout main
 git pull
@@ -64,6 +64,7 @@ git checkout -b ns-rse/000-fix-an-issue
 # Create and checkout a branch in two steps
 git branch dev ns-rse/000-fix-an-issue
 git checkout ns-rse/000-fix-an-issue
+
 ```
 
 You can now start working on your issue and making regular commits, but please bear in mind the following section on
@@ -99,8 +100,8 @@ locally install `pre-commit` in your virtual environment and then install the co
 (**NB** this will download specific virtual environments that `pre-commit` uses when running hooks so the first time
 this is run may take a little while).
 
-``` bash
-pip install .[dev]
+```bash
+pip install ".[dev]"
 pre-commit install --install-hooks
 ```
 

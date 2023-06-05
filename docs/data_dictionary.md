@@ -1,4 +1,4 @@
-## Data Dictionary
+# Data Dictionary
 
 The resulting statistics file has the following fields.
 

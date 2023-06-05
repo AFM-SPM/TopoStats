@@ -30,18 +30,18 @@ Please try and tick off each of these items when filing the bug report. There ar
 * [ ] Operating System and Python Version
 
 ## Describe the bug
+
 A clear and concise description of what the bug is.
 
 ## Copy of the output
 
 Please copy and paste the output that is shown below within the `\`` (triple-backticks).
 
-```
+``` bash
 <-- PASTE OUTPUT HERE -->
 ```
 
-
-## Include the configuration file.
+## Include the configuration file
 
 If no configuration file was specified with the `-c`/`--config-file` option the defaults were used, please use the
 `topostats process --create_config_file crash.yaml` to save these to the `crash.yaml` file and copy the contents below.
@@ -50,29 +50,29 @@ If no configuration file was specified with the `-c`/`--config-file` option the 
 <-- PASTE CONTENT OF crash.yaml HERE -->
 ```
 
-
 ## To Reproduce
 
-If it is possible to share the file (e.g. via cloud services) that caused the error that would greatly assist in reproducing and investigating the problem. In addition the _exact_ command used that failed should be pasted below.
+If it is possible to share the file (e.g. via cloud services) that caused the error that would greatly assist in
+reproducing and investigating the problem. In addition the _exact_ command used that failed should be pasted below.
 
-```
+``` bash
 <-- PASTE FAILING COMMAND HERE -->
 ```
 
-
 ## Output
 
-Any output files that have been produced can be attached to this bug report (by default they will be under the `output` directory unless you have customised the configuration).
+Any output files that have been produced can be attached to this bug report (by default they will be under the `output`
+directory unless you have customised the configuration).
 
 ## TopoStats version
 
 Please report the version of TopoStats you are using. There are several ways of doing this, either with `pip` or
 `topostats --version`. Please copy and paste all output from either of the following commands.
 
-- `pip show topostats`
-- `topostats --version`
+* `pip show topostats`
+* `run_topostats --version`
 
-```
+``` bash
 <-- PASTE TOPOSTATS VERSION -->
 ```
 
@@ -91,15 +91,16 @@ Please let us know what operating system you are using, if you have used more th
 
 Please let us know the version of Python you are using, paste the results of `python --version`
 
-```
+``` bash
 <-- PASTE PYTHON VERSION -->
 ```
 
 ### Optional : Python Packages
 
-If you are able to provide a list of your installed packages that may be useful. The best way to get this is to copy and paste the results of typing `pip freeze`.
+If you are able to provide a list of your installed packages that may be useful. The best way to get this is to copy and
+paste the results of typing `pip freeze`.
 
-```
+``` bash
 <-- PASTE PYTHON PACKAGE INFORMATION -->
 ```
 

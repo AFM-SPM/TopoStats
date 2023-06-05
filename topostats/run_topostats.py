@@ -9,12 +9,22 @@ import logging
 from multiprocessing import Pool
 from pprint import pformat
 import sys
+from pathlib import Path
 import yaml
 
 import pandas as pd
 from tqdm import tqdm
 
-from topostats.io import find_files, read_yaml, save_folder_grainstats, write_yaml, LoadScans
+from topostats import __version__
+from topostats.io import (
+    find_files,
+    read_yaml,
+    save_folder_grainstats,
+    write_yaml,
+    write_config_with_comments,
+    LoadScans,
+)
+
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import check_run_steps, completion_message, process_scan
@@ -39,13 +49,12 @@ def run_topostats(args=None):
     """Find and process all files."""
 
     # Parse command line options, load config (or default) and update with command line options
-    # parser = create_parser()
-    # args = parser.parse_args() if args is None else parser.parse_args(args)
     if args.config_file is not None:
         config = read_yaml(args.config_file)
     else:
-        default_config = pkg_resources.open_text(__package__, "default_config.yaml")
-        config = yaml.safe_load(default_config.read())
+        default_config = pkg_resources.open_text(__package__, "default_config.yaml").read()
+        config = yaml.safe_load(default_config)
+    # Override the config with command line arguments passed in, eg --output_dir ./output/
     config = update_config(config, args)
 
     # Set logging level
@@ -61,19 +70,10 @@ def run_topostats(args=None):
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
     # Write sample configuration if asked to do so and exit
+    if args.create_config_file and args.config_file:
+        raise ValueError("--create-config-file and --config cannot be used together.")
     if args.create_config_file:
-        write_yaml(
-            config,
-            output_dir="./",
-            config_file=args.create_config_file,
-            header_message="Sample configuration file auto-generated",
-        )
-        LOGGER.info(f"A sample configuration has been written to : ./{args.create_config_file}")
-        LOGGER.info(
-            "Please refer to the documentation on how to use the configuration file : \n\n"
-            "https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats\n"
-            "https://afm-spm.github.io/TopoStats/configuration.html"
-        )
+        write_config_with_comments(config=default_config, output_dir=Path.cwd(), filename=args.create_config_file)
         sys.exit()
 
     # Create base output directory
@@ -164,27 +164,38 @@ def run_topostats(args=None):
         summary_config["var_to_label"] = yaml.safe_load(plotting_yaml.read())
         LOGGER.info("[plotting] Default variable to labels mapping loaded.")
 
-        # If we don't have a dataframe there is nothing to plot
-        if isinstance(results, pd.DataFrame):
-            # If summary_config["output_dir"] does not match or is not a sub-dir of config["output_dir"] it
-            # needs creating
-            summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
-            summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
-            LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
+        # If we don't have a dataframe or we do and it is all NaN there is nothing to plot
+        if isinstance(results, pd.DataFrame) and not results.isna().values.all():
+            if results.shape[0] > 1:
+                # If summary_config["output_dir"] does not match or is not a sub-dir of config["output_dir"] it
+                # needs creating
+                summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
+                summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
+                LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
 
-            # Plot summaries
-            summary_config["df"] = results.reset_index()
-            toposum(summary_config)
+                # Plot summaries
+                summary_config["df"] = results.reset_index()
+                toposum(summary_config)
+            else:
+                LOGGER.warning(
+                    "There are fewer than two grains that have been detected, so"
+                    " summary plots cannot be made for this image."
+                )
         else:
-            LOGGER.info(
-                "There are no results to plot, either you have disabled grains/grainstats/dnatracing or there "
-                "have been errors, please check the log for further information."
+            LOGGER.warning(
+                "There are no results to plot, either...\n\n"
+                "* you have disabled grains/grainstats/dnatracing.\n"
+                "* no grains have been detected across all scans.\n"
+                "* there have been errors.\n\n"
+                "If you are not expecting to detect grains please consider disabling"
+                "grains/grainstats/dnatracing/plotting/summary_stats. If you are expecting to detect grains"
+                " please check log-files for further information."
             )
     else:
         summary_config = None
 
-    # Write statistics to CSV
-    if isinstance(results, pd.DataFrame):
+    # Write statistics to CSV if there is data.
+    if isinstance(results, pd.DataFrame) and not results.isna().values.all():
         results.reset_index(inplace=True)
         results.set_index(["image", "threshold", "molecule_number"], inplace=True)
         results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
@@ -193,6 +204,7 @@ def run_topostats(args=None):
         images_processed = len(results["image"].unique())
     else:
         images_processed = 0
+        LOGGER.warning("There are no grainstats or dnatracing statistics to write to CSV.")
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])

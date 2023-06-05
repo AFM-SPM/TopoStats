@@ -955,7 +955,8 @@ class GrainStats:
         Returns
         -------
         Float
-            The height of the triangle - ie the shortest distance between the top point and the line between the two base points.
+            The height of the triangle - ie the shortest distance between the top point and the line between the two
+        base points.
         """
 
         # Height of triangle = A/b = ||AB X AC|| / ||AB||

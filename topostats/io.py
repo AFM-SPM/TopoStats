@@ -1,4 +1,5 @@
 """Functions for reading and writing data."""
+import os
 import logging
 from datetime import datetime
 import io
@@ -19,6 +20,9 @@ from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+
+CONFIG_DOCUMENTATION_REFERENCE = """For more information on configuration and how to use it:
+# https://afm-spm.github.io/TopoStats/main/configuration.html\n"""
 
 # pylint: disable=broad-except
 
@@ -46,6 +50,23 @@ def read_yaml(filename: Union[str, Path]) -> Dict:
             return {}
 
 
+def get_date_time() -> str:
+    """
+    Get a date and time for adding to generated files or logging.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    str
+        A string of the current date and time, formatted appropriately.
+    """
+
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def write_yaml(
     config: dict, output_dir: Union[str, Path], config_file: str = "config.yaml", header_message: str = None
 ) -> None:
@@ -67,17 +88,46 @@ def write_yaml(
     # Revert PosixPath items to string
     config = path_to_str(config)
     config_yaml = yaml_load(yaml_dump(config))
+
     if header_message:
-        config_yaml.yaml_set_start_comment(f"{header_message} : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        config_yaml.yaml_set_start_comment(f"{header_message} : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE)
     else:
         config_yaml.yaml_set_start_comment(
-            f"Configuration from TopoStats run completed : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            f"Configuration from TopoStats run completed : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
         )
     with output_config.open("w") as f:
         try:
             f.write(yaml_dump(config_yaml))
         except YAMLError as exception:
             LOGGER.error(exception)
+
+
+def write_config_with_comments(config: str, output_dir: Path, filename: str = "config.yaml") -> None:
+    """
+    Create a config file, retaining the comments by writing it as a string
+    rather than using a yaml handling package.
+
+    Parameters
+    ----------
+    config: str
+        A string of the entire configuration file to be saved.
+    output_dir: Path
+        A pathlib path of where to create the config file.
+    filename: str
+        A name for the configuration file. Can have a ".yaml" on the end.
+    """
+
+    if ".yaml" not in filename and ".yml" not in filename:
+        create_config_path = output_dir / f"{filename}.yaml"
+    else:
+        create_config_path = output_dir / filename
+
+    with open(f"{create_config_path}", "w", encoding="utf-8") as f:
+        f.write(f"# Config file generated {get_date_time()}\n")
+        f.write(f"# {CONFIG_DOCUMENTATION_REFERENCE}")
+        f.write(config)
+    LOGGER.info(f"A sample configuration has been written to : {str(create_config_path)}")
+    LOGGER.info(CONFIG_DOCUMENTATION_REFERENCE)
 
 
 def save_array(array: np.ndarray, outpath: Path, filename: str, array_type: str) -> None:
@@ -339,6 +389,64 @@ def read_gwy_component_dtype(open_file: io.TextIOWrapper) -> str:
     return open_file.read(1).decode("ascii")
 
 
+def get_relative_paths(paths: List[Path]) -> List[str]:
+    """From a list of paths, create a list of these paths but where
+    each path is relative to all path's closest common parent. For
+    example, ['a/b/c', 'a/b/d', 'a/b/e/f'] would return ['c', 'd', 'e/f']
+
+    Parameters
+    ----------
+    paths: list
+        List of string or pathlib paths.
+
+    Returns
+    -------
+    relative_paths: list
+        List of string paths, relative to the common parent.
+    """
+
+    # Ensure paths are all pathlib paths, and not strings
+    paths = [Path(path) for path in paths]
+
+    # If the paths list consists of all the same path, then the relative path will
+    # be '.', which we don't want. we want the relative path to be the full path probably.
+    # len(set(my_list)) == 1 determines if all the elements in a list are the same.
+    if len(set(paths)) == 1:
+        return [str(path.as_posix()) for path in paths]
+
+    deepest_common_path = os.path.commonpath(paths)
+    # Have to convert to strings else the dataframe values will be slightly different
+    # to what is expected.
+    return [str(path.relative_to(deepest_common_path).as_posix()) for path in paths]
+
+
+def convert_basename_to_relative_paths(df: pd.DataFrame):
+    """Converts the paths in the 'basename' column in a dataframe from being
+    absolute paths, to paths relative to the deepest common parent. For example
+    if the 'basename' column has the following paths: ['/usr/topo/data/a/b', '/usr
+    /topo/data/c/d'], the output will be: ['a/b', 'c/d'].
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        A pandas dataframe containing a column 'basename' which contains the paths
+        indicating the locations of the image data files.
+
+    Returns
+    -------
+    df: pd.DataFrame
+        A pandas dataframe where the 'basename' column has paths relative to a common
+        parent.
+    """
+
+    paths = df["basename"].tolist()
+    paths = [Path(path) for path in paths]
+    relative_paths = get_relative_paths(paths=paths)
+    df["basename"] = relative_paths
+
+    return df
+
+
 # pylint: disable=too-many-instance-attributes
 class LoadScans:
     """Load the image and image parameters from a file path."""
@@ -365,6 +473,7 @@ class LoadScans:
         self.image = None
         self.pixel_to_nm_scaling = None
         self.img_dict = {}
+        self.MINIMUM_IMAGE_SIZE = 10
 
     def load_spm(self) -> tuple:
         """Extract image and pixel to nm scaling from the Bruker .spm file.
@@ -384,7 +493,7 @@ class LoadScans:
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
             raise
-        except Exception:
+        except Exception as e:
             # trying to return the error with options of possible channel values
             labels = []
             for channel in [layer[b"@2:Image Data"][0] for layer in scan.layers]:
@@ -392,7 +501,7 @@ class LoadScans:
                 # channel_description = channel.decode('latin1').split('"')[1] # incase the blank field raises quesions?
                 labels.append(channel_name)
             LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
-            raise
+            raise e
 
         return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
 
@@ -725,38 +834,49 @@ class LoadScans:
         """Method to extract image, filepath and pixel to nm scaling value, and append these to the
         img_dic object.
         """
+
+        suffix_to_loader = {
+            ".spm": self.load_spm,
+            ".jpk": self.load_jpk,
+            ".ibw": self.load_ibw,
+            ".gwy": self.load_gwy,
+        }
+
         for img_path in self.img_paths:
             self.img_path = img_path
             self.filename = img_path.stem
             suffix = img_path.suffix
             LOGGER.info(f"Extracting image from {self.img_path}")
             LOGGER.debug(f"File extension : {suffix}")
-            if suffix == ".spm":
-                self.image, self.pixel_to_nm_scaling = self.load_spm()
-                self.add_to_dic(
-                    self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
-                )
-            elif suffix == ".jpk":
-                self.image, self.pixel_to_nm_scaling = self.load_jpk()
-                self.add_to_dic(
-                    self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
-                )
-            elif suffix == ".ibw":
-                self.image, self.pixel_to_nm_scaling = self.load_ibw()
-                self.add_to_dic(
-                    self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
-                )
-            elif suffix == ".gwy":
-                self.image, self.pixel_to_nm_scaling = self.load_gwy()
-                self.add_to_dic(
-                    self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling
-                )
+
+            # Check that the file extension is supported
+            if suffix in suffix_to_loader:
+                try:
+                    self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
+                except Exception as e:
+                    if "Channel" in str(e) and "not found" in str(e):
+                        LOGGER.warning(f"[{self.filename}] Channel {self.channel} not found, skipping image.")
+                    else:
+                        raise
+                else:
+                    self._check_image_size_and_add_to_dict()
             else:
                 raise ValueError(
                     f"File type {suffix} not yet supported. Please make an issue at \
                 https://github.com/AFM-SPM/TopoStats/issues, or email topostats@sheffield.ac.uk to request support for \
                 this file type."
                 )
+
+    def _check_image_size_and_add_to_dict(self) -> None:
+        """Check the image is above a minimum size in both dimensions.
+
+        Images that do not meet the minimum size are not included for processing.
+        """
+        if self.image.shape[0] < self.MINIMUM_IMAGE_SIZE or self.image.shape[1] < self.MINIMUM_IMAGE_SIZE:
+            LOGGER.warning(f"[{self.filename}] Skipping, image too small: {self.image.shape}")
+        else:
+            self.add_to_dic(self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling)
+            LOGGER.info(f"[{self.filename}] Image added to processing.")
 
     def add_to_dic(self, filename: str, image: np.ndarray, img_path: Path, px_2_nm: float) -> None:
         """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under

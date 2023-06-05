@@ -82,22 +82,19 @@ def summary_config() -> Dict:
 
 
 @pytest.fixture
-def toposum_object(summary_config: Dict) -> TopoSum:
-    """Set up a fixture for testing plotting."""
-    toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
+def toposum_object_single_directory(summary_config: Dict) -> TopoSum:
+    """Set up a TopoSum object fixture for testing plotting, using a dataframe containing data from a single
+    directory."""
+    toposum = TopoSum(csv_file=RESOURCES / "toposum_all_statistics_single_directory.csv", **summary_config)
     return toposum
 
 
 @pytest.fixture
-def toposum_multiple_images(toposum_object: TopoSum) -> pd.DataFrame:
-    """Duplicate the melted dataframe so tests with multiple images can be made."""
-    larger_data = toposum_object.melted_data.copy()
-    larger_data["Image"] = "larger.spm"
-    larger_data["value"] = larger_data["value"] * 1.1
-    smaller_data = toposum_object.melted_data.copy()
-    smaller_data["Image"] = "smaller.spm"
-    smaller_data["value"] = smaller_data["value"] * 0.95
-    return pd.concat([toposum_object.melted_data, larger_data, smaller_data])
+def toposum_object_multiple_directories(summary_config: Dict) -> TopoSum:
+    """Set up a TopoSum object fixture for testing plotting, using a dataframe containing data from several
+    directories."""
+    toposum = TopoSum(csv_file=RESOURCES / "toposum_all_statistics_multiple_directories.csv", **summary_config)
+    return toposum
 
 
 @pytest.fixture

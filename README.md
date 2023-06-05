@@ -13,8 +13,10 @@
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-360/)
 [![pre-commit.ci
 status](https://results.pre-commit.ci/badge/github/AFM-SPM/TopoStats/main.svg)](https://results.pre-commit.ci/latest/github/AFM-SPM/TopoStats/main)
+[![ORDA](https://img.shields.io/badge/ORDA--DOI-10.15131%2Fshef.data.22633528.v.1-lightgrey)](https://figshare.shef.ac.uk/articles/software/TopoStats/22633528/1)
 
-| [Installation](#installation) | [Tutorials and Examples](#tutorials-and-examples) | [Contributing](contributing.md) | [Licence](#licence) | [Citation](#citation) |
+| [Installation](#installation) | [Tutorials and Examples](#tutorials-and-examples) | [Contributing](contributing.md) |
+| [Licence](#licence) | [Citation](#citation) |
 </div>
 
 --------------------------------------------------------------------------------
@@ -32,13 +34,13 @@ pip install topostats
 ```
 
 For more on installation and how to upgrade please see the [installation
-instructions](https://afm-spm.github.io/TopoStats/installation.html).
+instructions](https://afm-spm.github.io/TopoStats/main/installation.html).
 
 ## How to Use
 
 ### Tutorials and Examples
 
-For a full description of usage please refer to the [usage](https://afm-spm.github.io/TopoStats/usage.html) documentation.
+For a full description of usage please refer to the [usage](https://afm-spm.github.io/TopoStats/main/usage.html) documentation.
 
 A default configuration is loaded automatically and so the simplest method of processing images is to run
 `topostats process` in the same directory as your scans _after_ having activated the virtual environment in which you have
@@ -49,7 +51,7 @@ topostats process
 ```
 
 If you have your own YAML configuration file (see [Usage : Configuring
-TopoStats](https://afm-spm.github.io/TopoStats/usage.html#configuring_topostats)) then invoke `topostats process` and use
+TopoStats](https://afm-spm.github.io/TopoStats/main/usage.html#configuring_topostats)) then invoke `run_topostats` and use
 the argument for `--config <config_file>.yaml` that points to your file.
 
 ``` bash
@@ -72,11 +74,15 @@ topostats process --create_config_file config.yaml
 
 ### Notebooks
 
-Example Jupyter Notebooks are in development (see #242).
+Example Jupyter Notebooks are in have been developed that show how to use TopoStats package interactively which is
+useful when you are unsure of what parameters are most suited to your scans.  Other notebooks exist which show how to
+produce plots of the summary grain and tracing statistics or how to generate plots of scans from processed images which
+saves having to run the processing again. See the documentation on
+[Notebooks](https://afm-spm.github.io/TopoStats/main/notebooks.html) for further details.
 
 ## Contributing
 
-See [contributing guidelines](https://afm-spm.github.io/TopoStats/contributing.html).
+See [contributing guidelines](https://afm-spm.github.io/TopoStats/main/contributing.html).
 
 ## Licence
 
