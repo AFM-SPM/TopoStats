@@ -205,3 +205,5 @@ unfixable = []
 
 [project.scripts]
 topostats = "topostats.entry_point:entry_point"
+run_topostats = "topostats.entry_point:legacy_process_entry_point"
+toposum = "topostats.entry_point:legacy_toposum_entry_point"
