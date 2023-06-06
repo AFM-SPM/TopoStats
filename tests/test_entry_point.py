@@ -1,6 +1,5 @@
 """Test the entry point of TopoStats and its ability to correctly direct to programs."""
 
-import os
 from pathlib import Path
 from typing import Callable
 import pytest
@@ -111,7 +110,7 @@ def test_entry_point_create_config_file(tmp_path: Path) -> None:
     with pytest.raises(SystemExit):
         entry_point(manually_provided_args=["process", "--create_config_file", f"{tmp_path}/test_create_config.yaml"])
 
-    assert os.path.isfile(f"{tmp_path}/test_create_config.yaml")
+    assert Path(f"{tmp_path}/test_create_config.yaml").is_file()
 
 
 # Test that the right functions are returned with the right arguments
@@ -155,7 +154,7 @@ def test_legacy_run_topostats_entry_point_create_config_file(tmp_path: Path) -> 
             args=["--create-config-file", f"{tmp_path}/test_legacy_run_topostats_create_config.yaml"]
         )
 
-    assert os.path.isfile(f"{tmp_path}/test_legacy_run_topostats_create_config.yaml")
+    assert Path(f"{tmp_path}/test_legacy_run_topostats_create_config.yaml").is_file()
 
 
 def test_legacy_toposum_entry_point_create_config_file(tmp_path: Path) -> None:
@@ -167,7 +166,7 @@ def test_legacy_toposum_entry_point_create_config_file(tmp_path: Path) -> None:
             args=["--create-config-file", f"{tmp_path}/test_legacy_toposum_create_config_file.yaml"]
         )
 
-    assert os.path.isfile(f"{tmp_path}/test_legacy_toposum_create_config_file.yaml")
+    assert Path(f"{tmp_path}/test_legacy_toposum_create_config_file.yaml").is_file()
 
 
 def test_legacy_toposum_entry_point_create_label_file(tmp_path: Path) -> None:
@@ -179,4 +178,4 @@ def test_legacy_toposum_entry_point_create_label_file(tmp_path: Path) -> None:
             args=["--create-label-file", f"{tmp_path}/test_legacy_toposum_create_label_file.yaml"]
         )
 
-    assert os.path.isfile(f"{tmp_path}/test_legacy_toposum_create_label_file.yaml")
+    assert Path(f"{tmp_path}/test_legacy_toposum_create_label_file.yaml").is_file()
