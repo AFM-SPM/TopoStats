@@ -2,10 +2,11 @@
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pytest
 from pytest_lazyfixture import lazy_fixture
 
-from topostats.tracing.dnatracing import dnaTrace
+from topostats.tracing.dnatracing import dnaTrace, trace_grain, trace_image
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
@@ -29,6 +30,7 @@ def dnatrace_linear() -> dnaTrace:
         filename="linear",
         pixel_size=PIXEL_SIZE,
         min_skeleton_size=MIN_SKELETON_SIZE,
+        skeletonisation_method="topostats",
     )
     return dnatrace
 
@@ -42,6 +44,7 @@ def dnatrace_circular() -> dnaTrace:
         filename="circular",
         pixel_size=PIXEL_SIZE,
         min_skeleton_size=MIN_SKELETON_SIZE,
+        skeletonisation_method="topostats",
     )
     return dnatrace
 
@@ -75,14 +78,23 @@ def test_gaussian_filter(dnatrace: dnaTrace, gauss_image_sum: float) -> None:
 
 
 @pytest.mark.parametrize(
-    "dnatrace, grain_number, length, start, end",
+    "dnatrace, grain_number, skeletonisation_method, length, start, end",
     [
-        (lazy_fixture("dnatrace_linear"), 3, 120, np.asarray([13, 32]), np.asarray([91, 72])),
-        (lazy_fixture("dnatrace_circular"), 9, 150, np.asarray([49, 49]), np.asarray([103, 44])),
+        (lazy_fixture("dnatrace_linear"), 3, "topostats", 120, np.asarray([13, 32]), np.asarray([91, 72])),
+        (lazy_fixture("dnatrace_circular"), 9, "topostats", 150, np.asarray([49, 49]), np.asarray([103, 44])),
+        (lazy_fixture("dnatrace_linear"), 3, "zhang", 170, np.asarray([13, 32]), np.asarray([91, 72])),
+        (lazy_fixture("dnatrace_circular"), 9, "zhang", 184, np.asarray([33, 85]), np.asarray([103, 44])),
+        (lazy_fixture("dnatrace_linear"), 3, "lee", 130, np.asarray([12, 30]), np.asarray([91, 72])),
+        (lazy_fixture("dnatrace_circular"), 9, "lee", 177, np.asarray([35, 83]), np.asarray([104, 43])),
+        (lazy_fixture("dnatrace_linear"), 3, "thin", 187, np.asarray([12, 30]), np.asarray([91, 68])),
+        (lazy_fixture("dnatrace_circular"), 9, "thin", 190, np.asarray([28, 75]), np.asarray([105, 42])),
     ],
 )
-def test_get_disordered_trace(dnatrace: dnaTrace, grain_number: int, length: int, start: tuple, end: tuple) -> None:
+def test_get_disordered_trace(
+    dnatrace: dnaTrace, grain_number: int, skeletonisation_method: str, length: int, start: tuple, end: tuple
+) -> None:
     """Test of get_disordered_trace the method."""
+    dnatrace.skeletonisation_method = skeletonisation_method
     dnatrace.get_numpy_arrays()
     dnatrace.gaussian_filter()
     dnatrace.get_disordered_trace()
@@ -220,7 +232,6 @@ def test_get_splined_traces(dnatrace: dnaTrace, grain_number: int, length: int, 
     dnatrace.get_splined_traces()
     assert isinstance(dnatrace.splined_traces[grain_number], np.ndarray)
     assert len(dnatrace.splined_traces[grain_number]) == length
-    print(dnatrace.splined_traces[grain_number])
     np.testing.assert_array_almost_equal(dnatrace.splined_traces[grain_number][0,], start)
     np.testing.assert_array_almost_equal(dnatrace.splined_traces[grain_number][-1,], end)
 
@@ -268,3 +279,186 @@ def test_measure_end_to_end_distance(dnatrace: dnaTrace, grain_number: int, end_
     dnatrace.get_splined_traces()
     dnatrace.measure_end_to_end_distance()
     assert dnatrace.end_to_end_distance[grain_number] == pytest.approx(end_to_end_distance)
+
+
+@pytest.mark.parametrize(
+    "cropped_image, cropped_mask, filename, skeletonisation_method, end_to_end_distance, circular, contour_length",
+    [
+        (
+            LINEAR_IMAGE,
+            LINEAR_MASK,
+            "linear_test_topostats",
+            "topostats",
+            2.7708236360734238e-08,
+            False,
+            1.7005914942906357e-07,
+        ),
+        (
+            CIRCULAR_IMAGE,
+            CIRCULAR_MASK,
+            "circular_test_topostats",
+            "topostats",
+            0,
+            True,
+            7.279700456226708e-08,
+        ),
+        (
+            LINEAR_IMAGE,
+            LINEAR_MASK,
+            "linear_test_zhang",
+            "zhang",
+            2.474456680567355e-08,
+            False,
+            1.9290667640444226e-07,
+        ),
+        (
+            CIRCULAR_IMAGE,
+            CIRCULAR_MASK,
+            "circular_test_zhang",
+            "zhang",
+            1.438558245500607e-08,
+            False,
+            2.1058770448077433e-07,
+        ),
+        (
+            LINEAR_IMAGE,
+            LINEAR_MASK,
+            "linear_test_lee",
+            "lee",
+            2.9213079505690535e-08,
+            False,
+            1.6412088863885653e-07,
+        ),
+        (
+            CIRCULAR_IMAGE,
+            CIRCULAR_MASK,
+            "circular_test_lee",
+            "lee",
+            1.4223510240918788e-08,
+            False,
+            2.4838250943353e-07,
+        ),
+        (
+            LINEAR_IMAGE,
+            LINEAR_MASK,
+            "linear_test_thin",
+            "thin",
+            4.43751038313367e-08,
+            False,
+            1.3152374762504836e-07,
+        ),
+        (
+            CIRCULAR_IMAGE,
+            CIRCULAR_MASK,
+            "circular_test_thin",
+            "thin",
+            4.229426789739925e-08,
+            False,
+            1.1532177230480711e-07,
+        ),
+    ],
+)
+def test_trace_grain(
+    cropped_image: np.ndarray,
+    cropped_mask: np.ndarray,
+    filename: str,
+    skeletonisation_method: str,
+    end_to_end_distance: float,
+    circular: bool,
+    contour_length: float,
+) -> None:
+    """Test trace_grain function for tracing a single grain"""
+    trace_stats = trace_grain(
+        cropped_image=cropped_image,
+        cropped_mask=cropped_mask,
+        pixel_to_nm_scaling=PIXEL_SIZE,
+        filename=filename,
+        min_skeleton_size=MIN_SKELETON_SIZE,
+        skeletonisation_method=skeletonisation_method,
+    )
+    assert trace_stats["filename"] == filename
+    assert trace_stats["end_to_end_distance"] == end_to_end_distance
+    assert trace_stats["circular"] == circular
+    assert trace_stats["contour_length"] == contour_length
+
+
+MULTIGRAIN_IMAGE = np.concatenate((np.pad(LINEAR_IMAGE, (9, 9)), CIRCULAR_IMAGE), axis=0)
+MULTIGRAIN_MASK = np.concatenate((np.pad(LINEAR_MASK, (9, 9)), CIRCULAR_MASK), axis=0)
+PAD_WIDTH = 20
+
+
+@pytest.mark.parametrize(
+    "filename, skeletonisation_method, cores, statistics",
+    [
+        (
+            "multigrain_topostats",
+            "topostats",
+            1,
+            pd.DataFrame(
+                {
+                    "molecule_number": [0, 1],
+                    "filename": ["multigrain_topostats", "multigrain_topostats"],
+                    "end_to_end_distance": [2.7708236360734238e-08, 0.000000e00],
+                    "circular": [False, True],
+                    "contour_length": [1.7005914942906357e-07, 7.279700456226708e-08],
+                }
+            ),
+        ),
+        (
+            "multigrain_zhang",
+            "zhang",
+            1,
+            pd.DataFrame(
+                {
+                    "molecule_number": [0, 1],
+                    "filename": ["multigrain_zhang", "multigrain_zhang"],
+                    "end_to_end_distance": [2.474456680567355e-08, 1.438558245500607e-08],
+                    "circular": [False, False],
+                    "contour_length": [1.9290667640444226e-07, 2.1058770448077433e-07],
+                }
+            ),
+        ),
+        (
+            "multigrain_lee",
+            "lee",
+            1,
+            pd.DataFrame(
+                {
+                    "molecule_number": [0, 1],
+                    "filename": ["multigrain_lee", "multigrain_lee"],
+                    "end_to_end_distance": [2.9213079505690535e-08, 1.4223510240918788e-08],
+                    "circular": [False, False],
+                    "contour_length": [1.6412088863885653e-07, 2.4838250943353e-07],
+                }
+            ),
+        ),
+        (
+            "multigrain_thin",
+            "thin",
+            1,
+            pd.DataFrame(
+                {
+                    "molecule_number": [0, 1],
+                    "filename": ["multigrain_thin", "multigrain_thin"],
+                    "end_to_end_distance": [4.43751038313367e-08, 4.229426789739925e-08],
+                    "circular": [False, False],
+                    "contour_length": [1.3152374762504836e-07, 1.1532177230480711e-07],
+                }
+            ),
+        ),
+    ],
+)
+def test_trace_image(filename: str, skeletonisation_method: str, cores: int, statistics) -> None:
+    """Tests the processing of an image using trace_image() function."""
+    results = trace_image(
+        image=MULTIGRAIN_IMAGE,
+        grains_mask=MULTIGRAIN_MASK,
+        filename=filename,
+        pixel_to_nm_scaling=PIXEL_SIZE,
+        min_skeleton_size=MIN_SKELETON_SIZE,
+        skeletonisation_method=skeletonisation_method,
+        pad_width=PAD_WIDTH,
+        cores=cores,
+    )
+    statistics.set_index(["molecule_number"], inplace=True)
+    pd.testing.assert_frame_equal(results, statistics)
