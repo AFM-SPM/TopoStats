@@ -153,12 +153,12 @@ class dnaTrace:
             gauss = gauss.astype(np.int32)
             if dilation.sum() - image.sum() > gauss.sum() - image.sum():
                 print(f"gaussian: {gauss.sum()-image.sum()}px")
-                self.grains[grain_num] = self.re_add_holes(image, gauss)
-                # self.grains[grain_num] = gauss
+                # self.grains[grain_num] = self.re_add_holes(image, gauss)
+                self.grains[grain_num] = gauss
             else:
                 print(f"dilation: {dilation.sum()-image.sum()}px")
-                self.grains[grain_num] = self.re_add_holes(image, dilation)
-                # self.grains[grain_num] = dilation
+                # self.grains[grain_num] = self.re_add_holes(image, dilation)
+                self.grains[grain_num] = dilation
             smoothed_mask = self.grains[grain_num]
             return smoothed_mask
 

@@ -337,7 +337,7 @@ def process_scan(
                 grainstats_df = grainstats["upper"]["statistics"]
             elif grains_config["direction"] == "lower":
                 grainstats_df = grainstats["lower"]["statistics"]
-
+            sum = 0
             # Run dnatracing
             if dnatracing_config["run"]:
                 dnatracing_config.pop("run")
@@ -353,6 +353,8 @@ def process_scan(
                         pixel_size=pixel_to_nm_scaling,
                         **dnatracing_config,
                     )
+                    sum = sum + 1
+                    print(sum)
                     dna_traces[direction].trace_dna()
 
                     # pylint: disable=W0105
