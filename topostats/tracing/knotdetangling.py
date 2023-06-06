@@ -1,3 +1,5 @@
+import numpy as np
+
 class nodeStats:
     """Class containing methods to find and analyse the nodes/crossings within a grain"""
 

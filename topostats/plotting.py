@@ -13,7 +13,7 @@ from scipy import stats
 from cycler import cycler
 from pathlib import Path
 from topostats.io import read_yaml
-from topostats.tracing.dnatracing import nodeStats
+from topostats.tracing.knotdetangling import nodeStats
 from topostats.theme import Colormap
 
 # plotting_config = read_yaml(Path("./config/plotting_config.yml"))
