@@ -110,24 +110,25 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         # TODO Step 3.5 - Prune the skeleton - or maybe this should be called from insize skeletonize?
 
         # Set a configurable and minimal size for skeletons to be to continue
-        grain_too_small = self.remove_noise()
-        if grain_too_small:
+        # grain_too_small = self.remove_noise()
+        # if grain_too_small:
             # REPLACE THIS WITH A CUSTOM SKELETON TOO SMALL EXCEPTION
-            return False 
+            # return False 
 
         # Step 4 - determine if circular or linear
-        self.is_circle()
+        # self.is_circle()
 
         # Step 5 - get ordered trace (ordered skeleton)
-        self.order()
+        # Call super class's order method
+        # if self.circle:
+            # self.grain["ordered_trace"] = traceDNA.reorder_linear_trace(self.grain["skeleton"])
+        # else:
+            # self.grain["ordered_trace"] = traceDNA.reorder_circular_trace(self.grain["skeleton"])
 
-        # Step 6 - fit the traces
-        # self.get_fitted_traces
-
-        # Step 7 - Spline the fits
+        # Step 6 - Spline the fits
         # self.get_splined_traces
 
-        # Step 8 - calculate stats and get info about the grain
+        # Step 7 - calculate stats and get info about the grain
         # self.determine_morphology()
 
 
@@ -329,14 +330,174 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
             "adjacent cells only."
         )
 
+    @staticmethod
+    def adjacent_pixel_map(skeleton: np.ndarray):
+        """Count the number of non-zero cells around every x, y co-ordinate in a binary 2-D Numpy array.
+
+        This is done by padding the array and creating eight shifted arrays, one for each adjacent cell.
+
+        These are then summed and because the input is a binary array the total number non-zero adjacent cells is
+        obtained.
+
+        If x is a given cell in the array and we want to know how many adjacent cells are non-zero (i.e. the sum of
+        a, b, c, d, e f, g and h)
+
+          Original      Padded               Summing
+
+                                        A       B       C
+                       0 0 0 0 0      0 0 0   0 0 0   0 0 0
+            a b c      0 a b c 0      0 a b   a b c   b c 0
+            d x e -->  0 d x e 0 -->  0 d x   d x e   x e 0
+            f g h      0 f g h 0
+                       0 0 0 0 0        D               E
+                                      0 a b           b c 0
+                                      0 d x           x e 0
+                                      0 f g           g h 0
+
+                                        F       G       H
+                                      0 d x   d x e   x e 0
+                                      0 f g   f g h   g h 0
+                                      0 0 0   0 0 0   0 0 0
+
+        Non-zero adjacent cells to x = A + B + C + D + E + F + G + H but since this method is vectorised we get the
+        counts across the whole of the Original array at the same time.
+        """
+        padded = np.pad(skeleton, 1, mode="constant")
+        # Use slicing to get the 8 surrounding cells of each element in the padded array
+        top_left = padded[:-2, :-2]
+        top_center = padded[:-2, 1:-1]
+        top_right = padded[:-2, 2:]
+        middle_left = padded[1:-1, :-2]
+        middle_right = padded[1:-1, 2:]
+        bottom_left = padded[2:, :-2]
+        bottom_center = padded[2:, 1:-1]
+        bottom_right = padded[2:, 2:]
+
+        # Get number of adjacent cells for the skeleton only by summing and masking non-skeleton cells
+        adjacent = sum(
+            [
+                top_left,
+                top_center,
+                top_right,
+                middle_left,
+                middle_right,
+                bottom_left,
+                bottom_center,
+                bottom_right,
+            ]
+        )
+
+        return adjacent
+    
+    @staticmethod
+    def adjacent_pixel_map_masked(skeleton):
+        """Returns an adjacent pixel map but masked to only the pixels that are part of the skeleton.
+        
+        eg:
+
+        Skeleton:
+        0 0 0 0 0 
+        0 1 1 1 0 
+        0 0 0 1 0 
+        0 0 0 1 0 
+
+        0 0 0 0 0 
+        0 1 2 3 0 
+        0 0 0 2 0 
+        0 0 0 1 0 
+
+        """
+
+        adjacent = traceDNA.adjacent_pixel_map(skeleton)
+        masked_adjacent = np.ma.masked_array(adjacent, np.where(skeleton == 1, 0, 1))
+        return masked_adjacent
+
+
+    @staticmethod
+    def count_and_get_neighbours(coordinates: list, point: list):
+        """Count the number of points in the coordinate list that are adjacent to the point provided"""
+
+        x, y = point
+
+        neighbours = []
+        number_of_neighbours = 0
+
+        if [x, y + 1] in coordinates:
+            neighbours.append([x, y + 1])
+            number_of_neighbours += 1
+        if [x + 1, y + 1] in coordinates:
+            neighbours.append([x + 1, y + 1])
+            number_of_neighbours += 1
+        if [x + 1, y] in coordinates:
+            neighbours.append([x + 1, y])
+            number_of_neighbours += 1
+        if [x + 1, y - 1] in coordinates:
+            neighbours.append([x + 1, y - 1])
+            number_of_neighbours += 1
+        if [x, y - 1] in coordinates:
+            neighbours.append([x, y - 1])
+            number_of_neighbours += 1
+        if [x - 1, y - 1] in coordinates:
+            neighbours.append([x - 1, y - 1])
+            number_of_neighbours += 1
+        if [x - 1, y] in coordinates:
+            neighbours.append([x - 1, y])
+            number_of_neighbours += 1
+        if [x - 1, y + 1] in coordinates:
+            neighbours.append([x - 1, y + 1])
+            number_of_neighbours += 1
+        return number_of_neighbours, neighbours
+
+
+    @staticmethod
+    def reorder_linear_trace(skeleton: np.ndarray):
+
+        """Order the points of a linear skeleton"""
+
+        unordered_coordinates = np.argwhere(skeleton == 1).tolist()
+        print(f'unordered coordinates: {unordered_coordinates}')
+
+        # Find one of the end points
+        adjacent_map = traceDNA.adjacent_pixel_map_masked(skeleton)
+        points_with_single_neighbour = np.argwhere(adjacent_map == 1)
+        print(f'points with one neighbour: {points_with_single_neighbour}')
+        # Choose the first (no reason why the first, just need one)
+        starting_point = list(points_with_single_neighbour[0])
+        print(f'starting point: {starting_point}')
+        ordered_points = [starting_point]
+
+        # Remove coordinate from list of coordinates
+        unordered_coordinates.remove(starting_point)
+        print(f'coordinates after initial point deletion: {unordered_coordinates}')
+
+        while len(unordered_coordinates) > 0:
+
+            # Get latest point added to ordered list
+            x, y = ordered_points[-1]
+            # Check number of neighbours)
+            number_of_neighbours, neighbours = traceDNA.count_and_get_neighbours(unordered_coordinates, [x, y])
+            print(f'number_of_neighbours for {[x, y]}: {number_of_neighbours}, neighbours: {neighbours}')
+
+            if number_of_neighbours == 1:
+                ordered_points.append(neighbours[0])
+                unordered_coordinates.remove(neighbours[0])
+            # Is there a reason why a skeleton pixel would have more than one remaining neighbour?
+            elif number_of_neighbours > 1:
+                raise ValueError(f"Skeleton pixel has too many neighbours: {number_of_neighbours}")
+            elif number_of_neighbours == 0:
+                raise ValueError("Skeleton pixel has 0 neighbours!")
+
+        return np.array(ordered_points)
+
+
+
+
+
+
+
+
     # def remove_noise(self) -> None:
     #     """Remove skeletonised objects shorter than a given length."""
-
-    # def get_ordered_trace(self) -> None:
-    #     """Order the trace"""
-
-    # def get_fitted_trace(self):
-    #     """Something else"""
 
     # def get_splined_trace(self):
     #     """Spline the trace."""
