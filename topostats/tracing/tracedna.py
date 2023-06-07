@@ -490,9 +490,16 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         return np.array(ordered_points)
 
 
+    def linear_or_circular(self, skeleton: np.ndarray):
+        """Determine if the molecule is circular. A molecule is circular if it has no
+        loose ends (points with only one neighbour)."""
 
-
-
+        adjacent_pixel_map = traceDNA.adjacent_pixel_map(skeleton)
+        number_points_with_one_neighbour = np.argwhere(adjacent_pixel_map == 1).shape[0]
+        if number_points_with_one_neighbour == 0:
+            self.is_circle = False
+        else:
+            self.is_circle = True
 
 
 
