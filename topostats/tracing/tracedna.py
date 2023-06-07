@@ -36,7 +36,8 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
 
     def __init__(
         self,
-        grain: np.ndarray,
+        grain_image: np.ndarray,
+        grain_mask: np.ndarray,
         filename: str,
         pixel_to_nm_scaling: float,
         grain_number: int = 0,
@@ -72,7 +73,8 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         """
         super().__init__("grain")
         self.grain = {}
-        self.grain["original"] = grain
+        self.grain["original"] = grain_image
+        self.grain["mask"] = grain_mask
         self.grain_number = grain_number
         self.dilate = dilate
         self.dilation_iterations = dilation_iterations
@@ -84,28 +86,50 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         self.ends: int = None
         self.circle: bool = None
 
+        self.skeleton = None
+
     def trace_dna(self):
         """Perform DNA tracing on a single grain."""
+
         # Step 1 Binary dilation
-        self.grain["dilated"] = (
-            self._dilate(grain=self.grain["mask"], iterations=self.dilation_iterations)
-            if self.dilate
-            else self.grain["mask"]
-        )
+        LOGGER.info(f"Tracing DNA")
+        if self.dilate:
+            LOGGER.info(f"Dilating grain")
+            self.grain["dilated"] = self._dilate(grain=self.grain["mask"], iterations=self.dilation_iterations)
+        else:
+            self.grain["dilated"] = self.grain["mask"]
+
         # Step 2 Gaussian filter
+        LOGGER.info(f'Applying gaussian blur')
         self.grain["filtered"] = self._gaussian_filter(grain=self.grain["dilated"], sigma=self.sigma)
+
         # Step 3 - Skeletonize the image, there is no get_disordered trace as the docstring for get_disordered_trace()
         # method in dnatracing indicates this is the skeletonisation process.
-        # self.grain["skeleton"] = self.skeletonize()
+        self.grain["skeleton"] = self.skeletonize()
+
+        # TODO Step 3.5 - Prune the skeleton - or maybe this should be called from insize skeletonize?
+
         # Set a configurable and minimal size for skeletons to be to continue
-        # Don't purge, skeletonise and assess if its nonsense/single pixel
-        # self.purge_obvious_crap()
-        # self.determine_linear()
-        # self.circle()
-        # self.order(self.circle)
+        grain_too_small = self.remove_noise()
+        if grain_too_small:
+            # REPLACE THIS WITH A CUSTOM SKELETON TOO SMALL EXCEPTION
+            return False 
+
+        # Step 4 - determine if circular or linear
+        self.is_circle()
+
+        # Step 5 - get ordered trace (ordered skeleton)
+        self.order()
+
+        # Step 6 - fit the traces
+        # self.get_fitted_traces
+
+        # Step 7 - Spline the fits
+        # self.get_splined_traces
+
+        # Step 8 - calculate stats and get info about the grain
         # self.determine_morphology()
-        # self.get_fitted_traces()
-        # self.get_splined_traces()
+
 
     @staticmethod
     def _dilate(grain: np.ndarray, iterations: int) -> np.ndarray:
@@ -144,13 +168,10 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         return gaussian_filter(grain, sigma)
 
     def skeletonize(self) -> None:
-        """Skeletonise"""
-        # try:
-        self.grain["skeleton"] = getSkeleton(image=self.grain["dilated"], mask=self.grain["mask"]).get_skeleton(
+        """Skeletonize the grain mask"""
+        return getSkeleton(image=self.grain["dilated"], mask=self.grain["mask"]).get_skeleton(
             method=self.skeletonisation_method
         )
-        # except:  # noqua
-        #    raise
 
     # Disordered trace is just a skeleton as far as I can tell, old method used co-ordinates of these but we have
     # vectorised the approach which should be faster and doesn't rely on ordering so much.
