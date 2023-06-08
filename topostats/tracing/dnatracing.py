@@ -616,7 +616,7 @@ class dnaTrace:
         plt.close()
         """
 
-        plt.pcolormesh(self. , vmax=vmaxval, vmin=vminval)
+        plt.pcolormesh(self.full_image_data , vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.disordered_trace.keys()):
             # disordered_trace_list = self.disordered_trace[dna_num].tolist()
@@ -640,7 +640,7 @@ class dnaTrace:
         #for dna_num in sorted(self.grains.keys()):
         #    grain_plt = np.argwhere(self.grains[dna_num] == 1)
         #    plt.plot(grain_plt[:, 0], grain_plt[:, 1], "o", markersize=2, color="c")
-        # plt.savefig("%s_%s_grains.png" % (save_file, channel_name))
+        # plt.savefig("%s_%s_grains.png" % (save_file, channel _name))
         #plt.savefig(output_dir / filename / f"{channel_name}_grains.png")
         #plt.close()
         #LOGGER.info(f"Grains image saved to : {str(output_dir / filename / f'{channel_name}_grains.png')}")
