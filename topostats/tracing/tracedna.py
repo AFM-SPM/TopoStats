@@ -100,7 +100,7 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
             self.grain["dilated"] = self.grain["mask"]
 
         # Step 2 Gaussian filter
-        LOGGER.info(f'Applying gaussian blur')
+        LOGGER.info(f"Applying gaussian blur")
         self.grain["filtered"] = self._gaussian_filter(grain=self.grain["dilated"], sigma=self.sigma)
 
         # Step 3 - Skeletonize the image, there is no get_disordered trace as the docstring for get_disordered_trace()
@@ -112,7 +112,7 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         # Halt processing if skeleton is shorter than min_skeleton_size
         grain_too_small = self.remove_noise()
         if grain_too_small:
-            LOGGER.info(f'Removing grain {self.grain_number} as its skeleton is shorter than {self.min_skeleton_size}')
+            LOGGER.info(f"Removing grain {self.grain_number} as its skeleton is shorter than {self.min_skeleton_size}")
             return False
 
         # Step 4 - determine if circular or linear
@@ -129,7 +129,6 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
 
         # Step 7 - calculate stats and get info about the grain
         # self.determine_morphology()
-
 
     @staticmethod
     def _dilate(grain: np.ndarray, iterations: int) -> np.ndarray:
@@ -387,30 +386,29 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         )
 
         return adjacent
-    
+
     @staticmethod
     def adjacent_pixel_map_masked(skeleton):
         """Returns an adjacent pixel map but masked to only the pixels that are part of the skeleton.
-        
+
         eg:
 
         Skeleton:
-        0 0 0 0 0 
-        0 1 1 1 0 
-        0 0 0 1 0 
-        0 0 0 1 0 
+        0 0 0 0 0
+        0 1 1 1 0
+        0 0 0 1 0
+        0 0 0 1 0
 
-        0 0 0 0 0 
-        0 1 2 3 0 
-        0 0 0 2 0 
-        0 0 0 1 0 
+        0 0 0 0 0
+        0 1 2 3 0
+        0 0 0 2 0
+        0 0 0 1 0
 
         """
 
         adjacent = traceDNA.adjacent_pixel_map(skeleton)
         masked_adjacent = np.ma.masked_array(adjacent, np.where(skeleton == 1, 0, 1))
         return masked_adjacent
-
 
     def linear_or_circular(self, skeleton: np.ndarray):
         """Determine if the molecule is circular. A molecule is circular if it has no
@@ -426,8 +424,7 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
             self.circle = False
             LOGGER.info(f"Molecule is linear, has {number_points_with_one_neighbour} points with one neighbour")
 
-
-    def remove_noise(self) -> None:
+    def remove_noise(self):
         """Remove skeletonised objects shorter than a given length."""
         if len(self.grain["skeleton"]) < self.min_skeleton_size:
             return True
