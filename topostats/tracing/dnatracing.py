@@ -557,11 +557,12 @@ class dnaTrace:
         # vmaxval = 20e-9
         # vminval = -10e-9
 
-        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
-        plt.colorbar()
+       
+        #plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        #plt.colorbar()
         # plt.savefig("%s_%s_originalImage.png" % (save_file, channel_name))
-        plt.savefig(output_dir / filename / f"{channel_name}_original.png")
-        plt.close()
+        #plt.savefig(output_dir / filename / f"{channel_name}_original.png")
+        #plt.close()
 
         # plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         # plt.colorbar()
@@ -615,7 +616,7 @@ class dnaTrace:
         plt.close()
         """
 
-        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        plt.pcolormesh(self. , vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.disordered_trace.keys()):
             # disordered_trace_list = self.disordered_trace[dna_num].tolist()
@@ -625,7 +626,7 @@ class dnaTrace:
                 self.disordered_trace[dna_num][:, 1],
                 "o",
                 markersize=0.5,
-                color="c",
+                color="r",
             )
         # plt.savefig("%s_%s_disorderedtrace.png" % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_disordered_trace.png")
@@ -634,15 +635,15 @@ class dnaTrace:
             f"Disordered trace image saved to : {str(output_dir / filename / f'{channel_name}_disordered_trace.png')}"
         )
 
-        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
-        plt.colorbar()
-        for dna_num in sorted(self.grains.keys()):
-            grain_plt = np.argwhere(self.grains[dna_num] == 1)
-            plt.plot(grain_plt[:, 0], grain_plt[:, 1], "o", markersize=2, color="c")
+        #plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        #plt.colorbar()
+        #for dna_num in sorted(self.grains.keys()):
+        #    grain_plt = np.argwhere(self.grains[dna_num] == 1)
+        #    plt.plot(grain_plt[:, 0], grain_plt[:, 1], "o", markersize=2, color="c")
         # plt.savefig("%s_%s_grains.png" % (save_file, channel_name))
-        plt.savefig(output_dir / filename / f"{channel_name}_grains.png")
-        plt.close()
-        LOGGER.info(f"Grains image saved to : {str(output_dir / filename / f'{channel_name}_grains.png')}")
+        #plt.savefig(output_dir / filename / f"{channel_name}_grains.png")
+        #plt.close()
+        #LOGGER.info(f"Grains image saved to : {str(output_dir / filename / f'{channel_name}_grains.png')}")
 
     # FIXME : Replace with Path() (.mkdir(parent=True, exists=True) negate need to handle errors.)
     def _checkForSaveDirectory(self, filename, new_directory_name):
