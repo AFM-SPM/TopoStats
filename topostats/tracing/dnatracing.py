@@ -293,7 +293,6 @@ class dnaTrace:
             # Use the perp array to index the guassian filtered image
             perp_array = np.column_stack((x_coords, y_coords))
             try:
-                # height_values = self.gauss_image[perp_array[:, 1], perp_array[:, 0]]
                 height_values = self.gauss_image[perp_array[:, 0], perp_array[:, 1]]
             except IndexError:
                 perp_array[:, 0] = np.where(
@@ -796,7 +795,6 @@ def trace_image(
     try:
         results = pd.DataFrame.from_dict(results, orient="index")
         results.index.name = "molecule_number"
-        results.reset_index(inplace=True)
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)

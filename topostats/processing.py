@@ -260,56 +260,57 @@ def process_scan(
                     results = create_empty_dataframe()
                 else:
                     # Run dnatracing
-                    # try:
-                    if dnatracing_config["run"]:
-                        dnatracing_config.pop("run")
-                        LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
-                        tracing_stats = defaultdict()
-                        for direction, _ in grainstats.items():
-                            tracing_stats[direction] = trace_image(
-                                image=filtered_image.images["gaussian_filtered"],
-                                grains_mask=grains.directions[direction]["labelled_regions_02"],
-                                filename=filename,
-                                pixel_to_nm_scaling=pixel_to_nm_scaling,
-                                **dnatracing_config,
+                    try:
+                        if dnatracing_config["run"]:
+                            dnatracing_config.pop("run")
+                            LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
+                            tracing_stats = defaultdict()
+                            for direction, _ in grainstats.items():
+                                tracing_stats[direction] = trace_image(
+                                    image=filtered_image.images["gaussian_filtered"],
+                                    grains_mask=grains.directions[direction]["labelled_regions_02"],
+                                    filename=filename,
+                                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                                    **dnatracing_config,
+                                )
+                                tracing_stats[direction]["threshold"] = direction
+                            # Set tracing_stats_df in light of direction
+                            if grains_config["direction"] == "both":
+                                tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
+                            elif grains_config["direction"] == "above":
+                                tracing_stats_df = tracing_stats["above"]
+                            elif grains_config["direction"] == "below":
+                                tracing_stats_df = tracing_stats["below"]
+                            LOGGER.info(
+                                f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics"
                             )
-                            tracing_stats[direction]["threshold"] = direction
-                        # Set tracing_stats_df in light of direction
-                        if grains_config["direction"] == "both":
-                            tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
-                        elif grains_config["direction"] == "above":
-                            tracing_stats_df = tracing_stats["above"]
-                        elif grains_config["direction"] == "below":
-                            tracing_stats_df = tracing_stats["below"]
-                        LOGGER.info(f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics")
-                        # NB - Merge on image, molecule and threshold because we may have above and below molecules which
-                        #      gives duplicate molecule numbers as they are processed separately, if tracing stats
-                        #      are not available (because skeleton was too small), grainstats are still retained.
-                        results = grainstats_df.merge(
-                            tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left"
-                        )
-                        results["basename"] = image_path.parent
-                    else:
-                        LOGGER.info(
-                            f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame."
+                            # NB - Merge on image, molecule and threshold because we may have above and below molecules which
+                            #      gives duplicate molecule numbers as they are processed separately, if tracing stats
+                            #      are not available (because skeleton was too small), grainstats are still retained.
+                            results = grainstats_df.merge(
+                                tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left"
+                            )
+                            results["basename"] = image_path.parent
+                        else:
+                            LOGGER.info(
+                                f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame."
+                            )
+                            results = grainstats_df
+                            results["basename"] = image_path.parent
+                    except Exception:
+                        # If no results we need a dummy dataframe to return.
+                        LOGGER.warning(
+                            f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, "
+                            "returning grain statistics"
                         )
                         results = grainstats_df
                         results["basename"] = image_path.parent
-                    # except Exception:
-                    #     # If no results we need a dummy dataframe to return.
-                    #     LOGGER.warning(
-                    #         f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, "
-                    #         "returning grain statistics"
-                    #     )
-                    #     results = grainstats_df
-                    #     results["basename"] = image_path.parent
             else:
                 LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
                 results = create_empty_dataframe()
     else:
         LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
         results = create_empty_dataframe()
-
     return image_path, results
 
 
