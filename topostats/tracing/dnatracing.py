@@ -598,7 +598,7 @@ class dnaTrace:
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.splined_traces.keys()):
-            plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color="c", linewidth=1.0)
+            plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color="r", linewidth=1.0)
         # plt.savefig("%s_%s_splinedtrace.png" % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_splinedtrace.png")
         LOGGER.info(f"Splined Trace image saved to : {str(output_dir / filename / f'{channel_name}_splinedtrace.png')}")
