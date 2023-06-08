@@ -45,7 +45,7 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         dilation_iterations: int = 2,
         sigma: float = 1,
         skeletonisation_method: str = "zhang",
-        min_branch_size: int = 10,
+        min_skeleton_size: int = 10,
     ):
         """Initialise the class.
 
@@ -82,7 +82,7 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.skeletonisation_method = skeletonisation_method
-        self.min_branch_size = min_branch_size
+        self.min_skeleton_size = min_skeleton_size
         self.ends: int = None
         self.circle: bool = None
 
@@ -109,11 +109,11 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
 
         # TODO Step 3.5 - Prune the skeleton - or maybe this should be called from insize skeletonize?
 
-        # Set a configurable and minimal size for skeletons to be to continue
-        # grain_too_small = self.remove_noise()
-        # if grain_too_small:
-            # REPLACE THIS WITH A CUSTOM SKELETON TOO SMALL EXCEPTION
-            # return False 
+        # Halt processing if skeleton is shorter than min_skeleton_size
+        grain_too_small = self.remove_noise()
+        if grain_too_small:
+            LOGGER.info(f'Removing grain {self.grain_number} as its skeleton is shorter than {self.min_skeleton_size}')
+            return False
 
         # Step 4 - determine if circular or linear
         self.linear_or_circular(self.grain["skeleton"])
@@ -427,9 +427,10 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
             LOGGER.info(f"Molecule is linear, has {number_points_with_one_neighbour} points with one neighbour")
 
 
-
-    # def remove_noise(self) -> None:
-    #     """Remove skeletonised objects shorter than a given length."""
+    def remove_noise(self) -> None:
+        """Remove skeletonised objects shorter than a given length."""
+        if len(self.grain["skeleton"]) < self.min_skeleton_size:
+            return True
 
     # def get_splined_trace(self):
     #     """Spline the trace."""
