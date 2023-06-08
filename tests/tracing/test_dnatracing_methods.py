@@ -3,7 +3,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-import skimage.measure as skimage_measure
 
 from topostats.tracing.dnatracing import dnaTrace, crop_array
 
@@ -272,7 +271,7 @@ TEST_LABELLED = np.asarray(
 
 
 @pytest.mark.parametrize(
-    "bounding_box,target",
+    "bounding_box,target, pad_width",
     [
         (
             (1, 1, 2, 7),
@@ -281,6 +280,30 @@ TEST_LABELLED = np.asarray(
                     [1, 1, 1, 1, 1, 1],
                 ]
             ),
+            0,
+        ),
+        (
+            (1, 1, 2, 7),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            1,
+        ),
+        (
+            (1, 1, 2, 7),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 3, 3, 3, 3, 3, 3, 0, 0],
+                ]
+            ),
+            2,
         ),
         (
             (1, 9, 6, 14),
@@ -293,6 +316,7 @@ TEST_LABELLED = np.asarray(
                     [2, 2, 2, 2, 2],
                 ]
             ),
+            0,
         ),
         (
             (3, 1, 9, 7),
@@ -306,6 +330,7 @@ TEST_LABELLED = np.asarray(
                     [0, 0, 0, 0, 0, 3],
                 ]
             ),
+            0,
         ),
         (
             (7, 8, 9, 14),
@@ -315,6 +340,7 @@ TEST_LABELLED = np.asarray(
                     [4, 4, 4, 4, 4, 4],
                 ]
             ),
+            0,
         ),
         (
             (10, 1, 15, 5),
@@ -327,6 +353,7 @@ TEST_LABELLED = np.asarray(
                     [5, 5, 5, 5],
                 ]
             ),
+            0,
         ),
         (
             (10, 5, 14, 14),
@@ -338,17 +365,27 @@ TEST_LABELLED = np.asarray(
                     [6, 6, 6, 6, 0, 0, 6, 0, 0],
                 ]
             ),
+            0,
+        ),
+        (
+            (10, 5, 14, 14),
+            np.asarray(
+                [
+                    [0, 0, 0, 3, 0, 4, 4, 4, 4, 4, 4, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [5, 5, 6, 6, 6, 6, 0, 0, 6, 0, 0, 0],
+                    [0, 0, 6, 0, 0, 6, 0, 0, 6, 0, 0, 0],
+                    [5, 5, 6, 0, 0, 6, 6, 6, 6, 6, 6, 0],
+                    [5, 5, 6, 6, 6, 6, 0, 0, 6, 0, 0, 0],
+                    [5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            2,
         ),
     ],
 )
-def test_crop_array(bounding_box: tuple, target: np.array) -> None:
+def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> None:
     """Test the cropping of images."""
-    check = skimage_measure.regionprops(TEST_LABELLED)
-    for x in check:
-        print(x.bbox)
-    cropped = crop_array(TEST_LABELLED, bounding_box)
+    cropped = crop_array(TEST_LABELLED, bounding_box, pad_width)
+    print(f"cropped :\n{cropped}")
     np.testing.assert_array_equal(cropped, target)
-
-
-def test_tracedna():
-    """Test tracedna function."""

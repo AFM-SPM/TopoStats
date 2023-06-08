@@ -879,7 +879,7 @@ def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np
     array: np.ndarray
         2D Numpy array to be cropped.
     bounding_box: Tuple
-        Tuple of co-ordinates to crop, should be of form (max_x, min_x, max_y, min_y).
+        Tuple of co-ordinates to crop, should be of form (min_row, min_col, max_row, max_col).
     pad_width: int
         Padding to apply to bounding box.
 
@@ -888,24 +888,19 @@ def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np
     np.ndarray()
         Cropped array
     """
-    try:
-        return array[
-            bounding_box[0] - pad_width : bounding_box[2] - pad_width,
-            bounding_box[1] + pad_width : bounding_box[3] + pad_width,
-        ]
-    except ValueError:
-        # Left : Make this the first row if too close
-        bounding_box[0] = 0 if bounding_box[0] - pad_width < 0 else bounding_box[0]
-        # Top : Make this the first column if too close
-        bounding_box[2] = 0 if bounding_box[2] - pad_width < 0 else bounding_box[2]
-        # Right : Make this the last row if too close
-        bounding_box[1] = array.shape[0] if bounding_box[1] + pad_width > array.shape[0] else bounding_box[1]
-        # Bottom : Make this the last column if too close
-        bounding_box[3] = array.shape[1] if bounding_box[3] + pad_width > array.shape[1] else bounding_box[3]
-        return array[
-            bounding_box[0] : bounding_box[2],
-            bounding_box[1] : bounding_box[3],
-        ]
+    bounding_box = list(bounding_box)
+    # Top Row : Make this the first column if too close
+    bounding_box[0] = 0 if bounding_box[0] - pad_width < 0 else bounding_box[0] - pad_width
+    # Bottom Row : Make this the last row if too close
+    bounding_box[2] = array.shape[0] if bounding_box[2] + pad_width > array.shape[0] else bounding_box[2] + pad_width
+    # Left Column : Make this the first column if too close
+    bounding_box[1] = 0 if bounding_box[1] - pad_width < 0 else bounding_box[1] - pad_width
+    # Right Column : Make this the last column if too close
+    bounding_box[3] = array.shape[1] if bounding_box[3] + pad_width > array.shape[1] else bounding_box[3] + pad_width
+    return array[
+        bounding_box[0] : bounding_box[2],
+        bounding_box[1] : bounding_box[3],
+    ]
 
 
 class traceStats:
