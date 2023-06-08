@@ -273,16 +273,16 @@ def process_scan(
                                 pixel_to_nm_scaling=pixel_to_nm_scaling,
                                 **dnatracing_config,
                             )
-                            tracing_stats[direction].df["threshold"] = direction
+                            tracing_stats[direction]["threshold"] = direction
                         # Set tracing_stats_df in light of direction
                         if grains_config["direction"] == "both":
-                            tracing_stats_df = pd.concat([tracing_stats["below"].df, tracing_stats["above"].df])
+                            tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
                         elif grains_config["direction"] == "above":
-                            tracing_stats_df = tracing_stats["above"].df
+                            tracing_stats_df = tracing_stats["above"]
                         elif grains_config["direction"] == "below":
-                            tracing_stats_df = tracing_stats["below"].df
+                            tracing_stats_df = tracing_stats["below"]
                         LOGGER.info(f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics")
-                        # NB - Merge on image, molecule and threshold because we may have above and below molecueles which
+                        # NB - Merge on image, molecule and threshold because we may have above and below molecules which
                         #      gives duplicate molecule numbers as they are processed separately, if tracing stats
                         #      are not available (because skeleton was too small), grainstats are still retained.
                         results = grainstats_df.merge(

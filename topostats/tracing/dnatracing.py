@@ -292,10 +292,17 @@ class dnaTrace:
 
             # Use the perp array to index the guassian filtered image
             perp_array = np.column_stack((x_coords, y_coords))
-            print(f"perp_array    : {perp_array}")
-            print(f"self.gauss_image :\n{self.gauss_image}")
-            print(f"self.gauss_image.shape :\n{self.gauss_image.shape}")
-            height_values = self.gauss_image[perp_array[:, 1], perp_array[:, 0]]
+            try:
+                # height_values = self.gauss_image[perp_array[:, 1], perp_array[:, 0]]
+                height_values = self.gauss_image[perp_array[:, 0], perp_array[:, 1]]
+            except IndexError:
+                perp_array[:, 0] = np.where(
+                    perp_array[:, 0] > self.gauss_image.shape[0], self.gauss_image.shape[0], perp_array[:, 0]
+                )
+                perp_array[:, 1] = np.where(
+                    perp_array[:, 1] > self.gauss_image.shape[1], self.gauss_image.shape[1], perp_array[:, 1]
+                )
+                height_values = self.gauss_image[perp_array[:, 1], perp_array[:, 0]]
 
             # Grab x,y coordinates for highest point
             # fine_coords = np.column_stack((fine_x_coords, fine_y_coords))
@@ -454,8 +461,6 @@ class dnaTrace:
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
-        # LOOP REMOVED
-        # for dna_num in sorted(self.splined_traces.keys()):
         # disordered_trace_list = self.ordered_traces[dna_num].tolist()
         # less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
         plt.plot(self.splined_traces[:, 0], self.splined_traces[:, 1], color="c", linewidth=1.0)
@@ -511,8 +516,6 @@ class dnaTrace:
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
-        # LOOP REMOVED
-        # for dna_num in sorted(self.splined_traces.keys()):
         plt.plot(self.splined_traces[:, 0], self.splined_traces[:, 1], color="c", linewidth=1.0)
         # plt.savefig("%s_%s_splinedtrace.png" % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_splinedtrace.png")
@@ -665,8 +668,6 @@ class dnaTrace:
         account whether the molecule is circular or linear
 
         Contour length units are nm"""
-        # LOOP REMOVED
-        # for dna_num in sorted(self.splined_traces.keys()):
         if self.mol_is_circular:
             for num, i in enumerate(self.splined_traces):
                 x1 = self.splined_traces[num - 1, 0]
@@ -704,8 +705,6 @@ class dnaTrace:
         The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
         molecules. If the molecule is circular then the distance is set to zero (0).
         """
-        # LOOP REMOVED
-        # for dna_num in sorted(self.splined_traces.keys()):
         if self.mol_is_circular:
             self.end_to_end_distance = 0
         else:
@@ -790,13 +789,14 @@ def trace_image(
                     repeat(skeletonisation_method),
                 ),
             ):
-                LOGGER.info(f"[{filename}] Processed grain {x} of {n_grains}")
+                LOGGER.info(f"[{filename}] : Traced grain {x + 1} of {n_grains}")
                 results[x] = result
                 x += 1
                 pbar.update()
     try:
         results = pd.DataFrame.from_dict(results, orient="index")
         results.index.name = "molecule_number"
+        results.reset_index(inplace=True)
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
@@ -862,15 +862,19 @@ def trace_grain(
     #     output_dir=Path("/home/neil/work/projects/topostats/tmp/dnatracing_refactor/"),
     # )
     return {
-        "filename": dnatrace.filename,
-        "end_to_end_distance": dnatrace.end_to_end_distance,
-        "circular": dnatrace.mol_is_circular,
+        "image": dnatrace.filename,
         "contour_length": dnatrace.contour_lengths,
+        "circular": dnatrace.mol_is_circular,
+        "end_to_end_distance": dnatrace.end_to_end_distance,
     }
 
 
 def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np.ndarray:
     """Crop an array.
+
+    Ideally we pad the array that is being cropped so that we have heights outside of the grains bounding box. However,
+    in some cases, if an grain is near the edge of the image scan this results in requesting indexes outside of the
+    existing image. In which case we get as much of the image padded as possible.
 
     Parameters
     ----------
@@ -886,10 +890,24 @@ def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np
     np.ndarray()
         Cropped array
     """
-    return array[
-        bounding_box[0] - pad_width : bounding_box[2] - pad_width,
-        bounding_box[1] + pad_width : bounding_box[3] + pad_width,
-    ]
+    try:
+        return array[
+            bounding_box[0] - pad_width : bounding_box[2] - pad_width,
+            bounding_box[1] + pad_width : bounding_box[3] + pad_width,
+        ]
+    except ValueError:
+        # Left : Make this the first row if too close
+        bounding_box[0] = 0 if bounding_box[0] - pad_width < 0 else bounding_box[0]
+        # Top : Make this the first column if too close
+        bounding_box[2] = 0 if bounding_box[2] - pad_width < 0 else bounding_box[2]
+        # Right : Make this the last row if too close
+        bounding_box[1] = array.shape[0] if bounding_box[1] + pad_width > array.shape[0] else bounding_box[1]
+        # Bottom : Make this the last column if too close
+        bounding_box[3] = array.shape[1] if bounding_box[3] + pad_width > array.shape[1] else bounding_box[3]
+        return array[
+            bounding_box[0] : bounding_box[2],
+            bounding_box[1] : bounding_box[3],
+        ]
 
 
 class traceStats:
