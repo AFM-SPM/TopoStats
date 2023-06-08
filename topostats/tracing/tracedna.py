@@ -116,14 +116,13 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
             # return False 
 
         # Step 4 - determine if circular or linear
-        # self.is_circle()
+        self.linear_or_circular(self.grain["skeleton"])
 
         # Step 5 - get ordered trace (ordered skeleton)
-        # Call super class's order method
-        # if self.circle:
-            # self.grain["ordered_trace"] = traceDNA.reorder_linear_trace(self.grain["skeleton"])
-        # else:
-            # self.grain["ordered_trace"] = traceDNA.reorder_circular_trace(self.grain["skeleton"])
+        skeleton_coords = np.argwhere(self.grain["skeleton"] == 1)
+        ordertrace = orderTrace(coordinates=skeleton_coords)
+        shape = "circle" if self.circle else "linear"
+        self.grain["ordered_trace"] = ordertrace.order(shape)
 
         # Step 6 - Spline the fits
         # self.get_splined_traces
@@ -413,93 +412,19 @@ class traceDNA(orderTrace):  # pylint: disable=too-few-public-methods
         return masked_adjacent
 
 
-    @staticmethod
-    def count_and_get_neighbours(coordinates: list, point: list):
-        """Count the number of points in the coordinate list that are adjacent to the point provided"""
-
-        x, y = point
-
-        neighbours = []
-        number_of_neighbours = 0
-
-        if [x, y + 1] in coordinates:
-            neighbours.append([x, y + 1])
-            number_of_neighbours += 1
-        if [x + 1, y + 1] in coordinates:
-            neighbours.append([x + 1, y + 1])
-            number_of_neighbours += 1
-        if [x + 1, y] in coordinates:
-            neighbours.append([x + 1, y])
-            number_of_neighbours += 1
-        if [x + 1, y - 1] in coordinates:
-            neighbours.append([x + 1, y - 1])
-            number_of_neighbours += 1
-        if [x, y - 1] in coordinates:
-            neighbours.append([x, y - 1])
-            number_of_neighbours += 1
-        if [x - 1, y - 1] in coordinates:
-            neighbours.append([x - 1, y - 1])
-            number_of_neighbours += 1
-        if [x - 1, y] in coordinates:
-            neighbours.append([x - 1, y])
-            number_of_neighbours += 1
-        if [x - 1, y + 1] in coordinates:
-            neighbours.append([x - 1, y + 1])
-            number_of_neighbours += 1
-        return number_of_neighbours, neighbours
-
-
-    @staticmethod
-    def reorder_linear_trace(skeleton: np.ndarray):
-
-        """Order the points of a linear skeleton"""
-
-        unordered_coordinates = np.argwhere(skeleton == 1).tolist()
-        print(f'unordered coordinates: {unordered_coordinates}')
-
-        # Find one of the end points
-        adjacent_map = traceDNA.adjacent_pixel_map_masked(skeleton)
-        points_with_single_neighbour = np.argwhere(adjacent_map == 1)
-        print(f'points with one neighbour: {points_with_single_neighbour}')
-        # Choose the first (no reason why the first, just need one)
-        starting_point = list(points_with_single_neighbour[0])
-        print(f'starting point: {starting_point}')
-        ordered_points = [starting_point]
-
-        # Remove coordinate from list of coordinates
-        unordered_coordinates.remove(starting_point)
-        print(f'coordinates after initial point deletion: {unordered_coordinates}')
-
-        while len(unordered_coordinates) > 0:
-
-            # Get latest point added to ordered list
-            x, y = ordered_points[-1]
-            # Check number of neighbours)
-            number_of_neighbours, neighbours = traceDNA.count_and_get_neighbours(unordered_coordinates, [x, y])
-            print(f'number_of_neighbours for {[x, y]}: {number_of_neighbours}, neighbours: {neighbours}')
-
-            if number_of_neighbours == 1:
-                ordered_points.append(neighbours[0])
-                unordered_coordinates.remove(neighbours[0])
-            # Is there a reason why a skeleton pixel would have more than one remaining neighbour?
-            elif number_of_neighbours > 1:
-                raise ValueError(f"Skeleton pixel has too many neighbours: {number_of_neighbours}")
-            elif number_of_neighbours == 0:
-                raise ValueError("Skeleton pixel has 0 neighbours!")
-
-        return np.array(ordered_points)
-
-
     def linear_or_circular(self, skeleton: np.ndarray):
         """Determine if the molecule is circular. A molecule is circular if it has no
         loose ends (points with only one neighbour)."""
 
-        adjacent_pixel_map = traceDNA.adjacent_pixel_map(skeleton)
+        adjacent_pixel_map = traceDNA.adjacent_pixel_map_masked(skeleton)
         number_points_with_one_neighbour = np.argwhere(adjacent_pixel_map == 1).shape[0]
         if number_points_with_one_neighbour == 0:
-            self.is_circle = False
+            self.circle = True
+            LOGGER.info(f"Molecule is circular, has {number_points_with_one_neighbour} points with one neighbour")
+
         else:
-            self.is_circle = True
+            self.circle = False
+            LOGGER.info(f"Molecule is linear, has {number_points_with_one_neighbour} points with one neighbour")
 
 
 
