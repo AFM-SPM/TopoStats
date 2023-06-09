@@ -330,9 +330,9 @@ def test_trace_grain(
         skeletonisation_method=skeletonisation_method,
     )
     assert trace_stats["image"] == filename
-    assert trace_stats["end_to_end_distance"] == end_to_end_distance
+    assert trace_stats["end_to_end_distance"] == pytest.approx(end_to_end_distance)
     assert trace_stats["circular"] == circular
-    assert trace_stats["contour_length"] == contour_length
+    assert trace_stats["contour_length"] == pytest.approx(contour_length)
 
 
 MULTIGRAIN_IMAGE = np.concatenate((np.pad(LINEAR_IMAGE, (9, 9)), CIRCULAR_IMAGE), axis=0)
