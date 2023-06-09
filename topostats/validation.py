@@ -198,7 +198,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "valid values are 'zhang' or 'lee', 'thin' or 'topostats'",
             ),
             "pad_width": lambda n: n > 0.0,
-            "cores": lambda n: n > 0.0,
+            # "cores": lambda n: n > 0.0,
         },
         "plotting": {
             "run": Or(

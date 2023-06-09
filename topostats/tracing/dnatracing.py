@@ -38,48 +38,73 @@ class dnaTrace:
 
     The object also keeps track of the skeletonised plots and other intermediates
     in case these are useful for other things in the future.
+
+    2023-06-09 : This class has undergone some refactoring so that it works with a single grain. The `trace_grain()`
+    helper function runs the class and returns the expected statistics whilst the `trace_image()` function handles
+    processing all detected grains within an image. The original methods of skeletonisation are available along with
+    additional methods from scikit-image.
+
+    Some bugs have been identified and corrected see commits for further details...
+
+    236750b2
+    2a79c4ff
     """
 
     def __init__(
         self,
-        full_image_data: np.ndarray,
-        grains,
+        image: np.ndarray,
+        grain: np.ndarray,
         filename: str,
-        pixel_size: float,
+        pixel_to_nm_scaling: float,
         min_skeleton_size: int = 10,
         convert_nm_to_m: bool = True,
-        skeletonisation_method: str = "zhang",
+        skeletonisation_method: str = "topostats",
+        n_grain: int = None,
     ):
-        self.full_image_data = full_image_data * 1e-9 if convert_nm_to_m else full_image_data
-        # self.grains_orig = [x for row in grains for x in row]
-        self.grains_orig = grains
+        """Initialise the class.
+
+        Parameters
+        ==========
+        image: np.ndarray,
+            Cropped image, typically padded beyond the bounding box.
+        grain: np.ndarray,
+            Labelled mask for the grain, typically padded beyond the bounding box.
+        filename: str
+            Filename being processed
+        pixel_to_nm_scaling: float,
+            Pixel to nm scaling
+        min_skeleton_size: int = 10,
+            Minimum skeleton size below which tracing statistics are not calculated.
+        convert_nm_to_m: bool = True,
+            Convert nanometers to metres.
+        skeletonisation_method:
+            Method of skeletonisation to use 'topostats' is the original TopoStats method. Three methods from
+            scikit-image are available 'zhang', 'lee' and 'thin'
+        n_grain: int
+            Grain number being processed (only  used in logging).
+        """
+        self.image = image * 1e-9 if convert_nm_to_m else image
+        self.grain = grain
         self.filename = filename
-        self.pixel_size = pixel_size * 1e-9 if convert_nm_to_m else pixel_size
+        self.pixel_to_nm_scaling = pixel_to_nm_scaling * 1e-9 if convert_nm_to_m else pixel_to_nm_scaling
         self.min_skeleton_size = min_skeleton_size
         self.skeletonisation_method = skeletonisation_method
-        # self.number_of_columns = number_of_columns
-        # self.number_of_rows = number_of_rows
-        self.number_of_rows = self.full_image_data.shape[0]
-        self.number_of_columns = self.full_image_data.shape[1]
-        self.sigma = 0.7 / (self.pixel_size * 1e9)
+        self.n_grain = n_grain
+        self.number_of_rows = self.image.shape[0]
+        self.number_of_columns = self.image.shape[1]
+        self.sigma = 0.7 / (self.pixel_to_nm_scaling * 1e9)
 
         self.gauss_image = None
-        self.grains = grains
-        self.dna_masks = None
-        self.skeletons = None
+        self.grain = grain
         self.disordered_trace = None
-        self.ordered_traces = None
-        self.fitted_traces = None
-        self.splined_traces = None
-        self.contour_lengths = np.nan
+        self.ordered_trace = None
+        self.fitted_trace = None
+        self.splined_trace = None
+        self.contour_length = np.nan
         self.end_to_end_distance = np.nan
         self.mol_is_circular = np.nan
         self.curvature = np.nan
 
-        self.number_of_traces = 0
-        self.num_circular = 0
-        self.num_linear = 0
-        self.unprocessed_grains = 0
         self.neighbours = 5  # The number of neighbours used for the curvature measurement
 
         # supresses scipy splining warnings
@@ -91,28 +116,25 @@ class dnaTrace:
         """Perform DNA tracing."""
         self.gaussian_filter()
         self.get_disordered_trace()
-        # self.isMolLooped()
-        # self.purge_obvious_crap()
         if self.disordered_trace is None:
             LOGGER.info(f"[{self.filename}] : Grain failed to Skeletonise")
         elif len(self.disordered_trace) >= self.min_skeleton_size:
             self.linear_or_circular(self.disordered_trace)
             self.get_ordered_traces()
-            self.linear_or_circular(self.ordered_traces)
+            self.linear_or_circular(self.ordered_trace)
             self.get_fitted_traces()
             self.get_splined_traces()
             # self.find_curvature()
             # self.saveCurvature()
             self.measure_contour_length()
             self.measure_end_to_end_distance()
-            # self.report_basic_stats()
         else:
-            LOGGER.info(f"[{self.filename}] : Grain skeleton pixels < {self.min_skeleton_size}")
+            LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
 
     def gaussian_filter(self, **kwargs) -> np.array:
         """Apply Gaussian filter"""
-        self.gauss_image = gaussian(self.full_image_data, sigma=self.sigma, **kwargs)
-        LOGGER.info(f"[{self.filename}] : Gaussian filter applied.")
+        self.gauss_image = gaussian(self.image, sigma=self.sigma, **kwargs)
+        LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Gaussian filter applied.")
 
     def get_disordered_trace(self):
         """Create a skeleton for each of the grains in the image.
@@ -120,18 +142,20 @@ class dnaTrace:
         Uses my own skeletonisation function from tracingfuncs module. I will
         eventually get round to editing this function to try to reduce the branching
         and to try to better trace from looped molecules"""
-        # LOOP REMOVED
-        # for grain_num in sorted(self.grains.keys()):
-        smoothed_grain = ndimage.binary_dilation(self.grains, iterations=1).astype(self.grains.dtype)
+        smoothed_grain = ndimage.binary_dilation(self.grain, iterations=1).astype(self.grain.dtype)
 
-        sigma = 0.01 / (self.pixel_size * 1e9)
+        sigma = 0.01 / (self.pixel_to_nm_scaling * 1e9)
         very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
-        LOGGER.info(f"[{self.filename}] : Skeletonising using {self.skeletonisation_method} method.")
+        LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Skeletonising using {self.skeletonisation_method} method.")
         try:
             if self.skeletonisation_method == "topostats":
                 dna_skeleton = getSkeleton(
-                    self.gauss_image, smoothed_grain, self.number_of_columns, self.number_of_rows, self.pixel_size
+                    self.gauss_image,
+                    smoothed_grain,
+                    self.number_of_columns,
+                    self.number_of_rows,
+                    self.pixel_to_nm_scaling,
                 )
                 self.disordered_trace = dna_skeleton.output_skeleton
             elif self.skeletonisation_method in ["lee", "zhang", "thin"]:
@@ -143,29 +167,14 @@ class dnaTrace:
         except IndexError as e:
             # Some gwyddion grains touch image border causing IndexError
             # These grains are deleted
-            LOGGER.info(f"[{self.filename}] : Grain removed due to proximity to border, consider increasing pad_width.")
+            LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain failed to skeletonise.")
             # raise e
-
-    # def purge_obvious_crap(self):
-    #     all_grains = len(self.disordered_trace)
-    #     # LOOP REMOVED
-    #     # for dna_num in sorted(self.disordered_trace.keys()):
-    #     if len(self.disordered_trace) < self.min_skeleton_size:
-    #         LOGGER.info(f"[{self.filename}] : Grain skeleton pixels < {self.min_skeleton_size}")
-    #         # TODO - How to handle this?
-    #     # self.unprocessed_grains = all_grains - len(self.disordered_trace)
-    #     # LOGGER.info(f"[{self.filename}] : Crap grains removed : {self.unprocessed_grains}")
 
     def linear_or_circular(self, traces):
         """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace
 
         This function is sensitive to branches from the skeleton so might need to implement a function to remove them"""
 
-        # self.num_circular = 0
-        # self.num_linear = 0
-
-        # LOOP REMOVED
-        # for dna_num in sorted(traces.keys()):
         points_with_one_neighbour = 0
         fitted_trace_list = traces.tolist()
 
@@ -178,50 +187,32 @@ class dnaTrace:
 
         if points_with_one_neighbour == 0:
             self.mol_is_circular = True
-            self.num_circular += 1
         else:
             self.mol_is_circular = False
-            self.num_linear += 1
 
     def get_ordered_traces(self):
-        # LOOP REMOVED
-        # for dna_num in sorted(self.disordered_trace.keys()):
-        # circle_tracing = True
-
         if self.mol_is_circular:
-            self.ordered_traces, trace_completed = reorderTrace.circularTrace(self.disordered_trace)
+            self.ordered_trace, trace_completed = reorderTrace.circularTrace(self.disordered_trace)
 
             if not trace_completed:
                 self.mol_is_circular = False
                 try:
-                    self.ordered_traces = reorderTrace.linearTrace(self.ordered_traces.tolist())
+                    self.ordered_trace = reorderTrace.linearTrace(self.ordered_trace.tolist())
                 except UnboundLocalError:
                     pass
-                    # self.mol_is_circular.pop(dna_num)
-                    # self.disordered_trace.pop(dna_num)
-                    # self.grains.pop(dna_num)
-                    # self.ordered_traces.pop(dna_num)
 
         elif not self.mol_is_circular:
-            self.ordered_traces = reorderTrace.linearTrace(self.disordered_trace.tolist())
-
-    # def report_basic_stats(self):
-    #     """Report number of circular and linear DNA molecules detected."""
-    #     LOGGER.info(
-    #         f"There are {self.num_circular} circular and {self.num_linear} linear DNA molecules found in the image"
-    #     )
+            self.ordered_trace = reorderTrace.linearTrace(self.disordered_trace.tolist())
 
     def get_fitted_traces(self):
         """Create trace coordinates (for each identified molecule) that are adjusted to lie
         along the highest points of each traced molecule
         """
 
-        # LOOP REMOVED
-        # for dna_num in sorted(self.ordered_traces.keys()):
-        individual_skeleton = self.ordered_traces
+        individual_skeleton = self.ordered_trace
         # This indexes a 3 nm height profile perpendicular to DNA backbone
         # note that this is a hard coded parameter
-        index_width = int(3e-9 / (self.pixel_size))
+        index_width = int(3e-9 / (self.pixel_to_nm_scaling))
         if index_width < 2:
             index_width = 2
 
@@ -314,7 +305,7 @@ class dnaTrace:
             except UnboundLocalError:
                 fitted_coordinate_array = highest_point
 
-        self.fitted_traces = fitted_coordinate_array
+        self.fitted_trace = fitted_coordinate_array
         del fitted_coordinate_array  # cleaned up by python anyway?
 
     def get_splined_traces(self):
@@ -323,29 +314,21 @@ class dnaTrace:
         This function actually calculates the average of several splines which is important for getting a good fit on
         the lower res data"""
 
-        step_size = int(7e-9 / (self.pixel_size))  # 3 nm step size
-        interp_step = int(1e-10 / self.pixel_size)
+        step_size = int(7e-9 / (self.pixel_to_nm_scaling))  # 3 nm step size
+        interp_step = int(1e-10 / self.pixel_to_nm_scaling)
         # Lets see if we just got with the pixel_to_nm_scaling
-        # step_size = self.pixel_size
-        # interp_step = self.pixel_size
+        # step_size = self.pixel_to_nm_scaling
+        # interp_step = self.pixel_to_nm_scaling
 
-        # FIXME : Iterate over self.fitted_traces directly use either self.fitted_traces.values() or
-        # self.fitted_trace.items()
-        # LOOP REMOVED
-        # for dna_num in sorted(self.fitted_traces.keys()):
         self.splining_success = True
-        nbr = len(self.fitted_traces[:, 0])
+        nbr = len(self.fitted_trace[:, 0])
 
         # Hard to believe but some traces have less than 4 coordinates in total
-        if len(self.fitted_traces[:, 1]) < 4:
-            self.splined_traces = self.fitted_traces
+        if len(self.fitted_trace[:, 1]) < 4:
+            self.splined_trace = self.fitted_trace
             # continue
 
         # The degree of spline fit used is 3 so there cannot be less than 3 points in the splined trace
-        # LOGGER.info(f"DNA Number      : {dna_num}")
-        # LOGGER.info(f"nbr             : {nbr}")
-        # LOGGER.info(f"step_size       : {step_size}")
-        # LOGGER.info(f"self.pixel_size : {self.pixel_size}")
         while nbr / step_size < 4:
             if step_size <= 1:
                 step_size = 1
@@ -359,10 +342,10 @@ class dnaTrace:
 
             for i in range(step_size):
                 x_sampled = np.array(
-                    [self.fitted_traces[:, 0][j] for j in range(i, len(self.fitted_traces[:, 0]), step_size)]
+                    [self.fitted_trace[:, 0][j] for j in range(i, len(self.fitted_trace[:, 0]), step_size)]
                 )
                 y_sampled = np.array(
-                    [self.fitted_traces[:, 1][j] for j in range(i, len(self.fitted_traces[:, 1]), step_size)]
+                    [self.fitted_trace[:, 1][j] for j in range(i, len(self.fitted_trace[:, 1]), step_size)]
                 )
 
                 try:
@@ -373,10 +356,10 @@ class dnaTrace:
                     # Value error occurs when the "trace fitting" really messes up the traces
 
                     x = np.array(
-                        [self.ordered_traces[:, 0][j] for j in range(i, len(self.ordered_traces[:, 0]), step_size)]
+                        [self.ordered_trace[:, 0][j] for j in range(i, len(self.ordered_trace[:, 0]), step_size)]
                     )
                     y = np.array(
-                        [self.ordered_traces[:, 1][j] for j in range(i, len(self.ordered_traces[:, 1]), step_size)]
+                        [self.ordered_trace[:, 1][j] for j in range(i, len(self.ordered_trace[:, 1]), step_size)]
                     )
 
                     try:
@@ -388,8 +371,8 @@ class dnaTrace:
                     ):  # sometimes even the ordered_traces are too bugged out so just delete these traces
                         self.mol_is_circular.pop(dna_num)
                         self.disordered_trace.pop(dna_num)
-                        self.grains.pop(dna_num)
-                        self.ordered_traces.pop(dna_num)
+                        self.grain.pop(dna_num)
+                        self.ordered_trace.pop(dna_num)
                         self.splining_success = False
                         try:
                             del spline_running_total
@@ -407,36 +390,32 @@ class dnaTrace:
 
             spline_average = np.divide(spline_running_total, [step_size, step_size])
             del spline_running_total
-            self.splined_traces = spline_average
+            self.splined_trace = spline_average
             # else:
-            #    x = self.fitted_traces[:,0]
-            #    y = self.fitted_traces[:,1]
+            #    x = self.fitted_trace[:,0]
+            #    y = self.fitted_trace[:,1]
 
             #    try:
             #        tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1, k = 3)
             #        out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
             #        splined_trace = np.column_stack((out[0], out[1]))
-            #        self.splined_traces = splined_trace
+            #        self.splined_trace = splined_trace
             #    except ValueError: #if the trace is really messed up just delete it
             #        self.mol_is_circular.pop(dna_num)
             #        self.disordered_trace.pop(dna_num)
-            #        self.grains.pop(dna_num)
-            #        self.ordered_traces.pop(dna_num)
+            #        self.grain.pop(dna_num)
+            #        self.ordered_trace.pop(dna_num)
 
         else:
             # can't get splining of linear molecules to work yet
-            self.splined_traces = self.fitted_traces
+            self.splined_trace = self.fitted_trace
 
     def show_traces(self):
         plt.pcolormesh(self.gauss_image, vmax=-3e-9, vmin=3e-9)
         plt.colorbar()
-        # LOOP REMOVED
-        # for dna_num in sorted(self.disordered_trace.keys()):
-        plt.plot(self.ordered_traces[:, 0], self.ordered_traces[:, 1], markersize=1)
-        plt.plot(self.fitted_traces[:, 0], self.fitted_traces[:, 1], markersize=1)
-        plt.plot(self.splined_traces[:, 0], self.splined_traces[:, 1], markersize=1)
-        # print(len(self.skeletons[dna_num]), len(self.disordered_trace[dna_num]))
-        # plt.plot(self.skeletons[dna_num][:,0], self.skeletons[dna_num][:,1], 'o', markersize = 0.8)
+        plt.plot(self.ordered_trace[:, 0], self.ordered_trace[:, 1], markersize=1)
+        plt.plot(self.fitted_trace[:, 0], self.fitted_trace[:, 1], markersize=1)
+        plt.plot(self.splined_trace[:, 0], self.splined_trace[:, 1], markersize=1)
 
         plt.show()
         plt.close()
@@ -444,68 +423,68 @@ class dnaTrace:
     def saveTraceFigures(
         self, filename: Union[str, Path], channel_name: str, vmaxval, vminval, output_dir: Union[str, Path] = None
     ):
-        if directory_name:
-            filename_with_ext = self._checkForSaveDirectory(filename_with_ext, directory_name)
+        if output_dir:
+            filename = self._checkForSaveDirectory(filename, output_dir)
 
-        save_file = filename_with_ext[:-4]
+        # save_file = filename[:-4]
 
         vmaxval = 20e-9
         vminval = -10e-9
 
-        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        plt.pcolormesh(self.image, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         # plt.savefig("%s_%s_originalImage.png" % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_original.png")
         plt.close()
 
-        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        plt.pcolormesh(self.image, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
-        # disordered_trace_list = self.ordered_traces[dna_num].tolist()
+        # disordered_trace_list = self.ordered_trace[dna_num].tolist()
         # less_dense_trace = np.array([disordered_trace_list[i] for i in range(0,len(disordered_trace_list),5)])
-        plt.plot(self.splined_traces[:, 0], self.splined_traces[:, 1], color="c", linewidth=1.0)
+        plt.plot(self.splined_trace[:, 0], self.splined_trace[:, 1], color="c", linewidth=1.0)
         if self.mol_is_circular:
             starting_point = 0
         else:
             starting_point = self.neighbours
         length = len(self.curvature)
         plt.plot(
-            self.splined_traces[starting_point, 0],
-            self.splined_traces[starting_point, 1],
+            self.splined_trace[starting_point, 0],
+            self.splined_trace[starting_point, 1],
             color="#D55E00",
             markersize=3.0,
             marker=5,
         )
         plt.plot(
-            self.splined_traces[starting_point + int(length / 6), 0],
-            self.splined_traces[starting_point + int(length / 6), 1],
+            self.splined_trace[starting_point + int(length / 6), 0],
+            self.splined_trace[starting_point + int(length / 6), 1],
             color="#E69F00",
             markersize=3.0,
             marker=5,
         )
         plt.plot(
-            self.splined_traces[starting_point + int(length / 6 * 2), 0],
-            self.splined_traces[starting_point + int(length / 6 * 2), 1],
+            self.splined_trace[starting_point + int(length / 6 * 2), 0],
+            self.splined_trace[starting_point + int(length / 6 * 2), 1],
             color="#F0E442",
             markersize=3.0,
             marker=5,
         )
         plt.plot(
-            self.splined_traces[starting_point + int(length / 6 * 3), 0],
-            self.splined_traces[starting_point + int(length / 6 * 3), 1],
+            self.splined_trace[starting_point + int(length / 6 * 3), 0],
+            self.splined_trace[starting_point + int(length / 6 * 3), 1],
             color="#009E74",
             markersize=3.0,
             marker=5,
         )
         plt.plot(
-            self.splined_traces[starting_point + int(length / 6 * 4), 0],
-            self.splined_traces[starting_point + int(length / 6 * 4), 1],
+            self.splined_trace[starting_point + int(length / 6 * 4), 0],
+            self.splined_trace[starting_point + int(length / 6 * 4), 1],
             color="#0071B2",
             markersize=3.0,
             marker=5,
         )
         plt.plot(
-            self.splined_traces[starting_point + int(length / 6 * 5), 0],
-            self.splined_traces[starting_point + int(length / 6 * 5), 1],
+            self.splined_trace[starting_point + int(length / 6 * 5), 0],
+            self.splined_trace[starting_point + int(length / 6 * 5), 1],
             color="#CC79A7",
             markersize=3.0,
             marker=5,
@@ -513,15 +492,15 @@ class dnaTrace:
         plt.savefig(f"{save_file}_{channel_name}_splinedtrace_with_markers.png")
         plt.close()
 
-        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        plt.pcolormesh(self.image, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
-        plt.plot(self.splined_traces[:, 0], self.splined_traces[:, 1], color="c", linewidth=1.0)
+        plt.plot(self.splined_trace[:, 0], self.splined_trace[:, 1], color="c", linewidth=1.0)
         # plt.savefig("%s_%s_splinedtrace.png" % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_splinedtrace.png")
         LOGGER.info(f"Splined Trace image saved to : {str(output_dir / filename / f'{channel_name}_splinedtrace.png')}")
         plt.close()
 
-        # plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        # plt.pcolormesh(self.image, vmax=vmaxval, vmin=vminval)
         # plt.colorbar()
         # LOOP REMOVED
         # for dna_num in sorted(self.disordered_trace.keys()):
@@ -542,10 +521,10 @@ class dnaTrace:
             f"Disordered trace image saved to : {str(output_dir / filename / f'{channel_name}_disordered_trace.png')}"
         )
 
-        # plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        # plt.pcolormesh(self.image, vmax=vmaxval, vmin=vminval)
         # plt.colorbar()
-        # for dna_num in sorted(self.grains.keys()):
-        #    grain_plt = np.argwhere(self.grains[dna_num] == 1)
+        # for dna_num in sorted(self.grain.keys()):
+        #    grain_plt = np.argwhere(self.grain[dna_num] == 1)
         #    plt.plot(grain_plt[:, 0], grain_plt[:, 1], "o", markersize=2, color="c")
         # plt.savefig("%s_%s_grains.png" % (save_file, channel_name))
         # plt.savefig(output_dir / filename / f"{channel_name}_grains.png")
@@ -554,15 +533,15 @@ class dnaTrace:
         LOGGER.info(f"Grains image saved to : {str(output_dir / filename / f'{channel_name}_grains.png')}")
 
     # FIXME : Replace with Path() (.mkdir(parent=True, exists=True) negate need to handle errors.)
-    def _checkForSaveDirectory(self, filename, new_directory_name):
+    def _checkForSaveDirectory(self, filename, new_output_dir):
         split_directory_path = os.path.split(filename)
 
         try:
-            os.mkdir(os.path.join(split_directory_path[0], new_directory_name))
+            os.mkdir(os.path.join(split_directory_path[0], new_output_dir))
         except OSError:  # OSError happens if the directory already exists
             pass
 
-        updated_filename = os.path.join(split_directory_path[0], new_directory_name, split_directory_path[1])
+        updated_filename = os.path.join(split_directory_path[0], new_output_dir, split_directory_path[1])
 
         return updated_filename
 
@@ -570,21 +549,15 @@ class dnaTrace:
         pass
 
     def find_curvature(self):
-        # FIXME : Iterate directly over self.splined_traces.values() or self.splined_traces.items()
-        # LOOP REMOVED
-        # for dna_num in sorted(self.splined_traces.keys()):  # the number of molecules identified
-        # splined_traces is a dictionary, where the keys are the number of the molecule, and the values are a
-        # list of coordinates, in a numpy.ndarray
-        # if self.mol_is_circular[dna_num]:
         curve = []
         contour = 0
         coordinates = np.zeros([2, self.neighbours * 2 + 1])
-        for i, (x, y) in enumerate(self.splined_traces):
+        for i, (x, y) in enumerate(self.splined_trace):
             # Extracts the coordinates for the required number of points and puts them in an array
-            if self.mol_is_circular or (self.neighbours < i < len(self.splined_traces) - self.neighbours):
+            if self.mol_is_circular or (self.neighbours < i < len(self.splined_trace) - self.neighbours):
                 for j in range(self.neighbours * 2 + 1):
-                    coordinates[0][j] = self.splined_traces[i - j][0]
-                    coordinates[1][j] = self.splined_traces[i - j][1]
+                    coordinates[0][j] = self.splined_trace[i - j][0]
+                    coordinates[1][j] = self.splined_trace[i - j][1]
 
                 # Calculates the angles for the tangent lines to the left and the right of the point
                 theta1 = math.atan(
@@ -607,7 +580,7 @@ class dnaTrace:
 
                 # Calculates the curvature using the change in angle divided by the distance
                 dist = math.hypot((xb - xa), (yb - ya))
-                dist_real = dist * self.pixel_size
+                dist_real = dist * self.pixel_to_nm_scaling
                 curve.append([i, contour, (theta2 - theta1) / dist_real])
 
                 contour = contour + math.hypot(
@@ -617,10 +590,8 @@ class dnaTrace:
             self.curvature = curve
 
     def saveCurvature(self):
-        # FIXME : Iterate directly over self.splined_traces.values() or self.splined_traces.items()
+        # FIXME : Iterate directly over self.splined_trace.values() or self.splined_trace.items()
         # roc_array = np.zeros(shape=(1, 3))
-        # LOOP REMOVED
-        # for dna_num in sorted(self.curvature.keys()):
         for i, [n, contour, c] in enumerate(self.curvature):
             try:
                 roc_array = np.append(roc_array, np.array([[i, contour, c]]), axis=0)
@@ -650,15 +621,15 @@ class dnaTrace:
         savename = os.path.join(directory, os.path.basename(self.filename)[:-4])
 
         plt.figure()
-        sns.lineplot(curvature[:, 1] * self.pixel_size, curvature[:, 2], color="k")
+        sns.lineplot(curvature[:, 1] * self.pixel_to_nm_scaling, curvature[:, 2], color="k")
         plt.ylim(-1e9, 1e9)
         plt.ticklabel_format(axis="both", style="sci", scilimits=(0, 0))
         plt.axvline(curvature[0][1], color="#D55E00")
-        plt.axvline(curvature[int(length / 6)][1] * self.pixel_size, color="#E69F00")
-        plt.axvline(curvature[int(length / 6 * 2)][1] * self.pixel_size, color="#F0E442")
-        plt.axvline(curvature[int(length / 6 * 3)][1] * self.pixel_size, color="#009E74")
-        plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_size, color="#0071B2")
-        plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size, color="#CC79A7")
+        plt.axvline(curvature[int(length / 6)][1] * self.pixel_to_nm_scaling, color="#E69F00")
+        plt.axvline(curvature[int(length / 6 * 2)][1] * self.pixel_to_nm_scaling, color="#F0E442")
+        plt.axvline(curvature[int(length / 6 * 3)][1] * self.pixel_to_nm_scaling, color="#009E74")
+        plt.axvline(curvature[int(length / 6 * 4)][1] * self.pixel_to_nm_scaling, color="#0071B2")
+        plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_to_nm_scaling, color="#CC79A7")
         plt.savefig(f"{savename}_{dna_num}_curvature.png")
         plt.close()
 
@@ -668,34 +639,34 @@ class dnaTrace:
 
         Contour length units are nm"""
         if self.mol_is_circular:
-            for num, i in enumerate(self.splined_traces):
-                x1 = self.splined_traces[num - 1, 0]
-                y1 = self.splined_traces[num - 1, 1]
-                x2 = self.splined_traces[num, 0]
-                y2 = self.splined_traces[num, 1]
+            for num, i in enumerate(self.splined_trace):
+                x1 = self.splined_trace[num - 1, 0]
+                y1 = self.splined_trace[num - 1, 1]
+                x2 = self.splined_trace[num, 0]
+                y2 = self.splined_trace[num, 1]
 
                 try:
                     hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
                 except NameError:
                     hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
 
-            self.contour_lengths = np.sum(np.array(hypotenuse_array)) * self.pixel_size
+            self.contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
             del hypotenuse_array
 
         else:
-            for num, i in enumerate(self.splined_traces):
+            for num, i in enumerate(self.splined_trace):
                 try:
-                    x1 = self.splined_traces[num, 0]
-                    y1 = self.splined_traces[num, 1]
-                    x2 = self.splined_traces[num + 1, 0]
-                    y2 = self.splined_traces[num + 1, 1]
+                    x1 = self.splined_trace[num, 0]
+                    y1 = self.splined_trace[num, 1]
+                    x2 = self.splined_trace[num + 1, 0]
+                    y2 = self.splined_trace[num + 1, 1]
 
                     try:
                         hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
                     except NameError:
                         hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
                 except IndexError:  # IndexError happens at last point in array
-                    self.contour_lengths = np.sum(np.array(hypotenuse_array)) * self.pixel_size
+                    self.contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
                     del hypotenuse_array
                     break
 
@@ -707,17 +678,11 @@ class dnaTrace:
         if self.mol_is_circular:
             self.end_to_end_distance = 0
         else:
-            x1 = self.splined_traces[0, 0]
-            y1 = self.splined_traces[0, 1]
-            x2 = self.splined_traces[-1, 0]
-            y2 = self.splined_traces[-1, 1]
-            self.end_to_end_distance = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_size
-        # self.end_to_end_distance = {
-        #     dna_num: math.hypot((trace[0, 0] - trace[-1, 0]), (trace[0, 1] - trace[-1, 1]))
-        #     if self.mol_is_circular[dna_num]
-        #     else 0
-        #     for dna_num, trace in self.splined_traces.items()
-        # }
+            x1 = self.splined_trace[0, 0]
+            y1 = self.splined_trace[0, 1]
+            x2 = self.splined_trace[-1, 0]
+            y2 = self.splined_trace[-1, 1]
+            self.end_to_end_distance = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_to_nm_scaling
 
 
 def trace_image(
@@ -761,37 +726,26 @@ def trace_image(
     # Check both arrays are the same shape
     assert image.shape == grains_mask.shape
 
-    # Get bounding boxes for each grain
-    region_properties = skimage_measure.regionprops(grains_mask)
-    n_grains = len(np.unique(grains_mask)) - 1
-    # Subset image and grains then zip them up
-    cropped_images = [crop_array(image, grain.bbox) for grain in region_properties]
-    cropped_images = [np.pad(grain, pad_width=pad_width) for grain in cropped_images]
-    cropped_masks = [crop_array(grains_mask, grain.bbox) for grain in region_properties]
-    cropped_masks = [np.pad(grain, pad_width=pad_width) for grain in cropped_masks]
-    # Flip every labelled region to be 1 instead of its label
-    cropped_masks = [np.where(grain == 0, 0, 1) for grain in cropped_masks]
+    cropped_images, cropped_masks = prep_arrays(image, grains_mask, pad_width)
+    n_grains = len(cropped_images)
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
-    # Process in parallel
-    with Pool(processes=cores) as pool:
-        results = {}
-        with tqdm(total=n_grains) as pbar:
-            x = 0
-            for result in pool.starmap(
-                trace_grain,
-                zip(
-                    cropped_images,
-                    cropped_masks,
-                    repeat(pixel_to_nm_scaling),
-                    repeat(filename),
-                    repeat(min_skeleton_size),
-                    repeat(skeletonisation_method),
-                ),
-            ):
-                LOGGER.info(f"[{filename}] : Traced grain {x + 1} of {n_grains}")
-                results[x] = result
-                x += 1
-                pbar.update()
+    grain = 0
+    results = {}
+    for cropped_image, cropped_mask in zip(cropped_images, cropped_masks):
+        result = (
+            trace_grain(
+                cropped_image,
+                cropped_mask,
+                pixel_to_nm_scaling,
+                filename,
+                min_skeleton_size,
+                skeletonisation_method,
+                n_grain=grain,
+            ),
+        )
+        LOGGER.info(f"[{filename}] : Traced grain {grain + 1} of {n_grains}")
+        results[grain] = result[0]
+        grain += 1
     try:
         results = pd.DataFrame.from_dict(results, orient="index")
         results.index.name = "molecule_number"
@@ -801,6 +755,35 @@ def trace_image(
     return results
 
 
+def prep_arrays(image: np.ndarray, grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
+    """Takes an image and labelled mask and crops individual grains and original heights to a list.
+
+    Parameters
+    ==========
+    image: np.ndarray
+        Original image of heights.
+    grains_mask: np.ndarray
+        Labelled grains
+    pad_width: int
+        Cells by which to pad cropped regions by.
+
+    Returns
+    =======
+    Tuple
+        Returns a tuple of two lists, each consisting of cropped arrays.
+    """
+    # Get bounding boxes for each grain
+    region_properties = skimage_measure.regionprops(grains_mask)
+    # Subset image and grains then zip them up
+    cropped_images = [crop_array(image, grain.bbox, pad_width) for grain in region_properties]
+    cropped_images = [np.pad(grain, pad_width=pad_width) for grain in cropped_images]
+    cropped_masks = [crop_array(grains_mask, grain.bbox, pad_width) for grain in region_properties]
+    cropped_masks = [np.pad(grain, pad_width=pad_width) for grain in cropped_masks]
+    # Flip every labelled region to be 1 instead of its label
+    cropped_masks = [np.where(grain == 0, 0, 1) for grain in cropped_masks]
+    return (cropped_images, cropped_masks)
+
+
 def trace_grain(
     cropped_image: np.ndarray,
     cropped_mask: np.ndarray,
@@ -808,6 +791,7 @@ def trace_grain(
     filename: str = None,
     min_skeleton_size: int = 10,
     skeletonisation_method: str = "topostats",
+    n_grain: int = None,
 ) -> Dict:
     """Trace an individual grain.
 
@@ -836,6 +820,8 @@ def trace_grain(
     skeletonisation_method: str
         Method of skeletonisation, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin' (scikitimage) or
        'topostats' (original TopoStats method)
+    n_grain: int
+        Grain number being processed.
 
     Returns
     =======
@@ -844,24 +830,18 @@ def trace_grain(
     of co-ordinates.
     """
     dnatrace = dnaTrace(
-        full_image_data=cropped_image,
-        grains=cropped_mask,
+        image=cropped_image,
+        grain=cropped_mask,
         filename=filename,
-        pixel_size=pixel_to_nm_scaling,
+        pixel_to_nm_scaling=pixel_to_nm_scaling,
         min_skeleton_size=min_skeleton_size,
         skeletonisation_method=skeletonisation_method,
+        n_grain=n_grain,
     )
     dnatrace.trace_dna()
-    # dnatrace.saveTraceFigures(
-    #     filename=f"{filename}",
-    #     channel_name="test",
-    #     vmaxval=20e-9,
-    #     vminval=-10e-9,
-    #     output_dir=Path("/home/neil/work/projects/topostats/tmp/dnatracing_refactor/"),
-    # )
     return {
         "image": dnatrace.filename,
-        "contour_length": dnatrace.contour_lengths,
+        "contour_length": dnatrace.contour_length,
         "circular": dnatrace.mol_is_circular,
         "end_to_end_distance": dnatrace.end_to_end_distance,
     }
@@ -903,60 +883,39 @@ def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np
     ]
 
 
-class traceStats:
-    """Combine and save trace statistics."""
-
-    def __init__(self, trace_object: dnaTrace, image_path: Union[str, Path]) -> None:
-        """Initialise the class.
-
-        Parameters
-        ----------
-        trace_object: dnaTrace
-            Object produced from tracing.
-        image_path: Union[str, Path]
-            Path for saving images to.
-
-        Returns
-        -------
-        None
-        """
-
-        self.trace_object = trace_object
-        self.image_path = Path(image_path)
-        self.df = []
-        self.create_trace_stats()
-
-    def create_trace_stats(self):
-        """Creates a pandas dataframe of the contour length, whether its circular and end to end distance
-        combined with details of the working directory, directory images were found in and the image name.
-        """
-        stats = OrderedDict()
-        for mol_num, _ in self.trace_object.ordered_traces.items():
-            stats[mol_num] = {}
-            stats[mol_num]["contour_lengths"] = self.trace_object.contour_lengths[mol_num]
-            stats[mol_num]["circular"] = self.trace_object.mol_is_circular[mol_num]
-            stats[mol_num]["end_to_end_distance"] = self.trace_object.end_to_end_distance[mol_num]
-        self.df = pd.DataFrame.from_dict(data=stats, orient="index")
-        # self.df.reset_index(drop=True, inplace=True)
-        self.df.index.name = "molecule_number"
-        # self.df["Experiment Directory"] = str(Path().cwd())
-        self.df["image"] = self.image_path.name
-
-    def save_trace_stats(self, save_path: Union[str, Path], json: bool = True, csv: bool = True) -> None:
-        """Write trace statistics to JSON and/or CSV.
-
-        Parameters
-        ----------
-        save_path: Union[str, Path]
-            Directory to save results to.
-        json: bool
-            Whether to save a JSON version of statistics.
-        csv: bool
-            Whether to save a CSV version of statistics.
-        """
-        if json:
-            self.df.to_json(save_path / "tracestats.json")
-            LOGGER.info(f"Saved trace info for all analysed images to: {str(save_path / 'tracestats.json')}")
-        if csv:
-            self.df.to_csv(save_path / "tracestats.csv")
-            LOGGER.info(f"Saved trace info for all analysed images to: {str(save_path / 'tracestats.csv')}")
+# 2023-06-09 - Code that runs dnatracing in parallel across grains, left deliberately for use when we remodularise the
+#              entry-points/workflow. Will require that the gaussian filtered array is saved and passed in along with
+#              the labelled regions. @ns-rse
+#
+#
+# if __name__ == "__main__":
+#     cropped_images, cropped_masks = prep_arrays(image, grains_mask, pad_width)
+#     n_grains = len(cropped_images)
+#     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
+#     # Process in parallel
+#     with Pool(processes=cores) as pool:
+#         results = {}
+#         with tqdm(total=n_grains) as pbar:
+#             x = 0
+#             for result in pool.starmap(
+#                 trace_grain,
+#                 zip(
+#                     cropped_images,
+#                     cropped_masks,
+#                     repeat(pixel_to_nm_scaling),
+#                     repeat(filename),
+#                     repeat(min_skeleton_size),
+#                     repeat(skeletonisation_method),
+#                 ),
+#             ):
+#                 LOGGER.info(f"[{filename}] : Traced grain {x + 1} of {n_grains}")
+#                 results[x] = result
+#                 x += 1
+#                 pbar.update()
+#     try:
+#         results = pd.DataFrame.from_dict(results, orient="index")
+#         results.index.name = "molecule_number"
+#     except ValueError as error:
+#         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
+#         LOGGER.error(error)
+#     return results

@@ -19,7 +19,7 @@ def get_skeleton(image: np.ndarray, method: str) -> np.ndarray:
         Image of molecule to be skeletonized.
 
     method : str
-        Method to use, default is 'zhang' other options are 'lee', 'medial_axis' and 'thin'.
+        Method to use, default is 'zhang' other options are 'lee', and 'thin'.
 
     Returns
     -------
@@ -45,7 +45,7 @@ def _get_skeletonize(method: str = "zhang") -> Callable:
     Parameters
     ----------
     method: str
-        Method to use for skeletonizing, methods are 'zhang' (default), 'lee', 'medial_axis', and 'thin'.
+        Method to use for skeletonizing, methods are 'zhang' (default), 'lee', and 'thin'.
 
     Returns
     -------

@@ -305,13 +305,14 @@ def test_get_out_path_attributeerror() -> None:
         get_out_path(image_path="images/test.spm", base_dir=Path("/some/random/path"), output_dir=Path("output/here"))
 
 
-def test_save_folder_grainstats(tmp_path: Path, minicircle_tracestats: pd.DataFrame) -> None:
+def test_save_folder_grainstats(tmp_path: Path) -> None:
     """Test a folder-wide grainstats file is made"""
+    test_df = pd.DataFrame({"dummy1": [1, 2, 3], "dummy2": ["a", "b", "c"]})
     input_path = tmp_path / "minicircle"
-    minicircle_tracestats["basename"] = input_path
+    test_df["basename"] = input_path
     out_path = tmp_path / "subfolder"
     Path.mkdir(out_path, parents=True)
-    save_folder_grainstats(out_path, input_path, minicircle_tracestats)
+    save_folder_grainstats(out_path, input_path, test_df)
     assert Path(out_path / "processed" / "folder_grainstats.csv").exists()
 
 
