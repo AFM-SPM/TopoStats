@@ -530,11 +530,9 @@ SMALL_MASK = np.asarray(
 )
 def test_prep_arrays(pad_width: int, target_image: np.ndarray, target_mask: np.ndarray) -> None:
     """Tests the image and masks are correctly prepared to lists."""
-    images, masks = prep_arrays(image=SMALL_ARRAY, grains_mask=SMALL_MASK, pad_width=pad_width)
+    images, masks = prep_arrays(image=SMALL_ARRAY, labelled_grains_mask=SMALL_MASK, pad_width=pad_width)
     grain = 0
     for image, mask in zip(images, masks):
-        print(f"image :\n{image}")
-        print(f"mask  :\n{mask}")
         np.testing.assert_array_almost_equal(image, target_image[grain])
         np.testing.assert_array_equal(mask, target_mask[grain])
         grain += 1

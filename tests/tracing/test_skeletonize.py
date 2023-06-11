@@ -39,7 +39,7 @@ def test_skeletonize_method(skeletonize_circular_bool_int: np.ndarray) -> None:
         get_skeleton(skeletonize_circular_bool_int, method="nonsense")
 
 
-def test_skeletonize_circular_zha(skeletonize_circular_bool_int: np.ndarray) -> None:
+def test_skeletonize_circular_zhang(skeletonize_circular_bool_int: np.ndarray) -> None:
     """Test the Zhang method of skeletionzation on a circular object."""
     test = get_skeleton(skeletonize_circular_bool_int, method="zhang").astype(int)
     assert isinstance(test, np.ndarray)
@@ -57,6 +57,41 @@ def test_skeletonize_circular_lee(skeletonize_circular_bool_int: np.ndarray) -> 
     assert test.shape == (21, 21)
     assert test.sum() == 36
     np.testing.assert_array_equal(test, CIRCULAR_TARGET)
+
+
+def test_skeletonize_circular_thin(skeletonize_circular_bool_int: np.ndarray) -> None:
+    """Test the thin method of skeletonization on a circular object."""
+    CIRCULAR_THIN_TARGET = np.array(
+        [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ]
+    )
+    test = get_skeleton(skeletonize_circular_bool_int, method="thin").astype(int)
+    assert isinstance(test, np.ndarray)
+    assert test.ndim == 2
+    assert test.shape == (21, 21)
+    assert test.sum() == 28
+    np.testing.assert_array_equal(test, CIRCULAR_THIN_TARGET)
 
 
 def test_skeletonize_linear_zhang(skeletonize_linear_bool_int: np.ndarray) -> None:

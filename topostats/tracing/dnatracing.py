@@ -545,9 +545,6 @@ class dnaTrace:
 
         return updated_filename
 
-    def findWrithe(self):
-        pass
-
     def find_curvature(self):
         curve = []
         contour = 0
@@ -729,7 +726,7 @@ def trace_image(
     cropped_images, cropped_masks = prep_arrays(image, grains_mask, pad_width)
     n_grains = len(cropped_images)
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
-    grain = 0
+    n_grain = 0
     results = {}
     for cropped_image, cropped_mask in zip(cropped_images, cropped_masks):
         result = (
@@ -740,12 +737,12 @@ def trace_image(
                 filename,
                 min_skeleton_size,
                 skeletonisation_method,
-                n_grain=grain,
+                n_grain,
             ),
         )
-        LOGGER.info(f"[{filename}] : Traced grain {grain + 1} of {n_grains}")
-        results[grain] = result[0]
-        grain += 1
+        LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
+        results[n_grain] = result[0]
+        n_grain += 1
     try:
         results = pd.DataFrame.from_dict(results, orient="index")
         results.index.name = "molecule_number"
@@ -755,15 +752,16 @@ def trace_image(
     return results
 
 
-def prep_arrays(image: np.ndarray, grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
+def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
     """Takes an image and labelled mask and crops individual grains and original heights to a list.
 
     Parameters
     ==========
     image: np.ndarray
-        Original image of heights.
-    grains_mask: np.ndarray
-        Labelled grains
+        Gaussian filtered image. Typically filtered_image.images["gaussian_filtered"].
+    labelled_grains_mask: np.ndarray
+        2D Numpy array of labelled grain masks, with each mask being comprised solely of unique integer (not
+    zero). Typically this will be output from grains.directions[<direction>["labelled_region_02].
     pad_width: int
         Cells by which to pad cropped regions by.
 
@@ -773,11 +771,11 @@ def prep_arrays(image: np.ndarray, grains_mask: np.ndarray, pad_width: int) -> T
         Returns a tuple of two lists, each consisting of cropped arrays.
     """
     # Get bounding boxes for each grain
-    region_properties = skimage_measure.regionprops(grains_mask)
+    region_properties = skimage_measure.regionprops(labelled_grains_mask)
     # Subset image and grains then zip them up
     cropped_images = [crop_array(image, grain.bbox, pad_width) for grain in region_properties]
     cropped_images = [np.pad(grain, pad_width=pad_width) for grain in cropped_images]
-    cropped_masks = [crop_array(grains_mask, grain.bbox, pad_width) for grain in region_properties]
+    cropped_masks = [crop_array(labelled_grains_mask, grain.bbox, pad_width) for grain in region_properties]
     cropped_masks = [np.pad(grain, pad_width=pad_width) for grain in cropped_masks]
     # Flip every labelled region to be 1 instead of its label
     cropped_masks = [np.where(grain == 0, 0, 1) for grain in cropped_masks]
