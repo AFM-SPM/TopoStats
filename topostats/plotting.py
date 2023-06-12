@@ -1,5 +1,4 @@
-"""Plotting and summary of Statistics"""
-import argparse as arg
+"""Plotting and summary of TopoStats output statistics."""
 from collections import defaultdict
 
 import importlib.resources as pkg_resources
@@ -22,44 +21,6 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-locals
-
-
-def create_parser() -> arg.ArgumentParser:
-    """Create a parser for reading options."""
-    parser = arg.ArgumentParser(
-        description="Summarise and plot histograms, kernel density estimates and scatter plots of TopoStats"
-        "grain and DNA Tracing statistics."
-    )
-    parser.add_argument("-i", "--input_csv", dest="csv_file", required=False, help="Path to CSV file to plot.")
-    parser.add_argument(
-        "-c",
-        "--config_file",
-        dest="config_file",
-        required=False,
-        help="Path to a YAML configuration file.",
-    )
-    parser.add_argument(
-        "-l",
-        "--var_to_label",
-        dest="var_to_label",
-        required=False,
-        help="Path to a YAML plotting dictionary that maps variable names to labels.",
-    )
-    parser.add_argument(
-        "--create-config-file",
-        dest="create_config_file",
-        type=str,
-        required=False,
-        help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
-    )
-    parser.add_argument(
-        "--create-label-file",
-        dest="create_label_file",
-        type=str,
-        required=False,
-        help="Filename to write a sample YAML label file to (should end in '.yaml').",
-    )
-    return parser
 
 
 class TopoSum:
@@ -326,11 +287,8 @@ def toposum(config: dict) -> Dict:
     return figures
 
 
-def main(args=None):
+def run_toposum(args=None):
     """Run Plotting"""
-
-    parser = create_parser()
-    args = parser.parse_args() if args is None else parser.parse_args(args)
 
     if args.config_file is not None:
         config = read_yaml(args.config_file)
@@ -382,7 +340,3 @@ def main(args=None):
 
     # Plot statistics
     toposum(config)
-
-
-if __name__ == "__main__":
-    main()

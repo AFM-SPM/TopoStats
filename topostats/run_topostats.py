@@ -2,7 +2,6 @@
 
 This provides an entry point for running TopoStats as a command line programme.
 """
-import argparse as arg
 from collections import defaultdict
 from functools import partial
 import importlib.resources as pkg_resources
@@ -16,7 +15,6 @@ import yaml
 import pandas as pd
 from tqdm import tqdm
 
-from topostats import __version__
 from topostats.io import (
     find_files,
     read_yaml,
@@ -25,6 +23,7 @@ from topostats.io import (
     write_config_with_comments,
     LoadScans,
 )
+
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import check_run_steps, completion_message, process_scan
@@ -45,117 +44,16 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-nested-blocks
 
 
-def create_parser() -> arg.ArgumentParser:
-    """Create a parser for reading options."""
-    parser = arg.ArgumentParser(
-        description="Process AFM images. Additional arguments over-ride those in the configuration file."
-    )
-    parser.add_argument(
-        "-c",
-        "--config_file",
-        dest="config_file",
-        required=False,
-        help="Path to a YAML configuration file.",
-    )
-    parser.add_argument(
-        "--create-config-file",
-        dest="create_config_file",
-        type=str,
-        required=False,
-        help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
-    )
-    parser.add_argument(
-        "-s",
-        "--summary_config",
-        dest="summary_config",
-        required=False,
-        help="Path to a YAML configuration file for summary plots and statistics.",
-    )
-    parser.add_argument(
-        "-b",
-        "--base_dir",
-        dest="base_dir",
-        type=str,
-        required=False,
-        help="Base directory to scan for images.",
-    )
-    parser.add_argument(
-        "-j",
-        "--cores",
-        dest="cores",
-        type=int,
-        required=False,
-        help="Number of CPU cores to use when processing.",
-    )
-    parser.add_argument(
-        "-l",
-        "--log_level",
-        dest="log_level",
-        type=str,
-        required=False,
-        help="Logging level to use, default is 'info' for verbose output use 'debug'.",
-    )
-    parser.add_argument(
-        "-f",
-        "--file_ext",
-        dest="file_ext",
-        type=str,
-        required=False,
-        help="File extension to scan for.",
-    )
-    parser.add_argument(
-        "--channel",
-        dest="channel",
-        type=str,
-        required=False,
-        help="Channel to extract.",
-    )
-    parser.add_argument(
-        "-o",
-        "--output_dir",
-        dest="output_dir",
-        type=str,
-        required=False,
-        help="Output directory to write results to.",
-    )
-    parser.add_argument(
-        "--save_plots",
-        dest="save_plots",
-        type=bool,
-        required=False,
-        help="Whether to save plots.",
-    )
-    parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
-    parser.add_argument(
-        "-v",
-        "--version",
-        action="version",
-        version=f"Installed version of TopoStats : {__version__}",
-        help="Report the current version of TopoStats that is installed.",
-    )
-    parser.add_argument(
-        "-w",
-        "--warnings",
-        dest="warnings",
-        type=bool,
-        required=False,
-        help="Whether to ignore warnings.",
-    )
-    return parser
-
-
-def main(args=None):
+def run_topostats(args=None):
     """Find and process all files."""
 
     # Parse command line options, load config (or default) and update with command line options
-    parser = create_parser()
-    args = parser.parse_args() if args is None else parser.parse_args(args)
-    if args.config_file is None:
+    if args.config_file is not None:
+        config = read_yaml(args.config_file)
+    else:
         default_config = pkg_resources.open_text(__package__, "default_config.yaml").read()
         config = yaml.safe_load(default_config)
-    else:
-        config = read_yaml(args.config_file)
-
+    # Override the config with command line arguments passed in, eg --output_dir ./output/
     config = update_config(config, args)
 
     # Set logging level
@@ -311,7 +209,3 @@ def main(args=None):
     write_yaml(config, output_dir=config["output_dir"])
     LOGGER.debug(f"Images processed : {images_processed}")
     completion_message(config, img_files, summary_config, images_processed)
-
-
-if __name__ == "__main__":
-    main()
