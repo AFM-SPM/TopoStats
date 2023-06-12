@@ -186,9 +186,19 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "run": Or(
                 True,
                 False,
-                error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
+                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
             ),
             "min_skeleton_size": lambda n: n > 0.0,
+            "skeletonisation_method": Or(
+                "zhang",
+                "lee",
+                "thin",
+                "topostats",
+                error="Invalid value in config for 'dnatracing.skeletonisation_method',"
+                "valid values are 'zhang' or 'lee', 'thin' or 'topostats'",
+            ),
+            "pad_width": lambda n: n > 0.0,
+            # "cores": lambda n: n > 0.0,
         },
         "plotting": {
             "run": Or(

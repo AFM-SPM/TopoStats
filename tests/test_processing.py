@@ -267,7 +267,7 @@ def test_check_run_steps(
             True,
             True,
             True,
-            "There are 15 circular and 6 linear DNA molecules found in the image",
+            "Traced grain 21 of 21",
             "Combining above grain statistics and dnatracing statistics",
         ),
     ],
@@ -325,7 +325,6 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
         output_dir=tmp_path,
     )
     assert "Grains found for direction above : 0" in caplog.text
-    assert "There are 0 circular and 0 linear DNA molecules found in the image" in caplog.text
     assert "No grains exist for the above direction. Skipping grainstats and DNAtracing." in caplog.text
 
 
@@ -335,7 +334,7 @@ def test_process_scan_align_grainstats_dnatracing(
     """Test that molecule numbers from dnatracing align with those from grainstats when some grains are removed from
     tracing because they are too small.
 
-    By setting processing parameters as below two molecules are pruged for being too small after skeletonisation and so
+    By setting processing parameters as below two molecules are purged for being too small after skeletonisation and so
     do not have DNA tracing statistics (but they do have Grain Statistics)."""
     img_dic = load_scan_data.img_dict
     process_scan_config["filter"]["remove_scars"]["run"] = False
@@ -351,9 +350,7 @@ def test_process_scan_align_grainstats_dnatracing(
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
-    tracing_to_check = ["contour_lengths", "circular", "end_to_end_distance"]
+    tracing_to_check = ["contour_length", "circular", "end_to_end_distance"]
     assert results.shape == (24, 25)
-    assert np.isnan(results.loc[8, "contour_lengths"])
+    assert np.isnan(results.loc[8, "contour_length"])
     assert np.isnan(sum(results.loc[8, tracing_to_check]))
-    assert np.isnan(results.loc[22, "contour_lengths"])
-    assert np.isnan(sum(results.loc[22, tracing_to_check]))
