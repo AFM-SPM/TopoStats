@@ -28,70 +28,23 @@ from topostats.utils import create_empty_dataframe
 LOGGER = setup_logger(LOGGER_NAME)
 
 
-def process_scan(
-    img_path_px2nm: Dict[str, Union[np.ndarray, Path, float]],
-    base_dir: Union[str, Path],
+def filter_wrapper(
+    unprocessed_image: np.ndarray,
+    pixel_to_nm_scaling: float,
+    filename: str,
+    filter_out_path: Path,
+    core_out_path: Path,
     filter_config: dict,
-    grains_config: dict,
-    grainstats_config: dict,
-    dnatracing_config: dict,
     plotting_config: dict,
-    output_dir: Union[str, Path] = "output",
-) -> None:
-    """Process a single image, filtering, finding grains and calculating their statistics.
-
-    Parameters
-    ----------
-    img_path_px2nm : Dict[str, Union[np.ndarray, Path, float]]
-        A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's pixel to namometre scaling value.
-    base_dir : Union[str, Path]
-        Directory to recursively search for files, if not specified the current directory is scanned.
-    filter_config : dict
-        Dictionary of configuration options for running the Filter stage.
-    grains_config : dict
-        Dictionary of configuration options for running the Grain detection stage.
-    grainstats_config : dict
-        Dictionary of configuration options for running the Grain Statistics stage.
-    dnatracing_config : dict
-        Dictionary of configuration options for running the DNA Tracing stage.
-    plotting_config : dict
-        Dictionary of configuration options for plotting figures.
-    output_dir : Union[str, Path]
-        Directory to save output to, it will be created if it does not exist. If it already exists then it is possible
-        that output will be over-written.
-
-
-    Results
-    -------
-    None
-
-    Results are written to CSV and images produced in configuration options request them.
-    """
-
-    image = img_path_px2nm["image"]
-    image_path = img_path_px2nm["img_path"]
-    pixel_to_nm_scaling = img_path_px2nm["px_2_nm"]
-    filename = image_path.name
-
-    LOGGER.info(f"Processing : {filename}")
-    core_out_path = get_out_path(image_path, base_dir, output_dir).parent / "processed"
-    core_out_path.mkdir(parents=True, exist_ok=True)
-    filter_out_path = core_out_path / filename / "filters"
-    grain_out_path = core_out_path / filename / "grains"
-    if plotting_config["image_set"] == "all":
-        filter_out_path.mkdir(exist_ok=True, parents=True)
-        Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
-        Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
-
-    # Filter Image
+) -> np.ndarray:
     if filter_config["run"]:
         filter_config.pop("run")
-        LOGGER.info(f"[{filename}] Image dimensions: {image.shape}")
+        LOGGER.info(f"[{filename}] Image dimensions: {unprocessed_image.shape}")
         LOGGER.info(f"[{filename}] : *** Filtering ***")
         filtered_image = Filters(
-            image,
-            filename,
-            pixel_to_nm_scaling,
+            image=unprocessed_image,
+            filename=filename,
+            pixel_to_nm_scaling=pixel_to_nm_scaling,
             **filter_config,
         )
         filtered_image.filter_image()
@@ -132,19 +85,33 @@ def process_scan(
             array_type="height_thresholded",
         )
 
+        return filtered_image.images["gaussian_filtered"]
+
     else:
         LOGGER.error(
             "You have not included running the initial filter stage. This is required for all subsequent "
             "stages of processing. Please check your configuration file."
         )
 
-    # Find Grains :
+        return unprocessed_image
+
+
+def grains_wrapper(
+    image: np.ndarray,
+    pixel_to_nm_scaling: float,
+    filename: str,
+    grain_out_path: Path,
+    core_out_path: Path,
+    plotting_config: dict,
+    grains_config: dict,
+):
     if grains_config["run"]:
         grains_config.pop("run")
+
         try:
             LOGGER.info(f"[{filename}] : *** Grain Finding ***")
             grains = Grains(
-                image=filtered_image.images["gaussian_filtered"],
+                image=image,
                 filename=filename,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
                 **grains_config,
@@ -159,7 +126,6 @@ def process_scan(
         except Exception as e:
             LOGGER.error(f"[{filename}] : An error occured during grain finding, skipping grainstats and dnatracing.")
             LOGGER.error(f"[{filename}] : The error: {e}")
-            results = create_empty_dataframe()
         else:
             for direction, region_props in grains.region_properties.items():
                 if len(region_props) == 0:
@@ -168,6 +134,7 @@ def process_scan(
             if plotting_config["run"]:
                 plotting_config.pop("run")
                 LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
+                grain_masks = {}
                 for direction, image_arrays in grains.directions.items():
                     LOGGER.info(f"[{filename}] : Plotting {direction} Grain Finding Images")
                     for plot_name, array in image_arrays.items():
@@ -191,127 +158,254 @@ def process_scan(
                     plot_name = "mask_overlay"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
                     Images(
-                        filtered_image.images["gaussian_filtered"],
+                        image,
                         filename=f"{filename}_{direction}_masked",
                         masked_array=grains.directions[direction]["removed_small_objects"],
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
 
+                    grain_masks[direction] = grains.directions[direction]["labelled_regions_02"]
+
                 plotting_config["run"] = True
+
+                return grain_masks
+
             else:
                 LOGGER.info(f"[{filename}] : Plotting disabled for Grain Finding Images")
 
-            # Grainstats :
-            # Calculate statistics if required
-            if grainstats_config["run"]:
-                grainstats_config.pop("run")
-                # Grain Statistics :
-                try:
-                    LOGGER.info(f"[{filename}] : *** Grain Statistics ***")
-                    grain_plot_dict = {
-                        key: value
-                        for key, value in plotting_config["plot_dict"].items()
-                        if key in ["grain_image", "grain_mask", "grain_mask_image"]
-                    }
-                    grainstats = {}
-                    # There are two layers to process those above the given threshold and those below
-                    for direction, _ in grains.directions.items():
-                        if len(grains.region_properties[direction]) == 0:
-                            LOGGER.warning(
-                                f"[{filename}] : No grains exist for the {direction} direction. Skipping grainstats and DNAtracing."
-                            )
-                            grainstats[direction] = create_empty_dataframe()
-                        else:
-                            grainstats[direction], grains_plot_data = GrainStats(
-                                data=filtered_image.images["gaussian_filtered"],
-                                labelled_data=grains.directions[direction]["labelled_regions_02"],
-                                pixel_to_nanometre_scaling=pixel_to_nm_scaling,
-                                direction=direction,
-                                base_output_dir=grain_out_path,
-                                image_name=filename,
-                                plot_opts=grain_plot_dict,
-                                **grainstats_config,
-                            ).calculate_stats()
-                            grainstats[direction]["threshold"] = direction
-                            # Plot grains
-                            if plotting_config["image_set"] == "all":
-                                LOGGER.info(f"[{filename}] : Plotting grain images for direction: {direction}.")
-                                for plot_data in grains_plot_data:
-                                    LOGGER.info(
-                                        f"[{filename}] : Plotting grain image {plot_data['filename']} for direction: {direction}."
-                                    )
-                                    Images(
-                                        data=plot_data["data"],
-                                        output_dir=plot_data["output_dir"],
-                                        filename=plot_data["filename"],
-                                        **plotting_config["plot_dict"][plot_data["name"]],
-                                    ).plot_and_save()
-                    # Set grainstats_df in light of direction
-                    if grains_config["direction"] == "both":
-                        grainstats_df = pd.concat([grainstats["below"], grainstats["above"]])
-                    elif grains_config["direction"] == "above":
-                        grainstats_df = grainstats["above"]
-                    elif grains_config["direction"] == "below":
-                        grainstats_df = grainstats["below"]
-                except Exception:
-                    LOGGER.info(
-                        f"[{filename}] : Errors occurred whilst calculating grain statistics. Skipping DNAtracing."
-                    )
-                    results = create_empty_dataframe()
-                else:
-                    # Run dnatracing
-                    try:
-                        if dnatracing_config["run"]:
-                            dnatracing_config.pop("run")
-                            LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
-                            tracing_stats = defaultdict()
-                            for direction, _ in grainstats.items():
-                                tracing_stats[direction] = trace_image(
-                                    image=filtered_image.images["gaussian_filtered"],
-                                    grains_mask=grains.directions[direction]["labelled_regions_02"],
-                                    filename=filename,
-                                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                                    **dnatracing_config,
-                                )
-                                tracing_stats[direction]["threshold"] = direction
-                            # Set tracing_stats_df in light of direction
-                            if grains_config["direction"] == "both":
-                                tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
-                            elif grains_config["direction"] == "above":
-                                tracing_stats_df = tracing_stats["above"]
-                            elif grains_config["direction"] == "below":
-                                tracing_stats_df = tracing_stats["below"]
-                            LOGGER.info(
-                                f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics"
-                            )
-                            # NB - Merge on image, molecule and threshold because we may have above and below molecules which
-                            #      gives duplicate molecule numbers as they are processed separately, if tracing stats
-                            #      are not available (because skeleton was too small), grainstats are still retained.
-                            results = grainstats_df.merge(
-                                tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left"
-                            )
-                            results["basename"] = image_path.parent
-                        else:
-                            LOGGER.info(
-                                f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame."
-                            )
-                            results = grainstats_df
-                            results["basename"] = image_path.parent
-                    except Exception:
-                        # If no results we need a dummy dataframe to return.
-                        LOGGER.warning(
-                            f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, "
-                            "returning grain statistics"
-                        )
-                        results = grainstats_df
-                        results["basename"] = image_path.parent
-            else:
-                LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
-                results = create_empty_dataframe()
+                return None
     else:
         LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
-        results = create_empty_dataframe()
-    return image_path, results
+        return None
+
+
+def grainstats_wrapper(
+    image: np.ndarray,
+    pixel_to_nm_scaling: float,
+    grain_masks: dict,
+    filename: str,
+    grainstats_config: dict,
+    plotting_config: dict,
+    grain_out_path: Path,
+):
+    # Calculate statistics if required
+    if grainstats_config["run"]:
+        grainstats_config.pop("run")
+        # Grain Statistics :
+        try:
+            LOGGER.info(f"[{filename}] : *** Grain Statistics ***")
+            grain_plot_dict = {
+                key: value
+                for key, value in plotting_config["plot_dict"].items()
+                if key in ["grain_image", "grain_mask", "grain_mask_image"]
+            }
+            grainstats = {}
+            # There are two layers to process those above the given threshold and those below
+            for direction, _ in grain_masks.items():
+                if len(grain_masks[direction]) == 0:
+                    LOGGER.warning(
+                        f"[{filename}] : No grains exist for the {direction} direction. Skipping grainstats and DNAtracing."
+                    )
+                    grainstats[direction] = create_empty_dataframe()
+                else:
+                    grainstats[direction], grains_plot_data = GrainStats(
+                        data=image,
+                        labelled_data=grain_masks[direction],
+                        pixel_to_nanometre_scaling=pixel_to_nm_scaling,
+                        direction=direction,
+                        base_output_dir=grain_out_path,
+                        image_name=filename,
+                        plot_opts=grain_plot_dict,
+                        **grainstats_config,
+                    ).calculate_stats()
+                    grainstats[direction]["threshold"] = direction
+                    # Plot grains
+                    if plotting_config["image_set"] == "all":
+                        LOGGER.info(f"[{filename}] : Plotting grain images for direction: {direction}.")
+                        for plot_data in grains_plot_data:
+                            LOGGER.info(
+                                f"[{filename}] : Plotting grain image {plot_data['filename']} for direction: {direction}."
+                            )
+                            Images(
+                                data=plot_data["data"],
+                                output_dir=plot_data["output_dir"],
+                                filename=plot_data["filename"],
+                                **plotting_config["plot_dict"][plot_data["name"]],
+                            ).plot_and_save()
+            # Set grainstats_df in light of direction
+            if "above" in grain_masks.keys() and "below" in grain_masks.keys():
+                grainstats_df = pd.concat([grainstats["below"], grainstats["above"]])
+            elif "above" in grain_masks.keys():
+                grainstats_df = grainstats["above"]
+            elif "below" in grain_masks.keys():
+                grainstats_df = grainstats["below"]
+
+            return grainstats_df
+
+        except Exception:
+            LOGGER.info(f"[{filename}] : Errors occurred whilst calculating grain statistics. Skipping DNAtracing.")
+            return create_empty_dataframe()
+
+
+def dnatracing_wrapper(
+    image: np.ndarray,
+    grain_masks: np.ndarray,
+    pixel_to_nm_scaling: float,
+    image_path: Path,
+    filename: str,
+    dnatracing_config: dict,
+    results_df: pd.DataFrame = None,
+):
+    # Run dnatracing
+    try:
+        if dnatracing_config["run"]:
+            dnatracing_config.pop("run")
+            LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
+            tracing_stats = defaultdict()
+            for direction, _ in grain_masks.items():
+                tracing_stats[direction] = trace_image(
+                    image=image,
+                    grains_mask=grain_masks[direction],
+                    filename=filename,
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    **dnatracing_config,
+                )
+                tracing_stats[direction]["threshold"] = direction
+            # Set tracing_stats_df in light of direction
+            if "above" in grain_masks.keys() and "below" in grain_masks.keys():
+                tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
+            elif "above" in grain_masks.keys():
+                tracing_stats_df = tracing_stats["above"]
+            elif "below" in grain_masks.keys():
+                tracing_stats_df = tracing_stats["below"]
+            LOGGER.info(f"[{filename}] : Combining {grain_masks.keys()} grain statistics and dnatracing statistics")
+            # NB - Merge on image, molecule and threshold because we may have above and below molecules which
+            #      gives duplicate molecule numbers as they are processed separately, if tracing stats
+            #      are not available (because skeleton was too small), grainstats are still retained.
+            results = results_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left")
+            results["basename"] = results_df.parent
+        else:
+            LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
+            results = results_df
+            results["basename"] = image_path.parent
+
+            return results
+
+    except Exception:
+        # If no results we need a dummy dataframe to return.
+        LOGGER.warning(
+            f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, " "returning grain statistics"
+        )
+        results = results_df
+        results["basename"] = image_path.parent
+
+        return results
+
+
+def process_scan(
+    img_path_px2nm: Dict[str, Union[np.ndarray, Path, float]],
+    base_dir: Union[str, Path],
+    filter_config: dict,
+    grains_config: dict,
+    grainstats_config: dict,
+    dnatracing_config: dict,
+    plotting_config: dict,
+    output_dir: Union[str, Path] = "output",
+) -> None:
+    """Process a single image, filtering, finding grains and calculating their statistics.
+
+    Parameters
+    ----------
+    img_path_px2nm : Dict[str, Union[np.ndarray, Path, float]]
+        A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's pixel to namometre scaling value.
+    base_dir : Union[str, Path]
+        Directory to recursively search for files, if not specified the current directory is scanned.
+    filter_config : dict
+        Dictionary of configuration options for running the Filter stage.
+    grains_config : dict
+        Dictionary of configuration options for running the Grain detection stage.
+    grainstats_config : dict
+        Dictionary of configuration options for running the Grain Statistics stage.
+    dnatracing_config : dict
+        Dictionary of configuration options for running the DNA Tracing stage.
+    plotting_config : dict
+        Dictionary of configuration options for plotting figures.
+    output_dir : Union[str, Path]
+        Directory to save output to, it will be created if it does not exist. If it already exists then it is possible
+        that output will be over-written.
+
+
+    Results
+    -------
+    None
+
+    Results are written to CSV and images produced in configuration options request them.
+    """
+
+    unprocessed_image = img_path_px2nm["image"]
+    image_path = img_path_px2nm["img_path"]
+    pixel_to_nm_scaling = img_path_px2nm["px_2_nm"]
+    filename = image_path.name
+
+    LOGGER.info(f"Processing : {filename}")
+    core_out_path = get_out_path(image_path, base_dir, output_dir).parent / "processed"
+    core_out_path.mkdir(parents=True, exist_ok=True)
+    filter_out_path = core_out_path / filename / "filters"
+    grain_out_path = core_out_path / filename / "grains"
+    if plotting_config["image_set"] == "all":
+        filter_out_path.mkdir(exist_ok=True, parents=True)
+        Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
+        Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
+
+    # Filter Image
+    flattened_image = filter_wrapper(
+        unprocessed_image=unprocessed_image,
+        pixel_to_nm_scaling=pixel_to_nm_scaling,
+        filename=filename,
+        filter_out_path=filter_out_path,
+        core_out_path=core_out_path,
+        filter_config=filter_config,
+        plotting_config=plotting_config,
+    )
+
+    # Find Grains :
+    grain_masks = grains_wrapper(
+        image=flattened_image,
+        pixel_to_nm_scaling=pixel_to_nm_scaling,
+        filename=filename,
+        grain_out_path=grain_out_path,
+        core_out_path=core_out_path,
+        plotting_config=plotting_config,
+        grains_config=grains_config,
+    )
+
+    if grain_masks is not None:
+        # Grainstats :
+        results_df = grainstats_wrapper(
+            image=flattened_image,
+            pixel_to_nm_scaling=pixel_to_nm_scaling,
+            grain_masks=grain_masks,
+            filename=filename,
+            grainstats_config=grainstats_config,
+            plotting_config=plotting_config,
+            grain_out_path=grain_out_path,
+        )
+
+        # DNAtracing
+        results_df = dnatracing_wrapper(
+            image=flattened_image,
+            pixel_to_nm_scaling=pixel_to_nm_scaling,
+            grain_masks=grain_masks,
+            filename=filename,
+            image_path=image_path,
+            dnatracing_config=dnatracing_config,
+            results_df=results_df,
+        )
+
+    else:
+        results_df = create_empty_dataframe()
+
+    return image_path, results_df
 
 
 def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
