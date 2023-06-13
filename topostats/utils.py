@@ -25,7 +25,7 @@ ALL_STATISTICS_COLUMNS = (
     "centre_x",
     "centre_y",
     "circular",
-    "contour_lengths",
+    "contour_length",
     "end_to_end_distance",
     "height_max",
     "height_mean",

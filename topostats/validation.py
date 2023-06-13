@@ -694,7 +694,7 @@ SUMMARY_SCHEMA = Schema(
             Optional("area_cartesian_bbox"),
             Optional("aspect_ratio"),
             Optional("bending_angle"),
-            Optional("contour_lengths"),
+            Optional("contour_length"),
             Optional("end_to_end_distance"),
             Optional("height_max"),
             Optional("height_mean"),
