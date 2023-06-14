@@ -2,6 +2,7 @@
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Union, List
+import pickle as pkl
 
 import numpy as np
 import pandas as pd
@@ -268,17 +269,14 @@ def process_scan(
                     if dnatracing_config["run"]:
                         dnatracing_config.pop("run")
                         LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
-                        tracing_stats = defaultdict()
-                        all_traces = defaultdict()
-                        all_trace_heights = defaultdict()
-                        all_trace_cumulative_distances = defaultdict()
+                        all_tracing_stats = defaultdict()
+                        all_trace_data = defaultdict()
+                        all_trace_plot_data = defaultdict()
                         for direction, _ in grainstats.items():
                             (
-                                tracing_stats[direction],
-                                all_traces[direction],
-                                full_trace_image_overlay[direction],
-                                all_trace_heights[direction],
-                                all_trace_cumulative_distances[direction],
+                                all_tracing_stats[direction],
+                                all_trace_data[direction],
+                                all_trace_plot_data[direction]
                             ) = trace_image(
                                 image=filtered_image.images["gaussian_filtered"],
                                 grains_mask=grains.directions[direction]["labelled_regions_02"],
@@ -286,14 +284,14 @@ def process_scan(
                                 pixel_to_nm_scaling=pixel_to_nm_scaling,
                                 **dnatracing_config,
                             )
-                            tracing_stats[direction]["threshold"] = direction
+                            all_tracing_stats[direction]["threshold"] = direction
                         # Set tracing_stats_df in light of direction
                         if grains_config["direction"] == "both":
-                            tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
+                            tracing_stats_df = pd.concat([all_tracing_stats["below"], all_tracing_stats["above"]])
                         elif grains_config["direction"] == "above":
-                            tracing_stats_df = tracing_stats["above"]
+                            tracing_stats_df = all_tracing_stats["above"]
                         elif grains_config["direction"] == "below":
-                            tracing_stats_df = tracing_stats["below"]
+                            tracing_stats_df = all_tracing_stats["below"]
                         LOGGER.info(f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics")
                         # NB - Merge on image, molecule and threshold because we may have above and below molecules which
                         #      gives duplicate molecule numbers as they are processed separately, if tracing stats
@@ -303,30 +301,51 @@ def process_scan(
                         )
                         results["basename"] = image_path.parent
 
+                        # Save the trace data to file
+                        for direction, _ in grainstats.items():
+                            # Save the trace
+                            with open(core_out_path / f"{filename}_trace_data_{direction}.pkl", "wb") as f:
+                                pkl.dump(all_trace_data[direction], f)
+
                         # Plot the traces
                         print(f"PLOTTING TRACES")
                         for direction, _ in grainstats.items():
-                            traces = all_traces[direction]
-                            mask = np.zeros(filtered_image.images["gaussian_filtered"].shape)
-                            for _, trace in traces.items():
-                                for coordinate in trace:
-                                    mask[
-                                        coordinate[0] - 2 : coordinate[0] + 2, coordinate[1] - 2 : coordinate[1] + 2
-                                    ] = 1
+                            trace_mask = all_trace_plot_data[direction]["mask"]
                             Images(
                                 filtered_image.images["gaussian_filtered"],
                                 output_dir=core_out_path,
                                 filename=f"{filename}_{direction}_traced",
                                 pixel_to_nm_scaling=pixel_to_nm_scaling,
-                                masked_array=mask,
+                                masked_array=trace_mask,
                                 image_type="non-binary",
                                 save=True,
                                 mask_cmap="blu",
                                 image_set="all",
                                 pixel_interpolation=None,
                                 core_set=True,
-                                dpi=1000,
                             ).plot_and_save()
+
+                        # Plot the individual grain traces
+                        print(f"PLOTTING INDIVIDUAL GRAIN TRACES")
+                        if plotting_config["image_set"] == "all":
+                            for direction, _ in grainstats.items():
+                                direction_trace_plot_data = all_trace_plot_data[direction]["cropped_grains"]
+                                print(direction_trace_plot_data.keys())
+                                for grain_number, trace_plot_data in direction_trace_plot_data.items():
+                                    print(f"PLOTTING GRAIN TRACE {grain_number}")
+                                    cropped_grain = trace_plot_data["cropped_grain"]
+                                    grain_trace_overlay = trace_plot_data["grain_trace_overlay"]
+                                    Images(
+                                        cropped_grain,
+                                        output_dir=grain_out_path/direction,
+                                        filename=f"{filename}_grain_trace_{grain_number}",
+                                        pixel_to_nm_scaling=pixel_to_nm_scaling,
+                                        masked_array=grain_trace_overlay,
+                                        image_type="non-binary",
+                                        mask_cmap="blu",
+                                        image_set="all",
+                                        pixel_interpolation=None
+                                    ).plot_and_save()
 
                     else:
                         LOGGER.info(

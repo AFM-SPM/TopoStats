@@ -1,5 +1,5 @@
 """Perform DNA Tracing"""
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from functools import partial
 from itertools import repeat
 import logging
@@ -15,7 +15,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import ndimage, spatial, interpolate as interp
-from skimage import morphology
+import skimage.morphology as skimage_morphology
 from skimage.filters import gaussian
 import skimage.measure as skimage_measure
 from tqdm import tqdm
@@ -724,6 +724,7 @@ def trace_image(
     min_skeleton_size: int,
     skeletonisation_method: str,
     pad_width: int = 10,
+    mask_dilation_strength: int = 4,
     cores: int = 1,
 ) -> pd.DataFrame:
     """Processor function for tracing grains individually.
@@ -745,6 +746,9 @@ def trace_image(
        'topostats' (original TopoStats method)
     pad_width: int
         Number of cells to pad arrays by, required to handle instances where grains touch the bounding box edges.
+    mask_dilation_strength: int
+        Number of times to apply binary dilation for the trace binary image mask. Higher will make the trace more apparent
+        in the plot, but may obscure finer structure.
     cores : int
         Number of cores to process with.
 
@@ -762,9 +766,11 @@ def trace_image(
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
     n_grain = 0
     results = {}
-    all_traces = {}
+    all_global_traces = {}
     all_trace_heights = {}
     all_trace_cumulative_distances = {}
+    trace_plot_data = {}
+    trace_plot_data["cropped_grains"] = {}
     for cropped_image, cropped_mask in zip(cropped_images, cropped_masks):
         result = (
             trace_grain(
@@ -784,17 +790,28 @@ def trace_image(
         result[0].pop("trace_heights")
         trace_cumulative_distances = result[0]["trace_cumulative_distances"]
         result[0].pop("trace_cumulative_distances")
-        trace = result[0]["trace"]
+        local_trace = result[0]["trace"]
         # Because the grains are cropped, we need to add the crop position to restore the global coordinates
-        for _, coord in enumerate(trace):
+        global_trace = local_trace.copy()
+        for _, coord in enumerate(global_trace):
             coord[0] += grain_crop_coordinates[n_grain][0]
             coord[1] += grain_crop_coordinates[n_grain][1]
         result[0].pop("trace")
 
         results[n_grain] = result[0]
-        all_traces[n_grain] = trace
+        all_global_traces[n_grain] = global_trace
         all_trace_heights[n_grain] = trace_heights
         all_trace_cumulative_distances[n_grain] = trace_cumulative_distances
+
+        # Save the image and mask for the grain to return
+        trace_plot_data["cropped_grains"][n_grain] = {}
+        trace_plot_data["cropped_grains"][n_grain]["cropped_grain"] = cropped_image
+        grain_overlay_mask = np.zeros(cropped_image.shape)
+        # print(f"@@@ grain overlay mask shape: {grain_overlay_mask.shape}")
+        # print(f"max trace coords: 0: {np.max(local_trace[:, 0])} 1: {np.max(local_trace[:, 1])}")
+        grain_overlay_mask[local_trace[:, 0], local_trace[:, 1]] = 1
+        trace_plot_data["cropped_grains"][n_grain]["grain_trace_overlay"] = grain_overlay_mask
+
         n_grain += 1
     try:
         results = pd.DataFrame.from_dict(results, orient="index")
@@ -803,7 +820,29 @@ def trace_image(
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
 
-    return results, all_traces, all_trace_heights, all_trace_cumulative_distances
+    # Package up all the trace data dictionaries to return
+    all_trace_data = {
+        "global_traces": all_global_traces,
+        "trace_heights": all_trace_heights,
+        "trace_cumulative_distances": all_trace_cumulative_distances
+    }
+
+    # Main trace plot
+    image_overlay_mask = np.zeros(image.shape)
+    for _, trace in all_global_traces.items():
+        image_overlay_mask[trace[:, 0], trace[:, 1]] = 1
+    footprint = np.array(
+        [
+            [0, 1, 0],
+            [1, 1, 1],
+            [0, 1, 0],
+        ]
+    )
+    for i in range(mask_dilation_strength):
+        image_overlay_mask = skimage_morphology.binary_dilation(image_overlay_mask, footprint=footprint)
+    trace_plot_data["mask"] = image_overlay_mask
+
+    return results, all_trace_data, trace_plot_data
 
 
 def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
