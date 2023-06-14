@@ -174,6 +174,12 @@ class Images:
                         fig, ax = self.save_figure()
                     else:
                         self.save_array_figure()
+            else:
+                print(
+                    f"Image not saved, self.image_set is not 'all' self.image_set:{self.image_set} self.core_set: {self.core_set}"
+                )
+        else:
+            print("Image not saved, self.save is set to False")
         LOGGER.info(
             f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}" f".{self.save_format}"
         )
