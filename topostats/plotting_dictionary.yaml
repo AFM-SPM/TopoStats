@@ -137,7 +137,7 @@ grain_image:
   image_type: "non-binary"
   core_set: false
 grain_mask:
-  image_type: "non-binary"
+  image_type: "binary"
   core_set: false
 grain_mask_image:
   image_type: "non-binary"

@@ -102,8 +102,10 @@ def update_plotting_config(plotting_config: dict) -> dict:
         main_config.pop(opt)
     for image, options in plotting_config["plot_dict"].items():
         plotting_config["plot_dict"][image] = {**options, **main_config}
-        if image not in ["z_threshed", "mask_overlay"]:
-            plotting_config["plot_dict"][image].pop("zrange")
+        # Make it so that binary images do not have the user-defined z-scale
+        # applied, but non-binary images do.
+        if plotting_config["plot_dict"][image]["image_type"] == "binary":
+            plotting_config["plot_dict"][image]["zrange"] = [None, None]
 
     return plotting_config
 
