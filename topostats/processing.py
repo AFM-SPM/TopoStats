@@ -276,7 +276,7 @@ def process_scan(
                             (
                                 all_tracing_stats[direction],
                                 all_trace_data[direction],
-                                all_trace_plot_data[direction]
+                                all_trace_plot_data[direction],
                             ) = trace_image(
                                 image=filtered_image.images["gaussian_filtered"],
                                 grains_mask=grains.directions[direction]["labelled_regions_02"],
@@ -315,14 +315,8 @@ def process_scan(
                                 filtered_image.images["gaussian_filtered"],
                                 output_dir=core_out_path,
                                 filename=f"{filename}_{direction}_traced",
-                                pixel_to_nm_scaling=pixel_to_nm_scaling,
                                 masked_array=trace_mask,
-                                image_type="non-binary",
-                                save=True,
-                                mask_cmap="blu",
-                                image_set="all",
-                                pixel_interpolation=None,
-                                core_set=True,
+                                **plotting_config["plot_dict"]["molecule_traces"],
                             ).plot_and_save()
 
                         # Plot the individual grain traces
@@ -337,14 +331,10 @@ def process_scan(
                                     grain_trace_overlay = trace_plot_data["grain_trace_overlay"]
                                     Images(
                                         cropped_grain,
-                                        output_dir=grain_out_path/direction,
+                                        output_dir=grain_out_path / direction,
                                         filename=f"{filename}_grain_trace_{grain_number}",
-                                        pixel_to_nm_scaling=pixel_to_nm_scaling,
                                         masked_array=grain_trace_overlay,
-                                        image_type="non-binary",
-                                        mask_cmap="blu",
-                                        image_set="all",
-                                        pixel_interpolation=None
+                                        **plotting_config["plot_dict"]["grain_molecule_trace"],
                                     ).plot_and_save()
 
                     else:
