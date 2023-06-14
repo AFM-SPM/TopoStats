@@ -302,6 +302,20 @@ def dnatracing_wrapper(
         return results
 
 
+def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
+    LOGGER.info(f"Processing : {filename}")
+    core_out_path = get_out_path(image_path, base_dir, output_dir).parent / "processed"
+    core_out_path.mkdir(parents=True, exist_ok=True)
+    filter_out_path = core_out_path / filename / "filters"
+    grain_out_path = core_out_path / filename / "grains"
+    if plotting_config["image_set"] == "all":
+        filter_out_path.mkdir(exist_ok=True, parents=True)
+        Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
+        Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
+
+    return core_out_path, filter_out_path, grain_out_path
+
+
 def process_scan(
     img_path_px2nm: Dict[str, Union[np.ndarray, Path, float]],
     base_dir: Union[str, Path],
@@ -347,15 +361,9 @@ def process_scan(
     pixel_to_nm_scaling = img_path_px2nm["px_2_nm"]
     filename = image_path.name
 
-    LOGGER.info(f"Processing : {filename}")
-    core_out_path = get_out_path(image_path, base_dir, output_dir).parent / "processed"
-    core_out_path.mkdir(parents=True, exist_ok=True)
-    filter_out_path = core_out_path / filename / "filters"
-    grain_out_path = core_out_path / filename / "grains"
-    if plotting_config["image_set"] == "all":
-        filter_out_path.mkdir(exist_ok=True, parents=True)
-        Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
-        Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
+    core_out_path, filter_out_path, grain_out_path = get_out_paths(
+        image_path, base_dir, output_dir, filename, plotting_config
+    )
 
     # Filter Image
     flattened_image = filter_wrapper(
