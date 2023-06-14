@@ -26,7 +26,7 @@ The resulting statistics file has the following fields.
 | `aspect_ratio`             | Aspect ratio of the grain (length / width), always >= 1.                                             | `float` | N/A              |
 | `max_feret`                | Longest length of the grain (see [Feret diameter](https://en.wikipedia.org/wiki/Feret_diameter)).    | `float` | m                |
 | `min_feret`                | Shortest width of the grain (see [Feret diameter](https://en.wikipedia.org/wiki/Feret_diameter)).    | `float` | m                |
-| `contour_lengths`          | UNKNOWN                                                                                              | `float` | m                |
+| `contour_length`          | UNKNOWN                                                                                              | `float` | m                |
 | `circular`                 | Whether the grain is a circular loop or not.                                                         | `float` | `True` / `False` |
 | `end_to_end_distance`      | UNKNOWN                                                                                              | `float` | m                |
 | `basename`                 | Directory in which images was found.                                                                 | `str`   | N/A              |
