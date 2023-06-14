@@ -190,6 +190,10 @@ def process_scan(
                     # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
                     plot_name = "mask_overlay"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
+                    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@ PLOTTING CONFIG PLOT DICT MASK OVERLAY:")
+                    print(f"{plotting_config['plot_dict'][plot_name]}")
+                    print("@@@@@@@@@@@@@ MASKED ARRAY")
+                    print(grains.directions[direction]["removed_small_objects"])
                     Images(
                         filtered_image.images["gaussian_filtered"],
                         filename=f"{filename}_{direction}_masked",
@@ -272,6 +276,7 @@ def process_scan(
                             (
                                 tracing_stats[direction],
                                 all_traces[direction],
+                                full_trace_image_overlay[direction],
                                 all_trace_heights[direction],
                                 all_trace_cumulative_distances[direction],
                             ) = trace_image(
@@ -304,16 +309,10 @@ def process_scan(
                             traces = all_traces[direction]
                             mask = np.zeros(filtered_image.images["gaussian_filtered"].shape)
                             for _, trace in traces.items():
-                                mask[trace[:, 0], trace[:, 1]] = 1
-                            Images(
-                                mask,
-                                output_dir=core_out_path,
-                                filename=f"{filename}_{direction}_trace_bool",
-                                pixel_to_nm_scaling=pixel_to_nm_scaling,
-                                save=True,
-                                mask_cmap="blu",
-                                image_set="all",
-                            ).plot_and_save()
+                                for coordinate in trace:
+                                    mask[
+                                        coordinate[0] - 2 : coordinate[0] + 2, coordinate[1] - 2 : coordinate[1] + 2
+                                    ] = 1
                             Images(
                                 filtered_image.images["gaussian_filtered"],
                                 output_dir=core_out_path,
@@ -324,6 +323,9 @@ def process_scan(
                                 save=True,
                                 mask_cmap="blu",
                                 image_set="all",
+                                pixel_interpolation=None,
+                                core_set=True,
+                                dpi=1000,
                             ).plot_and_save()
 
                     else:

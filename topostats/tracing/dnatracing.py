@@ -758,7 +758,6 @@ def trace_image(
     assert image.shape == grains_mask.shape
 
     cropped_images, cropped_masks, grain_crop_coordinates = prep_arrays(image, grains_mask, pad_width)
-    print(f"CROPPED IMAGES LEN, CROPPED MASKS LEN: {len(cropped_images), len(cropped_masks)}")
     n_grains = len(cropped_images)
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
     n_grain = 0
@@ -781,16 +780,13 @@ def trace_image(
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
 
         # Get non-single value grain stats from the results
-        print(f"RESULT: {result}")
         trace_heights = result[0]["trace_heights"]
         result[0].pop("trace_heights")
         trace_cumulative_distances = result[0]["trace_cumulative_distances"]
         result[0].pop("trace_cumulative_distances")
         trace = result[0]["trace"]
         # Because the grains are cropped, we need to add the crop position to restore the global coordinates
-        print(f"TRACE SHAPE: {trace.shape}")
         for _, coord in enumerate(trace):
-            print(f"INDEX: {n_grain} COORD: {coord}")
             coord[0] += grain_crop_coordinates[n_grain][0]
             coord[1] += grain_crop_coordinates[n_grain][1]
         result[0].pop("trace")
