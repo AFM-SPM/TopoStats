@@ -436,7 +436,7 @@ SMALL_MASK = np.asarray(
 
 
 @pytest.mark.parametrize(
-    "pad_width, target_image, target_mask",
+    "pad_width, target_image, target_mask, position",
     [
         (
             0,
@@ -452,6 +452,7 @@ SMALL_MASK = np.asarray(
                 np.asarray([[1], [1], [1], [1]]),
                 np.asarray([[0, 0, 1], [1, 1, 1]]),
             ],
+            np.array([[1, 1], [2, 7], [6, 1]]),
         ),
         (
             1,
@@ -525,14 +526,17 @@ SMALL_MASK = np.asarray(
                     ]
                 ),
             ],
+            np.array([[-1, -1], [0, 5], [4, -1]]),
         ),
     ],
 )
-def test_prep_arrays(pad_width: int, target_image: np.ndarray, target_mask: np.ndarray) -> None:
+def test_prep_arrays(pad_width: int, target_image: np.ndarray, target_mask: np.ndarray, position: np.ndarray) -> None:
     """Tests the image and masks are correctly prepared to lists."""
-    images, masks = prep_arrays(image=SMALL_ARRAY, labelled_grains_mask=SMALL_MASK, pad_width=pad_width)
+    images, masks, positions = prep_arrays(image=SMALL_ARRAY, labelled_grains_mask=SMALL_MASK, pad_width=pad_width)
     grain = 0
+
     for image, mask in zip(images, masks):
         np.testing.assert_array_almost_equal(image, target_image[grain])
         np.testing.assert_array_equal(mask, target_mask[grain])
+        np.testing.assert_array_equal(positions, position)
         grain += 1
