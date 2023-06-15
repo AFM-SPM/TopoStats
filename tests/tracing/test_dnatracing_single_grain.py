@@ -1,5 +1,6 @@
 """Tests for tracing single molecules"""
 from pathlib import Path
+import pickle as pkl
 
 import numpy as np
 import pandas as pd
@@ -341,7 +342,7 @@ PAD_WIDTH = 30
 
 
 @pytest.mark.parametrize(
-    "image, skeletonisation_method, cores, statistics",
+    "image, skeletonisation_method, cores, statistics, trace_data_expected_file, trace_plot_data_expected_file",
     [
         (
             "multigrain_topostats",
@@ -356,6 +357,8 @@ PAD_WIDTH = 30
                     "end_to_end_distance": [3.120049919984285e-08, 0.000000e00],
                 }
             ),
+            RESOURCES / "test_trace_image_all_trace_data_multigrain_topostats.pkl",
+            RESOURCES / "test_trace_image_trace_plot_data_multigrain_topostats.pkl",
         ),
         (
             "multigrain_zhang",
@@ -370,6 +373,8 @@ PAD_WIDTH = 30
                     "end_to_end_distance": [2.257869018994927e-08, 1.2389530445725336e-08],
                 }
             ),
+            RESOURCES / "test_trace_image_all_trace_data_multigrain_zhang.pkl",
+            RESOURCES / "test_trace_image_trace_plot_data_multigrain_zhang.pkl",
         ),
         (
             "multigrain_lee",
@@ -384,6 +389,8 @@ PAD_WIDTH = 30
                     "end_to_end_distance": [3.13837693459974e-08, 6.7191662793734405e-09],
                 }
             ),
+            RESOURCES / "test_trace_image_all_trace_data_multigrain_lee.pkl",
+            RESOURCES / "test_trace_image_trace_plot_data_multigrain_lee.pkl",
         ),
         (
             "multigrain_thin",
@@ -398,12 +405,21 @@ PAD_WIDTH = 30
                     "end_to_end_distance": [4.367667613976452e-08, 3.440332307376993e-08],
                 }
             ),
+            RESOURCES / "test_trace_image_all_trace_data_multigrain_thin.pkl",
+            RESOURCES / "test_trace_image_trace_plot_data_multigrain_thin.pkl",
         ),
     ],
 )
-def test_trace_image(image: str, skeletonisation_method: str, cores: int, statistics) -> None:
+def test_trace_image(
+    image: str,
+    skeletonisation_method: str,
+    cores: int,
+    statistics: pd.DataFrame,
+    trace_data_expected_file: Path,
+    trace_plot_data_expected_file: Path,
+) -> None:
     """Tests the processing of an image using trace_image() function."""
-    results = trace_image(
+    results, all_trace_data, trace_plot_data = trace_image(
         image=MULTIGRAIN_IMAGE,
         grains_mask=MULTIGRAIN_MASK,
         filename=image,
@@ -413,6 +429,54 @@ def test_trace_image(image: str, skeletonisation_method: str, cores: int, statis
         pad_width=PAD_WIDTH,
         cores=cores,
     )
+
+    # For updating the test files when the methods change
+
+    # with open(RESOURCES / f"test_trace_image_all_trace_data_multigrain_{skeletonisation_method}.pkl", "wb") as f:
+    #     pkl.dump(all_trace_data, f)
+    # with open(RESOURCES / f"test_trace_image_trace_plot_data_multigrain_{skeletonisation_method}.pkl", "wb") as f:
+    #     pkl.dump(trace_plot_data, f)
+
+    with open(trace_data_expected_file, "rb") as f:
+        trace_data_expected = pkl.load(f)
+    with open(trace_plot_data_expected_file, "rb") as f:
+        trace_plot_data_expected = pkl.load(f)
+
+    print(trace_plot_data)
+    # Check all trace data is the same
+    for trace_index in range(2):
+        # Check that all the global traces are the same
+        np.testing.assert_array_equal(
+            all_trace_data["global_traces"][trace_index], trace_data_expected["global_traces"][trace_index]
+        )
+        # Check that the trace heights are all the same
+        np.testing.assert_array_equal(
+            all_trace_data["trace_heights"][trace_index], trace_data_expected["trace_heights"][trace_index]
+        )
+        # Check that the cumulative distances are all the same
+        np.testing.assert_array_equal(
+            all_trace_data["trace_cumulative_distances"][trace_index],
+            trace_data_expected["trace_cumulative_distances"][trace_index],
+        )
+
+    # Check that the plot data is all the same
+    # Check that the whole image trace overlay is the same
+    np.testing.assert_array_equal(
+        trace_plot_data["whole_image_trace_overlay"], trace_plot_data_expected["whole_image_trace_overlay"]
+    )
+
+    for trace_index in range(2):
+        # Check that all the cropped grains images are the same
+        np.testing.assert_array_equal(
+            trace_plot_data["cropped_grains"][trace_index]["cropped_grain"],
+            trace_plot_data_expected["cropped_grains"][trace_index]["cropped_grain"],
+        )
+        # Check that all the cropped grain trace overlays are the same
+        np.testing.assert_array_equal(
+            trace_plot_data["cropped_grains"][trace_index]["grain_trace_overlay"],
+            trace_plot_data_expected["cropped_grains"][trace_index]["grain_trace_overlay"],
+        )
+
     statistics.set_index(["molecule_number"], inplace=True)
     pd.testing.assert_frame_equal(results, statistics)
 
