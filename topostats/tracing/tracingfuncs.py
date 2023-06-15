@@ -46,7 +46,6 @@ class getSkeleton:
 
     def getDNAmolHeightStats(self):
         coordinates = np.argwhere(self.binary_map == 1)
-        print(f"@@@@@@ coordinates shape: {coordinates.shape}")
         flat_indices = np.ravel_multi_index(coordinates.T, self.image_data.shape)
         heights = self.image_data.flat[flat_indices]
         self.average_height = np.average(heights)
