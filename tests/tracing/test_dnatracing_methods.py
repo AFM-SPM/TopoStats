@@ -269,7 +269,7 @@ TEST_LABELLED = np.asarray(
 
 
 @pytest.mark.parametrize(
-    "bounding_box,target, pad_width",
+    "bounding_box, target, pad_width, target_position",
     [
         (
             (1, 1, 2, 7),
@@ -279,6 +279,7 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             0,
+            np.array([1, 1]),
         ),
         (
             (1, 1, 2, 7),
@@ -290,6 +291,7 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             1,
+            np.array([0, 0]),
         ),
         (
             (1, 1, 2, 7),
@@ -302,6 +304,7 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             2,
+            np.array([0, 0]),
         ),
         (
             (1, 9, 6, 14),
@@ -315,6 +318,7 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             0,
+            np.array([1, 9]),
         ),
         (
             (3, 1, 9, 7),
@@ -329,6 +333,7 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             0,
+            np.array([3, 1]),
         ),
         (
             (7, 8, 9, 14),
@@ -339,6 +344,7 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             0,
+            np.array([7, 8]),
         ),
         (
             (10, 1, 15, 5),
@@ -352,6 +358,7 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             0,
+            np.array([10, 1]),
         ),
         (
             (10, 5, 14, 14),
@@ -364,6 +371,7 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             0,
+            np.array([10, 5]),
         ),
         (
             (10, 5, 14, 14),
@@ -379,11 +387,13 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             2,
+            np.array([8, 3]),
         ),
     ],
 )
-def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> None:
+def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int, target_position: np.ndarray) -> None:
     """Test the cropping of images."""
-    cropped = crop_array(TEST_LABELLED, bounding_box, pad_width)
+    cropped, position = crop_array(TEST_LABELLED, bounding_box, pad_width)
     print(f"cropped :\n{cropped}")
     np.testing.assert_array_equal(cropped, target)
+    np.testing.assert_array_equal(position, target_position)
