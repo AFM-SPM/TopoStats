@@ -174,14 +174,7 @@ class Images:
                     if isinstance(self.masked_array, np.ndarray) or self.region_properties:
                         fig, ax = self.save_figure()
                     else:
-                        print("@@@@ SAVE ARRAY FIGURE")
                         self.save_array_figure()
-            else:
-                print(
-                    f"Image not saved, self.image_set is not 'all' self.image_set:{self.image_set} self.core_set: {self.core_set}"
-                )
-        else:
-            print("Image not saved, self.save is set to False")
         LOGGER.info(
             f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}" f".{self.save_format}"
         )
@@ -215,9 +208,6 @@ class Images:
             if isinstance(self.masked_array, np.ndarray):
                 self.masked_array[self.masked_array != 0] = 1
                 mask = np.ma.masked_where(self.masked_array == 0, self.masked_array)
-                # print("PLOTTING MASK")
-                # print(np.argwhere(mask == 1))
-                # print(self.mask_cmap)
                 ax.imshow(
                     mask,
                     cmap=self.mask_cmap,
