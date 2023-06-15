@@ -133,12 +133,19 @@ coloured_boxes:
   title: "Labelled Image with Bounding Boxes"
   image_type: "binary"
   core_set: false
+molecule_traces:
+  title: "Molecule Traces"
+  image_type: "non-binary"
+  core_set: true
 grain_image:
   image_type: "non-binary"
   core_set: false
 grain_mask:
-  image_type: "non-binary"
+  image_type: "binary"
   core_set: false
 grain_mask_image:
+  image_type: "non-binary"
+  core_set: false
+grain_molecule_trace:
   image_type: "non-binary"
   core_set: false

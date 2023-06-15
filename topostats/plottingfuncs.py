@@ -166,6 +166,7 @@ class Images:
         """
         fig, ax = None, None
         if self.save:
+            # Only continue if the image is in the core set, or the image_set config parameter is set to plot all images
             if self.image_set == "all" or self.core_set:
                 if self.axes or self.colorbar:
                     fig, ax = self.save_figure()
@@ -173,7 +174,14 @@ class Images:
                     if isinstance(self.masked_array, np.ndarray) or self.region_properties:
                         fig, ax = self.save_figure()
                     else:
+                        print("@@@@ SAVE ARRAY FIGURE")
                         self.save_array_figure()
+            else:
+                print(
+                    f"Image not saved, self.image_set is not 'all' self.image_set:{self.image_set} self.core_set: {self.core_set}"
+                )
+        else:
+            print("Image not saved, self.save is set to False")
         LOGGER.info(
             f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}" f".{self.save_format}"
         )
@@ -190,9 +198,11 @@ class Images:
         ax: plt.axes._subplots.AxesSubplot
             Matplotlib.pyplot axes object
         """
+        # Create axes
         fig, ax = plt.subplots(1, 1, figsize=(8, 8))
         shape = self.data.shape
         if isinstance(self.data, np.ndarray):
+            # Plot the data
             im = ax.imshow(
                 self.data,
                 extent=(0, shape[1] * self.pixel_to_nm_scaling, 0, shape[0] * self.pixel_to_nm_scaling),
@@ -201,9 +211,13 @@ class Images:
                 vmin=self.zrange[0],
                 vmax=self.zrange[1],
             )
+            # If masked array, apply that on top of the plot
             if isinstance(self.masked_array, np.ndarray):
                 self.masked_array[self.masked_array != 0] = 1
                 mask = np.ma.masked_where(self.masked_array == 0, self.masked_array)
+                # print("PLOTTING MASK")
+                # print(np.argwhere(mask == 1))
+                # print(self.mask_cmap)
                 ax.imshow(
                     mask,
                     cmap=self.mask_cmap,
@@ -216,6 +230,7 @@ class Images:
                     interpolation=self.interpolation,
                     alpha=0.7,
                 )
+                # Create legend
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
 

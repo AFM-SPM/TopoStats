@@ -1,5 +1,5 @@
 """Perform DNA Tracing"""
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from functools import partial
 from itertools import repeat
 import logging
@@ -15,7 +15,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import ndimage, spatial, interpolate as interp
-from skimage import morphology
+import skimage.morphology as skimage_morphology
 from skimage.filters import gaussian
 import skimage.measure as skimage_measure
 from tqdm import tqdm
@@ -23,6 +23,7 @@ from tqdm import tqdm
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.skeletonize import get_skeleton
 from topostats.tracing.tracingfuncs import genTracingFuncs, getSkeleton, reorderTrace
+from topostats.plottingfuncs import Images
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -121,6 +122,7 @@ class dnaTrace:
         elif len(self.disordered_trace) >= self.min_skeleton_size:
             self.linear_or_circular(self.disordered_trace)
             self.get_ordered_traces()
+            self.get_trace_heights_and_distances()
             self.linear_or_circular(self.ordered_trace)
             self.get_fitted_traces()
             self.get_splined_traces()
@@ -128,6 +130,20 @@ class dnaTrace:
             # self.saveCurvature()
             self.measure_contour_length()
             self.measure_end_to_end_distance()
+
+            mask = np.zeros(self.image.shape)
+            for coord in self.ordered_trace:
+                mask[coord[0], coord[1]] = 1
+            Images(
+                self.image,
+                output_dir=Path("./"),
+                filename=f"{self.filename}_trace",
+                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+                save=True,
+                masked_array=mask,
+                mask_cmap="blu",
+                image_set="all",
+            ).plot_and_save()
         else:
             LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
 
@@ -203,6 +219,24 @@ class dnaTrace:
 
         elif not self.mol_is_circular:
             self.ordered_trace = reorderTrace.linearTrace(self.disordered_trace.tolist())
+
+    def get_trace_heights_and_distances(self) -> None:
+        self.trace_heights = self.gauss_image[self.ordered_trace[:, 0], self.ordered_trace[:, 1]]
+        self.trace_cumulative_distances = dnaTrace.get_cumulative_coordinate_distances(
+            coordinates=self.ordered_trace, pixel_to_nm_scaling=self.pixel_to_nm_scaling
+        )
+
+    @staticmethod
+    def get_cumulative_coordinate_distances(coordinates: np.ndarray, pixel_to_nm_scaling: float = 1) -> np.ndarray:
+        distance_list = [0]
+        distance = 0
+        for i in range(len(coordinates) - 1):
+            if abs(coordinates[i] - coordinates[i + 1]).sum() == 2:
+                distance += 1.41421356237  # Saves a sqrt
+            else:
+                distance += 1
+            distance_list.append(distance)
+        return np.asarray(distance_list) * pixel_to_nm_scaling
 
     def get_fitted_traces(self):
         """Create trace coordinates (for each identified molecule) that are adjusted to lie
@@ -690,6 +724,7 @@ def trace_image(
     min_skeleton_size: int,
     skeletonisation_method: str,
     pad_width: int = 10,
+    mask_dilation_strength: int = 4,
     cores: int = 1,
 ) -> pd.DataFrame:
     """Processor function for tracing grains individually.
@@ -711,6 +746,9 @@ def trace_image(
        'topostats' (original TopoStats method)
     pad_width: int
         Number of cells to pad arrays by, required to handle instances where grains touch the bounding box edges.
+    mask_dilation_strength: int
+        Number of times to apply binary dilation for the trace binary image mask. Higher will make the trace more apparent
+        in the plot, but may obscure finer structure.
     cores : int
         Number of cores to process with.
 
@@ -723,11 +761,16 @@ def trace_image(
     # Check both arrays are the same shape
     assert image.shape == grains_mask.shape
 
-    cropped_images, cropped_masks = prep_arrays(image, grains_mask, pad_width)
+    cropped_images, cropped_masks, grain_crop_coordinates = prep_arrays(image, grains_mask, pad_width)
     n_grains = len(cropped_images)
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
     n_grain = 0
     results = {}
+    all_global_traces = {}
+    all_trace_heights = {}
+    all_trace_cumulative_distances = {}
+    trace_plot_data = {}
+    trace_plot_data["cropped_grains"] = {}
     for cropped_image, cropped_mask in zip(cropped_images, cropped_masks):
         result = (
             trace_grain(
@@ -741,7 +784,34 @@ def trace_image(
             ),
         )
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
+
+        # Get non-single value grain stats from the results
+        trace_heights = result[0]["trace_heights"]
+        result[0].pop("trace_heights")
+        trace_cumulative_distances = result[0]["trace_cumulative_distances"]
+        result[0].pop("trace_cumulative_distances")
+        local_trace = result[0]["trace"]
+        # Because the grains are cropped, we need to add the crop position to restore the global coordinates
+        global_trace = local_trace.copy()
+        for _, coord in enumerate(global_trace):
+            coord[0] += grain_crop_coordinates[n_grain][0]
+            coord[1] += grain_crop_coordinates[n_grain][1]
+        result[0].pop("trace")
+
         results[n_grain] = result[0]
+        all_global_traces[n_grain] = global_trace
+        all_trace_heights[n_grain] = trace_heights
+        all_trace_cumulative_distances[n_grain] = trace_cumulative_distances
+
+        # Save the image and mask for the grain to return
+        trace_plot_data["cropped_grains"][n_grain] = {}
+        trace_plot_data["cropped_grains"][n_grain]["cropped_grain"] = cropped_image
+        grain_overlay_mask = np.zeros(cropped_image.shape)
+        # print(f"@@@ grain overlay mask shape: {grain_overlay_mask.shape}")
+        # print(f"max trace coords: 0: {np.max(local_trace[:, 0])} 1: {np.max(local_trace[:, 1])}")
+        grain_overlay_mask[local_trace[:, 0], local_trace[:, 1]] = 1
+        trace_plot_data["cropped_grains"][n_grain]["grain_trace_overlay"] = grain_overlay_mask
+
         n_grain += 1
     try:
         results = pd.DataFrame.from_dict(results, orient="index")
@@ -749,7 +819,30 @@ def trace_image(
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
-    return results
+
+    # Package up all the trace data dictionaries to return
+    all_trace_data = {
+        "global_traces": all_global_traces,
+        "trace_heights": all_trace_heights,
+        "trace_cumulative_distances": all_trace_cumulative_distances
+    }
+
+    # Main trace plot
+    image_overlay_mask = np.zeros(image.shape)
+    for _, trace in all_global_traces.items():
+        image_overlay_mask[trace[:, 0], trace[:, 1]] = 1
+    footprint = np.array(
+        [
+            [0, 1, 0],
+            [1, 1, 1],
+            [0, 1, 0],
+        ]
+    )
+    for i in range(mask_dilation_strength):
+        image_overlay_mask = skimage_morphology.binary_dilation(image_overlay_mask, footprint=footprint)
+    trace_plot_data["mask"] = image_overlay_mask
+
+    return results, all_trace_data, trace_plot_data
 
 
 def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
@@ -772,14 +865,31 @@ def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: 
     """
     # Get bounding boxes for each grain
     region_properties = skimage_measure.regionprops(labelled_grains_mask)
+    print(f"@@@ PAD WIDTH : {pad_width}")
+    # cropped_positions = [(grain.bbox[0] - pad_width, grain.bbox[1] - pad_width) for grain in region_properties]
     # Subset image and grains then zip them up
-    cropped_images = [crop_array(image, grain.bbox, pad_width) for grain in region_properties]
-    cropped_images = [np.pad(grain, pad_width=pad_width) for grain in cropped_images]
-    cropped_masks = [crop_array(labelled_grains_mask, grain.bbox, pad_width) for grain in region_properties]
-    cropped_masks = [np.pad(grain, pad_width=pad_width) for grain in cropped_masks]
+    cropped_images = []
+    cropped_positions = []
+    cropped_masks = []
+    for grain in region_properties:
+        # Crop the array, with context-based padding
+        cropped_image, crop_position = crop_array(image, grain.bbox, pad_width)
+        # Pad the array again just in case
+        cropped_image = np.pad(cropped_image, pad_width=pad_width)
+        cropped_images.append(cropped_image)
+        # Record where the top left of the cropped region is, to be able to convert from local to global coords.
+        cropped_positions.append((crop_position[0] - pad_width, crop_position[1] - pad_width))
+
+        cropped_mask, _ = crop_array(labelled_grains_mask, grain.bbox, pad_width)
+        cropped_mask = np.pad(cropped_mask, pad_width=pad_width)
+        cropped_masks.append(cropped_mask)
+    # cropped_images = [crop_array(image, grain.bbox, pad_width) for grain in region_properties]
+    # cropped_images = [np.pad(grain, pad_width=pad_width) for grain in cropped_images]
+    # cropped_masks, _ = [crop_array(labelled_grains_mask, grain.bbox, pad_width) for grain in region_properties]
+    # cropped_masks = [np.pad(grain, pad_width=pad_width) for grain in cropped_masks]
     # Flip every labelled region to be 1 instead of its label
     cropped_masks = [np.where(grain == 0, 0, 1) for grain in cropped_masks]
-    return (cropped_images, cropped_masks)
+    return (cropped_images, cropped_masks, cropped_positions)
 
 
 def trace_grain(
@@ -842,6 +952,9 @@ def trace_grain(
         "contour_length": dnatrace.contour_length,
         "circular": dnatrace.mol_is_circular,
         "end_to_end_distance": dnatrace.end_to_end_distance,
+        "trace": dnatrace.ordered_trace,
+        "trace_heights": dnatrace.trace_heights,
+        "trace_cumulative_distances": dnatrace.trace_cumulative_distances,
     }
 
 
@@ -875,10 +988,12 @@ def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np
     bounding_box[1] = 0 if bounding_box[1] - pad_width < 0 else bounding_box[1] - pad_width
     # Right Column : Make this the last column if too close
     bounding_box[3] = array.shape[1] if bounding_box[3] + pad_width > array.shape[1] else bounding_box[3] + pad_width
-    return array[
+    cropped_array = array[
         bounding_box[0] : bounding_box[2],
         bounding_box[1] : bounding_box[3],
     ]
+    cropped_position = (bounding_box[0], bounding_box[1])
+    return cropped_array, cropped_position
 
 
 # 2023-06-09 - Code that runs dnatracing in parallel across grains, left deliberately for use when we remodularise the
