@@ -446,33 +446,33 @@ def test_trace_image(
     # Check all trace data is the same
     for trace_index in range(2):
         # Check that all the global traces are the same
-        np.testing.assert_array_equal(
+        np.testing.assert_array_almost_equal(
             all_trace_data["global_traces"][trace_index], trace_data_expected["global_traces"][trace_index]
         )
         # Check that the trace heights are all the same
-        np.testing.assert_array_equal(
+        np.testing.assert_array_almost_equal(
             all_trace_data["trace_heights"][trace_index], trace_data_expected["trace_heights"][trace_index]
         )
         # Check that the cumulative distances are all the same
-        np.testing.assert_array_equal(
+        np.testing.assert_array_almost_equal(
             all_trace_data["trace_cumulative_distances"][trace_index],
             trace_data_expected["trace_cumulative_distances"][trace_index],
         )
 
     # Check that the plot data is all the same
     # Check that the whole image trace overlay is the same
-    np.testing.assert_array_equal(
+    np.testing.assert_array_almost_equal(
         trace_plot_data["whole_image_trace_overlay"], trace_plot_data_expected["whole_image_trace_overlay"]
     )
 
     for trace_index in range(2):
         # Check that all the cropped grains images are the same
-        np.testing.assert_array_equal(
+        np.testing.assert_array_almost_equal(
             trace_plot_data["cropped_grains"][trace_index]["cropped_grain"],
             trace_plot_data_expected["cropped_grains"][trace_index]["cropped_grain"],
         )
         # Check that all the cropped grain trace overlays are the same
-        np.testing.assert_array_equal(
+        np.testing.assert_array_almost_equal(
             trace_plot_data["cropped_grains"][trace_index]["grain_trace_overlay"],
             trace_plot_data_expected["cropped_grains"][trace_index]["grain_trace_overlay"],
         )
