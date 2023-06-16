@@ -394,6 +394,5 @@ TEST_LABELLED = np.asarray(
 def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int, target_position: np.ndarray) -> None:
     """Test the cropping of images."""
     cropped, position = crop_array(TEST_LABELLED, bounding_box, pad_width)
-    print(f"cropped :\n{cropped}")
     np.testing.assert_array_equal(cropped, target)
     np.testing.assert_array_equal(position, target_position)

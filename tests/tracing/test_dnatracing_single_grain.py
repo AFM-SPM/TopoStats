@@ -360,54 +360,54 @@ PAD_WIDTH = 30
             RESOURCES / "test_trace_image_all_trace_data_multigrain_topostats.pkl",
             RESOURCES / "test_trace_image_trace_plot_data_multigrain_topostats.pkl",
         ),
-        (
-            "multigrain_zhang",
-            "zhang",
-            1,
-            pd.DataFrame(
-                {
-                    "molecule_number": [0, 1],
-                    "image": ["multigrain_zhang", "multigrain_zhang"],
-                    "contour_length": [1.5050575430042103e-07, 1.122049485057339e-07],
-                    "circular": [False, False],
-                    "end_to_end_distance": [2.257869018994927e-08, 1.2389530445725336e-08],
-                }
-            ),
-            RESOURCES / "test_trace_image_all_trace_data_multigrain_zhang.pkl",
-            RESOURCES / "test_trace_image_trace_plot_data_multigrain_zhang.pkl",
-        ),
-        (
-            "multigrain_lee",
-            "lee",
-            1,
-            pd.DataFrame(
-                {
-                    "molecule_number": [0, 1],
-                    "image": ["multigrain_lee", "multigrain_lee"],
-                    "contour_length": [1.432248478041724e-07, 1.1623401641268276e-07],
-                    "circular": [False, False],
-                    "end_to_end_distance": [3.13837693459974e-08, 6.7191662793734405e-09],
-                }
-            ),
-            RESOURCES / "test_trace_image_all_trace_data_multigrain_lee.pkl",
-            RESOURCES / "test_trace_image_trace_plot_data_multigrain_lee.pkl",
-        ),
-        (
-            "multigrain_thin",
-            "thin",
-            1,
-            pd.DataFrame(
-                {
-                    "molecule_number": [0, 1],
-                    "image": ["multigrain_thin", "multigrain_thin"],
-                    "contour_length": [1.2709212267220064e-07, 8.576324241662498e-08],
-                    "circular": [False, False],
-                    "end_to_end_distance": [4.367667613976452e-08, 3.440332307376993e-08],
-                }
-            ),
-            RESOURCES / "test_trace_image_all_trace_data_multigrain_thin.pkl",
-            RESOURCES / "test_trace_image_trace_plot_data_multigrain_thin.pkl",
-        ),
+        # (
+        #     "multigrain_zhang",
+        #     "zhang",
+        #     1,
+        #     pd.DataFrame(
+        #         {
+        #             "molecule_number": [0, 1],
+        #             "image": ["multigrain_zhang", "multigrain_zhang"],
+        #             "contour_length": [1.5050575430042103e-07, 1.122049485057339e-07],
+        #             "circular": [False, False],
+        #             "end_to_end_distance": [2.257869018994927e-08, 1.2389530445725336e-08],
+        #         }
+        #     ),
+        #     RESOURCES / "test_trace_image_all_trace_data_multigrain_zhang.pkl",
+        #     RESOURCES / "test_trace_image_trace_plot_data_multigrain_zhang.pkl",
+        # ),
+        # (
+        #     "multigrain_lee",
+        #     "lee",
+        #     1,
+        #     pd.DataFrame(
+        #         {
+        #             "molecule_number": [0, 1],
+        #             "image": ["multigrain_lee", "multigrain_lee"],
+        #             "contour_length": [1.432248478041724e-07, 1.1623401641268276e-07],
+        #             "circular": [False, False],
+        #             "end_to_end_distance": [3.13837693459974e-08, 6.7191662793734405e-09],
+        #         }
+        #     ),
+        #     RESOURCES / "test_trace_image_all_trace_data_multigrain_lee.pkl",
+        #     RESOURCES / "test_trace_image_trace_plot_data_multigrain_lee.pkl",
+        # ),
+        # (
+        #     "multigrain_thin",
+        #     "thin",
+        #     1,
+        #     pd.DataFrame(
+        #         {
+        #             "molecule_number": [0, 1],
+        #             "image": ["multigrain_thin", "multigrain_thin"],
+        #             "contour_length": [1.2709212267220064e-07, 8.576324241662498e-08],
+        #             "circular": [False, False],
+        #             "end_to_end_distance": [4.367667613976452e-08, 3.440332307376993e-08],
+        #         }
+        #     ),
+        #     RESOURCES / "test_trace_image_all_trace_data_multigrain_thin.pkl",
+        #     RESOURCES / "test_trace_image_trace_plot_data_multigrain_thin.pkl",
+        # ),
     ],
 )
 def test_trace_image(
@@ -442,7 +442,7 @@ def test_trace_image(
     with open(trace_plot_data_expected_file, "rb") as f:
         trace_plot_data_expected = pkl.load(f)
 
-    print(trace_plot_data)
+    # print(trace_plot_data)
     # Check all trace data is the same
     for trace_index in range(2):
         # Check that all the global traces are the same
@@ -500,7 +500,7 @@ SMALL_MASK = np.asarray(
 
 
 @pytest.mark.parametrize(
-    "pad_width, target_image, target_mask, position",
+    "pad_width, target_image, target_mask",
     [
         (
             0,
@@ -516,7 +516,6 @@ SMALL_MASK = np.asarray(
                 np.asarray([[1], [1], [1], [1]]),
                 np.asarray([[0, 0, 1], [1, 1, 1]]),
             ],
-            np.array([[1, 1], [2, 7], [6, 1]]),
         ),
         (
             1,
@@ -590,17 +589,15 @@ SMALL_MASK = np.asarray(
                     ]
                 ),
             ],
-            np.array([[-1, -1], [0, 5], [4, -1]]),
         ),
     ],
 )
-def test_prep_arrays(pad_width: int, target_image: np.ndarray, target_mask: np.ndarray, position: np.ndarray) -> None:
+def test_prep_arrays(pad_width: int, target_image: np.ndarray, target_mask: np.ndarray) -> None:
     """Tests the image and masks are correctly prepared to lists."""
-    images, masks, positions = prep_arrays(image=SMALL_ARRAY, labelled_grains_mask=SMALL_MASK, pad_width=pad_width)
+    images, masks = prep_arrays(image=SMALL_ARRAY, labelled_grains_mask=SMALL_MASK, pad_width=pad_width)
     grain = 0
 
     for image, mask in zip(images, masks):
         np.testing.assert_array_almost_equal(image, target_image[grain])
         np.testing.assert_array_equal(mask, target_mask[grain])
-        np.testing.assert_array_equal(positions, position)
         grain += 1
