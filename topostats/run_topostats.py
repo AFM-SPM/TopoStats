@@ -244,6 +244,8 @@ def process_scan(
             **plotting_config["plot_dict"][plot_name],
         ).plot_and_save()
 
+        np.savetxt(f"{core_out_path}_{filename}_img.txt", filtered_image.images["gaussian_filtered"])
+
     # Find Grains :
     if grains_config["run"]:
         grains_config.pop("run")
@@ -363,7 +365,7 @@ def process_scan(
 
                     tracing_stats[direction] = traceStats(trace_object=dna_traces[direction], image_path=image_path)
                     tracing_stats[direction].df["threshold"] = direction
-
+                    #"""
                     nodes = nodeStats(
                         image=dna_traces[direction].full_image_data,
                         grains=grains.directions[direction]["removed_small_objects"],
@@ -395,6 +397,8 @@ def process_scan(
                         ).save_figure_black(
                             background=grains.directions[direction]["removed_small_objects"],
                         )
+                    np.savetxt(f"{core_out_path}_{filename}_skel.txt", dna_traces[direction].skeletons)
+                    np.savetxt(f"{core_out_path}_{filename}_connect.txt", nodes.all_connected_nodes)
 
                     # plot nodes and line traces
                     for mol_no, mol_stats in node_stats[direction].items():
@@ -431,7 +435,7 @@ def process_scan(
                             if not single_node_stats["error"]:
                                 plotting_config["plot_dict"]["line_trace"] = {
                                     "title": "Heights of Crossing",
-                                    "cmap": "blu_purp",
+                                    "cmap": "green_green",
                                 }
                                 fig, _ = plot_crossing_linetrace_halfmax(
                                     single_node_stats["branch_stats"],
@@ -442,6 +446,8 @@ def process_scan(
                                     format="svg",
                                 )
                         # plot the molecules on their own
+
+                        print("LEN: ",len(nodes.mol_coords))
                         if len(nodes.mol_coords[mol_no]) > 1:
                             for inner_mol_no, coords in enumerate(nodes.mol_coords[mol_no]):
                                 single_mol = np.zeros_like(dna_traces[direction].full_image_data)
@@ -466,7 +472,7 @@ def process_scan(
                             zrange=[0, 3.5e-9],
                             **plotting_config["plot_dict"]["visual"],
                         ).save_figure_black(background=grains.directions[direction]["removed_small_objects"])
-
+                    #"""
                     # ------- branch vector img -------
                     """
                     vectors = nodes.test2

@@ -201,6 +201,7 @@ class joeSkeletonize:
         self.p7 = None
         self.p8 = None
         self.p9 = None
+        self.counter = 0
 
     def do_skeletonising(self) -> np.ndarray:
         """The wrapper for the whole skeletonisation process.
@@ -211,7 +212,7 @@ class joeSkeletonize:
             The single pixel thick, skeletonised array.
         """
         self.mask = np.pad(self.mask, 1)  # pad to avoid hitting border
-        # self.image = np.pad(self.mask, 1) # pad to make same as mask
+        #self.image = np.pad(self.mask, 1) # pad to make same as mask
         while not self.skeleton_converged:
             self._do_skeletonising_iteration()
         # When skeleton converged do an additional iteration of thinning to remove hanging points
@@ -225,6 +226,8 @@ class joeSkeletonize:
         environment and assess the local height values to decide whether to
         delete a point.
         """
+        self.counter += 1
+        skel_img = self.mask.copy()
         pixels_to_delete = []
         # Sub-iteration 1 - binary check
         mask_coordinates = np.argwhere(self.mask == 1).tolist()
@@ -235,6 +238,7 @@ class joeSkeletonize:
         # remove points based on height (lowest 60%)
         pixels_to_delete = np.asarray(pixels_to_delete)  # turn into array
         if pixels_to_delete.shape != (0,):  # ensure array not empty
+            skel_img[pixels_to_delete[:,0], pixels_to_delete[:,1]] = 2
             heights = self.image[pixels_to_delete[:, 0], pixels_to_delete[:, 1]]  # get heights of pixels
             hight_sort_idx = np.argsort(heights)[: int(np.ceil(len(heights) * 0.6))]  # idx of lowest 60%
             self.mask[pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]] = 0  # remove lowest 60%
@@ -249,12 +253,15 @@ class joeSkeletonize:
         # remove points based on height (lowest 60%)
         pixels_to_delete = np.asarray(pixels_to_delete)
         if pixels_to_delete.shape != (0,):
+            skel_img[pixels_to_delete[:,0], pixels_to_delete[:,1]] = 3
             heights = self.image[pixels_to_delete[:, 0], pixels_to_delete[:, 1]]
             hight_sort_idx = np.argsort(heights)[: int(np.ceil(len(heights) * 0.6))]  # idx of lowest 60%
             self.mask[pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]] = 0
 
         if len(pixels_to_delete) == 0:
             self.skeleton_converged = True
+        
+        np.savetxt(f"/Users/Maxgamill/Desktop/Uni/PhD/topo_cats/TopoStats/test/processed/taut/dna_tracing/upper/skel_iters/skel_iter_{self.counter}.txt", skel_img)
 
     def _delete_pixel_subit1(self, point: list) -> bool:
         """Function to check whether a single point should be deleted based
