@@ -192,7 +192,7 @@ tripple_crossings:
   core_set: false
 line_trace:
   title: "Heights of Crossing"
-  cmap: "blu_purp"
+  cmap: "green_green"
 visual:
   filename: "25-molecule_crossings"
   title: "Visualised Molecule Crossings"
