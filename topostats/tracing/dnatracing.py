@@ -15,7 +15,7 @@ import seaborn as sns
 from scipy import ndimage, spatial, optimize, interpolate as interp
 from skimage.morphology import label, binary_dilation
 from skimage.filters import gaussian, threshold_otsu
-from topoly import jones, homfly, params
+#from topoly import jones, homfly, params
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
@@ -1024,7 +1024,15 @@ class nodeStats:
         self.skeletons = a
         self.px_2_nm = 1
         """
-
+        """
+        a = np.zeros((100,100))
+        a[20:80, 50] = 1
+        a[50, 20:80] = 1
+        self.grains = ndimage.binary_dilation(a, iterations=3)
+        self.image = np.ones((100,100))
+        self.skeletons = a
+        self.px_2_nm = 1
+        """
         self.skeleton = None
         self.conv_skelly = None
         self.connected_nodes = None
@@ -1331,7 +1339,7 @@ class nodeStats:
                 }
 
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
-            self.node_dict = self.node_dict
+            #self.node_dict = self.node_dict
 
     def order_branch(self, binary_image: np.ndarray, anchor: list):
         """Orders a linear branch by identifing an endpoint, and looking at the local area of the point to find the next.
@@ -1940,8 +1948,9 @@ class nodeStats:
         #   following 1, 2, 3... around the mol which should look like the Planar Diagram formation
         #   (https://topoly.cent.uw.edu.pl/dictionary.html#codes). Then look at each corssing zone again,
         #   determine which in in-undergoing and assign labels counter-clockwise
-        print("Getting PD Codes:")
-        pd_codes = self.get_pds(coord_trace, node_centre_coords, fwhms, crossing_coords)
+        
+        #print("Getting PD Codes:")
+        #pd_codes = self.get_pds(coord_trace, node_centre_coords, fwhms, crossing_coords)
 
         return coord_trace, visual
 
@@ -1968,42 +1977,80 @@ class nodeStats:
         both_img[crossing_img != 0] = crossing_img[crossing_img != 0]
         return both_img
 
-    @staticmethod
-    def trace_mol(ordered_segment_coords, both_img):
-        remaining = both_img.copy().astype(np.int32)  # image
-        # get first segment
-        idx = 0  # set index
-        coord_trace = ordered_segment_coords[idx].astype(np.int32).copy()  # add ordered segment to trace
-        remaining[remaining == idx + 1] = 0  # remove segment from image
-        x, y = coord_trace[-1]  # find end coords of trace
-        idx = remaining[x - 1 : x + 2, y - 1 : y + 2].max() - 1  # find local area of end coord to find next index
+    def trace_mol(self, ordered_segment_coords, both_img):
+        """There's a problem with the code in that when tracing a non-circular molecule, the index
+        of a 'new' molecule will start at a new index (fine) but the ordering to the last coord may
+        start at the wrong section - should be moved to the end?
 
-        mol_coords = []
+        New order (?):
+        choose 0th index of coord section
+        -----
+        -----
+        check if there's an endpoint and order from there first
+        add coords to trace
+        remove coords from remaining image
+        get coords at end of trace
+        get index of area at end of reminaing
+        get next smallest index
+        ----- repeat until terminated
+        ----- repeat until all segments covered
+
+        Parameters
+        ----------
+        ordered_segment_coords : _type_
+            _description_
+        both_img : _type_
+            _description_
+
+        Returns
+        -------
+        _type_
+            _description_
+        """
         mol_num = 0
-        while len(np.unique(remaining)) > 1:
+        mol_coords = []
+        remaining = both_img.copy().astype(np.int32)
+
+        while remaining.max() != 0:
+            coord_idx = np.unique(remaining)[1] - 1  # avoid choosing 0
+            coord_trace = np.empty((0,2)).astype(np.int32)
             mol_num += 1
-            while idx > -1:  # either cycled through all or hits terminus -> all will be just background
-                if (
-                    abs(coord_trace[-1] - ordered_segment_coords[idx][0]).sum()
-                    < abs(coord_trace[-1] - ordered_segment_coords[idx][-1]).sum()
-                ):
-                    coord_trace = np.append(coord_trace, ordered_segment_coords[idx].astype(np.int32), axis=0)
-                else:
-                    coord_trace = np.append(coord_trace, ordered_segment_coords[idx][::-1].astype(np.int32), axis=0)
+            print("Mol: ", mol_num)
+            while coord_idx > -1:  # either cycled through all or hits terminus -> all will be just background
+                print("Coord idx: ", coord_idx)
+                remaining[remaining == coord_idx + 1] = 0
+                trace_segment = self.order_from_end(remaining, ordered_segment_coords, coord_idx)
+                coord_trace = np.append(coord_trace, trace_segment.astype(np.int32), axis=0)
                 x, y = coord_trace[-1]
-                remaining[remaining == idx + 1] = 0
-                idx = remaining[x - 1 : x + 2, y - 1 : y + 2].max() - 1  # should only be one value
+                coord_idx = remaining[x - 1 : x + 2, y - 1 : y + 2].max() - 1  # should only be one value
             mol_coords.append(coord_trace)
-            try:
-                idx = np.unique(remaining)[1] - 1  # avoid choosing 0
-                coord_trace = ordered_segment_coords[idx].astype(np.int32).copy()
-            except:  # index of -1 out of range
-                break
 
         print(f"Mols in trace: {len(mol_coords)}")
 
         return mol_coords
+    
+    @staticmethod
+    def order_from_end(remaining_img, ordered_segment_coords, coord_idx):
+        """Check the branch of given index to see if it contains an endpoint. If it does,
+        the segment coordinates will be returned starting from the endpoint. 
 
+        Parameters
+        ----------
+        remaining_img : np.ndarray
+            A 2D array representing an image composed of connected segments of different integers.
+        ordered_segment_coords : list
+            A list of 2xN coordinates representing each segment
+        idx : _type_
+            The index of the current segment to look at. There is an index mismatch between the 
+            remaining_img and ordered_segment_coords by -1.
+        """
+        start_xy = ordered_segment_coords[coord_idx][0]
+        start_max = remaining_img[start_xy[0] - 1 : start_xy[0] + 2, start_xy[1] - 1 : start_xy[1] + 2].max() - 1
+        if start_max == -1:
+            return ordered_segment_coords[coord_idx] # start is endpoint
+        else:
+            return ordered_segment_coords[coord_idx][::-1] # end is endpoint
+    
     @staticmethod
     def get_trace_idxs(fwhms: list) -> tuple:
         # node fwhms can be a list of different lengths so cannot use np arrays
