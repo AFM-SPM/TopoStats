@@ -17,24 +17,24 @@ figsize:
   - 9
 alpha: 0.5
 palette: bright # Seaborn color palette. Options : colorblind, deep, muted, pastel, bright, dark, Spectral, Set2
-stats_to_sum:  # A list of variables (key) to plot uncomment those that are required.
+stats_to_sum: # A list of variables (key) to plot uncomment those that are required.
   - area
   - area_cartesian_bbox
-#  - aspect_ratio
-#  - bending_angle
-  - contour_lengths
+  #  - aspect_ratio
+  #  - bending_angle
+  - contour_length
   - end_to_end_distance
-#  - height_max
-#  - height_mean
-#  - height_median
-#  - height_min
-#  - max_feret
-#  - min_feret
-#  - radius_max
-#  - radius_mean
-#  - radius_median
-#  - radius_min
-#  - smallest_bounding_area
-#  - smallest_bounding_length
-#  - smallest_bounding_width
+  #  - height_max
+  #  - height_mean
+  #  - height_median
+  #  - height_min
+  #  - max_feret
+  #  - min_feret
+  #  - radius_max
+  #  - radius_mean
+  #  - radius_median
+  #  - radius_min
+  #  - smallest_bounding_area
+  #  - smallest_bounding_length
+  #  - smallest_bounding_width
   - volume
