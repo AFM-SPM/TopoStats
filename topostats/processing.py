@@ -328,7 +328,7 @@ def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: 
 
 
 def process_scan(
-    img_path_px2nm: Dict[str, Union[np.ndarray, Path, float]],
+    topostats_object: Dict[str, Union[np.ndarray, Path, float]],
     base_dir: Union[str, Path],
     filter_config: dict,
     grains_config: dict,
@@ -367,44 +367,47 @@ def process_scan(
     Results are written to CSV and images produced in configuration options request them.
     """
 
-    unprocessed_image = img_path_px2nm["image"]
-    image_path = img_path_px2nm["img_path"]
-    pixel_to_nm_scaling = img_path_px2nm["px_2_nm"]
-    filename = image_path.name
-
     core_out_path, filter_out_path, grain_out_path = get_out_paths(
-        image_path, base_dir, output_dir, filename, plotting_config
+        image_path=topostats_object["img_path"], 
+        base_dir=base_dir,
+        output_dir=output_dir,
+        filename=topostats_object["filename"],
+        plotting_config=plotting_config,
     )
 
-    # Filter Image
-    flattened_image = filter_wrapper(
-        unprocessed_image=unprocessed_image,
-        pixel_to_nm_scaling=pixel_to_nm_scaling,
-        filename=filename,
+    # Flatten Image
+    image_flattened = filter_wrapper(
+        unprocessed_image=topostats_object["image_original"],
+        pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+        filename=topostats_object["filename"],
         filter_out_path=filter_out_path,
         core_out_path=core_out_path,
         filter_config=filter_config,
         plotting_config=plotting_config,
     )
+    # Use flattened image if one is returned, else use original image
+    topostats_object["image_flattened"] = image_flattened if image_flattened is not None else topostats_object["image_original"]
 
     # Find Grains :
     grain_masks = grains_wrapper(
-        image=flattened_image,
-        pixel_to_nm_scaling=pixel_to_nm_scaling,
-        filename=filename,
+        image=topostats_object["image_flattened"],
+        pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+        filename=topostats_object["filename"],
         grain_out_path=grain_out_path,
         core_out_path=core_out_path,
         plotting_config=plotting_config,
         grains_config=grains_config,
     )
+    # Update grain masks if new grain masks are returned. Else keep old grain masks.
+    topostats_object["grain_masks"] = grain_masks if grain_masks is not None else topostats_object["grain_masks"]
 
-    if grain_masks is not None:
+    if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
         # Grainstats :
         results_df = grainstats_wrapper(
-            image=flattened_image,
-            pixel_to_nm_scaling=pixel_to_nm_scaling,
-            grain_masks=grain_masks,
-            filename=filename,
+            image=topostats_object["image_flattened"],
+            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+            grain_masks=topostats_object["grain_masks"],
+            filename=topostats_object["filename"],
             grainstats_config=grainstats_config,
             plotting_config=plotting_config,
             grain_out_path=grain_out_path,
@@ -412,11 +415,11 @@ def process_scan(
 
         # DNAtracing
         results_df = dnatracing_wrapper(
-            image=flattened_image,
-            pixel_to_nm_scaling=pixel_to_nm_scaling,
-            grain_masks=grain_masks,
-            filename=filename,
-            image_path=image_path,
+            image=topostats_object["image_flattened"],
+            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+            grain_masks=topostats_object["grain_masks"],
+            filename=topostats_object["filename"],
+            image_path=topostats_object["img_path"],
             dnatracing_config=dnatracing_config,
             results_df=results_df,
         )
