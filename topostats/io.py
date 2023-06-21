@@ -129,6 +129,11 @@ def write_config_with_comments(config: str, output_dir: Path, filename: str = "c
     LOGGER.info(f"A sample configuration has been written to : {str(create_config_path)}")
     LOGGER.info(CONFIG_DOCUMENTATION_REFERENCE)
 
+def save_topostats_data_file(topostats_image_data_object: dict, out_path: Path):
+    """Save topostats image data to pickle."""
+
+    with open(f"{out_path / topostats_image_data_object['filename']}_image_data.topostats", "wb") as f:
+        pkl.dump(topostats_image_data_object, f)
 
 def save_array(array: np.ndarray, outpath: Path, filename: str, array_type: str) -> None:
     """Save a Numpy array to disk.
