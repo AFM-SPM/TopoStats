@@ -10,7 +10,7 @@ from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import get_out_path, save_array
+from topostats.io import get_out_path, save_array, save_topostats_data_file
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import trace_image
@@ -413,7 +413,9 @@ def process_scan(
     else:
         results_df = create_empty_dataframe()
 
-    return image_path, results_df
+    save_topostats_data_file(topostats_object, core_out_path)
+
+    return topostats_object["img_path"], results_df
 
 
 def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
