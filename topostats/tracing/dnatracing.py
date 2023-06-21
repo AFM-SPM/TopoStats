@@ -18,6 +18,7 @@ from scipy import ndimage, spatial, interpolate as interp
 import skimage.morphology as skimage_morphology
 from skimage.filters import gaussian
 import skimage.measure as skimage_measure
+from skimage.filters import gaussian, threshold_otsu
 from tqdm import tqdm
 
 from topostats.logs.logs import LOGGER_NAME
@@ -95,7 +96,7 @@ class dnaTrace:
         self.number_of_columns = self.image.shape[1]
         self.sigma = 0.7 / (self.pixel_to_nm_scaling * 1e9)
 
-        self.gauss_image = None
+        self.smooth_grain = None
         self.grain = grain
         self.disordered_trace = None
         self.ordered_trace = None
@@ -115,7 +116,7 @@ class dnaTrace:
 
     def trace_dna(self):
         """Perform DNA tracing."""
-        self.gaussian_filter()
+        self.smooth_grains()
         self.get_disordered_trace()
         if self.disordered_trace is None:
             LOGGER.info(f"[{self.filename}] : Grain failed to Skeletonise")
@@ -147,10 +148,28 @@ class dnaTrace:
         else:
             LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
 
-    def gaussian_filter(self, **kwargs) -> np.array:
-        """Apply Gaussian filter"""
-        self.gauss_image = gaussian(self.image, sigma=self.sigma, **kwargs)
-        LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Gaussian filter applied.")
+    def smooth_grains(self) -> None:
+        """Smooths grains based on the lower number added from dilation or gaussian.
+        (makes sure gaussian isnt too agressive.)"""
+        dilation = ndimage.binary_dilation(self.grain, iterations=1).astype(np.int32)
+        # TODO: find suitable sigma value for the smoothing below
+        gauss = gaussian(self.grain, sigma=5)
+        gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
+        gauss[gauss != 1] = 0
+        gauss = gauss.astype(np.int32)
+        if dilation.sum() - self.grain.sum() > gauss.sum() - self.grain.sum():
+            LOGGER.info(f"[{self.filename}] : Gaussian filter applied")
+            self.smooth_grain = gauss
+            if self.n_grain == 0:
+                plt.imshow(self.grain)
+                plt.title("Mask")
+                plt.show()
+                plt.imshow(self.smooth_grain)
+                plt.title("Smooth mask")
+                plt.show()
+        else:
+            LOGGER.info(f"[{self.filename}] : Binary dilation applied")
+            self.smooth_grain = dilation
 
     def get_disordered_trace(self):
         """Create a skeleton for each of the grains in the image.
@@ -167,7 +186,7 @@ class dnaTrace:
         try:
             if self.skeletonisation_method == "topostats":
                 dna_skeleton = getSkeleton(
-                    self.gauss_image,
+                    self.smooth_grain,
                     smoothed_grain,
                     self.number_of_columns,
                     self.number_of_rows,
@@ -221,7 +240,7 @@ class dnaTrace:
             self.ordered_trace = reorderTrace.linearTrace(self.disordered_trace.tolist())
 
     def get_trace_heights_and_distances(self) -> None:
-        self.trace_heights = self.gauss_image[self.ordered_trace[:, 0], self.ordered_trace[:, 1]]
+        self.trace_heights = self.smooth_grain[self.ordered_trace[:, 0], self.ordered_trace[:, 1]]
         self.trace_cumulative_distances = dnaTrace.get_cumulative_coordinate_distances(
             coordinates=self.ordered_trace, pixel_to_nm_scaling=self.pixel_to_nm_scaling
         )
@@ -254,7 +273,7 @@ class dnaTrace:
             height_values = None
 
             # Block of code to prevent indexing outside image limits
-            # e.g. indexing self.gauss_image[130, 130] for 128x128 image
+            # e.g. indexing self.smooth_grain[130, 130] for 128x128 image
             if trace_coordinate[0] < 0:
                 # prevents negative number indexing
                 # i.e. stops (trace_coordinate - index_width) < 0
@@ -318,15 +337,15 @@ class dnaTrace:
             # Use the perp array to index the guassian filtered image
             perp_array = np.column_stack((x_coords, y_coords))
             try:
-                height_values = self.gauss_image[perp_array[:, 0], perp_array[:, 1]]
+                height_values = self.smooth_grain[perp_array[:, 0], perp_array[:, 1]]
             except IndexError:
                 perp_array[:, 0] = np.where(
-                    perp_array[:, 0] > self.gauss_image.shape[0], self.gauss_image.shape[0], perp_array[:, 0]
+                    perp_array[:, 0] > self.smooth_grain.shape[0], self.smooth_grain.shape[0], perp_array[:, 0]
                 )
                 perp_array[:, 1] = np.where(
-                    perp_array[:, 1] > self.gauss_image.shape[1], self.gauss_image.shape[1], perp_array[:, 1]
+                    perp_array[:, 1] > self.smooth_grain.shape[1], self.smooth_grain.shape[1], perp_array[:, 1]
                 )
-                height_values = self.gauss_image[perp_array[:, 1], perp_array[:, 0]]
+                height_values = self.smooth_grain[perp_array[:, 1], perp_array[:, 0]]
 
             # Grab x,y coordinates for highest point
             # fine_coords = np.column_stack((fine_x_coords, fine_y_coords))
@@ -445,7 +464,7 @@ class dnaTrace:
             self.splined_trace = self.fitted_trace
 
     def show_traces(self):
-        plt.pcolormesh(self.gauss_image, vmax=-3e-9, vmin=3e-9)
+        plt.pcolormesh(self.smooth_grain, vmax=-3e-9, vmin=3e-9)
         plt.colorbar()
         plt.plot(self.ordered_trace[:, 0], self.ordered_trace[:, 1], markersize=1)
         plt.plot(self.fitted_trace[:, 0], self.fitted_trace[:, 1], markersize=1)
@@ -824,7 +843,7 @@ def trace_image(
     all_trace_data = {
         "global_traces": all_global_traces,
         "trace_heights": all_trace_heights,
-        "trace_cumulative_distances": all_trace_cumulative_distances
+        "trace_cumulative_distances": all_trace_cumulative_distances,
     }
 
     # Main trace plot
