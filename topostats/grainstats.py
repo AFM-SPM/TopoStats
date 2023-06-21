@@ -1134,9 +1134,9 @@ class GrainStats:
         holes[holes != 0] = 1
 
         found_holes = True
-        print("uniques", np.unique(holes))
-        print(holesize_min_px)
-        print(sizes)
+        #print("uniques", np.unique(holes))
+        #print(holesize_min_px)
+        #print(sizes)
         if holes.max() == 0:
             found_holes = False
 
