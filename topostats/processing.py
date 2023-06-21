@@ -93,7 +93,7 @@ def filter_wrapper(
             "stages of processing. Please check your configuration file."
         )
 
-        return unprocessed_image
+        return None
 
 
 def grains_wrapper(
@@ -243,8 +243,11 @@ def grainstats_wrapper(
             return grainstats_df
 
         except Exception:
-            LOGGER.info(f"[{filename}] : Errors occurred whilst calculating grain statistics. Skipping DNAtracing.")
+            LOGGER.info(f"[{filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe.")
             return create_empty_dataframe()
+    else:
+        LOGGER.info(f"[{filename}] : Grainstats disabled. Returning empty dataframe")
+        return create_empty_dataframe()
 
 
 def dnatracing_wrapper(
@@ -256,6 +259,11 @@ def dnatracing_wrapper(
     dnatracing_config: dict,
     results_df: pd.DataFrame = None,
 ):
+    
+    # Create empty dataframe is none is passed
+    if results_df is None:
+        results_df = create_empty_dataframe()
+
     # Run dnatracing
     try:
         if dnatracing_config["run"]:
@@ -283,7 +291,10 @@ def dnatracing_wrapper(
             #      gives duplicate molecule numbers as they are processed separately, if tracing stats
             #      are not available (because skeleton was too small), grainstats are still retained.
             results = results_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left")
-            results["basename"] = results_df.parent
+            results["basename"] = image_path.parent
+
+            return results
+        
         else:
             LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
             results = results_df
