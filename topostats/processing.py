@@ -266,13 +266,16 @@ def process_scan(
                             LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
                             tracing_stats = defaultdict()
                             for direction, _ in grainstats.items():
-                                tracing_stats[direction] = trace_image(
+                                tracing_results = trace_image(
                                     image=filtered_image.images["gaussian_filtered"],
                                     grains_mask=grains.directions[direction]["labelled_regions_02"],
                                     filename=filename,
                                     pixel_to_nm_scaling=pixel_to_nm_scaling,
                                     **dnatracing_config,
                                 )
+                                tracing_stats[direction] = tracing_results["statistics"]
+                                # ordered_traces = tracing_results["ordered_traces"]
+                                # image_trace = tracing_results["image_trace"]
                                 tracing_stats[direction]["threshold"] = direction
                             # Set tracing_stats_df in light of direction
                             if grains_config["direction"] == "both":
@@ -311,7 +314,7 @@ def process_scan(
     else:
         LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
         results = create_empty_dataframe()
-    return image_path, results
+    return image_path, results  # , ordered_traces, image_trace
 
 
 def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
