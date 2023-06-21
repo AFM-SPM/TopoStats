@@ -262,7 +262,7 @@ class GrainStats:
             min_feret, max_feret = self.get_max_min_ferets(edge_points=edges)
 
             #Find holes
-            found_holes = self.find_holes(np.pad(grain_mask, 2),  holearea_min_max=[4, 100])
+            found_holes = self.find_holes(np.pad(grain_mask, 2),  holearea_min_max=[1, 1000])
 
             # Save the stats to dictionary. Note that many of the stats are multiplied by a scaling factor to convert
             # from pixel units to nanometres.
@@ -1108,31 +1108,36 @@ class GrainStats:
 
         return min_feret, max_feret
 
-    def find_holes(self, orig_mask, holearea_min_max=[4, 100]):
-        """As gaussian and dilation smoothing methods can close holes in the original mask,
-        this function obtains those holes (based on the general background being the largest)
-        and adds them back into the smoothed mask. When paired, this essentailly just smooths
-        the outer edge of the grains.
+    def find_holes(self, orig_mask, holearea_min_max=[1, 1000]):
+        """This function takes a mask and inverts it before counting the separated regions. If there are holes in the
+        mask then the mask has two or more regions in it and found_holes is output as True otherwise if there is no
+        holes then the only region in the inverted mask is the background and found_holes outputs False.
 
         Parameters:
         -----------
             orig_mask (_type_): _description_
-            new_mask (_type_): _description_
             holearea_min_max (_type_): _description_
         """
-        #holesize_min_px = holearea_min_max[0] / ((self.pixel_size / 1e-9) ** 2)
-        #holesize_max_px = holearea_min_max[1] / ((self.pixel_size / 1e-9) ** 2)
+        holesize_min_px = holearea_min_max[0] / (self.pixel_to_nanometre_scaling ** 2)
+        holesize_max_px = holearea_min_max[1] / (self.pixel_to_nanometre_scaling ** 2)
         holes = 1 - orig_mask
         holes = skimage_morphology.label(holes)
-        #sizes = [holes[holes == i].size for i in range(1, holes.max() + 1)]
-        #max_idx = max(enumerate(sizes), key=lambda x: x[1])[0] + 1  # identify background
-        #holes[holes == max_idx] = 0  # set background to 0
+        sizes = [holes[holes == i].size for i in range(1, holes.max() + 1)]
+        max_idx = max(enumerate(sizes), key=lambda x: x[1])[0] + 1  # identify background
+        holes[holes == max_idx] = 0  # set background to 0
 
         #self.holes = holes.copy()
 
+        for i, size in enumerate(sizes):
+            if size < holesize_min_px or size > holesize_max_px:  # small holes cause issues so are left out
+                holes[holes == i + 1] = 0
+        holes[holes != 0] = 1
+
         found_holes = True
         print("uniques", np.unique(holes))
-        if holes.max() == 1:
+        print(holesize_min_px)
+        print(sizes)
+        if holes.max() == 0:
             found_holes = False
 
         return found_holes
