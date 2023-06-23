@@ -12,6 +12,12 @@ from topostats.io import LoadScans
 from topostats.plottingfuncs import Images
 
 
+DPI = 300.0
+RNG = np.random.default_rng(seed=1000)
+array = RNG.random((10, 10))
+mask = RNG.uniform(low=0, high=1, size=array.shape) > 0.5
+
+
 @pytest.mark.parametrize(
     "masked_array, axes_colorbar, region_properties",
     [(np.random.rand(10, 10), True, None), (None, True, None), (None, False, True)],
@@ -118,7 +124,7 @@ def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScans, plotting_c
         **plotting_config,
     ).plot_and_save()
     img = io.imread(tmp_path / "01-raw_heightmap.png")
-    assert np.sum(img) == 448788105
+    assert np.sum(img) == 461143075
     assert img.shape == (1024, 1024, 4)
 
 
@@ -150,7 +156,7 @@ def test_plot_and_save_bounding_box(
     """Test plotting bounding boxes"""
     plotting_config["image_type"] = "binary"
     fig, _ = Images(
-        data=minicircle_grain_coloured.directions["upper"]["coloured_regions"],
+        data=minicircle_grain_coloured.directions["above"]["coloured_regions"],
         output_dir=tmp_path,
         filename="15-coloured_regions",
         pixel_to_nm_scaling=minicircle_grain_coloured.pixel_to_nm_scaling,
@@ -194,5 +200,32 @@ def test_plot_and_save_non_square_bounding_box(
         title="Coloured Regions",
         **plotting_config,
         region_properties=minicircle_grain_region_properties_post_removal,
+    ).plot_and_save()
+    return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
+    """Test the plotting of a mask with a different colourmap (blu)."""
+    plotting_config["mask_cmap"] = "blu"
+    fig, _ = Images(
+        data=array,
+        output_dir=tmp_path,
+        filename="colour.png",
+        masked_array=mask,
+        **plotting_config,
+    ).plot_and_save()
+    return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/", savefig_kwargs={"dpi": DPI})
+def test_high_dpi(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmp_path: Path) -> None:
+    """Test plotting with high DPI."""
+    plotting_config["dpi"] = DPI
+    fig, _ = Images(
+        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
+        output_dir=tmp_path,
+        filename="high_dpi",
+        **plotting_config,
     ).plot_and_save()
     return fig

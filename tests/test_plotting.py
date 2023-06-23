@@ -1,180 +1,194 @@
 """Tests for the plotting module."""
+import importlib.resources as pkg_resources
 from pathlib import Path
+import yaml
 
+from matplotlib.figure import Figure
 import pandas as pd
 import pytest
 
-from topostats.plotting import (
-    importfromfile,
-    savestats,
-    # pathman,
-    # labelunitconversion,
-    # dataunitconversion,
-    plotkde,
-    plotkde2var,
-    plothist,
-    plothist2var,
-    plotdist,
-    plotdist2var,
-    plotviolin,
-    # plotjoint,
-    # plotLinearVsCircular,
-    computeStats,
-)
+import topostats
+from topostats.plotting import TopoSum, toposum
+from topostats.entry_point import entry_point
+
+# pylint: disable=protected-access
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
 
-def test_importfromfile(minicircle_all_statistics: pd.DataFrame) -> None:
-    """Regression test for importfromfile()."""
-    minicircle_df = importfromfile(RESOURCES / "minicircle_default_all_statistics.csv")
-    assert isinstance(minicircle_df, pd.DataFrame)
-    pd.testing.assert_frame_equal(minicircle_all_statistics, minicircle_df)
+def test_melt_data():
+    """Test the melt_data method of the TopoSum class"""
+
+    df_to_melt = {
+        "Image": ["im1", "im1", "im1", "im2", "im2", "im3", "im3"],
+        "threshold": ["above", "above", "above", "below", "below", "above", "above"],
+        "molecule_number": [0, 1, 2, 0, 1, 0, 1],
+        "basename": ["super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub2", "super/sub2"],
+        "area": [10, 20, 30, 40, 50, 60, 70],
+    }
+
+    df_to_melt = pd.DataFrame(df_to_melt)
+
+    melted_data = TopoSum.melt_data(df=df_to_melt, stat_to_summarize="area", var_to_label={"area": "AREA"})
+
+    expected = {
+        "molecule_number": [0, 1, 2, 0, 1, 0, 1],
+        "basename": ["super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub2", "super/sub2"],
+        "variable": ["AREA", "AREA", "AREA", "AREA", "AREA", "AREA", "AREA"],
+        "value": [10, 20, 30, 40, 50, 60, 70],
+    }
+
+    expected = pd.DataFrame(expected)
+
+    pd.testing.assert_frame_equal(melted_data, expected)
 
 
-def test_savestats(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
-    """Regression test for savestats()."""
-    savestats(str(tmpdir), minicircle_all_statistics)
-    assert Path(str(tmpdir)[:-5] + "_evaluated.txt").is_file()
+def test_df_from_csv(toposum_object_multiple_directories: TopoSum) -> None:
+    """Test loading of CSV file."""
+    assert isinstance(toposum_object_multiple_directories.df, pd.DataFrame)
+    expected = pd.read_csv(RESOURCES / "toposum_all_statistics_multiple_directories.csv", header=0)
+    pd.testing.assert_frame_equal(expected, toposum_object_multiple_directories.df)
 
 
-# Not testing, path is contingent on system and changes with each test
-# def test_pathman(tmpdir) -> None:
-#     """Regression test for pathman()."""
-#     plotname = pathman(str(tmpdir))
-#     assert plotname == "/tmp/"
+def test_toposum_class(toposum_object_multiple_directories: TopoSum) -> None:
+    """Check the TopoSum class has been correctly instantiated."""
+    assert isinstance(toposum_object_multiple_directories.df, pd.DataFrame)
+    assert isinstance(toposum_object_multiple_directories.stat_to_sum, str)
+    assert isinstance(toposum_object_multiple_directories.molecule_id, str)
+    assert isinstance(toposum_object_multiple_directories.image_id, str)
+    assert isinstance(toposum_object_multiple_directories.hist, bool)
+    assert isinstance(toposum_object_multiple_directories.kde, bool)
+    assert isinstance(toposum_object_multiple_directories.file_ext, str)
+    assert isinstance(toposum_object_multiple_directories.output_dir, Path)
+    assert isinstance(toposum_object_multiple_directories.var_to_label, dict)
 
 
-def test_labelunitconversion() -> None:
-    """Regression test for labelunitconversion()."""
+def test_outfile(toposum_object_multiple_directories: TopoSum) -> None:
+    """Check fig and ax returned"""
+    outfile = toposum_object_multiple_directories._outfile(plot_suffix="testing")
+    assert isinstance(outfile, str)
+    assert outfile == "area_testing"
+
+
+def test_args_input_csv() -> None:
+    """Test modifying the configuration value for the input CSV to be summarised."""
     assert True
 
 
-def test_dataunitconversion() -> None:
-    """Regression test for dataunitconversion()."""
-    assert True
+def test_var_to_label_config(tmp_path: Path) -> None:
+    """Test the var_to_label configuration file is created correctly."""
+    with pytest.raises(SystemExit):
+        entry_point(
+            manually_provided_args=[
+                "summary",
+                "--create-label-file",
+                f"{tmp_path / 'var_to_label_config.yaml'}",
+                "--input_csv",
+                f"{str(RESOURCES / 'minicircle_default_all_statistics.csv')}",
+            ]
+        )
+    var_to_label_config = tmp_path / "var_to_label_config.yaml"
+    with var_to_label_config.open("r", encoding="utf-8") as f:
+        var_to_label_str = f.read()
+    var_to_label = yaml.safe_load(var_to_label_str)
+    plotting_yaml = pkg_resources.open_text(topostats.__package__, "var_to_label.yaml")
+    expected_var_to_label = yaml.safe_load(plotting_yaml.read())
+
+    assert var_to_label == expected_var_to_label
+
+
+@pytest.mark.parametrize(
+    "var,expected_label",
+    [
+        ("contour_length", "Contour Length"),
+        ("end_to_end_distance", "End to End Distance"),
+        ("grain_bound_len", "Circumference"),
+        ("grain_curvature1", "Smaller Curvature"),
+    ],
+)
+def test_set_label(toposum_object_multiple_directories: TopoSum, var: str, expected_label: str) -> None:
+    """Test labels are returned correctly."""
+    toposum_object_multiple_directories._set_label(var)
+    assert toposum_object_multiple_directories.label == expected_label
+
+
+def test_set_label_keyerror(toposum_object_multiple_directories: TopoSum) -> None:
+    """Test labels are returned correctly."""
+    with pytest.raises(KeyError):
+        toposum_object_multiple_directories._set_label("non_existent_stat")
+
+
+def test_toposum(summary_config: dict) -> None:
+    """Test the toposum function returns a dictionary with figures."""
+    summary_config["csv_file"] = RESOURCES / "minicircle_default_all_statistics.csv"
+    summary_config["df"] = pd.read_csv(summary_config["csv_file"])
+    summary_config["violin"] = True
+    summary_config["stats_to_sum"] = ["area"]
+    summary_config["pickle_plots"] = True
+    summary_config.pop("stat_to_sum")
+    figures = toposum(summary_config)
+    assert isinstance(figures, dict)
+    assert "area" in figures.keys()
+    assert isinstance(figures["area"]["dist"]["figure"], Figure)
+    assert isinstance(figures["area"]["violin"]["figure"], Figure)
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plotkde(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
-    """Regression test for plotkde()."""
-    fig = plotkde(df=minicircle_all_statistics, plotarg="area", nm=False, specpath=tmpdir)
+def test_plot_kde(toposum_object_single_directory: TopoSum) -> None:
+    """Regression test for sns_plot() with a single KDE."""
+    toposum_object_single_directory.hist = False
+    fig, _ = toposum_object_single_directory.sns_plot()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plotkde_nm(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
-    """Regression test for plotkde()."""
-    fig = plotkde(df=minicircle_all_statistics, plotarg="area", nm=True, specpath=tmpdir)
+def test_plot_kde_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
+    """Regression test for sns_plot() with multiple KDE."""
+    toposum_object_multiple_directories.hist = False
+    fig, _ = toposum_object_multiple_directories.sns_plot()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plotkde2var(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
-    """Regression test for plotkde2var()."""
-    fig = plotkde2var(
-        df=minicircle_all_statistics,
-        plotarg="smallest_bounding_width",
-        plotarg2="smallest_bounding_length",
-        label1="Smallest Bounding Width",
-        label2="Smallest Bounding Length",
-        nm=False,
-        specpath=tmpdir,
-    )
+def test_plot_hist(toposum_object_single_directory: TopoSum) -> None:
+    """Regression test for sns_plot() with a single histogram."""
+    toposum_object_single_directory.kde = False
+    fig, _ = toposum_object_single_directory.sns_plot()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plothist(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
-    """Regression test for plothist()."""
-    fig = plothist(df=minicircle_all_statistics, plotarg="area", nm=False, specpath=tmpdir)
+def test_plot_hist_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
+    """Regression test for sns_plot() with multiple overlaid histograms."""
+    toposum_object_multiple_directories.kde = False
+    fig, _ = toposum_object_multiple_directories.sns_plot()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plothist_nm(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
-    """Regression test for plothist()."""
-    fig = plothist(df=minicircle_all_statistics, plotarg="area", nm=True, specpath=tmpdir)
+def test_plot_hist_kde(toposum_object_single_directory: TopoSum) -> None:
+    """Test plotting Kernel Density Estimate and Histogram for area."""
+    fig, _ = toposum_object_single_directory.sns_plot()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plothist2var(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
-    """Regression test for plothist2var()."""
-    fig = plothist2var(
-        df=minicircle_all_statistics,
-        plotarg="smallest_bounding_width",
-        plotarg2="smallest_bounding_length",
-        label1="Smallest Bounding Width",
-        label2="Smallest Bounding Length",
-        nm=False,
-        specpath=tmpdir,
-    )
+def test_plot_hist_kde_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
+    """Test plotting Kernel Density Estimate and Histogram for area."""
+    fig, _ = toposum_object_multiple_directories.sns_plot()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plotdist(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
-    """Regression test for plotdist()."""
-    fig = plotdist(df=minicircle_all_statistics, plotarg="area", nm=False, specpath=tmpdir)
+def test_plot_violin(toposum_object_single_directory: TopoSum) -> None:
+    """Test plotting Kernel Density Estimate and Histogram for area for a single image."""
+    fig, _ = toposum_object_single_directory.sns_violinplot()
     return fig
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plotdist_nm(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
-    """Regression test for plotdist()."""
-    fig = plotdist(df=minicircle_all_statistics, plotarg="area", nm=True, specpath=tmpdir)
+def test_plot_violin_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
+    """Test plotting Kernel Density Estimate and Histogram for area with multiple images."""
+    fig, _ = toposum_object_multiple_directories.sns_violinplot()
     return fig
-
-
-@pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plotdist2var(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
-    """Regression test for plotdist2var()."""
-    fig = plotdist2var(
-        df=minicircle_all_statistics,
-        plotarg="smallest_bounding_width",
-        plotarg2="smallest_bounding_length",
-        nm=False,
-        specpath=tmpdir,
-    )
-    return fig
-
-
-@pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-def test_plotviolin(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
-    """Regression test for plotviolin()."""
-    fig = plotviolin(df=minicircle_all_statistics, plotarg="area", grouparg="Circular", specpath=tmpdir)
-    return fig
-
-
-# @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-# def test_plotjoint(minicircle_all_statistics: pd.DataFrame, tmpdir) -> None:
-#     """Regression test for plotjoint()."""
-#     fig = plotjoint(df=minicircle_all_statistics, arg1="height_mean", arg2="height_median", specpath="tmpdir")
-#     return fig
-
-
-# No test required, function not complete
-# @pytest.mark.mpl_image_compare(baseline_dir="resources/img/distributions/")
-# def test_plotLinearVsCircular() -> None:
-#     """Regression test for plotLinearVsCircular()."""
-#     assert True
-
-
-def test_computeStats(regtest, minicircle_all_statistics: pd.DataFrame) -> None:
-    """Regression test for computeStats()."""
-    data = [
-        minicircle_all_statistics["aspect_ratio"],
-        minicircle_all_statistics["area"],
-        minicircle_all_statistics["volume"],
-        minicircle_all_statistics["min_feret"],
-        minicircle_all_statistics["max_feret"],
-        minicircle_all_statistics["Contour Lengths"],
-        minicircle_all_statistics["End to End Distance"],
-    ]
-    columns = ["aspect_ratio", "area", "volume", "min_feret", "max_feret", "Contour Lengths", "End to End Distance"]
-
-    range = (40, 100)
-    statistics_df = computeStats(data=data, columns=columns, min=range[0], max=range[1])
-    print(statistics_df.to_string(), file=regtest)

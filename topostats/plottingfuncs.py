@@ -19,6 +19,11 @@ from topostats.tracing.dnatracing import nodeStats
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
+# pylint: disable=dangerous-default-value
+
 
 class Images:
     """Plots image arrays"""
@@ -29,12 +34,12 @@ class Images:
         output_dir: Union[str, Path],
         filename: str,
         pixel_to_nm_scaling: float = 1.0,
-        data2: np.array = None,
+        masked_array: np.array = None,
         title: str = None,
         image_type: str = "non-binary",
         image_set: str = "core",
         core_set: bool = False,
-        interpolation: str = "nearest",
+        pixel_interpolation: Union[str, None] = None,
         cmap: str = "nanoscope",
         mask_cmap: str = "jet_r",
         region_properties: dict = None,
@@ -46,7 +51,6 @@ class Images:
         histogram_log_axis: bool = True,
         histogram_bins: int = 200,
         dpi: Union[str, float] = "figure",
-        remove_background: bool = False,
     ) -> None:
         """
         Initialise the class.
@@ -61,7 +65,7 @@ class Images:
             Filename to save image as.
         pixel_to_nm_scaling : float
             The scaling factor showing the real length of 1 pixel, in nm.
-        data2 : np.ndarray
+        masked_array : np.ndarray
             Optional image array with background = 0, to overlay onto the image data.
         title : str
             Title for plot.
@@ -71,8 +75,8 @@ class Images:
             The set of images to process - core or all.
         core_set : bool
             Flag to identify image as part of the core image set or not.
-        interpolation: str
-            Interpolation to use (default 'nearest').
+        pixel_interpolation: Union[str, None]
+            Interpolation to use (default: None).
         cmap : str
             Colour map to use (default 'nanoscope', 'afmhot' also available).
         mask_cmap : str
@@ -91,8 +95,8 @@ class Images:
             Format to save the image as.
         histogram_log_axis: bool
             Optionally use a logarithmic y axis for the histogram plots.
-        histogram_binis: int
-            Number of bins for histograms to use..
+        histogram_bin: int
+            Number of bins for histograms to use.
         dpi: Union[str, float]
             The resolution of the saved plot (default 'figure').
         """
@@ -100,12 +104,12 @@ class Images:
         self.output_dir = Path(output_dir)
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
-        self.data2 = data2
+        self.masked_array = masked_array
         self.title = title
         self.image_type = image_type
         self.image_set = image_set
         self.core_set = core_set
-        self.interpolation = interpolation
+        self.interpolation = pixel_interpolation
         self.cmap = Colormap(cmap).get_cmap()
         self.mask_cmap = Colormap(mask_cmap).get_cmap()
         self.region_properties = region_properties
@@ -117,7 +121,6 @@ class Images:
         self.histogram_log_axis = histogram_log_axis
         self.histogram_bins = histogram_bins
         self.dpi = dpi
-        self.remove_background = False
 
     def plot_histogram_and_save(self):
         """
@@ -142,7 +145,6 @@ class Images:
             plt.title(self.title)
             plt.savefig(
                 (self.output_dir / f"{self.filename}_histogram.{self.save_format}"),
-                format=self.save_format,
                 bbox_inches="tight",
                 pad_inches=0.5,
                 dpi=self.dpi,
@@ -169,11 +171,13 @@ class Images:
                 if self.axes or self.colorbar:
                     fig, ax = self.save_figure()
                 else:
-                    if isinstance(self.data2, np.ndarray) or self.region_properties:
+                    if isinstance(self.masked_array, np.ndarray) or self.region_properties:
                         fig, ax = self.save_figure()
                     else:
                         self.save_array_figure()
-        LOGGER.info(f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}")
+        LOGGER.info(
+            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}" f".{self.save_format}"
+        )
         return fig, ax
 
     def save_figure(self):
@@ -198,8 +202,8 @@ class Images:
                 vmin=self.zrange[0],
                 vmax=self.zrange[1],
             )
-            if isinstance(self.data2, np.ndarray):
-                mask = np.ma.masked_where(self.data2 == 0, self.data2)
+            if isinstance(self.masked_array, np.ndarray):
+                mask = np.ma.masked_where(self.masked_array == 0, self.masked_array)
                 ax.imshow(
                     mask,
                     cmap=self.mask_cmap,
@@ -212,7 +216,7 @@ class Images:
                     interpolation=self.interpolation,
                     alpha=1,  # 0.4,
                 )
-                patch = [Patch(color=self.mask_cmap(1, 0.5), label="Mask")]
+                patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
 
             plt.title(self.title)
@@ -230,15 +234,12 @@ class Images:
                 fig.frameon = False
                 plt.savefig(
                     (self.output_dir / f"{self.filename}.{self.save_format}"),
-                    format=self.save_format,
                     bbox_inches="tight",
                     pad_inches=0,
                     dpi=self.dpi,
                 )
             else:
-                plt.savefig(
-                    (self.output_dir / f"{self.filename}.{self.save_format}"), format=self.save_format, dpi=self.dpi
-                )
+                plt.savefig((self.output_dir / f"{self.filename}.{self.save_format}"), dpi=self.dpi)
         else:
             plt.xlabel("Nanometres")
             plt.ylabel("Nanometres")
@@ -286,8 +287,8 @@ class Images:
                 vmin=self.zrange[0],
                 vmax=self.zrange[1],
             )
-            if isinstance(self.data2, np.ndarray):
-                mask = np.ma.masked_where(self.data2 == 0, self.data2)
+            if isinstance(self.masked_array, np.ndarray):
+                mask = np.ma.masked_where(self.masked_array == 0, self.masked_array)
                 ax.imshow(
                     mask,
                     cmap=self.mask_cmap,
@@ -364,7 +365,7 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
         Matplotlib.pyplot axes object.
     """
     for region in region_properties:
-        min_y, min_x, max_y, max_x = [x * pixel_to_nm_scaling for x in region.bbox]
+        min_y, min_x, max_y, max_x = (x * pixel_to_nm_scaling for x in region.bbox)
         # Correct y-axis
         min_y = (shape[0] * pixel_to_nm_scaling) - min_y
         max_y = (shape[0] * pixel_to_nm_scaling) - max_y

@@ -6,7 +6,6 @@ import math
 class reorderTrace:
     @staticmethod
     def linearTrace(trace_coordinates):
-
         """My own function to order the points from a linear trace.
 
         This works by checking the local neighbours for a given pixel (starting
@@ -38,7 +37,6 @@ class reorderTrace:
         remaining_unordered_coords = trace_coordinates[:]
 
         while remaining_unordered_coords:
-
             if len(ordered_points) > len(trace_coordinates):
                 break
 
@@ -78,7 +76,6 @@ class reorderTrace:
 
     @staticmethod
     def circularTrace(trace_coordinates):
-
         """An alternative implementation of the linear tracing algorithm but
         with some adaptations to work with circular dna molecules"""
 
@@ -108,7 +105,6 @@ class reorderTrace:
         count = 0
 
         while remaining_unordered_coords:
-
             x_n, y_n = ordered_points[-1]  # get the last point to be added to the array and find its neighbour
 
             no_of_neighbours, neighbour_array = genTracingFuncs.count_and_get_neighbours(
@@ -177,7 +173,6 @@ class reorderTrace:
 
     @staticmethod
     def circularTrace_old(trace_coordinates):
-
         """Reorders the coordinates of a trace from a circular DNA molecule
         (with no loops) using a polar coordinate system with reference to the
         center of mass
@@ -193,7 +188,6 @@ class reorderTrace:
         # convert to polar coordinates with respect to the centre of mass
         polar_coordinates = []
         for x1, y1 in trace_coordinates:
-
             x = x1 - com_x
             y = y1 - com_y
 
@@ -207,7 +201,6 @@ class reorderTrace:
         # Reconvert to x, y coordinates
         sorted_coordinates = []
         for theta, r in sorted_polar_coordinates:
-
             x = r * math.sin(theta)
             y = r * math.cos(theta)
 
@@ -262,7 +255,6 @@ class genTracingFuncs:
 
     @staticmethod
     def returnPointsInArray(points_array, trace_coordinates):
-
         for x, y in points_array:
             if [x, y] in trace_coordinates:
                 try:
@@ -300,7 +292,6 @@ class genTracingFuncs:
 
     @staticmethod
     def findBestNextPoint(x, y, ordered_points, candidate_points):
-
         ordered_points = np.array(ordered_points)
         candidate_points = np.array(candidate_points)
 
@@ -326,7 +317,6 @@ class genTracingFuncs:
 
     @staticmethod
     def checkVectorsCandidatePoints(x, y, ordered_points, candidate_points):
-
         """Finds which neighbouring pixel incurs the smallest angular change
         with reference to a previous pixel in the ordered trace, and chooses that
         as the next point"""
@@ -361,7 +351,6 @@ class genTracingFuncs:
         x_y_theta = []
 
         for x_n, y_n in candidate_points:
-
             x = x_n - x_ref_2
             y = y_n - y_ref_2
 

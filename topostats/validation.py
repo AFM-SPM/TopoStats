@@ -2,7 +2,7 @@
 import logging
 import os
 from pathlib import Path
-from schema import Or, Schema, SchemaError
+from schema import Optional, Or, Schema, SchemaError
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -25,10 +25,10 @@ def validate_config(config: dict, schema: Schema, config_type: str) -> None:
 
     try:
         schema.validate(config)
-        LOGGER.info(f"The {config_type} configuration is valid.")
+        LOGGER.info(f"The {config_type} is valid.")
     except SchemaError as schema_error:
         raise SchemaError(
-            f"There is an error in your {config_type} configuration."
+            f"There is an error in your {config_type} configuration. "
             "Please refer to the first error message above for details"
         ) from schema_error
 
@@ -37,56 +37,30 @@ DEFAULT_CONFIG_SCHEMA = Schema(
     {
         "base_dir": Path,
         "output_dir": Path,
-        "warnings": Or("ignore", error="Invalid value in config for 'warnings', valid values are 'ignore'"),
+        "log_level": Or(
+            "debug",
+            "info",
+            "warning",
+            "error",
+            error="Invalid value in config for 'log_level', valid values are 'info' (default), 'debug', 'error' or 'warning",
+        ),
         "cores": lambda n: 1 <= n <= os.cpu_count(),
-        "quiet": Or(True, False, error="Invalid value in config for 'quiet', valid values are 'True' or 'False'"),
         "file_ext": Or(
             ".spm",
             ".asd",
             ".jpk",
             ".ibw",
+            ".gwy",
             error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw' or '.asd'.",
         ),
-        "loading": {
-            "channel": Or(
-                "ZSensor",
-                "",
-                "Stiffness",
-                "LogStiffness",
-                "Adhesion",
-                "Deformation",
-                "Dissipation",
-                "Height",  # end of spm channels
-                "HeightTracee",
-                "HeightRetrace",
-                "ZSensorTrace",
-                "ZSensorRetrace",
-                "UserIn0Trace",
-                "UserIn0Retrace",
-                "UserIn1Trace",
-                "UserIn1Retrace",  # end of ibw channels
-                "topography",
-                "phase",  # end of asd channels
-                "height_retrace",
-                "measuredHeight_retrace",
-                "amplitude_retrace",
-                "phase_retrace",
-                "error_retrace",
-                "height_trace",
-                "measuredHeight_trace",
-                "amplitude_trace",
-                "phase_trace",
-                "error_trace",  # end of jpk channels
-                error="Invalid value in config file for 'channel', all possible"
-                "image channels are seen in the above error message.",
-            )
-        },
+        "loading": {"channel": str},
         "filter": {
             "run": Or(
                 True,
                 False,
                 error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
             ),
+            "row_alignment_quantile": lambda n: 0.0 <= n <= 1.0,
             "threshold_method": Or(
                 "absolute",
                 "otsu",
@@ -98,22 +72,22 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
-                "lower": lambda n: n > 0,
-                "upper": lambda n: n > 0,
+                "below": lambda n: n > 0,
+                "above": lambda n: n > 0,
             },
             "threshold_absolute": {
-                "lower": Or(
+                "below": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for filter.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
-                "upper": Or(
+                "above": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for filter.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
             },
@@ -133,7 +107,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
         },
         "grains": {
             "run": Or(True, False, error="Invalid value in config for grains.run, valid values are 'True' or 'False'"),
-            "absolute_smallest_grain_size": int,
+            "smallest_grain_size_nm2": lambda n: n > 0.0,
             "threshold_method": Or(
                 "absolute",
                 "otsu",
@@ -145,42 +119,42 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
-                "lower": lambda n: n > 0,
-                "upper": lambda n: n > 0,
+                "below": lambda n: n > 0,
+                "above": lambda n: n > 0,
             },
             "threshold_absolute": {
-                "lower": Or(
+                "below": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for grains.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
-                "upper": Or(
+                "above": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for grains.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
             },
             "absolute_area_threshold": {
-                "upper": [
+                "above": [
                     Or(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.absolute_area_threshold.upper', valid values "
+                            "Invalid value in config for 'grains.absolute_area_threshold.above', valid values "
                             "are int or null"
                         ),
                     )
                 ],
-                "lower": [
+                "below": [
                     Or(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.absolute_area_threshold.lower', valid values "
+                            "Invalid value in config for 'grains.absolute_area_threshold.below', valid values "
                             "are int or null"
                         ),
                     )
@@ -188,9 +162,9 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             },
             "direction": Or(
                 "both",
-                "lower",
-                "upper",
-                error="Invalid direction for grains.direction valid values are 'both', 'lower' or 'upper",
+                "below",
+                "above",
+                error="Invalid direction for grains.direction valid values are 'both', 'below' or 'above",
             ),
         },
         "grainstats": {
@@ -199,37 +173,38 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'grainstats.run', valid values are 'True' or 'False'",
             ),
+            "edge_detection_method": Or(
+                "binary_erosion",
+                "canny",
+            ),
             "cropped_size": Or(
                 float,
                 int,
-            ),
-            "save_cropped_grains": Or(
-                True,
-                False,
-                error=(
-                    "Invalid value in config for 'grainstats.save_cropped_grains, valid values " "are 'True' or 'False'"
-                ),
             ),
         },
         "dnatracing": {
             "run": Or(
                 True,
                 False,
-                error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
+                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
             ),
+            "min_skeleton_size": lambda n: n > 0.0,
             "skeletonisation_method": Or(
                 "zhang",
                 "lee",
                 "thin",
                 "medial_axis",
                 "joe",
-                error="Invalid value in config for 'filter.skeletonisation_method', valid values are 'zhang', 'lee', 'thin', 'medial_axis', 'joe'",
+                error="Invalid value in config for 'dnatracing.skeletonisation_method'," 
+                "valid values are 'zhang', 'lee', 'thin', 'medial_axis', 'joe'",
             ),
             "pruning_method": Or(
                 "joe",
                 "max",
-                error="Invalid value in config for 'filter.pruning_method', valid values are 'joe'",
+                error="Invalid value in config for 'dnatracing.pruning_method', valid values are 'joe'",
             ),
+            "pad_width": lambda n: n > 0.0,
+            # "cores": lambda n: n > 0.0,
         },
         "plotting": {
             "run": Or(
@@ -242,6 +217,27 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "all",
                 "core",
                 error="Invalid value in config for 'plotting.image_set', valid values " "are 'all' or 'core'",
+            ),
+            "pixel_interpolation": Or(
+                None,
+                "none",
+                "bessel",
+                "bicubic",
+                "bilinear",
+                "catrom",
+                "gaussian",
+                "hamming",
+                "hanning",
+                "hermite",
+                "kaiser",
+                "lanczos",
+                "mitchell",
+                "nearest",
+                "quadric",
+                "sinc",
+                "spline16",
+                "spline36",
+                error="Invalid interpolation value. See https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html for options.",
             ),
             "zrange": list,
             "colorbar": Or(
@@ -264,9 +260,30 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "histogram_log_axis": Or(
                 True,
                 False,
-                error="Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or 'False'",
+                error=(
+                    "Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or "
+                    "'False'"
+                ),
             ),
             "histogram_bins": lambda n: n > 0,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
+        },
+        "summary_stats": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for summary_stats.run, valid values are 'True' or 'False'",
+            ),
+            "config": Or(
+                None,
+                str,
+                error=(
+                    "Invalid value in config for summary_stats.config, valid values are 'None' or a path to a "
+                    "config file."
+                ),
+            ),
         },
     }
 )
@@ -592,7 +609,7 @@ PLOTTING_SCHEMA = Schema(
                     "Invalid value in config 'grain_image.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
-            "core_set": True,
+            "core_set": False,
         },
         "grain_mask": {
             "image_type": Or(
@@ -719,6 +736,13 @@ PLOTTING_SCHEMA = Schema(
         },
         "line_trace": {
             "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
             "cmap": str,
         },
         "visual": {
@@ -748,5 +772,92 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "dpi": int,
         },
+    }
+)
+
+SUMMARY_SCHEMA = Schema(
+    {
+        "base_dir": Path,
+        "output_dir": Path,
+        "csv_file": str,
+        "file_ext": Or(
+            "png",
+            "pdf",
+            "svg",
+            error=("Invalid value in config 'file_ext', valid values are 'png', 'pdf' or 'svg' "),
+        ),
+        "pickle_plots": Or(
+            True, False, error="Invalid value in config for 'pickle_plots', valid values are 'True' or 'False'"
+        ),
+        "var_to_label": Or(
+            None, str, error="Invalid value in config for 'var_to_label', valid values are 'None' or a str"
+        ),
+        "image_id": str,
+        "molecule_id": str,
+        "hist": Or(
+            True,
+            False,
+            error="Invalid value in config for 'hist', valid values are 'True' or 'False'",
+        ),
+        "bins": lambda n: n > 0,
+        "stat": Or(
+            "count",
+            "frequency",
+            "probability",
+            "percent",
+            "density",
+            error=(
+                "Invalid value in config 'stat', valid values are 'count', 'frequency', "
+                "'probability', 'percent' or 'density'"
+            ),
+        ),
+        "kde": Or(
+            True,
+            False,
+            error="Invalid value in config for 'kde', valid values are 'True' or 'False'",
+        ),
+        "violin": Or(
+            True,
+            False,
+            error="Invalid value in config for 'violin', valid values are 'True' or 'False'",
+        ),
+        "figsize": [lambda n: n > 0],
+        "alpha": lambda n: n > 0,
+        "palette": Or(
+            "colorblind",
+            "deep",
+            "muted",
+            "pastel",
+            "bright",
+            "dark",
+            "Spectral",
+            "Set2",
+            error=(
+                "Invalid value in config 'palette', valid values are 'colorblind', 'deep', "
+                "'muted', 'pastel', 'bright', 'dark', 'Spectral' or 'Set2'"
+            ),
+        ),
+        "stats_to_sum": [
+            Optional("area"),
+            Optional("area_cartesian_bbox"),
+            Optional("aspect_ratio"),
+            Optional("bending_angle"),
+            Optional("contour_length"),
+            Optional("end_to_end_distance"),
+            Optional("height_max"),
+            Optional("height_mean"),
+            Optional("height_median"),
+            Optional("height_min"),
+            Optional("max_feret"),
+            Optional("min_feret"),
+            Optional("radius_max"),
+            Optional("radius_mean"),
+            Optional("radius_median"),
+            Optional("radius_min"),
+            Optional("smallest_bounding_area"),
+            Optional("smallest_bounding_length"),
+            Optional("smallest_bounding_width"),
+            Optional("volume"),
+        ],
     }
 )

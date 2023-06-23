@@ -9,10 +9,13 @@ detailed here. If you know of another package please consider making a pull requ
 * [gwyfile](https://pypi.org/project/gwyfile/) a pure Python interface to reading and writing Gwyddion files.
 * [magni](https://github.com/SIP-AAU/Magni) compressive sampling and reconstruction of Atomic Force Microscopy images.
 * [nanite](https://github.com/AFM-Analysis/nanite) loading, fitting and rating AFM force-distance data.
-* [nanoforce](https://github.com/crj341/nanoforce) import and analyse AFM force curves produced using Nanoscope 5 & 6 and Nanosurf `.nid` files.
-* [nanoscope](https://github.com/jmarini/nanoscope) read data files collected using Bruker, Veeco, and Digital Instruments Atomic Force Microscopes (AFMs) using Nanoscope v5.12 - v10.00 acquisition software
+* [nanoforce](https://github.com/crj341/nanoforce) import and analyse AFM force curves produced using Nanoscope 5 & 6
+  and Nanosurf `.nid` files.
+* [nanoscope](https://github.com/jmarini/nanoscope) read data files collected using Bruker, Veeco, and Digital
+  Instruments Atomic Force Microscopes (AFMs) using Nanoscope v5.12 - v10.00 acquisition software
 * [NSFOpen](https://pypi.org/project/NSFopen/) Read data and parameters from Nanosurf NID files.
-* [pycroscopy](https://pycroscopy.github.io/pycroscopy/about.html) Python Package for scientific analysis of nanoscience data.
+* [pycroscopy](https://pycroscopy.github.io/pycroscopy/about.html) Python Package for scientific analysis of nanoscience
+  data.
 * [pySPM](https://github.com/scholi/pySPM) read, handle and plot Scanning Probme Microscopy (SPM) images and ToF-SIMS data.
 
 ## C++

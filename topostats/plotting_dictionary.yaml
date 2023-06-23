@@ -135,9 +135,9 @@ coloured_boxes:
   core_set: false
 grain_image:
   image_type: "non-binary"
-  core_set: true
+  core_set: false
 grain_mask:
-  image_type: "non-binary"
+  image_type: "binary"
   core_set: false
 grain_mask_image:
   image_type: "non-binary"
@@ -192,6 +192,7 @@ tripple_crossings:
   core_set: false
 line_trace:
   title: "Heights of Crossing"
+  image_type: "non-binary"
   cmap: "green_green"
 visual:
   filename: "25-molecule_crossings"

@@ -2,7 +2,6 @@
 
 This document describes how to contribute to the development of this software.
 
-
 ## Contribution Workflow
 
 ### Create an Issue
@@ -11,7 +10,6 @@ Before starting please search for and review the existing [issues](https://githu
 `open` and `closed`) and [pull requests](https://github.com/AFM-SPM/TopoStats/pulls) to see if anyone has reported the
 bug or requested the feature already or work is in progress. If nothing exists then you should create a [new
 issue](https://github.com/AFM-SPM/TopoStats/issues/new/choose) using one of the templates provided.
-
 
 ### Cloning the repository
 
@@ -22,7 +20,7 @@ a member of AFM-SPM Organisation. If you are a member then you can [clone the
 repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) and make
 contributions directly.
 
-``` bash
+```bash
 # Member of AFM-SPM Organisation
 git clone git@github.com:AFM-SPM/TopoStats.git
 # Non-member of AFM-SPM cloning fork
@@ -34,7 +32,7 @@ git clone git@github.com:<YOUR_GITHUB_USERNAME>/TopoStats.git
 If you are going to contribute you should install the additional dependencies for undertaking such work. There are three
 groups of additional dependencies, `dev`, `docs` and `tests` and you should install all three using `pip` as shown below.
 
-``` bash
+```bash
 cd TopoStats
 pip install ".[dev,docs,tests]"
 ```
@@ -45,7 +43,6 @@ Typically you will now create a [branch](https://git-scm.com/book/en/v2/Git-Bran
 work on the issue you wish to address. It is not compulsory but we try to use a consistent nomenclature for branches
 that shows who has worked on the branch, the issue it pertains to and a short description of the work. To which end you
 will see branches with the form `<GITHUB_USERNAME>/<GITHUB_ISSUE>-<DESCRIPTION>`. Some examples are shown below...
-
 
 | Branch                                | User                                                | Issue                                                  | Description                                                                              |
 |:--------------------------------------|:----------------------------------------------------|:-------------------------------------------------------|:-----------------------------------------------------------------------------------------|
@@ -58,7 +55,7 @@ use the later but you are of course free to use your chosen method of managing G
 
 In this example we branch from `dev` and create a new branch called `ns-rse/000-fix-an-issue`.
 
-``` bash
+```bash
 # Ensure you are up-to-date on the main branch
 git checkout main
 git pull
@@ -67,11 +64,11 @@ git checkout -b ns-rse/000-fix-an-issue
 # Create and checkout a branch in two steps
 git branch dev ns-rse/000-fix-an-issue
 git checkout ns-rse/000-fix-an-issue
+
 ```
 
 You can now start working on your issue and making regular commits, but please bear in mind the following section on
 Coding Standards.
-
 
 ## Coding Standards
 
@@ -103,9 +100,8 @@ locally install `pre-commit` in your virtual environment and then install the co
 (**NB** this will download specific virtual environments that `pre-commit` uses when running hooks so the first time
 this is run may take a little while).
 
-
-``` bash
-pip install .[dev]
+```bash
+pip install ".[dev]"
 pre-commit install --install-hooks
 ```
 
@@ -129,14 +125,12 @@ by way of the `missing-function-docstring` condition.
 Further, when new methods are incorporated into the package that introduce changes to the configuration they should be
 documented under [Parameter Configuration](configuration)
 
-
 ### Testing
 
 New features should have unit-tests written and included under the `tests/` directory to ensure the functions work as
 expected. The [pytest](https://docs.pytest.org/en/latest/) framework is used for running tests along with a number of
 plugins ([pytest-regtest](https://gitlab.com/uweschmitt/pytest-regtest) for regression testing;
 [pytest-mpl](https://github.com/matplotlib/pytest-mpl) for testing generated Matplotlib images).
-
 
 ## Configuration
 
@@ -147,7 +141,6 @@ have to ensure that the default configuration file (`topostats/default.yaml`) is
 Further the `topostats.validation.validate.config()` function, which checks a valid configuration file with all necessary
 fields has been passed when invoking `run_topostats`, will also need updating to include new options in the Schema against
 which validation of configuration files is made.
-
 
 ### IDE Configuration
 

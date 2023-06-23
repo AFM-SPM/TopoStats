@@ -129,7 +129,7 @@ def test_skeletonize_circular_thin(skeletonize_circular_bool_int: np.ndarray) ->
     np.testing.assert_array_equal(test, CIRCULAR_THIN_TARGET)
 
 
-def test_skeletonize_linear_zha(skeletonize_linear_bool_int: np.ndarray) -> None:
+def test_skeletonize_linear_zhang(skeletonize_linear_bool_int: np.ndarray) -> None:
     """Test the Zhang method of skeletonization on a linear object."""
     LINEAR_ZHANG_TARGET = np.array(
         [
