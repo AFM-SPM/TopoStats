@@ -147,7 +147,6 @@ def test_prep_arrays(pad_width: int, target_image: np.ndarray, target_mask: np.n
     images, masks = prep_arrays(image=SMALL_ARRAY, labelled_grains_mask=SMALL_MASK, pad_width=pad_width)
     grain = 0
     for image, mask in zip(images, masks):
-        print(image)
         np.testing.assert_array_almost_equal(image, target_image[grain])
         np.testing.assert_array_equal(mask, target_mask[grain])
         grain += 1

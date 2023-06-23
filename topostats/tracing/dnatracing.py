@@ -692,7 +692,7 @@ def trace_image(
     pad_width: int = 1,
     cores: int = 1,
 ) -> Dict:
-    """Processor function for tracing grains individually.
+    """Processor function for tracing image.
 
     Parameters
     ----------
@@ -841,7 +841,8 @@ def trace_mask(
 def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
     """Takes an image and labelled mask and crops individual grains and original heights to a list.
 
-    A second padding is made after cropping to ensure for "edge cases" where grains are close to bounding box edges.
+    A second padding is made after cropping to ensure for "edge cases" where grains are close to bounding box edges that
+    they are traced correctly. This is accounted for when aligning traces to the whole image mask.
 
     Parameters
     ==========
