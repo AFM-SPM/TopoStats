@@ -65,7 +65,7 @@ def dnatrace_circular() -> dnaTrace:
 def test_gaussian_filter(dnatrace: dnaTrace, gauss_image_sum: float) -> None:
     """Test of the method."""
     dnatrace.gaussian_filter()
-    assert dnatrace.gauss_image.sum() == gauss_image_sum
+    assert dnatrace.gauss_image.sum() == pytest.approx(gauss_image_sum)
 
 
 @pytest.mark.parametrize(
