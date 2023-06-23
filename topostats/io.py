@@ -901,10 +901,10 @@ class LoadScans:
         if self.image.shape[0] < self.MINIMUM_IMAGE_SIZE or self.image.shape[1] < self.MINIMUM_IMAGE_SIZE:
             LOGGER.warning(f"[{self.filename}] Skipping, image too small: {self.image.shape}")
         else:
-            self.add_to_dic()
+            self.add_to_dict()
             LOGGER.info(f"[{self.filename}] Image added to processing.")
 
-    def add_to_dic(self) -> None:
+    def add_to_dict(self) -> None:
         """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under
         the key filename.
 
