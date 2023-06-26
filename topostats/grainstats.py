@@ -266,6 +266,7 @@ class GrainStats:
             length_scaling_factor = self.pixel_to_nanometre_scaling * self.metre_scaling_factor
             area_scaling_factor = length_scaling_factor**2
             stats = {
+                "img_grain_no": index,
                 "centre_x": centre_x * length_scaling_factor,
                 "centre_y": centre_y * length_scaling_factor,
                 "radius_min": radius_stats["min"] * length_scaling_factor,
