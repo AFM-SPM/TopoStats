@@ -121,13 +121,15 @@ class dnaTrace:
         elif len(self.disordered_trace) >= self.min_skeleton_size:
             self.linear_or_circular(self.disordered_trace)
             self.get_ordered_traces()
-            self.linear_or_circular(self.ordered_trace)
-            self.get_fitted_traces()
-            self.get_splined_traces()
-            # self.find_curvature()
-            # self.saveCurvature()
-            self.measure_contour_length()
-            self.measure_end_to_end_distance()
+            if len(self.ordered_trace) >= self.min_skeleton_size:
+                self.linear_or_circular(self.ordered_trace)
+                self.get_fitted_traces()
+                self.get_splined_traces()
+            
+                # self.find_curvature()
+                # self.saveCurvature()
+                self.measure_contour_length()
+                self.measure_end_to_end_distance()
         else:
             LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
 
@@ -180,7 +182,8 @@ class dnaTrace:
 
         # For loop determines how many neighbours a point has - if only one it is an end
         for x, y in fitted_trace_list:
-            if genTracingFuncs.countNeighbours(x, y, fitted_trace_list) == 1:
+            neighbours = genTracingFuncs.countNeighbours(x, y, fitted_trace_list)
+            if neighbours == 1 or neighbours == 0:
                 points_with_one_neighbour += 1
             else:
                 pass
