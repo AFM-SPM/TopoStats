@@ -603,7 +603,7 @@ class reorderTrace:
 
         # Find one of the end points
         for i, (x, y) in enumerate(trace_coordinates):
-            if genTracingFuncs.countNeighbours(x, y, trace_coordinates) == 1:
+            if genTracingFuncs.countNeighbours(x, y, trace_coordinates) == 1 or genTracingFuncs.countNeighbours(x, y, trace_coordinates) == 0:
                 ordered_points = [[x, y]]
                 trace_coordinates.pop(i)
                 break
