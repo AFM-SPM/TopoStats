@@ -230,7 +230,7 @@ class Grains:
         for grain_no in uniq:  # Calculate grian area in nm^2
             grain_area = np.sum(image_cp == grain_no) * (self.pixel_to_nm_scaling**2)
             # Compare area in nm^2 to area thresholds
-            if grain_area > upper_size_limit or grain_area < lower_size_limit:
+            if grain_area > upper_size_limit or grain_area < lower_size_limit or grain_area <= 2*self.pixel_to_nm_scaling:
                 image_cp[image_cp == grain_no] = 0
             else:
                 grain_count += 1
@@ -329,7 +329,7 @@ class Grains:
                     self.absolute_area_threshold[direction],
                 )
             self.directions[direction]["labelled_regions_02"] = self.label_regions(
-                self.directions[direction]["removed_small_objects"]
+                self.directions[direction]["removed_noise"]
             )
             self.region_properties[direction] = self.get_region_properties(
                 self.directions[direction]["labelled_regions_02"]
