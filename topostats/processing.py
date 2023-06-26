@@ -15,6 +15,7 @@ from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import trace_image
 from topostats.utils import create_empty_dataframe
+from topostats.pca_dbscan import ClusterData
 
 # pylint: disable=broad-except
 # pylint: disable=line-too-long
@@ -260,54 +261,61 @@ def process_scan(
                     results = create_empty_dataframe()
                 else:
                     # Run dnatracing
-                    try:
-                        if dnatracing_config["run"]:
-                            dnatracing_config.pop("run")
-                            LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
-                            tracing_stats = defaultdict()
-                            for direction, _ in grainstats.items():
-                                tracing_stats[direction] = trace_image(
-                                    image=filtered_image.images["gaussian_filtered"],
-                                    grains_mask=grains.directions[direction]["labelled_regions_02"],
-                                    filename=filename,
-                                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                                    **dnatracing_config,
-                                )
-                                tracing_stats[direction]["threshold"] = direction
-                            # Set tracing_stats_df in light of direction
-                            if grains_config["direction"] == "both":
-                                tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
-                            elif grains_config["direction"] == "above":
-                                tracing_stats_df = tracing_stats["above"]
-                            elif grains_config["direction"] == "below":
-                                tracing_stats_df = tracing_stats["below"]
-                            LOGGER.info(
-                                f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics"
+                    #try:
+                    if dnatracing_config["run"]:
+                        dnatracing_config.pop("run")
+                        LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
+                        tracing_stats = defaultdict()
+                        for direction, _ in grainstats.items():
+                            tracing_stats[direction] = trace_image(
+                                image=filtered_image.images["gaussian_filtered"],
+                                grains_mask=grains.directions[direction]["labelled_regions_02"],
+                                filename=filename,
+                                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                                **dnatracing_config,
                             )
-                            # NB - Merge on image, molecule and threshold because we may have above and below molecules which
-                            #      gives duplicate molecule numbers as they are processed separately, if tracing stats
-                            #      are not available (because skeleton was too small), grainstats are still retained.
-                            results = grainstats_df.merge(
-                                tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left"
-                            )
-                            results["basename"] = image_path.parent
-                        else:
-                            LOGGER.info(
-                                f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame."
-                            )
-                            results = grainstats_df
-                            results["basename"] = image_path.parent
-                    except Exception:
+                            tracing_stats[direction]["threshold"] = direction
+                        # Set tracing_stats_df in light of direction
+                        if grains_config["direction"] == "both":
+                            tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
+                        elif grains_config["direction"] == "above":
+                            tracing_stats_df = tracing_stats["above"]
+                        elif grains_config["direction"] == "below":
+                            tracing_stats_df = tracing_stats["below"]
+                        LOGGER.info(
+                            f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics"
+                        )
+                        # NB - Merge on image, molecule and threshold because we may have above and below molecules which
+                        #      gives duplicate molecule numbers as they are processed separately, if tracing stats
+                        #      are not available (because skeleton was too small), grainstats are still retained.
+                        results = grainstats_df.merge(
+                            tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left"
+                        )
+                        results["basename"] = image_path.parent
+                    else:
+                        LOGGER.info(
+                            f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame."
+                        )
+                        results = grainstats_df
+                        results["basename"] = image_path.parent
+                    """except Exception:
                         # If no results we need a dummy dataframe to return.
                         LOGGER.warning(
                             f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, "
                             "returning grain statistics"
                         )
                         results = grainstats_df
-                        results["basename"] = image_path.parent
+                        results["basename"] = image_path.parent"""
             else:
                 LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
                 results = create_empty_dataframe()
+
+            # PCA / DBSCAN code here
+            print("# Img Grains: ", grains.directions[direction]["labelled_regions_02"].max()-1)
+            print("# Grainstats: ", results['img_grain_no'].max())
+            cluster_analysis = ClusterData(results, grains.directions[direction]["labelled_regions_02"], filtered_image.images["gaussian_filtered"]) #, pca_cols=['height_mean', 'area'])
+            cluster_analysis.cluster_data(eps1=0.1, eps2=0.4, min_samples=2)
+
     else:
         LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
         results = create_empty_dataframe()
