@@ -45,13 +45,13 @@ class ClusterData():
         self.mask_tensor = self.cluster_mask_tensor(self.labeled_mask, self.dbscan_labels, self.mol_nums)
         self.plot_pca(self.pca, self.components, self.dbscan_labels)
         self.plot_clusters(self.mask_tensor, self.image)
-        return
+        return pd.DataFrame(np.stack([self.mol_nums, self.dbscan_labels], axis=1), columns=["img_grain_no", "cluster_label"])
 
     def refine_dataframe(self):
         # remove non-important / string features
-        numeric_grainstats = self.grainstats.drop(columns=[
-        "centre_x",
-        "centre_y",
+        numeric_grainstats = self.grainstats.copy().drop(columns=[
+        "centre_x", # position dependent
+        "centre_y", # position dependent
         "radius_min", # corrolate with radius_mean
         "radius_max", # corrolate with radius_mean
         "radius_median", # corrolate with radius_mean
@@ -61,13 +61,12 @@ class ClusterData():
         "smallest_bounding_width", # corrolate with min_feret & aspect ratio
         "smallest_bounding_length", # corrolate with max_feret & aspect ratio
         "volume",
-        "area",
         "area_cartesian_bbox",
         "smallest_bounding_area",
-        "threshold",
-        "circular",
-        "image",
-        "basename"])
+        "threshold", # str
+        "circular", # str
+        "image", # str
+        "basename"]) # str
 
         if self.pca_cols != "all":
             if "img_grain_no" not in self.pca_cols:
@@ -79,7 +78,7 @@ class ClusterData():
         for col_name in numeric_grainstats.columns:
             pd.to_numeric(numeric_grainstats[col_name])
         filtered_grainstats = numeric_grainstats.dropna()
-        self.mol_nums = filtered_grainstats.pop("img_grain_no")
+        self.mol_nums = np.array(filtered_grainstats.pop("img_grain_no"))
         LOGGER.info(f"{len(self.mol_nums)} of {self.labeled_mask.max()} grainstats fully calculated")
         self.normalised_df = (filtered_grainstats - filtered_grainstats.min()) / (filtered_grainstats.max() - filtered_grainstats.min())
 
@@ -198,4 +197,3 @@ class ClusterData():
         ).plot_and_save()
 
         return clustered_mask
-

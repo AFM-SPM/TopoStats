@@ -311,11 +311,14 @@ def process_scan(
                 results = create_empty_dataframe()
 
             # PCA / DBSCAN code here
+            print(results.head())
             print("# Img Grains: ", grains.directions[direction]["labelled_regions_02"].max()-1)
             print("# Grainstats: ", results['img_grain_no'].max())
-            cluster_analysis = ClusterData(results, grains.directions[direction]["labelled_regions_02"], filtered_image.images["gaussian_filtered"]) #, pca_cols=['height_mean', 'area'])
-            cluster_analysis.cluster_data(eps1=0.1, eps2=0.4, min_samples=2)
-
+            cluster_analysis = ClusterData(results, grains.directions[direction]["labelled_regions_02"], filtered_image.images["gaussian_filtered"], pca_cols=['height_mean', 'area'])
+            cluster_labels = cluster_analysis.cluster_data(eps1=0.1, eps2=0.4, min_samples=2)
+            #print(cluster_labels)
+            results = results.merge(cluster_labels, how="left", on="img_grain_no") # will also need direction
+            results.index.name = "molecule_number"
     else:
         LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
         results = create_empty_dataframe()
