@@ -9,13 +9,37 @@ from skimage import io
 
 from topostats.grains import Grains
 from topostats.io import LoadScans
-from topostats.plottingfuncs import Images
+from topostats.plottingfuncs import dilate_binary_image, Images
 
 
 DPI = 300.0
 RNG = np.random.default_rng(seed=1000)
 ARRAY = RNG.random((10, 10))
 MASK = RNG.uniform(low=0, high=1, size=ARRAY.shape) > 0.5
+
+
+@pytest.mark.parametrize(
+    "binary_image, dilation_iterations, expected",
+    [
+        (
+            np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+            1,
+            np.array([[0, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 1, 1, 1, 0], [0, 0, 1, 0, 0], [0, 0, 0, 0, 0]]),
+        ),
+        (
+            np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+            2,
+            np.array([[0, 0, 1, 0, 0], [0, 1, 1, 1, 0], [1, 1, 1, 1, 1], [0, 1, 1, 1, 0], [0, 0, 1, 0, 0]]),
+        ),
+    ],
+)
+def test_dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int, expected: np.ndarray) -> None:
+    "Test the dilate binary images function of plottingfuncs.py."
+
+    result = dilate_binary_image(binary_image=binary_image, dilation_iterations=dilation_iterations)
+
+    print(result)
+    np.testing.assert_array_equal(result, expected)
 
 
 @pytest.mark.parametrize(
