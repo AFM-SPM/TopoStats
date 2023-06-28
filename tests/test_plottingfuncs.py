@@ -14,8 +14,8 @@ from topostats.plottingfuncs import Images
 
 DPI = 300.0
 RNG = np.random.default_rng(seed=1000)
-array = RNG.random((10, 10))
-mask = RNG.uniform(low=0, high=1, size=array.shape) > 0.5
+ARRAY = RNG.random((10, 10))
+MASK = RNG.uniform(low=0, high=1, size=ARRAY.shape) > 0.5
 
 
 @pytest.mark.parametrize(
@@ -209,10 +209,10 @@ def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
     """Test the plotting of a mask with a different colourmap (blu)."""
     plotting_config["mask_cmap"] = "blu"
     fig, _ = Images(
-        data=array,
+        data=ARRAY,
         output_dir=tmp_path,
         filename="colour.png",
-        masked_array=mask,
+        masked_array=MASK,
         **plotting_config,
     ).plot_and_save()
     return fig
@@ -226,6 +226,22 @@ def test_high_dpi(minicircle_grain_gaussian_filter: Grains, plotting_config: dic
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         output_dir=tmp_path,
         filename="high_dpi",
+        **plotting_config,
+    ).plot_and_save()
+    return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_mask_dilation(plotting_config: dict, tmp_path: Path) -> None:
+    """Test the plotting of a mask with a different colourmap (blu)."""
+    plotting_config["mask_cmap"] = "blu"
+    mask = np.zeros((1024, 1024))
+    mask[500, :] = 1
+    fig, _ = Images(
+        data=RNG.random((1024, 1024)),
+        output_dir=tmp_path,
+        filename="mask_dilation",
+        masked_array=mask,
         **plotting_config,
     ).plot_and_save()
     return fig
