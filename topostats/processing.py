@@ -6,8 +6,6 @@ from typing import Dict, Union, List
 import numpy as np
 import pandas as pd
 
-from skimage.morphology import binary_dilation
-
 from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import Grains
@@ -282,10 +280,6 @@ def process_scan(
                                 tracing_stats[direction]["threshold"] = direction
 
                                 # Plot traces for the whole image
-                                # Dilate the trace to be able to plot it without the trace being too thin
-                                dilation_iterations = int(filtered_image.images["gaussian_filtered"].shape[0] / 256)
-                                for _ in range(dilation_iterations):
-                                    image_trace = binary_dilation(image_trace)
                                 Images(
                                     filtered_image.images["gaussian_filtered"],
                                     output_dir=core_out_path,
