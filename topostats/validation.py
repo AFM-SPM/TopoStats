@@ -601,7 +601,8 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'all_molecule_traces.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
@@ -640,7 +641,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'grain_mask_image.image_type', valid values "
+                    "Invalid value in config 'single_molecule_trace.image_type', valid values "
                     "are 'binary' or 'non-binary'"
                 ),
             ),
