@@ -40,7 +40,6 @@ class Images:
         image_set: str = "core",
         core_set: bool = False,
         pixel_interpolation: Union[str, None] = None,
-        dilation: Union[int, None] = None,
         cmap: str = "nanoscope",
         mask_cmap: str = "jet_r",
         region_properties: dict = None,
@@ -78,8 +77,6 @@ class Images:
             Flag to identify image as part of the core image set or not.
         pixel_interpolation: Union[str, None]
             Interpolation to use (default: None).
-        dilation: Union[int, None]
-            Number of iterations of dilation to perform on a supplied mask.
         cmap : str
             Colour map to use (default 'nanoscope', 'afmhot' also available).
         mask_cmap : str
@@ -113,7 +110,6 @@ class Images:
         self.image_set = image_set
         self.core_set = core_set
         self.interpolation = pixel_interpolation
-        self.dilation = dilation
         self.cmap = Colormap(cmap).get_cmap()
         self.mask_cmap = Colormap(mask_cmap).get_cmap()
         self.region_properties = region_properties
@@ -184,28 +180,6 @@ class Images:
         )
         return fig, ax
 
-    def dilate_binary_image(self, binary_image: np.ndarray, dilation_iterations: int) -> np.ndarray:
-        """Dilate a supplied binary image a given number of times.
-
-        Parameters
-        ----------
-        binary_image: np.ndarray
-            Binary image to be dilated
-        dilation_iterations: int
-            Number of dilation iterations to be performed
-
-        Returns
-        -------
-        binary_image: np.ndarray
-            Dilated binary image
-        """
-
-        binary_image = binary_image.copy()
-        for _ in range(dilation_iterations):
-            binary_image = binary_dilation(binary_image)
-
-        return binary_image
-
     def save_figure(self):
         """
         This function saves figures as plt.savefig objects.
@@ -230,6 +204,13 @@ class Images:
             )
             if isinstance(self.masked_array, np.ndarray):
                 self.masked_array[self.masked_array != 0] = 1
+                # If the image is too large for singles to be resolved in the mask, then dilate the mask proportionally
+                # to image size to enable clear viewing.
+                if np.max(self.masked_array.shape) > 500:
+                    dilation_strength = int(np.max(self.masked_array.shape) / 256)
+                    self.masked_array = self.dilate_binary_image(
+                        binary_image=self.masked_array, dilation_iterations=dilation_strength
+                    )
                 mask = np.ma.masked_where(self.masked_array == 0, self.masked_array)
                 ax.imshow(
                     mask,
@@ -290,6 +271,28 @@ class Images:
             format=self.save_format,
         )
         plt.close()
+
+    def dilate_binary_image(self, binary_image: np.ndarray, dilation_iterations: int) -> np.ndarray:
+        """Dilate a supplied binary image a given number of times.
+
+        Parameters
+        ----------
+        binary_image: np.ndarray
+            Binary image to be dilated
+        dilation_iterations: int
+            Number of dilation iterations to be performed
+
+        Returns
+        -------
+        binary_image: np.ndarray
+            Dilated binary image
+        """
+
+        binary_image = binary_image.copy()
+        for _ in range(dilation_iterations):
+            binary_image = binary_dilation(binary_image)
+
+        return binary_image
 
 
 def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to_nm_scaling: float) -> None:
