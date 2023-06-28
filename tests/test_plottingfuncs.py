@@ -34,11 +34,10 @@ MASK = RNG.uniform(low=0, high=1, size=ARRAY.shape) > 0.5
     ],
 )
 def test_dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int, expected: np.ndarray) -> None:
-    "Test the dilate binary images function of plottingfuncs.py."
+    """Test the dilate binary images function of plottingfuncs.py."""
 
     result = dilate_binary_image(binary_image=binary_image, dilation_iterations=dilation_iterations)
 
-    print(result)
     np.testing.assert_array_equal(result, expected)
 
 
