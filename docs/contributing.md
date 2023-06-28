@@ -101,7 +101,7 @@ locally install `pre-commit` in your virtual environment and then install the co
 this is run may take a little while).
 
 ```bash
-pip install .[dev]
+pip install ".[dev]"
 pre-commit install --install-hooks
 ```
 

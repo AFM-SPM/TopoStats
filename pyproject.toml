@@ -58,6 +58,7 @@ tests = [
   "py",
   "pytest",
   "pytest-cov",
+  "pytest-lazy-fixture",
   "pytest-mpl",
   "pytest-regtest",
   "filetype",
@@ -203,5 +204,6 @@ fixable = ["A", "B", "C", "D", "E", "F", "R", "S", "W", "U"]
 unfixable = []
 
 [project.scripts]
-run_topostats = "topostats.run_topostats:main"
-toposum = "topostats.plotting:main"
+topostats = "topostats.entry_point:entry_point"
+run_topostats = "topostats.entry_point:legacy_run_topostats_entry_point"
+toposum = "topostats.entry_point:legacy_toposum_entry_point"

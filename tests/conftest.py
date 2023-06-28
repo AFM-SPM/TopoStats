@@ -14,7 +14,7 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, LoadScans
 from topostats.plotting import TopoSum
-from topostats.tracing.dnatracing import dnaTrace, traceStats
+from topostats.tracing.dnatracing import dnaTrace
 from topostats.utils import get_thresholds, get_mask, _get_mask
 
 
@@ -82,22 +82,19 @@ def summary_config() -> Dict:
 
 
 @pytest.fixture
-def toposum_object(summary_config: Dict) -> TopoSum:
-    """Set up a fixture for testing plotting."""
-    toposum = TopoSum(csv_file=RESOURCES / "minicircle_default_all_statistics.csv", **summary_config)
+def toposum_object_single_directory(summary_config: Dict) -> TopoSum:
+    """Set up a TopoSum object fixture for testing plotting, using a dataframe containing data from a single
+    directory."""
+    toposum = TopoSum(csv_file=RESOURCES / "toposum_all_statistics_single_directory.csv", **summary_config)
     return toposum
 
 
 @pytest.fixture
-def toposum_multiple_images(toposum_object: TopoSum) -> pd.DataFrame:
-    """Duplicate the melted dataframe so tests with multiple images can be made."""
-    larger_data = toposum_object.melted_data.copy()
-    larger_data["Image"] = "larger.spm"
-    larger_data["value"] = larger_data["value"] * 1.1
-    smaller_data = toposum_object.melted_data.copy()
-    smaller_data["Image"] = "smaller.spm"
-    smaller_data["value"] = smaller_data["value"] * 0.95
-    return pd.concat([toposum_object.melted_data, larger_data, smaller_data])
+def toposum_object_multiple_directories(summary_config: Dict) -> TopoSum:
+    """Set up a TopoSum object fixture for testing plotting, using a dataframe containing data from several
+    directories."""
+    toposum = TopoSum(csv_file=RESOURCES / "toposum_all_statistics_multiple_directories.csv", **summary_config)
+    return toposum
 
 
 @pytest.fixture
@@ -235,7 +232,7 @@ def image_random_col_medians_masked() -> np.array:
 
 @pytest.fixture()
 def test_load_scan_minicircle() -> LoadScans:
-    """Load the minicricle.spm and return image (np.ndarray), pixel_to_nm_scaling (float) and filename (str) for use in
+    """Load the minicircle.spm and return image (np.ndarray), pixel_to_nm_scaling (float) and filename (str) for use in
     subsequent fixtures."""
     scan_loader = LoadScans(RESOURCES / "minicircle.spm", channel="Height")
     scan_loader.get_data()
@@ -713,7 +710,7 @@ FULL_IMAGE = RNG.random((GRAINS.shape[0], GRAINS.shape[1]))
 @pytest.fixture
 def test_dnatracing() -> dnaTrace:
     """Instantiate a dnaTrace object."""
-    return dnaTrace(full_image_data=FULL_IMAGE, grains=GRAINS, filename="Test", pixel_size=1.0)
+    return dnaTrace(image=FULL_IMAGE, grain=GRAINS, filename="Test", pixel_to_nm_scaling=1.0)
 
 
 @pytest.fixture
@@ -721,22 +718,16 @@ def minicircle_dnatracing(
     minicircle_grain_gaussian_filter: Filters, minicircle_grain_coloured: Grains, dnatracing_config: dict
 ) -> dnaTrace:
     """dnaTrace object instantiated with minicircle data."""
+    dnatracing_config.pop("pad_width")
     dna_traces = dnaTrace(
-        full_image_data=minicircle_grain_coloured.image.T,
-        grains=minicircle_grain_coloured.directions["above"]["labelled_regions_02"],
+        image=minicircle_grain_coloured.image.T,
+        grain=minicircle_grain_coloured.directions["above"]["labelled_regions_02"],
         filename=minicircle_grain_gaussian_filter.filename,
-        pixel_size=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
+        pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
         **dnatracing_config,
     )
     dna_traces.trace_dna()
     return dna_traces
-
-
-@pytest.fixture
-def minicircle_tracestats(minicircle_dnatracing: dnaTrace) -> pd.DataFrame:
-    """DNA Tracing Statistics"""
-    tracing_stats = traceStats(trace_object=minicircle_dnatracing, image_path="tmp")
-    return tracing_stats.df
 
 
 # DNA Tracing Fixtures

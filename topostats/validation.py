@@ -53,41 +53,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ".gwy",
             error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw' or '.asd'.",
         ),
-        "loading": {
-            "channel": Or(
-                "ZSensor",
-                "",
-                "Stiffness",
-                "LogStiffness",
-                "Adhesion",
-                "Deformation",
-                "Dissipation",
-                "Height Sensor",
-                "Height",  # end of spm channels
-                "HeightTracee",
-                "HeightRetrace",
-                "ZSensorTrace",
-                "ZSensorRetrace",
-                "UserIn0Trace",
-                "UserIn0Retrace",
-                "UserIn1Trace",
-                "UserIn1Retrace",  # end of ibw channels
-                "topography",
-                "phase",  # end of asd channels
-                "height_retrace",
-                "measuredHeight_retrace",
-                "amplitude_retrace",
-                "phase_retrace",
-                "error_retrace",
-                "height_trace",
-                "measuredHeight_trace",
-                "amplitude_trace",
-                "phase_trace",
-                "error_trace",  # end of jpk channels
-                error="Invalid value in config file for 'channel', all possible"
-                "image channels are seen in the above error message.",
-            )
-        },
+        "loading": {"channel": str},
         "filter": {
             "run": Or(
                 True,
@@ -220,9 +186,19 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "run": Or(
                 True,
                 False,
-                error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
+                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
             ),
             "min_skeleton_size": lambda n: n > 0.0,
+            "skeletonisation_method": Or(
+                "zhang",
+                "lee",
+                "thin",
+                "topostats",
+                error="Invalid value in config for 'dnatracing.skeletonisation_method',"
+                "valid values are 'zhang' or 'lee', 'thin' or 'topostats'",
+            ),
+            "pad_width": lambda n: n > 0.0,
+            # "cores": lambda n: n > 0.0,
         },
         "plotting": {
             "run": Or(
@@ -718,7 +694,7 @@ SUMMARY_SCHEMA = Schema(
             Optional("area_cartesian_bbox"),
             Optional("aspect_ratio"),
             Optional("bending_angle"),
-            Optional("contour_lengths"),
+            Optional("contour_length"),
             Optional("end_to_end_distance"),
             Optional("height_max"),
             Optional("height_mean"),
