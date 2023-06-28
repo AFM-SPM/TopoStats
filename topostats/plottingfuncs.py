@@ -7,6 +7,7 @@ from matplotlib.patches import Rectangle, Patch
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
+from skimage.morphology import binary_dilation
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
@@ -39,6 +40,7 @@ class Images:
         image_set: str = "core",
         core_set: bool = False,
         pixel_interpolation: Union[str, None] = None,
+        dilation: Union[int, None] = None,
         cmap: str = "nanoscope",
         mask_cmap: str = "jet_r",
         region_properties: dict = None,
@@ -76,6 +78,8 @@ class Images:
             Flag to identify image as part of the core image set or not.
         pixel_interpolation: Union[str, None]
             Interpolation to use (default: None).
+        dilation: Union[int, None]
+            Number of iterations of dilation to perform on a supplied mask.
         cmap : str
             Colour map to use (default 'nanoscope', 'afmhot' also available).
         mask_cmap : str
@@ -109,6 +113,7 @@ class Images:
         self.image_set = image_set
         self.core_set = core_set
         self.interpolation = pixel_interpolation
+        self.dilation = dilation
         self.cmap = Colormap(cmap).get_cmap()
         self.mask_cmap = Colormap(mask_cmap).get_cmap()
         self.region_properties = region_properties
@@ -178,6 +183,28 @@ class Images:
             f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}" f".{self.save_format}"
         )
         return fig, ax
+
+    def dilate_binary_image(self, binary_image: np.ndarray, dilation_iterations: int) -> np.ndarray:
+        """Dilate a supplied binary image a given number of times.
+
+        Parameters
+        ----------
+        binary_image: np.ndarray
+            Binary image to be dilated
+        dilation_iterations: int
+            Number of dilation iterations to be performed
+
+        Returns
+        -------
+        binary_image: np.ndarray
+            Dilated binary image
+        """
+
+        binary_image = binary_image.copy()
+        for _ in range(dilation_iterations):
+            binary_image = binary_dilation(binary_image)
+
+        return binary_image
 
     def save_figure(self):
         """
