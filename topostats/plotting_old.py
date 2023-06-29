@@ -271,7 +271,7 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     fig, ax = plt.subplots(figsize=(15, 12))
     # Simple histogram
     if grouparg is None:
-        dfnew[plotarg].plot.hist(ax=ax, alpha=1, linewidth=3.0, bins=bins)
+        dfnew[plotarg].plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, color='#B45F06')
     # Grouped histogram
     else:
         dfnew = dfnew[[grouparg, plotarg]]
@@ -362,7 +362,6 @@ def plothist2var(
         ax.legend(labels=[label1, label2])
     # Need to return fig in order to test
     plt.savefig(savename)
-    return fig
 
 
 def plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None, plotname=None):
@@ -397,8 +396,8 @@ def plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     # Need to return fig in order to test
-    # plt.savefig(savename)
-    return fig
+    plt.savefig(savename)
+    # return fig
 
 
 def plotdist2var(
@@ -588,11 +587,14 @@ if __name__ == "__main__":
     # import data from the csv file
     path = plotting_config["file"]
     df = importfromfile(path)
+    # df = df[df['Basename'] == 'NiCl2']
+    df = df[df['Basename'] == 'PLO']
     # df = df[df['bending_angle'] != 0]
     path2 = plotting_config["file2"]
     path3 = plotting_config["file3"]
     if path2 is not None:
         df2 = importfromfile(path2)
+        df2 = df2[df2['Basename'] == 'PLO']
         # df2 = df2[df2['bending_angle'] != 0]
     else:
         df2 = None
@@ -605,6 +607,7 @@ if __name__ == "__main__":
     output_dir = plotting_config["output_dir"]
 
     for plot in plotting_config["plots"]:
+        plotname = plotting_config["plots"][plot]["title"]
         plottype = plotting_config["plots"][plot]["plottype"]
         parameter = plotting_config["plots"][plot]["parameter"]
         nm = plotting_config["plots"][plot]["nm"]
@@ -636,7 +639,8 @@ if __name__ == "__main__":
         elif plottype == "dist":
             plotdist(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
         elif plottype == "dist2":
-            plotdist2var(df, parameter, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, c1="#B45F06", c2="#0B5394", label1='01', label2='02')
+            plotdist2var(df, parameter, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1=label1,
+                         label2=label2, bins=np.linspace(xmin, xmax, bins), plotname=plotname)
         elif plottype == "joint":
             plotjoint(df, parameter, nm=nm)
     # Filter data based on the need of specific projects
