@@ -311,6 +311,7 @@ class Grains:
             self.directions[direction]["tidied_border"] = self.tidy_border(
                 self.directions[direction]["labelled_regions_01"]
             )
+
             LOGGER.info(f"[{self.filename}] : Removing noise ({direction})")
             self.directions[direction]["removed_noise"] = self.area_thresholding(
                 self.directions[direction]["tidied_border"],
