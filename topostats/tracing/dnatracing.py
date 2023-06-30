@@ -753,7 +753,12 @@ def trace_image(
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
-    return {"statistics": results, "ordered_traces": ordered_traces, "image_trace": image_trace}
+    return {
+        "statistics": results,
+        "ordered_traces": ordered_traces,
+        "cropped_images": cropped_images,
+        "image_trace": image_trace,
+    }
 
 
 def trim_array(array: np.ndarray, pad_width: int) -> np.ndarray:

@@ -274,9 +274,36 @@ def process_scan(
                                     **dnatracing_config,
                                 )
                                 tracing_stats[direction] = tracing_results["statistics"]
-                                # ordered_traces = tracing_results["ordered_traces"]
-                                # image_trace = tracing_results["image_trace"]
+                                ordered_traces = tracing_results["ordered_traces"]
+                                cropped_images = tracing_results["cropped_images"]
+                                image_trace = tracing_results["image_trace"]
                                 tracing_stats[direction]["threshold"] = direction
+
+                                # Plot traces for the whole image
+                                Images(
+                                    filtered_image.images["gaussian_filtered"],
+                                    output_dir=core_out_path,
+                                    filename=f"{filename}_{direction}_traced",
+                                    masked_array=image_trace,
+                                    **plotting_config["plot_dict"]["all_molecule_traces"],
+                                ).plot_and_save()
+
+                                # Plot traces on each grain individually
+                                if plotting_config["image_set"] == "all":
+                                    for grain_index, (grain_trace, cropped_image) in enumerate(
+                                        zip(ordered_traces, cropped_images)
+                                    ):
+                                        grain_trace_mask = np.zeros(cropped_image.shape)
+                                        for coordinate in grain_trace:
+                                            grain_trace_mask[coordinate[0], coordinate[1]] = 1
+                                        Images(
+                                            cropped_image,
+                                            output_dir=grain_out_path / direction,
+                                            filename=f"{filename}_grain_trace_{grain_index}",
+                                            masked_array=grain_trace_mask,
+                                            **plotting_config["plot_dict"]["single_molecule_trace"],
+                                        ).plot_and_save()
+
                             # Set tracing_stats_df in light of direction
                             if grains_config["direction"] == "both":
                                 tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
@@ -294,6 +321,7 @@ def process_scan(
                                 tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left"
                             )
                             results["basename"] = image_path.parent
+
                         else:
                             LOGGER.info(
                                 f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame."
