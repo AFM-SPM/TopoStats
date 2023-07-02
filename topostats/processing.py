@@ -88,13 +88,13 @@ def filter_wrapper(
 
         return filtered_image.images["gaussian_filtered"]
 
-    else:
-        LOGGER.error(
-            "You have not included running the initial filter stage. This is required for all subsequent "
-            "stages of processing. Please check your configuration file."
-        )
+    # Otherwise, return None and warn that initial processing is disabled.
+    LOGGER.error(
+        "You have not included running the initial filter stage. This is required for all subsequent "
+        "stages of processing. Please check your configuration file."
+    )
 
-        return None
+    return None
 
 
 def grains_wrapper(
@@ -135,7 +135,6 @@ def grains_wrapper(
             if plotting_config["run"]:
                 plotting_config.pop("run")
                 LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
-                grain_masks = {}
                 for direction, image_arrays in grains.directions.items():
                     LOGGER.info(f"[{filename}] : Plotting {direction} Grain Finding Images")
                     for plot_name, array in image_arrays.items():
@@ -165,19 +164,18 @@ def grains_wrapper(
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
 
-                    grain_masks[direction] = grains.directions[direction]["labelled_regions_02"]
-
                 plotting_config["run"] = True
 
-                return grain_masks
-
             else:
+                # Otherwise, return None and warn that plotting is disabled for grain finding images
                 LOGGER.info(f"[{filename}] : Plotting disabled for Grain Finding Images")
 
-                return None
-    else:
-        LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
-        return None
+            return grains.region_properties
+
+    # Otherwise, return None and warn grainstats is disabled
+    LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
+
+    return None
 
 
 def grainstats_wrapper(
@@ -244,7 +242,9 @@ def grainstats_wrapper(
             return grainstats_df
 
         except Exception:
-            LOGGER.info(f"[{filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe.")
+            LOGGER.info(
+                f"[{filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
+            )
             return create_empty_dataframe()
     else:
         LOGGER.info(f"[{filename}] : Grainstats disabled. Returning empty dataframe")
@@ -263,7 +263,6 @@ def dnatracing_wrapper(
     plotting_config: dict,
     results_df: pd.DataFrame = None,
 ):
-    
     # Create empty dataframe is none is passed
     if results_df is None:
         results_df = create_empty_dataframe()
@@ -288,7 +287,7 @@ def dnatracing_wrapper(
                 image_trace = tracing_results["image_trace"]
                 tracing_stats[direction]["threshold"] = direction
 
-                                # Plot traces for the whole image
+                # Plot traces for the whole image
                 Images(
                     image,
                     output_dir=core_out_path,
@@ -299,9 +298,7 @@ def dnatracing_wrapper(
 
                 # Plot traces on each grain individually
                 if plotting_config["image_set"] == "all":
-                    for grain_index, (grain_trace, cropped_image) in enumerate(
-                        zip(ordered_traces, cropped_images)
-                    ):
+                    for grain_index, (grain_trace, cropped_image) in enumerate(zip(ordered_traces, cropped_images)):
                         grain_trace_mask = np.zeros(cropped_image.shape)
                         for coordinate in grain_trace:
                             grain_trace_mask[coordinate[0], coordinate[1]] = 1
@@ -328,13 +325,13 @@ def dnatracing_wrapper(
             results["basename"] = image_path.parent
 
             return results
-        
-        else:
-            LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
-            results = results_df
-            results["basename"] = image_path.parent
 
-            return results
+        # Otherwise, return the passed in dataframe and warn that tracing is disabled
+        LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
+        results = results_df
+        results["basename"] = image_path.parent
+
+        return results
 
     except Exception:
         # If no results we need a dummy dataframe to return.
@@ -402,7 +399,7 @@ def process_scan(
     """
 
     core_out_path, filter_out_path, grain_out_path = get_out_paths(
-        image_path=topostats_object["img_path"], 
+        image_path=topostats_object["img_path"],
         base_dir=base_dir,
         output_dir=output_dir,
         filename=topostats_object["filename"],
@@ -420,7 +417,9 @@ def process_scan(
         plotting_config=plotting_config,
     )
     # Use flattened image if one is returned, else use original image
-    topostats_object["image_flattened"] = image_flattened if image_flattened is not None else topostats_object["image_original"]
+    topostats_object["image_flattened"] = (
+        image_flattened if image_flattened is not None else topostats_object["image_original"]
+    )
 
     # Find Grains :
     grain_masks = grains_wrapper(
@@ -453,7 +452,10 @@ def process_scan(
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
             filename=topostats_object["filename"],
+            core_out_path=core_out_path,
+            grain_out_path=grain_out_path,
             image_path=topostats_object["img_path"],
+            plotting_config=plotting_config,
             dnatracing_config=dnatracing_config,
             results_df=results_df,
         )
@@ -478,7 +480,7 @@ def process_scan(
 
     save_topostats_data_file(topostats_object, core_out_path)
 
-    return topostats_object["img_path"], results_df
+    return topostats_object["img_path"], results_df, image_stats
 
 
 def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
