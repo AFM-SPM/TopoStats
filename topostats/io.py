@@ -129,11 +129,13 @@ def write_config_with_comments(config: str, output_dir: Path, filename: str = "c
     LOGGER.info(f"A sample configuration has been written to : {str(create_config_path)}")
     LOGGER.info(CONFIG_DOCUMENTATION_REFERENCE)
 
+
 def save_topostats_data_file(topostats_image_data_object: dict, out_path: Path):
     """Save topostats image data to pickle."""
 
     with open(f"{out_path / topostats_image_data_object['filename']}_image_data.topostats", "wb") as f:
         pkl.dump(topostats_image_data_object, f)
+
 
 def save_array(array: np.ndarray, outpath: Path, filename: str, array_type: str) -> None:
     """Save a Numpy array to disk.
@@ -541,11 +543,9 @@ class LoadScans:
         return pixel_to_nm_scaling
 
     def load_topostats(self) -> tuple:
-
         LOGGER.info(f"Loading image from : {self.img_path}")
         try:
-
-            with open(self.img_path, 'rb') as f:
+            with open(self.img_path, "rb") as f:
                 topostats_object = pkl.load(f)
             image = topostats_object["image_flattened"]
             pixel_to_nm_scaling = topostats_object["pixel_to_nm_scaling"]
@@ -928,6 +928,7 @@ class LoadScans:
             "image_flattened": None,
             "grain_masks": self.grain_masks,
         }
+
 
 def save_pkl(outfile: Path, to_pkl: dict) -> None:
     """Pickle objects for working with later.
