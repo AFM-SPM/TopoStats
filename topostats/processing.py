@@ -15,6 +15,7 @@ from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import trace_image
 from topostats.utils import create_empty_dataframe
+from topostats.statistics import image_statistics
 
 # pylint: disable=broad-except
 # pylint: disable=line-too-long
@@ -84,6 +85,7 @@ def process_scan(
         Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
 
     # Filter Image
+    filtered_image = None  # To be able to tell later on if filter_config has been run
     if filter_config["run"]:
         filter_config.pop("run")
         LOGGER.info(f"[{filename}] Image dimensions: {image.shape}")
@@ -266,14 +268,44 @@ def process_scan(
                             LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
                             tracing_stats = defaultdict()
                             for direction, _ in grainstats.items():
-                                tracing_stats[direction] = trace_image(
+                                tracing_results = trace_image(
                                     image=filtered_image.images["gaussian_filtered"],
                                     grains_mask=grains.directions[direction]["labelled_regions_02"],
                                     filename=filename,
                                     pixel_to_nm_scaling=pixel_to_nm_scaling,
                                     **dnatracing_config,
                                 )
+                                tracing_stats[direction] = tracing_results["statistics"]
+                                ordered_traces = tracing_results["ordered_traces"]
+                                cropped_images = tracing_results["cropped_images"]
+                                image_trace = tracing_results["image_trace"]
                                 tracing_stats[direction]["threshold"] = direction
+
+                                # Plot traces for the whole image
+                                Images(
+                                    filtered_image.images["gaussian_filtered"],
+                                    output_dir=core_out_path,
+                                    filename=f"{filename}_{direction}_traced",
+                                    masked_array=image_trace,
+                                    **plotting_config["plot_dict"]["all_molecule_traces"],
+                                ).plot_and_save()
+
+                                # Plot traces on each grain individually
+                                if plotting_config["image_set"] == "all":
+                                    for grain_index, (grain_trace, cropped_image) in enumerate(
+                                        zip(ordered_traces, cropped_images)
+                                    ):
+                                        grain_trace_mask = np.zeros(cropped_image.shape)
+                                        for coordinate in grain_trace:
+                                            grain_trace_mask[coordinate[0], coordinate[1]] = 1
+                                        Images(
+                                            cropped_image,
+                                            output_dir=grain_out_path / direction,
+                                            filename=f"{filename}_grain_trace_{grain_index}",
+                                            masked_array=grain_trace_mask,
+                                            **plotting_config["plot_dict"]["single_molecule_trace"],
+                                        ).plot_and_save()
+
                             # Set tracing_stats_df in light of direction
                             if grains_config["direction"] == "both":
                                 tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
@@ -291,6 +323,7 @@ def process_scan(
                                 tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left"
                             )
                             results["basename"] = image_path.parent
+
                         else:
                             LOGGER.info(
                                 f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame."
@@ -311,7 +344,23 @@ def process_scan(
     else:
         LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
         results = create_empty_dataframe()
-    return image_path, results
+
+    # Get image statistics
+    LOGGER.info(f"[{filename}] : *** Image Statistics ***")
+    # Provide the raw image if image has not been flattened, else provide the flattened image.
+    if filtered_image is not None:
+        image_for_image_stats = filtered_image.images["gaussian_filtered"]
+    else:
+        image_for_image_stats = image
+
+    image_stats = image_statistics(
+        image=image_for_image_stats,
+        filename=filename,
+        results_df=results,
+        pixel_to_nm_scaling=pixel_to_nm_scaling,
+    )
+
+    return image_path, results, image_stats  # , ordered_traces, image_trace
 
 
 def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:

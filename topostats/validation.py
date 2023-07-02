@@ -595,6 +595,18 @@ PLOTTING_SCHEMA = Schema(
             ),
             "core_set": bool,
         },
+        "all_molecule_traces": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'all_molecule_traces.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
         "grain_image": {
             "image_type": Or(
                 "binary",
@@ -619,6 +631,17 @@ PLOTTING_SCHEMA = Schema(
                 "non-binary",
                 error=(
                     "Invalid value in config 'grain_mask_image.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
+        "single_molecule_trace": {
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'single_molecule_trace.image_type', valid values "
                     "are 'binary' or 'non-binary'"
                 ),
             ),

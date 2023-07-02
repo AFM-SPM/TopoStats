@@ -52,7 +52,7 @@ dnatracing:
   run: true # Options : true, false
   min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.
   skeletonisation_method: topostats # Options : zhang | lee | thin | topostats
-  pad_width: 20 # Cells to pad grains by when tracing
+  pad_width: 1 # Cells to pad grains by when tracing
 #  cores: 1 # Number of cores to use for parallel processing
 plotting:
   run: true # Options : true, false

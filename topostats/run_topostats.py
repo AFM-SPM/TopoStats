@@ -126,16 +126,30 @@ def run_topostats(args=None):
 
     with Pool(processes=config["cores"]) as pool:
         results = defaultdict()
+        image_stats_all = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result in pool.imap_unordered(
+            for img, result, individual_image_stats_df in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
             ):
                 results[str(img)] = result
                 pbar.update()
+
+                # Add the dataframe to the results dict
+                image_stats_all[str(img)] = individual_image_stats_df
+
+                # Display completion message for the image
+                LOGGER.info(f"[{img.name}] Processing completed.")
+
+    LOGGER.info(f"Saving image stats to : {config['output_dir']}/image_stats.csv.")
+    # Concatenate all the dictionary's values into a dataframe. Ignore the keys since
+    # the dataframes have the file names in them already.
+    image_stats_all_df = pd.concat(image_stats_all.values())
+    image_stats_all_df.to_csv(config["output_dir"] / "image_stats.csv")
+
     try:
         results = pd.concat(results.values())
     except ValueError as error:
