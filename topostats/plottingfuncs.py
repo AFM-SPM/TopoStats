@@ -7,6 +7,7 @@ from matplotlib.patches import Rectangle, Patch
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
+from skimage.morphology import binary_dilation
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
@@ -22,6 +23,29 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 # pylint: disable=dangerous-default-value
+
+
+def dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int) -> np.ndarray:
+    """Dilate a supplied binary image a given number of times.
+
+    Parameters
+    ----------
+    binary_image: np.ndarray
+        Binary image to be dilated
+    dilation_iterations: int
+        Number of dilation iterations to be performed
+
+    Returns
+    -------
+    binary_image: np.ndarray
+        Dilated binary image
+    """
+
+    binary_image = binary_image.copy()
+    for _ in range(dilation_iterations):
+        binary_image = binary_dilation(binary_image)
+
+    return binary_image
 
 
 class Images:
@@ -203,6 +227,13 @@ class Images:
             )
             if isinstance(self.masked_array, np.ndarray):
                 self.masked_array[self.masked_array != 0] = 1
+                # If the image is too large for singles to be resolved in the mask, then dilate the mask proportionally
+                # to image size to enable clear viewing.
+                if np.max(self.masked_array.shape) > 500:
+                    dilation_strength = int(np.max(self.masked_array.shape) / 256)
+                    self.masked_array = dilate_binary_image(
+                        binary_image=self.masked_array, dilation_iterations=dilation_strength
+                    )
                 mask = np.ma.masked_where(self.masked_array == 0, self.masked_array)
                 ax.imshow(
                     mask,

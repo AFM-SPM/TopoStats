@@ -7,7 +7,7 @@ import math
 from multiprocessing import Pool
 import os
 from pathlib import Path
-from typing import Dict, Union, Tuple
+from typing import Dict, List, Union, Tuple
 import warnings
 
 import numpy as np
@@ -689,10 +689,10 @@ def trace_image(
     pixel_to_nm_scaling: float,
     min_skeleton_size: int,
     skeletonisation_method: str,
-    pad_width: int = 10,
+    pad_width: int = 1,
     cores: int = 1,
-) -> pd.DataFrame:
-    """Processor function for tracing grains individually.
+) -> Dict:
+    """Processor function for tracing image.
 
     Parameters
     ----------
@@ -721,39 +721,133 @@ def trace_image(
 
     """
     # Check both arrays are the same shape
-    assert image.shape == grains_mask.shape
+    if image.shape != grains_mask.shape:
+        raise ValueError(f"Image shape ({image.shape}) and Mask shape ({grains_mask.shape}) should match.")
 
     cropped_images, cropped_masks = prep_arrays(image, grains_mask, pad_width)
+    region_properties = skimage_measure.regionprops(grains_mask)
+    grain_anchors = [grain_anchor(image.shape, list(grain.bbox), pad_width) for grain in region_properties]
     n_grains = len(cropped_images)
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
     n_grain = 0
     results = {}
+    ordered_traces = []
     for cropped_image, cropped_mask in zip(cropped_images, cropped_masks):
-        result = (
-            trace_grain(
-                cropped_image,
-                cropped_mask,
-                pixel_to_nm_scaling,
-                filename,
-                min_skeleton_size,
-                skeletonisation_method,
-                n_grain,
-            ),
+        result = trace_grain(
+            cropped_image,
+            cropped_mask,
+            pixel_to_nm_scaling,
+            filename,
+            min_skeleton_size,
+            skeletonisation_method,
+            n_grain,
         )
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
-        results[n_grain] = result[0]
+        ordered_traces.append(result.pop("ordered_trace"))
+        results[n_grain] = result
         n_grain += 1
     try:
         results = pd.DataFrame.from_dict(results, orient="index")
         results.index.name = "molecule_number"
+        image_trace = trace_mask(grain_anchors, ordered_traces, image.shape, pad_width)
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
-    return results
+    return {
+        "statistics": results,
+        "ordered_traces": ordered_traces,
+        "cropped_images": cropped_images,
+        "image_trace": image_trace,
+    }
+
+
+def trim_array(array: np.ndarray, pad_width: int) -> np.ndarray:
+    """Trim an array by the specified pad_width.
+
+    Removes a border from an array. Typically this is the second padding that is added to the image/masks for edge cases
+    that are near image borders and means traces will be correctly aligned as a mask for the original image.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        Numpy array to be trimmed.
+    pad_width : int
+        Padding to be removed.
+
+    Returns
+    -------
+    np.ndarray
+        Trimmed array
+    """
+    return array[pad_width:-pad_width, pad_width:-pad_width]
+
+
+def adjust_coordinates(coordinates: np.ndarray, pad_width: int) -> np.ndarray:
+    """Adjust co-ordinates of a trace by the pad_width.
+
+    A second padding is made to allow for grains that are "edge cases" and close to the bounding box edge. This adds the
+    pad_width to the cropped grain array. In order to realign the trace with the original image we need to remove this
+    padding so that when the co-ordinates are combined with the "grain_anchor", which isn't padded twice, the
+    co-ordinates correctly align with the original image.
+
+    Parameters
+    ----------
+    coordinates : np.ndarray
+        An array of trace co-ordinates (typically ordered).
+    pad_width : int
+        The amount of padding used.
+
+    Returns
+    -------
+    np.ndarray
+        Array of trace co-ordinates adjusted for secondary padding.
+    """
+    return coordinates - pad_width
+
+
+def trace_mask(
+    grain_anchors: List[np.ndarray], ordered_traces: List[np.ndarray], image_shape: tuple, pad_width: int
+) -> np.ndarray:
+    """Place the traced skeletons into an array of the original image for plotting/overlaying.
+
+    Adjusts the co-ordinates back to the original position based on each grains anchor co-ordinates of the padded
+    bounding box. Adjustments are made for the secondary padding that is made.
+
+    Parameters
+    ----------
+    grain_anchors : List[np.ndarray]
+        List of grain anchors for the padded bounding box.
+    ordered_traces : List[np.ndarray]
+        List of co-ordinates for each grains trace.
+    image_shape : tuple
+        Shape of original image.
+    pad_width : int
+        The amount of padding used on the image.
+
+    Returns
+    -------
+    np.ndarray
+        Mask of traces for all grains that can be overlaid on original image.
+
+    """
+    image = np.zeros(image_shape)
+    grain = 0
+    for grain_anchor, ordered_trace in zip(grain_anchors, ordered_traces):
+        # Don't always have an ordered_trace for a given grain_anchor if for example the trace was too small
+        if ordered_trace is not None:
+            ordered_trace = adjust_coordinates(ordered_trace, pad_width)
+            ordered_trace[:, 0] = ordered_trace[:, 0] + grain_anchor[0]
+            ordered_trace[:, 1] = ordered_trace[:, 1] + grain_anchor[1]
+            image[ordered_trace[:, 0], ordered_trace[:, 1]] = 1
+
+    return image
 
 
 def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
     """Takes an image and labelled mask and crops individual grains and original heights to a list.
+
+    A second padding is made after cropping to ensure for "edge cases" where grains are close to bounding box edges that
+    they are traced correctly. This is accounted for when aligning traces to the whole image mask.
 
     Parameters
     ==========
@@ -780,6 +874,28 @@ def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: 
     # Flip every labelled region to be 1 instead of its label
     cropped_masks = [np.where(grain == 0, 0, 1) for grain in cropped_masks]
     return (cropped_images, cropped_masks)
+
+
+def grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int) -> list:
+    """Extract the anchor (min_row, min_col) from all labelled regions which is used to align individual traces over the
+    original image.
+
+    Parameters
+    ==========
+    array_shape: tuple
+        Shape of original array.
+    bounding_box: list
+        A list of region properties returned by skimage.measure.regionprops()
+    pad_width: int
+        Padding for image.
+
+    Returns
+    =======
+    List(Tuple):
+        A list of tuples of the min_row, min_col of each bounding box.
+    """
+    bounding_coordinates = pad_bounding_box(array_shape, bounding_box, pad_width)
+    return (bounding_coordinates[0], bounding_coordinates[1])
 
 
 def trace_grain(
@@ -842,6 +958,7 @@ def trace_grain(
         "contour_length": dnatrace.contour_length,
         "circular": dnatrace.mol_is_circular,
         "end_to_end_distance": dnatrace.end_to_end_distance,
+        "ordered_trace": dnatrace.ordered_trace,
     }
 
 
@@ -867,18 +984,39 @@ def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np
         Cropped array
     """
     bounding_box = list(bounding_box)
-    # Top Row : Make this the first column if too close
-    bounding_box[0] = 0 if bounding_box[0] - pad_width < 0 else bounding_box[0] - pad_width
-    # Bottom Row : Make this the last row if too close
-    bounding_box[2] = array.shape[0] if bounding_box[2] + pad_width > array.shape[0] else bounding_box[2] + pad_width
-    # Left Column : Make this the first column if too close
-    bounding_box[1] = 0 if bounding_box[1] - pad_width < 0 else bounding_box[1] - pad_width
-    # Right Column : Make this the last column if too close
-    bounding_box[3] = array.shape[1] if bounding_box[3] + pad_width > array.shape[1] else bounding_box[3] + pad_width
+    bounding_box = pad_bounding_box(array.shape, bounding_box, pad_width)
     return array[
         bounding_box[0] : bounding_box[2],
         bounding_box[1] : bounding_box[3],
     ]
+
+
+def pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int) -> list:
+    """Pad co-ordinates, if they extend beyond image boundaries stop at boundary.
+
+    Parameters
+    ==========
+    array_shape: tuple
+        Shape of original image
+    bounding_box: list
+        List of co-ordinates min_row, min_col, max_row, max_col
+    pad_width: int
+        Cells to pad arrays by.
+
+    Returns
+    =======
+    list
+       List of padded co-ordinates
+    """
+    # Top Row : Make this the first column if too close
+    bounding_box[0] = 0 if bounding_box[0] - pad_width < 0 else bounding_box[0] - pad_width
+    # Left Column : Make this the first column if too close
+    bounding_box[1] = 0 if bounding_box[1] - pad_width < 0 else bounding_box[1] - pad_width
+    # Bottom Row : Make this the last row if too close
+    bounding_box[2] = array_shape[0] if bounding_box[2] + pad_width > array_shape[0] else bounding_box[2] + pad_width
+    # Right Column : Make this the last column if too close
+    bounding_box[3] = array_shape[1] if bounding_box[3] + pad_width > array_shape[1] else bounding_box[3] + pad_width
+    return bounding_box
 
 
 # 2023-06-09 - Code that runs dnatracing in parallel across grains, left deliberately for use when we remodularise the
