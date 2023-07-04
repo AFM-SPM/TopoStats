@@ -60,6 +60,11 @@ masked_quadratic_removal:
   title: "Secondary Quadratic Removal"
   image_type: "non-binary"
   core_set: false
+masked_nonlinear_polynomial_removal:
+  filename: "nonlinear_polynomial_removal_masked"
+  title: "Nonlinear polynomial removal masked"
+  image_type: "non-binary"
+  core_set: false
 secondary_scar_removal:
   filename: "10-scar_removal"
   title: "Secondary scar removal"

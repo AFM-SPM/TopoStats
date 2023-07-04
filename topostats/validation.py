@@ -433,6 +433,19 @@ PLOTTING_SCHEMA = Schema(
             ),
             "core_set": bool,
         },
+        "masked_nonlinear_polynomial_removal": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'masked_nonlinear_polynomial_removal.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
         "secondary_scar_removal": {
             "filename": str,
             "title": str,

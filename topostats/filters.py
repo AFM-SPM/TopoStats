@@ -5,6 +5,7 @@ import logging
 # noqa: disable=no-name-in-module
 # pylint: disable=no-name-in-module
 from skimage.filters import gaussian
+from scipy.optimize import curve_fit
 import numpy as np
 
 from topostats.logs.logs import LOGGER_NAME
@@ -208,6 +209,35 @@ processed, please refer to <url to page where we document common problems> for m
 
         return image
 
+    def remove_nonlinear_polynomial(self, image: np.ndarray, mask: np.ndarray = None):
+        
+        image = image.copy()
+        if mask is not None:
+            read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
+        else:
+            read_matrix = image
+        
+        def model_func(x, y, a, b, c, d):
+            return a + b * x * y - c*x - d*y
+        
+        xdata, ydata = np.meshgrid(np.arange(read_matrix.shape[1]), np.arange(read_matrix.shape[0]))
+        zdata = read_matrix.ravel()
+
+        xy_data_stacked = np.vstack((xdata.ravel(), ydata.ravel()))
+
+        # fit the model to the data
+        popt, pcov = curve_fit(lambda x, a, b, c, d: model_func(x[0], x[1], a, b, c, d), xy_data_stacked, zdata)
+
+        a, b, c, d = popt
+        LOGGER.info(f"[{self.filename}] : Nonlinear polynomial removal optimal params: const: {a} xy: {b} x: {c} y: {d}")
+
+        z_pred = model_func(xdata, ydata, a, b, c, d)
+
+        image -= z_pred
+
+        print(image.shape)
+        return image
+
     def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None):
         """
         Removes the quadratic bowing that can be seen in some large-scale AFM images. It uses a simple quadratic fit
@@ -363,11 +393,12 @@ processed, please refer to <url to page where we document common problems> for m
         self.images["masked_quadratic_removal"] = self.remove_quadratic(
             self.images["masked_tilt_removal"], self.images["mask"]
         )
+        self.images["masked_nonlinear_polynomial_removal"] = self.remove_nonlinear_polynomial(self.images["masked_quadratic_removal"], self.images["mask"])
         # Remove scars
         if run_scar_removal:
             LOGGER.info(f"[{self.filename}] : Secondary scar removal")
             self.images["secondary_scar_removal"], scar_mask = scars.remove_scars(
-                self.images["masked_quadratic_removal"], filename=self.filename, **self.remove_scars_config
+                self.images["masked_nonlinear_polynomial_removal"], filename=self.filename, **self.remove_scars_config
             )
             self.images["scar_mask"] = scar_mask
         else:
