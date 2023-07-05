@@ -427,13 +427,13 @@ def test_load_scan_get_data(
     scan = request.getfixturevalue(load_scan_object)
     scan.get_data()
     assert len(scan.img_dict) == length
-    assert isinstance(scan.img_dict[filename]["image"], np.ndarray)
-    assert scan.img_dict[filename]["image"].shape == image_shape
-    assert scan.img_dict[filename]["image"].sum() == image_sum
+    assert isinstance(scan.img_dict[filename]["image_original"], np.ndarray)
+    assert scan.img_dict[filename]["image_original"].shape == image_shape
+    assert scan.img_dict[filename]["image_original"].sum() == image_sum
     assert isinstance(scan.img_dict[filename]["img_path"], Path)
     assert scan.img_dict[filename]["img_path"] == RESOURCES / filename
-    assert isinstance(scan.img_dict[filename]["px_2_nm"], float)
-    assert scan.img_dict[filename]["px_2_nm"] == pixel_to_nm_scaling
+    assert isinstance(scan.img_dict[filename]["pixel_to_nm_scaling"], float)
+    assert scan.img_dict[filename]["pixel_to_nm_scaling"] == pixel_to_nm_scaling
 
 
 @pytest.mark.parametrize(
