@@ -118,7 +118,7 @@ def grains_wrapper(
                 **grains_config,
             )
             grains.find_grains()
-            for direction, _ in grains.directions.items():
+            for direction, _ in grains.region_properties.items():
                 LOGGER.info(
                     f"[{filename}] : Grains found for direction {direction} : {len(grains.region_properties[direction])}"
                 )
@@ -170,7 +170,11 @@ def grains_wrapper(
                 # Otherwise, return None and warn that plotting is disabled for grain finding images
                 LOGGER.info(f"[{filename}] : Plotting disabled for Grain Finding Images")
 
-            return grains.region_properties
+            grain_masks = {}
+            for direction in grains.directions:
+                grain_masks[direction] = grains.directions[direction]["labelled_regions_02"]
+
+            return grain_masks
 
     # Otherwise, return None and warn grainstats is disabled
     LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
@@ -300,8 +304,10 @@ def dnatracing_wrapper(
                 if plotting_config["image_set"] == "all":
                     for grain_index, (grain_trace, cropped_image) in enumerate(zip(ordered_traces, cropped_images)):
                         grain_trace_mask = np.zeros(cropped_image.shape)
-                        for coordinate in grain_trace:
-                            grain_trace_mask[coordinate[0], coordinate[1]] = 1
+                        # Grain traces can be None if they do not trace successfully. Eg if they are too small.
+                        if grain_trace is not None:
+                            for coordinate in grain_trace:
+                                grain_trace_mask[coordinate[0], coordinate[1]] = 1
                         Images(
                             cropped_image,
                             output_dir=grain_out_path / direction,
@@ -431,7 +437,8 @@ def process_scan(
         plotting_config=plotting_config,
         grains_config=grains_config,
     )
-    # Update grain masks if new grain masks are returned. Else keep old grain masks.
+    # Update grain masks if new grain masks are returned. Else keep old grain masks. Topostats object's "grain_masks"
+    # defaults to an empty dictionary so this is safe.
     topostats_object["grain_masks"] = grain_masks if grain_masks is not None else topostats_object["grain_masks"]
 
     if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
