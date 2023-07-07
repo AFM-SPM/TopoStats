@@ -127,16 +127,16 @@ class Colormap:
     def multi():
         "11 distinct colours."
         return ListedColormap([
-            np.array([230, 25, 75])/256,
-            np.array([60, 180, 75])/256,
-            np.array([255, 225, 25])/256,
-            np.array([0, 130, 200])/256,
-            np.array([245, 130, 48])/256,
-            np.array([70, 240, 240])/256,
-            np.array([240, 50, 230])/256,
-            np.array([250, 190, 212])/256,
-            np.array([0, 128, 128])/256,
-            np.array([220, 190, 255])/256,
-            np.array([170, 110, 40])/256
+            np.array([70, 240, 240])/256, # Light blue
+            np.array([240, 50, 230])/256, # Magenta
+            np.array([255, 225, 25])/256, # Yellow
+            np.array([230, 25, 75])/256, # Red
+            np.array([60, 180, 75])/256, # Green
+            np.array([0, 130, 200])/256, # Blue
+            np.array([245, 130, 48])/256, # Orange
+            np.array([250, 190, 212])/256, # Dull Pink
+            np.array([0, 128, 128])/256, # Turquoise
+            np.array([220, 190, 255])/256, # Lilac
+            np.array([170, 110, 40])/256 # Brown
             ],
-            "multi", N=None)
+            "multi", N=3)
