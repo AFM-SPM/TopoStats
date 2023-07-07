@@ -10,13 +10,17 @@ import yaml
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import numpy as np
+import matplotlib
 
 from topostats.io import read_yaml, save_pkl, write_yaml, convert_basename_to_relative_paths
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import update_config
+from topostats.theme import Colormap
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+#matplotlib.rcParams.update({'font.size': 16})
 
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
