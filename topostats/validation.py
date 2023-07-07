@@ -244,12 +244,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config plotting.for 'axes', valid values are 'True' or 'False'",
             ),
-            "cmap": Or(
-                "afmhot",
-                "nanoscope",
-                "gwyddion",
-                error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot', 'nanoscope' or 'gwyddion'",
-            ),
+            "cmap": str,
             "mask_cmap": str,
             "histogram_log_axis": Or(
                 True,
@@ -624,6 +619,19 @@ PLOTTING_SCHEMA = Schema(
             ),
             "core_set": bool,
         },
+        "pca_image": {
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'grain_mask_image.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+            "title": str,
+            "mask_cmap": str,
+        }
     }
 )
 

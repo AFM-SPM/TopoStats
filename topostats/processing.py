@@ -12,7 +12,7 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_array
 from topostats.logs.logs import setup_logger, LOGGER_NAME
-from topostats.plottingfuncs import Images
+from topostats.plottingfuncs import Images, plot_pca
 from topostats.tracing.dnatracing import trace_image
 from topostats.utils import create_empty_dataframe
 from topostats.pca_dbscan import ClusterData
@@ -316,7 +316,24 @@ def process_scan(
             print("# Grainstats: ", results['img_grain_no'].max())
             cluster_analysis = ClusterData(results, grains.directions[direction]["labelled_regions_02"], filtered_image.images["gaussian_filtered"], pca_cols=['height_mean', 'area'])
             cluster_labels = cluster_analysis.cluster_data(eps1=0.1, eps2=0.4, min_samples=2)
-            #print(cluster_labels)
+            
+            # Plot PCA images
+            plot_pca(cluster_analysis.pca,
+                     cluster_analysis.components,
+                     cluster_analysis.dbscan_labels,
+                     core_out_path,
+                     f"{filename}_PCA_components")
+            print(np.unique(cluster_analysis.cluster_mask))
+            plotting_config["plot_dict"]["pca_image"]["mask_cmap"] = "multi"
+            Images(
+                filtered_image.images["gaussian_filtered"],
+                filename=f"{filename}_{direction}_PCA_masked",
+                masked_array=cluster_analysis.cluster_mask,
+                output_dir=core_out_path,
+                **plotting_config["plot_dict"]["pca_image"],
+            ).plot_and_save()
+            
+
             results = results.merge(cluster_labels, how="left", on="img_grain_no") # will also need direction
             results.index.name = "molecule_number"
     else:

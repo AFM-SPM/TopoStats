@@ -23,6 +23,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-locals
 # pylint: disable=dangerous-default-value
 
+plt.rcParams['font.size'] = 18
 
 class Images:
     """Plots image arrays"""
@@ -192,6 +193,7 @@ class Images:
         """
         fig, ax = plt.subplots(1, 1, figsize=(8, 8))
         shape = self.data.shape
+        print(self.mask_cmap)
         if isinstance(self.data, np.ndarray):
             im = ax.imshow(
                 self.data,
@@ -217,7 +219,7 @@ class Images:
                     alpha=0.7,
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
-                plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
+                #plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
 
             plt.title(self.title)
             plt.xlabel("Nanometres")
@@ -296,3 +298,31 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
         rectangle = Rectangle((min_x, min_y), max_x - min_x, max_y - min_y, fill=False, edgecolor="white", linewidth=2)
         ax.add_patch(rectangle)
     return fig, ax
+
+def plot_pca(pca, components: np.ndarray, labels, output_dir, filename):
+    axis_labels = [f"PC {i+1}: {evr:.2f}%" for i, evr in enumerate(pca.explained_variance_ratio_*100)]
+    colours = [
+        np.array([70, 240, 240])/256, # Light blue
+        np.array([240, 50, 230])/256, # Magenta
+        np.array([255, 225, 25])/256, # Yellow
+        np.array([230, 25, 75])/256, # Red
+        np.array([60, 180, 75])/256, # Green
+        np.array([0, 130, 200])/256, # Blue
+        np.array([245, 130, 48])/256, # Orange
+        np.array([250, 190, 212])/256, # Dull Pink
+        np.array([0, 128, 128])/256, # Turquoise
+        np.array([220, 190, 255])/256, # Lilac
+        np.array([170, 110, 40])/256 # Brown
+        ]
+    print("lbls: ", labels)
+    coloured_labels = [colours[i] for i in labels+1]
+    fig, ax = plt.subplots(pca.n_components, pca.n_components, tight_layout=True, sharex=True, sharey=True, figsize=(10,10))
+    for i in range(pca.n_components):
+        ax[pca.n_components-1,i].set_xlabel(axis_labels[i])
+        ax[i,0].set_ylabel(axis_labels[i])
+        for j in range(pca.n_components):
+            ax[i,j].scatter(components[:,i], components[:,j], c=coloured_labels)
+    
+    fig.suptitle("PCA Component Plots")
+
+    plt.savefig(f"{output_dir / filename}", format="tiff")

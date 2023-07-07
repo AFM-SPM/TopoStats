@@ -32,7 +32,7 @@ class ClusterData():
         self.components = None
         self.pca_importances = None
         self.dbscan_labels = None
-        self.mask_tensor = None
+        self.cluster_mask = None
         #assert len(grainstats) == labeled_mask.max()
         
     def cluster_data(self, eps1=0.1, eps2=0.4, min_samples=2):
@@ -41,10 +41,7 @@ class ClusterData():
         self.pca_importances = self.get_pca_importances(self.pca, self.normalised_df.columns)
         LOGGER.info(f"PCA Importances:\n{self.pca_importances}")
         self.dbscan_labels = self.recursive_dbscan(data=self.components, eps1=eps1, eps2=eps2, min_samples=min_samples)
-        print("LENS: ", len(self.components), len(self.dbscan_labels))
-        self.mask_tensor = self.cluster_mask_tensor(self.labeled_mask, self.dbscan_labels, self.mol_nums)
-        self.plot_pca(self.pca, self.components, self.dbscan_labels)
-        self.plot_clusters(self.mask_tensor, self.image)
+        self.cluster_mask = self.get_cluster_mask(self.labeled_mask, self.dbscan_labels, self.mol_nums)
         return pd.DataFrame(np.stack([self.mol_nums, self.dbscan_labels], axis=1), columns=["img_grain_no", "cluster_label"])
 
     def refine_dataframe(self):
@@ -135,65 +132,21 @@ class ClusterData():
         return labels
     
     @staticmethod
-    def cluster_mask_tensor(labeled_grain_mask, dbscan_labels, mol_mappings):
+    def get_cluster_mask(labeled_grain_mask, dbscan_labels, mol_mappings):
         grain_shape = labeled_grain_mask.shape
         unique_labels = np.unique(dbscan_labels)
         mask_tensor = np.zeros((grain_shape[0], grain_shape[1], len(unique_labels)))
         for i, k in enumerate(unique_labels):
             LOGGER.info(f"Cluster {k} has {(dbscan_labels==k).sum()} items")
             labeled_mask_cp = labeled_grain_mask.copy()
-            print(len(mol_mappings), len(dbscan_labels))
             grain_nums = mol_mappings[dbscan_labels==k] + 1
             for grain_no in grain_nums:
                 labeled_mask_cp[labeled_mask_cp==grain_no] = 10000 # grab all pixel grains in a cluster and set to large value
             labeled_mask_cp[labeled_mask_cp!=10000] = 0
             labeled_mask_cp[labeled_mask_cp==10000] = 1
-            # save the mask
             mask_tensor[:,:,i] += labeled_mask_cp
-        
-        return mask_tensor
-    
-    @staticmethod
-    def plot_pca(pca, components, labels):
-        axis_labels = [f"PC {i+1}: {evr:.2f}%" for i, evr in enumerate(pca.explained_variance_ratio_*100)]
-        colours = [
-            np.array([230, 25, 75])/256,
-            np.array([60, 180, 75])/256,
-            np.array([255, 225, 25])/256,
-            np.array([0, 130, 200])/256,
-            np.array([245, 130, 48])/256,
-            np.array([70, 240, 240])/256,
-            np.array([240, 50, 230])/256,
-            np.array([250, 190, 212])/256,
-            np.array([0, 128, 128])/256,
-            np.array([220, 190, 255])/256,
-            np.array([170, 110, 40])/256
-            ]
-        coloured_labels = [colours[i+1] for i in labels]
-        fig, ax = plt.subplots(pca.n_components, pca.n_components, tight_layout=True, sharex=True, sharey=True, figsize=(10,10))
-        for i in range(pca.n_components):
-            ax[pca.n_components-1,i].set_xlabel(axis_labels[i])
-            ax[i,0].set_ylabel(axis_labels[i])
-            for j in range(pca.n_components):
-                ax[i,j].scatter(components[:,i], components[:,j], c=coloured_labels)
-
-        plt.savefig("/Users/Maxgamill/Desktop/PCA")
-
-    @staticmethod
-    def plot_clusters(mask_tensor, image):
+        # compile tensor into single mask (could be done above)
         clustered_mask = np.zeros_like(mask_tensor[:,:,0])
         for cluster_no in range(mask_tensor.shape[2]):
             clustered_mask[mask_tensor[:,:,cluster_no]==1] = cluster_no + 1
-        np.savetxt("/Users/Maxgamill/Desktop/clustered.txt", clustered_mask)
-        Images(
-            image,
-            filename="PCA_all_processed_masked",
-            masked_array=clustered_mask,
-            output_dir="/Users/Maxgamill/Desktop/",
-            mask_cmap="multi",
-            save=True,
-            image_set="all",
-            zrange=[0,3],
-        ).plot_and_save()
-
         return clustered_mask

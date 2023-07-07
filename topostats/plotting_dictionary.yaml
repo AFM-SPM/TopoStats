@@ -142,3 +142,8 @@ grain_mask:
 grain_mask_image:
   image_type: "non-binary"
   core_set: false
+pca_image:
+  image_type: "non-binary"
+  core_set: true
+  title: "Clustered PCA Objects"
+  mask_cmap: "multi"
