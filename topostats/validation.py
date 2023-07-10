@@ -772,6 +772,48 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "dpi": int,
         },
+        "fitted_trace": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "dpi": int,
+        },
+        "ordered_trace": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "dpi": int,
+        },
+        "splined_trace": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "dpi": int,
+        },
     }
 )
 

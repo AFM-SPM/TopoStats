@@ -5,6 +5,7 @@ from typing import Dict, Union, List
 
 import numpy as np
 import pandas as pd
+from scipy.ndimage import binary_dilation
 
 from topostats import __version__
 from topostats.filters import Filters
@@ -13,7 +14,8 @@ from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_array
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
-from topostats.tracing.dnatracing import trace_image, nodeStats
+from topostats.plotting import plot_crossing_linetrace_halfmax
+from topostats.tracing.dnatracing import trace_image, dnaTrace
 from topostats.utils import create_empty_dataframe, NpEncoder
 
 # pylint: disable=broad-except
@@ -78,10 +80,13 @@ def process_scan(
     core_out_path.mkdir(parents=True, exist_ok=True)
     filter_out_path = core_out_path / filename / "filters"
     grain_out_path = core_out_path / filename / "grains"
+    dna_tracing_out_path = core_out_path / filename / "dnatracing"
     if plotting_config["image_set"] == "all":
         filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
         Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
+        Path.mkdir(dna_tracing_out_path / "above" / "nodes", parents=True, exist_ok=True)
+        Path.mkdir(dna_tracing_out_path / "below" / "nodes", parents=True, exist_ok=True)
 
     # Filter Image
     if filter_config["run"]:
@@ -266,8 +271,9 @@ def process_scan(
                         LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
                         tracing_stats = defaultdict()
                         node_stats = defaultdict()
+                        images = defaultdict()
                         for direction, _ in grainstats.items():
-                            tracing_stats[direction], node_stats[direction] = trace_image(
+                            tracing_stats[direction], node_stats[direction], images[direction] = trace_image(
                                 image=filtered_image.images["gaussian_filtered"],
                                 grains_mask=grains.directions[direction]["labelled_regions_02"],
                                 filename=filename,
@@ -294,41 +300,48 @@ def process_scan(
                         results["basename"] = image_path.parent
                         
                         # Plot dnatracing images
-                        """
                         LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
                         output_dir = Path(dna_tracing_out_path / f"{direction}")
 
-                        plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes"]
+                        plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes"]#, "fitted_trace", "ordered_trace", "splined_trace"]
                         data2s = [
-                            dna_traces[direction].grains_orig,
-                            dna_traces[direction].smoothed_grains,
-                            dna_traces[direction].orig_skeletons,
-                            dna_traces[direction].skeletons,
-                            nodes.all_connected_nodes,
+                            images[direction]["grain"],
+                            images[direction]["smoothed_grain"],
+                            images[direction]["skeleton"],
+                            images[direction]["prunted_skeleton"],
+                            images[direction]["node_img"]
+                            #images[direction]["fitted_trace"],
+                            #images[direction]["ordered_trace"],
+                            #images[direction]["splined_trace"],
                         ]
                         for i, plot_name in enumerate(plot_names):
                             plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
+                            plotting_config["plot_dict"][plot_name]["mask_cmap"] = "green_black"
+                            print(f"{plot_name} image size: {data2s[i].shape}")
+                            print(np.unique(data2s[i], return_counts=True))
+                            print("Image size: ", images[direction]["image"].shape)
                             Images(
-                                filtered_image.images["gaussian_filtered"],
+                                images[direction]["image"],
                                 masked_array=data2s[i],
-                                zrange=[0, 3.5],
                                 **plotting_config["plot_dict"][plot_name],
                             ).save_figure_black(
-                                background=grains.directions[direction]["removed_small_objects"],
+                                background=images[direction]["grain"],
                             )
-                        np.savetxt(f"{core_out_path}_{filename}_skel.txt", dna_traces[direction].skeletons)
-                        np.savetxt(f"{core_out_path}_{filename}_connect.txt", nodes.all_connected_nodes)
+                        #np.savetxt(f"{core_out_path}_{filename}_skel.txt", dna_traces[direction].skeletons)
+                        #np.savetxt(f"{core_out_path}_{filename}_connect.txt", nodes.all_connected_nodes)
 
                         # plot nodes and line traces
                         for mol_no, mol_stats in node_stats[direction].items():
                             for node_no, single_node_stats in mol_stats.items():
+                                plotting_config["plot_dict"]["zoom_node"]["mask_cmap"] = "blu_purp"
+                                plotting_config["plot_dict"]["crossings"]["mask_cmap"] = "blu_purp"
+                                plotting_config["plot_dict"]["tripple_crossings"]["mask_cmap"] = "blu_purp"
                                 # plot node + skeleton
                                 Images(
                                     single_node_stats["node_stats"]["node_area_image"],
                                     masked_array=single_node_stats["node_stats"]["node_area_skeleton"],
                                     filename=f"mol_{mol_no}_node_{node_no}_node_area",
                                     output_dir=output_dir / "nodes",
-                                    zrange=[0, 3.5e-9],
                                     **plotting_config["plot_dict"]["zoom_node"],
                                 ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
                                 # plot branch mask
@@ -337,7 +350,6 @@ def process_scan(
                                     masked_array=single_node_stats["node_stats"]["node_branch_mask"],
                                     filename=f"mol_{mol_no}_node_{node_no}_crossings",
                                     output_dir=output_dir / "nodes",
-                                    zrange=[0, 3.5e-9],
                                     **plotting_config["plot_dict"]["crossings"],
                                 ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
                                 # plot avg branch mask
@@ -347,14 +359,13 @@ def process_scan(
                                         masked_array=single_node_stats["node_stats"]["node_avg_mask"],
                                         filename=f"mol_{mol_no}_node_{node_no}_average_crossings",
                                         output_dir=output_dir / "nodes",
-                                        zrange=[0, 3.5e-9],
                                         **plotting_config["plot_dict"]["tripple_crossings"],
                                     ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
                                 # Plot crossing height linetrace
                                 if not single_node_stats["error"]:
                                     plotting_config["plot_dict"]["line_trace"] = {
                                         "title": "Heights of Crossing",
-                                        "cmap": "green_green",
+                                        "cmap": "blu_purp",
                                     }
                                     fig, _ = plot_crossing_linetrace_halfmax(
                                         single_node_stats["branch_stats"],
@@ -364,8 +375,8 @@ def process_scan(
                                         output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg",
                                         format="svg",
                                     )
+                            """
                             # plot the molecules on their own
-
                             print("LEN: ",len(nodes.mol_coords))
                             if len(nodes.mol_coords[mol_no]) > 1:
                                 for inner_mol_no, coords in enumerate(nodes.mol_coords[mol_no]):
@@ -380,7 +391,7 @@ def process_scan(
                                         zrange=[0, 3.5e-9],
                                         **plotting_config["plot_dict"]["single_mol"],
                                     ).save_figure_black(background=grains.directions[direction]["removed_small_objects"])
-
+                        
                         # plot the visual image for the whole image
                         visual = nodes.all_visuals_img
                         if visual is not None:
@@ -391,7 +402,7 @@ def process_scan(
                                 zrange=[0, 3.5e-9],
                                 **plotting_config["plot_dict"]["visual"],
                             ).save_figure_black(background=grains.directions[direction]["removed_small_objects"])
-                        #"""
+                        """
                         # ------- branch vector img -------
                         """
                         vectors = nodes.test2

@@ -207,4 +207,25 @@ single_mol:
   mask_cmap: "blu_purp"
   core_set: false
   dpi: 500
+fitted_trace:
+  filename: "26-fitted-traces"
+  title: "Fitted Trace"
+  image_type: "non-binary"
+  mask_cmap: "blu_purp"
+  core_set: false
+  dpi: 500
+ordered_trace:
+  filename: "27-fitted-traces"
+  title: "Ordered Traces"
+  image_type: "non-binary"
+  mask_cmap: "blu_purp"
+  core_set: false
+  dpi: 500
+splined_trace:
+  filename: "28-fitted-traces"
+  title: "Splined Traces"
+  image_type: "non-binary"
+  mask_cmap: "blu_purp"
+  core_set: false
+  dpi: 500
 
