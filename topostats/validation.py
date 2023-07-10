@@ -166,6 +166,28 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "above",
                 error="Invalid direction for grains.direction valid values are 'both', 'below' or 'above",
             ),
+            "grain_height_removal_thresholds_std_dev": {
+                "above": [
+                    Or(
+                        lambda n: n > 0,
+                        None,
+                        error=(
+                            "Invalid value in config for 'grains.grain_height_removal_threshold_std_dev', valid "
+                            "values are float > 0 or null."
+                        ),
+                    ),
+                ],
+                "below": [
+                    Or(
+                        lambda n: n > 0,
+                        None,
+                        error=(
+                            "Invalid value in config for 'grains.grain_height_removal_threshold_std_dev', valid "
+                            "values are float > 0 or null."
+                        ),
+                    ),
+                ],
+            },
         },
         "grainstats": {
             "run": Or(
@@ -529,6 +551,19 @@ PLOTTING_SCHEMA = Schema(
                 "non-binary",
                 error=(
                     "Invalid value in config 'removed_small_objects.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
+        "grains_removed_based_on_height": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'grains_removed_based_on_height', valid values "
                     "are 'binary' or 'non-binary'"
                 ),
             ),
