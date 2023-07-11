@@ -317,9 +317,6 @@ def process_scan(
                         for i, plot_name in enumerate(plot_names):
                             plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                             plotting_config["plot_dict"][plot_name]["mask_cmap"] = "green_black"
-                            print(f"{plot_name} image size: {data2s[i].shape}")
-                            print(np.unique(data2s[i], return_counts=True))
-                            print("Image size: ", images[direction]["image"].shape)
                             Images(
                                 images[direction]["image"],
                                 masked_array=data2s[i],
