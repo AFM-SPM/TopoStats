@@ -2320,14 +2320,12 @@ class nodeStats:
         pd_code = self.make_pd_string(pd_code)
 
         print(f"Total PD code: {pd_code}")
-        #try:
-        topology = homfly(pd_code, closure=params.Closure.CLOSED, chiral = True) # need to get working (GIL issue) & set wait timer
-        print(f"Topology: {topology}")
-        """
+        try:
+            topology = homfly(pd_code, closure=params.Closure.CLOSED, chiral = False)
         except:
             topology = None
-            print("Topology undetermined")
-        """
+        print(f"Topology: {topology}")
+
         return topology
 
     @staticmethod
@@ -2344,7 +2342,7 @@ class nodeStats:
         low = flat.min()
         lens = [len(sublist) for sublist in new_pd_code]
         lens = np.cumsum(np.array(lens))
-        lens.insert(0,0)
+        lens = np.insert(lens,0,0)
         while low < flat.max():
             if low not in flat:
                 min_diff = flat[flat>low].min() - low
