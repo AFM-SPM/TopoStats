@@ -2375,15 +2375,12 @@ class nodeStats:
         np.ndarray
             An array of the labeled area values in an anti-clockwise direction from the startpoint.
         """
-        top = area[0, :][area[0, :] != 0][::-1]
-        left = area[:, 0][area[:, 0] != 0]
-        bottom = area[-1, :][area[-1, :] != 0]
-        right = area[:-1][area[:-1] != 0][::-1]
-        total = np.concatenate([top, left, bottom, right])
+        top = np.unique(area[0, :-1][area[0, :-1] != 0][::-1])
+        left = np.unique(area[1:, 0][area[1:, 0] != 0])
+        bottom = np.unique(area[-1, 1:][area[-1, 1:] != 0])
+        right = np.unique(area[:-1, -1][area[:-1, -1] != 0][::-1])
 
-        # prevent multiple occurances while retaining order
-        uniq_total_idxs = np.unique(total, return_index=True)[1]
-        total = np.array([total[i] for i in sorted(uniq_total_idxs)])
+        total = np.concatenate([top, left, bottom, right])
         start_idx = np.where(total == start_lbl)[0]
 
         return np.roll(total, -start_idx)
