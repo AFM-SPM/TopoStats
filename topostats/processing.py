@@ -333,9 +333,9 @@ def process_scan(
                         # plot nodes and line traces
                         for mol_no, mol_stats in node_stats[direction].items():
                             for node_no, single_node_stats in mol_stats.items():
-                                plotting_config["plot_dict"]["zoom_node"]["mask_cmap"] = "blu_purp"
-                                plotting_config["plot_dict"]["crossings"]["mask_cmap"] = "blu_purp"
-                                plotting_config["plot_dict"]["tripple_crossings"]["mask_cmap"] = "blu_purp"
+                                plotting_config["plot_dict"]["zoom_node"]["mask_cmap"] = "green_black"
+                                plotting_config["plot_dict"]["crossings"]["mask_cmap"] = "green_green"
+                                plotting_config["plot_dict"]["tripple_crossings"]["mask_cmap"] = "green_green"
                                 # plot node + skeleton
                                 Images(
                                     single_node_stats["node_stats"]["node_area_image"],
