@@ -2297,27 +2297,17 @@ class nodeStats:
             else:
                 under_in = min(highest_count_labels)  # otherwise set to lower value
             #print(f"Under-in: {under_in}")
+           
             anti_clock = list(self.vals_anticlock(node_area, under_in))
-            
-            triv_vals = []
-            if len(anti_clock) == 2:  # mol passes over/under another mol (maybe && [i]+1 == [i+1])
-                pd = f"V{anti_clock};"
-                self.node_dict[i + 1]["crossing_type"] = "passive"
-            elif (
-                len(anti_clock) == 3
-            ):  # trival crossing (maybe also applies to Y's therefore maybe && consec when sorted)
-                pd = f"X{anti_clock};"
+            if len(anti_clock) != len(np.unique(anti_clock)):
                 self.node_dict[i + 1]["crossing_type"] = "trivial"
-                triv_vals.append(anti_clock)
-                anti_clock = None
             else:
-                pd = f"X{anti_clock};"
                 self.node_dict[i + 1]["crossing_type"] = "real"
             pd_vals.append(anti_clock)
-            print(f"Crossing PD: {pd}")
-        
-        pd_code = self.remove_trivials(pd_vals, triv_vals)
-        pd_code = self.make_pd_string(pd_code)
+            print(f"Crossing PD: X{anti_clock}")
+
+        print(pd_vals)
+        pd_code = self.make_pd_string(pd_vals)
 
         print(f"Total PD code: {pd_code}")
         try:
@@ -2328,32 +2318,10 @@ class nodeStats:
 
         return topology
 
-    @staticmethod
-    def remove_trivials(full_pd_code, triv_vals):
-        # Removes None's from pd_code list
-        new_pd_code = [x for x in full_pd_code if x is not None]
-        # Removes trivs from pd_code and replaces self cross with single val
-        flat = np.array([val for sublist in new_pd_code for val in sublist])
-        for vals in triv_vals:
-            print(f"Replacing {vals} in trivial crossing with {vals[0]}")
-            for val in vals:
-                flat[flat == val] = vals[0]
-        # Also make the arrays consecuitive
-        low = flat.min()
-        lens = [len(sublist) for sublist in new_pd_code]
-        lens = np.cumsum(np.array(lens))
-        lens = np.insert(lens,0,0)
-        while low < flat.max():
-            if low not in flat:
-                min_diff = flat[flat>low].min() - low
-                flat[flat>low] -= min_diff
-            low += 1
-        # Rebuild inital structure
-        new_pd_code = [list(flat[lens[i]:lens[i+1]]) for i in range(len(lens)-1)]
-        return new_pd_code
     
     @staticmethod
     def make_pd_string(pd_code):
+        """Creates a PD code from a list of numeric lists."""
         new_pd_code = ""
         for node_crossing_pd in pd_code:
             new_pd_code += f"X{node_crossing_pd};"
