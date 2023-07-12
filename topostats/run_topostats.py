@@ -176,10 +176,11 @@ def run_topostats(args=None):
                 summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
                 summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
                 LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
-
+                """
                 # Plot summaries
                 summary_config["df"] = results.reset_index()
                 toposum(summary_config)
+                """
             else:
                 LOGGER.warning(
                     "There are fewer than two grains that have been detected, so"
@@ -201,7 +202,7 @@ def run_topostats(args=None):
     # Write statistics to CSV if there is data.
     if isinstance(results, pd.DataFrame) and not results.isna().values.all():
         results.reset_index(inplace=True)
-        results.set_index(["image", "threshold", "molecule_number"], inplace=True)
+        results.set_index(["image", "threshold", "grain_number"], inplace=True)
         results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
         save_folder_grainstats(config["output_dir"], config["base_dir"], results)
         results.reset_index(inplace=True)  # So we can access unique image names

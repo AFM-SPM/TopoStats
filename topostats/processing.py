@@ -295,7 +295,7 @@ def process_scan(
                         #      gives duplicate molecule numbers as they are processed separately, if tracing stats
                         #      are not available (because skeleton was too small), grainstats are still retained.
                         results = grainstats_df.merge(
-                            tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left"
+                            tracing_stats_df, on=["image", "threshold", "grain_number"], how="left"
                         )
                         results["basename"] = image_path.parent
                         
@@ -331,9 +331,15 @@ def process_scan(
                         for mol_no, mol_stats in node_stats[direction].items():
                             for node_no, single_node_stats in mol_stats.items():
                                 plotting_config["plot_dict"]["zoom_node"]["mask_cmap"] = "green_black"
-                                plotting_config["plot_dict"]["crossings"]["mask_cmap"] = "green_green"
+                                plotting_config["plot_dict"]["crossings"]["mask_cmap"] = "blu_purp"
                                 plotting_config["plot_dict"]["tripple_crossings"]["mask_cmap"] = "green_green"
                                 # plot node + skeleton
+                                Images(
+                                    single_node_stats["node_stats"]["node_area_image"],
+                                    filename=f"mol_{mol_no}_node_{node_no}_crop",
+                                    output_dir=output_dir / "nodes",
+                                    **plotting_config["plot_dict"]["zoom_node"],
+                                ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
                                 Images(
                                     single_node_stats["node_stats"]["node_area_image"],
                                     masked_array=single_node_stats["node_stats"]["node_area_skeleton"],

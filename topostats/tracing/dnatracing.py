@@ -107,16 +107,16 @@ class dnaTrace:
         self.node_image = None
         self.node_dict = None
         self.ordered_trace = None
-        self.ordered_trace_img = None
+        self.ordered_trace_img = np.zeros_like(image)
         self.topology = None
-        self.fitted_trace = None
-        self.fitted_trace_img = None
-        self.splined_trace = None
-        self.splined_trace_img = None
-        self.contour_length = np.nan
-        self.end_to_end_distance = np.nan
-        self.mol_is_circular = np.nan
-        self.curvature = np.nan
+        self.fitted_traces = []
+        self.fitted_trace_img = np.zeros_like(image)
+        self.splined_traces = []
+        self.splined_trace_img = np.zeros_like(image)
+        self.contour_lengths = []
+        self.end_to_end_distances = []
+        self.mol_is_circulars = []
+        self.curvatures = []
         self.num_mols = np.nan
 
         self.visuals = None
@@ -136,6 +136,7 @@ class dnaTrace:
         elif len(self.disordered_trace) >= self.min_skeleton_size:
             self.linear_or_circular(self.disordered_trace)
             nodes = nodeStats(
+                filename=self.filename,
                 image=self.image,
                 grain=self.grain,
                 skeleton=self.pruned_skeleton,
@@ -151,7 +152,7 @@ class dnaTrace:
                 self.num_mols = len(ordered_traces)
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} ordered via nodeStats.")
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} has {len(ordered_traces)} molecules, only first will be used (for now).")
-                self.ordered_trace = ordered_traces[0]
+                self.ordered_trace = ordered_traces
             else:
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} couldn't be traced due to errors in analysing the nodes.")
                 raise ValueError
@@ -160,16 +161,18 @@ class dnaTrace:
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} failed to order through nodeStats, trying standard ordering.")
                 self.get_ordered_traces()
             """
-            self.ordered_trace_img = self.coords_2_img(self.ordered_trace, self.image)
-            self.linear_or_circular(self.ordered_trace)
-            self.get_fitted_traces()
-            self.fitted_trace_img = self.coords_2_img(self.fitted_trace, self.image)
-            self.get_splined_traces()
-            #self.splined_trace_img = self.coords_2_img(self.splined_trace, self.image)
-            # self.find_curvature()
-            # self.saveCurvature()
-            self.measure_contour_length()
-            self.measure_end_to_end_distance()
+            for trace in self.ordered_trace:
+                self.ordered_trace_img = self.coords_2_img(trace, self.image)
+                mol_is_circular = self.linear_or_circular(trace)
+                self.mol_is_circulars.append(mol_is_circular)
+                fitted_trace = self.get_fitted_traces(trace, mol_is_circular)
+                self.fitted_trace_img = self.coords_2_img(fitted_trace, self.image)
+                splined_trace = self.get_splined_traces(fitted_trace, mol_is_circular)
+                #self.splined_trace_img = self.coords_2_img(self.splined_trace, self.image)
+                # self.find_curvature()
+                # self.saveCurvature()
+                self.contour_lengths.append(self.measure_contour_length(splined_trace, mol_is_circular))
+                self.end_to_end_distances.append(self.measure_end_to_end_distance(splined_trace, mol_is_circular))
         else:
             LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
 
@@ -315,9 +318,9 @@ class dnaTrace:
                 pass
 
         if points_with_one_neighbour == 0:
-            self.mol_is_circular = True
+            return True
         else:
-            self.mol_is_circular = False
+            return False
 
     def get_ordered_traces(self):
         """Depending on whether the mol is circular or linear, order the traces so the points follow."""
@@ -334,12 +337,12 @@ class dnaTrace:
         elif not self.mol_is_circular:
             self.ordered_trace = reorderTrace.linearTrace(self.disordered_trace.tolist())
 
-    def get_fitted_traces(self):
+    def get_fitted_traces(self, ordered_trace, mol_is_circular):
         """Create trace coordinates (for each identified molecule) that are adjusted to lie
         along the highest points of each traced molecule
         """
 
-        individual_skeleton = self.ordered_trace
+        individual_skeleton = ordered_trace
         # This indexes a 3 nm height profile perpendicular to DNA backbone
         # note that this is a hard coded parameter
         index_width = int(3e-9 / (self.pixel_to_nm_scaling))
@@ -365,7 +368,7 @@ class dnaTrace:
                 trace_coordinate[1] = self.number_of_columns - index_width
 
             # calculate vector to n - 2 coordinate in trace
-            if self.mol_is_circular:
+            if mol_is_circular:
                 nearest_point = individual_skeleton[coord_num - 2]
                 vector = np.subtract(nearest_point, trace_coordinate)
                 vector_angle = math.degrees(math.atan2(vector[1], vector[0]))
@@ -435,10 +438,10 @@ class dnaTrace:
             except UnboundLocalError:
                 fitted_coordinate_array = highest_point
 
-        self.fitted_trace = fitted_coordinate_array
+        return fitted_coordinate_array
         del fitted_coordinate_array  # cleaned up by python anyway?
 
-    def get_splined_traces(self):
+    def get_splined_traces(self, fitted_trace, mol_is_circular):
         """Gets a splined version of the fitted trace - useful for finding the radius of gyration etc
 
         This function actually calculates the average of several splines which is important for getting a good fit on
@@ -451,11 +454,11 @@ class dnaTrace:
         # interp_step = self.pixel_to_nm_scaling
 
         self.splining_success = True
-        nbr = len(self.fitted_trace[:, 0])
+        nbr = len(fitted_trace[:, 0])
 
         # Hard to believe but some traces have less than 4 coordinates in total
-        if len(self.fitted_trace[:, 1]) < 4:
-            self.splined_trace = self.fitted_trace
+        if len(fitted_trace[:, 1]) < 4:
+            splined_trace = fitted_trace
             # continue
 
         # The degree of spline fit used is 3 so there cannot be less than 3 points in the splined trace
@@ -464,7 +467,7 @@ class dnaTrace:
                 step_size = 1
                 break
             step_size = -1
-        if self.mol_is_circular:
+        if mol_is_circular:
             # if nbr/step_size > 4: #the degree of spline fit is 3 so there cannot be less than 3 points in splined trace
 
             # ev_array = np.linspace(0, 1, nbr * step_size)
@@ -472,10 +475,10 @@ class dnaTrace:
 
             for i in range(step_size):
                 x_sampled = np.array(
-                    [self.fitted_trace[:, 0][j] for j in range(i, len(self.fitted_trace[:, 0]), step_size)]
+                    [fitted_trace[:, 0][j] for j in range(i, len(fitted_trace[:, 0]), step_size)]
                 )
                 y_sampled = np.array(
-                    [self.fitted_trace[:, 1][j] for j in range(i, len(self.fitted_trace[:, 1]), step_size)]
+                    [fitted_trace[:, 1][j] for j in range(i, len(fitted_trace[:, 1]), step_size)]
                 )
 
                 try:
@@ -520,10 +523,10 @@ class dnaTrace:
 
             spline_average = np.divide(spline_running_total, [step_size, step_size])
             del spline_running_total
-            self.splined_trace = spline_average
+            return spline_average
             # else:
-            #    x = self.fitted_trace[:,0]
-            #    y = self.fitted_trace[:,1]
+            #    x = fitted_trace[:,0]
+            #    y = fitted_trace[:,1]
 
             #    try:
             #        tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1, k = 3)
@@ -538,7 +541,7 @@ class dnaTrace:
 
         else:
             # can't get splining of linear molecules to work yet
-            self.splined_trace = self.fitted_trace
+            return fitted_trace
 
     def show_traces(self):
         plt.pcolormesh(self.image, vmax=-3e-9, vmin=3e-9)
@@ -760,33 +763,34 @@ class dnaTrace:
         plt.savefig(f"{savename}_{dna_num}_curvature.png")
         plt.close()
 
-    def measure_contour_length(self):
+    def measure_contour_length(self, splined_trace, mol_is_circular):
         """Measures the contour length for each of the splined traces taking into
         account whether the molecule is circular or linear
 
         Contour length units are nm"""
-        if self.mol_is_circular:
-            for num, i in enumerate(self.splined_trace):
-                x1 = self.splined_trace[num - 1, 0]
-                y1 = self.splined_trace[num - 1, 1]
-                x2 = self.splined_trace[num, 0]
-                y2 = self.splined_trace[num, 1]
+        if mol_is_circular:
+            for num, i in enumerate(splined_trace):
+                x1 = splined_trace[num - 1, 0]
+                y1 = splined_trace[num - 1, 1]
+                x2 = splined_trace[num, 0]
+                y2 = splined_trace[num, 1]
 
                 try:
                     hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
                 except NameError:
                     hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
 
-            self.contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
+            contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
             del hypotenuse_array
+            return contour_length
 
         else:
-            for num, i in enumerate(self.splined_trace):
+            for num, i in enumerate(splined_trace):
                 try:
-                    x1 = self.splined_trace[num, 0]
-                    y1 = self.splined_trace[num, 1]
-                    x2 = self.splined_trace[num + 1, 0]
-                    y2 = self.splined_trace[num + 1, 1]
+                    x1 = splined_trace[num, 0]
+                    y1 = splined_trace[num, 1]
+                    x2 = splined_trace[num + 1, 0]
+                    y2 = splined_trace[num + 1, 1]
 
                     try:
                         hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
@@ -797,19 +801,19 @@ class dnaTrace:
                     del hypotenuse_array
                     break
 
-    def measure_end_to_end_distance(self):
+    def measure_end_to_end_distance(self, splined_trace, mol_is_circular):
         """Calculate the Euclidean distance between the start and end of linear molecules.
         The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
         molecules. If the molecule is circular then the distance is set to zero (0).
         """
-        if self.mol_is_circular:
-            self.end_to_end_distance = 0
+        if mol_is_circular:
+            return 0
         else:
-            x1 = self.splined_trace[0, 0]
-            y1 = self.splined_trace[0, 1]
-            x2 = self.splined_trace[-1, 0]
-            y2 = self.splined_trace[-1, 1]
-            self.end_to_end_distance = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_to_nm_scaling
+            x1 = splined_trace[0, 0]
+            y1 = splined_trace[0, 1]
+            x2 = splined_trace[-1, 0]
+            y2 = splined_trace[-1, 1]
+            return math.hypot((x1 - x2), (y1 - y2)) * self.pixel_to_nm_scaling
 
 
 def trace_image(
@@ -857,10 +861,9 @@ def trace_image(
     cropped_images, cropped_masks = prep_arrays(image, grains_mask, pad_width)
     n_grains = len(cropped_images)
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
-    n_grain = 0
-    results = {}
+    #results = {}
     full_node_dict = {}
-    for cropped_image, cropped_mask in zip(cropped_images, cropped_masks):
+    for n_grain, (cropped_image, cropped_mask) in enumerate(zip(cropped_images, cropped_masks)):
         result, node_dict, images = trace_grain(
             cropped_image,
             cropped_mask,
@@ -872,11 +875,11 @@ def trace_image(
             n_grain,
         )
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
-        results[n_grain] = result
-        n_grain += 1
+        #results[n_grain] = result
     try:
-        results = pd.DataFrame.from_dict(results, orient="index")
-        results.index.name = "molecule_number"
+        results = pd.DataFrame.from_dict(result, orient="index")
+        print(results)
+        #results.index.name = "molecule_number"
         full_node_dict[n_grain] = node_dict
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
@@ -971,14 +974,18 @@ def trace_grain(
         n_grain=n_grain,
     )
     dnatrace.trace_dna()
-    results = {
-        "image": dnatrace.filename,
-        "contour_length": dnatrace.contour_length,
-        "circular": dnatrace.mol_is_circular,
-        "end_to_end_distance": dnatrace.end_to_end_distance,
-        "topology": dnatrace.topology,
-        "num_mols": dnatrace.num_mols,
-    }
+    results = {}
+    print("Contours: ", dnatrace.contour_lengths)
+    for i in range(dnatrace.num_mols):
+        results[i] = {
+            "image": dnatrace.filename,
+            "grain_number": n_grain,
+            "contour_length": dnatrace.contour_lengths[i],
+            "circular": dnatrace.mol_is_circulars[i],
+            "end_to_end_distance": dnatrace.end_to_end_distances[i],
+            "topology": dnatrace.topology,
+            "num_mols": dnatrace.num_mols,
+        }
 
     images = {
         "image": dnatrace.image,
@@ -986,9 +993,6 @@ def trace_grain(
         "smoothed_grain": dnatrace.smoothed_grain,
         "skeleton": dnatrace.skeleton,
         "prunted_skeleton": dnatrace.pruned_skeleton,
-        "fitted_trace": dnatrace.fitted_trace,
-        "ordered_trace": dnatrace.ordered_trace,
-        "splined_trace": dnatrace.splined_trace,
         "node_img": dnatrace.node_image,
     }
     return results, dnatrace.node_dict, images
@@ -1071,7 +1075,8 @@ def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np
 class nodeStats:
     """Class containing methods to find and analyse the nodes/crossings within a grain"""
 
-    def __init__(self, image: np.ndarray, grain: np.ndarray, skeleton: np.ndarray, px_2_nm: float, n_grain: int) -> None:
+    def __init__(self, filename, image: np.ndarray, grain: np.ndarray, skeleton: np.ndarray, px_2_nm: float, n_grain: int) -> None:
+        self.filename = filename
         self.image = image
         self.grain = grain
         self.skeleton = skeleton
@@ -1956,7 +1961,7 @@ class nodeStats:
         """This function uses the branches and FWHM's identified in the node_stats dictionary to create a
         continious trace of the molecule.
         """
-        LOGGER.info("Compiling the trace.")
+        LOGGER.info(f"{self.filename} : Compiling the trace.")
 
         # iterate throught the dict to get branch coords, heights and fwhms
         node_centre_coords = []
