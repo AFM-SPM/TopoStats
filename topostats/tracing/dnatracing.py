@@ -18,7 +18,7 @@ import seaborn as sns
 from scipy import ndimage, spatial, optimize, interpolate as interp
 from skimage.morphology import label, binary_dilation
 from skimage.filters import gaussian, threshold_otsu
-from topoly import jones, homfly, params
+from topoly import jones, homfly, params, reduce_structure
 import skimage.measure as skimage_measure
 from tqdm import tqdm
 
@@ -117,6 +117,7 @@ class dnaTrace:
         self.end_to_end_distance = np.nan
         self.mol_is_circular = np.nan
         self.curvature = np.nan
+        self.num_mols = np.nan
 
         self.visuals = None
 
@@ -130,10 +131,6 @@ class dnaTrace:
     def trace_dna(self):
         """Perform DNA tracing."""
         self.get_disordered_trace()
-        #np.savetxt("/Users/Maxgamill/Desktop/prune.txt", self.pruned_skeleton)
-        #np.savetxt("/Users/Maxgamill/Desktop/img.txt", self.image)
-        #np.savetxt("/Users/Maxgamill/Desktop/grain.txt", self.grain)
-        #np.savetxt("/Users/Maxgamill/Desktop/smooth.txt", self.smoothed_grain)
         if self.disordered_trace is None:
             LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} failed to Skeletonise")
         elif len(self.disordered_trace) >= self.min_skeleton_size:
@@ -151,6 +148,7 @@ class dnaTrace:
             #try: # try to order using nodeStats
             if nodes.check_node_errorless():
                 ordered_traces, self.visuals, self.topology = nodes.compile_trace()
+                self.num_mols = len(ordered_traces)
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} ordered via nodeStats.")
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} has {len(ordered_traces)} molecules, only first will be used (for now).")
                 self.ordered_trace = ordered_traces[0]
@@ -979,6 +977,7 @@ def trace_grain(
         "circular": dnatrace.mol_is_circular,
         "end_to_end_distance": dnatrace.end_to_end_distance,
         "topology": dnatrace.topology,
+        "num_mols": dnatrace.num_mols,
     }
 
     images = {
@@ -2031,7 +2030,10 @@ class nodeStats:
         #   determine which in in-undergoing and assign labels counter-clockwise
         
         print("Getting PD Codes:")
-        topology = self.get_pds(coord_trace, node_centre_coords, fwhms, crossing_coords)
+        if len(coord_trace) <= 2:
+            topology = self.get_pds(coord_trace, node_centre_coords, fwhms, crossing_coords)
+        else:
+            topology = None
 
         return coord_trace, visual, topology
 
@@ -2305,19 +2307,25 @@ class nodeStats:
                 self.node_dict[i + 1]["crossing_type"] = "real"
             pd_vals.append(anti_clock)
             print(f"Crossing PD: X{anti_clock}")
-
-        print(pd_vals)
+        # compile pd values into string and calc topology
         pd_code = self.make_pd_string(pd_vals)
-
+        #pd_code = "X[1, 7, 6, 2];X[7, 10, 8, 1];X[5, 2, 3, 6];X[9, 4, 10, 5];X[3, 4, 8, 9]"
         print(f"Total PD code: {pd_code}")
+
         try:
+            # PD code may need to be reduced first for column check to work (as it fp on poke + slide)
+            #pd_code = reduce_structure(pd_code, output_type='pdcode')
+            assert self.check_duplicates_in_columns(np.array(pd_vals)) == False # may break when 1-4, 1-6 N-B
             topology = homfly(pd_code, closure=params.Closure.CLOSED, chiral = False)
-        except:
+        except AssertionError: # triggers on same value in columns
+            print("PD Code is nonsense (might be ok but pokes and slides not accounted for yet).")
+            topology = None
+        except IndexError: # triggers on index error in topoly
+            print("PD Code is nonsense.")
             topology = None
         print(f"Topology: {topology}")
 
         return topology
-
     
     @staticmethod
     def make_pd_string(pd_code):
@@ -2351,4 +2359,11 @@ class nodeStats:
         total = np.concatenate([top, left, bottom, right])
         start_idx = np.where(total == start_lbl)[0]
 
-        return np.roll(total, -start_idx)
+        return np.roll(total, -start_idx) 
+    
+    @staticmethod
+    def check_duplicates_in_columns(array):
+        for col_no in range(array.shape[1]):
+            if len(array[:, col_no]) != len(np.unique(array[:, col_no])):
+                return True
+        return False
