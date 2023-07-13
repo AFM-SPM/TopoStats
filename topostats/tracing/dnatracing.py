@@ -994,6 +994,7 @@ def trace_grain(
         "skeleton": dnatrace.skeleton,
         "prunted_skeleton": dnatrace.pruned_skeleton,
         "node_img": dnatrace.node_image,
+        "visual": dnatrace.visuals,
     }
     return results, dnatrace.node_dict, images
 
@@ -1994,17 +1995,17 @@ class nodeStats:
         # combine branches and segments
         both_img = self.get_both_img(minus, crossings)
 
-        np.savetxt("/Users/Maxgamill/Desktop/minus.txt", minus)
-        np.savetxt("/Users/Maxgamill/Desktop/cross.txt", crossings)
-        np.savetxt("/Users/Maxgamill/Desktop/both.txt", both_img)
-        np.savetxt("/Users/Maxgamill/Desktop/skel.txt", self.skeleton)
-        np.savetxt("/Users/Maxgamill/Desktop/centres.txt", node_centre_coords)
+        #np.savetxt("/Users/Maxgamill/Desktop/minus.txt", minus)
+        #np.savetxt("/Users/Maxgamill/Desktop/cross.txt", crossings)
+        #np.savetxt("/Users/Maxgamill/Desktop/both.txt", both_img)
+        #np.savetxt("/Users/Maxgamill/Desktop/skel.txt", self.skeleton)
+        #np.savetxt("/Users/Maxgamill/Desktop/centres.txt", node_centre_coords)
 
         # order minus segments
         ordered = []
         for i in range(1, minus.max() + 1):
             arr = np.where(minus, minus == i, 0)
-            np.savetxt("/Users/Maxgamill/Desktop/arr.txt", arr)
+            #np.savetxt("/Users/Maxgamill/Desktop/arr.txt", arr)
             ordered.append(self.order_branch(arr, [0, 0]))  # orientated later
 
         # combine ordered indexes
@@ -2304,7 +2305,8 @@ class nodeStats:
             else:
                 under_in = min(highest_count_labels)  # otherwise set to lower value
             #print(f"Under-in: {under_in}")
-           
+
+           # get the values PD image around the crossing area
             anti_clock = self.vals_anticlock(node_area, under_in)
             if len(anti_clock) != len(np.unique(anti_clock)):
                 self.node_dict[i + 1]["crossing_type"] = "trivial"
@@ -2316,13 +2318,16 @@ class nodeStats:
         #pd_code = "X[1, 7, 6, 2];X[7, 10, 8, 1];X[5, 2, 3, 6];X[9, 4, 10, 5];X[3, 4, 8, 9]"
         print(f"Total PD code: {pd_code}")
 
+        # filter out the trash PD codes and obtain topology
         try:
             # PD code may need to be reduced first for column check to work (as it fp on poke + slide)
             #pd_code = reduce_structure(pd_code, output_type='pdcode')
-            assert self.check_duplicates_in_columns(np.array(pd_vals)) == False # may break when 1-4, 1-6 N-B
+            no_triv_pd = self.remove_trivial_crossings(np.array(pd_vals))
+            assert self.check_uniq_vals_valid(no_triv_pd)
+            assert self.check_no_duplicates_in_columns(no_triv_pd) # may break when 1-4, 1-6 N-B
             topology = homfly(pd_code, closure=params.Closure.CLOSED, chiral = False)
-        except AssertionError: # triggers on same value in columns
-            print("PD Code is nonsense (might be ok but pokes and slides not accounted for yet).")
+        except AssertionError as e: # triggers on same value in columns
+            print(f"{e} : PD Code is nonsense (might be ok but pokes and slides not accounted for in removal).")
             topology = None
         except IndexError: # triggers on index error in topoly
             print("PD Code is nonsense.")
@@ -2366,8 +2371,27 @@ class nodeStats:
         return np.roll(total, -start_idx) 
     
     @staticmethod
-    def check_duplicates_in_columns(array):
+    def remove_trivial_crossings(pd_values: np.ndarray):
+        # removes trivial crossings from the pd_values not in place. 
+        #   assumes the loop doesn't cross anything else
+        new_pd = pd_values.copy()
+        for i, row in enumerate(pd_values):
+            if len(row) != len(np.unique(row)):
+                new_pd = np.delete(new_pd, i, axis=0)
+        return new_pd
+    
+    @staticmethod
+    def check_uniq_vals_valid(pd_vals):
+        # checks (for real nodes) that there are not more unique pd_vals than physically possible
+        flat = pd_vals.flatten()
+        if len(np.unique(flat)) > 2 * len(pd_vals):
+            return False
+        return True
+
+    @staticmethod
+    def check_no_duplicates_in_columns(array):
+        # checks if duplicate values exist within a column in an array
         for col_no in range(array.shape[1]):
             if len(array[:, col_no]) != len(np.unique(array[:, col_no])):
-                return True
-        return False
+                return False
+        return True
