@@ -303,20 +303,23 @@ def process_scan(
                         LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
                         output_dir = Path(dna_tracing_out_path / f"{direction}")
 
-                        plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes"]#, "fitted_trace", "ordered_trace", "splined_trace"]
+                        plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes", "visual"] # "fitted_trace", "ordered_trace", "splined_trace"]
                         data2s = [
                             images[direction]["grain"],
                             images[direction]["smoothed_grain"],
                             images[direction]["skeleton"],
                             images[direction]["prunted_skeleton"],
-                            images[direction]["node_img"]
+                            images[direction]["node_img"],
                             #images[direction]["fitted_trace"],
                             #images[direction]["ordered_trace"],
                             #images[direction]["splined_trace"],
+                            images[direction]["visual"],
                         ]
                         for i, plot_name in enumerate(plot_names):
                             plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                             plotting_config["plot_dict"][plot_name]["mask_cmap"] = "green_black"
+                            if plot_name == "visual":
+                                plotting_config["plot_dict"]["visual"]["mask_cmap"] = "blu_purp"
                             Images(
                                 images[direction]["image"],
                                 masked_array=data2s[i],
@@ -332,7 +335,7 @@ def process_scan(
                             for node_no, single_node_stats in mol_stats.items():
                                 plotting_config["plot_dict"]["zoom_node"]["mask_cmap"] = "green_black"
                                 plotting_config["plot_dict"]["crossings"]["mask_cmap"] = "blu_purp"
-                                plotting_config["plot_dict"]["tripple_crossings"]["mask_cmap"] = "green_green"
+                                plotting_config["plot_dict"]["tripple_crossings"]["mask_cmap"] = "blu_purp"
                                 # plot node + skeleton
                                 Images(
                                     single_node_stats["node_stats"]["node_area_image"],
@@ -378,6 +381,7 @@ def process_scan(
                                         output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg",
                                         format="svg",
                                     )
+
                             """
                             # plot the molecules on their own
                             print("LEN: ",len(nodes.mol_coords))
@@ -394,17 +398,6 @@ def process_scan(
                                         zrange=[0, 3.5e-9],
                                         **plotting_config["plot_dict"]["single_mol"],
                                     ).save_figure_black(background=grains.directions[direction]["removed_small_objects"])
-                        
-                        # plot the visual image for the whole image
-                        visual = nodes.all_visuals_img
-                        if visual is not None:
-                            Images(
-                                dna_traces[direction].full_image_data,
-                                masked_array=visual,
-                                output_dir=output_dir,
-                                zrange=[0, 3.5e-9],
-                                **plotting_config["plot_dict"]["visual"],
-                            ).save_figure_black(background=grains.directions[direction]["removed_small_objects"])
                         """
                         # ------- branch vector img -------
                         """
