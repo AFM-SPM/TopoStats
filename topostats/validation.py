@@ -360,6 +360,19 @@ PLOTTING_SCHEMA = Schema(
             ),
             "core_set": bool,
         },
+        "initial_nonlinear_polynomial_removal": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'initial_nonlinear_polynomial_removal.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
         "mask": {
             "filename": str,
             "title": str,

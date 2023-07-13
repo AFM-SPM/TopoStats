@@ -35,53 +35,58 @@ initial_quadratic_removal:
   title: "Initial Quadratic Removal (Unmasked)"
   image_type: "non-binary"
   core_set: false
+initial_nonlinear_polynomial_removal:
+  filename: "05-nonlinear_polynomial_removal_unmasked"
+  title: "Nonlinear polynomial removal (Unmasked)"
+  image_type: "non-binary"
+  core_set: false
 initial_scar_removal:
-  filename: "05-initial_scar_removal"
+  filename: "06-initial_scar_removal"
   title: "Scar removal"
   image_type: "non-binary"
   core_set: false
 mask:
-  filename: "06-binary_mask"
+  filename: "07-binary_mask"
   title: "Binary Mask"
   image_type: "binary"
   core_set: false
 masked_median_flatten:
-  filename: "07-secondary_align_masked"
+  filename: "08-secondary_align_masked"
   title: "Secondary Alignment (Masked)"
   image_type: "non-binary"
   core_set: false
 masked_tilt_removal:
-  filename: "08-secondary_tilt_removal_masked"
+  filename: "09-secondary_tilt_removal_masked"
   title: "Secondary Tilt Removal (Masked)"
   image_type: "non-binary"
   core_set: false
 masked_quadratic_removal:
-  filename: "09-quadratic_removal_masked"
+  filename: "10-quadratic_removal_masked"
   title: "Secondary Quadratic Removal"
   image_type: "non-binary"
   core_set: false
 masked_nonlinear_polynomial_removal:
-  filename: "nonlinear_polynomial_removal_masked"
+  filename: "11-nonlinear_polynomial_removal_masked"
   title: "Nonlinear polynomial removal masked"
   image_type: "non-binary"
   core_set: false
 secondary_scar_removal:
-  filename: "10-scar_removal"
+  filename: "12-scar_removal"
   title: "Secondary scar removal"
   image_type: "non-binary"
   core_set: false
 scar_mask:
-  filename: "11-scar_mask"
+  filename: "13-scar_mask"
   title: "Scar mask"
   image_type: "binary"
   core_set: false
 zero_average_background:
-  filename: "12-zero_average_background"
+  filename: "14-zero_average_background"
   title: "Zero Averaged Background"
   image_type: "non-binary"
   core_set: false
 gaussian_filtered:
-  filename: "13-gaussian_filtered"
+  filename: "15-gaussian_filtered"
   title: "Gaussian Filtered"
   image_type: "non-binary"
   core_set: false
@@ -90,27 +95,27 @@ z_threshed:
   image_type: "non-binary"
   core_set: true
 mask_grains:
-  filename: "14-mask_grains"
+  filename: "16-mask_grains"
   title: "Mask for Grains"
   image_type: "binary"
   core_set: false
 labelled_regions_01:
-  filename: "15-labelled_regions"
+  filename: "17-labelled_regions"
   title: "Labelled Regions"
   image_type: "binary"
   core_set: false
 tidied_border:
-  filename: "16-tidy_borders"
+  filename: "18-tidy_borders"
   title: "Tidied Borders"
   image_type: "binary"
   core_set: false
 removed_noise:
-  filename: "17-noise_removed"
+  filename: "19-noise_removed"
   title: "Noise removed"
   image_type: "binary"
   core_set: false
 removed_small_objects:
-  filename: "18-small_objects_removed"
+  filename: "20-small_objects_removed"
   title: "Small Objects Removed"
   image_type: "binary"
   core_set: false
@@ -119,22 +124,22 @@ mask_overlay:
   image_type: "non-binary"
   core_set: true
 labelled_regions_02:
-  filename: "19-labelled_regions"
+  filename: "21-labelled_regions"
   title: "Labelled Regions"
   image_type: "binary"
   core_set: false
 coloured_regions:
-  filename: "20-coloured_regions"
+  filename: "22-coloured_regions"
   title: "Coloured Regions"
   image_type: "binary"
   core_set: false
 bounding_boxes:
-  filename: "21-bounding_boxes"
+  filename: "23-bounding_boxes"
   title: "Bounding Boxes"
   image_type: "binary"
   core_set: false
 coloured_boxes:
-  filename: "22-labelled_image_bboxes"
+  filename: "24-labelled_image_bboxes"
   title: "Labelled Image with Bounding Boxes"
   image_type: "binary"
   core_set: false
