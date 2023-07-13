@@ -19,7 +19,7 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
 
     # Ensure there are below grains
     process_scan_config["grains"]["threshold_std_dev"]["below"] = 1.0
-    process_scan_config["grains"]["smallest_grain_size_nm2"] = 30
+    process_scan_config["grains"]["smallest_grain_size_nm2"] = 28
 
     process_scan_config["grains"]["direction"] = "below"
     img_dic = load_scan_data.img_dict
@@ -44,7 +44,7 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
 
     # Ensure there are below grains
     process_scan_config["grains"]["threshold_std_dev"]["below"] = 1.0
-    process_scan_config["grains"]["smallest_grain_size_nm2"] = 30
+    process_scan_config["grains"]["smallest_grain_size_nm2"] = 28
 
     img_dic = load_scan_data.img_dict
     _, results, img_stats = process_scan(
@@ -68,7 +68,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
 
     # Ensure there are lower grains
     process_scan_config["grains"]["threshold_std_dev"]["below"] = 1.0
-    process_scan_config["grains"]["smallest_grain_size_nm2"] = 30
+    process_scan_config["grains"]["smallest_grain_size_nm2"] = 28
 
     process_scan_config["grains"]["direction"] = "both"
     img_dic = load_scan_data.img_dict
