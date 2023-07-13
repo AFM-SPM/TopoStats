@@ -166,6 +166,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "above",
                 error="Invalid direction for grains.direction valid values are 'both', 'below' or 'above",
             ),
+            "remove_edge_intersecting_grains": Or(
+                True,
+                False,
+                error="Invalid value in config for 'grains.remove_edge_intersecting_grains', valid values are 'True' or 'False'",
+            ),
         },
         "grainstats": {
             "run": Or(
