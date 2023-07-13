@@ -2,12 +2,15 @@
 from pathlib import Path
 from unittest import TestCase
 
+from datetime import datetime
 import numpy as np
 import pandas as pd
 import pytest
 
 from topostats.io import (
     read_yaml,
+    get_date_time,
+    write_config_with_comments,
     write_yaml,
     save_array,
     load_array,
@@ -23,6 +26,8 @@ from topostats.io import (
     read_64d,
     read_gwy_component_dtype,
     read_char,
+    get_relative_paths,
+    convert_basename_to_relative_paths,
 )
 
 BASE_DIR = Path.cwd()
@@ -42,11 +47,40 @@ CONFIG = {
 # pylint: disable=protected-access
 
 
+def test_get_date_time() -> None:
+    """Test the fetching of a formatted date and time string."""
+
+    assert datetime.strptime(get_date_time(), "%Y-%m-%d %H:%M:%S")
+
+
 def test_read_yaml() -> None:
     """Test reading of YAML file."""
     sample_config = read_yaml(RESOURCES / "test.yaml")
 
     TestCase().assertDictEqual(sample_config, CONFIG)
+
+
+def test_write_config_with_comments(tmp_path: Path) -> None:
+    """
+    Test that the function write_yaml_with_comments successfully writes the default
+    config with comments to a file.
+    """
+
+    # Read default config with comments
+    with open(BASE_DIR / "topostats" / "default_config.yaml", encoding="utf-8") as f:
+        default_config_string = f.read()
+
+    # Write default config with comments to file
+    write_config_with_comments(config=default_config_string, output_dir=tmp_path, filename="test_config_with_comments")
+
+    # Read the written config
+    with open(tmp_path / "test_config_with_comments.yaml", encoding="utf-8") as f:
+        written_config = f.read()
+
+    # Validate that the written config has comments in it
+    assert default_config_string in written_config
+    assert "Config file generated" in written_config
+    assert "For more information on configuration and how to use it" in written_config
 
 
 def test_write_yaml(tmp_path: Path) -> None:
@@ -151,6 +185,51 @@ def test_read_gwy_component_dtype() -> None:
 
 
 @pytest.mark.parametrize(
+    "input_paths, expected_paths",
+    [
+        ([Path("a/b/c/d"), Path("a/b/e/f"), Path("a/b/g"), Path("a/b/h")], ["c/d", "e/f", "g", "h"]),
+        (["a/b/c/d", "a/b/e/f", "a/b/g", "a/b/h"], ["c/d", "e/f", "g", "h"]),
+        (["g", "a/b/e/f", "a/b/g", "a/b/h"], ["g", "a/b/e/f", "a/b/g", "a/b/h"]),
+        (["a/b/c/d"], ["a/b/c/d"]),
+        (["a/b/c/d", "a/b/c/d"], ["a/b/c/d", "a/b/c/d"]),
+    ],
+)
+def test_get_relative_paths(input_paths: list, expected_paths: list):
+    """Test the get_paths_relative_to_deepest_common_path function."""
+
+    relative_paths = get_relative_paths(input_paths)
+
+    assert relative_paths == expected_paths
+
+
+def test_convert_basename_to_relative_paths():
+    """Test the convert_basename_to_relative_paths function."""
+    input_df = {
+        "Image": ["im1", "im2", "im3", "im4"],
+        "threshold": ["above", "above", "above", "above"],
+        "molecule_number": [0, 0, 0, 0],
+        "basename": ["super/sub1", "super/sub2", "super/sub3", "super/sub3/sub4"],
+        "area": [10, 20, 30, 40],
+    }
+
+    input_df = pd.DataFrame(input_df)
+
+    result = convert_basename_to_relative_paths(input_df)
+
+    expected = {
+        "Image": ["im1", "im2", "im3", "im4"],
+        "threshold": ["above", "above", "above", "above"],
+        "molecule_number": [0, 0, 0, 0],
+        "basename": ["sub1", "sub2", "sub3", "sub3/sub4"],
+        "area": [10, 20, 30, 40],
+    }
+
+    expected = pd.DataFrame(expected)
+
+    pd.testing.assert_frame_equal(expected, result)
+
+
+@pytest.mark.parametrize(
     "base_dir, image_path, output_dir, expected",
     [
         # Absolute path, nested under base_dir, with file suffix
@@ -226,13 +305,14 @@ def test_get_out_path_attributeerror() -> None:
         get_out_path(image_path="images/test.spm", base_dir=Path("/some/random/path"), output_dir=Path("output/here"))
 
 
-def test_save_folder_grainstats(tmp_path: Path, minicircle_tracestats: pd.DataFrame) -> None:
+def test_save_folder_grainstats(tmp_path: Path) -> None:
     """Test a folder-wide grainstats file is made"""
+    test_df = pd.DataFrame({"dummy1": [1, 2, 3], "dummy2": ["a", "b", "c"]})
     input_path = tmp_path / "minicircle"
-    minicircle_tracestats["basename"] = input_path
+    test_df["basename"] = input_path
     out_path = tmp_path / "subfolder"
     Path.mkdir(out_path, parents=True)
-    save_folder_grainstats(out_path, input_path, minicircle_tracestats)
+    save_folder_grainstats(out_path, input_path, test_df)
     assert Path(out_path / "processed" / "folder_grainstats.csv").exists()
 
 
@@ -364,14 +444,14 @@ def test_load_scan_get_data(
         (100, 9, "Skipping, image too small"),
     ],
 )
-def test_load_scan_get_data_check_image_size(
+def test_load_scan_get_data_check_image_size_and_add_to_dict(
     load_scan: LoadScans, x: int, y: int, log_msg: str, caplog, tmp_path
 ) -> None:
     """Test errors are raised when images that are too small are passed."""
     load_scan.filename = "minicircle"
     load_scan.img_path = tmp_path
     load_scan.image = np.ndarray((x, y))
-    load_scan._check_image_size()
+    load_scan._check_image_size_and_add_to_dict()
     assert log_msg in caplog.text
 
 

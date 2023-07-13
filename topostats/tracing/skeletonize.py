@@ -2,7 +2,7 @@
 import logging
 from typing import Callable
 import numpy as np
-from skimage.morphology import medial_axis, skeletonize, thin
+from skimage.morphology import skeletonize, thin
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -19,7 +19,7 @@ def get_skeleton(image: np.ndarray, method: str) -> np.ndarray:
         Image of molecule to be skeletonized.
 
     method : str
-        Method to use, default is 'zhang' other options are 'lee', 'medial_axis' and 'thin'.
+        Method to use, default is 'zhang' other options are 'lee', and 'thin'.
 
     Returns
     -------
@@ -45,7 +45,7 @@ def _get_skeletonize(method: str = "zhang") -> Callable:
     Parameters
     ----------
     method: str
-        Method to use for skeletonizing, methods are 'zhang' (default), 'lee', 'medial_axis', and 'thin'.
+        Method to use for skeletonizing, methods are 'zhang' (default), 'lee', and 'thin'.
 
     Returns
     -------
@@ -56,8 +56,6 @@ def _get_skeletonize(method: str = "zhang") -> Callable:
         return _skeletonize_zhang
     if method == "lee":
         return _skeletonize_lee
-    if method == "medial_axis":
-        return _skeletonize_medial_axis
     if method == "thin":
         return _skeletonize_thin
     raise ValueError(method)
@@ -69,10 +67,6 @@ def _skeletonize_zhang(image: np.ndarray) -> np.ndarray:
 
 def _skeletonize_lee(image: np.ndarray) -> np.ndarray:
     return skeletonize(image, method="lee")
-
-
-def _skeletonize_medial_axis(image: np.ndarray) -> np.ndarray:
-    return medial_axis(image, return_distance=False)
 
 
 def _skeletonize_thin(image: np.ndarray) -> np.ndarray:

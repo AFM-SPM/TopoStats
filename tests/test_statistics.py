@@ -46,17 +46,17 @@ def test_image_statistics(image_random: np.ndarray) -> None:
             5.12e-07,
             5.12e-07,
             2.62144e-13,
-            1024.0,
-            1024.0,
+            1024,
+            1024,
             1048576,
-            4.0,
+            4,
             15258789062499.998,
-            2.0,
+            2,
             7629394531249.999,
             5.772928703606123e-10,
         ]
     ]
-    expected_df = pd.DataFrame(expected_data, columns=expected_columns, dtype="object")
+    expected_df = pd.DataFrame(expected_data, columns=expected_columns)
     expected_df.set_index("Image", inplace=True)
 
     # This was the only way I could find to do it, as pandas' assert_frame_equal will

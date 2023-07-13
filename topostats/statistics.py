@@ -72,9 +72,7 @@ def image_statistics(
     except KeyError:
         pass
 
-    # Convert the dictionary to a dataframe, with "image_name" as the index. Transpose is needed
-    # else the rows and columns will be swapped.
-    image_stats_df = pd.DataFrame.from_dict(image_stats, orient="index").transpose()
+    image_stats_df = pd.DataFrame([image_stats])
     image_stats_df.set_index("Image", inplace=True)
 
     return image_stats_df
