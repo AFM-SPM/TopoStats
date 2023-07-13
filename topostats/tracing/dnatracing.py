@@ -2305,13 +2305,12 @@ class nodeStats:
                 under_in = min(highest_count_labels)  # otherwise set to lower value
             #print(f"Under-in: {under_in}")
            
-            anti_clock = list(self.vals_anticlock(node_area, under_in))
+            anti_clock = self.vals_anticlock(node_area, under_in)
             if len(anti_clock) != len(np.unique(anti_clock)):
                 self.node_dict[i + 1]["crossing_type"] = "trivial"
             else:
                 self.node_dict[i + 1]["crossing_type"] = "real"
-            pd_vals.append(anti_clock)
-            print(f"Crossing PD: X{anti_clock}")
+            pd_vals.append(list(anti_clock))
         # compile pd values into string and calc topology
         pd_code = self.make_pd_string(pd_vals)
         #pd_code = "X[1, 7, 6, 2];X[7, 10, 8, 1];X[5, 2, 3, 6];X[9, 4, 10, 5];X[3, 4, 8, 9]"
