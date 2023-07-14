@@ -163,16 +163,21 @@ class dnaTrace:
             """
             for trace in self.ordered_trace:
                 self.ordered_trace_img = self.coords_2_img(trace, self.image)
-                mol_is_circular = self.linear_or_circular(trace)
-                self.mol_is_circulars.append(mol_is_circular)
-                fitted_trace = self.get_fitted_traces(trace, mol_is_circular)
-                self.fitted_trace_img = self.coords_2_img(fitted_trace, self.image)
-                splined_trace = self.get_splined_traces(fitted_trace, mol_is_circular)
-                #self.splined_trace_img = self.coords_2_img(self.splined_trace, self.image)
-                # self.find_curvature()
-                # self.saveCurvature()
-                self.contour_lengths.append(self.measure_contour_length(splined_trace, mol_is_circular))
-                self.end_to_end_distances.append(self.measure_end_to_end_distance(splined_trace, mol_is_circular))
+                if len(trace) >= self.min_skeleton_size:
+                    mol_is_circular = self.linear_or_circular(trace)
+                    self.mol_is_circulars.append(mol_is_circular)
+                    fitted_trace = self.get_fitted_traces(trace, mol_is_circular)
+                    #self.fitted_trace_img = self.coords_2_img(fitted_trace, self.image)
+                    #splined_trace = self.get_splined_traces(fitted_trace, trace, mol_is_circular)
+                    splined_trace = self.get_splined_traces(fitted_trace, trace, mol_is_circular)
+                    #self.splined_trace_img = self.coords_2_img(self.splined_trace, self.image)
+                    # self.find_curvature()
+                    # self.saveCurvature()
+                    self.contour_lengths.append(self.measure_contour_length(splined_trace, mol_is_circular))
+                    self.end_to_end_distances.append(self.measure_end_to_end_distance(splined_trace, mol_is_circular))
+                else:
+                    self.num_mols -= 1 # remove this from the num mols indexer
+                    LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain ordered trace pixels < {self.min_skeleton_size}")
         else:
             LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
 
@@ -441,7 +446,7 @@ class dnaTrace:
         return fitted_coordinate_array
         del fitted_coordinate_array  # cleaned up by python anyway?
 
-    def get_splined_traces(self, fitted_trace, mol_is_circular):
+    def get_splined_traces(self, fitted_trace, ordered_trace, mol_is_circular):
         """Gets a splined version of the fitted trace - useful for finding the radius of gyration etc
 
         This function actually calculates the average of several splines which is important for getting a good fit on
@@ -489,10 +494,10 @@ class dnaTrace:
                     # Value error occurs when the "trace fitting" really messes up the traces
 
                     x = np.array(
-                        [self.ordered_trace[:, 0][j] for j in range(i, len(self.ordered_trace[:, 0]), step_size)]
+                        [ordered_trace[:, 0][j] for j in range(i, len(ordered_trace[:, 0]), step_size)]
                     )
                     y = np.array(
-                        [self.ordered_trace[:, 1][j] for j in range(i, len(self.ordered_trace[:, 1]), step_size)]
+                        [ordered_trace[:, 1][j] for j in range(i, len(ordered_trace[:, 1]), step_size)]
                     )
 
                     try:
@@ -1801,21 +1806,22 @@ class nodeStats:
         dilate2 = ndimage.binary_dilation(dilate)
         dilate2[(dilate == 1) | (branch_mask == 1)] = 0
         labels = label(dilate2)
-        # if parallel trace out and back in zone, can get > 2 labels
+        # Cleanup stages - re-entering, early terminating, closer traces
+        #   if parallel trace out and back in zone, can get > 2 labels
         labels = self._remove_re_entering_branches(labels, remaining_branches=2)
-        # if parallel trace doesn't exit window, can get 1 label
-        #   occurs when skeleton has poor connections (extra branches which cut corners)
+        #   if parallel trace doesn't exit window, can get 1 label
+        #       occurs when skeleton has poor connections (extra branches which cut corners)
         if labels.max() == 1:
             conv = convolve_skelly(branch_mask)
-            endpoint = np.argwhere(conv == 2)
-            para_trace_coords = np.argwhere(labels == 1)
-            abs_diff = np.absolute(para_trace_coords - endpoint).sum(axis=1)
-            min_idxs = np.where(abs_diff == abs_diff.min())
-            trace_coords_remove = para_trace_coords[min_idxs]
-            labels[trace_coords_remove[:, 0], trace_coords_remove[:, 1]] = 0
+            endpoints = np.argwhere(conv == 2)
+            for endpoint in endpoints: # may be >1 endpoint
+                para_trace_coords = np.argwhere(labels == 1)
+                abs_diff = np.absolute(para_trace_coords - endpoint).sum(axis=1)
+                min_idxs = np.where(abs_diff == abs_diff.min())
+                trace_coords_remove = para_trace_coords[min_idxs]
+                labels[trace_coords_remove[:, 0], trace_coords_remove[:, 1]] = 0
             labels = label(labels)
-
-        # reduce binary dilation distance
+        #   reduce binary dilation distance
         paralell = np.zeros_like(branch_mask).astype(np.int32)
         for i in range(1, labels.max() + 1):
             single = labels.copy()
@@ -1880,6 +1886,7 @@ class nodeStats:
 
         # ensure arrays are same length to average
         temp_x = branch_dist_norm[np.isin(branch_dist_norm, avg1[:, 0])]
+        print(avg1.shape, avg2.shape)
         common_dists = avg2[:, 0][np.isin(avg2[:, 0], temp_x)]
 
         common_avg_branch_heights = branch_heights[np.isin(branch_dist_norm, common_dists)]
@@ -2253,15 +2260,22 @@ class nodeStats:
         pd_image = np.zeros_like(self.skeleton)
         c=0
         for mol_trace in trace_coords:
+            pd_segments = []
             initial_idx = pd_image.max() + 1
-            trace_node_idxs = np.array([]).astype(np.int32)
+            trace_node_idxs = np.array([0]).astype(np.int32)
             for x, y in node_centres:
+                print("CENTRES: ", node_centres)
                 try: # might hit a node from one mol that isn't between them both i.e. self crossing
                     trace_node_idxs = np.append(trace_node_idxs, np.argwhere((mol_trace[:, 0] == x) & (mol_trace[:, 1] == y)))
+                    print("vals: ", trace_node_idxs)
                 except:
                     pass
             trace_node_idxs.sort()
-            pd_segments = [mol_trace[:trace_node_idxs[1]]]
+            # for the 3 branches, it will hit nothing at all
+            if len(trace_node_idxs) == 0:
+                trace_node_idxs = np.append(len(mol_trace))
+
+            #pd_segments = [mol_trace[:trace_node_idxs[1]]]
             for i in range(len(trace_node_idxs)-1):
                 pd_segments.append(mol_trace[trace_node_idxs[i]:trace_node_idxs[i+1]])
             last = mol_trace[trace_node_idxs[-1]:] # assuming looped mol so last == start idx
