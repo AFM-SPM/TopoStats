@@ -497,9 +497,8 @@ class LoadScans:
             # trying to return the error with options of possible channel values
             labels = []
             for channel in [layer[b"@2:Image Data"][0] for layer in scan.layers]:
-                channel_name = channel.decode("latin1").split(" ")[1][1:-1]
-                # channel_description = channel.decode('latin1').split('"')[1] # incase the blank field raises quesions?
-                labels.append(channel_name)
+                channel_description = channel.decode("latin1").split('"')[1]  # incase the blank field raises quesions?
+                labels.append(channel_description)
             LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
             raise e
 
