@@ -305,7 +305,7 @@ class Grains:
             print(f"AREA THRESHOLDS: {self.absolute_area_threshold}")
             print(f"STD DEV THRESHOLDS: {self.threshold_std_dev}")
             print(f"THRESHOLD METHOD: {self.threshold_method}")
-            
+
             LOGGER.info(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
             self.directions[direction] = {}
             self.directions[direction]["mask_grains"] = _get_mask(
