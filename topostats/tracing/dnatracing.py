@@ -97,7 +97,7 @@ class dnaTrace:
         self.n_grain = n_grain
         self.number_of_rows = self.image.shape[0]
         self.number_of_columns = self.image.shape[1]
-        self.sigma = 0.7 / (self.pixel_to_nm_scaling * 1e9)
+        self.sigma = 2 #0.7 / (self.pixel_to_nm_scaling * 1e9)
 
         self.gauss_image = gaussian(self.image, self.sigma)
         self.smoothed_grain = None
@@ -802,9 +802,9 @@ class dnaTrace:
                     except NameError:
                         hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
                 except IndexError:  # IndexError happens at last point in array
-                    self.contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
+                    contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
                     del hypotenuse_array
-                    break
+                    return contour_length
 
     def measure_end_to_end_distance(self, splined_trace, mol_is_circular):
         """Calculate the Euclidean distance between the start and end of linear molecules.
