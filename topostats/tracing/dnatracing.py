@@ -1232,15 +1232,16 @@ class nodeStats:
         real_node_count = 0
         for node_no, (x, y) in enumerate(xy_arr):  # get centres
             # get area around node - might need to check if box lies on the edge
-            image_area = self.image[x - length : x + length + 1, y - length : y + length + 1]
-            node_area = self.connected_nodes.copy()[x - length : x + length + 1, y - length : y + length + 1]
+            box_lims = self.get_box_lims(x, y, length, self.image)
+            image_area = self.image[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]]
+            node_area = self.connected_nodes.copy()[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]]
             reduced_node_area = self._only_centre_branches(node_area)
             branch_mask = reduced_node_area.copy()
             branch_mask[branch_mask == 3] = 0
             branch_mask[branch_mask == 2] = 1
             node_coords = np.argwhere(reduced_node_area == 3)
 
-            node_centre_small = self.node_centre_mask.copy()[x - length : x + length + 1, y - length : y + length + 1]
+            node_centre_small = self.node_centre_mask.copy()[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]]
             node_centre_small[reduced_node_area == 0] = 0 # this removes other nodes from the node_centre_small image
             node_centre_small_xy = np.argwhere(node_centre_small == 3)[0] # should only be one due to above
             #print(f"XY: {x,y}, Node: {node_centre_small_xy[0], node_centre_small_xy[1]}, MAP: {xmap, ymap}")
@@ -1277,9 +1278,9 @@ class nodeStats:
                     if not res:
                         print(f"Resolution {res} is below suggested {1000 / 512}, node difficult to analyse.")
                         raise ResolutionError
-                    elif x - length < 0 or y - length < 0 or x + length > self.image.shape[0] or y + length > self.image.shape[1]:
-                        LOGGER.info(f"Node lies too close to image boundary, increase 'pad_with' value.")
-                        raise ResolutionError
+                    #elif x - length < 0 or y - length < 0 or x + length > self.image.shape[0] or y + length > self.image.shape[1]:
+                        #LOGGER.info(f"Node lies too close to image boundary, increase 'pad_with' value.")
+                        #raise ResolutionError
 
                     real_node_count += 1
                     print(f"Real node: {real_node_count}")
@@ -1413,7 +1414,7 @@ class nodeStats:
                     "node_stats": {
                         "node_mid_coords": [x, y],
                         "node_area_image": image_area,
-                        "node_area_grain": self.grain[x - length : x + length + 1, y - length : y + length + 1],
+                        "node_area_grain": self.grain[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]],
                         "node_area_skeleton": node_area,
                         "node_branch_mask": branch_img,
                         "node_avg_mask": avg_img,
@@ -1421,6 +1422,36 @@ class nodeStats:
                 }
 
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
+
+    @staticmethod
+    def get_box_lims(x: int, y: int, length: int, image: np.ndarray) -> tuple:
+        """Gets the box limits of length around x and y. If the length exceeds the limits of the original
+            box, these will be set to the limits of the original image.
+
+        Parameters
+        ----------
+        x : int
+            X coordinate.
+        y : int
+            Y coordinate.
+        length : int
+            Side length of the box.
+
+        Returns
+        -------
+        tuple
+            The x, and y limits of the box
+        """
+        box = np.array([x-length, x+length+1, y-length, y+length+1])
+        box[box < 0] = 0
+
+        if box[1] > image.shape[0]:
+            box[1] = image.shape[0]-1
+        if box[3] > image.shape[1]:
+            box[3] = image.shape[1]-1
+
+        return box
+
 
     def order_branch(self, binary_image: np.ndarray, anchor: list):
         """Orders a linear branch by identifing an endpoint, and looking at the local area of the point to find the next.
@@ -1798,7 +1829,6 @@ class nodeStats:
         branch_dist = self.coord_dist(branch_coords)
         branch_heights = img[branch_coords[:, 0], branch_coords[:, 1]]
         branch_dist_norm = branch_dist - dist_zero_point  # branch_dist[branch_heights.argmax()]
-
         # want to get a 3 pixel line trace, one on each side of orig
         dilate = ndimage.binary_dilation(branch_mask, iterations=1)
         dilate_minus = dilate.copy()
@@ -1830,7 +1860,6 @@ class nodeStats:
             sing_dil = ndimage.binary_dilation(single)
             paralell[(sing_dil == dilate_minus) & (sing_dil == 1)] = i
         labels = paralell.copy()
-        # print(np.unique(labels, return_index=True))
 
         binary = labels.copy()
         binary[binary != 0] = 1
@@ -1840,12 +1869,12 @@ class nodeStats:
         centre_fraction = 1 - 0.8  # the middle % of data to look for peak - stops peaks being found at edges
         heights = []
         distances = []
-        for i in range(1, labels.max() + 1):
-            trace = labels.copy()
-            trace[trace != i] = 0
-            trace[trace != 0] = 1
-            trace = getSkeleton(img, trace).get_skeleton("zhang")
-            trace = self.order_branch(trace, branch_coords[0])
+        for i in np.unique(labels)[1:]:
+            trace_img = labels.copy()
+            trace_img[trace_img != i] = 0
+            trace_img[trace_img != 0] = 1
+            trace_img = getSkeleton(img, trace_img).get_skeleton("zhang")
+            trace = self.order_branch(trace_img, branch_coords[0])
             height_trace = img[trace[:, 0], trace[:, 1]]
             height_len = len(height_trace)
             central_heights = height_trace[int(height_len * centre_fraction) : int(-height_len * centre_fraction)]
@@ -1943,10 +1972,9 @@ class nodeStats:
         nodes = node_image_cp.copy()
         nodes[nodes != 3] = 0
         labeled_nodes = label(nodes)
-
         # find which cluster is closest to the centre
         centre = np.asarray(node_image_cp.shape) / 2
-        node_coords = np.stack(np.where(nodes == 3)).T
+        node_coords = np.argwhere(nodes == 3)
         min_coords = node_coords[abs(node_coords - centre).sum(axis=1).argmin()]
         centre_idx = labeled_nodes[min_coords[0], min_coords[1]]
 
@@ -2264,10 +2292,8 @@ class nodeStats:
             initial_idx = pd_image.max() + 1
             trace_node_idxs = np.array([0]).astype(np.int32)
             for x, y in node_centres:
-                print("CENTRES: ", node_centres)
                 try: # might hit a node from one mol that isn't between them both i.e. self crossing
                     trace_node_idxs = np.append(trace_node_idxs, np.argwhere((mol_trace[:, 0] == x) & (mol_trace[:, 1] == y)))
-                    print("vals: ", trace_node_idxs)
                 except:
                     pass
             trace_node_idxs.sort()
