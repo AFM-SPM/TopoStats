@@ -318,6 +318,10 @@ class Grains:
                 self.directions[direction]["mask_grains"]
             )
 
+            print(
+                f"@@@@ LABELLED REGIONS 01 NUMBER OF GRAINS: {np.max(self.directions[direction]['labelled_regions_01'])}"
+            )
+
             if self.remove_edge_intersecting_grains:
                 self.directions[direction]["tidied_border"] = self.tidy_border(
                     self.directions[direction]["labelled_regions_01"]
@@ -330,6 +334,9 @@ class Grains:
                 self.directions[direction]["tidied_border"],
                 [self.smallest_grain_size_nm2, None],
             )
+
+            print(f"@@@@ REMOVED NOISE GRAIN NUMBER: {np.max(self.directions[direction]['removed_noise'])}")
+
             LOGGER.info(f"[{self.filename}] : Removing small / large grains ({direction})")
             # if no area thresholds specified, use otsu
             if self.absolute_area_threshold[direction].count(None) == 2:
@@ -344,6 +351,10 @@ class Grains:
                 )
             self.directions[direction]["labelled_regions_02"] = self.label_regions(
                 self.directions[direction]["removed_small_objects"]
+            )
+
+            print(
+                f"@@@@ LABELLED REGIONS 02 NUMBER OF GRAINS: {np.max(self.directions[direction]['labelled_regions_02'])}"
             )
             self.region_properties[direction] = self.get_region_properties(
                 self.directions[direction]["labelled_regions_02"]
