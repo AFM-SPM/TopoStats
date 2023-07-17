@@ -40,6 +40,11 @@ from topostats.maths import round_sig_figs, round_sig_figs_dataframe
             4,
             1,
         ),
+        (
+            np.nan,
+            4,
+            np.nan,
+        ),
     ],
 )
 def test_round_sig_figs(value: float, sig_figs: int, expected: float) -> None:

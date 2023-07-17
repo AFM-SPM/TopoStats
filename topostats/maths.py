@@ -7,6 +7,8 @@ import pandas as pd
 def round_sig_figs(value: float, sig_figs: int = 5) -> float:
     """Round a value to a given number of significant figures."""
 
+    if pd.isna(value):
+        return value
     if value != 0:
         # Calculate the exponent of the value
         exponent = math.floor(math.log10(abs(value)))
