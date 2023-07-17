@@ -162,14 +162,14 @@ class dnaTrace:
                 self.get_ordered_traces()
             """
             for trace in self.ordered_trace:
-                self.ordered_trace_img = self.coords_2_img(trace, self.image)
+                self.ordered_trace_img += self.coords_2_img(trace, self.image)
                 if len(trace) >= self.min_skeleton_size:
                     mol_is_circular = self.linear_or_circular(trace)
                     self.mol_is_circulars.append(mol_is_circular)
                     fitted_trace = self.get_fitted_traces(trace, mol_is_circular)
-                    self.fitted_trace_img = self.coords_2_img(fitted_trace, self.image)
+                    self.fitted_trace_img += self.coords_2_img(fitted_trace, self.image)
                     splined_trace = self.get_splined_traces(fitted_trace, trace, mol_is_circular)
-                    self.splined_trace_img = self.coords_2_img(splined_trace, self.image)
+                    #self.splined_trace_img = self.coords_2_img(splined_trace, self.image)
                     # self.find_curvature()
                     # self.saveCurvature()
                     self.contour_lengths.append(self.measure_contour_length(splined_trace, mol_is_circular))
@@ -862,7 +862,7 @@ def trace_image(
     # Check both arrays are the same shape
     assert image.shape == grains_mask.shape
 
-    cropped_images, cropped_masks = prep_arrays(image, grains_mask, pad_width)
+    cropped_images, cropped_masks, bboxs = prep_arrays(image, grains_mask, pad_width)
     n_grains = len(cropped_images)
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
     #results = {}
@@ -871,15 +871,15 @@ def trace_image(
     # want to get each cropped image, use some anchor coords to match them onto the image,
     #   and compile all the grain images onto a single image
     all_images = {
-        "smoothed_grain": img_base,
-        "skeleton": img_base,
-        "prunted_skeleton": img_base,
-        "node_img": img_base,
-        "ordered_traces": img_base,
-        "fitted_traces": img_base,
-        "splined_traces": img_base,
-        "ordered_traces": img_base,
-        "visual": img_base,
+        "grain": img_base.copy(),
+        "smoothed_grain": img_base.copy(),
+        "skeleton": img_base.copy(),
+        "prunted_skeleton": img_base.copy(),
+        "node_img": img_base.copy(),
+        "ordered_traces": img_base.copy(),
+        "fitted_traces": img_base.copy(),
+        #"splined_traces": img_base.copy(),
+        "visual": img_base.copy(),
     }
 
     for n_grain, (cropped_image, cropped_mask) in enumerate(zip(cropped_images, cropped_masks)):
@@ -897,6 +897,12 @@ def trace_image(
         full_node_dict[n_grain] = node_dict
         #results[n_grain] = result
 
+        for key, value in all_images.items():
+            crop = images[key]
+            bbox = bboxs[n_grain]
+            value[bbox[0]:bbox[2], bbox[1]:bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+            print("KEY: ", key, value.shape)
+
     try:
         results = pd.DataFrame.from_dict(result, orient="index")
         print(results)
@@ -904,7 +910,7 @@ def trace_image(
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
-    return results, full_node_dict, images
+    return results, full_node_dict, all_images
 
 
 def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
@@ -928,13 +934,16 @@ def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: 
     # Get bounding boxes for each grain
     region_properties = skimage_measure.regionprops(labelled_grains_mask)
     # Subset image and grains then zip them up
-    cropped_images = [crop_array(image, grain.bbox, pad_width) for grain in region_properties]
+    cropped_images = [crop_array(image, grain.bbox, 0) for grain in region_properties]
     cropped_images = [np.pad(grain, pad_width=pad_width) for grain in cropped_images]
-    cropped_masks = [crop_array(labelled_grains_mask, grain.bbox, pad_width) for grain in region_properties]
+    cropped_masks = [crop_array(labelled_grains_mask, grain.bbox, 0) for grain in region_properties]
     cropped_masks = [np.pad(grain, pad_width=pad_width) for grain in cropped_masks]
     # Flip every labelled region to be 1 instead of its label
     cropped_masks = [np.where(grain == 0, 0, 1) for grain in cropped_masks]
-    return (cropped_images, cropped_masks)
+    # Get BBOX coords to remap crops to images
+    bboxs = [np.array(grain.bbox) for grain in region_properties]
+
+    return (cropped_images, cropped_masks, bboxs)
 
 
 def trace_grain(

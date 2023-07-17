@@ -258,11 +258,14 @@ def process_scan(
                         grainstats_df = grainstats["above"]
                     elif grains_config["direction"] == "below":
                         grainstats_df = grainstats["below"]
+                    
                 except Exception:
                     LOGGER.info(
                         f"[{filename}] : Errors occurred whilst calculating grain statistics. Skipping DNAtracing."
                     )
                     results = create_empty_dataframe()
+                    node_stats = {}
+                
                 else:
                     # Run dnatracing
                     #try:
@@ -303,17 +306,17 @@ def process_scan(
                         LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
                         output_dir = Path(dna_tracing_out_path / f"{direction}")
 
-                        plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes", "visual"] # "fitted_trace", "ordered_trace", "splined_trace"]
+                        plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes", "visual", "ordered_trace", "fitted_trace"] # "splined_trace"]
                         data2s = [
                             images[direction]["grain"],
                             images[direction]["smoothed_grain"],
                             images[direction]["skeleton"],
                             images[direction]["prunted_skeleton"],
                             images[direction]["node_img"],
-                            #images[direction]["fitted_trace"],
-                            #images[direction]["ordered_trace"],
-                            #images[direction]["splined_trace"],
                             images[direction]["visual"],
+                            images[direction]["ordered_traces"],
+                            images[direction]["fitted_traces"],
+                            #images[direction]["splined_trace"],
                         ]
                         for i, plot_name in enumerate(plot_names):
                             plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
@@ -321,7 +324,7 @@ def process_scan(
                             if plot_name == "visual":
                                 plotting_config["plot_dict"]["visual"]["mask_cmap"] = "blu_purp"
                             Images(
-                                images[direction]["image"],
+                                filtered_image.images["gaussian_filtered"],
                                 masked_array=data2s[i],
                                 **plotting_config["plot_dict"][plot_name],
                             ).save_figure_black(
@@ -461,6 +464,7 @@ def process_scan(
             else:
                 LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
                 results = create_empty_dataframe()
+                node_stats = {}
     else:
         LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
         results = create_empty_dataframe()
