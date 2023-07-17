@@ -1,6 +1,7 @@
 """Math helper functions"""
 
 import math
+import pandas as pd
 
 
 def round_sig_figs(value: float, sig_figs: int = 5) -> float:
@@ -22,3 +23,13 @@ def round_sig_figs(value: float, sig_figs: int = 5) -> float:
         return round(value, round_dp)
 
     return 0
+
+
+def round_sig_figs_dataframe(dataframe: pd.DataFrame, sig_figs: int = 5) -> pd.DataFrame:
+    """Round all floats in a DataFrame to a given number of significant figures."""
+
+    for column in dataframe.columns:
+        if dataframe[column].dtype == float:
+            dataframe[column] = dataframe[column].apply(lambda x: round_sig_figs(x, sig_figs))
+
+    return dataframe
