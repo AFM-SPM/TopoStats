@@ -167,10 +167,9 @@ class dnaTrace:
                     mol_is_circular = self.linear_or_circular(trace)
                     self.mol_is_circulars.append(mol_is_circular)
                     fitted_trace = self.get_fitted_traces(trace, mol_is_circular)
-                    #self.fitted_trace_img = self.coords_2_img(fitted_trace, self.image)
-                    #splined_trace = self.get_splined_traces(fitted_trace, trace, mol_is_circular)
+                    self.fitted_trace_img = self.coords_2_img(fitted_trace, self.image)
                     splined_trace = self.get_splined_traces(fitted_trace, trace, mol_is_circular)
-                    #self.splined_trace_img = self.coords_2_img(self.splined_trace, self.image)
+                    self.splined_trace_img = self.coords_2_img(splined_trace, self.image)
                     # self.find_curvature()
                     # self.saveCurvature()
                     self.contour_lengths.append(self.measure_contour_length(splined_trace, mol_is_circular))
@@ -287,7 +286,7 @@ class dnaTrace:
     @staticmethod
     def coords_2_img(coords, image):
         comb = np.zeros_like(image)
-        comb[coords[:,0], coords[:,1]] = 1
+        comb[coords[:,0].astype(np.int32), coords[:,1].astype(np.int32)] = 1
         return comb
     
     @staticmethod
@@ -868,6 +867,21 @@ def trace_image(
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
     #results = {}
     full_node_dict = {}
+    img_base = np.zeros_like(image)
+    # want to get each cropped image, use some anchor coords to match them onto the image,
+    #   and compile all the grain images onto a single image
+    all_images = {
+        "smoothed_grain": img_base,
+        "skeleton": img_base,
+        "prunted_skeleton": img_base,
+        "node_img": img_base,
+        "ordered_traces": img_base,
+        "fitted_traces": img_base,
+        "splined_traces": img_base,
+        "ordered_traces": img_base,
+        "visual": img_base,
+    }
+
     for n_grain, (cropped_image, cropped_mask) in enumerate(zip(cropped_images, cropped_masks)):
         result, node_dict, images = trace_grain(
             cropped_image,
@@ -880,12 +894,13 @@ def trace_image(
             n_grain,
         )
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
+        full_node_dict[n_grain] = node_dict
         #results[n_grain] = result
+
     try:
         results = pd.DataFrame.from_dict(result, orient="index")
         print(results)
         #results.index.name = "molecule_number"
-        full_node_dict[n_grain] = node_dict
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
@@ -999,6 +1014,10 @@ def trace_grain(
         "skeleton": dnatrace.skeleton,
         "prunted_skeleton": dnatrace.pruned_skeleton,
         "node_img": dnatrace.node_image,
+        "ordered_traces": dnatrace.ordered_trace_img,
+        "fitted_traces": dnatrace.fitted_trace_img,
+        "splined_traces": dnatrace.splined_trace_img,
+        "ordered_traces": dnatrace.ordered_trace_img,
         "visual": dnatrace.visuals,
     }
     return results, dnatrace.node_dict, images
