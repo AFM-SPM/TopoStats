@@ -301,11 +301,6 @@ class Grains:
             absolute=self.threshold_absolute,
         )
         for direction in self.direction:
-            print("@@@@@@@ GRAINS")
-            print(f"AREA THRESHOLDS: {self.absolute_area_threshold}")
-            print(f"STD DEV THRESHOLDS: {self.threshold_std_dev}")
-            print(f"THRESHOLD METHOD: {self.threshold_method}")
-            print(f"smallest grain size nm2: {self.smallest_grain_size_nm2}")
             LOGGER.info(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
             self.directions[direction] = {}
             self.directions[direction]["mask_grains"] = _get_mask(
@@ -316,10 +311,6 @@ class Grains:
             )
             self.directions[direction]["labelled_regions_01"] = self.label_regions(
                 self.directions[direction]["mask_grains"]
-            )
-
-            print(
-                f"@@@@ LABELLED REGIONS 01 NUMBER OF GRAINS: {np.max(self.directions[direction]['labelled_regions_01'])}"
             )
 
             if self.remove_edge_intersecting_grains:
@@ -334,8 +325,6 @@ class Grains:
                 self.directions[direction]["tidied_border"],
                 [self.smallest_grain_size_nm2, None],
             )
-
-            print(f"@@@@ REMOVED NOISE GRAIN NUMBER: {np.max(self.directions[direction]['removed_noise'])}")
 
             LOGGER.info(f"[{self.filename}] : Removing small / large grains ({direction})")
             # if no area thresholds specified, use otsu
@@ -353,9 +342,6 @@ class Grains:
                 self.directions[direction]["removed_small_objects"]
             )
 
-            print(
-                f"@@@@ LABELLED REGIONS 02 NUMBER OF GRAINS: {np.max(self.directions[direction]['labelled_regions_02'])}"
-            )
             self.region_properties[direction] = self.get_region_properties(
                 self.directions[direction]["labelled_regions_02"]
             )

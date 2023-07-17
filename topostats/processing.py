@@ -362,8 +362,8 @@ def process_scan(
     )
 
     # Round the results and image stats
-    results = round_sig_figs_dataframe(dataframe=results, sig_figs=5)
-    image_stats = round_sig_figs_dataframe(dataframe=image_stats, sig_figs=5)
+    results = round_sig_figs_dataframe(dataframe=results)
+    image_stats = round_sig_figs_dataframe(dataframe=image_stats)
 
     return image_path, results, image_stats  # , ordered_traces, image_trace
 
