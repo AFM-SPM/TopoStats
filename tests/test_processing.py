@@ -37,7 +37,7 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
     # Remove the basename column as this differs on CI
     results.drop(["basename"], axis=1, inplace=True)
     print(img_stats.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
-    print(results.to_string(), file=regtest)  # noqa: T201
+    print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
 
 def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
@@ -62,7 +62,7 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
     # Remove the Basename column as this differs on CI
     results.drop(["basename"], axis=1, inplace=True)
     print(img_stats.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
-    print(results.to_string(), file=regtest)  # noqa: T201
+    print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
 
 def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
@@ -88,7 +88,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     # Remove the Basename column as this differs on CI
     results.drop(["basename"], axis=1, inplace=True)
     print(img_stats.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
-    print(results.to_string(), file=regtest)  # noqa: T201
+    print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
 
 @pytest.mark.parametrize(

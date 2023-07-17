@@ -16,7 +16,6 @@ from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import trace_image
 from topostats.utils import create_empty_dataframe
 from topostats.statistics import image_statistics
-from topostats.maths import round_sig_figs_dataframe
 
 # pylint: disable=broad-except
 # pylint: disable=line-too-long
@@ -360,10 +359,6 @@ def process_scan(
         results_df=results,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
     )
-
-    # Round the results and image stats
-    results = round_sig_figs_dataframe(dataframe=results)
-    image_stats = round_sig_figs_dataframe(dataframe=image_stats)
 
     return image_path, results, image_stats  # , ordered_traces, image_trace
 
