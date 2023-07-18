@@ -209,7 +209,7 @@ processed, please refer to <url to page where we document common problems> for m
 
         return image
 
-    def remove_nonlinear_polynomial(self, image: np.ndarray, mask: np.ndarray = None):
+    def remove_nonlinear_polynomial(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         # Script has a lot of locals but I feel this is necessary for readability?
         # pylint: disable=too-many-locals
         """Fit and remove a nonlinear polynomial trend of the form a + b * x * y - c * x - d * y
