@@ -169,7 +169,7 @@ class dnaTrace:
                     fitted_trace = self.get_fitted_traces(trace, mol_is_circular)
                     self.fitted_trace_img += self.coords_2_img(fitted_trace, self.image)
                     splined_trace = self.get_splined_traces(fitted_trace, trace, mol_is_circular)
-                    #self.splined_trace_img = self.coords_2_img(splined_trace, self.image)
+                    self.splined_trace_img += self.coords_2_img(np.array(splined_trace, dtype=np.int32), self.image)
                     # self.find_curvature()
                     # self.saveCurvature()
                     self.contour_lengths.append(self.measure_contour_length(splined_trace, mol_is_circular))
@@ -185,7 +185,7 @@ class dnaTrace:
         """Smoothes grains based on the lower number added from dilation or gaussian.
         (makes sure gaussian isnt too agressive."""
         dilation = ndimage.binary_dilation(grain, iterations=2).astype(np.int32)
-        gauss = gaussian(grain, sigma=max(grain.shape) / 256)
+        gauss = gaussian(grain, sigma=max(grain.shape) / 124)
         gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
         gauss[gauss != 1] = 0
         gauss = gauss.astype(np.int32)
@@ -289,10 +289,6 @@ class dnaTrace:
         comb[coords[:,0].astype(np.int32), coords[:,1].astype(np.int32)] = 1
         return comb
     
-    @staticmethod
-    def max_resize(img):
-        return np.pad(img, ((247 // 2, 247 // 2), (113 // 2, 113 // 2)))
-
     @staticmethod
     def concat_images_in_dict(image_size, image_dict: dict):
         """Concatonates the skeletons in the skeleton dictionary onto one image"""
@@ -878,7 +874,7 @@ def trace_image(
         "node_img": img_base.copy(),
         "ordered_traces": img_base.copy(),
         "fitted_traces": img_base.copy(),
-        #"splined_traces": img_base.copy(),
+        "splined_traces": img_base.copy(),
         "visual": img_base.copy(),
     }
 
@@ -1025,7 +1021,6 @@ def trace_grain(
         "ordered_traces": dnatrace.ordered_trace_img,
         "fitted_traces": dnatrace.fitted_trace_img,
         "splined_traces": dnatrace.splined_trace_img,
-        "ordered_traces": dnatrace.ordered_trace_img,
         "visual": dnatrace.visuals,
     }
     return results, dnatrace.node_dict, images

@@ -266,9 +266,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 ),
             ),
             "histogram_bins": lambda n: n > 0,
-            "dpi": Or(
-                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
-            ),
         },
         "summary_stats": {
             "run": Or(

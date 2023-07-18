@@ -306,7 +306,7 @@ def process_scan(
                         LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
                         output_dir = Path(dna_tracing_out_path / f"{direction}")
 
-                        plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes", "visual", "ordered_trace", "fitted_trace"] # "splined_trace"]
+                        plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes", "visual", "ordered_trace", "fitted_trace", "splined_trace"]
                         data2s = [
                             images[direction]["grain"],
                             images[direction]["smoothed_grain"],
@@ -316,7 +316,7 @@ def process_scan(
                             images[direction]["visual"],
                             images[direction]["ordered_traces"],
                             images[direction]["fitted_traces"],
-                            #images[direction]["splined_trace"],
+                            images[direction]["splined_traces"],
                         ]
                         for i, plot_name in enumerate(plot_names):
                             plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
