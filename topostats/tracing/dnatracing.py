@@ -901,7 +901,6 @@ def trace_image(
             crop = images[key]
             bbox = bboxs[n_grain]
             value[bbox[0]:bbox[2], bbox[1]:bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
-            print("KEY: ", key, value.shape)
 
     try:
         results = pd.DataFrame.from_dict(result, orient="index")
@@ -2367,11 +2366,15 @@ class nodeStats:
                 matching_coords = np.append(matching_coords, c)
                 #print(f"Segment: {pd_idx}, Matches: {c}")
             highest_count_labels = [pd_idx_in_area[i] for i in np.argsort(matching_coords)[-2:]]
+            print("COUNT: ", highest_count_labels)
             #print("highest count: ", highest_count_labels)
-            if abs(highest_count_labels[0] - highest_count_labels[1]) > 1:  # if in/out is loop return (assumes matched branch)
-                under_in = max(highest_count_labels) # set under-in to larger value
+            if len(highest_count_labels) > 1: # why are there single labels and therefore only one branch in the first place?
+                if abs(highest_count_labels[0] - highest_count_labels[1]) > 1:  # if in/out is loop return (assumes matched branch)
+                    under_in = max(highest_count_labels) # set under-in to larger value
+                else:
+                    under_in = min(highest_count_labels)  # otherwise set to lower value
             else:
-                under_in = min(highest_count_labels)  # otherwise set to lower value
+                under_in = highest_count_labels[0]
             #print(f"Under-in: {under_in}")
 
            # get the values PD image around the crossing area
@@ -2399,6 +2402,9 @@ class nodeStats:
             topology = None
         except IndexError: # triggers on index error in topoly
             print("PD Code is nonsense.")
+            topology = None
+        except:
+            print("PD Code could not be deciphered.")
             topology = None
         print(f"Topology: {topology}")
 
