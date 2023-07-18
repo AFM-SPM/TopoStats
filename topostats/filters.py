@@ -261,10 +261,9 @@ processed, please refer to <url to page where we document common problems> for m
         # Note: pylint is flagging the tuple unpacking regarding an internal line of scipy.optimize._minpack_py : 910.
         # This isn't actually an issue though as the extended tuple output is only provided if the 'full_output' flag is
         # provided as a kwarg in curve_fit.
-        # pylint: disable=unbalanced-tuple-unpacking
-        popt, _pcov = curve_fit(
+        popt, _pcov = curve_fit(  # pylint: disable=unbalanced-tuple-unpacking
             lambda x, a, b, c, d: model_func(x[0], x[1], a, b, c, d), xy_data_stacked, zdata_nans_removed
-        )  # pylint: disable=unbalanced-tuple-unpacking
+        )
 
         # Unpack the optimised parameters
         a, b, c, d = popt
