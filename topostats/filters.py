@@ -278,7 +278,7 @@ processed, please refer to <url to page where we document common problems> for m
 
         return image
 
-    def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None):
+    def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """
         Removes the quadratic bowing that can be seen in some large-scale AFM images. It uses a simple quadratic fit
         on the medians of the columns of the image and then subtracts the calculated quadratic from the columns.
