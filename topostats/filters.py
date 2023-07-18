@@ -209,9 +209,9 @@ processed, please refer to <url to page where we document common problems> for m
 
         return image
 
-    # Script has a lot of locals but I feel this is necessary for readability?
-    # pylint: disable=too-many-locals
     def remove_nonlinear_polynomial(self, image: np.ndarray, mask: np.ndarray = None):
+        # Script has a lot of locals but I feel this is necessary for readability?
+        # pylint: disable=too-many-locals
         """Fit and remove a nonlinear polynomial trend of the form a + b * x * y - c * x - d * y
         from the supplied image.
 
@@ -264,7 +264,8 @@ processed, please refer to <url to page where we document common problems> for m
         # pylint: disable=unbalanced-tuple-unpacking
         popt, _pcov = curve_fit(
             lambda x, a, b, c, d: model_func(x[0], x[1], a, b, c, d), xy_data_stacked, zdata_nans_removed
-        )
+        )  # pylint: disable=unbalanced-tuple-unpacking
+
         # Unpack the optimised parameters
         a, b, c, d = popt
         LOGGER.info(
