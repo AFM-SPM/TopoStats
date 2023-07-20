@@ -1,12 +1,14 @@
 """Contains filter functions that take a 2D array representing an image as an input, as well as necessary parameters,
 and return a 2D array of the same size representing the filtered image."""
 import logging
+from typing import Union
 
 # noqa: disable=no-name-in-module
 # pylint: disable=no-name-in-module
 from skimage.filters import gaussian
 from scipy.optimize import curve_fit
 import numpy as np
+
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import get_thresholds, get_mask
@@ -209,11 +211,14 @@ processed, please refer to <url to page where we document common problems> for m
 
         return image
 
-    def remove_nonlinear_polynomial(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
+    def remove_nonlinear_polynomial(self, image: np.ndarray, mask: Union[np.ndarray, None] = None) -> np.ndarray:
         # Script has a lot of locals but I feel this is necessary for readability?
         # pylint: disable=too-many-locals
-        """Fit and remove a nonlinear polynomial trend of the form a + b * x * y - c * x - d * y
-        from the supplied image.
+        """Fit and remove a "saddle" shaped nonlinear polynomial trend of the form a + b * x * y - c * x - d * y
+        from the supplied image. AFM images sometimes contain a "saddle" shape trend to their background,
+        and so to remove them we fit a nonlinear polynomial of x and y and then subtract the fit from the image.
+        If these trends are not removed, then the image will not flatten properly and will leave opposite diagonal
+        corners raised or lowered.
 
         Parameters
         ----------
