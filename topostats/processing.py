@@ -1,7 +1,7 @@
 """Functions for procesing data."""
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -10,7 +10,7 @@ from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import get_out_path, save_array, save_topostats_data_file
+from topostats.io import get_out_path, save_array, save_topostats_file
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
 from topostats.tracing.dnatracing import trace_image
@@ -38,6 +38,36 @@ def filter_wrapper(
     filter_config: dict,
     plotting_config: dict,
 ) -> np.ndarray:
+    """Wrapper for running image flattening and plotting the results.
+
+    Instantiates a Filters object and flattens the image then optionally
+    plots the results, returning the flattened image.
+
+    Parameters
+    ----------
+    unprocessed_image: np.ndarray
+        Image to be flattened
+    pixel_to_nm_scaling: float
+        Scaling factor for converting pixel length scales to nanometres.
+        ie the number of pixels per nanometre.
+    filename: str
+        File name for the image
+    filter_out_path: Path
+        Output directory for step-by-step flattening plots.
+    core_out_path: Path
+        General output directory for outputs such as the flattened image.
+    filter_config: dict
+        Dictionary of configuration for the Filters class to use when initialised.
+    plotting_config: dict
+        Dictionary of configuration for plotting output images.
+
+    Returns
+    -------
+    Union[np.ndarray, None]
+        Either a numpy array of the flattened image, or None if an error occurs or
+        flattening is disabled in the configuration.
+    """
+
     if filter_config["run"]:
         filter_config.pop("run")
         LOGGER.info(f"[{filename}] Image dimensions: {unprocessed_image.shape}")
@@ -106,6 +136,35 @@ def grains_wrapper(
     plotting_config: dict,
     grains_config: dict,
 ):
+    """Wrapper for running grain finding and plotting the results.
+
+    Instantiates a Grains object and runs grain finding, then optionally
+    plots the results, returning the grain masks in a dictionary.
+
+    Parameters
+    ----------
+    image: np.ndarray
+        2d numpy array image to find grains in
+    pixel_to_nm_scaling: float
+        Scaling factor for converting pixel length scales to nanometres.
+        ie the number of pixels per nanometre.
+    grain_out_path:
+        Output path for step-by-step grain finding plots
+    core_out_path:
+        General output directory for outputs such as the flattened image with
+        grain masks overlaid.
+    plotting_config:
+        Dictionary of configuration for plotting images.
+    grains_config:
+        Dictionary of configuration for the Grains class to use when initialised.
+
+    Returns
+    -------
+    Union[dict, None]
+        Either None in the case of error or grain finding being disabled or a dictionary
+        with keys of "above" and or "below" containing binary masks depicting where grains
+        have been detected.
+    """
     if grains_config["run"]:
         grains_config.pop("run")
 
@@ -191,6 +250,37 @@ def grainstats_wrapper(
     plotting_config: dict,
     grain_out_path: Path,
 ):
+    """Wrapper for calculating grain statistics and optionally plotting the results.
+
+    Instantiates a GrainStats object and calculates grain statsistics for supplied
+    grain masks, then optionally plots the results and returns a dataframe of
+    grain statsistics.
+
+    Parameters
+    ----------
+    image: np.ndarray
+        2D numpy array image for grain statistics calculations.
+    pixel_to_nm_scaling: float
+        Scaling factor for converting pixel length scales to nanometres.
+        ie the number of pixels per nanometre.
+    grain_masks: dict
+        Dictionary of grain masks, keys "above" or "below" with values of 2d numpy
+        boolean arrays indicating the pixels that have been masked as grains.
+    filename: str
+        Name of the image.
+    grainstats_config: dict
+        Dictionary of configuration for the GrainStats class to be used when initialised.
+    plotting_config: dict
+        Dictionary of configuration for plotting images.
+    grain_out_path:
+        Directory to save optional grain statistics visual information to.
+
+    Returns
+    -------
+    pd.DataFrame
+        A pandas DataFrame containing the statsistics for each grain. The index is the
+        filename and grain number.
+    """
     # Calculate statistics if required
     if grainstats_config["run"]:
         grainstats_config.pop("run")
@@ -257,7 +347,7 @@ def grainstats_wrapper(
 
 def dnatracing_wrapper(
     image: np.ndarray,
-    grain_masks: np.ndarray,
+    grain_masks: dict,
     pixel_to_nm_scaling: float,
     image_path: Path,
     filename: str,
@@ -267,6 +357,44 @@ def dnatracing_wrapper(
     plotting_config: dict,
     results_df: pd.DataFrame = None,
 ):
+    """Wrapper for calculating dna traces.
+
+    Runs dna tracing for the grain masks supplied, adds resulting statistics to
+    the supplied grain statsistics DataFrame and plots the molecule traces.
+
+    Parameters
+    ----------
+    image: np.ndarray
+        Image containing the DNA to pass to the dna tracing function
+    grain_masks: dict
+        Dictionary of grain masks, keys "above" or "below" with values of 2d numpy
+        boolean arrays indicating the pixels that have been masked as grains.
+    pixel_to_nm_scaling: float
+        Scaling factor for converting pixel length scales to nanometres.
+        ie the number of pixels per nanometre.
+    image_path: Path
+        Path to the image file. Used for DataFrame indexing.
+    filename: str
+        Name of the image.
+    core_out_path: Path
+        General output directory for outputs such as the grain statistics
+        DataFrame.
+    grain_out_path: Path
+        Directory to save optional dna tracing visual information to.
+    dna_tracing_config: dict
+        Dictionary configruation for the dna tracing function.
+    plotting_config: dict
+        Dictionary configuration for plotting images.
+    results_df: pd.DataFrame
+        Pandas DataFrame containing grain statistics.
+
+    Returns
+    -------
+    pd.DataFrame
+        Pandas DataFrame containing grain statistics and dna tracing statistics.
+        Keys are file path and molecule number.
+    """
+
     # Create empty dataframe is none is passed
     if results_df is None:
         results_df = create_empty_dataframe()
@@ -351,6 +479,28 @@ def dnatracing_wrapper(
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
+    """Returns various output paths for a given image and plotting config.
+
+    Parameters
+    ----------
+    image_path: Path
+        Path of the image being processed
+    base_dir: Path
+        Path of the data folder
+    output_dir: Path
+        Base output directory for output data
+    filename: str
+        Name of the image being processed
+    plotting_config: dict
+        Dictionary of configuration for plotting images.
+
+    Returns
+    -------
+    tuple
+        Core output path for general file outputs, filter output path for flattening related files and
+        grain output path for grain finding related files.
+    """
+
     LOGGER.info(f"Processing : {filename}")
     core_out_path = get_out_path(image_path, base_dir, output_dir).parent / "processed"
     core_out_path.mkdir(parents=True, exist_ok=True)
@@ -365,7 +515,7 @@ def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: 
 
 
 def process_scan(
-    topostats_object: Dict[str, Union[np.ndarray, Path, float]],
+    topostats_object: dict,
     base_dir: Union[str, Path],
     filter_config: dict,
     grains_config: dict,
@@ -373,7 +523,7 @@ def process_scan(
     dnatracing_config: dict,
     plotting_config: dict,
     output_dir: Union[str, Path] = "output",
-) -> None:
+) -> Tuple[dict, pd.DataFrame, dict]:
     """Process a single image, filtering, finding grains and calculating their statistics.
 
     Parameters
@@ -397,11 +547,11 @@ def process_scan(
         that output will be over-written.
 
 
-    Results
+    Returns
     -------
-    None
-
-    Results are written to CSV and images produced in configuration options request them.
+    tuple[dict, pd.DataFrame, dict]
+        TopoStats dictionary object, DataFrame containing grain statistics and dna tracing statistics,
+        and dictionary containing general image statistics
     """
 
     core_out_path, filter_out_path, grain_out_path = get_out_paths(
@@ -470,14 +620,14 @@ def process_scan(
     else:
         results_df = create_empty_dataframe()
 
-        # Get image statistics
+    # Get image statistics
     LOGGER.info(f"[{topostats_object['filename']}] : *** Image Statistics ***")
     # Provide the raw image if image has not been flattened, else provide the flattened image.
     if topostats_object["image_flattened"] is not None:
         image_for_image_stats = topostats_object["image_flattened"]
     else:
         image_for_image_stats = topostats_object["image_original"]
-
+    # Calculate image statistics - returns a dictionary
     image_stats = image_statistics(
         image=image_for_image_stats,
         filename=topostats_object["filename"],
@@ -485,7 +635,10 @@ def process_scan(
         pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
     )
 
-    save_topostats_data_file(topostats_object, core_out_path)
+    # Save the topostats dictionary object to .topostats file.
+    save_topostats_file(
+        output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
+    )
 
     return topostats_object["img_path"], results_df, image_stats
 

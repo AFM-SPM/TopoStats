@@ -19,7 +19,7 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
     process_scan_config["grains"]["direction"] = "below"
     img_dic = load_scan_data.img_dict
     _, results, img_stats = process_scan(
-        img_path_px2nm=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -38,7 +38,7 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
     """Regression test for checking the process_scan functions correctly"""
     img_dic = load_scan_data.img_dict
     _, results, img_stats = process_scan(
-        img_path_px2nm=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -58,7 +58,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     process_scan_config["grains"]["direction"] = "both"
     img_dic = load_scan_data.img_dict
     _, results, img_stats = process_scan(
-        img_path_px2nm=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -89,7 +89,7 @@ def test_save_cropped_grains(
 
     img_dic = load_scan_data.img_dict
     _, _, _ = process_scan(
-        img_path_px2nm=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -124,7 +124,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
 
     img_dic = load_scan_data.img_dict
     _, _, _ = process_scan(
-        img_path_px2nm=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -298,7 +298,7 @@ def test_process_stages(
     process_scan_config["grainstats"]["run"] = grainstats_run
     process_scan_config["dnatracing"]["run"] = dnatracing_run
     _, _, _ = process_scan(
-        img_path_px2nm=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -318,7 +318,7 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
     process_scan_config["grains"]["threshold_std_dev"]["above"] = 1000
     process_scan_config["filter"]["remove_scars"]["run"] = False
     _, _, _ = process_scan(
-        img_path_px2nm=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -344,7 +344,7 @@ def test_process_scan_align_grainstats_dnatracing(
     process_scan_config["grains"]["absolute_area_threshold"]["above"] = [150, 3000]
     process_scan_config["dnatracing"]["min_skeleton_size"] = 10
     _, results, _ = process_scan(
-        img_path_px2nm=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],

@@ -376,6 +376,13 @@ def load_scan_gwy() -> LoadScans:
     return scan_loader
 
 
+@pytest.fixture
+def load_scan_topostats() -> LoadScans:
+    """Instantiate a LoadScans object from a .topostats file."""
+    scan_loader = LoadScans([RESOURCES / "file.topostats"], channel="dummy_channel")
+    return scan_loader
+
+
 # Minicircle fixtures
 @pytest.fixture
 def minicircle(load_scan: LoadScans, filter_config: dict) -> Filters:

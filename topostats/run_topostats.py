@@ -122,6 +122,9 @@ def run_topostats(args=None):
 
     all_scan_data = LoadScans(img_files, **config["loading"])
     all_scan_data.get_data()
+    # Get a dictionary of all the image data dictionaries.
+    # Keys are the image names
+    # Values are the individual image data dictionaries
     scan_data_dict = all_scan_data.img_dict
 
     with Pool(processes=config["cores"]) as pool:
