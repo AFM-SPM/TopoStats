@@ -6,6 +6,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import pytest
+import h5py
 
 from topostats.io import (
     read_yaml,
@@ -28,6 +29,7 @@ from topostats.io import (
     read_char,
     get_relative_paths,
     convert_basename_to_relative_paths,
+    save_topostats_file,
 )
 
 BASE_DIR = Path.cwd()
@@ -364,6 +366,23 @@ def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
     assert px_to_nm_scaling == 0.8468632812499975
 
 
+def test_load_scan_topostats(load_scan_topostats: LoadScans) -> None:
+    """Test loading of a .topostats file."""
+    load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
+    load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
+    image, px_to_nm_scaling = load_scan_topostats.load_topostats()
+    grain_masks = load_scan_topostats.grain_masks
+    above_grain_mask = grain_masks["above"]
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (1024, 1024)
+    assert image.sum() == 182067.12616107278
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 0.4940029296875
+    # Check that the grain mask is loaded correctly
+    assert isinstance(above_grain_mask, np.ndarray)
+    assert above_grain_mask.sum() == 635628
+
+
 def test_gwy_read_object(load_scan_dummy: LoadScans) -> None:
     """Test reading an object of a `.gwy` file object from an open binary file."""
     with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
@@ -467,3 +486,61 @@ def test_load_pkl() -> None:
     infile = RESOURCES / "test.pkl"
     small_dictionary = load_pkl(infile)
     assert isinstance(small_dictionary, dict)
+
+
+@pytest.mark.parametrize(
+    "image, pixel_to_nm_scaling, grain_mask_above, grain_mask_below",
+    [
+        (
+            np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+            3.14159265,
+            None,
+            np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]),
+        ),
+        (np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), 3.14159265, np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]), None),
+        (
+            np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+            3.14159265,
+            np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]),
+            np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]]),
+        ),
+    ],
+)
+def test_save_topostats_file(
+    tmp_path: Path,
+    image: np.ndarray,
+    pixel_to_nm_scaling: float,
+    grain_mask_above: np.ndarray,
+    grain_mask_below: np.ndarray,
+) -> None:
+    """Test saving a .topostats file"""
+
+    topostats_object = {
+        "image_flattened": image,
+        "pixel_to_nm_scaling": pixel_to_nm_scaling,
+        "grain_masks": {"above": grain_mask_above, "below": grain_mask_below},
+    }
+
+    save_topostats_file(
+        output_dir=tmp_path, filename="topostats_file_test.topostats", topostats_object=topostats_object
+    )
+
+    with h5py.File(f"{tmp_path}/topostats_file_test.topostats", "r") as f:
+        hdf5_file_keys = list(f.keys())
+        print(f"KEYS: {hdf5_file_keys}")
+        topostats_file_version_read = f["topostats_file_version"][()]
+        image_read = f["image"][:]
+        pixel_to_nm_scaling_read = f["pixel_to_nm_scaling"][()]
+        if grain_mask_above is not None:
+            grain_mask_above_read = f["grain_masks/above"][:]
+        if grain_mask_below is not None:
+            grain_mask_below_read = f["grain_masks/below"][:]
+
+    assert hdf5_file_keys == ["grain_masks", "image", "pixel_to_nm_scaling", "topostats_file_version"]
+    assert 0.1 == topostats_file_version_read
+    np.testing.assert_array_equal(image, image_read)
+    assert pixel_to_nm_scaling == pixel_to_nm_scaling_read
+    if grain_mask_above is not None:
+        np.testing.assert_array_equal(grain_mask_above, grain_mask_above_read)
+    if grain_mask_below is not None:
+        np.testing.assert_array_equal(grain_mask_below, grain_mask_below_read)
