@@ -166,6 +166,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "above",
                 error="Invalid direction for grains.direction valid values are 'both', 'below' or 'above",
             ),
+            "remove_edge_intersecting_grains": Or(
+                True,
+                False,
+                error="Invalid value in config for 'grains.remove_edge_intersecting_grains', valid values are 'True' or 'False'",
+            ),
         },
         "grainstats": {
             "run": Or(
@@ -360,6 +365,19 @@ PLOTTING_SCHEMA = Schema(
             ),
             "core_set": bool,
         },
+        "initial_nonlinear_polynomial_removal": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'initial_nonlinear_polynomial_removal.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
         "mask": {
             "filename": str,
             "title": str,
@@ -404,6 +422,19 @@ PLOTTING_SCHEMA = Schema(
                 "non-binary",
                 error=(
                     "Invalid value in config 'masked_quadratic_removal.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
+        "masked_nonlinear_polynomial_removal": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'masked_nonlinear_polynomial_removal.image_type', valid values "
                     "are 'binary' or 'non-binary'"
                 ),
             ),

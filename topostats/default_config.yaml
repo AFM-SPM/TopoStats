@@ -44,6 +44,7 @@ grains:
   absolute_area_threshold:
     above: [ 300, 3000 ] # above surface [Low, High] in nm^2 (also takes null)
     below: [ null, null ] # below surface [Low, High] in nm^2 (also takes null)
+  remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
 grainstats:
   run: true # Options : true, false
   edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.

@@ -56,6 +56,29 @@ def test_remove_quadratic(test_filters_random: Filters, image_random_remove_quad
     np.testing.assert_allclose(quadratic_removed, image_random_remove_quadratic, **TOLERANCE)
 
 
+def test_remove_nonlinear_polynomial() -> None:
+    """Test the removal of nonlinear polynomials from 2d arrays by providing a nonlinear polynomial trend."""
+
+    # Create an image with a nonlinear polynomial trend
+    image = np.zeros((8, 8)).astype(float)
+    for y in range(image.shape[0]):
+        for x in range(image.shape[1]):
+            image[y, x] = 0.4 - 0.9 * x - 0.9 * y + 0.25 * x * y
+
+    # Add some masked points to ensure the fitting algorithm can handle them
+    mask = np.zeros((8, 8)).astype(bool)
+    mask[3:7, 4] = True
+
+    # Create a dummy filters object as the method is not a static method and needs an instance.
+    filters = Filters(image=image, filename="dummy_input", pixel_to_nm_scaling=1.0)
+
+    # Remove the trend with the fitting script
+    result = filters.remove_nonlinear_polynomial(image=image, mask=mask)
+
+    # If the maximum value is small then the script has successfully fitted and removed the trend
+    assert np.max(np.abs(result)) < 1e-8
+
+
 def test_calc_diff(test_filters_random: Filters, image_random: np.ndarray) -> None:
     """Test calculation of difference in array."""
     target = image_random[-1] - image_random[0]
