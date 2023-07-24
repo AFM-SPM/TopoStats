@@ -3,10 +3,18 @@ from pathlib import Path
 
 import filetype
 import numpy as np
+import pandas as pd
 import pytest
 
 from topostats.io import LoadScans
-from topostats.processing import check_run_steps, process_scan
+from topostats.processing import (
+    check_run_steps,
+    process_scan,
+    filter_wrapper,
+    grains_wrapper,
+    grainstats_wrapper,
+    dnatracing_wrapper,
+)
 from topostats.utils import update_plotting_config
 
 BASE_DIR = Path.cwd()
@@ -375,3 +383,104 @@ def test_process_scan_align_grainstats_dnatracing(
     assert results.shape == (24, 25)
     assert np.isnan(results.loc[8, "contour_length"])
     assert np.isnan(sum(results.loc[8, tracing_to_check]))
+
+
+def test_filter_wrapper(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path) -> None:
+    """Test the filter_wrapper function of processing.py."""
+
+    img_dict = load_scan_data.img_dict
+    unprocessed_image = img_dict["minicircle"]["image_original"]
+    pixel_to_nm_scaling = img_dict["minicircle"]["pixel_to_nm_scaling"]
+
+    flattened_image = filter_wrapper(
+        unprocessed_image=unprocessed_image,
+        pixel_to_nm_scaling=pixel_to_nm_scaling,
+        filename="dummy filename",
+        filter_out_path=tmp_path,
+        core_out_path=tmp_path,
+        filter_config=process_scan_config["filter"],
+        plotting_config=process_scan_config["plotting"],
+    )
+
+    assert isinstance(flattened_image, np.ndarray)
+    assert flattened_image.shape == (1024, 1024)
+    assert np.sum(flattened_image) == 182021.71358517406
+
+
+def test_grains_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
+    """Test the grains_wrapper function of processing.py"""
+
+    flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
+
+    grains_config = process_scan_config["grains"]
+    grains_config["threshold_method"] = "absolute"
+    grains_config["direction"] = "both"
+    grains_config["threshold_absolute"]["above"] = 1.0
+    grains_config["threshold_absolute"]["below"] = -0.2
+    grains_config["smallest_grain_size_nm2"] = 20
+    grains_config["absolute_area_threshold"]["above"] = [20, 10000000]
+
+    grains = grains_wrapper(
+        image=flattened_image,
+        pixel_to_nm_scaling=0.4940029296875,
+        filename="dummy filename",
+        grain_out_path=tmp_path,
+        core_out_path=tmp_path,
+        grains_config=grains_config,
+        plotting_config=process_scan_config["plotting"],
+    )
+
+    assert isinstance(grains, dict)
+    assert list(grains.keys()) == ["above", "below"]
+    assert isinstance(grains["above"], np.ndarray)
+    assert np.max(grains["above"]) == 6
+    assert np.max(grains["below"]) == 7
+
+
+def test_grainstats_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
+    """Test the grainstats_wrapper function of processing.py"""
+
+    flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
+    mask_above = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
+    mask_below = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
+    grain_masks = {"above": mask_above, "below": mask_below}
+
+    grainstats_df = grainstats_wrapper(
+        image=flattened_image,
+        pixel_to_nm_scaling=0.4940029296875,
+        grain_masks=grain_masks,
+        filename="dummy filename",
+        grainstats_config=process_scan_config["grainstats"],
+        plotting_config=process_scan_config["plotting"],
+        grain_out_path=tmp_path,
+    )
+
+    assert isinstance(grainstats_df, pd.DataFrame)
+    assert grainstats_df.shape[0] == 13
+    assert len(grainstats_df.columns) == 21
+
+
+def test_dnatracing_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
+    """Test the dnatracing_wrapper function of processing.py"""
+
+    flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
+    mask_above = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
+    mask_below = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
+    grain_masks = {"above": mask_above, "below": mask_below}
+
+    dnatracing_df = dnatracing_wrapper(
+        image=flattened_image,
+        grain_masks=grain_masks,
+        pixel_to_nm_scaling=0.4940029296875,
+        image_path=tmp_path,
+        filename="dummy filename",
+        core_out_path=tmp_path,
+        grain_out_path=tmp_path,
+        dnatracing_config=process_scan_config["dnatracing"],
+        plotting_config=process_scan_config["plotting"],
+        results_df=pd.read_csv("./tests/resources/minicircle_cropped_grainstats.csv"),
+    )
+
+    assert isinstance(dnatracing_df, pd.DataFrame)
+    assert dnatracing_df.shape[0] == 13
+    assert len(dnatracing_df.columns) == 23

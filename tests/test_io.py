@@ -527,7 +527,6 @@ def test_save_topostats_file(
 
     with h5py.File(f"{tmp_path}/topostats_file_test.topostats", "r") as f:
         hdf5_file_keys = list(f.keys())
-        print(f"KEYS: {hdf5_file_keys}")
         topostats_file_version_read = f["topostats_file_version"][()]
         image_read = f["image"][:]
         pixel_to_nm_scaling_read = f["pixel_to_nm_scaling"][()]
