@@ -254,7 +254,7 @@ def test_check_run_steps(
             True,
             False,
             False,
-            "Calculation of grainstats disabled, returning empty data frame.",
+            "Calculation of grainstats disabled, returning empty dataframe.",
             "22-labelled_image_bboxes",
         ),
         (
@@ -271,7 +271,7 @@ def test_check_run_steps(
             True,
             True,
             "Traced grain 21 of 21",
-            "Combining above grain statistics and dnatracing statistics",
+            "Combining ['above'] grain statistics and dnatracing statistics",
         ),
     ],
 )
@@ -328,7 +328,7 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
         output_dir=tmp_path,
     )
     assert "Grains found for direction above : 0" in caplog.text
-    assert "No grains exist for the above direction. Skipping grainstats and DNAtracing." in caplog.text
+    assert "No grains exist for the above direction. Skipping grainstats for above." in caplog.text
 
 
 def test_process_scan_align_grainstats_dnatracing(

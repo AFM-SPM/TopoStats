@@ -295,9 +295,10 @@ def grainstats_wrapper(
             grainstats = {}
             # There are two layers to process those above the given threshold and those below
             for direction, _ in grain_masks.items():
-                if len(grain_masks[direction]) == 0:
+                # Check if there are grains
+                if np.max(grain_masks[direction]) == 0:
                     LOGGER.warning(
-                        f"[{filename}] : No grains exist for the {direction} direction. Skipping grainstats and DNAtracing."
+                        f"[{filename}] : No grains exist for the {direction} direction. Skipping grainstats for {direction}."
                     )
                     grainstats[direction] = create_empty_dataframe()
                 else:
@@ -312,7 +313,8 @@ def grainstats_wrapper(
                         **grainstats_config,
                     ).calculate_stats()
                     grainstats[direction]["threshold"] = direction
-                    # Plot grains
+
+                    # Plot grains if required
                     if plotting_config["image_set"] == "all":
                         LOGGER.info(f"[{filename}] : Plotting grain images for direction: {direction}.")
                         for plot_data in grains_plot_data:
@@ -325,13 +327,20 @@ def grainstats_wrapper(
                                 filename=plot_data["filename"],
                                 **plotting_config["plot_dict"][plot_data["name"]],
                             ).plot_and_save()
-            # Set grainstats_df in light of direction
-            if "above" in grain_masks.keys() and "below" in grain_masks.keys():
+
+            # Create results dataframe from above and below results
+            # Appease pylint and ensure that grainstats_df is always created
+            grainstats_df = create_empty_dataframe()
+            if "above" in grainstats and "below" in grainstats:
                 grainstats_df = pd.concat([grainstats["below"], grainstats["above"]])
-            elif "above" in grain_masks.keys():
+            elif "above" in grainstats:
                 grainstats_df = grainstats["above"]
-            elif "below" in grain_masks.keys():
+            elif "below" in grainstats:
                 grainstats_df = grainstats["below"]
+            else:
+                raise ValueError(
+                    "grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible."
+                )
 
             return grainstats_df
 
@@ -341,7 +350,7 @@ def grainstats_wrapper(
             )
             return create_empty_dataframe()
     else:
-        LOGGER.info(f"[{filename}] : Grainstats disabled. Returning empty dataframe")
+        LOGGER.info(f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe.")
         return create_empty_dataframe()
 
 
@@ -444,14 +453,16 @@ def dnatracing_wrapper(
                             **plotting_config["plot_dict"]["single_molecule_trace"],
                         ).plot_and_save()
 
-            # Set tracing_stats_df in light of direction
-            if "above" in grain_masks.keys() and "below" in grain_masks.keys():
+            # Set create tracing_stats_df from above and below results
+            if "above" in tracing_stats and "below" in tracing_stats:
                 tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
-            elif "above" in grain_masks.keys():
+            elif "above" in tracing_stats:
                 tracing_stats_df = tracing_stats["above"]
-            elif "below" in grain_masks.keys():
+            elif "below" in tracing_stats:
                 tracing_stats_df = tracing_stats["below"]
-            LOGGER.info(f"[{filename}] : Combining {grain_masks.keys()} grain statistics and dnatracing statistics")
+            LOGGER.info(
+                f"[{filename}] : Combining {list(tracing_stats.keys())} grain statistics and dnatracing statistics"
+            )
             # NB - Merge on image, molecule and threshold because we may have above and below molecules which
             #      gives duplicate molecule numbers as they are processed separately, if tracing stats
             #      are not available (because skeleton was too small), grainstats are still retained.
