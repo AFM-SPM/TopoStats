@@ -298,6 +298,59 @@ def removesmallobjects(datafield, mask, median_pixel_area, mindeviation, thresho
 
     return mask, grains, number_of_grains
 
+def removelargeobjectsbymean(datafield, mask, mean_pixel_area, std_pixel_area, maxdeviation, thresholdingcriteria, dx):
+    mask2 = gwy.DataField.new_alike(datafield, False)
+
+    # Mask data that are above thresh*sigma from average height.
+    # Sigma denotes root-mean square deviation of heights.
+    # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
+    datafield.mask_outliers2(mask2, 5, thresholdingcriteria)
+    # Calculate pixel width in nm
+    # dx = datafield.get_dx()
+    # Calculate minimum feature size in pixels (integer)
+    # here this is calculated as 2* the median grain size, as calculated in find_median_pixel_area()
+    maxsize = int(mean_pixel_area + maxdeviation*std_pixel_area)
+    # Remove grains smaller than the maximum feature size in integer pixels
+    # This should remove everything that you do want to keep
+    # i.e. everything smaller than aggregates/junk
+    mask2.grains_remove_by_size(maxsize)
+    # Invert mask2 so everything smaller than aggregates/junk is masked
+    mask2.grains_invert()
+    # Make mask equal to the intersection of mask and mask 2, i.e. remove large objects unmasked by mask2
+    mask.grains_intersect(mask2)
+
+    # Numbering grains for grain analysis
+    grains = mask.number_grains()
+
+    return mask, grains
+
+
+def removesmallobjectsbymean(datafield, mask, mean_pixel_area, std_pixel_area, mindeviation, thresholdingcriteria, dx):
+    mask2 = gwy.DataField.new_alike(datafield, False)
+    # Mask data that are above thresh*sigma from average height.
+    # Sigma denotes root-mean square deviation of heights.
+    # This criterium corresponds to the usual Gaussian distribution outliers detection if thresh is 3.
+    datafield.mask_outliers2(mask2, 5, thresholdingcriteria)
+    # Calculate pixel width in nm
+    # dx = datafield.get_dx()
+    # Calculate minimum feature size in pixels (integer)
+    # here this is calculated as 2* the median grain size, as calculated in find_median_pixel_area()
+    minsize = int(mean_pixel_area-std_pixel_area*mindeviation)
+    # Remove grains smaller than the maximum feature size in integer pixels
+    # This should remove everything that you do want to keep
+    # i.e. everything smaller than aggregates/junk
+    mask2.grains_remove_by_size(minsize)
+    # Make mask equalto the intersection of mask and mask 2, i.e. remove large objects unmasked by mask2
+    mask.grains_intersect(mask2)
+
+    # Numbering grains for grain analysis
+    grains = mask.number_grains()
+    number_of_grains = max(grains)
+    print('There were %i grains found' % (number_of_grains))
+
+    return mask, grains, number_of_grains
+
+
 
 def grainanalysis(appended_data, filename, datafield, grains):
     # Calculating grain statistics using numbered grains file
@@ -367,6 +420,19 @@ def find_median_pixel_area(datafield, grains):
     median_pixel_area = np.median(grain_pixel_area)
     return median_pixel_area
 
+def find_mean_pixel_area(datafield, grains):
+    # print values_to_compute.keys()
+    grain_pixel_area = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_PIXEL_AREA)
+    grain_pixel_area = np.array(grain_pixel_area)
+    mean_pixel_area = np.mean(grain_pixel_area)
+    return mean_pixel_area
+
+def find_std_pixel_area(datafield, grains):
+    # print values_to_compute.keys()
+    grain_pixel_area = datafield.grains_get_values(grains, gwy.GRAIN_VALUE_PIXEL_AREA)
+    grain_pixel_area = np.array(grain_pixel_area)
+    std_pixel_area = np.std(grain_pixel_area)
+    return std_pixel_area
 
 def boundbox(cropwidth, datafield, grains, dx, dy, xreal, yreal, xres, yres):
     # Function to return the coordinates of the bounding box for all grains.
@@ -826,8 +892,10 @@ if __name__ == '__main__':
             # # Used for analysing data e.g. peptide induced bilayer degradation
             # data, mask, datafield, grains = heightthresholding.otsuthresholdgrainfinding(data, k)
 
-            # Calculate the mean pixel area for all grains to use for renmoving small and large objects from the mask
+            # Calculate the median pixel area for all grains to use for renmoving small and large objects from the mask
             median_pixel_area = find_median_pixel_area(datafield, grains)
+            # mean_pixel_area = find_mean_pixel_area(datafield, grains)
+            # std_pixel_area = find_std_pixel_area(datafield, grains)
             # Remove all large objects defined as 1.2* the median grain size (in pixel area)
             mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, thresholdingcriteria,
                                               dx)
@@ -835,6 +903,11 @@ if __name__ == '__main__':
             mask, grains, number_of_grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation,
                                                                 thresholdingcriteria, dx)
 
+            # mask, grains = removelargeobjectsbymean(datafield, mask, mean_pixel_area, std_pixel_area, maxdeviation,
+            #                                         thresholdingcriteria, dx)
+            #
+            # mask, grains, number_of_grains = removesmallobjectsbymean(datafield, mask, mean_pixel_area, std_pixel_area,
+            #                                                           mindeviation, thresholdingcriteria, dx)
             # if there's no grains skip this image
             if number_of_grains == 0:
                 continue
