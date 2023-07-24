@@ -416,7 +416,7 @@ def test_grains_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
     grains_config["threshold_method"] = "absolute"
     grains_config["direction"] = "both"
     grains_config["threshold_absolute"]["above"] = 1.0
-    grains_config["threshold_absolute"]["below"] = -0.2
+    grains_config["threshold_absolute"]["below"] = -0.4
     grains_config["smallest_grain_size_nm2"] = 20
     grains_config["absolute_area_threshold"]["above"] = [20, 10000000]
 
@@ -434,7 +434,7 @@ def test_grains_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
     assert list(grains.keys()) == ["above", "below"]
     assert isinstance(grains["above"], np.ndarray)
     assert np.max(grains["above"]) == 6
-    assert np.max(grains["below"]) == 7
+    assert np.max(grains["below"]) == 2
 
 
 def test_grainstats_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
