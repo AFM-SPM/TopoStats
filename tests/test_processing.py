@@ -404,7 +404,7 @@ def test_filter_wrapper(process_scan_config: dict, load_scan_data: LoadScans, tm
 
     assert isinstance(flattened_image, np.ndarray)
     assert flattened_image.shape == (1024, 1024)
-    assert np.sum(flattened_image) == 182021.71358517406
+    assert np.sum(flattened_image) == pytest.approx(182021.71358517406)
 
 
 def test_grains_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
