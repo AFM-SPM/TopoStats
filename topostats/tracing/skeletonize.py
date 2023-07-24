@@ -212,15 +212,15 @@ class joeSkeletonize:
             The single pixel thick, skeletonised array.
         """
         # do we need padding because of config padding?
-        self.mask = np.pad(self.mask, 1)  # pad to avoid hitting border
-        self.image = np.pad(self.mask, 1) # pad to make same as mask
+        #self.mask = np.pad(self.mask, 1)  # pad to avoid hitting border
+        #self.image = np.pad(self.mask, 1) # pad to make same as mask
         while not self.skeleton_converged:
             self._do_skeletonising_iteration()
         # When skeleton converged do an additional iteration of thinning to remove hanging points
         # self.final_skeletonisation_iteration()
         self.mask = getSkeleton(self.image, self.mask).get_skeleton(method="zhang")
 
-        return self.mask[1:-1, 1:-1]  # unpad
+        return self.mask #[1:-1, 1:-1]  # unpad
 
     def _do_skeletonising_iteration(self) -> None:
         """Do an iteration of skeletonisation - check for the local binary pixel
