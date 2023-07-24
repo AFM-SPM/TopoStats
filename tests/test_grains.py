@@ -178,3 +178,34 @@ def test_area_thresholding(test_labelled_image, area_thresholds, expected):
     result = grains_object.area_thresholding(test_labelled_image, area_thresholds=area_thresholds)
 
     np.testing.assert_array_equal(result, expected)
+
+
+@pytest.mark.parametrize(
+    "remove_edge_intersecting_grains, expected_number_of_grains",
+    [
+        (True, 6),
+        (False, 9),
+    ],
+)
+def test_remove_edge_intersecting_grains(
+    grains_config: dict, remove_edge_intersecting_grains: bool, expected_number_of_grains: int
+) -> None:
+    """Test that Grains successfully does and doesn't remove edge intersecting grains"""
+
+    # Ensure that a sensible number of grains are found
+    grains_config["remove_edge_intersecting_grains"] = remove_edge_intersecting_grains
+    grains_config["threshold_absolute"]["above"] = 1.0
+    grains_config["threshold_method"] = "absolute"
+    grains_config["smallest_grain_size_nm2"] = 20
+    grains_config["absolute_area_threshold"]["above"] = [20, 10000000]
+
+    grains = Grains(
+        image=np.load("./tests/resources/minicircle_cropped_flattened.npy"),
+        filename="minicircle_cropped_flattened",
+        pixel_to_nm_scaling=0.4940029296875,
+        **grains_config,
+    )
+    grains.find_grains()
+    number_of_grains = len(grains.region_properties["above"])
+
+    assert number_of_grains == expected_number_of_grains

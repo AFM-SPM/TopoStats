@@ -16,6 +16,12 @@ BASE_DIR = Path.cwd()
 # so instead we run three regression tests.
 def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly"""
+
+    # Ensure there are below grains
+    process_scan_config["grains"]["threshold_std_dev"]["below"] = 1.0
+    process_scan_config["grains"]["smallest_grain_size_nm2"] = 30
+    process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
+
     process_scan_config["grains"]["direction"] = "below"
     img_dic = load_scan_data.img_dict
     _, results, img_stats = process_scan(
@@ -31,11 +37,17 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
     # Remove the basename column as this differs on CI
     results.drop(["basename"], axis=1, inplace=True)
     print(img_stats.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
-    print(results.to_string(), file=regtest)  # noqa: T201
+    print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
 
 def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly"""
+
+    # Ensure there are below grains
+    process_scan_config["grains"]["threshold_std_dev"]["below"] = 1.0
+    process_scan_config["grains"]["smallest_grain_size_nm2"] = 30
+    process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
+
     img_dic = load_scan_data.img_dict
     _, results, img_stats = process_scan(
         topostats_object=img_dic["minicircle"],
@@ -50,11 +62,17 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
     # Remove the Basename column as this differs on CI
     results.drop(["basename"], axis=1, inplace=True)
     print(img_stats.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
-    print(results.to_string(), file=regtest)  # noqa: T201
+    print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
 
 def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly"""
+
+    # Ensure there are below grains
+    process_scan_config["grains"]["threshold_std_dev"]["below"] = 1.0
+    process_scan_config["grains"]["smallest_grain_size_nm2"] = 30
+    process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
+
     process_scan_config["grains"]["direction"] = "both"
     img_dic = load_scan_data.img_dict
     _, results, img_stats = process_scan(
@@ -70,7 +88,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     # Remove the Basename column as this differs on CI
     results.drop(["basename"], axis=1, inplace=True)
     print(img_stats.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
-    print(results.to_string(), file=regtest)  # noqa: T201
+    print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
 
 @pytest.mark.parametrize(
@@ -247,7 +265,7 @@ def test_check_run_steps(
             False,
             False,
             "Detection of grains disabled, returning empty data frame.",
-            "13-gaussian_filtered",
+            "15-gaussian_filtered",
         ),
         (
             True,

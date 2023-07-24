@@ -42,6 +42,7 @@ class Grains:
         },
         direction: str = None,
         smallest_grain_size_nm2: float = None,
+        remove_edge_intersecting_grains: bool = True,
     ):
         """Initialise the class.
 
@@ -65,6 +66,8 @@ class Grains:
             Dictionary of above and below grain's area thresholds
         direction: str
             Direction for which grains are to be detected, valid values are above, below and both.
+        remove_edge_intersecting_grains: bool
+            Whether or not to remove grains that intersect the edge of the image.
         """
         self.image = image
         self.filename = filename
@@ -77,6 +80,7 @@ class Grains:
         # Only detect grains for the desired direction
         self.direction = [direction] if direction != "both" else ["above", "below"]
         self.smallest_grain_size_nm2 = smallest_grain_size_nm2
+        self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
         self.thresholds = None
         self.images = {
             "mask_grains": None,
@@ -308,15 +312,20 @@ class Grains:
             self.directions[direction]["labelled_regions_01"] = self.label_regions(
                 self.directions[direction]["mask_grains"]
             )
-            self.directions[direction]["tidied_border"] = self.tidy_border(
-                self.directions[direction]["labelled_regions_01"]
-            )
+
+            if self.remove_edge_intersecting_grains:
+                self.directions[direction]["tidied_border"] = self.tidy_border(
+                    self.directions[direction]["labelled_regions_01"]
+                )
+            else:
+                self.directions[direction]["tidied_border"] = self.directions[direction]["labelled_regions_01"]
 
             LOGGER.info(f"[{self.filename}] : Removing noise ({direction})")
             self.directions[direction]["removed_noise"] = self.area_thresholding(
                 self.directions[direction]["tidied_border"],
                 [self.smallest_grain_size_nm2, None],
             )
+
             LOGGER.info(f"[{self.filename}] : Removing small / large grains ({direction})")
             # if no area thresholds specified, use otsu
             if self.absolute_area_threshold[direction].count(None) == 2:
@@ -332,6 +341,7 @@ class Grains:
             self.directions[direction]["labelled_regions_02"] = self.label_regions(
                 self.directions[direction]["removed_small_objects"]
             )
+
             self.region_properties[direction] = self.get_region_properties(
                 self.directions[direction]["labelled_regions_02"]
             )
