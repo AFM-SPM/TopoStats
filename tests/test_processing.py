@@ -273,7 +273,7 @@ def test_check_run_steps(
             False,
             False,
             "Calculation of grainstats disabled, returning empty dataframe.",
-            "22-labelled_image_bboxes",
+            "24-labelled_image_bboxes",
         ),
         (
             True,
