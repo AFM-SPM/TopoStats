@@ -2176,8 +2176,14 @@ class nodeStats:
         remaining = both_img.copy().astype(np.int32)
 
         while remaining.max() != 0:
-            # maybe don't need to remove from remaining so soon
-            coord_idx = np.unique(remaining)[1] - 1  # avoid choosing 0
+            # select endpoint to start if there is one
+            poss_idx = remaining[convolve_skelly(remaining)==2]
+            print("CONV: ", poss_idx)
+            if poss_idx.size == 0:
+                coord_idx = np.unique(remaining)[1] - 1  # avoid choosing 0
+            else:
+                coord_idx = poss_idx[0] - 1
+            
             coord_trace = np.empty((0,2)).astype(np.int32)
             mol_num += 1
             while coord_idx > -1:  # either cycled through all or hits terminus -> all will be just background
