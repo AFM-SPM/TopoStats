@@ -26,14 +26,14 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
     """Regression test for checking the process_scan functions correctly"""
 
     # Ensure there are below grains
-    process_scan_config["grains"]["threshold_std_dev"]["below"] = 1.0
-    process_scan_config["grains"]["smallest_grain_size_nm2"] = 30
+    process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
+    process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
 
     process_scan_config["grains"]["direction"] = "below"
     img_dic = load_scan_data.img_dict
     _, results, img_stats = process_scan(
-        topostats_object=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -52,13 +52,12 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
     """Regression test for checking the process_scan functions correctly"""
 
     # Ensure there are below grains
-    process_scan_config["grains"]["threshold_std_dev"]["below"] = 1.0
-    process_scan_config["grains"]["smallest_grain_size_nm2"] = 30
+    process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
 
     img_dic = load_scan_data.img_dict
     _, results, img_stats = process_scan(
-        topostats_object=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -77,14 +76,14 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     """Regression test for checking the process_scan functions correctly"""
 
     # Ensure there are below grains
-    process_scan_config["grains"]["threshold_std_dev"]["below"] = 1.0
-    process_scan_config["grains"]["smallest_grain_size_nm2"] = 30
+    process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
+    process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
 
     process_scan_config["grains"]["direction"] = "both"
     img_dic = load_scan_data.img_dict
     _, results, img_stats = process_scan(
-        topostats_object=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -112,10 +111,11 @@ def test_save_cropped_grains(
     """Tests if cropped grains are saved only when image set is 'all' rather than 'core'."""
     process_scan_config["plotting"]["image_set"] = image_set
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
+    process_scan_config["plotting"]["dpi"] = 50
 
     img_dic = load_scan_data.img_dict
     _, _, _ = process_scan(
-        topostats_object=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -126,16 +126,26 @@ def test_save_cropped_grains(
     )
 
     assert (
-        Path.exists(tmp_path / "tests/resources/processed/minicircle/grains/above" / "minicircle_grain_image_0.png")
-        == expected
-    )
-    assert (
-        Path.exists(tmp_path / "tests/resources/processed/minicircle/grains/above" / "minicircle_grain_mask_0.png")
+        Path.exists(
+            tmp_path
+            / "tests/resources/test_image/processed/minicircle_small/grains/above"
+            / "minicircle_small_grain_image_0.png"
+        )
         == expected
     )
     assert (
         Path.exists(
-            tmp_path / "tests/resources/processed/minicircle/grains/above" / "minicircle_grain_mask_image_0.png"
+            tmp_path
+            / "tests/resources/test_image/processed/minicircle_small/grains/above"
+            / "minicircle_small_grain_mask_0.png"
+        )
+        == expected
+    )
+    assert (
+        Path.exists(
+            tmp_path
+            / "tests/resources/test_image/processed/minicircle_small/grains/above"
+            / "minicircle_small_grain_mask_image_0.png"
         )
         == expected
     )
@@ -150,7 +160,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
 
     img_dic = load_scan_data.img_dict
     _, _, _ = process_scan(
-        topostats_object=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -161,7 +171,9 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     )
 
     guess = filetype.guess(
-        tmp_path / "tests/resources/processed/minicircle/grains/above" / f"minicircle_grain_image_0.{extension}"
+        tmp_path
+        / "tests/resources/test_image/processed/minicircle_small/grains/above"
+        / f"minicircle_small_grain_image_0.{extension}"
     )
     assert guess.extension == extension
 
@@ -296,7 +308,7 @@ def test_check_run_steps(
             True,
             True,
             True,
-            "Traced grain 21 of 21",
+            "Traced grain 3 of 3",
             "Combining ['above'] grain statistics and dnatracing statistics",
         ),
     ],
@@ -324,7 +336,7 @@ def test_process_stages(
     process_scan_config["grainstats"]["run"] = grainstats_run
     process_scan_config["dnatracing"]["run"] = dnatracing_run
     _, _, _ = process_scan(
-        topostats_object=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -344,7 +356,7 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
     process_scan_config["grains"]["threshold_std_dev"]["above"] = 1000
     process_scan_config["filter"]["remove_scars"]["run"] = False
     _, _, _ = process_scan(
-        topostats_object=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -368,9 +380,9 @@ def test_process_scan_align_grainstats_dnatracing(
     img_dic = load_scan_data.img_dict
     process_scan_config["filter"]["remove_scars"]["run"] = False
     process_scan_config["grains"]["absolute_area_threshold"]["above"] = [150, 3000]
-    process_scan_config["dnatracing"]["min_skeleton_size"] = 10
+    process_scan_config["dnatracing"]["min_skeleton_size"] = 50
     _, results, _ = process_scan(
-        topostats_object=img_dic["minicircle"],
+        topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -380,17 +392,18 @@ def test_process_scan_align_grainstats_dnatracing(
         output_dir=tmp_path,
     )
     tracing_to_check = ["contour_length", "circular", "end_to_end_distance"]
-    assert results.shape == (24, 25)
-    assert np.isnan(results.loc[8, "contour_length"])
-    assert np.isnan(sum(results.loc[8, tracing_to_check]))
+
+    assert results.shape == (3, 25)
+    assert np.isnan(results.loc[2, "contour_length"])
+    assert np.isnan(sum(results.loc[2, tracing_to_check]))
 
 
 def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path) -> None:
     """Test the filter_wrapper function of processing.py."""
 
     img_dict = load_scan_data.img_dict
-    unprocessed_image = img_dict["minicircle"]["image_original"]
-    pixel_to_nm_scaling = img_dict["minicircle"]["pixel_to_nm_scaling"]
+    unprocessed_image = img_dict["minicircle_small"]["image_original"]
+    pixel_to_nm_scaling = img_dict["minicircle_small"]["pixel_to_nm_scaling"]
 
     flattened_image = run_filters(
         unprocessed_image=unprocessed_image,
@@ -403,8 +416,8 @@ def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     )
 
     assert isinstance(flattened_image, np.ndarray)
-    assert flattened_image.shape == (1024, 1024)
-    assert np.sum(flattened_image) == pytest.approx(182021.71358517406)
+    assert flattened_image.shape == (64, 64)
+    assert np.sum(flattened_image) == pytest.approx(1172.6088236592373)
 
 
 def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
