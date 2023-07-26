@@ -230,15 +230,6 @@ def image_random_col_medians_masked() -> np.array:
     return np.loadtxt(RESOURCES / "image_random_col_medians_masked.csv", delimiter=",")
 
 
-@pytest.fixture()
-def test_load_scan_minicircle() -> LoadScans:
-    """Load the minicircle.spm and return image (np.ndarray), pixel_to_nm_scaling (float) and filename (str) for use in
-    subsequent fixtures."""
-    scan_loader = LoadScans(RESOURCES / "minicircle.spm", channel="Height")
-    scan_loader.get_data()
-    return scan_loader
-
-
 @pytest.fixture
 def test_filters(load_scan: LoadScans, filter_config: dict) -> Filters:
     """Filters class for testing."""
@@ -342,17 +333,24 @@ def load_scan_dummy() -> LoadScans:
 
 @pytest.fixture
 def load_scan(loading_config: dict) -> LoadScans:
-    """Instantiate a LoadScans object from a .spm file."""
-    scan_loader = LoadScans([RESOURCES / "minicircle.spm"], **loading_config)
+    """Instantiate a LoadScans object from a small .topostats image file."""
+    scan_loader = LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], **loading_config)
     return scan_loader
 
 
 @pytest.fixture
 def load_scan_data() -> LoadScans:
     """Instance of a LoadScans object after applying the get_data func."""
-    scan_data = LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
+    scan_data = LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], channel="Height")
     scan_data.get_data()
     return scan_data
+
+
+@pytest.fixture
+def load_scan_spm() -> LoadScans:
+    """Instantiate a LoadScans object from a .spm file."""
+    scan_loader = LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
+    return scan_loader
 
 
 @pytest.fixture
