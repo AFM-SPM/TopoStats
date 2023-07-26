@@ -170,7 +170,10 @@ def run_topostats(args=None):
         else:
             summary_yaml = pkg_resources.open_text(__package__, "summary_config.yaml")
             summary_config = yaml.safe_load(summary_yaml.read())
-        summary_config = update_config(summary_config, args)
+
+        # Do not pass command line arguments to toposum as they clash with process command line arguments
+        summary_config = update_config(summary_config, {})
+
         validate_config(summary_config, SUMMARY_SCHEMA, config_type="YAML summarisation config")
         # We never want to load data from CSV as we are using the data that has just been processed.
         summary_config.pop("csv_file")
