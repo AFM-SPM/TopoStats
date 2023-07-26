@@ -10,10 +10,10 @@ from topostats.io import LoadScans
 from topostats.processing import (
     check_run_steps,
     process_scan,
-    filter_wrapper,
-    grains_wrapper,
-    grainstats_wrapper,
-    dnatracing_wrapper,
+    run_filters,
+    run_grains,
+    run_grainstats,
+    run_dnatracing,
 )
 from topostats.utils import update_plotting_config
 
@@ -385,14 +385,14 @@ def test_process_scan_align_grainstats_dnatracing(
     assert np.isnan(sum(results.loc[8, tracing_to_check]))
 
 
-def test_filter_wrapper(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path) -> None:
+def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path) -> None:
     """Test the filter_wrapper function of processing.py."""
 
     img_dict = load_scan_data.img_dict
     unprocessed_image = img_dict["minicircle"]["image_original"]
     pixel_to_nm_scaling = img_dict["minicircle"]["pixel_to_nm_scaling"]
 
-    flattened_image = filter_wrapper(
+    flattened_image = run_filters(
         unprocessed_image=unprocessed_image,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         filename="dummy filename",
@@ -407,7 +407,7 @@ def test_filter_wrapper(process_scan_config: dict, load_scan_data: LoadScans, tm
     assert np.sum(flattened_image) == pytest.approx(182021.71358517406)
 
 
-def test_grains_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
+def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the grains_wrapper function of processing.py"""
 
     flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
@@ -420,7 +420,7 @@ def test_grains_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
     grains_config["smallest_grain_size_nm2"] = 20
     grains_config["absolute_area_threshold"]["above"] = [20, 10000000]
 
-    grains = grains_wrapper(
+    grains = run_grains(
         image=flattened_image,
         pixel_to_nm_scaling=0.4940029296875,
         filename="dummy filename",
@@ -441,7 +441,7 @@ def test_grains_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
     assert np.max(grains["above"]) < 10
 
 
-def test_grainstats_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
+def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the grainstats_wrapper function of processing.py"""
 
     flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
@@ -449,7 +449,7 @@ def test_grainstats_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
     mask_below = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
     grain_masks = {"above": mask_above, "below": mask_below}
 
-    grainstats_df = grainstats_wrapper(
+    grainstats_df = run_grainstats(
         image=flattened_image,
         pixel_to_nm_scaling=0.4940029296875,
         grain_masks=grain_masks,
@@ -464,7 +464,7 @@ def test_grainstats_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
     assert len(grainstats_df.columns) == 21
 
 
-def test_dnatracing_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
+def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the dnatracing_wrapper function of processing.py"""
 
     flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
@@ -472,7 +472,7 @@ def test_dnatracing_wrapper(process_scan_config: dict, tmp_path: Path) -> None:
     mask_below = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
     grain_masks = {"above": mask_above, "below": mask_below}
 
-    dnatracing_df = dnatracing_wrapper(
+    dnatracing_df = run_dnatracing(
         image=flattened_image,
         grain_masks=grain_masks,
         pixel_to_nm_scaling=0.4940029296875,
