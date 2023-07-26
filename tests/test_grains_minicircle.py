@@ -53,6 +53,8 @@ def test_calc_minimum_grain_size_pixels(minicircle_minimum_grain_size) -> None:
     """Test calculation of minimum grain size in pixels."""
     assert isinstance(minicircle_minimum_grain_size.minimum_grain_size, float)
     assert minicircle_minimum_grain_size.minimum_grain_size == 122.25
+    print(minicircle_minimum_grain_size.minimum_grain_size)
+    assert False
 
 
 def test_remove_small_objects(minicircle_small_objects_removed: Grains) -> None:
