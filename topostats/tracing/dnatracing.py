@@ -100,11 +100,11 @@ class dnaTrace:
         self.sigma = 2 #0.7 / (self.pixel_to_nm_scaling * 1e9)
 
         self.gauss_image = gaussian(self.image, self.sigma)
-        self.smoothed_grain = None
-        self.skeleton = None
-        self.pruned_skeleton = None
+        self.smoothed_grain = np.zeros_like(image)
+        self.skeleton = np.zeros_like(image)
+        self.pruned_skeleton = np.zeros_like(image)
         self.disordered_trace = None
-        self.node_image = None
+        self.node_image = np.zeros_like(image)
         self.node_dict = None
         self.ordered_trace = None
         self.ordered_trace_img = np.zeros_like(image)
@@ -117,7 +117,7 @@ class dnaTrace:
         self.end_to_end_distances = []
         self.mol_is_circulars = []
         self.curvatures = []
-        self.num_mols = np.nan
+        self.num_mols = 1
 
         self.visuals = None
 
@@ -162,7 +162,7 @@ class dnaTrace:
                 self.get_ordered_traces()
             """
             for trace in self.ordered_trace:
-                self.ordered_trace_img += self.coords_2_img(trace, self.image)
+                self.ordered_trace_img += self.coords_2_img(trace, self.image, ordered=True)
                 if len(trace) >= self.min_skeleton_size:
                     mol_is_circular = self.linear_or_circular(trace)
                     self.mol_is_circulars.append(mol_is_circular)
@@ -180,8 +180,7 @@ class dnaTrace:
         else:
             LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
 
-    @staticmethod
-    def smooth_grains(grain: np.ndarray) -> None:
+    def smooth_grains(self, grain: np.ndarray) -> None:
         """Smoothes grains based on the lower number added from dilation or gaussian.
         (makes sure gaussian isnt too agressive."""
         dilation = ndimage.binary_dilation(grain, iterations=2).astype(np.int32)
@@ -191,18 +190,18 @@ class dnaTrace:
         gauss = gauss.astype(np.int32)
         if dilation.sum() - grain.sum() > gauss.sum() - grain.sum():
             print(f"gaussian: {gauss.sum()-grain.sum()}px")
-            # gauss = self.re_add_holes(image, gauss)
+            gauss = self.re_add_holes(grain, gauss)
             return gauss
         else:
             print(f"dilation: {dilation.sum()-grain.sum()}px")
-            # dilation = self.re_add_holes(image, dilation)
+            dilation = self.re_add_holes(grain, dilation)
             return dilation
 
-    def re_add_holes(self, orig_mask, new_mask, holearea_min_max=[4, 100]):
+    def re_add_holes(self, orig_mask, new_mask, holearea_min_max=[4, np.inf]):
         """As gaussian and dilation smoothing methods can close holes in the original mask,
-        this function obtains those holes (based on the general background being the largest)
-        and adds them back into the smoothed mask. When paired, this essentailly just smooths
-        the outer edge of the grains.
+        this function obtains those holes (based on the general background being the first due 
+        to padding) and adds them back into the smoothed mask. When paired, this essentailly 
+        just smooths the outer edge of the grains.
 
         Parameters:
         -----------
@@ -210,13 +209,12 @@ class dnaTrace:
             new_mask (_type_): _description_
             holearea_min_max (_type_): _description_
         """
-        holesize_min_px = holearea_min_max[0] / ((self.pixel_size / 1e-9) ** 2)
-        holesize_max_px = holearea_min_max[1] / ((self.pixel_size / 1e-9) ** 2)
+        holesize_min_px = holearea_min_max[0] / ((self.pixel_to_nm_scaling / 1e-9) ** 2)
+        holesize_max_px = holearea_min_max[1] / ((self.pixel_to_nm_scaling / 1e-9) ** 2)
         holes = 1 - orig_mask
         holes = label(holes)
         sizes = [holes[holes == i].size for i in range(1, holes.max() + 1)]
-        max_idx = max(enumerate(sizes), key=lambda x: x[1])[0] + 1  # identify background
-        holes[holes == max_idx] = 0  # set background to 0
+        holes[holes == 1] = 0  # set background to 0
 
         self.holes = holes.copy()
 
@@ -225,10 +223,10 @@ class dnaTrace:
                 holes[holes == i + 1] = 0
         holes[holes != 0] = 1
 
-        holey_gauss = new_mask.copy()
-        holey_gauss[holes == 1] = 0
+        holey_smooth = new_mask.copy()
+        holey_smooth[holes == 1] = 0
 
-        return holey_gauss
+        return holey_smooth
 
     def get_disordered_trace(self):
         self.smoothed_grain = self.smooth_grains(self.grain)
@@ -284,9 +282,12 @@ class dnaTrace:
         return array[bounding_box[0] : bounding_box[1], bounding_box[2] : bounding_box[3]]
 
     @staticmethod
-    def coords_2_img(coords, image):
+    def coords_2_img(coords, image, ordered=False):
         comb = np.zeros_like(image)
-        comb[coords[:,0].astype(np.int32), coords[:,1].astype(np.int32)] = 1
+        if ordered:
+            comb[coords[:,0].astype(np.int32), coords[:,1].astype(np.int32)] = np.arange(1, len(coords)+1)
+        else:
+            comb[coords[:,0].astype(np.int32), coords[:,1].astype(np.int32)] = 1
         return comb
     
     @staticmethod
@@ -1134,8 +1135,8 @@ class nodeStats:
         self.skeleton = a
         self.px_2_nm = 1
         """
-        self.conv_skelly = None
-        self.connected_nodes = None
+        self.conv_skelly = np.zeros_like(self.skeleton)
+        self.connected_nodes = np.zeros_like(self.skeleton)
         self.all_connected_nodes = self.skeleton.copy()
 
         self.node_centre_mask = None
@@ -1358,20 +1359,21 @@ class nodeStats:
                         matched_branches[i]["ordered_coords_local"] = branch_coords
                         # get heights and trace distance of branch
                         # TODO: evaluate if radial distance or traversal distance better and get avgs working with radial
-                        distances = self.coord_dist(branch_coords) # self.coord_dist_rad(branch_coords, node_centre_small_xy)
+                        distances = self.coord_dist_rad(branch_coords, node_centre_small_xy) # self.coord_dist(branch_coords)
                         zero_dist = distances[np.where(np.all(branch_coords == node_centre_small_xy, axis=1))]
                         if average_trace_advised:
                             # np.savetxt("knot2/area.txt",image_area)
                             # np.savetxt("knot2/single_branch.txt",single_branch)
                             # print("ZD: ", zero_dist)
                             distances, heights, mask, _ = self.average_height_trace(
-                                image_area, single_branch, zero_dist
+                                image_area, single_branch, zero_dist, node_centre_small_xy
                             )
                             # add in mid dist adjustment
                             matched_branches[i]["avg_mask"] = mask
                         else:
                             heights = self.image[branch_coords_img[:, 0], branch_coords_img[:, 1]]
                             distances = distances - zero_dist
+                            distances, heights = self.average_uniques(distances, heights)
                         matched_branches[i]["heights"] = heights
                         matched_branches[i]["distances"] = distances
 
@@ -1383,7 +1385,9 @@ class nodeStats:
                     fwhms = []
                     for branch_idx, values in matched_branches.items():
                         fwhms.append(values["fwhm2"][0])
+                        print(fwhms)
                     branch_idx_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(fwhms))]
+                    #branch_idx_order = np.arange(0,len(matched_branches)) #uncomment to unorder (will not unorder the height traces)
 
                     for i, branch_idx in enumerate(branch_idx_order):
                         branch_coords = matched_branches[branch_idx]["ordered_coords_local"]
@@ -1804,9 +1808,12 @@ class nodeStats:
     
     @staticmethod
     def coord_dist_rad(coords: np.ndarray, centre: np.ndarray, px_2_nm: float = 1) -> np.ndarray:
-        diff_dists = coords - centre
+        diff_coords = coords - centre
+        if np.all(coords == centre, axis=1).sum() == 0:
+            diff_dists = np.sqrt(diff_coords[:,0]**2 + diff_coords[:,1]**2)
+            centre = coords[np.argmin(diff_dists)]
         cross_idx = np.argwhere(np.all(coords == centre, axis=1))
-        rad_dist = np.sqrt(diff_dists[:,0]**2 + diff_dists[:,1]**2)
+        rad_dist = np.sqrt(diff_coords[:,0]**2 + diff_coords[:,1]**2)
         rad_dist[0:cross_idx[0][0]] *= -1
         return rad_dist
 
@@ -1828,7 +1835,7 @@ class nodeStats:
         except IndexError:
             return None
 
-    def average_height_trace(self, img: np.ndarray, branch_mask: np.ndarray, dist_zero_point: float) -> tuple:
+    def average_height_trace(self, img: np.ndarray, branch_mask: np.ndarray, dist_zero_point: float, centre=None) -> tuple:
         """Dilates the original branch to create two additional side-by-side branches
         in order to get a more accurate average of the height traces. This function produces
         the common distances between these 3 branches, and their averaged heights.
@@ -1848,9 +1855,10 @@ class nodeStats:
         """
         # get heights and dists of the original (middle) branch
         branch_coords = np.argwhere(branch_mask == 1)
-        branch_dist = self.coord_dist(branch_coords)
+        branch_dist = self.coord_dist_rad(branch_coords, centre) # self.coord_dist(branch_coords)
         branch_heights = img[branch_coords[:, 0], branch_coords[:, 1]]
-        branch_dist_norm = branch_dist - dist_zero_point  # branch_dist[branch_heights.argmax()]
+        branch_dist, branch_heights = self.average_uniques(branch_dist, branch_heights)
+        branch_dist_norm = branch_dist - dist_zero_point # - 0  # branch_dist[branch_heights.argmax()]
         # want to get a 3 pixel line trace, one on each side of orig
         dilate = ndimage.binary_dilation(branch_mask, iterations=1)
         dilate_minus = dilate.copy()
@@ -1900,10 +1908,11 @@ class nodeStats:
             height_trace = img[trace[:, 0], trace[:, 1]]
             height_len = len(height_trace)
             central_heights = height_trace[int(height_len * centre_fraction) : int(-height_len * centre_fraction)]
+            dist = self.coord_dist_rad(trace, centre) # self.coord_dist(trace)
+            dist, height_trace = self.average_uniques(dist, height_trace)
             heights.append(height_trace)
-            dist = self.coord_dist(trace)
             distances.append(
-                dist - dist_zero_point
+                dist - dist_zero_point # - 0
             )  # branch_dist[branch_heights.argmax()]) #dist[central_heights.argmax()])
 
         # Make like coord system using original branch
@@ -1934,10 +1943,8 @@ class nodeStats:
                             avg2.append([mid_dist, y])
         avg1 = np.asarray(avg1)
         avg2 = np.asarray(avg2)
-
         # ensure arrays are same length to average
         temp_x = branch_dist_norm[np.isin(branch_dist_norm, avg1[:, 0])]
-        print(avg1.shape, avg2.shape)
         common_dists = avg2[:, 0][np.isin(avg2[:, 0], temp_x)]
 
         common_avg_branch_heights = branch_heights[np.isin(branch_dist_norm, common_dists)]
@@ -2014,6 +2021,17 @@ class nodeStats:
                 break
 
         return node_image_cp
+
+    @staticmethod
+    def average_uniques(arr1, arr2):
+        "Takes two arrays, gets the uniques of both with the average of common values in the second."
+        arr1_uniq = np.unique(arr1)
+        arr2_new = np.zeros_like(arr1_uniq).astype(np.float64)
+        for i, val in enumerate(arr1_uniq):
+            mean = arr2[arr1==val].mean()
+            arr2_new[i] += mean
+
+        return arr1_uniq, arr2_new
 
     def compile_trace(self):
         """This function uses the branches and FWHM's identified in the node_stats dictionary to create a
