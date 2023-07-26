@@ -51,6 +51,7 @@ dependencies = [
   "tifffile",
   "tqdm",
   "pyfiglet",
+  "h5py"
 ]
 
 [project.optional-dependencies]

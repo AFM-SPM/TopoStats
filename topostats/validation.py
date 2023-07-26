@@ -51,7 +51,8 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ".jpk",
             ".ibw",
             ".gwy",
-            error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw' or '.asd'.",
+            ".topostats",
+            error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw', '.gwy', '.topostats', or '.asd'.",
         ),
         "loading": {"channel": str},
         "filter": {

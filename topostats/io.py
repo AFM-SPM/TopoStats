@@ -13,6 +13,7 @@ import pandas as pd
 import pySPM
 from igor import binarywave
 import tifffile
+import h5py
 from ruamel.yaml import YAML, YAMLError
 from ruamel.yaml.main import round_trip_load as yaml_load, round_trip_dump as yaml_dump
 
@@ -25,6 +26,7 @@ CONFIG_DOCUMENTATION_REFERENCE = """For more information on configuration and ho
 # https://afm-spm.github.io/TopoStats/main/configuration.html\n"""
 
 # pylint: disable=broad-except
+# pylint: disable=too-many-lines
 
 
 def read_yaml(filename: Union[str, Path]) -> Dict:
@@ -472,6 +474,7 @@ class LoadScans:
         self.filename = None
         self.image = None
         self.pixel_to_nm_scaling = None
+        self.grain_masks = {}
         self.img_dict = {}
         self.MINIMUM_IMAGE_SIZE = 10
 
@@ -532,6 +535,40 @@ class LoadScans:
             LOGGER.warning(f"[{self.filename}] : Pixel size not found in metadata, defaulting to 1nm")
         LOGGER.info(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
         return pixel_to_nm_scaling
+
+    def load_topostats(self) -> tuple:
+        """Load a .topostats file (hdf5 format), extracting the image, pixel to nanometre scaling
+        factor and any grain masks. Note that grain masks are stored via self.grain_masks rather
+        than returned due to how we extract information for all other file loading functions.
+
+        Returns
+        -------
+        tuple(np.ndarray, float)
+            A tuple containing the image and its pixel to nanometre scaling value.
+        """
+
+        LOGGER.info(f"Loading image from : {self.img_path}")
+        try:
+            with h5py.File(self.img_path, "r") as f:
+                keys = f.keys()
+                file_version = f["topostats_file_version"][()]
+                LOGGER.info(f"TopoStats file version: {file_version}")
+                image = f["image"][:]
+                pixel_to_nm_scaling = f["pixel_to_nm_scaling"][()]
+                if "grain_masks" in keys:
+                    grain_masks_keys = f["grain_masks"].keys()
+                    if "above" in grain_masks_keys:
+                        LOGGER.info(f"[{self.filename}] : Found grain mask for above direction")
+                        self.grain_masks["above"] = f["grain_masks"]["above"][:]
+                    if "below" in grain_masks_keys:
+                        LOGGER.info(f"[{self.filename}] : Found grain mask for below direction")
+                        self.grain_masks["below"] = f["grain_masks"]["below"][:]
+        except OSError as e:
+            if "Unable to open file" in str(e):
+                LOGGER.info(f"[{self.filename}] File not found: {self.img_path}")
+            raise e
+
+        return (image, pixel_to_nm_scaling)
 
     def load_ibw(self) -> tuple:
         """Loads image from Asylum Research (Igor) .ibw files
@@ -839,6 +876,7 @@ class LoadScans:
             ".jpk": self.load_jpk,
             ".ibw": self.load_ibw,
             ".gwy": self.load_gwy,
+            ".topostats": self.load_topostats,
         }
 
         for img_path in self.img_paths:
@@ -874,10 +912,10 @@ class LoadScans:
         if self.image.shape[0] < self.MINIMUM_IMAGE_SIZE or self.image.shape[1] < self.MINIMUM_IMAGE_SIZE:
             LOGGER.warning(f"[{self.filename}] Skipping, image too small: {self.image.shape}")
         else:
-            self.add_to_dic(self.filename, self.image, self.img_path.with_name(self.filename), self.pixel_to_nm_scaling)
+            self.add_to_dict()
             LOGGER.info(f"[{self.filename}] Image added to processing.")
 
-    def add_to_dic(self, filename: str, image: np.ndarray, img_path: Path, px_2_nm: float) -> None:
+    def add_to_dict(self) -> None:
         """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under
         the key filename.
 
@@ -892,7 +930,57 @@ class LoadScans:
         px_2_nm: float
             The length of a pixel in nm.
         """
-        self.img_dict[filename] = {"image": image, "img_path": img_path, "px_2_nm": px_2_nm}
+        self.img_dict[self.filename] = {
+            "filename": self.filename,
+            "img_path": self.img_path.with_name(self.filename),
+            "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
+            "image_original": self.image,
+            "image_flattened": None,
+            "grain_masks": self.grain_masks,
+        }
+
+
+def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict) -> None:
+    """Save a topostats dictionary object to a .topostats (hdf5 format) file.
+
+    Parameters
+    ----------
+    output_dir: Path
+        Directory to save the .topostats file in.
+    filename: str
+        File name of the .topostats file.
+    topostats_object: dict
+        Dictionary of the topostats data to save. Must include a flattened image and
+        pixel to nanometre scaling factor. May also include grain masks.
+    """
+
+    LOGGER.info(f"[{filename}] : Saving image to .topostats file")
+
+    if ".topostats" not in filename:
+        save_file_path = output_dir / f"{filename}.topostats"
+    else:
+        save_file_path = output_dir / filename
+
+    with h5py.File(save_file_path, "w") as f:
+        # It may be possible for topostats_object["image_flattened"] to be None.
+        # Make sure that this is not the case.
+        if topostats_object["image_flattened"] is not None:
+            f["topostats_file_version"] = 0.1
+            f["image"] = topostats_object["image_flattened"]
+            # It should not be possible for topostats_object["pixel_to_nm_scaling"] to be None
+            f["pixel_to_nm_scaling"] = topostats_object["pixel_to_nm_scaling"]
+            if topostats_object["grain_masks"]:
+                if "above" in topostats_object["grain_masks"].keys():
+                    if topostats_object["grain_masks"]["above"] is not None:
+                        f["grain_masks/above"] = topostats_object["grain_masks"]["above"]
+                if "below" in topostats_object["grain_masks"].keys():
+                    if topostats_object["grain_masks"]["below"] is not None:
+                        f["grain_masks/below"] = topostats_object["grain_masks"]["below"]
+        else:
+            raise ValueError(
+                "TopoStats object dictionary does not contain an 'image_flattened'. \
+                 TopoStats objects must be saved with a flattened image."
+            )
 
 
 def save_pkl(outfile: Path, to_pkl: dict) -> None:
