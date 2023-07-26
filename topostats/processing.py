@@ -323,6 +323,8 @@ def process_scan(
                             plotting_config["plot_dict"][plot_name]["mask_cmap"] = "green_black"
                             if plot_name == "visual":
                                 plotting_config["plot_dict"]["visual"]["mask_cmap"] = "blu_purp"
+                            if plot_name == "ordered_trace":
+                                plotting_config["plot_dict"]["ordered_trace"]["mask_cmap"] = "viridis"
                             Images(
                                 filtered_image.images["gaussian_filtered"],
                                 masked_array=data2s[i],
@@ -384,23 +386,24 @@ def process_scan(
                                         output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg",
                                         format="svg",
                                     )
+                        LOGGER.info(f"[{filename}] : Finished Plotting DNA Tracing Images")
 
-                            """
-                            # plot the molecules on their own
-                            print("LEN: ",len(nodes.mol_coords))
-                            if len(nodes.mol_coords[mol_no]) > 1:
-                                for inner_mol_no, coords in enumerate(nodes.mol_coords[mol_no]):
-                                    single_mol = np.zeros_like(dna_traces[direction].full_image_data)
-                                    single_mol[coords[:, 0], coords[:, 1]] = 1
-                                    single_mol = binary_dilation(single_mol)
-                                    Images(
-                                        dna_traces[direction].full_image_data,
-                                        masked_array=single_mol,
-                                        output_dir=output_dir,
-                                        filename=f"Grain_{mol_no}_separated_mol_{inner_mol_no}",
-                                        zrange=[0, 3.5e-9],
-                                        **plotting_config["plot_dict"]["single_mol"],
-                                    ).save_figure_black(background=grains.directions[direction]["removed_small_objects"])
+                        """
+                        # plot the molecules on their own
+                        print("LEN: ",len(nodes.mol_coords))
+                        if len(nodes.mol_coords[mol_no]) > 1:
+                            for inner_mol_no, coords in enumerate(nodes.mol_coords[mol_no]):
+                                single_mol = np.zeros_like(dna_traces[direction].full_image_data)
+                                single_mol[coords[:, 0], coords[:, 1]] = 1
+                                single_mol = binary_dilation(single_mol)
+                                Images(
+                                    dna_traces[direction].full_image_data,
+                                    masked_array=single_mol,
+                                    output_dir=output_dir,
+                                    filename=f"Grain_{mol_no}_separated_mol_{inner_mol_no}",
+                                    zrange=[0, 3.5e-9],
+                                    **plotting_config["plot_dict"]["single_mol"],
+                                ).save_figure_black(background=grains.directions[direction]["removed_small_objects"])
                         """
                         # ------- branch vector img -------
                         """
@@ -471,6 +474,8 @@ def process_scan(
         results["Image Name"] = filename
         results["Basename"] = image_path.parent
         node_stats = {"upper": None, "lower": None}
+
+    LOGGER.info(f"[{filename}] Finished Processing")
     return image_path, results, node_stats
 
 
