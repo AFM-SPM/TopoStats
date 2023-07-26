@@ -29,7 +29,7 @@ from topostats.statistics import image_statistics
 LOGGER = setup_logger(LOGGER_NAME)
 
 
-def filter_wrapper(
+def run_filters(
     unprocessed_image: np.ndarray,
     pixel_to_nm_scaling: float,
     filename: str,
@@ -38,7 +38,7 @@ def filter_wrapper(
     filter_config: dict,
     plotting_config: dict,
 ) -> np.ndarray:
-    """Wrapper for running image flattening and plotting the results.
+    """Function for running image flattening and plotting the results.
 
     Instantiates a Filters object and flattens the image then optionally
     plots the results, returning the flattened image.
@@ -72,13 +72,13 @@ def filter_wrapper(
         filter_config.pop("run")
         LOGGER.info(f"[{filename}] Image dimensions: {unprocessed_image.shape}")
         LOGGER.info(f"[{filename}] : *** Filtering ***")
-        filtered_image = Filters(
+        filters = Filters(
             image=unprocessed_image,
             filename=filename,
             pixel_to_nm_scaling=pixel_to_nm_scaling,
             **filter_config,
         )
-        filtered_image.filter_image()
+        filters.filter_image()
 
         # Optionally plot filter stage
         if plotting_config["run"]:
@@ -89,7 +89,7 @@ def filter_wrapper(
             for image, options in plotting_config["plot_dict"].items():
                 plotting_config["plot_dict"][image] = {**options, **plot_opts}
             # Generate plots
-            for plot_name, array in filtered_image.images.items():
+            for plot_name, array in filters.images.items():
                 if plot_name not in ["scan_raw"]:
                     if plot_name == "extracted_channel":
                         array = np.flipud(array.pixels)
@@ -104,19 +104,19 @@ def filter_wrapper(
         plot_name = "z_threshed"
         plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
         Images(
-            filtered_image.images["gaussian_filtered"],
+            filters.images["gaussian_filtered"],
             filename=filename,
             **plotting_config["plot_dict"][plot_name],
         ).plot_and_save()
         # Save the z_threshed image (aka "Height_Thresholded") numpy array
         save_array(
-            array=filtered_image.images["gaussian_filtered"],
+            array=filters.images["gaussian_filtered"],
             outpath=core_out_path,
             filename=filename,
             array_type="height_thresholded",
         )
 
-        return filtered_image.images["gaussian_filtered"]
+        return filters.images["gaussian_filtered"]
 
     # Otherwise, return None and warn that initial processing is disabled.
     LOGGER.error(
@@ -127,7 +127,7 @@ def filter_wrapper(
     return None
 
 
-def grains_wrapper(
+def run_grains(
     image: np.ndarray,
     pixel_to_nm_scaling: float,
     filename: str,
@@ -136,7 +136,7 @@ def grains_wrapper(
     plotting_config: dict,
     grains_config: dict,
 ):
-    """Wrapper for running grain finding and plotting the results.
+    """Function for running grain finding and plotting the results.
 
     Instantiates a Grains object and runs grain finding, then optionally
     plots the results, returning the grain masks in a dictionary.
@@ -241,7 +241,7 @@ def grains_wrapper(
     return None
 
 
-def grainstats_wrapper(
+def run_grainstats(
     image: np.ndarray,
     pixel_to_nm_scaling: float,
     grain_masks: dict,
@@ -250,7 +250,7 @@ def grainstats_wrapper(
     plotting_config: dict,
     grain_out_path: Path,
 ):
-    """Wrapper for calculating grain statistics and optionally plotting the results.
+    """Function for calculating grain statistics and optionally plotting the results.
 
     Instantiates a GrainStats object and calculates grain statsistics for supplied
     grain masks, then optionally plots the results and returns a dataframe of
@@ -292,7 +292,7 @@ def grainstats_wrapper(
                 for key, value in plotting_config["plot_dict"].items()
                 if key in ["grain_image", "grain_mask", "grain_mask_image"]
             }
-            grainstats = {}
+            grainstats_dict = {}
             # There are two layers to process those above the given threshold and those below
             for direction, _ in grain_masks.items():
                 # Check if there are grains
@@ -300,9 +300,9 @@ def grainstats_wrapper(
                     LOGGER.warning(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping grainstats for {direction}."
                     )
-                    grainstats[direction] = create_empty_dataframe()
+                    grainstats_dict[direction] = create_empty_dataframe()
                 else:
-                    grainstats[direction], grains_plot_data = GrainStats(
+                    grainstats_dict[direction], grains_plot_data = GrainStats(
                         data=image,
                         labelled_data=grain_masks[direction],
                         pixel_to_nanometre_scaling=pixel_to_nm_scaling,
@@ -312,7 +312,7 @@ def grainstats_wrapper(
                         plot_opts=grain_plot_dict,
                         **grainstats_config,
                     ).calculate_stats()
-                    grainstats[direction]["threshold"] = direction
+                    grainstats_dict[direction]["threshold"] = direction
 
                     # Plot grains if required
                     if plotting_config["image_set"] == "all":
@@ -331,12 +331,12 @@ def grainstats_wrapper(
             # Create results dataframe from above and below results
             # Appease pylint and ensure that grainstats_df is always created
             grainstats_df = create_empty_dataframe()
-            if "above" in grainstats and "below" in grainstats:
-                grainstats_df = pd.concat([grainstats["below"], grainstats["above"]])
-            elif "above" in grainstats:
-                grainstats_df = grainstats["above"]
-            elif "below" in grainstats:
-                grainstats_df = grainstats["below"]
+            if "above" in grainstats_dict and "below" in grainstats_dict:
+                grainstats_df = pd.concat([grainstats_dict["below"], grainstats_dict["above"]])
+            elif "above" in grainstats_dict:
+                grainstats_df = grainstats_dict["above"]
+            elif "below" in grainstats_dict:
+                grainstats_df = grainstats_dict["below"]
             else:
                 raise ValueError(
                     "grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible."
@@ -354,7 +354,7 @@ def grainstats_wrapper(
         return create_empty_dataframe()
 
 
-def dnatracing_wrapper(
+def run_dnatracing(
     image: np.ndarray,
     grain_masks: dict,
     pixel_to_nm_scaling: float,
@@ -366,7 +366,7 @@ def dnatracing_wrapper(
     plotting_config: dict,
     results_df: pd.DataFrame = None,
 ):
-    """Wrapper for calculating dna traces.
+    """Function for calculating dna traces.
 
     Runs dna tracing for the grain masks supplied, adds resulting statistics to
     the supplied grain statsistics DataFrame and plots the molecule traces.
@@ -574,7 +574,7 @@ def process_scan(
     )
 
     # Flatten Image
-    image_flattened = filter_wrapper(
+    image_flattened = run_filters(
         unprocessed_image=topostats_object["image_original"],
         pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
         filename=topostats_object["filename"],
@@ -589,7 +589,7 @@ def process_scan(
     )
 
     # Find Grains :
-    grain_masks = grains_wrapper(
+    grain_masks = run_grains(
         image=topostats_object["image_flattened"],
         pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
         filename=topostats_object["filename"],
@@ -604,7 +604,7 @@ def process_scan(
 
     if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
         # Grainstats :
-        results_df = grainstats_wrapper(
+        results_df = run_grainstats(
             image=topostats_object["image_flattened"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
@@ -615,7 +615,7 @@ def process_scan(
         )
 
         # DNAtracing
-        results_df = dnatracing_wrapper(
+        results_df = run_dnatracing(
             image=topostats_object["image_flattened"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
