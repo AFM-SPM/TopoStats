@@ -34,8 +34,8 @@ colname2label = {
     "aspectratio": "Aspect Ratio",
     "grain_curvature1": "Smaller Curvature",
     "grain_curvature2": "Larger Curvature",
-    "grain_ellipse_major": "Ellipse Major Axis Length / %s",
-    "grain_ellipse_minor": "Ellipse Minor Axis Length / %s",
+    "grain_ellipse_major": "Ellipse Major Axis Half Length / %s",
+    "grain_ellipse_minor": "Ellipse Minor Axis Half Length / %s",
     "grain_half_height_area": "Area Above Half Height / $\mathregular{%s^2}$",
     "grain_maximum": "Maximum Height / %s",
     "grain_mean": "Mean Height / %s",
@@ -45,9 +45,9 @@ colname2label = {
     "grain_mean_radius": "Mean Radius / %s",
     "grain_pixel_area": "Area / Pixels",
     "grain_proj_area": "Area / $\mathregular{%s^2}$",
-    "grain_min_volume": "Minimum Volume / $\mathregular{%s^3}$",
-    "grain_zero_volume": "Zero Volume / $\mathregular{%s^3}$",
-    "grain_laplace_volume": "Laplacian Volume / $\mathregular{%s^3}$",
+    "grain_min_volume": "Grain Minimum Basis Volume / $\mathregular{%s^3}$",
+    "grain_zero_volume": "Zero Basis Volume / $\mathregular{%s^3}$",
+    "grain_laplace_volume": "Laplacian Background Basis Volume / $\mathregular{%s^3}$",
     "end_to_end_distance": "End to End Distance / nm",
     "contour_lengths": "Contour Lengths / nm",
     "raidus_min": "Minimum Radius / nm",
@@ -442,11 +442,10 @@ def plotdist2var(
     fig, ax = plt.subplots(figsize=(15, 12))
     sns.distplot(dfnew[plotarg], ax=ax, bins=bins, color=c1)
     sns.distplot(dfnew2[plotarg2], ax=ax, bins=bins, color=c2)
-
     # Label plot and save figure
     plt.xlim(xmin, xmax)
-    plt.xlabel(plotname)
-    # plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
+    # plt.xlabel(plotname)
+    plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.ylabel("Probability Density", alpha=1)
     plt.ticklabel_format(axis="both", style="sci", scilimits=(-3, 3))
     ax.tick_params(direction="out", bottom=True, left=True)
@@ -588,13 +587,13 @@ if __name__ == "__main__":
     path = plotting_config["file"]
     df = importfromfile(path)
     # df = df[df['Basename'] == 'NiCl2']
-    df = df[df['Basename'] == 'PLO']
+    # df = df[df['Basename'] == 'PLO']
     # df = df[df['bending_angle'] != 0]
     path2 = plotting_config["file2"]
     path3 = plotting_config["file3"]
     if path2 is not None:
         df2 = importfromfile(path2)
-        df2 = df2[df2['Basename'] == 'PLO']
+        # df2 = df2[df2['Basename'] == 'PLO']
         # df2 = df2[df2['bending_angle'] != 0]
     else:
         df2 = None
@@ -640,7 +639,7 @@ if __name__ == "__main__":
             plotdist(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
         elif plottype == "dist2":
             plotdist2var(df, parameter, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1=label1,
-                         label2=label2, bins=np.linspace(xmin, xmax, bins), plotname=plotname)
+                         label2=label2, bins=np.linspace(start, end, bins), plotname=plotname)
         elif plottype == "joint":
             plotjoint(df, parameter, nm=nm)
     # Filter data based on the need of specific projects
