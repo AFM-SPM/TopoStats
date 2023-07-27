@@ -597,7 +597,7 @@ def minicircle_grain_labelled_all(minicircle_grain_remove_noise: np.array) -> Gr
 @pytest.fixture
 def minicircle_minimum_grain_size(minicircle_grain_labelled_all: np.array) -> float:
     """Minimum grain size."""
-    print(f"minicircle grain labelled all sum: {np.sum(minicircle_grain_labelled_all)}")
+    print(f"minicircle grain labelled all sum: {np.sum(minicircle_grain_labelled_all.directions['above']['labelled_regions_01'])}")
     minicircle_grain_labelled_all.calc_minimum_grain_size(
         minicircle_grain_labelled_all.directions["above"]["labelled_regions_01"]
     )
