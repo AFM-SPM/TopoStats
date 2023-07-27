@@ -141,11 +141,13 @@ class Grains:
         if len(grain_areas > 0):
             # Exclude small objects less than a given threshold first
             print(f"grain areas length before thresholding: {len(grain_areas)}")
+            print(f"grain areas before thresholding: {grain_areas}")
             print(f"threshold otsu: {threshold(grain_areas, method='otsu', otsu_threshold_multiplier=1.0)}")
             grain_areas = grain_areas[
                 grain_areas >= threshold(grain_areas, method="otsu", otsu_threshold_multiplier=1.0)
             ]
             print(f"grain areas length after thresholding: {len(grain_areas)}")
+            print(f"grain areas after thresholding: {grain_areas}")
             print(f"median grain area: {np.median(grain_areas)}")
             print(f"np.quantile(grain_areas, 0.75): {np.quantile(grain_areas, 0.75)}")
             print(f"np.quantile(grain_areas, 0.25): {np.quantile(grain_areas, 0.25)}")
