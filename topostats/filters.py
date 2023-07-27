@@ -1,11 +1,14 @@
 """Contains filter functions that take a 2D array representing an image as an input, as well as necessary parameters,
 and return a 2D array of the same size representing the filtered image."""
 import logging
+from typing import Union
 
 # noqa: disable=no-name-in-module
 # pylint: disable=no-name-in-module
 from skimage.filters import gaussian
+from scipy.optimize import curve_fit
 import numpy as np
+
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import get_thresholds, get_mask
@@ -39,7 +42,6 @@ class Filters:
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
         remove_scars: dict = None,
-        quiet: bool = False,
     ):
         """Initialise the class.
 
@@ -53,16 +55,16 @@ class Filters:
             Value for converting pixels to nanometers.
         row_alignment_quantile: float
             Quantile (0.0 to 1.0) to be used to determine the average background for the image.
-            Lower values may improve flattening of large features.
+            below values may improve flattening of large features.
         threshold_method: str
             Method for thresholding, default 'otsu', valid options 'otsu', 'std_dev' and 'absolute'.
         otsu_threshold_multiplier: float
             Value for scaling the derived Otsu threshold (optional).
         threshold_std_dev: dict
-            If using the 'std_dev' threshold method. Dictionary that contains upper and lower
+            If using the 'std_dev' threshold method. Dictionary that contains above and below
             threshold values for the number of standard deviations from the mean to threshold.
         threshold_absolute: dict
-            If using the 'absolute' threshold method. Dictionary that contains upper and lower
+            If using the 'absolute' threshold method. Dictionary that contains above and below
             absolute threshold values for flattening.
         remove_scars: dict
             Dictionary containing configuration parameters for the scar removal function.
@@ -101,9 +103,6 @@ class Filters:
             "y_gradient": None,
             "threshold": None,
         }
-
-        if quiet:
-            LOGGER.setLevel("ERROR")
 
     def median_flatten(
         self, image: np.ndarray, mask: np.ndarray = None, row_alignment_quantile: float = 0.5
@@ -212,7 +211,79 @@ processed, please refer to <url to page where we document common problems> for m
 
         return image
 
-    def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None):
+    def remove_nonlinear_polynomial(self, image: np.ndarray, mask: Union[np.ndarray, None] = None) -> np.ndarray:
+        # Script has a lot of locals but I feel this is necessary for readability?
+        # pylint: disable=too-many-locals
+        """Fit and remove a "saddle" shaped nonlinear polynomial trend of the form a + b * x * y - c * x - d * y
+        from the supplied image. AFM images sometimes contain a "saddle" shape trend to their background,
+        and so to remove them we fit a nonlinear polynomial of x and y and then subtract the fit from the image.
+        If these trends are not removed, then the image will not flatten properly and will leave opposite diagonal
+        corners raised or lowered.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            2D numpy heightmap array of floats with a polynomial trend to remmove.
+        mask: np.ndarray
+            2D numpy boolean array used to mask out any points in the image that are deemed not to be part of the
+            heightmap's background data. This argument is optional.
+
+        Returns
+        -------
+        np.ndarray
+            Copy of the supplied image with the polynomial trend subtracted.
+        """
+
+        # Define the polynomial function to fit to the image
+        def model_func(x, y, a, b, c, d):
+            return a + b * x * y - c * x - d * y
+
+        image = image.copy()
+        if mask is not None:
+            read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
+        else:
+            read_matrix = image
+
+        # Construct a meshgrid of x and y points for fitting to the z heights
+        xdata, ydata = np.meshgrid(np.arange(read_matrix.shape[1]), np.arange(read_matrix.shape[0]))
+        zdata = read_matrix
+
+        # Only use data that is not nan. Nans may be in the image from the
+        # masked array. Curve fitting cannot handle nans.
+        nan_mask = ~np.isnan(zdata)
+        xdata_nans_removed = xdata[nan_mask]
+        ydata_nans_removed = ydata[nan_mask]
+        zdata_nans_removed = zdata[nan_mask]
+
+        # Convert the z data to a 1D array
+        zdata = zdata.ravel()
+        zdata_nans_removed = zdata_nans_removed.ravel()
+
+        # Stack the x, y meshgrid data after converting them to 1D
+        xy_data_stacked = np.vstack((xdata_nans_removed.ravel(), ydata_nans_removed.ravel()))
+
+        # Fit the model to the data
+        # Note: pylint is flagging the tuple unpacking regarding an internal line of scipy.optimize._minpack_py : 910.
+        # This isn't actually an issue though as the extended tuple output is only provided if the 'full_output' flag is
+        # provided as a kwarg in curve_fit.
+        popt, _pcov = curve_fit(  # pylint: disable=unbalanced-tuple-unpacking
+            lambda x, a, b, c, d: model_func(x[0], x[1], a, b, c, d), xy_data_stacked, zdata_nans_removed
+        )
+
+        # Unpack the optimised parameters
+        a, b, c, d = popt
+        LOGGER.info(
+            f"[{self.filename}] : Nonlinear polynomial removal optimal params: const: {a} xy: {b} x: {c} y: {d}"
+        )
+
+        # Use the optimised parameters to contstruct a prediction of the underlying surface
+        z_pred = model_func(xdata, ydata, a, b, c, d)
+        # Subtract the fitted nonlinear polynomial from the image
+        image -= z_pred
+
+        return image
+
+    def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """
         Removes the quadratic bowing that can be seen in some large-scale AFM images. It uses a simple quadratic fit
         on the medians of the columns of the image and then subtracts the calculated quadratic from the columns.
@@ -334,13 +405,16 @@ processed, please refer to <url to page where we document common problems> for m
         )
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_median_flatten"], mask=None)
         self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None)
+        self.images["initial_nonlinear_polynomial_removal"] = self.remove_nonlinear_polynomial(
+            self.images["initial_quadratic_removal"], mask=None
+        )
 
         # Remove scars
         run_scar_removal = self.remove_scars_config.pop("run")
         if run_scar_removal:
             LOGGER.info(f"[{self.filename}] : Initial scar removal")
             self.images["initial_scar_removal"], _scar_mask = scars.remove_scars(
-                self.images["initial_quadratic_removal"], filename=self.filename, **self.remove_scars_config
+                self.images["initial_nonlinear_polynomial_removal"], filename=self.filename, **self.remove_scars_config
             )
         else:
             LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config")
@@ -367,11 +441,14 @@ processed, please refer to <url to page where we document common problems> for m
         self.images["masked_quadratic_removal"] = self.remove_quadratic(
             self.images["masked_tilt_removal"], self.images["mask"]
         )
+        self.images["masked_nonlinear_polynomial_removal"] = self.remove_nonlinear_polynomial(
+            self.images["masked_quadratic_removal"], self.images["mask"]
+        )
         # Remove scars
         if run_scar_removal:
             LOGGER.info(f"[{self.filename}] : Secondary scar removal")
             self.images["secondary_scar_removal"], scar_mask = scars.remove_scars(
-                self.images["masked_quadratic_removal"], filename=self.filename, **self.remove_scars_config
+                self.images["masked_nonlinear_polynomial_removal"], filename=self.filename, **self.remove_scars_config
             )
             self.images["scar_mask"] = scar_mask
         else:

@@ -14,24 +14,16 @@ listed below to find out more.
     usage
     configuration
     contributing
+    notebooks
     workflow
     data_dictionary
     related_software
-    faq
     glossary
+    faq
 
 .. toctree::
    :maxdepth: 1
    :caption: API
-
-   topostats.filters
-   topostats.grains
-   topostats.grainstats
-   topostats.io
-   topostats.plottingfuncs
-   topostats.run_topostats
-   topostats.tracing
-   topostats.utils
 
 Indices and tables
 ==================

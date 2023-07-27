@@ -1,24 +1,24 @@
-                 contour_lengths  circular  end_to_end_distance image basename
-molecule_number                                                               
-0                   2.256071e-07     False         3.501502e-08   tmp        .
-1                   4.582463e-08      True         0.000000e+00   tmp        .
-2                   1.277585e-07     False         2.209248e-08   tmp        .
-3                   9.458398e-08      True         0.000000e+00   tmp        .
-4                   9.722231e-08     False         2.590102e-08   tmp        .
-5                   9.579671e-08      True         0.000000e+00   tmp        .
-6                   9.105686e-08     False         2.255165e-08   tmp        .
-7                   9.889547e-08      True         0.000000e+00   tmp        .
-8                   1.076075e-07     False         2.304406e-08   tmp        .
-9                   5.692076e-08      True         0.000000e+00   tmp        .
-10                  7.649301e-08      True         0.000000e+00   tmp        .
-11                  1.040888e-07     False         2.739824e-08   tmp        .
-12                  8.293111e-08      True         0.000000e+00   tmp        .
-13                  1.016983e-07      True         0.000000e+00   tmp        .
-14                  1.001398e-07      True         0.000000e+00   tmp        .
-15                  6.457170e-08      True         0.000000e+00   tmp        .
-16                  9.529778e-08     False         2.745163e-08   tmp        .
-17                  1.070051e-07      True         0.000000e+00   tmp        .
-18                  7.138138e-08      True         0.000000e+00   tmp        .
-19                  1.016008e-07      True         0.000000e+00   tmp        .
-20                  1.079293e-07     False         1.635441e-08   tmp        .
-21                  9.340060e-08     False         2.006041e-08   tmp        .
+                 contour_length  circular  end_to_end_distance image
+molecule_number                                                      
+0                  2.256071e-07     False         3.501502e-08   tmp
+1                  4.582463e-08      True         0.000000e+00   tmp
+2                  1.277585e-07     False         2.209248e-08   tmp
+3                  9.458398e-08      True         0.000000e+00   tmp
+4                  9.722231e-08     False         2.590102e-08   tmp
+5                  9.579671e-08      True         0.000000e+00   tmp
+6                  9.105686e-08     False         2.255165e-08   tmp
+7                  9.889547e-08      True         0.000000e+00   tmp
+8                  1.076075e-07     False         2.304406e-08   tmp
+9                  5.692076e-08      True         0.000000e+00   tmp
+10                 7.649301e-08      True         0.000000e+00   tmp
+11                 1.040888e-07     False         2.739824e-08   tmp
+12                 8.293111e-08      True         0.000000e+00   tmp
+13                 1.016983e-07      True         0.000000e+00   tmp
+14                 1.001398e-07      True         0.000000e+00   tmp
+15                 6.457170e-08      True         0.000000e+00   tmp
+16                 9.529778e-08     False         2.745163e-08   tmp
+17                 1.070051e-07      True         0.000000e+00   tmp
+18                 7.138138e-08      True         0.000000e+00   tmp
+19                 1.016008e-07      True         0.000000e+00   tmp
+20                 1.079293e-07     False         1.635441e-08   tm
+21                 9.340060e-08     False         2.006041e-08   tm

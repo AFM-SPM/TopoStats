@@ -3,10 +3,10 @@ name: Sphinx docs to gh-pages
 
 on:
   push:
-    tags:
-      - v*
-
-# workflow_dispatch:        # Un comment line if you also want to trigger action manually
+    # Uncomment if only tagged releases are to have documentation built
+    # tags:
+    #   - v*
+  workflow_dispatch:        # Uncomment line if you also want to trigger action manually
 
 jobs:
   sphinx_docs_to_gh-pages:
@@ -24,7 +24,8 @@ jobs:
         run: |
           pip3 install .[docs]
       - name: Running Sphinx to gh-pages Action
-        if: startsWith(github.ref, 'refs/tags')
+        # Uncomment if only tagged releases are to have documentation built
+        # if: startsWith(github.ref, 'refs/tags')
         uses: ns-rse/action-sphinx-docs-to-gh-pages@main
         with:
           # When testing set this branch to your branch, when working switch to main. It WILL fail if not
@@ -34,3 +35,5 @@ jobs:
           sphinxapiexclude: '../*setup* ../*tests* ../*.ipynb ../demo.py ../make_baseline.py ../jupyter_notebook_config.py ../demo_ftrs.py'
           sphinxapiopts: '--separate -o . ../'
           sphinxopts: ''
+          multiversion: true
+          multiversionopts: ''

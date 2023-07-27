@@ -51,43 +51,10 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ".jpk",
             ".ibw",
             ".gwy",
-            error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw' or '.asd'.",
+            ".topostats",
+            error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw', '.gwy', '.topostats', or '.asd'.",
         ),
-        "loading": {
-            "channel": Or(
-                "ZSensor",
-                "",
-                "Stiffness",
-                "LogStiffness",
-                "Adhesion",
-                "Deformation",
-                "Dissipation",
-                "Height Sensor",
-                "Height",  # end of spm channels
-                "HeightTracee",
-                "HeightRetrace",
-                "ZSensorTrace",
-                "ZSensorRetrace",
-                "UserIn0Trace",
-                "UserIn0Retrace",
-                "UserIn1Trace",
-                "UserIn1Retrace",  # end of ibw channels
-                "topography",
-                "phase",  # end of asd channels
-                "height_retrace",
-                "measuredHeight_retrace",
-                "amplitude_retrace",
-                "phase_retrace",
-                "error_retrace",
-                "height_trace",
-                "measuredHeight_trace",
-                "amplitude_trace",
-                "phase_trace",
-                "error_trace",  # end of jpk channels
-                error="Invalid value in config file for 'channel', all possible"
-                "image channels are seen in the above error message.",
-            )
-        },
+        "loading": {"channel": str},
         "filter": {
             "run": Or(
                 True,
@@ -106,22 +73,22 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
-                "lower": lambda n: n > 0,
-                "upper": lambda n: n > 0,
+                "below": lambda n: n > 0,
+                "above": lambda n: n > 0,
             },
             "threshold_absolute": {
-                "lower": Or(
+                "below": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for filter.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
-                "upper": Or(
+                "above": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for filter.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
             },
@@ -153,42 +120,42 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
-                "lower": lambda n: n > 0,
-                "upper": lambda n: n > 0,
+                "below": lambda n: n > 0,
+                "above": lambda n: n > 0,
             },
             "threshold_absolute": {
-                "lower": Or(
+                "below": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for grains.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
-                "upper": Or(
+                "above": Or(
                     int,
                     float,
                     error=(
-                        "Invalid value in config for grains.threshold.absolute.lower " "should be type int or float"
+                        "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
                     ),
                 ),
             },
             "absolute_area_threshold": {
-                "upper": [
+                "above": [
                     Or(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.absolute_area_threshold.upper', valid values "
+                            "Invalid value in config for 'grains.absolute_area_threshold.above', valid values "
                             "are int or null"
                         ),
                     )
                 ],
-                "lower": [
+                "below": [
                     Or(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.absolute_area_threshold.lower', valid values "
+                            "Invalid value in config for 'grains.absolute_area_threshold.below', valid values "
                             "are int or null"
                         ),
                     )
@@ -196,9 +163,14 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             },
             "direction": Or(
                 "both",
-                "lower",
-                "upper",
-                error="Invalid direction for grains.direction valid values are 'both', 'lower' or 'upper",
+                "below",
+                "above",
+                error="Invalid direction for grains.direction valid values are 'both', 'below' or 'above",
+            ),
+            "remove_edge_intersecting_grains": Or(
+                True,
+                False,
+                error="Invalid value in config for 'grains.remove_edge_intersecting_grains', valid values are 'True' or 'False'",
             ),
         },
         "grainstats": {
@@ -220,8 +192,19 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "run": Or(
                 True,
                 False,
-                error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
-            )
+                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+            ),
+            "min_skeleton_size": lambda n: n > 0.0,
+            "skeletonisation_method": Or(
+                "zhang",
+                "lee",
+                "thin",
+                "topostats",
+                error="Invalid value in config for 'dnatracing.skeletonisation_method',"
+                "valid values are 'zhang' or 'lee', 'thin' or 'topostats'",
+            ),
+            "pad_width": lambda n: n > 0.0,
+            # "cores": lambda n: n > 0.0,
         },
         "plotting": {
             "run": Or(
@@ -234,6 +217,27 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "all",
                 "core",
                 error="Invalid value in config for 'plotting.image_set', valid values " "are 'all' or 'core'",
+            ),
+            "pixel_interpolation": Or(
+                None,
+                "none",
+                "bessel",
+                "bicubic",
+                "bilinear",
+                "catrom",
+                "gaussian",
+                "hamming",
+                "hanning",
+                "hermite",
+                "kaiser",
+                "lanczos",
+                "mitchell",
+                "nearest",
+                "quadric",
+                "sinc",
+                "spline16",
+                "spline36",
+                error="Invalid interpolation value. See https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html for options.",
             ),
             "zrange": list,
             "colorbar": Or(
@@ -262,6 +266,9 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 ),
             ),
             "histogram_bins": lambda n: n > 0,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "summary_stats": {
             "run": Or(
@@ -359,6 +366,19 @@ PLOTTING_SCHEMA = Schema(
             ),
             "core_set": bool,
         },
+        "initial_nonlinear_polynomial_removal": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'initial_nonlinear_polynomial_removal.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
         "mask": {
             "filename": str,
             "title": str,
@@ -403,6 +423,19 @@ PLOTTING_SCHEMA = Schema(
                 "non-binary",
                 error=(
                     "Invalid value in config 'masked_quadratic_removal.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
+        "masked_nonlinear_polynomial_removal": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'masked_nonlinear_polynomial_removal.image_type', valid values "
                     "are 'binary' or 'non-binary'"
                 ),
             ),
@@ -594,6 +627,18 @@ PLOTTING_SCHEMA = Schema(
             ),
             "core_set": bool,
         },
+        "all_molecule_traces": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'all_molecule_traces.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
         "grain_image": {
             "image_type": Or(
                 "binary",
@@ -623,11 +668,23 @@ PLOTTING_SCHEMA = Schema(
             ),
             "core_set": bool,
         },
+        "single_molecule_trace": {
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'single_molecule_trace.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+        },
     }
 )
 
 SUMMARY_SCHEMA = Schema(
     {
+        "base_dir": Path,
         "output_dir": Path,
         "csv_file": str,
         "file_ext": Or(
@@ -692,7 +749,7 @@ SUMMARY_SCHEMA = Schema(
             Optional("area_cartesian_bbox"),
             Optional("aspect_ratio"),
             Optional("bending_angle"),
-            Optional("contour_lengths"),
+            Optional("contour_length"),
             Optional("end_to_end_distance"),
             Optional("height_max"),
             Optional("height_mean"),

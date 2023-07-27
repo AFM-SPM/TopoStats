@@ -1,18 +1,17 @@
-"""Plotting and summary of Statistics"""
-import argparse as arg
+"""Plotting and summary of TopoStats output statistics."""
 from collections import defaultdict
+
 import importlib.resources as pkg_resources
 import logging
 from pathlib import Path
 import sys
 from typing import Union, Dict
 import yaml
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-from topostats.io import read_yaml, save_pkl, write_yaml
+from topostats.io import read_yaml, save_pkl, write_yaml, convert_basename_to_relative_paths
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import update_config
 
@@ -24,42 +23,13 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-locals
 
 
-def create_parser() -> arg.ArgumentParser:
-    """Create a parser for reading options."""
-    parser = arg.ArgumentParser(
-        description="Summarise and plot histograms, kernel density estimates and scatter plots of TopoStats"
-        "grain and DNA Tracing statistics."
-    )
-    parser.add_argument(
-        "-c",
-        "--config_file",
-        dest="config_file",
-        required=False,
-        help="Path to a YAML configuration file.",
-    )
-    parser.add_argument(
-        "-p",
-        "--var_to_label",
-        dest="var_to_label",
-        required=False,
-        help="Path to a YAML plotting dictionary that maps variable names to labels.",
-    )
-    parser.add_argument(
-        "--create-config-file",
-        dest="create_config_file",
-        type=str,
-        required=False,
-        help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
-    )
-    return parser
-
-
 class TopoSum:
     """Class for summarising grain statistics in plots."""
 
     def __init__(
         self,
         df: Union[pd.DataFrame] = None,
+        base_dir: Union[str, Path] = None,
         csv_file: Union[str, Path] = None,
         stat_to_sum: str = None,
         molecule_id: str = "molecule_number",
@@ -75,6 +45,7 @@ class TopoSum:
         file_ext: str = "png",
         output_dir: Union[str, Path] = ".",
         var_to_label: dict = None,
+        hue: str = "basename",
     ) -> None:
         """Initialise the class.
 
@@ -82,6 +53,8 @@ class TopoSum:
         ==========
         df: Union[pd.DataFrame]
             Pandas data frame of data to be summarised.
+        base_dir: Union[str, Path]
+            Base directory from which all paths are relative to.
         csv_file: Union[str, Path]
             CSV file of data to be summarised.
         stat_to_sum: str
@@ -112,11 +85,14 @@ class TopoSum:
             Location to save plots to.
         var_to_label: dict
             Variable to label dictionary for automatically adding titles to plots.
+        hue: str
+            Dataframe column to group plots by.
 
         Returns
         =======
         """
         self.df = df if df is not None else pd.read_csv(csv_file)
+        self.base_dir = base_dir
         self.stat_to_sum = stat_to_sum
         self.molecule_id = molecule_id
         self.image_id = image_id
@@ -132,10 +108,14 @@ class TopoSum:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.var_to_label = var_to_label
+        self.hue = hue
         self.melted_data = None
         self.summary_data = None
         self.label = None
-        self.sns_melt_data()
+
+        # melt the data given in the init method
+        self.melted_data = self.melt_data(self.df, stat_to_summarize=self.stat_to_sum, var_to_label=self.var_to_label)
+        convert_basename_to_relative_paths(df=self.melted_data)
         self.set_palette()
         self._set_label(self.stat_to_sum)
 
@@ -165,10 +145,10 @@ class TopoSum:
         fig, ax = self._setup_figure()
         if self.hist and not self.kde:
             outfile = self._outfile("hist")
-            sns.histplot(data=self.melted_data, x="value", bins=self.bins, stat=self.stat, hue=self.image_id)
+            sns.histplot(data=self.melted_data, x="value", bins=self.bins, stat=self.stat, hue=self.hue)
         if self.kde and not self.hist:
             outfile = self._outfile("kde")
-            sns.kdeplot(data=self.melted_data, x="value", hue=self.image_id)
+            sns.kdeplot(data=self.melted_data, x="value", hue=self.hue)
         if self.hist and self.kde:
             outfile = self._outfile("hist_kde")
             sns.histplot(
@@ -176,7 +156,7 @@ class TopoSum:
                 x="value",
                 bins=self.bins,
                 stat=self.stat,
-                hue=self.image_id,
+                hue=self.hue,
                 kde=True,
                 kde_kws={"cut": self.cut},
             )
@@ -189,9 +169,9 @@ class TopoSum:
     def sns_violinplot(self) -> None:
         """Violin plot of data."""
         fig, ax = self._setup_figure()
-        sns.violinplot(data=self.melted_data, x=self.image_id, y="value", hue=self.image_id, alpha=self.alpha)
+        sns.violinplot(data=self.melted_data, x=self.hue, y="value", hue=self.hue, alpha=self.alpha)
         plt.title(self.label)
-        plt.xlabel("Image")
+        plt.xlabel("directory")
         plt.ylabel(self.label)
         outfile = self._outfile("violin")
         self.save_plot(outfile)
@@ -206,15 +186,14 @@ class TopoSum:
     #     self.save_plot(outfile)
     #     return fig, ax
 
-    def sns_melt_data(self) -> pd.DataFrame:
+    @staticmethod
+    def melt_data(df: pd.DataFrame, stat_to_summarize: str, var_to_label: dict) -> pd.DataFrame:
         """Melt a dataframe into long format for plotting with Seaborn."""
-        self.melted_data = pd.melt(
-            self.df.reset_index(), id_vars=[self.molecule_id, self.image_id], value_vars=self.stat_to_sum
-        )
-        self.melted_data["variable"] = self.melted_data["variable"].map(self.var_to_label)
-        self.melted_data.rename({"image": "Image"}, axis=1, inplace=True)
-        self.image_id = "Image"
+        melted_data = pd.melt(df.reset_index(), id_vars=["molecule_number", "basename"], value_vars=stat_to_summarize)
+        melted_data["variable"] = melted_data["variable"].map(var_to_label)
         LOGGER.info("[plotting] Data has been melted to long format for plotting.")
+
+        return melted_data
 
     def set_xlim(self, percent: float = 0.1) -> None:
         """Set the range of the x-axis.
@@ -260,10 +239,6 @@ class TopoSum:
         self.label = self.var_to_label[var]
         LOGGER.debug(f"[plotting] self.label     : {self.label}")
 
-    def summarise_by_image(self):
-        """Summarise statistics by image."""
-        self.summary_data = self.df.groupby(["image", "threshold"]).describe()
-
 
 def toposum(config: dict) -> Dict:
     """Process plotting and summarisation of data.
@@ -283,6 +258,9 @@ def toposum(config: dict) -> Dict:
     """
     if "df" not in config.keys():
         config["df"] = pd.read_csv(config["csv_file"])
+    if config["df"].isna().values.all():
+        LOGGER.info("[plotting] No statistics in DataFrame. Exiting...")
+        return None
     violin = config.pop("violin")
     all_stats_to_sum = config.pop("stats_to_sum")
     pickle_plots = config.pop("pickle_plots")
@@ -309,11 +287,8 @@ def toposum(config: dict) -> Dict:
     return figures
 
 
-def main():
+def run_toposum(args=None):
     """Run Plotting"""
-
-    parser = create_parser()
-    args = parser.parse_args()
 
     if args.config_file is not None:
         config = read_yaml(args.config_file)
@@ -330,6 +305,8 @@ def main():
         plotting_yaml = pkg_resources.open_text(__package__, "var_to_label.yaml")
         config["var_to_label"] = yaml.safe_load(plotting_yaml.read())
         LOGGER.info("[plotting] Default variable to labels mapping loaded.")
+    if args.csv_file is not None:
+        config["csv_file"] = args.csv_file
 
     # Write sample configuration if asked to do so and exit
     if args.create_config_file:
@@ -346,10 +323,20 @@ def main():
             "https://afm-spm.github.io/TopoStats/configuration.html"
         )
         sys.exit()
+    if args.create_label_file:
+        write_yaml(
+            config["var_to_label"],
+            output_dir="./",
+            config_file=args.create_label_file,
+            header_message="Sample label file auto-generated",
+        )
+        LOGGER.info(f"A sample label file has been written to : ./{args.create_label_file}")
+        LOGGER.info(
+            "Please refer to the documentation on how to use the configuration file : \n\n"
+            "https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats\n"
+            "https://afm-spm.github.io/TopoStats/configuration.html"
+        )
+        sys.exit()
 
     # Plot statistics
     toposum(config)
-
-
-if __name__ == "__main__":
-    main()

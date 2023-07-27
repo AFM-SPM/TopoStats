@@ -9,7 +9,36 @@ from skimage import io
 
 from topostats.grains import Grains
 from topostats.io import LoadScans
-from topostats.plottingfuncs import Images
+from topostats.plottingfuncs import dilate_binary_image, Images
+
+
+DPI = 300.0
+RNG = np.random.default_rng(seed=1000)
+ARRAY = RNG.random((10, 10))
+MASK = RNG.uniform(low=0, high=1, size=ARRAY.shape) > 0.5
+
+
+@pytest.mark.parametrize(
+    "binary_image, dilation_iterations, expected",
+    [
+        (
+            np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+            1,
+            np.array([[0, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 1, 1, 1, 0], [0, 0, 1, 0, 0], [0, 0, 0, 0, 0]]),
+        ),
+        (
+            np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+            2,
+            np.array([[0, 0, 1, 0, 0], [0, 1, 1, 1, 0], [1, 1, 1, 1, 1], [0, 1, 1, 1, 0], [0, 0, 1, 0, 0]]),
+        ),
+    ],
+)
+def test_dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int, expected: np.ndarray) -> None:
+    """Test the dilate binary images function of plottingfuncs.py."""
+
+    result = dilate_binary_image(binary_image=binary_image, dilation_iterations=dilation_iterations)
+
+    np.testing.assert_array_equal(result, expected)
 
 
 @pytest.mark.parametrize(
@@ -150,7 +179,7 @@ def test_plot_and_save_bounding_box(
     """Test plotting bounding boxes"""
     plotting_config["image_type"] = "binary"
     fig, _ = Images(
-        data=minicircle_grain_coloured.directions["upper"]["coloured_regions"],
+        data=minicircle_grain_coloured.directions["above"]["coloured_regions"],
         output_dir=tmp_path,
         filename="15-coloured_regions",
         pixel_to_nm_scaling=minicircle_grain_coloured.pixel_to_nm_scaling,
@@ -198,19 +227,43 @@ def test_plot_and_save_non_square_bounding_box(
     return fig
 
 
-RNG = np.random.default_rng(seed=1000)
-array = RNG.random((10, 10))
-mask = RNG.uniform(low=0, high=1, size=array.shape) > 0.5
-
-
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
     """Test the plotting of a mask with a different colourmap (blu)."""
     plotting_config["mask_cmap"] = "blu"
     fig, _ = Images(
-        data=array,
+        data=ARRAY,
         output_dir=tmp_path,
         filename="colour.png",
+        masked_array=MASK,
+        **plotting_config,
+    ).plot_and_save()
+    return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/", savefig_kwargs={"dpi": DPI})
+def test_high_dpi(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmp_path: Path) -> None:
+    """Test plotting with high DPI."""
+    plotting_config["dpi"] = DPI
+    fig, _ = Images(
+        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
+        output_dir=tmp_path,
+        filename="high_dpi",
+        **plotting_config,
+    ).plot_and_save()
+    return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
+def test_mask_dilation(plotting_config: dict, tmp_path: Path) -> None:
+    """Test the plotting of a mask with a different colourmap (blu)."""
+    plotting_config["mask_cmap"] = "blu"
+    mask = np.zeros((1024, 1024))
+    mask[500, :] = 1
+    fig, _ = Images(
+        data=RNG.random((1024, 1024)),
+        output_dir=tmp_path,
+        filename="mask_dilation",
         masked_array=mask,
         **plotting_config,
     ).plot_and_save()

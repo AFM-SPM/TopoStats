@@ -81,7 +81,7 @@ class GrainStats:
         pixel_to_nanometre_scaling : float
             Floating point value that defines the scaling factor between nanometres and pixels.
         direction: str
-            Direction for which grains have been detected ("upper" or "lower").
+            Direction for which grains have been detected ("above" or "below").
         base_output_dir : Path
             Path to the folder that will store the grain stats output images and data.
         image_name : str
@@ -955,7 +955,8 @@ class GrainStats:
         Returns
         -------
         Float
-            The height of the triangle - ie the shortest distance between the top point and the line between the two base points.
+            The height of the triangle - ie the shortest distance between the top point and the line between the two
+        base points.
         """
 
         # Height of triangle = A/b = ||AB X AC|| / ||AB||

@@ -7,6 +7,7 @@ from matplotlib.patches import Rectangle, Patch
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
+from skimage.morphology import binary_dilation
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
@@ -24,6 +25,29 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=dangerous-default-value
 
 
+def dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int) -> np.ndarray:
+    """Dilate a supplied binary image a given number of times.
+
+    Parameters
+    ----------
+    binary_image: np.ndarray
+        Binary image to be dilated
+    dilation_iterations: int
+        Number of dilation iterations to be performed
+
+    Returns
+    -------
+    binary_image: np.ndarray
+        Dilated binary image
+    """
+
+    binary_image = binary_image.copy()
+    for _ in range(dilation_iterations):
+        binary_image = binary_dilation(binary_image)
+
+    return binary_image
+
+
 class Images:
     """Plots image arrays"""
 
@@ -38,7 +62,7 @@ class Images:
         image_type: str = "non-binary",
         image_set: str = "core",
         core_set: bool = False,
-        interpolation: str = "nearest",
+        pixel_interpolation: Union[str, None] = None,
         cmap: str = "nanoscope",
         mask_cmap: str = "jet_r",
         region_properties: dict = None,
@@ -74,8 +98,8 @@ class Images:
             The set of images to process - core or all.
         core_set : bool
             Flag to identify image as part of the core image set or not.
-        interpolation: str
-            Interpolation to use (default 'nearest').
+        pixel_interpolation: Union[str, None]
+            Interpolation to use (default: None).
         cmap : str
             Colour map to use (default 'nanoscope', 'afmhot' also available).
         mask_cmap : str
@@ -108,7 +132,7 @@ class Images:
         self.image_type = image_type
         self.image_set = image_set
         self.core_set = core_set
-        self.interpolation = interpolation
+        self.interpolation = pixel_interpolation
         self.cmap = Colormap(cmap).get_cmap()
         self.mask_cmap = Colormap(mask_cmap).get_cmap()
         self.region_properties = region_properties
@@ -174,7 +198,9 @@ class Images:
                         fig, ax = self.save_figure()
                     else:
                         self.save_array_figure()
-        LOGGER.info(f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}")
+        LOGGER.info(
+            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}" f".{self.save_format}"
+        )
         return fig, ax
 
     def save_figure(self):
@@ -201,6 +227,13 @@ class Images:
             )
             if isinstance(self.masked_array, np.ndarray):
                 self.masked_array[self.masked_array != 0] = 1
+                # If the image is too large for singles to be resolved in the mask, then dilate the mask proportionally
+                # to image size to enable clear viewing.
+                if np.max(self.masked_array.shape) > 500:
+                    dilation_strength = int(np.max(self.masked_array.shape) / 256)
+                    self.masked_array = dilate_binary_image(
+                        binary_image=self.masked_array, dilation_iterations=dilation_strength
+                    )
                 mask = np.ma.masked_where(self.masked_array == 0, self.masked_array)
                 ax.imshow(
                     mask,
@@ -287,7 +320,7 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
         Matplotlib.pyplot axes object.
     """
     for region in region_properties:
-        min_y, min_x, max_y, max_x = [x * pixel_to_nm_scaling for x in region.bbox]
+        min_y, min_x, max_y, max_x = (x * pixel_to_nm_scaling for x in region.bbox)
         # Correct y-axis
         min_y = (shape[0] * pixel_to_nm_scaling) - min_y
         max_y = (shape[0] * pixel_to_nm_scaling) - max_y
