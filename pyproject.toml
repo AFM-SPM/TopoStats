@@ -85,6 +85,8 @@ dev = [
   "pre-commit",
   "pylint",
   "pyupgrade",
+  "pytest-durations",
+  "pytest-xdist",
 ]
 pypi = [
   "build",
@@ -149,6 +151,7 @@ testpaths = [
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
     "ignore::UserWarning"
 ]
 
