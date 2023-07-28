@@ -122,6 +122,7 @@ class dnaTrace:
         self.visuals = None
 
         self.neighbours = 5  # The number of neighbours used for the curvature measurement
+        self.step_size = 7e-9
 
         # supresses scipy splining warnings
         warnings.filterwarnings("ignore")
@@ -287,7 +288,7 @@ class dnaTrace:
         if ordered:
             comb[coords[:,0].astype(np.int32), coords[:,1].astype(np.int32)] = np.arange(1, len(coords)+1)
         else:
-            comb[coords[:,0].astype(np.int32), coords[:,1].astype(np.int32)] = 1
+            comb[np.floor(coords[:,0]).astype(np.int32), np.floor(coords[:,1]).astype(np.int32)] = 1
         return comb
     
     @staticmethod
@@ -448,13 +449,12 @@ class dnaTrace:
         This function actually calculates the average of several splines which is important for getting a good fit on
         the lower res data"""
 
-        step_size = int(7e-9 / (self.pixel_to_nm_scaling))  # 3 nm step size
-        interp_step = int(1e-10 / self.pixel_to_nm_scaling)
+        step_size_px = int(self.step_size / (self.pixel_to_nm_scaling))  # 3 nm step size
         # Lets see if we just got with the pixel_to_nm_scaling
         # step_size = self.pixel_to_nm_scaling
         # interp_step = self.pixel_to_nm_scaling
 
-        self.splining_success = True
+        splining_success = True
         nbr = len(fitted_trace[:, 0])
 
         # Hard to believe but some traces have less than 4 coordinates in total
@@ -463,86 +463,80 @@ class dnaTrace:
             # continue
 
         # The degree of spline fit used is 3 so there cannot be less than 3 points in the splined trace
-        while nbr / step_size < 4:
-            if step_size <= 1:
-                step_size = 1
+        while nbr / step_size_px < 4:
+            if step_size_px <= 1:
+                step_size_px = 1
                 break
-            step_size = -1
+            step_size_px = -1
         if mol_is_circular:
-            # if nbr/step_size > 4: #the degree of spline fit is 3 so there cannot be less than 3 points in splined trace
-
-            # ev_array = np.linspace(0, 1, nbr * step_size)
-            ev_array = np.linspace(0, 1, int(nbr * step_size))
-
-            for i in range(step_size):
-                x_sampled = np.array(
-                    [fitted_trace[:, 0][j] for j in range(i, len(fitted_trace[:, 0]), step_size)]
-                )
-                y_sampled = np.array(
-                    [fitted_trace[:, 1][j] for j in range(i, len(fitted_trace[:, 1]), step_size)]
-                )
-
-                try:
-                    tck, u = interp.splprep([x_sampled, y_sampled], s=0, per=2, quiet=1, k=3)
-                    out = interp.splev(ev_array, tck)
-                    splined_trace = np.column_stack((out[0], out[1]))
-                except ValueError:
-                    # Value error occurs when the "trace fitting" really messes up the traces
-
-                    x = np.array(
-                        [ordered_trace[:, 0][j] for j in range(i, len(ordered_trace[:, 0]), step_size)]
-                    )
-                    y = np.array(
-                        [ordered_trace[:, 1][j] for j in range(i, len(ordered_trace[:, 1]), step_size)]
-                    )
-
-                    try:
-                        tck, u = interp.splprep([x, y], s=0, per=2, quiet=1)
-                        out = interp.splev(np.linspace(0, 1, nbr * step_size), tck)
-                        splined_trace = np.column_stack((out[0], out[1]))
-                    except (
-                        ValueError
-                    ):  # sometimes even the ordered_traces are too bugged out so just delete these traces
-                        self.mol_is_circular.pop(dna_num)
-                        self.disordered_trace.pop(dna_num)
-                        self.grain.pop(dna_num)
-                        self.ordered_trace.pop(dna_num)
-                        self.splining_success = False
-                        try:
-                            del spline_running_total
-                        except UnboundLocalError:  # happens if splining fails immediately
-                            break
-                        break
-
-                try:
-                    spline_running_total = np.add(spline_running_total, splined_trace)
-                except NameError:
-                    spline_running_total = np.array(splined_trace)
-
-            # if not self.splining_success:
-            #     continue
-
-            spline_average = np.divide(spline_running_total, [step_size, step_size])
-            del spline_running_total
-            return spline_average
-            # else:
-            #    x = fitted_trace[:,0]
-            #    y = fitted_trace[:,1]
-
-            #    try:
-            #        tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1, k = 3)
-            #        out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
-            #        splined_trace = np.column_stack((out[0], out[1]))
-            #        self.splined_trace = splined_trace
-            #    except ValueError: #if the trace is really messed up just delete it
-            #        self.mol_is_circular.pop(dna_num)
-            #        self.disordered_trace.pop(dna_num)
-            #        self.grain.pop(dna_num)
-            #        self.ordered_trace.pop(dna_num)
-
+            smoothness = 2
+            periodicity = 2
         else:
-            # can't get splining of linear molecules to work yet
-            return fitted_trace
+            smoothness = 5
+            periodicity = 0
+        # if nbr/step_size > 4: #the degree of spline fit is 3 so there cannot be less than 3 points in splined trace
+
+        # ev_array = np.linspace(0, 1, nbr * step_size)
+        ev_array = np.linspace(0, 1, int(nbr * step_size_px))
+
+        for i in range(step_size_px):
+            x_sampled = np.array(
+                [fitted_trace[:, 0][j] for j in range(i, len(fitted_trace[:, 0]), step_size_px)]
+            )
+            y_sampled = np.array(
+                [fitted_trace[:, 1][j] for j in range(i, len(fitted_trace[:, 1]), step_size_px)]
+            )
+
+            try:
+                tck, u = interp.splprep([x_sampled, y_sampled], s=smoothness, per=periodicity, quiet=1, k=3)
+                out = interp.splev(ev_array, tck)
+                splined_trace = np.column_stack((out[0], out[1]))
+            except ValueError:
+                # Value error occurs when the "trace fitting" really messes up the traces
+
+                x = np.array(
+                    [ordered_trace[:, 0][j] for j in range(i, len(ordered_trace[:, 0]), step_size_px)]
+                )
+                y = np.array(
+                    [ordered_trace[:, 1][j] for j in range(i, len(ordered_trace[:, 1]), step_size_px)]
+                )
+
+                try:
+                    tck, u = interp.splprep([x, y], s=smoothness, per=periodicity, quiet=1)
+                    out = interp.splev(np.linspace(0, 1, nbr * step_size_px), tck)
+                    splined_trace = np.column_stack((out[0], out[1]))
+                except (
+                    ValueError
+                ):  # sometimes even the ordered_traces are too bugged out so just delete these traces
+                    print("ValueError")
+                    #self.mol_is_circular.pop(dna_num)
+                    #self.disordered_trace.pop(dna_num)
+                    #self.grain.pop(dna_num)
+                    #self.ordered_trace.pop(dna_num)
+                    splining_success = False
+                    try:
+                        del spline_running_total
+                    except UnboundLocalError:  # happens if splining fails immediately
+                        break
+                    break
+
+            try:
+                spline_running_total = np.add(spline_running_total, splined_trace)
+            except NameError:
+                spline_running_total = np.array(splined_trace)
+
+        # if not splining_success:
+        #     continue
+
+        spline_average = np.divide(spline_running_total, [step_size_px, step_size_px])
+        del spline_running_total
+        # ensure spline lies within bounds
+        spline_average = spline_average[spline_average[:,0] > 0]
+        spline_average = spline_average[spline_average[:,1] > 0]
+        spline_average = spline_average[spline_average[:,0] < self.image.shape[0]]
+        spline_average = spline_average[spline_average[:,1] < self.image.shape[1]]
+        return spline_average
+
 
     def show_traces(self):
         plt.pcolormesh(self.image, vmax=-3e-9, vmin=3e-9)
@@ -1359,7 +1353,7 @@ class nodeStats:
                         matched_branches[i]["ordered_coords_local"] = branch_coords
                         # get heights and trace distance of branch
                         # TODO: evaluate if radial distance or traversal distance better and get avgs working with radial
-                        distances = self.coord_dist_rad(branch_coords, node_centre_small_xy) # self.coord_dist(branch_coords)
+                        distances = self.coord_dist(branch_coords) # self.coord_dist_rad(branch_coords, node_centre_small_xy)
                         zero_dist = distances[np.where(np.all(branch_coords == node_centre_small_xy, axis=1))]
                         if average_trace_advised:
                             # np.savetxt("knot2/area.txt",image_area)
@@ -1373,7 +1367,7 @@ class nodeStats:
                         else:
                             heights = self.image[branch_coords_img[:, 0], branch_coords_img[:, 1]]
                             distances = distances - zero_dist
-                            distances, heights = self.average_uniques(distances, heights)
+                            #distances, heights = self.average_uniques(distances, heights)
                         matched_branches[i]["heights"] = heights
                         matched_branches[i]["distances"] = distances
 
@@ -1385,7 +1379,6 @@ class nodeStats:
                     fwhms = []
                     for branch_idx, values in matched_branches.items():
                         fwhms.append(values["fwhm2"][0])
-                        print(fwhms)
                     branch_idx_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(fwhms))]
                     #branch_idx_order = np.arange(0,len(matched_branches)) #uncomment to unorder (will not unorder the height traces)
 
@@ -1855,9 +1848,9 @@ class nodeStats:
         """
         # get heights and dists of the original (middle) branch
         branch_coords = np.argwhere(branch_mask == 1)
-        branch_dist = self.coord_dist_rad(branch_coords, centre) # self.coord_dist(branch_coords)
+        branch_dist = self.coord_dist(branch_coords) # self.coord_dist_rad(branch_coords, centre)
         branch_heights = img[branch_coords[:, 0], branch_coords[:, 1]]
-        branch_dist, branch_heights = self.average_uniques(branch_dist, branch_heights)
+        #branch_dist, branch_heights = self.average_uniques(branch_dist, branch_heights)
         branch_dist_norm = branch_dist - dist_zero_point # - 0  # branch_dist[branch_heights.argmax()]
         # want to get a 3 pixel line trace, one on each side of orig
         dilate = ndimage.binary_dilation(branch_mask, iterations=1)
@@ -1908,8 +1901,8 @@ class nodeStats:
             height_trace = img[trace[:, 0], trace[:, 1]]
             height_len = len(height_trace)
             central_heights = height_trace[int(height_len * centre_fraction) : int(-height_len * centre_fraction)]
-            dist = self.coord_dist_rad(trace, centre) # self.coord_dist(trace)
-            dist, height_trace = self.average_uniques(dist, height_trace)
+            dist = self.coord_dist(trace) # self.coord_dist_rad(trace, centre)
+            #dist, height_trace = self.average_uniques(dist, height_trace)
             heights.append(height_trace)
             distances.append(
                 dist - dist_zero_point # - 0
@@ -2001,6 +1994,7 @@ class nodeStats:
         nodes = node_image_cp.copy()
         nodes[nodes != 3] = 0
         labeled_nodes = label(nodes)
+
         # find which cluster is closest to the centre
         centre = np.asarray(node_image_cp.shape) / 2
         node_coords = np.argwhere(nodes == 3)
@@ -2019,6 +2013,17 @@ class nodeStats:
             if (node_image_cp[labeled_nodeless == i] == 3).any():
                 node_image_cp[labeled_nodeless != i] = 0
                 break
+
+        # remove small area around other nodes
+        labeled_nodes[labeled_nodes == centre_idx] = 0
+        non_central_node_coords = np.argwhere(labeled_nodes != 0)
+        for coord in non_central_node_coords:
+            for j, coord_val in enumerate(coord):
+                if coord_val - 1 < 0:
+                    coord[j] = 1
+                if coord_val + 2 > node_image_cp.shape[j]:
+                    coord[j] = node_image_cp.shape[j] - 2
+            node_image_cp[coord[0] - 1 : coord[0] + 2, coord[1] - 1 : coord[1] + 2] = 0
 
         return node_image_cp
 
@@ -2065,14 +2070,8 @@ class nodeStats:
 
         # get image minus the crossing areas
         minus = self.get_minus_img(node_area_box, node_centre_coords)
-        # get crossing image
-        crossings = self.get_crossing_img(crossing_coords, minus.max() + 1)
-        # combine branches and segments
-        both_img = self.get_both_img(minus, crossings)
 
-        #np.savetxt("/Users/Maxgamill/Desktop/minus.txt", minus)
-        #np.savetxt("/Users/Maxgamill/Desktop/cross.txt", crossings)
-        #np.savetxt("/Users/Maxgamill/Desktop/both.txt", both_img)
+        np.savetxt("/Users/Maxgamill/Desktop/minus.txt", minus)
         #np.savetxt("/Users/Maxgamill/Desktop/skel.txt", self.skeleton)
         #np.savetxt("/Users/Maxgamill/Desktop/centres.txt", node_centre_coords)
 
@@ -2080,16 +2079,31 @@ class nodeStats:
         ordered = []
         for i in range(1, minus.max() + 1):
             arr = np.where(minus, minus == i, 0)
-            #np.savetxt("/Users/Maxgamill/Desktop/arr.txt", arr)
             ordered.append(self.order_branch(arr, [0, 0]))  # orientated later
-
+            
         # combine ordered indexes
-        for node_crossing_coords in crossing_coords:
-            for single_cross in node_crossing_coords:
-                ordered.append(np.array(single_cross))
 
+        for i, node_crossing_coords in enumerate(crossing_coords):
+            for j, single_cross in enumerate(node_crossing_coords):
+                #ordered.append(np.array(single_cross))
+                
+                # check current single cross has no duplicate coords
+                uncommon_single_cross = np.array(single_cross).copy()
+                for coords in ordered:
+                    uncommon_single_cross = self.remove_common_values(uncommon_single_cross, np.array(coords), retain=node_centre_coords)
+                ordered.append(uncommon_single_cross)
+
+        # get an image of each ordered segment
+        cross_add = np.zeros_like(self.image)
+        for i, coords in enumerate(ordered):
+            single_cross_img = dnaTrace.coords_2_img(np.array(coords), cross_add)
+            #single_cross_img[single_cross_img != 0] = i+1
+            cross_add[single_cross_img !=0] = i + 1
+        
+        
+        np.savetxt("/Users/Maxgamill/Desktop/cross_add.txt", cross_add)
         print("Getting coord trace")
-        coord_trace = self.trace_mol(ordered, both_img)
+        coord_trace = self.trace_mol(ordered, cross_add)
         im = np.zeros_like(self.skeleton)
         for i in coord_trace:
             im[i[:,0], i[:,1]] = 1
@@ -2125,21 +2139,20 @@ class nodeStats:
             area = np.array(area) // 2
             minus[x - area[0] : x + area[0], y - area[1] : y + area[1]] = 0
         return label(minus)
-
-    def get_crossing_img(self, crossing_coords, label_offset):
-        crossings = np.zeros_like(self.skeleton)
-        i = 0
-        for node_crossing_coords in crossing_coords:
-            for single_cross_coords in node_crossing_coords:
-                crossings[single_cross_coords[:, 0], single_cross_coords[:, 1]] = i + label_offset
-                i += 1
-        return crossings
-
+    
     @staticmethod
-    def get_both_img(minus_img, crossing_img):
-        both_img = minus_img.copy()
-        both_img[crossing_img != 0] = crossing_img[crossing_img != 0]
-        return both_img
+    def remove_common_values(arr1, arr2, retain=[]):
+        # Convert the arrays to sets for faster common value lookup
+        set_arr2 = set(tuple(row) for row in arr2)
+        set_retain = set(tuple(row) for row in retain)
+        # Create a new filtered list while maintaining the order of the first array
+        filtered_arr1 = []
+        for coord in arr1:
+            tup_coord = tuple(coord)
+            if tup_coord not in set_arr2 or tup_coord in set_retain:
+                filtered_arr1.append(coord)
+
+        return np.asarray(filtered_arr1)
 
     def trace_mol(self, ordered_segment_coords, both_img):
         """There's a problem with the code in that when tracing a non-circular molecule, the index
@@ -2175,14 +2188,17 @@ class nodeStats:
         mol_coords = []
         remaining = both_img.copy().astype(np.int32)
 
+        binary_remaining = remaining.copy()
+        binary_remaining[binary_remaining != 0] = 1
+        endpoints = np.unique(remaining[convolve_skelly(binary_remaining)==2]) # uniq incase of whole mol   
+
         while remaining.max() != 0:
             # select endpoint to start if there is one
-            poss_idx = remaining[convolve_skelly(remaining)==2]
-            print("CONV: ", poss_idx)
-            if poss_idx.size == 0:
+            endpoints = [i for i in endpoints if i in np.unique(remaining)] # remove if removed from remaining
+            if endpoints:
+                coord_idx = endpoints[0] - 1
+            else: # if no endpoints, just a loop
                 coord_idx = np.unique(remaining)[1] - 1  # avoid choosing 0
-            else:
-                coord_idx = poss_idx[0] - 1
             
             coord_trace = np.empty((0,2)).astype(np.int32)
             mol_num += 1
@@ -2385,8 +2401,7 @@ class nodeStats:
                 matching_coords = np.append(matching_coords, c)
                 #print(f"Segment: {pd_idx}, Matches: {c}")
             highest_count_labels = [pd_idx_in_area[i] for i in np.argsort(matching_coords)[-2:]]
-            print("COUNT: ", highest_count_labels)
-            #print("highest count: ", highest_count_labels)
+            #print("COUNT: ", highest_count_labels)
             if len(highest_count_labels) > 1: # why are there single labels and therefore only one branch in the first place?
                 if abs(highest_count_labels[0] - highest_count_labels[1]) > 1:  # if in/out is loop return (assumes matched branch)
                     under_in = max(highest_count_labels) # set under-in to larger value
@@ -2400,6 +2415,7 @@ class nodeStats:
             anti_clock = self.vals_anticlock(node_area, under_in)
             if len(anti_clock) != len(np.unique(anti_clock)):
                 self.node_dict[i + 1]["crossing_type"] = "trivial"
+                print("TRIV: ", anti_clock)
             else:
                 self.node_dict[i + 1]["crossing_type"] = "real"
             pd_vals.append(list(anti_clock))
@@ -2414,7 +2430,9 @@ class nodeStats:
             #pd_code = reduce_structure(pd_code, output_type='pdcode')
             no_triv_pd = self.remove_trivial_crossings(np.array(pd_vals))
             assert self.check_uniq_vals_valid(no_triv_pd)
-            assert self.check_no_duplicates_in_columns(no_triv_pd) # may break when 1-4, 1-6 N-B
+            assert self.check_no_duplicates_in_columns(no_triv_pd) # may break when 1-4, 1-6 (Node-Branch)
+            if len(no_triv_pd == 2):
+                assert (no_triv_pd[0] == no_triv_pd[1,::-1]).all() or (no_triv_pd[0] == no_triv_pd[1,[1,0,3,2]]).all()
             topology = homfly(pd_code, closure=params.Closure.CLOSED, chiral = False)
         except AssertionError as e: # triggers on same value in columns
             print(f"{e} : PD Code is nonsense (might be ok but pokes and slides not accounted for in removal).")
