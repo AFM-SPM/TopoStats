@@ -318,11 +318,11 @@ def test_save_folder_grainstats(tmp_path: Path) -> None:
     assert Path(out_path / "processed" / "folder_grainstats.csv").exists()
 
 
-def test_load_scan_spm(load_scan: LoadScans) -> None:
+def test_load_scan_spm(load_scan_spm: LoadScans) -> None:
     """Test loading of Bruker .spm file"""
-    load_scan.img_path = load_scan.img_paths[0]
-    load_scan.filename = load_scan.img_paths[0].stem
-    image, px_to_nm_scaling = load_scan.load_spm()
+    load_scan_spm.img_path = load_scan_spm.img_paths[0]
+    load_scan_spm.filename = load_scan_spm.img_paths[0].stem
+    image, px_to_nm_scaling = load_scan_spm.load_spm()
     assert isinstance(image, np.ndarray)
     assert image.shape == (1024, 1024)
     assert image.sum() == 30695369.188316286
@@ -428,9 +428,11 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
 @pytest.mark.parametrize(
     "load_scan_object, length, image_shape, image_sum, filename, pixel_to_nm_scaling",
     [
-        ("load_scan", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
+        ("load_scan_spm", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
         ("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625),
         ("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876),
+        ("load_scan_gwy", 1, (512, 512), 33836850.232917726, "file", 0.8468632812499975),
+        ("load_scan_topostats", 1, (1024, 1024), 182067.12616107278, "file", 0.4940029296875),
     ],
 )
 def test_load_scan_get_data(
@@ -464,13 +466,13 @@ def test_load_scan_get_data(
     ],
 )
 def test_load_scan_get_data_check_image_size_and_add_to_dict(
-    load_scan: LoadScans, x: int, y: int, log_msg: str, caplog, tmp_path
+    load_scan_spm: LoadScans, x: int, y: int, log_msg: str, caplog, tmp_path
 ) -> None:
     """Test errors are raised when images that are too small are passed."""
-    load_scan.filename = "minicircle"
-    load_scan.img_path = tmp_path
-    load_scan.image = np.ndarray((x, y))
-    load_scan._check_image_size_and_add_to_dict()
+    load_scan_spm.filename = "minicircle"
+    load_scan_spm.img_path = tmp_path
+    load_scan_spm.image = np.ndarray((x, y))
+    load_scan_spm._check_image_size_and_add_to_dict()
     assert log_msg in caplog.text
 
 

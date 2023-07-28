@@ -147,8 +147,8 @@ def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScans, plotting_c
         **plotting_config,
     ).plot_and_save()
     img = io.imread(tmp_path / "01-raw_heightmap.png")
-    assert np.sum(img) == 461143075
-    assert img.shape == (1024, 1024, 4)
+    assert np.sum(img) == 1535334
+    assert img.shape == (64, 64, 4)
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
