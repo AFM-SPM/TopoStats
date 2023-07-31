@@ -12,6 +12,7 @@ import warnings
 import time
 
 import numpy as np
+import networkx as nx
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -1609,10 +1610,25 @@ class nodeStats:
         """
         # calculate cosine of angle
         angles = self.calc_angles(vectors)
+        #print("Angles: ", angles)
         # find highest values
         np.fill_diagonal(angles, 0)  # ensures not paired with itself
         # match angles
-        return self.pair_angles(angles)
+
+        print("Old pairs: ", self.pair_angles(angles))
+        G = self.create_weighted_graph(angles)
+        matching = np.array(list(nx.max_weight_matching(G, maxcardinality=True)))
+        print("New pairs: ", matching)
+        return matching #self.pair_angles(angles)
+
+    @staticmethod
+    def create_weighted_graph(matrix):
+        n = len(matrix)
+        G = nx.Graph()
+        for i in range(n):
+            for j in range(i + 1, n):
+                G.add_edge(i, j, weight=matrix[i, j])
+        return G
 
     @staticmethod
     def pair_angles(angles):
@@ -2108,10 +2124,6 @@ class nodeStats:
         for i in coord_trace:
             im[i[:,0], i[:,1]] = 1
         #np.savetxt("/Users/Maxgamill/Desktop/im.txt", im)
-
-        for trace in coord_trace:
-            print("DISTANCE: ", self.coord_dist(trace, self.px_2_nm)[-1])
-
         # np.savetxt("/Users/Maxgamill/Desktop/trace.txt", coord_trace[0])
 
         # visual over under img
