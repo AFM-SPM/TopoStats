@@ -1374,15 +1374,31 @@ class nodeStats:
                         matched_branches[i]["distances"] = distances
 
                         # identify over/under
-                        fwhm2 = self.fwhm2(heights, distances)
-                        matched_branches[i]["fwhm2"] = fwhm2
+                        matched_branches[i]["fwhm2"] = self.fwhm2(heights, distances)
 
-                    # add fwhms after to get better baselines + same hm matching
+                    
+                    # redo fwhms after to get better baselines + same hm matching
+                    hms = []
+                    fwhms = []
                     for branch_idx, values in matched_branches.items():
-                        heights = matched_branches[branch_idx]["heights"]
-                        distances = matched_branches[branch_idx]["distances"]
-                        fwhm2 = self.fwhm2(heights, distances)
-
+                        hms.append(values["fwhm2"][1][2])
+                        fwhms.append(values["fwhm2"][0])
+                    highest_hm = max(hms)
+                    print("HMS: ", hms)
+                    print("FWHMS: ", fwhms)
+                    
+                    hms = []
+                    fwhms = []
+                    for branch_idx, values in matched_branches.items():
+                        heights = values["heights"]
+                        distances = values["distances"]
+                        fwhm2 = self.fwhm2(heights, distances, hm=highest_hm)
+                        matched_branches[branch_idx]["fwhm2"] = fwhm2
+                        hms.append(fwhm2[1][2])
+                        fwhms.append(fwhm2[0])
+                    print("Re-done HMS: ", hms)
+                    print("Re-done FWHMS: ", fwhms)
+                    
 
                     # add paired and unpaired branches to image plot
                     fwhms = []
@@ -1685,35 +1701,32 @@ class nodeStats:
 
         return 2.3548 * popt[2], popt  # 2*(2ln2)^1/2 * sigma = FWHM
 
-    def fwhm2(self, heights, distances):#, hm=None):
+    def fwhm2(self, heights, distances, hm=None):
         centre_fraction = int(len(heights) * 0.2)  # incase zone approaches another node, look around centre for max
         high_idx = np.argmax(heights[centre_fraction:-centre_fraction]) + centre_fraction
-        heights_norm = heights.copy() - heights.min()  # lower graph so min is 0
+        #heights_norm = heights.copy() - heights.min()  # lower graph so min is 0
 
         # get array halves to find first points that cross hm
-        arr1 = heights_norm[:high_idx][::-1]
+        arr1 = heights[:high_idx][::-1] #heights_norm[:high_idx][::-1]
         dist1 = distances[:high_idx][::-1]
-        arr2 = heights_norm[high_idx:]
+        arr2 = heights[high_idx:] #heights_norm[high_idx:]
         dist2 = distances[high_idx:]
 
         arr1_hm = 0
         arr2_hm = 0
 
-        # increase make hm = lowest of peak if it doesn't hit one side
-        #if hm is not None
-        hm = heights_norm.max() / 2  # half max value -> try to make it the same as other crossing branch?
-        print("HM Change?: ", np.min(arr1) > hm, np.min(arr2) > hm)
-        print(hm, np.min(arr1), np.min(arr2))
-        if np.min(arr1) > hm:
-            arr1_local_min = argrelextrema(arr1, np.less)[-1] # closest to end
-            hm_1 = np.min(arr1)
-            hm = arr1[arr1_local_min][0]
-            print("HM Changed: ", hm, hm_1)
-        elif np.min(arr2) > hm:
-            arr2_local_min = argrelextrema(arr2, np.less)[0] # closest to start
-            hm_1 = np.min(arr2)
-            hm = arr1[arr2_local_min][0]
-            print("HM Changed: ", hm, hm_1)
+        if hm is None:
+            # Get half max
+            hm = (heights.max() - heights.min()) / 2 + heights.min() # heights_norm.max() / 2  # half max value -> try to make it the same as other crossing branch?
+            # increase make hm = lowest of peak if it doesn't hit one side
+            if np.min(arr1) > hm:
+                arr1_local_min = argrelextrema(arr1, np.less)[-1] # closest to end
+                #hm_1 = np.min(arr1)
+                hm = arr1[arr1_local_min][0]
+            elif np.min(arr2) > hm:
+                arr2_local_min = argrelextrema(arr2, np.less)[0] # closest to start
+                #hm_1 = np.min(arr2)
+                hm = arr2[arr2_local_min][0]
 
         for i in range(len(arr1) - 1):
             if (arr1[i] >= hm) and (arr1[i + 1] <= hm):  # if points cross through the hm value
@@ -1726,7 +1739,7 @@ class nodeStats:
                 break
 
         fwhm = abs(arr2_hm - arr1_hm)
-        print(fwhm)
+
         return fwhm, [arr1_hm, arr2_hm, hm], [high_idx, distances[high_idx], heights[high_idx]]
 
     @staticmethod
@@ -2405,7 +2418,6 @@ class nodeStats:
                 try: # might hit a node from one mol that isn't between them both i.e. self crossing
                     # might also have the node removed upon re-skeletonising & not be found here
                     dists = np.sqrt((mol_trace[:,0]-x)**2 + (mol_trace[:,1]-y)**2)
-                    print("Min: ", np.min(dists))
                     if np.min(dists) <= 1:
                         x, y = mol_trace[dists.argmin()]
                     else:

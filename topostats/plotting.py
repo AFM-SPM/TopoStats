@@ -369,8 +369,8 @@ def plot_crossing_linetrace_halfmax(branch_stats_dict, cmap, title):
         # plot the high point lines
         plt.plot([-15, m_vals[1]], [m_vals[2], m_vals[2]], c=cmp(cmap_ratio), label=f"FWHM: {fwhm:.1f}")
         # plot the half max lines
-        plt.plot([hm_vals[0], hm_vals[0]], [hm_vals[2], 0] + heights.min(), c=cmp(cmap_ratio))
-        plt.plot([hm_vals[1], hm_vals[1]], [hm_vals[2], 0] + heights.min(), c=cmp(cmap_ratio))
+        plt.plot([hm_vals[0], hm_vals[0]], [hm_vals[2], heights.min()], c=cmp(cmap_ratio)) #+ heights.min(), c=cmp(cmap_ratio))
+        plt.plot([hm_vals[1], hm_vals[1]], [hm_vals[2], heights.min()], c=cmp(cmap_ratio)) #+ heights.min(), c=cmp(cmap_ratio))
 
     ax.set_xlabel("Distance from Node (nm)")
     ax.set_ylabel("Height")
