@@ -5,6 +5,11 @@ from typing import Dict, Union, List, Tuple
 
 import numpy as np
 import pandas as pd
+import json
+
+# Temporary import, remove for PR
+import matplotlib.pyplot as plt
+from skimage.measure import regionprops, label
 
 from topostats import __version__
 from topostats.filters import Filters
@@ -168,24 +173,24 @@ def run_grains(
     if grains_config["run"]:
         grains_config.pop("run")
 
-        try:
-            LOGGER.info(f"[{filename}] : *** Grain Finding ***")
-            grains = Grains(
-                image=image,
-                filename=filename,
-                pixel_to_nm_scaling=pixel_to_nm_scaling,
-                **grains_config,
+        # try:
+        LOGGER.info(f"[{filename}] : *** Grain Finding ***")
+        grains = Grains(
+            image=image,
+            filename=filename,
+            pixel_to_nm_scaling=pixel_to_nm_scaling,
+            **grains_config,
+        )
+        grains.find_grains()
+        for direction, _ in grains.region_properties.items():
+            LOGGER.info(
+                f"[{filename}] : Grains found for direction {direction} : {len(grains.region_properties[direction])}"
             )
-            grains.find_grains()
-            for direction, _ in grains.region_properties.items():
-                LOGGER.info(
-                    f"[{filename}] : Grains found for direction {direction} : {len(grains.region_properties[direction])}"
-                )
-                if len(grains.region_properties[direction]) == 0:
-                    LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
-        except Exception as e:
-            LOGGER.error(f"[{filename}] : An error occured during grain finding, skipping grainstats and dnatracing.")
-            LOGGER.error(f"[{filename}] : The error: {e}")
+            if len(grains.region_properties[direction]) == 0:
+                LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
+        # except Exception as e:
+        #     LOGGER.error(f"[{filename}] : An error occured during grain finding, skipping grainstats and dnatracing.")
+        #     LOGGER.error(f"[{filename}] : The error: {e}")
         else:
             for direction, region_props in grains.region_properties.items():
                 if len(region_props) == 0:
@@ -409,84 +414,102 @@ def run_dnatracing(
         results_df = create_empty_dataframe()
 
     # Run dnatracing
-    try:
-        if dnatracing_config["run"]:
-            dnatracing_config.pop("run")
-            LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
-            tracing_stats = defaultdict()
-            for direction, _ in grain_masks.items():
-                tracing_results = trace_image(
-                    image=image,
-                    grains_mask=grain_masks[direction],
-                    filename=filename,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                    **dnatracing_config,
-                )
-                tracing_stats[direction] = tracing_results["statistics"]
-                ordered_traces = tracing_results["ordered_traces"]
-                cropped_images = tracing_results["cropped_images"]
-                image_trace = tracing_results["image_trace"]
-                tracing_stats[direction]["threshold"] = direction
-
-                # Plot traces for the whole image
-                Images(
-                    image,
-                    output_dir=core_out_path,
-                    filename=f"{filename}_{direction}_traced",
-                    masked_array=image_trace,
-                    **plotting_config["plot_dict"]["all_molecule_traces"],
-                ).plot_and_save()
-
-                # Plot traces on each grain individually
-                if plotting_config["image_set"] == "all":
-                    for grain_index, (grain_trace, cropped_image) in enumerate(zip(ordered_traces, cropped_images)):
-                        grain_trace_mask = np.zeros(cropped_image.shape)
-                        # Grain traces can be None if they do not trace successfully. Eg if they are too small.
-                        if grain_trace is not None:
-                            for coordinate in grain_trace:
-                                grain_trace_mask[coordinate[0], coordinate[1]] = 1
-                        Images(
-                            cropped_image,
-                            output_dir=grain_out_path / direction,
-                            filename=f"{filename}_grain_trace_{grain_index}",
-                            masked_array=grain_trace_mask,
-                            **plotting_config["plot_dict"]["single_molecule_trace"],
-                        ).plot_and_save()
-
-            # Set create tracing_stats_df from above and below results
-            if "above" in tracing_stats and "below" in tracing_stats:
-                tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
-            elif "above" in tracing_stats:
-                tracing_stats_df = tracing_stats["above"]
-            elif "below" in tracing_stats:
-                tracing_stats_df = tracing_stats["below"]
-            LOGGER.info(
-                f"[{filename}] : Combining {list(tracing_stats.keys())} grain statistics and dnatracing statistics"
+    # try:
+    if dnatracing_config["run"]:
+        dnatracing_config.pop("run")
+        LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
+        tracing_stats = defaultdict()
+        for direction, _ in grain_masks.items():
+            tracing_results = trace_image(
+                image=image,
+                grains_mask=grain_masks[direction],
+                filename=filename,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                **dnatracing_config,
             )
-            # NB - Merge on image, molecule and threshold because we may have above and below molecules which
-            #      gives duplicate molecule numbers as they are processed separately, if tracing stats
-            #      are not available (because skeleton was too small), grainstats are still retained.
-            results = results_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left")
-            results["basename"] = image_path.parent
+            tracing_stats[direction] = tracing_results["statistics"]
+            ordered_traces = tracing_results["ordered_traces"]
+            cropped_images = tracing_results["cropped_images"]
+            image_trace = tracing_results["image_trace"]
+            tracing_stats[direction]["threshold"] = direction
 
-            return results
+            # Plot traces for the whole image
+            Images(
+                image,
+                output_dir=core_out_path,
+                filename=f"{filename}_{direction}_traced",
+                masked_array=image_trace,
+                **plotting_config["plot_dict"]["all_molecule_traces"],
+            ).plot_and_save()
 
-        # Otherwise, return the passed in dataframe and warn that tracing is disabled
-        LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
-        results = results_df
+            # Plot traces on each grain individually
+            if plotting_config["image_set"] == "all":
+                for grain_index, (grain_trace, cropped_image) in enumerate(zip(ordered_traces, cropped_images)):
+                    grain_trace_mask = np.zeros(cropped_image.shape)
+                    # Grain traces can be None if they do not trace successfully. Eg if they are too small.
+                    if grain_trace is not None:
+                        for coordinate in grain_trace:
+                            grain_trace_mask[coordinate[0], coordinate[1]] = 1
+                    Images(
+                        cropped_image,
+                        output_dir=grain_out_path / direction,
+                        filename=f"{filename}_grain_trace_{grain_index}",
+                        masked_array=grain_trace_mask,
+                        **plotting_config["plot_dict"]["single_molecule_trace"],
+                    ).plot_and_save()
+
+                # Save the grain trace
+                # We have to turn each numpy array into a list to be able to save it in json format
+                ordered_traces_list = []
+                for grain_index, grain_trace in enumerate(ordered_traces):
+                    # print(type(grain_trace))
+                    if type(grain_trace) is np.ndarray:
+                        grain_trace_list = grain_trace.tolist()
+                    else:
+                        grain_trace_list = None
+                    ordered_traces_list.append(grain_trace_list)
+                    # print(type(grain_trace_list))
+                    print(grain_trace_list)
+                print("-----------")
+                print(ordered_traces_list)
+                with open("grain_traces.json", "w") as f:
+                    json.dump(ordered_traces_list, f)
+
+        # Set create tracing_stats_df from above and below results
+        if "above" in tracing_stats and "below" in tracing_stats:
+            tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
+        elif "above" in tracing_stats:
+            tracing_stats_df = tracing_stats["above"]
+        elif "below" in tracing_stats:
+            tracing_stats_df = tracing_stats["below"]
+        LOGGER.info(f"[{filename}] : Combining {list(tracing_stats.keys())} grain statistics and dnatracing statistics")
+        # NB - Merge on image, molecule and threshold because we may have above and below molecules which
+        #      gives duplicate molecule numbers as they are processed separately, if tracing stats
+        #      are not available (because skeleton was too small), grainstats are still retained.
+        results = results_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left")
         results["basename"] = image_path.parent
 
-        return results
-
-    except Exception:
-        # If no results we need a dummy dataframe to return.
-        LOGGER.warning(
-            f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, " "returning grain statistics"
+        return (
+            results,
+            tracing_results["ordered_traces_global"],
         )
-        results = results_df
-        results["basename"] = image_path.parent
 
-        return results
+    # Otherwise, return the passed in dataframe and warn that tracing is disabled
+    LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
+    results = results_df
+    results["basename"] = image_path.parent
+
+    return results
+
+    # except Exception:
+    #     # If no results we need a dummy dataframe to return.
+    #     LOGGER.warning(
+    #         f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, " "returning grain statistics"
+    #     )
+    #     results = results_df
+    #     results["basename"] = image_path.parent
+
+    #     return results
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
@@ -615,7 +638,7 @@ def process_scan(
         )
 
         # DNAtracing
-        results_df = run_dnatracing(
+        results_df, ordered_traces = run_dnatracing(
             image=topostats_object["image_flattened"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
@@ -645,6 +668,97 @@ def process_scan(
         results_df=results_df,
         pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
     )
+
+    # Attribute proteins to dna traces
+    protein_grains_config = grains_config.copy()
+    protein_grains_config["threshold_method"] = "absolute"
+    protein_grains_config["threshold_absolute"] = {"above": 3.2, "below": 10.0}
+    protein_grains_config["smallest_grain_size_nm2"] = 1
+    protein_grains_config["absolute_area_threshold"] = {
+        "above": [1, 1000000000000000000],
+        "below": [1, 1000000000000000000],
+    }
+    protein_grains_config["run"] = True
+    protein_grain_out_path = grain_out_path / "proteins/"
+    protein_grain_out_path.mkdir(exist_ok=True)
+    (protein_grain_out_path / "above").mkdir(exist_ok=True)
+    (protein_grain_out_path / "below").mkdir(exist_ok=True)
+
+    protein_grain_masks = run_grains(
+        image=topostats_object["image_flattened"],
+        pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+        filename=topostats_object["filename"],
+        grain_out_path=protein_grain_out_path,
+        core_out_path=core_out_path,
+        plotting_config=plotting_config,
+        grains_config=protein_grains_config,
+    )
+
+    for direction in protein_grain_masks.keys():
+        plt.imsave(f"protein_grain_mask_{direction}.png", protein_grain_masks[direction])
+
+    # Find grain masks that intersect with the protein grain masks
+    for direction in grain_masks.keys():
+        if direction in protein_grain_masks.keys():
+            all_grain_mask = grain_masks[direction]
+            all_protein_mask = protein_grain_masks[direction]
+
+            intersection = np.logical_and(all_grain_mask, all_protein_mask)
+            plt.imsave(f"protein_grain_intersection_{direction}.png", intersection)
+            plt.imsave(f"grain_mask_{direction}.png", all_grain_mask)
+            plt.imsave(f"protein_mask_{direction}.png", all_protein_mask)
+
+            comparison_plot = np.zeros_like(all_grain_mask).astype(float)
+            comparison_plot[np.logical_and(all_grain_mask, all_protein_mask)] = 1
+            comparison_plot[np.logical_xor(all_grain_mask, all_protein_mask)] = 2
+            plt.imsave(f"protein_grain_comparison_{direction}.png", comparison_plot, cmap="viridis")
+
+            protein_grain_binding_sites = {}
+
+            # Iterate over the grains
+            for grain_index in range(np.max(all_grain_mask)):
+                # Remember that in the labelled image the indicies are one higher
+                grain_mask = all_grain_mask == grain_index + 1
+                protein_mask = np.logical_and(grain_mask.astype(bool), all_protein_mask.astype(bool))
+                protein_labelled = label(protein_mask)
+                protein_regionprops = regionprops(protein_labelled)
+                number_of_bound_proteins = np.max(protein_labelled)
+                if number_of_bound_proteins > 0:
+                    protein_grain_binding_sites[grain_index] = []
+                    print(f"found {number_of_bound_proteins} proteins for grain {grain_index}")
+                    plt.imsave(f"protein_mask_{grain_index}.png", protein_mask)
+                    grain_protein_plot = np.zeros_like(grain_mask).astype(float)
+                    grain_protein_plot[grain_mask] = 1
+                    grain_protein_plot[protein_mask] = 2
+
+                    for protein_index in range(number_of_bound_proteins):
+                        protein_centroid = protein_regionprops[protein_index]["centroid"]
+                        print(f"protein centroid: {protein_centroid}")
+                        grain_protein_plot[int(protein_centroid[0]), int(protein_centroid[1])] = 4
+
+                        ordered_trace = ordered_traces[grain_index]
+                        print(ordered_trace)
+
+                        if ordered_trace is not None:
+                            for coordinate in ordered_trace:
+                                grain_protein_plot[coordinate[0], coordinate[1]] = 3
+
+                            # Find the coordinate closest to the protein centroid
+                            distances = np.linalg.norm(ordered_trace - protein_centroid, axis=1)
+                            closest_trace_point = np.argmin(distances)
+                            print(
+                                f"closest trace point to protein centroid : {closest_trace_point}, coords: {ordered_trace[closest_trace_point]}"
+                            )
+
+                            grain_protein_plot[
+                                ordered_trace[closest_trace_point][0], ordered_trace[closest_trace_point][1]
+                            ] = 4
+
+                            protein_grain_binding_sites[grain_index].append(closest_trace_point)
+
+                    plt.imsave(f"grain_protein_plot_{grain_index}.png", grain_protein_plot, cmap="viridis")
+
+            print(f"protein_grain_binding_sites: {protein_grain_binding_sites}")
 
     # Save the topostats dictionary object to .topostats file.
     save_topostats_file(

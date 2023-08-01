@@ -749,7 +749,7 @@ def trace_image(
     try:
         results = pd.DataFrame.from_dict(results, orient="index")
         results.index.name = "molecule_number"
-        image_trace = trace_mask(grain_anchors, ordered_traces, image.shape, pad_width)
+        image_trace, global_traces = trace_mask(grain_anchors, ordered_traces, image.shape, pad_width)
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
@@ -758,6 +758,7 @@ def trace_image(
         "ordered_traces": ordered_traces,
         "cropped_images": cropped_images,
         "image_trace": image_trace,
+        "ordered_traces_global": global_traces,
     }
 
 
@@ -832,15 +833,19 @@ def trace_mask(
     """
     image = np.zeros(image_shape)
     grain = 0
+    global_ordered_traces = []
     for grain_anchor, ordered_trace in zip(grain_anchors, ordered_traces):
         # Don't always have an ordered_trace for a given grain_anchor if for example the trace was too small
         if ordered_trace is not None:
             ordered_trace = adjust_coordinates(ordered_trace, pad_width)
             ordered_trace[:, 0] = ordered_trace[:, 0] + grain_anchor[0]
             ordered_trace[:, 1] = ordered_trace[:, 1] + grain_anchor[1]
+            global_ordered_traces.append(ordered_trace)
             image[ordered_trace[:, 0], ordered_trace[:, 1]] = 1
+        else:
+            global_ordered_traces.append(None)
 
-    return image
+    return image, global_ordered_traces
 
 
 def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:

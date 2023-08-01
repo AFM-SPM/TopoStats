@@ -5,6 +5,9 @@ import logging
 from typing import List, Dict
 import numpy as np
 
+# Temporary, clean up for PR
+import matplotlib.pyplot as plt
+
 from skimage.segmentation import clear_border
 from skimage import morphology
 from skimage.measure import regionprops
@@ -82,6 +85,7 @@ class Grains:
         self.smallest_grain_size_nm2 = smallest_grain_size_nm2
         self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
         self.thresholds = None
+        self.protein_thresholds = None
         self.images = {
             "mask_grains": None,
             "tidied_border": None,
@@ -91,6 +95,7 @@ class Grains:
             # "coloured_regions": None,
         }
         self.directions = defaultdict()
+        self.protein_directions = defaultdict()
         self.minimum_grain_size = None
         self.region_properties = defaultdict()
         self.bounding_boxes = defaultdict()
@@ -351,3 +356,26 @@ class Grains:
             )
             self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
             LOGGER.info(f"[{self.filename}] : Extracted bounding boxes ({direction})")
+
+            # # Find protein grains
+            # self.protein_thresholds = get_thresholds(
+            #     image=self.image,
+            #     threshold_method="absolute",
+            #     otsu_threshold_multiplier=self.otsu_threshold_multiplier,
+            #     threshold_std_dev=self.threshold_std_dev,
+            #     absolute={"above": 3.0, "below": 10.0},
+            # )
+
+            # self.protein_directions[direction] = {}
+            # self.protein_directions[direction]["mask_grains"] = _get_mask(
+            #     self.image,
+            #     thresh=self.protein_thresholds[direction],
+            #     threshold_direction=direction,
+            #     img_name=self.filename,
+            # )
+            # self.protein_directions[direction]["labelled_regions_01"] = self.label_regions(
+            #     self.protein_directions[direction]["mask_grains"]
+            # )
+
+            # print("@@@@@@@@@@@@@@@@@@@@@@@@@")
+            # plt.imsave("protein_labelled.png", self.protein_directions[direction]["labelled_regions_01"])
