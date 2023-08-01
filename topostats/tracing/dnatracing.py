@@ -1815,6 +1815,24 @@ class nodeStats:
     
     @staticmethod
     def coord_dist_rad(coords: np.ndarray, centre: np.ndarray, px_2_nm: float = 1) -> np.ndarray:
+        """Calculates the distance from the node centre to a point along the branch, rather than
+        through the path taken. This also averages any common distace values and makes those in
+        the trace before the node index negitive.
+
+        Parameters
+        ----------
+        coords : np.ndarray
+            Nx2 array of branch coordinates
+        centre : np.ndarray
+            A 1x2 array of the centre coordinates to identify a 0 point for the node
+        px_2_nm : float, optional
+            The pixel to nanometer scaling factor to provide real units, by default 1
+
+        Returns
+        -------
+        np.ndarray
+            A Nx1 array of the distance from the node centre.
+        """
         diff_coords = coords - centre
         if np.all(coords == centre, axis=1).sum() == 0: # if centre not in coords, reassign centre
             diff_dists = np.sqrt(diff_coords[:,0]**2 + diff_coords[:,1]**2)
@@ -1864,7 +1882,7 @@ class nodeStats:
         branch_coords = np.argwhere(branch_mask == 1)
         branch_dist = self.coord_dist_rad(branch_coords, centre) # self.coord_dist(branch_coords)
         branch_heights = img[branch_coords[:, 0], branch_coords[:, 1]]
-        branch_dist, branch_heights = self.average_uniques(branch_dist, branch_heights)
+        branch_dist, branch_heights = self.average_uniques(branch_dist, branch_heights) # needs to be paired with coord_dist_rad
         branch_dist_norm = branch_dist - dist_zero_point # - 0  # branch_dist[branch_heights.argmax()]
         # want to get a 3 pixel line trace, one on each side of orig
         dilate = ndimage.binary_dilation(branch_mask, iterations=1)
@@ -1916,7 +1934,7 @@ class nodeStats:
             height_len = len(height_trace)
             central_heights = height_trace[int(height_len * centre_fraction) : int(-height_len * centre_fraction)]
             dist = self.coord_dist_rad(trace, centre) # self.coord_dist(trace)
-            dist, height_trace = self.average_uniques(dist, height_trace)
+            dist, height_trace = self.average_uniques(dist, height_trace) # needs to be paired with coord_dist_rad
             heights.append(height_trace)
             distances.append(
                 dist - dist_zero_point # - 0
@@ -2362,8 +2380,17 @@ class nodeStats:
             trace_node_idxs = np.array([0]).astype(np.int32)
             for x, y in node_centres:
                 try: # might hit a node from one mol that isn't between them both i.e. self crossing
+                    
+                    # might also have the node removed upon reskeletonising & not be found here
+                    dists = np.sqrt((mol_trace[:,0]-x)**2 + (mol_trace[:,1]-y)**2)
+                    print("Min: ", np.min(dists))
+                    if np.min(dists) <= 1:
+                        x, y = mol_trace[dists.argmin()]
+                    else:
+                        raise ValueError
                     trace_node_idxs = np.append(trace_node_idxs, np.argwhere((mol_trace[:, 0] == x) & (mol_trace[:, 1] == y)))
-                except:
+                except ValueError:
+                    print(f"Node at {x, y} not in mol {c} trace.")
                     pass
             trace_node_idxs.sort()
             # for the 3 branches, it will hit nothing at all
