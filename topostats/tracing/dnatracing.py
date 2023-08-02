@@ -1356,50 +1356,36 @@ class nodeStats:
                         matched_branches[i]["ordered_coords"] = single_branch_coords_img
                         matched_branches[i]["ordered_coords_local"] = single_branch_coords
                         # get heights and trace distance of branch
-                        distances = self.coord_dist_rad(single_branch_coords, node_centre_small_xy) # self.coord_dist(single_branch_coords)
-                        zero_dist = distances[np.argmin(np.sqrt((single_branch_coords[:,0]-node_centre_small_xy[0])**2+(single_branch_coords[:,1]-node_centre_small_xy[1])**2))]
                         if average_trace_advised:
                             # np.savetxt("knot2/area.txt",image_area)
                             # np.savetxt("knot2/single_branch.txt",single_branch)
                             # print("ZD: ", zero_dist)
                             distances, heights, mask, _ = self.average_height_trace(
-                                image_area, single_branch_img, zero_dist, node_centre_small_xy
+                                image_area, single_branch_img, single_branch_coords, node_centre_small_xy
                             )
                             matched_branches[i]["avg_mask"] = mask
                         else:
+                            distances = self.coord_dist_rad(single_branch_coords, node_centre_small_xy) # self.coord_dist(single_branch_coords)
+                            zero_dist = distances[np.argmin(np.sqrt((single_branch_coords[:,0]-node_centre_small_xy[0])**2+(single_branch_coords[:,1]-node_centre_small_xy[1])**2))]
                             heights = self.image[single_branch_coords_img[:, 0], single_branch_coords_img[:, 1]]
                             distances = distances - zero_dist
                             distances, heights = self.average_uniques(distances, heights) # needs to be paired with coord_dist_rad
                         matched_branches[i]["heights"] = heights
                         matched_branches[i]["distances"] = distances
-
+                        #print("Dist_og: ", distances.min(), distances.max(), distances.shape)
                         # identify over/under
                         matched_branches[i]["fwhm2"] = self.fwhm2(heights, distances)
 
                     
                     # redo fwhms after to get better baselines + same hm matching
                     hms = []
-                    fwhms = []
-                    for branch_idx, values in matched_branches.items():
+                    for branch_idx, values in matched_branches.items(): # get hms
                         hms.append(values["fwhm2"][1][2])
-                        fwhms.append(values["fwhm2"][0])
-                    highest_hm = max(hms)
-                    print("HMS: ", hms)
-                    print("FWHMS: ", fwhms)
-                    
-                    hms = []
-                    fwhms = []
-                    for branch_idx, values in matched_branches.items():
-                        heights = values["heights"]
-                        distances = values["distances"]
-                        fwhm2 = self.fwhm2(heights, distances, hm=highest_hm)
+                    for branch_idx, values in matched_branches.items(): # use same highest hm
+                        #print("Dist_2: ", values["heights"].min(), values["heights"].max(), values["heights"].shape)
+                        fwhm2 = self.fwhm2(values["heights"], values["distances"], hm=max(hms))
                         matched_branches[branch_idx]["fwhm2"] = fwhm2
-                        hms.append(fwhm2[1][2])
-                        fwhms.append(fwhm2[0])
-                    print("Re-done HMS: ", hms)
-                    print("Re-done FWHMS: ", fwhms)
                     
-
                     # add paired and unpaired branches to image plot
                     fwhms = []
                     for branch_idx, values in matched_branches.items():
@@ -1522,8 +1508,7 @@ class nodeStats:
         endpoints_highlight[binary_image == 0] = 0
         endpoints = np.argwhere(endpoints_highlight == 2)
 
-        if len(endpoints) != 0:
-            # as > 1 endpoint, find one closest to anchor
+        if len(endpoints) != 0: # if > 1 endpoint, start is closest to anchor
             dist_vals = abs((endpoints - anchor).sum(axis=1))
             start = endpoints[np.argmin(dist_vals)]
         else:  # will be circular so pick the first coord (is this always the case?)
@@ -1721,12 +1706,16 @@ class nodeStats:
             # increase make hm = lowest of peak if it doesn't hit one side
             if np.min(arr1) > hm:
                 arr1_local_min = argrelextrema(arr1, np.less)[-1] # closest to end
-                #hm_1 = np.min(arr1)
-                hm = arr1[arr1_local_min][0]
+                try:
+                    hm = arr1[arr1_local_min][0]
+                except IndexError: # index error when no local minima
+                    hm = np.min(arr1)
             elif np.min(arr2) > hm:
                 arr2_local_min = argrelextrema(arr2, np.less)[0] # closest to start
-                #hm_1 = np.min(arr2)
-                hm = arr2[arr2_local_min][0]
+                try:
+                    hm = arr2[arr2_local_min][0]
+                except IndexError: # index error when no local minima
+                    hm = np.min(arr2)
 
         for i in range(len(arr1) - 1):
             if (arr1[i] >= hm) and (arr1[i + 1] <= hm):  # if points cross through the hm value
@@ -1874,8 +1863,13 @@ class nodeStats:
             diff_dists = np.sqrt(diff_coords[:,0]**2 + diff_coords[:,1]**2)
             centre = coords[np.argmin(diff_dists)]
         cross_idx = np.argwhere(np.all(coords == centre, axis=1))
+        print("Cross Idx: ", cross_idx, centre, len(coords))
+        if cross_idx > 30:
+            print(coords, '\n')
+            print(np.sqrt(diff_coords[:,0]**2 + diff_coords[:,1]**2))
         rad_dist = np.sqrt(diff_coords[:,0]**2 + diff_coords[:,1]**2)
         rad_dist[0:cross_idx[0][0]] *= -1
+        print("Dist: ", rad_dist.min(), rad_dist.max(), rad_dist.shape, '\n')
         return rad_dist
 
 
@@ -1896,7 +1890,7 @@ class nodeStats:
         except IndexError:
             return None
 
-    def average_height_trace(self, img: np.ndarray, branch_mask: np.ndarray, dist_zero_point: float, centre=None) -> tuple:
+    def average_height_trace(self, img: np.ndarray, branch_mask: np.ndarray, branch_coords: np.ndarray, centre=None) -> tuple:
         """Dilates the original branch to create two additional side-by-side branches
         in order to get a more accurate average of the height traces. This function produces
         the common distances between these 3 branches, and their averaged heights.
@@ -1915,10 +1909,10 @@ class nodeStats:
             from the crossing.
         """
         # get heights and dists of the original (middle) branch
-        branch_coords = np.argwhere(branch_mask == 1)
         branch_dist = self.coord_dist_rad(branch_coords, centre) # self.coord_dist(branch_coords)
         branch_heights = img[branch_coords[:, 0], branch_coords[:, 1]]
         branch_dist, branch_heights = self.average_uniques(branch_dist, branch_heights) # needs to be paired with coord_dist_rad
+        dist_zero_point = branch_dist[np.argmin(np.sqrt((branch_coords[:,0]-centre[0])**2+(branch_coords[:,1]-centre[1])**2))]
         branch_dist_norm = branch_dist - dist_zero_point # - 0  # branch_dist[branch_heights.argmax()]
         # want to get a 3 pixel line trace, one on each side of orig
         dilate = ndimage.binary_dilation(branch_mask, iterations=1)
@@ -2098,13 +2092,13 @@ class nodeStats:
     @staticmethod
     def average_uniques(arr1, arr2):
         "Takes two arrays, gets the uniques of both with the average of common values in the second."
-        arr1_uniq = np.unique(arr1)
+        arr1_uniq, index = np.unique(arr1, return_index=True)
         arr2_new = np.zeros_like(arr1_uniq).astype(np.float64)
-        for i, val in enumerate(arr1_uniq):
+        for i, val in enumerate(arr1[index]):
             mean = arr2[arr1==val].mean()
             arr2_new[i] += mean
 
-        return arr1_uniq, arr2_new
+        return arr1[index], arr2_new
 
     def compile_trace(self):
         """This function uses the branches and FWHM's identified in the node_stats dictionary to create a
@@ -2458,7 +2452,7 @@ class nodeStats:
             matching_coords = np.array([])
             # get node area
             node_area = pd_img[x-2 : x+3, y-2 : y+3]
-            print("AREA: ", node_area)
+            #print("AREA: ", node_area)
             # get overlaps between crossing coords and 
             pd_idx_in_area = np.unique(node_area)
             pd_idx_in_area = pd_idx_in_area[pd_idx_in_area != 0]
