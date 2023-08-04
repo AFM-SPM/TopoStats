@@ -93,6 +93,7 @@ class dnaTrace:
         self.number_of_rows = self.image.shape[0]
         self.number_of_columns = self.image.shape[1]
         self.sigma = 0.7 / (self.pixel_to_nm_scaling * 1e9)
+        self.step_size = 7e-9
 
         self.gauss_image = None
         self.grain = grain
@@ -123,7 +124,13 @@ class dnaTrace:
             self.get_ordered_traces()
             self.linear_or_circular(self.ordered_trace)
             self.get_fitted_traces()
-            self.get_splined_traces()
+            self.splined_trace = self.get_splined_traces(
+                fitted_trace=self.fitted_trace,
+                step_size_m=self.step_size,
+                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+                mol_is_circular=self.mol_is_circular,
+                n_grain=self.n_grain,
+            )
             # self.find_curvature()
             # self.saveCurvature()
             self.measure_contour_length()
@@ -308,107 +315,167 @@ class dnaTrace:
         self.fitted_trace = fitted_coordinate_array
         del fitted_coordinate_array  # cleaned up by python anyway?
 
-    def get_splined_traces(self):
+    @staticmethod
+    def get_splined_traces(
+        fitted_trace: np.ndarray, step_size_m: float, pixel_to_nm_scaling: float, mol_is_circular: bool, n_grain: int
+    ):
         """Gets a splined version of the fitted trace - useful for finding the radius of gyration etc
 
         This function actually calculates the average of several splines which is important for getting a good fit on
         the lower res data"""
 
-        step_size = int(7e-9 / (self.pixel_to_nm_scaling))  # 3 nm step size
-        interp_step = int(1e-10 / self.pixel_to_nm_scaling)
-        # Lets see if we just got with the pixel_to_nm_scaling
-        # step_size = self.pixel_to_nm_scaling
-        # interp_step = self.pixel_to_nm_scaling
+        # # Fitted traces are Nx2 numpy arrays of coordinates
 
-        self.splining_success = True
-        nbr = len(self.fitted_trace[:, 0])
+        # Calculate the step size in pixels
+        step_size_px = int(step_size_m / pixel_to_nm_scaling)
 
-        # Hard to believe but some traces have less than 4 coordinates in total
-        if len(self.fitted_trace[:, 1]) < 4:
-            self.splined_trace = self.fitted_trace
-            # continue
+        spline_sum = None
+        nbr = len(fitted_trace)
 
-        # The degree of spline fit used is 3 so there cannot be less than 3 points in the splined trace
-        while nbr / step_size < 4:
-            if step_size <= 1:
-                step_size = 1
+        fitted_trace_length = fitted_trace.shape[0]
+
+        if fitted_trace_length < 4:
+            LOGGER.warning(
+                f"Fitted trace for grain {n_grain} too small ({fitted_trace_length}), returning fitted trace"
+            )
+            return fitted_trace
+
+        # Degree of the spline is 3 so there cannot be < 3 points
+        # Decrease the step size to ensure more than 3 points
+        while nbr / step_size_px < 4:
+            if step_size_px <= 1:
+                step_size_px = 1
                 break
-            step_size = -1
-        if self.mol_is_circular:
-            # if nbr/step_size > 4: #the degree of spline fit is 3 so there cannot be less than 3 points in splined trace
+            step_size_px = -1
 
-            # ev_array = np.linspace(0, 1, nbr * step_size)
-            ev_array = np.linspace(0, 1, int(nbr * step_size))
-
-            for i in range(step_size):
-                x_sampled = np.array(
-                    [self.fitted_trace[:, 0][j] for j in range(i, len(self.fitted_trace[:, 0]), step_size)]
-                )
-                y_sampled = np.array(
-                    [self.fitted_trace[:, 1][j] for j in range(i, len(self.fitted_trace[:, 1]), step_size)]
-                )
-
-                try:
-                    tck, u = interp.splprep([x_sampled, y_sampled], s=0, per=2, quiet=1, k=3)
-                    out = interp.splev(ev_array, tck)
-                    splined_trace = np.column_stack((out[0], out[1]))
-                except ValueError:
-                    # Value error occurs when the "trace fitting" really messes up the traces
-
-                    x = np.array(
-                        [self.ordered_trace[:, 0][j] for j in range(i, len(self.ordered_trace[:, 0]), step_size)]
-                    )
-                    y = np.array(
-                        [self.ordered_trace[:, 1][j] for j in range(i, len(self.ordered_trace[:, 1]), step_size)]
-                    )
-
-                    try:
-                        tck, u = interp.splprep([x, y], s=0, per=2, quiet=1)
-                        out = interp.splev(np.linspace(0, 1, nbr * step_size), tck)
-                        splined_trace = np.column_stack((out[0], out[1]))
-                    except (
-                        ValueError
-                    ):  # sometimes even the ordered_traces are too bugged out so just delete these traces
-                        self.mol_is_circular.pop(dna_num)
-                        self.disordered_trace.pop(dna_num)
-                        self.grain.pop(dna_num)
-                        self.ordered_trace.pop(dna_num)
-                        self.splining_success = False
-                        try:
-                            del spline_running_total
-                        except UnboundLocalError:  # happens if splining fails immediately
-                            break
-                        break
-
-                try:
-                    spline_running_total = np.add(spline_running_total, splined_trace)
-                except NameError:
-                    spline_running_total = np.array(splined_trace)
-
-            # if not self.splining_success:
-            #     continue
-
-            spline_average = np.divide(spline_running_total, [step_size, step_size])
-            del spline_running_total
-            self.splined_trace = spline_average
-            # else:
-            #    x = self.fitted_trace[:,0]
-            #    y = self.fitted_trace[:,1]
-
-            #    try:
-            #        tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1, k = 3)
-            #        out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
-            #        splined_trace = np.column_stack((out[0], out[1]))
-            #        self.splined_trace = splined_trace
-            #    except ValueError: #if the trace is really messed up just delete it
-            #        self.mol_is_circular.pop(dna_num)
-            #        self.disordered_trace.pop(dna_num)
-            #        self.grain.pop(dna_num)
-            #        self.ordered_trace.pop(dna_num)
-
+        if mol_is_circular:
+            smoothness = 2
+            periodicity = 2
         else:
-            # can't get splining of linear molecules to work yet
-            self.splined_trace = self.fitted_trace
+            smoothness = 5
+            periodicity = 0
+
+        ev_array = np.linspace(0, 1, nbr * step_size_px)
+
+        # Find as many splines as there are steps in step size, this allows for a better spline to be obtained
+        # by averaging the splines. Think of this like weaving a lot of splines together along the course of
+        # the trace. Example spline coordinate indexes: [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4], where spline
+        # 1 takes every 4th coordinate, starting at position 0, then spline 2 takes every 4th coordinate
+        # starting at position 1, etc...
+        for i in range(step_size_px):
+            x_sampled = np.array([fitted_trace[:, 0][j] for j in range(i, fitted_trace_length, step_size_px)])
+            y_sampled = np.array([fitted_trace[:, 1][j] for j in range(i, fitted_trace_length, step_size_px)])
+
+            # Use scipy's B-spline functions
+            tck, _ = interp.splprep([x_sampled, y_sampled], s=smoothness, per=periodicity, quiet=1, k=3)
+            out = interp.splev(ev_array, tck)
+            splined_trace = np.column_stack((out[0], out[1]))
+
+            if spline_sum is None:
+                spline_sum = np.array(splined_trace)
+            else:
+                spline_sum = np.add(spline_sum, splined_trace)
+
+        # Find the average spline between the set of splines
+        spline_average = np.divide(spline_sum, [step_size_px, step_size_px])
+
+        return spline_average
+
+        # step_size = int(7e-9 / (self.pixel_to_nm_scaling))  # 3 nm step size
+        # interp_step = int(1e-10 / self.pixel_to_nm_scaling)
+        # # Lets see if we just got with the pixel_to_nm_scaling
+        # # step_size = self.pixel_to_nm_scaling
+        # # interp_step = self.pixel_to_nm_scaling
+
+        # self.splining_success = True
+        # nbr = len(self.fitted_trace[:, 0])
+
+        # # Hard to believe but some traces have less than 4 coordinates in total
+        # if len(self.fitted_trace[:, 1]) < 4:
+        #     self.splined_trace = self.fitted_trace
+        #     # continue
+
+        # # The degree of spline fit used is 3 so there cannot be less than 3 points in the splined trace
+        # while nbr / step_size < 4:
+        #     if step_size <= 1:
+        #         step_size = 1
+        #         break
+        #     step_size = -1
+        # if self.mol_is_circular:
+        #     # if nbr/step_size > 4: #the degree of spline fit is 3 so there cannot be less than 3 points in splined trace
+
+        #     # ev_array = np.linspace(0, 1, nbr * step_size)
+        #     ev_array = np.linspace(0, 1, int(nbr * step_size))
+
+        #     for i in range(step_size):
+        #         x_sampled = np.array(
+        #             [self.fitted_trace[:, 0][j] for j in range(i, len(self.fitted_trace[:, 0]), step_size)]
+        #         )
+        #         y_sampled = np.array(
+        #             [self.fitted_trace[:, 1][j] for j in range(i, len(self.fitted_trace[:, 1]), step_size)]
+        #         )
+
+        #         try:
+        #             tck, u = interp.splprep([x_sampled, y_sampled], s=0, per=2, quiet=1, k=3)
+        #             out = interp.splev(ev_array, tck)
+        #             splined_trace = np.column_stack((out[0], out[1]))
+        #         except ValueError:
+        #             # Value error occurs when the "trace fitting" really messes up the traces
+
+        #             x = np.array(
+        #                 [self.ordered_trace[:, 0][j] for j in range(i, len(self.ordered_trace[:, 0]), step_size)]
+        #             )
+        #             y = np.array(
+        #                 [self.ordered_trace[:, 1][j] for j in range(i, len(self.ordered_trace[:, 1]), step_size)]
+        #             )
+
+        #             try:
+        #                 tck, u = interp.splprep([x, y], s=0, per=2, quiet=1)
+        #                 out = interp.splev(np.linspace(0, 1, nbr * step_size), tck)
+        #                 splined_trace = np.column_stack((out[0], out[1]))
+        #             except (
+        #                 ValueError
+        #             ):  # sometimes even the ordered_traces are too bugged out so just delete these traces
+        #                 self.mol_is_circular.pop(dna_num)
+        #                 self.disordered_trace.pop(dna_num)
+        #                 self.grain.pop(dna_num)
+        #                 self.ordered_trace.pop(dna_num)
+        #                 self.splining_success = False
+        #                 try:
+        #                     del spline_running_total
+        #                 except UnboundLocalError:  # happens if splining fails immediately
+        #                     break
+        #                 break
+
+        #         try:
+        #             spline_running_total = np.add(spline_running_total, splined_trace)
+        #         except NameError:
+        #             spline_running_total = np.array(splined_trace)
+
+        #     # if not self.splining_success:
+        #     #     continue
+
+        #     spline_average = np.divide(spline_running_total, [step_size, step_size])
+        #     del spline_running_total
+        #     self.splined_trace = spline_average
+        #     # else:
+        #     #    x = self.fitted_trace[:,0]
+        #     #    y = self.fitted_trace[:,1]
+
+        #     #    try:
+        #     #        tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1, k = 3)
+        #     #        out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
+        #     #        splined_trace = np.column_stack((out[0], out[1]))
+        #     #        self.splined_trace = splined_trace
+        #     #    except ValueError: #if the trace is really messed up just delete it
+        #     #        self.mol_is_circular.pop(dna_num)
+        #     #        self.disordered_trace.pop(dna_num)
+        #     #        self.grain.pop(dna_num)
+        #     #        self.ordered_trace.pop(dna_num)
+
+        # else:
+        #     # can't get splining of linear molecules to work yet
+        #     self.splined_trace = self.fitted_trace
 
     def show_traces(self):
         plt.pcolormesh(self.gauss_image, vmax=-3e-9, vmin=3e-9)
@@ -732,6 +799,7 @@ def trace_image(
     n_grain = 0
     results = {}
     ordered_traces = []
+    splined_traces = []
     for cropped_image, cropped_mask in zip(cropped_images, cropped_masks):
         result = trace_grain(
             cropped_image,
@@ -744,20 +812,31 @@ def trace_image(
         )
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
         ordered_traces.append(result.pop("ordered_trace"))
+        splined_traces.append(result.pop("splined_trace"))
         results[n_grain] = result
         n_grain += 1
     try:
         results = pd.DataFrame.from_dict(results, orient="index")
         results.index.name = "molecule_number"
         image_trace = trace_mask(grain_anchors, ordered_traces, image.shape, pad_width)
+        # rounded_splined_traces = [np.round(np.array(splined_trace)).astype(int) for splined_trace in splined_traces]
+        rounded_splined_traces = []
+        for splined_trace in splined_traces:
+            if splined_trace is not None:
+                rounded_splined_trace = np.round(splined_trace).astype(int)
+                rounded_splined_traces.append(rounded_splined_trace)
+        rounded_splined_traces = np.array(rounded_splined_traces)
+        image_spline_trace = trace_mask(grain_anchors, rounded_splined_traces, image.shape, pad_width)
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
     return {
         "statistics": results,
         "ordered_traces": ordered_traces,
+        "splined_traces": splined_traces,
         "cropped_images": cropped_images,
         "image_trace": image_trace,
+        "image_spline_trace": image_spline_trace,
     }
 
 
@@ -959,6 +1038,7 @@ def trace_grain(
         "circular": dnatrace.mol_is_circular,
         "end_to_end_distance": dnatrace.end_to_end_distance,
         "ordered_trace": dnatrace.ordered_trace,
+        "splined_trace": dnatrace.splined_trace,
     }
 
 
