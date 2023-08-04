@@ -425,7 +425,7 @@ def run_dnatracing(
                 tracing_stats[direction] = tracing_results["statistics"]
                 ordered_traces = tracing_results["ordered_traces"]
                 cropped_images = tracing_results["cropped_images"]
-                image_trace = tracing_results["image_trace"]
+                image_spline_trace = tracing_results["image_spline_trace"]
                 tracing_stats[direction]["threshold"] = direction
 
                 # Plot traces for the whole image
@@ -433,7 +433,7 @@ def run_dnatracing(
                     image,
                     output_dir=core_out_path,
                     filename=f"{filename}_{direction}_traced",
-                    masked_array=image_trace,
+                    masked_array=image_spline_trace,
                     **plotting_config["plot_dict"]["all_molecule_traces"],
                 ).plot_and_save()
 
@@ -460,9 +460,7 @@ def run_dnatracing(
                 tracing_stats_df = tracing_stats["above"]
             elif "below" in tracing_stats:
                 tracing_stats_df = tracing_stats["below"]
-            LOGGER.info(
-                f"[{filename}] : Combining {list(tracing_stats.keys())} grain statistics and dnatracing statistics"
-            )
+            LOGGER.info(f"[{filename}] : Combining {list(tracing_stats.keys())} grain statistics and dnatracing statistics")
             # NB - Merge on image, molecule and threshold because we may have above and below molecules which
             #      gives duplicate molecule numbers as they are processed separately, if tracing stats
             #      are not available (because skeleton was too small), grainstats are still retained.
