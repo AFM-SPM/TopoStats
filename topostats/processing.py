@@ -322,7 +322,7 @@ def process_scan(
                             plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                             plotting_config["plot_dict"][plot_name]["mask_cmap"] = "green_black"
                             if plot_name == "visual":
-                                plotting_config["plot_dict"]["visual"]["mask_cmap"] = "blu_purp"
+                                plotting_config["plot_dict"]["visual"]["mask_cmap"] = "viridis"
                             if plot_name == "ordered_trace":
                                 plotting_config["plot_dict"]["ordered_trace"]["mask_cmap"] = "viridis"
                             Images(
