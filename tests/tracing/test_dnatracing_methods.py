@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from topostats.tracing.dnatracing import dnaTrace, crop_array
+from topostats.tracing.tracingfuncs import reorderTrace
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
@@ -387,3 +388,188 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
     cropped = crop_array(TEST_LABELLED, bounding_box, pad_width)
     print(f"cropped :\n{cropped}")
     np.testing.assert_array_equal(cropped, target)
+
+
+@pytest.mark.parametrize(
+    "trace_image, step_size_m, mol_is_circular, expected_spline_image",
+    [
+        (
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 1, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            1.0,
+            True,
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 1, 1, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 1, 1, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 1, 1, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+        ),
+        (
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            10.0,
+            True,
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+        ),
+        (
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            5.0,
+            False,
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+        ),
+        (
+            np.array(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            4.0,
+            False,
+            np.array(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+        ),
+    ],
+)
+def test_get_splined_traces(
+    trace_image: np.ndarray, step_size_m: float, mol_is_circular: bool, expected_spline_image: np.ndarray
+) -> None:
+    """Test the get_splined_traces() function of dnatracing.py"""
+
+    # For development visualisations - keep this in for future use
+    # plt.imsave('./fitted_trace.png', trace_image)
+
+    # Obtain the coords of the pixels from our test image
+    trace_coords = np.argwhere(trace_image == 1)
+
+    # Get an ordered trace from our test trace images
+    if mol_is_circular:
+        ordered_trace, _whether_trace_completed = reorderTrace.circularTrace(trace_coords)
+    else:
+        ordered_trace = reorderTrace.linearTrace(trace_coords)
+
+    # Fixed pixel to nm scaling since changing this is redundant due to the internal effect being linked to
+    # the step_size_m divided by this value, so changing both doesn't make sense.
+    pixel_to_nm_scaling = 1.0
+
+    # Generate splined trace
+    splined_trace = dnaTrace.get_splined_traces(
+        fitted_trace=ordered_trace,
+        step_size_m=step_size_m,
+        pixel_to_nm_scaling=pixel_to_nm_scaling,
+        mol_is_circular=mol_is_circular,
+        n_grain=1,
+    )
+
+    # This is just for easier human-readable tests. Turn the splined coords into a visualisation.
+    splined_image = np.zeros_like(trace_image)
+    splined_image[np.round(splined_trace[:, 0]).astype(int), np.round(splined_trace[:, 1]).astype(int)] = 1
+
+    # For development visualisations - keep this in for future use
+    # plt.imsave(f'./test_splined_image_{splined_image.shape}.png', splined_image)
+
+    np.testing.assert_array_equal(splined_image, expected_spline_image)
