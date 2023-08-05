@@ -1579,9 +1579,9 @@ class nodeStats:
     @staticmethod
     def get_vector(coords, origin):
         """Calculate the normalised vector of the coordinate means in a branch"""
-        start_coord = coords[np.absolute(origin - coords).sum(axis=1).argmin()]
-        vector = coords.mean(axis=0) - start_coord
-        vector /= abs(vector).max()
+        vector = coords.mean(axis=0) - origin
+        vector_length = np.sqrt(vector[0]**2+vector[1]**2)
+        vector /= abs(vector_length)
         return vector
 
     @staticmethod
@@ -1600,8 +1600,9 @@ class nodeStats:
             An array of the cosine of the angles between the vectors.
         """
         dot = vectors @ vectors.T
-        norm = abs(np.diag(dot)) ** 0.5
-        angles = abs(dot / (norm.reshape(-1, 1) @ norm.reshape(1, -1)))
+        norm = np.diag(dot) ** 0.5
+        cos_angles = dot / (norm.reshape(-1, 1) @ norm.reshape(1, -1))
+        angles = abs(np.arccos(cos_angles) / np.pi * 180 - 180) # 180 as paired with reverse
         return angles
 
     def pair_vectors(self, vectors: np.ndarray):
@@ -1619,14 +1620,12 @@ class nodeStats:
         """
         # calculate cosine of angle
         angles = self.calc_angles(vectors)
-        #print("Angles: ", angles)
         # find highest values
-        np.fill_diagonal(angles, 0)  # ensures not paired with itself
+        np.fill_diagonal(angles, 190)  # ensures not paired with itself
         # match angles
-
         G = self.create_weighted_graph(angles)
-        matching = np.array(list(nx.max_weight_matching(G, maxcardinality=True)))
-        return matching #self.pair_angles(angles)
+        matching = np.array(list(nx.min_weight_matching(G, maxcardinality=True)))
+        return matching 
 
     @staticmethod
     def create_weighted_graph(matrix):
@@ -1688,6 +1687,9 @@ class nodeStats:
 
     def fwhm2(self, heights, distances, hm=None):
         centre_fraction = int(len(heights) * 0.2)  # incase zone approaches another node, look around centre for max
+        #if centre_fraction == 0:
+        #    centre_fraction = 1
+        #print("CENT: ", centre_fraction)
         high_idx = np.argmax(heights[centre_fraction:-centre_fraction]) + centre_fraction
         #heights_norm = heights.copy() - heights.min()  # lower graph so min is 0
 
