@@ -2446,6 +2446,7 @@ class nodeStats:
             matching_coords = np.array([])
             # get node area
             node_area = pd_img[x-2 : x+3, y-2 : y+3]
+            #print("CENTRE #: ", i)
             #print("AREA: ", node_area)
             # get overlaps between crossing coords and 
             pd_idx_in_area = np.unique(node_area)
@@ -2490,7 +2491,7 @@ class nodeStats:
             no_triv_pd = self.remove_trivial_crossings(np.array(pd_vals))
             assert self.check_uniq_vals_valid(no_triv_pd)
             assert self.check_no_duplicates_in_columns(no_triv_pd) # may break when 1-4, 1-6 (Node-Branch)
-            if len(no_triv_pd == 2):
+            if len(no_triv_pd) == 2:
                 assert (no_triv_pd[0] == no_triv_pd[1,::-1]).all() or (no_triv_pd[0] == no_triv_pd[1,[1,0,3,2]]).all()
             topology = homfly(pd_code, closure=params.Closure.CLOSED, chiral = False)
         except AssertionError as e: # triggers on same value in columns
@@ -2530,15 +2531,26 @@ class nodeStats:
         np.ndarray
             An array of the labeled area values in an anti-clockwise direction from the startpoint.
         """
-        top = np.unique(area[0, :-1][area[0, :-1] != 0][::-1])
-        left = np.unique(area[1:, 0][area[1:, 0] != 0])
-        bottom = np.unique(area[-1, 1:][area[-1, 1:] != 0])
-        right = np.unique(area[:-1, -1][area[:-1, -1] != 0][::-1])
-
-        total = np.concatenate([top, left, bottom, right])
+        top = area[0, :-1][::-1]
+        _, top_args = np.unique(top, return_index=True)
+        top_vals = top[top_args.sort()]
+        left = area[1:, 0]
+        _, left_args = np.unique(left, return_index=True)
+        left_vals = left[left_args.sort()]
+        bottom = area[-1, 1:]
+        _, bottom_args = np.unique(bottom, return_index=True)
+        bottom_vals = bottom[bottom_args.sort()]
+        right = area[:-1, -1][::-1]
+        _, right_args = np.unique(right, return_index=True)
+        right_vals = right[right_args.sort()]
+        
+        total = np.concatenate([top_vals[top_vals != 0],
+                                left_vals[left_vals != 0],
+                                bottom_vals[bottom_vals != 0],
+                                right_vals[right_vals != 0]])
         start_idx = np.where(total == start_lbl)[0]
 
-        return np.roll(total, -start_idx) 
+        return np.roll(total, -start_idx)
     
     @staticmethod
     def remove_trivial_crossings(pd_values: np.ndarray):
@@ -2553,6 +2565,7 @@ class nodeStats:
     @staticmethod
     def check_uniq_vals_valid(pd_vals):
         # checks (for real nodes) that there are not more unique pd_vals than physically possible
+        # False if fails check, True is good
         flat = pd_vals.flatten()
         if len(np.unique(flat)) > 2 * len(pd_vals):
             return False
@@ -2561,6 +2574,7 @@ class nodeStats:
     @staticmethod
     def check_no_duplicates_in_columns(array):
         # checks if duplicate values exist within a column in an array
+        # False fails check, True is good
         for col_no in range(array.shape[1]):
             if len(array[:, col_no]) != len(np.unique(array[:, col_no])):
                 return False
