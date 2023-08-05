@@ -1415,11 +1415,9 @@ class nodeStats:
                     # get full branch vectors
                     vectors = []
                     for branch_no, values in matched_branches.items():
-                        vectors.append(self.get_vector(values["ordered_coords"], node_centre_small_xy))
+                        vectors.append(self.get_vector(values["ordered_coords"], [x,y]))
                     # calc angles to first vector i.e. first should always be 0
-                    cos_angles = self.calc_angles(np.asarray(vectors))[0]
-                    cos_angles[cos_angles > 1] = 1  # floating point sometimes causes nans for 1's
-                    angles = np.arccos(cos_angles) / np.pi * 180
+                    angles = self.calc_angles(np.asarray(vectors))[0]
                     for i, angle in enumerate(angles):
                         matched_branches[i]["angles"] = angle
 
@@ -1580,13 +1578,12 @@ class nodeStats:
     def get_vector(coords, origin):
         """Calculate the normalised vector of the coordinate means in a branch"""
         vector = coords.mean(axis=0) - origin
-        vector_length = np.sqrt(vector[0]**2+vector[1]**2)
-        vector /= abs(vector_length)
+        vector /= np.sqrt(vector @ vector) # normalise vector so length=1
         return vector
 
     @staticmethod
     def calc_angles(vectors: np.ndarray):
-        """Calculates the cosine of the angles between vectors in an array.
+        """Calculates the angles between vectors in an array.
         Uses the formula: cos(theta) = |a|•|b|/|a||b|
 
         Parameters
@@ -1602,7 +1599,7 @@ class nodeStats:
         dot = vectors @ vectors.T
         norm = np.diag(dot) ** 0.5
         cos_angles = dot / (norm.reshape(-1, 1) @ norm.reshape(1, -1))
-        angles = abs(np.arccos(cos_angles) / np.pi * 180 - 180) # 180 as paired with reverse
+        angles = abs(np.arccos(cos_angles) / np.pi * 180)
         return angles
 
     def pair_vectors(self, vectors: np.ndarray):
@@ -1621,10 +1618,10 @@ class nodeStats:
         # calculate cosine of angle
         angles = self.calc_angles(vectors)
         # find highest values
-        np.fill_diagonal(angles, 190)  # ensures not paired with itself
+        np.fill_diagonal(angles, 0)  # ensures not paired with itself
         # match angles
         G = self.create_weighted_graph(angles)
-        matching = np.array(list(nx.min_weight_matching(G, maxcardinality=True)))
+        matching = np.array(list(nx.max_weight_matching(G, maxcardinality=True)))
         return matching 
 
     @staticmethod
@@ -1865,13 +1862,8 @@ class nodeStats:
             diff_dists = np.sqrt(diff_coords[:,0]**2 + diff_coords[:,1]**2)
             centre = coords[np.argmin(diff_dists)]
         cross_idx = np.argwhere(np.all(coords == centre, axis=1))
-        print("Cross Idx: ", cross_idx, centre, len(coords))
-        if cross_idx > 30:
-            print(coords, '\n')
-            print(np.sqrt(diff_coords[:,0]**2 + diff_coords[:,1]**2))
         rad_dist = np.sqrt(diff_coords[:,0]**2 + diff_coords[:,1]**2)
         rad_dist[0:cross_idx[0][0]] *= -1
-        print("Dist: ", rad_dist.min(), rad_dist.max(), rad_dist.shape, '\n')
         return rad_dist
 
 
