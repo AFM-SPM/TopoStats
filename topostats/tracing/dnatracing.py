@@ -889,20 +889,23 @@ def trace_image(
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
         full_node_dict[n_grain] = node_dict
         #results[n_grain] = result
+        try:
+            pd_result = pd.DataFrame.from_dict(result, orient="index")
+            grains_results = pd.concat([grains_results, pd_result])
+        except NameError:
+            grains_results = pd.DataFrame.from_dict(result, orient="index")
+        except ValueError as error:
+            LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
+            LOGGER.error(error)
 
         for key, value in all_images.items():
             crop = images[key]
             bbox = bboxs[n_grain]
             value[bbox[0]:bbox[2], bbox[1]:bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
 
-    try:
-        results = pd.DataFrame.from_dict(result, orient="index")
-        print(results)
-        #results.index.name = "molecule_number"
-    except ValueError as error:
-        LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
-        LOGGER.error(error)
-    return results, full_node_dict, all_images
+    print(grains_results)
+   
+    return grains_results, full_node_dict, all_images
 
 
 def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
