@@ -93,7 +93,7 @@ class dnaTrace:
         self.number_of_rows = self.image.shape[0]
         self.number_of_columns = self.image.shape[1]
         self.sigma = 0.7 / (self.pixel_to_nm_scaling * 1e9)
-        self.step_size = 7e-9
+        self.step_size_m = 7e-9
 
         self.gauss_image = None
         self.grain = grain
@@ -124,13 +124,7 @@ class dnaTrace:
             self.get_ordered_traces()
             self.linear_or_circular(self.ordered_trace)
             self.get_fitted_traces()
-            self.splined_trace = self.get_splined_traces(
-                fitted_trace=self.fitted_trace,
-                step_size_m=self.step_size,
-                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
-                mol_is_circular=self.mol_is_circular,
-                n_grain=self.n_grain,
-            )
+            self.get_splined_traces()
             # self.find_curvature()
             # self.saveCurvature()
             self.measure_contour_length()
@@ -315,20 +309,24 @@ class dnaTrace:
         self.fitted_trace = fitted_coordinate_array
         del fitted_coordinate_array  # cleaned up by python anyway?
 
-    @staticmethod
-    def get_splined_traces(
-        fitted_trace: np.ndarray, step_size_m: float, pixel_to_nm_scaling: float, mol_is_circular: bool, n_grain: int
-    ):
+    def get_splined_traces(self):
         """Gets a splined version of the fitted trace - useful for finding the radius of gyration etc
 
         This function actually calculates the average of several splines which is important for getting a good fit on
         the lower res data"""
 
-        # # Fitted traces are Nx2 numpy arrays of coordinates
+        # Fitted traces are Nx2 numpy arrays of coordinates
+        # All self references are here for easy turning into static method if wanted, also type hints and short documentation
+        fitted_trace = self.fitted_trace  # : np.ndarray - boolean 2d numpy array of fitted traces to spline
+        step_size_m = self.step_size_m  # : float - the step size for the splines to skip pixels in the fitted trace
+        pixel_to_nm_scaling = self.pixel_to_nm_scaling  # : float - pixel to nanometre scaling factor for the image
+        mol_is_circular = self.mol_is_circular  # : mol_is_circular - whether or not the molecule is classed as circular
+        n_grain = self.n_grain  # : int - the grain index (for logging purposes)
 
         # Calculate the step size in pixels
         step_size_px = int(step_size_m / pixel_to_nm_scaling)
 
+        # Splines will be totalled and then divived by number of splines to calculate the average spline
         spline_sum = None
         nbr = len(fitted_trace)
 
@@ -379,103 +377,7 @@ class dnaTrace:
         # Find the average spline between the set of splines
         spline_average = np.divide(spline_sum, [step_size_px, step_size_px])
 
-        return spline_average
-
-        # step_size = int(7e-9 / (self.pixel_to_nm_scaling))  # 3 nm step size
-        # interp_step = int(1e-10 / self.pixel_to_nm_scaling)
-        # # Lets see if we just got with the pixel_to_nm_scaling
-        # # step_size = self.pixel_to_nm_scaling
-        # # interp_step = self.pixel_to_nm_scaling
-
-        # self.splining_success = True
-        # nbr = len(self.fitted_trace[:, 0])
-
-        # # Hard to believe but some traces have less than 4 coordinates in total
-        # if len(self.fitted_trace[:, 1]) < 4:
-        #     self.splined_trace = self.fitted_trace
-        #     # continue
-
-        # # The degree of spline fit used is 3 so there cannot be less than 3 points in the splined trace
-        # while nbr / step_size < 4:
-        #     if step_size <= 1:
-        #         step_size = 1
-        #         break
-        #     step_size = -1
-        # if self.mol_is_circular:
-        #     # if nbr/step_size > 4: #the degree of spline fit is 3 so there cannot be less than 3 points in splined trace
-
-        #     # ev_array = np.linspace(0, 1, nbr * step_size)
-        #     ev_array = np.linspace(0, 1, int(nbr * step_size))
-
-        #     for i in range(step_size):
-        #         x_sampled = np.array(
-        #             [self.fitted_trace[:, 0][j] for j in range(i, len(self.fitted_trace[:, 0]), step_size)]
-        #         )
-        #         y_sampled = np.array(
-        #             [self.fitted_trace[:, 1][j] for j in range(i, len(self.fitted_trace[:, 1]), step_size)]
-        #         )
-
-        #         try:
-        #             tck, u = interp.splprep([x_sampled, y_sampled], s=0, per=2, quiet=1, k=3)
-        #             out = interp.splev(ev_array, tck)
-        #             splined_trace = np.column_stack((out[0], out[1]))
-        #         except ValueError:
-        #             # Value error occurs when the "trace fitting" really messes up the traces
-
-        #             x = np.array(
-        #                 [self.ordered_trace[:, 0][j] for j in range(i, len(self.ordered_trace[:, 0]), step_size)]
-        #             )
-        #             y = np.array(
-        #                 [self.ordered_trace[:, 1][j] for j in range(i, len(self.ordered_trace[:, 1]), step_size)]
-        #             )
-
-        #             try:
-        #                 tck, u = interp.splprep([x, y], s=0, per=2, quiet=1)
-        #                 out = interp.splev(np.linspace(0, 1, nbr * step_size), tck)
-        #                 splined_trace = np.column_stack((out[0], out[1]))
-        #             except (
-        #                 ValueError
-        #             ):  # sometimes even the ordered_traces are too bugged out so just delete these traces
-        #                 self.mol_is_circular.pop(dna_num)
-        #                 self.disordered_trace.pop(dna_num)
-        #                 self.grain.pop(dna_num)
-        #                 self.ordered_trace.pop(dna_num)
-        #                 self.splining_success = False
-        #                 try:
-        #                     del spline_running_total
-        #                 except UnboundLocalError:  # happens if splining fails immediately
-        #                     break
-        #                 break
-
-        #         try:
-        #             spline_running_total = np.add(spline_running_total, splined_trace)
-        #         except NameError:
-        #             spline_running_total = np.array(splined_trace)
-
-        #     # if not self.splining_success:
-        #     #     continue
-
-        #     spline_average = np.divide(spline_running_total, [step_size, step_size])
-        #     del spline_running_total
-        #     self.splined_trace = spline_average
-        #     # else:
-        #     #    x = self.fitted_trace[:,0]
-        #     #    y = self.fitted_trace[:,1]
-
-        #     #    try:
-        #     #        tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1, k = 3)
-        #     #        out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
-        #     #        splined_trace = np.column_stack((out[0], out[1]))
-        #     #        self.splined_trace = splined_trace
-        #     #    except ValueError: #if the trace is really messed up just delete it
-        #     #        self.mol_is_circular.pop(dna_num)
-        #     #        self.disordered_trace.pop(dna_num)
-        #     #        self.grain.pop(dna_num)
-        #     #        self.ordered_trace.pop(dna_num)
-
-        # else:
-        #     # can't get splining of linear molecules to work yet
-        #     self.splined_trace = self.fitted_trace
+        self.splined_trace = spline_average
 
     def show_traces(self):
         plt.pcolormesh(self.gauss_image, vmax=-3e-9, vmin=3e-9)

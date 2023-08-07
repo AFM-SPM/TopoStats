@@ -301,7 +301,7 @@ def test_trace_mask(
                 {
                     "molecule_number": [0, 1],
                     "image": ["multigrain_topostats", "multigrain_topostats"],
-                    "contour_length": [1.2382864476914832e-07, 7.617314045334366e-08],
+                    "contour_length": [5.684734982126663e-08, 7.574136072208753e-08],
                     "circular": [False, True],
                     "end_to_end_distance": [3.120049919984285e-08, 0.000000e00],
                 }
@@ -317,7 +317,7 @@ def test_trace_mask(
                 {
                     "molecule_number": [0, 1],
                     "image": ["multigrain_zhang", "multigrain_zhang"],
-                    "contour_length": [1.5050575430042103e-07, 1.122049485057339e-07],
+                    "contour_length": [6.194694383968301e-08, 8.187508931608563e-08],
                     "circular": [False, False],
                     "end_to_end_distance": [2.257869018994927e-08, 1.2389530445725336e-08],
                 }
@@ -333,7 +333,7 @@ def test_trace_mask(
                 {
                     "molecule_number": [0, 1],
                     "image": ["multigrain_lee", "multigrain_lee"],
-                    "contour_length": [1.432248478041724e-07, 1.1623401641268276e-07],
+                    "contour_length": [5.6550320018177204e-08, 8.062559919860786e-08],
                     "circular": [False, False],
                     "end_to_end_distance": [3.13837693459974e-08, 6.7191662793734405e-09],
                 }
@@ -349,7 +349,7 @@ def test_trace_mask(
                 {
                     "molecule_number": [0, 1],
                     "image": ["multigrain_thin", "multigrain_thin"],
-                    "contour_length": [1.2709212267220064e-07, 8.576324241662498e-08],
+                    "contour_length": [5.4926652806911664e-08, 3.6512544238919696e-08],
                     "circular": [False, False],
                     "end_to_end_distance": [4.367667613976452e-08, 3.440332307376993e-08],
                 }

@@ -460,7 +460,9 @@ def run_dnatracing(
                 tracing_stats_df = tracing_stats["above"]
             elif "below" in tracing_stats:
                 tracing_stats_df = tracing_stats["below"]
-            LOGGER.info(f"[{filename}] : Combining {list(tracing_stats.keys())} grain statistics and dnatracing statistics")
+            LOGGER.info(
+                f"[{filename}] : Combining {list(tracing_stats.keys())} grain statistics and dnatracing statistics"
+            )
             # NB - Merge on image, molecule and threshold because we may have above and below molecules which
             #      gives duplicate molecule numbers as they are processed separately, if tracing stats
             #      are not available (because skeleton was too small), grainstats are still retained.
