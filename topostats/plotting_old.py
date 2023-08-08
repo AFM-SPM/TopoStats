@@ -364,7 +364,7 @@ def plothist2var(
     plt.savefig(savename)
 
 
-def plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None, plotname=None):
+def plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None, plotname=None, color=None):
 
     """Creating a dist plot, which is the combination of a histogram and a KDE plot; doesn't support grouped plots
     yet"""
@@ -385,11 +385,12 @@ def plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
 
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
-    sns.distplot(dfnew[plotarg], ax=ax, bins=bins)
+    sns.distplot(dfnew[plotarg], ax=ax, bins=bins, color=color)
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
-    plt.xlabel(plotname)
+    # plt.xlabel(plotname)
+    plt.xlabel(labelunitconversion(plotarg, nm))
     plt.ylabel("Probability Density", alpha=1)
     plt.ticklabel_format(axis="both", style="sci", scilimits=(-3, 3))
     ax.tick_params(direction="out", bottom=True, left=True)
@@ -528,9 +529,6 @@ def plotLinearVsCircular(contour_lengths_df):
 
 def computeStats(data, columns, min, max):
     """Prints out a table of stats, including the standard deviation, standard error, N value, and peak position"""
-
-    xs = np.linspace(min, max, 1000)
-
     a = {}
     b = {}
     table = {
@@ -540,19 +538,18 @@ def computeStats(data, columns, min, max):
         "N": [0] * len(data),
     }
     for i, x in enumerate(data):
-        if i != 0:
-            x = x * 1e9
-            a[i] = scipy.stats.gaussian_kde(x)
-            b[i] = a[i].pdf(xs)
-            table["std"][i] = np.std(x)
-            table["ste"][i] = stats.sem(x)
-            table["max"][i] = xs[np.argmax(b[i])]
-            table["N"][i] = len(x)
+        # x = x * 1e9
+        xs = np.linspace(min[i], max[i], 1000)
+        a[i] = scipy.stats.gaussian_kde(x)
+        b[i] = a[i].pdf(xs)
+        table["std"][i] = np.std(x)
+        table["ste"][i] = stats.sem(x)
+        table["max"][i] = xs[np.argmax(b[i])]
+        table["N"][i] = len(x)
 
     dfmax = pd.DataFrame.from_dict(table, orient="index", columns=columns)
-    # Returning dataframe for regression testing
-    # dfmax.to_csv(pathman(path) + ".csv")
-    return dfmax
+    dfmax.to_csv(pathman(path) + ".csv")
+
 
 
 # def computeStats(data: pd.DataFrame, metrics: List[str] = None, groupby: str = None, output_dir: Union[Path, str]) -> pd.DataFrame:
@@ -604,6 +601,12 @@ if __name__ == "__main__":
         df3 = None
     extension = plotting_config["extension"]
     output_dir = plotting_config["output_dir"]
+    compute_stats = plotting_config["stats"]
+    if compute_stats:
+        stats_to_compute = []
+        column_names = []
+        compute_stats_min = []
+        compute_stats_max = []
 
     for plot in plotting_config["plots"]:
         plotname = plotting_config["plots"][plot]["title"]
@@ -636,12 +639,21 @@ if __name__ == "__main__":
         elif plottype == "violin":
             plotviolin(df, parameter, nm=nm, grouparg=grouparg, ymin=ymin, ymax=ymax)
         elif plottype == "dist":
-            plotdist(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
+            plotdist(df, parameter, nm=nm, grouparg=grouparg, bins=np.linspace(start, end, bins), xmin=xmin, xmax=xmax, plotname=plotname, color=color1)
         elif plottype == "dist2":
             plotdist2var(df, parameter, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1=label1,
                          label2=label2, bins=np.linspace(start, end, bins), plotname=plotname)
         elif plottype == "joint":
             plotjoint(df, parameter, nm=nm)
+        if compute_stats:
+            data_to_compute = dataunitconversion(df[parameter], parameter, nm)
+            stats_to_compute.append(data_to_compute)
+            column_names.append(parameter)
+            compute_stats_min.append(xmin)
+            compute_stats_max.append(xmax)
+
+    if compute_stats:
+        computeStats(stats_to_compute, column_names, compute_stats_min, compute_stats_max)
     # Filter data based on the need of specific projects
     # df = df[df['End to End Distance'] != 0]
     # df = df[df['Contour Lengths'] > 100]
