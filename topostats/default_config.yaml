@@ -42,8 +42,8 @@ grains:
   # Thresholding by area
   smallest_grain_size_nm2: 50 # Size in nm^2 of tiny grains/blobs (noise) to remove, must be > 0.0
   absolute_area_threshold:
-    above: [ 300, 3000 ] # above surface [Low, High] in nm^2 (also takes null)
-    below: [ null, null ] # below surface [Low, High] in nm^2 (also takes null)
+    above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
+    below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
 grainstats:
   run: true # Options : true, false
   edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
@@ -59,15 +59,15 @@ plotting:
   run: true # Options : true, false
   save_format: png # Options : see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
   pixel_interpolation: null # Options : https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html
-  image_set: core  # Options : all, core
-  zrange: [null, null]  # low and high height range for core images (can take [null, null]). low <= high
-  colorbar: true  # Options : true, false
+  image_set: core # Options : all, core
+  zrange: [null, null] # low and high height range for core images (can take [null, null]). low <= high
+  colorbar: true # Options : true, false
   axes: true # Options : true, false (due to off being a bool when parsed)
   cmap: nanoscope # Options : nanoscope, afmhot, gwyddion
   mask_cmap: blu # Options : blu, jet_r and any in matplotlib
   histogram_log_axis: false # Options : true, false
   histogram_bins: 200 # Number of bins for histogram plots to use
-  dpi: 100 # Dots Per Inch used in figures, if set to "figure" will use Matplotlib default
+  # dpi: 100 # Dots Per Inch used in figures, if set to "figure" will use Matplotlib default
 summary_stats:
   run: true # Whether to make summary plots for output data
   config: null

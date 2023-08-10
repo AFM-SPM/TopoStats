@@ -99,7 +99,7 @@ class dnaTrace:
         self.n_grain = n_grain
         self.number_of_rows = self.image.shape[0]
         self.number_of_columns = self.image.shape[1]
-        self.sigma = 2 #0.7 / (self.pixel_to_nm_scaling * 1e9)
+        self.sigma = 2  # 0.7 / (self.pixel_to_nm_scaling * 1e9)
 
         self.gauss_image = gaussian(self.image, self.sigma)
         self.smoothed_grain = np.zeros_like(image)
@@ -144,20 +144,24 @@ class dnaTrace:
                 grain=self.grain,
                 skeleton=self.pruned_skeleton,
                 px_2_nm=self.pixel_to_nm_scaling,
-                n_grain=self.n_grain
+                n_grain=self.n_grain,
             )
             self.node_dict = nodes.get_node_stats()
             self.node_image = nodes.connected_nodes
 
-            #try: # try to order using nodeStats
+            # try: # try to order using nodeStats
             if nodes.check_node_errorless():
                 ordered_traces, self.visuals, self.topology = nodes.compile_trace()
                 self.num_mols = len(ordered_traces)
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} ordered via nodeStats.")
-                LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} has {len(ordered_traces)} molecules, only first will be used (for now).")
+                LOGGER.info(
+                    f"[{self.filename}] : Grain {self.n_grain} has {len(ordered_traces)} molecules, only first will be used (for now)."
+                )
                 self.ordered_trace = ordered_traces
             else:
-                LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} couldn't be traced due to errors in analysing the nodes.")
+                LOGGER.info(
+                    f"[{self.filename}] : Grain {self.n_grain} couldn't be traced due to errors in analysing the nodes."
+                )
                 raise ValueError
             """
             except ValueError: # if nodestats fails, use default ordering method
@@ -178,8 +182,10 @@ class dnaTrace:
                     self.contour_lengths.append(self.measure_contour_length(splined_trace, mol_is_circular))
                     self.end_to_end_distances.append(self.measure_end_to_end_distance(splined_trace, mol_is_circular))
                 else:
-                    self.num_mols -= 1 # remove this from the num mols indexer
-                    LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain ordered trace pixels < {self.min_skeleton_size}")
+                    self.num_mols -= 1  # remove this from the num mols indexer
+                    LOGGER.info(
+                        f"[{self.filename}] [{self.n_grain}] : Grain ordered trace pixels < {self.min_skeleton_size}"
+                    )
         else:
             LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
 
@@ -202,8 +208,8 @@ class dnaTrace:
 
     def re_add_holes(self, orig_mask, new_mask, holearea_min_max=[4, np.inf]):
         """As gaussian and dilation smoothing methods can close holes in the original mask,
-        this function obtains those holes (based on the general background being the first due 
-        to padding) and adds them back into the smoothed mask. When paired, this essentailly 
+        this function obtains those holes (based on the general background being the first due
+        to padding) and adds them back into the smoothed mask. When paired, this essentailly
         just smooths the outer edge of the grains.
 
         Parameters:
@@ -241,16 +247,16 @@ class dnaTrace:
     @staticmethod
     def remove_touching_edge(skeleton: np.ndarray):
         """Removes any skeletons touching the boarder (to prevent errors later).
-        
+
         Parameters
         ----------
         skeleton: np.ndarray
             A binary array where touching clusters of 1's become 0's if touching the edge of the array.
         """
-        for edge in [skeleton[0,:-1], skeleton[:-1,-1], skeleton[-1,1:], skeleton[1:,0]]:
+        for edge in [skeleton[0, :-1], skeleton[:-1, -1], skeleton[-1, 1:], skeleton[1:, 0]]:
             uniques = np.unique(edge)
             for i in uniques:
-                skeleton[skeleton==i] = 0
+                skeleton[skeleton == i] = 0
         return skeleton
 
     # FIXME : It is straight-forward to get bounding boxes for grains, need to then have a dictionary of original image
@@ -288,11 +294,11 @@ class dnaTrace:
     def coords_2_img(coords, image, ordered=False):
         comb = np.zeros_like(image)
         if ordered:
-            comb[coords[:,0].astype(np.int32), coords[:,1].astype(np.int32)] = np.arange(1, len(coords)+1)
+            comb[coords[:, 0].astype(np.int32), coords[:, 1].astype(np.int32)] = np.arange(1, len(coords) + 1)
         else:
-            comb[np.floor(coords[:,0]).astype(np.int32), np.floor(coords[:,1]).astype(np.int32)] = 1
+            comb[np.floor(coords[:, 0]).astype(np.int32), np.floor(coords[:, 1]).astype(np.int32)] = 1
         return comb
-    
+
     @staticmethod
     def concat_images_in_dict(image_size, image_dict: dict):
         """Concatonates the skeletons in the skeleton dictionary onto one image"""
@@ -482,12 +488,8 @@ class dnaTrace:
         ev_array = np.linspace(0, 1, int(nbr * step_size_px))
 
         for i in range(step_size_px):
-            x_sampled = np.array(
-                [fitted_trace[:, 0][j] for j in range(i, len(fitted_trace[:, 0]), step_size_px)]
-            )
-            y_sampled = np.array(
-                [fitted_trace[:, 1][j] for j in range(i, len(fitted_trace[:, 1]), step_size_px)]
-            )
+            x_sampled = np.array([fitted_trace[:, 0][j] for j in range(i, len(fitted_trace[:, 0]), step_size_px)])
+            y_sampled = np.array([fitted_trace[:, 1][j] for j in range(i, len(fitted_trace[:, 1]), step_size_px)])
 
             try:
                 tck, u = interp.splprep([x_sampled, y_sampled], s=smoothness, per=periodicity, quiet=1, k=3)
@@ -496,25 +498,19 @@ class dnaTrace:
             except ValueError:
                 # Value error occurs when the "trace fitting" really messes up the traces
 
-                x = np.array(
-                    [ordered_trace[:, 0][j] for j in range(i, len(ordered_trace[:, 0]), step_size_px)]
-                )
-                y = np.array(
-                    [ordered_trace[:, 1][j] for j in range(i, len(ordered_trace[:, 1]), step_size_px)]
-                )
+                x = np.array([ordered_trace[:, 0][j] for j in range(i, len(ordered_trace[:, 0]), step_size_px)])
+                y = np.array([ordered_trace[:, 1][j] for j in range(i, len(ordered_trace[:, 1]), step_size_px)])
 
                 try:
                     tck, u = interp.splprep([x, y], s=smoothness, per=periodicity, quiet=1)
                     out = interp.splev(np.linspace(0, 1, nbr * step_size_px), tck)
                     splined_trace = np.column_stack((out[0], out[1]))
-                except (
-                    ValueError
-                ):  # sometimes even the ordered_traces are too bugged out so just delete these traces
+                except ValueError:  # sometimes even the ordered_traces are too bugged out so just delete these traces
                     print("ValueError")
-                    #self.mol_is_circular.pop(dna_num)
-                    #self.disordered_trace.pop(dna_num)
-                    #self.grain.pop(dna_num)
-                    #self.ordered_trace.pop(dna_num)
+                    # self.mol_is_circular.pop(dna_num)
+                    # self.disordered_trace.pop(dna_num)
+                    # self.grain.pop(dna_num)
+                    # self.ordered_trace.pop(dna_num)
                     splining_success = False
                     try:
                         del spline_running_total
@@ -533,12 +529,11 @@ class dnaTrace:
         spline_average = np.divide(spline_running_total, [step_size_px, step_size_px])
         del spline_running_total
         # ensure spline lies within bounds
-        spline_average = spline_average[spline_average[:,0] > 0]
-        spline_average = spline_average[spline_average[:,1] > 0]
-        spline_average = spline_average[spline_average[:,0] < self.image.shape[0]]
-        spline_average = spline_average[spline_average[:,1] < self.image.shape[1]]
+        spline_average = spline_average[spline_average[:, 0] > 0]
+        spline_average = spline_average[spline_average[:, 1] > 0]
+        spline_average = spline_average[spline_average[:, 0] < self.image.shape[0]]
+        spline_average = spline_average[spline_average[:, 1] < self.image.shape[1]]
         return spline_average
-
 
     def show_traces(self):
         plt.pcolormesh(self.image, vmax=-3e-9, vmin=3e-9)
@@ -858,7 +853,7 @@ def trace_image(
     cropped_images, cropped_masks, bboxs = prep_arrays(image, grains_mask, pad_width)
     n_grains = len(cropped_images)
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
-    #results = {}
+    # results = {}
     full_node_dict = {}
     img_base = np.zeros_like(image)
     # want to get each cropped image, use some anchor coords to match them onto the image,
@@ -888,7 +883,7 @@ def trace_image(
         )
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
         full_node_dict[n_grain] = node_dict
-        #results[n_grain] = result
+        # results[n_grain] = result
         try:
             pd_result = pd.DataFrame.from_dict(result, orient="index")
             grains_results = pd.concat([grains_results, pd_result])
@@ -901,10 +896,10 @@ def trace_image(
         for key, value in all_images.items():
             crop = images[key]
             bbox = bboxs[n_grain]
-            value[bbox[0]:bbox[2], bbox[1]:bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+            value[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
 
     print(grains_results)
-   
+
     return grains_results, full_node_dict, all_images
 
 
@@ -948,7 +943,7 @@ def trace_grain(
     filename: str = None,
     min_skeleton_size: int = 10,
     skeletonisation_method: str = "joe",
-    pruning_method = "joe",
+    pruning_method="joe",
     n_grain: int = None,
 ) -> Dict:
     """Trace an individual grain.
@@ -1103,7 +1098,9 @@ def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np
 class nodeStats:
     """Class containing methods to find and analyse the nodes/crossings within a grain"""
 
-    def __init__(self, filename, image: np.ndarray, grain: np.ndarray, skeleton: np.ndarray, px_2_nm: float, n_grain: int) -> None:
+    def __init__(
+        self, filename, image: np.ndarray, grain: np.ndarray, skeleton: np.ndarray, px_2_nm: float, n_grain: int
+    ) -> None:
         self.filename = filename
         self.image = image
         self.grain = grain
@@ -1167,15 +1164,15 @@ class nodeStats:
         """
         LOGGER.info(f"Node Stats - Processing Grain: {self.n_grain}")
         self.conv_skelly = convolve_skelly(self.skeleton)
-        #np.savetxt("/Users/Maxgamill/Desktop/conv.txt", self.conv_skelly)
+        # np.savetxt("/Users/Maxgamill/Desktop/conv.txt", self.conv_skelly)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             self.connect_close_nodes(node_width=6e-9)
             self.highlight_node_centres(self.connected_nodes)
-            #np.savetxt("/Users/Maxgamill/Desktop/centres.txt", self.node_centre_mask)
-            #np.savetxt("/Users/Maxgamill/Desktop/connect.txt", self.connected_nodes)
+            # np.savetxt("/Users/Maxgamill/Desktop/centres.txt", self.node_centre_mask)
+            # np.savetxt("/Users/Maxgamill/Desktop/connect.txt", self.connected_nodes)
             self.analyse_nodes(box_length=20e-9)
         return self.node_dict
-        #self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
+        # self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
 
     def check_node_errorless(self):
         for _, vals in self.node_dict.items():
@@ -1264,9 +1261,9 @@ class nodeStats:
             node_coords = np.argwhere(reduced_node_area == 3)
 
             node_centre_small = self.node_centre_mask.copy()[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]]
-            node_centre_small[reduced_node_area == 0] = 0 # this removes other nodes from the node_centre_small image
-            node_centre_small_xy = np.argwhere(node_centre_small == 3)[0] # should only be one due to above
-            #print(f"XY: {x,y}, Node: {node_centre_small_xy[0], node_centre_small_xy[1]}, MAP: {xmap, ymap}")
+            node_centre_small[reduced_node_area == 0] = 0  # this removes other nodes from the node_centre_small image
+            node_centre_small_xy = np.argwhere(node_centre_small == 3)[0]  # should only be one due to above
+            # print(f"XY: {x,y}, Node: {node_centre_small_xy[0], node_centre_small_xy[1]}, MAP: {xmap, ymap}")
             # need to match top left (not centre) of node image with full image
             error = False  # to see if node too complex or region too small
 
@@ -1284,12 +1281,12 @@ class nodeStats:
                 LOGGER.info(f"node {node_no} has only two branches - skipped & nodes removed")
                 # sometimes removal of nibs can cause problems when re-indexing nodes
                 print(f"{len(node_coords)} pixels in nib node")
-                #np.savetxt("/Users/Maxgamill/Desktop/nib.txt", self.node_centre_mask)
+                # np.savetxt("/Users/Maxgamill/Desktop/nib.txt", self.node_centre_mask)
                 temp = self.node_centre_mask.copy()
                 temp_node_coords = node_coords.copy()
                 temp_node_coords += [x, y] - node_centre_small_xy
                 temp[temp_node_coords[:, 0], temp_node_coords[:, 1]] = 1
-                #np.savetxt("/Users/Maxgamill/Desktop/nib2.txt", temp)
+                # np.savetxt("/Users/Maxgamill/Desktop/nib2.txt", temp)
                 # node_coords += ([x, y] - centre) # get whole image coords
                 # self.node_centre_mask[x, y] = 1 # remove these from node_centre_mask
                 # self.connected_nodes[node_coords[:,0], node_coords[:,1]] = 1 # remove these from connected_nodes
@@ -1300,9 +1297,9 @@ class nodeStats:
                     if not res:
                         print(f"Resolution {res} is below suggested {1000 / 512}, node difficult to analyse.")
                         raise ResolutionError
-                    #elif x - length < 0 or y - length < 0 or x + length > self.image.shape[0] or y + length > self.image.shape[1]:
-                        #LOGGER.info(f"Node lies too close to image boundary, increase 'pad_with' value.")
-                        #raise ResolutionError
+                    # elif x - length < 0 or y - length < 0 or x + length > self.image.shape[0] or y + length > self.image.shape[1]:
+                    # LOGGER.info(f"Node lies too close to image boundary, increase 'pad_with' value.")
+                    # raise ResolutionError
 
                     real_node_count += 1
                     print(f"Real node: {real_node_count}")
@@ -1353,7 +1350,7 @@ class nodeStats:
                         single_branch_img[branch_coords[:, 0], branch_coords[:, 1]] = 1
                         single_branch_img = getSkeleton(image_area, single_branch_img).get_skeleton("zhang")
                         # single_branch_coords = np.argwhere(single_branch_img == 1) # need to order this
-                        single_branch_coords = self.order_branch(single_branch_img, [0,0])
+                        single_branch_coords = self.order_branch(single_branch_img, [0, 0])
                         # calc image-wide coords
                         single_branch_coords_img = single_branch_coords + [x, y] - node_centre_small_xy
                         matched_branches[i]["ordered_coords"] = single_branch_coords_img
@@ -1368,33 +1365,43 @@ class nodeStats:
                             )
                             matched_branches[i]["avg_mask"] = mask
                         else:
-                            distances = self.coord_dist_rad(single_branch_coords, node_centre_small_xy) # self.coord_dist(single_branch_coords)
-                            zero_dist = distances[np.argmin(np.sqrt((single_branch_coords[:,0]-node_centre_small_xy[0])**2+(single_branch_coords[:,1]-node_centre_small_xy[1])**2))]
+                            distances = self.coord_dist_rad(
+                                single_branch_coords, node_centre_small_xy
+                            )  # self.coord_dist(single_branch_coords)
+                            zero_dist = distances[
+                                np.argmin(
+                                    np.sqrt(
+                                        (single_branch_coords[:, 0] - node_centre_small_xy[0]) ** 2
+                                        + (single_branch_coords[:, 1] - node_centre_small_xy[1]) ** 2
+                                    )
+                                )
+                            ]
                             heights = self.image[single_branch_coords_img[:, 0], single_branch_coords_img[:, 1]]
                             distances = distances - zero_dist
-                            distances, heights = self.average_uniques(distances, heights) # needs to be paired with coord_dist_rad
+                            distances, heights = self.average_uniques(
+                                distances, heights
+                            )  # needs to be paired with coord_dist_rad
                         matched_branches[i]["heights"] = heights
                         matched_branches[i]["distances"] = distances
-                        #print("Dist_og: ", distances.min(), distances.max(), distances.shape)
+                        # print("Dist_og: ", distances.min(), distances.max(), distances.shape)
                         # identify over/under
                         matched_branches[i]["fwhm2"] = self.fwhm2(heights, distances)
 
-                    
                     # redo fwhms after to get better baselines + same hm matching
                     hms = []
-                    for branch_idx, values in matched_branches.items(): # get hms
+                    for branch_idx, values in matched_branches.items():  # get hms
                         hms.append(values["fwhm2"][1][2])
-                    for branch_idx, values in matched_branches.items(): # use same highest hm
-                        #print("Dist_2: ", values["heights"].min(), values["heights"].max(), values["heights"].shape)
+                    for branch_idx, values in matched_branches.items():  # use same highest hm
+                        # print("Dist_2: ", values["heights"].min(), values["heights"].max(), values["heights"].shape)
                         fwhm2 = self.fwhm2(values["heights"], values["distances"], hm=max(hms))
                         matched_branches[branch_idx]["fwhm2"] = fwhm2
-                    
+
                     # add paired and unpaired branches to image plot
                     fwhms = []
                     for branch_idx, values in matched_branches.items():
                         fwhms.append(values["fwhm2"][0])
                     branch_idx_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(fwhms))]
-                    #branch_idx_order = np.arange(0,len(matched_branches)) #uncomment to unorder (will not unorder the height traces)
+                    # branch_idx_order = np.arange(0,len(matched_branches)) #uncomment to unorder (will not unorder the height traces)
 
                     for i, branch_idx in enumerate(branch_idx_order):
                         branch_coords = matched_branches[branch_idx]["ordered_coords_local"]
@@ -1418,7 +1425,7 @@ class nodeStats:
                     # get full branch vectors
                     vectors = []
                     for branch_no, values in matched_branches.items():
-                        vectors.append(self.get_vector(values["ordered_coords"], [x,y]))
+                        vectors.append(self.get_vector(values["ordered_coords"], [x, y]))
                     # calc angles to first vector i.e. first should always be 0
                     angles = self.calc_angles(np.asarray(vectors))[0]
                     for i, angle in enumerate(angles):
@@ -1473,16 +1480,15 @@ class nodeStats:
         tuple
             The x, and y limits of the box
         """
-        box = np.array([x-length, x+length+1, y-length, y+length+1])
+        box = np.array([x - length, x + length + 1, y - length, y + length + 1])
         box[box < 0] = 0
 
         if box[1] > image.shape[0]:
-            box[1] = image.shape[0]-1
+            box[1] = image.shape[0] - 1
         if box[3] > image.shape[1]:
-            box[3] = image.shape[1]-1
+            box[3] = image.shape[1] - 1
 
         return box
-
 
     def order_branch(self, binary_image: np.ndarray, anchor: list):
         """Orders a linear branch by identifing an endpoint, and looking at the local area of the point to find the next.
@@ -1509,7 +1515,7 @@ class nodeStats:
         endpoints_highlight[binary_image == 0] = 0
         endpoints = np.argwhere(endpoints_highlight == 2)
 
-        if len(endpoints) != 0: # if > 1 endpoint, start is closest to anchor
+        if len(endpoints) != 0:  # if > 1 endpoint, start is closest to anchor
             dist_vals = abs((endpoints - anchor).sum(axis=1))
             start = endpoints[np.argmin(dist_vals)]
         else:  # will be circular so pick the first coord (is this always the case?)
@@ -1581,7 +1587,7 @@ class nodeStats:
     def get_vector(coords, origin):
         """Calculate the normalised vector of the coordinate means in a branch"""
         vector = coords.mean(axis=0) - origin
-        vector /= np.sqrt(vector @ vector) # normalise vector so length=1
+        vector /= np.sqrt(vector @ vector)  # normalise vector so length=1
         return vector
 
     @staticmethod
@@ -1625,7 +1631,7 @@ class nodeStats:
         # match angles
         G = self.create_weighted_graph(angles)
         matching = np.array(list(nx.max_weight_matching(G, maxcardinality=True)))
-        return matching 
+        return matching
 
     @staticmethod
     def create_weighted_graph(matrix):
@@ -1687,16 +1693,16 @@ class nodeStats:
 
     def fwhm2(self, heights, distances, hm=None):
         centre_fraction = int(len(heights) * 0.2)  # incase zone approaches another node, look around centre for max
-        #if centre_fraction == 0:
+        # if centre_fraction == 0:
         #    centre_fraction = 1
-        #print("CENT: ", centre_fraction)
+        # print("CENT: ", centre_fraction)
         high_idx = np.argmax(heights[centre_fraction:-centre_fraction]) + centre_fraction
-        #heights_norm = heights.copy() - heights.min()  # lower graph so min is 0
+        # heights_norm = heights.copy() - heights.min()  # lower graph so min is 0
 
         # get array halves to find first points that cross hm
-        arr1 = heights[:high_idx][::-1] #heights_norm[:high_idx][::-1]
+        arr1 = heights[:high_idx][::-1]  # heights_norm[:high_idx][::-1]
         dist1 = distances[:high_idx][::-1]
-        arr2 = heights[high_idx:] #heights_norm[high_idx:]
+        arr2 = heights[high_idx:]  # heights_norm[high_idx:]
         dist2 = distances[high_idx:]
 
         arr1_hm = 0
@@ -1704,19 +1710,21 @@ class nodeStats:
 
         if hm is None:
             # Get half max
-            hm = (heights.max() - heights.min()) / 2 + heights.min() # heights_norm.max() / 2  # half max value -> try to make it the same as other crossing branch?
+            hm = (
+                heights.max() - heights.min()
+            ) / 2 + heights.min()  # heights_norm.max() / 2  # half max value -> try to make it the same as other crossing branch?
             # increase make hm = lowest of peak if it doesn't hit one side
             if np.min(arr1) > hm:
-                arr1_local_min = argrelextrema(arr1, np.less)[-1] # closest to end
+                arr1_local_min = argrelextrema(arr1, np.less)[-1]  # closest to end
                 try:
                     hm = arr1[arr1_local_min][0]
-                except IndexError: # index error when no local minima
+                except IndexError:  # index error when no local minima
                     hm = np.min(arr1)
             elif np.min(arr2) > hm:
-                arr2_local_min = argrelextrema(arr2, np.less)[0] # closest to start
+                arr2_local_min = argrelextrema(arr2, np.less)[0]  # closest to start
                 try:
                     hm = arr2[arr2_local_min][0]
-                except IndexError: # index error when no local minima
+                except IndexError:  # index error when no local minima
                     hm = np.min(arr2)
 
         for i in range(len(arr1) - 1):
@@ -1839,7 +1847,7 @@ class nodeStats:
                 dist += 1
             dist_list.append(dist)
         return np.asarray(dist_list) * px_2_nm
-    
+
     @staticmethod
     def coord_dist_rad(coords: np.ndarray, centre: np.ndarray, px_2_nm: float = 1) -> np.ndarray:
         """Calculates the distance from the node centre to a point along the branch, rather than
@@ -1861,14 +1869,13 @@ class nodeStats:
             A Nx1 array of the distance from the node centre.
         """
         diff_coords = coords - centre
-        if np.all(coords == centre, axis=1).sum() == 0: # if centre not in coords, reassign centre
-            diff_dists = np.sqrt(diff_coords[:,0]**2 + diff_coords[:,1]**2)
+        if np.all(coords == centre, axis=1).sum() == 0:  # if centre not in coords, reassign centre
+            diff_dists = np.sqrt(diff_coords[:, 0] ** 2 + diff_coords[:, 1] ** 2)
             centre = coords[np.argmin(diff_dists)]
         cross_idx = np.argwhere(np.all(coords == centre, axis=1))
-        rad_dist = np.sqrt(diff_coords[:,0]**2 + diff_coords[:,1]**2)
-        rad_dist[0:cross_idx[0][0]] *= -1
+        rad_dist = np.sqrt(diff_coords[:, 0] ** 2 + diff_coords[:, 1] ** 2)
+        rad_dist[0 : cross_idx[0][0]] *= -1
         return rad_dist
-
 
     @staticmethod
     def above_below_value_idx(array, value):
@@ -1887,7 +1894,9 @@ class nodeStats:
         except IndexError:
             return None
 
-    def average_height_trace(self, img: np.ndarray, branch_mask: np.ndarray, branch_coords: np.ndarray, centre=None) -> tuple:
+    def average_height_trace(
+        self, img: np.ndarray, branch_mask: np.ndarray, branch_coords: np.ndarray, centre=None
+    ) -> tuple:
         """Dilates the original branch to create two additional side-by-side branches
         in order to get a more accurate average of the height traces. This function produces
         the common distances between these 3 branches, and their averaged heights.
@@ -1906,11 +1915,15 @@ class nodeStats:
             from the crossing.
         """
         # get heights and dists of the original (middle) branch
-        branch_dist = self.coord_dist_rad(branch_coords, centre) # self.coord_dist(branch_coords)
+        branch_dist = self.coord_dist_rad(branch_coords, centre)  # self.coord_dist(branch_coords)
         branch_heights = img[branch_coords[:, 0], branch_coords[:, 1]]
-        branch_dist, branch_heights = self.average_uniques(branch_dist, branch_heights) # needs to be paired with coord_dist_rad
-        dist_zero_point = branch_dist[np.argmin(np.sqrt((branch_coords[:,0]-centre[0])**2+(branch_coords[:,1]-centre[1])**2))]
-        branch_dist_norm = branch_dist - dist_zero_point # - 0  # branch_dist[branch_heights.argmax()]
+        branch_dist, branch_heights = self.average_uniques(
+            branch_dist, branch_heights
+        )  # needs to be paired with coord_dist_rad
+        dist_zero_point = branch_dist[
+            np.argmin(np.sqrt((branch_coords[:, 0] - centre[0]) ** 2 + (branch_coords[:, 1] - centre[1]) ** 2))
+        ]
+        branch_dist_norm = branch_dist - dist_zero_point  # - 0  # branch_dist[branch_heights.argmax()]
         # want to get a 3 pixel line trace, one on each side of orig
         dilate = ndimage.binary_dilation(branch_mask, iterations=1)
         dilate_minus = dilate.copy()
@@ -1926,7 +1939,7 @@ class nodeStats:
         if labels.max() == 1:
             conv = convolve_skelly(branch_mask)
             endpoints = np.argwhere(conv == 2)
-            for endpoint in endpoints: # may be >1 endpoint
+            for endpoint in endpoints:  # may be >1 endpoint
                 para_trace_coords = np.argwhere(labels == 1)
                 abs_diff = np.absolute(para_trace_coords - endpoint).sum(axis=1)
                 min_idxs = np.where(abs_diff == abs_diff.min())
@@ -1960,11 +1973,11 @@ class nodeStats:
             height_trace = img[trace[:, 0], trace[:, 1]]
             height_len = len(height_trace)
             central_heights = height_trace[int(height_len * centre_fraction) : int(-height_len * centre_fraction)]
-            dist = self.coord_dist_rad(trace, centre) # self.coord_dist(trace)
-            dist, height_trace = self.average_uniques(dist, height_trace) # needs to be paired with coord_dist_rad
+            dist = self.coord_dist_rad(trace, centre)  # self.coord_dist(trace)
+            dist, height_trace = self.average_uniques(dist, height_trace)  # needs to be paired with coord_dist_rad
             heights.append(height_trace)
             distances.append(
-                dist - dist_zero_point # - 0
+                dist - dist_zero_point  # - 0
             )  # branch_dist[branch_heights.argmax()]) #dist[central_heights.argmax()])
 
         # Make like coord system using original branch
@@ -2092,7 +2105,7 @@ class nodeStats:
         arr1_uniq, index = np.unique(arr1, return_index=True)
         arr2_new = np.zeros_like(arr1_uniq).astype(np.float64)
         for i, val in enumerate(arr1[index]):
-            mean = arr2[arr1==val].mean()
+            mean = arr2[arr1 == val].mean()
             arr2_new[i] += mean
 
         return arr1[index], arr2_new
@@ -2130,39 +2143,41 @@ class nodeStats:
         # get image minus the crossing areas
         minus = self.get_minus_img(node_area_box, node_centre_coords)
 
-        np.savetxt("/Users/Maxgamill/Desktop/minus.txt", minus)
-        #np.savetxt("/Users/Maxgamill/Desktop/skel.txt", self.skeleton)
-        #np.savetxt("/Users/Maxgamill/Desktop/centres.txt", node_centre_coords)
+        np.savetxt("./text_logs/minus.txt", minus)
+        # np.savetxt("/Users/Maxgamill/Desktop/skel.txt", self.skeleton)
+        # np.savetxt("/Users/Maxgamill/Desktop/centres.txt", node_centre_coords)
 
         # order minus segments
         ordered = []
         for i in range(1, minus.max() + 1):
             arr = np.where(minus, minus == i, 0)
             ordered.append(self.order_branch(arr, [0, 0]))  # orientated later
-            
+
         # combine ordered indexes
         for i, node_crossing_coords in enumerate(crossing_coords):
             for j, single_cross in enumerate(node_crossing_coords):
                 # check current single cross has no duplicate coords
                 uncommon_single_cross = np.array(single_cross).copy()
                 for coords in ordered:
-                    uncommon_single_cross = self.remove_common_values(uncommon_single_cross, np.array(coords), retain=node_centre_coords)
+                    uncommon_single_cross = self.remove_common_values(
+                        uncommon_single_cross, np.array(coords), retain=node_centre_coords
+                    )
                 ordered.append(uncommon_single_cross)
 
         # get an image of each ordered segment
         cross_add = np.zeros_like(self.image)
         for i, coords in enumerate(ordered):
             single_cross_img = dnaTrace.coords_2_img(np.array(coords), cross_add)
-            #single_cross_img[single_cross_img != 0] = i+1
-            cross_add[single_cross_img !=0] = i + 1
-        
-        np.savetxt("/Users/Maxgamill/Desktop/cross_add.txt", cross_add)
+            # single_cross_img[single_cross_img != 0] = i+1
+            cross_add[single_cross_img != 0] = i + 1
+
+        np.savetxt("./text_logs/cross_add.txt", cross_add)
         print("Getting coord trace")
         coord_trace = self.trace_mol(ordered, cross_add)
         im = np.zeros_like(self.skeleton)
         for i in coord_trace:
-            im[i[:,0], i[:,1]] = 1
-        np.savetxt("/Users/Maxgamill/Desktop/im.txt", cross_add)
+            im[i[:, 0], i[:, 1]] = 1
+        np.savetxt("./text_logs/im.txt", cross_add)
         # np.savetxt("/Users/Maxgamill/Desktop/trace.txt", coord_trace[0])
 
         # visual over under img
@@ -2174,7 +2189,7 @@ class nodeStats:
         #   following 1, 2, 3... around the mol which should look like the Planar Diagram formation
         #   (https://topoly.cent.uw.edu.pl/dictionary.html#codes). Then look at each corssing zone again,
         #   determine which in in-undergoing and assign labels counter-clockwise
-        
+
         print("Getting PD Codes:")
         if len(coord_trace) <= 2:
             topology = self.get_pds(coord_trace, node_centre_coords, fwhms, crossing_coords)
@@ -2190,12 +2205,12 @@ class nodeStats:
             area = np.array(area) // 2
             minus[x - area[0] : x + area[0], y - area[1] : y + area[1]] = 0
         return label(minus)
-    
+
     @staticmethod
     def remove_common_values(arr1, arr2, retain=[]):
         # Convert the arrays to sets for faster common value lookup
-        set_arr2 = set(tuple(row) for row in arr2)
-        set_retain = set(tuple(row) for row in retain)
+        set_arr2 = {tuple(row) for row in arr2}
+        set_retain = {tuple(row) for row in retain}
         # Create a new filtered list while maintaining the order of the first array
         filtered_arr1 = []
         for coord in arr1:
@@ -2243,22 +2258,24 @@ class nodeStats:
 
         binary_remaining = remaining.copy()
         binary_remaining[binary_remaining != 0] = 1
-        endpoints = np.unique(remaining[convolve_skelly(binary_remaining)==2]) # uniq incase of whole mol   
+        endpoints = np.unique(remaining[convolve_skelly(binary_remaining) == 2])  # uniq incase of whole mol
 
         while remaining.max() != 0:
             # select endpoint to start if there is one
-            endpoints = [i for i in endpoints if i in np.unique(remaining)] # remove if removed from remaining
+            endpoints = [i for i in endpoints if i in np.unique(remaining)]  # remove if removed from remaining
             if endpoints:
                 coord_idx = endpoints[0] - 1
-            else: # if no endpoints, just a loop
+            else:  # if no endpoints, just a loop
                 coord_idx = np.unique(remaining)[1] - 1  # avoid choosing 0
-            coord_trace = np.empty((0,2)).astype(np.int32)
+            coord_trace = np.empty((0, 2)).astype(np.int32)
             mol_num += 1
             while coord_idx > -1:  # either cycled through all or hits terminus -> all will be just background
                 remaining[remaining == coord_idx + 1] = 0
                 trace_segment = self.get_trace_segment(remaining, ordered_segment_coords, coord_idx)
-                if len(coord_trace) > 0: # can only order when there's a reference point / segment
-                    trace_segment = self.remove_duplicates(trace_segment, prev_segment) # remove overlaps in trace (may be more efficient to do it on the prev segment)
+                if len(coord_trace) > 0:  # can only order when there's a reference point / segment
+                    trace_segment = self.remove_duplicates(
+                        trace_segment, prev_segment
+                    )  # remove overlaps in trace (may be more efficient to do it on the prev segment)
                     trace_segment = self.order_from_end(coord_trace[-1], trace_segment)
                 prev_segment = trace_segment.copy()
                 coord_trace = np.append(coord_trace, trace_segment.astype(np.int32), axis=0)
@@ -2269,11 +2286,11 @@ class nodeStats:
         print(f"Mols in trace: {len(mol_coords)}")
 
         return mol_coords
-    
+
     @staticmethod
     def get_trace_segment(remaining_img, ordered_segment_coords, coord_idx):
         """Check the branch of given index to see if it contains an endpoint. If it does,
-        the segment coordinates will be returned starting from the endpoint. 
+        the segment coordinates will be returned starting from the endpoint.
 
         Parameters
         ----------
@@ -2282,15 +2299,15 @@ class nodeStats:
         ordered_segment_coords : list
             A list of 2xN coordinates representing each segment
         idx : _type_
-            The index of the current segment to look at. There is an index mismatch between the 
+            The index of the current segment to look at. There is an index mismatch between the
             remaining_img and ordered_segment_coords by -1.
         """
         start_xy = ordered_segment_coords[coord_idx][0]
         start_max = remaining_img[start_xy[0] - 1 : start_xy[0] + 2, start_xy[1] - 1 : start_xy[1] + 2].max() - 1
         if start_max == -1:
-            return ordered_segment_coords[coord_idx] # start is endpoint
+            return ordered_segment_coords[coord_idx]  # start is endpoint
         else:
-            return ordered_segment_coords[coord_idx][::-1] # end is endpoint
+            return ordered_segment_coords[coord_idx][::-1]  # end is endpoint
 
     @staticmethod
     def remove_duplicates(current_segment, prev_segment):
@@ -2316,13 +2333,12 @@ class nodeStats:
             A 2xN array of coordinates of the current segment to order.
         """
         start_xy = current_segment[0]
-        dist = np.sum((start_xy - last_segment_coord)**2)**0.5
+        dist = np.sum((start_xy - last_segment_coord) ** 2) ** 0.5
         if dist <= np.sqrt(2):
             return current_segment
         else:
             return current_segment[::-1]
-            
-    
+
     @staticmethod
     def get_trace_idxs(fwhms: list) -> tuple:
         # node fwhms can be a list of different lengths so cannot use np arrays
@@ -2343,13 +2359,13 @@ class nodeStats:
             temp_img = binary_dilation(temp_img)
             img[temp_img != 0] = mol_no + 1
 
-        #np.savetxt("/Users/Maxgamill/Desktop/preimg.txt", img)
+        # np.savetxt("/Users/Maxgamill/Desktop/preimg.txt", img)
 
         lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
 
         if len(coord_trace) > 1:
             for type_idxs in [lower_idxs, upper_idxs]:
-                for (node_crossing_coords, type_idx) in zip(crossing_coords, type_idxs):
+                for node_crossing_coords, type_idx in zip(crossing_coords, type_idxs):
                     temp_img = np.zeros_like(img)
                     cross_coords = node_crossing_coords[type_idx]
                     # decide which val
@@ -2367,7 +2383,7 @@ class nodeStats:
         else:
             # make plot where overs are one colour and unders another
             for i, type_idxs in enumerate([lower_idxs, upper_idxs]):
-                for (crossing, type_idx) in zip(crossing_coords, type_idxs):
+                for crossing, type_idx in zip(crossing_coords, type_idxs):
                     temp_img = np.zeros_like(img)
                     cross_coords = crossing[type_idx]
                     # decide which val
@@ -2382,9 +2398,9 @@ class nodeStats:
                     temp_img = binary_dilation(temp_img)
                     img[temp_img != 0] = i + 2
         return img
-    
+
     def make_pd_skeleton(self, trace_coords, node_centres):
-        """Makes a labeled skeleton where each skeletal segment upto a crossing follows on 
+        """Makes a labeled skeleton where each skeletal segment upto a crossing follows on
         from the previous label number.
 
         Parameters
@@ -2400,20 +2416,22 @@ class nodeStats:
             A labeled skeleton image represented as the Planar Diargram format.
         """
         pd_image = np.zeros_like(self.skeleton)
-        c=0
+        c = 0
         for mol_trace in trace_coords:
             pd_segments = []
             initial_idx = pd_image.max() + 1
             trace_node_idxs = np.array([0]).astype(np.int32)
             for x, y in node_centres:
-                try: # might hit a node from one mol that isn't between them both i.e. self crossing
+                try:  # might hit a node from one mol that isn't between them both i.e. self crossing
                     # might also have the node removed upon re-skeletonising & not be found here
-                    dists = np.sqrt((mol_trace[:,0]-x)**2 + (mol_trace[:,1]-y)**2)
+                    dists = np.sqrt((mol_trace[:, 0] - x) ** 2 + (mol_trace[:, 1] - y) ** 2)
                     if np.min(dists) <= 1:
                         x, y = mol_trace[dists.argmin()]
                     else:
                         raise ValueError
-                    trace_node_idxs = np.append(trace_node_idxs, np.argwhere((mol_trace[:, 0] == x) & (mol_trace[:, 1] == y)))
+                    trace_node_idxs = np.append(
+                        trace_node_idxs, np.argwhere((mol_trace[:, 0] == x) & (mol_trace[:, 1] == y))
+                    )
                 except ValueError:
                     print(f"Node at {x, y} not in mol {c} trace.")
                     pass
@@ -2422,36 +2440,35 @@ class nodeStats:
             if len(trace_node_idxs) == 0:
                 trace_node_idxs = np.append(len(mol_trace))
 
-            #pd_segments = [mol_trace[:trace_node_idxs[1]]]
-            for i in range(len(trace_node_idxs)-1):
-                pd_segments.append(mol_trace[trace_node_idxs[i]:trace_node_idxs[i+1]])
-            last = mol_trace[trace_node_idxs[-1]:] # assuming looped mol so last == start idx
-            
+            # pd_segments = [mol_trace[:trace_node_idxs[1]]]
+            for i in range(len(trace_node_idxs) - 1):
+                pd_segments.append(mol_trace[trace_node_idxs[i] : trace_node_idxs[i + 1]])
+            last = mol_trace[trace_node_idxs[-1] :]  # assuming looped mol so last == start idx
+
             # check pd image in spyder to see the problem again
             for coords in pd_segments:
-                pd_image[coords[:,0], coords[:,1]] = pd_image.max() + 1
-            pd_image[last[:,0], last[:,1]] = initial_idx
+                pd_image[coords[:, 0], coords[:, 1]] = pd_image.max() + 1
+            pd_image[last[:, 0], last[:, 1]] = initial_idx
             c += 1
         return pd_image
-
 
     def get_pds(self, trace_coords, node_centres, fwhms, crossing_coords):
         # find idxs of branches from start
         pd_code = ""
         pd_vals = []
         pd_img = self.make_pd_skeleton(trace_coords, node_centres)
-        np.savetxt("/Users/Maxgamill/Desktop/pd_img.txt", pd_img)
+        np.savetxt("./text_logs/pd_img.txt", pd_img)
         node_centres = np.array([np.array(node_centre) for node_centre in node_centres])
-        #pd_img[node_centres[:,0], node_centres[:,1]] = 0
+        # pd_img[node_centres[:,0], node_centres[:,1]] = 0
         under_branch_idxs, _ = self.get_trace_idxs(fwhms)
-        
+
         for i, (x, y) in enumerate(node_centres):
             matching_coords = np.array([])
             # get node area
-            node_area = pd_img[x-2 : x+3, y-2 : y+3]
-            #print("CENTRE #: ", i)
-            #print("AREA: ", node_area)
-            # get overlaps between crossing coords and 
+            node_area = pd_img[x - 2 : x + 3, y - 2 : y + 3]
+            # print("CENTRE #: ", i)
+            # print("AREA: ", node_area)
+            # get overlaps between crossing coords and
             pd_idx_in_area = np.unique(node_area)
             pd_idx_in_area = pd_idx_in_area[pd_idx_in_area != 0]
             # get overlaps between segment coords and crossing under coords
@@ -2460,19 +2477,23 @@ class nodeStats:
                 for ordered_branch_coord in crossing_coords[i][under_branch_idxs[i]]:
                     c += ((np.stack(np.where(pd_img == pd_idx)).T == ordered_branch_coord).sum(axis=1) == 2).sum()
                 matching_coords = np.append(matching_coords, c)
-                #print(f"Segment: {pd_idx}, Matches: {c}")
+                # print(f"Segment: {pd_idx}, Matches: {c}")
             highest_count_labels = [pd_idx_in_area[i] for i in np.argsort(matching_coords)[-2:]]
-            #print("COUNT: ", highest_count_labels)
-            if len(highest_count_labels) > 1: # why are there single labels and therefore only one branch in the first place?
-                if abs(highest_count_labels[0] - highest_count_labels[1]) > 1:  # if in/out is loop return (assumes matched branch)
-                    under_in = max(highest_count_labels) # set under-in to larger value
+            # print("COUNT: ", highest_count_labels)
+            if (
+                len(highest_count_labels) > 1
+            ):  # why are there single labels and therefore only one branch in the first place?
+                if (
+                    abs(highest_count_labels[0] - highest_count_labels[1]) > 1
+                ):  # if in/out is loop return (assumes matched branch)
+                    under_in = max(highest_count_labels)  # set under-in to larger value
                 else:
                     under_in = min(highest_count_labels)  # otherwise set to lower value
             else:
                 under_in = highest_count_labels[0]
-            #print(f"Under-in: {under_in}")
+            # print(f"Under-in: {under_in}")
 
-           # get the values PD image around the crossing area
+            # get the values PD image around the crossing area
             anti_clock = self.vals_anticlock(node_area, under_in)
             if len(anti_clock) != len(np.unique(anti_clock)):
                 self.node_dict[i + 1]["crossing_type"] = "trivial"
@@ -2480,27 +2501,29 @@ class nodeStats:
             else:
                 self.node_dict[i + 1]["crossing_type"] = "real"
             pd_vals.append(list(anti_clock))
-        # for len 2's in 
+        # for len 2's in
 
         # compile pd values into string and calc topology
         pd_code = self.make_pd_string(pd_vals)
-        #pd_code = "X[1, 7, 6, 2];X[7, 10, 8, 1];X[5, 2, 3, 6];X[9, 4, 10, 5];X[3, 4, 8, 9]"
+        # pd_code = "X[1, 7, 6, 2];X[7, 10, 8, 1];X[5, 2, 3, 6];X[9, 4, 10, 5];X[3, 4, 8, 9]"
         print(f"Total PD code: {pd_code}")
 
         # filter out the trash PD codes and obtain topology
         try:
             # PD code may need to be reduced first for column check to work (as it fp on poke + slide)
-            #pd_code = reduce_structure(pd_code, output_type='pdcode')
+            # pd_code = reduce_structure(pd_code, output_type='pdcode')
             no_triv_pd = self.remove_trivial_crossings(np.array(pd_vals))
             assert self.check_uniq_vals_valid(no_triv_pd)
-            assert self.check_no_duplicates_in_columns(no_triv_pd) # may break when 1-4, 1-6 (Node-Branch)
+            assert self.check_no_duplicates_in_columns(no_triv_pd)  # may break when 1-4, 1-6 (Node-Branch)
             if len(no_triv_pd) == 2:
-                assert (no_triv_pd[0] == no_triv_pd[1,::-1]).all() or (no_triv_pd[0] == no_triv_pd[1,[1,0,3,2]]).all()
-            topology = homfly(pd_code, closure=params.Closure.CLOSED, chiral = False)
-        except AssertionError as e: # triggers on same value in columns
+                assert (no_triv_pd[0] == no_triv_pd[1, ::-1]).all() or (
+                    no_triv_pd[0] == no_triv_pd[1, [1, 0, 3, 2]]
+                ).all()
+            topology = homfly(pd_code, closure=params.Closure.CLOSED, chiral=False)
+        except AssertionError as e:  # triggers on same value in columns
             print(f"{e} : PD Code is nonsense (might be ok but pokes and slides not accounted for in removal).")
             topology = None
-        except IndexError: # triggers on index error in topoly
+        except IndexError:  # triggers on index error in topoly
             print("PD Code is nonsense.")
             topology = None
         except:
@@ -2509,14 +2532,14 @@ class nodeStats:
         print(f"Topology: {topology}")
 
         return topology
-    
+
     @staticmethod
     def make_pd_string(pd_code):
         """Creates a PD code from a list of numeric lists."""
         new_pd_code = ""
         for node_crossing_pd in pd_code:
             new_pd_code += f"X{node_crossing_pd};"
-        return new_pd_code[:-1] # removes final ';'
+        return new_pd_code[:-1]  # removes final ';'
 
     @staticmethod
     def vals_anticlock(area, start_lbl):
@@ -2546,25 +2569,29 @@ class nodeStats:
         right = area[:-1, -1][::-1]
         _, right_args = np.unique(right, return_index=True)
         right_vals = right[right_args.sort()]
-        
-        total = np.concatenate([top_vals[top_vals != 0],
-                                left_vals[left_vals != 0],
-                                bottom_vals[bottom_vals != 0],
-                                right_vals[right_vals != 0]])
+
+        total = np.concatenate(
+            [
+                top_vals[top_vals != 0],
+                left_vals[left_vals != 0],
+                bottom_vals[bottom_vals != 0],
+                right_vals[right_vals != 0],
+            ]
+        )
         start_idx = np.where(total == start_lbl)[0]
 
         return np.roll(total, -start_idx)
-    
+
     @staticmethod
     def remove_trivial_crossings(pd_values: np.ndarray):
-        # removes trivial crossings from the pd_values not in place. 
+        # removes trivial crossings from the pd_values not in place.
         #   assumes the loop doesn't cross anything else
         new_pd = pd_values.copy()
         for i, row in enumerate(pd_values):
             if len(row) != len(np.unique(row)):
                 new_pd = np.delete(new_pd, i, axis=0)
         return new_pd
-    
+
     @staticmethod
     def check_uniq_vals_valid(pd_vals):
         # checks (for real nodes) that there are not more unique pd_vals than physically possible
