@@ -20,7 +20,7 @@ from scipy import ndimage, spatial, optimize, interpolate as interp
 from scipy.signal import argrelextrema
 from skimage.morphology import label, binary_dilation
 from skimage.filters import gaussian, threshold_otsu
-from topoly import jones, homfly, params, reduce_structure
+from topoly import jones, homfly, params, reduce_structure, translate_code
 import skimage.measure as skimage_measure
 from tqdm import tqdm
 
@@ -307,7 +307,7 @@ class dnaTrace:
             skeletons += skeleton
         return skeletons
 
-    def linear_or_circular(self, traces):
+    def linear_or_circular(self, traces: np.ndarray):
         """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace
 
         This function is sensitive to branches from the skeleton so might need to implement a function to remove them
@@ -316,6 +316,8 @@ class dnaTrace:
         ----------
         traces: dict
             A dictionary of the molecule_number and points within the skeleton.
+        """
+
         """
         points_with_one_neighbour = 0
         fitted_trace_list = traces.tolist()
@@ -331,6 +333,13 @@ class dnaTrace:
             return True
         else:
             return False
+        """
+
+        dist = np.sqrt((traces[0][0] - traces[-1][0]) ** 2 + (traces[0][1] - traces[-1][1]) ** 2)
+        if dist > np.sqrt(2):
+            return False
+        else:
+            return True
 
     def get_ordered_traces(self):
         """Depending on whether the mol is circular or linear, order the traces so the points follow."""
@@ -1002,7 +1011,7 @@ def trace_grain(
             "contour_length": dnatrace.contour_lengths[i],
             "circular": dnatrace.mol_is_circulars[i],
             "end_to_end_distance": dnatrace.end_to_end_distances[i],
-            "topology": dnatrace.topology,
+            "topology": dnatrace.topology[i],
             "num_mols": dnatrace.num_mols,
         }
 
@@ -1166,7 +1175,7 @@ class nodeStats:
         self.conv_skelly = convolve_skelly(self.skeleton)
         # np.savetxt("/Users/Maxgamill/Desktop/conv.txt", self.conv_skelly)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
-            self.connect_close_nodes(node_width=6e-9)
+            self.connect_close_nodes(node_width=7e-9)
             self.highlight_node_centres(self.connected_nodes)
             # np.savetxt("/Users/Maxgamill/Desktop/centres.txt", self.node_centre_mask)
             # np.savetxt("/Users/Maxgamill/Desktop/connect.txt", self.connected_nodes)
@@ -1312,7 +1321,6 @@ class nodeStats:
                         branch[labeled_area == branch_no] = 1
                         # order branch
                         ordered = self.order_branch(branch, node_centre_small_xy)
-                        # print("ordered: ", ordered)
                         # identify vector
                         vector = self.get_vector(ordered, node_centre_small_xy)
                         # add to list
@@ -2147,33 +2155,43 @@ class nodeStats:
         # np.savetxt("/Users/Maxgamill/Desktop/skel.txt", self.skeleton)
         # np.savetxt("/Users/Maxgamill/Desktop/centres.txt", node_centre_coords)
 
+        # setup z array
+        z = []
+
         # order minus segments
         ordered = []
         for i in range(1, minus.max() + 1):
             arr = np.where(minus, minus == i, 0)
             ordered.append(self.order_branch(arr, [0, 0]))  # orientated later
+            z.append(0)
 
-        # combine ordered indexes
+        # add crossing coords to ordered segment list
         for i, node_crossing_coords in enumerate(crossing_coords):
+            z_idx = np.argsort(fwhms[i])
+            z_idx[z_idx == 0] = -1
             for j, single_cross in enumerate(node_crossing_coords):
-                # check current single cross has no duplicate coords
+                # check current single cross has no duplicate coords with ordered, except crossing points
                 uncommon_single_cross = np.array(single_cross).copy()
                 for coords in ordered:
                     uncommon_single_cross = self.remove_common_values(
                         uncommon_single_cross, np.array(coords), retain=node_centre_coords
                     )
-                ordered.append(uncommon_single_cross)
+                if len(uncommon_single_cross) > 0:
+                    ordered.append(uncommon_single_cross)
+                z.append(z_idx[j])
 
         # get an image of each ordered segment
         cross_add = np.zeros_like(self.image)
         for i, coords in enumerate(ordered):
             single_cross_img = dnaTrace.coords_2_img(np.array(coords), cross_add)
-            # single_cross_img[single_cross_img != 0] = i+1
             cross_add[single_cross_img != 0] = i + 1
 
         np.savetxt("./text_logs/cross_add.txt", cross_add)
         print("Getting coord trace")
-        coord_trace = self.trace_mol(ordered, cross_add)
+        # coord_trace = self.trace_mol(ordered, cross_add)
+
+        coord_trace, simple_trace = self.simple_xyz_trace(ordered, cross_add, z)
+
         im = np.zeros_like(self.skeleton)
         for i in coord_trace:
             im[i[:, 0], i[:, 1]] = 1
@@ -2191,11 +2209,14 @@ class nodeStats:
         #   determine which in in-undergoing and assign labels counter-clockwise
 
         print("Getting PD Codes:")
+        topology = self.get_topology(simple_trace)
+        """
         if len(coord_trace) <= 2:
             topology = self.get_pds(coord_trace, node_centre_coords, fwhms, crossing_coords)
+            
         else:
             topology = None
-
+        """
         return coord_trace, visual, topology
 
     def get_minus_img(self, node_area_box, node_centre_coords):
@@ -2287,6 +2308,75 @@ class nodeStats:
 
         return mol_coords
 
+    def simple_xyz_trace(self, ordered_segment_coords, both_img, zs):
+        mol_coords = []
+        simple_coords = []
+        remaining = both_img.copy().astype(np.int32)
+
+        binary_remaining = remaining.copy()
+        binary_remaining[binary_remaining != 0] = 1
+        endpoints = np.unique(remaining[convolve_skelly(binary_remaining) == 2])  # uniq incase of whole mol
+
+        while remaining.max() != 0:
+            # select endpoint to start if there is one
+            endpoints = [i for i in endpoints if i in np.unique(remaining)]  # remove if removed from remaining
+            if endpoints:
+                coord_idx = endpoints[0] - 1
+            else:  # if no endpoints, just a loop
+                coord_idx = np.unique(remaining)[1] - 1  # avoid choosing 0
+            coord_trace = np.empty((0, 2)).astype(np.int32)
+            simple_trace = np.empty((0, 3)).astype(np.int32)
+            # simple_trace = [] # x,y,z (add n's after)
+            while coord_idx > -1:  # either cycled through all or hits terminus -> all will be just background
+                remaining[remaining == coord_idx + 1] = 0
+                trace_segment = self.get_trace_segment(remaining, ordered_segment_coords, coord_idx)
+                if len(coord_trace) > 0:  # can only order when there's a reference point / segment
+                    trace_segment = self.remove_duplicates(
+                        trace_segment, prev_segment
+                    )  # remove overlaps in trace (may be more efficient to do it on the prev segment)
+                    trace_segment = self.order_from_end(coord_trace[-1], trace_segment)
+                prev_segment = trace_segment.copy()
+                coord_trace = np.append(coord_trace, trace_segment.astype(np.int32), axis=0)
+                simple_trace = np.append(
+                    simple_trace, np.hstack((trace_segment, np.ones((len(trace_segment), 1)) * zs[coord_idx])), axis=0
+                ).astype(np.int32)
+                # simple_trace.append(np.append(trace_segment[0], zs[coord_idx]))
+                # simple_trace.append(np.append(trace_segment[-1], zs[coord_idx]))
+                x, y = coord_trace[-1]
+                coord_idx = remaining[x - 1 : x + 2, y - 1 : y + 2].max() - 1  # should only be one value
+
+            mol_coords.append(coord_trace)
+
+            print("Simple length b4:", len(simple_trace))
+            simple_trace = self.reduce_rows(simple_trace, n=100)
+            print("Simple length af:", len(simple_trace))
+            nxyz = np.hstack((np.arange(0, len(simple_trace))[:, np.newaxis], simple_trace))
+            if (nxyz[0][1] - nxyz[-1][1]) ** 2 + (nxyz[0][2] - nxyz[-1][2]) ** 2 <= 2:
+                print("Looped so duplicating index 0: ")
+                nxyz = np.append(nxyz, nxyz[0][np.newaxis, :], axis=0)
+
+            simple_coords.append(nxyz)
+
+        simple_coords = self.comb_xyzs(simple_coords)
+        # print(simple_coords)
+
+        print(f"Mols in trace: {len(mol_coords)}")
+
+        return mol_coords, simple_coords
+
+    @staticmethod
+    def reduce_rows(array, n=300):
+        # removes reduces the number of rows (but keeping the first and last ones)
+        if n > array.shape[0] or array.shape[0] < 4:
+            return array
+        else:
+            idxs_to_keep = np.unique(np.linspace(0, array[1:-1].shape[0] - 1, n).astype(np.int32))
+            print("list len: ", idxs_to_keep.size)
+            new_array = array[1:-1][idxs_to_keep]
+            new_array = np.append(array[0][np.newaxis, :], new_array, axis=0)
+            new_array = np.append(new_array, array[-1][np.newaxis, :], axis=0)
+            return new_array
+
     @staticmethod
     def get_trace_segment(remaining_img, ordered_segment_coords, coord_idx):
         """Check the branch of given index to see if it contains an endpoint. If it does,
@@ -2308,6 +2398,47 @@ class nodeStats:
             return ordered_segment_coords[coord_idx]  # start is endpoint
         else:
             return ordered_segment_coords[coord_idx][::-1]  # end is endpoint
+
+    @staticmethod
+    def comb_xyzs(nxyz):
+        total = []
+        for mol in nxyz:
+            temp = []
+            for row in mol:
+                temp.append(list(row))
+            total.append(temp)
+        return total
+
+    @staticmethod
+    def get_topology(nxyz):
+        # Topoly doesn't work when 2 mols don't actually cross
+        topology = []
+        lin_idxs = []
+        nxyz_cp = nxyz.copy()
+        # remove linear mols as are just reidmiester moves
+        for i, mol_trace in enumerate(nxyz):
+            if mol_trace[-1][0] != 0:  # mol is not circular
+                topology.append("linear")
+                lin_idxs.append(i)
+                print("Linear: ", i)
+        # remove from list in reverse order so no conflicts
+        lin_idxs.sort(reverse=True)
+        for i in lin_idxs:
+            del nxyz_cp[i]
+        # classify topology for non-reidmeister moves
+        if len(nxyz_cp) != 0:
+            pd = translate_code(
+                nxyz_cp, output_type="pdcode"
+            )  # pd code helps prevents freezing and spawning multiple processes
+            print("PD Code is: ", pd)
+            top_class = jones(pd)
+            if "U" in top_class:  # happens when 2 'seperate' mols in trace
+                top_class = top_class.split("U")
+                [topology.append(top_class[i]) for i in range(len(nxyz_cp))]
+            else:
+                [topology.append(top_class) for i in range(len(nxyz_cp))]
+        # Doesn't work when 2 mols don't actually cross
+        return topology
 
     @staticmethod
     def remove_duplicates(current_segment, prev_segment):
@@ -2425,7 +2556,7 @@ class nodeStats:
                 try:  # might hit a node from one mol that isn't between them both i.e. self crossing
                     # might also have the node removed upon re-skeletonising & not be found here
                     dists = np.sqrt((mol_trace[:, 0] - x) ** 2 + (mol_trace[:, 1] - y) ** 2)
-                    if np.min(dists) <= 1:
+                    if np.min(dists) <= np.sqrt(2):
                         x, y = mol_trace[dists.argmin()]
                     else:
                         raise ValueError
@@ -2519,6 +2650,7 @@ class nodeStats:
                 assert (no_triv_pd[0] == no_triv_pd[1, ::-1]).all() or (
                     no_triv_pd[0] == no_triv_pd[1, [1, 0, 3, 2]]
                 ).all()
+            # assert self.no_tripple_cross(no_triv_pd)
             topology = homfly(pd_code, closure=params.Closure.CLOSED, chiral=False)
         except AssertionError as e:  # triggers on same value in columns
             print(f"{e} : PD Code is nonsense (might be ok but pokes and slides not accounted for in removal).")
@@ -2609,3 +2741,12 @@ class nodeStats:
             if len(array[:, col_no]) != len(np.unique(array[:, col_no])):
                 return False
         return True
+
+    @staticmethod
+    def no_tripple_cross(array):
+        # checks we don't have a tripple crossing (as I can't seperate these out into 3 X's)
+        # False fails check, True is good
+        for row in array:
+            if len(row) == 5:
+                return True
+        return False
