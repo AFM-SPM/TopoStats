@@ -275,8 +275,16 @@ def process_scan(
                         tracing_stats = defaultdict()
                         node_stats = defaultdict()
                         images = defaultdict()
+                        all_traces = defaultdict()
                         for direction, _ in grainstats.items():
-                            tracing_stats[direction], node_stats[direction], images[direction] = trace_image(
+                            print(len(trace_image(
+                                image=filtered_image.images["gaussian_filtered"],
+                                grains_mask=grains.directions[direction]["labelled_regions_02"],
+                                filename=filename,
+                                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                                **dnatracing_config,
+                            )))
+                            tracing_stats[direction], node_stats[direction], images[direction], all_traces[direction] = trace_image(
                                 image=filtered_image.images["gaussian_filtered"],
                                 grains_mask=grains.directions[direction]["labelled_regions_02"],
                                 filename=filename,
@@ -306,7 +314,7 @@ def process_scan(
                         LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
                         output_dir = Path(dna_tracing_out_path / f"{direction}")
 
-                        plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes", "visual", "ordered_trace", "fitted_trace", "splined_trace"]
+                        plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes", "visual", "ordered_trace", "fitted_trace"]
                         data2s = [
                             images[direction]["grain"],
                             images[direction]["smoothed_grain"],
@@ -316,7 +324,6 @@ def process_scan(
                             images[direction]["visual"],
                             images[direction]["ordered_traces"],
                             images[direction]["fitted_traces"],
-                            images[direction]["splined_traces"],
                         ]
                         for i, plot_name in enumerate(plot_names):
                             plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
@@ -332,6 +339,16 @@ def process_scan(
                             ).save_figure_black(
                                 background=images[direction]["grain"],
                             )
+                        # Plot spline seperately as they are coords
+                        Images(
+                                filtered_image.images["gaussian_filtered"],
+                                plot_coords=all_traces[direction],
+                                output_dir=output_dir,
+                                **plotting_config["plot_dict"]["splined_trace"],
+                            ).save_figure_black(
+                                background=images[direction]["grain"],
+                            )
+                        
                         #np.savetxt(f"{core_out_path}_{filename}_skel.txt", dna_traces[direction].skeletons)
                         #np.savetxt(f"{core_out_path}_{filename}_connect.txt", nodes.all_connected_nodes)
 

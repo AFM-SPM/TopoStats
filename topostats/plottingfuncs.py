@@ -34,6 +34,7 @@ class Images:
         filename: str,
         pixel_to_nm_scaling: float = 1.0,
         masked_array: np.array = None,
+        plot_coords: np.array = None,
         title: str = None,
         image_type: str = "non-binary",
         image_set: str = "core",
@@ -104,6 +105,7 @@ class Images:
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.masked_array = masked_array
+        self.plot_coords = plot_coords
         self.title = title
         self.image_type = image_type
         self.image_set = image_set
@@ -217,6 +219,11 @@ class Images:
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
+            elif self.plot_coords is not None:
+                for grain_coords in self.plot_coords:
+                    for mol_coords in grain_coords:
+                        print("TYPE: ", type(mol_coords))
+                        plt.plot(mol_coords[:,0], mol_coords[:,1], c='c')
 
             plt.title(self.title)
             plt.xlabel("Nanometres")
@@ -302,6 +309,11 @@ class Images:
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
+            elif self.plot_coords is not None:
+                for grain_coords in self.plot_coords:
+                    print("TYPE: ", type(grain_coords))
+                    print(grain_coords)
+                    plt.plot(grain_coords[:,1]*self.pixel_to_nm_scaling, (shape[1] - grain_coords[:,0])*self.pixel_to_nm_scaling , c='c', linewidth=0.5)
 
             plt.title(self.title)
             plt.xlabel("Nanometres")

@@ -172,6 +172,7 @@ class dnaTrace:
                     fitted_trace = self.get_fitted_traces(trace, mol_is_circular)
                     self.fitted_trace_img += self.coords_2_img(fitted_trace, self.image)
                     splined_trace = self.get_splined_traces(fitted_trace, trace, mol_is_circular)
+                    self.splined_traces.append(np.array(splined_trace))
                     self.splined_trace_img += self.coords_2_img(np.array(splined_trace, dtype=np.int32), self.image)
                     # self.find_curvature()
                     # self.saveCurvature()
@@ -880,12 +881,12 @@ def trace_image(
         "node_img": img_base.copy(),
         "ordered_traces": img_base.copy(),
         "fitted_traces": img_base.copy(),
-        "splined_traces": img_base.copy(),
         "visual": img_base.copy(),
     }
+    all_traces = []
 
     for n_grain, (cropped_image, cropped_mask) in enumerate(zip(cropped_images, cropped_masks)):
-        result, node_dict, images = trace_grain(
+        result, node_dict, images, trace = trace_grain(
             cropped_image,
             cropped_mask,
             pixel_to_nm_scaling,
@@ -911,10 +912,13 @@ def trace_image(
             crop = images[key]
             bbox = bboxs[n_grain]
             value[bbox[0]:bbox[2], bbox[1]:bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+        
+        for mol_trace in trace:
+            all_traces.append(mol_trace + [bbox[0]-pad_width, bbox[1]-pad_width])
 
     print(grains_results)
    
-    return grains_results, full_node_dict, all_images
+    return grains_results, full_node_dict, all_images, all_traces
 
 
 def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
@@ -1029,10 +1033,9 @@ def trace_grain(
         "node_img": dnatrace.node_image,
         "ordered_traces": dnatrace.ordered_trace_img,
         "fitted_traces": dnatrace.fitted_trace_img,
-        "splined_traces": dnatrace.splined_trace_img,
         "visual": dnatrace.visuals,
     }
-    return results, dnatrace.node_dict, images
+    return results, dnatrace.node_dict, images, dnatrace.splined_traces
 
 
 def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np.ndarray:
