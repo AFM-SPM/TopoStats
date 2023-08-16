@@ -10,7 +10,6 @@ import numpy as np
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
-from topostats.tracing.dnatracing import nodeStats
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-locals
