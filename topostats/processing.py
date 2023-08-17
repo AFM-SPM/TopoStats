@@ -343,7 +343,8 @@ def process_scan(
                         Images(
                                 filtered_image.images["gaussian_filtered"],
                                 plot_coords=all_traces[direction],
-                                output_dir=output_dir,
+                                filename=f"{filename}_{direction}_splines",
+                                output_dir=core_out_path,
                                 **plotting_config["plot_dict"]["splined_trace"],
                             ).save_figure_black(
                                 background=images[direction]["grain"],
