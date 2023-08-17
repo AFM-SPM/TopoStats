@@ -335,20 +335,18 @@ def process_scan(
                             Images(
                                 filtered_image.images["gaussian_filtered"],
                                 masked_array=data2s[i],
-                                **plotting_config["plot_dict"][plot_name],
-                            ).save_figure_black(
                                 background=images[direction]["grain"],
-                            )
+                                **plotting_config["plot_dict"][plot_name],
+                            ).plot_and_save()
                         # Plot spline seperately as they are coords
                         Images(
                                 filtered_image.images["gaussian_filtered"],
                                 plot_coords=all_traces[direction],
+                                background=images[direction]["grain"],
                                 filename=f"{filename}_{direction}_splines",
                                 output_dir=core_out_path,
                                 **plotting_config["plot_dict"]["splined_trace"],
-                            ).save_figure_black(
-                                background=images[direction]["grain"],
-                            )
+                            ).plot_and_save()
                         
                         #np.savetxt(f"{core_out_path}_{filename}_skel.txt", images[direction]["skeletons"])
                         #np.savetxt(f"{core_out_path}_{filename}_connect.txt", nodes.all_connected_nodes)
@@ -362,48 +360,53 @@ def process_scan(
                                 # plot node + skeleton
                                 Images(
                                     single_node_stats["node_stats"]["node_area_image"],
+                                    background=single_node_stats["node_stats"]["node_area_grain"],
                                     filename=f"mol_{mol_no}_node_{node_no}_crop",
                                     output_dir=output_dir / "nodes",
                                     **plotting_config["plot_dict"]["zoom_node"],
-                                ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
+                                ).plot_and_save()
                                 Images(
                                     single_node_stats["node_stats"]["node_area_image"],
                                     masked_array=single_node_stats["node_stats"]["node_area_skeleton"],
+                                    background=single_node_stats["node_stats"]["node_area_grain"],
                                     filename=f"mol_{mol_no}_node_{node_no}_node_area",
                                     output_dir=output_dir / "nodes",
                                     **plotting_config["plot_dict"]["zoom_node"],
-                                ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
+                                ).plot_and_save()
                                 # plot branch mask
                                 Images(
                                     single_node_stats["node_stats"]["node_area_image"],
                                     masked_array=single_node_stats["node_stats"]["node_branch_mask"],
+                                    background=single_node_stats["node_stats"]["node_area_grain"],
                                     filename=f"mol_{mol_no}_node_{node_no}_crossings",
                                     output_dir=output_dir / "nodes",
                                     **plotting_config["plot_dict"]["crossings"],
-                                ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
+                                ).plot_and_save()
                                 # plot avg branch mask
                                 if single_node_stats["node_stats"]["node_avg_mask"] is not None:
                                     Images(
                                         single_node_stats["node_stats"]["node_area_image"],
                                         masked_array=single_node_stats["node_stats"]["node_avg_mask"],
+                                        background=single_node_stats["node_stats"]["node_area_grain"],
                                         filename=f"mol_{mol_no}_node_{node_no}_average_crossings",
                                         output_dir=output_dir / "nodes",
                                         **plotting_config["plot_dict"]["tripple_crossings"],
-                                    ).save_figure_black(background=single_node_stats["node_stats"]["node_area_grain"])
+                                    ).plot_and_save()
                                 # Plot crossing height linetrace
-                                if not single_node_stats["error"]:
-                                    plotting_config["plot_dict"]["line_trace"] = {
-                                        "title": "Heights of Crossing",
-                                        "cmap": "blu_purp",
-                                    }
-                                    fig, _ = plot_crossing_linetrace_halfmax(
-                                        single_node_stats["branch_stats"],
-                                        **plotting_config["plot_dict"]["line_trace"],
-                                    )
-                                    fig.savefig(
-                                        output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg",
-                                        format="svg",
-                                    )
+                                if plotting_config["plot_dict"]["line_trace"]["image_set"] == "all":
+                                    if not single_node_stats["error"]:
+                                        plotting_config["plot_dict"]["line_trace"] = {
+                                            "title": "Heights of Crossing",
+                                            "cmap": "blu_purp",
+                                        }
+                                        fig, _ = plot_crossing_linetrace_halfmax(
+                                            single_node_stats["branch_stats"],
+                                            **plotting_config["plot_dict"]["line_trace"],
+                                        )
+                                        fig.savefig(
+                                            output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg",
+                                            format="svg",
+                                        )
                         LOGGER.info(f"[{filename}] : Finished Plotting DNA Tracing Images")
 
                         """
