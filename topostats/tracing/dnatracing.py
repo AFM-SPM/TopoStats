@@ -1118,6 +1118,9 @@ class nodeStats:
     def __init__(self, filename, image: np.ndarray, grain: np.ndarray, skeleton: np.ndarray, px_2_nm: float, n_grain: int) -> None:
         self.filename = filename
         self.image = image
+        #self.hess = hessian(image * 1e9, 4)
+        #np.savetxt("/Users/maxgamill/Desktop/image.txt", image)
+        #np.savetxt("/Users/maxgamill/Desktop/hess.txt", self.hess)
         self.grain = grain
         self.skeleton = skeleton
         self.px_2_nm = px_2_nm
@@ -1181,8 +1184,11 @@ class nodeStats:
         self.conv_skelly = convolve_skelly(self.skeleton)
         #np.savetxt("/Users/Maxgamill/Desktop/conv.txt", self.conv_skelly)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
-            self.connect_close_nodes(node_width=7e-9)
-            self.highlight_node_centres(self.connected_nodes)
+            self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
+            np.savetxt("/Users/maxgamill/Desktop/untidied.txt", self.connected_nodes)
+            self.connected_nodes = self.tidy_branches(self.connected_nodes, self.image)
+            self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
+            np.savetxt("/Users/maxgamill/Desktop/tidied.txt", self.connected_nodes)
             #np.savetxt("/Users/Maxgamill/Desktop/centres.txt", self.node_centre_mask)
             #np.savetxt("/Users/Maxgamill/Desktop/connect.txt", self.connected_nodes)
             self.analyse_nodes(box_length=20e-9)
@@ -1196,8 +1202,45 @@ class nodeStats:
             else:
                 pass
         return True
+    
+    def tidy_branches(self, connect_node_mask: np.ndarray, image: np.ndarray):
+        """Aims to wrangle distant connected nodes back towards the main cluster. By reskeletonising
+        soely the node areas.
 
-    def connect_close_nodes(self, node_width: float = 2.85e-9) -> None:
+        Parameters
+        ----------
+        connect_node_mask : np.ndarray
+            The connected node mask - a skeleton where node regions = 3, endpoints = 2, and skeleton = 1.
+        image : np.ndarray
+            The intensity image.
+
+        Returns
+        -------
+        np.ndarray
+            The wrangled connected_node_mask.
+        """
+        new_skeleton = np.where(connect_node_mask > 0, 1, 0)
+        labeled_nodes = label(np.where(connect_node_mask==3, 1, 0))
+
+        for node_num in range(1, labeled_nodes.max()+1):
+            solo_node = np.where(labeled_nodes==node_num, 1, 0)
+            image_node = np.where(solo_node==1, image, 0)
+
+            node_centre = np.argwhere(image_node == image_node.max())[0]
+            coords = np.argwhere(solo_node == 1)
+            node_wid = coords[:,0].max() - coords[:,0].min() + 1
+            node_len = coords[:,1].max() - coords[:,1].min() + 1
+
+            new_skeleton[node_centre[0]-node_wid//2-10:node_centre[0]+node_wid//2+10, node_centre[1]-node_len//2-10:node_centre[1]+node_len//2+10] = 1 #og_mask[node_centre[0]-node_wid//2-10:node_centre[0]+node_wid//2+10, node_centre[1]-node_len//2-10:node_centre[1]+node_len//2+10]
+
+        new_skeleton = getSkeleton(image, new_skeleton).get_skeleton(method="joe", params={"height_bias": 0.6})
+        new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton(method='joe')
+
+        self.conv_skelly = convolve_skelly(new_skeleton)
+
+        return self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
+
+    def connect_close_nodes(self, conv_skelly: np.ndarray, node_width: float = 2.85e-9) -> None:
         """Looks to see if nodes are within the node_width boundary (2.85nm) and thus
         are connected, also labeling them as part of the same node.
 
@@ -1206,14 +1249,16 @@ class nodeStats:
         node_width: float
             The width of the dna in the grain, used to connect close nodes.
         """
-        self.connected_nodes = self.conv_skelly.copy()
-        nodeless = self.conv_skelly.copy()
+        self.connected_nodes = conv_skelly.copy()
+        nodeless = conv_skelly.copy()
         nodeless[(nodeless == 3) | (nodeless == 2)] = 0  # remove node & termini points
         nodeless_labels = label(nodeless)
         for i in range(1, nodeless_labels.max() + 1):
             if nodeless[nodeless_labels == i].size < (node_width / self.px_2_nm):
                 # maybe also need to select based on height? and also ensure small branches classified
                 self.connected_nodes[nodeless_labels == i] = 3
+
+        return self.connected_nodes
 
     def highlight_node_centres(self, mask):
         """Uses the provided mask to calculate the node centres based on
@@ -1232,7 +1277,7 @@ class nodeStats:
             centre = np.unravel_index((self.image * (big_node_mask == i).astype(int)).argmax(), self.image.shape)
             small_node_mask[centre] = 3
 
-        self.node_centre_mask = small_node_mask
+        return small_node_mask
 
     def analyse_nodes(self, box_length: float = 20e-9):
         """This function obtains the main analyses for the nodes of a single molecule. Within a certain box (nm) around the node.
@@ -1254,7 +1299,7 @@ class nodeStats:
 
         # check whether average trace resides inside the grain mask
         dilate = ndimage.binary_dilation(self.skeleton, iterations=2)
-        average_trace_advised = dilate[self.grain == 1].sum() == dilate.sum()
+        average_trace_advised = False #dilate[self.grain == 1].sum() == dilate.sum()
         LOGGER.info(f"Branch height traces will be averaged: {average_trace_advised}")
 
         # iterate over the nodes to find areas
@@ -2180,6 +2225,11 @@ class nodeStats:
 
         coord_trace, simple_trace = self.simple_xyz_trace(ordered, cross_add, z)
 
+        # TODO: Finish / do triv identification via maybe:
+        #   one segment 2 branches
+        #   topology based -> 0_1 all triv, 2^2_1 -> 2 real (may have to check against no. nodes to see which are real)
+        self.identify_trivial_crossings(node_centre_coords)
+
         im = np.zeros_like(self.skeleton)
         for i in coord_trace:
             im[i[:,0], i[:,1]] = 1
@@ -2329,7 +2379,7 @@ class nodeStats:
             mol_coords.append(coord_trace)
             
             print("Simple length b4:", len(simple_trace))
-            simple_trace = self.reduce_rows(simple_trace, n=100)
+            simple_trace = self.reduce_rows(simple_trace, n=100) # may need to ensure that no segments are skipped!
             print("Simple length af:", len(simple_trace))
             nxyz = np.hstack((np.arange(0,len(simple_trace))[:, np.newaxis], simple_trace))
             if (nxyz[0][1]-nxyz[-1][1])**2 + (nxyz[0][2]-nxyz[-1][2])**2 <= 2:
@@ -2345,6 +2395,11 @@ class nodeStats:
 
         return mol_coords, simple_coords
     
+    def identify_trivial_crossings(self, crossings):
+        #TODO
+        for i, cross in enumerate(crossings):
+            self.node_dict[i + 1]["crossing_type"] = "real"
+
     @staticmethod
     def reduce_rows(array, n=300):
         # removes reduces the number of rows (but keeping the first and last ones)
