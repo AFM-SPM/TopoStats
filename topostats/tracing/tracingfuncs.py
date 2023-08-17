@@ -47,8 +47,8 @@ class getSkeleton:
     def getDNAmolHeightStats(self):
         coordinates = np.argwhere(self.binary_map == 1)
         flat_indices = np.ravel_multi_index(coordinates.T, self.image_data.shape)
-        heights = self.image_data.flat[flat_indices]
-        self.average_height = np.average(heights)
+        #heights = self.image_data.flat[flat_indices]
+        #self.average_height = np.average(heights)
 
     def doSkeletonising(self):
         """Simple while loop to check if the skeletonising is finished"""
@@ -84,10 +84,12 @@ class getSkeleton:
 
         # Check the local height values to determine if pixels should be deleted
         # pixels_to_delete = self._checkHeights(pixels_to_delete)
+        pixels_to_delete = np.asarray(pixels_to_delete)
+        if pixels_to_delete.shape != (0,):
+            heights = self.image_data[pixels_to_delete[:, 0], pixels_to_delete[:, 1]]  # get heights of pixels
+            hight_sort_idx = np.argsort(heights)[: int(np.ceil(len(heights) * 1))]  # idx of lowest height_bias%
+            self.mask_being_skeletonised[pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]] = 0  # remove lowest height_bias%
 
-        for x, y in pixels_to_delete:
-            number_of_deleted_points += 1
-            self.mask_being_skeletonised[x, y] = 0
         pixels_to_delete = []
 
         # Sub-iteration 2 - binary check
@@ -99,11 +101,15 @@ class getSkeleton:
         # Check the local height values to determine if pixels should be deleted
         # pixels_to_delete = self._checkHeights(pixels_to_delete)
 
-        for x, y in pixels_to_delete:
-            number_of_deleted_points += 1
-            self.mask_being_skeletonised[x, y] = 0
+        pixels_to_delete = np.asarray(pixels_to_delete)
+        if pixels_to_delete.shape != (0,):
+            #skel_img[pixels_to_delete[:, 0], pixels_to_delete[:, 1]] = 3
+            heights = self.image_data[pixels_to_delete[:, 0], pixels_to_delete[:, 1]]
+            hight_sort_idx = np.argsort(heights)[: int(np.ceil(len(heights) * 1))]  # idx of lowest height_bias%
+            self.mask_being_skeletonised[pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]] = 0  # remove lowest height_bias%
 
-        if number_of_deleted_points == 0:
+
+        if len(pixels_to_delete) == 0:
             self.skeleton_converged = True
 
     def _deletePixelSubit1(self, point):
@@ -513,7 +519,7 @@ class getSkeleton:
         # The branches are typically short so if a branch is longer than a quarter
         # of the total points its assumed to be part of the real data
         length_of_trace = len(coordinates)
-        max_branch_length = int(length_of_trace * 0.15)
+        max_branch_length = int(length_of_trace * 0.05)
 
         # _deleteSquareEnds(coordinates)
 

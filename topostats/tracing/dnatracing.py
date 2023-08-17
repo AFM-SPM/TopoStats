@@ -15,8 +15,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import ndimage, spatial, interpolate as interp
-from skimage import morphology
-from skimage.filters import gaussian
+from skimage.morphology import label, binary_dilation, binary_erosion
+from skimage.filters import gaussian, threshold_otsu
 import skimage.measure as skimage_measure
 from tqdm import tqdm
 
@@ -131,6 +131,45 @@ class dnaTrace:
         else:
             LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
 
+    def smooth_grains(self, grain: np.ndarray) -> None:
+        """Smoothes grains based on the lower number added from dilation or gaussian.
+        (makes sure gaussian isnt too agressive."""
+        dilation = ndimage.binary_dilation(grain, iterations=2).astype(
+            np.int32)  # may need a better method to fill all holes
+        gauss = gaussian(grain, sigma=max(grain.shape) / 124)  # same here
+        gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
+        gauss[gauss != 1] = 0
+        gauss = gauss.astype(np.int32)
+        if dilation.sum() - grain.sum() > gauss.sum() - grain.sum():  # this just decides which method was best (can remove if you find out how to fill holes)
+            print(f"gaussian: {gauss.sum() - grain.sum()}px")
+
+            # poke holes for eddie
+            gauss_small = gauss.copy()
+            for i in range(3):
+                gauss_small = binary_erosion(gauss_small)  # erodes edge of mask 3 times
+            print(np.where(gauss_small == 1, self.image, 0).shape)
+            centre = np.argwhere(self.image == np.where(gauss_small == 1, self.image, 0).min())[
+                0]  # find the min value coords from the erroded mask
+            print(centre)
+            gauss[centre[0] - 2:centre[0] + 3, centre[1] - 2:centre[1] + 3] = 0  # sets 3x3 area around min to 0
+
+            # gauss = self.re_add_holes(grain, gauss)
+            return gauss
+        else:
+            print(f"dilation: {dilation.sum() - grain.sum()}px")
+
+            # poke holes for eddie
+            dil_small = dilation.copy()
+            for i in range(3):
+                dil_small = binary_erosion(dil_small)
+            print(np.where(dil_small == 1, self.image, 0).shape)
+            centre = np.argwhere(self.image == np.where(dil_small == 1, self.image, 0).min())[0]
+            print(centre)
+            dilation[centre[0] - 2:centre[0] + 3, centre[1] - 2:centre[1] + 3] = 0
+
+            # dilation = self.re_add_holes(grain, dilation)
+            return dilation
+
     def gaussian_filter(self, **kwargs) -> np.array:
         """Apply Gaussian filter"""
         self.gauss_image = gaussian(self.image, sigma=self.sigma, **kwargs)
@@ -142,34 +181,34 @@ class dnaTrace:
         Uses my own skeletonisation function from tracingfuncs module. I will
         eventually get round to editing this function to try to reduce the branching
         and to try to better trace from looped molecules"""
-        smoothed_grain = ndimage.binary_dilation(self.grain, iterations=1).astype(self.grain.dtype)
+        smoothed_grain = self.smooth_grains(self.grain)
 
         sigma = 0.01 / (self.pixel_to_nm_scaling * 1e9)
         very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
         LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Skeletonising using {self.skeletonisation_method} method.")
-        try:
-            if self.skeletonisation_method == "topostats":
-                dna_skeleton = getSkeleton(
-                    self.gauss_image,
-                    smoothed_grain,
-                    self.number_of_columns,
-                    self.number_of_rows,
-                    self.pixel_to_nm_scaling,
-                )
-                self.disordered_trace = dna_skeleton.output_skeleton
-            elif self.skeletonisation_method in ["lee", "zhang", "thin"]:
-                self.disordered_trace = np.argwhere(
-                    get_skeleton(smoothed_grain, method=self.skeletonisation_method) == True
-                )
-            else:
-                raise ValueError
-        except IndexError as e:
+        #try:
+        if self.skeletonisation_method == "topostats":
+            dna_skeleton = getSkeleton(
+                self.gauss_image,
+                smoothed_grain,
+                self.number_of_columns,
+                self.number_of_rows,
+                self.pixel_to_nm_scaling,
+            )
+            self.disordered_trace = dna_skeleton.output_skeleton
+        elif self.skeletonisation_method in ["lee", "zhang", "thin"]:
+            self.disordered_trace = np.argwhere(
+                get_skeleton(smoothed_grain, method=self.skeletonisation_method) == True
+            )
+        else:
+            raise ValueError
+        """except IndexError as e:
             # Some gwyddion grains touch image border causing IndexError
             # These grains are deleted
             LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain failed to skeletonise.")
             # raise e
-
+"""
     def linear_or_circular(self, traces):
         """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace
 
