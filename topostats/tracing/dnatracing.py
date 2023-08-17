@@ -1299,7 +1299,7 @@ class nodeStats:
 
         # check whether average trace resides inside the grain mask
         dilate = ndimage.binary_dilation(self.skeleton, iterations=2)
-        average_trace_advised = False #dilate[self.grain == 1].sum() == dilate.sum()
+        average_trace_advised = dilate[self.grain == 1].sum() == dilate.sum()
         LOGGER.info(f"Branch height traces will be averaged: {average_trace_advised}")
 
         # iterate over the nodes to find areas
