@@ -31,6 +31,7 @@ from topostats.utils import convolve_skelly, ResolutionError
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+OUTPUT_DIR = Path("/Users/maxgamill/Desktop/")
 
 class dnaTrace:
     """
@@ -1119,8 +1120,8 @@ class nodeStats:
         self.filename = filename
         self.image = image
         #self.hess = hessian(image * 1e9, 4)
-        #np.savetxt("/Users/maxgamill/Desktop/image.txt", image)
-        #np.savetxt("/Users/maxgamill/Desktop/hess.txt", self.hess)
+        #np.savetxt(OUTPUT_DIR / "image.txt", image)
+        #np.savetxt(OUTPUT_DIR / "hess.txt", self.hess)
         self.grain = grain
         self.skeleton = skeleton
         self.px_2_nm = px_2_nm
@@ -1182,15 +1183,15 @@ class nodeStats:
         """
         LOGGER.info(f"Node Stats - Processing Grain: {self.n_grain}")
         self.conv_skelly = convolve_skelly(self.skeleton)
-        #np.savetxt("/Users/Maxgamill/Desktop/conv.txt", self.conv_skelly)
+        #np.savetxt(OUTPUT_DIR / "conv.txt", self.conv_skelly)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
-            np.savetxt("/Users/maxgamill/Desktop/untidied.txt", self.connected_nodes)
+            np.savetxt(OUTPUT_DIR / "untidied.txt", self.connected_nodes)
             self.connected_nodes = self.tidy_branches(self.connected_nodes, self.image)
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
-            np.savetxt("/Users/maxgamill/Desktop/tidied.txt", self.connected_nodes)
-            #np.savetxt("/Users/Maxgamill/Desktop/centres.txt", self.node_centre_mask)
-            #np.savetxt("/Users/Maxgamill/Desktop/connect.txt", self.connected_nodes)
+            np.savetxt(OUTPUT_DIR / "tidied.txt", self.connected_nodes)
+            #np.savetxt(OUTPUT_DIR / "centres.txt", self.node_centre_mask)
+            #np.savetxt(OUTPUT_DIR / "connect.txt", self.connected_nodes)
             self.analyse_nodes(box_length=20e-9)
         return self.node_dict
         #self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
@@ -1341,12 +1342,12 @@ class nodeStats:
                 LOGGER.info(f"node {node_no} has only two branches - skipped & nodes removed")
                 # sometimes removal of nibs can cause problems when re-indexing nodes
                 print(f"{len(node_coords)} pixels in nib node")
-                #np.savetxt("/Users/Maxgamill/Desktop/nib.txt", self.node_centre_mask)
+                #np.savetxt(OUTPUT_DIR / "nib.txt", self.node_centre_mask)
                 temp = self.node_centre_mask.copy()
                 temp_node_coords = node_coords.copy()
                 temp_node_coords += [x, y] - node_centre_small_xy
                 temp[temp_node_coords[:, 0], temp_node_coords[:, 1]] = 1
-                #np.savetxt("/Users/Maxgamill/Desktop/nib2.txt", temp)
+                #np.savetxt(OUTPUT_DIR / "nib2.txt", temp)
                 # node_coords += ([x, y] - centre) # get whole image coords
                 # self.node_centre_mask[x, y] = 1 # remove these from node_centre_mask
                 # self.connected_nodes[node_coords[:,0], node_coords[:,1]] = 1 # remove these from connected_nodes
@@ -1416,8 +1417,8 @@ class nodeStats:
                         matched_branches[i]["ordered_coords_local"] = single_branch_coords
                         # get heights and trace distance of branch
                         if average_trace_advised:
-                            # np.savetxt("knot2/area.txt",image_area)
-                            # np.savetxt("knot2/single_branch.txt",single_branch)
+                            # np.savetxt(OUTPUT_DIR / "area.txt",image_area)
+                            # np.savetxt(OUTPUT_DIR / "single_branch.txt",single_branch)
                             # print("ZD: ", zero_dist)
                             distances, heights, mask, _ = self.average_height_trace(
                                 image_area, single_branch_img, single_branch_coords, node_centre_small_xy
@@ -2186,9 +2187,9 @@ class nodeStats:
         # get image minus the crossing areas
         minus = self.get_minus_img(node_area_box, node_centre_coords)
 
-        #np.savetxt("/Users/Maxgamill/Desktop/minus.txt", minus)
-        #np.savetxt("/Users/Maxgamill/Desktop/skel.txt", self.skeleton)
-        #np.savetxt("/Users/Maxgamill/Desktop/centres.txt", node_centre_coords)
+        #np.savetxt(OUTPUT_DIR / "minus.txt", minus)
+        #np.savetxt(OUTPUT_DIR / "skel.txt", self.skeleton)
+        #np.savetxt(OUTPUT_DIR / "centres.txt", node_centre_coords)
 
         # setup z array
         z = []
@@ -2219,7 +2220,7 @@ class nodeStats:
             single_cross_img = dnaTrace.coords_2_img(np.array(coords), cross_add)
             cross_add[single_cross_img !=0] = i + 1
         
-        np.savetxt("/Users/Maxgamill/Desktop/cross_add.txt", cross_add)
+        np.savetxt(OUTPUT_DIR / "cross_add.txt", cross_add)
         print("Getting coord trace")
         #coord_trace = self.trace_mol(ordered, cross_add)
 
@@ -2233,12 +2234,12 @@ class nodeStats:
         im = np.zeros_like(self.skeleton)
         for i in coord_trace:
             im[i[:,0], i[:,1]] = 1
-        # np.savetxt("/Users/Maxgamill/Desktop/trace.txt", coord_trace[0])
+        # np.savetxt(OUTPUT_DIR / "trace.txt", coord_trace[0])
 
         # visual over under img
         visual = self.get_visual_img(coord_trace, fwhms, crossing_coords)
 
-        # np.savetxt("/Users/Maxgamill/Desktop/visual.txt", visual)
+        # np.savetxt(OUTPUT_DIR / "visual.txt", visual)
 
         # I could use the traced coords, remove the node centre coords, and re-label segments
         #   following 1, 2, 3... around the mol which should look like the Planar Diagram formation
@@ -2526,7 +2527,7 @@ class nodeStats:
             temp_img = binary_dilation(temp_img)
             img[temp_img != 0] = mol_no + 1
 
-        #np.savetxt("/Users/Maxgamill/Desktop/preimg.txt", img)
+        #np.savetxt(OUTPUT_DIR / "preimg.txt", img)
 
         lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
 
@@ -2623,7 +2624,7 @@ class nodeStats:
         pd_code = ""
         pd_vals = []
         pd_img = self.make_pd_skeleton(trace_coords, node_centres)
-        np.savetxt("/Users/Maxgamill/Desktop/pd_img.txt", pd_img)
+        #np.savetxt(OUTPUT_DIR / "pd_img.txt", pd_img)
         node_centres = np.array([np.array(node_centre) for node_centre in node_centres])
         #pd_img[node_centres[:,0], node_centres[:,1]] = 0
         under_branch_idxs, _ = self.get_trace_idxs(fwhms)

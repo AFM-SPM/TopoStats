@@ -349,7 +349,7 @@ def process_scan(
                                 background=images[direction]["grain"],
                             )
                         
-                        #np.savetxt(f"{core_out_path}_{filename}_skel.txt", dna_traces[direction].skeletons)
+                        #np.savetxt(f"{core_out_path}_{filename}_skel.txt", images[direction]["skeletons"])
                         #np.savetxt(f"{core_out_path}_{filename}_connect.txt", nodes.all_connected_nodes)
 
                         # plot nodes and line traces

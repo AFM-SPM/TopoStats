@@ -9,6 +9,7 @@ from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import convolve_skelly
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+OUTPUT_DIR = "/Users/maxgamill/Desktop"
 
 # Max notes: Want to separate this module into:
 #   the different skeletonisation skimage methods & joe's
@@ -266,7 +267,7 @@ class joeSkeletonize:
         if len(pixels_to_delete) == 0:
             self.skeleton_converged = True
         
-        np.savetxt(f"/Users/Maxgamill/Desktop/Uni/PhD/topo_cats/TopoStats/test/processed/taut/dna_tracing/upper/skel_iters/skel_iter_{self.counter}.txt", skel_img)
+        #np.savetxt(f"{OUTPUT_DIR}/Uni/PhD/topo_cats/TopoStats/test/processed/taut/dna_tracing/upper/skel_iters/skel_iter_{self.counter}.txt", skel_img)
 
     def _delete_pixel_subit1(self, point: list) -> bool:
         """Function to check whether a single point should be deleted based

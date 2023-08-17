@@ -311,8 +311,6 @@ class Images:
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
             elif self.plot_coords is not None:
                 for grain_coords in self.plot_coords:
-                    print("TYPE: ", type(grain_coords))
-                    print(grain_coords)
                     plt.plot(grain_coords[:,1]*self.pixel_to_nm_scaling, (shape[1] - grain_coords[:,0])*self.pixel_to_nm_scaling , c='c', linewidth=0.5)
 
             plt.title(self.title)
