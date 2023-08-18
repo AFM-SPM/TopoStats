@@ -143,6 +143,7 @@ class dnaTrace:
                 filename=self.filename,
                 image=self.image,
                 grain=self.grain,
+                smoothed_grain=self.smoothed_grain,
                 skeleton=self.pruned_skeleton,
                 px_2_nm=self.pixel_to_nm_scaling,
                 n_grain=self.n_grain
@@ -903,7 +904,7 @@ def trace_image(
         try:
             pd_result = pd.DataFrame.from_dict(result, orient="index")
             grains_results = pd.concat([grains_results, pd_result])
-        except NameError:
+        except NameError: # if grain results not present
             grains_results = pd.DataFrame.from_dict(result, orient="index")
         except ValueError as error:
             LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
@@ -1116,13 +1117,14 @@ def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np
 class nodeStats:
     """Class containing methods to find and analyse the nodes/crossings within a grain"""
 
-    def __init__(self, filename, image: np.ndarray, grain: np.ndarray, skeleton: np.ndarray, px_2_nm: float, n_grain: int) -> None:
+    def __init__(self, filename, image: np.ndarray, grain: np.ndarray, smoothed_grain: np.ndarray, skeleton: np.ndarray, px_2_nm: float, n_grain: int) -> None:
         self.filename = filename
         self.image = image
         #self.hess = hessian(image * 1e9, 4)
         #np.savetxt(OUTPUT_DIR / "image.txt", image)
         #np.savetxt(OUTPUT_DIR / "hess.txt", self.hess)
         self.grain = grain
+        self.smoothed_grain = smoothed_grain
         self.skeleton = skeleton
         self.px_2_nm = px_2_nm
         self.n_grain = n_grain
@@ -1186,10 +1188,11 @@ class nodeStats:
         #np.savetxt(OUTPUT_DIR / "conv.txt", self.conv_skelly)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
-            np.savetxt(OUTPUT_DIR / "untidied.txt", self.connected_nodes)
+            #np.savetxt(OUTPUT_DIR / "img.txt", self.image)
+            #np.savetxt(OUTPUT_DIR / "untidied.txt", self.connected_nodes)
             self.connected_nodes = self.tidy_branches(self.connected_nodes, self.image)
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
-            np.savetxt(OUTPUT_DIR / "tidied.txt", self.connected_nodes)
+            #np.savetxt(OUTPUT_DIR / "tidied.txt", self.connected_nodes)
             #np.savetxt(OUTPUT_DIR / "centres.txt", self.node_centre_mask)
             #np.savetxt(OUTPUT_DIR / "connect.txt", self.connected_nodes)
             self.analyse_nodes(box_length=20e-9)
@@ -1232,7 +1235,10 @@ class nodeStats:
             node_wid = coords[:,0].max() - coords[:,0].min() + 1
             node_len = coords[:,1].max() - coords[:,1].min() + 1
 
-            new_skeleton[node_centre[0]-node_wid//2-10:node_centre[0]+node_wid//2+10, node_centre[1]-node_len//2-10:node_centre[1]+node_len//2+10] = 1 #og_mask[node_centre[0]-node_wid//2-10:node_centre[0]+node_wid//2+10, node_centre[1]-node_len//2-10:node_centre[1]+node_len//2+10]
+            new_skeleton[node_centre[0]-node_wid//2-10:node_centre[0]+node_wid//2+10, node_centre[1]-node_len//2-10:node_centre[1]+node_len//2+10] = 1
+            #new_skeleton[node_centre[0]-node_wid//2-10:node_centre[0]+node_wid//2+10, node_centre[1]-node_len//2-10:node_centre[1]+node_len//2+10] = self.grain[node_centre[0]-node_wid//2-10:node_centre[0]+node_wid//2+10, node_centre[1]-node_len//2-10:node_centre[1]+node_len//2+10]
+
+        #np.savetxt(OUTPUT_DIR / "splodge.txt", new_skeleton)
 
         new_skeleton = getSkeleton(image, new_skeleton).get_skeleton(method="joe", params={"height_bias": 0.6})
         new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton(method='joe')
@@ -2220,7 +2226,7 @@ class nodeStats:
             single_cross_img = dnaTrace.coords_2_img(np.array(coords), cross_add)
             cross_add[single_cross_img !=0] = i + 1
         
-        np.savetxt(OUTPUT_DIR / "cross_add.txt", cross_add)
+        #np.savetxt(OUTPUT_DIR / "cross_add.txt", cross_add)
         print("Getting coord trace")
         #coord_trace = self.trace_mol(ordered, cross_add)
 
@@ -2353,6 +2359,9 @@ class nodeStats:
         binary_remaining[binary_remaining != 0] = 1
         endpoints = np.unique(remaining[convolve_skelly(binary_remaining)==2]) # uniq incase of whole mol   
 
+        n_points_p_seg = (100) // remaining.max()
+        print("N Points: ", n_points_p_seg)
+
         while remaining.max() != 0:
             # select endpoint to start if there is one
             endpoints = [i for i in endpoints if i in np.unique(remaining)] # remove if removed from remaining
@@ -2369,9 +2378,13 @@ class nodeStats:
                 if len(coord_trace) > 0: # can only order when there's a reference point / segment
                     trace_segment = self.remove_duplicates(trace_segment, prev_segment) # remove overlaps in trace (may be more efficient to do it on the prev segment)
                     trace_segment = self.order_from_end(coord_trace[-1], trace_segment)
-                prev_segment = trace_segment.copy()
+                prev_segment = trace_segment.copy() # update prev segement
                 coord_trace = np.append(coord_trace, trace_segment.astype(np.int32), axis=0)
-                simple_trace = np.append(simple_trace, np.hstack((trace_segment, np.ones((len(trace_segment), 1)) * zs[coord_idx])), axis=0).astype(np.int32)
+                
+                simple_trace_temp = self.reduce_rows(trace_segment.astype(np.int32), n=n_points_p_seg) # reducing rows here ensures no segments are skipped
+                simple_trace_temp_z = np.column_stack((simple_trace_temp, np.ones((len(simple_trace_temp), 1)) * zs[coord_idx])).astype(np.int32)
+                simple_trace = np.append(simple_trace, simple_trace_temp_z, axis=0)
+
                 #simple_trace.append(np.append(trace_segment[0], zs[coord_idx]))
                 #simple_trace.append(np.append(trace_segment[-1], zs[coord_idx]))
                 x, y = coord_trace[-1]
@@ -2379,10 +2392,7 @@ class nodeStats:
 
             mol_coords.append(coord_trace)
             
-            print("Simple length b4:", len(simple_trace))
-            simple_trace = self.reduce_rows(simple_trace, n=100) # may need to ensure that no segments are skipped!
-            print("Simple length af:", len(simple_trace))
-            nxyz = np.hstack((np.arange(0,len(simple_trace))[:, np.newaxis], simple_trace))
+            nxyz = np.column_stack((np.arange(0, len(simple_trace)), simple_trace))
             if (nxyz[0][1]-nxyz[-1][1])**2 + (nxyz[0][2]-nxyz[-1][2])**2 <= 2:
                 print("Looped so duplicating index 0: ")
                 nxyz = np.append(nxyz, nxyz[0][np.newaxis, :], axis=0)
@@ -2390,7 +2400,6 @@ class nodeStats:
             simple_coords.append(nxyz)
 
         simple_coords = self.comb_xyzs(simple_coords)
-        #print(simple_coords)
 
         print(f"Mols in trace: {len(mol_coords)}")
 
@@ -2404,11 +2413,10 @@ class nodeStats:
     @staticmethod
     def reduce_rows(array, n=300):
         # removes reduces the number of rows (but keeping the first and last ones)
-        if n > array.shape[0] or array.shape[0] < 4:
+        if array.shape[0] < n or array.shape[0] < 4:
             return array
         else:
             idxs_to_keep = np.unique(np.linspace(0, array[1:-1].shape[0]-1, n).astype(np.int32))
-            print("list len: ", idxs_to_keep.size)
             new_array = array[1:-1][idxs_to_keep]
             new_array = np.append(array[0][np.newaxis, :], new_array, axis=0)
             new_array = np.append(new_array, array[-1][np.newaxis, :], axis=0)
