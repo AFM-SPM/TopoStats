@@ -15,7 +15,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import ndimage, spatial, interpolate as interp
-from skimage.morphology import label, binary_dilation, binary_erosion
+from skimage.morphology import label, binary_dilation, binary_erosion, binary_closing
 from skimage.filters import gaussian, threshold_otsu
 import skimage.measure as skimage_measure
 from tqdm import tqdm
@@ -170,6 +170,25 @@ class dnaTrace:
             # dilation = self.re_add_holes(grain, dilation)
             return dilation
 
+    def fill_grains(self, grain: np.ndarray) -> None:
+        """fills grains
+        """
+
+        filling = ndimage.binary_closing(grain).astype(np.int32)
+
+        erode = filling.copy()
+        for i in range(3):
+            erode = binary_erosion(erode)   # erodes edge of mask 3 times
+        print(np.where(erode == 1, self.image, 0).shape)
+        centre = np.argwhere(self.image == np.where(erode == 1, self.image, 0).min())[
+            0]  # find the min value coords from the erroded mask
+        print(centre)
+        filling[centre[0] - 2:centre[0] + 3, centre[1] - 2:centre[1] + 3] = 0  # sets 3x3 area around min to 0
+
+        # gauss = self.re_add_holes(grain, gauss)
+        return filling
+
+
     def gaussian_filter(self, **kwargs) -> np.array:
         """Apply Gaussian filter"""
         self.gauss_image = gaussian(self.image, sigma=self.sigma, **kwargs)
@@ -181,7 +200,7 @@ class dnaTrace:
         Uses my own skeletonisation function from tracingfuncs module. I will
         eventually get round to editing this function to try to reduce the branching
         and to try to better trace from looped molecules"""
-        smoothed_grain = self.smooth_grains(self.grain)
+        smoothed_grain = self.fill_grains(self.grain)
 
         sigma = 0.01 / (self.pixel_to_nm_scaling * 1e9)
         very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
