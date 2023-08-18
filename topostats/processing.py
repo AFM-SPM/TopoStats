@@ -393,7 +393,7 @@ def process_scan(
                                         **plotting_config["plot_dict"]["tripple_crossings"],
                                     ).plot_and_save()
                                 # Plot crossing height linetrace
-                                if plotting_config["plot_dict"]["line_trace"]["image_set"] == "all":
+                                if plotting_config["image_set"] == "all":
                                     if not single_node_stats["error"]:
                                         plotting_config["plot_dict"]["line_trace"] = {
                                             "title": "Heights of Crossing",
@@ -496,7 +496,7 @@ def process_scan(
         results["Basename"] = image_path.parent
         node_stats = {"upper": None, "lower": None}
 
-    LOGGER.info(f"[{filename}] Finished Processing")
+    LOGGER.info(f"[{filename}] : Finished Processing")
     return image_path, results, node_stats
 
 
