@@ -2230,7 +2230,7 @@ class nodeStats:
         print("Getting coord trace")
         #coord_trace = self.trace_mol(ordered, cross_add)
 
-        coord_trace, simple_trace = self.simple_xyz_trace(ordered, cross_add, z)
+        coord_trace, simple_trace = self.simple_xyz_trace(ordered, cross_add, z, n=100)
 
         # TODO: Finish / do triv identification via maybe:
         #   one segment 2 branches
@@ -2350,17 +2350,14 @@ class nodeStats:
 
         return mol_coords
     
-    def simple_xyz_trace(self, ordered_segment_coords, both_img, zs):
+    def simple_xyz_trace(self, ordered_segment_coords, both_img, zs, n=100):
         mol_coords = []
         simple_coords = []
         remaining = both_img.copy().astype(np.int32)
-
         binary_remaining = remaining.copy()
         binary_remaining[binary_remaining != 0] = 1
         endpoints = np.unique(remaining[convolve_skelly(binary_remaining)==2]) # uniq incase of whole mol   
-
-        n_points_p_seg = (100) // remaining.max()
-        print("N Points: ", n_points_p_seg)
+        n_points_p_seg = n // remaining.max()
 
         while remaining.max() != 0:
             # select endpoint to start if there is one
@@ -2371,7 +2368,6 @@ class nodeStats:
                 coord_idx = np.unique(remaining)[1] - 1  # avoid choosing 0
             coord_trace = np.empty((0,2)).astype(np.int32)
             simple_trace = np.empty((0,3)).astype(np.int32)
-            #simple_trace = [] # x,y,z (add n's after)
             while coord_idx > -1:  # either cycled through all or hits terminus -> all will be just background
                 remaining[remaining == coord_idx + 1] = 0
                 trace_segment = self.get_trace_segment(remaining, ordered_segment_coords, coord_idx)
@@ -2382,11 +2378,9 @@ class nodeStats:
                 coord_trace = np.append(coord_trace, trace_segment.astype(np.int32), axis=0)
                 
                 simple_trace_temp = self.reduce_rows(trace_segment.astype(np.int32), n=n_points_p_seg) # reducing rows here ensures no segments are skipped
-                simple_trace_temp_z = np.column_stack((simple_trace_temp, np.ones((len(simple_trace_temp), 1)) * zs[coord_idx])).astype(np.int32)
+                simple_trace_temp_z = np.column_stack((simple_trace_temp, np.ones((len(simple_trace_temp), 1)) * zs[coord_idx])).astype(np.int32) # add z's
                 simple_trace = np.append(simple_trace, simple_trace_temp_z, axis=0)
 
-                #simple_trace.append(np.append(trace_segment[0], zs[coord_idx]))
-                #simple_trace.append(np.append(trace_segment[-1], zs[coord_idx]))
                 x, y = coord_trace[-1]
                 coord_idx = remaining[x - 1 : x + 2, y - 1 : y + 2].max() - 1  # should only be one value
 
