@@ -2,13 +2,14 @@
 import logging
 from typing import Callable
 import numpy as np
-from skimage.morphology import label, medial_axis, skeletonize, thin
+from skimage.morphology import label, medial_axis, skeletonize, thin, binary_dilation
 
 from topostats.tracing.tracingfuncs import genTracingFuncs
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import convolve_skelly
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+OUTPUT_DIR = "/Users/maxgamill/Desktop"
 
 # Max notes: Want to separate this module into:
 #   the different skeletonisation skimage methods & joe's
@@ -33,7 +34,7 @@ class getSkeleton:
         self.image = image
         self.mask = mask
 
-    def get_skeleton(self, method: str) -> np.ndarray:
+    def get_skeleton(self, method: str, params=None) -> np.ndarray:
         """Factory method for skeletonizing molecules.
 
         Parameters
@@ -54,9 +55,9 @@ class getSkeleton:
         module. See also the `examples
         <https://scikit-image.org/docs/stable/auto_examples/edges/plot_skeleton.html>_
         """
-        return self._get_skeletonize(method)
+        return self._get_skeletonize(method, params)
 
-    def _get_skeletonize(self, method: str = "zhang") -> Callable:
+    def _get_skeletonize(self, method: str = "zhang", params=None) -> Callable:
         """Creator component which determines which skeletonize method to use.
 
         Parameters
@@ -78,7 +79,7 @@ class getSkeleton:
         if method == "thin":
             return self._skeletonize_thin(self.mask).astype(np.int32)
         if method == "joe":
-            return self._skeletonize_joe(self.image, self.mask).astype(np.int32)
+            return self._skeletonize_joe(self.image, self.mask, params).astype(np.int32)
         raise ValueError(method)
 
     @staticmethod
@@ -148,7 +149,7 @@ class getSkeleton:
         return thin(image)
 
     @staticmethod
-    def _skeletonize_joe(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
+    def _skeletonize_joe(image: np.ndarray, mask: np.ndarray, params=None) -> np.ndarray:
         """Wrapper for Pyne-lab member Joe's skeletonisation method.
 
         Parameters
@@ -166,7 +167,10 @@ class getSkeleton:
         This method is based on Zhang's method but produces different results
         (less branches but slightly less accurate).
         """
-        return joeSkeletonize(image, mask).do_skeletonising()
+        if params is None:
+            params = {"height_bias": 0.6}
+
+        return joeSkeletonize(image, mask, **params).do_skeletonising()
 
 
 class joeSkeletonize:
@@ -179,7 +183,7 @@ class joeSkeletonize:
     should someone be upto the task, it is possible to include the heights when skeletonising.
     """
 
-    def __init__(self, image: np.ndarray, mask: np.ndarray):
+    def __init__(self, image: np.ndarray, mask: np.ndarray, height_bias: float = 0.6):
         """Initialises the class
 
         Parameters
@@ -191,6 +195,7 @@ class joeSkeletonize:
         """
         self.image = image
         self.mask = mask.copy()
+        self.height_bias = height_bias
 
         self.skeleton_converged = False
         self.p2 = None
@@ -241,8 +246,12 @@ class joeSkeletonize:
         if pixels_to_delete.shape != (0,):  # ensure array not empty
             skel_img[pixels_to_delete[:, 0], pixels_to_delete[:, 1]] = 2
             heights = self.image[pixels_to_delete[:, 0], pixels_to_delete[:, 1]]  # get heights of pixels
-            hight_sort_idx = np.argsort(heights)[: int(np.ceil(len(heights) * 0.6))]  # idx of lowest 60%
-            self.mask[pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]] = 0  # remove lowest 60%
+            hight_sort_idx = np.argsort(heights)[
+                : int(np.ceil(len(heights) * self.height_bias))
+            ]  # idx of lowest height_bias%
+            self.mask[
+                pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]
+            ] = 0  # remove lowest height_bias%
 
         pixels_to_delete = []
         # Sub-iteration 2 - binary check
@@ -256,11 +265,17 @@ class joeSkeletonize:
         if pixels_to_delete.shape != (0,):
             skel_img[pixels_to_delete[:, 0], pixels_to_delete[:, 1]] = 3
             heights = self.image[pixels_to_delete[:, 0], pixels_to_delete[:, 1]]
-            hight_sort_idx = np.argsort(heights)[: int(np.ceil(len(heights) * 0.6))]  # idx of lowest 60%
-            self.mask[pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]] = 0
+            hight_sort_idx = np.argsort(heights)[
+                : int(np.ceil(len(heights) * self.height_bias))
+            ]  # idx of lowest height_bias%
+            self.mask[
+                pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]
+            ] = 0  # remove lowest height_bias%
 
         if len(pixels_to_delete) == 0:
             self.skeleton_converged = True
+
+        # np.savetxt(f"{OUTPUT_DIR}/Uni/PhD/topo_cats/TopoStats/test/processed/taut/dna_tracing/upper/skel_iters/skel_iter_{self.counter}.txt", skel_img)
 
         np.savetxt(f"./text_logs/skel_iter_{self.counter}.txt", skel_img)
 
@@ -602,7 +617,7 @@ class joePrune:
             pruned_skeleton_mask += self._prune_single_skeleton(single_skeleton)
             # pruned_skeleton_mask = self._remove_low_dud_branches(pruned_skeleton_mask, self.image)
             # pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton('zhang') # reskel to remove nibs
-        return pruned_skeleton_mask
+        return rm_nibs(pruned_skeleton_mask)
 
     def _prune_single_skeleton(self, single_skeleton: np.ndarray) -> np.ndarray:
         """Function to remove the hanging branches from a single skeleton as this
@@ -813,3 +828,43 @@ class maxPrune:
             print("Removed dud branch: ", i)
             skeleton_rtn[segments == i] = 0
         return skeleton_rtn
+
+
+def rm_nibs(skeleton):
+    """Attempts to remove single pixel branches (nibs) not identified by nearest neighbour
+    algorithms as there may be >2 neighbours.
+
+    Parameters
+    ----------
+    skeleton : np.ndarray
+        A single pixel thick trace.
+
+    Returns
+    -------
+    np.ndarray
+        A skeleton with single pixel nibs removed.
+    """
+    conv_skel = convolve_skelly(skeleton)
+    nodes = np.where(conv_skel == 3, 1, 0)
+    labeled_nodes = label(nodes)
+    nodeless = np.where(conv_skel == 1, 1, 0)
+    labeled_nodeless = label(nodeless)
+    size_1_idxs = []
+
+    for i in range(1, labeled_nodes.max() + 1):
+        node = np.where(labeled_nodes == i, 1, 0)
+        dil = binary_dilation(node, footprint=np.ones((3, 3)))
+        minus = np.where(dil != node, 1, 0)
+
+        idxs = labeled_nodeless[minus == 1]
+        for j in idxs:
+            if np.sum(labeled_nodeless == j) == 1:
+                size_1_idxs.append(j)
+
+    unique, counts = np.unique(np.array(size_1_idxs), return_counts=True)
+
+    for k in range(len(counts)):
+        if counts[k] == 1:
+            skeleton[labeled_nodeless == unique[k]] = 0
+
+    return skeleton

@@ -211,7 +211,7 @@ ordered_trace:
   filename: "26-ordered-traces"
   title: "Ordered Traces"
   image_type: "non-binary"
-  mask_cmap: "blu_purp"
+  mask_cmap: "viridis"
   core_set: false
   dpi: 800
 fitted_trace:
@@ -222,10 +222,9 @@ fitted_trace:
   core_set: false
   dpi: 800
 splined_trace:
-  filename: "28-splined-traces"
   title: "Splined Traces"
   image_type: "non-binary"
   mask_cmap: "blu_purp"
-  core_set: false
+  core_set: true
   dpi: 800
 

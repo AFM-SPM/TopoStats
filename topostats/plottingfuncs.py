@@ -10,7 +10,6 @@ import numpy as np
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
-from topostats.tracing.dnatracing import nodeStats
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-locals
@@ -35,6 +34,8 @@ class Images:
         filename: str,
         pixel_to_nm_scaling: float = 1.0,
         masked_array: np.array = None,
+        plot_coords: np.array = None,
+        background: np.ndarray = None,
         title: str = None,
         image_type: str = "non-binary",
         image_set: str = "core",
@@ -67,6 +68,8 @@ class Images:
             The scaling factor showing the real length of 1 pixel, in nm.
         masked_array : np.ndarray
             Optional image array with background = 0, to overlay onto the image data.
+        background : np.ndarray
+            Optional binary image where the data is set to 0, where the background is 0.
         title : str
             Title for plot.
         image_type : str
@@ -105,6 +108,8 @@ class Images:
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.masked_array = masked_array
+        self.plot_coords = plot_coords
+        self.background = background
         self.title = title
         self.image_type = image_type
         self.image_set = image_set
@@ -193,6 +198,10 @@ class Images:
         """
         fig, ax = plt.subplots(1, 1, figsize=(8, 8))
         shape = self.data.shape
+
+        if self.background is not None:
+            self.data[self.background == 0] = 0
+
         if isinstance(self.data, np.ndarray):
             im = ax.imshow(
                 self.data,
@@ -218,6 +227,9 @@ class Images:
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
+            elif self.plot_coords is not None:
+                for grain_coords in self.plot_coords:
+                    plt.plot(grain_coords[:,1]*self.pixel_to_nm_scaling, (shape[1] - grain_coords[:,0])*self.pixel_to_nm_scaling , c='c', linewidth=0.5)
 
             plt.title(self.title)
             plt.xlabel("Nanometres")
@@ -263,83 +275,6 @@ class Images:
             format=self.save_format,
         )
         plt.close()
-
-    def save_figure_black(self, background):
-        """
-        This function saves figures as plt.savefig objects.
-
-        Returns
-        -------
-        fig: plt.figure.Figure
-            Matplotlib.pyplot figure object
-        ax: plt.axes._subplots.AxesSubplot
-            Matplotlib.pyplot axes object
-        """
-        fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-        shape = self.data.shape
-        self.data[background == 0] = 0
-        if isinstance(self.data, np.ndarray):
-            im = ax.imshow(
-                self.data,
-                extent=(0, shape[1] * self.pixel_to_nm_scaling, 0, shape[0] * self.pixel_to_nm_scaling),
-                interpolation=self.interpolation,
-                cmap=self.cmap,
-                vmin=self.zrange[0],
-                vmax=self.zrange[1],
-            )
-            if isinstance(self.masked_array, np.ndarray):
-                mask = np.ma.masked_where(self.masked_array == 0, self.masked_array)
-                ax.imshow(
-                    mask,
-                    cmap=self.mask_cmap,
-                    extent=(
-                        0,
-                        shape[1] * self.pixel_to_nm_scaling,
-                        0,
-                        shape[0] * self.pixel_to_nm_scaling,
-                    ),
-                    interpolation=self.interpolation,
-                    alpha=1,  # 0.3,
-                )
-                patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
-                plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
-
-            plt.title(self.title)
-            plt.xlabel("Nanometres")
-            plt.ylabel("Nanometres")
-            plt.axis(self.axes)
-            if self.colorbar and self.image_type == "non-binary":
-                divider = make_axes_locatable(ax)
-                cax = divider.append_axes("right", size="5%", pad=0.05)
-                plt.colorbar(im, cax=cax, label="Height (Nanometres)")
-            if self.region_properties:
-                fig, ax = add_bounding_boxes_to_plot(fig, ax, shape, self.region_properties, self.pixel_to_nm_scaling)
-            if not self.axes and not self.colorbar:
-                plt.title("")
-                fig.frameon = False
-                plt.savefig(
-                    (self.output_dir / f"{self.filename}.{self.save_format}"),
-                    format=self.save_format,
-                    bbox_inches="tight",
-                    pad_inches=0,
-                    dpi=self.dpi,
-                )
-            else:
-                plt.savefig(
-                    (self.output_dir / f"{self.filename}.{self.save_format}"), format=self.save_format, dpi=self.dpi
-                )
-        else:
-            plt.xlabel("Nanometres")
-            plt.ylabel("Nanometres")
-            self.data.show(
-                ax=ax,
-                extent=(0, shape[1] * self.pixel_to_nm_scaling, 0, shape[0] * self.pixel_to_nm_scaling),
-                interpolation=self.interpolation,
-                cmap=self.cmap,
-            )
-        plt.close()
-        return fig, ax
-
 
 def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to_nm_scaling: float) -> None:
     """Add the bounding boxes to a plot.

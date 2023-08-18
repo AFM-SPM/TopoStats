@@ -798,7 +798,6 @@ PLOTTING_SCHEMA = Schema(
             "dpi": int,
         },
         "splined_trace": {
-            "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
