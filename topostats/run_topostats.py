@@ -3,18 +3,18 @@
 This provides an entry point for running TopoStats as a command line programme.
 """
 from collections import defaultdict
-from functools import partial
+# from functools import partial
 import importlib.resources as pkg_resources
 import json
 import logging
-from multiprocessing import Pool
+# from multiprocessing import Pool
 from pprint import pformat
 import sys
 from pathlib import Path
 import yaml
 
 import pandas as pd
-from tqdm import tqdm
+# from tqdm import tqdm
 from scipy.ndimage import binary_dilation
 from matplotlib.patches import Arc
 
@@ -112,40 +112,62 @@ def run_topostats(args=None):
     LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
     LOGGER.debug(f"Configuration after update         : \n{pformat(config, indent=4)}")  # noqa : T203
 
-    processing_function = partial(
-        process_scan,
-        base_dir=config["base_dir"],
-        filter_config=config["filter"],
-        grains_config=config["grains"],
-        grainstats_config=config["grainstats"],
-        dnatracing_config=config["dnatracing"],
-        plotting_config=config["plotting"],
-        output_dir=config["output_dir"],
-    )
+    # processing_function = partial(
+    #     process_scan,
+    #     base_dir=config["base_dir"],
+    #     filter_config=config["filter"],
+    #     grains_config=config["grains"],
+    #     grainstats_config=config["grainstats"],
+    #     dnatracing_config=config["dnatracing"],
+    #     plotting_config=config["plotting"],
+    #     output_dir=config["output_dir"],
+    # )
 
     all_scan_data = LoadScans(img_files, **config["loading"])
     all_scan_data.get_data()
     scan_data_dict = all_scan_data.img_dict
 
-    with Pool(processes=config["cores"]) as pool:
-        results = defaultdict()
-        node_results = defaultdict()
-        with tqdm(
-            total=len(img_files),
-            desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
-        ) as pbar:
-            for img, result, node_result in pool.imap_unordered(
-                processing_function,
-                scan_data_dict.values(),
-            ):
-                results[str(img)] = result
-                node_results[str(img)] = node_result
-                pbar.update()
+    results = defaultdict()
+    node_results = defaultdict()
+    for img_path_px2nm in scan_data_dict.values():
+        image_path, result, node_result = process_scan(
+            img_path_px2nm = img_path_px2nm,
+            base_dir=config["base_dir"],
+            filter_config=config["filter"],
+            grains_config=config["grains"],
+            grainstats_config=config["grainstats"],
+            dnatracing_config=config["dnatracing"],
+            plotting_config=config["plotting"],
+            output_dir=config["output_dir"],
+        )
+
+        results[str(image_path)] = result
+        node_results[str(image_path)] = node_result
     try:
         results = pd.concat(results.values())
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
+
+    # with Pool(processes=config["cores"]) as pool:
+    #     results = defaultdict()
+    #     node_results = defaultdict()
+    #     with tqdm(
+    #         total=len(img_files),
+    #         desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
+    #     ) as pbar:
+    #         for img, result, node_result in pool.imap_unordered(
+    #             processing_function,
+    #             scan_data_dict.values(),
+    #         ):
+    #             results[str(img)] = result
+    #             node_results[str(img)] = node_result
+    #             pbar.update()
+    # try:
+    #     results = pd.concat(results.values())
+    # except ValueError as error:
+    #     LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
+    #     LOGGER.error(error)
 
     # Summary Statistics and Plots
     if config["summary_stats"]["run"]:
@@ -211,7 +233,7 @@ def run_topostats(args=None):
         images_processed = 0
         LOGGER.warning("There are no grainstats or dnatracing statistics to write to CSV.")
     # Write node stats to json if there is data.
-    if bool(node_results): # evaluates to false if dict is empty (but this dict is never empty)
+    if bool(node_results):  # evaluates to false if dict is empty (but this dict is never empty)
         with open(config["output_dir"] / "all_node_stats.json", "w", encoding="utf8") as json_file:
             json.dump(node_results, json_file, cls=NpEncoder)
     # Write config to file
