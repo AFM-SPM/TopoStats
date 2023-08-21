@@ -852,8 +852,8 @@ def rm_nibs(skeleton):
 
     unique, counts = np.unique(np.array(size_1_idxs), return_counts=True)
 
-    for k in range(len(counts)):
-        if counts[k] == 1:
+    for k, count in enumerate(counts):
+        if count == 1:
             skeleton[labeled_nodeless == unique[k]] = 0
 
     return skeleton
