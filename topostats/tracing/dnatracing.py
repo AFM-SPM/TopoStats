@@ -100,6 +100,7 @@ class dnaTrace:
         self.ordered_trace = None
         self.fitted_trace = None
         self.splined_trace = None
+        self.trace_heights = None
         self.contour_length = np.nan
         self.end_to_end_distance = np.nan
         self.mol_is_circular = np.nan
@@ -126,6 +127,14 @@ class dnaTrace:
             self.get_splined_traces()
             # self.find_curvature()
             # self.saveCurvature()
+
+            # Get trace heights
+            if self.splined_trace is not None:
+                # print(f"splined trace:\n{self.splined_trace}")
+                self.trace_heights = []
+                for coordinate in self.splined_trace:
+                    self.trace_heights.append(self.image[int(coordinate[0]), int(coordinate[1])])
+
             self.measure_contour_length()
             self.measure_end_to_end_distance()
         else:
@@ -135,12 +144,15 @@ class dnaTrace:
         """Smoothes grains based on the lower number added from dilation or gaussian.
         (makes sure gaussian isnt too agressive."""
         dilation = ndimage.binary_dilation(grain, iterations=2).astype(
-            np.int32)  # may need a better method to fill all holes
+            np.int32
+        )  # may need a better method to fill all holes
         gauss = gaussian(grain, sigma=max(grain.shape) / 124)  # same here
         gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
         gauss[gauss != 1] = 0
         gauss = gauss.astype(np.int32)
-        if dilation.sum() - grain.sum() > gauss.sum() - grain.sum():  # this just decides which method was best (can remove if you find out how to fill holes)
+        if (
+            dilation.sum() - grain.sum() > gauss.sum() - grain.sum()
+        ):  # this just decides which method was best (can remove if you find out how to fill holes)
             print(f"gaussian: {gauss.sum() - grain.sum()}px")
 
             # poke holes for eddie
@@ -149,9 +161,10 @@ class dnaTrace:
                 gauss_small = binary_erosion(gauss_small)  # erodes edge of mask 3 times
             print(np.where(gauss_small == 1, self.image, 0).shape)
             centre = np.argwhere(self.image == np.where(gauss_small == 1, self.image, 0).min())[
-                0]  # find the min value coords from the erroded mask
+                0
+            ]  # find the min value coords from the erroded mask
             print(centre)
-            gauss[centre[0] - 2:centre[0] + 3, centre[1] - 2:centre[1] + 3] = 0  # sets 3x3 area around min to 0
+            gauss[centre[0] - 2 : centre[0] + 3, centre[1] - 2 : centre[1] + 3] = 0  # sets 3x3 area around min to 0
 
             # gauss = self.re_add_holes(grain, gauss)
             return gauss
@@ -165,29 +178,28 @@ class dnaTrace:
             print(np.where(dil_small == 1, self.image, 0).shape)
             centre = np.argwhere(self.image == np.where(dil_small == 1, self.image, 0).min())[0]
             print(centre)
-            dilation[centre[0] - 2:centre[0] + 3, centre[1] - 2:centre[1] + 3] = 0
+            dilation[centre[0] - 2 : centre[0] + 3, centre[1] - 2 : centre[1] + 3] = 0
 
             # dilation = self.re_add_holes(grain, dilation)
             return dilation
 
     def fill_grains(self, grain: np.ndarray) -> None:
-        """fills grains
-        """
+        """fills grains"""
 
         filling = ndimage.binary_closing(grain).astype(np.int32)
 
         erode = filling.copy()
         for i in range(3):
-            erode = binary_erosion(erode)   # erodes edge of mask 3 times
+            erode = binary_erosion(erode)  # erodes edge of mask 3 times
         print(np.where(erode == 1, self.image, 0).shape)
         centre = np.argwhere(self.image == np.where(erode == 1, self.image, 0).min())[
-            0]  # find the min value coords from the erroded mask
+            0
+        ]  # find the min value coords from the erroded mask
         print(centre)
-        filling[centre[0] - 2:centre[0] + 3, centre[1] - 2:centre[1] + 3] = 0  # sets 3x3 area around min to 0
+        filling[centre[0] - 2 : centre[0] + 3, centre[1] - 2 : centre[1] + 3] = 0  # sets 3x3 area around min to 0
 
         # gauss = self.re_add_holes(grain, gauss)
         return filling
-
 
     def gaussian_filter(self, **kwargs) -> np.array:
         """Apply Gaussian filter"""
@@ -206,7 +218,7 @@ class dnaTrace:
         very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
         LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Skeletonising using {self.skeletonisation_method} method.")
-        #try:
+        # try:
         if self.skeletonisation_method == "topostats":
             dna_skeleton = getSkeleton(
                 self.gauss_image,
@@ -228,6 +240,7 @@ class dnaTrace:
             LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain failed to skeletonise.")
             # raise e
 """
+
     def linear_or_circular(self, traces):
         """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace
 
@@ -790,6 +803,7 @@ def trace_image(
     n_grain = 0
     results = {}
     ordered_traces = []
+    all_trace_heights = []
     for cropped_image, cropped_mask in zip(cropped_images, cropped_masks):
         result = trace_grain(
             cropped_image,
@@ -802,6 +816,7 @@ def trace_image(
         )
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
         ordered_traces.append(result.pop("ordered_trace"))
+        all_trace_heights.append(result.pop("trace_heights"))
         results[n_grain] = result
         n_grain += 1
     try:
@@ -816,6 +831,7 @@ def trace_image(
         "ordered_traces": ordered_traces,
         "cropped_images": cropped_images,
         "image_trace": image_trace,
+        "all_trace_heights": all_trace_heights,
     }
 
 
@@ -1017,6 +1033,7 @@ def trace_grain(
         "circular": dnatrace.mol_is_circular,
         "end_to_end_distance": dnatrace.end_to_end_distance,
         "ordered_trace": dnatrace.ordered_trace,
+        "trace_heights": dnatrace.trace_heights,
     }
 
 

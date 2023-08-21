@@ -2,6 +2,7 @@
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Union, List, Tuple
+import json
 
 import numpy as np
 import pandas as pd
@@ -427,6 +428,11 @@ def run_dnatracing(
                 cropped_images = tracing_results["cropped_images"]
                 image_trace = tracing_results["image_trace"]
                 tracing_stats[direction]["threshold"] = direction
+                all_trace_heights = tracing_results["all_trace_heights"]
+
+                # Save the trace heights
+                with open(core_out_path / f"{filename}_trace_heights.json", "w", encoding="utf-8") as f:
+                    json.dump(all_trace_heights, f)
 
                 # Plot traces for the whole image
                 Images(
