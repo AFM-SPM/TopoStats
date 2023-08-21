@@ -2469,11 +2469,7 @@ class nodeStats:
             pd = translate_code(nxyz_cp, output_type='pdcode') # pd code helps prevents freezing and spawning multiple processes
             print("PD Code is: ", pd)
             top_class = jones(pd)
-            if 'U' in top_class: # happens when 2 'seperate' mols in trace
-                top_class = top_class.split('U')
-                [topology.append(top_class[i]) for i in range(len(nxyz_cp))]
-            else:
-                [topology.append(top_class) for i in range(len(nxyz_cp))]
+            [topology.append(top_class) for i in range(len(nxyz_cp))] # don't separate U's - used for distribution comparison
         # Doesn't work when 2 mols don't actually cross
         return topology
     
