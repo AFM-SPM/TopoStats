@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from topostats.tracing.dnatracing import dnaTrace, crop_array
+from topostats.tracing.dnatracing import dnaTrace, crop_array, round_splined_traces
 from topostats.tracing.tracingfuncs import reorderTrace
 
 # This is required because of the inheritance used throughout
@@ -613,3 +613,12 @@ def test_get_splined_traces(
     # plt.imsave(f'./test_splined_image_{splined_image.shape}.png', splined_image)
 
     np.testing.assert_array_equal(splined_image, expected_spline_image)
+
+
+def test_round_splined_traces():
+    """Test the round splined traces function of dnatracing.py."""
+
+    splined_traces = [np.array([[1.2, 2.3], [3.4, 4.5]]), None, np.array([[5.6, 6.7], [7.8, 8.9]])]
+    expected_result = np.array([[[1, 2], [3, 4]], [[6, 7], [8, 9]]])
+    result = round_splined_traces(splined_traces)
+    np.testing.assert_array_equal(result, expected_result)

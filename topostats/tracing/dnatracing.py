@@ -346,12 +346,8 @@ class dnaTrace:
                 break
             step_size_px = -1
 
-        if mol_is_circular:
-            smoothness = 2
-            periodicity = 2
-        else:
-            smoothness = 5
-            periodicity = 0
+        # Set smoothness and periodicity appropriately for linear / circular molecules.
+        smoothness, periodicity = (2, 2) if mol_is_circular else (5, 0)
 
         ev_array = np.linspace(0, 1, nbr * step_size_px)
 
@@ -721,13 +717,7 @@ def trace_image(
         results = pd.DataFrame.from_dict(results, orient="index")
         results.index.name = "molecule_number"
         image_trace = trace_mask(grain_anchors, ordered_traces, image.shape, pad_width)
-        # rounded_splined_traces = [np.round(np.array(splined_trace)).astype(int) for splined_trace in splined_traces]
-        rounded_splined_traces = []
-        for splined_trace in splined_traces:
-            if splined_trace is not None:
-                rounded_splined_trace = np.round(splined_trace).astype(int)
-                rounded_splined_traces.append(rounded_splined_trace)
-        rounded_splined_traces = np.array(rounded_splined_traces)
+        rounded_splined_traces = round_splined_traces(splined_traces=splined_traces)
         image_spline_trace = trace_mask(grain_anchors, rounded_splined_traces, image.shape, pad_width)
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
@@ -740,6 +730,31 @@ def trace_image(
         "image_trace": image_trace,
         "image_spline_trace": image_spline_trace,
     }
+
+
+def round_splined_traces(splined_traces: list):
+    """Round a list of floating point coordinates to integer floating point coordinates.
+    Note that if a trace has failed and is None, it will be skipped, so the indexes will NOT be correct.
+
+    Parameters
+    ----------
+    splined_traces: list
+        List of floating point coordinates, or Nones
+
+    Returns
+    -------
+    rounded_splined_traces: list
+        List of integer coordates, without Nones
+
+    """
+    rounded_splined_traces = []
+    for splined_trace in splined_traces:
+        if splined_trace is not None:
+            rounded_splined_trace = np.round(splined_trace).astype(int)
+            rounded_splined_traces.append(rounded_splined_trace)
+    rounded_splined_traces = np.array(rounded_splined_traces)
+
+    return rounded_splined_traces
 
 
 def trim_array(array: np.ndarray, pad_width: int) -> np.ndarray:
