@@ -25,6 +25,31 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=dangerous-default-value
 
 
+def add_pixel_to_nm_to_plotting_config(plotting_config: dict, pixel_to_nm_scaling: float) -> dict:
+    """Function to ensure that the plotting config has the pixel to nanometre scaling factor accessible
+    for plotting. This ensures that the plot scaling are in nanometres and not pixels.
+
+    Parameters
+    ----------
+    plotting_config: dict
+        TopoStats plotting configuration dictionary
+    pixel_to_nm_scaling: float
+        Pixel to nanometre scaling factor for the image.
+
+    Returns
+    -------
+    plotting_config: dict
+        Updated plotting config with the pixel to nanometre scaling factor
+        applied to all the image configurations.
+    """
+
+    # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
+    plot_opts = {"pixel_to_nm_scaling": pixel_to_nm_scaling}
+    for image, options in plotting_config["plot_dict"].items():
+        plotting_config["plot_dict"][image] = {**options, **plot_opts}
+    return plotting_config
+
+
 def dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int) -> np.ndarray:
     """Dilate a supplied binary image a given number of times.
 
