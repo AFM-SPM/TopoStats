@@ -60,6 +60,16 @@ def create_parser() -> arg.ArgumentParser:
         help="Base directory to scan for images.",
     )
     process_parser.add_argument(
+        "--flatten",
+        dest="flatten_only",
+        action="store_true",
+        required=False,
+        help="Only flatten images",
+    )
+    process_parser.add_argument(
+        "--grains", dest="grains_only", action="store_true", required=False, help="Only find grains"
+    )
+    process_parser.add_argument(
         "-j",
         "--cores",
         dest="cores",

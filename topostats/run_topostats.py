@@ -53,6 +53,29 @@ def run_topostats(args=None):
     else:
         default_config = pkg_resources.open_text(__package__, "default_config.yaml").read()
         config = yaml.safe_load(default_config)
+
+    # Check arguments for special commands
+    if args.flatten_only:
+        config["filter"]["run"] = True
+        config["grains"]["run"] = False
+        config["grainstats"]["run"] = False
+        config["dnatracing"]["run"] = False
+    elif args.grains_only:
+        config["filter"]["run"] = False
+        config["grains"]["run"] = True
+        config["grainstats"]["run"] = False
+        config["dnatracing"]["run"] = False
+    # elif args.grainstats_only:
+    #     config["filter"]["run"] = False
+    #     config["grains"]["run"] = False
+    #     config["grainstats"]["run"] = True
+    #     config["dnatracing"]["run"] = False
+    # elif args.dnatracing_only:
+    #     config["filter"]["run"] = False
+    #     config["grains"]["run"] = False
+    #     config["grainstats"]["run"] = False
+    #     config["dnatracing"]["run"] = True
+
     # Override the config with command line arguments passed in, eg --output_dir ./output/
     config = update_config(config, args)
 
@@ -91,6 +114,7 @@ def run_topostats(args=None):
         grains_run=config["grains"]["run"],
         grainstats_run=config["grainstats"]["run"],
         dnatracing_run=config["dnatracing"]["run"],
+        file_ext=config["file_ext"],
     )
     # Update the config["plotting"]["plot_dict"] with plotting options
     config["plotting"] = update_plotting_config(config["plotting"])
