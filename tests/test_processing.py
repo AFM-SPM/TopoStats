@@ -179,13 +179,14 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
 
 
 @pytest.mark.parametrize(
-    "filter_run, grains_run, grainstats_run, dnatracing_run, log_msg",
+    "filter_run, grains_run, grainstats_run, dnatracing_run, file_ext, log_msg",
     [
         (
             False,
             False,
             False,
             True,
+            ".spm",
             "DNA tracing enabled but Grainstats disabled. Please check your configuration file.",
         ),
         (
@@ -193,6 +194,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             True,
             True,
+            ".spm",
             "DNA tracing enabled but Grains disabled. Please check your configuration file.",
         ),
         (
@@ -200,6 +202,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             True,
             True,
+            ".spm",
             "DNA tracing enabled but Filters disabled. Please check your configuration file.",
         ),
         (
@@ -207,6 +210,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             True,
             False,
+            ".spm",
             "Grainstats enabled but Grains disabled. Please check your configuration file.",
         ),
         (
@@ -214,6 +218,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             True,
             False,
+            ".spm",
             "Grainstats enabled but Filters disabled. Please check your configuration file.",
         ),
         (
@@ -221,6 +226,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             False,
             False,
+            ".spm",
             "Grains enabled but Filters disabled. Please check your configuration file.",
         ),
         (
@@ -228,6 +234,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             False,
+            ".spm",
             "Configuration run options are consistent, processing can proceed.",
         ),
         (
@@ -235,6 +242,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             False,
             False,
+            ".spm",
             "Configuration run options are consistent, processing can proceed.",
         ),
         (
@@ -242,6 +250,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             True,
             False,
+            ".spm",
             "Configuration run options are consistent, processing can proceed.",
         ),
         (
@@ -249,7 +258,16 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             True,
             True,
+            ".spm",
             "Configuration run options are consistent, processing can proceed.",
+        ),
+        (
+            True,
+            True,
+            True,
+            True,
+            ".topostats",
+            ".topostats file type being used, skipping check of steps configuration.",
         ),
     ],
 )
@@ -258,11 +276,12 @@ def test_check_run_steps(
     grains_run: bool,
     grainstats_run: bool,
     dnatracing_run: bool,
+    file_ext: str,
     log_msg: str,
     caplog,
 ) -> None:
     """Test the logic which checks whether enabled processing options are consistent."""
-    check_run_steps(filter_run, grains_run, grainstats_run, dnatracing_run)
+    check_run_steps(filter_run, grains_run, grainstats_run, dnatracing_run, file_ext)
     assert log_msg in caplog.text
 
 
