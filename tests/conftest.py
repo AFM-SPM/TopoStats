@@ -150,6 +150,13 @@ def plotting_config(default_config: Dict) -> Dict:
 
 
 @pytest.fixture
+def plotting_config_with_plot_dict(default_config: Dict) -> Dict:
+    """Plotting configuration with plot dict"""
+    config = default_config["plotting"]
+    return config
+
+
+@pytest.fixture
 def image_random() -> np.ndarray:
     """Random image as NumPy array."""
     rng = np.random.default_rng(seed=1000)
