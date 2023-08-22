@@ -654,7 +654,9 @@ def process_scan(
     return topostats_object["img_path"], results_df, image_stats
 
 
-def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
+def check_run_steps(
+    filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool, file_ext: str
+) -> None:
     """Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
 
     This checks that earlier steps required are enabled.
@@ -669,34 +671,40 @@ def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dn
         Flag for running GrainStats.
     dnatracing_run: bool
         Flag for running DNA Tracing.
+    file_ext: str
+        File type that TopoStats is processing.
 
     Returns
     -------
     None
     """
-    if dnatracing_run:
-        if grainstats_run is False:
-            LOGGER.error("DNA tracing enabled but Grainstats disabled. Please check your configuration file.")
-        elif grains_run is False:
-            LOGGER.error("DNA tracing enabled but Grains disabled. Please check your configuration file.")
-        elif filter_run is False:
-            LOGGER.error("DNA tracing enabled but Filters disabled. Please check your configuration file.")
-        else:
-            LOGGER.info("Configuration run options are consistent, processing can proceed.")
-    elif grainstats_run:
-        if grains_run is False:
-            LOGGER.error("Grainstats enabled but Grains disabled. Please check your configuration file.")
-        elif filter_run is False:
-            LOGGER.error("Grainstats enabled but Filters disabled. Please check your configuration file.")
-        else:
-            LOGGER.info("Configuration run options are consistent, processing can proceed.")
-    elif grains_run:
-        if filter_run is False:
-            LOGGER.error("Grains enabled but Filters disabled. Please check your configuration file.")
+    # .topostats files can run steps independently of others.
+    if file_ext != ".topostats":
+        if dnatracing_run:
+            if grainstats_run is False:
+                LOGGER.error("DNA tracing enabled but Grainstats disabled. Please check your configuration file.")
+            elif grains_run is False:
+                LOGGER.error("DNA tracing enabled but Grains disabled. Please check your configuration file.")
+            elif filter_run is False:
+                LOGGER.error("DNA tracing enabled but Filters disabled. Please check your configuration file.")
+            else:
+                LOGGER.info("Configuration run options are consistent, processing can proceed.")
+        elif grainstats_run:
+            if grains_run is False:
+                LOGGER.error("Grainstats enabled but Grains disabled. Please check your configuration file.")
+            elif filter_run is False:
+                LOGGER.error("Grainstats enabled but Filters disabled. Please check your configuration file.")
+            else:
+                LOGGER.info("Configuration run options are consistent, processing can proceed.")
+        elif grains_run:
+            if filter_run is False:
+                LOGGER.error("Grains enabled but Filters disabled. Please check your configuration file.")
+            else:
+                LOGGER.info("Configuration run options are consistent, processing can proceed.")
         else:
             LOGGER.info("Configuration run options are consistent, processing can proceed.")
     else:
-        LOGGER.info("Configuration run options are consistent, processing can proceed.")
+        LOGGER.info(".topostats file type being used, skipping check of steps configuration.")
 
 
 def completion_message(config: Dict, img_files: List, summary_config: Dict, images_processed: int) -> None:
