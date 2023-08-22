@@ -803,7 +803,7 @@ def trace_image(
     n_grain = 0
     results = {}
     ordered_traces = []
-    all_trace_heights = []
+    all_trace_heights = {}
     for cropped_image, cropped_mask in zip(cropped_images, cropped_masks):
         result = trace_grain(
             cropped_image,
@@ -816,7 +816,7 @@ def trace_image(
         )
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
         ordered_traces.append(result.pop("ordered_trace"))
-        all_trace_heights.append(result.pop("trace_heights"))
+        all_trace_heights[n_grain] = result.pop("trace_heights")
         results[n_grain] = result
         n_grain += 1
     try:
