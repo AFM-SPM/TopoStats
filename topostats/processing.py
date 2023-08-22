@@ -12,7 +12,7 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_array, save_topostats_file
 from topostats.logs.logs import setup_logger, LOGGER_NAME
-from topostats.plottingfuncs import Images
+from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
 from topostats.tracing.dnatracing import trace_image
 from topostats.utils import create_empty_dataframe
 from topostats.statistics import image_statistics
@@ -84,10 +84,6 @@ def run_filters(
         if plotting_config["run"]:
             plotting_config.pop("run")
             LOGGER.info(f"[{filename}] : Plotting Filtering Images")
-            # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
-            plot_opts = {"pixel_to_nm_scaling": pixel_to_nm_scaling}
-            for image, options in plotting_config["plot_dict"].items():
-                plotting_config["plot_dict"][image] = {**options, **plot_opts}
             # Generate plots
             for plot_name, array in filters.images.items():
                 if plot_name not in ["scan_raw"]:
@@ -572,6 +568,8 @@ def process_scan(
         filename=topostats_object["filename"],
         plotting_config=plotting_config,
     )
+
+    plotting_config = add_pixel_to_nm_to_plotting_config(plotting_config, topostats_object["pixel_to_nm_scaling"])
 
     # Flatten Image
     image_flattened = run_filters(
