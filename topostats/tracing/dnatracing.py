@@ -1242,7 +1242,8 @@ class nodeStats:
 
         new_skeleton = getSkeleton(image, new_skeleton).get_skeleton(method="joe", params={"height_bias": 0.6})
         new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton(method='joe')
-
+        new_skeleton = getSkeleton(image, new_skeleton).get_skeleton(method="zhang") # cleanup around nibs
+        
         self.conv_skelly = convolve_skelly(new_skeleton)
 
         return self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
