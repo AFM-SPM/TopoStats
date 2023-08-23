@@ -2449,8 +2449,7 @@ class nodeStats:
             total.append(temp)
         return total
     
-    @staticmethod
-    def get_topology(nxyz):
+    def get_topology(self, nxyz):
         # Topoly doesn't work when 2 mols don't actually cross
         topology = []
         lin_idxs = []
@@ -2467,11 +2466,15 @@ class nodeStats:
             del nxyz_cp[i]
         # classify topology for non-reidmeister moves
         if len(nxyz_cp) != 0:
-            pd = translate_code(nxyz_cp, output_type='pdcode') # pd code helps prevents freezing and spawning multiple processes
-            print("PD Code is: ", pd)
-            top_class = jones(pd)
+            try:
+                pd = translate_code(nxyz_cp, output_type='pdcode') # pd code helps prevents freezing and spawning multiple processes
+                LOGGER.info(f"{self.filename} : PD Code is: {pd}")
+                top_class = jones(pd)
+            except IndexError:
+                LOGGER.info(f"{self.filename} : PD Code could not be obtained from trace coordinates.")
+                top_class = "N/A"
             [topology.append(top_class) for i in range(len(nxyz_cp))] # don't separate U's - used for distribution comparison
-        # Doesn't work when 2 mols don't actually cross
+
         return topology
     
 
