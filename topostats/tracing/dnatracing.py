@@ -20,6 +20,7 @@ from scipy import ndimage, spatial, optimize, interpolate as interp
 from scipy.signal import argrelextrema
 from skimage.morphology import label, binary_dilation
 from skimage.filters import gaussian, threshold_otsu
+from skimage.feature import hessian_matrix, hessian_matrix_eigvals
 from topoly import jones, homfly, params, reduce_structure, translate_code
 import skimage.measure as skimage_measure
 from tqdm import tqdm
@@ -111,6 +112,7 @@ class dnaTrace:
         self.node_dict = None
         self.ordered_trace = None
         self.ordered_trace_img = np.zeros_like(image)
+        self.num_crossings = None
         self.topology = None
         self.fitted_traces = []
         self.fitted_trace_img = np.zeros_like(image)
@@ -150,6 +152,8 @@ class dnaTrace:
             )
             self.node_dict = nodes.get_node_stats()
             self.node_image = nodes.connected_nodes
+            print("KEYS: ", self.node_dict.keys(), len(self.node_dict))
+            self.num_crossings = len(self.node_dict)
 
             #try: # try to order using nodeStats
             if nodes.check_node_errorless():
@@ -237,6 +241,9 @@ class dnaTrace:
     def get_disordered_trace(self):
         self.smoothed_grain = self.smooth_grains(self.grain)
         self.skeleton = getSkeleton(self.gauss_image, self.smoothed_grain).get_skeleton(self.skeletonisation_method)
+        #np.savetxt(OUTPUT_DIR / "skel.txt", self.skeleton)
+        #np.savetxt(OUTPUT_DIR / "image.txt", self.image)
+        #np.savetxt(OUTPUT_DIR / "smooth.txt", self.smoothed_grain)
         self.pruned_skeleton = pruneSkeleton(self.gauss_image, self.skeleton).prune_skeleton(self.pruning_method)
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
@@ -1022,6 +1029,7 @@ def trace_grain(
             "contour_length": dnatrace.contour_lengths[i],
             "circular": dnatrace.mol_is_circulars[i],
             "end_to_end_distance": dnatrace.end_to_end_distances[i],
+            "num_crossings": dnatrace.num_crossings,
             "topology": dnatrace.topology[i],
             "num_mols": dnatrace.num_mols,
         }
@@ -1120,7 +1128,7 @@ class nodeStats:
     def __init__(self, filename, image: np.ndarray, grain: np.ndarray, smoothed_grain: np.ndarray, skeleton: np.ndarray, px_2_nm: float, n_grain: int) -> None:
         self.filename = filename
         self.image = image
-        #self.hess = hessian(image * 1e9, 4)
+
         #np.savetxt(OUTPUT_DIR / "image.txt", image)
         #np.savetxt(OUTPUT_DIR / "hess.txt", self.hess)
         self.grain = grain
@@ -1128,6 +1136,8 @@ class nodeStats:
         self.skeleton = skeleton
         self.px_2_nm = px_2_nm
         self.n_grain = n_grain
+        sigma = (-3.5/3) * self.px_2_nm * 1e9 + 15.5/3
+        self.hess = self.detect_ridges(self.image * 1e9, 4)
 
         """
         a = np.zeros((100,100))
@@ -1193,8 +1203,6 @@ class nodeStats:
             self.connected_nodes = self.tidy_branches(self.connected_nodes, self.image)
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
             #np.savetxt(OUTPUT_DIR / "tidied.txt", self.connected_nodes)
-            #np.savetxt(OUTPUT_DIR / "centres.txt", self.node_centre_mask)
-            #np.savetxt(OUTPUT_DIR / "connect.txt", self.connected_nodes)
             self.analyse_nodes(box_length=20e-9)
         return self.node_dict
         #self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
@@ -1321,7 +1329,9 @@ class nodeStats:
             # get area around node - might need to check if box lies on the edge
             box_lims = self.get_box_lims(x, y, length, self.image)
             image_area = self.image[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]]
+            hess_area = self.hess[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]]
             node_area = self.connected_nodes.copy()[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]]
+            #np.savetxt(OUTPUT_DIR / "node.txt", node_area)
             reduced_node_area = self._only_centre_branches(node_area)
             branch_mask = reduced_node_area.copy()
             branch_mask[branch_mask == 3] = 0
@@ -1428,22 +1438,22 @@ class nodeStats:
                             # np.savetxt(OUTPUT_DIR / "single_branch.txt",single_branch)
                             # print("ZD: ", zero_dist)
                             distances, heights, mask, _ = self.average_height_trace(
-                                image_area, single_branch_img, single_branch_coords, node_centre_small_xy
-                            )
+                                hess_area, single_branch_img, single_branch_coords, node_centre_small_xy
+                            ) # image_area
                             matched_branches[i]["avg_mask"] = mask
                         else:
                             distances = self.coord_dist_rad(single_branch_coords, node_centre_small_xy) # self.coord_dist(single_branch_coords)
                             zero_dist = distances[np.argmin(np.sqrt((single_branch_coords[:,0]-node_centre_small_xy[0])**2+(single_branch_coords[:,1]-node_centre_small_xy[1])**2))]
-                            heights = self.image[single_branch_coords_img[:, 0], single_branch_coords_img[:, 1]]
+                            heights = self.hess[single_branch_coords_img[:, 0], single_branch_coords_img[:, 1]] # self.image
                             distances = distances - zero_dist
                             distances, heights = self.average_uniques(distances, heights) # needs to be paired with coord_dist_rad
                         matched_branches[i]["heights"] = heights
                         matched_branches[i]["distances"] = distances
                         #print("Dist_og: ", distances.min(), distances.max(), distances.shape)
                         # identify over/under
-                        matched_branches[i]["fwhm2"] = self.fwhm2(heights, distances)
+                        matched_branches[i]["fwhm2"] = self.peak_height(heights, distances) #self.fwhm2(heights, distances)
 
-                    
+                    """
                     # redo fwhms after to get better baselines + same hm matching
                     hms = []
                     for branch_idx, values in matched_branches.items(): # get hms
@@ -1452,7 +1462,8 @@ class nodeStats:
                         #print("Dist_2: ", values["heights"].min(), values["heights"].max(), values["heights"].shape)
                         fwhm2 = self.fwhm2(values["heights"], values["distances"], hm=max(hms))
                         matched_branches[branch_idx]["fwhm2"] = fwhm2
-                    
+                    """
+
                     # add paired and unpaired branches to image plot
                     fwhms = []
                     for branch_idx, values in matched_branches.items():
@@ -1508,7 +1519,7 @@ class nodeStats:
                     "branch_stats": matched_branches,
                     "node_stats": {
                         "node_mid_coords": [x, y],
-                        "node_area_image": image_area,
+                        "node_area_image": self.hess[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]],
                         "node_area_grain": self.grain[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]],
                         "node_area_skeleton": node_area,
                         "node_branch_mask": branch_img,
@@ -1517,6 +1528,15 @@ class nodeStats:
                 }
 
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
+
+    @staticmethod
+    def detect_ridges(gray, sigma=1.0):
+        H_elems = hessian_matrix(gray, sigma=sigma, order='rc')
+        hess = hessian_matrix_eigvals(H_elems)[1] # 1 is min eigenvalues
+        # Normalise
+        hess += -1 * hess.min() # min = 0
+        hess = hess * -1 + hess.max() # reflect in y
+        return hess
 
     @staticmethod
     def get_box_lims(x: int, y: int, length: int, image: np.ndarray) -> tuple:
@@ -1797,6 +1817,37 @@ class nodeStats:
 
         return fwhm, [arr1_hm, arr2_hm, hm], [high_idx, distances[high_idx], heights[high_idx]]
 
+    def peak_height(self, heights, distances, hm=None):
+        # find low index between centre fraction (should be centre index)
+        centre_fraction = int(len(heights) * 0.2)  # incase zone approaches another node, look around centre for min
+        #if centre_fraction == 0:
+        #    centre_fraction = 1
+        low_idx = np.argmin(abs(distances))
+
+        arr1 = heights[:low_idx][::-1]
+        dist1 = distances[:low_idx][::-1]
+        arr2 = heights[low_idx:]
+        dist2 = distances[low_idx:]
+
+        min_heights = []
+        min_height_dists = []
+
+        # obtain distances of peak on each side
+        for arr, dist in zip([arr1, arr2], [dist1, dist2]):
+            try:
+                arr_local_min = argrelextrema(arr, np.less)[0][0] # closest to start
+                min_heights.append(arr[arr_local_min])
+                min_height_dists.append(dist[arr_local_min])
+            except IndexError: # no minima, get average
+                min_heights.append(arr.mean())
+                min_height_dists.append(dist[np.argmin(abs(arr-arr.mean()))])
+
+        # make outputs same as fwhm2
+        hm = np.min([np.min(arr1), np.min(arr2)])
+        
+        return np.mean([min_heights[1], min_heights[0]]), [min_height_dists[0], min_height_dists[1], heights[low_idx]], [low_idx, distances[low_idx], heights[low_idx]]
+
+        
     @staticmethod
     def lin_interp(point_1, point_2, xvalue=None, yvalue=None):
         """Linear interp 2 points by finding line eq and subbing."""
