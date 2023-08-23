@@ -3,11 +3,13 @@
 This provides an entry point for running TopoStats as a command line programme.
 """
 from collections import defaultdict
+
 # from functools import partial
 import importlib.resources as pkg_resources
 import json
 import logging
 from copy import deepcopy
+
 # from multiprocessing import Pool
 from pprint import pformat
 import sys
@@ -15,6 +17,7 @@ from pathlib import Path
 import yaml
 
 import pandas as pd
+
 # from tqdm import tqdm
 from scipy.ndimage import binary_dilation
 from matplotlib.patches import Arc
@@ -28,6 +31,7 @@ from topostats.io import (
     LoadScans,
 )
 
+from topostats.grain_finding_cats_unet import load_model, test_GPU
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import check_run_steps, completion_message, process_scan
@@ -50,6 +54,8 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 def run_topostats(args=None):
     """Find and process all files."""
+
+    test_GPU()
 
     # Parse command line options, load config (or default) and update with command line options
     if args.config_file is not None:
@@ -132,7 +138,7 @@ def run_topostats(args=None):
     node_results = defaultdict()
     for img_path_px2nm in scan_data_dict.values():
         image_path, result, node_result = process_scan(
-            img_path_px2nm = img_path_px2nm,
+            img_path_px2nm=img_path_px2nm,
             base_dir=deepcopy(config["base_dir"]),
             filter_config=deepcopy(config["filter"]),
             grains_config=deepcopy(config["grains"]),
