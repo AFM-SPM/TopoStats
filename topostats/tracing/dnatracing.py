@@ -31,7 +31,7 @@ from topostats.utils import convolve_skelly, ResolutionError
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-OUTPUT_DIR = Path("/Users/maxgamill/Desktop/")
+OUTPUT_DIR = Path("./")
 
 
 class dnaTrace:

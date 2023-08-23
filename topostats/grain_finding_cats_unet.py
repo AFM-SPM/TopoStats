@@ -49,7 +49,30 @@ def predict_unet(
 
     original_image = image.copy()
 
-    ridges, _ = detect_ridges(image.copy(), sigma=4.0)
+
+    # Scale the image to ensure there are no messy negatives etc
+    image = image - np.min(image)
+    image = image / (np.max(image) / 255)
+
+    # invert the image since it was trained with binary colour mapping which inverts it
+    # when loaded via cv2.
+    image = 255 - image
+
+    # Detect ridges on the image
+    maxima, minima = detect_ridges(image.copy(), sigma=4.0)
+
+    # Plot maxima and minima
+    # fig, ax = plt.subplots(1, 2)
+    # im1 = ax[0].imshow(maxima, cmap="binary")
+    # ax[0].set_title("maxima")
+    # im2 = ax[1].imshow(minima, cmap="binary")
+    # ax[1].set_title("minima")
+    # fig.colorbar(im1)
+    # fig.colorbar(im2)
+    # fig.savefig("./maxima_minima.png")
+    
+    # Use maxima
+    ridges = maxima
 
     to_predict = ridges.copy()
 
