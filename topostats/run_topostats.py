@@ -7,6 +7,7 @@ from collections import defaultdict
 import importlib.resources as pkg_resources
 import json
 import logging
+from copy import deepcopy
 # from multiprocessing import Pool
 from pprint import pformat
 import sys
@@ -132,13 +133,13 @@ def run_topostats(args=None):
     for img_path_px2nm in scan_data_dict.values():
         image_path, result, node_result = process_scan(
             img_path_px2nm = img_path_px2nm,
-            base_dir=config["base_dir"],
-            filter_config=config["filter"],
-            grains_config=config["grains"],
-            grainstats_config=config["grainstats"],
-            dnatracing_config=config["dnatracing"],
-            plotting_config=config["plotting"],
-            output_dir=config["output_dir"],
+            base_dir=deepcopy(config["base_dir"]),
+            filter_config=deepcopy(config["filter"]),
+            grains_config=deepcopy(config["grains"]),
+            grainstats_config=deepcopy(config["grainstats"]),
+            dnatracing_config=deepcopy(config["dnatracing"]),
+            plotting_config=deepcopy(config["plotting"]),
+            output_dir=deepcopy(config["output_dir"]),
         )
 
         results[str(image_path)] = result
