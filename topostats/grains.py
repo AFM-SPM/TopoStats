@@ -310,14 +310,10 @@ class Grains:
         for direction in self.direction:
             grain_finding_workflow = "unet"
             if grain_finding_workflow == "unet":
-                print("===== Testing GPU... =====")
-                test_GPU()
-                print("==========================")
-
                 self.directions[direction] = {}
                 predicted_mask = predict_unet(
                     image=self.image,
-                    confidence=0.2,
+                    confidence=0.5,
                     model_image_size=512,
                     image_output_dir=Path("./"),
                     filename=self.filename,
