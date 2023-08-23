@@ -475,6 +475,7 @@ def process_scan(
                         )
                         results = grainstats_df
                         results["basename"] = image_path.parent
+                        node_stats = {"upper": None, "lower": None}
                     """
                     except Exception:
                         # If no results we need a dummy dataframe to return.
@@ -488,7 +489,7 @@ def process_scan(
             else:
                 LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
                 results = create_empty_dataframe()
-                node_stats = {}
+                node_stats = {"upper": None, "lower": None}
     else:
         LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
         results = create_empty_dataframe()
