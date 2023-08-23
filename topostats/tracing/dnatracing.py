@@ -2358,7 +2358,7 @@ class nodeStats:
         binary_remaining = remaining.copy()
         binary_remaining[binary_remaining != 0] = 1
         endpoints = np.unique(remaining[convolve_skelly(binary_remaining)==2]) # uniq incase of whole mol   
-        n_points_p_seg = n // remaining.max()
+        n_points_p_seg = (n - 2 * remaining.max()) // remaining.max()
 
         while remaining.max() != 0:
             # select endpoint to start if there is one
