@@ -2,6 +2,7 @@ import numpy as np
 from skimage.measure import regionprops
 from skimage.morphology import label
 from skimage.filters import gaussian
+from scipy.interpolate import splprep, splev
 
 
 def draw_line(img: np.ndarray, p1: np.ndarray, p2: np.ndarray):
@@ -537,8 +538,68 @@ def interpolate_and_get_curvature(points: np.ndarray, interpolation_number: int)
         curvature values to nodes. The nth curvuature value corresponds to the nth node.
     """
 
+    # Interpolate
     interpolated_points = _interpolate_set_of_points(points, interpolation_number=interpolation_number)
+    # Get curvature
     interpolated_points_curvature = _rim_curvature(interpolated_points[:, 1], interpolated_points[:, 0])
+    # Obtain curvature at node
     node_curvatures = interpolated_points_curvature[::interpolation_number]
 
-    return interpolated_points_curvature, node_curvatures
+    return interpolated_points_curvature, node_curvatures, interpolated_points
+
+
+def _interpolate_points_spline(points: np.ndarray, num_points: int):
+    """Interpolate a set of points using a spline.
+
+    Parameters
+    ----------
+    points: np.ndarray
+        Nx2 Numpy array of coordinates for the points.
+    num_points: int
+        The number of points to return following the calculated spline.
+
+    Returns
+    -------
+    interpolated_points: np.ndarray
+        An Ix2 Numpy array of coordinates of the interpolated points, where I is the number of points
+        specified.
+    """
+
+    x, y = splprep(points.T, u=None, s=0.0, per=1)
+    x_spline = np.linspace(y.min(), y.max(), num_points)
+    x_new, y_new = splev(x_spline, x, der=0)
+    interpolated_points = np.array((x_new, y_new)).T
+    return interpolated_points
+
+
+def interpolate_spline_and_get_curvature(points: np.ndarray, interpolation_number: int):
+    """Calculate the curvature for a set of points in a closed loop. Interpolates the points using a spline
+    to reduce anomalies.
+
+    Parameters
+    ----------
+    points: np.ndarray
+        2xN Numpy array of coordinates for the points.
+    interpolation_number: int
+        Number of interpolation points per point. Eg: for a set of 10 points and 2 interpolation points,
+        there will be 20 points in the spline.
+
+    Returns
+    -------
+    interpolated_curvatures: np.ndarray
+        1xN Numpy array of curvatures corresponding to the interpolated points.
+    interpolated_points: np.ndarray
+        2xN Numpy array of interpolated points generated from the spline of the
+        original points.
+    """
+
+    # Interpolate the data using cubic splines
+    num_points = interpolation_number * points.shape[0]
+    interpolated_points = _interpolate_points_spline(points=points, num_points=num_points)
+    x = interpolated_points[:, 0]
+    y = interpolated_points[:, 1]
+
+    # Calculate the curvature
+    interpolated_curvatures = _rim_curvature(x, y)
+
+    return interpolated_curvatures, interpolated_points
