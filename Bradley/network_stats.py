@@ -4,6 +4,7 @@ from skimage.morphology import label
 from skimage.filters import gaussian
 from scipy.interpolate import splprep, splev
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 def draw_line(img: np.ndarray, p1: np.ndarray, p2: np.ndarray):
@@ -606,7 +607,7 @@ def interpolate_spline_and_get_curvature(points: np.ndarray, interpolation_numbe
     return interpolated_curvatures, interpolated_points
 
 
-def visualise_curvature_pixel_image(curvatures: np.ndarray, points: np.ndarray, image_size: int = 100, title: str=""):
+def visualise_curvature_pixel_image(curvatures: np.ndarray, points: np.ndarray, image_size: int = 100, title: str="", figsize=(12, 12)):
     """Visualise the curvature of a set of points using a pixel heightmap image.
 
     Parameters
@@ -622,16 +623,20 @@ def visualise_curvature_pixel_image(curvatures: np.ndarray, points: np.ndarray, 
     """
 
     # Construct a visualisation
-    curv_img = np.zeros((image_size, image_size)) - 1
+    curv_img = np.zeros((image_size, image_size))
     scaling_factor = (curv_img.shape[0]*1.4) / np.max(points) / 2
     centroid = np.array([np.mean(points[:, 0]), np.mean(points[:, 1])])
     for point, curvature in zip(points, curvatures):
         scaled_point = ((np.array(curv_img.shape) / 2) + (point * scaling_factor) - centroid*scaling_factor).astype(int)
         curv_img[scaled_point[0], scaled_point[1]] = curvature
 
-    plt.imshow(np.flipud(curv_img.T), cmap="rainbow")
-    plt.colorbar()
-    plt.title(title)
+    fig, ax = plt.subplots(figsize=figsize)
+    im = ax.imshow(np.flipud(curv_img.T), cmap="rainbow")
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes('right', size='5%', pad=0.05)
+    fig.colorbar(im, cax, orientation="vertical")
+    # ax.colorbar()
+    ax.set_title(title)
     plt.show()
 
 def visualise_curvature_scatter(curvatures: np.ndarray, points: np.ndarray, title: str=""):
