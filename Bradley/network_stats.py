@@ -3,6 +3,7 @@ from skimage.measure import regionprops
 from skimage.morphology import label
 from skimage.filters import gaussian
 from scipy.interpolate import splprep, splev
+import matplotlib.pyplot as plt
 
 
 def draw_line(img: np.ndarray, p1: np.ndarray, p2: np.ndarray):
@@ -603,3 +604,43 @@ def interpolate_spline_and_get_curvature(points: np.ndarray, interpolation_numbe
     interpolated_curvatures = _rim_curvature(x, y)
 
     return interpolated_curvatures, interpolated_points
+
+
+def visualise_curvature_pixel_image(curvatures: np.ndarray, points: np.ndarray, image_size: int = 100, title: str=""):
+    """Visualise the curvature of a set of points using a pixel heightmap image.
+
+    Parameters
+    ----------
+    curvatures: np.ndarray
+        Numpy Nx1 array of curvatures for the points.
+    points: np.ndarray
+        Numpy Nx2 array of coordinates for the points.
+    
+    Returns
+    -------
+    None
+    """
+
+    # Construct a visualisation
+    curv_img = np.zeros((image_size, image_size)) - 1
+    scaling_factor = (curv_img.shape[0]*1.4) / np.max(points) / 2
+    centroid = np.array([np.mean(points[:, 0]), np.mean(points[:, 1])])
+    for point, curvature in zip(points, curvatures):
+        scaled_point = ((np.array(curv_img.shape) / 2) + (point * scaling_factor) - centroid*scaling_factor).astype(int)
+        curv_img[scaled_point[0], scaled_point[1]] = curvature
+
+    plt.imshow(np.flipud(curv_img.T), cmap="rainbow")
+    plt.colorbar()
+    plt.title(title)
+    plt.show()
+
+def visualise_curvature_scatter(curvatures: np.ndarray, points: np.ndarray, title: str=""):
+    """Visualise the curvature of a set of points using a scatter plot with colours of the markers
+    representing the curvatures of the points."""
+
+    # Plot the points
+    scatter_plot = plt.scatter(points[:, 0], points[:, 1], c=curvatures, cmap="rainbow")
+    plt.title(title)
+    plt.colorbar(scatter_plot)
+    plt.show()
+
