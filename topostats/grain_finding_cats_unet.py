@@ -93,7 +93,7 @@ def predict_unet(
     # Predict segmentation
     # model = load_model(model_path="./models/20230817_10-26-23_cats_512_b4_e50_hessian_upper_4_0.hdf5")
     model = load_model(
-        model_path="/Users/sylvi/Documents/TopoStats/catsnet/catsnet/saved_models/20230817_10-26-23_cats_512_b4_e50_hessian_upper_4_0.hdf5"
+        model_path="/Users/Maxgamill/Desktop/Uni/PhD/topo_cats/TopoStats/topostats/20230817_10-26-23_cats_512_b4_e50_hessian_upper_4_0.hdf5"
     )
     prediction = (model.predict(to_predict)[0, :, :, 0] > confidence).astype(np.uint8)
 
@@ -106,7 +106,7 @@ def predict_unet(
     ax[2].set_title("prediction")
     fig.suptitle(f"strictness: {confidence}")
     fig.tight_layout()
-    plt.savefig(image_output_dir / f"{filename}_prediction.png")
+    #plt.savefig(image_output_dir / f"{filename}_prediction.png")
 
     # Resize prediction back up to original size
     prediction = Image.fromarray(prediction)
