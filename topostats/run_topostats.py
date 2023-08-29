@@ -27,6 +27,7 @@ from topostats.io import (
     LoadScans,
 )
 
+from topostats.grain_finding_cats_unet import load_model, test_GPU
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import check_run_steps, completion_message, process_scan
@@ -49,6 +50,8 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 def run_topostats(args=None):
     """Find and process all files."""
+
+    test_GPU()
 
     # Parse command line options, load config (or default) and update with command line options
     if args.config_file is not None:
@@ -212,7 +215,7 @@ def run_topostats(args=None):
         images_processed = 0
         LOGGER.warning("There are no grainstats or dnatracing statistics to write to CSV.")
     # Write node stats to json if there is data.
-    if bool(node_results): # evaluates to false if dict is empty (but this dict is never empty)
+    if bool(node_results):  # evaluates to false if dict is empty (but this dict is never empty)
         with open(config["output_dir"] / "all_node_stats.json", "w", encoding="utf8") as json_file:
             json.dump(node_results, json_file, cls=NpEncoder)
     # Write config to file
