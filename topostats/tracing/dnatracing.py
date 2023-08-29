@@ -886,7 +886,7 @@ def trace_image(
         "grain": img_base.copy(),
         "smoothed_grain": img_base.copy(),
         "skeleton": img_base.copy(),
-        "prunted_skeleton": img_base.copy(),
+        "pruned_skeleton": img_base.copy(),
         "node_img": img_base.copy(),
         "ordered_traces": img_base.copy(),
         "fitted_traces": img_base.copy(),
@@ -1039,7 +1039,7 @@ def trace_grain(
         "grain": dnatrace.grain,
         "smoothed_grain": dnatrace.smoothed_grain,
         "skeleton": dnatrace.skeleton,
-        "prunted_skeleton": dnatrace.pruned_skeleton,
+        "pruned_skeleton": dnatrace.pruned_skeleton,
         "node_img": dnatrace.node_image,
         "ordered_traces": dnatrace.ordered_trace_img,
         "fitted_traces": dnatrace.fitted_trace_img,
@@ -1138,6 +1138,7 @@ class nodeStats:
         self.n_grain = n_grain
         sigma = (-3.5/3) * self.px_2_nm * 1e9 + 15.5/3
         self.hess = self.detect_ridges(self.image * 1e9, 4)
+        #np.savetxt(OUTPUT_DIR / "hess.txt", self.hess)
 
         """
         a = np.zeros((100,100))
@@ -2438,11 +2439,12 @@ class nodeStats:
 
             mol_coords.append(coord_trace)
             
+            # Issue in 0_5 where wrong nxyz[0] selected, and == nxyz[-1] so always duplicated
             nxyz = np.column_stack((np.arange(0, len(simple_trace)), simple_trace))
-            if (nxyz[0][1]-nxyz[-1][1])**2 + (nxyz[0][2]-nxyz[-1][2])**2 <= 2:
-                print("Looped so duplicating index 0: ")
+            if len(nxyz) > 2 and (nxyz[0][1]-nxyz[-1][1])**2 + (nxyz[0][2]-nxyz[-1][2])**2 <= 2:
+                # single coord traces mean nxyz[0]==[1] so cause issues when duplicating for topoly
+                print("Looped so duplicating index 0: ", nxyz[0])
                 nxyz = np.append(nxyz, nxyz[0][np.newaxis, :], axis=0)
-
             simple_coords.append(nxyz)
 
         simple_coords = self.comb_xyzs(simple_coords)
@@ -2492,6 +2494,7 @@ class nodeStats:
 
     @staticmethod
     def comb_xyzs(nxyz):
+        """Appends each mol trace array to a list as a list for use with Topoly"""
         total = []
         for mol in nxyz:
             temp = []
