@@ -15,8 +15,7 @@ from keras.layers import (
 
 num_classes = 3
 
-
-def unet_model(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS):
+def multiclass_unet_model(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS):
     """U-NET model definition function."""
 
     inputs = Input((IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS))
