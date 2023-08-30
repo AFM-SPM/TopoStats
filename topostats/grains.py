@@ -310,6 +310,9 @@ class Grains:
         for direction in self.direction:
             grain_finding_workflow = "unet"
             if grain_finding_workflow == "unet":
+                LOGGER.info(
+                    f"[{self.filename}] : Finding {direction} grains via UNet"
+                )
                 self.directions[direction] = {}
                 predicted_mask = predict_unet(
                     image=self.image,
@@ -318,22 +321,8 @@ class Grains:
                     image_output_dir=Path("./"),
                     filename=self.filename,
                 )
-
-                predicted_mask = self.tidy_border(predicted_mask)
-
-                self.calc_minimum_grain_size(predicted_mask)
-
-                self.directions[direction]["removed_small_objects"] = self.remove_small_objects(predicted_mask)
-
-                labelled_predicted_mask = self.label_regions(self.directions[direction]["removed_small_objects"])
-                region_properties_predicted_mask = self.get_region_properties(labelled_predicted_mask)
-
-                self.directions[direction]["labelled_regions_02"] = labelled_predicted_mask
-                self.directions[direction]["coloured_regions"] = self.colour_regions(
-                    self.directions[direction]["labelled_regions_02"]
-                )
-
-                self.region_properties[direction] = region_properties_predicted_mask
+                self.directions[direction] = {}
+                self.directions[direction]["mask_grains"] = predicted_mask
 
             else:
                 LOGGER.info(
@@ -346,38 +335,39 @@ class Grains:
                     threshold_direction=direction,
                     img_name=self.filename,
                 )
-                self.directions[direction]["labelled_regions_01"] = self.label_regions(
-                    self.directions[direction]["mask_grains"]
+            
+            self.directions[direction]["labelled_regions_01"] = self.label_regions(
+                self.directions[direction]["mask_grains"]
+            )
+            self.directions[direction]["tidied_border"] = self.tidy_border(
+                self.directions[direction]["labelled_regions_01"]
+            )
+            LOGGER.info(f"[{self.filename}] : Removing noise ({direction})")
+            self.directions[direction]["removed_noise"] = self.area_thresholding(
+                self.directions[direction]["tidied_border"],
+                [self.smallest_grain_size_nm2, None],
+            )
+            LOGGER.info(f"[{self.filename}] : Removing small / large grains ({direction})")
+            # if no area thresholds specified, use otsu
+            if self.absolute_area_threshold[direction].count(None) == 2:
+                self.calc_minimum_grain_size(self.directions[direction]["removed_noise"])
+                self.directions[direction]["removed_small_objects"] = self.remove_small_objects(
+                    self.directions[direction]["removed_noise"]
                 )
-                self.directions[direction]["tidied_border"] = self.tidy_border(
-                    self.directions[direction]["labelled_regions_01"]
+            else:
+                self.directions[direction]["removed_small_objects"] = self.area_thresholding(
+                    self.directions[direction]["removed_noise"],
+                    self.absolute_area_threshold[direction],
                 )
-                LOGGER.info(f"[{self.filename}] : Removing noise ({direction})")
-                self.directions[direction]["removed_noise"] = self.area_thresholding(
-                    self.directions[direction]["tidied_border"],
-                    [self.smallest_grain_size_nm2, None],
-                )
-                LOGGER.info(f"[{self.filename}] : Removing small / large grains ({direction})")
-                # if no area thresholds specified, use otsu
-                if self.absolute_area_threshold[direction].count(None) == 2:
-                    self.calc_minimum_grain_size(self.directions[direction]["removed_noise"])
-                    self.directions[direction]["removed_small_objects"] = self.remove_small_objects(
-                        self.directions[direction]["removed_noise"]
-                    )
-                else:
-                    self.directions[direction]["removed_small_objects"] = self.area_thresholding(
-                        self.directions[direction]["removed_noise"],
-                        self.absolute_area_threshold[direction],
-                    )
-                self.directions[direction]["labelled_regions_02"] = self.label_regions(
-                    self.directions[direction]["removed_small_objects"]
-                )
-                self.region_properties[direction] = self.get_region_properties(
-                    self.directions[direction]["labelled_regions_02"]
-                )
-                LOGGER.info(f"[{self.filename}] : Region properties calculated ({direction})")
-                self.directions[direction]["coloured_regions"] = self.colour_regions(
-                    self.directions[direction]["labelled_regions_02"]
-                )
-                self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
-                LOGGER.info(f"[{self.filename}] : Extracted bounding boxes ({direction})")
+            self.directions[direction]["labelled_regions_02"] = self.label_regions(
+                self.directions[direction]["removed_small_objects"]
+            )
+            self.region_properties[direction] = self.get_region_properties(
+                self.directions[direction]["labelled_regions_02"]
+            )
+            LOGGER.info(f"[{self.filename}] : Region properties calculated ({direction})")
+            self.directions[direction]["coloured_regions"] = self.colour_regions(
+                self.directions[direction]["labelled_regions_02"]
+            )
+            self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
+            LOGGER.info(f"[{self.filename}] : Extracted bounding boxes ({direction})")
