@@ -313,11 +313,13 @@ class Grains:
                 self.directions[direction] = {}
                 predicted_mask = predict_unet(
                     image=self.image,
-                    confidence=0.5,
+                    confidence=0.1,
                     model_image_size=512,
                     image_output_dir=Path("./"),
                     filename=self.filename,
                 )
+
+                predicted_mask = self.tidy_border(predicted_mask)
 
                 self.calc_minimum_grain_size(predicted_mask)
 
