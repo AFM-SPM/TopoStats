@@ -605,9 +605,9 @@ class joePrune:
             single_skeleton[single_skeleton != i] = 0
             single_skeleton[single_skeleton == i] = 1
             pruned_skeleton_mask += self._prune_single_skeleton(single_skeleton)
-            # pruned_skeleton_mask = self._remove_low_dud_branches(pruned_skeleton_mask, self.image)
             # pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton('zhang') # reskel to remove nibs
-        return rm_nibs(pruned_skeleton_mask)
+            pruned_skeleton_mask = remove_low_dud_branches(pruned_skeleton_mask, self.image)
+        return pruned_skeleton_mask
 
     def _prune_single_skeleton(self, single_skeleton: np.ndarray) -> np.ndarray:
         """Function to remove the hanging branches from a single skeleton as this
@@ -626,6 +626,7 @@ class joePrune:
         """
         pruning = True
         while pruning:
+            single_skeleton = rm_nibs(single_skeleton)
             number_of_branches = 0
             coordinates = np.argwhere(single_skeleton == 1).tolist()
 
@@ -702,29 +703,6 @@ class joePrune:
                 potential_branch_ends.append([x, y])
         return potential_branch_ends
 
-    @staticmethod
-    def _remove_low_dud_branches(skeleton, image, threshold=None) -> np.ndarray:
-        """Identifies branches which cross the skeleton in places they shouldn't due to
-        poor thresholding and holes in the mask. Segments are removed based on heights lower
-        than 1.5 * interquartile range of heights."""
-        # might need to check that the image *with nodes* is returned
-        skeleton_rtn = skeleton.copy()
-        conv = convolve_skelly(skeleton)
-        nodeless = skeleton.copy()
-        nodeless[conv == 3] = 0
-        segments = label(nodeless)
-        median_heights = [np.median(image[segments == i]) for i in range(1, segments.max() + 1)]
-        if threshold is None:
-            q75, q25 = np.percentile(median_heights, [75, 25])
-            iqr = q75 - q25
-            threshold = q25 - 1.5 * iqr
-        # threshold heights to remove segments
-        idxs = np.asarray(np.where(np.asarray(median_heights) < threshold)) + 1
-        for i in idxs:
-            print("Removed dud branch: ", i)
-            skeleton_rtn[segments == i] = 0
-        return skeleton_rtn
-
 
 class maxPrune:
     """A class for pruning small branches based on convolutions."""
@@ -796,28 +774,28 @@ class maxPrune:
                 print("Pruned short branch: ", i)
         return single_skeleton
 
-    @staticmethod
-    def _remove_low_dud_branches(skeleton, image, threshold=None) -> np.ndarray:
-        """Identifies branches which cross the skeleton in places they shouldn't due to
-        poor thresholding and holes in the mask. Segments are removed based on heights lower
-        than 1.5 * interquartile range of heights."""
-        # might need to check that the image *with nodes* is returned
-        skeleton_rtn = skeleton.copy()
-        conv = convolve_skelly(skeleton)
-        nodeless = skeleton.copy()
-        nodeless[conv == 3] = 0
-        segments = label(nodeless)
-        median_heights = [np.median(image[segments == i]) for i in range(1, segments.max() + 1)]
-        if threshold is None:
-            q75, q25 = np.percentile(median_heights, [75, 25])
-            iqr = q75 - q25
-            threshold = q25 - 1.5 * iqr
-        # threshold heights to remove segments
-        idxs = np.asarray(np.where(np.asarray(median_heights) < threshold)) + 1
-        for i in idxs:
-            print("Removed dud branch: ", i)
-            skeleton_rtn[segments == i] = 0
-        return skeleton_rtn
+
+def remove_low_dud_branches(skeleton, image, threshold=None) -> np.ndarray:
+    """Identifies branches which cross the skeleton in places they shouldn't due to
+    poor thresholding and holes in the mask. Segments are removed based on heights lower
+    than 1.5 * interquartile range of heights."""
+    # might need to check that the image *with nodes* is returned
+    skeleton_rtn = skeleton.copy()
+    conv = convolve_skelly(skeleton)
+    nodeless = skeleton.copy()
+    nodeless[conv == 3] = 0
+    segments = label(nodeless)
+    median_heights = [np.median(image[segments == i]) for i in range(1, segments.max() + 1)]
+    if threshold is None:
+        q75, q25 = np.percentile(median_heights, [75, 25])
+        iqr = q75 - q25
+        threshold = q25 - 1.5 * iqr
+    # threshold heights to remove segments
+    idxs = np.asarray(np.where(np.asarray(median_heights) < threshold)) + 1
+    for i in idxs:
+        print("Removed dud branch: ", i)
+        skeleton_rtn[segments == i] = 0
+    return skeleton_rtn
 
 def rm_nibs(skeleton):
     """Attempts to remove single pixel branches (nibs) not identified by nearest neighbour
@@ -836,19 +814,23 @@ def rm_nibs(skeleton):
     conv_skel = convolve_skelly(skeleton)
     nodes = np.where(conv_skel == 3, 1, 0)
     labeled_nodes = label(nodes)
-    nodeless = np.where(conv_skel == 1, 1, 0)
+    nodeless = np.where((conv_skel == 1) | (conv_skel == 2), 1, 0)
     labeled_nodeless = label(nodeless)
     size_1_idxs = []
     
-    for i in range(1, labeled_nodes.max()+1):
-        node = np.where(labeled_nodes == i, 1, 0)
+    for node_num in range(1, labeled_nodes.max()+1):
+        node = np.where(labeled_nodes == node_num, 1, 0)
         dil = binary_dilation(node, footprint=np.ones((3,3)))
         minus = np.where(dil != node, 1, 0)
 
         idxs = labeled_nodeless[minus == 1]
-        for j in idxs:
-            if np.sum(labeled_nodeless == j) == 1:
-                size_1_idxs.append(j)
+        idxs = idxs[idxs != 0]
+        for nodeless_num in np.unique(idxs):
+            # if all of the branch is in surrounding node area
+            branch_size = (labeled_nodeless == nodeless_num).sum()
+            branch_idx_in_surr_area = (idxs == nodeless_num).sum()
+            if branch_size == branch_idx_in_surr_area:
+                size_1_idxs.append(nodeless_num)
 
     unique, counts = np.unique(np.array(size_1_idxs), return_counts=True)
 
