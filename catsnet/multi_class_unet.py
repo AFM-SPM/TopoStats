@@ -15,10 +15,12 @@ from keras.layers import (
 
 num_classes = 3
 
+
 def multiclass_unet_model(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS):
     """U-NET model definition function."""
 
     inputs = Input((IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS))
+    # inputs = Input(shape=(None, None, IMG_CHANNELS))
 
     # Downsampling
     # Downsample with increasing numbers of filters to try to capture more complex features (first argument)
