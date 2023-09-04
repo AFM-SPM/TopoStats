@@ -34,12 +34,18 @@ class Colormap:
             self.cmap = self.gwyddion()
         elif name.lower() == "blu":
             self.cmap = self.blu()
+        elif name.lower() == "cyan":
+            self.cmap = self.cyan()
         elif name.lower() == "blu_purp":
             self.cmap = self.blu_purp()
+        elif name.lower() == "libby_blu_purp":
+            self.cmap = self.libby_blu_purp()
         elif name.lower() == "pink_black":
             self.cmap = self.pink_black()
         elif name.lower() == "green_black":
             self.cmap = self.green_black()
+        elif name.lower() == "cyan_black":
+            self.cmap = self.cyan_black()
         elif name.lower() == "green_green":
             self.cmap = self.green_green()
         elif name.lower() == "blu_purp_green":
@@ -132,9 +138,20 @@ class Colormap:
         return ListedColormap([[0 / 256, 157 / 256, 229 / 256], [255 / 256, 100 / 256, 225 / 256]], "blu_purp", N=256)
 
     @staticmethod
+    def libby_blu_purp():
+        "RGBA colour map of just the colour blue."
+        return ListedColormap([[36 / 256, 166 / 256, 120 / 256], [91 / 256, 0 / 256, 250 / 256]], "blu_purp", N=256)
+
+
+    @staticmethod
     def blu():
         "RGBA colour map of just the colour blue."
         return ListedColormap([[32 / 256, 226 / 256, 205 / 256]], "blu", N=256)
+    
+    @staticmethod
+    def cyan():
+        "RGBA colour map of just the colour blue."
+        return ListedColormap([[0, 1, 1]], "cyan", N=256)
 
     @staticmethod
     def pink_black():
@@ -145,6 +162,11 @@ class Colormap:
     def green_black():
         "RGBA colour map of just the colour blue."
         return ListedColormap([[0 / 256, 1, 139 / 256], [0, 0, 0]], "green_black", N=256)
+    
+    @staticmethod
+    def cyan_black():
+        "RGBA colour map of just the colour blue."
+        return ListedColormap([[0, 1, 1], [0, 0, 0]], "cyan_black", N=256)
 
     @staticmethod
     def green_green():
