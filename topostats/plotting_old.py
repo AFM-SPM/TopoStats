@@ -90,12 +90,12 @@ def savestats(path, dataframetosave):
     dataframetosave.to_csv(path[:-5] + "_evaluated.txt")
 
 
-def pathman(path):
+def pathman(path, output_dir='Plots'):
     """Splitting the path into directory and file name; creating or specifying a directory to save the plots"""
 
     directory = os.path.dirname(path)
-    name = os.path.basename(path)[:-5]
-    savedir = os.path.join(directory, "Plots")
+    name = os.path.splitext(os.path.basename(path))[0]
+    savedir = os.path.join(directory, output_dir)
     if not os.path.exists(savedir):
         os.makedirs(savedir)
     plotname = os.path.join(savedir, name)
@@ -160,7 +160,7 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + "_" + plotarg + "_KDE" + extension)
+    savename = os.path.join(pathman(specpath, output_dir) + "_" + plotarg + "_KDE" + extension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -217,7 +217,7 @@ def plotkde2var(
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + "_" + plotarg + "_" + plotarg2 + "_KDE" + extension)
+    savename = os.path.join(pathman(specpath, output_dir) + "_" + plotarg + "_" + plotarg2 + "_KDE" + extension)
 
     dfnew = df.copy()
     dfnew2 = df2.copy()
@@ -247,8 +247,7 @@ def plotkde2var(
     # ax.legend(reversed(handles), reversed(labels), , title=grouparg, loc='upper right')
     ax.legend(handles, labels, title=grouparg, loc="upper right")
     # Need to return fig in order to test
-    # plt.savefig(savename)
-    return fig
+    plt.savefig(savename)
 
 
 def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None):
@@ -261,7 +260,7 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     # Set  the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + "_" + plotarg + "_histogram" + extension)
+    savename = os.path.join(pathman(specpath, output_dir) + "_" + plotarg + "_histogram" + extension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -331,7 +330,7 @@ def plothist2var(
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + "_" + label1 + "_" + label2 + "_histogram" + extension)
+    savename = os.path.join(pathman(specpath, output_dir) + "_" + label1 + "_" + label2 + "_histogram" + extension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -377,7 +376,7 @@ def plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
 
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + "_" + plotname + "_dist" + extension)
+    savename = os.path.join(pathman(specpath, output_dir) + "_" + plotname + "_dist" + extension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -428,7 +427,7 @@ def plotdist2var(
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + "_" + plotname + "_dist" + extension)
+    savename = os.path.join(pathman(specpath, output_dir) + "_" + plotname + "_dist" + extension)
 
     if df2 is None:
         df2 = df
@@ -468,7 +467,7 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specp
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + "_" + plotarg + "_violin" + extension)
+    savename = os.path.join(pathman(specpath, output_dir) + "_" + plotarg + "_violin" + extension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -504,7 +503,7 @@ def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=Fal
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath) + "_" + arg1 + "_and_" + arg2 + extension)
+    savename = os.path.join(pathman(specpath, output_dir) + "_" + arg1 + "_and_" + arg2 + extension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -548,7 +547,7 @@ def computeStats(data, columns, min, max):
         table["N"][i] = len(x)
 
     dfmax = pd.DataFrame.from_dict(table, orient="index", columns=columns)
-    dfmax.to_csv(pathman(path) + ".csv")
+    dfmax.to_csv(pathman(path, output_dir) + ".csv")
 
 
 
