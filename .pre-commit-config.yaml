@@ -17,7 +17,7 @@ repos:
         types: [python, yaml, markdown]
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.8.1
+    rev: v0.9.2
     hooks:
       - id: markdownlint-cli2
         args: []
