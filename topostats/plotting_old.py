@@ -444,8 +444,8 @@ def plotdist2var(
     sns.distplot(dfnew2[plotarg2], ax=ax, bins=bins, color=c2)
     # Label plot and save figure
     plt.xlim(xmin, xmax)
-    # plt.xlabel(plotname)
-    plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
+    plt.xlabel(plotname)
+    # plt.xlabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.ylabel("Probability Density", alpha=1)
     plt.ticklabel_format(axis="both", style="sci", scilimits=(-3, 3))
     ax.tick_params(direction="out", bottom=True, left=True)
@@ -611,6 +611,7 @@ if __name__ == "__main__":
         plotname = plotting_config["plots"][plot]["title"]
         plottype = plotting_config["plots"][plot]["plottype"]
         parameter = plotting_config["plots"][plot]["parameter"]
+        parameter2 = plotting_config["plots"][plot]["parameter2"]
         nm = plotting_config["plots"][plot]["nm"]
         grouparg = plotting_config["plots"][plot]["group"]
         xmin = plotting_config["plots"][plot]["xmin"]
@@ -640,7 +641,7 @@ if __name__ == "__main__":
         elif plottype == "dist":
             plotdist(df, parameter, nm=nm, grouparg=grouparg, bins=np.linspace(start, end, bins), xmin=xmin, xmax=xmax, plotname=plotname, color=color1)
         elif plottype == "dist2":
-            plotdist2var(df, parameter, parameter, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1=label1,
+            plotdist2var(df, parameter, parameter2, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1=label1,
                          label2=label2, bins=np.linspace(start, end, bins), plotname=plotname)
         elif plottype == "joint":
             plotjoint(df, parameter, nm=nm)
