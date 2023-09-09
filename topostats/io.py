@@ -853,6 +853,10 @@ class LoadScans:
             # Convert image heights to nanometresQ
             if units == "m":
                 image = image * 1e9
+            elif units == "mm":
+                image = image * 1e6
+            elif units == "um":
+                image = image * 1e3
             else:
                 raise ValueError(
                     f"Units '{units}' have not been added for .gwy files. Please add \
