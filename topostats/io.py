@@ -836,19 +836,39 @@ class LoadScans:
             # dictionary output showing the object - component structure and
             # available keys:
             # LoadScans._gwy_print_dict_wrapper(gwy_file_dict=image_data_dict)
+            image = None
+            has_image_found = False
+            import regex
+            re = r'\/(\d+)\/data$'
+            components = list(image_data_dict.keys())
+            for component in components:
+                match = regex.match(re, component)
+                if match == None:
+                    continue
+                idx = int(match[1])
+                LOGGER.info(f"Channel found at {idx}")
+                channel_dict = image_data_dict[component]
+                LOGGER.info(f"Guessing if this chchannel is height")
+                for key in channel_dict.keys():
+                    if key=='si_unit_z' and channel_dict[key]['unitstr']=='m':
+                        LOGGER.info(f"\t{key} : {channel_dict[key]}, maybe topography.")
+                        if not has_image_found:
+                            image = image_data_dict[component]["data"]
+                            units = image_data_dict[component]["si_unit_z"]["unitstr"]
+                            px_to_nm = image_data_dict[component]["xreal"] * 1e9 / image.shape[1]
+                            # TODO: xy units and z units should be separately considered.
+                            # added parameters for xy conversion support for non-square image
+                            px_to_nm_x = image_data_dict[component]["xreal"] * 1e9 / image.shape[1]
+                            px_to_nm_y = image_data_dict[component]["yreal"] * 1e9 / image.shape[0]
+                            has_image_found = True
+                    else:
+                        if not key == 'data':
+                            LOGGER.info(f"\t{key} : {channel_dict[key]}")
 
-            if "/0/data" in image_data_dict:
-                image = image_data_dict["/0/data"]["data"]
-                units = image_data_dict["/0/data"]["si_unit_xy"]["unitstr"]
-                px_to_nm = image_data_dict["/0/data"]["xreal"] * 1e9 / image.shape[1]
-            elif "/1/data" in image_data_dict:
-                image = image_data_dict["/1/data"]["data"]
-                px_to_nm = image_data_dict["/1/data"]["xreal"] * 1e9 / image.shape[1]
-                units = image_data_dict["/1/data"]["si_unit_xy"]["unitstr"]
-            else:
-                raise KeyError(
-                    "Data location not defined in the .gwy file. Please locate it and add to the load_gwy() function."
-                )
+                if not has_image_found:
+                    raise KeyError(
+                        "Data location not defined in the .gwy file. Please locate it and add to the load_gwy() function."
+                    )
 
             # Convert image heights to nanometresQ
             if units == "m":
