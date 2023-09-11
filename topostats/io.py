@@ -7,6 +7,7 @@ import struct
 from pathlib import Path
 import pickle as pkl
 from typing import Any, Dict, List, Union
+import regex
 
 import numpy as np
 import pandas as pd
@@ -778,7 +779,7 @@ class LoadScans:
             for index in range(array_size):
                 data[index] = read_64d(open_file=open_file)
             if "xres" in data_dict and "yres" in data_dict:
-                data = data.reshape((data_dict["xres"], data_dict["yres"]))
+                data = data.reshape((data_dict["yres"], data_dict["xres"]))
             data_dict["data"] = data
 
         return open_file.tell() - initial_byte_pos
@@ -839,9 +840,10 @@ class LoadScans:
             image = None
             has_image_found = False
             units=''
-            import regex
+
             re = r'\/(\d+)\/data$'
             components = list(image_data_dict.keys())
+            conv_factors = {'m':1e9,'um':1e6,'mm':1e3}
             for component in components:
                 match = regex.match(re, component)
                 if match == None:
@@ -853,18 +855,15 @@ class LoadScans:
                 for key in channel_dict.keys():
                     if key=='si_unit_z':
                         u = channel_dict[key]['unitstr']
-                        if u[len(u)-1] == 'm':
+                        if u[len(u)-1] == 'm': # True if m,um,mm or *m
                             LOGGER.info(f"\t{key} : {channel_dict[key]}, maybe topography.")
                             if not has_image_found:
                                 image = image_data_dict[component]["data"]
                                 units = image_data_dict[component][key]['unitstr']
                                 LOGGER.info(f"\tUnit for Z of this topography is {units}")
-                                if units == "m":
-                                    image = image * 1e9
-                                elif units == "mm":
-                                    image = image * 1e6
-                                elif units == "um":
-                                    image = image * 1e3
+                                if units in conv_factors: # m, um, mm conversion
+                                    factor = conv_factors[units]
+                                    image = image * factor
                                 else:
                                     raise ValueError(
                                         f"Units '{units}' have not been added for .gwy files. Please add \
@@ -874,8 +873,8 @@ class LoadScans:
                                 px_to_nm = image_data_dict[component]["xreal"] * 1e9 / image.shape[1]
                                 # TODO: xy units and z units should be separately considered.
                                 # added parameters for xy conversion support for non-square image
-                                px_to_nm_x = image_data_dict[component]["xreal"] * 1e9 / image.shape[1]
-                                px_to_nm_y = image_data_dict[component]["yreal"] * 1e9 / image.shape[0]
+                                self.px_to_nm_x = image_data_dict[component]["xreal"] * 1e9 / image.shape[1]
+                                self.px_to_nm_y = image_data_dict[component]["yreal"] * 1e9 / image.shape[0]
                                 has_image_found = True
                             else:
                                 LOGGER.info(f"\t{key} : {channel_dict[key]}, maybe topography, but not used.")
@@ -968,6 +967,9 @@ class LoadScans:
             "image_flattened": None,
             "grain_masks": self.grain_masks,
         }
+        if hasattr(self,'pixel_to_nm_scaling_x'):
+            self.img_dict['pixel_to_nm_scaling_x'] = self.pixel_to_nm_scaling_x
+            self.img_dict['pixel_to_nm_scaling_y'] = self.pixel_to_nm_scaling_y
 
 
 def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict) -> None:
