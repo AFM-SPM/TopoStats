@@ -838,6 +838,7 @@ class LoadScans:
             # LoadScans._gwy_print_dict_wrapper(gwy_file_dict=image_data_dict)
             image = None
             has_image_found = False
+            units=''
             import regex
             re = r'\/(\d+)\/data$'
             components = list(image_data_dict.keys())
@@ -850,17 +851,36 @@ class LoadScans:
                 channel_dict = image_data_dict[component]
                 LOGGER.info(f"Guessing if this chchannel is height")
                 for key in channel_dict.keys():
-                    if key=='si_unit_z' and channel_dict[key]['unitstr']=='m':
-                        LOGGER.info(f"\t{key} : {channel_dict[key]}, maybe topography.")
-                        if not has_image_found:
-                            image = image_data_dict[component]["data"]
-                            units = image_data_dict[component]["si_unit_z"]["unitstr"]
-                            px_to_nm = image_data_dict[component]["xreal"] * 1e9 / image.shape[1]
-                            # TODO: xy units and z units should be separately considered.
-                            # added parameters for xy conversion support for non-square image
-                            px_to_nm_x = image_data_dict[component]["xreal"] * 1e9 / image.shape[1]
-                            px_to_nm_y = image_data_dict[component]["yreal"] * 1e9 / image.shape[0]
-                            has_image_found = True
+                    if key=='si_unit_z':
+                        u = channel_dict[key]['unitstr']
+                        if u[len(u)-1] == 'm':
+                            LOGGER.info(f"\t{key} : {channel_dict[key]}, maybe topography.")
+                            if not has_image_found:
+                                image = image_data_dict[component]["data"]
+                                units = image_data_dict[component][key]['unitstr']
+                                LOGGER.info(f"\tUnit for Z of this topography is {units}")
+                                if units == "m":
+                                    image = image * 1e9
+                                elif units == "mm":
+                                    image = image * 1e6
+                                elif units == "um":
+                                    image = image * 1e3
+                                else:
+                                    raise ValueError(
+                                        f"Units '{units}' have not been added for .gwy files. Please add \
+                                        an SI to nanometre conversion factor for these units in _gwy_read_component in \
+                                        io.py."
+                                    )
+                                px_to_nm = image_data_dict[component]["xreal"] * 1e9 / image.shape[1]
+                                # TODO: xy units and z units should be separately considered.
+                                # added parameters for xy conversion support for non-square image
+                                px_to_nm_x = image_data_dict[component]["xreal"] * 1e9 / image.shape[1]
+                                px_to_nm_y = image_data_dict[component]["yreal"] * 1e9 / image.shape[0]
+                                has_image_found = True
+                            else:
+                                LOGGER.info(f"\t{key} : {channel_dict[key]}, maybe topography, but not used.")
+                        else:
+                            LOGGER.info(f"\t{key} : {channel_dict[key]}, not topography.")
                     else:
                         if not key == 'data':
                             LOGGER.info(f"\t{key} : {channel_dict[key]}")
@@ -869,20 +889,6 @@ class LoadScans:
                     raise KeyError(
                         "Data location not defined in the .gwy file. Please locate it and add to the load_gwy() function."
                     )
-
-            # Convert image heights to nanometresQ
-            if units == "m":
-                image = image * 1e9
-            elif units == "mm":
-                image = image * 1e6
-            elif units == "um":
-                image = image * 1e3
-            else:
-                raise ValueError(
-                    f"Units '{units}' have not been added for .gwy files. Please add \
-                    an SI to nanometre conversion factor for these units in _gwy_read_component in \
-                    io.py."
-                )
 
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
