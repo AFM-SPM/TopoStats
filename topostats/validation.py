@@ -266,9 +266,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 ),
             ),
             "histogram_bins": lambda n: n > 0,
-            "dpi": Or(
-                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
-            ),
         },
         "summary_stats": {
             "run": Or(
@@ -303,6 +300,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid value in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "pixels": {
             "filename": str,
@@ -313,6 +313,9 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config 'pixels.image_type', valid values are 'binary' or 'non-binary'",
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "initial_median_flatten": {
             "filename": str,
@@ -326,6 +329,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "initial_tilt_removal": {
             "filename": str,
@@ -339,6 +345,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "initial_quadratic_removal": {
             "filename": str,
@@ -352,6 +361,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "initial_scar_removal": {
             "filename": str,
@@ -365,6 +377,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "initial_nonlinear_polynomial_removal": {
             "filename": str,
@@ -378,6 +393,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "mask": {
             "filename": str,
@@ -388,6 +406,9 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config 'mask.image_type', valid values are 'binary' or 'non-binary'",
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "masked_median_flatten": {
             "filename": str,
@@ -401,6 +422,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "masked_tilt_removal": {
             "filename": str,
@@ -414,6 +438,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "masked_quadratic_removal": {
             "filename": str,
@@ -427,6 +454,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "masked_nonlinear_polynomial_removal": {
             "filename": str,
@@ -440,6 +470,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "secondary_scar_removal": {
             "filename": str,
@@ -453,6 +486,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "scar_mask": {
             "filename": str,
@@ -466,6 +502,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "zero_average_background": {
             "filename": str,
@@ -479,6 +518,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "gaussian_filtered": {
             "filename": str,
@@ -492,6 +534,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "z_threshed": {
             "title": str,
@@ -503,6 +548,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": True,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "mask_grains": {
             "filename": str,
@@ -515,6 +563,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "labelled_regions_01": {
             "filename": str,
@@ -528,6 +579,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "tidied_border": {
             "filename": str,
@@ -540,6 +594,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "removed_noise": {
             "filename": str,
@@ -552,6 +609,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "removed_small_objects": {
             "filename": str,
@@ -565,6 +625,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "mask_overlay": {
             "title": str,
@@ -576,6 +639,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": True,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "labelled_regions_02": {
             "filename": str,
@@ -589,6 +655,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "coloured_regions": {
             "filename": str,
@@ -602,6 +671,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "bounding_boxes": {
             "filename": str,
@@ -614,6 +686,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "coloured_boxes": {
             "filename": str,
@@ -626,6 +701,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "all_molecule_traces": {
             "title": str,
@@ -638,6 +716,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "grain_image": {
             "image_type": Or(
@@ -648,6 +729,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": False,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "grain_mask": {
             "image_type": Or(
@@ -656,6 +740,9 @@ PLOTTING_SCHEMA = Schema(
                 error=("Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "grain_mask_image": {
             "image_type": Or(
@@ -667,6 +754,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
         "single_molecule_trace": {
             "image_type": Or(
@@ -678,6 +768,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "dpi": Or(
+                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
+            ),
         },
     }
 )

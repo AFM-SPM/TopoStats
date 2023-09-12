@@ -141,7 +141,7 @@ def dnatracing_config(default_config: Dict) -> Dict:
 
 @pytest.fixture
 def plotting_config(default_config: Dict) -> Dict:
-    """Configurations for filtering"""
+    """Configurations for plotting"""
     config = default_config["plotting"]
     config["image_set"] = "all"
     config.pop("run")
