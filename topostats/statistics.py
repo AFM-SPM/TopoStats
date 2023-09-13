@@ -73,7 +73,7 @@ def image_statistics(
         pass
 
     image_stats_df = pd.DataFrame([image_stats])
-    image_stats_df.set_index("Image", inplace=True)
+    image_stats_df.set_index("image", inplace=True)
 
     return image_stats_df
 
