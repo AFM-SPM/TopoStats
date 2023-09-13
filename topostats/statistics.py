@@ -36,7 +36,7 @@ def image_statistics(
     """
 
     image_stats = {
-        "Image": filename,
+        "image": filename,
         "image_size_x_m": None,
         "image_size_y_m": None,
         "image_area_m2": None,
