@@ -9,13 +9,28 @@ from skimage import io
 
 from topostats.grains import Grains
 from topostats.io import LoadScans
-from topostats.plottingfuncs import dilate_binary_image, Images
+from topostats.plottingfuncs import dilate_binary_image, Images, add_pixel_to_nm_to_plotting_config
 
 
 DPI = 300.0
 RNG = np.random.default_rng(seed=1000)
 ARRAY = RNG.random((10, 10))
 MASK = RNG.uniform(low=0, high=1, size=ARRAY.shape) > 0.5
+
+
+def test_add_pixel_to_nm_to_plotting_config(plotting_config_with_plot_dict):
+    """Test the add_pixel_to_nm_to_plotting_config function of plottingfuncs.py, ensuring
+    that every plot's config contains the pixel to nanometre scaling factor needed for
+    plotting images in nanometres rather than pixels."""
+
+    plotting_config = add_pixel_to_nm_to_plotting_config(
+        plotting_config=plotting_config_with_plot_dict, pixel_to_nm_scaling=1.23456789
+    )
+
+    # Ensure that every plot's config has the correct pixel to nm scaling factor.
+    for _, plot_config in plotting_config["plot_dict"].items():
+        if plot_config["pixel_to_nm_scaling"] != 1.23456789:
+            assert False
 
 
 @pytest.mark.parametrize(
