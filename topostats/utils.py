@@ -110,7 +110,7 @@ def update_plotting_config(plotting_config: dict) -> dict:
     return plotting_config
 
 
-def _get_mask(image: np.ndarray, thresh: float, threshold_direction: str, img_name: str = None) -> np.ndarray:
+def _get_mask(image: np.ndarray, thresholds: list, threshold_direction: str, img_name: str = None) -> np.ndarray:
     """Calculate a mask for pixels that exceed the threshold
 
     Parameters
@@ -129,15 +129,22 @@ def _get_mask(image: np.ndarray, thresh: float, threshold_direction: str, img_na
     np.array
         Numpy array of image with objects coloured.
     """
+    minimum = thresholds["minimum"]
+    maximum = thresholds["maximum"]
+
     if threshold_direction == "above":
-        LOGGER.info(f"[{img_name}] : Masking (above) Threshold: {thresh}")
-        return image > thresh
-    LOGGER.info(f"[{img_name}] : Masking (below) Threshold: {thresh}")
-    return image < thresh
+        LOGGER.info(f"[{img_name}] : Masking (above) Threshold: {thresholds}")
+        minimum_thresholded_mask = image > minimum
+        maximum_thresholded_mask = image < maximum
+        return minimum_thresholded_mask & maximum_thresholded_mask
+    LOGGER.info(f"[{img_name}] : Masking (below) Threshold: {thresholds}")
+    minimum_thresholded_mask = image < minimum
+    maximum_thresholded_mask = image > maximum
+    return minimum_thresholded_mask & maximum_thresholded_mask
     # LOGGER.fatal(f"[{img_name}] : Threshold direction invalid: {threshold_direction}")
 
 
-def get_mask(image: np.ndarray, thresholds: dict, img_name: str = None) -> np.ndarray:
+def get_and_combine_directional_masks(image: np.ndarray, thresholds: dict, img_name: str = None) -> np.ndarray:
     """Mask data that should not be included in flattening.
 
     Parameters
@@ -156,17 +163,19 @@ def get_mask(image: np.ndarray, thresholds: dict, img_name: str = None) -> np.nd
     np.ndarray
         2D Numpy boolean array of points to mask.
     """
-    # Both thresholds are applicable
-    if "below" in thresholds and "above" in thresholds:
-        mask_above = _get_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
-        mask_below = _get_mask(image, thresh=thresholds["below"], threshold_direction="below", img_name=img_name)
-        # Masks are combined to remove both the extreme high and extreme low data points.
+
+    # If both above and below thresholds are available
+    if thresholds["above"] is not None and thresholds["below"] is not None:
+        mask_above = _get_mask(image, thresholds=thresholds["above"], threshold_direction="above", img_name=img_name)
+        mask_below = _get_mask(image, thresholds=thresholds["below"], threshold_direction="below", img_name=img_name)
+        # Combine the masks
         return mask_above + mask_below
-    # Only below threshold is applicable
-    if "below" in thresholds:
-        return _get_mask(image, thresh=thresholds["below"], threshold_direction="below", img_name=img_name)
-    # Only above threshold is applicable
-    return _get_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
+    # If only above threshold is available
+    elif thresholds["above"] is not None:
+        return _get_mask(image, thresholds=thresholds["above"], threshold_direction="above", img_name=img_name)
+    # If only below threshold is available
+    else:
+        return _get_mask(image, thresholds=thresholds["below"], threshold_direction="below", img_name=img_name)
 
 
 # pylint: disable=unused-argument
@@ -199,20 +208,69 @@ def get_thresholds(
     """
     thresholds = defaultdict()
     if threshold_method == "otsu":
-        thresholds["above"] = threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)
+        thresholds["above"] = {
+            "minimum": threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier),
+            "maximum": np.Infinity,
+        }
+        thresholds["below"] = None
     elif threshold_method == "std_dev":
         try:
             if threshold_std_dev["below"] is not None:
-                thresholds["below"] = threshold(image, method="mean") - threshold_std_dev["below"] * np.nanstd(image)
+                if threshold_std_dev["below"][0] is not None:
+                    minimum = threshold(image, method="mean") - threshold_std_dev["below"][0] * np.nanstd(image)
+                else:
+                    minimum = np.Infinity
+                if threshold_std_dev["below"][1] is not None:
+                    maximum = threshold(image, method="mean") - threshold_std_dev["below"][1] * np.nanstd(image)
+                else:
+                    maximum = -np.Infinity
+                # thresholds["below"] = threshold(image, method="mean") - threshold_std_dev["below"] * np.nanstd(image)
+                thresholds["below"] = {"minimum": minimum, "maximum": maximum}
+            else:
+                thresholds["below"] = None
+
             if threshold_std_dev["above"] is not None:
-                thresholds["above"] = threshold(image, method="mean") + threshold_std_dev["above"] * np.nanstd(image)
+                if threshold_std_dev["above"][0] is not None:
+                    minimum = threshold(image, method="mean") + threshold_std_dev["above"][0] * np.nanstd(image)
+                else:
+                    minimum = -np.Infinity
+                if threshold_std_dev["above"][1] is not None:
+                    maximum = threshold(image, method="mean") + threshold_std_dev["above"][1] * np.nanstd(image)
+                # thresholds["above"] = threshold(image, method="mean") + threshold_std_dev["above"] * np.nanstd(image)
+                thresholds["above"] = {"minimum": minimum, "maximum": maximum}
+            else:
+                thresholds["above"] = None
         except TypeError as typeerror:
             raise typeerror
+
     elif threshold_method == "absolute":
         if absolute["below"] is not None:
-            thresholds["below"] = absolute["below"]
+            if absolute["below"][0] is not None:
+                minimum = absolute["below"][0]
+            else:
+                minimum = np.Infinity
+            if absolute["below"][1] is not None:
+                maximum = absolute["below"][1]
+            else:
+                maximum = -np.Infinity
+
+            thresholds["below"] = {"minimum": minimum, "maximum": maximum}
+        else:
+            thresholds["below"] = None
+
         if absolute["above"] is not None:
-            thresholds["above"] = absolute["above"]
+            if absolute["above"][0] is not None:
+                minimum = absolute["above"][0]
+            else:
+                minimum = -np.Infinity
+            if absolute["above"][1] is not None:
+                maximum = absolute["above"][1]
+            else:
+                maximum = np.Infinity
+            thresholds["above"] = {"minimum": minimum, "maximum": maximum}
+        else:
+            thresholds["above"] = None
+
     else:
         if not isinstance(threshold_method, str):
             raise TypeError(
