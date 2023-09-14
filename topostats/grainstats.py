@@ -205,10 +205,10 @@ class GrainStats:
                 }.items():
                     grains_plot_data.append(
                         {
-                            "image": image,
-                            "output_grain": output_grain,
+                            "data": image,
+                            "output_dir": output_grain,
                             "filename": f"{self.image_name}_{name}_{index}",
-                            "plot_opts": self.plot_opts[name],
+                            "name": name,
                         }
                     )
 
