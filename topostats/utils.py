@@ -171,14 +171,15 @@ def get_and_combine_directional_masks(image: np.ndarray, thresholds: dict, img_n
         # Combine the masks
         return mask_above + mask_below
     # If only above threshold is available
-    elif thresholds["above"] is not None:
+    if thresholds["above"] is not None:
         return _get_mask(image, thresholds=thresholds["above"], threshold_direction="above", img_name=img_name)
     # If only below threshold is available
-    else:
-        return _get_mask(image, thresholds=thresholds["below"], threshold_direction="below", img_name=img_name)
+    return _get_mask(image, thresholds=thresholds["below"], threshold_direction="below", img_name=img_name)
 
 
 # pylint: disable=unused-argument
+# pylint: disable=too-many-branches
+# pylint: disable=too-many-statements
 def get_thresholds(
     image: np.ndarray,
     threshold_method: str,
@@ -224,7 +225,6 @@ def get_thresholds(
                     maximum = threshold(image, method="mean") - threshold_std_dev["below"][1] * np.nanstd(image)
                 else:
                     maximum = -np.Infinity
-                # thresholds["below"] = threshold(image, method="mean") - threshold_std_dev["below"] * np.nanstd(image)
                 thresholds["below"] = {"minimum": minimum, "maximum": maximum}
             else:
                 thresholds["below"] = None
@@ -236,7 +236,8 @@ def get_thresholds(
                     minimum = -np.Infinity
                 if threshold_std_dev["above"][1] is not None:
                     maximum = threshold(image, method="mean") + threshold_std_dev["above"][1] * np.nanstd(image)
-                # thresholds["above"] = threshold(image, method="mean") + threshold_std_dev["above"] * np.nanstd(image)
+                else:
+                    maximum = np.Infinity
                 thresholds["above"] = {"minimum": minimum, "maximum": maximum}
             else:
                 thresholds["above"] = None
@@ -253,7 +254,6 @@ def get_thresholds(
                 maximum = absolute["below"][1]
             else:
                 maximum = -np.Infinity
-
             thresholds["below"] = {"minimum": minimum, "maximum": maximum}
         else:
             thresholds["below"] = None

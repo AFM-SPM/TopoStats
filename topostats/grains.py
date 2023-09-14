@@ -305,7 +305,7 @@ class Grains:
             self.directions[direction] = {}
             self.directions[direction]["mask_grains"] = _get_mask(
                 self.image,
-                thresh=self.thresholds[direction],
+                thresholds=self.thresholds[direction],
                 threshold_direction=direction,
                 img_name=self.filename,
             )
