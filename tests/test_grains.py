@@ -194,7 +194,7 @@ def test_remove_edge_intersecting_grains(
 
     # Ensure that a sensible number of grains are found
     grains_config["remove_edge_intersecting_grains"] = remove_edge_intersecting_grains
-    grains_config["threshold_absolute"]["above"] = 1.0
+    grains_config["threshold_absolute"]["above"] = [1.0, None]
     grains_config["threshold_method"] = "absolute"
     grains_config["smallest_grain_size_nm2"] = 20
     grains_config["absolute_area_threshold"]["above"] = [20, 10000000]

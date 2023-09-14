@@ -37,8 +37,8 @@ def default_config() -> Dict:
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
     config["filter"]["threshold_method"] = "std_dev"
     config["grains"]["threshold_method"] = "absolute"
-    config["grains"]["threshold_absolute"]["above"] = 1.0
-    config["grains"]["threshold_absolute"]["below"] = -1.0
+    config["grains"]["threshold_absolute"]["above"] = [1.0, None]
+    config["grains"]["threshold_absolute"]["below"] = [-1.0, None]
     config["grains"]["smallest_grain_size_nm2"] = 10
     config["grains"]["absolute_area_threshold"]["above"] = [10, 60000000]
     return config
@@ -48,7 +48,7 @@ def default_config() -> Dict:
 def process_scan_config() -> Dict:
     """Sample configuration"""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
-    config["grains"]["threshold_std_dev"]["below"] = 1.0
+    config["grains"]["threshold_std_dev"]["below"] = [1.0, None]
     config["grains"]["absolute_area_threshold"]["above"] = [500, 800]
     config["plotting"]["zrange"] = [0, 3]
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
@@ -449,7 +449,7 @@ def minicircle_threshold_stddev(minicircle_initial_tilt_removal: Filters) -> Fil
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        threshold_std_dev={"below": 10.0, "above": 1.0},
+        threshold_std_dev={"below": [10.0, None], "above": [1.0, None]},
     )
     return minicircle_initial_tilt_removal
 
@@ -461,7 +461,7 @@ def minicircle_threshold_abs(minicircle_initial_tilt_removal: Filters) -> Filter
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="absolute",
         otsu_threshold_multiplier=None,
-        absolute={"below": -1.5, "above": 1.5},
+        absolute={"below": [-1.5, None], "above": [1.5, None]},
     )
     return minicircle_initial_tilt_removal
 
@@ -547,7 +547,7 @@ def minicircle_grain_threshold_stddev(minicircle_grains: Grains, grains_config: 
         image=minicircle_grains.image,
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        threshold_std_dev={"below": 10.0, "above": 1.0},
+        threshold_std_dev={"below": [10.0, None], "above": [1.0, None]},
         absolute=None,
     )
     return minicircle_grains
@@ -560,7 +560,7 @@ def minicircle_grain_threshold_abs(minicircle_grains: Grains) -> Grains:
         image=minicircle_grains.image,
         threshold_method="absolute",
         otsu_threshold_multiplier=None,
-        absolute={"below": -1.0, "above": 1.0},
+        absolute={"below": [-1.0, None], "above": [1.0, None]},
     )
     return minicircle_grains
 

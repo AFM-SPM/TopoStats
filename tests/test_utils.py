@@ -1,6 +1,5 @@
 """Test utils."""
 from pathlib import Path
-from typing import Union
 
 import numpy as np
 import pytest
@@ -19,8 +18,8 @@ from topostats.utils import (
 
 THRESHOLD_OPTIONS = {
     "otsu_threshold_multiplier": 1.7,
-    "threshold_std_dev": {"below": 10.0, "above": 1.0},
-    "absolute": {"below": -1.5, "above": 1.5},
+    "threshold_std_dev": {"below": [10.0, None], "above": [1.0, None]},
+    "absolute": {"below": [-1.5, None], "above": [1.5, None]},
 }
 
 
@@ -78,7 +77,7 @@ def test_get_thresholds_otsu(image_random: np.ndarray) -> None:
     assert set(thresholds.keys()) == {"above", "below"}
     assert set(thresholds["above"].keys()) == {"minimum", "maximum"}
     assert thresholds["above"]["minimum"] == 0.8466799787547299
-    assert np.isinf(thresholds["above"]["maximum"]), "Maximum value should be infinite for otsu above threshold"
+    assert np.isposinf(thresholds["above"]["maximum"]), "Maximum value should be infinite for otsu above threshold"
     assert thresholds["below"] is None
 
 
@@ -114,12 +113,16 @@ def test_get_thresholds_stddev(
         if expected_value_thresholds[direction] is None:
             assert thresholds[direction] is None
         else:
-            if np.isinf(expected_value_thresholds[direction]["minimum"]):
-                assert np.isinf(thresholds[direction]["minimum"])
+            if np.isposinf(expected_value_thresholds[direction]["minimum"]):
+                assert np.isposinf(thresholds[direction]["minimum"])
+            if np.isneginf(expected_value_thresholds[direction]["minimum"]):
+                assert np.isneginf(thresholds[direction]["minimum"])
             else:
                 assert expected_value_thresholds[direction]["minimum"] == thresholds[direction]["minimum"]
-            if np.isinf(expected_value_thresholds[direction]["maximum"]):
-                assert np.isinf(thresholds[direction]["maximum"])
+            if np.isposinf(expected_value_thresholds[direction]["maximum"]):
+                assert np.isposinf(thresholds[direction]["maximum"])
+            if np.isneginf(expected_value_thresholds[direction]["maximum"]):
+                assert np.isneginf(thresholds[direction]["maximum"])
             else:
                 assert expected_value_thresholds[direction]["maximum"] == thresholds[direction]["maximum"]
 
@@ -134,7 +137,10 @@ def test_get_thresholds_absolute(image_random: np.ndarray) -> None:
     """Test of get_thresholds() method with absolute threshold."""
     thresholds = get_thresholds(image=image_random, threshold_method="absolute", **THRESHOLD_OPTIONS)
     assert isinstance(thresholds, dict)
-    assert thresholds == {"above": 1.5, "below": -1.5}
+    assert thresholds["above"]["minimum"] == 1.5
+    assert np.isposinf(thresholds["above"]["maximum"])
+    assert thresholds["below"]["minimum"] == -1.5
+    assert np.isneginf(thresholds["below"]["maximum"])
 
 
 def test_get_thresholds_type_error(image_random: np.ndarray) -> None:

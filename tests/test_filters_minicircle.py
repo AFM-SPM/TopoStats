@@ -33,21 +33,26 @@ def test_remove_quadratic_unmasked(minicircle_initial_quadratic_removal: Filters
 def test_get_threshold_otsu(minicircle_threshold_otsu: np.array) -> None:
     """Test calculation of threshold."""
     assert isinstance(minicircle_threshold_otsu.thresholds, dict)
-    assert minicircle_threshold_otsu.thresholds["above"] == pytest.approx(0.4990958836019106)
+    assert minicircle_threshold_otsu.thresholds["above"]["minimum"] == pytest.approx(0.4990958836019106)
+    assert np.isposinf(minicircle_threshold_otsu.thresholds["above"]["maximum"])
 
 
 def test_get_threshold_stddev(minicircle_threshold_stddev: np.array) -> None:
     """Test calculation of threshold."""
     assert isinstance(minicircle_threshold_stddev.thresholds, dict)
-    assert minicircle_threshold_stddev.thresholds == pytest.approx(
-        {"below": -7.484708050736529, "above": 0.4990958836019106}
-    )
+    assert minicircle_threshold_stddev.thresholds["above"]["minimum"] == 0.4990958836019106
+    assert np.isposinf(minicircle_threshold_stddev.thresholds["above"]["maximum"])
+    assert minicircle_threshold_stddev.thresholds["below"]["minimum"] == -7.484708050736529
+    assert np.isneginf(minicircle_threshold_stddev.thresholds["below"]["maximum"])
 
 
 def test_get_threshold_abs(minicircle_threshold_abs: np.array) -> None:
     """Test calculation of threshold."""
     assert isinstance(minicircle_threshold_abs.thresholds, dict)
-    assert minicircle_threshold_abs.thresholds == {"above": 1.5, "below": -1.5}
+    assert minicircle_threshold_abs.thresholds["above"]["minimum"] == 1.5
+    assert np.isposinf(minicircle_threshold_abs.thresholds["above"]["maximum"])
+    assert minicircle_threshold_abs.thresholds["below"]["minimum"] == -1.5
+    assert np.isneginf(minicircle_threshold_abs.thresholds["below"]["maximum"])
 
 
 def test_get_mask(minicircle_mask: Filters) -> None:
