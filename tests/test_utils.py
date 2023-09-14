@@ -1,5 +1,6 @@
 """Test utils."""
 from pathlib import Path
+from typing import Union
 
 import numpy as np
 import pytest
@@ -11,6 +12,8 @@ from topostats.utils import (
     update_plotting_config,
     create_empty_dataframe,
     ALL_STATISTICS_COLUMNS,
+    _get_mask,
+    get_and_combine_directional_masks,
 )
 
 
@@ -72,14 +75,56 @@ def test_get_thresholds_otsu(image_random: np.ndarray) -> None:
     thresholds = get_thresholds(image=image_random, threshold_method="otsu", **THRESHOLD_OPTIONS)
 
     assert isinstance(thresholds, dict)
-    assert thresholds == {"above": 0.8466799787547299}
+    assert set(thresholds.keys()) == {"above", "below"}
+    assert set(thresholds["above"].keys()) == {"minimum", "maximum"}
+    assert thresholds["above"]["minimum"] == 0.8466799787547299
+    assert np.isinf(thresholds["above"]["maximum"]), "Maximum value should be infinite for otsu above threshold"
+    assert thresholds["below"] is None
 
 
-def test_get_thresholds_stddev(image_random: np.ndarray) -> None:
+@pytest.mark.parametrize(
+    "config_std_dev_thresholds, expected_value_thresholds",
+    [
+        (
+            {"below": [10.0, None], "above": [1.0, None]},
+            {
+                "below": {"minimum": -2.3866804917165663, "maximum": -np.Infinity},
+                "above": {"minimum": 0.7886033762450778, "maximum": np.Infinity},
+            },
+        ),
+        (
+            {"below": None, "above": [None, 1.0]},
+            {"below": None, "above": {"minimum": -np.Infinity, "maximum": 0.7886033762450778}},
+        ),
+    ],
+)
+def test_get_thresholds_stddev(
+    image_random: np.ndarray, config_std_dev_thresholds: dict, expected_value_thresholds: dict
+) -> None:
     """Test of get_thresholds() method with mean threshold."""
+
+    THRESHOLD_OPTIONS["threshold_std_dev"] = config_std_dev_thresholds
+
     thresholds = get_thresholds(image=image_random, threshold_method="std_dev", **THRESHOLD_OPTIONS)
     assert isinstance(thresholds, dict)
-    assert thresholds == {"below": -2.3866804917165663, "above": 0.7886033762450778}
+    # assert thresholds == {"below": {"minimum": -2.3866804917165663, "maximum"}, "above": {0.7886033762450778}
+    assert set(thresholds.keys()) == {"above", "below"}
+    # Check the values of the thresholds. Annoyingly it's complicated to do since np.Infinity != np.Infinity.
+    for direction in ["above", "below"]:
+        if expected_value_thresholds[direction] is None:
+            assert thresholds[direction] is None
+        else:
+            if np.isinf(expected_value_thresholds[direction]["minimum"]):
+                assert np.isinf(thresholds[direction]["minimum"])
+            else:
+                assert expected_value_thresholds[direction]["minimum"] == thresholds[direction]["minimum"]
+            if np.isinf(expected_value_thresholds[direction]["maximum"]):
+                assert np.isinf(thresholds[direction]["maximum"])
+            else:
+                assert expected_value_thresholds[direction]["maximum"] == thresholds[direction]["maximum"]
+
+    if expected_value_thresholds["above"] is None:
+        assert thresholds["above"] is None
 
     with pytest.raises(TypeError):
         thresholds = get_thresholds(image=image_random, threshold_method="std_dev")
@@ -112,3 +157,121 @@ def test_create_empty_dataframe() -> None:
     assert "molecule_number" not in empty_df.columns
     assert empty_df.shape == (0, 26)
     assert {"image", "basename", "area"}.intersection(empty_df.columns)
+
+
+@pytest.mark.parametrize(
+    "minimum_threshold, maximum_threshold, threshold_direction, expected",
+    [
+        (
+            1.0,
+            4.0,
+            "above",
+            np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 0, 0]]),
+        ),
+        (
+            -2.5,
+            2.0,
+            "above",
+            np.array([[0, 0, 0, 0, 0], [0, 1, 1, 1, 1], [1, 1, 1, 1, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+        ),
+        (
+            4.0,
+            np.Infinity,
+            "above",
+            np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 1], [1, 1, 1, 1, 1]]),
+        ),
+        (
+            -np.Infinity,
+            4.0,
+            "above",
+            np.array([[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 0, 0]]),
+        ),
+        (
+            -1.0,
+            -4.0,
+            "below",
+            np.array([[0, 0, 0, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+        ),
+        (
+            2.5,
+            -2.0,
+            "below",
+            np.array([[0, 0, 0, 0, 0], [0, 0, 1, 1, 1], [1, 1, 1, 1, 1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+        ),
+        (
+            -4.0,
+            -np.Infinity,
+            "below",
+            np.array([[1, 1, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+        ),
+        (
+            np.Infinity,
+            -4.0,
+            "below",
+            np.array([[0, 0, 0, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]]),
+        ),
+    ],
+)
+def test_get_mask(
+    minimum_threshold: float, maximum_threshold: float, threshold_direction: str, expected: np.ndarray
+) -> None:
+    """Test the _get_mask fuction of utils.py, ensuring that the correct values in images are masked."""
+
+    image = np.array(
+        [
+            [-5.0, -4.5, -4.0, -3.5, -3.0],
+            [-2.5, -2.0, -1.5, -1.0, -0.5],
+            [+0.0, +0.5, +1.0, +1.5, +2.0],
+            [+2.5, +3.0, +3.5, +4.0, +4.5],
+            [+5.0, +5.5, +6.0, +7.5, +8.0],
+        ]
+    )
+
+    thresholds = {"minimum": minimum_threshold, "maximum": maximum_threshold}
+
+    result = _get_mask(image=image, thresholds=thresholds, threshold_direction=threshold_direction)
+
+    np.testing.assert_array_equal(result, expected)
+
+
+@pytest.mark.parametrize(
+    "thresholds, expected",
+    [
+        (
+            {
+                "above": {"minimum": 1.0, "maximum": 4.0},
+                "below": {"minimum": -1.0, "maximum": -4.0},
+            },
+            np.array([[0, 0, 0, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 0, 0]]),
+        ),
+        (
+            {"above": {"minimum": 1.0, "maximum": 4.0}, "below": None},
+            np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 0, 0]]),
+        ),
+        (
+            {
+                "above": None,
+                "below": {"minimum": -1.0, "maximum": -4.0},
+            },
+            np.array([[0, 0, 0, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+        ),
+    ],
+)
+def test_get_and_combine_directional_masks(thresholds: dict, expected: np.ndarray) -> None:
+    """Test the get_and_combine_directional_masks function of utils.py, ensuring that the correct
+    directional masks are added together and returned
+    """
+
+    image = np.array(
+        [
+            [-5.0, -4.5, -4.0, -3.5, -3.0],
+            [-2.5, -2.0, -1.5, -1.0, -0.5],
+            [+0.0, +0.5, +1.0, +1.5, +2.0],
+            [+2.5, +3.0, +3.5, +4.0, +4.5],
+            [+5.0, +5.5, +6.0, +7.5, +8.0],
+        ]
+    )
+
+    result = get_and_combine_directional_masks(image, thresholds=thresholds)
+
+    np.testing.assert_array_equal(result, expected)
