@@ -11,7 +11,7 @@ import numpy as np
 
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.utils import get_thresholds, get_mask
+from topostats.utils import get_thresholds, get_and_combine_directional_masks
 from topostats import scars
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -431,7 +431,7 @@ processed, please refer to <url to page where we document common problems> for m
             )
         except TypeError as type_error:
             raise type_error
-        self.images["mask"] = get_mask(
+        self.images["mask"] = get_and_combine_directional_masks(
             image=self.images["initial_scar_removal"], thresholds=self.thresholds, img_name=self.filename
         )
         self.images["masked_median_flatten"] = self.median_flatten(

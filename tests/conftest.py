@@ -15,7 +15,7 @@ from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, LoadScans
 from topostats.plotting import TopoSum
 from topostats.tracing.dnatracing import dnaTrace
-from topostats.utils import get_thresholds, get_mask, _get_mask
+from topostats.utils import get_thresholds, get_and_combine_directional_masks, _get_mask
 
 
 # This is required because of the inheritance used throughout
@@ -268,7 +268,9 @@ def test_filters_random_with_mask(filter_config: dict, test_filters: Filters, im
         threshold_method="otsu",
         otsu_threshold_multiplier=filter_config["otsu_threshold_multiplier"],
     )
-    test_filters.images["mask"] = get_mask(image=test_filters.images["pixels"], thresholds=thresholds)
+    test_filters.images["mask"] = get_and_combine_directional_masks(
+        image=test_filters.images["pixels"], thresholds=thresholds
+    )
     return test_filters
 
 
@@ -467,7 +469,7 @@ def minicircle_threshold_abs(minicircle_initial_tilt_removal: Filters) -> Filter
 @pytest.fixture
 def minicircle_mask(minicircle_threshold_otsu: Filters) -> Filters:
     """Derive mask based on threshold."""
-    minicircle_threshold_otsu.images["mask"] = get_mask(
+    minicircle_threshold_otsu.images["mask"] = get_and_combine_directional_masks(
         image=minicircle_threshold_otsu.images["initial_tilt_removal"], thresholds=minicircle_threshold_otsu.thresholds
     )
     return minicircle_threshold_otsu
@@ -569,7 +571,7 @@ def minicircle_grain_mask(minicircle_grain_threshold_abs: Grains) -> Grains:
     minicircle_grain_threshold_abs.directions["above"] = {}
     minicircle_grain_threshold_abs.directions["above"]["mask_grains"] = _get_mask(
         image=minicircle_grain_threshold_abs.image,
-        thresh=minicircle_grain_threshold_abs.thresholds["above"],
+        thresholds=minicircle_grain_threshold_abs.thresholds["above"],
         threshold_direction="above",
         img_name=minicircle_grain_threshold_abs.filename,
     )
