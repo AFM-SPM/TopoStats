@@ -27,7 +27,7 @@ def test_image_statistics(image_random: np.ndarray) -> None:
 
     # Construct the expected dataframe
     expected_columns = [
-        "Image",
+        "image",
         "image_size_x_m",
         "image_size_y_m",
         "image_area_m2",
@@ -57,7 +57,7 @@ def test_image_statistics(image_random: np.ndarray) -> None:
         ]
     ]
     expected_df = pd.DataFrame(expected_data, columns=expected_columns)
-    expected_df.set_index("Image", inplace=True)
+    expected_df.set_index("image", inplace=True)
 
     # This was the only way I could find to do it, as pandas' assert_frame_equal will
     # take 5e-10 and 4e-10 to be equal.
