@@ -453,27 +453,27 @@ def convert_basename_to_relative_paths(df: pd.DataFrame):
 
 class Scale:
     """Hold scaling factors and convert value by multiplying.
-        It can hold conversion factors for image like "pixel_x_in_nm"
+    It can hold conversion factors for image like "pixel_x_in_nm"
     """
     def __init__(self, config_dict):
-        """ Instantiate scaling factors using configuration.yaml.
-            default_config["loading"]["scale"] should have the dict.
+        """Instantiate scaling factors using configuration.yaml.
+        default_config["loading"]["scale"] should have the dict.
         """
         self._factors = config_dict
 
     def in_nm(self, value_from, unit_from) -> float:
-        """ Return value in nanometre from value and its unit"""
+        """Return value in nanometre from value and its unit"""
         return self.get_value("nm", value_from, unit_from)
 
     def get_value(self, unit_to, value_from, unit_from) -> float:
         return value_from * self.get_factor(unit_to, unit_from)
 
     def get_factor(self, unit_to, unit_from) -> float:
-        """ Conversion factor from a unit to another unit"""
+        """Conversion factor from a unit to another unit"""
         return float(self._factors[unit_to][unit_from])
 
     def add_factor(self, unit_to, unit_from, factor):
-        """ Add a factor with the arguments. """
+        """Add a factor with the arguments. """
         if not unit_to in self._factors:
             self._factors[unit_to] = {}
         if not unit_from in self._factors[unit_to]:
@@ -891,9 +891,9 @@ class LoadScans:
             LOGGER.info(self.scale)
 
             reg_gwy_idx = r"\/(\d+)\/data$"
-            for component in image_data_dict.keys(): # component is like '/0/data', /4/data/title'
+            for component in image_data_dict.keys():  # component is like '/0/data', /4/data/title'
                 match = re.match(reg_gwy_idx, component)
-                if match == None: # not data field
+                if match == None:  # not data field
                     continue
                 LOGGER.debug(f"DataField exists in the container at {match[1]}")
                 channel_dict = image_data_dict[component]
@@ -902,25 +902,32 @@ class LoadScans:
                     if key != "si_unit_z":
                         continue
                     units = channel_dict[key]["unitstr"]
-                    if units[len(units) - 1] != "m": # units doesn't end with m
+                    if units[len(units) - 1] != "m":  # units doesn't end with m
                         continue
                     if not has_image_found:
                         image = channel_dict["data"]
                         LOGGER.info(f"\t({self.filename}) has topography image with z-height data({units}).")
-                        if self.scale.is_available("nm",units):  # m, um, mm conversion
+                        if self.scale.is_available("nm", units):  # m, um, mm conversion
                             scale = self.scale.get_factor("nm", units)
                             image = image * scale
                         else:
                             raise ValueError(
                                 f"Units '{units}' have not been added in configuration file. \
-                                    an SI to nanometre conversion factor for these units default_config.yaml.")
+                                    an SI to nanometre conversion factor for these units default_config.yaml."
+                                    )
 
-                        m2nm = self.scale.get_factor("nm","m")
+                        m2nm = self.scale.get_factor("nm", "m")
                         px_to_nm = image_data_dict[component]["xreal"] * m2nm / float(image.shape[1])
                         # scale instance holds the scaling factors for image data, then will be copied to img_dict
-                        self.scale.add_factor("nm","px_to_nm",   image_data_dict[component]["xreal"] * m2nm / image.shape[1])
-                        self.scale.add_factor("nm","px_to_nm_x", image_data_dict[component]["xreal"] * m2nm / image.shape[1])
-                        self.scale.add_factor("nm","px_to_nm_y", image_data_dict[component]["yreal"] * m2nm / image.shape[0])
+                        self.scale.add_factor(
+                            "nm","px_to_nm",   image_data_dict[component]["xreal"] * m2nm / image.shape[1]
+                            )
+                        self.scale.add_factor(
+                            "nm","px_to_nm_x", image_data_dict[component]["xreal"] * m2nm / image.shape[1]
+                            )
+                        self.scale.add_factor(
+                            "nm","px_to_nm_y", image_data_dict[component]["yreal"] * m2nm / image.shape[0]
+                            )
                         has_image_found = True
 
                 if not has_image_found:
@@ -1008,7 +1015,7 @@ class LoadScans:
         }
         # Copy scale instance to img_dict, only gwy loader has the attribute now,
         # attribute of img_dict is checked.
-        if hasattr(self,"scale"):
+        if hasattr(self, "scale"):
             LOGGER.info("Scaling factors are stored in img_dict[filename][scale] as Scale objct.")
             self.img_dict[self.filename]["scale"] = self.scale
 
