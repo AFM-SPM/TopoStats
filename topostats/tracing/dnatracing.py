@@ -1201,11 +1201,12 @@ class nodeStats:
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
             np.savetxt("/Users/laurawiggins/Desktop/conv.txt", self.connected_nodes)
-            self.connect_extended_nodes(self.connected_nodes)
+            self.connected_nodes = self.connect_extended_nodes(self.connected_nodes)
             #np.savetxt(OUTPUT_DIR / "img.txt", self.image)
             #np.savetxt(OUTPUT_DIR / "untidied.txt", self.connected_nodes)
             #self.connected_nodes = self.tidy_branches(self.connected_nodes, self.image)
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
+            np.savetxt("/Users/laurawiggins/Desktop/centre_mask.txt", self.node_centre_mask)
             self.analyse_nodes(box_length=20e-9)
         return self.node_dict
         #self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
@@ -1386,7 +1387,7 @@ class nodeStats:
 
         """
         # santity check for box length (too small can cause empty sequence error)
-        length = int((box_length / 2) / self.px_2_nm)
+        length = int(((box_length) / self.px_2_nm)) #int((box_length / 2) / self.px_2_nm)
         if length < 10:
             LOGGER.info(f"Readapted Box Length from {box_length}nm or {2*length}px to 20px")
             length = 10
@@ -1413,6 +1414,8 @@ class nodeStats:
             #np.savetxt(OUTPUT_DIR / "node.txt", node_area)
             reduced_node_area = self._only_centre_branches(node_area)
             branch_mask = reduced_node_area.copy()
+            np.savetxt(f"/Users/laurawiggins/Desktop/branch_mask{node_no}.txt", branch_mask)
+            
             branch_mask[branch_mask == 3] = 0
             branch_mask[branch_mask == 2] = 1
             node_coords = np.argwhere(reduced_node_area == 3)
