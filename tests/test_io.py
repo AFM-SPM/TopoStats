@@ -366,14 +366,14 @@ def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
     assert image.sum() == 33836850.232917726
     assert isinstance(px_to_nm_scaling, float)
     assert px_to_nm_scaling == 0.8468632812499975
-    #Test loading landscape .gwy file.
+    # Test loading landscape .gwy file.
     load_scan_gwy.img_path = load_scan_gwy.img_paths[1]
     load_scan_gwy.filename = load_scan_gwy.img_paths[1].stem
     image, px_to_nm_scaling = load_scan_gwy.load_gwy()
-    expected_sum = 1.9190233924574975e+2 # calculated in Gwyddion + numpy 1.9.2
+    expected_sum = 1.9190233924574975e2  # calculated in Gwyddion + numpy 1.9.2
     assert abs(image.sum() - expected_sum) < 1e-10
     assert isinstance(image, np.ndarray)
-    assert image.shape == (170, 220) # (height, width)
+    assert image.shape == (170, 220)  # (height, width)
     assert isinstance(px_to_nm_scaling, float)
     # conventional parameter, px_to_nm_scaling
     expected_scaling_x = 1000.0 / 220.0
@@ -428,14 +428,14 @@ def test_scale() -> None:
     if "scale" not in test_config["loading"]:
         raise KeyError("Scale is not defined in test_scale_config.yaml")
     scale = Scale(test_config["loading"]["scale"])
-    assert scale.is_available("nm","m") == True
-    assert scale.get_factor("nm","um") == 1000
-    assert scale.in_nm(1.0,"um") == 1000
-    assert scale.in_nm(1.0,"mm") == 1000000
-    scale.add_factor("nm","pixel_x_in_nm",1000/220)
-    scale.add_factor("nm","pixel_y_in_nm",1000/170)
-    assert abs(scale.in_nm(220,"pixel_x_in_nm") - 1000) < 1e-10
-    assert abs(scale.in_nm(170,"pixel_y_in_nm") - 1000) < 1e-10
+    assert scale.is_available("nm", "m") == True
+    assert scale.get_factor("nm", "um") == 1000
+    assert scale.in_nm(1.0, "um") == 1000
+    assert scale.in_nm(1.0, "mm") == 1000000
+    scale.add_factor("nm", "pixel_x_in_nm", 1000 / 220)
+    scale.add_factor("nm", "pixel_y_in_nm", 1000 / 170)
+    assert abs(scale.in_nm(220, "pixel_x_in_nm") - 1000) < 1e-10
+    assert abs(scale.in_nm(170, "pixel_y_in_nm") - 1000) < 1e-10
 
 
 # FIXME : Get this test working
