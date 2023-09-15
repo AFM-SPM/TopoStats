@@ -475,7 +475,7 @@ class Scale:
         return float(self._factors[unit_to][unit_from])
 
     def add_factor(self, unit_to, unit_from, factor):
-        """ Add a factor with the arguments. """
+        """Add a factor with the arguments."""
         if not unit_to in self._factors:
             self._factors[unit_to] = {}
         if not unit_from in self._factors[unit_to]:
@@ -915,14 +915,21 @@ class LoadScans:
                         else:
                             raise ValueError(
                                 f"Units '{units}' have not been added in configuration file. \
-                                    an SI to nanometre conversion factor for these units default_config.yaml.")
+                                    an SI to nanometre conversion factor for these units default_config.yaml."
+                            )
 
                         m2nm = self.scale.get_factor("nm", "m")
                         px_to_nm = image_data_dict[component]["xreal"] * m2nm / float(image.shape[1])
                         # scale instance holds the scaling factors for image data, then will be copied to img_dict
-                        self.scale.add_factor("nm","px_to_nm",   image_data_dict[component]["xreal"] * m2nm / image.shape[1])
-                        self.scale.add_factor("nm","px_to_nm_x", image_data_dict[component]["xreal"] * m2nm / image.shape[1])
-                        self.scale.add_factor("nm","px_to_nm_y", image_data_dict[component]["yreal"] * m2nm / image.shape[0])
+                        self.scale.add_factor(
+                            "nm", "px_to_nm", image_data_dict[component]["xreal"] * m2nm / image.shape[1]
+                        )
+                        self.scale.add_factor(
+                            "nm", "px_to_nm_x", image_data_dict[component]["xreal"] * m2nm / image.shape[1]
+                        )
+                        self.scale.add_factor(
+                            "nm", "px_to_nm_y", image_data_dict[component]["yreal"] * m2nm / image.shape[0]
+                        )
                         has_image_found = True
 
                 if not has_image_found:
