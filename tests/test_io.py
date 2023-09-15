@@ -19,6 +19,7 @@ from topostats.io import (
     get_out_path,
     path_to_str,
     save_folder_grainstats,
+    Scale,
     LoadScans,
     save_pkl,
     load_pkl,
@@ -359,11 +360,24 @@ def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
     load_scan_gwy.img_path = load_scan_gwy.img_paths[0]
     load_scan_gwy.filename = load_scan_gwy.img_paths[0].stem
     image, px_to_nm_scaling = load_scan_gwy.load_gwy()
+    assert len(load_scan_gwy.img_paths) == 2
     assert isinstance(image, np.ndarray)
     assert image.shape == (512, 512)
     assert image.sum() == 33836850.232917726
     assert isinstance(px_to_nm_scaling, float)
     assert px_to_nm_scaling == 0.8468632812499975
+    #Test loading landscape .gwy file.
+    load_scan_gwy.img_path = load_scan_gwy.img_paths[1]
+    load_scan_gwy.filename = load_scan_gwy.img_paths[1].stem
+    image, px_to_nm_scaling = load_scan_gwy.load_gwy()
+    expected_sum = 1.9190233924574975e+2 # calculated in Gwyddion + numpy 1.9.2
+    assert abs(image.sum() - expected_sum) < 1e-10
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (170, 220) # (height, width)
+    assert isinstance(px_to_nm_scaling, float)
+    # conventional parameter, px_to_nm_scaling
+    expected_scaling_x = 1000.0 / 220.0
+    assert abs(px_to_nm_scaling - expected_scaling_x) < 1e-10
 
 
 def test_load_scan_topostats(load_scan_topostats: LoadScans) -> None:
@@ -409,6 +423,21 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
         assert list(test_dict.values()) == [{"test nested component": 3}]
 
 
+def test_scale() -> None:
+    test_config = read_yaml(RESOURCES / "test_scale_config.yaml")
+    if "scale" not in test_config["loading"]:
+        raise KeyError("Scale is not defined in test_scale_config.yaml")
+    scale = Scale(test_config["loading"]["scale"])
+    assert scale.is_available("nm","m") == True
+    assert scale.get_factor("nm","um") == 1000
+    assert scale.in_nm(1.0,"um") == 1000
+    assert scale.in_nm(1.0,"mm") == 1000000
+    scale.add_factor("nm","pixel_x_in_nm",1000/220)
+    scale.add_factor("nm","pixel_y_in_nm",1000/170)
+    assert abs(scale.in_nm(220,"pixel_x_in_nm") - 1000) < 1e-10
+    assert abs(scale.in_nm(170,"pixel_y_in_nm") - 1000) < 1e-10
+
+
 # FIXME : Get this test working
 # @pytest.mark.parametrize(
 #     "unit, x, y, expected",
@@ -431,7 +460,7 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
         ("load_scan_spm", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
         ("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625),
         ("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876),
-        ("load_scan_gwy", 1, (512, 512), 33836850.232917726, "file", 0.8468632812499975),
+        ("load_scan_gwy", 2, (512, 512), 33836850.232917726, "file", 0.8468632812499975),
         ("load_scan_topostats", 1, (1024, 1024), 182067.12616107278, "file", 0.4940029296875),
     ],
 )
@@ -455,6 +484,14 @@ def test_load_scan_get_data(
     assert scan.img_dict[filename]["img_path"] == RESOURCES / filename
     assert isinstance(scan.img_dict[filename]["pixel_to_nm_scaling"], float)
     assert scan.img_dict[filename]["pixel_to_nm_scaling"] == pixel_to_nm_scaling
+
+    # Scale object holds conversion factors of image
+    # Not all file format doesn't have it yet.
+    if "scale" in scan.img_dict[filename]:
+        scale = scan.img_dict[filename]["scale"]
+        assert isinstance(scale.get_factor("nm", "px_to_nm_x"), float)
+        assert scale.get_factor("nm", "px_to_nm_x") == pixel_to_nm_scaling
+        assert isinstance(scale.get_factor("nm", "px_to_nm_y"), float)
 
 
 @pytest.mark.parametrize(

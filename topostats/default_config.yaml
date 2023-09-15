@@ -5,6 +5,9 @@ cores: 2 # Number of CPU cores to utilise for processing multiple files simultan
 file_ext: .spm # File extension of the data files.
 loading:
   channel: Height # Channel to pull data from in the data files.
+  scale:
+    nm:
+      {m: 1e9, mm: 1e6, um: 1e3} # factors to convert to nm
 filter:
   run: true # Options : true, false
   row_alignment_quantile: 0.5 # below values may improve flattening of larger features

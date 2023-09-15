@@ -7,7 +7,7 @@ import struct
 from pathlib import Path
 import pickle as pkl
 from typing import Any, Dict, List, Union
-import regex
+import re
 
 import numpy as np
 import pandas as pd
@@ -17,6 +17,8 @@ import tifffile
 import h5py
 from ruamel.yaml import YAML, YAMLError
 from ruamel.yaml.main import round_trip_load as yaml_load, round_trip_dump as yaml_dump
+import importlib.resources as pkg_resources
+import yaml
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -449,6 +451,47 @@ def convert_basename_to_relative_paths(df: pd.DataFrame):
 
     return df
 
+class Scale:
+    """Hold scaling factors and convert value by multiplying.
+        It can hold conversion factors for image like "pixel_x_in_nm"
+    """
+    def __init__(self, config_dict):
+        """ Instantiate scaling factors using configuration.yaml.
+            default_config["loading"]["scale"] should have the dict.
+        """
+        self._factors = config_dict
+
+    def in_nm(self, value_from, unit_from) -> float:
+        """ Return value in nanometre from value and its unit"""
+        return self.get_value("nm", value_from, unit_from)
+
+    def get_value(self, unit_to, value_from, unit_from) -> float:
+        return value_from * self.get_factor(unit_to, unit_from)
+
+    def get_factor(self, unit_to, unit_from) -> float:
+        """ Conversion factor from a unit to another unit"""
+        return float(self._factors[unit_to][unit_from])
+
+    def add_factor(self, unit_to, unit_from, factor):
+        """ Add a factor with the arguments. """
+        if not unit_to in self._factors:
+            self._factors[unit_to] = {}
+        if not unit_from in self._factors[unit_to]:
+            self._factors[unit_to][unit_from] = {}
+        self._factors[unit_to][unit_from] = float(factor)
+
+    def is_available(self, unit_to, unit_from) -> bool:
+        if unit_to not in self._factors:
+            return False
+        return unit_from in self._factors[unit_to]
+
+    def __str__(self) -> str:
+        s = ""
+        for to_key in self._factors.keys():
+            for from_key in self._factors[to_key].keys():
+                s += f"1({to_key})={self._factors[to_key][from_key]}({from_key}),"
+        return s[:-1]
+
 
 # pylint: disable=too-many-instance-attributes
 class LoadScans:
@@ -840,49 +883,45 @@ class LoadScans:
             image = None
             has_image_found = False
             units = ""
+            # How can we get current configuration["loading"] ?
+            # default_config.yaml is used to get conf["loading"]["scale"]
+            default_config = pkg_resources.open_text(__package__, "default_config.yaml").read()
+            config = yaml.safe_load(default_config)
+            self.scale = Scale(config["loading"]["scale"])
+            LOGGER.info(self.scale)
 
-            re = r"\/(\d+)\/data$"
-            components = list(image_data_dict.keys())
-            conv_factors = {"m": 1e9, "um": 1e6, "mm": 1e3}
-            for component in components:
-                match = regex.match(re, component)
-                if match == None:
+            reg_gwy_idx = r"\/(\d+)\/data$"
+            for component in image_data_dict.keys(): # component is like '/0/data', /4/data/title'
+                match = re.match(reg_gwy_idx, component)
+                if match == None: # not data field
                     continue
-                idx = int(match[1])
-                LOGGER.info(f"Channel found at {idx}")
+                LOGGER.debug(f"DataField exists in the container at {match[1]}")
                 channel_dict = image_data_dict[component]
-                LOGGER.info(f"Guessing if this chchannel is height")
+                # check if this data contains z-height values
                 for key in channel_dict.keys():
-                    if key == "si_unit_z":
-                        u = channel_dict[key]["unitstr"]
-                        if u[len(u) - 1] == "m":  # True if m,um,mm or *m
-                            LOGGER.info(f"\t{key} : {channel_dict[key]}, maybe topography.")
-                            if not has_image_found:
-                                image = image_data_dict[component]["data"]
-                                units = image_data_dict[component][key]["unitstr"]
-                                LOGGER.info(f"\tUnit for Z of this topography is {units}")
-                                if units in conv_factors:  # m, um, mm conversion
-                                    factor = conv_factors[units]
-                                    image = image * factor
-                                else:
-                                    raise ValueError(
-                                        f"Units '{units}' have not been added for .gwy files. Please add \
-                                        an SI to nanometre conversion factor for these units in _gwy_read_component in \
-                                        io.py."
-                                    )
-                                px_to_nm = image_data_dict[component]["xreal"] * 1e9 / image.shape[1]
-                                # TODO: xy units and z units should be separately considered.
-                                # added parameters for xy conversion support for non-square image
-                                self.px_to_nm_x = image_data_dict[component]["xreal"] * 1e9 / image.shape[1]
-                                self.px_to_nm_y = image_data_dict[component]["yreal"] * 1e9 / image.shape[0]
-                                has_image_found = True
-                            else:
-                                LOGGER.info(f"\t{key} : {channel_dict[key]}, maybe topography, but not used.")
+                    if key != "si_unit_z":
+                        continue
+                    units = channel_dict[key]["unitstr"]
+                    if units[len(units) - 1] != "m": # units doesn't end with m
+                        continue
+                    if not has_image_found:
+                        image = channel_dict["data"]
+                        LOGGER.info(f"\t({self.filename}) has topography image with z-height data({units}).")
+                        if self.scale.is_available("nm",units):  # m, um, mm conversion
+                            scale = self.scale.get_factor("nm", units)
+                            image = image * scale
                         else:
-                            LOGGER.info(f"\t{key} : {channel_dict[key]}, not topography.")
-                    else:
-                        if not key == "data":
-                            LOGGER.info(f"\t{key} : {channel_dict[key]}")
+                            raise ValueError(
+                                f"Units '{units}' have not been added in configuration file. \
+                                    an SI to nanometre conversion factor for these units default_config.yaml.")
+
+                        m2nm = self.scale.get_factor("nm","m")
+                        px_to_nm = image_data_dict[component]["xreal"] * m2nm / float(image.shape[1])
+                        # scale instance holds the scaling factors for image data, then will be copied to img_dict
+                        self.scale.add_factor("nm","px_to_nm",   image_data_dict[component]["xreal"] * m2nm / image.shape[1])
+                        self.scale.add_factor("nm","px_to_nm_x", image_data_dict[component]["xreal"] * m2nm / image.shape[1])
+                        self.scale.add_factor("nm","px_to_nm_y", image_data_dict[component]["yreal"] * m2nm / image.shape[0])
+                        has_image_found = True
 
                 if not has_image_found:
                     raise KeyError(
@@ -967,9 +1006,11 @@ class LoadScans:
             "image_flattened": None,
             "grain_masks": self.grain_masks,
         }
-        if hasattr(self, "pixel_to_nm_scaling_x"):
-            self.img_dict["pixel_to_nm_scaling_x"] = self.pixel_to_nm_scaling_x
-            self.img_dict["pixel_to_nm_scaling_y"] = self.pixel_to_nm_scaling_y
+        # Copy scale instance to img_dict, only gwy loader has the attribute now,
+        # attribute of img_dict is checked.
+        if hasattr(self,"scale"):
+            LOGGER.info("Scaling factors are stored in img_dict[filename][scale] as Scale objct.")
+            self.img_dict[self.filename]["scale"] = self.scale
 
 
 def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict) -> None:

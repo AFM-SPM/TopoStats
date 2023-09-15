@@ -1,0 +1,5 @@
+# Test for unit scaling
+loading:
+  scale:
+    nm:
+      {m: 1e9, mm: 1e6, um: 1e3}
