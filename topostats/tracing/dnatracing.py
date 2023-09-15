@@ -24,6 +24,7 @@ from skimage.feature import hessian_matrix, hessian_matrix_eigvals
 from topoly import jones, homfly, params, reduce_structure, translate_code
 import skimage.measure as skimage_measure
 from tqdm import tqdm
+import math as math
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
@@ -1198,6 +1199,7 @@ class nodeStats:
         self.conv_skelly = convolve_skelly(self.skeleton)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
+            np.savetxt("/Users/laurawiggins/Desktop/conv.txt", self.connected_nodes)
             self.connect_extended_nodes(self.connected_nodes)
             #np.savetxt(OUTPUT_DIR / "img.txt", self.image)
             #np.savetxt(OUTPUT_DIR / "untidied.txt", self.connected_nodes)
@@ -1244,8 +1246,6 @@ class nodeStats:
 
             new_skeleton[node_centre[0]-node_wid//2-10:node_centre[0]+node_wid//2+10, node_centre[1]-node_len//2-10:node_centre[1]+node_len//2+10] = 1
             #new_skeleton[node_centre[0]-node_wid//2-10:node_centre[0]+node_wid//2+10, node_centre[1]-node_len//2-10:node_centre[1]+node_len//2+10] = self.grain[node_centre[0]-node_wid//2-10:node_centre[0]+node_wid//2+10, node_centre[1]-node_len//2-10:node_centre[1]+node_len//2+10]
-
-        np.savetxt("/Users/laurawiggins/Desktop/conv.txt", new_skeleton)
 
         new_skeleton = getSkeleton(image, new_skeleton).get_skeleton(method="joe", params={"height_bias": 0.6})
         new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton(method='joe')
@@ -1301,7 +1301,7 @@ class nodeStats:
 
         just_branches = connected_nodes.copy()
         just_branches[(connected_nodes == 3) | (connected_nodes == 2)] = 0  # remove node & termini points
-        just_branches[connected_nodes == 1] == labelled.max()+1
+        just_branches[connected_nodes == 1] = labelled.max()+1
         labelled_branches = label(just_branches)
 
         def bounding_box(points):
@@ -1325,9 +1325,17 @@ class nodeStats:
         nodes_with_odd_branches = []  # List to store nodes with three branches
 
         for node in range(1, labelled.max()+1):
+            num_branches = 0
             bounding = bounding_box(np.argwhere(labelled == node))
             cropped_matrix = connected_nodes[bounding[0][0]-1:bounding[1][0] + 2, bounding[0][1]-1:bounding[1][1] + 2]
-            num_branches = len(np.argwhere(cropped_matrix == 1))
+            node_coords = np.argwhere(cropped_matrix == 3)
+            branch_coords = np.argwhere(cropped_matrix == 1)
+            for node_coord in node_coords:
+                for branch_coord in branch_coords:
+                    distance = math.dist(node_coord, branch_coord)
+                    if(distance <= math.sqrt(2)):
+                        num_branches = num_branches+1
+            #num_branches = len(np.argwhere(cropped_matrix == 1))
             print(f"node {node} has {num_branches} branches")
 
             if(num_branches % 2 == 1):
@@ -1340,9 +1348,6 @@ class nodeStats:
                     emanating_branches_by_node[node] = emanating_branches  # Store emanating branches for this label
                 print(node, emanating_branches_by_node[node])
 
-        # Initialize a list to store tuples of (node1, node2, shared_branch)
-        shared_branches_info = []
-
         # Iterate through the nodes and their emanating branches
         for node1, branches1 in emanating_branches_by_node.items():
             for node2, branches2 in emanating_branches_by_node.items():
@@ -1350,10 +1355,20 @@ class nodeStats:
                     # Find the common branches between the lists
                     common_branches = set(branches1) & set(branches2)
                     if common_branches:
-                        # Append the nodes and shared branches to the list
-                        shared_branches_info.append((node1, node2, common_branches))
+                        min_length = float('inf')  # Initialize with positive infinity
+                        # Find the minimum length among all common branches
                         for shared_branch in common_branches:
-                            connected_nodes[labelled_branches == shared_branch] = 3
+                            length = len(np.argwhere(labelled_branches == shared_branch))
+                            if length < min_length:
+                                min_length = length
+                        print(f"minimum length: {min_length}")
+                        # Change the value to 3 only when len is minimal
+                        for shared_branch in common_branches:
+                            length = len(np.argwhere(labelled_branches == shared_branch))
+                            if length == min_length:
+                                print(shared_branch)
+                                connected_nodes[labelled_branches == shared_branch] = 3
+
         self.connected_nodes = connected_nodes
         return self.connected_nodes
 
