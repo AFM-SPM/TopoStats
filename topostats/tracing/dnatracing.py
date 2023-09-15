@@ -1200,10 +1200,10 @@ class nodeStats:
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
             np.savetxt("/Users/laurawiggins/Desktop/conv.txt", self.connected_nodes)
+            self.connected_nodes = self.tidy_branches(self.connected_nodes, self.image)
             self.connect_extended_nodes(self.connected_nodes)
             #np.savetxt(OUTPUT_DIR / "img.txt", self.image)
             #np.savetxt(OUTPUT_DIR / "untidied.txt", self.connected_nodes)
-            #self.connected_nodes = self.tidy_branches(self.connected_nodes, self.image)
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
             self.analyse_nodes(box_length=20e-9)
         return self.node_dict
