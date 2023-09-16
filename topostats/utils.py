@@ -110,7 +110,7 @@ def update_plotting_config(plotting_config: dict) -> dict:
     return plotting_config
 
 
-def _get_mask(image: np.ndarray, thresholds: list, threshold_direction: str, img_name: str = None) -> np.ndarray:
+def _get_mask(image: np.ndarray, thresholds: dict, threshold_direction: str, img_name: str = None) -> np.ndarray:
     """Calculate a mask for pixels that exceed the threshold
 
     Parameters
