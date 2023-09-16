@@ -224,7 +224,8 @@ class Images:
                     else:
                         self.save_array_figure()
         LOGGER.info(
-            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}" f".{self.save_format}"
+            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.save_format}\
+ | DPI: {self.dpi}"
         )
         return fig, ax
 
