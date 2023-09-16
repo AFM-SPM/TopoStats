@@ -95,6 +95,7 @@ def network_density_internal(
     density_map = np.zeros((int(np.floor(image.shape[0] / stepsize_px)), int(np.floor(image.shape[1] / stepsize_px))))
     internal_density_map = np.zeros(density_map.shape)
     near_outline_density_map = np.zeros(density_map.shape)
+    molecule_density_map = np.zeros(density_map.shape)
     densities_internal = []
     distances_internal = []
     densities_near_outline = []
@@ -126,12 +127,15 @@ def network_density_internal(
             # ax.plot(y, x, marker='.', color=color)
             if in_polygon and not near_outline:
                 internal_density_map[j, i] = density
+                molecule_density_map[j, i] = density
                 densities_internal.append(density)
                 distances_internal.append(distance_to_outline(outline_mask, np.array([y, x])))
             elif near_outline:
-                densities_near_outline.append(density)
-                distances_near_outline.append(distance_to_outline(outline_mask, np.array([y, x])))
                 near_outline_density_map[j, i] = density
+                molecule_density_map[j, i] = density
+                distances_near_outline.append(distance_to_outline(outline_mask, np.array([y, x])))
+                densities_near_outline.append(density)
+
 
     # plt.plot(nodes[:, 1], nodes[:, 0], color='black')
     # plt.show()
@@ -139,6 +143,7 @@ def network_density_internal(
         density_map,
         internal_density_map,
         near_outline_density_map,
+        molecule_density_map,
         densities_internal,
         distances_internal,
         densities_near_outline,
