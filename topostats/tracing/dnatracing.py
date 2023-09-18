@@ -1387,7 +1387,7 @@ class nodeStats:
 
         """
         # santity check for box length (too small can cause empty sequence error)
-        length = int(((box_length) / self.px_2_nm)) #int((box_length / 2) / self.px_2_nm)
+        length = int(((box_length) / self.px_2_nm)*1.5) #int((box_length / 2) / self.px_2_nm)
         if length < 10:
             LOGGER.info(f"Readapted Box Length from {box_length}nm or {2*length}px to 20px")
             length = 10
@@ -1422,6 +1422,7 @@ class nodeStats:
 
             node_centre_small = self.node_centre_mask.copy()[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]]
             node_centre_small[reduced_node_area == 0] = 0 # this removes other nodes from the node_centre_small image
+            np.savetxt(f"/Users/laurawiggins/Desktop/node_centre_small{node_no}.txt", node_centre_small)
             node_centre_small_xy = np.argwhere(node_centre_small == 3)[0] # should only be one due to above
             #print(f"XY: {x,y}, Node: {node_centre_small_xy[0], node_centre_small_xy[1]}, MAP: {xmap, ymap}")
             # need to match top left (not centre) of node image with full image
@@ -1472,8 +1473,14 @@ class nodeStats:
                         branch[labeled_area == branch_no] = 1
                         # order branch
                         ordered = self.order_branch(branch, node_centre_small_xy)
+                        # find coordinate where branch meets node
+                        for node_coord in node_coords:
+                            for branch_coord in ordered:
+                                distance = math.dist(node_coord, branch_coord)
+                                if(distance <= math.sqrt(2)):
+                                    connection_point = node_coord
                         # identify vector
-                        vector = self.get_vector(ordered, node_centre_small_xy)
+                        vector = self.get_vector(ordered, connection_point)
                         # add to list
                         vectors.append(vector)
                         ordered_branches.append(ordered)
@@ -1748,6 +1755,7 @@ class nodeStats:
         """Calculate the normalised vector of the coordinate means in a branch"""
         vector = coords.mean(axis=0) - origin
         vector /= np.sqrt(vector @ vector) # normalise vector so length=1
+        print(f"vector:::{vector}")
         return vector
 
     @staticmethod
