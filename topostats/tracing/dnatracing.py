@@ -91,7 +91,7 @@ class dnaTrace:
         n_grain: int
             Grain number being processed (only  used in logging).
         """
-        self.image = image * 1e-9 if convert_nm_to_m else image
+        self.image = image #if convert_nm_to_m else image
         self.grain = grain
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling * 1e-9 if convert_nm_to_m else pixel_to_nm_scaling
@@ -152,7 +152,6 @@ class dnaTrace:
             )
             self.node_dict = nodes.get_node_stats()
             self.node_image = nodes.connected_nodes
-            print("KEYS: ", self.node_dict.keys(), len(self.node_dict))
             self.num_crossings = len(self.node_dict)
 
             #try: # try to order using nodeStats
@@ -194,7 +193,7 @@ class dnaTrace:
         """Smoothes grains based on the lower number added from dilation or gaussian.
         (makes sure gaussian isnt too agressive."""
         dilation = ndimage.binary_dilation(grain, iterations=2).astype(np.int32)
-        gauss = gaussian(grain, sigma=max(grain.shape) / 124)
+        gauss = gaussian(grain, sigma=max(grain.shape) / 256)
         gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
         gauss[gauss != 1] = 0
         gauss = gauss.astype(np.int32)
@@ -226,13 +225,14 @@ class dnaTrace:
         sizes = [holes[holes == i].size for i in range(1, holes.max() + 1)]
         holes[holes == 1] = 0  # set background to 0
 
-        self.holes = holes.copy()
+        #self.holes = holes.copy()
 
         for i, size in enumerate(sizes):
-            if size < holesize_min_px or size > holesize_max_px:  # small holes cause issues so are left out
+            if size < holesize_min_px or size > holesize_max_px:  # small holes may be fake are left out
                 holes[holes == i + 1] = 0
         holes[holes != 0] = 1
 
+        # compare num holes in each mask
         holey_smooth = new_mask.copy()
         holey_smooth[holes == 1] = 0
 
@@ -1201,7 +1201,7 @@ class nodeStats:
             self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
             #np.savetxt(OUTPUT_DIR / "img.txt", self.image)
             #np.savetxt(OUTPUT_DIR / "untidied.txt", self.connected_nodes)
-            self.connected_nodes = self.tidy_branches(self.connected_nodes, self.image)
+            #self.connected_nodes = self.tidy_branches(self.connected_nodes, self.image)
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
             #np.savetxt(OUTPUT_DIR / "tidied.txt", self.connected_nodes)
             self.analyse_nodes(box_length=20e-9)
@@ -1316,7 +1316,7 @@ class nodeStats:
 
         # check whether average trace resides inside the grain mask
         dilate = ndimage.binary_dilation(self.skeleton, iterations=2)
-        average_trace_advised = dilate[self.grain == 1].sum() == dilate.sum()
+        average_trace_advised = dilate[self.smoothed_grain == 1].sum() == dilate.sum()
         LOGGER.info(f"Branch height traces will be averaged: {average_trace_advised}")
 
         # iterate over the nodes to find areas
@@ -1439,22 +1439,22 @@ class nodeStats:
                             # np.savetxt(OUTPUT_DIR / "single_branch.txt",single_branch)
                             # print("ZD: ", zero_dist)
                             distances, heights, mask, _ = self.average_height_trace(
-                                hess_area, single_branch_img, single_branch_coords, node_centre_small_xy
-                            ) # image_area
+                                image_area, single_branch_img, single_branch_coords, node_centre_small_xy
+                            ) # hess_area
                             matched_branches[i]["avg_mask"] = mask
                         else:
                             distances = self.coord_dist_rad(single_branch_coords, node_centre_small_xy) # self.coord_dist(single_branch_coords)
                             zero_dist = distances[np.argmin(np.sqrt((single_branch_coords[:,0]-node_centre_small_xy[0])**2+(single_branch_coords[:,1]-node_centre_small_xy[1])**2))]
-                            heights = self.hess[single_branch_coords_img[:, 0], single_branch_coords_img[:, 1]] # self.image
+                            heights = self.image[single_branch_coords_img[:, 0], single_branch_coords_img[:, 1]] # self.hess
                             distances = distances - zero_dist
                             distances, heights = self.average_uniques(distances, heights) # needs to be paired with coord_dist_rad
                         matched_branches[i]["heights"] = heights
                         matched_branches[i]["distances"] = distances
                         #print("Dist_og: ", distances.min(), distances.max(), distances.shape)
                         # identify over/under
-                        matched_branches[i]["fwhm2"] = self.peak_height(heights, distances) #self.fwhm2(heights, distances)
+                        matched_branches[i]["fwhm2"] = self.fwhm2(heights, distances) # self.peak_height(heights, distances)
 
-                    """
+                    
                     # redo fwhms after to get better baselines + same hm matching
                     hms = []
                     for branch_idx, values in matched_branches.items(): # get hms
@@ -1463,7 +1463,7 @@ class nodeStats:
                         #print("Dist_2: ", values["heights"].min(), values["heights"].max(), values["heights"].shape)
                         fwhm2 = self.fwhm2(values["heights"], values["distances"], hm=max(hms))
                         matched_branches[branch_idx]["fwhm2"] = fwhm2
-                    """
+                    
 
                     # add paired and unpaired branches to image plot
                     fwhms = []
@@ -1520,7 +1520,7 @@ class nodeStats:
                     "branch_stats": matched_branches,
                     "node_stats": {
                         "node_mid_coords": [x, y],
-                        "node_area_image": self.hess[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]],
+                        "node_area_image": self.image[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]], # self.hess
                         "node_area_grain": self.grain[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]],
                         "node_area_skeleton": node_area,
                         "node_branch_mask": branch_img,
@@ -2217,7 +2217,7 @@ class nodeStats:
         """This function uses the branches and FWHM's identified in the node_stats dictionary to create a
         continious trace of the molecule.
         """
-        LOGGER.info(f"{self.filename} : Compiling the trace.")
+        LOGGER.info(f"[{self.filename}] : Compiling the trace.")
 
         # iterate throught the dict to get branch coords, heights and fwhms
         node_centre_coords = []
@@ -2581,13 +2581,14 @@ class nodeStats:
             temp_img = np.zeros_like(img)
             temp_img[coords[:, 0], coords[:, 1]] = 1
             temp_img = binary_dilation(temp_img)
-            img[temp_img != 0] = mol_no + 1
+            img[temp_img != 0] = 1 #mol_no + 1
 
         #np.savetxt(OUTPUT_DIR / "preimg.txt", img)
 
         lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
 
-        if len(coord_trace) > 1:
+        if False: #len(coord_trace) > 1:
+            # plots seperate mols
             for type_idxs in [lower_idxs, upper_idxs]:
                 for (node_crossing_coords, type_idx) in zip(crossing_coords, type_idxs):
                     temp_img = np.zeros_like(img)
@@ -2604,8 +2605,9 @@ class nodeStats:
                     temp_img[cross_coords[:, 0], cross_coords[:, 1]] = 1
                     temp_img = binary_dilation(temp_img)
                     img[temp_img != 0] = val
+            
         else:
-            # make plot where overs are one colour and unders another
+            # plots over/unders
             for i, type_idxs in enumerate([lower_idxs, upper_idxs]):
                 for (crossing, type_idx) in zip(crossing_coords, type_idxs):
                     temp_img = np.zeros_like(img)
@@ -2621,6 +2623,7 @@ class nodeStats:
                     temp_img[cross_coords[:, 0], cross_coords[:, 1]] = 1
                     temp_img = binary_dilation(temp_img)
                     img[temp_img != 0] = i + 2
+
         return img
     
     def make_pd_skeleton(self, trace_coords, node_centres):
