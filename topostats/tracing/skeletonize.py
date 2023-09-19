@@ -606,7 +606,7 @@ class joePrune:
             single_skeleton[single_skeleton == i] = 1
             pruned_skeleton_mask += self._prune_single_skeleton(single_skeleton)
             # pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton('zhang') # reskel to remove nibs
-            pruned_skeleton_mask = remove_low_dud_branches(pruned_skeleton_mask, self.image)
+            #pruned_skeleton_mask = remove_low_dud_branches(pruned_skeleton_mask, self.image)
         return pruned_skeleton_mask
 
     def _prune_single_skeleton(self, single_skeleton: np.ndarray) -> np.ndarray:
