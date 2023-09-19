@@ -176,7 +176,6 @@ class Images:
                 if self.axes or self.colorbar:
                     fig, ax = self.save_figure()
                 else:
-                    print("TYPE: ", type(self.plot_coords))
                     if isinstance(self.masked_array, np.ndarray) or self.region_properties or isinstance(self.plot_coords, list):
                         fig, ax = self.save_figure()
                     else:
