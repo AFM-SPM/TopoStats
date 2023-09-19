@@ -176,7 +176,8 @@ class Images:
                 if self.axes or self.colorbar:
                     fig, ax = self.save_figure()
                 else:
-                    if isinstance(self.masked_array, np.ndarray) or self.region_properties:
+                    print("TYPE: ", type(self.plot_coords))
+                    if isinstance(self.masked_array, np.ndarray) or self.region_properties or isinstance(self.plot_coords, list):
                         fig, ax = self.save_figure()
                     else:
                         self.save_array_figure()
@@ -223,13 +224,13 @@ class Images:
                         shape[0] * self.pixel_to_nm_scaling,
                     ),
                     interpolation=self.interpolation,
-                    alpha=1,  # 0.4,
+                    alpha=1,
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
             elif self.plot_coords is not None:
                 for grain_coords in self.plot_coords:
-                    plt.plot(grain_coords[:,1]*self.pixel_to_nm_scaling, (shape[1] - grain_coords[:,0])*self.pixel_to_nm_scaling , c='c', linewidth=0.5)
+                    plt.plot(grain_coords[:,1]*self.pixel_to_nm_scaling, (shape[1] - grain_coords[:,0])*self.pixel_to_nm_scaling , c='c', linewidth=2.5)
 
             plt.title(self.title)
             plt.xlabel("Nanometres")
