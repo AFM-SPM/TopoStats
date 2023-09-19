@@ -308,7 +308,7 @@ class Grains:
             absolute=self.threshold_absolute,
         )
         for direction in self.direction:
-            grain_finding_workflow = "unet"
+            grain_finding_workflow = "not_unet"
             if grain_finding_workflow == "unet":
                 LOGGER.info(
                     f"[{self.filename}] : Finding {direction} grains via UNet"
