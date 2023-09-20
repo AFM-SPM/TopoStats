@@ -1,4 +1,5 @@
 """Contains class for calculating the statistics of grains - 2d raster images."""
+from __future__ import annotations
 import logging
 from pathlib import Path
 from random import randint
