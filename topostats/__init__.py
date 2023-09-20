@@ -1,4 +1,4 @@
-"""Topostats"""
+"""Topostats."""
 from importlib.metadata import version
 
 from .logs.logs import setup_logger

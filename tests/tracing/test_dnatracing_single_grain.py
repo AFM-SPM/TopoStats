@@ -1,4 +1,4 @@
-"""Tests for tracing single molecules"""
+"""Tests for tracing single molecules."""
 from pathlib import Path
 
 import numpy as np
@@ -27,10 +27,10 @@ CIRCULAR_IMAGE = np.load(RESOURCES / "dnatracing_image_circular.npy")
 CIRCULAR_MASK = np.load(RESOURCES / "dnatracing_mask_circular.npy")
 
 
-@pytest.fixture
+@pytest.fixture()
 def dnatrace_linear() -> dnaTrace:
-    """dnaTrace object instantiated with a single linear grain."""
-    dnatrace = dnaTrace(
+    """DnaTrace object instantiated with a single linear grain."""
+    return dnaTrace(
         image=LINEAR_IMAGE,
         grain=LINEAR_MASK,
         filename="linear",
@@ -38,13 +38,12 @@ def dnatrace_linear() -> dnaTrace:
         min_skeleton_size=MIN_SKELETON_SIZE,
         skeletonisation_method="topostats",
     )
-    return dnatrace
 
 
-@pytest.fixture
+@pytest.fixture()
 def dnatrace_circular() -> dnaTrace:
-    """dnaTrace object instantiated with a single linear grain."""
-    dnatrace = dnaTrace(
+    """DnaTrace object instantiated with a single linear grain."""
+    return dnaTrace(
         image=CIRCULAR_IMAGE,
         grain=CIRCULAR_MASK,
         filename="circular",
@@ -52,11 +51,10 @@ def dnatrace_circular() -> dnaTrace:
         min_skeleton_size=MIN_SKELETON_SIZE,
         skeletonisation_method="topostats",
     )
-    return dnatrace
 
 
 @pytest.mark.parametrize(
-    "dnatrace, gauss_image_sum",
+    ("dnatrace", "gauss_image_sum"),
     [
         (lazy_fixture("dnatrace_linear"), 5.517763534147536e-06),
         (lazy_fixture("dnatrace_circular"), 6.126947266262167e-06),
@@ -69,7 +67,7 @@ def test_gaussian_filter(dnatrace: dnaTrace, gauss_image_sum: float) -> None:
 
 
 @pytest.mark.parametrize(
-    "dnatrace, skeletonisation_method, length, start, end",
+    ("dnatrace", "skeletonisation_method", "length", "start", "end"),
     [
         (lazy_fixture("dnatrace_linear"), "topostats", 120, np.asarray([28, 47]), np.asarray([106, 87])),
         (lazy_fixture("dnatrace_circular"), "topostats", 150, np.asarray([59, 59]), np.asarray([113, 54])),
@@ -96,21 +94,21 @@ def test_get_disordered_trace(
 
 # Currently two errors are not caught, need to improve this when refactoring, just in case.
 @pytest.mark.parametrize(
-    "min_skeleton_size, problem",
+    ("min_skeleton_size", "problem"),
     [
         (4, None),
         (4, 6),
     ],
 )
 def test_purge_obvious_crap_exceptions(dnatrace_linear: dnaTrace, min_skeleton_size: int, problem) -> None:
-    """Test exceptions to purge_obvious_crap"""
+    """Test exceptions to purge_obvious_crap."""
     dnatrace_linear.min_skeleton_size = min_skeleton_size
     dnatrace_linear.disordered_trace = problem
 
 
 # Currently linear molecule isn't detected as linear, although it was when selecting and extracting in a Notebook
 @pytest.mark.parametrize(
-    "dnatrace, mol_is_circular",
+    ("dnatrace", "mol_is_circular"),
     [
         # (lazy_fixture("dnatrace_linear"), False),
         (lazy_fixture("dnatrace_circular"), True),
@@ -126,7 +124,7 @@ def test_linear_or_circular(dnatrace: dnaTrace, mol_is_circular: int) -> None:
 
 
 @pytest.mark.parametrize(
-    "dnatrace, length, start, end",
+    ("dnatrace", "length", "start", "end"),
     [
         (lazy_fixture("dnatrace_linear"), 118, np.asarray([28, 48]), np.asarray([88, 70])),
         (lazy_fixture("dnatrace_circular"), 151, np.asarray([59, 59]), np.asarray([59, 59])),
@@ -137,7 +135,8 @@ def test_get_ordered_traces(dnatrace: dnaTrace, length: int, start: np.array, en
 
     Note the co-ordinates at the start and end differ from the fixtures for test_get_disordered_trace, but that the
     circular molecule starts and ends in the same place but the linear doesn't (even though it is currently reported as
-    being circular!)."""
+    being circular!).
+    """
     dnatrace.gaussian_filter()
     dnatrace.get_disordered_trace()
     dnatrace.linear_or_circular(dnatrace.disordered_trace)
@@ -149,7 +148,7 @@ def test_get_ordered_traces(dnatrace: dnaTrace, length: int, start: np.array, en
 
 
 @pytest.mark.parametrize(
-    "dnatrace, length, start, end",
+    ("dnatrace", "length", "start", "end"),
     [
         (lazy_fixture("dnatrace_linear"), 118, np.asarray([28, 49]), np.asarray([88, 75])),
         (lazy_fixture("dnatrace_circular"), 151, np.asarray([58, 58]), np.asarray([58, 58])),
@@ -170,7 +169,7 @@ def test_get_fitted_traces(dnatrace: dnaTrace, length: int, start: np.array, end
 
 
 @pytest.mark.parametrize(
-    "dnatrace, length, start, end",
+    ("dnatrace", "length", "start", "end"),
     [
         (
             lazy_fixture("dnatrace_linear"),
@@ -202,7 +201,7 @@ def test_get_splined_traces(dnatrace: dnaTrace, length: int, start: np.array, en
 
 
 @pytest.mark.parametrize(
-    "dnatrace, contour_length",
+    ("dnatrace", "contour_length"),
     [
         (lazy_fixture("dnatrace_linear"), 9.040267985905399e-08),
         (lazy_fixture("dnatrace_circular"), 7.617314045334366e-08),
@@ -223,7 +222,7 @@ def test_measure_contour_length(dnatrace: dnaTrace, contour_length: float) -> No
 
 # Currently need an actual linear grain to test this.
 @pytest.mark.parametrize(
-    "dnatrace, end_to_end_distance",
+    ("dnatrace", "end_to_end_distance"),
     [
         (lazy_fixture("dnatrace_linear"), 0),
         (lazy_fixture("dnatrace_circular"), 0),
@@ -243,9 +242,9 @@ def test_measure_end_to_end_distance(dnatrace: dnaTrace, end_to_end_distance: fl
 
 
 @pytest.mark.parametrize(
-    "bounding_box, pad_width, target_array",
+    ("bounding_box", "pad_width", "target_array"),
     [
-        [
+        (
             # Top right, no padding, does not extend beyond border
             (1, 1, 4, 4),
             0,
@@ -256,8 +255,8 @@ def test_measure_end_to_end_distance(dnatrace: dnaTrace, end_to_end_distance: fl
                     [0, 0, 1],
                 ]
             ),
-        ],
-        [
+        ),
+        (
             # Top right, 1 cell padding, does not extend beyond border
             (1, 1, 4, 4),
             1,
@@ -270,8 +269,8 @@ def test_measure_end_to_end_distance(dnatrace: dnaTrace, end_to_end_distance: fl
                     [0, 0, 0, 0, 0],
                 ]
             ),
-        ],
-        [
+        ),
+        (
             # Top right, 2 cell padding, extends beyond border
             (1, 1, 4, 4),
             2,
@@ -285,8 +284,8 @@ def test_measure_end_to_end_distance(dnatrace: dnaTrace, end_to_end_distance: fl
                     [0, 0, 0, 0, 0, 0],
                 ]
             ),
-        ],
-        [
+        ),
+        (
             # Bottom left, no padding, does not extend beyond border
             (6, 6, 9, 9),
             0,
@@ -297,8 +296,8 @@ def test_measure_end_to_end_distance(dnatrace: dnaTrace, end_to_end_distance: fl
                     [0, 0, 1],
                 ]
             ),
-        ],
-        [
+        ),
+        (
             # Bottom left, one cell padding, does not extend beyond border
             (6, 6, 9, 9),
             1,
@@ -311,8 +310,8 @@ def test_measure_end_to_end_distance(dnatrace: dnaTrace, end_to_end_distance: fl
                     [0, 0, 0, 0, 0],
                 ]
             ),
-        ],
-        [
+        ),
+        (
             # Bottom left, two cell padding, extends beyond border
             (6, 6, 9, 9),
             2,
@@ -326,8 +325,8 @@ def test_measure_end_to_end_distance(dnatrace: dnaTrace, end_to_end_distance: fl
                     [0, 0, 0, 0, 0, 0],
                 ]
             ),
-        ],
-        [
+        ),
+        (
             # Bottom left, three cell padding, extends beyond border
             (6, 6, 9, 9),
             3,
@@ -342,7 +341,7 @@ def test_measure_end_to_end_distance(dnatrace: dnaTrace, end_to_end_distance: fl
                     [0, 0, 0, 0, 0, 0, 0],
                 ]
             ),
-        ],
+        ),
     ],
 )
 def test_crop_array(bounding_box: tuple, pad_width: int, target_array: list) -> None:
@@ -357,13 +356,13 @@ def test_crop_array(bounding_box: tuple, pad_width: int, target_array: list) -> 
 
 
 @pytest.mark.parametrize(
-    "array_shape, bounding_box, pad_width, target_coordinates",
+    ("array_shape", "bounding_box", "pad_width", "target_coordinates"),
     [
-        [(10, 10), [1, 1, 5, 5], 1, [0, 0, 6, 6]],
-        [(10, 10), [1, 1, 5, 5], 3, [0, 0, 8, 8]],
-        [(10, 10), [4, 4, 5, 5], 1, [3, 3, 6, 6]],
-        [(10, 10), [4, 4, 5, 5], 3, [1, 1, 8, 8]],
-        [(10, 10), [4, 4, 5, 5], 6, [0, 0, 10, 10]],
+        ((10, 10), [1, 1, 5, 5], 1, [0, 0, 6, 6]),
+        ((10, 10), [1, 1, 5, 5], 3, [0, 0, 8, 8]),
+        ((10, 10), [4, 4, 5, 5], 1, [3, 3, 6, 6]),
+        ((10, 10), [4, 4, 5, 5], 3, [1, 1, 8, 8]),
+        ((10, 10), [4, 4, 5, 5], 6, [0, 0, 10, 10]),
     ],
 )
 def test_pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int, target_coordinates: tuple) -> None:
@@ -373,13 +372,13 @@ def test_pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int
 
 
 @pytest.mark.parametrize(
-    "array_shape, bounding_box, pad_width, target_coordinates",
+    ("array_shape", "bounding_box", "pad_width", "target_coordinates"),
     [
-        [(10, 10), [1, 1, 5, 5], 1, (0, 0)],
-        [(10, 10), [1, 1, 5, 5], 3, (0, 0)],
-        [(10, 10), [4, 4, 5, 5], 1, (3, 3)],
-        [(10, 10), [4, 4, 5, 5], 3, (1, 1)],
-        [(10, 10), [4, 4, 5, 5], 6, (0, 0)],
+        ((10, 10), [1, 1, 5, 5], 1, (0, 0)),
+        ((10, 10), [1, 1, 5, 5], 3, (0, 0)),
+        ((10, 10), [4, 4, 5, 5], 1, (3, 3)),
+        ((10, 10), [4, 4, 5, 5], 3, (1, 1)),
+        ((10, 10), [4, 4, 5, 5], 6, (0, 0)),
     ],
 )
 def test_grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int, target_coordinates: tuple) -> None:
@@ -389,7 +388,15 @@ def test_grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int, ta
 
 
 @pytest.mark.parametrize(
-    "cropped_image, cropped_mask, filename, skeletonisation_method, end_to_end_distance, circular, contour_length",
+    (
+        "cropped_image",
+        "cropped_mask",
+        "filename",
+        "skeletonisation_method",
+        "end_to_end_distance",
+        "circular",
+        "contour_length",
+    ),
     [
         (
             LINEAR_IMAGE,
@@ -474,7 +481,7 @@ def test_trace_grain(
     circular: bool,
     contour_length: float,
 ) -> None:
-    """Test trace_grain function for tracing a single grain"""
+    """Test trace_grain function for tracing a single grain."""
     trace_stats = trace_grain(
         cropped_image=cropped_image,
         cropped_mask=cropped_mask,

@@ -1,4 +1,4 @@
-"""Additional tests of dnaTracing methods"""
+"""Additional tests of dnaTracing methods."""
 from pathlib import Path
 
 import numpy as np
@@ -19,17 +19,16 @@ CIRCULAR_MASK = np.load(RESOURCES / "dnatracing_mask_circular.npy")
 MIN_SKELETON_SIZE = 10
 
 
-@pytest.fixture
+@pytest.fixture()
 def dnatrace() -> dnaTrace:
-    """Instantiated object of class dnaTrace for use in tests."""
-    _dnatrace = dnaTrace(
+    """DnaTrace object for use in tests."""
+    return dnaTrace(
         image=np.asarray([[1]]),
         grain=None,
         filename="test.spm",
         pixel_to_nm_scaling=PIXEL_SIZE,
         min_skeleton_size=MIN_SKELETON_SIZE,
     )
-    return _dnatrace
 
 
 GRAINS = {}
@@ -221,7 +220,7 @@ GRAINS["six_ends"] = np.asarray(
 
 
 @pytest.mark.parametrize(
-    "grain, mol_is_circular",
+    ("grain", "mol_is_circular"),
     [
         (GRAINS["vertical"], False),
         (GRAINS["horizontal"], False),
@@ -269,7 +268,7 @@ TEST_LABELLED = np.asarray(
 
 
 @pytest.mark.parametrize(
-    "bounding_box,target, pad_width",
+    ("bounding_box", "target", "pad_width"),
     [
         (
             (1, 1, 2, 7),

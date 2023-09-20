@@ -6,7 +6,7 @@ import io
 import struct
 from pathlib import Path
 import pickle as pkl
-from typing import Any, Dict, List, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -29,7 +29,7 @@ CONFIG_DOCUMENTATION_REFERENCE = """For more information on configuration and ho
 # pylint: disable=too-many-lines
 
 
-def read_yaml(filename: Union[str, Path]) -> Dict:
+def read_yaml(filename: str | Path) -> dict:
     """Read a YAML file.
 
     Parameters
@@ -42,7 +42,6 @@ def read_yaml(filename: Union[str, Path]) -> Dict:
     Dict
         Dictionary of the file.
     """
-
     with Path(filename).open(encoding="utf-8") as f:
         try:
             yaml_file = YAML(typ="safe")
@@ -65,12 +64,11 @@ def get_date_time() -> str:
     str
         A string of the current date and time, formatted appropriately.
     """
-
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def write_yaml(
-    config: dict, output_dir: Union[str, Path], config_file: str = "config.yaml", header_message: str = None
+    config: dict, output_dir: str | Path, config_file: str = "config.yaml", header_message: str = None
 ) -> None:
     """Write a configuration (stored as a dictionary) to a YAML file.
 
@@ -106,8 +104,7 @@ def write_yaml(
 
 def write_config_with_comments(config: str, output_dir: Path, filename: str = "config.yaml") -> None:
     """
-    Create a config file, retaining the comments by writing it as a string
-    rather than using a yaml handling package.
+    Write a sample configuration with in-line comments.
 
     Parameters
     ----------
@@ -118,13 +115,12 @@ def write_config_with_comments(config: str, output_dir: Path, filename: str = "c
     filename: str
         A name for the configuration file. Can have a ".yaml" on the end.
     """
-
     if ".yaml" not in filename and ".yml" not in filename:
         create_config_path = output_dir / f"{filename}.yaml"
     else:
         create_config_path = output_dir / filename
 
-    with open(f"{create_config_path}", "w", encoding="utf-8") as f:
+    with Path.open(f"{create_config_path}", "w", encoding="utf-8") as f:
         f.write(f"# Config file generated {get_date_time()}\n")
         f.write(f"# {CONFIG_DOCUMENTATION_REFERENCE}")
         f.write(config)
@@ -151,7 +147,7 @@ def save_array(array: np.ndarray, outpath: Path, filename: str, array_type: str)
     LOGGER.info(f"[{filename}] Numpy array saved to : {outpath}/{filename}_{array_type}.npy")
 
 
-def load_array(array_path: Union[str, Path]) -> np.ndarray:
+def load_array(array_path: str | Path) -> np.ndarray:
     """Load a Numpy array from file.
 
     Should have been saved using save_array() or numpy.save().
@@ -172,7 +168,7 @@ def load_array(array_path: Union[str, Path]) -> np.ndarray:
         raise e
 
 
-def path_to_str(config: dict) -> Dict:
+def path_to_str(config: dict) -> dict:
     """Recursively traverse a dictionary and convert any Path() objects to strings for writing to YAML.
 
     Parameters
@@ -194,10 +190,8 @@ def path_to_str(config: dict) -> Dict:
     return config
 
 
-def get_out_path(
-    image_path: Union[str, Path] = None, base_dir: Union[str, Path] = None, output_dir: Union[str, Path] = None
-) -> Path:
-    """Adds the image path relative to the base directory to the output directory.
+def get_out_path(image_path: str | Path = None, base_dir: str | Path = None, output_dir: str | Path = None) -> Path:
+    """Add the image path relative to the base directory to the output directory.
 
     Parameters
     ----------
@@ -231,7 +225,7 @@ def get_out_path(
         raise
 
 
-def find_files(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> List:
+def find_files(base_dir: str | Path = None, file_ext: str = ".spm") -> list:
     """Recursively scan the specified directory for images with the given file extension.
 
     Parameters
@@ -250,10 +244,8 @@ def find_files(base_dir: Union[str, Path] = None, file_ext: str = ".spm") -> Lis
     return list(base_dir.glob("**/*" + file_ext))
 
 
-def save_folder_grainstats(
-    output_dir: Union[str, Path], base_dir: Union[str, Path], all_stats_df: pd.DataFrame
-) -> None:
-    """Saves a data frame of grain and tracing statictics at the folder level.
+def save_folder_grainstats(output_dir: str | Path, base_dir: str | Path, all_stats_df: pd.DataFrame) -> None:
+    """Save a data frame of grain and tracing statictics at the folder level.
 
     Parameters
     ----------
@@ -288,8 +280,7 @@ def save_folder_grainstats(
 
 
 def read_null_terminated_string(open_file: io.TextIOWrapper) -> str:
-    """Read an open file from the current position in the open binary file,
-    until the next null value.
+    """Read an open file from the current position in the open binary file, until the next null value.
 
     Parameters
     ----------
@@ -359,7 +350,9 @@ def read_char(open_file: io.TextIOWrapper) -> str:
 
 def read_gwy_component_dtype(open_file: io.TextIOWrapper) -> str:
     """Read the data type of a `.gwy` file component.
+
     Possible data types are as follows:
+
     - 'b': boolean
     - 'c': character
     - 'i': 32-bit integer
@@ -367,15 +360,16 @@ def read_gwy_component_dtype(open_file: io.TextIOWrapper) -> str:
     - 'd': double
     - 's': string
     - 'o': `.gwy` format object
-    Capitalised versions of some of these data types represent arrays of values of that
-    data type. Arrays are stored as an unsigned 32 bit integer, describing the size of the array,
-    followed by the unseparated array values.
+
+    Capitalised versions of some of these data types represent arrays of values of that data type. Arrays are stored as
+    an unsigned 32 bit integer, describing the size of the array, followed by the unseparated array values:
+
     - 'C': array of characters
     - 'I': array of 32-bit integers
     - 'Q': array of 64-bit integers
     - 'D': array of doubles
     - 'S': array of strings
-    - 'O': array of objects
+    - 'O': array of objects.
 
     Parameters
     ----------
@@ -391,10 +385,11 @@ def read_gwy_component_dtype(open_file: io.TextIOWrapper) -> str:
     return open_file.read(1).decode("ascii")
 
 
-def get_relative_paths(paths: List[Path]) -> List[str]:
-    """From a list of paths, create a list of these paths but where
-    each path is relative to all path's closest common parent. For
-    example, ['a/b/c', 'a/b/d', 'a/b/e/f'] would return ['c', 'd', 'e/f']
+def get_relative_paths(paths: list[Path]) -> list[str]:
+    """Extract a list of relative paths, removing the common suffix.
+
+    From a list of paths, create a list where each path is relative to all path's closest common parent. For
+    example, ['a/b/c', 'a/b/d', 'a/b/e/f'] would return ['c', 'd', 'e/f'].
 
     Parameters
     ----------
@@ -406,7 +401,6 @@ def get_relative_paths(paths: List[Path]) -> List[str]:
     relative_paths: list
         List of string paths, relative to the common parent.
     """
-
     # Ensure paths are all pathlib paths, and not strings
     paths = [Path(path) for path in paths]
 
@@ -423,10 +417,10 @@ def get_relative_paths(paths: List[Path]) -> List[str]:
 
 
 def convert_basename_to_relative_paths(df: pd.DataFrame):
-    """Converts the paths in the 'basename' column in a dataframe from being
-    absolute paths, to paths relative to the deepest common parent. For example
-    if the 'basename' column has the following paths: ['/usr/topo/data/a/b', '/usr
-    /topo/data/c/d'], the output will be: ['a/b', 'c/d'].
+    """Convert paths in the 'basename' column of a dataframe to relative paths.
+
+    If the 'basename' column has the following paths: ['/usr/topo/data/a/b', '/usr/topo/data/c/d'], the output will be:
+    ['a/b', 'c/d'].
 
     Parameters
     ----------
@@ -440,7 +434,6 @@ def convert_basename_to_relative_paths(df: pd.DataFrame):
         A pandas dataframe where the 'basename' column has paths relative to a common
         parent.
     """
-
     paths = df["basename"].tolist()
     paths = [Path(path) for path in paths]
     relative_paths = get_relative_paths(paths=paths)
@@ -537,16 +530,18 @@ class LoadScans:
         return pixel_to_nm_scaling
 
     def load_topostats(self) -> tuple:
-        """Load a .topostats file (hdf5 format), extracting the image, pixel to nanometre scaling
-        factor and any grain masks. Note that grain masks are stored via self.grain_masks rather
-        than returned due to how we extract information for all other file loading functions.
+        """Load a .topostats file (hdf5 format).
+
+        Loads and extracts the image, pixel to nanometre scaling factor and any grain masks.
+
+        Note that grain masks are stored via self.grain_masks rather than returned due to how we extract information for
+        all other file loading functions.
 
         Returns
         -------
         tuple(np.ndarray, float)
             A tuple containing the image and its pixel to nanometre scaling value.
         """
-
         LOGGER.info(f"Loading image from : {self.img_path}")
         try:
             with h5py.File(self.img_path, "r") as f:
@@ -571,14 +566,13 @@ class LoadScans:
         return (image, pixel_to_nm_scaling)
 
     def load_ibw(self) -> tuple:
-        """Loads image from Asylum Research (Igor) .ibw files
+        """Load image from Asylum Research (Igor) .ibw files.
 
         Returns
         -------
         tuple(np.ndarray, float)
             A tuple containing the image and its pixel to nanometre scaling value.
         """
-
         LOGGER.info(f"Loading image from : {self.img_path}")
         try:
             scan = binarywave.load(self.img_path)
@@ -631,7 +625,7 @@ class LoadScans:
         return pixel_to_nm_scaling
 
     def load_jpk(self) -> tuple:
-        """Loads image from JPK Instruments .jpk files.
+        """Load image from JPK Instruments .jpk files.
 
         Returns
         -------
@@ -702,8 +696,7 @@ class LoadScans:
 
     @staticmethod
     def _gwy_read_object(open_file: io.TextIOWrapper, data_dict: dict) -> None:
-        """Parse and extract data from a `.gwy` file object, starting at the current
-        open file read position.
+        """Parse and extract data from a `.gwy` file object, starting at the current open file read position.
 
         Parameters
         ----------
@@ -731,8 +724,7 @@ class LoadScans:
 
     @staticmethod
     def _gwy_read_component(open_file: io.TextIOWrapper, initial_byte_pos: int, data_dict: dict) -> int:
-        """Parse and extract data from a `.gwy` file object, starting at the current
-        open file read position.
+        """Parse and extract data from a `.gwy` file object, starting at the current open file read position.
 
         Parameters
         ----------
@@ -785,8 +777,9 @@ class LoadScans:
 
     @staticmethod
     def _gwy_print_dict(gwy_file_dict: dict, pre_string: str) -> None:
-        """A developer function to print the nested object / component structure. Can
-        be used to find labels and values of objects / components in the `.gwy` file.
+        """Print the nested object / component structure.
+
+        Can be used to find labels and values of objects / components in the `.gwy` file.
 
         Parameters
         ----------
@@ -804,7 +797,9 @@ class LoadScans:
 
     @staticmethod
     def _gwy_print_dict_wrapper(gwy_file_dict: dict) -> None:
-        """Wrapper for the `_print_gwy_dict` function.
+        """Print dictionaries.
+
+        This is a wrapper for the _gwy_print_dict() method.
 
         Parameters
         ----------
@@ -825,7 +820,7 @@ class LoadScans:
         LOGGER.info(f"Loading image from : {self.img_path}")
         try:
             image_data_dict = {}
-            with open(self.img_path, "rb") as open_file:
+            with Path.open(self.img_path, "rb") as open_file:  # pylint: disable=unspecified-encoding
                 # Read header
                 header = open_file.read(4)
                 LOGGER.debug(f"Gwy file header: {header}")
@@ -867,10 +862,7 @@ class LoadScans:
         return (image, px_to_nm)
 
     def get_data(self) -> None:
-        """Method to extract image, filepath and pixel to nm scaling value, and append these to the
-        img_dic object.
-        """
-
+        """Extract image, filepath and pixel to nm scaling value, and append these to the img_dic object."""
         suffix_to_loader = {
             ".spm": self.load_spm,
             ".jpk": self.load_jpk,
@@ -916,8 +908,7 @@ class LoadScans:
             LOGGER.info(f"[{self.filename}] Image added to processing.")
 
     def add_to_dict(self) -> None:
-        """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under
-        the key filename.
+        """Add image, image path and pixel to nanometre scaling to the img_dic dictionary under key filename.
 
         Parameters
         ----------
@@ -953,7 +944,6 @@ def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict)
         Dictionary of the topostats data to save. Must include a flattened image and
         pixel to nanometre scaling factor. May also include grain masks.
     """
-
     LOGGER.info(f"[{filename}] : Saving image to .topostats file")
 
     if ".topostats" not in filename:
@@ -1036,5 +1026,4 @@ def load_pkl(infile: Path) -> Any:
 
     """
     with infile.open("rb", encoding=None) as f:
-        images = pkl.load(f)
-    return images
+        return pkl.load(f)  # noqa: S301

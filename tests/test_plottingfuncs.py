@@ -19,10 +19,7 @@ MASK = RNG.uniform(low=0, high=1, size=ARRAY.shape) > 0.5
 
 
 def test_add_pixel_to_nm_to_plotting_config(plotting_config_with_plot_dict):
-    """Test the add_pixel_to_nm_to_plotting_config function of plottingfuncs.py, ensuring
-    that every plot's config contains the pixel to nanometre scaling factor needed for
-    plotting images in nanometres rather than pixels."""
-
+    """Test addition of pixel to nm scaling to individual plot configurations."""
     plotting_config = add_pixel_to_nm_to_plotting_config(
         plotting_config=plotting_config_with_plot_dict, pixel_to_nm_scaling=1.23456789
     )
@@ -30,11 +27,11 @@ def test_add_pixel_to_nm_to_plotting_config(plotting_config_with_plot_dict):
     # Ensure that every plot's config has the correct pixel to nm scaling factor.
     for _, plot_config in plotting_config["plot_dict"].items():
         if plot_config["pixel_to_nm_scaling"] != 1.23456789:
-            assert False
+            raise AssertionError()
 
 
 @pytest.mark.parametrize(
-    "binary_image, dilation_iterations, expected",
+    ("binary_image", "dilation_iterations", "expected"),
     [
         (
             np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
@@ -50,14 +47,13 @@ def test_add_pixel_to_nm_to_plotting_config(plotting_config_with_plot_dict):
 )
 def test_dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int, expected: np.ndarray) -> None:
     """Test the dilate binary images function of plottingfuncs.py."""
-
     result = dilate_binary_image(binary_image=binary_image, dilation_iterations=dilation_iterations)
 
     np.testing.assert_array_equal(result, expected)
 
 
 @pytest.mark.parametrize(
-    "masked_array, axes_colorbar, region_properties",
+    ("masked_array", "axes_colorbar", "region_properties"),
     [(np.random.rand(10, 10), True, None), (None, True, None), (None, False, True)],
 )
 def test_save_figure(
@@ -68,7 +64,7 @@ def test_save_figure(
     minicircle_grain_region_properties_post_removal: Grains,
     tmp_path: Path,
 ):
-    """Tests that an image is saved and a figure returned"""
+    """Tests that an image is saved and a figure returned."""
     if region_properties:
         region_properties = minicircle_grain_region_properties_post_removal
     fig, ax = Images(
@@ -86,7 +82,7 @@ def test_save_figure(
 
 
 def test_save_array_figure(tmp_path: Path):
-    """Tests that the image array is saved"""
+    """Tests that the image array is saved."""
     Images(
         data=np.random.rand(10, 10),
         output_dir=tmp_path,
@@ -97,7 +93,7 @@ def test_save_array_figure(tmp_path: Path):
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_no_colorbar(load_scan_data: LoadScans, tmp_path: Path) -> None:
-    """Test plotting without colorbar"""
+    """Test plotting without colorbar."""
     fig, _ = Images(
         data=load_scan_data.image,
         output_dir=tmp_path,
@@ -113,7 +109,7 @@ def test_plot_and_save_no_colorbar(load_scan_data: LoadScans, tmp_path: Path) ->
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_histogram_and_save(load_scan_data: LoadScans, tmp_path: Path) -> None:
-    """Test plotting histograms"""
+    """Test plotting histograms."""
     fig, _ = Images(
         load_scan_data.image, output_dir=tmp_path, filename="histogram", image_set="all"
     ).plot_histogram_and_save()
@@ -122,7 +118,7 @@ def test_plot_histogram_and_save(load_scan_data: LoadScans, tmp_path: Path) -> N
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_colorbar(load_scan_data: LoadScans, tmp_path: Path) -> None:
-    """Test plotting with colorbar"""
+    """Test plotting with colorbar."""
     fig, _ = Images(
         data=load_scan_data.image,
         output_dir=tmp_path,
@@ -138,7 +134,7 @@ def test_plot_and_save_colorbar(load_scan_data: LoadScans, tmp_path: Path) -> No
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_no_axes(load_scan_data: LoadScans, plotting_config: dict, tmp_path: Path) -> None:
-    """Test plotting without axes"""
+    """Test plotting without axes."""
     plotting_config["axes"] = False
     fig, _ = Images(
         data=load_scan_data.image,
@@ -168,7 +164,7 @@ def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScans, plotting_c
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_colorbar_afmhot(load_scan_data: LoadScans, tmp_path: Path, plotting_config: dict) -> None:
-    """Test plotting with colorbar"""
+    """Test plotting with colorbar."""
     plotting_config["cmap"] = "afmhot"
     fig, _ = Images(
         data=load_scan_data.image,
@@ -191,7 +187,7 @@ def test_plot_and_save_bounding_box(
     plotting_config: dict,
     tmp_path: Path,
 ) -> None:
-    """Test plotting bounding boxes"""
+    """Test plotting bounding boxes."""
     plotting_config["image_type"] = "binary"
     fig, _ = Images(
         data=minicircle_grain_coloured.directions["above"]["coloured_regions"],
@@ -207,7 +203,7 @@ def test_plot_and_save_bounding_box(
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmp_path: Path) -> None:
-    """Tests plotting of the zrange scaled image"""
+    """Tests plotting of the zrange scaled image."""
     plotting_config["zrange"] = [-10, 10]
     plotting_config["core_set"] = True
     fig, _ = Images(
@@ -228,7 +224,7 @@ def test_plot_and_save_non_square_bounding_box(
     plotting_config: dict,
     tmp_path: Path,
 ) -> None:
-    """Test plotting bounding boxes"""
+    """Test plotting bounding boxes."""
     plotting_config["image_type"] = "binary"
     fig, _ = Images(
         data=minicircle_grain_coloured.image[:, 0:512],

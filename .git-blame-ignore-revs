@@ -1,3 +1,6 @@
+# ruff and pydocstyle - Lint code base with ruff and pydocstyle using pre-commit
+b1b846722ccc89589954f89aaa617459062ffc7d
+
 # markdownlint-cli2 - Lint code base with markdownlint-cli2
 fe5b033d027a2d0c1239025cc081f1638601c5ee
 

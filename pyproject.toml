@@ -105,27 +105,6 @@ Source = "https://github.com/AFM-SPM/TopoStats"
 Bug_Tracker = "https://github.com/AFM-SPM/TopoStats/issues"
 Documentation = "https://AFM-SPM.github.io/TopoStats"
 
-[tool.flake8]
-max_line_length=120
-docstring-convention= "numpy"
-exclude = [
-  "*.ipynb",
-  ".git",
-  "__pycache__",
-  "docs/conf.py",
-  "build",
-  "dist",
-  "pygwytracing.py",
-  "topostats/plotting.py",
-  "topostats/tracing/tracingfuncs.py",
-  "topostats/tracing/dnatracing.py",
-  "topostats/tracing/tracing_dna.py",
-  "tests/tracing/test_dnatracing.py",
-]
-extend-ignore = [
-    "E501",
-    "T201",
-]
 
 [tool.setuptools]
 include-package-data = true
@@ -179,9 +158,11 @@ exclude = '''
 
 [tool.ruff]
 exclude = [
+  "*.ipynb",
   ".bzr",
   ".direnv",
   ".eggs",
+  ".git",
   ".git",
   ".hg",
   ".mypy_cache",
@@ -192,20 +173,48 @@ exclude = [
   ".svn",
   ".tox",
   ".venv",
+  "__pycache__",
   "__pypackages__",
   "_build",
   "buck-out",
   "build",
   "dist",
+  "docs/conf.py",
   "node_modules",
+  "pygwytracing.py",
+  "tests/tracing/test_dnacurvature.py",
+  "tests/tracing/test_dnatracing.py",
+  "tests/tracing/test_tracing_dna.py",
+  "topostats/plotting.py",
+  "topostats/tracing/dnatracing.py",
+  "topostats/tracing/tracing_dna.py",
+  "topostats/tracing/tracingfuncs.py",
   "venv",
 ]
 # per-file-ignores = []
 line-length = 120
 target-version = "py310"
+select = ["A", "B", "C", "D", "E", "F", "PT", "PTH", "R", "S", "W", "U"]
+ignore = [
+  "B905",
+  "E501",
+  "S101",
+  "T201"]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
-fixable = ["A", "B", "C", "D", "E", "F", "R", "S", "W", "U"]
+fixable = ["A", "B", "C", "D", "E", "F", "PT", "PTH", "R", "S", "W", "U"]
 unfixable = []
+
+[tool.ruff.flake8-quotes]
+docstring-quotes = "double"
+
+[tool.ruff.isort]
+case-sensitive = true
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.flake8-pytest-style]
+fixture-parentheses = true
 
 [project.scripts]
 topostats = "topostats.entry_point:entry_point"

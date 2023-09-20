@@ -1,7 +1,7 @@
 """Functions for calculating thresholds."""
 # pylint: disable=no-name-in-module
 import logging
-from typing import Callable
+from collections.abc import Callable
 import numpy as np
 from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, threshold_yen, threshold_triangle
 
@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def threshold(image: np.ndarray, method: str = None, otsu_threshold_multiplier: float = None, **kwargs: dict) -> float:
-    """Factory method for thresholding.
+    """Thresholding for producing masks.
 
     Parameters
     ----------
@@ -66,17 +66,17 @@ def _threshold_otsu(image: np.ndarray, otsu_threshold_multiplier: float = None, 
     return threshold_otsu(image, **kwargs) * otsu_threshold_multiplier
 
 
-def _threshold_mean(image: np.ndarray, otsu_threshold_multiplier: float = None, **kwargs) -> float:
+def _threshold_mean(image: np.ndarray, **kwargs) -> float:
     return threshold_mean(image, **kwargs)
 
 
-def _threshold_minimum(image: np.ndarray, otsu_threshold_multiplier: float = None, **kwargs) -> float:
+def _threshold_minimum(image: np.ndarray, **kwargs) -> float:
     return threshold_minimum(image, **kwargs)
 
 
-def _threshold_yen(image: np.ndarray, otsu_threshold_multiplier: float = None, **kwargs) -> float:
+def _threshold_yen(image: np.ndarray, **kwargs) -> float:
     return threshold_yen(image, **kwargs)
 
 
-def _threshold_triangle(image: np.ndarray, otsu_threshold_multiplier: float = None, **kwargs) -> float:
+def _threshold_triangle(image: np.ndarray, **kwargs) -> float:
     return threshold_triangle(image, **kwargs)

@@ -1,4 +1,4 @@
-"""Testing of grainstats class"""
+"""Testing of grainstats class."""
 from pathlib import Path
 
 import logging
@@ -27,7 +27,7 @@ def test_get_angle(grainstats: GrainStats) -> None:
 
 
 def test_is_clockwise_clockwise(grainstats: GrainStats) -> None:
-    """Test calculation of whether three points make a clockwise turn"""
+    """Test calculation of whether three points make a clockwise turn."""
     clockwise = grainstats.is_clockwise(POINT3, POINT2, POINT1)
 
     assert isinstance(clockwise, bool)
@@ -35,7 +35,7 @@ def test_is_clockwise_clockwise(grainstats: GrainStats) -> None:
 
 
 def test_is_clockwise_anti_clockwise(grainstats: GrainStats) -> None:
-    """Test calculation of whether three points make a clockwise turn"""
+    """Test calculation of whether three points make a clockwise turn."""
     clockwise = grainstats.is_clockwise(POINT1, POINT2, POINT3)
 
     assert isinstance(clockwise, bool)
@@ -43,7 +43,7 @@ def test_is_clockwise_anti_clockwise(grainstats: GrainStats) -> None:
 
 
 @pytest.mark.parametrize(
-    "method, grain_mask, expected_coords",
+    ("method", "grain_mask", "expected_coords"),
     [
         (
             "binary_erosion",
@@ -260,7 +260,7 @@ def test_random_grain_stats(caplog, tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "coords, shape, expected",
+    ("coords", "shape", "expected"),
     [(np.asarray([5, 5]), 10, 0), (np.asarray([-3, 12]), 10, 3), (np.asarray([-3, 14]), 10, -4)],
 )
 def test_get_shift(coords, shape, expected):
@@ -269,7 +269,7 @@ def test_get_shift(coords, shape, expected):
 
 
 @pytest.mark.parametrize(
-    "length, centre, img_len, expected",
+    ("length", "centre", "img_len", "expected"),
     [
         (5, np.asarray([10, 10]), 21, [5, 5]),
         (3, np.asarray([1, 20]), 21, [1, 6]),
@@ -286,7 +286,7 @@ def test_get_cropped_region(grainstats: GrainStats, length, centre, img_len, exp
 
 
 @pytest.mark.parametrize(
-    "base_point_1, base_point_2, top_point, expected",
+    ("base_point_1", "base_point_2", "top_point", "expected"),
     [
         (np.array([0, 0]), np.array([1, 0]), np.array([1, 1]), 1),
         (np.array([0, 0]), np.array([5, 0]), np.array([2, 5]), 5),
@@ -294,11 +294,11 @@ def test_get_cropped_region(grainstats: GrainStats, length, centre, img_len, exp
     ],
 )
 def test_grainstats_get_triangle_height(base_point_1, base_point_2, top_point, expected) -> None:
-    """Tests the Grainstats.get_triangle_height method"""
+    """Tests the Grainstats.get_triangle_height method."""
     assert GrainStats.get_triangle_height(base_point_1, base_point_2, top_point) == expected
 
 
-@pytest.mark.parametrize("edge_points, expected", [([[0, 0], [0, 1], [1, 0], [1, 1]], (1.0, 1.4142135623730951))])
+@pytest.mark.parametrize(("edge_points", "expected"), [([[0, 0], [0, 1], [1, 0], [1, 1]], (1.0, 1.4142135623730951))])
 def test_get_min_max_ferets(edge_points, expected) -> None:
-    """Tests the Grainstats.get_min_max_ferets method"""
+    """Tests the Grainstats.get_min_max_ferets method."""
     assert GrainStats.get_max_min_ferets(edge_points) == expected
