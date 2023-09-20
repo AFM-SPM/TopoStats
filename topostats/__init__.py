@@ -1,5 +1,4 @@
 """Topostats."""
-from __future__ import annotations
 from importlib.metadata import version
 
 from .logs.logs import setup_logger

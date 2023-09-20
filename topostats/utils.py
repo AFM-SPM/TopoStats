@@ -1,4 +1,5 @@
 """Utilities."""
+from __future__ import annotations
 from argparse import Namespace
 import logging
 from pathlib import Path
