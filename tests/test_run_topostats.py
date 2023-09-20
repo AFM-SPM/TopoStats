@@ -10,7 +10,7 @@ from topostats.entry_point import entry_point
 BASE_DIR = Path.cwd()
 
 
-@pytest.mark.parametrize("option", [("-h", "--help")])
+@pytest.mark.parametrize("option", [("-h"), ("--help")])
 def test_run_topostats_main_help(capsys, option) -> None:
     """Test the -h/--help flag to run_topostats."""
     try:
