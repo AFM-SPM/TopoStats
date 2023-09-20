@@ -10,6 +10,7 @@ from topostats.logs.logs import LOGGER_NAME
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=no-else-return
+# pylint: disable=unused-argument
 
 
 def threshold(image: np.ndarray, method: str = None, otsu_threshold_multiplier: float = None, **kwargs: dict) -> float:
@@ -66,17 +67,17 @@ def _threshold_otsu(image: np.ndarray, otsu_threshold_multiplier: float = None, 
     return threshold_otsu(image, **kwargs) * otsu_threshold_multiplier
 
 
-def _threshold_mean(image: np.ndarray, **kwargs) -> float:
+def _threshold_mean(image: np.ndarray, otsu_threshold_multiplier: float = None, **kwargs) -> float:
     return threshold_mean(image, **kwargs)
 
 
-def _threshold_minimum(image: np.ndarray, **kwargs) -> float:
+def _threshold_minimum(image: np.ndarray, otsu_threshold_multiplier: float = None, **kwargs) -> float:
     return threshold_minimum(image, **kwargs)
 
 
-def _threshold_yen(image: np.ndarray, **kwargs) -> float:
+def _threshold_yen(image: np.ndarray, otsu_threshold_multiplier: float = None, **kwargs) -> float:
     return threshold_yen(image, **kwargs)
 
 
-def _threshold_triangle(image: np.ndarray, **kwargs) -> float:
+def _threshold_triangle(image: np.ndarray, otsu_threshold_multiplier: float = None, **kwargs) -> float:
     return threshold_triangle(image, **kwargs)

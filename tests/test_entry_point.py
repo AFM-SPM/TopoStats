@@ -14,7 +14,7 @@ from topostats.plotting import run_toposum
 
 
 # Test "help" arguments
-@pytest.mark.parametrize("option", [("-h", "--help")])
+@pytest.mark.parametrize("option", [("-h"), ("--help")])
 def test_entry_point_help(capsys, option) -> None:
     """Test the help argument of the general entry point."""
     try:
@@ -27,7 +27,7 @@ def test_entry_point_help(capsys, option) -> None:
     assert "program" in output
 
 
-@pytest.mark.parametrize("option", [("-h", "--help")])
+@pytest.mark.parametrize("option", [("-h"), ("--help")])
 def test_entry_point_process_help(capsys, option):
     """Test the help argument of the process program."""
     try:
@@ -40,7 +40,7 @@ def test_entry_point_process_help(capsys, option):
     assert "process" in output
 
 
-@pytest.mark.parametrize("option", [("-h", "--help")])
+@pytest.mark.parametrize("option", [("-h"), ("--help")])
 def test_entry_point_summary_help(capsys, option):
     """Test the help argument of the summary program."""
     try:
