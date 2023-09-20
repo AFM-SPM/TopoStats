@@ -121,7 +121,7 @@ def write_config_with_comments(config: str, output_dir: Path, filename: str = "c
     else:
         create_config_path = output_dir / filename
 
-    with Path.open(f"{create_config_path}", "w", encoding="utf-8") as f:
+    with create_config_path.open("w", encoding="utf-8") as f:
         f.write(f"# Config file generated {get_date_time()}\n")
         f.write(f"# {CONFIG_DOCUMENTATION_REFERENCE}")
         f.write(config)
