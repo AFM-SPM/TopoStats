@@ -269,218 +269,213 @@ def process_scan(
                 
                 else:
                     # Run dnatracing
-                    try:
-                        if dnatracing_config["run"]:
-                            dnatracing_config.pop("run")
-                            LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
-                            tracing_stats = defaultdict()
-                            node_stats = defaultdict()
-                            images = defaultdict()
-                            all_traces = defaultdict()
-                            for direction, _ in grainstats.items():
-                                print(len(trace_image(
-                                    image=filtered_image.images["gaussian_filtered"],
-                                    grains_mask=grains.directions[direction]["labelled_regions_02"],
-                                    filename=filename,
-                                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                                    **dnatracing_config,
-                                )))
-                                tracing_stats[direction], node_stats[direction], images[direction], all_traces[direction] = trace_image(
-                                    image=filtered_image.images["gaussian_filtered"],
-                                    grains_mask=grains.directions[direction]["labelled_regions_02"],
-                                    filename=filename,
-                                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                                    **dnatracing_config,
-                                )
-                                tracing_stats[direction]["threshold"] = direction
-                            # Set tracing_stats_df in light of direction
-                            if grains_config["direction"] == "both":
-                                tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
-                            elif grains_config["direction"] == "above":
-                                tracing_stats_df = tracing_stats["above"]
-                            elif grains_config["direction"] == "below":
-                                tracing_stats_df = tracing_stats["below"]
-                            LOGGER.info(
-                                f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics"
+                #try:
+                    if dnatracing_config["run"]:
+                        dnatracing_config.pop("run")
+                        LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
+                        tracing_stats = defaultdict()
+                        node_stats = defaultdict()
+                        images = defaultdict()
+                        all_traces = defaultdict()
+                        for direction, _ in grainstats.items():
+                            tracing_stats[direction], node_stats[direction], images[direction], all_traces[direction] = trace_image(
+                                image=filtered_image.images["gaussian_filtered"],
+                                grains_mask=grains.directions[direction]["labelled_regions_02"],
+                                filename=filename,
+                                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                                **dnatracing_config,
                             )
-                            # NB - Merge on image, molecule and threshold because we may have above and below molecules which
-                            #      gives duplicate molecule numbers as they are processed separately, if tracing stats
-                            #      are not available (because skeleton was too small), grainstats are still retained.
-                            results = grainstats_df.merge(
-                                tracing_stats_df, on=["image", "threshold", "grain_number"], how="left"
-                            )
-                            results["basename"] = image_path.parent
-                            
-                            # Plot dnatracing images
-                            LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
-                            output_dir = Path(dna_tracing_out_path / f"{direction}")
-                            print("UNIQ Plot: ", np.unique(images[direction]["skeleton"]))
-                            plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes", "visual", "ordered_trace", "fitted_trace"]
-                            data2s = [
-                                images[direction]["grain"],
-                                images[direction]["smoothed_grain"],
-                                images[direction]["skeleton"],
-                                images[direction]["pruned_skeleton"],
-                                images[direction]["node_img"],
-                                images[direction]["visual"],
-                                images[direction]["ordered_traces"],
-                                images[direction]["fitted_traces"],
-                            ]
-                            for i, plot_name in enumerate(plot_names):
-                                plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
-                                plotting_config["plot_dict"][plot_name]["mask_cmap"] = "green_black"
-                                if plot_name == "visual":
-                                    plotting_config["plot_dict"]["visual"]["mask_cmap"] = "viridis"
-                                if plot_name == "ordered_trace":
-                                    plotting_config["plot_dict"]["ordered_trace"]["mask_cmap"] = "viridis"
-                                Images(
-                                    filtered_image.images["gaussian_filtered"],
-                                    masked_array=data2s[i],
-                                    background=images[direction]["grain"],
-                                    **plotting_config["plot_dict"][plot_name],
-                                ).plot_and_save()
-                            # Plot spline seperately as they are coords
+                            tracing_stats[direction]["threshold"] = direction
+                        # Set tracing_stats_df in light of direction
+                        if grains_config["direction"] == "both":
+                            tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
+                        elif grains_config["direction"] == "above":
+                            tracing_stats_df = tracing_stats["above"]
+                        elif grains_config["direction"] == "below":
+                            tracing_stats_df = tracing_stats["below"]
+                        LOGGER.info(
+                            f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics"
+                        )
+                        # NB - Merge on image, molecule and threshold because we may have above and below molecules which
+                        #      gives duplicate molecule numbers as they are processed separately, if tracing stats
+                        #      are not available (because skeleton was too small), grainstats are still retained.
+                        results = grainstats_df.merge(
+                            tracing_stats_df, on=["image", "threshold", "grain_number"], how="left"
+                        )
+                        results["basename"] = image_path.parent
+                        
+                        # Plot dnatracing images
+                        LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
+                        output_dir = Path(dna_tracing_out_path / f"{direction}")
+                        print("UNIQ Plot: ", np.unique(images[direction]["skeleton"]))
+                        plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes", "visual", "ordered_trace", "fitted_trace"]
+                        data2s = [
+                            images[direction]["grain"],
+                            images[direction]["smoothed_grain"],
+                            images[direction]["skeleton"],
+                            images[direction]["pruned_skeleton"],
+                            images[direction]["node_img"],
+                            images[direction]["visual"],
+                            images[direction]["ordered_traces"],
+                            images[direction]["fitted_traces"],
+                        ]
+                        for i, plot_name in enumerate(plot_names):
+                            plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
+                            plotting_config["plot_dict"][plot_name]["mask_cmap"] = "cyan"
+                            if plot_name == "visual":
+                                plotting_config["plot_dict"]["visual"]["mask_cmap"] = "blu_purp_green"
+                            if plot_name == "ordered_trace":
+                                plotting_config["plot_dict"]["ordered_trace"]["mask_cmap"] = "viridis"
+                            if plot_name == "nodes":
+                                plotting_config["plot_dict"][plot_name]["mask_cmap"] = "cyan_black"
                             Images(
-                                    filtered_image.images["gaussian_filtered"],
-                                    plot_coords=all_traces[direction],
-                                    background=images[direction]["grain"],
-                                    filename=f"{filename}_{direction}_splines",
-                                    output_dir=core_out_path,
-                                    **plotting_config["plot_dict"]["splined_trace"],
+                                filtered_image.images["gaussian_filtered"],
+                                masked_array=data2s[i],
+                                background=images[direction]["grain"],
+                                **plotting_config["plot_dict"][plot_name],
+                            ).plot_and_save()
+                        # Plot spline seperately as they are coords
+                        Images(
+                                filtered_image.images["gaussian_filtered"],
+                                plot_coords=all_traces[direction],
+                                background=images[direction]["grain"],
+                                filename=f"{filename}_{direction}_splines",
+                                output_dir=core_out_path,
+                                **plotting_config["plot_dict"]["splined_trace"],
+                            ).plot_and_save()
+                        
+                        #np.savetxt(f"{core_out_path}_{filename}_skel.txt", images[direction]["skeletons"])
+                        #np.savetxt(f"{core_out_path}_{filename}_connect.txt", nodes.all_connected_nodes)
+
+                        # plot nodes and line traces
+                        for mol_no, mol_stats in node_stats[direction].items():
+                            for node_no, single_node_stats in mol_stats.items():
+                                plotting_config["plot_dict"]["zoom_node"]["mask_cmap"] = "cyan_black"
+                                plotting_config["plot_dict"]["crossings"]["mask_cmap"] = "libby_blu_purp"
+                                plotting_config["plot_dict"]["tripple_crossings"]["mask_cmap"] = "libby_blu_purp"
+                                #plotting_config["plot_dict"]["zoom_node"]["z_range"] = [None, None]
+                                #plotting_config["plot_dict"]["crossings"]["z_range"] = [None, None]
+                                #plotting_config["plot_dict"]["tripple_crossings"]["z_range"] = [None, None]
+                                # plot node + skeleton
+                                Images(
+                                    single_node_stats["node_stats"]["node_area_image"],
+                                    background=single_node_stats["node_stats"]["node_area_grain"],
+                                    filename=f"mol_{mol_no}_node_{node_no}_crop",
+                                    output_dir=output_dir / "nodes",
+                                    **plotting_config["plot_dict"]["zoom_node"],
                                 ).plot_and_save()
-                            
-                            #np.savetxt(f"{core_out_path}_{filename}_skel.txt", images[direction]["skeletons"])
-                            #np.savetxt(f"{core_out_path}_{filename}_connect.txt", nodes.all_connected_nodes)
-
-                            # plot nodes and line traces
-                            for mol_no, mol_stats in node_stats[direction].items():
-                                for node_no, single_node_stats in mol_stats.items():
-                                    plotting_config["plot_dict"]["zoom_node"]["mask_cmap"] = "green_black"
-                                    plotting_config["plot_dict"]["crossings"]["mask_cmap"] = "blu_purp"
-                                    plotting_config["plot_dict"]["tripple_crossings"]["mask_cmap"] = "blu_purp"
-                                    #plotting_config["plot_dict"]["zoom_node"]["z_range"] = [None, None]
-                                    #plotting_config["plot_dict"]["crossings"]["z_range"] = [None, None]
-                                    #plotting_config["plot_dict"]["tripple_crossings"]["z_range"] = [None, None]
-                                    # plot node + skeleton
+                                Images(
+                                    single_node_stats["node_stats"]["node_area_image"],
+                                    masked_array=single_node_stats["node_stats"]["node_area_skeleton"],
+                                    background=single_node_stats["node_stats"]["node_area_grain"],
+                                    filename=f"mol_{mol_no}_node_{node_no}_node_area",
+                                    output_dir=output_dir / "nodes",
+                                    **plotting_config["plot_dict"]["zoom_node"],
+                                ).plot_and_save()
+                                # plot branch mask
+                                Images(
+                                    single_node_stats["node_stats"]["node_area_image"],
+                                    masked_array=single_node_stats["node_stats"]["node_branch_mask"],
+                                    background=single_node_stats["node_stats"]["node_area_grain"],
+                                    filename=f"mol_{mol_no}_node_{node_no}_crossings",
+                                    output_dir=output_dir / "nodes",
+                                    **plotting_config["plot_dict"]["crossings"],
+                                ).plot_and_save()
+                                # plot avg branch mask
+                                if single_node_stats["node_stats"]["node_avg_mask"] is not None:
                                     Images(
                                         single_node_stats["node_stats"]["node_area_image"],
+                                        masked_array=single_node_stats["node_stats"]["node_avg_mask"],
                                         background=single_node_stats["node_stats"]["node_area_grain"],
-                                        filename=f"mol_{mol_no}_node_{node_no}_crop",
+                                        filename=f"mol_{mol_no}_node_{node_no}_average_crossings",
                                         output_dir=output_dir / "nodes",
-                                        **plotting_config["plot_dict"]["zoom_node"],
+                                        **plotting_config["plot_dict"]["tripple_crossings"],
                                     ).plot_and_save()
-                                    Images(
-                                        single_node_stats["node_stats"]["node_area_image"],
-                                        masked_array=single_node_stats["node_stats"]["node_area_skeleton"],
-                                        background=single_node_stats["node_stats"]["node_area_grain"],
-                                        filename=f"mol_{mol_no}_node_{node_no}_node_area",
-                                        output_dir=output_dir / "nodes",
-                                        **plotting_config["plot_dict"]["zoom_node"],
-                                    ).plot_and_save()
-                                    # plot branch mask
-                                    Images(
-                                        single_node_stats["node_stats"]["node_area_image"],
-                                        masked_array=single_node_stats["node_stats"]["node_branch_mask"],
-                                        background=single_node_stats["node_stats"]["node_area_grain"],
-                                        filename=f"mol_{mol_no}_node_{node_no}_crossings",
-                                        output_dir=output_dir / "nodes",
-                                        **plotting_config["plot_dict"]["crossings"],
-                                    ).plot_and_save()
-                                    # plot avg branch mask
-                                    if single_node_stats["node_stats"]["node_avg_mask"] is not None:
-                                        Images(
-                                            single_node_stats["node_stats"]["node_area_image"],
-                                            masked_array=single_node_stats["node_stats"]["node_avg_mask"],
-                                            background=single_node_stats["node_stats"]["node_area_grain"],
-                                            filename=f"mol_{mol_no}_node_{node_no}_average_crossings",
-                                            output_dir=output_dir / "nodes",
-                                            **plotting_config["plot_dict"]["tripple_crossings"],
-                                        ).plot_and_save()
-                                    # Plot crossing height linetrace
-                                    if plotting_config["image_set"] == "all":
-                                        if not single_node_stats["error"]:
-                                            plotting_config["plot_dict"]["line_trace"] = {
-                                                "title": "Heights of Crossing",
-                                                "cmap": "blu_purp",
-                                            }
-                                            fig, _ = plot_crossing_linetrace_halfmax(
-                                                single_node_stats["branch_stats"],
-                                                **plotting_config["plot_dict"]["line_trace"],
-                                            )
-                                            fig.savefig(
-                                                output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg",
-                                                format="svg",
-                                            )
-                            LOGGER.info(f"[{filename}] : Finished Plotting DNA Tracing Images")
+                                # Plot crossing height linetrace
+                                if plotting_config["image_set"] == "all":
+                                    if not single_node_stats["error"]:
+                                        plotting_config["plot_dict"]["line_trace"] = {
+                                            "title": "Heights of Crossing",
+                                            "cmap": "libby_blu_purp",
+                                        }
+                                        fig, _ = plot_crossing_linetrace_halfmax(
+                                            single_node_stats["branch_stats"],
+                                            **plotting_config["plot_dict"]["line_trace"],
+                                        )
+                                        fig.savefig(
+                                            output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg",
+                                            format="svg",
+                                        )
+                        LOGGER.info(f"[{filename}] : Finished Plotting DNA Tracing Images")
 
-                            """
-                            # plot the molecules on their own
-                            print("LEN: ",len(nodes.mol_coords))
-                            if len(nodes.mol_coords[mol_no]) > 1:
-                                for inner_mol_no, coords in enumerate(nodes.mol_coords[mol_no]):
-                                    single_mol = np.zeros_like(dna_traces[direction].full_image_data)
-                                    single_mol[coords[:, 0], coords[:, 1]] = 1
-                                    single_mol = binary_dilation(single_mol)
-                                    Images(
-                                        dna_traces[direction].full_image_data,
-                                        masked_array=single_mol,
-                                        output_dir=output_dir,
-                                        filename=f"Grain_{mol_no}_separated_mol_{inner_mol_no}",
-                                        zrange=[0, 3.5e-9],
-                                        **plotting_config["plot_dict"]["single_mol"],
-                                    ).save_figure_black(background=grains.directions[direction]["removed_small_objects"])
-                            """
-                            # ------- branch vector img -------
-                            """
-                            vectors = nodes.test2
-                            plot_name = "test"
-                            plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
-                            fig, ax = Images(
-                                data=node_stats[direction][1][1]["node_stats"]["node_area_image"],
-                                masked_array=nodes.test,
-                                mask_cmap="viridis",
-                                filename="branch_vectors.tiff",
-                                **plotting_config["plot_dict"][plot_name],
-                            ).save_figure_black(background=node_stats[direction][1][1]["node_stats"]["node_area_grain"])
+                        """
+                        # plot the molecules on their own
+                        print("LEN: ",len(nodes.mol_coords))
+                        if len(nodes.mol_coords[mol_no]) > 1:
+                            for inner_mol_no, coords in enumerate(nodes.mol_coords[mol_no]):
+                                single_mol = np.zeros_like(dna_traces[direction].full_image_data)
+                                single_mol[coords[:, 0], coords[:, 1]] = 1
+                                single_mol = binary_dilation(single_mol)
+                                Images(
+                                    dna_traces[direction].full_image_data,
+                                    masked_array=single_mol,
+                                    output_dir=output_dir,
+                                    filename=f"Grain_{mol_no}_separated_mol_{inner_mol_no}",
+                                    zrange=[0, 3.5e-9],
+                                    **plotting_config["plot_dict"]["single_mol"],
+                                ).save_figure_black(background=grains.directions[direction]["removed_small_objects"])
+                        """
+                        # ------- branch vector img -------
+                        """
+                        vectors = nodes.test2
+                        plot_name = "test"
+                        plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
+                        fig, ax = Images(
+                            data=node_stats[direction][1][1]["node_stats"]["node_area_image"],
+                            masked_array=nodes.test,
+                            mask_cmap="viridis",
+                            filename="branch_vectors.tiff",
+                            **plotting_config["plot_dict"][plot_name],
+                        ).save_figure_black(background=node_stats[direction][1][1]["node_stats"]["node_area_grain"])
 
-                            col = ["m", "b", "g", "y"]
-                            for i, vector in enumerate(np.asarray(vectors)):  # [:,::-1]):
-                                ax.arrow(10.25, 10.5, vector[1] * 4, vector[0] * -4, width=0.3, color=col[i])
-                            fig.savefig("cats2/vector_img.tiff")
+                        col = ["m", "b", "g", "y"]
+                        for i, vector in enumerate(np.asarray(vectors)):  # [:,::-1]):
+                            ax.arrow(10.25, 10.5, vector[1] * 4, vector[0] * -4, width=0.3, color=col[i])
+                        fig.savefig("cats2/vector_img.tiff")
 
-                            # ------- branch vector + angles fig -------
-                            vectors = nodes.test4
-                            angles = nodes.test5
-                            plot_name = "test"
-                            plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
-                            fig, ax = Images(
-                                data=node_stats[direction][1][1]["node_stats"]["node_area_image"],
-                                masked_array=node_stats[direction][1][1]["node_stats"]["node_branch_mask"],
-                                mask_cmap="blu_purp",
-                                filename="test",
-                                **plotting_config["plot_dict"][plot_name],
-                            ).save_figure_black(background=node_stats[direction][1][1]["node_stats"]["node_area_grain"])
+                        # ------- branch vector + angles fig -------
+                        vectors = nodes.test4
+                        angles = nodes.test5
+                        plot_name = "test"
+                        plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
+                        fig, ax = Images(
+                            data=node_stats[direction][1][1]["node_stats"]["node_area_image"],
+                            masked_array=node_stats[direction][1][1]["node_stats"]["node_branch_mask"],
+                            mask_cmap="blu_purp",
+                            filename="test",
+                            **plotting_config["plot_dict"][plot_name],
+                        ).save_figure_black(background=node_stats[direction][1][1]["node_stats"]["node_area_grain"])
 
-                            col = ["b", "m"]
-                            ax.arrow(10.25 - 4, 10.75, vectors[0][1] * 8, vectors[0][0] * -8, width=0.3, color=col[0])
-                            ax.arrow(10.25, 10.75 + 4, vectors[1][1] * 8, vectors[1][0] * -8, width=0.3, color=col[1])
+                        col = ["b", "m"]
+                        ax.arrow(10.25 - 4, 10.75, vectors[0][1] * 8, vectors[0][0] * -8, width=0.3, color=col[0])
+                        ax.arrow(10.25, 10.75 + 4, vectors[1][1] * 8, vectors[1][0] * -8, width=0.3, color=col[1])
 
-                            arc = Arc((10.05, 10.50), 7.2, 7.2, -2, 0, angles[1], lw=10, color="white")
-                            ax.add_patch(arc)
-                            ax.text(
-                                12.5, 14, "%0.2f" % float(angles[1]) + "\u00b0", fontsize=40, weight="bold", color="white"
-                            )  #'xx-large
-                            fig.savefig("cats2/vector_angle_img.tiff")
-                            """
-                            
-                        else:
-                            LOGGER.info(
-                                f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame."
-                            )
-                            results = grainstats_df
-                            results["basename"] = image_path.parent
-                            node_stats = {"upper": None, "lower": None}
-                    
+                        arc = Arc((10.05, 10.50), 7.2, 7.2, -2, 0, angles[1], lw=10, color="white")
+                        ax.add_patch(arc)
+                        ax.text(
+                            12.5, 14, "%0.2f" % float(angles[1]) + "\u00b0", fontsize=40, weight="bold", color="white"
+                        )  #'xx-large
+                        fig.savefig("cats2/vector_angle_img.tiff")
+                        """
+                        
+                    else:
+                        LOGGER.info(
+                            f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame."
+                        )
+                        results = grainstats_df
+                        results["basename"] = image_path.parent
+                        node_stats = {"upper": None, "lower": None}
+                    """
                     except Exception:
                         # If no results we need a dummy dataframe to return.
                         LOGGER.warning(
@@ -489,6 +484,7 @@ def process_scan(
                         )
                         results = grainstats_df
                         results["basename"] = image_path.parent
+                    """
                     
             else:
                 LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")

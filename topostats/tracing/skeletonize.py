@@ -222,10 +222,10 @@ class joeSkeletonize:
         while not self.skeleton_converged:
             self._do_skeletonising_iteration()
         # When skeleton converged do an additional iteration of thinning to remove hanging points
-        # self.final_skeletonisation_iteration()
+        self.final_skeletonisation_iteration()
         self.mask = getSkeleton(self.image, self.mask).get_skeleton(method="zhang")
 
-        return self.mask #[1:-1, 1:-1]  # unpad
+        return self.mask  # unpad
 
     def _do_skeletonising_iteration(self) -> None:
         """Do an iteration of skeletonisation - check for the local binary pixel
