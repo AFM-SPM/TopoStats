@@ -195,7 +195,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "thin",
                 "medial_axis",
                 "joe",
-                error="Invalid value in config for 'dnatracing.skeletonisation_method'," 
+                error="Invalid value in config for 'dnatracing.skeletonisation_method',"
                 "valid values are 'zhang', 'lee', 'thin', 'medial_axis', 'joe'",
             ),
             "pruning_method": Or(

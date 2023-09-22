@@ -259,17 +259,17 @@ def process_scan(
                         grainstats_df = grainstats["above"]
                     elif grains_config["direction"] == "below":
                         grainstats_df = grainstats["below"]
-                    
+
                 except Exception:
                     LOGGER.info(
                         f"[{filename}] : Errors occurred whilst calculating grain statistics. Skipping DNAtracing."
                     )
                     results = create_empty_dataframe()
                     node_stats = {"upper": None, "lower": None}
-                
+
                 else:
                     # Run dnatracing
-                #try:
+                    # try:
                     if dnatracing_config["run"]:
                         dnatracing_config.pop("run")
                         LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
@@ -278,7 +278,12 @@ def process_scan(
                         images = defaultdict()
                         all_traces = defaultdict()
                         for direction, _ in grainstats.items():
-                            tracing_stats[direction], node_stats[direction], images[direction], all_traces[direction] = trace_image(
+                            (
+                                tracing_stats[direction],
+                                node_stats[direction],
+                                images[direction],
+                                all_traces[direction],
+                            ) = trace_image(
                                 image=filtered_image.images["gaussian_filtered"],
                                 grains_mask=grains.directions[direction]["labelled_regions_02"],
                                 filename=filename,
@@ -293,9 +298,7 @@ def process_scan(
                             tracing_stats_df = tracing_stats["above"]
                         elif grains_config["direction"] == "below":
                             tracing_stats_df = tracing_stats["below"]
-                        LOGGER.info(
-                            f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics"
-                        )
+                        LOGGER.info(f"[{filename}] : Combining {direction} grain statistics and dnatracing statistics")
                         # NB - Merge on image, molecule and threshold because we may have above and below molecules which
                         #      gives duplicate molecule numbers as they are processed separately, if tracing stats
                         #      are not available (because skeleton was too small), grainstats are still retained.
@@ -303,12 +306,21 @@ def process_scan(
                             tracing_stats_df, on=["image", "threshold", "grain_number"], how="left"
                         )
                         results["basename"] = image_path.parent
-                        
+
                         # Plot dnatracing images
                         LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
                         output_dir = Path(dna_tracing_out_path / f"{direction}")
                         print("UNIQ Plot: ", np.unique(images[direction]["skeleton"]))
-                        plot_names = ["orig_grains", "smoothed_grains", "orig_skeletons", "pruned_skeletons", "nodes", "visual", "ordered_trace", "fitted_trace"]
+                        plot_names = [
+                            "orig_grains",
+                            "smoothed_grains",
+                            "orig_skeletons",
+                            "pruned_skeletons",
+                            "nodes",
+                            "visual",
+                            "ordered_trace",
+                            "fitted_trace",
+                        ]
                         data2s = [
                             images[direction]["grain"],
                             images[direction]["smoothed_grain"],
@@ -336,16 +348,16 @@ def process_scan(
                             ).plot_and_save()
                         # Plot spline seperately as they are coords
                         Images(
-                                filtered_image.images["gaussian_filtered"],
-                                plot_coords=all_traces[direction],
-                                background=images[direction]["grain"],
-                                filename=f"{filename}_{direction}_splines",
-                                output_dir=core_out_path,
-                                **plotting_config["plot_dict"]["splined_trace"],
-                            ).plot_and_save()
-                        
-                        #np.savetxt(f"{core_out_path}_{filename}_skel.txt", images[direction]["skeletons"])
-                        #np.savetxt(f"{core_out_path}_{filename}_connect.txt", nodes.all_connected_nodes)
+                            filtered_image.images["gaussian_filtered"],
+                            plot_coords=all_traces[direction],
+                            background=images[direction]["grain"],
+                            filename=f"{filename}_{direction}_splines",
+                            output_dir=core_out_path,
+                            **plotting_config["plot_dict"]["splined_trace"],
+                        ).plot_and_save()
+
+                        # np.savetxt(f"{core_out_path}_{filename}_skel.txt", images[direction]["skeletons"])
+                        # np.savetxt(f"{core_out_path}_{filename}_connect.txt", nodes.all_connected_nodes)
 
                         # plot nodes and line traces
                         for mol_no, mol_stats in node_stats[direction].items():
@@ -353,9 +365,9 @@ def process_scan(
                                 plotting_config["plot_dict"]["zoom_node"]["mask_cmap"] = "cyan_black"
                                 plotting_config["plot_dict"]["crossings"]["mask_cmap"] = "libby_blu_purp"
                                 plotting_config["plot_dict"]["tripple_crossings"]["mask_cmap"] = "libby_blu_purp"
-                                #plotting_config["plot_dict"]["zoom_node"]["z_range"] = [None, None]
-                                #plotting_config["plot_dict"]["crossings"]["z_range"] = [None, None]
-                                #plotting_config["plot_dict"]["tripple_crossings"]["z_range"] = [None, None]
+                                # plotting_config["plot_dict"]["zoom_node"]["z_range"] = [None, None]
+                                # plotting_config["plot_dict"]["crossings"]["z_range"] = [None, None]
+                                # plotting_config["plot_dict"]["tripple_crossings"]["z_range"] = [None, None]
                                 # plot node + skeleton
                                 Images(
                                     single_node_stats["node_stats"]["node_area_image"],
@@ -467,7 +479,7 @@ def process_scan(
                         )  #'xx-large
                         fig.savefig("cats2/vector_angle_img.tiff")
                         """
-                        
+
                     else:
                         LOGGER.info(
                             f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame."
@@ -485,7 +497,7 @@ def process_scan(
                         results = grainstats_df
                         results["basename"] = image_path.parent
                     """
-                    
+
             else:
                 LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
                 results = create_empty_dataframe()

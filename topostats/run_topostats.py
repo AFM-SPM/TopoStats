@@ -206,7 +206,7 @@ def run_topostats(args=None):
     if isinstance(results, pd.DataFrame) and not results.isna().values.all():
         results.reset_index(inplace=True)
         results.set_index(["image", "threshold"], inplace=True)
-        #results.set_index(["image", "threshold", "grain_number"], inplace=True)
+        # results.set_index(["image", "threshold", "grain_number"], inplace=True)
         results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
         save_folder_grainstats(config["output_dir"], config["base_dir"], results)
         results.reset_index(inplace=True)  # So we can access unique image names

@@ -20,7 +20,7 @@ from topostats.theme import Colormap
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-#matplotlib.rcParams.update({'font.size': 16})
+# matplotlib.rcParams.update({'font.size': 16})
 
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
@@ -345,6 +345,7 @@ def run_toposum(args=None):
     # Plot statistics
     toposum(config)
 
+
 def plot_crossing_linetrace_halfmax(branch_stats_dict, cmap, title):
     """Plots the heightmap lines traces of the branches found in the 'branch_stats' dictionary, and their meetings."""
     fig, ax = plt.subplots(1, 1)
@@ -369,8 +370,12 @@ def plot_crossing_linetrace_halfmax(branch_stats_dict, cmap, title):
         # plot the high point lines
         plt.plot([-15, m_vals[1]], [m_vals[2], m_vals[2]], c=cmp(cmap_ratio), label=f"FWHM: {fwhm:.4f}")
         # plot the half max lines
-        plt.plot([hm_vals[0], hm_vals[0]], [hm_vals[2], heights.min()], c=cmp(cmap_ratio)) #+ heights.min(), c=cmp(cmap_ratio))
-        plt.plot([hm_vals[1], hm_vals[1]], [hm_vals[2], heights.min()], c=cmp(cmap_ratio)) #+ heights.min(), c=cmp(cmap_ratio))
+        plt.plot(
+            [hm_vals[0], hm_vals[0]], [hm_vals[2], heights.min()], c=cmp(cmap_ratio)
+        )  # + heights.min(), c=cmp(cmap_ratio))
+        plt.plot(
+            [hm_vals[1], hm_vals[1]], [hm_vals[2], heights.min()], c=cmp(cmap_ratio)
+        )  # + heights.min(), c=cmp(cmap_ratio))
 
     ax.set_xlabel("Distance from Node (nm)")
     ax.set_ylabel("Height")
