@@ -366,6 +366,18 @@ def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
     assert px_to_nm_scaling == 0.8468632812499975
 
 
+def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
+    """Test loading of a .asd file."""
+    load_scan_asd.img_path = load_scan_asd.img_paths[0]
+    load_scan_asd.filename = load_scan_asd.img_paths[0].stem
+    frames, px_to_nm_scaling = load_scan_asd.load_asd()
+    assert isinstance(frames, np.ndarray)
+    assert frames.shape == (197, 200, 200)
+    assert frames.sum() == -71724923530211.84
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 2.0
+
+
 def test_load_scan_topostats(load_scan_topostats: LoadScans) -> None:
     """Test loading of a .topostats file."""
     load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
