@@ -8,6 +8,7 @@ from pathlib import Path
 import pickle as pkl
 from typing import Any, Dict, List, Union
 
+from topofileformats import asd
 import numpy as np
 import pandas as pd
 import pySPM
@@ -570,6 +571,27 @@ class LoadScans:
 
         return (image, pixel_to_nm_scaling)
 
+    def load_asd(self) -> tuple:
+        """Extract image and pixel to nm scaling from .asd files.
+
+        Returns
+        -------
+        tuple: (np.ndarray, float)
+            A tuple containing the image and its pixel to nanometre scaling value.
+        """
+
+        try:
+            frames: np.ndarray
+            pixel_to_nm_scaling: float
+            _: dict
+            frames, pixel_to_nm_scaling, _ = asd.load_asd(file_path=self.img_path, channel=self.channel)
+            LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
+        except FileNotFoundError:
+            LOGGER.info(f"[{self.filename}] : File not found. Path: {self.img_path}")
+            raise
+
+        return (frames, pixel_to_nm_scaling)
+
     def load_ibw(self) -> tuple:
         """Loads image from Asylum Research (Igor) .ibw files
 
@@ -877,6 +899,7 @@ class LoadScans:
             ".ibw": self.load_ibw,
             ".gwy": self.load_gwy,
             ".topostats": self.load_topostats,
+            ".asd": self.load_asd,
         }
 
         for img_path in self.img_paths:
