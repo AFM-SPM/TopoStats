@@ -919,7 +919,11 @@ class LoadScans:
                     else:
                         raise
                 else:
-                    self._check_image_size_and_add_to_dict()
+                    if suffix == ".asd":
+                        for index, frame in enumerate(self.image):
+                            self._check_image_size_and_add_to_dict(image=frame, filename=f"{self.filename}_{index}")
+                    else:
+                        self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
             else:
                 raise ValueError(
                     f"File type {suffix} not yet supported. Please make an issue at \
@@ -927,37 +931,40 @@ class LoadScans:
                 this file type."
                 )
 
-    def _check_image_size_and_add_to_dict(self) -> None:
+    def _check_image_size_and_add_to_dict(self, image: np.ndarray, filename: str) -> None:
         """Check the image is above a minimum size in both dimensions.
 
         Images that do not meet the minimum size are not included for processing.
-        """
-        if self.image.shape[0] < self.MINIMUM_IMAGE_SIZE or self.image.shape[1] < self.MINIMUM_IMAGE_SIZE:
-            LOGGER.warning(f"[{self.filename}] Skipping, image too small: {self.image.shape}")
-        else:
-            self.add_to_dict()
-            LOGGER.info(f"[{self.filename}] Image added to processing.")
 
-    def add_to_dict(self) -> None:
+        Parameters
+        ----------
+        image: np.ndarray
+            An array of the extracted AFM image.
+        filename: str
+            The name of the file
+        """
+        if image.shape[0] < self.MINIMUM_IMAGE_SIZE or image.shape[1] < self.MINIMUM_IMAGE_SIZE:
+            LOGGER.warning(f"[{filename}] Skipping, image too small: {image.shape}")
+        else:
+            self.add_to_dict(image=image, filename=filename)
+            LOGGER.info(f"[{filename}] Image added to processing.")
+
+    def add_to_dict(self, image: np.ndarray, filename: str) -> None:
         """Adds the image, image path and pixel to nanometre scaling value to the img_dic dictionary under
         the key filename.
 
         Parameters
         ----------
-        filename: str
-            The filename, idealy without an extension.
         image: np.ndarray
             An array of the extracted AFM image.
-        img_path: str
-            The path to the AFM file (with a frame number if applicable)
-        px_2_nm: float
-            The length of a pixel in nm.
+        filename: str
+            The name of the file
         """
-        self.img_dict[self.filename] = {
-            "filename": self.filename,
-            "img_path": self.img_path.with_name(self.filename),
+        self.img_dict[filename] = {
+            "filename": filename,
+            "img_path": self.img_path.with_name(filename),
             "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-            "image_original": self.image,
+            "image_original": image,
             "image_flattened": None,
             "grain_masks": self.grain_masks,
         }
