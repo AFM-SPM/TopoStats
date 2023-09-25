@@ -29,7 +29,7 @@ CIRCULAR_MASK = np.load(RESOURCES / "dnatracing_mask_circular.npy")
 
 @pytest.fixture()
 def dnatrace_linear() -> dnaTrace:
-    """DnaTrace object instantiated with a single linear grain."""
+    """DnaTrace object instantiated with a single linear grain."""  # noqa: D403
     return dnaTrace(
         image=LINEAR_IMAGE,
         grain=LINEAR_MASK,
