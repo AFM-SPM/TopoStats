@@ -80,14 +80,17 @@ documentation and testing.
 Using a consistent coding style has many benefits (see [Linting : What is all the fluff
 about?](https://rse.shef.ac.uk/blog/2022-04-19-linting/)). For this project we aim to adhere to [PEP8 - the style Guide
 for Python Code](https://pep8.org/) and do so using the formatting linters [black](https://github.com/psf/black) and
-[flake8](https://github.com/PyCQA/flake8).  Many popular IDEs such as VSCode, PyCharm, Spyder and Emacs all have support
-for integrating these linters into your workflow such that when you save a file the linting/formatting is automatically
-applied.
+[ruff](https://github.com/astral-sh/ruff). Ruff implements the checks made by
+[Flake8](https://flake8.pycqa.org/en/latest/), [isort](https://pycqa.github.io/isort/) and
+[pydocstyle](https://black.readthedocs.io/en/stable/) and has some overlap with both Black and Pylint.
 
 We also like to ensure the code passes [pylint](https://github.com/PyCQA/pylint) which helps identify code duplication
 and reduces some of the [code smells](https://en.wikipedia.org/wiki/Code_smell) that we are all prone to
 making. A `.pylintrc` is included in the repository. Currently this isn't strictly applied but it is planned for part of
 the CI/CD pipeline and so we would be grateful if you could lint your code before making Pull Requests.
+
+Many popular IDEs such as VSCode, PyCharm, Spyder and Emacs all have support for integrating these linters into your
+workflow such that when you save a file the linting/formatting is automatically applied.
 
 ### Pre-commit
 
@@ -106,9 +109,14 @@ pre-commit install --install-hooks
 ```
 
 Currently there are hooks to remove trailing whitespace, check YAML configuration files and a few other common checks as
-well as hooks for `black` and `flake8`. If these fail then you will not be able to make a commit until they are
+well as hooks for `black` and `ruff`. If these fail then you will not be able to make a commit until they are
 fixed. The `black` hook will automatically format failed files so you can simply `git add` those and try committing
 straight away. `flake8` does not correct files automatically so the errors will need manually correcting.
+
+If you do not enable and resolve issues reported by `pre-commit` locally before making a pull request you will find the
+[`pre-commit.ci`](https://pre-commit.ci) GitHub Action will fail, preventing your Pull Request from being merged. You
+can shorten the feedback loop and speed up the resolution of errors by enabling `pre-commit` locally and resolving
+issues before making your commits.
 
 ### Typing
 
@@ -123,7 +131,9 @@ defining their functionality, parameters and return values and pylint will note 
 by way of the `missing-function-docstring` condition.
 
 Further, when new methods are incorporated into the package that introduce changes to the configuration they should be
-documented under [Parameter Configuration](configuration)
+documented under [Parameter Configuration](configuration). [pre-commit](#pre-commit) has the
+[markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2) hook enabled to lint all Markdown files and will
+where possible automatically fix things, but some issues need resolving manually.
 
 ### Testing
 
