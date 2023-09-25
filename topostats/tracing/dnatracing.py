@@ -1377,6 +1377,13 @@ class nodeStats:
             node_area = self.connected_nodes.copy()[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]]
             """
 
+            image_slices = (
+                    x - int(max_length_px * 1.2),
+                    x + int(max_length_px * 1.2),
+                    y - int(max_length_px * 1.2),
+                    y + int(max_length_px * 1.2),
+                )
+
             reduced_node_area = self._only_centre_branches(self.connected_nodes.copy(), (x, y))
             branch_mask = reduced_node_area.copy()
             branch_mask[branch_mask == 3] = 0
@@ -1547,12 +1554,6 @@ class nodeStats:
 
                 # image_slices = (single_branch_coords_img[:,0].min() - 10, single_branch_coords_img[:,0].max() + 10,
                 #                single_branch_coords_img[:,1].min() - 10, single_branch_coords_img[:,1].max() + 10)
-                image_slices = (
-                    x - int(max_length_px * 1.2),
-                    x + int(max_length_px * 1.2),
-                    y - int(max_length_px * 1.2),
-                    y + int(max_length_px * 1.2),
-                )
 
                 print("Error: ", error)
                 self.node_dict[real_node_count] = {
