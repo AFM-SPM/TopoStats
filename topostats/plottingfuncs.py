@@ -26,7 +26,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def add_pixel_to_nm_to_plotting_config(plotting_config: dict, pixel_to_nm_scaling: float) -> dict:
-    """Addf the pixel to nanometre scaling factor to plotting configs.
+    """Add the pixel to nanometre scaling factor to plotting configs.
 
     Ensures plots are in nanometres and not pixels.
 

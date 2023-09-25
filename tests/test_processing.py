@@ -326,7 +326,7 @@ def test_process_stages(
 
     Currently there is no test for having later stages (e.g. DNA Tracing or Grainstats) enabled when Filters and/or
     Grainstats are disabled. Whislt possible it is expected that users understand the need to run earlier stages before
-    later staged can run and do not disable earlier stages.
+    later stages can run and do not disable earlier stages.
     """
     img_dic = load_scan_data.img_dict
     process_scan_config["filter"]["run"] = filter_run

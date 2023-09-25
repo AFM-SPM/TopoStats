@@ -21,7 +21,7 @@ MIN_SKELETON_SIZE = 10
 
 @pytest.fixture()
 def dnatrace() -> dnaTrace:
-    """DnaTrace object for use in tests."""
+    """dnaTrace object for use in tests."""  # noqa: D403
     return dnaTrace(
         image=np.asarray([[1]]),
         grain=None,

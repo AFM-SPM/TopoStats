@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 class Colormap:
-    """Class for setting the COlormap."""
+    """Class for setting the Colormap."""
 
     def __init__(self, name: str = "nanoscope"):
         self.name = name
