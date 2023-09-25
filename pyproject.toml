@@ -163,7 +163,6 @@ exclude = [
   ".direnv",
   ".eggs",
   ".git",
-  ".git",
   ".hg",
   ".mypy_cache",
   ".nox",
