@@ -309,6 +309,7 @@ class Grains:
         )
         for direction in self.direction:
             grain_finding_workflow = "unet"
+            grain_finding_workflow = "!unet"
             if grain_finding_workflow == "unet":
                 LOGGER.info(
                     f"[{self.filename}] : Finding {direction} grains via UNet"
