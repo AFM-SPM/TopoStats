@@ -725,7 +725,7 @@ def test_dnatracing() -> dnaTrace:
 def minicircle_dnatracing(
     minicircle_grain_gaussian_filter: Filters, minicircle_grain_coloured: Grains, dnatracing_config: dict
 ) -> dnaTrace:
-    """DnaTrace object instantiated with minicircle data."""
+    """DnaTrace object instantiated with minicircle data."""  # noqa: D403
     dnatracing_config.pop("pad_width")
     dna_traces = dnaTrace(
         image=minicircle_grain_coloured.image.T,
