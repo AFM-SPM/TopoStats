@@ -1335,7 +1335,7 @@ class nodeStats:
         return small_node_mask
 
     @staticmethod
-    def find_branch_starts(reduced_node_image: np.ndarray) ->  np.ndarray:
+    def find_branch_starts(reduced_node_image: np.ndarray) -> np.ndarray:
         """Finds the corrdinates where the branches connect to the node region through binary dilation of the node.
 
         Parameters
@@ -1562,7 +1562,7 @@ class nodeStats:
 
                 # image_slices = (single_branch_coords_img[:,0].min() - 10, single_branch_coords_img[:,0].max() + 10,
                 #                single_branch_coords_img[:,1].min() - 10, single_branch_coords_img[:,1].max() + 10)
-                
+
                 if average_trace_advised:
                     avg_img = avg_img[image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]]
 
@@ -1802,16 +1802,16 @@ class nodeStats:
     @staticmethod
     def pair_angles(angles: np.ndarray) -> list:
         """Pairs angles that are 180 degrees to eachother and removes them before selecting the next pair.
-       
-       Parameters
-        ----------
-        angles : np.ndarray
-            Square array (i,j) of angles between i and j.
 
-        Returns
-        -------
-        list
-            A list of paired indexes in a list.
+        Parameters
+         ----------
+         angles : np.ndarray
+             Square array (i,j) of angles between i and j.
+
+         Returns
+         -------
+         list
+             A list of paired indexes in a list.
         """
         angles_cp = angles.copy()
         pairs = []
@@ -1847,19 +1847,19 @@ class nodeStats:
 
     def fwhm(self, heights: np.ndarray, distances: np.ndarray) -> tuple:
         """Fits a gaussian to the branch heights, and calculates the FWHM.
-        
+
         Parameters:
         -----------
         heights: np.ndarray
             Array of height values.
         distances: np.ndarray
             array of distance values.
-        
+
         Returns:
         --------
         tuple
             A tuple of the FWHM value, and x,y matrix from curve fitting.
-        
+
         """
         mean = 45.5  # hard coded as middle node value
         sigma = 1 / (200 / self.px_2_nm)  # 1nm / px2nm = px  half a nm as either side of std
@@ -1873,7 +1873,7 @@ class nodeStats:
 
         return 2.3548 * popt[2], popt  # 2*(2ln2)^1/2 * sigma = FWHM
 
-    def fwhm2(self, heights: np.ndarray, distances: np.ndarray, hm: Union[float, None]=None) -> tuple:
+    def fwhm2(self, heights: np.ndarray, distances: np.ndarray, hm: Union[float, None] = None) -> tuple:
         """A second function to caculate the FWHM value by identifying the HM then finding the closest values
         in the distances array and using linear interpolation to calculate the FWHM.
 
@@ -1889,7 +1889,7 @@ class nodeStats:
         Returns
         -------
         tuple
-            The FWHM value, [distance at hm for 1st half of trace, distance at hm for 2nd half of trace, 
+            The FWHM value, [distance at hm for 1st half of trace, distance at hm for 2nd half of trace,
             HM value], [index of the highest point, distance at highest point, height at highest point]
 
         """
@@ -1977,7 +1977,7 @@ class nodeStats:
         )
 
     @staticmethod
-    def lin_interp(point_1: list, point_2: list, xvalue: Union[float, None]=None, yvalue: Union[float, None]=None):
+    def lin_interp(point_1: list, point_2: list, xvalue: Union[float, None] = None, yvalue: Union[float, None] = None):
         """Linear interp 2 points by finding line equation and subbing.
 
         Parameters
@@ -2199,7 +2199,7 @@ class nodeStats:
         branch_mask: np.ndarray
             A binary array of the branch, must share the same dimensions as the image.
         centre: Union[float, None]
-            
+
 
         Returns
         -------
