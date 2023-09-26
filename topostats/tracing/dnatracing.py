@@ -1390,8 +1390,8 @@ class nodeStats:
             branch_mask[branch_mask == 2] = 1
             node_coords = np.argwhere(reduced_node_area == 3)
 
-            #plt.imsave(OUTPUT_DIR / "reduced_node_area.png", reduced_node_area)
-            #np.savetxt(OUTPUT_DIR / "reduced_node_area.txt", reduced_node_area)
+            # plt.imsave(OUTPUT_DIR / "reduced_node_area.png", reduced_node_area)
+            # np.savetxt(OUTPUT_DIR / "reduced_node_area.txt", reduced_node_area)
 
             error = False  # to see if node too complex or region too small
 
@@ -1469,9 +1469,7 @@ class nodeStats:
                                 self.image, single_branch_img, single_branch_coords, [x, y]
                             )  # hess_area
                             matched_branches[i]["avg_mask"] = mask
-                            avg_img = avg_img[
-                            image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
-                        ]
+                            avg_img = avg_img[image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]]
                         else:
                             distances = self.coord_dist_rad(
                                 single_branch_coords, [x, y]
@@ -1575,7 +1573,7 @@ class nodeStats:
                         "node_branch_mask": branch_img[
                             image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
                         ],
-                        "node_avg_mask": avg_img
+                        "node_avg_mask": avg_img,
                     },
                 }
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
