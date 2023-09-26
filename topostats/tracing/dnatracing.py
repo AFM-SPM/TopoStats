@@ -1390,11 +1390,11 @@ class nodeStats:
             """
             max_length_px = max_branch_length / self.px_2_nm
             image_slices = (
-                    x - int(max_length_px * 1.2),
-                    x + int(max_length_px * 1.2),
-                    y - int(max_length_px * 1.2),
-                    y + int(max_length_px * 1.2),
-                )
+                x - int(max_length_px * 1.2),
+                x + int(max_length_px * 1.2),
+                y - int(max_length_px * 1.2),
+                y + int(max_length_px * 1.2),
+            )
 
             reduced_node_area = self._only_centre_branches(self.connected_nodes.copy(), (x, y))
             branch_mask = reduced_node_area.copy()
