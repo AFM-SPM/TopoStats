@@ -346,8 +346,14 @@ def run_toposum(args=None):
     toposum(config)
 
 
-def plot_crossing_linetrace_halfmax(branch_stats_dict, cmap, title):
-    """Plots the heightmap lines traces of the branches found in the 'branch_stats' dictionary, and their meetings."""
+def plot_crossing_linetrace_halfmax(branch_stats_dict: dict, cmap: matplotlib.colors.Colormap, title: str) -> tuple:
+    """Plots the heightmap lines traces of the branches found in the 'branch_stats' dictionary, and their meetings.
+    
+    Parameters:
+    -----------
+    branch_stats_dict: dict
+        Dictionary containing branch height, distance and fwhm2 info.
+    """
     fig, ax = plt.subplots(1, 1)
     cmp = Colormap(cmap).get_cmap()
     total_branches = len(branch_stats_dict)
@@ -372,10 +378,10 @@ def plot_crossing_linetrace_halfmax(branch_stats_dict, cmap, title):
         # plot the half max lines
         plt.plot(
             [hm_vals[0], hm_vals[0]], [hm_vals[2], heights.min()], c=cmp(cmap_ratio)
-        )  # + heights.min(), c=cmp(cmap_ratio))
+        )
         plt.plot(
             [hm_vals[1], hm_vals[1]], [hm_vals[2], heights.min()], c=cmp(cmap_ratio)
-        )  # + heights.min(), c=cmp(cmap_ratio))
+        )
 
     ax.set_xlabel("Distance from Node (nm)")
     ax.set_ylabel("Height")
