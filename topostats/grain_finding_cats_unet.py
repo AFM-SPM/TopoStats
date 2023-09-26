@@ -49,7 +49,6 @@ def predict_unet(
 
     original_image = image.copy()
 
-
     # Scale the image to ensure there are no messy negatives etc
     image = image - np.min(image)
     image = image / (np.max(image) / 255)
@@ -70,7 +69,7 @@ def predict_unet(
     # fig.colorbar(im1)
     # fig.colorbar(im2)
     # fig.savefig("./maxima_minima.png")
-    
+
     # Use maxima
     ridges = maxima
 
@@ -106,7 +105,7 @@ def predict_unet(
     ax[2].set_title("prediction")
     fig.suptitle(f"strictness: {confidence}")
     fig.tight_layout()
-    #plt.savefig(image_output_dir / f"{filename}_prediction.png")
+    # plt.savefig(image_output_dir / f"{filename}_prediction.png")
 
     # Resize prediction back up to original size
     prediction = Image.fromarray(prediction)
