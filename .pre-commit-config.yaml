@@ -28,6 +28,13 @@ repos:
       - id: pyupgrade
         args: [--py38-plus]
 
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.0.289
+    hooks:
+      - id: ruff
+        args: [ --fix, --exit-non-zero-on-fix ]
+
   - repo: https://github.com/psf/black
     rev: 23.9.1
     hooks:
@@ -42,20 +49,6 @@ repos:
     hooks:
       - id: nbstripout
 
-  - repo: https://github.com/pycqa/flake8.git
-    rev: 6.1.0
-    hooks:
-      - id: flake8
-        args: ["--extend-exclude=topostats/_version.py"]
-        additional_dependencies: [flake8-print, Flake8-pyproject]
-        types: [python]
-  # - repo: https://github.com/pycqa/pylint.git
-  #   rev: 2.15.9
-  #   hooks:
-  #     - id: pylint
-  #       types: [python]
-  #       args: ["--rcfile=.pylintrc"]
-  #       files: \.py$
   - repo: local
     hooks:
       - id: pylint

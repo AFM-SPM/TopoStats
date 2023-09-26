@@ -1,4 +1,4 @@
-"""Run TopoStats
+"""Run TopoStats.
 
 This provides an entry point for running TopoStats as a command line programme.
 """
@@ -44,9 +44,8 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-nested-blocks
 
 
-def run_topostats(args=None):
+def run_topostats(args=None):  # noqa: C901
     """Find and process all files."""
-
     # Parse command line options, load config (or default) and update with command line options
     if args.config_file is not None:
         config = read_yaml(args.config_file)

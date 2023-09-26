@@ -1,7 +1,6 @@
-"""Fixtures for testing"""
+"""Fixtures for testing."""
 import importlib.resources as pkg_resources
 from pathlib import Path
-from typing import Dict
 import yaml
 
 import numpy as np
@@ -29,9 +28,12 @@ THRESHOLD = 0.5
 CHANNEL = "Height"
 
 
-@pytest.fixture
-def default_config() -> Dict:
-    """Sample configuration"""
+# ruff: noqa: D401
+
+
+@pytest.fixture()
+def default_config() -> dict:
+    """Sample configuration."""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
@@ -44,9 +46,9 @@ def default_config() -> Dict:
     return config
 
 
-@pytest.fixture
-def process_scan_config() -> Dict:
-    """Sample configuration"""
+@pytest.fixture()
+def process_scan_config() -> dict:
+    """Sample configuration."""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
     config["grains"]["threshold_std_dev"]["below"] = 1.0
     config["grains"]["absolute_area_threshold"]["above"] = [500, 800]
@@ -56,17 +58,19 @@ def process_scan_config() -> Dict:
     return config
 
 
-@pytest.fixture
-def plot_dict() -> Dict:
-    """Load the plot_dict dictionary. This is required because the above configs have the 'plot_dict' key/value
-    popped."""
+@pytest.fixture()
+def plot_dict() -> dict:
+    """Load the plot_dict dictionary.
+
+    This is required because the above configs have the 'plot_dict' key/value popped.
+    """
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
     return yaml.safe_load(plotting_dictionary.read())
 
 
-@pytest.fixture
-def summary_config() -> Dict:
-    """Sample summary configuration"""
+@pytest.fixture()
+def summary_config() -> dict:
+    """Sample summary configuration."""
     summary_yaml = pkg_resources.open_text(topostats, "summary_config.yaml")
     summary_config = yaml.safe_load(summary_yaml.read())
     # Tweak configuration (for now) to match the tests
@@ -83,65 +87,66 @@ def summary_config() -> Dict:
     return summary_config
 
 
-@pytest.fixture
-def toposum_object_single_directory(summary_config: Dict) -> TopoSum:
-    """Set up a TopoSum object fixture for testing plotting, using a dataframe containing data from a single
-    directory."""
-    toposum = TopoSum(csv_file=RESOURCES / "toposum_all_statistics_single_directory.csv", **summary_config)
-    return toposum
+@pytest.fixture()
+def toposum_object_single_directory(summary_config: dict) -> TopoSum:
+    """Set up a TopoSum object fixture for testing plotting.
+
+    Uses a dataframe containing data from a single directory.
+    """
+    return TopoSum(csv_file=RESOURCES / "toposum_all_statistics_single_directory.csv", **summary_config)
 
 
-@pytest.fixture
-def toposum_object_multiple_directories(summary_config: Dict) -> TopoSum:
-    """Set up a TopoSum object fixture for testing plotting, using a dataframe containing data from several
-    directories."""
-    toposum = TopoSum(csv_file=RESOURCES / "toposum_all_statistics_multiple_directories.csv", **summary_config)
-    return toposum
+@pytest.fixture()
+def toposum_object_multiple_directories(summary_config: dict) -> TopoSum:
+    """Set up a TopoSum object fixture for testing plotting.
+
+    Uses a dataframe containing data from several directories.
+    """
+    return TopoSum(csv_file=RESOURCES / "toposum_all_statistics_multiple_directories.csv", **summary_config)
 
 
-@pytest.fixture
-def loading_config(default_config: Dict) -> Dict:
-    """Configuration for loading scans"""
-    config = default_config["loading"]
-    return config
+@pytest.fixture()
+def loading_config(default_config: dict) -> dict:
+    """Configuration for loading scans."""
+    return default_config["loading"]
 
 
-@pytest.fixture
-def filter_config(default_config: Dict) -> Dict:
-    """Configurations for filtering"""
+@pytest.fixture()
+def filter_config(default_config: dict) -> dict:
+    """Configurations for filtering."""
     config = default_config["filter"]
     config.pop("run")
     return config
 
 
-@pytest.fixture
-def grains_config(default_config: Dict) -> Dict:
+@pytest.fixture()
+def grains_config(default_config: dict) -> dict:
     """Configurations for grain finding."""
     config = default_config["grains"]
     config.pop("run")
     return config
 
 
-@pytest.fixture
-def grainstats_config(default_config: Dict) -> Dict:
-    """Configurations for grainstats"""
+@pytest.fixture()
+def grainstats_config(default_config: dict) -> dict:
+    """Configurations for grainstats."""
     config = default_config["grainstats"]
     config["direction"] = "above"
     config.pop("run")
     return config
 
 
-@pytest.fixture
-def dnatracing_config(default_config: Dict) -> Dict:
-    """Configurations for dnatracing"""
+@pytest.fixture()
+def dnatracing_config(default_config: dict) -> dict:
+    """Configurations for dnatracing."""
     config = default_config["dnatracing"]
     config.pop("run")
     return config
 
 
-@pytest.fixture
-def plotting_config(default_config: Dict) -> Dict:
-    """Configurations for plotting"""
+@pytest.fixture()
+def plotting_config(default_config: dict) -> dict:
+    """Configurations for plotting."""
     config = default_config["plotting"]
     config["image_set"] = "all"
     config.pop("run")
@@ -149,117 +154,115 @@ def plotting_config(default_config: Dict) -> Dict:
     return config
 
 
-@pytest.fixture
-def plotting_config_with_plot_dict(default_config: Dict) -> Dict:
-    """Plotting configuration with plot dict"""
-    config = default_config["plotting"]
-    return config
+@pytest.fixture()
+def plotting_config_with_plot_dict(default_config: dict) -> dict:
+    """Plotting configuration with plot dict."""
+    return default_config["plotting"]
 
 
-@pytest.fixture
+@pytest.fixture()
 def image_random() -> np.ndarray:
     """Random image as NumPy array."""
     rng = np.random.default_rng(seed=1000)
     return rng.random((1024, 1024))
 
 
-@pytest.fixture
+@pytest.fixture()
 def small_array() -> np.ndarray:
-    """Small (10x10) image array for testing"""
+    """Small (10x10) image array for testing."""
     return RNG.random(SMALL_ARRAY_SIZE)
 
 
-@pytest.fixture
+@pytest.fixture()
 def small_mask() -> np.ndarray:
     """Small (10x10) mask array for testing."""
     return RNG.uniform(low=0, high=1, size=SMALL_ARRAY_SIZE) > 0.5
 
 
-@pytest.fixture
+@pytest.fixture()
 def synthetic_scars_image() -> np.ndarray:
     """Small synthetic image for testing scar removal."""
     return np.load(RESOURCES / "test_scars_synthetic_scar_image.npy")
 
 
-@pytest.fixture
+@pytest.fixture()
 def synthetic_marked_scars() -> np.ndarray:
     """Small synthetic boolean array of marked scar coordinates corresponding to synthetic_scars_image."""
     return np.load(RESOURCES / "test_scars_synthetic_mark_scars.npy")
 
 
-@pytest.fixture
+@pytest.fixture()
 def image_random_row_medians() -> np.array:
     """Expected row medians (unmasked)."""
     return np.loadtxt(RESOURCES / "image_random_row_medians.csv", delimiter=",")
 
 
-@pytest.fixture
+@pytest.fixture()
 def image_random_col_medians() -> np.array:
     """Expected column medians (unmasked)."""
     return np.loadtxt(RESOURCES / "image_random_col_medians.csv", delimiter=",")
 
 
-@pytest.fixture
+@pytest.fixture()
 def image_random_median_flattened() -> np.array:
     """Expected aligned rows (unmasked)."""
     df = pd.read_csv(RESOURCES / "image_random_median_flattened.csv.bz2", header=None)
     return df.to_numpy()
 
 
-@pytest.fixture
+@pytest.fixture()
 def image_random_remove_x_y_tilt() -> np.array:
     """Expected removed tilt (unmasked)."""
     df = pd.read_csv(RESOURCES / "image_random_remove_x_y_tilt.csv.bz2", header=None)
     return df.to_numpy()
 
 
-@pytest.fixture
+@pytest.fixture()
 def image_random_remove_quadratic() -> np.array:
-    """Expected removed quadratic (unmasked)"""
+    """Expected removed quadratic (unmasked)."""
     df = pd.read_csv(RESOURCES / "image_random_remove_quadratic.csv.bz2", header=None)
     return df.to_numpy()
 
 
-@pytest.fixture
+@pytest.fixture()
 def image_random_mask() -> np.array:
     """Expected mask."""
     df = pd.read_csv(RESOURCES / "image_random_mask.csv.bz2", header=None)
     return df.to_numpy()
 
 
-@pytest.fixture
+@pytest.fixture()
 def image_random_row_medians_masked() -> np.array:
     """Expected row medians (masked)."""
     return np.loadtxt(RESOURCES / "image_random_row_medians_masked.csv", delimiter=",")
 
 
-@pytest.fixture
+@pytest.fixture()
 def image_random_col_medians_masked() -> np.array:
     """Expected column medians (masked)."""
     return np.loadtxt(RESOURCES / "image_random_col_medians_masked.csv", delimiter=",")
 
 
-@pytest.fixture
+@pytest.fixture()
 def test_filters(load_scan: LoadScans, filter_config: dict) -> Filters:
     """Filters class for testing."""
     load_scan.get_data()
-    filters = Filters(
+    return Filters(
         image=load_scan.image,
         filename=load_scan.filename,
         pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
         **filter_config,
     )
-    return filters
 
 
-@pytest.fixture
+@pytest.fixture()
 def test_filters_random(test_filters: Filters, image_random: np.ndarray) -> Filters:
     """Filters class for testing with pixels replaced by random image."""
     test_filters.images["pixels"] = image_random
     return test_filters
 
 
-@pytest.fixture
+@pytest.fixture()
 def test_filters_random_with_mask(filter_config: dict, test_filters: Filters, image_random: np.ndarray) -> Filters:
     """Filters class for testing with pixels replaced by random image."""
     test_filters.images["pixels"] = image_random
@@ -272,7 +275,7 @@ def test_filters_random_with_mask(filter_config: dict, test_filters: Filters, im
     return test_filters
 
 
-@pytest.fixture
+@pytest.fixture()
 def random_filters(test_filters_random_with_mask: Filters) -> Filters:
     """Process random with filters, for use in grains fixture."""
     test_filters_random_with_mask.images["initial_median_flatten"] = test_filters_random_with_mask.median_flatten(
@@ -291,7 +294,7 @@ def random_filters(test_filters_random_with_mask: Filters) -> Filters:
     return test_filters_random_with_mask
 
 
-@pytest.fixture
+@pytest.fixture()
 def remove_scars_config(synthetic_scars_image: np.ndarray, default_config: dict) -> dict:
     """Configuration for testing scar removal."""
     config = default_config["filter"]["remove_scars"]
@@ -306,7 +309,7 @@ def remove_scars_config(synthetic_scars_image: np.ndarray, default_config: dict)
     return config
 
 
-@pytest.fixture
+@pytest.fixture()
 def random_grains(grains_config: dict, random_filters: Filters) -> Grains:
     """Grains object based on random image which has no grains."""
     grains = Grains(
@@ -319,7 +322,7 @@ def random_grains(grains_config: dict, random_filters: Filters) -> Grains:
     return grains
 
 
-@pytest.fixture
+@pytest.fixture()
 def small_array_filters(small_array: np.ndarray, load_scan: LoadScans, filter_config: dict) -> Grains:
     """Filters object based on small_array."""
     filter_obj = Filters(
@@ -334,20 +337,19 @@ def small_array_filters(small_array: np.ndarray, load_scan: LoadScans, filter_co
 
 
 # IO fixtures
-@pytest.fixture
+@pytest.fixture()
 def load_scan_dummy() -> LoadScans:
     """Instantiate a dummy LoadScans object for use in testing `.gwy` IO methods."""
     return LoadScans(img_paths="dummy", channel="dummy")
 
 
-@pytest.fixture
+@pytest.fixture()
 def load_scan(loading_config: dict) -> LoadScans:
     """Instantiate a LoadScans object from a small .topostats image file."""
-    scan_loader = LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], **loading_config)
-    return scan_loader
+    return LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], **loading_config)
 
 
-@pytest.fixture
+@pytest.fixture()
 def load_scan_data() -> LoadScans:
     """Instance of a LoadScans object after applying the get_data func."""
     scan_data = LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], channel="Height")
@@ -355,63 +357,57 @@ def load_scan_data() -> LoadScans:
     return scan_data
 
 
-@pytest.fixture
+@pytest.fixture()
 def load_scan_spm() -> LoadScans:
     """Instantiate a LoadScans object from a .spm file."""
-    scan_loader = LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
-    return scan_loader
+    return LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
 
 
-@pytest.fixture
+@pytest.fixture()
 def load_scan_ibw() -> LoadScans:
     """Instantiate a LoadScans object from a .ibw file."""
-    scan_loader = LoadScans([RESOURCES / "minicircle2.ibw"], channel="HeightTracee")
-    return scan_loader
+    return LoadScans([RESOURCES / "minicircle2.ibw"], channel="HeightTracee")
 
 
-@pytest.fixture
+@pytest.fixture()
 def load_scan_jpk() -> LoadScans:
     """Instantiate a LoadScans object from a .jpk file."""
-    scan_loader = LoadScans([RESOURCES / "file.jpk"], channel="height_trace")
-    return scan_loader
+    return LoadScans([RESOURCES / "file.jpk"], channel="height_trace")
 
 
-@pytest.fixture
+@pytest.fixture()
 def load_scan_gwy() -> LoadScans:
     """Instantiate a LoadScans object from a .gwy file."""
-    scan_loader = LoadScans([RESOURCES / "file.gwy"], channel="dummy_channel")
-    return scan_loader
+    return LoadScans([RESOURCES / "file.gwy"], channel="dummy_channel")
 
 
-@pytest.fixture
+@pytest.fixture()
 def load_scan_topostats() -> LoadScans:
     """Instantiate a LoadScans object from a .topostats file."""
-    scan_loader = LoadScans([RESOURCES / "file.topostats"], channel="dummy_channel")
-    return scan_loader
+    return LoadScans([RESOURCES / "file.topostats"], channel="dummy_channel")
 
 
 # Minicircle fixtures
-@pytest.fixture
+@pytest.fixture()
 def minicircle(load_scan: LoadScans, filter_config: dict) -> Filters:
     """Instantiate a Filters object, creates the output directory and loads the image."""
     load_scan.get_data()
-    filters = Filters(
+    return Filters(
         image=load_scan.image,
         filename=load_scan.filename,
         pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
         **filter_config,
     )
-    return filters
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_initial_median_flatten(minicircle: Filters) -> Filters:
     """Initial align on unmasked data."""
     minicircle.images["initial_median_flatten"] = minicircle.median_flatten(minicircle.images["pixels"], mask=None)
     return minicircle
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_initial_tilt_removal(minicircle_initial_median_flatten: Filters) -> Filters:
     """Initial x/y tilt removal on unmasked data."""
     minicircle_initial_median_flatten.images["initial_tilt_removal"] = minicircle_initial_median_flatten.remove_tilt(
@@ -420,7 +416,7 @@ def minicircle_initial_tilt_removal(minicircle_initial_median_flatten: Filters) 
     return minicircle_initial_median_flatten
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_initial_quadratic_removal(minicircle_initial_tilt_removal: Filters) -> Filters:
     """Initial quadratic removal on unmasked data."""
     minicircle_initial_tilt_removal.images[
@@ -431,7 +427,7 @@ def minicircle_initial_quadratic_removal(minicircle_initial_tilt_removal: Filter
     return minicircle_initial_tilt_removal
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_threshold_otsu(minicircle_initial_tilt_removal: Filters, filter_config: dict) -> Filters:
     """Calculate threshold."""
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
@@ -440,7 +436,7 @@ def minicircle_threshold_otsu(minicircle_initial_tilt_removal: Filters, filter_c
     return minicircle_initial_tilt_removal
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_threshold_stddev(minicircle_initial_tilt_removal: Filters) -> Filters:
     """Calculate threshold."""
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
@@ -452,7 +448,7 @@ def minicircle_threshold_stddev(minicircle_initial_tilt_removal: Filters) -> Fil
     return minicircle_initial_tilt_removal
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_threshold_abs(minicircle_initial_tilt_removal: Filters) -> Filters:
     """Calculate threshold."""
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
@@ -464,7 +460,7 @@ def minicircle_threshold_abs(minicircle_initial_tilt_removal: Filters) -> Filter
     return minicircle_initial_tilt_removal
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_mask(minicircle_threshold_otsu: Filters) -> Filters:
     """Derive mask based on threshold."""
     minicircle_threshold_otsu.images["mask"] = get_mask(
@@ -473,7 +469,7 @@ def minicircle_mask(minicircle_threshold_otsu: Filters) -> Filters:
     return minicircle_threshold_otsu
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_masked_median_flatten(minicircle_mask: Filters) -> Filters:
     """Secondary alignment using mask."""
     minicircle_mask.images["masked_median_flatten"] = minicircle_mask.median_flatten(
@@ -482,7 +478,7 @@ def minicircle_masked_median_flatten(minicircle_mask: Filters) -> Filters:
     return minicircle_mask
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_masked_tilt_removal(minicircle_masked_median_flatten: Filters) -> Filters:
     """Secondary x/y tilt removal using mask."""
     minicircle_masked_median_flatten.images["masked_tilt_removal"] = minicircle_masked_median_flatten.remove_tilt(
@@ -492,7 +488,7 @@ def minicircle_masked_tilt_removal(minicircle_masked_median_flatten: Filters) ->
     return minicircle_masked_median_flatten
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_masked_quadratic_removal(minicircle_masked_tilt_removal: Filters) -> Filters:
     """Secondary quadratic removal using mask."""
     minicircle_masked_tilt_removal.images["masked_quadratic_removal"] = minicircle_masked_tilt_removal.remove_quadratic(
@@ -501,7 +497,7 @@ def minicircle_masked_quadratic_removal(minicircle_masked_tilt_removal: Filters)
     return minicircle_masked_tilt_removal
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_grain_gaussian_filter(minicircle_masked_quadratic_removal: Filters) -> Filters:
     """Apply Gaussian filter."""
     minicircle_masked_quadratic_removal.images[
@@ -513,19 +509,18 @@ def minicircle_grain_gaussian_filter(minicircle_masked_quadratic_removal: Filter
 
 
 # Derive fixtures for grain finding
-@pytest.fixture
+@pytest.fixture()
 def minicircle_grains(minicircle_grain_gaussian_filter: Grains, grains_config: dict) -> Grains:
     """Grains object based on filtered minicircle."""
-    grains = Grains(
+    return Grains(
         image=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         filename=minicircle_grain_gaussian_filter.filename,
         pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
         **grains_config,
     )
-    return grains
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_grain_threshold_otsu(minicircle_grains: Grains, grains_config: dict) -> Grains:
     """Calculate threshold."""
     grains_config.pop("threshold_method")
@@ -537,7 +532,7 @@ def minicircle_grain_threshold_otsu(minicircle_grains: Grains, grains_config: di
     return minicircle_grains
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_grain_threshold_stddev(minicircle_grains: Grains, grains_config: dict) -> Grains:
     """Calculate threshold."""
     grains_config["threshold_method"] = "std_dev"
@@ -551,7 +546,7 @@ def minicircle_grain_threshold_stddev(minicircle_grains: Grains, grains_config: 
     return minicircle_grains
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_grain_threshold_abs(minicircle_grains: Grains) -> Grains:
     """Calculate threshold."""
     minicircle_grains.thresholds = get_thresholds(
@@ -563,7 +558,7 @@ def minicircle_grain_threshold_abs(minicircle_grains: Grains) -> Grains:
     return minicircle_grains
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_grain_mask(minicircle_grain_threshold_abs: Grains) -> Grains:
     """Boolean mask."""
     minicircle_grain_threshold_abs.directions["above"] = {}
@@ -576,7 +571,7 @@ def minicircle_grain_mask(minicircle_grain_threshold_abs: Grains) -> Grains:
     return minicircle_grain_threshold_abs
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_grain_clear_border(minicircle_grain_mask: np.array) -> Grains:
     """Cleared borders."""
     minicircle_grain_mask.directions["above"]["tidied_border"] = minicircle_grain_mask.tidy_border(
@@ -585,7 +580,7 @@ def minicircle_grain_clear_border(minicircle_grain_mask: np.array) -> Grains:
     return minicircle_grain_mask
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_grain_remove_noise(minicircle_grain_clear_border: Grains) -> Grains:
     """Fixture to test removing noise."""
     minicircle_grain_clear_border.directions["above"]["removed_noise"] = minicircle_grain_clear_border.remove_noise(
@@ -594,7 +589,7 @@ def minicircle_grain_remove_noise(minicircle_grain_clear_border: Grains) -> Grai
     return minicircle_grain_clear_border
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_grain_labelled_all(minicircle_grain_remove_noise: Grains) -> Grains:
     """Labelled regions."""
     minicircle_grain_remove_noise.directions["above"][
@@ -603,7 +598,7 @@ def minicircle_grain_labelled_all(minicircle_grain_remove_noise: Grains) -> Grai
     return minicircle_grain_remove_noise
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_minimum_grain_size(minicircle_grain_labelled_all: Grains) -> Grains:
     """Minimum grain size."""
     minicircle_grain_labelled_all.calc_minimum_grain_size(
@@ -612,7 +607,7 @@ def minicircle_minimum_grain_size(minicircle_grain_labelled_all: Grains) -> Grai
     return minicircle_grain_labelled_all
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_small_objects_removed(minicircle_minimum_grain_size: Grains) -> Grains:
     """Small objects removed."""
     minicircle_minimum_grain_size.directions["above"][
@@ -623,7 +618,7 @@ def minicircle_small_objects_removed(minicircle_minimum_grain_size: Grains) -> G
     return minicircle_minimum_grain_size
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_area_thresholding(minicircle_grain_labelled_all: Grains) -> Grains:
     """Small objects removed."""
     absolute_area_thresholds = [30, 2000]
@@ -636,7 +631,7 @@ def minicircle_area_thresholding(minicircle_grain_labelled_all: Grains) -> Grain
     return minicircle_grain_labelled_all
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_grain_labelled_post_removal(minicircle_small_objects_removed: np.array) -> Grains:
     """Labelled regions."""
     minicircle_small_objects_removed.directions["above"][
@@ -647,7 +642,7 @@ def minicircle_grain_labelled_post_removal(minicircle_small_objects_removed: np.
     return minicircle_small_objects_removed
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_grain_region_properties_post_removal(minicircle_grain_labelled_post_removal: np.array) -> np.array:
     """Region properties."""
     return minicircle_grain_labelled_post_removal.get_region_properties(
@@ -655,7 +650,7 @@ def minicircle_grain_region_properties_post_removal(minicircle_grain_labelled_po
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_grain_coloured(minicircle_grain_labelled_post_removal: np.array) -> Grains:
     """Coloured regions."""
     minicircle_grain_labelled_post_removal.directions["above"][
@@ -667,21 +662,20 @@ def minicircle_grain_coloured(minicircle_grain_labelled_post_removal: np.array) 
 
 
 # Derive fixture for grainstats
-@pytest.fixture
+@pytest.fixture()
 def grainstats(image_random: np.array, grainstats_config: dict, tmp_path) -> GrainStats:
     """Grainstats class for testing functions."""
-    gstats = GrainStats(
+    return GrainStats(
         image_random,
         image_random,
         pixel_to_nanometre_scaling=0.5,
         base_output_dir=tmp_path,
         **grainstats_config,
     )
-    return gstats
 
 
 # Minicircle
-@pytest.fixture
+@pytest.fixture()
 def minicircle_grainstats(
     minicircle_grain_gaussian_filter: Filters,
     minicircle_grain_labelled_post_removal: Grains,
@@ -721,17 +715,17 @@ GRAINS = np.array(
 FULL_IMAGE = RNG.random((GRAINS.shape[0], GRAINS.shape[1]))
 
 
-@pytest.fixture
+@pytest.fixture()
 def test_dnatracing() -> dnaTrace:
     """Instantiate a dnaTrace object."""
     return dnaTrace(image=FULL_IMAGE, grain=GRAINS, filename="Test", pixel_to_nm_scaling=1.0)
 
 
-@pytest.fixture
+@pytest.fixture()
 def minicircle_dnatracing(
     minicircle_grain_gaussian_filter: Filters, minicircle_grain_coloured: Grains, dnatracing_config: dict
 ) -> dnaTrace:
-    """dnaTrace object instantiated with minicircle data."""
+    """DnaTrace object instantiated with minicircle data."""  # noqa: D403
     dnatracing_config.pop("pad_width")
     dna_traces = dnaTrace(
         image=minicircle_grain_coloured.image.T,
@@ -745,14 +739,14 @@ def minicircle_dnatracing(
 
 
 # DNA Tracing Fixtures
-@pytest.fixture
+@pytest.fixture()
 def minicircle_all_statistics() -> pd.DataFrame:
     """Expected statistics for minicricle."""
     return pd.read_csv(RESOURCES / "minicircle_default_all_statistics.csv", header=0)
 
 
 # Skeletonizing Fixtures
-@pytest.fixture
+@pytest.fixture()
 def skeletonize_circular() -> np.ndarray:
     """A circular molecule for testing skeletonizing."""
     return np.array(
@@ -782,13 +776,13 @@ def skeletonize_circular() -> np.ndarray:
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def skeletonize_circular_bool_int(skeletonize_circular: np.ndarray) -> np.ndarray:
     """A circular molecule for testing skeletonizing as a boolean integer array."""
     return np.array(skeletonize_circular, dtype="bool").astype(int)
 
 
-@pytest.fixture
+@pytest.fixture()
 def skeletonize_linear() -> np.ndarray:
     """A linear molecule for testing skeletonizing."""
     return np.array(
@@ -821,7 +815,7 @@ def skeletonize_linear() -> np.ndarray:
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def skeletonize_linear_bool_int(skeletonize_linear) -> np.ndarray:
     """A linear molecule for testing skeletonizing as a boolean integer array."""
     return np.array(skeletonize_linear, dtype="bool").astype(int)

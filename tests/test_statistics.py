@@ -1,4 +1,4 @@
-"""Tests for image statistics"""
+"""Tests for image statistics."""
 
 import pytest
 import numpy as np
@@ -9,7 +9,6 @@ from topostats.statistics import image_statistics, roughness_rms
 
 def test_image_statistics(image_random: np.ndarray) -> None:
     """Test the image_statistics function of statistics.py."""
-
     # Construct the results dataframe that image_stats takes as an argument
     results_data = {
         "molecule_number": [0, 1, 2, 3, 4, 5],
@@ -69,7 +68,7 @@ def test_image_statistics(image_random: np.ndarray) -> None:
 
 
 @pytest.mark.parametrize(
-    "test_image, expected",
+    ("test_image", "expected"),
     [
         (
             np.array(

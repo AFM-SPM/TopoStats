@@ -1,8 +1,8 @@
-"""Contains class for calculating the statistics of grains - 2d raster images"""
+"""Contains class for calculating the statistics of grains - 2d raster images."""
+from __future__ import annotations
 import logging
 from pathlib import Path
 from random import randint
-from typing import Union, List, Tuple, Dict
 
 import numpy as np
 import skimage.measure as skimage_measure
@@ -63,7 +63,7 @@ class GrainStats:
         labelled_data: np.ndarray,
         pixel_to_nanometre_scaling: float,
         direction: str,
-        base_output_dir: Union[str, Path],
+        base_output_dir: str | Path,
         image_name: str = None,
         edge_detection_method: str = "binary_erosion",
         cropped_size: float = -1,
@@ -97,7 +97,6 @@ class GrainStats:
             Multiplier to convert the current length scale to metres. Default: 1e-9 for the
             usual AFM length scale of nanometres.
         """
-
         self.data = data
         self.labelled_data = labelled_data
         self.pixel_to_nanometre_scaling = pixel_to_nanometre_scaling
@@ -112,7 +111,7 @@ class GrainStats:
 
     @staticmethod
     def get_angle(point_1: tuple, point_2: tuple) -> float:
-        """Function that calculates the angle in radians between two points.
+        """Calculate the angle in radians between two points.
 
         Parameters
         ----------
@@ -126,12 +125,11 @@ class GrainStats:
         angle : float
             The angle in radians between the two input vectors.
         """
-
         return np.arctan2(point_1[1] - point_2[1], point_1[0] - point_2[0])
 
     @staticmethod
     def is_clockwise(p_1: tuple, p_2: tuple, p_3: tuple) -> bool:
-        """Function to determine if three points make a clockwise or counter-clockwise turn.
+        """Determine if three points make a clockwise or counter-clockwise turn.
 
         Parameters
         ----------
@@ -153,7 +151,7 @@ class GrainStats:
         rotation_matrix = np.array(((p_1[0], p_1[1], 1), (p_2[0], p_2[1], 1), (p_3[0], p_3[1], 1)))
         return not np.linalg.det(rotation_matrix) > 0
 
-    def calculate_stats(self) -> Dict:
+    def calculate_stats(self) -> dict:
         """Calculate the stats of grains in the labelled image.
 
         Returns
@@ -163,7 +161,6 @@ class GrainStats:
         grains_plot_data:
             A list of dictionaries containing grain data to be plotted.
         """
-
         grains_plot_data = []
         if self.labelled_data is None:
             LOGGER.info(
@@ -303,9 +300,7 @@ class GrainStats:
 
     @staticmethod
     def calculate_points(grain_mask: np.ndarray):
-        """Class method that takes a 2D boolean numpy array image of a grain and returns a list containing the
-        co-ordinates of the points in the grain.
-
+        """Convert a 2D boolean array to a list of co-ordinates.
 
         Parameters
         ----------
@@ -315,7 +310,8 @@ class GrainStats:
         Returns
         -------
         points : list
-            A python list containing the coordinates of the pixels in the grain."""
+        A python list containing the coordinates of the pixels in the grain.
+        """
         nonzero_coordinates = grain_mask.nonzero()
         points = []
         for point in np.transpose(nonzero_coordinates):
@@ -325,8 +321,7 @@ class GrainStats:
 
     @staticmethod
     def calculate_edges(grain_mask: np.ndarray, edge_detection_method: str):
-        """Class method that takes a 2D boolean numpy array image of a grain and returns a python list of the
-        coordinates of the edges of the grain.
+        """Convert 2D boolean array to list of the coordinates of the edges of the grain.
 
         Parameters
         ----------
@@ -370,9 +365,10 @@ class GrainStats:
         # return edges
         return [list(vector) for vector in np.transpose(nonzero_coordinates)]
 
-    def calculate_radius_stats(self, edges: list, points: list) -> Tuple:
-        """Class method that calculates the statistics relating to the radius. The radius in this context
-        is the distance from the centroid to points on the edge of the grain.
+    def calculate_radius_stats(self, edges: list, points: list) -> tuple:
+        """Calculate the radius of grains.
+
+        The radius in this context is the distance from the centroid to points on the edge of the grain.
 
         Parameters
         ----------
@@ -419,13 +415,13 @@ class GrainStats:
 
     @staticmethod
     def _calculate_displacement(edges: np.array, centroid: tuple) -> np.array:
-        """Calculate the displacement between the centroid and edges"""
+        """Calculate the displacement between the centroid and edges."""
         # FIXME : Remove once we have a numpy array returned by calculate_edges
         return np.array(edges) - centroid
 
     @staticmethod
     def _calculate_radius(displacements) -> np.array:
-        """Calculate the radius of each point from the centroid
+        """Calculate the radius of each point from the centroid.
 
         Parameters
         ----------
@@ -438,8 +434,9 @@ class GrainStats:
         return np.array([np.sqrt(radius[0] ** 2 + radius[1] ** 2) for radius in displacements])
 
     def convex_hull(self, edges: list, base_output_dir: Path, debug: bool = False):
-        """Class method that takes a grain mask and the edges of the grain and returns the grain's convex hull. Based
-        off of the Graham Scan algorithm and should ideally scale in time with O(nlog(n)).
+        """Calculate a grain's convex hull.
+
+        Based off of the Graham Scan algorithm and should ideally scale in time with O(nlog(n)).
 
         Parameters
         ----------
@@ -473,8 +470,9 @@ class GrainStats:
         return hull, hull_indices, simplexes
 
     def calculate_squared_distance(self, point_2: tuple, point_1: tuple = None) -> float:
-        """Function that calculates the distance squared between two points. Used for distance sorting purposes and
-        therefore does not perform a square root in the interests of efficiency.
+        """Calculate the squared distance between two points.
+
+        Used for distance sorting purposes and therefore does not perform a square root in the interests of efficiency.
 
         Parameters
         ----------
@@ -496,9 +494,9 @@ class GrainStats:
         # Don't need the sqrt since just sorting for dist
         return float(delta_x**2 + delta_y**2)
 
-    def sort_points(self, points: List) -> List:
+    def sort_points(self, points: list) -> list:
         #    def sort_points(self, points: np.array) -> List:
-        """Function to sort points in counter-clockwise order of angle made with the starting point.
+        """Sort points in counter-clockwise order of angle made with the starting point.
 
         Parameters
         ----------
@@ -516,7 +514,7 @@ class GrainStats:
         # Lists that allow sorting of points relative to a current comparision point
         smaller, equal, larger = [], [], []
         # Get a random point in the array to calculate the pivot angle from. This sorts the points relative to this point.
-        pivot_angle = self.get_angle(points[randint(0, len(points) - 1)], self.start_point)
+        pivot_angle = self.get_angle(points[randint(0, len(points) - 1)], self.start_point)  # noqa: S311
         for point in points:
             point_angle = self.get_angle(point, self.start_point)
             # If the
@@ -530,28 +528,24 @@ class GrainStats:
         # relative to that and _then_ sort it.
         # pivot_angles = self.get_angle(points, self.start_point)
         # Recursively sort the arrays until each point is sorted
-        sorted_points = (
-            self.sort_points(smaller) + sorted(equal, key=self.calculate_squared_distance) + self.sort_points(larger)
-        )
+        return self.sort_points(smaller) + sorted(equal, key=self.calculate_squared_distance) + self.sort_points(larger)
         # Return sorted array where equal angle points are sorted by distance
-        return sorted_points
 
-    def get_start_point(self, edges) -> int:
+    def get_start_point(self, edges) -> None:
         """Determine the index of the bottom most point of the hull when sorted by x-position.
 
         Parameters
         ----------
         edges: np.array
 
-        Returns
-        -------
         """
         min_y_index = np.argmin(edges[:, 1])
         self.start_point = edges[min_y_index]
 
     def graham_scan(self, edges: list):
-        """A function based on the Graham Scan algorithm that constructs a convex hull from points in 2D cartesian
-        space. Ideally this algorithm will take O( n * log(n) ) time.
+        """Construct the convex hull using the  Graham Scan algorithm.
+
+        Ideally this algorithm will take O( n * log(n) ) time.
 
         Parameters
         ----------
@@ -591,7 +585,7 @@ class GrainStats:
 
         # Iterate through each point, checking if this point would cause a clockwise rotation if added to the hull, and
         # if so, backtracking.
-        for index, point in enumerate(points_sorted_by_angle[1:]):
+        for _, point in enumerate(points_sorted_by_angle[1:]):
             # Determine if the proposed point demands a clockwise rotation
             while self.is_clockwise(hull[-2], hull[-1], point) is True:
                 # Delete the failed point
@@ -614,9 +608,8 @@ class GrainStats:
         return hull, hull_indices, simplices
 
     @staticmethod
-    def plot(edges: list, convex_hull: list = None, file_path: Path = None):
-        """A function that plots and saves the coordinates of the edges in the grain and optionally the hull. The
-        plot is saved as the file name that is provided.
+    def plot(edges: list, convex_hull: list = None, file_path: Path = None) -> None:
+        """Plot and save the coordinates of the edges in the grain and optionally the hull.
 
         Parameters
         ----------
@@ -628,7 +621,6 @@ class GrainStats:
         file_path : Path
             Path of the file to save the plot as.
         """
-
         _, ax = plt.subplots(1, 1, figsize=(8, 8))
         x_s, y_s = zip(*edges)
         ax.scatter(x_s, y_s)
@@ -645,8 +637,7 @@ class GrainStats:
         plt.close()
 
     def calculate_aspect_ratio(self, edges: list, hull_simplices: np.ndarray, path: Path, debug: bool = False) -> tuple:
-        """Class method that takes a list of edge points for a grain, and convex hull simplices and returns the width,
-           length and aspect ratio of the smallest bounding rectangle for the grain.
+        """Calculate the width, length and aspect ratio of the smallest bounding rectangle of a grain.
 
         Parameters
         ----------
@@ -867,7 +858,7 @@ class GrainStats:
         return smallest_bounding_width, smallest_bounding_length, aspect_ratio
 
     @staticmethod
-    def find_cartesian_extremes(rotated_points: np.ndarray) -> Dict:
+    def find_cartesian_extremes(rotated_points: np.ndarray) -> dict:
         """Find the limits of x and y of rotated points.
 
         Parameters
@@ -889,7 +880,7 @@ class GrainStats:
 
     @staticmethod
     def get_shift(coords: np.ndarray, shape: np.ndarray) -> int:
-        """Obtains the coordinate shift to reflect the cropped image box for molecules near the edges of the image.
+        """Obtain the coordinate shift to reflect the cropped image box for molecules near the edges of the image.
 
         Parameters
         ----------
@@ -940,7 +931,8 @@ class GrainStats:
 
     @staticmethod
     def get_triangle_height(base_point_1: np.array, base_point_2: np.array, top_point: np.array) -> float:
-        """Returns the height of a triangle defined by the input point vectors.
+        """Return the height of a triangle defined by the input point vectors.
+
         Parameters
         ----------
         base_point_1: np.ndarray
@@ -958,24 +950,24 @@ class GrainStats:
             The height of the triangle - ie the shortest distance between the top point and the line between the two
         base points.
         """
-
         # Height of triangle = A/b = ||AB X AC|| / ||AB||
         a_b = base_point_1 - base_point_2
         a_c = base_point_1 - top_point
         return np.linalg.norm(np.cross(a_b, a_c)) / np.linalg.norm(a_b)
 
     @staticmethod
-    def get_max_min_ferets(edge_points: list):
-        """Returns the minimum and maximum feret diameters for a grain.
-        These are defined as the smallest and greatest distances between
-        a pair of callipers that are rotating around a 2d object, maintaining
-        contact at all times.
+    def get_max_min_ferets(edge_points: list):  # noqa: C901
+        """Return the minimum and maximum feret diameters for a grain.
+
+        These are defined as the smallest and greatest distances between a pair of callipers that are rotating around a
+        2d object, maintaining contact at all times.
 
         Parameters
         ----------
         edge_points: list
             a list of the vector positions of the pixels comprising the edge of the
             grain. Eg: [[0, 0], [1, 0], [2, 1]]
+
         Returns
         -------
         min_feret: float
@@ -985,22 +977,17 @@ class GrainStats:
 
         Notes
         -----
-        The method starts out by calculating the upper and lower convex hulls using
-        an algorithm based on the Graham Scan Algorithm [1]. Using these upper and
-        lower hulls, the callipers are simulated as rotating clockwise around the grain.
-        We determine the order in which vertices are encountered by comparing the
-        gradients of the slopes between vertices. An array of pairs of points that
-        are in contact with either calliper at a given time is created in order to
-        be able to calculate the maximum feret diameter. The minimum diameter is a
-        little tricky, since it won't simply be the shortest distance between two
-        contact points, but it will occur somewhere during the rotation around a
-        pair of contact points. It turns out that the point will always be such
-        that two points are in contact with one calliper while the other calliper
-        is in contact with another point. We can use this fact to be sure of finding
-        the smallest feret diameter, simply by testing each triangle of 3 contact points
-        as we iterate, finding the height of the triangle that is formed between the
-        three aforementioned points, as this will be the perpendicular distance between
-        the callipers.
+        The method starts out by calculating the upper and lower convex hulls using  an algorithm based on the Graham
+        Scan Algorithm [1]. Using these upper and lower hulls, the callipers are simulated as rotating clockwise around
+        the grain. We determine the order in which vertices are encountered by comparing the gradients of the slopes
+        between vertices. An array of pairs of points that are in contact with either calliper at a given time is
+        created in order to be able to calculate the maximum feret diameter. The minimum diameter is a little tricky,
+        since it won't simply be the shortest distance between two contact points, but it will occur somewhere during
+        the rotation around a pair of contact points. It turns out that the point will always be such that two points
+        are in contact with one calliper while the other calliper is in contact with another point. We can use this fact
+        to be sure of finding the smallest feret diameter, simply by testing each triangle of 3 contact points as we
+        iterate, finding the height of the triangle that is formed between the three aforementioned points, as this will
+        be the perpendicular distance between the callipers.
 
         References
         ----------
@@ -1009,7 +996,6 @@ class GrainStats:
             Information Processing Letters. 1 (4): 132-133.
             doi:10.1016/0020-0190(72)90045-2.
         """
-
         # Sort the vectors by their x coordinate and then by their y coordinate.
         # The conversion between list and numpy array can be removed, though it would be harder
         # to read.

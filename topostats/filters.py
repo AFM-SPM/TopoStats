@@ -1,9 +1,8 @@
-"""Contains filter functions that take a 2D array representing an image as an input, as well as necessary parameters,
-and return a 2D array of the same size representing the filtered image."""
+"""Module for filtering 2D Numpy arrays."""
+from __future__ import annotations
 import logging
-from typing import Union
 
-# noqa: disable=no-name-in-module
+# ruff: noqa: disable=no-name-in-module
 # pylint: disable=no-name-in-module
 from skimage.filters import gaussian
 from scipy.optimize import curve_fit
@@ -16,8 +15,8 @@ from topostats import scars
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-# noqa: disable=too-many-instance-attributes
-# noqa: disable=too-many-arguments
+# ruff: noqa: disable=too-many-instance-attributes
+# ruff: noqa: disable=too-many-arguments
 # pylint: disable=fixme
 # pylint: disable=broad-except
 # pylint: disable=too-many-instance-attributes
@@ -107,9 +106,11 @@ class Filters:
     def median_flatten(
         self, image: np.ndarray, mask: np.ndarray = None, row_alignment_quantile: float = 0.5
     ) -> np.ndarray:
-        """
-        Uses the method of median differences to flatten the rows of an image, aligning the rows and centering the
-        median around zero. When used with a mask, this has the effect of centering the background data on zero.
+        """Flatten images using median differences.
+
+        Flatten the rows of an image, aligning the rows and centering the median around zero. When used with a mask,
+        this has the effect of centering the background data on zero.
+
         Note this function does not handle scars.
 
         Parameters
@@ -149,9 +150,10 @@ processed, please refer to <url to page where we document common problems> for m
 
     def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None):
         """
-        Removes planar tilt from an image (linear in 2D space). It uses a linear fit of the medians
-        of the rows and columns to determine the linear slants in x and y directions and then subtracts
-        the fit from the columns.
+        Remove planar tilt from an image (linear in 2D space).
+
+        Uses a linear fit of the medians of the rows and columns to determine the linear slants in x and y directions
+        and then subtracts the fit from the columns.
 
         Parameters
         ----------
@@ -161,6 +163,7 @@ processed, please refer to <url to page where we document common problems> for m
             Boolean array of points to mask out (ignore).
         img_name: str
             Name of the image (to be able to print information in the console).
+
         Returns
         -------
         np.ndarray
@@ -211,12 +214,15 @@ processed, please refer to <url to page where we document common problems> for m
 
         return image
 
-    def remove_nonlinear_polynomial(self, image: np.ndarray, mask: Union[np.ndarray, None] = None) -> np.ndarray:
+    def remove_nonlinear_polynomial(self, image: np.ndarray, mask: np.ndarray | None = None) -> np.ndarray:
         # Script has a lot of locals but I feel this is necessary for readability?
         # pylint: disable=too-many-locals
-        """Fit and remove a "saddle" shaped nonlinear polynomial trend of the form a + b * x * y - c * x - d * y
-        from the supplied image. AFM images sometimes contain a "saddle" shape trend to their background,
-        and so to remove them we fit a nonlinear polynomial of x and y and then subtract the fit from the image.
+        """Fit and remove a "saddle" shaped nonlinear polynomial from the image.
+
+        "Saddles" with the form a + b * x * y - c * x - d * y from the supplied image. AFM images sometimes contain a
+        "saddle" shape trend to their background, and so to remove them we fit a nonlinear polynomial of x and y and
+        then subtract the fit from the image.
+
         If these trends are not removed, then the image will not flatten properly and will leave opposite diagonal
         corners raised or lowered.
 
@@ -285,8 +291,10 @@ processed, please refer to <url to page where we document common problems> for m
 
     def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
         """
-        Removes the quadratic bowing that can be seen in some large-scale AFM images. It uses a simple quadratic fit
-        on the medians of the columns of the image and then subtracts the calculated quadratic from the columns.
+        Remove the quadratic bowing that can be seen in some large-scale AFM images.
+
+        Use a simple quadratic fit on the medians of the columns of the image and then subtracts the calculated
+        quadratic from the columns.
 
         Parameters
         ----------

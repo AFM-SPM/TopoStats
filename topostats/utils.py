@@ -1,8 +1,8 @@
-"""Utilities"""
+"""Utilities."""
+from __future__ import annotations
 from argparse import Namespace
 import logging
 from pathlib import Path
-from typing import Union, Dict
 from collections import defaultdict
 
 import numpy as np
@@ -45,7 +45,7 @@ ALL_STATISTICS_COLUMNS = (
 )
 
 
-def convert_path(path: Union[str, Path]) -> Path:
+def convert_path(path: str | Path) -> Path:
     """Ensure path is Path object.
 
     Parameters
@@ -61,8 +61,8 @@ def convert_path(path: Union[str, Path]) -> Path:
     return Path().cwd() if path == "./" else Path(path).expanduser()
 
 
-def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
-    """Update the configuration with any arguments
+def update_config(config: dict, args: dict | Namespace) -> dict:
+    """Update the configuration with any arguments.
 
     Parameters
     ----------
@@ -70,6 +70,7 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
         Dictionary of configuration (typically read from YAML file specified with '-c/--config <filename>')
     args: Namespace
         Command line arguments
+
     Returns
     -------
     Dict
@@ -94,9 +95,10 @@ def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
 
 
 def update_plotting_config(plotting_config: dict) -> dict:
-    """Update the plotting config for each of the plots in plot_dict to ensure that each
-    entry has all the plotting configuration values that are needed."""
+    """Update the plotting config for each of the plots in plot_dict.
 
+    Ensures that each entry has all the plotting configuration values that are needed.
+    """
     main_config = plotting_config.copy()
     for opt in ["plot_dict", "run"]:
         main_config.pop(opt)
@@ -111,7 +113,7 @@ def update_plotting_config(plotting_config: dict) -> dict:
 
 
 def _get_mask(image: np.ndarray, thresh: float, threshold_direction: str, img_name: str = None) -> np.ndarray:
-    """Calculate a mask for pixels that exceed the threshold
+    """Calculate a mask for pixels that exceed the threshold.
 
     Parameters
     ----------
@@ -170,14 +172,14 @@ def get_mask(image: np.ndarray, thresholds: dict, img_name: str = None) -> np.nd
 
 
 # pylint: disable=unused-argument
-def get_thresholds(
+def get_thresholds(  # noqa: C901
     image: np.ndarray,
     threshold_method: str,
     otsu_threshold_multiplier: float = None,
     threshold_std_dev: dict = None,
     absolute: dict = None,
     **kwargs,
-) -> Dict:
+) -> dict:
     """Obtain thresholds for masking data points.
 
     Parameters
@@ -239,5 +241,4 @@ def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: tuple =
         Empty Pandas DataFrame.
     """
     empty_df = pd.DataFrame(columns=columns)
-    empty_df = empty_df.set_index(index)
-    return empty_df
+    return empty_df.set_index(index)

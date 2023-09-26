@@ -1,4 +1,4 @@
-"""Test of thresholds"""
+"""Test of thresholds."""
 # pylint: disable=no-name-in-module
 import pytest
 import numpy as np
@@ -20,7 +20,7 @@ def test_threshold_invalid_method(image_random: np.array) -> None:
     image_random : np.array
         Numpy array representing an image.
     """
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError):  # noqa: PT011
         threshold(image_random, method="shoes")
 
 
