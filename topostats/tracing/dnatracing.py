@@ -1494,9 +1494,9 @@ class nodeStats:
                 LOGGER.info(f"node {node_no} has only two branches - skipped & nodes removed")
                 # sometimes removal of nibs can cause problems when re-indexing nodes
                 LOGGER.info(f"{len(node_coords)} pixels in nib node")
-                # TODO: node coords mught be missaligned
-                self.node_centre_mask[node_coords[:, 0], node_coords[:, 0]] = 1  # remove these from node_centre_mask
-                self.connected_nodes[node_coords[:, 0], node_coords[:, 1]] = 1  # remove these from connected_nodes
+                # TODO: node coords might be missaligned
+                #self.node_centre_mask[node_coords[:, 0], node_coords[:, 0]] = 1  # remove these from node_centre_mask
+                #self.connected_nodes[node_coords[:, 0], node_coords[:, 1]] = 1  # remove these from connected_nodes
             else:
                 try:
                     # check wether resolution good enough to trace
@@ -1554,8 +1554,11 @@ class nodeStats:
                         # get heights and trace distance of branch
                         if average_trace_advised:
                             # np.savetxt(OUTPUT_DIR / "area.txt",image_area)
-                            # np.savetxt(OUTPUT_DIR / "single_branch.txt",single_branch)
-                            # print("ZD: ", zero_dist)
+                            tmp = single_branch_img.copy()
+                            tmp[x, y] = 2
+                            print(x,y)
+                            plt.imsave(OUTPUT_DIR / "sing.png", tmp)
+                            plt.imsave(OUTPUT_DIR / "nodes.png", self.all_connected_nodes)
                             distances, heights, mask, _ = self.average_height_trace(
                                 self.image, single_branch_img, single_branch_coords, [x, y]
                             )  # hess_area
@@ -1721,6 +1724,7 @@ class nodeStats:
         np.ndarray
             An array of ordered cordinates.
         """
+        print("ORDER BRANCH:")
         mask = binary_image.copy()
 
         if len(np.argwhere(mask == 1)) < 3:  # if < 3 coords just return them
@@ -1730,13 +1734,13 @@ class nodeStats:
         endpoints_highlight = ndimage.convolve(mask, np.ones((3, 3)))
         endpoints_highlight[mask == 0] = 0
         endpoints = np.argwhere(endpoints_highlight == 2)
-
-        if len(endpoints) != 0:  # if > 1 endpoint, start is closest to anchor
-            dist_vals = abs((endpoints - anchor).sum(axis=1))
+        if len(endpoints) != 0:  # if any endpoints, start closest to anchor
+            dist_vals = abs((endpoints - anchor)).sum(axis=1)
             start = endpoints[np.argmin(dist_vals)]
         else:  # will be circular so pick the first coord (is this always the case?)
             start = np.argwhere(mask == 1)[0]
         # order the points according to what is nearby
+        print("start: ", start)
         ordered = self.order_branch_from_start(mask, start)
 
         return np.array(ordered)
@@ -2276,7 +2280,7 @@ class nodeStats:
         branch_mask: np.ndarray
             A binary array of the branch, must share the same dimensions as the image.
         centre: Union[float, None]
-
+            The coordinates to centre the branch around.
 
         Returns
         -------
@@ -2294,6 +2298,7 @@ class nodeStats:
             np.argmin(np.sqrt((branch_coords[:, 0] - centre[0]) ** 2 + (branch_coords[:, 1] - centre[1]) ** 2))
         ]
         branch_dist_norm = branch_dist - dist_zero_point  # - 0  # branch_dist[branch_heights.argmax()]
+        
         # want to get a 3 pixel line trace, one on each side of orig
         dilate = ndimage.binary_dilation(branch_mask, iterations=1)
         dilate_minus = dilate.copy()
@@ -2331,18 +2336,15 @@ class nodeStats:
         binary += branch_mask
 
         # get and order coords, then get heights and distances relitive to node centre / highest point
-        centre_fraction = 1 - 0.8  # the middle % of data to look for peak - stops peaks being found at edges
         heights = []
         distances = []
         for i in np.unique(labels)[1:]:
-            trace_img = labels.copy()
-            trace_img[trace_img != i] = 0
-            trace_img[trace_img != 0] = 1
+            trace_img = np.where(labels==i, 1, 0)
             trace_img = getSkeleton(img, trace_img).get_skeleton("zhang")
+            print("ANCHOR: ", branch_coords[0])
             trace = self.order_branch(trace_img, branch_coords[0])
+            print("TRACE: ", trace[0], trace[-1])
             height_trace = img[trace[:, 0], trace[:, 1]]
-            height_len = len(height_trace)
-            central_heights = height_trace[int(height_len * centre_fraction) : int(-height_len * centre_fraction)]
             dist = self.coord_dist_rad(trace, centre)  # self.coord_dist(trace)
             dist, height_trace = self.average_uniques(dist, height_trace)  # needs to be paired with coord_dist_rad
             heights.append(height_trace)
@@ -2378,6 +2380,7 @@ class nodeStats:
                             avg2.append([mid_dist, y])
         avg1 = np.asarray(avg1)
         avg2 = np.asarray(avg2)
+        print("AVGs: ", avg1.shape, avg2.shape)
         # ensure arrays are same length to average
         temp_x = branch_dist_norm[np.isin(branch_dist_norm, avg1[:, 0])]
         common_dists = avg2[:, 0][np.isin(avg2[:, 0], temp_x)]
