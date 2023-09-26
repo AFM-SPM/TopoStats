@@ -1560,9 +1560,6 @@ class nodeStats:
                     LOGGER.info(f"Node stats skipped as resolution too low: {self.px_2_nm}nm per pixel")
                     error = True
 
-                # image_slices = (single_branch_coords_img[:,0].min() - 10, single_branch_coords_img[:,0].max() + 10,
-                #                single_branch_coords_img[:,1].min() - 10, single_branch_coords_img[:,1].max() + 10)
-
                 if average_trace_advised:
                     avg_img = avg_img[image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]]
 
