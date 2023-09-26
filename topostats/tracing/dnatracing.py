@@ -1740,7 +1740,6 @@ class nodeStats:
         else:  # will be circular so pick the first coord (is this always the case?)
             start = np.argwhere(mask == 1)[0]
         # order the points according to what is nearby
-        print("start: ", start)
         ordered = self.order_branch_from_start(mask, start)
 
         return np.array(ordered)
@@ -2341,9 +2340,7 @@ class nodeStats:
         for i in np.unique(labels)[1:]:
             trace_img = np.where(labels==i, 1, 0)
             trace_img = getSkeleton(img, trace_img).get_skeleton("zhang")
-            print("ANCHOR: ", branch_coords[0])
             trace = self.order_branch(trace_img, branch_coords[0])
-            print("TRACE: ", trace[0], trace[-1])
             height_trace = img[trace[:, 0], trace[:, 1]]
             dist = self.coord_dist_rad(trace, centre)  # self.coord_dist(trace)
             dist, height_trace = self.average_uniques(dist, height_trace)  # needs to be paired with coord_dist_rad
