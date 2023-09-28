@@ -70,7 +70,10 @@ def get_date_time() -> str:
 
 
 def write_yaml(
-    config: dict, output_dir: str | Path, config_file: str = "config.yaml", header_message: str = None
+    config: dict,
+    output_dir: str | Path,
+    config_file: str = "config.yaml",
+    header_message: str = None,
 ) -> None:
     """Write a configuration (stored as a dictionary) to a YAML file.
 
@@ -942,8 +945,11 @@ class LoadScans:
             LOGGER.info(f"[{filename}] Image added to processing.")
 
     def add_to_dict(self, image: np.ndarray, filename: str) -> None:
-        """Add the image, image path and pixel to nanometre scaling value to the img_dic dictionary under
-        the key filename.
+        """Add an image and metadata to the img_dict dictionary under the key filename.
+
+        Adds the image and associated metadata such as any grain masks, and pixel to nanometere
+        scaling factor to the img_dict dictionary which is used as a place to store the image
+        information for processing.
 
         Parameters
         ----------
