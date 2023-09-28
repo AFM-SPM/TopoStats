@@ -297,6 +297,7 @@ class ResolutionError(Exception):
     "Raised when the image resolution is too small for accuurate tracing."
     pass
 
+
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
@@ -305,4 +306,4 @@ class NpEncoder(json.JSONEncoder):
             return float(obj)
         if isinstance(obj, np.ndarray):
             return obj.tolist()
-        return super(NpEncoder, self).default(obj)
+        return super().default(obj)

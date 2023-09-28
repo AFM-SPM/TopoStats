@@ -221,7 +221,6 @@ class reorderTrace:
 class genTracingFuncs:
     @staticmethod
     def count_and_get_neighbours(x, y, trace_coordinates):
-
         """Returns the number of neighbouring points for a coordinate and an
         array containing the those points"""
 

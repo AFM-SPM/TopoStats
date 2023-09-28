@@ -311,9 +311,7 @@ class Grains:
             grain_finding_workflow = "unet"
             grain_finding_workflow = "!unet"
             if grain_finding_workflow == "unet":
-                LOGGER.info(
-                    f"[{self.filename}] : Finding {direction} grains via UNet"
-                )
+                LOGGER.info(f"[{self.filename}] : Finding {direction} grains via UNet")
                 self.directions[direction] = {}
                 predicted_mask = predict_unet(
                     image=self.image,
@@ -336,7 +334,7 @@ class Grains:
                     threshold_direction=direction,
                     img_name=self.filename,
                 )
-            
+
             self.directions[direction]["labelled_regions_01"] = self.label_regions(
                 self.directions[direction]["mask_grains"]
             )

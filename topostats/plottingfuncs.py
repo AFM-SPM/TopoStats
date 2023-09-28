@@ -176,7 +176,11 @@ class Images:
                 if self.axes or self.colorbar:
                     fig, ax = self.save_figure()
                 else:
-                    if isinstance(self.masked_array, np.ndarray) or self.region_properties:
+                    if (
+                        isinstance(self.masked_array, np.ndarray)
+                        or self.region_properties
+                        or isinstance(self.plot_coords, list)
+                    ):
                         fig, ax = self.save_figure()
                     else:
                         self.save_array_figure()
@@ -223,13 +227,18 @@ class Images:
                         shape[0] * self.pixel_to_nm_scaling,
                     ),
                     interpolation=self.interpolation,
-                    alpha=1,  # 0.4,
+                    alpha=1,
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
             elif self.plot_coords is not None:
                 for grain_coords in self.plot_coords:
-                    plt.plot(grain_coords[:,1]*self.pixel_to_nm_scaling, (shape[1] - grain_coords[:,0])*self.pixel_to_nm_scaling , c='b', linewidth=1)
+                    plt.plot(
+                        grain_coords[:, 1] * self.pixel_to_nm_scaling,
+                        (shape[1] - grain_coords[:, 0]) * self.pixel_to_nm_scaling,
+                        c="c",
+                        linewidth=2.5,
+                    )
 
             plt.title(self.title)
             plt.xlabel("Nanometres")
@@ -275,6 +284,7 @@ class Images:
             format=self.save_format,
         )
         plt.close()
+
 
 def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to_nm_scaling: float) -> None:
     """Add the bounding boxes to a plot.

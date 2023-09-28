@@ -142,12 +142,11 @@ class Colormap:
         "RGBA colour map of just the colour blue."
         return ListedColormap([[36 / 256, 166 / 256, 120 / 256], [91 / 256, 0 / 256, 250 / 256]], "blu_purp", N=256)
 
-
     @staticmethod
     def blu():
         "RGBA colour map of just the colour blue."
         return ListedColormap([[32 / 256, 226 / 256, 205 / 256]], "blu", N=256)
-    
+
     @staticmethod
     def cyan():
         "RGBA colour map of just the colour blue."
@@ -162,7 +161,7 @@ class Colormap:
     def green_black():
         "RGBA colour map of just the colour blue."
         return ListedColormap([[0 / 256, 1, 139 / 256], [0, 0, 0]], "green_black", N=256)
-    
+
     @staticmethod
     def cyan_black():
         "RGBA colour map of just the colour blue."
@@ -176,4 +175,8 @@ class Colormap:
     @staticmethod
     def blu_purp_green():
         "RGBA colour map of just the colour blue."
-        return ListedColormap([[0 / 256, 157 / 256, 229 / 256], [255 / 256, 100 / 256, 225 / 256], [0 / 256, 1, 139 / 256]], "blu_purp_green", N=3)
+        return ListedColormap(
+            [[0 / 256, 157 / 256, 229 / 256], [255 / 256, 100 / 256, 225 / 256], [0 / 256, 1, 139 / 256]],
+            "blu_purp_green",
+            N=3,
+        )

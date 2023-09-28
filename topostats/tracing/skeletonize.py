@@ -168,7 +168,7 @@ class getSkeleton:
         (less branches but slightly less accurate).
         """
         if params is None:
-            params={"height_bias": 0.6}
+            params = {"height_bias": 0.6}
 
         return joeSkeletonize(image, mask, **params).do_skeletonising()
 
@@ -183,7 +183,7 @@ class joeSkeletonize:
     should someone be upto the task, it is possible to include the heights when skeletonising.
     """
 
-    def __init__(self, image: np.ndarray, mask: np.ndarray, height_bias: float=0.6):
+    def __init__(self, image: np.ndarray, mask: np.ndarray, height_bias: float = 0.6):
         """Initialises the class
 
         Parameters
@@ -217,15 +217,15 @@ class joeSkeletonize:
             The single pixel thick, skeletonised array.
         """
         # do we need padding because of config padding?
-        #self.mask = np.pad(self.mask, 1)  # pad to avoid hitting border
-        #self.image = np.pad(self.mask, 1) # pad to make same as mask
+        # self.mask = np.pad(self.mask, 1)  # pad to avoid hitting border
+        # self.image = np.pad(self.mask, 1) # pad to make same as mask
         while not self.skeleton_converged:
             self._do_skeletonising_iteration()
         # When skeleton converged do an additional iteration of thinning to remove hanging points
-        # self.final_skeletonisation_iteration()
+        self.final_skeletonisation_iteration()
         self.mask = getSkeleton(self.image, self.mask).get_skeleton(method="zhang")
 
-        return self.mask #[1:-1, 1:-1]  # unpad
+        return self.mask  # unpad
 
     def _do_skeletonising_iteration(self) -> None:
         """Do an iteration of skeletonisation - check for the local binary pixel
@@ -244,10 +244,14 @@ class joeSkeletonize:
         # remove points based on height (lowest 60%)
         pixels_to_delete = np.asarray(pixels_to_delete)  # turn into array
         if pixels_to_delete.shape != (0,):  # ensure array not empty
-            skel_img[pixels_to_delete[:,0], pixels_to_delete[:,1]] = 2
+            skel_img[pixels_to_delete[:, 0], pixels_to_delete[:, 1]] = 2
             heights = self.image[pixels_to_delete[:, 0], pixels_to_delete[:, 1]]  # get heights of pixels
-            hight_sort_idx = np.argsort(heights)[: int(np.ceil(len(heights) * self.height_bias))]  # idx of lowest height_bias%
-            self.mask[pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]] = 0  # remove lowest height_bias%
+            hight_sort_idx = np.argsort(heights)[
+                : int(np.ceil(len(heights) * self.height_bias))
+            ]  # idx of lowest height_bias%
+            self.mask[
+                pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]
+            ] = 0  # remove lowest height_bias%
 
         pixels_to_delete = []
         # Sub-iteration 2 - binary check
@@ -259,15 +263,19 @@ class joeSkeletonize:
         # remove points based on height (lowest 60%)
         pixels_to_delete = np.asarray(pixels_to_delete)
         if pixels_to_delete.shape != (0,):
-            skel_img[pixels_to_delete[:,0], pixels_to_delete[:,1]] = 3
+            skel_img[pixels_to_delete[:, 0], pixels_to_delete[:, 1]] = 3
             heights = self.image[pixels_to_delete[:, 0], pixels_to_delete[:, 1]]
-            hight_sort_idx = np.argsort(heights)[: int(np.ceil(len(heights) * self.height_bias))]  # idx of lowest height_bias%
-            self.mask[pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]] = 0  # remove lowest height_bias%
+            hight_sort_idx = np.argsort(heights)[
+                : int(np.ceil(len(heights) * self.height_bias))
+            ]  # idx of lowest height_bias%
+            self.mask[
+                pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]
+            ] = 0  # remove lowest height_bias%
 
         if len(pixels_to_delete) == 0:
             self.skeleton_converged = True
-        
-        #np.savetxt(f"{OUTPUT_DIR}/Uni/PhD/topo_cats/TopoStats/test/processed/taut/dna_tracing/upper/skel_iters/skel_iter_{self.counter}.txt", skel_img)
+
+        # np.savetxt(f"{OUTPUT_DIR}/Uni/PhD/topo_cats/TopoStats/test/processed/taut/dna_tracing/upper/skel_iters/skel_iter_{self.counter}.txt", skel_img)
 
     def _delete_pixel_subit1(self, point: list) -> bool:
         """Function to check whether a single point should be deleted based
@@ -606,7 +614,7 @@ class joePrune:
             single_skeleton[single_skeleton == i] = 1
             pruned_skeleton_mask += self._prune_single_skeleton(single_skeleton)
             # pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton('zhang') # reskel to remove nibs
-            pruned_skeleton_mask = remove_low_dud_branches(pruned_skeleton_mask, self.image)
+            # pruned_skeleton_mask = remove_low_dud_branches(pruned_skeleton_mask, self.image)
         return pruned_skeleton_mask
 
     def _prune_single_skeleton(self, single_skeleton: np.ndarray) -> np.ndarray:
@@ -797,6 +805,7 @@ def remove_low_dud_branches(skeleton, image, threshold=None) -> np.ndarray:
         skeleton_rtn[segments == i] = 0
     return skeleton_rtn
 
+
 def rm_nibs(skeleton):
     """Attempts to remove single pixel branches (nibs) not identified by nearest neighbour
     algorithms as there may be >2 neighbours.
@@ -817,10 +826,10 @@ def rm_nibs(skeleton):
     nodeless = np.where((conv_skel == 1) | (conv_skel == 2), 1, 0)
     labeled_nodeless = label(nodeless)
     size_1_idxs = []
-    
-    for node_num in range(1, labeled_nodes.max()+1):
+
+    for node_num in range(1, labeled_nodes.max() + 1):
         node = np.where(labeled_nodes == node_num, 1, 0)
-        dil = binary_dilation(node, footprint=np.ones((3,3)))
+        dil = binary_dilation(node, footprint=np.ones((3, 3)))
         minus = np.where(dil != node, 1, 0)
 
         idxs = labeled_nodeless[minus == 1]
