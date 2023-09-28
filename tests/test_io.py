@@ -376,6 +376,15 @@ def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
     assert px_to_nm_scaling == 0.8468632812499975
 
 
+def test_load_scan_asd_file_not_found() -> None:
+    """Test file not found exception is raised when loading non existent .ASD file."""
+    load_scan_asd = LoadScans([Path("file_does_not_exist.asd")], channel="TP")
+    load_scan_asd.img_path = load_scan_asd.img_paths[0]
+    load_scan_asd.filename = load_scan_asd.img_paths[0].stem
+    with pytest.raises(FileNotFoundError):
+        load_scan_asd.load_asd()
+
+
 def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
     """Test loading of a .asd file."""
     load_scan_asd.img_path = load_scan_asd.img_paths[0]
