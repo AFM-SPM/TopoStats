@@ -23,6 +23,7 @@ from skimage.filters import gaussian, threshold_otsu
 from skimage.feature import hessian_matrix, hessian_matrix_eigvals
 from topoly import jones, homfly, params, reduce_structure, translate_code
 import skimage.measure as skimage_measure
+import mahotas
 from tqdm import tqdm
 import math as math
 
@@ -30,6 +31,9 @@ from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
 from topostats.tracing.skeletonize import getSkeleton, pruneSkeleton
 from topostats.utils import convolve_skelly, ResolutionError
+from sklearn.metrics.pairwise import cosine_similarity
+from skimage.filters import sato, prewitt
+from scipy.ndimage.morphology import grey_closing
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -1525,8 +1529,20 @@ class nodeStats:
                         ordered_branches.append(ordered)
                     if node_no == 0:
                         self.test2 = vectors
+
+                    sato_image = sato(self.image, sigmas=range(1, 4, 1), black_ridges=False, mode='reflect', cval=0)
+                    combine = prewitt(sato_image)
+                    image_for_haralick = grey_closing(combine, (5,5))
                     # pair vectors
-                    pairs = self.pair_vectors(np.asarray(vectors))
+                    haralick_feature_list = []
+
+                    for branch_no in range(0,branch_start_coords.shape[0]):
+                        branch = ordered_branches[branch_no]
+                        h_feature = self.calculate_haralick_features(branch, combine)
+                        haralick_feature_list.append(h_feature)
+
+                    pairs = self.pair_via_haralick(haralick_feature_list, branch_start_coords.shape[0]) #self.pair_vectors(np.asarray(vectors))
+                    print(f"GRAIN: {self.n_grain}, NODE: {node_no}, PAIRS: {pairs}")
 
                     # join matching branches through node
                     matched_branches = {}
@@ -1557,8 +1573,8 @@ class nodeStats:
                             tmp = single_branch_img.copy()
                             tmp[x, y] = 2
                             print(x,y)
-                            plt.imsave(OUTPUT_DIR / "sing.png", tmp)
-                            plt.imsave(OUTPUT_DIR / "nodes.png", self.all_connected_nodes)
+                            #plt.imsave(OUTPUT_DIR / "sing.png", tmp)
+                            #plt.imsave(OUTPUT_DIR / "nodes.png", self.all_connected_nodes)
                             distances, heights, mask, _ = self.average_height_trace(
                                 self.image, single_branch_img, single_branch_coords, [x, y]
                             )  # hess_area
@@ -1611,7 +1627,9 @@ class nodeStats:
                         else:
                             avg_img = None
 
-                    unpaired_branches = np.delete(np.arange(0, branch_start_coords.shape[0]), pairs.flatten())
+                    flattened_pairs = [item for sublist in pairs for item in sublist]
+                    unpaired_branches = np.delete(np.arange(0, branch_start_coords.shape[0]), flattened_pairs)
+
                     LOGGER.info(f"Unpaired branches: {unpaired_branches}")
                     branch_label = branch_img.max()
                     for i in unpaired_branches:  # carries on from loop variable i
@@ -1835,6 +1853,53 @@ class nodeStats:
         cos_angles = dot / (norm.reshape(-1, 1) @ norm.reshape(1, -1))
         angles = abs(np.arccos(cos_angles) / np.pi * 180)
         return angles
+    
+    def calculate_haralick_features(self, branch_coords, image):
+        branch_coords = branch_coords.astype(int)
+
+        branch_mask = np.zeros_like(image)
+        branch_mask[branch_coords[:,0], branch_coords[:,1]] = 1
+
+        skeleton = ndimage.binary_dilation(branch_mask, iterations = 5)
+
+        cropped_image_mask = image * skeleton
+
+        def bounding_box(points):
+            x_coordinates, y_coordinates = zip(*points)
+
+            return [(min(x_coordinates), min(y_coordinates)), (max(x_coordinates), max(y_coordinates))]
+
+        bounding = bounding_box(np.argwhere(cropped_image_mask != 0))
+        cropped_matrix = cropped_image_mask[bounding[0][0]-1:bounding[1][0] + 2, bounding[0][1]-1:bounding[1][1] + 2]
+
+        min_non_zero_value = np.min(cropped_image_mask[cropped_image_mask != 0])
+        scale_factor = 100.0 / min_non_zero_value
+
+        scaled = cropped_matrix*scale_factor
+
+        h_feature = mahotas.features.haralick(scaled.astype(int))
+        return h_feature.mean(0)
+    
+    def pair_via_haralick(self, haralick, no_branches):
+        data = np.array(haralick)
+        no_pairs = no_branches/2
+
+        # Calculate pairwise cosine similarities
+        pairwise_similarities = cosine_similarity(data)
+        np.fill_diagonal(pairwise_similarities, 0)
+
+        # Find the indices (coordinates) of the maximum value
+        matching_branches = []
+        for pairs in range(1, int(no_pairs) + 1):
+            coordinates = list(np.unravel_index(np.argmax(pairwise_similarities), pairwise_similarities.shape))
+            matching_branches.append(coordinates)
+            pairwise_similarities[coordinates[0], :] = 0
+            pairwise_similarities[coordinates[1], :] = 0
+            pairwise_similarities[:, coordinates[0]] = 0
+            pairwise_similarities[:, coordinates[1]] = 0
+
+        return matching_branches
+
 
     def pair_vectors(self, vectors: np.ndarray):
         """Takes a list of vectors and pairs them based on the angle between them
@@ -1856,6 +1921,7 @@ class nodeStats:
         # match angles
         G = self.create_weighted_graph(angles)
         matching = np.array(list(nx.max_weight_matching(G, maxcardinality=True)))
+        print(f"MATCHING::: {matching}")
         return matching
 
     @staticmethod
