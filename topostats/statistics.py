@@ -14,8 +14,10 @@ def image_statistics(
     pixel_to_nm_scaling: float,
     results_df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Calculate statistics pertaining to the whole image, for example the size of the image in pixels and
-    metres, the root-mean-squared roughness and the grains per metre squared.
+    """Calculate statistics pertaining to the whole image.
+
+    Calculates the size of the image in pixels and metres, the root-mean-squared roughness and the grains per metre
+    squared.
 
     Parameters
     ----------
@@ -34,9 +36,8 @@ def image_statistics(
     dict
         Dictionary of image statistics.
     """
-
     image_stats = {
-        "Image": filename,
+        "image": filename,
         "image_size_x_m": None,
         "image_size_y_m": None,
         "image_area_m2": None,
@@ -73,7 +74,7 @@ def image_statistics(
         pass
 
     image_stats_df = pd.DataFrame([image_stats])
-    image_stats_df.set_index("Image", inplace=True)
+    image_stats_df.set_index("image", inplace=True)
 
     return image_stats_df
 
@@ -86,7 +87,8 @@ def roughness_rms(image: np.ndarray) -> float:
     image: np.ndarray
         2D numpy array of heightmap data to calculate the roughness of
 
-    Returns:
+    Returns
+    -------
     float
         The RMS roughness of the input array.
     """

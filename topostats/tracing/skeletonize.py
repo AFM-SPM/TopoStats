@@ -1,6 +1,6 @@
-"""Skeletonize molecules"""
+"""Skeletonize molecules."""
 import logging
-from typing import Callable
+from collections.abc import Callable
 import numpy as np
 from skimage.morphology import skeletonize, thin
 
@@ -10,11 +10,10 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def get_skeleton(image: np.ndarray, method: str) -> np.ndarray:
-    """Factory method for skeletonizing molecules.
+    """Skeletonizing masked molecules.
 
     Parameters
     ----------
-
     image : np.ndarray
         Image of molecule to be skeletonized.
 
@@ -28,7 +27,6 @@ def get_skeleton(image: np.ndarray, method: str) -> np.ndarray:
 
     Notes
     -----
-
     This is a thin wrapper to the methods provided
     by the `skimage.morphology
     <https://scikit-image.org/docs/stable/api/skimage.morphology.html?highlight=skeletonize>`_

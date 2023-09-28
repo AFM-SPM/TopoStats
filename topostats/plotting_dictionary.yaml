@@ -190,5 +190,5 @@ grain_mask_image:
   core_set: false
 single_molecule_trace:
   image_type: "non-binary"
-  dpi: 800
+  dpi: 100
   core_set: false

@@ -8,13 +8,13 @@ from topostats.grains import Grains
 
 
 def test_threshold_otsu(minicircle_grain_threshold_otsu: Grains) -> None:
-    """Test threshold calculation"""
+    """Test threshold calculation."""
     assert isinstance(minicircle_grain_threshold_otsu.thresholds, dict)
     assert minicircle_grain_threshold_otsu.thresholds["above"] == pytest.approx(0.769617128561541)
 
 
 def test_threshold_stddev(minicircle_grain_threshold_stddev: Grains) -> None:
-    """Test threshold calculation"""
+    """Test threshold calculation."""
     assert isinstance(minicircle_grain_threshold_stddev.thresholds, dict)
     assert minicircle_grain_threshold_stddev.thresholds == pytest.approx(
         {"below": -5.896200702478787, "above": 0.9456735525628046}
@@ -22,7 +22,7 @@ def test_threshold_stddev(minicircle_grain_threshold_stddev: Grains) -> None:
 
 
 def test_threshold_abs(minicircle_grain_threshold_abs: Grains) -> None:
-    """Test threshold calculation"""
+    """Test threshold calculation."""
     assert isinstance(minicircle_grain_threshold_abs.thresholds, dict)
     assert minicircle_grain_threshold_abs.thresholds == {"above": 1.0, "below": -1.0}
 

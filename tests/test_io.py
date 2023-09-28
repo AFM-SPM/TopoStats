@@ -1,6 +1,5 @@
-"""Tests of IO"""
+"""Tests of IO."""
 from pathlib import Path
-from unittest import TestCase
 
 from datetime import datetime
 import numpy as np
@@ -51,7 +50,6 @@ CONFIG = {
 
 def test_get_date_time() -> None:
     """Test the fetching of a formatted date and time string."""
-
     assert datetime.strptime(get_date_time(), "%Y-%m-%d %H:%M:%S")
 
 
@@ -59,24 +57,20 @@ def test_read_yaml() -> None:
     """Test reading of YAML file."""
     sample_config = read_yaml(RESOURCES / "test.yaml")
 
-    TestCase().assertDictEqual(sample_config, CONFIG)
+    assert sample_config == CONFIG
 
 
 def test_write_config_with_comments(tmp_path: Path) -> None:
-    """
-    Test that the function write_yaml_with_comments successfully writes the default
-    config with comments to a file.
-    """
-
+    """Test writing of config file with comments."""
     # Read default config with comments
-    with open(BASE_DIR / "topostats" / "default_config.yaml", encoding="utf-8") as f:
+    with Path.open(BASE_DIR / "topostats" / "default_config.yaml", encoding="utf-8") as f:
         default_config_string = f.read()
 
     # Write default config with comments to file
     write_config_with_comments(config=default_config_string, output_dir=tmp_path, filename="test_config_with_comments")
 
     # Read the written config
-    with open(tmp_path / "test_config_with_comments.yaml", encoding="utf-8") as f:
+    with Path.open(tmp_path / "test_config_with_comments.yaml", encoding="utf-8") as f:
         written_config = f.read()
 
     # Validate that the written config has comments in it
@@ -138,7 +132,7 @@ def test_load_array_file_not_found(non_existant_file: str) -> None:
 
 
 def test_find_files() -> None:
-    """Test finding images"""
+    """Test finding images."""
     found_images = find_files(base_dir="tests/", file_ext=".spm")
 
     assert isinstance(found_images, list)
@@ -149,7 +143,7 @@ def test_find_files() -> None:
 
 def test_read_null_terminated_string() -> None:
     """Test reading a null terminated string from a binary file."""
-    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+    with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
         value = read_null_terminated_string(open_binary_file)
         assert isinstance(value, str)
         assert value == "test"
@@ -157,7 +151,7 @@ def test_read_null_terminated_string() -> None:
 
 def test_read_u32i() -> None:
     """Test reading an unsigned 32 bit integer from a binary file."""
-    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+    with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
         open_binary_file.seek(5)
         value = read_u32i(open_binary_file)
         assert isinstance(value, int)
@@ -166,7 +160,7 @@ def test_read_u32i() -> None:
 
 def test_read_64d() -> None:
     """Test reading a 64-bit double from an open binary file."""
-    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+    with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
         open_binary_file.seek(9)
         value = read_64d(open_binary_file)
         assert isinstance(value, float)
@@ -175,7 +169,7 @@ def test_read_64d() -> None:
 
 def test_read_char() -> None:
     """Test reading a character from an open binary file."""
-    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+    with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
         open_binary_file.seek(17)
         value = read_char(open_binary_file)
         assert isinstance(value, str)
@@ -184,7 +178,7 @@ def test_read_char() -> None:
 
 def test_read_gwy_component_dtype() -> None:
     """Test reading a data type of a `.gwy` file component from an open binary file."""
-    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+    with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
         open_binary_file.seek(18)
         value = read_gwy_component_dtype(open_binary_file)
         assert isinstance(value, str)
@@ -192,7 +186,7 @@ def test_read_gwy_component_dtype() -> None:
 
 
 @pytest.mark.parametrize(
-    "input_paths, expected_paths",
+    ("input_paths", "expected_paths"),
     [
         (
             [Path("a/b/c/d"), Path("a/b/e/f"), Path("a/b/g"), Path("a/b/h")],
@@ -206,7 +200,6 @@ def test_read_gwy_component_dtype() -> None:
 )
 def test_get_relative_paths(input_paths: list, expected_paths: list):
     """Test the get_paths_relative_to_deepest_common_path function."""
-
     relative_paths = get_relative_paths(input_paths)
 
     assert relative_paths == expected_paths
@@ -240,7 +233,7 @@ def test_convert_basename_to_relative_paths():
 
 
 @pytest.mark.parametrize(
-    "base_dir, image_path, output_dir, expected",
+    ("base_dir", "image_path", "output_dir", "expected"),
     [
         # Absolute path, nested under base_dir, with file suffix
         (
@@ -308,7 +301,7 @@ def test_convert_basename_to_relative_paths():
     ],
 )
 def test_get_out_path(image_path: Path, base_dir: Path, output_dir: Path, expected: Path) -> None:
-    """Test output directories"""
+    """Test output directories."""
     out_path = get_out_path(image_path, base_dir, output_dir)
     assert isinstance(out_path, Path)
     assert out_path == expected
@@ -325,7 +318,7 @@ def test_get_out_path_attributeerror() -> None:
 
 
 def test_save_folder_grainstats(tmp_path: Path) -> None:
-    """Test a folder-wide grainstats file is made"""
+    """Test a folder-wide grainstats file is made."""
     test_df = pd.DataFrame({"dummy1": [1, 2, 3], "dummy2": ["a", "b", "c"]})
     input_path = tmp_path / "minicircle"
     test_df["basename"] = input_path
@@ -336,7 +329,7 @@ def test_save_folder_grainstats(tmp_path: Path) -> None:
 
 
 def test_load_scan_spm(load_scan_spm: LoadScans) -> None:
-    """Test loading of Bruker .spm file"""
+    """Test loading of Bruker .spm file."""
     load_scan_spm.img_path = load_scan_spm.img_paths[0]
     load_scan_spm.filename = load_scan_spm.img_paths[0].stem
     image, px_to_nm_scaling = load_scan_spm.load_spm()
@@ -348,7 +341,7 @@ def test_load_scan_spm(load_scan_spm: LoadScans) -> None:
 
 
 def test_load_scan_ibw(load_scan_ibw: LoadScans) -> None:
-    """Test loading of Igor binarywave .ibw file"""
+    """Test loading of Igor binarywave .ibw file."""
     load_scan_ibw.img_path = load_scan_ibw.img_paths[0]
     load_scan_ibw.filename = load_scan_ibw.img_paths[0].stem
     image, px_to_nm_scaling = load_scan_ibw.load_ibw()
@@ -414,7 +407,7 @@ def test_load_scan_topostats(load_scan_topostats: LoadScans) -> None:
 
 def test_gwy_read_object(load_scan_dummy: LoadScans) -> None:
     """Test reading an object of a `.gwy` file object from an open binary file."""
-    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+    with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
         open_binary_file.seek(19)
         test_dict = {}
         load_scan_dummy._gwy_read_object(open_file=open_binary_file, data_dict=test_dict)
@@ -425,7 +418,7 @@ def test_gwy_read_object(load_scan_dummy: LoadScans) -> None:
 
 def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
     """Tests reading a component of a `.gwy` file object from an open binary file."""
-    with open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:
+    with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
         open_binary_file.seek(55)
         test_dict = {}
         byte_size = load_scan_dummy._gwy_read_component(
@@ -455,7 +448,7 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
 
 
 @pytest.mark.parametrize(
-    "load_scan_object, length, image_shape, image_sum, filename, pixel_to_nm_scaling",
+    ("load_scan_object", "length", "image_shape", "image_sum", "filename", "pixel_to_nm_scaling"),
     [
         ("load_scan_spm", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
         ("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625),
@@ -487,7 +480,7 @@ def test_load_scan_get_data(
 
 
 @pytest.mark.parametrize(
-    "x, y, log_msg",
+    ("x", "y", "log_msg"),
     [
         (100, 100, "Image added to processing"),
         (9, 100, "Skipping, image too small"),
@@ -520,7 +513,7 @@ def test_load_pkl() -> None:
 
 
 @pytest.mark.parametrize(
-    "image, pixel_to_nm_scaling, grain_mask_above, grain_mask_below",
+    ("image", "pixel_to_nm_scaling", "grain_mask_above", "grain_mask_below"),
     [
         (
             np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
@@ -549,8 +542,7 @@ def test_save_topostats_file(
     grain_mask_above: np.ndarray,
     grain_mask_below: np.ndarray,
 ) -> None:
-    """Test saving a .topostats file"""
-
+    """Test saving a .topostats file."""
     topostats_object = {
         "image_flattened": image,
         "pixel_to_nm_scaling": pixel_to_nm_scaling,
