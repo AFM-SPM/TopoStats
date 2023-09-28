@@ -23,7 +23,10 @@ fail-under=10.0
 ignore=CVS,
        _version.py,
        dnatracing.py,
-       conf.py
+       dnacurvature.py,
+       conf.py,
+       test_dnacurvature.py,
+       __main__.py
 
 # Add files or directories matching the regex patterns to the ignore-list. The
 # regex matches against paths and can be in Posix or Windows format.
@@ -82,6 +85,7 @@ confidence=
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
 disable=C0103,
+        E1131,
         R0801,
         raw-checker-failed,
         bad-inline-option,

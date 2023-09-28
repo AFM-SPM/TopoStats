@@ -1,5 +1,4 @@
-"""Contains image artefact correction functions that take a 2D np.ndarray image, and return the image with
-interpolated values filling the space of any detected scars."""
+"""Image artefact correction functions that interpolates values filling the space of any detected scars."""
 import logging
 import numpy as np
 from topostats.logs.logs import LOGGER_NAME
@@ -18,10 +17,12 @@ def _mark_if_positive_scar(
     threshold_low: float,
     max_scar_width: int,
 ) -> None:
-    """
+    """Mark scars as positive (i.e. a ridge rather than a dip).
+
     Determine if the points below and including the pixel at the specified row and column are a positive scar (a
-    ridge rather than a dip).
-    If they are, mark them in the marked 2d np.ndarray. Note that this only detects positive scars.
+    ridge rather than a dip). If they are, mark them in the marked 2d np.ndarray. Note that this only detects positive
+    scars.
+
     Parameters
     ----------
     row_col: tuple
@@ -48,7 +49,6 @@ def _mark_if_positive_scar(
     -------
     None
     """
-
     # Unpack row, col
     row = row_col[0]
     col = row_col[1]
@@ -81,10 +81,11 @@ def _mark_if_negative_scar(
     threshold_low: float,
     max_scar_width: int,
 ) -> None:
-    """
+    """Mark scars as negative (i.e. a dip rather than a ridge).
+
     Determine if the points below and including the pixel at the specified row and column are a negative scar (a
-    dip rather than a ridge).
-    If they are, mark them in the marked 2d np.ndarray. Note that this only detects negative scars.
+    dip rather than a ridge). If they are, mark them in the marked 2d np.ndarray. Note that this only detects negative
+    scars.
 
     Parameters
     ----------
@@ -112,7 +113,6 @@ def _mark_if_negative_scar(
     -------
     None
     """
-
     # Unpack row, col
     row = row_col[0]
     col = row_col[1]
@@ -142,10 +142,11 @@ def _spread_scars(
     threshold_low: float,
     threshold_high: float,
 ) -> None:
-    """Spread high-marked pixels into adjacent low-marked pixels. This is a smudging function that attempts to catch
-    any pixels that are parts of scars that might not have been extreme enough to get marked above the
-    high_threshold.
-    Any remaining marked pixels below high_threshold are considered not to be scars and are removed from the mask.
+    """Spread high-marked pixels into adjacent low-marked pixels.
+
+    This is a smudging function that attempts to catch any pixels that are parts of scars that might not have been
+    extreme enough to get marked above the high_threshold. Any remaining marked pixels below high_threshold are
+    considered not to be scars and are removed from the mask.
 
     Parameters
     ----------
@@ -167,7 +168,6 @@ def _spread_scars(
     -------
     None
     """
-
     # Spread scars that have close to threshold edge-points
     for row in range(marked.shape[0]):
         # Spread right
@@ -183,7 +183,7 @@ def _spread_scars(
 
 def _remove_short_scars(marked: np.ndarray, threshold_high: float, min_scar_length: int) -> None:
     """
-    Removes scars that are too short (horizontally), based on the min_scar_length argument.
+    Remove scars that are too short (horizontally), based on the minimum length.
 
     Parameters
     ----------
@@ -206,7 +206,6 @@ def _remove_short_scars(marked: np.ndarray, threshold_high: float, min_scar_leng
     -------
     None
     """
-
     # Remove too-short scars
     for row in range(marked.shape[0]):
         k = 0
@@ -270,6 +269,7 @@ def _mark_scars(
         An integer that restricts the algorithm to only mark scars that are as long or longer than this length.
         This is important for ensuring that noise or legitimate but sharp datapoints do not get detected as scars.
         Note that length here is horizontal, as scars are thin, horizontal features.
+
     Returns
     -------
     marked: np.ndarray
@@ -277,7 +277,6 @@ def _mark_scars(
         a metric for how strongly that pixel is considered to be a scar. Higher values mean more likely
         to be a scar.
     """
-
     image = np.copy(img)
 
     stddev = np.std(image)
@@ -316,9 +315,10 @@ def _mark_scars(
 
 
 def _remove_marked_scars(img: np.ndarray, scar_mask: np.ndarray) -> None:
-    """
-    Interpolate values covered by marked scars. Takes an image, and a marked scar boolean mask for that
-    image. Returns the image where the marked scars are replaced by interpolated values.
+    """Interpolate values covered by marked scars.
+
+    Takes an image, and a marked scar boolean mask for that image. Returns the image where the marked scars are replaced
+    by interpolated values.
 
     Parameters
     ----------
@@ -332,7 +332,6 @@ def _remove_marked_scars(img: np.ndarray, scar_mask: np.ndarray) -> None:
     -------
     None
     """
-
     for row, col in np.ndindex(img.shape):
         if scar_mask[row, col] == 1.0:
             # Determine how wide the scar is by incrementing scar_width until either the bottom
@@ -364,6 +363,7 @@ def remove_scars(
 ):
     """
     Remove scars from an image.
+
     Scars are long, typically 1-4 pixels wide streaks of high or low data in AFM images. They are a problem
     resulting from random errors in the AFM data collection process and are hard to avoid. This function
     detects and removes these artefacts by interpolating over them between the pixels above and below them.
@@ -401,7 +401,6 @@ def remove_scars(
         The original 2-D image with scars removed, unless the config has run set to False, in which case it
         will not remove the scars.
     """
-
     LOGGER.info(f"[{filename}] : Removing scars")
 
     first_marked_mask = None

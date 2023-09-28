@@ -1,6 +1,4 @@
-"""
-Standardise logging.
-"""
+"""Standardise logging."""
 import sys
 from pathlib import Path
 from datetime import datetime
@@ -21,7 +19,7 @@ LOGGER_NAME = "topostats"
 
 
 def setup_logger(log_name: str = LOGGER_NAME) -> logging.Logger:
-    """Setup a standard logger.
+    """Logger setup.
 
     The logger for the module is initialised when the module is loaded (as this functions is called from
     __init__.py). This creates two stream handlers, one for general output and one for errors which are formatted
@@ -41,7 +39,6 @@ def setup_logger(log_name: str = LOGGER_NAME) -> logging.Logger:
 
     Examples
     --------
-
     To use the logger in (sub-)modules have the following.
 
         import logging
