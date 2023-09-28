@@ -387,11 +387,10 @@ def load_scan_topostats() -> LoadScans:
     return LoadScans([RESOURCES / "file.topostats"], channel="dummy_channel")
 
 
-@pytest.fixture
+@pytest.fixture()
 def load_scan_asd() -> LoadScans:
     """Instantiate a LoadScans object from a .asd file."""
-    scan_loader = LoadScans([RESOURCES / "file.asd"], channel="TP")
-    return scan_loader
+    return LoadScans([RESOURCES / "file.asd"], channel="TP")
 
 
 # Minicircle fixtures

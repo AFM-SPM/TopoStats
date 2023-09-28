@@ -575,7 +575,6 @@ class LoadScans:
         tuple: (np.ndarray, float)
             A tuple containing the image and its pixel to nanometre scaling value.
         """
-
         try:
             frames: np.ndarray
             pixel_to_nm_scaling: float
