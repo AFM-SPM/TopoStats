@@ -455,6 +455,7 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
         ("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876),
         ("load_scan_gwy", 1, (512, 512), 33836850.232917726, "file", 0.8468632812499975),
         ("load_scan_topostats", 1, (1024, 1024), 182067.12616107278, "file", 0.4940029296875),
+        ("load_scan_asd", 197, (200, 200), -673381139990.2344, "file_122", 2.0),
     ],
 )
 def test_load_scan_get_data(
@@ -470,6 +471,7 @@ def test_load_scan_get_data(
     scan = request.getfixturevalue(load_scan_object)
     scan.get_data()
     assert len(scan.img_dict) == length
+    print(scan.img_dict)
     assert isinstance(scan.img_dict[filename]["image_original"], np.ndarray)
     assert scan.img_dict[filename]["image_original"].shape == image_shape
     assert scan.img_dict[filename]["image_original"].sum() == image_sum
