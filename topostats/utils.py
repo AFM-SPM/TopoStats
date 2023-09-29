@@ -165,7 +165,6 @@ def get_and_combine_directional_masks(image: np.ndarray, thresholds: dict, img_n
     np.ndarray
         2D Numpy boolean array of points to mask.
     """
-
     # If both above and below thresholds are available
     if thresholds["above"] is not None and thresholds["below"] is not None:
         mask_above = _get_mask(image, thresholds=thresholds["above"], threshold_direction="above", img_name=img_name)

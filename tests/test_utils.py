@@ -81,7 +81,7 @@ def test_get_thresholds_otsu(image_random: np.ndarray) -> None:
 
 
 @pytest.mark.parametrize(
-    "config_std_dev_thresholds, expected_value_thresholds",
+    ("config_std_dev_thresholds", "expected_value_thresholds"),
     [
         (
             {"below": [10.0, None], "above": [1.0, None]},
@@ -100,7 +100,6 @@ def test_get_thresholds_stddev(
     image_random: np.ndarray, config_std_dev_thresholds: dict, expected_value_thresholds: dict
 ) -> None:
     """Test of get_thresholds() method with mean threshold."""
-
     THRESHOLD_OPTIONS["threshold_std_dev"] = config_std_dev_thresholds
 
     thresholds = get_thresholds(image=image_random, threshold_method="std_dev", **THRESHOLD_OPTIONS)
@@ -165,7 +164,7 @@ def test_create_empty_dataframe() -> None:
 
 
 @pytest.mark.parametrize(
-    "minimum_threshold, maximum_threshold, threshold_direction, expected",
+    ("minimum_threshold", "maximum_threshold", "threshold_direction", "expected"),
     [
         (
             1.0,
@@ -221,7 +220,6 @@ def test_get_mask(
     minimum_threshold: float, maximum_threshold: float, threshold_direction: str, expected: np.ndarray
 ) -> None:
     """Test the _get_mask fuction of utils.py, ensuring that the correct values in images are masked."""
-
     image = np.array(
         [
             [-5.0, -4.5, -4.0, -3.5, -3.0],
@@ -240,7 +238,7 @@ def test_get_mask(
 
 
 @pytest.mark.parametrize(
-    "thresholds, expected",
+    ("thresholds", "expected"),
     [
         (
             {
@@ -264,9 +262,8 @@ def test_get_mask(
 )
 def test_get_and_combine_directional_masks(thresholds: dict, expected: np.ndarray) -> None:
     """Test the get_and_combine_directional_masks function of utils.py, ensuring that the correct
-    directional masks are added together and returned
+    directional masks are added together and returned.
     """
-
     image = np.array(
         [
             [-5.0, -4.5, -4.0, -3.5, -3.0],
