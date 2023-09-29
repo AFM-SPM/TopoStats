@@ -1471,6 +1471,9 @@ class nodeStats:
                         emanating_branches.append(branch_start)
                     emanating_branch_starts_by_node[node_num] = emanating_branches  # Store emanating branches for this label
 
+        if len(emanating_branch_starts_by_node) == 1: # only 1 odd branch so ignore pairing
+            return self.connected_nodes
+        
         # Iterate through the nodes and their emanating branches
         shortest_node_dists = np.zeros((len(emanating_branch_starts_by_node), len(emanating_branch_starts_by_node))) # initialise the maximal pairing matrix
         shortest_dists_branch_idxs = np.zeros((shortest_node_dists.shape[0], shortest_node_dists.shape[0], 2)).astype(np.int64)
@@ -1485,7 +1488,7 @@ class nodeStats:
                     # add shortest dist to shortest dist matrix
                     shortest_dist = np.min(temp_length_matrix)
                     shortest_node_dists[i, j] = shortest_dist
-                    shortest_dists_branch_idxs[i, j] = np.argwhere(temp_length_matrix==shortest_dist)
+                    shortest_dists_branch_idxs[i, j] = np.argwhere(temp_length_matrix==shortest_dist)[0]
 
         # get best matches
         matches = self.best_matches(shortest_node_dists)
