@@ -21,7 +21,15 @@ def circle_coordinates(points=4, radius=1) -> np.ndarray:
 
 
 @pytest.mark.parametrize(
-    "points, radius, edge_order, expected_variance, expected_first_derivative, expected_second_derivative, expected_local_curvature",
+    (
+        "points",
+        "radius",
+        "edge_order",
+        "expected_variance",
+        "expected_first_derivative",
+        "expected_second_derivative",
+        "expected_local_curvature",
+    ),
     [
         # 4-point circle with varying radius and edge_order
         (
@@ -277,7 +285,8 @@ def test_curvature_circle(
 ) -> None:
     """Test first and second derivatives and local curvature of a circle.
 
-    The variance of local curvature is also tested, for a circle it should be zero."""
+    The variance of local curvature is also tested, for a circle it should be zero.
+    """
     circle_points = circle_coordinates(points, radius)
     curvature = Curvature(molecule_coordinates=circle_points, circular=True)
     curvature.calculate_derivatives(edge_order=edge_order)
@@ -289,7 +298,16 @@ def test_curvature_circle(
 
 
 @pytest.mark.parametrize(
-    "points, radius, shift, edge_order, expected_variance, expected_first_derivative, expected_second_derivative, expected_local_curvature",
+    (
+        "points",
+        "radius",
+        "shift",
+        "edge_order",
+        "expected_variance",
+        "expected_first_derivative",
+        "expected_second_derivative",
+        "expected_local_curvature",
+    ),
     [
         (
             10,
@@ -412,7 +430,8 @@ def test_curvature_circle_starting_point(
     expected_local_curvature,
 ) -> None:
     """Test that the starting point for measuring local curvature of a circle gives the same first and second derivative
-    and the same overall local curvature."""
+    and the same overall local curvature.
+    """
     # Curvature for original circle
     circle_points = circle_coordinates(points, radius)
     curvature = Curvature(molecule_coordinates=circle_points, circular=True)
@@ -454,7 +473,16 @@ def ellipse_coordinates(
 
 
 @pytest.mark.parametrize(
-    "points, major, minor, displacement, edge_order, expected_first_derivative, expected_second_derivative, expected_local_curvature",
+    (
+        "points",
+        "major",
+        "minor",
+        "displacement",
+        "edge_order",
+        "expected_first_derivative",
+        "expected_second_derivative",
+        "expected_local_curvature",
+    ),
     [
         (
             10,
@@ -603,7 +631,17 @@ def test_curvature_ellipse(
 
 
 @pytest.mark.parametrize(
-    "points, major, minor, displacement, shift, edge_order, expected_first_derivative, expected_second_derivative, expected_local_curvature",
+    (
+        "points",
+        "major",
+        "minor",
+        "displacement",
+        "shift",
+        "edge_order",
+        "expected_first_derivative",
+        "expected_second_derivative",
+        "expected_local_curvature",
+    ),
     [
         (
             10,
@@ -779,7 +817,14 @@ def parabola_coordinates(points: int = 10, order: int = 2) -> np.ndarray:
 
 
 @pytest.mark.parametrize(
-    "points, order, edge_order, expected_first_derivative, expected_second_derivative, expected_local_curvature",
+    (
+        "points",
+        "order",
+        "edge_order",
+        "expected_first_derivative",
+        "expected_second_derivative",
+        "expected_local_curvature",
+    ),
     [
         (
             10,

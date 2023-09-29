@@ -1,5 +1,6 @@
-"""Entry point for all TopoStats programs. Parses command-line arguments and passes input on to the relevant
-functions / modules.
+"""Entry point for all TopoStats programs.
+
+Parses command-line arguments and passes input on to the relevant functions / modules.
 """
 
 import sys
@@ -158,7 +159,6 @@ def create_parser() -> arg.ArgumentParser:
 
 def entry_point(manually_provided_args=None, testing=False) -> None:
     """Entry point for all TopoStats programs."""
-
     # Parse command line options, load config (or default) and update with command line options
     parser = create_parser()
     args = parser.parse_args() if manually_provided_args is None else parser.parse_args(manually_provided_args)
@@ -315,7 +315,6 @@ def create_legacy_toposum_parser() -> arg.ArgumentParser:
 
 def legacy_run_topostats_entry_point(args=None, testing=False) -> None:
     """Legacy entry point for the run_topostats processing function."""
-
     parser = create_legacy_run_topostats_parser()
     args = parser.parse_args() if args is None else parser.parse_args(args)
 
@@ -329,7 +328,6 @@ def legacy_run_topostats_entry_point(args=None, testing=False) -> None:
 
 def legacy_toposum_entry_point(args=None, testing=False) -> None:
     """Legacy entry point for the toposum summarizing function."""
-
     parser = create_legacy_toposum_parser()
     args = parser.parse_args() if args is None else parser.parse_args(args)
 

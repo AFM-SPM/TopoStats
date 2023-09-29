@@ -18,8 +18,7 @@ RESOURCES = BASE_DIR / "tests" / "resources"
 
 
 def test_melt_data():
-    """Test the melt_data method of the TopoSum class"""
-
+    """Test the melt_data method of the TopoSum class."""
     df_to_melt = {
         "Image": ["im1", "im1", "im1", "im2", "im2", "im3", "im3"],
         "threshold": ["above", "above", "above", "below", "below", "above", "above"],
@@ -65,7 +64,7 @@ def test_toposum_class(toposum_object_multiple_directories: TopoSum) -> None:
 
 
 def test_outfile(toposum_object_multiple_directories: TopoSum) -> None:
-    """Check fig and ax returned"""
+    """Check fig and ax returned."""
     outfile = toposum_object_multiple_directories._outfile(plot_suffix="testing")
     assert isinstance(outfile, str)
     assert outfile == "area_testing"
@@ -99,7 +98,7 @@ def test_var_to_label_config(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "var,expected_label",
+    ("var", "expected_label"),
     [
         ("contour_length", "Contour Length"),
         ("end_to_end_distance", "End to End Distance"),

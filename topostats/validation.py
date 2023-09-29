@@ -22,7 +22,6 @@ def validate_config(config: dict, schema: Schema, config_type: str) -> None:
         A schema against which the configuration is to be compared.
     config_type: str
     """
-
     try:
         schema.validate(config)
         LOGGER.info(f"The {config_type} is valid.")

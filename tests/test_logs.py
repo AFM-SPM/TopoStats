@@ -1,4 +1,4 @@
-"""Tests for logging"""
+"""Tests for logging."""
 import logging
 import pytest
 
@@ -9,7 +9,7 @@ LOGGER = setup_logger(LOGGER_NAME)
 
 
 def test_setup_logger(caplog) -> None:
-    """Test logger setup"""
+    """Test logger setup."""
     info_msg = "This is a test message"
     LOGGER.info(info_msg)
     assert isinstance(LOGGER, logging.Logger)
@@ -17,13 +17,13 @@ def test_setup_logger(caplog) -> None:
 
 
 @pytest.mark.parametrize(
-    "log_level, message",
-    (
-        [logging.DEBUG, "DEBUG : This is a debug log message."],
-        [logging.INFO, "INFO : This is an info log message."],
-        [logging.WARNING, "WARNING : This is a warning log message."],
-        [logging.CRITICAL, "CRITICAL : This is a critical log message."],
-    ),
+    ("log_level", "message"),
+    [
+        (logging.DEBUG, "DEBUG : This is a debug log message."),
+        (logging.INFO, "INFO : This is an info log message."),
+        (logging.WARNING, "WARNING : This is a warning log message."),
+        (logging.CRITICAL, "CRITICAL : This is a critical log message."),
+    ],
 )
 def test_debug(caplog, log_level, message) -> None:
     """Test logging debug messages."""

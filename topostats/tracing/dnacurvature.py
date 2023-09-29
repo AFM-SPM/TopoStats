@@ -13,6 +13,8 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 class Curvature:
+    """Class for determining the curvature of molecules."""
+
     def __init__(
         self,
         molecule_coordinates: np.ndarray,

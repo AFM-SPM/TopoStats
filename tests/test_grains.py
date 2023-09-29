@@ -56,11 +56,11 @@ grain_array4 = np.array(
 
 
 @pytest.mark.parametrize(
-    "area_thresh_nm, expected",
+    ("area_thresh_nm", "expected"),
     [([None, None], grain_array), ([None, 32], grain_array2), ([12, 24], grain_array3), ([32, 44], grain_array4)],
 )
 def test_known_array_threshold(area_thresh_nm, expected) -> None:
-    "Tests that arrays are thresholded on size as expected."
+    """Tests that arrays are thresholded on size as expected."""
     grains = Grains(image=np.zeros((10, 6)), filename="xyz", pixel_to_nm_scaling=2)
     assert (grains.area_thresholding(grain_array, area_thresh_nm) == expected).all()
 
@@ -74,7 +74,6 @@ def test_known_array_threshold(area_thresh_nm, expected) -> None:
 
 def test_remove_small_objects():
     """Test the remove_small_objects method of the Grains class."""
-
     grains_object = Grains(
         image=None,
         filename="",
@@ -112,7 +111,7 @@ def test_remove_small_objects():
 
 
 @pytest.mark.parametrize(
-    "test_labelled_image, area_thresholds, expected",
+    ("test_labelled_image", "area_thresholds", "expected"),
     [
         (
             np.array(
@@ -168,7 +167,6 @@ def test_remove_small_objects():
 )
 def test_area_thresholding(test_labelled_image, area_thresholds, expected):
     """Test the area_thresholding() method of the Grains class."""
-
     grains_object = Grains(
         image=None,
         filename="",
@@ -181,7 +179,7 @@ def test_area_thresholding(test_labelled_image, area_thresholds, expected):
 
 
 @pytest.mark.parametrize(
-    "remove_edge_intersecting_grains, expected_number_of_grains",
+    ("remove_edge_intersecting_grains", "expected_number_of_grains"),
     [
         (True, 6),
         (False, 9),
@@ -190,8 +188,7 @@ def test_area_thresholding(test_labelled_image, area_thresholds, expected):
 def test_remove_edge_intersecting_grains(
     grains_config: dict, remove_edge_intersecting_grains: bool, expected_number_of_grains: int
 ) -> None:
-    """Test that Grains successfully does and doesn't remove edge intersecting grains"""
-
+    """Test that Grains successfully does and doesn't remove edge intersecting grains."""
     # Ensure that a sensible number of grains are found
     grains_config["remove_edge_intersecting_grains"] = remove_edge_intersecting_grains
     grains_config["threshold_absolute"]["above"] = [1.0, None]

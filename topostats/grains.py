@@ -2,7 +2,6 @@
 # pylint: disable=no-name-in-module
 from collections import defaultdict
 import logging
-from typing import List, Dict
 import numpy as np
 
 from skimage.segmentation import clear_border
@@ -36,10 +35,7 @@ class Grains:
         otsu_threshold_multiplier: float = None,
         threshold_std_dev: dict = None,
         threshold_absolute: dict = None,
-        absolute_area_threshold: dict = {
-            "above": [None, None],
-            "below": [None, None],
-        },
+        absolute_area_threshold: dict = None,
         direction: str = None,
         smallest_grain_size_nm2: float = None,
         remove_edge_intersecting_grains: bool = True,
@@ -69,6 +65,8 @@ class Grains:
         remove_edge_intersecting_grains: bool
             Whether or not to remove grains that intersect the edge of the image.
         """
+        if absolute_area_threshold is None:
+            absolute_area_threshold = {"above": [None, None], "below": [None, None]}
         self.image = image
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
@@ -150,7 +148,7 @@ class Grains:
             self.minimum_grain_size = -1
 
     def remove_noise(self, image: np.ndarray, **kwargs) -> np.ndarray:
-        """Removes noise which are objects smaller than the 'smallest_grain_size_nm2'.
+        """Remove noise which are objects smaller than the 'smallest_grain_size_nm2'.
 
         This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.
 
@@ -173,13 +171,15 @@ class Grains:
         )
 
     def remove_small_objects(self, image: np.array, **kwargs):
-        """Remove small objects from the input image. Threshold determined by the minimum_grain_size variable of the
-        Grains class which is in pixels squared.
+        """Remove small objects from the input image.
+
+        Threshold determined by the minimum grain size, in pixels squared, of the classes initialisation.
 
         Parameters
         ----------
         image: np.ndarray
             2D Numpy image to remove small objects from.
+
         Returns
         -------
         np.ndarray
@@ -201,7 +201,7 @@ class Grains:
         return image
 
     def area_thresholding(self, image: np.ndarray, area_thresholds: list):
-        """Removes objects larger and smaller than the specified thresholds.
+        """Remove objects larger and smaller than the specified thresholds.
 
         Parameters
         ----------
@@ -254,13 +254,12 @@ class Grains:
         np.array
             Numpy array of image with objects coloured.
         """
-
         coloured_regions = label2rgb(image, **kwargs)
         LOGGER.info(f"[{self.filename}] : Coloured regions")
         return coloured_regions
 
     @staticmethod
-    def get_region_properties(image: np.array, **kwargs) -> List:
+    def get_region_properties(image: np.array, **kwargs) -> list:
         """Extract the properties of each region.
 
         Parameters
@@ -275,8 +274,8 @@ class Grains:
         """
         return regionprops(image, **kwargs)
 
-    def get_bounding_boxes(self, direction) -> Dict:
-        """Derive a list of bounding boxes for each region from the derived region_properties
+    def get_bounding_boxes(self, direction) -> dict:
+        """Derive a list of bounding boxes for each region from the derived region_properties.
 
         Parameters
         ----------

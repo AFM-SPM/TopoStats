@@ -44,7 +44,7 @@ def test_update_config(caplog) -> None:
 
 
 @pytest.mark.parametrize(
-    "image_name, core_set, title, zrange",
+    ("image_name", "core_set", "title", "zrange"),
     [
         ("extracted_channel", False, "Raw Height", [0, 3]),
         ("z_threshed", True, "Height Thresholded", [0, 3]),
@@ -56,8 +56,7 @@ def test_update_config(caplog) -> None:
 def test_update_plotting_config(
     process_scan_config: dict, image_name: str, core_set: bool, title: str, zrange: tuple
 ) -> None:
-    """Test that update_plotting_config correctly fills in values
-    for each image in the plotting dictionary plot_dict."""
+    """Ensure values are added to each image in plot_dict."""
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
     assert process_scan_config["plotting"]["plot_dict"][image_name]["core_set"] == core_set
     # Only check titles for images that have titles. grain_image, grain_mask, grain_mask_image don't
@@ -144,14 +143,14 @@ def test_get_thresholds_absolute(image_random: np.ndarray) -> None:
 
 
 def test_get_thresholds_type_error(image_random: np.ndarray) -> None:
-    """Test a TypeError is raised if a non-string value is passed to get_thresholds()"""
+    """Test a TypeError is raised if a non-string value is passed to get_thresholds()."""
     with pytest.raises(TypeError):
         get_thresholds(image=image_random, threshold_method=6.4, **THRESHOLD_OPTIONS)
 
 
 def test_get_thresholds_value_error(image_random: np.ndarray) -> None:
-    """Test a ValueError is raised if an invalid value is passed to get_thresholds()"""
-    with pytest.raises(ValueError):
+    """Test a ValueError is raised if an invalid value is passed to get_thresholds()."""
+    with pytest.raises(ValueError):  # noqa: PT011
         get_thresholds(image=image_random, threshold_method="mean", **THRESHOLD_OPTIONS)
 
 
