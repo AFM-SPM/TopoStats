@@ -1145,7 +1145,7 @@ class nodeStats:
         self.px_2_nm = px_2_nm
         self.n_grain = n_grain
 
-        self.skel_graph = None
+        self.whole_skel_graph = self.skeleton_image_to_graph(self.skeleton)
         sigma = (-3.5 / 3) * self.px_2_nm * 1e9 + 15.5 / 3
         self.hess = self.detect_ridges(self.image * 1e9, 4)
         # np.savetxt(OUTPUT_DIR / "hess.txt", self.hess)
@@ -1210,7 +1210,7 @@ class nodeStats:
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
             # TODO: maybe instead of connecting odds via sole branches - try only via shortest path?
-            self.connected_nodes = self.connect_extended_nodes(self.connected_nodes)
+            self.connected_nodes = self.connect_extended_nodes_nearest(self.connected_nodes)
             # np.savetxt(OUTPUT_DIR / "img.txt", self.image)
             #np.savetxt(OUTPUT_DIR / "untidied.txt", self.connected_nodes)
             plt.imsave(OUTPUT_DIR / "connected_nodes.png", self.connected_nodes)
@@ -1419,6 +1419,95 @@ class nodeStats:
         self.connected_nodes = connected_nodes
         return self.connected_nodes
     
+    def connect_extended_nodes_nearest(self, connected_nodes):
+        just_nodes = connected_nodes.copy()
+        just_nodes[(connected_nodes == 1) | (connected_nodes == 2)] = 0  # remove branches & termini points
+        labelled = label(just_nodes)
+
+        just_branches = connected_nodes.copy()
+        just_branches[(connected_nodes == 3) | (connected_nodes == 2)] = 0  # remove node & termini points
+        just_branches[connected_nodes == 1] = labelled.max()+1
+        labelled_branches = label(just_branches)
+
+        def bounding_box(points):
+            x_coordinates, y_coordinates = zip(*points)
+
+            return [(min(x_coordinates), min(y_coordinates)), (max(x_coordinates), max(y_coordinates))]
+
+        def do_sets_touch(set_A, set_B):
+            # Iterate through coordinates in set_A and set_B
+            # TODO: instead of iterate, minus point from array and see if abs(diff) <= 2?
+            for point_A in set_A:
+                for point_B in set_B:
+                    # Check if any coordinate in set_A is adjacent to any coordinate in set_B
+                    if (
+                        abs(point_A[0] - point_B[0]) <= 1
+                        and abs(point_A[1] - point_B[1]) <= 1
+                    ):
+                        return True, point_A  # Sets touch
+            return False, None  # Sets do not touch
+
+        emanating_branch_starts_by_node = {}  # Dictionary to store emanating branches for each label
+        nodes_with_odd_branches = []  # List to store nodes with three branches
+
+        for node_num in range(1, labelled.max()+1):
+            num_branches = 0
+            bounding = bounding_box(np.argwhere(labelled == node_num))
+            cropped_matrix = connected_nodes[bounding[0][0]-1:bounding[1][0] + 2, bounding[0][1]-1:bounding[1][1] + 2]
+            node_coords = np.argwhere(cropped_matrix == 3)
+            branch_coords = np.argwhere(cropped_matrix == 1)
+            for node_coord in node_coords:
+                for branch_coord in branch_coords:
+                    distance = math.dist(node_coord, branch_coord)
+                    if(distance <= math.sqrt(2)):
+                        num_branches = num_branches+1
+            #num_branches = len(np.argwhere(cropped_matrix == 1))
+            #print(f"node {node_num} has {num_branches} branches")
+
+            if(num_branches % 2 == 1):
+                nodes_with_odd_branches.append(node_num)
+                emanating_branches = []  # List to store emanating branches for the current label
+                for branch in range(1, labelled_branches.max() + 1):
+                    touching, branch_start = do_sets_touch(np.argwhere(labelled_branches == branch), np.argwhere(labelled == node_num))
+                    if touching:
+                        emanating_branches.append(branch_start)
+                    emanating_branch_starts_by_node[node_num] = emanating_branches  # Store emanating branches for this label
+                print(f"Node: {node_num} coords: {emanating_branch_starts_by_node[node_num]}")
+
+        # Iterate through the nodes and their emanating branches
+        shortest_node_dists = np.zeros((len(emanating_branch_starts_by_node), len(emanating_branch_starts_by_node))) # initialise the maximal pairing matrix
+        shortest_dists_branch_idxs = np.zeros((shortest_node_dists.shape[0], shortest_node_dists.shape[0], 2)).astype(np.int64)
+        for i, (node1, branch_starts1) in enumerate(emanating_branch_starts_by_node.items()):
+            for j, (node2, branch_starts2) in enumerate(emanating_branch_starts_by_node.items()):
+                if node1 != node2:  # Avoid comparing a node with itself
+                    # get shortest distance between all branch starts in n1 and n2
+                    temp_length_matrix = np.zeros((len(branch_starts1), len(branch_starts2)))
+                    for ii, bs1 in enumerate(branch_starts1):
+                        for jj, bs2 in enumerate(branch_starts2):
+                            temp_length_matrix[ii, jj] = nx.shortest_path_length(self.whole_skel_graph, tuple(bs1), tuple(bs2))
+                    # add shortest dist to shortest dist matrix
+                    shortest_dist = np.min(temp_length_matrix)
+                    shortest_node_dists[i, j] = shortest_dist
+                    shortest_dists_branch_idxs[i, j] = np.argwhere(temp_length_matrix==shortest_dist)
+
+        # get best matches
+        matches = self.best_matches(shortest_node_dists)
+        # get paths of best matches
+        for node_pair_idx in matches:
+            branch_idxs = shortest_dists_branch_idxs[node_pair_idx[0], node_pair_idx[1]]
+            print("Pair: ", node_pair_idx)
+            print("Shortest_idx pair: ", shortest_dists_branch_idxs[node_pair_idx[0], node_pair_idx[1]])
+            print("coord: ")
+            node_nums = list(emanating_branch_starts_by_node.keys())
+            source = tuple(emanating_branch_starts_by_node[node_nums[node_pair_idx[0]]][branch_idxs[0]])
+            target = tuple(emanating_branch_starts_by_node[node_nums[node_pair_idx[1]]][branch_idxs[1]])
+            path = np.array(nx.shortest_path(self.whole_skel_graph, source, target))
+            print("Path: ", path)
+            connected_nodes[path[:,0], path[:,1]] = 3
+
+        self.connected_nodes = connected_nodes
+        return self.connected_nodes
+    
     @staticmethod
     def find_branch_starts(reduced_node_image: np.ndarray) -> np.ndarray:
         """Finds the corrdinates where the branches connect to the node region through binary dilation of the node.
@@ -1483,7 +1572,7 @@ class nodeStats:
 
             # reduce the skeleton area
             reduced_node_area = self._only_centre_branches(self.connected_nodes, (x, y))
-            self.skel_graph = self.skeleton_image_to_graph(reduced_node_area)
+            self.reduced_skel_graph = self.skeleton_image_to_graph(reduced_node_area)
             branch_mask = reduced_node_area.copy()
             
             branch_mask[branch_mask == 3] = 0
@@ -1545,7 +1634,7 @@ class nodeStats:
                         )
                         # Get graphical shortest path between branch ends on the skeleton
                         crossing = nx.shortest_path(
-                            self.skel_graph,
+                            self.reduced_skel_graph,
                             source=tuple(branch_1_coords[-1]),
                             target=tuple(branch_2_coords[0]),
                             weight="weight"
@@ -1861,7 +1950,11 @@ class nodeStats:
         # find highest values
         np.fill_diagonal(angles, 0)  # ensures not paired with itself
         # match angles
-        G = self.create_weighted_graph(angles)
+        return self.best_matches(angles)
+    
+    def best_matches(self, arr: np.ndarray) -> np.ndarray:
+        """Turns a matrix into a graph and calulates the best matching index pairs."""
+        G = self.create_weighted_graph(arr)
         matching = np.array(list(nx.max_weight_matching(G, maxcardinality=True)))
         return matching
 
