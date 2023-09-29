@@ -152,14 +152,12 @@ class dnaTrace:
                 px_2_nm=self.pixel_to_nm_scaling,
                 n_grain=self.n_grain,
             )
-            print("FIRST?")
             self.node_dict = nodes.get_node_stats()
             self.node_image = nodes.connected_nodes
             self.num_crossings = len(self.node_dict)
 
             # try: # try to order using nodeStats
             if nodes.check_node_errorless():
-                print("AGAIN?")
                 ordered_traces, self.visuals, self.topology = nodes.compile_trace()
                 self.num_mols = len(ordered_traces)
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} ordered via nodeStats.")
@@ -1472,7 +1470,6 @@ class nodeStats:
                     if touching:
                         emanating_branches.append(branch_start)
                     emanating_branch_starts_by_node[node_num] = emanating_branches  # Store emanating branches for this label
-                print(f"Node: {node_num} coords: {emanating_branch_starts_by_node[node_num]}")
 
         # Iterate through the nodes and their emanating branches
         shortest_node_dists = np.zeros((len(emanating_branch_starts_by_node), len(emanating_branch_starts_by_node))) # initialise the maximal pairing matrix
@@ -1495,14 +1492,10 @@ class nodeStats:
         # get paths of best matches
         for node_pair_idx in matches:
             branch_idxs = shortest_dists_branch_idxs[node_pair_idx[0], node_pair_idx[1]]
-            print("Pair: ", node_pair_idx)
-            print("Shortest_idx pair: ", shortest_dists_branch_idxs[node_pair_idx[0], node_pair_idx[1]])
-            print("coord: ")
             node_nums = list(emanating_branch_starts_by_node.keys())
             source = tuple(emanating_branch_starts_by_node[node_nums[node_pair_idx[0]]][branch_idxs[0]])
             target = tuple(emanating_branch_starts_by_node[node_nums[node_pair_idx[1]]][branch_idxs[1]])
             path = np.array(nx.shortest_path(self.whole_skel_graph, source, target))
-            print("Path: ", path)
             connected_nodes[path[:,0], path[:,1]] = 3
 
         self.connected_nodes = connected_nodes
@@ -1741,7 +1734,7 @@ class nodeStats:
                     error = True
 
                 if average_trace_advised:
-                    avg_img = avg_img[image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]]
+                    avg_img = avg_img #[image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]]
 
                 print("Error: ", error)
                 self.node_dict[real_node_count] = {
