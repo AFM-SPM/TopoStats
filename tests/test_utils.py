@@ -170,54 +170,121 @@ def test_create_empty_dataframe() -> None:
             1.0,
             4.0,
             "above",
-            np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 0, 0]]),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 1],
+                    [1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
         ),
         (
             -2.5,
             2.0,
             "above",
-            np.array([[0, 0, 0, 0, 0], [0, 1, 1, 1, 1], [1, 1, 1, 1, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
         ),
         (
             4.0,
             np.Infinity,
             "above",
-            np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 1], [1, 1, 1, 1, 1]]),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 1],
+                ]
+            ),
         ),
         (
             -np.Infinity,
             4.0,
             "above",
-            np.array([[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 0, 0]]),
+            np.array(
+                [
+                    [1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1],
+                    [1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
         ),
         (
             -1.0,
             -4.0,
             "below",
-            np.array([[0, 0, 0, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+            np.array(
+                [
+                    [0, 0, 0, 1, 1],
+                    [1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
         ),
         (
             2.5,
             -2.0,
             "below",
-            np.array([[0, 0, 0, 0, 0], [0, 0, 1, 1, 1], [1, 1, 1, 1, 1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1],
+                    [1, 1, 1, 1, 1],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
         ),
         (
             -4.0,
             -np.Infinity,
             "below",
-            np.array([[1, 1, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+            np.array(
+                [
+                    [1, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
         ),
         (
             np.Infinity,
             -4.0,
             "below",
-            np.array([[0, 0, 0, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]]),
+            np.array(
+                [
+                    [0, 0, 0, 1, 1],
+                    [1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1],
+                ]
+            ),
         ),
     ],
 )
 def test_get_mask(
-    minimum_threshold: float, maximum_threshold: float, threshold_direction: str, expected: np.ndarray
+    minimum_threshold: float,
+    maximum_threshold: float,
+    threshold_direction: str,
+    expected: np.ndarray,
 ) -> None:
     """Test the _get_mask fuction of utils.py, ensuring that the correct values in images are masked."""
     image = np.array(
@@ -245,24 +312,49 @@ def test_get_mask(
                 "above": {"minimum": 1.0, "maximum": 4.0},
                 "below": {"minimum": -1.0, "maximum": -4.0},
             },
-            np.array([[0, 0, 0, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 0, 0]]),
+            np.array(
+                [
+                    [0, 0, 0, 1, 1],
+                    [1, 1, 1, 0, 0],
+                    [0, 0, 0, 1, 1],
+                    [1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
         ),
         (
             {"above": {"minimum": 1.0, "maximum": 4.0}, "below": None},
-            np.array([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 0, 0]]),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 1],
+                    [1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
         ),
         (
             {
                 "above": None,
                 "below": {"minimum": -1.0, "maximum": -4.0},
             },
-            np.array([[0, 0, 0, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]),
+            np.array(
+                [
+                    [0, 0, 0, 1, 1],
+                    [1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
         ),
     ],
 )
 def test_get_and_combine_directional_masks(thresholds: dict, expected: np.ndarray) -> None:
-    """Test the get_and_combine_directional_masks function of utils.py, ensuring that the correct
-    directional masks are added together and returned.
+    """Test the get_and_combine_directional_masks function of utils.py.
+
+    Ensures that the correct directional masks are added together and returned.
     """
     image = np.array(
         [
