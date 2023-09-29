@@ -178,8 +178,6 @@ def get_and_combine_directional_masks(image: np.ndarray, thresholds: dict, img_n
 
 
 # pylint: disable=unused-argument
-# pylint: disable=too-many-branches
-# pylint: disable=too-many-statements
 def get_thresholds(
     image: np.ndarray,
     threshold_method: str,
@@ -209,67 +207,17 @@ def get_thresholds(
     """
     thresholds = defaultdict()
     if threshold_method == "otsu":
-        thresholds["above"] = {
-            "minimum": threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier),
-            "maximum": np.Infinity,
-        }
-        thresholds["below"] = None
-    elif threshold_method == "std_dev":
-        try:
-            if threshold_std_dev["below"] is not None:
-                if threshold_std_dev["below"][0] is not None:
-                    minimum = threshold(image, method="mean") - threshold_std_dev["below"][0] * np.nanstd(image)
-                else:
-                    minimum = np.Infinity
-                if threshold_std_dev["below"][1] is not None:
-                    maximum = threshold(image, method="mean") - threshold_std_dev["below"][1] * np.nanstd(image)
-                else:
-                    maximum = -np.Infinity
-                thresholds["below"] = {"minimum": minimum, "maximum": maximum}
-            else:
-                thresholds["below"] = None
+        thresholds["below"], thresholds["above"] = _get_otsu_threshold_min_max(
+            otsu_threshold_multiplier=otsu_threshold_multiplier, image=image
+        )
 
-            if threshold_std_dev["above"] is not None:
-                if threshold_std_dev["above"][0] is not None:
-                    minimum = threshold(image, method="mean") + threshold_std_dev["above"][0] * np.nanstd(image)
-                else:
-                    minimum = -np.Infinity
-                if threshold_std_dev["above"][1] is not None:
-                    maximum = threshold(image, method="mean") + threshold_std_dev["above"][1] * np.nanstd(image)
-                else:
-                    maximum = np.Infinity
-                thresholds["above"] = {"minimum": minimum, "maximum": maximum}
-            else:
-                thresholds["above"] = None
-        except TypeError as typeerror:
-            raise typeerror
+    elif threshold_method == "std_dev":
+        thresholds["below"], thresholds["above"] = _get_std_dev_threshold_min_max(
+            threshold_std_dev=threshold_std_dev, image=image
+        )
 
     elif threshold_method == "absolute":
-        if absolute["below"] is not None:
-            if absolute["below"][0] is not None:
-                minimum = absolute["below"][0]
-            else:
-                minimum = np.Infinity
-            if absolute["below"][1] is not None:
-                maximum = absolute["below"][1]
-            else:
-                maximum = -np.Infinity
-            thresholds["below"] = {"minimum": minimum, "maximum": maximum}
-        else:
-            thresholds["below"] = None
-
-        if absolute["above"] is not None:
-            if absolute["above"][0] is not None:
-                minimum = absolute["above"][0]
-            else:
-                minimum = -np.Infinity
-            if absolute["above"][1] is not None:
-                maximum = absolute["above"][1]
-            else:
-                maximum = np.Infinity
-            thresholds["above"] = {"minimum": minimum, "maximum": maximum}
-        else:
-            thresholds["above"] = None
+        thresholds["below"], thresholds["above"] = _get_absolute_threshold_min_max(absolute=absolute)
 
     else:
         if not isinstance(threshold_method, str):
@@ -281,6 +229,120 @@ def get_thresholds(
                 f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute'"
             )
     return thresholds
+
+
+# pylint: disable=too-many-branches
+def _get_std_dev_threshold_min_max(threshold_std_dev: dict, image: np.ndarray) -> tuple:
+    """Get the minimum and maximum values for the standard deviation threshold.
+
+    Parameters
+    ----------
+    threshold_std_dev : dict
+        Dictionary of standard deviation thresholds. Keys are "above" and "below".
+    image : np.ndarray
+        2D Numpy array of image to base the standard deviation threshold on.
+
+    Returns
+    -------
+    tuple
+        Tuple of minimum and maximum values for thresholding.
+    """
+    try:
+        if threshold_std_dev["below"] is not None:
+            if threshold_std_dev["below"][0] is not None:
+                minimum = threshold(image, method="mean") - threshold_std_dev["below"][0] * np.nanstd(image)
+            else:
+                minimum = np.Infinity
+            if threshold_std_dev["below"][1] is not None:
+                maximum = threshold(image, method="mean") - threshold_std_dev["below"][1] * np.nanstd(image)
+            else:
+                maximum = -np.Infinity
+            thresholds_below = {"minimum": minimum, "maximum": maximum}
+        else:
+            thresholds_below = None
+
+        if threshold_std_dev["above"] is not None:
+            if threshold_std_dev["above"][0] is not None:
+                minimum = threshold(image, method="mean") + threshold_std_dev["above"][0] * np.nanstd(image)
+            else:
+                minimum = -np.Infinity
+            if threshold_std_dev["above"][1] is not None:
+                maximum = threshold(image, method="mean") + threshold_std_dev["above"][1] * np.nanstd(image)
+            else:
+                maximum = np.Infinity
+            thresholds_above = {"minimum": minimum, "maximum": maximum}
+        else:
+            thresholds_above = None
+
+        return thresholds_below, thresholds_above
+    except TypeError as typeerror:
+        raise typeerror
+
+
+def _get_absolute_threshold_min_max(absolute: dict) -> tuple:
+    """Get the minimum and maximum values for the absolute threshold.
+
+    Parameters
+    ----------
+    absolute : dict
+        Dictionary of absolute thresholds. Keys are "above" and "below".
+
+    Returns
+    -------
+    tuple
+        Tuple of minimum and maximum values for thresholding.
+    """
+    if absolute["below"] is not None:
+        if absolute["below"][0] is not None:
+            minimum = absolute["below"][0]
+        else:
+            minimum = np.Infinity
+        if absolute["below"][1] is not None:
+            maximum = absolute["below"][1]
+        else:
+            maximum = -np.Infinity
+        thresholds_below = {"minimum": minimum, "maximum": maximum}
+    else:
+        thresholds_below = None
+
+    if absolute["above"] is not None:
+        if absolute["above"][0] is not None:
+            minimum = absolute["above"][0]
+        else:
+            minimum = -np.Infinity
+        if absolute["above"][1] is not None:
+            maximum = absolute["above"][1]
+        else:
+            maximum = np.Infinity
+        thresholds_above = {"minimum": minimum, "maximum": maximum}
+    else:
+        thresholds_above = None
+
+    return thresholds_below, thresholds_above
+
+
+def _get_otsu_threshold_min_max(otsu_threshold_multiplier: float, image: np.ndarray) -> tuple:
+    """Get the minimum and maximum threshold values for the otsu threshold.
+
+    Parameters
+    ----------
+    otsu_threshold_multiplier : float
+        Multiplier for the otsu threshold.
+    image : np.ndarray
+        2D Numpy array of image to base the otsu threshold on.
+
+    Returns
+    -------
+    tuple
+        Tuple of minimum and maximum values for thresholding.
+    """
+    thresholds_below = None
+    thresholds_above = {
+        "minimum": threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier),
+        "maximum": np.Infinity,
+    }
+
+    return thresholds_below, thresholds_above
 
 
 def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: tuple = "molecule_number") -> pd.DataFrame:
