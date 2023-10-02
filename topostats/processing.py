@@ -646,10 +646,18 @@ def process_scan(
 
     # Save the topostats dictionary object to .topostats file.
     save_topostats_file(
-        output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
+        output_dir=core_out_path,
+        filename=str(topostats_object["filename"]),
+        topostats_object=topostats_object,
     )
 
-    return topostats_object["img_path"], results_df, image_stats
+    results = {
+        "topostats_object": topostats_object,
+        "results_df": results_df,
+        "image_stats": image_stats,
+    }
+
+    return results
 
 
 def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
