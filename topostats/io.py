@@ -12,7 +12,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pySPM
-from igor import binarywave
+from igor2 import binarywave
 import tifffile
 import h5py
 from ruamel.yaml import YAML, YAMLError

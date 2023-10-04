@@ -37,9 +37,9 @@ keywords = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-  "igor",
+  "igor2",
   "matplotlib",
-  "numpy==1.23.4",
+  "numpy",
   "pandas",
   "pySPM",
   "pyyaml",
@@ -78,10 +78,8 @@ docs = [
   "sphinxcontrib-napoleon",
 ]
 dev = [
-  "Flake8-pyproject",
   "black",
-  "flake8",
-  "flake8-print",
+  "ipython",
   "pre-commit",
   "pylint",
   "pyupgrade",
