@@ -35,9 +35,9 @@ keywords = [
   "afm",
   "image processing"
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
-  "igor2>=0.5.3",
+  "igor2",
   "matplotlib",
   "numpy",
   "pandas",
