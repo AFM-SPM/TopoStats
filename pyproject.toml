@@ -37,7 +37,7 @@ keywords = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-  "igor2",
+  "igor2>=0.5.3",
   "matplotlib",
   "numpy",
   "pandas",
