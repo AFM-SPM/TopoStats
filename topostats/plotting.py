@@ -139,7 +139,7 @@ class TopoSum:
         """
         return f"{self.stat_to_sum}_{plot_suffix}"
 
-    def sns_plot(self) -> Optional[Union[Tuple[plt.Figure, plt.Axes], None]]:
+    def sns_plot(self) -> Optional[Tuple[plt.Figure, plt.Axes]]:
         """Plot the distribution of one or more statistics as either histogram, kernel density estimates or both. Uses
         base Seaborn.
 
@@ -297,7 +297,8 @@ def toposum(config: dict) -> Dict:
             topo_sum = TopoSum(stat_to_sum=var, **config)
             figures[var] = {"dist": None, "violin": None}
             figures[var]["dist"] = defaultdict()
-            result_option: Tuple = topo_sum.sns_plot()
+            result_option: Optional[Tuple] = topo_sum.sns_plot()
+            # Handle the Optional[Tuple]
             if result_option is not None:
                 figures[var]["dist"]["figure"], figures[var]["dist"]["axes"] = result_option
 
