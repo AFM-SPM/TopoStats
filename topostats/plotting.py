@@ -194,7 +194,9 @@ be made with all 0 values, skipping."
     def sns_violinplot(self) -> None:
         """Violin plot of data."""
         fig, ax = self._setup_figure()
-        sns.violinplot(data=self.melted_data, x=self.hue, y="value", hue=self.hue, alpha=self.alpha)
+        # Determine whether to draw a legend
+        legend = "full" if len(self.melted_data[self.hue].unique()) > 1 else False
+        sns.violinplot(data=self.melted_data, x=self.hue, y="value", hue=self.hue, alpha=self.alpha, legend=legend)
         plt.title(self.label)
         plt.xlabel("directory")
         plt.ylabel(self.label)
