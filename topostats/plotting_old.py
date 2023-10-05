@@ -73,7 +73,7 @@ def importfromfile(path):
     """Importing the data needed from the json or csv file specified by the user"""
 
     print(path)
-    filename, filextension = os.path.splitext(path)
+    _, filextension = os.path.splitext(path)
     if filextension == ".json":
         importeddata = pd.read_json(path)
         return importeddata
@@ -376,7 +376,7 @@ def plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
 
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath, output_dir) + "_" + plotname + "_dist" + extension)
+    savename = os.path.join(pathman(specpath, output_dir) + "_" + plotname.replace("/", "_") + "_dist" + extension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -397,6 +397,7 @@ def plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
     ax.spines["right"].set_visible(False)
     # Need to return fig in order to test
     plt.savefig(savename)
+    # plt.show()
     # return fig
 
 
@@ -427,7 +428,7 @@ def plotdist2var(
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath, output_dir) + "_" + plotname + "_dist" + extension)
+    savename = os.path.join(pathman(specpath, output_dir) + "_" + plotname.replace("/", "_") + "_dist" + extension)
 
     if df2 is None:
         df2 = df
@@ -454,6 +455,7 @@ def plotdist2var(
     ax.legend(labels=[label1, label2])
     # Need to return fig in order to test
     plt.savefig(savename)
+    # plt.show()
     # return fig
 
 
@@ -489,8 +491,7 @@ def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specp
     plt.ylabel(labelunitconversion(plotarg, nm), alpha=1)
     plt.xlabel(grouparg)
     # Need to return fig in order to test
-    # plt.savefig(savename)
-    return fig
+    plt.savefig(savename)
 
 
 def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=False, specpath=None):
@@ -637,6 +638,7 @@ if __name__ == "__main__":
         elif plottype == "KDE":
             plotkde(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax)
         elif plottype == "violin":
+            sns.set_palette(sns.color_palette([color1, color2, color3]))
             plotviolin(df, parameter, nm=nm, grouparg=grouparg, ymin=ymin, ymax=ymax)
         elif plottype == "dist":
             plotdist(df, parameter, nm=nm, grouparg=grouparg, bins=np.linspace(start, end, bins), xmin=xmin, xmax=xmax, plotname=plotname, color=color1)
