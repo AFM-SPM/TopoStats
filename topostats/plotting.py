@@ -5,11 +5,12 @@ import importlib.resources as pkg_resources
 import logging
 from pathlib import Path
 import sys
-from typing import Union, Dict
+from typing import Union, Dict, Tuple, Optional
 import yaml
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import numpy as np
 
 from topostats.io import read_yaml, save_pkl, write_yaml, convert_basename_to_relative_paths
 from topostats.logs.logs import LOGGER_NAME
@@ -28,7 +29,7 @@ class TopoSum:
 
     def __init__(
         self,
-        df: Union[pd.DataFrame] = None,
+        df: pd.DataFrame = None,
         base_dir: Union[str, Path] = None,
         csv_file: Union[str, Path] = None,
         stat_to_sum: str = None,
@@ -139,31 +140,65 @@ class TopoSum:
         """
         return f"{self.stat_to_sum}_{plot_suffix}"
 
-    def sns_plot(self) -> None:
+    def sns_plot(self) -> Optional[Tuple[plt.Figure, plt.Axes]]:
         """Plot the distribution of one or more statistics as either histogram, kernel density estimates or both. Uses
-        base Seaborn."""
+        base Seaborn.
+
+        Returns
+        -------
+        Optional[Union[Tuple[plt.Figure, plt.Axes], None]]
+            Tuple of Matplotlib figure and axes if plotting is successful, None otherwise.
+        """
+
+        # Note: Plotting KDEs with Seaborn is not possible if all values are the same.
+        # This is because the KDE is calculated using a Gaussian kernel and if all values
+        # are the same, the standard deviation is 0 wich results in a ZeroDivisionError with
+        # is caught internally but then raises a numpy linalg error.
+        # The try/catch is there to catch this error and skip plotting KDEs if all values are the same.
+
         fig, ax = self._setup_figure()
+        LOGGER.info(f"melted data: \n {self.melted_data}")
+        LOGGER.info(f"stat: {self.stat}")
+        LOGGER.info(f"label: {self.label}")
+
+        # If histogram is requested but KDE is not, plot histogram
         if self.hist and not self.kde:
             outfile = self._outfile("hist")
             sns.histplot(data=self.melted_data, x="value", bins=self.bins, stat=self.stat, hue=self.hue)
         if self.kde and not self.hist:
             outfile = self._outfile("kde")
-            sns.kdeplot(data=self.melted_data, x="value", hue=self.hue)
+            try:
+                sns.kdeplot(data=self.melted_data, x="value", hue=self.hue)
+            except np.linalg.LinAlgError:
+                LOGGER.info(
+                    "[plotting] KDE plot error: Numpy linalg error encountered. This is a result of all values \
+for KDE plot being the same. KDE plots cannot be made as there is no variance, skipping."
+                )
+                return None
         if self.hist and self.kde:
             outfile = self._outfile("hist_kde")
-            sns.histplot(
-                data=self.melted_data,
-                x="value",
-                bins=self.bins,
-                stat=self.stat,
-                hue=self.hue,
-                kde=True,
-                kde_kws={"cut": self.cut},
-            )
+            try:
+                sns.histplot(
+                    data=self.melted_data,
+                    x="value",
+                    bins=self.bins,
+                    stat=self.stat,
+                    hue=self.hue,
+                    kde=True,
+                    kde_kws={"cut": self.cut},
+                )
+            except np.linalg.LinAlgError:
+                LOGGER.info(
+                    "[plotting] KDE plot error: Numpy linalg error encountered. This is a result of all values \
+for KDE plot being the same. KDE plots cannot be made as there is no variance, skipping."
+                )
+                return None
+
         plt.ticklabel_format(axis="both", style="sci", scilimits=(-3, 3))
         plt.title(self.label)
         self.set_xlim()
         self.save_plot(outfile)
+
         return fig, ax
 
     def sns_violinplot(self) -> None:
@@ -171,7 +206,14 @@ class TopoSum:
         fig, ax = self._setup_figure()
         # Determine whether to draw a legend
         legend = "full" if len(self.melted_data[self.hue].unique()) > 1 else False
-        sns.violinplot(data=self.melted_data, x=self.hue, y="value", hue=self.hue, alpha=self.alpha, legend=legend)
+        sns.violinplot(
+            data=self.melted_data,
+            x=self.hue,
+            y="value",
+            hue=self.hue,
+            alpha=self.alpha,
+            legend=legend,
+        )
         plt.title(self.label)
         plt.xlabel("directory")
         plt.ylabel(self.label)
@@ -274,11 +316,17 @@ def toposum(config: dict) -> Dict:
             topo_sum = TopoSum(stat_to_sum=var, **config)
             figures[var] = {"dist": None, "violin": None}
             figures[var]["dist"] = defaultdict()
-            figures[var]["dist"]["figure"], figures[var]["dist"]["axes"] = topo_sum.sns_plot()
+            result_option: Optional[Tuple] = topo_sum.sns_plot()
+            # Handle the Optional[Tuple]
+            if result_option is not None:
+                figures[var]["dist"]["figure"], figures[var]["dist"]["axes"] = result_option
 
             if violin:
                 figures[var]["violin"] = defaultdict()
-                figures[var]["violin"]["figure"], figures[var]["violin"]["axes"] = topo_sum.sns_violinplot()
+                (
+                    figures[var]["violin"]["figure"],
+                    figures[var]["violin"]["axes"],
+                ) = topo_sum.sns_violinplot()
         else:
             LOGGER.info(f"[plotting] Statistic is not in dataframe : {var}")
     if pickle_plots:
