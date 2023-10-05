@@ -182,7 +182,8 @@ class dnaTrace:
                     self.mol_is_circulars.append(mol_is_circular)
                     fitted_trace = self.get_fitted_traces(trace, mol_is_circular)
                     self.fitted_trace_img += self.coords_2_img(fitted_trace, self.image)
-                    splined_trace = self.get_splined_traces(fitted_trace, trace, mol_is_circular)
+                    # Propper cleanup needed - ordered trace instead of fitted trace
+                    splined_trace = self.get_splined_traces(trace, trace, mol_is_circular)
                     self.splined_traces.append(np.array(splined_trace))
                     self.splined_trace_img += self.coords_2_img(np.array(splined_trace, dtype=np.int32), self.image)
                     # self.find_curvature()
