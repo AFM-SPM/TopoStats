@@ -126,7 +126,7 @@ class dnaTrace:
         self.curvatures = []
         self.num_mols = 1
 
-        self.visuals = None
+        self.visuals = np.zeros_like(image)
 
         self.neighbours = 5  # The number of neighbours used for the curvature measurement
         self.step_size = 7e-9
@@ -194,8 +194,15 @@ class dnaTrace:
                     LOGGER.info(
                         f"[{self.filename}] [{self.n_grain}] : Grain ordered trace pixels < {self.min_skeleton_size}"
                     )
+                    self.contour_lengths.append([])
+                    self.mol_is_circulars.append([])
+                    self.end_to_end_distances.append([])
+
         else:
             LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
+            self.contour_lengths.append([])
+            self.mol_is_circulars.append([])
+            self.end_to_end_distances.append([])
 
     def smooth_grains(self, grain: np.ndarray) -> None:
         """Smoothes grains based on the lower number added from dilation or gaussian.
@@ -479,6 +486,7 @@ class dnaTrace:
         the lower res data"""
 
         step_size_px = int(self.step_size / (self.pixel_to_nm_scaling))  # 3 nm step size
+        step_size_px = 2 if step_size_px == 0 else step_size_px
         # Lets see if we just got with the pixel_to_nm_scaling
         # step_size = self.pixel_to_nm_scaling
         # interp_step = self.pixel_to_nm_scaling
@@ -1018,7 +1026,7 @@ def trace_grain(
     )
     dnatrace.trace_dna()
     results = {}
-    print("Contours: ", dnatrace.contour_lengths)
+
     for i in range(dnatrace.num_mols):
         results[i] = {
             "image": dnatrace.filename,
@@ -1207,8 +1215,8 @@ class nodeStats:
         # np.savetxt(OUTPUT_DIR / "conv.txt", self.conv_skelly)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
-            # TODO: maybe instead of connecting odds via sole branches - try only via shortest path?
             self.connected_nodes = self.connect_extended_nodes_nearest(self.connected_nodes)
+            #self.connected_nodes = self.connect_extended_nodes(self.connected_nodes)
             # np.savetxt(OUTPUT_DIR / "img.txt", self.image)
             #np.savetxt(OUTPUT_DIR / "untidied.txt", self.connected_nodes)
             plt.imsave(OUTPUT_DIR / "connected_nodes.png", self.connected_nodes)
@@ -2072,7 +2080,6 @@ class nodeStats:
         centre_fraction = int(len(heights) * 0.2)  # incase zone approaches another node, look around centre for max
         # if centre_fraction == 0:
         #    centre_fraction = 1
-        # print("CENT: ", centre_fraction)
         high_idx = np.argmax(heights[centre_fraction:-centre_fraction]) + centre_fraction
         # heights_norm = heights.copy() - heights.min()  # lower graph so min is 0
 
