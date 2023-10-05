@@ -10,6 +10,7 @@ import yaml
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import numpy as np
 
 from topostats.io import read_yaml, save_pkl, write_yaml, convert_basename_to_relative_paths
 from topostats.logs.logs import LOGGER_NAME
@@ -149,9 +150,11 @@ class TopoSum:
             Tuple of Matplotlib figure and axes if plotting is successful, None otherwise.
         """
 
-        # Note: Plotting KDEs with Seaborn is not possible if all values are 0. This is because the KDE is calculated
-        # using a Gaussian kernel and if all values are 0, the standard deviation is 0 wich results in a
-        # ZeroDivisionError. To avoid this, we check if all values are 0 and if so, we skip the KDE plot.
+        # Note: Plotting KDEs with Seaborn is not possible if all values are the same.
+        # This is because the KDE is calculated using a Gaussian kernel and if all values
+        # are the same, the standard deviation is 0 wich results in a ZeroDivisionError with
+        # is caught internally but then raises a numpy linalg error.
+        # The try/catch is there to catch this error and skip plotting KDEs if all values are the same.
 
         fig, ax = self._setup_figure()
         LOGGER.info(f"melted data: \n {self.melted_data}")
@@ -162,19 +165,19 @@ class TopoSum:
         if self.hist and not self.kde:
             outfile = self._outfile("hist")
             sns.histplot(data=self.melted_data, x="value", bins=self.bins, stat=self.stat, hue=self.hue)
-        # Otherwise, KDE is requested, so check if all values are 0
-        elif (self.melted_data["value"] == 0).all():
-            LOGGER.info(
-                f"[plotting] All values for {self.label} are 0. KDE plots cannot \
-be made with all 0 values, skipping."
-            )
-            return None
-        else:
-            if self.kde and not self.hist:
-                outfile = self._outfile("kde")
+        if self.kde and not self.hist:
+            outfile = self._outfile("kde")
+            try:
                 sns.kdeplot(data=self.melted_data, x="value", hue=self.hue)
-            if self.hist and self.kde:
-                outfile = self._outfile("hist_kde")
+            except np.linalg.LinAlgError:
+                LOGGER.info(
+                    "[plotting] KDE plot error: Numpy linalg error encountered. This is a result of all values \
+for KDE plot being the same. KDE plots cannot be made as there is no variance, skipping."
+                )
+                return None
+        if self.hist and self.kde:
+            outfile = self._outfile("hist_kde")
+            try:
                 sns.histplot(
                     data=self.melted_data,
                     x="value",
@@ -184,6 +187,13 @@ be made with all 0 values, skipping."
                     kde=True,
                     kde_kws={"cut": self.cut},
                 )
+            except np.linalg.LinAlgError:
+                LOGGER.info(
+                    "[plotting] KDE plot error: Numpy linalg error encountered. This is a result of all values \
+for KDE plot being the same. KDE plots cannot be made as there is no variance, skipping."
+                )
+                return None
+
         plt.ticklabel_format(axis="both", style="sci", scilimits=(-3, 3))
         plt.title(self.label)
         self.set_xlim()
@@ -196,7 +206,14 @@ be made with all 0 values, skipping."
         fig, ax = self._setup_figure()
         # Determine whether to draw a legend
         legend = "full" if len(self.melted_data[self.hue].unique()) > 1 else False
-        sns.violinplot(data=self.melted_data, x=self.hue, y="value", hue=self.hue, alpha=self.alpha, legend=legend)
+        sns.violinplot(
+            data=self.melted_data,
+            x=self.hue,
+            y="value",
+            hue=self.hue,
+            alpha=self.alpha,
+            legend=legend,
+        )
         plt.title(self.label)
         plt.xlabel("directory")
         plt.ylabel(self.label)
