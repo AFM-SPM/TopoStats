@@ -30,6 +30,7 @@ from topostats.processing import check_run_steps, completion_message, process_sc
 from topostats.utils import update_config, update_plotting_config
 from topostats.validation import (
     validate_config,
+    BASE_TOPO_SCHEMA,
     DEFAULT_CONFIG_SCHEMA,
     PLOTTING_SCHEMA,
     SUMMARY_SCHEMA,
@@ -67,6 +68,7 @@ class DefaultWorkflow(TopoStatsWorkflow):
     def __init__(self):
         """Initialize the workflow"""
         self.config_schema = DEFAULT_CONFIG_SCHEMA
+        self.plotting_schema = PLOTTING_SCHEMA
 
     def run_workflow(self, config: dict, args=None):
         """Run TopoStats workflow"""
@@ -258,11 +260,109 @@ def run_topostats_workflow(workflow: TopoStatsWorkflow, args=None):
     else:
         LOGGER.setLevel("INFO")
 
-    # Validate configuration
+    # Write sample configuration if asked to do so and exit
+    if args.create_config_file and args.config_file:
+        raise ValueError("--create-config-file and --config cannot be used together.")
+    if args.create_config_file:
+        write_config_with_comments(config=default_config, output_dir=Path.cwd(), filename=args.create_config_file)
+        sys.exit()
+
+    # Validate base configuration
+    validate_config(config, schema=BASE_TOPO_SCHEMA, config_type="YAML configuration file")
+
+    # Validate workflow configuration
+    validate_config(config["workflow"], schema=workflow.config_schema, config_type="YAML configuration file")
+
+    # Validate configuration or don't if no schema provided
     if workflow.config_schema is not None:
         validate_config(config, schema=workflow.config_schema, config_type="YAML configuration file")
     else:
         LOGGER.info(f"Skipping validation as no config schema provided for {workflow.__name__}")
+
+    # Create base output directory common for all workflows.
+    config["output_dir"].mkdir(parents=True, exist_ok=True)
+
+    # Load plotting_dictionary and validate
+    plotting_dictionary: dict = workflow.plotting_dictionary
+    config["plotting"]["plot_dict"] = plotting_dictionary
+    validate_config(
+        config["plotting"]["plot_dict"],
+        schema=workflow.plotting_schema,
+        config_type="YAML plotting configuration file",
+    )
+
+    # Todo: Validate the state of each stage (enabled, disabled) is allowed
+
+    # Update the plotting config with options from the standard config
+    config["plotting"] = update_plotting_config(config["plotting"])
+
+    LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
+    LOGGER.info(f"Scanning for images in              : {config['base_dir']}")
+    LOGGER.info(f"Output directory                    : {str(config['output_dir'])}")
+    LOGGER.info(f"Looking for images with extension   : {config['file_ext']}")
+
+    img_files = find_files(config["base_dir"], file_ext=config["file_ext"])
+    LOGGER.info(f"Images with extension {config['file_ext']} in {config['base_dir']} : {len(img_files)}")
+    if len(img_files) == 0:
+        LOGGER.error(f"No images with extension {config['file_ext']} in {config['base_dir']}")
+        LOGGER.error("Please check your configuration and directories.")
+        sys.exit()
+    LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
+    LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
+    LOGGER.debug(f"Configuration after update         : \n{pformat(config, indent=4)}")  # noqa : T203
+
+    processing_function: function = partial(
+        process_scan,
+        base_dir=config["base_dir"],
+        output_dir=config["output_dir"],
+        workflow_config=config["workflow"],
+        plotting_config=config["plotting"],
+    )
+
+    # Load all the images as topostats objects in a dictionary
+    loadscans = LoadScans(img_files, **config["loading"])
+    loadscans.get_data()
+    # Get a dictionary of all the image data dictionaries.
+    # Keys are the image names
+    # Values are the individual image data dictionaries ('topostats objects')
+    scan_data_dict = loadscans.img_dict
+
+    with Pool(processes=config["cores"]) as pool:
+        # Store all the different types of results data in a dictionary
+        # of dataframes (as a list) to be concatenated later.
+        dataframe_list_dictionary = defaultdict(list)
+        with tqdm(
+            total=len(img_files),
+            desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
+        ) as progress_bar:
+            for filename, image_specific_results_dict in pool.imap_unordered(
+                processing_function,
+                scan_data_dict.values(),
+            ):
+                # Add the dataframe to the list of dataframes inside the results dictionary
+                # for concatenation later
+                for dataframe_name, dataframe in image_specific_results_dict.items():
+                    dataframe_list_dictionary[dataframe_name].append(dataframe)
+
+                progress_bar.update()
+
+                # Display completion message for the image
+                LOGGER.info(f"[{filename}] Processing completed.")
+
+    # Concatenate each list of dataframes in the dictionary
+    dataframe_concatenated_dictionary = defaultdict(pd.DataFrame)
+    for dataframe_name, dataframe_list in dataframe_list_dictionary.items():
+        try:
+            dataframe_concatenated_dictionary[dataframe_name] = pd.concat(dataframe_list)
+        except ValueError as error:
+            LOGGER.error(f"No stats for {dataframe_name} found in any images. No results to save.")
+            LOGGER.error(error)
+
+    # Save all the dataframes to CSV:
+    for dataframe_name, dataframe in dataframe_concatenated_dictionary.items():
+        dataframe.to_csv(config["output_dir"] / f"{dataframe_name}.csv")
+
+    # Summary statistics and plots
 
 
 def run_topostats(args=None):
