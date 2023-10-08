@@ -33,6 +33,33 @@ def validate_config(config: dict, schema: Schema, config_type: str) -> None:
         ) from schema_error
 
 
+BASE_TOPO_SCHEMA = Schema(
+    {
+        "base_dir": Path,
+        "output_dir": Path,
+        "log_level": Or(
+            "debug",
+            "info",
+            "warning",
+            "error",
+            error="Invalid value in config for 'log_level', valid values are 'info' (default), 'debug', 'error' or 'warning",
+        ),
+        "cores": lambda n: 1 <= n <= os.cpu_count(),
+        "file_ext": Or(
+            ".spm",
+            ".asd",
+            ".jpk",
+            ".ibw",
+            ".gwy",
+            ".topostats",
+            error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw', '.gwy', '.topostats', or '.asd'.",
+        ),
+        "loading": {"channel": str},
+        # A workflow section that is allowed to contain any number of sub-sections
+        "workflow": {},
+    }
+)
+
 DEFAULT_CONFIG_SCHEMA = Schema(
     {
         "base_dir": Path,
