@@ -637,7 +637,7 @@ def process_scan(
     else:
         image_for_image_stats = topostats_object["image_original"]
     # Calculate image statistics - returns a dictionary
-    image_stats = image_statistics(
+    image_stats_df = image_statistics(
         image=image_for_image_stats,
         filename=topostats_object["filename"],
         results_df=results_df,
@@ -651,13 +651,18 @@ def process_scan(
         topostats_object=topostats_object,
     )
 
-    results = {
-        "topostats_object": topostats_object,
-        "results_df": results_df,
-        "image_stats": image_stats,
+    # results = {
+    #     "topostats_object": topostats_object,
+    #     "results_df": results_df,
+    #     "image_stats": image_stats,
+    # }
+
+    dictionary_of_dataframe_results = {
+        "molecule_stats": results_df,
+        "image_stats": image_stats_df,
     }
 
-    return results
+    return (topostats_object["filename"], dictionary_of_dataframe_results)
 
 
 def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
