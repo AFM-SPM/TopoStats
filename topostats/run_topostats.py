@@ -31,6 +31,7 @@ from topostats.utils import update_config, update_plotting_config
 from topostats.validation import (
     validate_config,
     BASE_TOPO_SCHEMA,
+    BASE_SUMMARY_SCHEMA,
     DEFAULT_CONFIG_SCHEMA,
     PLOTTING_SCHEMA,
     SUMMARY_SCHEMA,
@@ -363,6 +364,37 @@ def run_topostats_workflow(workflow: TopoStatsWorkflow, args=None):
         dataframe.to_csv(config["output_dir"] / f"{dataframe_name}.csv")
 
     # Summary statistics and plots
+    if config["summary_stats"]["run"]:
+        # Load summary plots/statistics configuration and validate, location depends on command line args or value in
+        # any config file given, if neither are provided the default summary config is used with the default
+        # summary workflow config if one is defined for the workflow class.
+
+        if args.summary_config is not None:
+            summary_config = read_yaml(args.summary_config)
+        elif config["summary_stats"]["config"] is not None:
+            summary_config = read_yaml(config["summary_stats"]["config"])
+        else:
+            # Load the default summary config for the workflow
+            # TODO: Add this method for workflows
+            summary_config = workflow.get_default_summary_config()
+
+        # Do not pass command line arguments to toposum as they clash with process command line arguments
+        summary_config = update_config(summary_config, {})
+
+        # Validate the summary config
+        # First the base config
+        validate_config(summary_config, schema=BASE_SUMMARY_SCHEMA, config_type="YAML summarisation config")
+        # Then the workflow specific config, checking that the stats to summarise are valid
+        validate_config(
+            summary_config["workflow_stats_to_summarize"],
+            schema=workflow.summary_stats_schema,
+            config_type="YAML summarisation config",
+        )
+
+        # We never want to load data from CSV as we are using the data that has just been processed.
+        summary_config.pop("csv_file")
+
+        # Load variable to label mapping
 
 
 def run_topostats(args=None):
