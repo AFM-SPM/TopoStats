@@ -17,7 +17,7 @@ figsize:
   - 9
 alpha: 0.5
 palette: bright # Seaborn color palette. Options : colorblind, deep, muted, pastel, bright, dark, Spectral, Set2
-stats_to_sum: # A list of variables (key) to plot uncomment those that are required.
+workflow_stats_to_summarise: # A list of variables (key) to plot uncomment those that are required.
   - area
   - area_cartesian_bbox
   #  - aspect_ratio

@@ -57,6 +57,335 @@ BASE_TOPO_SCHEMA = Schema(
         "loading": {"channel": str},
         # A workflow section that is allowed to contain any number of sub-sections
         "workflow": {},
+        "plotting": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'plotting.run', valid values are 'True' or 'False'",
+            ),
+            "save_format": str,
+            "image_set": Or(
+                "all",
+                "core",
+                error="Invalid value in config for 'plotting.image_set', valid values " "are 'all' or 'core'",
+            ),
+            "pixel_interpolation": Or(
+                None,
+                "none",
+                "bessel",
+                "bicubic",
+                "bilinear",
+                "catrom",
+                "gaussian",
+                "hamming",
+                "hanning",
+                "hermite",
+                "kaiser",
+                "lanczos",
+                "mitchell",
+                "nearest",
+                "quadric",
+                "sinc",
+                "spline16",
+                "spline36",
+                error="Invalid interpolation value. See https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html for options.",
+            ),
+            "zrange": list,
+            "colorbar": Or(
+                True,
+                False,
+                error="Invalid value in config for 'plotting.colorbar', valid values are 'True' or 'False'",
+            ),
+            "axes": Or(
+                True,
+                False,
+                error="Invalid value in config plotting.for 'axes', valid values are 'True' or 'False'",
+            ),
+            "cmap": Or(
+                "afmhot",
+                "nanoscope",
+                "gwyddion",
+                error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot', 'nanoscope' or 'gwyddion'",
+            ),
+            "mask_cmap": str,
+            "histogram_log_axis": Or(
+                True,
+                False,
+                error=(
+                    "Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or "
+                    "'False'"
+                ),
+            ),
+            "histogram_bins": lambda n: n > 0,
+        },
+        "summary_stats": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for summary_stats.run, valid values are 'True' or 'False'",
+            ),
+            "config": Or(
+                None,
+                str,
+                error=(
+                    "Invalid value in config for summary_stats.config, valid values are 'None' or a path to a "
+                    "config file."
+                ),
+            ),
+        },
+    }
+)
+
+BASE_SUMMARY_SCHEMA = Schema(
+    {
+        "base_dir": Path,
+        "output_dir": Path,
+        "csv_file": str,
+        "file_ext": Or(
+            "png",
+            "pdf",
+            "svg",
+            error=("Invalid value in config 'file_ext', valid values are 'png', 'pdf' or 'svg' "),
+        ),
+        "pickle_plots": Or(
+            True, False, error="Invalid value in config for 'pickle_plots', valid values are 'True' or 'False'"
+        ),
+        "var_to_label": Or(
+            None, str, error="Invalid value in config for 'var_to_label', valid values are 'None' or a str"
+        ),
+        "image_id": str,
+        "molecule_id": str,
+        "hist": Or(
+            True,
+            False,
+            error="Invalid value in config for 'hist', valid values are 'True' or 'False'",
+        ),
+        "bins": lambda n: n > 0,
+        "stat": Or(
+            "count",
+            "frequency",
+            "probability",
+            "percent",
+            "density",
+            error=(
+                "Invalid value in config 'stat', valid values are 'count', 'frequency', "
+                "'probability', 'percent' or 'density'"
+            ),
+        ),
+        "kde": Or(
+            True,
+            False,
+            error="Invalid value in config for 'kde', valid values are 'True' or 'False'",
+        ),
+        "violin": Or(
+            True,
+            False,
+            error="Invalid value in config for 'violin', valid values are 'True' or 'False'",
+        ),
+        "figsize": [lambda n: n > 0],
+        "alpha": lambda n: n > 0,
+        "palette": Or(
+            "colorblind",
+            "deep",
+            "muted",
+            "pastel",
+            "bright",
+            "dark",
+            "Spectral",
+            "Set2",
+            error=(
+                "Invalid value in config 'palette', valid values are 'colorblind', 'deep', "
+                "'muted', 'pastel', 'bright', 'dark', 'Spectral' or 'Set2'"
+            ),
+        ),
+        # A list that is allowed to contain any number of items
+        "workflow_stats_to_summarise": [str],
+    }
+)
+
+# A schema for the default topo workflow
+DEFAULT_WORKFLOW_SCHEMA = Schema(
+    {
+        "filter": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'filter.run', valid values are 'True' or 'False'",
+            ),
+            "row_alignment_quantile": lambda n: 0.0 <= n <= 1.0,
+            "threshold_method": Or(
+                "absolute",
+                "otsu",
+                "std_dev",
+                error=(
+                    "Invalid value in config for 'filter.threshold_method', valid values "
+                    "are 'absolute', 'otsu' or 'std_dev'"
+                ),
+            ),
+            "otsu_threshold_multiplier": float,
+            "threshold_std_dev": {
+                "below": lambda n: n > 0,
+                "above": lambda n: n > 0,
+            },
+            "threshold_absolute": {
+                "below": Or(
+                    int,
+                    float,
+                    error=(
+                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
+                    ),
+                ),
+                "above": Or(
+                    int,
+                    float,
+                    error=(
+                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
+                    ),
+                ),
+            },
+            "gaussian_size": float,
+            "gaussian_mode": Or(
+                "nearest",
+                error="Invalid value in config for 'filter.gaussian_mode', valid values are 'nearest'",
+            ),
+            "remove_scars": {
+                "run": bool,
+                "removal_iterations": lambda n: 0 <= n < 10,
+                "threshold_low": lambda n: n > 0,
+                "threshold_high": lambda n: n > 0,
+                "max_scar_width": lambda n: n >= 1,
+                "min_scar_length": lambda n: n >= 1,
+            },
+        },
+        "grains": {
+            "run": Or(True, False, error="Invalid value in config for grains.run, valid values are 'True' or 'False'"),
+            "smallest_grain_size_nm2": lambda n: n > 0.0,
+            "threshold_method": Or(
+                "absolute",
+                "otsu",
+                "std_dev",
+                error=(
+                    "Invalid value in config for 'grains.threshold_method', valid values "
+                    "are 'absolute', 'otsu' or 'std_dev'"
+                ),
+            ),
+            "otsu_threshold_multiplier": float,
+            "threshold_std_dev": {
+                "below": lambda n: n > 0,
+                "above": lambda n: n > 0,
+            },
+            "threshold_absolute": {
+                "below": Or(
+                    int,
+                    float,
+                    error=(
+                        "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
+                    ),
+                ),
+                "above": Or(
+                    int,
+                    float,
+                    error=(
+                        "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
+                    ),
+                ),
+            },
+            "absolute_area_threshold": {
+                "above": [
+                    Or(
+                        int,
+                        None,
+                        error=(
+                            "Invalid value in config for 'grains.absolute_area_threshold.above', valid values "
+                            "are int or null"
+                        ),
+                    )
+                ],
+                "below": [
+                    Or(
+                        int,
+                        None,
+                        error=(
+                            "Invalid value in config for 'grains.absolute_area_threshold.below', valid values "
+                            "are int or null"
+                        ),
+                    )
+                ],
+            },
+            "direction": Or(
+                "both",
+                "below",
+                "above",
+                error="Invalid direction for grains.direction valid values are 'both', 'below' or 'above",
+            ),
+            "remove_edge_intersecting_grains": Or(
+                True,
+                False,
+                error="Invalid value in config for 'grains.remove_edge_intersecting_grains', valid values are 'True' or 'False'",
+            ),
+        },
+        "grainstats": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'grainstats.run', valid values are 'True' or 'False'",
+            ),
+            "edge_detection_method": Or(
+                "binary_erosion",
+                "canny",
+            ),
+            "cropped_size": Or(
+                float,
+                int,
+            ),
+        },
+        "dnatracing": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+            ),
+            "min_skeleton_size": lambda n: n > 0.0,
+            "skeletonisation_method": Or(
+                "zhang",
+                "lee",
+                "thin",
+                "topostats",
+                error="Invalid value in config for 'dnatracing.skeletonisation_method',"
+                "valid values are 'zhang' or 'lee', 'thin' or 'topostats'",
+            ),
+            "pad_width": lambda n: n > 0.0,
+            # "cores": lambda n: n > 0.0,
+        },
+    }
+)
+
+# A schema for the summary of stats for the default
+# topo workflow
+DEFAULT_WORKFLOW_SUMMARY_SCHEMA = Schema(
+    {
+        "stats_to_sum": [
+            Optional("area"),
+            Optional("area_cartesian_bbox"),
+            Optional("aspect_ratio"),
+            Optional("bending_angle"),
+            Optional("contour_length"),
+            Optional("end_to_end_distance"),
+            Optional("height_max"),
+            Optional("height_mean"),
+            Optional("height_median"),
+            Optional("height_min"),
+            Optional("max_feret"),
+            Optional("min_feret"),
+            Optional("radius_max"),
+            Optional("radius_mean"),
+            Optional("radius_median"),
+            Optional("radius_min"),
+            Optional("smallest_bounding_area"),
+            Optional("smallest_bounding_length"),
+            Optional("smallest_bounding_width"),
+            Optional("volume"),
+        ],
     }
 )
 
