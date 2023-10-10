@@ -115,7 +115,6 @@ def test_get_thresholds_stddev(
 
     thresholds = get_thresholds(image=image_random, threshold_method="std_dev", **THRESHOLD_OPTIONS)
     assert isinstance(thresholds, dict)
-    # assert thresholds == {"below": {"minimum": -2.3866804917165663, "maximum"}, "above": {0.7886033762450778}
     assert set(thresholds.keys()) == {"above", "below"}
     # Check the values of the thresholds. Annoyingly it's complicated to do since np.Infinity != np.Infinity.
     for direction in ["above", "below"]:
@@ -139,14 +138,58 @@ def test_get_thresholds_stddev(
         thresholds = get_thresholds(image=image_random, threshold_method="std_dev")
 
 
-def test_get_thresholds_absolute(image_random: np.ndarray) -> None:
+@pytest.mark.parametrize(
+    ("config_absolute_thresholds", "expected_value_thresholds"),
+    [
+        (
+            {"below": [-1.5, None], "above": [1.5, None]},
+            {
+                "below": {"minimum": -1.5, "maximum": -np.Infinity},
+                "above": {"minimum": 1.5, "maximum": np.Infinity},
+            },
+        ),
+        (
+            {"below": [None, -1.5], "above": [None, 1.5]},
+            {
+                "below": {"minimum": np.Infinity, "maximum": -1.5},
+                "above": {"minimum": -np.Infinity, "maximum": 1.5},
+            },
+        ),
+        (
+            {"below": None, "above": [None, 1.5]},
+            {"below": None, "above": {"minimum": -np.Infinity, "maximum": 1.5}},
+        ),
+        (
+            {"below": [-1.5, None], "above": None},
+            {"below": {"minimum": -1.5, "maximum": -np.Infinity}, "above": None},
+        ),
+    ],
+)
+def test_get_thresholds_absolute(
+    image_random: np.ndarray, config_absolute_thresholds: dict, expected_value_thresholds: dict
+) -> None:
     """Test of get_thresholds() method with absolute threshold."""
+    THRESHOLD_OPTIONS["absolute"] = config_absolute_thresholds
+
     thresholds = get_thresholds(image=image_random, threshold_method="absolute", **THRESHOLD_OPTIONS)
-    assert isinstance(thresholds, dict)
-    assert thresholds["above"]["minimum"] == 1.5
-    assert np.isposinf(thresholds["above"]["maximum"])
-    assert thresholds["below"]["minimum"] == -1.5
-    assert np.isneginf(thresholds["below"]["maximum"])
+    assert set(thresholds.keys()) == {"above", "below"}
+    # Check the values of the thresholds. Annoyingly it's complicated to do since np.Infinity != np.Infinity.
+    for direction in ["above", "below"]:
+        if expected_value_thresholds[direction] is None:
+            assert thresholds[direction] is None
+        else:
+            if np.isposinf(expected_value_thresholds[direction]["minimum"]):
+                assert np.isposinf(thresholds[direction]["minimum"])
+            if np.isneginf(expected_value_thresholds[direction]["minimum"]):
+                assert np.isneginf(thresholds[direction]["minimum"])
+            else:
+                assert expected_value_thresholds[direction]["minimum"] == thresholds[direction]["minimum"]
+            if np.isposinf(expected_value_thresholds[direction]["maximum"]):
+                assert np.isposinf(thresholds[direction]["maximum"])
+            if np.isneginf(expected_value_thresholds[direction]["maximum"]):
+                assert np.isneginf(thresholds[direction]["maximum"])
+            else:
+                assert expected_value_thresholds[direction]["maximum"] == thresholds[direction]["maximum"]
 
 
 def test_get_thresholds_type_error(image_random: np.ndarray) -> None:
