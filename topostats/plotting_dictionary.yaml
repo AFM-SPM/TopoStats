@@ -53,56 +53,62 @@ initial_scar_removal:
   image_type: "non-binary"
   dpi: 100
   core_set: false
+initial_zero_average_background:
+  filename: "7-initial_zero_average_background"
+  title: "Initial Zero Averaged Background"
+  image_type: "non-binary"
+  dpi: 100
+  core_set: false
 mask:
-  filename: "07-binary_mask"
+  filename: "08-binary_mask"
   title: "Binary Mask"
   image_type: "binary"
   dpi: 100
   core_set: false
 masked_median_flatten:
-  filename: "08-secondary_align_masked"
+  filename: "09-secondary_align_masked"
   title: "Secondary Alignment (Masked)"
   image_type: "non-binary"
   dpi: 100
   core_set: false
 masked_tilt_removal:
-  filename: "09-secondary_tilt_removal_masked"
+  filename: "10-secondary_tilt_removal_masked"
   title: "Secondary Tilt Removal (Masked)"
   image_type: "non-binary"
   dpi: 100
   core_set: false
 masked_quadratic_removal:
-  filename: "10-quadratic_removal_masked"
+  filename: "11-quadratic_removal_masked"
   title: "Secondary Quadratic Removal"
   image_type: "non-binary"
   dpi: 100
   core_set: false
 masked_nonlinear_polynomial_removal:
-  filename: "11-nonlinear_polynomial_removal_masked"
+  filename: "12-nonlinear_polynomial_removal_masked"
   title: "Nonlinear polynomial removal masked"
   image_type: "non-binary"
   dpi: 100
   core_set: false
 secondary_scar_removal:
-  filename: "12-scar_removal"
+  filename: "13-scar_removal"
   title: "Secondary scar removal"
   image_type: "non-binary"
   dpi: 100
   core_set: false
 scar_mask:
-  filename: "13-scar_mask"
+  filename: "14-scar_mask"
   title: "Scar mask"
   image_type: "binary"
   dpi: 100
   core_set: false
-zero_average_background:
-  filename: "14-zero_average_background"
-  title: "Zero Averaged Background"
+final_zero_average_background:
+  filename: "15-final_zero_average_background"
+  title: "Final Zero Averaged Background"
   image_type: "non-binary"
   dpi: 100
   core_set: false
 gaussian_filtered:
-  filename: "15-gaussian_filtered"
+  filename: "16-gaussian_filtered"
   title: "Gaussian Filtered"
   image_type: "non-binary"
   dpi: 100
@@ -113,31 +119,31 @@ z_threshed:
   dpi: 100
   core_set: true
 mask_grains:
-  filename: "16-mask_grains"
+  filename: "17-mask_grains"
   title: "Mask for Grains"
   image_type: "binary"
   dpi: 100
   core_set: false
 labelled_regions_01:
-  filename: "17-labelled_regions"
+  filename: "18-labelled_regions"
   title: "Labelled Regions"
   image_type: "binary"
   dpi: 100
   core_set: false
 tidied_border:
-  filename: "18-tidy_borders"
+  filename: "19-tidy_borders"
   title: "Tidied Borders"
   image_type: "binary"
   dpi: 100
   core_set: false
 removed_noise:
-  filename: "19-noise_removed"
+  filename: "20-noise_removed"
   title: "Noise removed"
   image_type: "binary"
   dpi: 100
   core_set: false
 removed_small_objects:
-  filename: "20-small_objects_removed"
+  filename: "21-small_objects_removed"
   title: "Small Objects Removed"
   image_type: "binary"
   dpi: 100
@@ -148,25 +154,25 @@ mask_overlay:
   dpi: 100
   core_set: true
 labelled_regions_02:
-  filename: "21-labelled_regions"
+  filename: "22-labelled_regions"
   title: "Labelled Regions"
   image_type: "binary"
   dpi: 100
   core_set: false
 coloured_regions:
-  filename: "22-coloured_regions"
+  filename: "23-coloured_regions"
   title: "Coloured Regions"
   image_type: "binary"
   dpi: 100
   core_set: false
 bounding_boxes:
-  filename: "23-bounding_boxes"
+  filename: "24-bounding_boxes"
   title: "Bounding Boxes"
   image_type: "binary"
   dpi: 100
   core_set: false
 coloured_boxes:
-  filename: "24-labelled_image_bboxes"
+  filename: "25-labelled_image_bboxes"
   title: "Labelled Image with Bounding Boxes"
   image_type: "binary"
   dpi: 100
