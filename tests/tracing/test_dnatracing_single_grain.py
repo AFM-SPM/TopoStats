@@ -92,20 +92,6 @@ def test_get_disordered_trace(
     np.testing.assert_array_equal(dnatrace.disordered_trace[-1,], end)
 
 
-# Currently two errors are not caught, need to improve this when refactoring, just in case.
-@pytest.mark.parametrize(
-    ("min_skeleton_size", "problem"),
-    [
-        (4, None),
-        (4, 6),
-    ],
-)
-def test_purge_obvious_crap_exceptions(dnatrace_linear: dnaTrace, min_skeleton_size: int, problem) -> None:
-    """Test exceptions to purge_obvious_crap."""
-    dnatrace_linear.min_skeleton_size = min_skeleton_size
-    dnatrace_linear.disordered_trace = problem
-
-
 # Currently linear molecule isn't detected as linear, although it was when selecting and extracting in a Notebook
 @pytest.mark.parametrize(
     ("dnatrace", "mol_is_circular"),
