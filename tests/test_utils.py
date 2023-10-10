@@ -91,8 +91,19 @@ def test_get_thresholds_otsu(image_random: np.ndarray) -> None:
             },
         ),
         (
+            {"below": [None, 10.0], "above": [None, 1.0]},
+            {
+                "below": {"minimum": np.Infinity, "maximum": -2.3866804917165663},
+                "above": {"minimum": -np.Infinity, "maximum": 0.7886033762450778},
+            },
+        ),
+        (
             {"below": None, "above": [None, 1.0]},
             {"below": None, "above": {"minimum": -np.Infinity, "maximum": 0.7886033762450778}},
+        ),
+        (
+            {"below": [10.0, None], "above": None},
+            {"below": {"minimum": -2.3866804917165663, "maximum": -np.Infinity}, "above": None},
         ),
     ],
 )
@@ -123,9 +134,6 @@ def test_get_thresholds_stddev(
                 assert np.isneginf(thresholds[direction]["maximum"])
             else:
                 assert expected_value_thresholds[direction]["maximum"] == thresholds[direction]["maximum"]
-
-    if expected_value_thresholds["above"] is None:
-        assert thresholds["above"] is None
 
     with pytest.raises(TypeError):
         thresholds = get_thresholds(image=image_random, threshold_method="std_dev")
