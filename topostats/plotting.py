@@ -157,9 +157,6 @@ class TopoSum:
         # The try/catch is there to catch this error and skip plotting KDEs if all values are the same.
 
         fig, ax = self._setup_figure()
-        LOGGER.info(f"melted data: \n {self.melted_data}")
-        LOGGER.info(f"stat: {self.stat}")
-        LOGGER.info(f"label: {self.label}")
 
         # If histogram is requested but KDE is not, plot histogram
         if self.hist and not self.kde:
