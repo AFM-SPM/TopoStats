@@ -38,6 +38,7 @@ def default_config() -> dict:
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
     config["filter"]["threshold_method"] = "std_dev"
+    config["filter"]["remove_scars"]["run"] = True
     config["grains"]["threshold_method"] = "absolute"
     config["grains"]["threshold_absolute"]["above"] = [1.0, None]
     config["grains"]["threshold_absolute"]["below"] = [-1.0, None]
@@ -50,6 +51,7 @@ def default_config() -> dict:
 def process_scan_config() -> dict:
     """Sample configuration."""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
+    config["filter"]["remove_scars"]["run"] = True
     config["grains"]["threshold_std_dev"]["below"] = [1.0, None]
     config["grains"]["absolute_area_threshold"]["above"] = [500, 800]
     config["plotting"]["zrange"] = [0, 3]
@@ -287,10 +289,12 @@ def random_filters(test_filters_random_with_mask: Filters) -> Filters:
         test_filters_random_with_mask.images["initial_median_flatten"], mask=None
     )
     test_filters_random_with_mask.images["masked_median_flatten"] = test_filters_random_with_mask.median_flatten(
-        test_filters_random_with_mask.images["initial_tilt_removal"], mask=test_filters_random_with_mask.images["mask"]
+        test_filters_random_with_mask.images["initial_tilt_removal"],
+        mask=test_filters_random_with_mask.images["mask"],
     )
     test_filters_random_with_mask.images["masked_tilt_removal"] = test_filters_random_with_mask.remove_tilt(
-        test_filters_random_with_mask.images["masked_median_flatten"], mask=test_filters_random_with_mask.images["mask"]
+        test_filters_random_with_mask.images["masked_median_flatten"],
+        mask=test_filters_random_with_mask.images["mask"],
     )
 
     return test_filters_random_with_mask
@@ -494,7 +498,8 @@ def minicircle_masked_tilt_removal(minicircle_masked_median_flatten: Filters) ->
 def minicircle_masked_quadratic_removal(minicircle_masked_tilt_removal: Filters) -> Filters:
     """Secondary quadratic removal using mask."""
     minicircle_masked_tilt_removal.images["masked_quadratic_removal"] = minicircle_masked_tilt_removal.remove_quadratic(
-        minicircle_masked_tilt_removal.images["masked_tilt_removal"], mask=minicircle_masked_tilt_removal.images["mask"]
+        minicircle_masked_tilt_removal.images["masked_tilt_removal"],
+        mask=minicircle_masked_tilt_removal.images["mask"],
     )
     return minicircle_masked_tilt_removal
 
@@ -645,7 +650,9 @@ def minicircle_grain_labelled_post_removal(minicircle_small_objects_removed: np.
 
 
 @pytest.fixture()
-def minicircle_grain_region_properties_post_removal(minicircle_grain_labelled_post_removal: np.array) -> np.array:
+def minicircle_grain_region_properties_post_removal(
+    minicircle_grain_labelled_post_removal: np.array,
+) -> np.array:
     """Region properties."""
     return minicircle_grain_labelled_post_removal.get_region_properties(
         minicircle_grain_labelled_post_removal.directions["above"]["labelled_regions_02"]
@@ -725,7 +732,9 @@ def test_dnatracing() -> dnaTrace:
 
 @pytest.fixture()
 def minicircle_dnatracing(
-    minicircle_grain_gaussian_filter: Filters, minicircle_grain_coloured: Grains, dnatracing_config: dict
+    minicircle_grain_gaussian_filter: Filters,
+    minicircle_grain_coloured: Grains,
+    dnatracing_config: dict,
 ) -> dnaTrace:
     """DnaTrace object instantiated with minicircle data."""  # noqa: D403
     dnatracing_config.pop("pad_width")

@@ -282,7 +282,7 @@ def test_check_run_steps(
             False,
             False,
             "Detection of grains disabled, returning empty data frame.",
-            "15-gaussian_filtered",
+            "16-gaussian_filtered",
         ),
         (
             True,
@@ -290,7 +290,7 @@ def test_check_run_steps(
             False,
             False,
             "Calculation of grainstats disabled, returning empty dataframe.",
-            "24-labelled_image_bboxes",
+            "25-labelled_image_bboxes",
         ),
         (
             True,
