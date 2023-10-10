@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0  # Use the ref you want to point at
+    rev: v4.5.0  # Use the ref you want to point at
     hooks:
       - id: check-case-conflict
       - id: check-docstring-first
@@ -23,7 +23,7 @@ repos:
         args: []
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.14.0
+    rev: v3.15.0
     hooks:
       - id: pyupgrade
         args: [--py38-plus]
