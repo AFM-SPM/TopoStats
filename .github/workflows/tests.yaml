@@ -21,7 +21,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Upgrade pip and install test dependencies
         run: |
-          pip install --upgrade pip
+          pip show setuptools
+          pip install --upgrade pip setuptools
+          pip show pip setuptools
           pip install -e .[tests]
       - name: Test with pytest
         run: |
