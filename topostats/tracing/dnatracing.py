@@ -104,6 +104,8 @@ class dnaTrace:
         self.end_to_end_distance = np.nan
         self.mol_is_circular = np.nan
         self.curvature = np.nan
+        self.trace_heights = None
+        self.trace_cumulative_distances = None
 
         self.neighbours = 5  # The number of neighbours used for the curvature measurement
 
@@ -121,6 +123,8 @@ class dnaTrace:
         elif len(self.disordered_trace) >= self.min_skeleton_size:
             self.linear_or_circular(self.disordered_trace)
             self.get_ordered_traces()
+            self.get_trace_heights()
+            self.get_trace_cumulative_distances()
             self.linear_or_circular(self.ordered_trace)
             self.get_fitted_traces()
             self.get_splined_traces()
@@ -130,6 +134,81 @@ class dnaTrace:
             self.measure_end_to_end_distance()
         else:
             LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
+
+    def get_trace_heights(self) -> None:
+        """
+        Populate a `dnaTrace` instance's `self.trace_heights` list with the heights of each pixel in the
+        `self.ordered_trace` list.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+
+        # Get the heights of each pixel in the ordered trace from the gaussian filtered image
+        # the pixel coordinates are stored in the ordered trace list
+        self.trace_heights = list(self.gauss_image[self.ordered_trace[:, 0], self.ordered_trace[:, 1]])
+
+    def get_trace_cumulative_distances(self) -> None:
+        """
+        Populate a `dnaTrace` instance's `self.trace_distances` list with the cumulative distances of
+        each pixel in the `self.ordered_trace` list.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+
+        # Get the cumulative distances of each pixel in the ordered trace from the gaussian filtered image
+        # the pixel coordinates are stored in the ordered trace list.
+        self.trace_cumulative_distances = self.coord_dist(
+            coordinates=self.ordered_trace, px_to_nm=self.pixel_to_nm_scaling
+        )
+
+    @staticmethod
+    def coord_dist(coordinates: np.ndarray, px_to_nm: float) -> np.ndarray:
+        """
+        Take a Nx2 numpy array of coordinates and produce a list of cumulative distances in nanometres,
+        travelling from pixel to pixel. 1D example: coordinates: [0, 0], [0, 1], [0, 3], [0, 5] cumulative
+        distances: [0, 1, 3, 5]. Counts diagonal connections as 1.4142 distance.
+
+        Parameters
+        ----------
+        coords: np.ndarray
+            A Nx2 integer array of coordinates of the pixels of a trace from a binary trace image.
+        px_to_nm: float
+            Pixel to nanometre scaling factor to allow for real length measurements of distances rather
+            than pixels.
+
+        Returns
+        -------
+        list
+            List of length N containing the cumulative sum of distances (0 at the first entry,
+            full molecule length at the last entry)
+        """
+
+        cumulative_distance_list = [0]
+        distance = 0
+        for i in range(len(coordinates) - 1):
+            # If the pixels are diagonally touching, add sqrt 2
+            if abs(coordinates[i] - coordinates[i + 1]).sum() == 2:
+                distance += 1.41421356237  # Saves a sqrt call
+            else:
+                distance += 1.0
+            cumulative_distance_list.append(distance)
+        # Convert to array first to allow for multiplication by px_to_nm
+        # Then convert back to list since JSON cannot save as numpy array
+        # Better to do the conversion here than have to do it in the
+        # JSON saving script.
+        return list(np.asarray(cumulative_distance_list) * px_to_nm)
 
     def gaussian_filter(self, **kwargs) -> np.array:
         """Apply Gaussian filter"""
@@ -732,6 +811,8 @@ def trace_image(
     n_grain = 0
     results = {}
     ordered_traces = []
+    all_trace_heights = {}
+    all_trace_cumulative_distances = {}
     for cropped_image, cropped_mask in zip(cropped_images, cropped_masks):
         result = trace_grain(
             cropped_image,
@@ -744,6 +825,8 @@ def trace_image(
         )
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
         ordered_traces.append(result.pop("ordered_trace"))
+        all_trace_heights[n_grain] = result.pop("trace_heights")
+        all_trace_cumulative_distances[n_grain] = result.pop("trace_cumulative_distances")
         results[n_grain] = result
         n_grain += 1
     try:
@@ -758,6 +841,8 @@ def trace_image(
         "ordered_traces": ordered_traces,
         "cropped_images": cropped_images,
         "image_trace": image_trace,
+        "all_trace_heights": all_trace_heights,
+        "all_trace_cumulative_distances": all_trace_cumulative_distances,
     }
 
 
@@ -959,6 +1044,8 @@ def trace_grain(
         "circular": dnatrace.mol_is_circular,
         "end_to_end_distance": dnatrace.end_to_end_distance,
         "ordered_trace": dnatrace.ordered_trace,
+        "trace_heights": dnatrace.trace_heights,
+        "trace_cumulative_distances": dnatrace.trace_cumulative_distances,
     }
 
 
