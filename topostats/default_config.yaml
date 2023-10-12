@@ -51,6 +51,7 @@ grainstats:
   cropped_size: 40.0 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
 dnatracing:
   run: true # Options : true, false
+  save_trace_json_data: false # Whether to save things such as height traces to JSON files.
   min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.
   skeletonisation_method: topostats # Options : zhang | lee | thin | topostats
   pad_width: 1 # Cells to pad grains by when tracing

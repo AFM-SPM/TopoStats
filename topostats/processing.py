@@ -402,6 +402,7 @@ def run_dnatracing(  # noqa: C901
     try:
         if dnatracing_config["run"]:
             dnatracing_config.pop("run")
+            save_trace_json_data = dnatracing_config.pop("save_trace_json_data")
             LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
             tracing_stats = defaultdict()
             for direction, _ in grain_masks.items():
@@ -418,30 +419,33 @@ def run_dnatracing(  # noqa: C901
                 image_trace = tracing_results["image_trace"]
                 tracing_stats[direction]["threshold"] = direction
 
-                # Get and save the trace heights and cumulative distances
-                all_trace_heights = tracing_results["all_trace_heights"]
-                all_trace_cumulative_distances = tracing_results["all_trace_cumulative_distances"]
-
                 # Save the trace heights to a JSON file
-                # Check if the dictionary is empty
-                if all_trace_heights:
-                    LOGGER.info(f"[{filename}] : Saving trace heights to JSON file.")
-                    json_all_height_trace_data = json.dumps(all_trace_heights)
-                    with Path.open(
-                        core_out_path / f"{filename}_{direction}_trace_heights.json", "w", encoding="UTF-8"
-                    ) as json_file:
-                        json_file.write(json_all_height_trace_data)
+                if save_trace_json_data:
+                    # Get and save the trace heights and cumulative distances
+                    all_trace_heights = tracing_results["all_trace_heights"]
+                    all_trace_cumulative_distances = tracing_results["all_trace_cumulative_distances"]
 
-                # Save the trace cumulative distances to a JSON file
-                # Check if the dictionary is empty
-                if all_trace_cumulative_distances:
-                    json_all_cumulative_distances = json.dumps(all_trace_cumulative_distances)
-                    with Path.open(
-                        core_out_path / f"{filename}_{direction}_trace_cumulative_distances.json",
-                        "w",
-                        encoding="UTF-8",
-                    ) as json_file:
-                        json_file.write(json_all_cumulative_distances)
+                    LOGGER.info(f"[{filename}] : Saving trace json data.")
+                    # Check if the dictionary is empty
+                    if all_trace_heights:
+                        LOGGER.info(f"[{filename}] : Saving trace heights to JSON file.")
+                        json_all_height_trace_data = json.dumps(all_trace_heights)
+                        with Path.open(
+                            core_out_path / f"{filename}_{direction}_trace_heights.json", "w", encoding="UTF-8"
+                        ) as json_file:
+                            json_file.write(json_all_height_trace_data)
+
+                    # Save the trace cumulative distances to a JSON file
+                    # Check if the dictionary is empty
+                    if all_trace_cumulative_distances:
+                        LOGGER.info(f"[{filename}] : Saving trace cumulative distances to JSON file.")
+                        json_all_cumulative_distances = json.dumps(all_trace_cumulative_distances)
+                        with Path.open(
+                            core_out_path / f"{filename}_{direction}_trace_cumulative_distances.json",
+                            "w",
+                            encoding="UTF-8",
+                        ) as json_file:
+                            json_file.write(json_all_cumulative_distances)
 
                 # Plot traces for the whole image
                 Images(

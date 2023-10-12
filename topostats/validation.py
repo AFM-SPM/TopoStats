@@ -197,6 +197,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
             ),
+            "save_trace_json_data": Or(
+                True,
+                False,
+                error="Invalid value in config for 'dnatracing.save_trace_json_data', valid values are 'True' or 'False'",
+            ),
             "min_skeleton_size": lambda n: n > 0.0,
             "skeletonisation_method": Or(
                 "zhang",
