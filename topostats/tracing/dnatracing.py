@@ -176,9 +176,14 @@ class dnaTrace:
     @staticmethod
     def coord_dist(coordinates: np.ndarray, px_to_nm: float) -> np.ndarray:
         """
-        Take a Nx2 numpy array of coordinates and produce a list of cumulative distances in nanometres,
-        travelling from pixel to pixel. 1D example: coordinates: [0, 0], [0, 1], [0, 3], [0, 5] cumulative
-        distances: [0, 1, 3, 5]. Counts diagonal connections as 1.4142 distance.
+        Returns a list of the cumulative real distances between each pixel in a trace.
+
+        Take a Nx2 numpy array of (grid adjacent) coordinates and produce a list of cumulative distances in
+        nanometres, travelling from pixel to pixel. 1D example: coordinates: [0, 0], [0, 1], [1, 1], [2, 2] cumulative
+        distances: [0, 1, 2, 3.4142]. Counts diagonal connections as 1.4142 distance. Converts distances from
+        pixels to nanometres using px_to_nm scaling factor.
+
+        Note that the pixels have to be adjacent.
 
         Parameters
         ----------
