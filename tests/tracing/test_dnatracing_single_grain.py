@@ -136,6 +136,26 @@ def test_get_ordered_traces(dnatrace: dnaTrace, length: int, start: np.array, en
 @pytest.mark.parametrize(
     ("dnatrace", "length", "start", "end"),
     [
+        (lazy_fixture("dnatrace_linear"), 118, 8.8224769e-10, 1.7610771e-09),
+        (lazy_fixture("dnatrace_circular"), 151, 2.5852866e-09, 2.5852866e-09),
+    ],
+)
+def test_get_trace_heights(dnatrace: dnaTrace, length: int, start: float, end: float) -> None:
+    """Test of the get_trace_heights method."""
+    dnatrace.gaussian_filter()
+    dnatrace.get_disordered_trace()
+    dnatrace.linear_or_circular(dnatrace.disordered_trace)
+    dnatrace.get_ordered_traces()
+    dnatrace.get_trace_heights()
+    assert isinstance(dnatrace.trace_heights, list)
+    assert len(dnatrace.trace_heights) == length
+    assert dnatrace.trace_heights[0] == pytest.approx(start, abs=1e-12)
+    assert dnatrace.trace_heights[-1] == pytest.approx(end, abs=1e-12)
+
+
+@pytest.mark.parametrize(
+    ("dnatrace", "length", "start", "end"),
+    [
         (lazy_fixture("dnatrace_linear"), 118, np.asarray([28, 49]), np.asarray([88, 75])),
         (lazy_fixture("dnatrace_circular"), 151, np.asarray([58, 58]), np.asarray([58, 58])),
     ],
