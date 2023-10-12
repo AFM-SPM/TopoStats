@@ -156,6 +156,29 @@ def test_get_trace_heights(dnatrace: dnaTrace, length: int, start: float, end: f
 @pytest.mark.parametrize(
     ("dnatrace", "length", "start", "end"),
     [
+        (lazy_fixture("dnatrace_linear"), 118, 0.0, 6.8234101e-08),
+        (lazy_fixture("dnatrace_circular"), 151, 0.0, 8.3513084e-08),
+    ],
+)
+def test_get_trace_cumulative_distances(dnatrace: dnaTrace, length: int, start: float, end: float) -> None:
+    """Test of the get_trace_cumulative_distances method."""
+    dnatrace.gaussian_filter()
+    dnatrace.get_disordered_trace()
+    dnatrace.linear_or_circular(dnatrace.disordered_trace)
+    dnatrace.get_ordered_traces()
+    dnatrace.get_trace_heights()
+    dnatrace.get_trace_cumulative_distances()
+    assert isinstance(dnatrace.trace_cumulative_distances, list)
+    assert len(dnatrace.trace_cumulative_distances) == length
+    assert dnatrace.trace_cumulative_distances[0] == pytest.approx(start, abs=1e-11)
+    assert dnatrace.trace_cumulative_distances[-1] == pytest.approx(end, abs=1e-11)
+    # Check that the cumulative distance is always increasing
+    assert np.all(np.diff(dnatrace.trace_cumulative_distances) > 0)
+
+
+@pytest.mark.parametrize(
+    ("dnatrace", "length", "start", "end"),
+    [
         (lazy_fixture("dnatrace_linear"), 118, np.asarray([28, 49]), np.asarray([88, 75])),
         (lazy_fixture("dnatrace_circular"), 151, np.asarray([58, 58]), np.asarray([58, 58])),
     ],
