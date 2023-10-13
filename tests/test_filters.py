@@ -2,7 +2,7 @@
 from pathlib import Path
 
 import numpy as np
-from skimage.filters import gaussian  # noqa: E0611
+from skimage.filters import gaussian  # pylint: disable=no-name-in-module
 import pytest
 
 from topostats.filters import Filters
@@ -130,3 +130,8 @@ def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> N
     )
     assert isinstance(small_array_filters.images["gaussian_filtered"], np.ndarray)
     np.testing.assert_array_equal(small_array_filters.images["gaussian_filtered"], target)
+
+
+def dummy_test_to_test_pytest_github_actions_annotate_failure() -> None:
+    """Test dummy."""
+    raise AssertionError()
