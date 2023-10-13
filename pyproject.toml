@@ -59,6 +59,7 @@ tests = [
   "py",
   "pytest",
   "pytest-cov",
+  "pytest-github-actions-annotate-failures",
   "pytest-lazy-fixture",
   "pytest-mpl",
   "pytest-regtest",
@@ -84,7 +85,6 @@ dev = [
   "pylint",
   "pyupgrade",
   "pytest-durations",
-  "pytest-github-actions-annotate-failures",
   "pytest-xdist",
 ]
 pypi = [

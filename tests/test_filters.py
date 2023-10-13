@@ -132,6 +132,6 @@ def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> N
     np.testing.assert_array_equal(small_array_filters.images["gaussian_filtered"], target)
 
 
-def dummy_test_to_test_pytest_github_actions_annotate_failure() -> None:
+def test_dummy() -> None:
     """Test dummy."""
     raise AssertionError()
