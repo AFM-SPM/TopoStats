@@ -60,6 +60,10 @@ class dnaTrace:
         convert_nm_to_m: bool = True,
         skeletonisation_method: str = "topostats",
         n_grain: int = None,
+        spline_circular_smoothness: float = 2.0,
+        spline_linear_smoothness: float = 5.0,
+        spline_quiet: bool = True,
+        spline_degree: int = 3,
     ):
         """Initialise the class.
 
@@ -82,6 +86,14 @@ class dnaTrace:
             scikit-image are available 'zhang', 'lee' and 'thin'
         n_grain: int
             Grain number being processed (only  used in logging).
+        spline_circular_smoothness: float = 2.0,
+            Smoothness of circular splines
+        spline_linear_smoothness: float = 5.0,
+            Smoothness of linear splines
+        spline_quiet: bool = True,
+            Suppresses scipy splining warnings
+        spline_degree: int = 3,
+            Degree of the spline
         """
         self.image = image * 1e-9 if convert_nm_to_m else image
         self.grain = grain
@@ -105,6 +117,12 @@ class dnaTrace:
         self.end_to_end_distance = np.nan
         self.mol_is_circular = np.nan
         self.curvature = np.nan
+
+        # Splining parameters
+        self.spline_circular_smoothness: float = spline_circular_smoothness  # Smoothness of circular splines
+        self.spline_linear_smoothness: float = spline_linear_smoothness  # Smoothness of linear splines
+        self.spline_quiet: bool = spline_quiet  # Suppresses scipy splining warnings
+        self.spline_degree: int = spline_degree  # Degree of the spline
 
         self.neighbours = 5  # The number of neighbours used for the curvature measurement
 
@@ -309,7 +327,9 @@ class dnaTrace:
         self.fitted_trace = fitted_coordinate_array
         del fitted_coordinate_array  # cleaned up by python anyway?
 
-    def get_splined_traces(self):
+    def get_splined_traces(
+        self,
+    ):
         """Gets a splined version of the fitted trace - useful for finding the radius of gyration etc
 
         This function actually calculates the average of several splines which is important for getting a good fit on
@@ -323,7 +343,7 @@ class dnaTrace:
         mol_is_circular = self.mol_is_circular  # : mol_is_circular - whether or not the molecule is classed as circular
         n_grain = self.n_grain  # : int - the grain index (for logging purposes)
 
-        # Calculate the step size in pixels
+        # Calculate the step size in pixels from the step size in metres.
         step_size_px = int(step_size_m / pixel_to_nm_scaling)
 
         # Splines will be totalled and then divived by number of splines to calculate the average spline
@@ -347,8 +367,11 @@ class dnaTrace:
             step_size_px = -1
 
         # Set smoothness and periodicity appropriately for linear / circular molecules.
-        smoothness, periodicity = (2, 2) if mol_is_circular else (5, 0)
+        spline_smoothness, spline_periodicity = (
+            (self.spline_circular_smoothness, 2) if mol_is_circular else (self.spline_linear_smoothness, 0)
+        )
 
+        # Create an array of evenly spaced points between 0 and 1
         ev_array = np.linspace(0, 1, nbr * step_size_px)
 
         # Find as many splines as there are steps in step size, this allows for a better spline to be obtained
@@ -361,7 +384,22 @@ class dnaTrace:
             y_sampled = np.array([fitted_trace[:, 1][j] for j in range(i, fitted_trace_length, step_size_px)])
 
             # Use scipy's B-spline functions
-            tck, _ = interp.splprep([x_sampled, y_sampled], s=smoothness, per=periodicity, quiet=1, k=3)
+            # tck is a tuple, (t,c,k) containing the vector of knots, the B-spline coefficients
+            # and the degree of the spline.
+            # s is the smoothing factor, per is the periodicity, k is the degree of the spline
+            tck, _ = interp.splprep(
+                [x_sampled, y_sampled],
+                s=spline_smoothness,
+                per=spline_periodicity,
+                quiet=self.spline_quiet,
+                k=self.spline_degree,
+            )
+            # splev returns a tuple (x_coords ,y_coords) containing the smoothed coordinates of the
+            # spline, constructed from the B-spline coefficients and knots. The number of points in
+            # the spline is controlled by the ev_array variable.
+            # ev_array is an array of evenly spaced points between 0 and 1.
+            # This is to ensure that the splines are all the same length.
+            # Tck simply provides the coefficients for the spline.
             out = interp.splev(ev_array, tck)
             splined_trace = np.column_stack((out[0], out[1]))
 
