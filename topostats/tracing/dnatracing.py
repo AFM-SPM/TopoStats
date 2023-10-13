@@ -350,17 +350,21 @@ class dnaTrace:
         spline_sum = None
         nbr = len(fitted_trace)
 
+        # Get the length of the fitted trace
         fitted_trace_length = fitted_trace.shape[0]
 
-        if fitted_trace_length < 4:
+        # If the fitted trace is less than the degree plus one, then there is no
+        # point in trying to spline it, just return the fitted trace
+        if fitted_trace_length < self.spline_degree + 1:
             LOGGER.warning(
                 f"Fitted trace for grain {n_grain} too small ({fitted_trace_length}), returning fitted trace"
             )
             return fitted_trace
 
-        # Degree of the spline is 3 so there cannot be < 3 points
-        # Decrease the step size to ensure more than 3 points
-        while nbr / step_size_px < 4:
+        # There cannot be less than degree + 1 points in the spline
+        # Decrease the step size to ensure more than this number of points
+        while nbr / step_size_px < self.spline_degree + 1:
+            # Step size cannot be less than 1
             if step_size_px <= 1:
                 step_size_px = 1
                 break
@@ -371,7 +375,9 @@ class dnaTrace:
             (self.spline_circular_smoothness, 2) if mol_is_circular else (self.spline_linear_smoothness, 0)
         )
 
-        # Create an array of evenly spaced points between 0 and 1
+        # Create an array of evenly spaced points between 0 and 1 for the splines to be evaluated at.
+        # This is needed to ensure that the splines are all the same length as the number of points
+        # in the spline is controlled by the ev_array variable.
         ev_array = np.linspace(0, 1, nbr * step_size_px)
 
         # Find as many splines as there are steps in step size, this allows for a better spline to be obtained
@@ -403,12 +409,14 @@ class dnaTrace:
             out = interp.splev(ev_array, tck)
             splined_trace = np.column_stack((out[0], out[1]))
 
+            # Add the splined trace to the spline_sum array for averaging later
             if spline_sum is None:
                 spline_sum = np.array(splined_trace)
             else:
                 spline_sum = np.add(spline_sum, splined_trace)
 
         # Find the average spline between the set of splines
+        # This is an attempt to find a better spline by averaging our candidates
         spline_average = np.divide(spline_sum, [step_size_px, step_size_px])
 
         self.splined_trace = spline_average
