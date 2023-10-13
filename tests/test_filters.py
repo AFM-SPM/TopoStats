@@ -130,8 +130,3 @@ def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> N
     )
     assert isinstance(small_array_filters.images["gaussian_filtered"], np.ndarray)
     np.testing.assert_array_equal(small_array_filters.images["gaussian_filtered"], target)
-
-
-def test_dummy() -> None:
-    """Test dummy."""
-    raise AssertionError()
