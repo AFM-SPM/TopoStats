@@ -391,7 +391,7 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
 
 
 @pytest.mark.parametrize(
-    "trace_image, step_size_m, mol_is_circular, expected_spline_image",
+    ("trace_image", "step_size_m", "mol_is_circular", "expected_spline_image"),
     [
         (
             np.array(
@@ -576,8 +576,7 @@ def test_get_splined_traces(
     mol_is_circular: bool,
     expected_spline_image: np.ndarray,
 ) -> None:
-    """Test the get_splined_traces() function of dnatracing.py"""
-
+    """Test the get_splined_traces() function of dnatracing.py."""
     # For development visualisations - keep this in for future use
     # plt.imsave('./fitted_trace.png', trace_image)
 
@@ -617,7 +616,6 @@ def test_get_splined_traces(
 
 def test_round_splined_traces():
     """Test the round splined traces function of dnatracing.py."""
-
     splined_traces = [np.array([[1.2, 2.3], [3.4, 4.5]]), None, np.array([[5.6, 6.7], [7.8, 8.9]])]
     expected_result = np.array([[[1, 2], [3, 4]], [[6, 7], [8, 9]]])
     result = round_splined_traces(splined_traces)
