@@ -134,4 +134,4 @@ def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> N
 
 def dummy_test_to_test_pytest_github_actions_annotate_failure() -> None:
     """Test dummy."""
-    raise AssertionError()
+    assert False
