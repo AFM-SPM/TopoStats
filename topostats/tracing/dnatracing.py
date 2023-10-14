@@ -344,7 +344,8 @@ class dnaTrace:
         n_grain = self.n_grain  # : int - the grain index (for logging purposes)
 
         # Calculate the step size in pixels from the step size in metres.
-        step_size_px = int(step_size_m / pixel_to_nm_scaling)
+        # Should always be at least 1.
+        step_size_px = np.ceil(step_size_m / pixel_to_nm_scaling)
 
         # Splines will be totalled and then divived by number of splines to calculate the average spline
         spline_sum = None
