@@ -345,11 +345,10 @@ class dnaTrace:
 
         # Calculate the step size in pixels from the step size in metres.
         # Should always be at least 1.
-        step_size_px = np.ceil(step_size_m / pixel_to_nm_scaling)
+        step_size_px = int(np.ceil(step_size_m / pixel_to_nm_scaling))
 
         # Splines will be totalled and then divived by number of splines to calculate the average spline
         spline_sum = None
-        nbr = len(fitted_trace)
 
         # Get the length of the fitted trace
         fitted_trace_length = fitted_trace.shape[0]
@@ -364,7 +363,7 @@ class dnaTrace:
 
         # There cannot be less than degree + 1 points in the spline
         # Decrease the step size to ensure more than this number of points
-        while nbr / step_size_px < self.spline_degree + 1:
+        while fitted_trace_length / step_size_px < self.spline_degree + 1:
             # Step size cannot be less than 1
             if step_size_px <= 1:
                 step_size_px = 1
@@ -379,7 +378,7 @@ class dnaTrace:
         # Create an array of evenly spaced points between 0 and 1 for the splines to be evaluated at.
         # This is needed to ensure that the splines are all the same length as the number of points
         # in the spline is controlled by the ev_array variable.
-        ev_array = np.linspace(0, 1, nbr * step_size_px)
+        ev_array = np.linspace(0, 1, fitted_trace_length * step_size_px)
 
         # Find as many splines as there are steps in step size, this allows for a better spline to be obtained
         # by averaging the splines. Think of this like weaving a lot of splines together along the course of
