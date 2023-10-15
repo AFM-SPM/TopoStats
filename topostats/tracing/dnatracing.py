@@ -345,7 +345,7 @@ class dnaTrace:
 
         # Calculate the step size in pixels from the step size in metres.
         # Should always be at least 1.
-        step_size_px = int(np.ceil(step_size_m / pixel_to_nm_scaling))
+        step_size_px = max(int(step_size_m / pixel_to_nm_scaling), 1)
 
         # Splines will be totalled and then divived by number of splines to calculate the average spline
         spline_sum = None
