@@ -1,7 +1,7 @@
 """Functions for calculating thresholds."""
 # pylint: disable=no-name-in-module
 import logging
-from typing import Callable
+from collections.abc import Callable
 import numpy as np
 from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, threshold_yen, threshold_triangle
 
@@ -10,10 +10,11 @@ from topostats.logs.logs import LOGGER_NAME
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=no-else-return
+# pylint: disable=unused-argument
 
 
 def threshold(image: np.ndarray, method: str = None, otsu_threshold_multiplier: float = None, **kwargs: dict) -> float:
-    """Factory method for thresholding.
+    """Thresholding for producing masks.
 
     Parameters
     ----------

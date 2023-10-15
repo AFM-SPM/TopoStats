@@ -1,7 +1,7 @@
 """Functions for procesing data."""
+from __future__ import annotations
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Union, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -12,7 +12,7 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_array, save_topostats_file
 from topostats.logs.logs import setup_logger, LOGGER_NAME
-from topostats.plottingfuncs import Images
+from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
 from topostats.tracing.dnatracing import trace_image
 from topostats.utils import create_empty_dataframe
 from topostats.statistics import image_statistics
@@ -38,10 +38,9 @@ def run_filters(
     filter_config: dict,
     plotting_config: dict,
 ) -> np.ndarray:
-    """Function for running image flattening and plotting the results.
+    """Filter and flatten an image.
 
-    Instantiates a Filters object and flattens the image then optionally
-    plots the results, returning the flattened image.
+    Optionally plots the results, returning the flattened image.
 
     Parameters
     ----------
@@ -67,7 +66,6 @@ def run_filters(
         Either a numpy array of the flattened image, or None if an error occurs or
         flattening is disabled in the configuration.
     """
-
     if filter_config["run"]:
         filter_config.pop("run")
         LOGGER.info(f"[{filename}] Image dimensions: {unprocessed_image.shape}")
@@ -84,10 +82,6 @@ def run_filters(
         if plotting_config["run"]:
             plotting_config.pop("run")
             LOGGER.info(f"[{filename}] : Plotting Filtering Images")
-            # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
-            plot_opts = {"pixel_to_nm_scaling": pixel_to_nm_scaling}
-            for image, options in plotting_config["plot_dict"].items():
-                plotting_config["plot_dict"][image] = {**options, **plot_opts}
             # Generate plots
             for plot_name, array in filters.images.items():
                 if plot_name not in ["scan_raw"]:
@@ -127,7 +121,7 @@ def run_filters(
     return None
 
 
-def run_grains(
+def run_grains(  # noqa: C901
     image: np.ndarray,
     pixel_to_nm_scaling: float,
     filename: str,
@@ -136,10 +130,9 @@ def run_grains(
     plotting_config: dict,
     grains_config: dict,
 ):
-    """Function for running grain finding and plotting the results.
+    """Find grains within an image.
 
-    Instantiates a Grains object and runs grain finding, then optionally
-    plots the results, returning the grain masks in a dictionary.
+    Identifies grains (molecules) and optionally plots the results.
 
     Parameters
     ----------
@@ -250,11 +243,9 @@ def run_grainstats(
     plotting_config: dict,
     grain_out_path: Path,
 ):
-    """Function for calculating grain statistics and optionally plotting the results.
+    """Calculate grain statistics.
 
-    Instantiates a GrainStats object and calculates grain statsistics for supplied
-    grain masks, then optionally plots the results and returns a dataframe of
-    grain statsistics.
+    Calculates grain statistics for an image and optionally plots the results.
 
     Parameters
     ----------
@@ -354,7 +345,7 @@ def run_grainstats(
         return create_empty_dataframe()
 
 
-def run_dnatracing(
+def run_dnatracing(  # noqa: C901
     image: np.ndarray,
     grain_masks: dict,
     pixel_to_nm_scaling: float,
@@ -366,10 +357,9 @@ def run_dnatracing(
     plotting_config: dict,
     results_df: pd.DataFrame = None,
 ):
-    """Function for calculating dna traces.
+    """Calculate DNA traces.
 
-    Runs dna tracing for the grain masks supplied, adds resulting statistics to
-    the supplied grain statsistics DataFrame and plots the molecule traces.
+    Traces DNA molecules for the supplied grains adding results to statistics data frames and optionally plots results.
 
     Parameters
     ----------
@@ -403,7 +393,6 @@ def run_dnatracing(
         Pandas DataFrame containing grain statistics and dna tracing statistics.
         Keys are file path and molecule number.
     """
-
     # Create empty dataframe is none is passed
     if results_df is None:
         results_df = create_empty_dataframe()
@@ -490,7 +479,7 @@ def run_dnatracing(
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
-    """Returns various output paths for a given image and plotting config.
+    """Determine components of output paths for a given image and plotting config.
 
     Parameters
     ----------
@@ -511,7 +500,6 @@ def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: 
         Core output path for general file outputs, filter output path for flattening related files and
         grain output path for grain finding related files.
     """
-
     LOGGER.info(f"Processing : {filename}")
     core_out_path = get_out_path(image_path, base_dir, output_dir).parent / "processed"
     core_out_path.mkdir(parents=True, exist_ok=True)
@@ -527,14 +515,14 @@ def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: 
 
 def process_scan(
     topostats_object: dict,
-    base_dir: Union[str, Path],
+    base_dir: str | Path,
     filter_config: dict,
     grains_config: dict,
     grainstats_config: dict,
     dnatracing_config: dict,
     plotting_config: dict,
-    output_dir: Union[str, Path] = "output",
-) -> Tuple[dict, pd.DataFrame, dict]:
+    output_dir: str | Path = "output",
+) -> tuple[dict, pd.DataFrame, dict]:
     """Process a single image, filtering, finding grains and calculating their statistics.
 
     Parameters
@@ -564,7 +552,6 @@ def process_scan(
         TopoStats dictionary object, DataFrame containing grain statistics and dna tracing statistics,
         and dictionary containing general image statistics
     """
-
     core_out_path, filter_out_path, grain_out_path = get_out_paths(
         image_path=topostats_object["img_path"],
         base_dir=base_dir,
@@ -572,6 +559,8 @@ def process_scan(
         filename=topostats_object["filename"],
         plotting_config=plotting_config,
     )
+
+    plotting_config = add_pixel_to_nm_to_plotting_config(plotting_config, topostats_object["pixel_to_nm_scaling"])
 
     # Flatten Image
     image_flattened = run_filters(
@@ -699,7 +688,7 @@ def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dn
         LOGGER.info("Configuration run options are consistent, processing can proceed.")
 
 
-def completion_message(config: Dict, img_files: List, summary_config: Dict, images_processed: int) -> None:
+def completion_message(config: dict, img_files: list, summary_config: dict, images_processed: int) -> None:
     """Print a completion message summarising images processed.
 
     Parameters
@@ -717,7 +706,6 @@ def completion_message(config: Dict, img_files: List, summary_config: Dict, imag
     -------
     None
     """
-
     if summary_config is not None:
         distribution_plots_message = str(summary_config["output_dir"])
     else:

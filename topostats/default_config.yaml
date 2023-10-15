@@ -21,7 +21,7 @@ filter:
   # Scar remvoal parameters. Be careful with editing these as making the algorithm too sensitive may
   # result in ruining legitimate data.
   remove_scars:
-    run: true
+    run: false
     removal_iterations: 2 # Number of times to run scar removal.
     threshold_low: 0.250 # below values make scar removal more sensitive
     threshold_high: 0.666 # below values make scar removal more sensitive
@@ -67,7 +67,6 @@ plotting:
   mask_cmap: blu # Options : blu, jet_r and any in matplotlib
   histogram_log_axis: false # Options : true, false
   histogram_bins: 200 # Number of bins for histogram plots to use
-  dpi: 100 # Dots Per Inch used in figures, if set to "figure" will use Matplotlib default
 summary_stats:
   run: true # Whether to make summary plots for output data
   config: null

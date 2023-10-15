@@ -95,7 +95,7 @@ Please let us know the version of Python you are using, paste the results of `py
 <-- PASTE PYTHON VERSION -->
 ```
 
-### Optional : Python Packages
+### Python Packages
 
 If you are able to provide a list of your installed packages that may be useful. The best way to get this is to copy and
 paste the results of typing `pip freeze`.

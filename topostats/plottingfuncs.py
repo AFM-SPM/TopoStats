@@ -1,6 +1,6 @@
 """Plotting data."""
+from __future__ import annotations
 from pathlib import Path
-from typing import Union
 import logging
 
 from matplotlib.patches import Rectangle, Patch
@@ -25,6 +25,31 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=dangerous-default-value
 
 
+def add_pixel_to_nm_to_plotting_config(plotting_config: dict, pixel_to_nm_scaling: float) -> dict:
+    """Add the pixel to nanometre scaling factor to plotting configs.
+
+    Ensures plots are in nanometres and not pixels.
+
+    Parameters
+    ----------
+    plotting_config: dict
+        TopoStats plotting configuration dictionary
+    pixel_to_nm_scaling: float
+        Pixel to nanometre scaling factor for the image.
+
+    Returns
+    -------
+    plotting_config: dict
+        Updated plotting config with the pixel to nanometre scaling factor
+        applied to all the image configurations.
+    """
+    # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
+    plot_opts = {"pixel_to_nm_scaling": pixel_to_nm_scaling}
+    for image, options in plotting_config["plot_dict"].items():
+        plotting_config["plot_dict"][image] = {**options, **plot_opts}
+    return plotting_config
+
+
 def dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int) -> np.ndarray:
     """Dilate a supplied binary image a given number of times.
 
@@ -40,7 +65,6 @@ def dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int) -> n
     binary_image: np.ndarray
         Dilated binary image
     """
-
     binary_image = binary_image.copy()
     for _ in range(dilation_iterations):
         binary_image = binary_dilation(binary_image)
@@ -49,12 +73,12 @@ def dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int) -> n
 
 
 class Images:
-    """Plots image arrays"""
+    """Plots image arrays."""
 
     def __init__(
         self,
         data: np.array,
-        output_dir: Union[str, Path],
+        output_dir: str | Path,
         filename: str,
         pixel_to_nm_scaling: float = 1.0,
         masked_array: np.array = None,
@@ -62,18 +86,18 @@ class Images:
         image_type: str = "non-binary",
         image_set: str = "core",
         core_set: bool = False,
-        pixel_interpolation: Union[str, None] = None,
+        pixel_interpolation: str | None = None,
         cmap: str = "nanoscope",
         mask_cmap: str = "jet_r",
         region_properties: dict = None,
-        zrange: list = [None, None],
+        zrange: list = None,
         colorbar: bool = True,
         axes: bool = True,
         save: bool = True,
         save_format: str = "png",
         histogram_log_axis: bool = True,
         histogram_bins: int = 200,
-        dpi: Union[str, float] = "figure",
+        dpi: str | float = "figure",
     ) -> None:
         """
         Initialise the class.
@@ -123,6 +147,8 @@ class Images:
         dpi: Union[str, float]
             The resolution of the saved plot (default 'figure').
         """
+        if zrange is None:
+            zrange = [None, None]
         self.data = data
         self.output_dir = Path(output_dir)
         self.filename = filename
@@ -147,7 +173,7 @@ class Images:
 
     def plot_histogram_and_save(self):
         """
-        Plot and save a histogram of the height map
+        Plot and save a histogram of the height map.
 
         Returns
         -------
@@ -199,13 +225,13 @@ class Images:
                     else:
                         self.save_array_figure()
         LOGGER.info(
-            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}" f".{self.save_format}"
+            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.save_format}\
+ | DPI: {self.dpi}"
         )
         return fig, ax
 
     def save_figure(self):
-        """
-        This function saves figures as plt.savefig objects.
+        """Save figures as plt.savefig objects.
 
         Returns
         -------
@@ -284,7 +310,7 @@ class Images:
         return fig, ax
 
     def save_array_figure(self) -> None:
-        """This function saves only the image array as an image using plt.imsave"""
+        """Save the image array as an image using plt.imsave()."""
         plt.imsave(
             (self.output_dir / f"{self.filename}.{self.save_format}"),
             self.data,

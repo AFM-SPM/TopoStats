@@ -35,7 +35,7 @@ CIRCULAR_TARGET = np.array(
 
 def test_skeletonize_method(skeletonize_circular_bool_int: np.ndarray) -> None:
     """Test unsupported method raises the appropriate error."""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError):  # noqa: PT011
         get_skeleton(skeletonize_circular_bool_int, method="nonsense")
 
 

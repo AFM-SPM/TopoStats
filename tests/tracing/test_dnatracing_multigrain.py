@@ -1,4 +1,4 @@
-"""Tests for tracing images with multiple (2) grains"""
+"""Tests for tracing images with multiple (2) grains."""
 from pathlib import Path
 
 import numpy as np
@@ -46,7 +46,7 @@ SMALL_MASK = np.asarray(
 
 
 @pytest.mark.parametrize(
-    "pad_width, target_image, target_mask",
+    ("pad_width", "target_image", "target_mask"),
     [
         (
             0,
@@ -146,7 +146,7 @@ def test_prep_arrays(pad_width: int, target_image: np.ndarray, target_mask: np.n
     """Tests the image and masks are correctly prepared to lists."""
     images, masks = prep_arrays(image=SMALL_ARRAY, labelled_grains_mask=SMALL_MASK, pad_width=pad_width)
     grain = 0
-    for image, mask in zip(images, masks):
+    for image, mask in zip(images, masks):  # noqa: PT011
         np.testing.assert_array_almost_equal(image, target_image[grain])
         np.testing.assert_array_equal(mask, target_mask[grain])
         grain += 1
@@ -155,7 +155,7 @@ def test_prep_arrays(pad_width: int, target_image: np.ndarray, target_mask: np.n
 def test_image_trace_unequal_arrays() -> None:
     """Test arrays that are unequal throw a ValueError."""
     irregular_mask = np.zeros((MULTIGRAIN_IMAGE.shape[0] + 4, MULTIGRAIN_IMAGE.shape[1] + 5))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError):  # noqa: PT011
         trace_image(
             image=MULTIGRAIN_IMAGE,
             grains_mask=irregular_mask,
@@ -191,10 +191,10 @@ TARGET_ARRAY = np.asarray(
 
 
 @pytest.mark.parametrize(
-    "grain_anchors, ordered_traces, image_shape, expected, pad_width",
+    ("grain_anchors", "ordered_traces", "image_shape", "expected", "pad_width"),
     [
         # pad_width = 0
-        [
+        (
             [[0, 0], [0, 9], [7, 0], [5, 4], [10, 7]],
             [
                 np.asarray([[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6]]),  # Horizontal grain
@@ -221,9 +221,9 @@ TARGET_ARRAY = np.asarray(
             (16, 13),
             TARGET_ARRAY,
             0,
-        ],
+        ),
         # pad_width = 1
-        [
+        (
             [[0, 0], [0, 9], [7, 0], [4, 3], [9, 6]],
             [
                 np.asarray([[2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7]]),  # Horizontal grain
@@ -250,9 +250,9 @@ TARGET_ARRAY = np.asarray(
             (16, 13),
             TARGET_ARRAY,
             1,
-        ],
+        ),
         # pad_width = 2
-        [
+        (
             [[0, 0], [0, 9], [7, 0], [4, 3], [9, 6]],
             [
                 np.asarray([[3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8]]),  # Horizontal grain
@@ -279,19 +279,19 @@ TARGET_ARRAY = np.asarray(
             (16, 13),
             TARGET_ARRAY,
             2,
-        ],
+        ),
     ],
 )
 def test_trace_mask(
     grain_anchors: list, ordered_traces: list, image_shape: tuple, pad_width: int, expected: np.ndarray
 ) -> None:
-    """Test the trace_mask"""
+    """Test the trace_mask."""
     image = trace_mask(grain_anchors, ordered_traces, image_shape, pad_width)
     np.testing.assert_array_equal(image, expected)
 
 
 @pytest.mark.parametrize(
-    "image, skeletonisation_method, cores, statistics, ordered_trace_start, ordered_trace_end",
+    ("image", "skeletonisation_method", "cores", "statistics", "ordered_trace_start", "ordered_trace_end"),
     [
         (
             "multigrain_topostats",

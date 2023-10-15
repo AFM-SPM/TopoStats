@@ -14,4 +14,4 @@ globs:
   - "**/*.md"
 
 # Fix any fixable errors
-fix: false
+fix: true
