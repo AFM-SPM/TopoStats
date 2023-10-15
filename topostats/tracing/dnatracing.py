@@ -798,7 +798,6 @@ def round_splined_traces(splined_traces: list):
         if splined_trace is not None:
             rounded_splined_trace = np.round(splined_trace).astype(int)
             rounded_splined_traces.append(rounded_splined_trace)
-    rounded_splined_traces = np.array(rounded_splined_traces)
 
     return rounded_splined_traces
 
