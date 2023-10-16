@@ -497,4 +497,4 @@ def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
 
     assert isinstance(dnatracing_df, pd.DataFrame)
     assert dnatracing_df.shape[0] == 13
-    assert len(dnatracing_df.columns) == 23
+    assert len(dnatracing_df.columns) == 26
