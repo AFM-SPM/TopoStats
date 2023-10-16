@@ -332,7 +332,7 @@ class dnaTrace:
 
     @staticmethod
     # Perhaps we need a module for array functions?
-    def remove_duplicate_consecutive_tuples(tuple_list: list[Union[tuple, np.ndarray]]):
+    def remove_duplicate_consecutive_tuples(tuple_list: list[Union[tuple, np.ndarray]]) -> list[tuple]:
         """Remove duplicate consecutive tuples from a list.
 
         Eg: for the list of tuples [(1, 2), (1, 2), (1, 2), (2, 3), (2, 3), (3, 4)], this function will return
@@ -357,21 +357,20 @@ class dnaTrace:
 
     def get_splined_traces(
         self,
-    ):
-        """Gets a splined version of the fitted trace - useful for finding the radius of gyration etc
+    ) -> None:
+        """Gets a splined version of the fitted trace - useful for finding the radius of gyration etc.
 
         This function actually calculates the average of several splines which is important for getting a good fit on
-        the lower res data"""
+        the lower res data
+        """
 
         # Fitted traces are Nx2 numpy arrays of coordinates
         # All self references are here for easy turning into static method if wanted, also type hints and short documentation
-        fitted_trace = self.fitted_trace  # : np.ndarray - boolean 2d numpy array of fitted traces to spline
-        step_size_m = (
-            self.spline_step_size
-        )  # : float - the step size for the splines to skip pixels in the fitted trace
-        pixel_to_nm_scaling = self.pixel_to_nm_scaling  # : float - pixel to nanometre scaling factor for the image
-        mol_is_circular = self.mol_is_circular  # : mol_is_circular - whether or not the molecule is classed as circular
-        n_grain = self.n_grain  # : int - the grain index (for logging purposes)
+        fitted_trace: np.ndarray = self.fitted_trace  # boolean 2d numpy array of fitted traces to spline
+        step_size_m: float = self.spline_step_size  # the step size for the splines to skip pixels in the fitted trace
+        pixel_to_nm_scaling: float = self.pixel_to_nm_scaling  # pixel to nanometre scaling factor for the image
+        mol_is_circular: bool = self.mol_is_circular  # whether or not the molecule is classed as circular
+        n_grain: int = self.n_grain  # the grain index (for logging purposes)
 
         # Calculate the step size in pixels from the step size in metres.
         # Should always be at least 1.
@@ -394,7 +393,7 @@ class dnaTrace:
             self.splined_trace = fitted_trace
             return
 
-        # There cannot be less than degree + 1 points in the spline
+        # There cannot be fewer than degree + 1 points in the spline
         # Decrease the step size to ensure more than this number of points
         while fitted_trace_length / step_size_px < self.spline_degree + 1:
             # Step size cannot be less than 1
