@@ -60,7 +60,7 @@ class dnaTrace:
         convert_nm_to_m: bool = True,
         skeletonisation_method: str = "topostats",
         n_grain: int = None,
-        spline_circular_smoothness: float = 2.0,
+        spline_circular_smoothness: float = 0.0,
         spline_linear_smoothness: float = 5.0,
         spline_quiet: bool = True,
         spline_degree: int = 3,
