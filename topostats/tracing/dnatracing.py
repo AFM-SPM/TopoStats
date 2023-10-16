@@ -345,6 +345,8 @@ class dnaTrace:
 
         # Calculate the step size in pixels from the step size in metres.
         # Should always be at least 1.
+        # Note that step_size_m is in m and pixel_to_nm_scaling is in m because of the legacy code which seems to almost always have
+        # pixel_to_nm_scaling be set in metres using the flag convert_nm_to_m. No idea why this is the case.
         step_size_px = max(int(step_size_m / pixel_to_nm_scaling), 1)
 
         # Splines will be totalled and then divived by number of splines to calculate the average spline
@@ -359,7 +361,8 @@ class dnaTrace:
             LOGGER.warning(
                 f"Fitted trace for grain {n_grain} too small ({fitted_trace_length}), returning fitted trace"
             )
-            return fitted_trace
+            self.splined_trace = fitted_trace
+            return
 
         # There cannot be less than degree + 1 points in the spline
         # Decrease the step size to ensure more than this number of points
