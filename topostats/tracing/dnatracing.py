@@ -327,6 +327,31 @@ class dnaTrace:
         self.fitted_trace = fitted_coordinate_array
         del fitted_coordinate_array  # cleaned up by python anyway?
 
+    @staticmethod
+    # Perhaps we need a module for array functions?
+    def remove_duplicate_consecutive_tuples(tuple_list: list[Union[tuple, np.ndarray]]):
+        """Remove duplicate consecutive tuples from a list.
+
+        Eg: for the list of tuples [(1, 2), (1, 2), (1, 2), (2, 3), (2, 3), (3, 4)], this function will return
+        [(1, 2), (2, 3), (3, 4)]
+
+        Parameters
+        ----------
+        tuple_list : list[Union[tuple, np.ndarray]]
+            List of tuples or numpy ndarrays to remove consecutive duplicates from.
+
+        Returns
+        -------
+        list[Tuple]
+            List of tuples with consecutive duplicates removed.
+        """
+
+        duplicates_removed = []
+        for index, tup in enumerate(tuple_list):
+            if index == 0 or not np.array_equal(tuple_list[index - 1], tup):
+                duplicates_removed.append(tup)
+        return np.array(duplicates_removed)
+
     def get_splined_traces(
         self,
     ):
@@ -389,8 +414,15 @@ class dnaTrace:
         # 1 takes every 4th coordinate, starting at position 0, then spline 2 takes every 4th coordinate
         # starting at position 1, etc...
         for i in range(step_size_px):
-            x_sampled = np.array([fitted_trace[:, 0][j] for j in range(i, fitted_trace_length, step_size_px)])
-            y_sampled = np.array([fitted_trace[:, 1][j] for j in range(i, fitted_trace_length, step_size_px)])
+            # Sample the fitted trace at every step_size_px pixels
+            sampled = [fitted_trace[j, :] for j in range(i, fitted_trace_length, step_size_px)]
+
+            # Scipy.splprep cannot handle duplicate consecutive x, y tuples, so remove them.
+            # Get rid of any consecutive duplicates in the sampled coordinates
+            sampled = self.remove_duplicate_consecutive_tuples(tuple_list=sampled)
+
+            x_sampled = sampled[:, 0]
+            y_sampled = sampled[:, 1]
 
             # Use scipy's B-spline functions
             # tck is a tuple, (t,c,k) containing the vector of knots, the B-spline coefficients
