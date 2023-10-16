@@ -755,3 +755,24 @@ def test_round_splined_traces():
     expected_result = np.array([[[1, 2], [3, 4]], [[6, 7], [8, 9]]])
     result = round_splined_traces(splined_traces)
     np.testing.assert_array_equal(result, expected_result)
+
+
+@pytest.mark.parametrize(
+    ("tuple_list", "expected_result"),
+    [
+        (
+            [(1, 2, 3), (1, 2, 3), (1, 2, 3), (1, 2, 3)],
+            [(1, 2, 3)],
+        ),
+        (
+            [(1, 2, 3), (1, 2, 3), (4, 5, 6), (4, 5, 6), (7, 8, 9), (10, 11, 12), (10, 11, 12)],
+            [(1, 2, 3), (4, 5, 6), (7, 8, 9), (10, 11, 12)],
+        ),
+        ([np.array((1, 2, 3)), np.array((1, 2, 3)), np.array((1, 2, 3)), np.array((1, 2, 3))], [(1, 2, 3)]),
+    ],
+)
+def test_remove_duplicate_consecutive_tuples(tuple_list: list[tuple], expected_result: list[tuple]) -> None:
+    """Test the remove_duplicate_consecutive_tuples function of dnatracing.py."""
+    result = dnaTrace.remove_duplicate_consecutive_tuples(tuple_list)
+
+    np.testing.assert_array_equal(result, expected_result)
