@@ -60,6 +60,7 @@ class dnaTrace:
         convert_nm_to_m: bool = True,
         skeletonisation_method: str = "topostats",
         n_grain: int = None,
+        spline_step_size: float = 7e-9,
         spline_circular_smoothness: float = 0.0,
         spline_linear_smoothness: float = 5.0,
         spline_quiet: bool = True,
@@ -86,6 +87,8 @@ class dnaTrace:
             scikit-image are available 'zhang', 'lee' and 'thin'
         n_grain: int
             Grain number being processed (only  used in logging).
+        spline_step_size: float = 7e-9,
+            Step size for spline evaluation in metres.
         spline_circular_smoothness: float = 2.0,
             Smoothness of circular splines
         spline_linear_smoothness: float = 5.0,
@@ -105,7 +108,6 @@ class dnaTrace:
         self.number_of_rows = self.image.shape[0]
         self.number_of_columns = self.image.shape[1]
         self.sigma = 0.7 / (self.pixel_to_nm_scaling * 1e9)
-        self.step_size_m = 7e-9
 
         self.gauss_image = None
         self.grain = grain
@@ -119,6 +121,7 @@ class dnaTrace:
         self.curvature = np.nan
 
         # Splining parameters
+        self.spline_step_size: float = spline_step_size  # Step size for spline evaluation in metres
         self.spline_circular_smoothness: float = spline_circular_smoothness  # Smoothness of circular splines
         self.spline_linear_smoothness: float = spline_linear_smoothness  # Smoothness of linear splines
         self.spline_quiet: bool = spline_quiet  # Suppresses scipy splining warnings
@@ -363,7 +366,9 @@ class dnaTrace:
         # Fitted traces are Nx2 numpy arrays of coordinates
         # All self references are here for easy turning into static method if wanted, also type hints and short documentation
         fitted_trace = self.fitted_trace  # : np.ndarray - boolean 2d numpy array of fitted traces to spline
-        step_size_m = self.step_size_m  # : float - the step size for the splines to skip pixels in the fitted trace
+        step_size_m = (
+            self.spline_step_size
+        )  # : float - the step size for the splines to skip pixels in the fitted trace
         pixel_to_nm_scaling = self.pixel_to_nm_scaling  # : float - pixel to nanometre scaling factor for the image
         mol_is_circular = self.mol_is_circular  # : mol_is_circular - whether or not the molecule is classed as circular
         n_grain = self.n_grain  # : int - the grain index (for logging purposes)
