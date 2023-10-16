@@ -193,6 +193,28 @@ TARGET_ARRAY = np.asarray(
 @pytest.mark.parametrize(
     ("grain_anchors", "ordered_traces", "image_shape", "expected", "pad_width"),
     [
+        # Ensure that grains whose traces are outside of the image bounds are skipped
+        (
+            [
+                [0, 0],
+                [7, 7],
+            ],
+            [
+                np.asarray([[1, 1], [1, 2], [1, 3]]),  # Grain 0's points plus anchor 0 is inside image bounds
+                np.asarray([[1, 1], [1, 2], [1, 3]]),  # Grain 1's points plus anchor 1 are outside image bounds
+            ],
+            (5, 5),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            0,
+        ),
         # pad_width = 0
         (
             [[0, 0], [0, 9], [7, 0], [5, 4], [10, 7]],

@@ -875,11 +875,18 @@ def trace_mask(
 
     """
     image = np.zeros(image_shape)
-    grain = 0
-    for grain_anchor, ordered_trace in zip(grain_anchors, ordered_traces):
+    for grain_number, (grain_anchor, ordered_trace) in enumerate(zip(grain_anchors, ordered_traces)):
         # Don't always have an ordered_trace for a given grain_anchor if for example the trace was too small
         if ordered_trace is not None:
             ordered_trace = adjust_coordinates(ordered_trace, pad_width)
+            # If any of the values in ordered_trace added to their respective grain_anchor are greater than the image
+            # shape, then the trace is outside the image and should be skipped.
+            if (
+                np.max(ordered_trace[:, 0]) + grain_anchor[0] > image_shape[0]
+                or np.max(ordered_trace[:, 1]) + grain_anchor[1] > image_shape[1]
+            ):
+                LOGGER.info(f"Grain {grain_number} has a trace that breaches the image bounds. Skipping.")
+                continue
             ordered_trace[:, 0] = ordered_trace[:, 0] + grain_anchor[0]
             ordered_trace[:, 1] = ordered_trace[:, 1] + grain_anchor[1]
             image[ordered_trace[:, 0], ordered_trace[:, 1]] = 1
