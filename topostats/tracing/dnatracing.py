@@ -61,8 +61,8 @@ class dnaTrace:
         skeletonisation_method: str = "topostats",
         n_grain: int = None,
         spline_step_size: float = 7e-9,
-        spline_circular_smoothness: float = 0.0,
-        spline_linear_smoothness: float = 5.0,
+        spline_linear_smoothing: float = 5.0,
+        spline_circular_smoothing: float = 0.0,
         spline_quiet: bool = True,
         spline_degree: int = 3,
     ):
@@ -89,9 +89,9 @@ class dnaTrace:
             Grain number being processed (only  used in logging).
         spline_step_size: float = 7e-9,
             Step size for spline evaluation in metres.
-        spline_circular_smoothness: float = 2.0,
+        spline_circular_smoothing: float = 0.0,
             Smoothness of circular splines
-        spline_linear_smoothness: float = 5.0,
+        spline_linear_smoothing: float = 5.0,
             Smoothness of linear splines
         spline_quiet: bool = True,
             Suppresses scipy splining warnings
@@ -122,8 +122,8 @@ class dnaTrace:
 
         # Splining parameters
         self.spline_step_size: float = spline_step_size  # Step size for spline evaluation in metres
-        self.spline_circular_smoothness: float = spline_circular_smoothness  # Smoothness of circular splines
-        self.spline_linear_smoothness: float = spline_linear_smoothness  # Smoothness of linear splines
+        self.spline_linear_smoothing: float = spline_linear_smoothing  # Smoothness of circular splines
+        self.spline_circular_smoothing: float = spline_circular_smoothing  # Smoothness of linear splines
         self.spline_quiet: bool = spline_quiet  # Suppresses scipy splining warnings
         self.spline_degree: int = spline_degree  # Degree of the spline
 
@@ -404,7 +404,7 @@ class dnaTrace:
 
         # Set smoothness and periodicity appropriately for linear / circular molecules.
         spline_smoothness, spline_periodicity = (
-            (self.spline_circular_smoothness, 2) if mol_is_circular else (self.spline_linear_smoothness, 0)
+            (self.spline_circular_smoothing, 2) if mol_is_circular else (self.spline_linear_smoothing, 0)
         )
 
         # Create an array of evenly spaced points between 0 and 1 for the splines to be evaluated at.
@@ -739,6 +739,9 @@ def trace_image(
     pixel_to_nm_scaling: float,
     min_skeleton_size: int,
     skeletonisation_method: str,
+    spline_step_size: float = 7e-9,
+    spline_linear_smoothing: float = 5.0,
+    spline_circular_smoothing: float = 0.0,
     pad_width: int = 1,
     cores: int = 1,
 ) -> Dict:
@@ -759,6 +762,12 @@ def trace_image(
     skeletonisation_method: str
         Method of skeletonisation, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin' (scikitimage) or
        'topostats' (original TopoStats method)
+    spline_step_size: float = 7e-9,
+        Step size for spline evaluation in metres.
+    spline_circular_smoothing: float = 0.0,
+        Smoothness of circular splines
+    spline_linear_smoothing: float = 5.0,
+        Smoothness of linear splines
     pad_width: int
         Number of cells to pad arrays by, required to handle instances where grains touch the bounding box edges.
     cores : int
@@ -791,6 +800,9 @@ def trace_image(
             filename,
             min_skeleton_size,
             skeletonisation_method,
+            spline_step_size,
+            spline_linear_smoothing,
+            spline_circular_smoothing,
             n_grain,
         )
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
@@ -992,6 +1004,9 @@ def trace_grain(
     filename: str = None,
     min_skeleton_size: int = 10,
     skeletonisation_method: str = "topostats",
+    spline_step_size: float = 7e-9,
+    spline_linear_smoothing: float = 5.0,
+    spline_circular_smoothing: float = 0.0,
     n_grain: int = None,
 ) -> Dict:
     """Trace an individual grain.
@@ -1021,6 +1036,12 @@ def trace_grain(
     skeletonisation_method: str
         Method of skeletonisation, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin' (scikitimage) or
        'topostats' (original TopoStats method)
+    spline_step_size: float = 7e-9,
+        Step size for spline evaluation in metres.
+    spline_circular_smoothing: float = 0.0,
+        Smoothness of circular splines
+    spline_linear_smoothing: float = 5.0,
+        Smoothness of linear splines
     n_grain: int
         Grain number being processed.
 
@@ -1037,6 +1058,9 @@ def trace_grain(
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         min_skeleton_size=min_skeleton_size,
         skeletonisation_method=skeletonisation_method,
+        spline_step_size=spline_step_size,
+        spline_linear_smoothing=spline_linear_smoothing,
+        spline_circular_smoothing=spline_circular_smoothing,
         n_grain=n_grain,
     )
     dnatrace.trace_dna()

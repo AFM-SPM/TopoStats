@@ -720,9 +720,9 @@ def test_get_splined_traces(
 
     # Set dnatrace smoothness accordingly
     if mol_is_circular:
-        dnatrace.spline_circular_smoothness = smoothness
+        dnatrace.spline_circular_smoothing = smoothness
     else:
-        dnatrace.spline_linear_smoothness = smoothness
+        dnatrace.spline_linear_smoothing = smoothness
 
     # Generate splined trace
     dnatrace.fitted_trace = fitted_trace
