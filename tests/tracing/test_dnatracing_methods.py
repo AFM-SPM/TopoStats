@@ -390,40 +390,82 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
 
 
 @pytest.mark.parametrize(
-    ("trace_image", "step_size_m", "mol_is_circular", "expected_spline_image"),
+    ("trace_image", "step_size_m", "mol_is_circular", "smoothness", "expected_spline_image"),
+    # Note that some images here have gaps in them. This is NOT an issue with the splining, but
+    # a natural result of rounding the floating point coordinates to integers. We only do this
+    # to provide a visualisation for easy test comparison and does not affect results.
     [
+        # Test circular with no smoothing. The shape remains unchanged. The gap is just a result
+        # of rounding the floating point coordinates to integers for this neat visualisation
+        # and can be ignored.
         (
             np.array(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 1, 1, 1, 1, 0, 0, 0],
-                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
-                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
-                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
-                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
-                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-                    [0, 0, 0, 1, 1, 1, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 ]
             ),
             1.0,
             True,
+            0.0,
             np.array(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-                    [0, 0, 1, 0, 0, 0, 1, 1, 0, 0],
-                    [0, 0, 1, 0, 0, 0, 0, 0, 1, 0],
-                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 1, 1, 1, 0, 1, 1, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
                     [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
-                    [0, 0, 1, 1, 0, 0, 0, 1, 0, 0],
-                    [0, 0, 0, 0, 1, 1, 1, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 ]
             ),
         ),
+        # Test circular with smoothing. The shape is smoothed out.
+        (
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            1.0,
+            True,
+            10.0,
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 1, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 1, 1, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+        ),
+        # Another circular with no smoothing. Relatively unchanged
         (
             np.array(
                 [
@@ -446,6 +488,7 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
             ),
             10.0,
             True,
+            0.0,
             np.array(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -466,6 +509,51 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
                 ]
             ),
         ),
+        # Another circular with smoothing. The shape is smoothed out.
+        (
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            10.0,
+            True,
+            5.0,
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 1, 0],
+                    [0, 0, 0, 1, 1, 1, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+        ),
+        # Simple line with smoothing unchanged because too simple.
         (
             np.array(
                 [
@@ -484,6 +572,7 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
             ),
             5.0,
             False,
+            5.0,
             np.array(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -500,6 +589,7 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
                 ]
             ),
         ),
+        # Another line with smoothing unchanged because too simple.
         (
             np.array(
                 [
@@ -517,6 +607,7 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
             ),
             4.0,
             False,
+            5.0,
             np.array(
                 [
                     [0, 0, 0, 0, 0],
@@ -532,6 +623,7 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
                 ]
             ),
         ),
+        # Complex line without smoothing, unchanged.
         (
             np.array(
                 [
@@ -550,6 +642,43 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
             ),
             5.0,
             False,
+            0.0,
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+        ),
+        # Complex line with smoothing, smoothed out.
+        (
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            5.0,
+            False,
+            5.0,
             np.array(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -573,6 +702,7 @@ def test_get_splined_traces(
     trace_image: np.ndarray,
     step_size_m: float,
     mol_is_circular: bool,
+    smoothness: float,
     expected_spline_image: np.ndarray,
 ) -> None:
     """Test the get_splined_traces() function of dnatracing.py."""
@@ -587,6 +717,12 @@ def test_get_splined_traces(
         fitted_trace, _whether_trace_completed = reorderTrace.circularTrace(trace_coords)
     else:
         fitted_trace = reorderTrace.linearTrace(trace_coords)
+
+    # Set dnatrace smoothness accordingly
+    if mol_is_circular:
+        dnatrace.spline_circular_smoothness = smoothness
+    else:
+        dnatrace.spline_linear_smoothness = smoothness
 
     # Generate splined trace
     dnatrace.fitted_trace = fitted_trace
