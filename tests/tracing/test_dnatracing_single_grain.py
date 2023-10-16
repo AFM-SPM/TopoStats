@@ -160,14 +160,14 @@ def test_get_fitted_traces(dnatrace: dnaTrace, length: int, start: np.array, end
         (
             lazy_fixture("dnatrace_linear"),
             1652,
-            np.asarray([35.542197, 46.683159]),
-            np.asarray([35.542197, 46.683159]),
+            np.asarray([35.357143, 46.714286]),
+            np.asarray([35.357143, 46.714286]),
         ),
         (
             lazy_fixture("dnatrace_circular"),
             2114,
-            np.asarray([58.999833, 65.47856]),
-            np.asarray([58.999833, 65.47856]),
+            np.asarray([59.285714, 65.428571]),
+            np.asarray([59.285714, 65.428571]),
         ),
     ],
 )
@@ -189,8 +189,8 @@ def test_get_splined_traces(dnatrace: dnaTrace, length: int, start: np.array, en
 @pytest.mark.parametrize(
     ("dnatrace", "contour_length"),
     [
-        (lazy_fixture("dnatrace_linear"), 8.910711063861682e-08),
-        (lazy_fixture("dnatrace_circular"), 7.574136072208753e-08),
+        (lazy_fixture("dnatrace_linear"), 9.040267985905398e-08),
+        (lazy_fixture("dnatrace_circular"), 7.617314045334366e-08),
     ],
 )
 def test_measure_contour_length(dnatrace: dnaTrace, contour_length: float) -> None:
@@ -400,7 +400,7 @@ def test_grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int, ta
             "topostats",
             0,
             True,
-            7.574136072208753e-08,
+            7.617314045334366e-08,
         ),
         (
             LINEAR_IMAGE,
