@@ -4,12 +4,13 @@ from pathlib import Path
 import pytest
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
+import matplotlib.pyplot as plt
 import numpy as np
 from skimage import io
 
 from topostats.grains import Grains
 from topostats.io import LoadScans
-from topostats.plottingfuncs import dilate_binary_image, Images, add_pixel_to_nm_to_plotting_config
+from topostats.plottingfuncs import dilate_binary_image, Images, add_pixel_to_nm_to_plotting_config, set_n_ticks
 
 
 DPI = 300.0
@@ -279,3 +280,33 @@ def test_mask_dilation(plotting_config: dict, tmp_path: Path) -> None:
         **plotting_config,
     ).plot_and_save()
     return fig
+
+@pytest.mark.parametrize(
+    ("n", "expected"),
+    [
+        (
+            2,
+            (np.array([0, 8]), np.array([0, 10])),
+        ),
+        (
+            3,
+            (np.array([0, 4, 8]), np.array([0, 4, 10])),
+        ),
+    ],
+)
+def test_set_n_ticks(n: int, expected: np.ndarray) -> None:
+    """Test the function to set the number of x and y axis ticks."""
+    arr = np.arange(0,80).reshape(10,8)
+    _, ax = plt.subplots(1,1)
+    ax.imshow(arr)
+
+    set_n_ticks(ax, n)
+
+    xticks = ax.get_xticks()
+    assert len(xticks) == n
+    print("Xticks: ", n, xticks, expected[0])
+    assert (xticks == expected[0]).all()
+
+    yticks = ax.get_yticks()
+    assert len(yticks) == n
+    assert (yticks == expected[1]).all()
