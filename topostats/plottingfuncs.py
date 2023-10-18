@@ -18,7 +18,7 @@ from topostats.theme import Colormap
 # pylint: disable=dangerous-default-value
 
 LOGGER = logging.getLogger(LOGGER_NAME)
-plt.style.use(Path(__file__).resolve().parent / 'images.mplstyle')
+plt.style.use(Path(__file__).resolve().parent / "images.mplstyle")
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-arguments
@@ -94,7 +94,7 @@ class Images:
         zrange: list = None,
         colorbar: bool = True,
         axes: bool = True,
-        num_ticks = None,
+        num_ticks=None,
         save: bool = True,
         save_format: str = "png",
         histogram_log_axis: bool = True,
@@ -280,7 +280,7 @@ class Images:
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1.02, 1.09))
-            
+
             if self.num_ticks is not None:
                 set_n_ticks(ax, self.num_ticks)
 
@@ -362,6 +362,7 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
         ax.add_patch(rectangle)
     return fig, ax
 
+
 def set_n_ticks(ax: plt.Axes.axes, n: int) -> None:
     """Sets the number of ticks along the y and x axes and lets matplotlib assign the values.
 
@@ -380,11 +381,11 @@ def set_n_ticks(ax: plt.Axes.axes, n: int) -> None:
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
 
-    xstep = (max(xlim) - min(xlim)) / (n-1)
-    ystep = (max(ylim) - min(ylim)) / (n-1)
-    
-    xticks = np.arange(min(xlim), max(xlim)+xstep, xstep)
-    yticks = np.arange(min(ylim), max(ylim)+ystep, ystep)
+    xstep = (max(xlim) - min(xlim)) / (n - 1)
+    ystep = (max(ylim) - min(ylim)) / (n - 1)
+
+    xticks = np.arange(min(xlim), max(xlim) + xstep, xstep)
+    yticks = np.arange(min(ylim), max(ylim) + ystep, ystep)
 
     ax.set_xticks(np.round(xticks))
     ax.set_yticks(np.round(yticks))

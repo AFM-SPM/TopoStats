@@ -281,6 +281,7 @@ def test_mask_dilation(plotting_config: dict, tmp_path: Path) -> None:
     ).plot_and_save()
     return fig
 
+
 @pytest.mark.parametrize(
     ("n", "expected"),
     [
@@ -296,8 +297,8 @@ def test_mask_dilation(plotting_config: dict, tmp_path: Path) -> None:
 )
 def test_set_n_ticks(n: int, expected: np.ndarray) -> None:
     """Test the function to set the number of x and y axis ticks."""
-    arr = np.arange(0,80).reshape(10,8)
-    _, ax = plt.subplots(1,1)
+    arr = np.arange(0, 80).reshape(10, 8)
+    _, ax = plt.subplots(1, 1)
     ax.imshow(arr)
 
     set_n_ticks(ax, n)
