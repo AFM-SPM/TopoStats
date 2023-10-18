@@ -63,6 +63,7 @@ plotting:
   zrange: [null, null]  # low and high height range for core images (can take [null, null]). low <= high
   colorbar: true  # Options : true, false
   axes: true # Options : true, false (due to off being a bool when parsed)
+  num_ticks: 4 # Number of ticks to have along the axes. Options : null (auto) or integer
   cmap: nanoscope # Options : nanoscope, afmhot, gwyddion
   mask_cmap: blu # Options : blu, jet_r and any in matplotlib
   histogram_log_axis: false # Options : true, false

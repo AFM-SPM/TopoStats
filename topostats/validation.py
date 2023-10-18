@@ -253,6 +253,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config plotting.for 'axes', valid values are 'True' or 'False'",
             ),
+            "num_ticks": Or(
+                None,
+                lambda n: n > 1,
+                error="Invalid value in config plotting.for 'num_ticks', valid values are 'null' or an integer > 1",
+            ),
             "cmap": Or(
                 "afmhot",
                 "nanoscope",
