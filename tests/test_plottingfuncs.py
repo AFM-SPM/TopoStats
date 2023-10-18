@@ -305,7 +305,6 @@ def test_set_n_ticks(n: int, expected: np.ndarray) -> None:
 
     xticks = ax.get_xticks()
     assert len(xticks) == n
-    print("Xticks: ", n, xticks, expected[0])
     assert (xticks == expected[0]).all()
 
     yticks = ax.get_yticks()
