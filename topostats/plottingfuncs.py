@@ -18,6 +18,7 @@ from topostats.theme import Colormap
 # pylint: disable=dangerous-default-value
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+plt.style.use(Path(__file__).resolve().parent / 'images.mplstyle')
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-arguments
@@ -93,6 +94,7 @@ class Images:
         zrange: list = None,
         colorbar: bool = True,
         axes: bool = True,
+        num_ticks = None,
         save: bool = True,
         save_format: str = "png",
         histogram_log_axis: bool = True,
@@ -136,6 +138,8 @@ class Images:
             Optionally add a colorbar to plots, default is False.
         axes: bool
             Optionally add/remove axes from the image.
+        num_ticks: int
+            The number of x and y ticks to display on the image.
         save: bool
             Whether to save the image.
         save_format: str
@@ -165,6 +169,7 @@ class Images:
         self.zrange = zrange
         self.colorbar = colorbar
         self.axes = axes
+        self.num_ticks = num_ticks
         self.save = save
         self.save_format = save_format
         self.histogram_log_axis = histogram_log_axis
@@ -274,7 +279,10 @@ class Images:
                     alpha=0.7,
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
-                plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
+                plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1.02, 1.09))
+            
+            if self.num_ticks is not None:
+                set_n_ticks(ax, self.num_ticks)
 
             plt.title(self.title)
             plt.xlabel("Nanometres")
@@ -353,3 +361,30 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
         rectangle = Rectangle((min_x, min_y), max_x - min_x, max_y - min_y, fill=False, edgecolor="white", linewidth=2)
         ax.add_patch(rectangle)
     return fig, ax
+
+def set_n_ticks(ax: plt.Axes.axes, n: int) -> None:
+    """Sets the number of ticks along the y and x axes and lets matplotlib assign the values.
+
+    Parameters
+    ----------
+    ax : plt.Axes.axes
+        The axes to add ticks to.
+    n : int
+        The number of ticks.
+
+    Returns
+    -------
+    plt.Axes.axes
+        The axes with the new ticks.
+    """
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+
+    xstep = (max(xlim) - min(xlim)) / (n-1)
+    ystep = (max(ylim) - min(ylim)) / (n-1)
+    
+    xticks = np.arange(min(xlim), max(xlim)+xstep, xstep)
+    yticks = np.arange(min(ylim), max(ylim)+ystep, ystep)
+
+    ax.set_xticks(np.round(xticks))
+    ax.set_yticks(np.round(yticks))
