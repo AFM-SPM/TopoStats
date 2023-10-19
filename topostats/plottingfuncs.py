@@ -1,5 +1,6 @@
 """Plotting data."""
 from __future__ import annotations
+import importlib.resources as pkg_resources
 from pathlib import Path
 import logging
 
@@ -9,6 +10,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 from skimage.morphology import binary_dilation
 
+import topostats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
 
@@ -18,7 +20,7 @@ from topostats.theme import Colormap
 # pylint: disable=dangerous-default-value
 
 LOGGER = logging.getLogger(LOGGER_NAME)
-plt.style.use(Path(__file__).resolve().parent / "images.mplstyle")
+plt.style.use(pkg_resources.files(topostats) / "images.mplstyle")
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-arguments
