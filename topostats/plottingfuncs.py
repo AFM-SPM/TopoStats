@@ -3,7 +3,6 @@ from __future__ import annotations
 import importlib.resources as pkg_resources
 from pathlib import Path
 import logging
-from typing import Union
 
 from matplotlib.patches import Rectangle, Patch
 import matplotlib.pyplot as plt
@@ -97,7 +96,7 @@ class Images:
         zrange: list = None,
         colorbar: bool = True,
         axes: bool = True,
-        num_ticks: list[Union[int, None], Union[int, None]] = [None, None],
+        num_ticks: list[int | None, int | None] = [None, None],
         save: bool = True,
         save_format: str = "png",
         histogram_log_axis: bool = True,
@@ -364,7 +363,7 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
     return fig, ax
 
 
-def set_n_ticks(ax: plt.Axes.axes, n_xy: list[Union[int, None], Union[int, None]]) -> None:
+def set_n_ticks(ax: plt.Axes.axes, n_xy: list[int | None, int | None]) -> None:
     """Set the number of ticks along the y and x axes and lets matplotlib assign the values.
 
     Parameters
