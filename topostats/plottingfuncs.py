@@ -96,7 +96,7 @@ class Images:
         zrange: list = None,
         colorbar: bool = True,
         axes: bool = True,
-        num_ticks: list[int | None, int | None] = [None, None],
+        num_ticks: list[int | None, int | None] = (None, None),
         save: bool = True,
         save_format: str = "png",
         histogram_log_axis: bool = True,
