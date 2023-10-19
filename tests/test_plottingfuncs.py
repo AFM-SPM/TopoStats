@@ -286,16 +286,16 @@ def test_mask_dilation(plotting_config: dict, tmp_path: Path) -> None:
     ("n", "expected"),
     [
         (
-            2,
+            [2, 2],
             (np.array([0, 8]), np.array([0, 10])),
         ),
         (
-            3,
-            (np.array([0, 4, 8]), np.array([0, 4, 10])),
+            [3, 4],
+            (np.array([0, 4, 8]), np.array([0, 3, 6, 10])),
         ),
     ],
 )
-def test_set_n_ticks(n: int, expected: np.ndarray) -> None:
+def test_set_n_ticks(n: list, expected: np.ndarray) -> None:
     """Test the function to set the number of x and y axis ticks."""
     arr = np.arange(0, 80).reshape(10, 8)
     _, ax = plt.subplots(1, 1)
@@ -304,9 +304,9 @@ def test_set_n_ticks(n: int, expected: np.ndarray) -> None:
     set_n_ticks(ax, n)
 
     xticks = ax.get_xticks()
-    assert len(xticks) == n
+    assert len(xticks) == n[0]
     assert (xticks == expected[0]).all()
 
     yticks = ax.get_yticks()
-    assert len(yticks) == n
+    assert len(yticks) == n[1]
     assert (yticks == expected[1]).all()

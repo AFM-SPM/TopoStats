@@ -365,14 +365,14 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
     return fig, ax
 
 
-def set_n_ticks(ax: plt.Axes.axes, n: int) -> None:
+def set_n_ticks(ax: plt.Axes.axes, n_xy: tuple) -> None:
     """Set the number of ticks along the y and x axes and lets matplotlib assign the values.
 
     Parameters
     ----------
     ax : plt.Axes.axes
         The axes to add ticks to.
-    n : int
+    n_xy : int
         The number of ticks.
 
     Returns
@@ -383,8 +383,8 @@ def set_n_ticks(ax: plt.Axes.axes, n: int) -> None:
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
 
-    xstep = (max(xlim) - min(xlim)) / (n - 1)
-    ystep = (max(ylim) - min(ylim)) / (n - 1)
+    xstep = (max(xlim) - min(xlim)) / (n_xy[0] - 1)
+    ystep = (max(ylim) - min(ylim)) / (n_xy[1] - 1)
 
     xticks = np.arange(min(xlim), max(xlim) + xstep, xstep)
     yticks = np.arange(min(ylim), max(ylim) + ystep, ystep)

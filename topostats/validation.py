@@ -2,7 +2,7 @@
 import logging
 import os
 from pathlib import Path
-from schema import Optional, Or, Schema, SchemaError
+from schema import Optional, Or, And, Schema, SchemaError
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -242,7 +242,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "spline36",
                 error="Invalid interpolation value. See https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html for options.",
             ),
-            "zrange": list,
+            "zrange": [float, int, None],
             "colorbar": Or(
                 True,
                 False,
@@ -253,10 +253,8 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config plotting.for 'axes', valid values are 'True' or 'False'",
             ),
-            "num_ticks": Or(
-                None,
-                lambda n: n > 1,
-                error="Invalid value in config plotting.for 'num_ticks', valid values are 'null' or an integer > 1",
+            "num_ticks": Or([None, And(int, lambda n: n > 1)],
+                error="Invalid value in config plotting.for 'num_ticks', valid values are 'null' or integers > 1",
             ),
             "cmap": Or(
                 "afmhot",
