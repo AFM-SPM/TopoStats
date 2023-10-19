@@ -96,7 +96,7 @@ class Images:
         zrange: list = None,
         colorbar: bool = True,
         axes: bool = True,
-        num_ticks=None,
+        num_ticks=[None, None],
         save: bool = True,
         save_format: str = "png",
         histogram_log_axis: bool = True,
@@ -140,7 +140,7 @@ class Images:
             Optionally add a colorbar to plots, default is False.
         axes: bool
             Optionally add/remove axes from the image.
-        num_ticks: int
+        num_ticks: list[int, int]
             The number of x and y ticks to display on the image.
         save: bool
             Whether to save the image.
@@ -283,12 +283,10 @@ class Images:
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1.02, 1.09))
 
-            if self.num_ticks is not None:
-                set_n_ticks(ax, self.num_ticks)
-
             plt.title(self.title)
             plt.xlabel("Nanometres")
             plt.ylabel("Nanometres")
+            set_n_ticks(ax, self.num_ticks)
             plt.axis(self.axes)
             if self.colorbar and self.image_type == "non-binary":
                 divider = make_axes_locatable(ax)
@@ -365,14 +363,14 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
     return fig, ax
 
 
-def set_n_ticks(ax: plt.Axes.axes, n_xy: tuple) -> None:
+def set_n_ticks(ax: plt.Axes.axes, n_xy: list[int, int]) -> None:
     """Set the number of ticks along the y and x axes and lets matplotlib assign the values.
 
     Parameters
     ----------
     ax : plt.Axes.axes
         The axes to add ticks to.
-    n_xy : int
+    n_xy : list[int, int]
         The number of ticks.
 
     Returns
@@ -380,14 +378,13 @@ def set_n_ticks(ax: plt.Axes.axes, n_xy: tuple) -> None:
     plt.Axes.axes
         The axes with the new ticks.
     """
-    xlim = ax.get_xlim()
-    ylim = ax.get_ylim()
-
-    xstep = (max(xlim) - min(xlim)) / (n_xy[0] - 1)
-    ystep = (max(ylim) - min(ylim)) / (n_xy[1] - 1)
-
-    xticks = np.arange(min(xlim), max(xlim) + xstep, xstep)
-    yticks = np.arange(min(ylim), max(ylim) + ystep, ystep)
-
-    ax.set_xticks(np.round(xticks))
-    ax.set_yticks(np.round(yticks))
+    if n_xy[0] is not None:
+        xlim = ax.get_xlim()
+        xstep = (max(xlim) - min(xlim)) / (n_xy[0] - 1)
+        xticks = np.arange(min(xlim), max(xlim) + xstep, xstep)
+        ax.set_xticks(np.round(xticks))
+    if n_xy[1] is not None:
+        ylim = ax.get_ylim()
+        ystep = (max(ylim) - min(ylim)) / (n_xy[1] - 1)
+        yticks = np.arange(min(ylim), max(ylim) + ystep, ystep)
+        ax.set_yticks(np.round(yticks))
