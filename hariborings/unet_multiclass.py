@@ -12,6 +12,7 @@ from keras.layers import (
     Dropout,
     Lambda,
 )
+from keras.optimizers import Adam
 
 num_classes = 3
 
@@ -83,8 +84,10 @@ def multiclass_unet_model(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS):
     # Make predictions of classes based on the culminated data
     outputs = Conv2D(num_classes, kernel_size=(1, 1), activation="softmax")(conv9)
 
+
+    optimizer = Adam(learning_rate=0.0001)
     model = Model(inputs=[inputs], outputs=[outputs])
-    model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+    model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
     model.summary()
 
     return model
