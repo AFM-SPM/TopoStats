@@ -13,7 +13,7 @@ from keras.layers import (
     Lambda,
 )
 
-num_classes = 2
+num_classes = 3
 
 
 def multiclass_unet_model(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS):
