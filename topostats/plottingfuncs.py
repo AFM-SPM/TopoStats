@@ -4,6 +4,7 @@ import importlib.resources as pkg_resources
 from pathlib import Path
 import logging
 
+import matplotlib as mpl
 from matplotlib.patches import Rectangle, Patch
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -20,7 +21,6 @@ from topostats.theme import Colormap
 # pylint: disable=dangerous-default-value
 
 LOGGER = logging.getLogger(LOGGER_NAME)
-plt.style.use(pkg_resources.files(topostats) / "images.mplstyle")
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-arguments
@@ -75,6 +75,14 @@ def dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int) -> n
     return binary_image
 
 
+def load_mplstyle(style: dict) -> None:
+    """Load the Matplotlibrc parameter file."""
+    if style == "topostats.mplstyle":
+        plt.style.use(pkg_resources.files(topostats) / style)
+    else:
+        plt.style.use(style)
+
+
 class Images:
     """Plots image arrays."""
 
@@ -83,6 +91,7 @@ class Images:
         data: np.array,
         output_dir: str | Path,
         filename: str,
+        style: str | Path = None,
         pixel_to_nm_scaling: float = 1.0,
         masked_array: np.array = None,
         title: str = None,
@@ -90,7 +99,7 @@ class Images:
         image_set: str = "core",
         core_set: bool = False,
         pixel_interpolation: str | None = None,
-        cmap: str = "nanoscope",
+        cmap: str | None = None,
         mask_cmap: str = "jet_r",
         region_properties: dict = None,
         zrange: list = None,
@@ -98,10 +107,10 @@ class Images:
         axes: bool = True,
         num_ticks: list[int | None, int | None] = (None, None),
         save: bool = True,
-        save_format: str = "png",
+        save_format: str = None,
         histogram_log_axis: bool = True,
-        histogram_bins: int = 200,
-        dpi: str | float = "figure",
+        histogram_bins: int | None = None,
+        dpi: str | float | None = None,
     ) -> None:
         """
         Initialise the class.
@@ -114,6 +123,8 @@ class Images:
             Output directory to save the file to.
         filename : Union[str, Path]
             Filename to save image as.
+        style: dict
+            Filename of matploglibrc Params.
         pixel_to_nm_scaling : float
             The scaling factor showing the real length of 1 pixel, in nm.
         masked_array : np.ndarray
@@ -153,6 +164,9 @@ class Images:
         dpi: Union[str, float]
             The resolution of the saved plot (default 'figure').
         """
+        if style is None:
+            style = "topostats.mplstyle"
+        load_mplstyle(style)
         if zrange is None:
             zrange = [None, None]
         self.data = data
@@ -164,7 +178,8 @@ class Images:
         self.image_type = image_type
         self.image_set = image_set
         self.core_set = core_set
-        self.interpolation = pixel_interpolation
+        self.interpolation = mpl.rcParams["image.interpolation"] if pixel_interpolation is None else pixel_interpolation
+        cmap = mpl.rcParams["image.cmap"] if cmap is None else cmap
         self.cmap = Colormap(cmap).get_cmap()
         self.mask_cmap = Colormap(mask_cmap).get_cmap()
         self.region_properties = region_properties
@@ -173,10 +188,10 @@ class Images:
         self.axes = axes
         self.num_ticks = num_ticks
         self.save = save
-        self.save_format = save_format
+        self.save_format = mpl.rcParams["savefig.format"] if save_format is None else save_format
         self.histogram_log_axis = histogram_log_axis
-        self.histogram_bins = histogram_bins
-        self.dpi = dpi
+        self.histogram_bins = mpl.rcParams["hist.bins"] if histogram_bins is None else histogram_bins
+        self.dpi = mpl.rcParams["savefig.dpi"] if dpi is None else dpi
 
     def plot_histogram_and_save(self):
         """
@@ -190,7 +205,7 @@ class Images:
             Matplotlib.pyplot axes object
         """
         if self.image_set == "all":
-            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+            fig, ax = plt.subplots(1, 1)
 
             ax.hist(self.data.flatten().astype(float), bins=self.histogram_bins, log=self.histogram_log_axis)
             ax.set_xlabel("pixel height")
@@ -247,7 +262,7 @@ class Images:
         ax: plt.axes._subplots.AxesSubplot
             Matplotlib.pyplot axes object
         """
-        fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+        fig, ax = plt.subplots(1, 1)
         shape = self.data.shape
         if isinstance(self.data, np.ndarray):
             im = ax.imshow(

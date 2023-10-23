@@ -2,6 +2,7 @@
 from pathlib import Path
 
 import pytest
+import matplotlib as mpl
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
@@ -10,8 +11,13 @@ from skimage import io
 
 from topostats.grains import Grains
 from topostats.io import LoadScans
-from topostats.plottingfuncs import dilate_binary_image, Images, add_pixel_to_nm_to_plotting_config, set_n_ticks
-
+from topostats.plottingfuncs import (
+    dilate_binary_image,
+    Images,
+    add_pixel_to_nm_to_plotting_config,
+    set_n_ticks,
+    load_mplstyle,
+)
 
 DPI = 300.0
 RNG = np.random.default_rng(seed=1000)
@@ -29,6 +35,24 @@ def test_add_pixel_to_nm_to_plotting_config(plotting_config_with_plot_dict):
     for _, plot_config in plotting_config["plot_dict"].items():
         if plot_config["pixel_to_nm_scaling"] != 1.23456789:
             raise AssertionError()
+
+
+@pytest.mark.parametrize(
+    ("style", "axes_titlesize", "font_size", "image_cmap", "savefig_format"),
+    [
+        ("topostats.mplstyle", 18, 16.0, "nanoscope", "png"),
+        ("tests/resources/my_custom.mplstyle", 34, 5.0, "viridis", "svg"),
+    ],
+)
+def test_load_mplstyle(
+    style: dict, axes_titlesize: int, font_size: float, image_cmap: str, savefig_format: str
+) -> None:
+    """Test loading of topostats.mplstyle and a custom style."""
+    load_mplstyle(style)
+    assert mpl.rcParams["axes.titlesize"] == axes_titlesize
+    assert mpl.rcParams["font.size"] == font_size
+    assert mpl.rcParams["image.cmap"] == image_cmap
+    assert mpl.rcParams["savefig.format"] == savefig_format
 
 
 @pytest.mark.parametrize(

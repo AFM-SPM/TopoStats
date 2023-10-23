@@ -57,6 +57,7 @@ dnatracing:
 #  cores: 1 # Number of cores to use for parallel processing
 plotting:
   run: true # Options : true, false
+  style: topostats.mplstyle # Options : topostats.mplstyle or path to a matplotlibrc params file
   save_format: png # Options : see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
   pixel_interpolation: null # Options : https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html
   image_set: core  # Options : all, core
@@ -64,10 +65,8 @@ plotting:
   colorbar: true  # Options : true, false
   axes: true # Options : true, false (due to off being a bool when parsed)
   num_ticks: [null, null] # Number of ticks to have along the x and y axes. Options : null (auto) or integer > 1
-  cmap: nanoscope # Options : nanoscope, afmhot, gwyddion
   mask_cmap: blu # Options : blu, jet_r and any in matplotlib
   histogram_log_axis: false # Options : true, false
-  histogram_bins: 200 # Number of bins for histogram plots to use
 summary_stats:
   run: true # Whether to make summary plots for output data
   config: null
