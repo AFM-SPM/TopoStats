@@ -2085,9 +2085,12 @@ class nodeStats:
 
         """
         centre_fraction = int(len(heights) * 0.2)  # incase zone approaches another node, look around centre for max
-        # if centre_fraction == 0:
-        #    centre_fraction = 1
-        high_idx = np.argmax(heights[centre_fraction:-centre_fraction]) + centre_fraction
+        print("LEN: ", len(heights), centre_fraction)
+        if centre_fraction == 0:
+            high_idx = np.argmax(heights)
+        else:
+            high_idx = np.argmax(heights[centre_fraction:-centre_fraction]) + centre_fraction
+        
         # heights_norm = heights.copy() - heights.min()  # lower graph so min is 0
 
         # get array halves to find first points that cross hm
