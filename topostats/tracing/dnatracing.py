@@ -1918,7 +1918,8 @@ class nodeStats:
     def get_vector(coords, origin):
         """Calculate the normalised vector of the coordinate means in a branch"""
         vector = coords.mean(axis=0) - origin
-        vector /= np.sqrt(vector @ vector)  # normalise vector so length=1
+        norm = np.sqrt(vector @ vector)
+        vector = vector if norm == 0 else vector / norm # normalise vector so length=1
         return vector
 
     @staticmethod
