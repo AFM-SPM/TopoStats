@@ -121,11 +121,11 @@ class dnaTrace:
         self.curvature = np.nan
 
         # Splining parameters
-        self.spline_step_size: float = spline_step_size  # Step size for spline evaluation in metres
-        self.spline_linear_smoothing: float = spline_linear_smoothing  # Smoothness of circular splines
-        self.spline_circular_smoothing: float = spline_circular_smoothing  # Smoothness of linear splines
-        self.spline_quiet: bool = spline_quiet  # Suppresses scipy splining warnings
-        self.spline_degree: int = spline_degree  # Degree of the spline
+        self.spline_step_size: float = spline_step_size
+        self.spline_linear_smoothing: float = spline_linear_smoothing
+        self.spline_circular_smoothing: float = spline_circular_smoothing
+        self.spline_quiet: bool = spline_quiet
+        self.spline_degree: int = spline_degree
 
         self.neighbours = 5  # The number of neighbours used for the curvature measurement
 
