@@ -67,8 +67,8 @@ class dnaTrace:
         pixel_to_nm_scaling: float,
         min_skeleton_size: int = 10,
         convert_nm_to_m: bool = True,
-        skeletonisation_method: str = "joe",
-        pruning_method: str = "joe",
+        skeletonisation_params = {"skeletonisation_method": "zhang"},
+        pruning_params = {"pruning_method": "joe"},
         n_grain: int = None,
     ):
         """Initialise the class.
@@ -87,9 +87,10 @@ class dnaTrace:
             Minimum skeleton size below which tracing statistics are not calculated.
         convert_nm_to_m: bool = True,
             Convert nanometers to metres.
-        skeletonisation_method:
-            Method of skeletonisation to use 'topostats' is the original TopoStats method. Three methods from
-            scikit-image are available 'zhang', 'lee' and 'thin'
+        skeletonisation_params: dict
+            Any parameters associated with the method of skeletonisation.
+        pruning_params: dict
+            Any parameters associated with the method of pruning.
         n_grain: int
             Grain number being processed (only  used in logging).
         """
@@ -98,8 +99,8 @@ class dnaTrace:
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling * 1e-9 if convert_nm_to_m else pixel_to_nm_scaling
         self.min_skeleton_size = min_skeleton_size
-        self.skeletonisation_method = skeletonisation_method
-        self.pruning_method = pruning_method
+        self.skeletonisation_params = skeletonisation_params
+        self.pruning_params = pruning_params
         self.n_grain = n_grain
         self.number_of_rows = self.image.shape[0]
         self.number_of_columns = self.image.shape[1]
@@ -162,7 +163,7 @@ class dnaTrace:
                 self.num_mols = len(ordered_traces)
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} ordered via nodeStats.")
                 LOGGER.info(
-                    f"[{self.filename}] : Grain {self.n_grain} has {len(ordered_traces)} molecules, only first will be used (for now)."
+                    f"[{self.filename}] : Grain {self.n_grain} has {len(ordered_traces)} molecules."
                 )
                 self.ordered_trace = ordered_traces
             else:
@@ -256,11 +257,11 @@ class dnaTrace:
 
     def get_disordered_trace(self):
         self.smoothed_grain = self.smooth_grains(self.grain)
-        self.skeleton = getSkeleton(self.gauss_image, self.smoothed_grain).get_skeleton(self.skeletonisation_method)
+        self.skeleton = getSkeleton(self.gauss_image, self.smoothed_grain).get_skeleton(self.skeletonisation_params.copy())
         # np.savetxt(OUTPUT_DIR / "skel.txt", self.skeleton)
         # np.savetxt(OUTPUT_DIR / "image.txt", self.image)
         # np.savetxt(OUTPUT_DIR / "smooth.txt", self.smoothed_grain)
-        self.pruned_skeleton = pruneSkeleton(self.gauss_image, self.skeleton).prune_skeleton(self.pruning_method)
+        self.pruned_skeleton = pruneSkeleton(self.gauss_image, self.skeleton).prune_skeleton(self.pruning_params.copy())
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
@@ -844,8 +845,8 @@ def trace_image(
     filename: str,
     pixel_to_nm_scaling: float,
     min_skeleton_size: int,
-    skeletonisation_method: str,
-    pruning_method: str,
+    skeletonisation_params: dict,
+    pruning_params: dict,
     pad_width: int = 10,
     cores: int = 1,
 ) -> pd.DataFrame:
@@ -863,9 +864,10 @@ def trace_image(
         Pixel to nm scaling.
     min_skeleton_size: int
         Minimum size of grain in pixels after skeletonisation.
-    skeletonisation_method: str
-        Method of skeletonisation, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin' (scikitimage) or
-       'topostats' (original TopoStats method)
+    skeletonisation_params: dict
+        Any parameters associated with the method of skeletonisation.
+    pruning_params: dict
+        Any parameters associated with the method of pruning.
     pad_width: int
         Number of cells to pad arrays by, required to handle instances where grains touch the bounding box edges.
     cores : int
@@ -905,10 +907,10 @@ def trace_image(
             cropped_image,
             cropped_mask,
             pixel_to_nm_scaling,
+            skeletonisation_params,
+            pruning_params,
             filename,
             min_skeleton_size,
-            skeletonisation_method,
-            pruning_method,
             n_grain,
         )
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
@@ -973,10 +975,10 @@ def trace_grain(
     cropped_image: np.ndarray,
     cropped_mask: np.ndarray,
     pixel_to_nm_scaling: float,
+    skeletonisation_params: dict,
+    pruning_params: dict,
     filename: str = None,
     min_skeleton_size: int = 10,
-    skeletonisation_method: str = "joe",
-    pruning_method="joe",
     n_grain: int = None,
 ) -> Dict:
     """Trace an individual grain.
@@ -1003,9 +1005,10 @@ def trace_grain(
         Pixel to nm scaling.
     min_skeleton_size: int
         Minimum size of grain in pixels after skeletonisation.
-    skeletonisation_method: str
-        Method of skeletonisation, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin' (scikitimage) or
-       'topostats' (original TopoStats method)
+    skeletonisation_params: dict
+        Any parameters associated with the method of skeletonisation.
+    pruning_params: dict
+        Any parameters associated with the method of pruning.
     n_grain: int
         Grain number being processed.
 
@@ -1018,11 +1021,11 @@ def trace_grain(
     dnatrace = dnaTrace(
         image=cropped_image,
         grain=cropped_mask,
+        skeletonisation_params=skeletonisation_params,
+        pruning_params=pruning_params,
         filename=filename,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         min_skeleton_size=min_skeleton_size,
-        skeletonisation_method=skeletonisation_method,
-        pruning_method=pruning_method,
         n_grain=n_grain,
     )
     dnatrace.trace_dna()
@@ -1221,10 +1224,10 @@ class nodeStats:
             # np.savetxt(OUTPUT_DIR / "img.txt", self.image)
             #np.savetxt(OUTPUT_DIR / "untidied.txt", self.connected_nodes)
             plt.imsave(OUTPUT_DIR / "connected_nodes.png", self.connected_nodes)
-            # self.connected_nodes = self.tidy_branches(self.connected_nodes, self.image)
+            #self.connected_nodes = self.tidy_branches(self.connected_nodes, self.image)
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
             # np.savetxt(OUTPUT_DIR / "tidied.txt", self.connected_nodes)
-            self.analyse_nodes(max_branch_length=10e-9)
+            self.analyse_nodes(max_branch_length=20e-9)
         return self.node_dict
         # self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
 
@@ -1267,6 +1270,7 @@ class nodeStats:
 
         return im
 
+    # TODO: Maybe move to skeletonisation & fix
     def tidy_branches(self, connect_node_mask: np.ndarray, image: np.ndarray):
         """Aims to wrangle distant connected nodes back towards the main cluster. By reskeletonising
         soely the node areas.
@@ -1568,6 +1572,7 @@ class nodeStats:
             node_area = self.connected_nodes.copy()[box_lims[0] : box_lims[1], box_lims[2] : box_lims[3]]
             """
             max_length_px = max_branch_length / self.px_2_nm
+            print("ALONG NODE: ", max_length_px, "px")
             image_slices = (
                 x - int(max_length_px * 1.2),
                 x + int(max_length_px * 1.2),
@@ -2443,7 +2448,7 @@ class nodeStats:
         distances = []
         for i in np.unique(labels)[1:]:
             trace_img = np.where(labels==i, 1, 0)
-            trace_img = getSkeleton(img, trace_img).get_skeleton("zhang")
+            trace_img = getSkeleton(img, trace_img).get_skeleton({"skeletonisation_method": "zhang"})
             trace = self.order_branch(trace_img, branch_coords[0])
             height_trace = img[trace[:, 0], trace[:, 1]]
             dist = self.coord_dist_rad(trace, centre)  # self.coord_dist(trace)

@@ -34,7 +34,7 @@ class getSkeleton:
         self.image = image
         self.mask = mask
 
-    def get_skeleton(self, method: str, params=None) -> np.ndarray:
+    def get_skeleton(self, params={"method": "zhang"}) -> np.ndarray:
         """Factory method for skeletonizing molecules.
 
         Parameters
@@ -55,9 +55,9 @@ class getSkeleton:
         module. See also the `examples
         <https://scikit-image.org/docs/stable/auto_examples/edges/plot_skeleton.html>_
         """
-        return self._get_skeletonize(method, params)
+        return self._get_skeletonize(params)
 
-    def _get_skeletonize(self, method: str = "zhang", params=None) -> Callable:
+    def _get_skeletonize(self, params={"method": "zhang"}) -> Callable:
         """Creator component which determines which skeletonize method to use.
 
         Parameters
@@ -70,6 +70,7 @@ class getSkeleton:
         Callable
             Returns the function appropriate for the required skeletonizing method.
         """
+        method = params.pop("skeletonisation_method")
         if method == "zhang":
             return self._skeletonize_zhang(self.mask).astype(np.int32)
         if method == "lee":
@@ -149,7 +150,7 @@ class getSkeleton:
         return thin(image)
 
     @staticmethod
-    def _skeletonize_joe(image: np.ndarray, mask: np.ndarray, params=None) -> np.ndarray:
+    def _skeletonize_joe(image: np.ndarray, mask: np.ndarray, params={"height_bias": 0.6}) -> np.ndarray:
         """Wrapper for Pyne-lab member Joe's skeletonisation method.
 
         Parameters
@@ -167,9 +168,6 @@ class getSkeleton:
         This method is based on Zhang's method but produces different results
         (less branches but slightly less accurate).
         """
-        if params is None:
-            params = {"height_bias": 0.6}
-
         return joeSkeletonize(image, mask, **params).do_skeletonising()
 
 
@@ -223,7 +221,7 @@ class joeSkeletonize:
             self._do_skeletonising_iteration()
         # When skeleton converged do an additional iteration of thinning to remove hanging points
         self.final_skeletonisation_iteration()
-        self.mask = getSkeleton(self.image, self.mask).get_skeleton(method="zhang")
+        self.mask = getSkeleton(self.image, self.mask).get_skeleton({"skeletonisation_method": "zhang"})
 
         return self.mask  # unpad
 
@@ -494,7 +492,7 @@ class pruneSkeleton:
         self.image = image
         self.skeleton = skeleton
 
-    def prune_skeleton(self, method: str = "joe") -> np.ndarray:
+    def prune_skeleton(self, prune_args: dict = {"pruning_method": "joe"}) -> np.ndarray:
         """Factory method for pruning skeletons.
 
         Parameters
@@ -512,9 +510,9 @@ class pruneSkeleton:
 
         This is a thin wrapper to the methods provided within the pruning classes below.
         """
-        return self._prune_method(method)
+        return self._prune_method(prune_args)
 
-    def _prune_method(self, method: str = "joe") -> Callable:
+    def _prune_method(self, prune_args = None) -> Callable:
         """Creator component which determines which skeletonize method to use.
 
         Parameters
@@ -527,15 +525,16 @@ class pruneSkeleton:
         Callable
             Returns the function appropriate for the required skeletonizing method.
         """
+        method = prune_args.pop("pruning_method")
         if method == "joe":
-            return self._prune_joe(self.image, self.skeleton)
+            return self._prune_joe(self.image, self.skeleton, prune_args)
         if method == "max":
             return self._prune_max(self.image, self.skeleton)
         # I've read about a "Discrete Skeleton Evolultion" (DSE) method that looks useful
         raise ValueError(method)
 
     @staticmethod
-    def _prune_joe(image: np.ndarray, skeleton: np.ndarray) -> np.ndarray:
+    def _prune_joe(image: np.ndarray, skeleton: np.ndarray, prune_args: dict) -> np.ndarray:
         """Wrapper for Pyne-lab member Joe's pruning method.
 
         Parameters
@@ -550,7 +549,8 @@ class pruneSkeleton:
         np.ndarray
             The skeleton with spurious branching artefacts removed.
         """
-        return joePrune(image, skeleton).prune_all_skeletons()
+        print("Prune args:", prune_args)
+        return joePrune(image, skeleton, **prune_args).prune_all_skeletons()
 
     @staticmethod
     def _prune_max(image: np.ndarray, skeleton: np.ndarray) -> np.ndarray:
@@ -581,7 +581,7 @@ class joePrune:
     should someone be upto the task, it is possible to include the heights when pruning.
     """
 
-    def __init__(self, image: np.ndarray, skeleton: np.ndarray) -> np.ndarray:
+    def __init__(self, image: np.ndarray, skeleton: np.ndarray, max_length: float=None, min_height_threshold: float=None) -> np.ndarray:
         """Initialise the class.
 
         Parameters
@@ -596,6 +596,9 @@ class joePrune:
         """
         self.image = image
         self.skeleton = skeleton.copy()
+        self.max_length = max_length
+        self.min_height_threshold = min_height_threshold
+        print("VALS: ", self.max_length, self.min_height_threshold)
 
     def prune_all_skeletons(self) -> np.ndarray:
         """Wrapper function to prune all skeletons by labling and iterating through
@@ -612,12 +615,14 @@ class joePrune:
             single_skeleton = self.skeleton.copy()
             single_skeleton[single_skeleton != i] = 0
             single_skeleton[single_skeleton == i] = 1
-            pruned_skeleton_mask += self._prune_single_skeleton(single_skeleton)
-            # pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton('zhang') # reskel to remove nibs
-            # pruned_skeleton_mask = remove_low_dud_branches(pruned_skeleton_mask, self.image)
+            if self.max_length is not None:
+                pruned_skeleton_mask = self._prune_single_skeleton(single_skeleton, max_length=self.max_length)
+            if self.min_height_threshold is not None:
+                pruned_skeleton_mask = remove_low_dud_branches(pruned_skeleton_mask, self.image, threshold=self.min_height_threshold)
+            pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton({"skeletonisation_method": "zhang"}) # reskel to remove nibs
         return pruned_skeleton_mask
 
-    def _prune_single_skeleton(self, single_skeleton: np.ndarray) -> np.ndarray:
+    def _prune_single_skeleton(self, single_skeleton: np.ndarray, max_length=-1) -> np.ndarray:
         """Function to remove the hanging branches from a single skeleton as this
         function is an iterative process. These are a persistent problem in the
         overall tracing process.
@@ -640,7 +645,7 @@ class joePrune:
 
             # The branches are typically short so if a branch is longer than
             #  0.15 * total points, its assumed to be part of the real data
-            max_branch_length = int(len(coordinates) * 0.15)
+            max_branch_length = max_length if max_length != -1 else int(len(coordinates) * 0.15)
 
             # first check to find all the end coordinates in the trace
             potential_branch_ends = self._find_branch_ends(coordinates)
@@ -750,7 +755,7 @@ class maxPrune:
                 single_skeleton
             )  # maybe need to add other option for large images of like 20px
             # pruned_skeleton_mask = self._remove_low_dud_branches(pruned_skeleton_mask, self.image)
-            pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton("zhang")
+            pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton({"skeletonisation_method": "zhang"})
         return pruned_skeleton_mask
 
     def _prune_single_skeleton(self, single_skeleton: np.ndarray, threshold: float = 0.15) -> np.ndarray:
@@ -793,17 +798,31 @@ def remove_low_dud_branches(skeleton, image, threshold=None) -> np.ndarray:
     nodeless = skeleton.copy()
     nodeless[conv == 3] = 0
     segments = label(nodeless)
-    median_heights = [np.median(image[segments == i]) for i in range(1, segments.max() + 1)]
+    #median_heights = [np.median(image[segments == i]) for i in range(1, segments.max() + 1)]
+    median_heights = [np.min(image[segments == i]) for i in range(1, segments.max() + 1)]
+    # need to ensure that 
+    print("THRESH: ", threshold)
     if threshold is None:
         q75, q25 = np.percentile(median_heights, [75, 25])
         iqr = q75 - q25
         threshold = q25 - 1.5 * iqr
     # threshold heights to remove segments
     idxs = np.asarray(np.where(np.asarray(median_heights) < threshold)) + 1
+    print(f"median heights \n {median_heights}")
     for i in idxs:
-        print("Removed dud branch: ", i)
-        skeleton_rtn[segments == i] = 0
+        temp_skel = skeleton_rtn.copy()
+        temp_skel[segments == i] = 0
+        if check_skeleton_one_object(temp_skel):
+            print("Removed dud branch: ", i)
+            skeleton_rtn[segments == i] = 0
+        else:
+            print(f"Bridge {i} breaks skeleton, not removed")
     return skeleton_rtn
+
+
+def check_skeleton_one_object(skeleton):
+    skeleton = np.where(skeleton!=0, 1, 0)
+    return len(np.unique(label(skeleton))) == 2
 
 
 def rm_nibs(skeleton):

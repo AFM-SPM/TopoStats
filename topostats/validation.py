@@ -189,20 +189,27 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
             ),
             "min_skeleton_size": lambda n: n > 0.0,
-            "skeletonisation_method": Or(
-                "zhang",
-                "lee",
-                "thin",
-                "medial_axis",
-                "joe",
-                error="Invalid value in config for 'dnatracing.skeletonisation_method',"
-                "valid values are 'zhang', 'lee', 'thin', 'medial_axis', 'joe'",
-            ),
-            "pruning_method": Or(
-                "joe",
-                "max",
-                error="Invalid value in config for 'dnatracing.pruning_method', valid values are 'joe'",
-            ),
+            "skeletonisation_params": {
+                "skeletonisation_method": Or(
+                    "zhang",
+                    "lee",
+                    "thin",
+                    "medial_axis",
+                    "joe",
+                    error="Invalid value in config for 'dnatracing.skeletonisation_method',"
+                    "valid values are 'zhang', 'lee', 'thin', 'medial_axis', 'joe'",
+                ),
+                "height_bias": lambda n: 0 < n <= 1,
+            },
+            "pruning_params": {
+                "pruning_method": Or(
+                    "joe",
+                    "max",
+                    error="Invalid value in config for 'dnatracing.pruning_method', valid values are 'joe'",
+                ),
+                "max_length": Or(int, float),
+                "min_height_threshold": Or(int, float),
+            },
             "pad_width": lambda n: n > 0.0,
             # "cores": lambda n: n > 0.0,
         },
@@ -706,6 +713,7 @@ PLOTTING_SCHEMA = Schema(
             ),
             "mask_cmap": str,
             "core_set": bool,
+            "dpi": int,
         },
         "crossings": {
             "title": str,
@@ -718,6 +726,7 @@ PLOTTING_SCHEMA = Schema(
             ),
             "mask_cmap": str,
             "core_set": bool,
+            "dpi": int,
         },
         "tripple_crossings": {
             "title": str,
