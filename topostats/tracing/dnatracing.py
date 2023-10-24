@@ -1230,7 +1230,6 @@ class nodeStats:
             # connect the odd-branch nodes
             self.connected_nodes = self.connect_extended_nodes_nearest(self.connected_nodes)
             #self.connected_nodes = self.connect_extended_nodes(self.connected_nodes)
-            
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
             # np.savetxt(OUTPUT_DIR / "tidied.txt", self.connected_nodes)
             self.analyse_nodes(max_branch_length=20e-9)
@@ -1293,16 +1292,16 @@ class nodeStats:
         np.ndarray
             The wrangled connected_node_mask.
         """
-        new_skeleton = np.where(connect_node_mask > 0, 1, 0)
+        new_skeleton = np.where(connect_node_mask != 0, 1, 0)
+        plt.imsave(OUTPUT_DIR / "new1.png", new_skeleton)
         labeled_nodes = label(np.where(connect_node_mask == 3, 1, 0))
-
         for node_num in range(1, labeled_nodes.max() + 1):
             solo_node = np.where(labeled_nodes == node_num, 1, 0)
 
             coords = np.argwhere(solo_node == 1)
             node_centre = coords.mean(axis=0).astype(np.int32)
-            node_wid = coords[:, 0].max() - coords[:, 0].min() + 1
-            node_len = coords[:, 1].max() - coords[:, 1].min() + 1
+            node_wid = coords[:, 0].max() - coords[:, 0].min() + 2 # +2 so always 2 by default
+            node_len = coords[:, 1].max() - coords[:, 1].min() + 2 # +2 so always 2 by default
 
             # square fill with overfill of 5nm - wont work if squares crossover as could make bridges
             overflow = int(10e-9 / self.px_2_nm) if int(10e-9 / self.px_2_nm) != 0 else 1
@@ -1320,15 +1319,38 @@ class nodeStats:
                 node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
                 node_centre[1] - node_len // 2 - overflow : node_centre[1] + node_len // 2 + overflow
             ]
-        
+        # remove any artifacts of thre grain caught in the overflow areas
+        new_skeleton = self.keep_biggest_object(new_skeleton)
         # Re-skeletonise
         new_skeleton = getSkeleton(image, new_skeleton).get_skeleton({"skeletonisation_method": "joe", "height_bias": 0.6})
         new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton({"pruning_method": "joe", "max_length": -1})
         new_skeleton = getSkeleton(image, new_skeleton).get_skeleton({"skeletonisation_method": "zhang"})  # cleanup around nibs
-        
         # might also need to remove segments that have squares connected 
 
         return convolve_skelly(new_skeleton)
+
+    @staticmethod
+    def keep_biggest_object(mask: np.ndarray) -> np.ndarray:
+        """Keeps the largest object in a binary mask.
+
+        Parameters
+        ----------
+        mask : np.ndarray
+            Binary mask.
+
+        Returns
+        -------
+        np.ndarray
+            A binary mask with only one object.
+        """
+        labelled_mask = label(mask)
+        idxs, counts = np.unique(mask, return_counts=True)
+        try:
+            max_idx = idxs[np.argmax(counts[1:]) + 1]
+            return np.where(labelled_mask == max_idx, 1, 0)
+        except ValueError as e:
+            LOGGER.info(f"{e}: mask is empty.")
+            return mask
 
     def connect_close_nodes(self, conv_skelly: np.ndarray, node_width: float = 2.85e-9) -> None:
         """Looks to see if nodes are within the node_width boundary (2.85nm) and thus
@@ -1647,7 +1669,7 @@ class nodeStats:
                     if node_no == 0:
                         self.test2 = vectors
                     # pair vectors
-                    print(f"NODE {real_node_count}, vectors:\n {vectors}")
+                    #print(f"NODE {real_node_count}, vectors:\n {vectors}")
                     pairs = self.pair_vectors(np.asarray(vectors))
 
                     # join matching branches through node
