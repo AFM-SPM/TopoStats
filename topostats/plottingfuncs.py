@@ -1,5 +1,6 @@
 """Plotting data."""
 from __future__ import annotations
+import importlib.resources as pkg_resources
 from pathlib import Path
 import logging
 
@@ -9,6 +10,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 from skimage.morphology import binary_dilation
 
+import topostats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
 
@@ -18,6 +20,7 @@ from topostats.theme import Colormap
 # pylint: disable=dangerous-default-value
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+plt.style.use(pkg_resources.files(topostats) / "images.mplstyle")
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-arguments
@@ -93,6 +96,7 @@ class Images:
         zrange: list = None,
         colorbar: bool = True,
         axes: bool = True,
+        num_ticks: list[int | None, int | None] = (None, None),
         save: bool = True,
         save_format: str = "png",
         histogram_log_axis: bool = True,
@@ -136,6 +140,8 @@ class Images:
             Optionally add a colorbar to plots, default is False.
         axes: bool
             Optionally add/remove axes from the image.
+        num_ticks: list[int, int]
+            The number of x and y ticks to display on the image.
         save: bool
             Whether to save the image.
         save_format: str
@@ -165,6 +171,7 @@ class Images:
         self.zrange = zrange
         self.colorbar = colorbar
         self.axes = axes
+        self.num_ticks = num_ticks
         self.save = save
         self.save_format = save_format
         self.histogram_log_axis = histogram_log_axis
@@ -274,11 +281,12 @@ class Images:
                     alpha=0.7,
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
-                plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
+                plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1.02, 1.09))
 
             plt.title(self.title)
             plt.xlabel("Nanometres")
             plt.ylabel("Nanometres")
+            set_n_ticks(ax, self.num_ticks)
             plt.axis(self.axes)
             if self.colorbar and self.image_type == "non-binary":
                 divider = make_axes_locatable(ax)
@@ -353,3 +361,30 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
         rectangle = Rectangle((min_x, min_y), max_x - min_x, max_y - min_y, fill=False, edgecolor="white", linewidth=2)
         ax.add_patch(rectangle)
     return fig, ax
+
+
+def set_n_ticks(ax: plt.Axes.axes, n_xy: list[int | None, int | None]) -> None:
+    """Set the number of ticks along the y and x axes and lets matplotlib assign the values.
+
+    Parameters
+    ----------
+    ax : plt.Axes.axes
+        The axes to add ticks to.
+    n_xy : list[int, int]
+        The number of ticks.
+
+    Returns
+    -------
+    plt.Axes.axes
+        The axes with the new ticks.
+    """
+    if n_xy[0] is not None:
+        xlim = ax.get_xlim()
+        xstep = (max(xlim) - min(xlim)) / (n_xy[0] - 1)
+        xticks = np.arange(min(xlim), max(xlim) + xstep, xstep)
+        ax.set_xticks(np.round(xticks))
+    if n_xy[1] is not None:
+        ylim = ax.get_ylim()
+        ystep = (max(ylim) - min(ylim)) / (n_xy[1] - 1)
+        yticks = np.arange(min(ylim), max(ylim) + ystep, ystep)
+        ax.set_yticks(np.round(yticks))
