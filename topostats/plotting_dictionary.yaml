@@ -180,11 +180,13 @@ zoom_node:
   image_type: "non-binary"
   core_set: false
   mask_cmap: "green_black"
+  dpi: 800
 crossings:
   title: "Crossing and Skeleton Branches"
   image_type: "non-binary"
   core_set: false
   mask_cmap: "green_green"
+  dpi: 800
 tripple_crossings:
   title: "Image with Main and Paralell Traces"
   image_type: "non-binary"
