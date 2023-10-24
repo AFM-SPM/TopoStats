@@ -549,7 +549,6 @@ class pruneSkeleton:
         np.ndarray
             The skeleton with spurious branching artefacts removed.
         """
-        print("Prune args:", prune_args)
         return joePrune(image, skeleton, **prune_args).prune_all_skeletons()
 
     @staticmethod
@@ -598,7 +597,6 @@ class joePrune:
         self.skeleton = skeleton.copy()
         self.max_length = max_length
         self.min_height_threshold = min_height_threshold
-        print("VALS: ", self.max_length, self.min_height_threshold)
 
     def prune_all_skeletons(self) -> np.ndarray:
         """Wrapper function to prune all skeletons by labling and iterating through
@@ -798,17 +796,15 @@ def remove_low_dud_branches(skeleton, image, threshold=None) -> np.ndarray:
     nodeless = skeleton.copy()
     nodeless[conv == 3] = 0
     segments = label(nodeless)
-    #median_heights = [np.median(image[segments == i]) for i in range(1, segments.max() + 1)]
     median_heights = [np.min(image[segments == i]) for i in range(1, segments.max() + 1)]
     # need to ensure that 
-    print("THRESH: ", threshold)
     if threshold is None:
+        median_heights = [np.median(image[segments == i]) for i in range(1, segments.max() + 1)]
         q75, q25 = np.percentile(median_heights, [75, 25])
         iqr = q75 - q25
         threshold = q25 - 1.5 * iqr
     # threshold heights to remove segments
     idxs = np.asarray(np.where(np.asarray(median_heights) < threshold)) + 1
-    print(f"median heights \n {median_heights}")
     for i in idxs:
         temp_skel = skeleton_rtn.copy()
         temp_skel[segments == i] = 0
@@ -821,8 +817,9 @@ def remove_low_dud_branches(skeleton, image, threshold=None) -> np.ndarray:
 
 
 def check_skeleton_one_object(skeleton):
+    """Ensures that the skeleton hasn't been broken up upon removing a segment."""
     skeleton = np.where(skeleton!=0, 1, 0)
-    return len(np.unique(label(skeleton))) == 2
+    return len(np.unique(label(skeleton))) > 1
 
 
 def rm_nibs(skeleton):
