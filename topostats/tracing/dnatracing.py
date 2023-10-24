@@ -1155,7 +1155,6 @@ class nodeStats:
         self.px_2_nm = px_2_nm
         self.n_grain = n_grain
 
-        self.whole_skel_graph = self.skeleton_image_to_graph(self.skeleton)
         sigma = (-3.5 / 3) * self.px_2_nm * 1e9 + 15.5 / 3
         self.hess = self.detect_ridges(self.image * 1e9, 4)
         # np.savetxt(OUTPUT_DIR / "hess.txt", self.hess)
@@ -1186,6 +1185,7 @@ class nodeStats:
         self.conv_skelly = np.zeros_like(self.skeleton)
         self.connected_nodes = np.zeros_like(self.skeleton)
         self.all_connected_nodes = self.skeleton.copy()
+        self.whole_skel_graph = None
 
         self.node_centre_mask = None
         self.node_dict = {}
@@ -1216,15 +1216,21 @@ class nodeStats:
         """
         LOGGER.info(f"Node Stats - Processing Grain: {self.n_grain}")
         self.conv_skelly = convolve_skelly(self.skeleton)
-        # np.savetxt(OUTPUT_DIR / "conv.txt", self.conv_skelly)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
-            self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
+            # convolve to see crossing and end points
+            self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
+            np.savetxt(OUTPUT_DIR / "conv2.txt", self.conv_skelly)
+            # reset skeleton var as tidy branches may have modified it
+            self.skeleton = np.where(self.conv_skelly != 0, 1, 0)
+            # get graph of skeleton
+            self.whole_skel_graph = self.skeleton_image_to_graph(self.skeleton)
+            # connect the close nodes
+            self.connected_nodes = self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
+            np.savetxt(OUTPUT_DIR / "conn.txt", self.connected_nodes)
+            # connect the odd-branch nodes
             self.connected_nodes = self.connect_extended_nodes_nearest(self.connected_nodes)
             #self.connected_nodes = self.connect_extended_nodes(self.connected_nodes)
-            # np.savetxt(OUTPUT_DIR / "img.txt", self.image)
-            #np.savetxt(OUTPUT_DIR / "untidied.txt", self.connected_nodes)
-            plt.imsave(OUTPUT_DIR / "connected_nodes.png", self.connected_nodes)
-            #self.connected_nodes = self.tidy_branches(self.connected_nodes, self.image)
+            
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
             # np.savetxt(OUTPUT_DIR / "tidied.txt", self.connected_nodes)
             self.analyse_nodes(max_branch_length=20e-9)
@@ -1292,30 +1298,41 @@ class nodeStats:
 
         for node_num in range(1, labeled_nodes.max() + 1):
             solo_node = np.where(labeled_nodes == node_num, 1, 0)
-            image_node = np.where(solo_node == 1, image, 0)
 
-            node_centre = np.argwhere(image_node == image_node.max())[0]
             coords = np.argwhere(solo_node == 1)
+            node_centre = coords.mean(axis=0).astype(np.int32)
             node_wid = coords[:, 0].max() - coords[:, 0].min() + 1
             node_len = coords[:, 1].max() - coords[:, 1].min() + 1
 
+            # square fill with overfill of 5nm - wont work if squares crossover as could make bridges
+            overflow = int(10e-9 / self.px_2_nm) if int(10e-9 / self.px_2_nm) != 0 else 1
+            """
             new_skeleton[
-                node_centre[0] - node_wid // 2 - 10 : node_centre[0] + node_wid // 2 + 10,
-                node_centre[1] - node_len // 2 - 10 : node_centre[1] + node_len // 2 + 10,
+                node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
+                node_centre[1] - node_len // 2 - overflow : node_centre[1] + node_len // 2 + overflow,
             ] = 1
-            # new_skeleton[node_centre[0]-node_wid//2-10:node_centre[0]+node_wid//2+10, node_centre[1]-node_len//2-10:node_centre[1]+node_len//2+10] = self.grain[node_centre[0]-node_wid//2-10:node_centre[0]+node_wid//2+10, node_centre[1]-node_len//2-10:node_centre[1]+node_len//2+10]
+            """
+            # grain mask fill
+            new_skeleton[
+                node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
+                node_centre[1] - node_len // 2 - overflow : node_centre[1] + node_len // 2 + overflow
+            ] = self.smoothed_grain[
+                node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
+                node_centre[1] - node_len // 2 - overflow : node_centre[1] + node_len // 2 + overflow
+            ]
+        
+        # Re-skeletonise
+        new_skeleton = getSkeleton(image, new_skeleton).get_skeleton({"skeletonisation_method": "joe", "height_bias": 0.6})
+        new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton({"pruning_method": "joe", "max_length": -1})
+        new_skeleton = getSkeleton(image, new_skeleton).get_skeleton({"skeletonisation_method": "zhang"})  # cleanup around nibs
+        
+        # might also need to remove segments that have squares connected 
 
-        new_skeleton = getSkeleton(image, new_skeleton).get_skeleton(method="joe", params={"height_bias": 0.6})
-        new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton(method="joe")
-        new_skeleton = getSkeleton(image, new_skeleton).get_skeleton(method="zhang")  # cleanup around nibs
-
-        self.conv_skelly = convolve_skelly(new_skeleton)
-
-        return self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
+        return convolve_skelly(new_skeleton)
 
     def connect_close_nodes(self, conv_skelly: np.ndarray, node_width: float = 2.85e-9) -> None:
         """Looks to see if nodes are within the node_width boundary (2.85nm) and thus
-        are connected, also labeling them as part of the same node.
+        should be connected, also labeling them as part of the same node.
 
         Parameters
         ----------
@@ -1607,7 +1624,7 @@ class nodeStats:
                     res = self.px_2_nm <= 1000 / 512
                     if not res:
                         print(f"Resolution {res} is below suggested {1000 / 512}, node difficult to analyse.")
-                        raise ResolutionError
+                        #raise ResolutionError
                     # elif x - length < 0 or y - length < 0 or x + length > self.image.shape[0] or y + length > self.image.shape[1]:
                     # LOGGER.info(f"Node lies too close to image boundary, increase 'pad_with' value.")
                     # raise ResolutionError
@@ -1630,6 +1647,7 @@ class nodeStats:
                     if node_no == 0:
                         self.test2 = vectors
                     # pair vectors
+                    print(f"NODE {real_node_count}, vectors:\n {vectors}")
                     pairs = self.pair_vectors(np.asarray(vectors))
 
                     # join matching branches through node
@@ -1670,10 +1688,12 @@ class nodeStats:
                             )  # hess_area
                             matched_branches[i]["avg_mask"] = mask
                         except (AssertionError, IndexError) as e: # Assertion - avg trace not advised, Index - wiggy branches
+                            LOGGER.info(f"[{self.filename}] : {e}, single trace only.")
                             average_trace_advised = False
                             distances = self.coord_dist_rad(
                                 single_branch_coords, [x, y]
-                            )  # self.coord_dist(single_branch_coords)
+                            )
+                            # distances = self.coord_dist(single_branch_coords)
                             zero_dist = distances[
                                 np.argmin(
                                     np.sqrt(
@@ -2085,7 +2105,6 @@ class nodeStats:
 
         """
         centre_fraction = int(len(heights) * 0.2)  # incase zone approaches another node, look around centre for max
-        print("LEN: ", len(heights), centre_fraction)
         if centre_fraction == 0:
             high_idx = np.argmax(heights)
         else:
@@ -2401,7 +2420,8 @@ class nodeStats:
             from the crossing.
         """
         # get heights and dists of the original (middle) branch
-        branch_dist = self.coord_dist_rad(branch_coords, centre)  # self.coord_dist(branch_coords)
+        branch_dist = self.coord_dist_rad(branch_coords, centre)
+        # branch_dist = self.coord_dist(branch_coords)
         branch_heights = img[branch_coords[:, 0], branch_coords[:, 1]]
         branch_dist, branch_heights = self.average_uniques(
             branch_dist, branch_heights
