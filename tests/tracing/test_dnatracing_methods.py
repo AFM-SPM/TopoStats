@@ -32,6 +32,14 @@ def dnatrace() -> dnaTrace:
     )
 
 
+@pytest.fixture()
+def dnatrace_spline(dnatrace: dnaTrace) -> dnaTrace:
+    """Instantiate a dnaTrace object for splining tests."""
+    dnatrace.pixel_to_nm_scaling = 1.0
+    dnatrace.n_grain = 1
+    return dnatrace
+
+
 GRAINS = {}
 GRAINS["vertical"] = np.asarray(
     [
@@ -698,7 +706,7 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
     ],
 )
 def test_get_splined_traces(
-    dnatrace: dnaTrace,
+    dnatrace_spline: dnaTrace,
     trace_image: np.ndarray,
     step_size_m: float,
     mol_is_circular: bool,
@@ -720,24 +728,22 @@ def test_get_splined_traces(
 
     # Set dnatrace smoothness accordingly
     if mol_is_circular:
-        dnatrace.spline_circular_smoothing = smoothness
+        dnatrace_spline.spline_circular_smoothing = smoothness
     else:
-        dnatrace.spline_linear_smoothing = smoothness
+        dnatrace_spline.spline_linear_smoothing = smoothness
 
     # Generate splined trace
-    dnatrace.fitted_trace = fitted_trace
-    dnatrace.step_size_m = step_size_m
+    dnatrace_spline.fitted_trace = fitted_trace
+    dnatrace_spline.step_size_m = step_size_m
     # Fixed pixel to nm scaling since changing this is redundant due to the internal effect being linked to
     # the step_size_m divided by this value, so changing both doesn't make sense.
-    dnatrace.pixel_to_nm_scaling = 1.0
-    dnatrace.mol_is_circular = mol_is_circular
-    dnatrace.n_grain = 1
+    dnatrace_spline.mol_is_circular = mol_is_circular
 
     # Spline the traces
-    dnatrace.get_splined_traces()
+    dnatrace_spline.get_splined_traces()
 
     # Extract the splined trace
-    splined_trace = dnatrace.splined_trace
+    splined_trace = dnatrace_spline.splined_trace
 
     # This is just for easier human-readable tests. Turn the splined coords into a visualisation.
     splined_image = np.zeros_like(trace_image)
