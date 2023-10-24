@@ -116,7 +116,7 @@ class dnaTrace:
         self.ordered_trace = None
         self.ordered_trace_img = np.zeros_like(image)
         self.num_crossings = None
-        self.topology = None
+        self.topology = [None]
         self.fitted_traces = []
         self.fitted_trace_img = np.zeros_like(image)
         self.splined_traces = []
