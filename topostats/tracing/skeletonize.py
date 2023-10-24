@@ -609,15 +609,14 @@ class joePrune:
             A single mask with all pruned skeletons.
         """
         pruned_skeleton_mask = np.zeros_like(self.skeleton)
-        for i in range(1, label(self.skeleton).max() + 1):
-            single_skeleton = self.skeleton.copy()
-            single_skeleton[single_skeleton != i] = 0
-            single_skeleton[single_skeleton == i] = 1
+        labeled_skel = label(self.skeleton)
+        for i in range(1, labeled_skel.max() + 1):
+            single_skeleton = np.where(labeled_skel == i, 1, 0)
             if self.max_length is not None:
-                pruned_skeleton_mask = self._prune_single_skeleton(single_skeleton, max_length=self.max_length)
+                single_skeleton = self._prune_single_skeleton(single_skeleton, max_length=self.max_length)
             if self.min_height_threshold is not None:
-                pruned_skeleton_mask = remove_low_dud_branches(pruned_skeleton_mask, self.image, threshold=self.min_height_threshold)
-            pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton({"skeletonisation_method": "zhang"}) # reskel to remove nibs
+                single_skeleton = remove_low_dud_branches(single_skeleton, self.image, threshold=self.min_height_threshold)
+            pruned_skeleton_mask += getSkeleton(self.image, single_skeleton).get_skeleton({"skeletonisation_method": "zhang"}) # reskel to remove nibs
         return pruned_skeleton_mask
 
     def _prune_single_skeleton(self, single_skeleton: np.ndarray, max_length=-1) -> np.ndarray:
@@ -644,7 +643,6 @@ class joePrune:
             # The branches are typically short so if a branch is longer than
             #  0.15 * total points, its assumed to be part of the real data
             max_branch_length = max_length if max_length != -1 else int(len(coordinates) * 0.15)
-
             # first check to find all the end coordinates in the trace
             potential_branch_ends = self._find_branch_ends(coordinates)
 
