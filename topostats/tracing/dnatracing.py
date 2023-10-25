@@ -1420,7 +1420,6 @@ class nodeStats:
                     if(distance <= math.sqrt(2)):
                         num_branches = num_branches+1
             #num_branches = len(np.argwhere(cropped_matrix == 1))
-            print(f"node {node} has {num_branches} branches")
 
             if(num_branches % 2 == 1):
                 nodes_with_odd_branches.append(node)
@@ -1430,7 +1429,6 @@ class nodeStats:
                     if touching:
                         emanating_branches.append(branch)
                     emanating_branches_by_node[node] = emanating_branches  # Store emanating branches for this label
-                print(node, emanating_branches_by_node[node])
 
         # Iterate through the nodes and their emanating branches
         for node1, branches1 in emanating_branches_by_node.items():
@@ -1695,7 +1693,6 @@ class nodeStats:
                         # get heights and trace distance of branch
                         try:
                             assert average_trace_advised
-                            # np.savetxt(OUTPUT_DIR / "area.txt",image_area)
                             distances, heights, mask, _ = self.average_height_trace(
                                 self.image, single_branch_img, single_branch_coords, [x, y]
                             )  # hess_area
@@ -1721,7 +1718,6 @@ class nodeStats:
                             )  # needs to be paired with coord_dist_rad
                         matched_branches[i]["heights"] = heights
                         matched_branches[i]["distances"] = distances  # * self.px_2_nm
-                        # print("Dist_og: ", distances.min(), distances.max(), distances.shape)
                         # identify over/under
                         matched_branches[i]["fwhm2"] = self.fwhm2(
                             heights, distances
@@ -1732,7 +1728,6 @@ class nodeStats:
                     for branch_idx, values in matched_branches.items():  # get hms
                         hms.append(values["fwhm2"][1][2])
                     for branch_idx, values in matched_branches.items():  # use same highest hm
-                        # print("Dist_2: ", values["heights"].min(), values["heights"].max(), values["heights"].shape)
                         fwhm2 = self.fwhm2(values["heights"], values["distances"], hm=max(hms))
                         matched_branches[branch_idx]["fwhm2"] = fwhm2
 
@@ -2499,7 +2494,6 @@ class nodeStats:
             distances.append(
                 dist - dist_zero_point  # - 0
             )  # branch_dist[branch_heights.argmax()]) #dist[central_heights.argmax()])
-
         # Make like coord system using original branch
         avg1 = []
         avg2 = []
@@ -2891,7 +2885,6 @@ class nodeStats:
             if mol_trace[-1][0] != 0:  # mol is not circular
                 topology.append("linear")
                 lin_idxs.append(i)
-                print("Linear: ", i)
         # remove from list in reverse order so no conflicts
         lin_idxs.sort(reverse=True)
         for i in lin_idxs:
