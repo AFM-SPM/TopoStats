@@ -1219,19 +1219,16 @@ class nodeStats:
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             # convolve to see crossing and end points
             self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
-            np.savetxt(OUTPUT_DIR / "conv2.txt", self.conv_skelly)
             # reset skeleton var as tidy branches may have modified it
             self.skeleton = np.where(self.conv_skelly != 0, 1, 0)
             # get graph of skeleton
             self.whole_skel_graph = self.skeleton_image_to_graph(self.skeleton)
             # connect the close nodes
             self.connected_nodes = self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
-            np.savetxt(OUTPUT_DIR / "conn.txt", self.connected_nodes)
             # connect the odd-branch nodes
             self.connected_nodes = self.connect_extended_nodes_nearest(self.connected_nodes)
             #self.connected_nodes = self.connect_extended_nodes(self.connected_nodes)
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
-            # np.savetxt(OUTPUT_DIR / "tidied.txt", self.connected_nodes)
             self.analyse_nodes(max_branch_length=20e-9)
         return self.node_dict
         # self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
@@ -1293,24 +1290,14 @@ class nodeStats:
             The wrangled connected_node_mask.
         """
         new_skeleton = np.where(connect_node_mask != 0, 1, 0)
-        plt.imsave(OUTPUT_DIR / "new1.png", new_skeleton)
         labeled_nodes = label(np.where(connect_node_mask == 3, 1, 0))
         for node_num in range(1, labeled_nodes.max() + 1):
             solo_node = np.where(labeled_nodes == node_num, 1, 0)
-
             coords = np.argwhere(solo_node == 1)
             node_centre = coords.mean(axis=0).astype(np.int32)
             node_wid = coords[:, 0].max() - coords[:, 0].min() + 2 # +2 so always 2 by default
             node_len = coords[:, 1].max() - coords[:, 1].min() + 2 # +2 so always 2 by default
-
-            # square fill with overfill of 5nm - wont work if squares crossover as could make bridges
             overflow = int(10e-9 / self.px_2_nm) if int(10e-9 / self.px_2_nm) != 0 else 1
-            """
-            new_skeleton[
-                node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
-                node_centre[1] - node_len // 2 - overflow : node_centre[1] + node_len // 2 + overflow,
-            ] = 1
-            """
             # grain mask fill
             new_skeleton[
                 node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
