@@ -2451,8 +2451,8 @@ class nodeStats:
         
         # want to get a 3 pixel line trace, one on each side of orig
         dilate = ndimage.binary_dilation(branch_mask, iterations=1)
-        dilate_minus = dilate.copy()
-        dilate_minus[branch_mask == 1] = 0
+        dilate = self.fill_holes(dilate)
+        dilate_minus = np.where(dilate != branch_mask, 1, 0)
         dilate2 = ndimage.binary_dilation(dilate)
         dilate2[(dilate == 1) | (branch_mask == 1)] = 0
         labels = label(dilate2)
@@ -2543,6 +2543,15 @@ class nodeStats:
             binary,
             [[heights[0], branch_heights, heights[1]], [distances[0], branch_dist_norm, distances[1]]],
         )
+    
+    @staticmethod
+    def fill_holes(mask: np.ndarray) -> np.ndarray:
+        """Fills all holes within a binary mask."""
+        inv_mask = np.where(mask!=0, 0, 1)
+        lbl_inv = label(inv_mask, connectivity=1)
+        idxs, counts = np.unique(lbl_inv, return_counts=True)
+        max_idx = idxs[np.argmax(counts)]
+        return np.where(lbl_inv != max_idx, 1, 0)
 
     @staticmethod
     def _remove_re_entering_branches(image: np.ndarray, remaining_branches: int = 1) -> np.ndarray:
