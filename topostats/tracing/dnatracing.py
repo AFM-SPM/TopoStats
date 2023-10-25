@@ -1445,30 +1445,25 @@ class nodeStats:
                             length = len(np.argwhere(labelled_branches == shared_branch))
                             if length < min_length:
                                 min_length = length
-                        print(f"minimum length: {min_length}")
                         # Change the value to 3 only when len is minimal
                         for shared_branch in common_branches:
                             length = len(np.argwhere(labelled_branches == shared_branch))
                             if length == min_length:
-                                print(shared_branch)
                                 connected_nodes[labelled_branches == shared_branch] = 3
 
         self.connected_nodes = connected_nodes
         return self.connected_nodes
     
     def connect_extended_nodes_nearest(self, connected_nodes):
-        just_nodes = connected_nodes.copy()
-        just_nodes[(connected_nodes == 1) | (connected_nodes == 2)] = 0  # remove branches & termini points
-        labelled = label(just_nodes)
+        just_nodes = np.where(connected_nodes == 3, 1, 0) # remove branches & termini points
+        labelled_nodes = label(just_nodes)
 
-        just_branches = connected_nodes.copy()
-        just_branches[(connected_nodes == 3) | (connected_nodes == 2)] = 0  # remove node & termini points
-        just_branches[connected_nodes == 1] = labelled.max()+1
+        just_branches = np.where(connected_nodes == 1, 1, 0) # remove node & termini points
+        just_branches[connected_nodes == 1] = labelled_nodes.max()+1
         labelled_branches = label(just_branches)
 
         def bounding_box(points):
             x_coordinates, y_coordinates = zip(*points)
-
             return [(min(x_coordinates), min(y_coordinates)), (max(x_coordinates), max(y_coordinates))]
 
         def do_sets_touch(set_A, set_B):
@@ -1487,35 +1482,43 @@ class nodeStats:
         emanating_branch_starts_by_node = {}  # Dictionary to store emanating branches for each label
         nodes_with_odd_branches = []  # List to store nodes with three branches
 
-        for node_num in range(1, labelled.max()+1):
+        for node_num in range(1, labelled_nodes.max()+1):
             num_branches = 0
-            bounding = bounding_box(np.argwhere(labelled == node_num))
+            # makes lil box around node with 1 overflow
+            bounding = bounding_box(np.argwhere(labelled_nodes == node_num))
             cropped_matrix = connected_nodes[bounding[0][0]-1:bounding[1][0] + 2, bounding[0][1]-1:bounding[1][1] + 2]
+            # get coords of nodes and branches in box
             node_coords = np.argwhere(cropped_matrix == 3)
             branch_coords = np.argwhere(cropped_matrix == 1)
+            # iterate through node coords to see which are within 8 dirs
             for node_coord in node_coords:
                 for branch_coord in branch_coords:
                     distance = math.dist(node_coord, branch_coord)
                     if(distance <= math.sqrt(2)):
                         num_branches = num_branches+1
-            #num_branches = len(np.argwhere(cropped_matrix == 1))
-            #print(f"node {node_num} has {num_branches} branches")
 
+            # find the branch start point of odd branched nodes
             if(num_branches % 2 == 1):
                 nodes_with_odd_branches.append(node_num)
                 emanating_branches = []  # List to store emanating branches for the current label
                 for branch in range(1, labelled_branches.max() + 1):
-                    touching, branch_start = do_sets_touch(np.argwhere(labelled_branches == branch), np.argwhere(labelled == node_num))
+                    # technically using labelled_branches when there's an end loop will only cause one
+                    #   of the end loop coords to be captured. This shopuldn't matter as the other 
+                    #   label after the crossing should be closer to another node.
+                    touching, branch_start = do_sets_touch(np.argwhere(labelled_branches == branch), np.argwhere(labelled_nodes == node_num))
                     if touching:
                         emanating_branches.append(branch_start)
-                    emanating_branch_starts_by_node[node_num] = emanating_branches  # Store emanating branches for this label
-
-        if len(emanating_branch_starts_by_node) == 1: # only 1 odd branch so ignore pairing
+                    emanating_branch_starts_by_node[node_num-1] = emanating_branches  # Store emanating branches for this label
+                    #assert len(emanating_branches) // 2 == 1
+                
+        if len(emanating_branch_starts_by_node) == 1: # only 1 odd branch so ignore pairing. will nx work with this and return no pairs anyway?
             return self.connected_nodes
         
         # Iterate through the nodes and their emanating branches
         shortest_node_dists = np.zeros((len(emanating_branch_starts_by_node), len(emanating_branch_starts_by_node))) # initialise the maximal pairing matrix
         shortest_dists_branch_idxs = np.zeros((shortest_node_dists.shape[0], shortest_node_dists.shape[0], 2)).astype(np.int64)
+        shortest_dist_coords = np.zeros((shortest_node_dists.shape[0], shortest_node_dists.shape[0], 2, 2)).astype(np.int64)
+        
         for i, (node1, branch_starts1) in enumerate(emanating_branch_starts_by_node.items()):
             for j, (node2, branch_starts2) in enumerate(emanating_branch_starts_by_node.items()):
                 if node1 != node2:  # Avoid comparing a node with itself
@@ -1528,10 +1531,11 @@ class nodeStats:
                     shortest_dist = np.min(temp_length_matrix)
                     shortest_node_dists[i, j] = shortest_dist
                     shortest_dists_branch_idxs[i, j] = np.argwhere(temp_length_matrix==shortest_dist)[0]
-
+                    shortest_dist_coords[i, j] = (branch_starts1[shortest_dists_branch_idxs[i, j][0]], branch_starts2[shortest_dists_branch_idxs[i, j][1]])
+                    
         # get best matches
-        matches = self.best_matches(shortest_node_dists)
-        # get paths of best matches
+        matches = self.best_matches(shortest_node_dists, max_weight_matching=False)
+        # get paths of best matches. TODO: replace below with using shortest dist coords
         for node_pair_idx in matches:
             branch_idxs = shortest_dists_branch_idxs[node_pair_idx[0], node_pair_idx[1]]
             node_nums = list(emanating_branch_starts_by_node.keys())
@@ -1992,10 +1996,15 @@ class nodeStats:
         # match angles
         return self.best_matches(angles)
     
-    def best_matches(self, arr: np.ndarray) -> np.ndarray:
+    def best_matches(self, arr: np.ndarray, max_weight_matching=True) -> np.ndarray:
         """Turns a matrix into a graph and calulates the best matching index pairs."""
-        G = self.create_weighted_graph(arr)
-        matching = np.array(list(nx.max_weight_matching(G, maxcardinality=True)))
+        if max_weight_matching:
+            G = self.create_weighted_graph(arr)
+            matching = np.array(list(nx.max_weight_matching(G, maxcardinality=True)))
+        else:
+            np.fill_diagonal(arr, arr.max() + 1)
+            G = self.create_weighted_graph(arr)
+            matching = np.array(list(nx.min_weight_matching(G)))
         return matching
 
     @staticmethod
