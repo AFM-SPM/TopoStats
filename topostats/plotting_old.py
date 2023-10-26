@@ -644,7 +644,7 @@ if __name__ == "__main__":
             plotdist(df, parameter, nm=nm, grouparg=grouparg, bins=np.linspace(start, end, bins), xmin=xmin, xmax=xmax, plotname=plotname, color=color1)
         elif plottype == "dist2":
             plotdist2var(df, parameter, parameter2, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1=label1,
-                         label2=label2, bins=np.linspace(start, end, bins), plotname=plotname)
+                         label2=label2, bins=np.linspace(start, end, bins), plotname=plotname, c1=color1, c2=color2)
         elif plottype == "joint":
             plotjoint(df, parameter, nm=nm)
         if compute_stats:
