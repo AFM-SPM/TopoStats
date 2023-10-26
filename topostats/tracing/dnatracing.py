@@ -1509,7 +1509,7 @@ class nodeStats:
                     emanating_branch_starts_by_node[node_num-1] = emanating_branches  # Store emanating branches for this label
                     #assert len(emanating_branches) // 2 == 1
                 
-        if len(emanating_branch_starts_by_node) == 1: # only 1 odd branch so ignore pairing. will nx work with this and return no pairs anyway?
+        if len(emanating_branch_starts_by_node) <= 1: # only <1 odd branch so ignore pairing. will nx work with this and return no pairs anyway?
             return self.connected_nodes
         
         # Iterate through the nodes and their emanating branches
