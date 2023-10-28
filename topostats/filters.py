@@ -431,7 +431,7 @@ processed, please refer to <url to page where we document common problems> for m
             )
         else:
             LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config")
-            self.images["initial_scar_removal"] = self.images["initial_quadratic_removal"]
+            self.images["initial_scar_removal"] = self.images["initial_nonlinear_polynomial_removal"]
 
         # Zero the data before thresholding, helps with absolute thresholding
         self.images["initial_zero_average_background"] = self.average_background(
