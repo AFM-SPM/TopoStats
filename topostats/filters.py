@@ -477,7 +477,7 @@ processed, please refer to <url to page where we document common problems> for m
             self.images["scar_mask"] = scar_mask
         else:
             LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config")
-            self.images["secondary_scar_removal"] = self.images["masked_quadratic_removal"]
+            self.images["secondary_scar_removal"] = self.images["masked_nonlinear_polynomial_removal"]
         self.images["final_zero_average_background"] = self.average_background(
             self.images["secondary_scar_removal"], self.images["mask"]
         )
