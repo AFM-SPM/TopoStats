@@ -16,14 +16,13 @@ from igor2 import binarywave
 import tifffile
 import h5py
 from ruamel.yaml import YAML, YAMLError
-from ruamel.yaml.main import round_trip_load as yaml_load, round_trip_dump as yaml_dump
 
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-CONFIG_DOCUMENTATION_REFERENCE = """For more information on configuration and how to use it:
+CONFIG_DOCUMENTATION_REFERENCE = """# For more information on configuration and how to use it:
 # https://afm-spm.github.io/TopoStats/main/configuration.html\n"""
 
 # pylint: disable=broad-except
@@ -88,17 +87,17 @@ def write_yaml(
     output_config = Path(output_dir) / config_file
     # Revert PosixPath items to string
     config = path_to_str(config)
-    config_yaml = yaml_load(yaml_dump(config))
 
     if header_message:
-        config_yaml.yaml_set_start_comment(f"{header_message} : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE)
+        header = f"# {header_message} : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
     else:
-        config_yaml.yaml_set_start_comment(
-            f"Configuration from TopoStats run completed : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
-        )
-    with output_config.open("w") as f:
+        header = f"# Configuration from TopoStats run completed : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
+    output_config.write_text(header, encoding="utf-8")
+
+    yaml = YAML(typ="safe")
+    with output_config.open("a", encoding="utf-8") as f:
         try:
-            f.write(yaml_dump(config_yaml))
+            yaml.dump(config, f)
         except YAMLError as exception:
             LOGGER.error(exception)
 

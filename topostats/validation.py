@@ -206,6 +206,9 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for 'dnatracing.skeletonisation_method',"
                 "valid values are 'zhang' or 'lee', 'thin' or 'topostats'",
             ),
+            "spline_step_size": lambda n: n > 0.0,
+            "spline_linear_smoothing": lambda n: n >= 0.0,
+            "spline_circular_smoothing": lambda n: n >= 0.0,
             "pad_width": lambda n: n > 0.0,
             # "cores": lambda n: n > 0.0,
         },
