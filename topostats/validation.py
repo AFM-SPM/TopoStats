@@ -219,8 +219,10 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 str,
                 Or(
                     "topostats.mplstyle",
+                    str,
+                    Path,
                     None,
-                    error="Invalid value in config for 'plotting.style', valid values are 'topostats.mpltyle' or None",
+                    error="Invalid value in config for 'plotting.style', valid values are 'topostats.mplstyle' or None",
                 ),
             ),
             "save_format": str,

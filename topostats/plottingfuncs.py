@@ -75,8 +75,19 @@ def dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int) -> n
     return binary_image
 
 
-def load_mplstyle(style: dict) -> None:
-    """Load the Matplotlibrc parameter file."""
+def load_mplstyle(style: str | Path) -> None:
+    """Load the Matplotlibrc parameter file.
+
+    Parameters
+    ----------
+    style: str | Path
+        Path to a Matplotlib Style file.
+
+    Returns
+    -------
+    None
+        Only loads the style file.
+    """
     if style == "topostats.mplstyle":
         plt.style.use(pkg_resources.files(topostats) / style)
     else:

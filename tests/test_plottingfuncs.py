@@ -44,9 +44,7 @@ def test_add_pixel_to_nm_to_plotting_config(plotting_config_with_plot_dict):
         ("tests/resources/my_custom.mplstyle", 34, 5.0, "viridis", "svg"),
     ],
 )
-def test_load_mplstyle(
-    style: dict, axes_titlesize: int, font_size: float, image_cmap: str, savefig_format: str
-) -> None:
+def test_load_mplstyle(style: str, axes_titlesize: int, font_size: float, image_cmap: str, savefig_format: str) -> None:
     """Test loading of topostats.mplstyle and a custom style."""
     load_mplstyle(style)
     assert mpl.rcParams["axes.titlesize"] == axes_titlesize
