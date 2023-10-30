@@ -1,7 +1,7 @@
 """A U-NET model for segmentation of Perovskite grains."""
 
 from keras.models import Model
-from keras.optimizers import SGD
+from keras.optimizers import SGD, Adam
 from keras.layers import (
     Input,
     Conv2D,
@@ -85,15 +85,18 @@ def unet_model(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS):
     outputs = Conv2D(1, kernel_size=(1, 1), activation="sigmoid")(conv9)
 
     model = Model(inputs=[inputs], outputs=[outputs])
-    sgd = SGD(learning_rate=0.01)
+    # sgd = SGD(learning_rate=0.01)
     # For images with a lot of background, try using a weighted loss function to help the model focus on the grains
     # model.compile(optimizer=sgd, loss="binary_crossentropy", metrics=["accuracy"], sample_weight_mode="temporal")
     # For images with a lot of background, try a metric that focuses on the grains
     # model.compile(optimizer=sgd, loss="binary_crossentropy", metrics=["accuracy", "mean_squared_error"])
     # For images with a lot of background, try a metric that focuses on the grains such as intersection over union
-    model.compile(optimizer=sgd, loss="binary_crossentropy", metrics=[iou_loss])
+    # model.compile(optimizer=sgd, loss="binary_crossentropy", metrics=[iou_loss])
     # Try standard binary crossentropy with standard accuracy
     # model.compile(optimizer=sgd, loss="binary_crossentropy", metrics=["accuracy"])
+
+    optimiser = Adam(learning_rate=0.001)
+    model.compile(optimizer=optimiser, loss="binary_crossentropy", metrics=["accuracy"])
 
     model.summary()
 
