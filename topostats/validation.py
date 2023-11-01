@@ -218,6 +218,16 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'plotting.run', valid values are 'True' or 'False'",
             ),
+            "style": And(
+                str,
+                Or(
+                    "topostats.mplstyle",
+                    str,
+                    Path,
+                    None,
+                    error="Invalid value in config for 'plotting.style', valid values are 'topostats.mplstyle' or None",
+                ),
+            ),
             "save_format": str,
             "image_set": Or(
                 "all",
@@ -260,12 +270,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 [None, And(int, lambda n: n > 1)],
                 error="Invalid value in config plotting.for 'num_ticks', valid values are 'null' or integers > 1",
             ),
-            "cmap": Or(
-                "afmhot",
-                "nanoscope",
-                "gwyddion",
-                error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot', 'nanoscope' or 'gwyddion'",
-            ),
             "mask_cmap": str,
             "histogram_log_axis": Or(
                 True,
@@ -275,7 +279,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "'False'"
                 ),
             ),
-            "histogram_bins": lambda n: n > 0,
         },
         "summary_stats": {
             "run": Or(
