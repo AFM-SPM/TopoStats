@@ -424,7 +424,7 @@ processed, please refer to <url to page where we document common problems> for m
         run_scar_removal = self.remove_scars_config.pop("run")
         if run_scar_removal:
             LOGGER.info(f"[{self.filename}] : Initial scar removal")
-            self.images["initial_scar_removal"], _scar_mask = scars.remove_scars(
+            self.images["initial_scar_removal"], _ = scars.remove_scars(
                 self.images["initial_nonlinear_polynomial_removal"],
                 filename=self.filename,
                 **self.remove_scars_config,
