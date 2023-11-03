@@ -87,6 +87,20 @@ def distance_to_outline(outline_mask, point):
     return np.min(dists_squared)
 
 
+def signed_distance_to_outline(outline_mask, point):
+    """Get the distance to the outline, with the sign representing whether the point is inside or outside the outline."""
+
+    nonzero_points = np.argwhere(outline_mask == True)
+    diffs = nonzero_points - point
+    dists_squared = diffs[:, 0] ** 2 + diffs[:, 1] ** 2
+    min_dist = np.min(dists_squared)
+    min_dist = np.sqrt(min_dist)
+    if point_in_polygon(point, nonzero_points):
+        return min_dist
+    else:
+        return -min_dist
+
+
 def network_density_internal(
     nodes: np.ndarray, image: np.ndarray, px_to_nm: float, stepsize_px: int, kernel_size: int, gaussian_sigma: int
 ):
@@ -127,10 +141,10 @@ def network_density_internal(
             if in_polygon and not near_outline:
                 internal_density_map[j, i] = density
                 densities_internal.append(density)
-                distances_internal.append(distance_to_outline(outline_mask, np.array([y, x])))
+                distances_internal.append(signed_distance_to_outline(outline_mask, np.array([y, x])))
             elif near_outline:
                 densities_near_outline.append(density)
-                distances_near_outline.append(distance_to_outline(outline_mask, np.array([y, x])))
+                distances_near_outline.append(signed_distance_to_outline(outline_mask, np.array([y, x])))
                 near_outline_density_map[j, i] = density
 
     # plt.plot(nodes[:, 1], nodes[:, 0], color='black')
@@ -607,7 +621,9 @@ def interpolate_spline_and_get_curvature(points: np.ndarray, interpolation_numbe
     return interpolated_curvatures, interpolated_points
 
 
-def visualise_curvature_pixel_image(curvatures: np.ndarray, points: np.ndarray, image_size: int = 100, title: str="", figsize=(12, 12)):
+def visualise_curvature_pixel_image(
+    curvatures: np.ndarray, points: np.ndarray, image_size: int = 100, title: str = "", figsize=(12, 12)
+):
     """Visualise the curvature of a set of points using a pixel heightmap image.
 
     Parameters
@@ -616,7 +632,7 @@ def visualise_curvature_pixel_image(curvatures: np.ndarray, points: np.ndarray, 
         Numpy Nx1 array of curvatures for the points.
     points: np.ndarray
         Numpy Nx2 array of coordinates for the points.
-    
+
     Returns
     -------
     None
@@ -624,28 +640,30 @@ def visualise_curvature_pixel_image(curvatures: np.ndarray, points: np.ndarray, 
 
     # Construct a visualisation
     curv_img = np.zeros((image_size, image_size))
-    scaling_factor = (curv_img.shape[0]*1.4) / np.max(points) / 2
+    scaling_factor = (curv_img.shape[0] * 1.4) / np.max(points) / 2
     centroid = np.array([np.mean(points[:, 0]), np.mean(points[:, 1])])
     for point, curvature in zip(points, curvatures):
-        scaled_point = ((np.array(curv_img.shape) / 2) + (point * scaling_factor) - centroid*scaling_factor).astype(int)
+        scaled_point = ((np.array(curv_img.shape) / 2) + (point * scaling_factor) - centroid * scaling_factor).astype(
+            int
+        )
         curv_img[scaled_point[0], scaled_point[1]] = curvature
 
     fig, ax = plt.subplots(figsize=figsize)
     im = ax.imshow(np.flipud(curv_img.T), cmap="rainbow")
     divider = make_axes_locatable(ax)
-    cax = divider.append_axes('right', size='5%', pad=0.05)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
     fig.colorbar(im, cax, orientation="vertical")
     # ax.colorbar()
     ax.set_title(title)
     plt.show()
 
-def visualise_curvature_scatter(curvatures: np.ndarray, points: np.ndarray, title: str=""):
+
+def visualise_curvature_scatter(curvatures: np.ndarray, points: np.ndarray, title: str = ""):
     """Visualise the curvature of a set of points using a scatter plot with colours of the markers
     representing the curvatures of the points."""
 
     # Plot the points
-    scatter_plot = plt.scatter(points[:, 0], points[:, 1], c=curvatures, cmap="rainbow")
+    scatter_plot = plt.scatter(points[:, 0], points[:, 1], c=curvatures, cmap="rainbow", s=0.5)
     plt.title(title)
     plt.colorbar(scatter_plot)
     plt.show()
-
