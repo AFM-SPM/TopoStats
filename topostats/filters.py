@@ -424,14 +424,14 @@ processed, please refer to <url to page where we document common problems> for m
         run_scar_removal = self.remove_scars_config.pop("run")
         if run_scar_removal:
             LOGGER.info(f"[{self.filename}] : Initial scar removal")
-            self.images["initial_scar_removal"], _scar_mask = scars.remove_scars(
+            self.images["initial_scar_removal"], _ = scars.remove_scars(
                 self.images["initial_nonlinear_polynomial_removal"],
                 filename=self.filename,
                 **self.remove_scars_config,
             )
         else:
             LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config")
-            self.images["initial_scar_removal"] = self.images["initial_quadratic_removal"]
+            self.images["initial_scar_removal"] = self.images["initial_nonlinear_polynomial_removal"]
 
         # Zero the data before thresholding, helps with absolute thresholding
         self.images["initial_zero_average_background"] = self.average_background(
@@ -477,7 +477,7 @@ processed, please refer to <url to page where we document common problems> for m
             self.images["scar_mask"] = scar_mask
         else:
             LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config")
-            self.images["secondary_scar_removal"] = self.images["masked_quadratic_removal"]
+            self.images["secondary_scar_removal"] = self.images["masked_nonlinear_polynomial_removal"]
         self.images["final_zero_average_background"] = self.average_background(
             self.images["secondary_scar_removal"], self.images["mask"]
         )
