@@ -88,8 +88,11 @@ def distance_to_outline(outline_mask, point):
 
 
 def signed_distance_to_outline(outline_mask, point):
-    """Get the distance to the outline, with the sign representing whether the point is inside or outside the outline."""
+    """Get the signed distance to the outline of a closed polygon represented by a binary mask of connected pixels.
+    It uses the nearest pixel as the outline_mask is assumed to be a complete outline without gaps.
 
+    A negative value means the point is inside the outline and a positive value means the point is outside the outline.
+    """
     nonzero_points = np.argwhere(outline_mask == True)
     diffs = nonzero_points - point
     dists_squared = diffs[:, 0] ** 2 + diffs[:, 1] ** 2
