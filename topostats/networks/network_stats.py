@@ -105,9 +105,15 @@ def distance_to_outline(outline_mask, point):
 #         return -min_dist
 
 
-def network_density_internal(
+def network_density(
     nodes: np.ndarray, image: np.ndarray, px_to_nm: float, stepsize_px: int, kernel_size: int, gaussian_sigma: int
 ):
+    """
+    Calculate the density of a network of nodes. The density is calculated by taking the median value of the
+    image within a square kernel around each node. The density is then calculated by dividing the median value
+    by the area of the kernel.
+    """
+
     # fig, ax = plt.subplots()
     # ax.imshow(image)
     density_map = np.zeros((int(np.floor(image.shape[0] / stepsize_px)), int(np.floor(image.shape[1] / stepsize_px))))
@@ -118,9 +124,6 @@ def network_density_internal(
     densities_near_outline = []
     distances_near_outline = []
     points_internal = []
-    points_near_outline = []
-    inside_polygon_internal = []
-    inside_polygon_near_outline = []
 
     print(f"density map dimensions: {internal_density_map.shape}")
 
