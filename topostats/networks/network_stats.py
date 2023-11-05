@@ -84,24 +84,25 @@ def distance_to_outline(outline_mask, point):
     nonzero = np.argwhere(outline_mask == True)
     diffs = nonzero - point
     dists_squared = diffs[:, 0] ** 2 + diffs[:, 1] ** 2
-    return np.min(dists_squared)
+    return np.sqrt(np.min(dists_squared))
 
 
-def signed_distance_to_outline(outline_mask, point):
-    """Get the signed distance to the outline of a closed polygon represented by a binary mask of connected pixels.
-    It uses the nearest pixel as the outline_mask is assumed to be a complete outline without gaps.
+# INACCURATE?
+# def signed_distance_to_outline(outline_mask, point):
+#     """Get the signed distance to the outline of a closed polygon represented by a binary mask of connected pixels.
+#     It uses the nearest pixel as the outline_mask is assumed to be a complete outline without gaps.
 
-    A negative value means the point is inside the outline and a positive value means the point is outside the outline.
-    """
-    nonzero_points = np.argwhere(outline_mask == True)
-    diffs = nonzero_points - point
-    dists_squared = diffs[:, 0] ** 2 + diffs[:, 1] ** 2
-    min_dist = np.min(dists_squared)
-    min_dist = np.sqrt(min_dist)
-    if point_in_polygon(point, nonzero_points):
-        return min_dist
-    else:
-        return -min_dist
+#     A negative value means the point is inside the outline and a positive value means the point is outside the outline.
+#     """
+#     nonzero_points = np.argwhere(outline_mask == True)
+#     diffs = nonzero_points - point
+#     dists_squared = diffs[:, 0] ** 2 + diffs[:, 1] ** 2
+#     min_dist = np.min(dists_squared)
+#     min_dist = np.sqrt(min_dist)
+#     if point_in_polygon(point, nonzero_points):
+#         return min_dist
+#     else:
+#         return -min_dist
 
 
 def network_density_internal(
@@ -116,6 +117,10 @@ def network_density_internal(
     distances_internal = []
     densities_near_outline = []
     distances_near_outline = []
+    points_internal = []
+    points_near_outline = []
+    inside_polygon_internal = []
+    inside_polygon_near_outline = []
 
     print(f"density map dimensions: {internal_density_map.shape}")
 
@@ -144,10 +149,15 @@ def network_density_internal(
             if in_polygon and not near_outline:
                 internal_density_map[j, i] = density
                 densities_internal.append(density)
-                distances_internal.append(signed_distance_to_outline(outline_mask, np.array([y, x])))
-            elif near_outline:
+                distances_internal.append(-1 * distance_to_outline(outline_mask, np.array([y, x])))
+                points_internal.append(np.array([y, x]))
+            elif near_outline and in_polygon:
                 densities_near_outline.append(density)
-                distances_near_outline.append(signed_distance_to_outline(outline_mask, np.array([y, x])))
+                distances_near_outline.append(-1 * distance_to_outline(outline_mask, np.array([y, x])))
+                near_outline_density_map[j, i] = density
+            elif near_outline and not in_polygon:
+                densities_near_outline.append(density)
+                distances_near_outline.append(distance_to_outline(outline_mask, np.array([y, x])))
                 near_outline_density_map[j, i] = density
 
     # plt.plot(nodes[:, 1], nodes[:, 0], color='black')
@@ -160,6 +170,7 @@ def network_density_internal(
         distances_internal,
         densities_near_outline,
         distances_near_outline,
+        points_internal,
     )
 
 
