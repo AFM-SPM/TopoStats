@@ -580,7 +580,7 @@ class joePrune:
     should someone be upto the task, it is possible to include the heights when pruning.
     """
 
-    def __init__(self, image: np.ndarray, skeleton: np.ndarray, max_length: float=None, min_height_threshold: float=None) -> np.ndarray:
+    def __init__(self, image: np.ndarray, skeleton: np.ndarray, max_length: float=None, height_threshold: float=None, method_values: str=None, method_outlier: str=None) -> np.ndarray:
         """Initialise the class.
 
         Parameters
@@ -596,7 +596,9 @@ class joePrune:
         self.image = image
         self.skeleton = skeleton.copy()
         self.max_length = max_length
-        self.min_height_threshold = min_height_threshold
+        self.height_threshold = height_threshold
+        self.method_values = method_values
+        self.method_outlier = method_outlier
 
     def prune_all_skeletons(self) -> np.ndarray:
         """Wrapper function to prune all skeletons by labling and iterating through
@@ -614,8 +616,16 @@ class joePrune:
             single_skeleton = np.where(labeled_skel == i, 1, 0)
             if self.max_length is not None:
                 single_skeleton = self._prune_single_skeleton(single_skeleton, max_length=self.max_length)
-            if self.min_height_threshold is not None:
-                single_skeleton = remove_low_dud_branches(single_skeleton, self.image, threshold=self.min_height_threshold)
+            if self.height_threshold is not None:
+                single_skeleton = remove_bridges_abs(single_skeleton, self.image, threshold=self.height_threshold, method_values=self.method_values, method_outlier=self.method_outlier)
+            """
+            if self.min_height_threshold_mean is not None:
+                single_skeleton = remove_bridges_abs_mean(single_skeleton, self.image, threshold=self.min_height_threshold_mean)
+                print("MAX_HEI_MEAN_NUM: ", (single_skeleton != 0).sum())
+            if self.outlier_height_thresh is not None:
+                single_skeleton = remove_bridges_iqr(single_skeleton, self.image)
+                print("OUT_NUM: ", (single_skeleton != 0).sum())
+            """
             pruned_skeleton_mask += getSkeleton(self.image, single_skeleton).get_skeleton({"skeletonisation_method": "zhang"}) # reskel to remove nibs
         return pruned_skeleton_mask
 
@@ -783,26 +793,173 @@ class maxPrune:
                 print("Pruned short branch: ", i)
         return single_skeleton
 
-
-def remove_low_dud_branches(skeleton, image, threshold=None) -> np.ndarray:
+def remove_bridges_abs(skeleton, image, threshold, method_values, method_outlier) -> np.ndarray:
     """Identifies branches which cross the skeleton in places they shouldn't due to
     poor thresholding and holes in the mask. Segments are removed based on heights lower
     than 1.5 * interquartile range of heights."""
     # might need to check that the image *with nodes* is returned
     skeleton_rtn = skeleton.copy()
     conv = convolve_skelly(skeleton)
-    nodeless = skeleton.copy()
-    nodeless[conv == 3] = 0
+    nodeless = np.where(conv==3, 0, conv)
     segments = label(nodeless)
-    median_heights = [np.min(image[segments == i]) for i in range(1, segments.max() + 1)]
-    # need to ensure that 
-    if threshold is None:
-        median_heights = [np.median(image[segments == i]) for i in range(1, segments.max() + 1)]
-        q75, q25 = np.percentile(median_heights, [75, 25])
+    if method_values == "min":
+        height_values = [np.min(image[segments == i]) for i in range(1, segments.max() + 1)]
+    elif method_values == "median":
+        height_values = [np.median(image[segments == i]) for i in range(1, segments.max() + 1)]
+    elif method_values == "mid":
+        height_values = np.zeros((segments.max()))
+        for i in range(1, segments.max() + 1):
+            segment = np.where(segments==i, 1, 0)
+            if segment.sum() > 2:
+                start = np.argwhere(convolve_skelly(segment)==2)[0]
+                ordered_coords = order_branch_from_start(segment, start)
+                mid_coord = ordered_coords[len(ordered_coords)//2]
+            else:
+                mid_coord = np.argwhere(segment==1)[0]
+            height_values[i-1] += image[mid_coord[0], mid_coord[1]]
+        print("PRUNE: ", height_values)
+    else:
+        print("Incorrect 'method_values' value.")
+    
+    # threshold heights to remove segments
+    if method_outlier == "abs":
+        idxs = np.asarray(np.where(np.asarray(height_values) < threshold))[0] + 1
+    elif method_outlier == "abs_mean":
+        avg = image[skeleton==1].mean()
+        idxs = np.asarray(np.where(np.asarray(height_values) < (avg-threshold)))[0] + 1
+        print("THRESH: ", avg, threshold, avg-threshold)
+    elif method_outlier == "iqr":
+        coords = np.argwhere(skeleton==1)
+        heights = image[coords[:,0], coords[:,1]]
+        q75, q25 = np.percentile(heights, [75, 25])
         iqr = q75 - q25
         threshold = q25 - 1.5 * iqr
+        #print("IQR Thresh: ", q25, q75, threshold)
+        low_coords = coords[heights < threshold]
+        low_segment_idxs = []
+        low_segment_mins = []
+        for segment_num in range(1, segments.max()+1):
+            segment_coords = np.argwhere(segments == segment_num)
+            for low_coord in low_coords:
+                place = np.isin(segment_coords, low_coord).all(axis=1)
+                if place.any():
+                    low_segment_idxs.append(segment_num)
+                    low_segment_mins.append(image[segments == segment_num].min())
+                    break
+        
+        idxs = np.array(low_segment_idxs)[np.argsort(low_segment_mins)] # sort in order of ascending mins
+    else:
+        print("Incorrect 'meth_outlier' value.")
+    
+    for i in idxs:
+        temp_skel = skeleton_rtn.copy()
+        temp_skel[segments == i] = 0
+        if check_skeleton_one_object(temp_skel):
+            print("Removed dud branch: ", i)
+            skeleton_rtn[segments == i] = 0
+        else:
+            print(f"Bridge {i} breaks skeleton, not removed")
+    return skeleton_rtn
+
+def remove_bridges_abs_mean(skeleton, image, threshold) -> np.ndarray:
+    """Identifies branches which cross the skeleton in places they shouldn't due to
+    poor thresholding and holes in the mask. Segments are removed based on their minium
+    heights being lower then the mean-threshold. 
+    I.e. for dna a thresold of 0.85nm would remove all segments whose lowest point is < 
+    2-0.85nm or 1.15nm. (0.85nm from the depth of the major groove)
+    """
+    # might need to check that the image *with nodes* is returned
+    skeleton_rtn = skeleton.copy()
+    avg = image[skeleton==1].mean()
+    conv = convolve_skelly(skeleton)
+    nodeless = np.where(conv==3, 0, conv)
+    segments = label(nodeless)
+    min_heights = [np.min(image[segments == i]) for i in range(1, segments.max() + 1)]
+    #print("Min Heights: ", min_heights)
+    #print("VALS: ", avg, threshold, (avg-threshold))
     # threshold heights to remove segments
-    idxs = np.asarray(np.where(np.asarray(median_heights) < threshold)) + 1
+    idxs = np.asarray(np.where(np.asarray(min_heights) < (avg-threshold)))[0] + 1
+    for i in idxs:
+        temp_skel = skeleton_rtn.copy()
+        temp_skel[segments == i] = 0
+        if check_skeleton_one_object(temp_skel):
+            print("Removed dud branch: ", i)
+            skeleton_rtn[segments == i] = 0
+        else:
+            print(f"Bridge {i} breaks skeleton, not removed")
+    return skeleton_rtn
+
+def remove_bridges_iqr(skeleton, image):
+    """Removes bridges via the outlier metric Q1 + 1.5 * IQR of each skeleton pixel's heights.
+
+    Parameters
+    ----------
+    skeleton : np.ndarray
+        _description_
+    image : np.ndarray
+        _description_
+    """
+    skeleton_rtn = skeleton.copy()
+    conv = convolve_skelly(skeleton)
+    nodeless = np.where(conv==3, 0, conv)
+    segments = label(nodeless)
+
+    coords = np.argwhere(skeleton==1)
+    heights = image[coords[:,0], coords[:,1]]
+    q75, q25 = np.percentile(heights, [75, 25])
+    iqr = q75 - q25
+    threshold = q25 - 1.5 * iqr
+    #print("IQR Thresh: ", q25, q75, threshold)
+    low_coords = coords[heights < threshold]
+
+    low_segment_idxs = []
+    low_segment_mins = []
+    for segment_num in range(1, segments.max()+1):
+        segment_coords = np.argwhere(segments == segment_num)
+        for low_coord in low_coords:
+            place = np.isin(segment_coords, low_coord).all(axis=1)
+            if place.any():
+                low_segment_idxs.append(segment_num)
+                low_segment_mins.append(image[segments == segment_num].min())
+                break
+    
+    low_segment_idxs = np.array(low_segment_idxs)[np.argsort(low_segment_mins)] # sort in order of ascending mins
+    for i in low_segment_idxs:
+        temp_skel = skeleton_rtn.copy()
+        temp_skel[segments == i] = 0
+        if check_skeleton_one_object(temp_skel):
+            print("Removed dud branch: ", i)
+            skeleton_rtn[segments == i] = 0
+        else:
+            print(f"Bridge {i} breaks skeleton, not removed")
+
+    return skeleton_rtn
+
+def remove_bridges_mid(skeleton, image, threshold) -> np.ndarray:
+    """Identifies branches which cross the skeleton in places they shouldn't due to
+    poor thresholding and holes in the mask. Segments are removed based on their minium
+    heights being lower then the mean-threshold. 
+    I.e. for dna a thresold of 0.85nm would remove all segments whose lowest point is < 
+    2-0.85nm or 1.15nm. (0.85nm from the depth of the major groove)
+    """
+    # might need to check that the image *with nodes* is returned
+    skeleton_rtn = skeleton.copy()
+    avg = image[skeleton==1].mean()
+    conv = convolve_skelly(skeleton)
+    nodeless = np.where(conv==3, 0, conv)
+    segments = label(nodeless)
+
+    mids = np.zeros((len(segments.max())))
+
+    for i in range(1, segments.max() + 1):
+        segment = np.where(segments==i, 1, 0)
+        start = np.argwhere(convolve_skelly(segment)==1)[0]
+        ordered_coords = order_branch_from_start(segment, start)
+        mid_coord = ordered_coords[len(ordered_coords)//2]
+        mids[i-1] += image[mid_coord[0], mid_coord[1]]
+
+    # threshold heights to remove segments
+    idxs = np.asarray(np.where(mids < (avg-threshold)))[0] + 1
     for i in idxs:
         temp_skel = skeleton_rtn.copy()
         temp_skel[segments == i] = 0
@@ -817,7 +974,8 @@ def remove_low_dud_branches(skeleton, image, threshold=None) -> np.ndarray:
 def check_skeleton_one_object(skeleton):
     """Ensures that the skeleton hasn't been broken up upon removing a segment."""
     skeleton = np.where(skeleton!=0, 1, 0)
-    return len(np.unique(label(skeleton))) > 1
+    #print("UNIQ_SKELS: ", label(skeleton).max())
+    return label(skeleton).max() == 1
 
 
 def rm_nibs(skeleton):
@@ -862,3 +1020,66 @@ def rm_nibs(skeleton):
             skeleton[labeled_nodeless == unique[k]] = 0
 
     return skeleton
+
+def order_branch_from_start(nodeless, start, max_length=np.inf):
+    dist = 0
+    # add starting point to ordered array
+    ordered = []
+    ordered.append(start)
+    nodeless[start[0], start[1]] = 0  # remove from array
+
+    # iterate to order the rest of the points
+    current_point = ordered[-1]  # get last point
+    area, _ = local_area_sum(nodeless, current_point)  # look at local area
+    local_next_point = np.argwhere(
+        area.reshape(
+            (
+                3,
+                3,
+            )
+        )
+        == 1
+    ) - (1, 1)
+    dist += np.sqrt(2) if abs(local_next_point).sum() > 1 else 1
+
+    while len(local_next_point) != 0 and dist <= max_length:
+        next_point = (current_point + local_next_point)[0]
+        # find where to go next
+        ordered.append(next_point)
+        nodeless[next_point[0], next_point[1]] = 0  # set value to zero
+        current_point = ordered[-1]  # get last point
+        area, _ = local_area_sum(nodeless, current_point)  # look at local area
+        local_next_point = np.argwhere(
+            area.reshape(
+                (
+                    3,
+                    3,
+                )
+            )
+            == 1
+        ) - (1, 1)
+        dist += np.sqrt(2) if abs(local_next_point).sum() > 1 else 1
+
+    return np.array(ordered)
+
+def local_area_sum(binary_map, point):
+    """Evaluates the local area around a point in a binary map.
+
+    Parameters
+    ----------
+    binary_map: np.ndarray
+        A binary array of an image.
+    point: Union[list, touple, np.ndarray]
+        A single object containing 2 integers relating to a point within the binary_map
+
+    Returns
+    -------
+    np.ndarray
+        An array values of the local coordinates around the point.
+    int
+        A value corresponding to the number of neighbours around the point in the binary_map.
+    """
+    x, y = point
+    local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
+    local_pixels[4] = 0  # ensure centre is 0
+    return local_pixels, local_pixels.sum()

@@ -113,6 +113,7 @@ class dnaTrace:
         self.disordered_trace = None
         self.node_image = np.zeros_like(image)
         self.node_dict = None
+        self.node_image_dict = None
         self.ordered_trace = None
         self.ordered_trace_img = np.zeros_like(image)
         self.num_crossings = None
@@ -153,7 +154,7 @@ class dnaTrace:
                 px_2_nm=self.pixel_to_nm_scaling,
                 n_grain=self.n_grain,
             )
-            self.node_dict = nodes.get_node_stats()
+            self.node_dict, self.node_image_dict = nodes.get_node_stats()
             self.node_image = nodes.connected_nodes
             self.num_crossings = len(self.node_dict)
 
@@ -887,6 +888,7 @@ def trace_image(
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
     # results = {}
     full_node_dict = {}
+    full_node_image_dict = {}
     img_base = np.zeros_like(image)
     # want to get each cropped image, use some anchor coords to match them onto the image,
     #   and compile all the grain images onto a single image
@@ -903,7 +905,7 @@ def trace_image(
     all_traces = []
 
     for n_grain, (cropped_image, cropped_mask) in enumerate(zip(cropped_images, cropped_masks)):
-        result, node_dict, images, trace = trace_grain(
+        result, node_dict, node_image_dict, images, trace = trace_grain(
             cropped_image,
             cropped_mask,
             pixel_to_nm_scaling,
@@ -915,6 +917,7 @@ def trace_image(
         )
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
         full_node_dict[n_grain] = node_dict
+        full_node_image_dict[n_grain] = node_image_dict
         # results[n_grain] = result
         try:
             pd_result = pd.DataFrame.from_dict(result, orient="index")
@@ -935,7 +938,7 @@ def trace_image(
 
     print(grains_results)
 
-    return grains_results, full_node_dict, all_images, all_traces
+    return grains_results, full_node_dict, full_node_image_dict, all_images, all_traces
 
 
 def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
@@ -1054,7 +1057,7 @@ def trace_grain(
         "fitted_traces": dnatrace.fitted_trace_img,
         "visual": dnatrace.visuals,
     }
-    return results, dnatrace.node_dict, images, dnatrace.splined_traces
+    return results, dnatrace.node_dict, dnatrace.node_image_dict, images, dnatrace.splined_traces
 
 
 def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np.ndarray:
@@ -1189,6 +1192,7 @@ class nodeStats:
 
         self.node_centre_mask = None
         self.node_dict = {}
+        self.node_image_dict ={}
         self.test = None
         self.test2 = None
         self.test3 = None
@@ -1199,7 +1203,7 @@ class nodeStats:
         self.visuals = {}
         self.all_visuals_img = None
 
-    def get_node_stats(self) -> dict:
+    def get_node_stats(self) -> tuple:
         """The workflow for obtaining the node statistics.
 
         Returns:
@@ -1211,8 +1215,15 @@ class nodeStats:
                                 |-> 'branch_stats'
                                     |-> <branch_number>
                                         |-> 'ordered_coords', 'heights', 'gaussian_fit', 'fwhm', 'angles'
-                                |-> 'node stats'
-                                    |-> 'node_area_grain', 'node_area_image', 'node_branch_mask', 'node_mid_coords'
+                                |-> 'node_coords'
+        dict
+            Key structure <grain_number>
+                            |-> 'node_area_image'
+                            |-> 'node_area_grain'
+                            |-> 'node_area_skeleton'
+                            |-> 'node_branch_mask'
+                            |-> 'node_avg_mask
+
         """
         LOGGER.info(f"Node Stats - Processing Grain: {self.n_grain}")
         self.conv_skelly = convolve_skelly(self.skeleton)
@@ -1230,7 +1241,7 @@ class nodeStats:
             #self.connected_nodes = self.connect_extended_nodes(self.connected_nodes)
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
             self.analyse_nodes(max_branch_length=20e-9)
-        return self.node_dict
+        return self.node_dict, self.node_image_dict
         # self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
 
     def check_node_errorless(self):
@@ -1787,22 +1798,23 @@ class nodeStats:
                     "px_2_nm": self.px_2_nm,
                     "crossing_type": None,
                     "branch_stats": matched_branches,
-                    "node_stats": {
-                        "node_coords": node_coords,
-                        "node_area_image": self.image, #[
-                            #image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
-                        #],  # self.hess
-                        "node_area_grain": self.grain, #[
-                            #image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
-                        #],
-                        "node_area_skeleton": reduced_node_area, #[
-                            #image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
-                        #],
-                        "node_branch_mask": branch_img, #[
-                            #image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
-                        #],
-                        "node_avg_mask": avg_img,
-                    },
+                    "node_coords": node_coords,
+                }
+
+                self.node_image_dict[real_node_count] = {
+                    "node_area_image": self.image, #[
+                        #image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
+                    #],  # self.hess
+                    "node_area_grain": self.grain, #[
+                        #image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
+                    #],
+                    "node_area_skeleton": reduced_node_area, #[
+                        #image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
+                    #],
+                    "node_branch_mask": branch_img, #[
+                        #image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
+                    #],
+                    "node_avg_mask": avg_img,
                 }
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
 
@@ -2656,7 +2668,7 @@ class nodeStats:
                 temp__heights.append(branch_stats["heights"])
                 temp_distances.append(branch_stats["distances"])
                 temp_fwhms.append(branch_stats["fwhm2"][0])
-                temp_nodes.append(stats["node_stats"]["node_coords"])
+                temp_nodes.append(stats["node_coords"])
             node_coords.append(temp_nodes)
             crossing_coords.append(temp_coords)
             crossing_heights.append(temp__heights)
@@ -2897,7 +2909,7 @@ class nodeStats:
                 )  # pd code helps prevents freezing and spawning multiple processes
                 LOGGER.info(f"{self.filename} : PD Code is: {pd}")
                 top_class = jones(pd)
-            except IndexError:
+            except (IndexError, KeyError):
                 LOGGER.info(f"{self.filename} : PD Code could not be obtained from trace coordinates.")
                 top_class = "N/A"
             [

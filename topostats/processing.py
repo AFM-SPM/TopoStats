@@ -165,7 +165,7 @@ def process_scan(
             LOGGER.error(f"[{filename}] : An error occured during grain finding, skipping grainstats and dnatracing.")
             LOGGER.error(f"[{filename}] : The error: {e}")
             results = create_empty_dataframe()
-            node_stats = {"upper": None, "lower": None}
+            node_stats = {"above": None, "below": None}
         else:
             for direction, region_props in grains.region_properties.items():
                 if len(region_props) == 0:
@@ -227,7 +227,7 @@ def process_scan(
                                 f"[{filename}] : No grains exist for the {direction} direction. Skipping grainstats and DNAtracing."
                             )
                             grainstats[direction] = create_empty_dataframe()
-                            node_stats = {"upper": None, "lower": None}
+                            node_stats = {"above": None, "below": None}
                             dnatracing_config["run"] = False
                         else:
                             grainstats[direction], grains_plot_data = GrainStats(
@@ -267,22 +267,24 @@ def process_scan(
                         f"[{filename}] : Errors occurred whilst calculating grain statistics. Skipping DNAtracing."
                     )
                     results = create_empty_dataframe()
-                    node_stats = {"upper": None, "lower": None}
+                    node_stats = {"above": None, "below": None}
 
                 else:
                     # Run dnatracing
-                    # try:
+                    #try:
                     if dnatracing_config["run"]:
                         dnatracing_config.pop("run")
                         LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
                         tracing_stats = defaultdict()
                         node_stats = defaultdict()
+                        node_image_stats = defaultdict()
                         images = defaultdict()
                         all_traces = defaultdict()
                         for direction, _ in grainstats.items():
                             (
                                 tracing_stats[direction],
                                 node_stats[direction],
+                                node_image_stats[direction],
                                 images[direction],
                                 all_traces[direction],
                             ) = trace_image(
@@ -362,7 +364,7 @@ def process_scan(
                         # np.savetxt(f"{core_out_path}_{filename}_connect.txt", nodes.all_connected_nodes)
 
                         # plot nodes and line traces
-                        for mol_no, mol_stats in node_stats[direction].items():
+                        for mol_no, mol_stats in node_image_stats[direction].items():
                             if mol_stats is not None:
                                 for node_no, single_node_stats in mol_stats.items():
                                     plotting_config["plot_dict"]["zoom_node"]["mask_cmap"] = "cyan_black"
@@ -373,39 +375,43 @@ def process_scan(
                                     # plotting_config["plot_dict"]["tripple_crossings"]["z_range"] = [None, None]
                                     # plot node + skeleton
                                     Images(
-                                        single_node_stats["node_stats"]["node_area_image"],
-                                        background=single_node_stats["node_stats"]["node_area_grain"],
+                                        single_node_stats["node_area_image"],
+                                        background=single_node_stats["node_area_grain"],
                                         filename=f"mol_{mol_no}_node_{node_no}_crop",
                                         output_dir=output_dir / "nodes",
                                         **plotting_config["plot_dict"]["zoom_node"],
                                     ).plot_and_save()
                                     Images(
-                                        single_node_stats["node_stats"]["node_area_image"],
-                                        masked_array=single_node_stats["node_stats"]["node_area_skeleton"],
-                                        background=single_node_stats["node_stats"]["node_area_grain"],
+                                        single_node_stats["node_area_image"],
+                                        masked_array=single_node_stats["node_area_skeleton"],
+                                        background=single_node_stats["node_area_grain"],
                                         filename=f"mol_{mol_no}_node_{node_no}_node_area",
                                         output_dir=output_dir / "nodes",
                                         **plotting_config["plot_dict"]["zoom_node"],
                                     ).plot_and_save()
                                     # plot branch mask
                                     Images(
-                                        single_node_stats["node_stats"]["node_area_image"],
-                                        masked_array=single_node_stats["node_stats"]["node_branch_mask"],
-                                        background=single_node_stats["node_stats"]["node_area_grain"],
+                                        single_node_stats["node_area_image"],
+                                        masked_array=single_node_stats["node_branch_mask"],
+                                        background=single_node_stats["node_area_grain"],
                                         filename=f"mol_{mol_no}_node_{node_no}_crossings",
                                         output_dir=output_dir / "nodes",
                                         **plotting_config["plot_dict"]["crossings"],
                                     ).plot_and_save()
                                     # plot avg branch mask
-                                    if single_node_stats["node_stats"]["node_avg_mask"] is not None:
+                                    if single_node_stats["node_avg_mask"] is not None:
                                         Images(
-                                            single_node_stats["node_stats"]["node_area_image"],
-                                            masked_array=single_node_stats["node_stats"]["node_avg_mask"],
-                                            background=single_node_stats["node_stats"]["node_area_grain"],
+                                            single_node_stats["node_area_image"],
+                                            masked_array=single_node_stats["node_avg_mask"],
+                                            background=single_node_stats["node_area_grain"],
                                             filename=f"mol_{mol_no}_node_{node_no}_average_crossings",
                                             output_dir=output_dir / "nodes",
                                             **plotting_config["plot_dict"]["tripple_crossings"],
                                         ).plot_and_save()
+                            
+                        for mol_no, mol_stats in node_stats[direction].items():
+                            if mol_stats is not None:
+                                for node_no, single_node_stats in mol_stats.items():
                                     # Plot crossing height linetrace
                                     if plotting_config["image_set"] == "all":
                                         if not single_node_stats["error"]:
@@ -489,7 +495,7 @@ def process_scan(
                         )
                         results = grainstats_df
                         results["basename"] = image_path.parent
-                        node_stats = {"upper": None, "lower": None}
+                        node_stats = {"above": None, "below": None}
                     """
                     except Exception:
                         # If no results we need a dummy dataframe to return.
@@ -499,18 +505,19 @@ def process_scan(
                         )
                         results = grainstats_df
                         results["basename"] = image_path.parent
-                    """
+                """
+                    
 
             else:
                 LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
                 results = create_empty_dataframe()
-                node_stats = {"upper": None, "lower": None}
+                node_stats = {"above": None, "below": None}
     else:
         LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
         results = create_empty_dataframe()
         results["Image Name"] = filename
         results["Basename"] = image_path.parent
-        node_stats = {"upper": None, "lower": None}
+        node_stats = {"above": None, "below": None}
 
     LOGGER.info(f"[{filename}] : Finished Processing")
     return image_path, results, node_stats
