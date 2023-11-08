@@ -1,14 +1,17 @@
 """Plotting data."""
 from __future__ import annotations
+import importlib.resources as pkg_resources
 from pathlib import Path
 import logging
 
+import matplotlib as mpl
 from matplotlib.patches import Rectangle, Patch
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 from skimage.morphology import binary_dilation
 
+import topostats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
 
@@ -72,6 +75,25 @@ def dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int) -> n
     return binary_image
 
 
+def load_mplstyle(style: str | Path) -> None:
+    """Load the Matplotlibrc parameter file.
+
+    Parameters
+    ----------
+    style: str | Path
+        Path to a Matplotlib Style file.
+
+    Returns
+    -------
+    None
+        Only loads the style file.
+    """
+    if style == "topostats.mplstyle":
+        plt.style.use(pkg_resources.files(topostats) / style)
+    else:
+        plt.style.use(style)
+
+
 class Images:
     """Plots image arrays."""
 
@@ -80,6 +102,7 @@ class Images:
         data: np.array,
         output_dir: str | Path,
         filename: str,
+        style: str | Path = None,
         pixel_to_nm_scaling: float = 1.0,
         masked_array: np.array = None,
         title: str = None,
@@ -87,17 +110,18 @@ class Images:
         image_set: str = "core",
         core_set: bool = False,
         pixel_interpolation: str | None = None,
-        cmap: str = "nanoscope",
+        cmap: str | None = None,
         mask_cmap: str = "jet_r",
         region_properties: dict = None,
         zrange: list = None,
         colorbar: bool = True,
         axes: bool = True,
+        num_ticks: list[int | None, int | None] = (None, None),
         save: bool = True,
-        save_format: str = "png",
+        save_format: str = None,
         histogram_log_axis: bool = True,
-        histogram_bins: int = 200,
-        dpi: str | float = "figure",
+        histogram_bins: int | None = None,
+        dpi: str | float | None = None,
     ) -> None:
         """
         Initialise the class.
@@ -110,6 +134,8 @@ class Images:
             Output directory to save the file to.
         filename : Union[str, Path]
             Filename to save image as.
+        style: dict
+            Filename of matploglibrc Params.
         pixel_to_nm_scaling : float
             The scaling factor showing the real length of 1 pixel, in nm.
         masked_array : np.ndarray
@@ -136,6 +162,8 @@ class Images:
             Optionally add a colorbar to plots, default is False.
         axes: bool
             Optionally add/remove axes from the image.
+        num_ticks: list[int, int]
+            The number of x and y ticks to display on the image.
         save: bool
             Whether to save the image.
         save_format: str
@@ -147,6 +175,9 @@ class Images:
         dpi: Union[str, float]
             The resolution of the saved plot (default 'figure').
         """
+        if style is None:
+            style = "topostats.mplstyle"
+        load_mplstyle(style)
         if zrange is None:
             zrange = [None, None]
         self.data = data
@@ -158,18 +189,20 @@ class Images:
         self.image_type = image_type
         self.image_set = image_set
         self.core_set = core_set
-        self.interpolation = pixel_interpolation
+        self.interpolation = mpl.rcParams["image.interpolation"] if pixel_interpolation is None else pixel_interpolation
+        cmap = mpl.rcParams["image.cmap"] if cmap is None else cmap
         self.cmap = Colormap(cmap).get_cmap()
         self.mask_cmap = Colormap(mask_cmap).get_cmap()
         self.region_properties = region_properties
         self.zrange = zrange
         self.colorbar = colorbar
         self.axes = axes
+        self.num_ticks = num_ticks
         self.save = save
-        self.save_format = save_format
+        self.save_format = mpl.rcParams["savefig.format"] if save_format is None else save_format
         self.histogram_log_axis = histogram_log_axis
-        self.histogram_bins = histogram_bins
-        self.dpi = dpi
+        self.histogram_bins = mpl.rcParams["hist.bins"] if histogram_bins is None else histogram_bins
+        self.dpi = mpl.rcParams["savefig.dpi"] if dpi is None else dpi
 
     def plot_histogram_and_save(self):
         """
@@ -183,7 +216,7 @@ class Images:
             Matplotlib.pyplot axes object
         """
         if self.image_set == "all":
-            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+            fig, ax = plt.subplots(1, 1)
 
             ax.hist(self.data.flatten().astype(float), bins=self.histogram_bins, log=self.histogram_log_axis)
             ax.set_xlabel("pixel height")
@@ -240,7 +273,7 @@ class Images:
         ax: plt.axes._subplots.AxesSubplot
             Matplotlib.pyplot axes object
         """
-        fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+        fig, ax = plt.subplots(1, 1)
         shape = self.data.shape
         if isinstance(self.data, np.ndarray):
             im = ax.imshow(
@@ -274,11 +307,12 @@ class Images:
                     alpha=0.7,
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
-                plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1, 1.06))
+                plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1.02, 1.09))
 
             plt.title(self.title)
             plt.xlabel("Nanometres")
             plt.ylabel("Nanometres")
+            set_n_ticks(ax, self.num_ticks)
             plt.axis(self.axes)
             if self.colorbar and self.image_type == "non-binary":
                 divider = make_axes_locatable(ax)
@@ -353,3 +387,30 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
         rectangle = Rectangle((min_x, min_y), max_x - min_x, max_y - min_y, fill=False, edgecolor="white", linewidth=2)
         ax.add_patch(rectangle)
     return fig, ax
+
+
+def set_n_ticks(ax: plt.Axes.axes, n_xy: list[int | None, int | None]) -> None:
+    """Set the number of ticks along the y and x axes and lets matplotlib assign the values.
+
+    Parameters
+    ----------
+    ax : plt.Axes.axes
+        The axes to add ticks to.
+    n_xy : list[int, int]
+        The number of ticks.
+
+    Returns
+    -------
+    plt.Axes.axes
+        The axes with the new ticks.
+    """
+    if n_xy[0] is not None:
+        xlim = ax.get_xlim()
+        xstep = (max(xlim) - min(xlim)) / (n_xy[0] - 1)
+        xticks = np.arange(min(xlim), max(xlim) + xstep, xstep)
+        ax.set_xticks(np.round(xticks))
+    if n_xy[1] is not None:
+        ylim = ax.get_ylim()
+        ystep = (max(ylim) - min(ylim)) / (n_xy[1] - 1)
+        yticks = np.arange(min(ylim), max(ylim) + ystep, ystep)
+        ax.set_yticks(np.round(yticks))

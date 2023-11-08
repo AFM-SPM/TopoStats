@@ -414,7 +414,7 @@ def run_dnatracing(  # noqa: C901
                 tracing_stats[direction] = tracing_results["statistics"]
                 ordered_traces = tracing_results["ordered_traces"]
                 cropped_images = tracing_results["cropped_images"]
-                image_trace = tracing_results["image_trace"]
+                image_spline_trace = tracing_results["image_spline_trace"]
                 tracing_stats[direction]["threshold"] = direction
 
                 # Plot traces for the whole image
@@ -422,7 +422,7 @@ def run_dnatracing(  # noqa: C901
                     image,
                     output_dir=core_out_path,
                     filename=f"{filename}_{direction}_traced",
-                    masked_array=image_trace,
+                    masked_array=image_spline_trace,
                     **plotting_config["plot_dict"]["all_molecule_traces"],
                 ).plot_and_save()
 

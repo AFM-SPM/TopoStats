@@ -53,6 +53,12 @@ def create_parser() -> arg.ArgumentParser:
         help="Path to a YAML configuration file for summary plots and statistics.",
     )
     process_parser.add_argument(
+        "--matplotlibrc",
+        dest="matplotlibrc",
+        required=False,
+        help="Path to a matplotlibrc file.",
+    )
+    process_parser.add_argument(
         "-b",
         "--base_dir",
         dest="base_dir",

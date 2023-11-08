@@ -59,6 +59,7 @@ tests = [
   "py",
   "pytest",
   "pytest-cov",
+  "pytest-github-actions-annotate-failures",
   "pytest-lazy-fixture",
   "pytest-mpl",
   "pytest-regtest",
@@ -114,7 +115,7 @@ exclude = ["tests"]
 namespaces = false
 
 [tool.setuptools.package-data]
-topostats = ["*.yaml"]
+topostats = ["*.yaml", "*.mplstyle"]
 
 [tool.setuptools_scm]
 write_to = "topostats/_version.py"
