@@ -25,7 +25,7 @@ jobs:
           pip install --upgrade pip setuptools
           pip show pip setuptools
           virtualenv --upgrade-embed-wheels
-          virtualenv --reset-app-data
+          # virtualenv --reset-app-data
           pip install -e .[tests]
       - name: Test with pytest
         run: |
