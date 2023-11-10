@@ -1718,8 +1718,6 @@ class nodeStats:
                                                 self.connected_nodes[tuple(coords)] = 0
                                         for coords in branch_coords:
                                             self.connected_nodes[tuple(coords)] = 1
-                                        plt.imshow(self.connected_nodes)
-                                        plt.show()
                                         skip_node = True
                                         raise TouchingStrand
                             except TouchingStrand:
