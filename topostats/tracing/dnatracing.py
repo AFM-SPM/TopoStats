@@ -1723,6 +1723,9 @@ class nodeStats:
                                         raise TouchingStrand
                             except TouchingStrand:
                                 if skip_node == True & (i>0):
+                                    self.skeleton = np.where(self.connected_nodes > 0, 1, 0)
+                                    plt.imshow(self.skeleton)
+                                    plt.show()
                                     print("skipping this node")
                                     raise SkipNode
                                 continue
