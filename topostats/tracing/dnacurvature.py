@@ -3,6 +3,7 @@ import logging
 
 # from pathlib import Path
 import numpy as np
+
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)

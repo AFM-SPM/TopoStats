@@ -1,17 +1,18 @@
 """Module for filtering 2D Numpy arrays."""
 from __future__ import annotations
+
 import logging
+
+import numpy as np
+from scipy.optimize import curve_fit
 
 # ruff: noqa: disable=no-name-in-module
 # pylint: disable=no-name-in-module
 from skimage.filters import gaussian
-from scipy.optimize import curve_fit
-import numpy as np
 
-
-from topostats.logs.logs import LOGGER_NAME
-from topostats.utils import get_thresholds, get_mask
 from topostats import scars
+from topostats.logs.logs import LOGGER_NAME
+from topostats.utils import get_mask, get_thresholds
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 

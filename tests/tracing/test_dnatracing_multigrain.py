@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from topostats.tracing.dnatracing import trace_image, prep_arrays, trace_mask
+from topostats.tracing.dnatracing import prep_arrays, trace_image, trace_mask
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name

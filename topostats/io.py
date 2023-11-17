@@ -1,20 +1,21 @@
 """Functions for reading and writing data."""
 from __future__ import annotations
-import os
-import logging
-from datetime import datetime
+
 import io
-import struct
-from pathlib import Path
+import logging
+import os
 import pickle as pkl
+import struct
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
+import h5py
 import numpy as np
 import pandas as pd
 import pySPM
-from igor2 import binarywave
 import tifffile
-import h5py
+from igor2 import binarywave
 from ruamel.yaml import YAML, YAMLError
 
 from topostats.logs.logs import LOGGER_NAME

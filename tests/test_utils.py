@@ -5,14 +5,13 @@ import numpy as np
 import pytest
 
 from topostats.utils import (
-    convert_path,
-    update_config,
-    get_thresholds,
-    update_plotting_config,
-    create_empty_dataframe,
     ALL_STATISTICS_COLUMNS,
+    convert_path,
+    create_empty_dataframe,
+    get_thresholds,
+    update_config,
+    update_plotting_config,
 )
-
 
 THRESHOLD_OPTIONS = {
     "otsu_threshold_multiplier": 1.7,

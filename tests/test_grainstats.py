@@ -1,7 +1,7 @@
 """Testing of grainstats class."""
+import logging
 from pathlib import Path
 
-import logging
 import numpy as np
 import pytest
 

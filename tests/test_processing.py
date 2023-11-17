@@ -10,10 +10,10 @@ from topostats.io import LoadScans
 from topostats.processing import (
     check_run_steps,
     process_scan,
+    run_dnatracing,
     run_filters,
     run_grains,
     run_grainstats,
-    run_dnatracing,
 )
 from topostats.utils import update_plotting_config
 

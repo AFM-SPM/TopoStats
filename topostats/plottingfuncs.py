@@ -1,14 +1,15 @@
 """Plotting data."""
 from __future__ import annotations
+
 import importlib.resources as pkg_resources
-from pathlib import Path
 import logging
+from pathlib import Path
 
 import matplotlib as mpl
-from matplotlib.patches import Rectangle, Patch
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
+from matplotlib.patches import Patch, Rectangle
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from skimage.morphology import binary_dilation
 
 import topostats

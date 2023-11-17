@@ -1,22 +1,22 @@
 """Tests of plotting functions."""
 from pathlib import Path
 
-import pytest
 import matplotlib as mpl
-from matplotlib.figure import Figure
-from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
 import numpy as np
+import pytest
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from skimage import io
 
 from topostats.grains import Grains
 from topostats.io import LoadScans
 from topostats.plottingfuncs import (
-    dilate_binary_image,
     Images,
     add_pixel_to_nm_to_plotting_config,
-    set_n_ticks,
+    dilate_binary_image,
     load_mplstyle,
+    set_n_ticks,
 )
 
 DPI = 300.0

@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 
-from topostats.logs.logs import setup_logger, LOGGER_NAME
+from topostats.logs.logs import LOGGER_NAME, setup_logger
 
 LOGGER = setup_logger(LOGGER_NAME)
 

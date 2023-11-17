@@ -2,33 +2,32 @@
 
 This provides an entry point for running TopoStats as a command line programme.
 """
-from collections import defaultdict
-from functools import partial
 import importlib.resources as pkg_resources
 import logging
-from multiprocessing import Pool
-from pprint import pformat
 import sys
+from collections import defaultdict
+from functools import partial
+from multiprocessing import Pool
 from pathlib import Path
-import yaml
+from pprint import pformat
 
 import pandas as pd
+import yaml
 from tqdm import tqdm
 
 from topostats.io import (
+    LoadScans,
     find_files,
     read_yaml,
     save_folder_grainstats,
-    write_yaml,
     write_config_with_comments,
-    LoadScans,
+    write_yaml,
 )
-
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import check_run_steps, completion_message, process_scan
 from topostats.utils import update_config, update_plotting_config
-from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA
+from topostats.validation import DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA, validate_config
 
 # We already setup the logger in __init__.py and it is idempotent so calling it here returns the same object as from
 # __init__.py
