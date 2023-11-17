@@ -278,7 +278,8 @@ def test_get_shift(coords, shape, expected):
 )
 def test_get_cropped_region(grainstats: GrainStats, length, centre, img_len, expected):
     """Tests the Grainstats.get_cropped_region function's shape and center postition are correct."""
-    image = np.random.rand(img_len, img_len)
+    rng = np.random.default_rng()
+    image = rng.random((img_len, img_len))
     image[centre[0], centre[1]] = 5
     output = grainstats.get_cropped_region(image, length, centre)
     assert output.shape == (2 * length + 1, 2 * length + 1)

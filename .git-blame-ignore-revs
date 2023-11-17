@@ -1,3 +1,7 @@
+# ruff - isort and numpy linting
+9e0502b9cce2257d6234f118091cb75dd07c21ee
+8d1729e7a4132e88562a8f6b1514a95abd8878c1
+
 # ruff and pydocstyle - Lint code base with ruff and pydocstyle using pre-commit
 3518612caeb76df02b5313893e172db4dd159535
 e9d4e30271cbe9884e9dfaca8c739a071d373a50
