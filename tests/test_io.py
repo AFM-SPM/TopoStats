@@ -1,34 +1,34 @@
 """Tests of IO."""
+from datetime import datetime
 from pathlib import Path
 
-from datetime import datetime
+import h5py
 import numpy as np
 import pandas as pd
 import pytest
-import h5py
 
 from topostats.io import (
-    read_yaml,
-    get_date_time,
-    write_config_with_comments,
-    write_yaml,
-    save_array,
-    load_array,
-    find_files,
-    get_out_path,
-    path_to_str,
-    save_folder_grainstats,
     LoadScans,
-    save_pkl,
+    convert_basename_to_relative_paths,
+    find_files,
+    get_date_time,
+    get_out_path,
+    get_relative_paths,
+    load_array,
     load_pkl,
+    path_to_str,
+    read_64d,
+    read_char,
+    read_gwy_component_dtype,
     read_null_terminated_string,
     read_u32i,
-    read_64d,
-    read_gwy_component_dtype,
-    read_char,
-    get_relative_paths,
-    convert_basename_to_relative_paths,
+    read_yaml,
+    save_array,
+    save_folder_grainstats,
+    save_pkl,
     save_topostats_file,
+    write_config_with_comments,
+    write_yaml,
 )
 
 BASE_DIR = Path.cwd()

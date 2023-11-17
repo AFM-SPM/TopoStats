@@ -1,8 +1,8 @@
 """Standardise logging."""
-import sys
-from pathlib import Path
-from datetime import datetime
 import logging
+import sys
+from datetime import datetime
+from pathlib import Path
 
 # pylint: disable=assignment-from-no-return
 

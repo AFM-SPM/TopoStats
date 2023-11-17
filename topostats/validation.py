@@ -2,7 +2,8 @@
 import logging
 import os
 from pathlib import Path
-from schema import Optional, Or, And, Schema, SchemaError
+
+from schema import And, Optional, Or, Schema, SchemaError
 
 from topostats.logs.logs import LOGGER_NAME
 

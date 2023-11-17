@@ -1,16 +1,17 @@
 """Contains class for calculating the statistics of grains - 2d raster images."""
 from __future__ import annotations
+
 import logging
 from pathlib import Path
 from random import randint
 
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import scipy.ndimage
+import skimage.feature as skimage_feature
 import skimage.measure as skimage_measure
 import skimage.morphology as skimage_morphology
-import skimage.feature as skimage_feature
-import scipy.ndimage
-import matplotlib.pyplot as plt
-import pandas as pd
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import create_empty_dataframe

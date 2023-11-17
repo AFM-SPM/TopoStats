@@ -1,15 +1,16 @@
 """Utilities."""
 from __future__ import annotations
-from argparse import Namespace
+
 import logging
-from pathlib import Path
+from argparse import Namespace
 from collections import defaultdict
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
+from topostats.thresholds import threshold
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 

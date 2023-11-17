@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from topostats.logs.logs import LOGGER_NAME
 from topostats.entry_point import entry_point
+from topostats.logs.logs import LOGGER_NAME
 
 BASE_DIR = Path.cwd()
 

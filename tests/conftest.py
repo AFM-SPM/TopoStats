@@ -1,21 +1,20 @@
 """Fixtures for testing."""
 import importlib.resources as pkg_resources
 from pathlib import Path
-import yaml
 
 import numpy as np
 import pandas as pd
 import pytest
+import yaml
 
 import topostats
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import read_yaml, LoadScans
+from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
 from topostats.tracing.dnatracing import dnaTrace
-from topostats.utils import get_thresholds, get_mask, _get_mask
-
+from topostats.utils import _get_mask, get_mask, get_thresholds
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name

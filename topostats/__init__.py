@@ -1,5 +1,6 @@
 """Topostats."""
 from importlib.metadata import version
+
 import matplotlib.pyplot as plt
 
 from .logs.logs import setup_logger

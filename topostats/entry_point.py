@@ -3,12 +3,12 @@
 Parses command-line arguments and passes input on to the relevant functions / modules.
 """
 
-import sys
 import argparse as arg
+import sys
 
 from topostats import __version__
-from topostats.run_topostats import run_topostats
 from topostats.plotting import run_toposum
+from topostats.run_topostats import run_topostats
 
 
 def create_parser() -> arg.ArgumentParser:

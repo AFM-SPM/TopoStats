@@ -2,7 +2,6 @@
 requires = [
   "setuptools>=45",
   "setuptools_scm[toml]>=6.2",
-  "wheel"
   ]
 build-backend = "setuptools.build_meta"
 
@@ -123,7 +122,8 @@ write_to = "topostats/_version.py"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "--cov --mpl"
+addopts = ["--cov", "--mpl", "-ra", "--strict-config", "--strict-markers"]
+log_cli_level = "Info"
 testpaths = [
     "tests",
 ]
@@ -132,6 +132,7 @@ filterwarnings = [
     "ignore::PendingDeprecationWarning",
     "ignore::UserWarning"
 ]
+xfail_strict = true
 
 [tool.coverage.run]
 source = ["topostats"]
@@ -192,23 +193,55 @@ exclude = [
 # per-file-ignores = []
 line-length = 120
 target-version = "py310"
-select = ["A", "B", "C", "D", "E", "F", "PT", "PTH", "R", "S", "W", "U"]
-ignore = [
+lint.select = [
+  "A", # flake8-builtins
+  "B", # flake8-bugbear
+  "C", #
+  "D", # pydocstyle
+  "E", # pycodestyle error
+  "F",
+  "I", # isort
+  "NPY", # numpy
+  "PT", # flake8-pytest-style
+  "PTH", # flake8-use-pathlib
+  "R",
+  "S", #flake8-bandit
+  "W", # pycodestyle warning
+  "U",
+  "UP", # pyupgrade
+]
+lint.ignore = [
   "B905",
   "E501",
   "S101",
   "T201"]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
-fixable = ["A", "B", "C", "D", "E", "F", "PT", "PTH", "R", "S", "W", "U"]
-unfixable = []
+lint.fixable = [
+  "A", # flake8-builtins
+  "B", # flake8-bugbear
+  "C", #
+  "D", # pydocstyle
+  "E", # pycodestyle error
+  "F",
+  "I", # isort
+  "NPY", # numpy
+  "PT", # flake8-pytest-style
+  "PTH", # flake8-use-pathlib
+  "R",
+  "S", #flake8-bandit
+  "W", # pycodestyle warning
+  "U",
+  "UP", # pyupgrade
+]
+lint.unfixable = []
 
-[tool.ruff.flake8-quotes]
+[tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 case-sensitive = true
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
 [tool.ruff.flake8-pytest-style]

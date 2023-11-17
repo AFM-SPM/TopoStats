@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from topostats.tracing.dnatracing import dnaTrace, crop_array, round_splined_traces
+from topostats.tracing.dnatracing import crop_array, dnaTrace, round_splined_traces
 from topostats.tracing.tracingfuncs import reorderTrace
 
 # This is required because of the inheritance used throughout

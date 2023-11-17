@@ -1,7 +1,8 @@
 """Test the entry point of TopoStats and its ability to correctly direct to programs."""
 
-from pathlib import Path
 from collections.abc import Callable
+from pathlib import Path
+
 import pytest
 
 from topostats.entry_point import (
@@ -9,8 +10,8 @@ from topostats.entry_point import (
     legacy_run_topostats_entry_point,
     legacy_toposum_entry_point,
 )
-from topostats.run_topostats import run_topostats
 from topostats.plotting import run_toposum
+from topostats.run_topostats import run_topostats
 
 
 # Test "help" arguments
