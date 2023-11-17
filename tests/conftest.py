@@ -14,7 +14,7 @@ from topostats.grainstats import GrainStats
 from topostats.io import read_yaml, LoadScans
 from topostats.plotting import TopoSum
 from topostats.tracing.dnatracing import dnaTrace
-from topostats.utils import get_thresholds, get_mask, _get_mask
+from topostats.utils import get_thresholds, get_and_combine_directional_masks, _get_mask
 
 
 # This is required because of the inheritance used throughout
@@ -40,8 +40,8 @@ def default_config() -> dict:
     config["filter"]["threshold_method"] = "std_dev"
     config["filter"]["remove_scars"]["run"] = True
     config["grains"]["threshold_method"] = "absolute"
-    config["grains"]["threshold_absolute"]["above"] = 1.0
-    config["grains"]["threshold_absolute"]["below"] = -1.0
+    config["grains"]["threshold_absolute"]["above"] = [1.0, None]
+    config["grains"]["threshold_absolute"]["below"] = [-1.0, None]
     config["grains"]["smallest_grain_size_nm2"] = 10
     config["grains"]["absolute_area_threshold"]["above"] = [10, 60000000]
     return config
@@ -52,7 +52,7 @@ def process_scan_config() -> dict:
     """Sample configuration."""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
     config["filter"]["remove_scars"]["run"] = True
-    config["grains"]["threshold_std_dev"]["below"] = 1.0
+    config["grains"]["threshold_std_dev"]["below"] = [1.0, None]
     config["grains"]["absolute_area_threshold"]["above"] = [500, 800]
     config["plotting"]["zrange"] = [0, 3]
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
@@ -273,7 +273,9 @@ def test_filters_random_with_mask(filter_config: dict, test_filters: Filters, im
         threshold_method="otsu",
         otsu_threshold_multiplier=filter_config["otsu_threshold_multiplier"],
     )
-    test_filters.images["mask"] = get_mask(image=test_filters.images["pixels"], thresholds=thresholds)
+    test_filters.images["mask"] = get_and_combine_directional_masks(
+        image=test_filters.images["pixels"], thresholds=thresholds
+    )
     return test_filters
 
 
@@ -447,7 +449,7 @@ def minicircle_threshold_stddev(minicircle_initial_tilt_removal: Filters) -> Fil
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        threshold_std_dev={"below": 10.0, "above": 1.0},
+        threshold_std_dev={"below": [10.0, None], "above": [1.0, None]},
     )
     return minicircle_initial_tilt_removal
 
@@ -459,7 +461,7 @@ def minicircle_threshold_abs(minicircle_initial_tilt_removal: Filters) -> Filter
         minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="absolute",
         otsu_threshold_multiplier=None,
-        absolute={"below": -1.5, "above": 1.5},
+        absolute={"below": [-1.5, None], "above": [1.5, None]},
     )
     return minicircle_initial_tilt_removal
 
@@ -467,9 +469,8 @@ def minicircle_threshold_abs(minicircle_initial_tilt_removal: Filters) -> Filter
 @pytest.fixture()
 def minicircle_mask(minicircle_threshold_otsu: Filters) -> Filters:
     """Derive mask based on threshold."""
-    minicircle_threshold_otsu.images["mask"] = get_mask(
-        image=minicircle_threshold_otsu.images["initial_tilt_removal"],
-        thresholds=minicircle_threshold_otsu.thresholds,
+    minicircle_threshold_otsu.images["mask"] = get_and_combine_directional_masks(
+        image=minicircle_threshold_otsu.images["initial_tilt_removal"], thresholds=minicircle_threshold_otsu.thresholds
     )
     return minicircle_threshold_otsu
 
@@ -546,7 +547,7 @@ def minicircle_grain_threshold_stddev(minicircle_grains: Grains, grains_config: 
         image=minicircle_grains.image,
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        threshold_std_dev={"below": 10.0, "above": 1.0},
+        threshold_std_dev={"below": [10.0, None], "above": [1.0, None]},
         absolute=None,
     )
     return minicircle_grains
@@ -559,7 +560,7 @@ def minicircle_grain_threshold_abs(minicircle_grains: Grains) -> Grains:
         image=minicircle_grains.image,
         threshold_method="absolute",
         otsu_threshold_multiplier=None,
-        absolute={"below": -1.0, "above": 1.0},
+        absolute={"below": [-1.0, None], "above": [1.0, None]},
     )
     return minicircle_grains
 
@@ -570,7 +571,7 @@ def minicircle_grain_mask(minicircle_grain_threshold_abs: Grains) -> Grains:
     minicircle_grain_threshold_abs.directions["above"] = {}
     minicircle_grain_threshold_abs.directions["above"]["mask_grains"] = _get_mask(
         image=minicircle_grain_threshold_abs.image,
-        thresh=minicircle_grain_threshold_abs.thresholds["above"],
+        thresholds=minicircle_grain_threshold_abs.thresholds["above"],
         threshold_direction="above",
         img_name=minicircle_grain_threshold_abs.filename,
     )

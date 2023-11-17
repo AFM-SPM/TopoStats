@@ -72,24 +72,52 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
-                "below": lambda n: n > 0,
-                "above": lambda n: n > 0,
+                "below": [
+                    Or(
+                        int,
+                        float,
+                        None,
+                        error=(
+                            "Invalid value in config for filter.threshold.std_dev.below "
+                            " should be int, float or null"
+                        ),
+                    )
+                ],
+                "above": [
+                    Or(
+                        int,
+                        float,
+                        None,
+                        error=(
+                            "Invalid value in config for grains.threshold.std_dev.above "
+                            " should be int, float or null"
+                        ),
+                    )
+                ],
             },
             "threshold_absolute": {
-                "below": Or(
-                    int,
-                    float,
-                    error=(
-                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
-                    ),
-                ),
-                "above": Or(
-                    int,
-                    float,
-                    error=(
-                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
-                    ),
-                ),
+                "below": [
+                    Or(
+                        int,
+                        float,
+                        None,
+                        error=(
+                            "Invalid value in config for filter.threshold.absolute.below "
+                            "should be type int, float or null"
+                        ),
+                    )
+                ],
+                "above": [
+                    Or(
+                        int,
+                        float,
+                        None,
+                        error=(
+                            "Invalid value in config for filter.threshold.absolute.below "
+                            "should be type int, float or null"
+                        ),
+                    )
+                ],
             },
             "gaussian_size": float,
             "gaussian_mode": Or(
@@ -123,24 +151,52 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
-                "below": lambda n: n > 0,
-                "above": lambda n: n > 0,
+                "below": [
+                    Or(
+                        int,
+                        float,
+                        None,
+                        error=(
+                            "Invalid value in config for grains.threshold.std_dev.below "
+                            " should be int, float or null"
+                        ),
+                    )
+                ],
+                "above": [
+                    Or(
+                        int,
+                        float,
+                        None,
+                        error=(
+                            "Invalid value in config for grains.threshold.std_dev.above "
+                            " should be int, float or null"
+                        ),
+                    )
+                ],
             },
             "threshold_absolute": {
-                "below": Or(
-                    int,
-                    float,
-                    error=(
-                        "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
-                    ),
-                ),
-                "above": Or(
-                    int,
-                    float,
-                    error=(
-                        "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
-                    ),
-                ),
+                "below": [
+                    Or(
+                        int,
+                        float,
+                        None,
+                        error=(
+                            "Invalid value in config for grains.threshold.absolute.below "
+                            "should be type int, float or null"
+                        ),
+                    )
+                ],
+                "above": [
+                    Or(
+                        int,
+                        float,
+                        None,
+                        error=(
+                            "Invalid value in config for grains.threshold.absolute.below "
+                            "should be type int, float or null"
+                        ),
+                    )
+                ],
             },
             "absolute_area_threshold": {
                 "above": [
