@@ -1,4 +1,4 @@
-"""A U-NET model for segmentation of Perovskite grains."""
+"""A U-NET model for segmentation of atomic force microscopy image grains."""
 
 from keras.models import Model
 from keras.layers import (
