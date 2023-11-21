@@ -11,15 +11,19 @@
 [![pre-commit.ci
 status](https://results.pre-commit.ci/badge/github/AFM-SPM/TopoStats/main.svg)](https://results.pre-commit.ci/latest/github/AFM-SPM/TopoStats/main)
 [![ORDA](https://img.shields.io/badge/ORDA--DOI-10.15131%2Fshef.data.22633528.v.1-lightgrey)](https://figshare.shef.ac.uk/articles/software/TopoStats/22633528/1)
+
 </div>
 <div align="center">
+
 [![Downloads](https://static.pepy.tech/badge/topostats)](https://pepy.tech/project/topostats)
 [![Downloads](https://static.pepy.tech/badge/topostats/month)](https://pepy.tech/project/topostats)
 [![Downloads](https://static.pepy.tech/badge/topostats/week)](https://pepy.tech/project/topostats)
+
 </div>
 <div align="center">
+
 | [Installation](#installation) | [Tutorials and Examples](#tutorials-and-examples) | [Contributing](contributing.md) |
-| [Licence](#licence) | [Citation](#citation) |
+[Licence](#licence) | [Citation](#citation) |
 </div>
 
 --------------------------------------------------------------------------------
