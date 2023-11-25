@@ -165,7 +165,7 @@ def process_scan(
             LOGGER.error(f"[{filename}] : An error occured during grain finding, skipping grainstats and dnatracing.")
             LOGGER.error(f"[{filename}] : The error: {e}")
             results = create_empty_dataframe()
-            node_stats = {"above": None, "below": None}
+            node_stats = {"above": {}, "below": {}}
         else:
             for direction, region_props in grains.region_properties.items():
                 if len(region_props) == 0:
@@ -227,7 +227,7 @@ def process_scan(
                                 f"[{filename}] : No grains exist for the {direction} direction. Skipping grainstats and DNAtracing."
                             )
                             grainstats[direction] = create_empty_dataframe()
-                            node_stats = {"above": None, "below": None}
+                            node_stats = {"above": {}, "below": {}}
                             dnatracing_config["run"] = False
                         else:
                             grainstats[direction], grains_plot_data = GrainStats(
@@ -267,7 +267,7 @@ def process_scan(
                         f"[{filename}] : Errors occurred whilst calculating grain statistics. Skipping DNAtracing."
                     )
                     results = create_empty_dataframe()
-                    node_stats = {"above": None, "below": None}
+                    node_stats = {"above": {}, "below": {}}
 
                 else:
                     # Run dnatracing
@@ -495,7 +495,7 @@ def process_scan(
                             )
                             results = grainstats_df
                             results["basename"] = image_path.parent
-                            node_stats = {"above": None, "below": None}
+                            node_stats = {"above": {}, "below": {}}
                         
                     except Exception:
                         # If no results we need a dummy dataframe to return.
@@ -505,20 +505,18 @@ def process_scan(
                         )
                         results = grainstats_df
                         results["basename"] = image_path.parent
-                        node_stats = {"above": None, "below": None}
-                
+                        node_stats = {"above": {}, "below": {}}
                     
-
             else:
                 LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
                 results = create_empty_dataframe()
-                node_stats = {"above": None, "below": None}
+                node_stats = {"above": {}, "below": {}}
     else:
         LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
         results = create_empty_dataframe()
         results["Image Name"] = filename
         results["Basename"] = image_path.parent
-        node_stats = {"above": None, "below": None}
+        node_stats = {"above": {}, "below": {}}
 
     LOGGER.info(f"[{filename}] : Finished Processing")
     return image_path, results, node_stats
