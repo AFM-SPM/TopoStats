@@ -1283,7 +1283,7 @@ class nodeStats:
 
         return im
 
-    # TODO: Maybe move to skeletonisation & fix
+    # TODO: Maybe move to skeletonisation
     def tidy_branches(self, connect_node_mask: np.ndarray, image: np.ndarray):
         """Aims to wrangle distant connected nodes back towards the main cluster. By reskeletonising
         soely the node areas.
@@ -1674,10 +1674,12 @@ class nodeStats:
 
                     # join matching branches through node
                     matched_branches = {}
+                    masked_image = {}
                     branch_img = np.zeros_like(self.skeleton)  # initialising paired branch img
                     avg_img = np.zeros_like(self.skeleton)
                     for i, (branch_1, branch_2) in enumerate(pairs):
                         matched_branches[i] = {}
+                        masked_image[i] = {}
                         # find close ends by rearranging branch coords
                         branch_1_coords, branch_2_coords = self.order_branches(
                             ordered_branches[branch_1], ordered_branches[branch_2]
@@ -1707,7 +1709,7 @@ class nodeStats:
                             distances, heights, mask, _ = self.average_height_trace(
                                 self.image, single_branch_img, single_branch_coords, [x, y]
                             )  # hess_area
-                            matched_branches[i]["avg_mask"] = mask
+                            masked_image[i]["avg_mask"] = mask
                         except (AssertionError, IndexError) as e: # Assertion - avg trace not advised, Index - wiggy branches
                             LOGGER.info(f"[{self.filename}] : {e}, single trace only.")
                             average_trace_advised = False
@@ -1753,7 +1755,7 @@ class nodeStats:
                         branch_coords = matched_branches[branch_idx]["ordered_coords"]
                         branch_img[branch_coords[:, 0], branch_coords[:, 1]] = i + 1  # add to branch img
                         if average_trace_advised:  # add avg traces
-                            avg_img[matched_branches[branch_idx]["avg_mask"] != 0] = i + 1
+                            avg_img[masked_image[branch_idx]["avg_mask"] != 0] = i + 1
                         else:
                             avg_img = None
 
