@@ -1736,6 +1736,7 @@ class nodeStats:
                             heights, distances
                         )  # self.peak_height(heights, distances)
 
+
                     # redo fwhms after to get better baselines + same hm matching
                     hms = []
                     for branch_idx, values in matched_branches.items():  # get hms
@@ -1743,6 +1744,19 @@ class nodeStats:
                     for branch_idx, values in matched_branches.items():  # use same highest hm
                         fwhm2 = self.fwhm2(values["heights"], values["distances"], hm=max(hms))
                         matched_branches[branch_idx]["fwhm2"] = fwhm2
+                    
+                    # get AUC instead
+                    """
+                    xmaxs = []
+                    xmins = []
+                    for branch_idx, values in matched_branches.items():  # get hms
+                        xmaxs.append(np.max(values["distances"]))
+                        xmins.append(np.min(values["distances"]))
+                    for branch_idx, values in matched_branches.items():  # use same highest hm
+                        print("IMG MEAN: ", self.image[self.skeleton==1].mean())
+                        fwhm2 = self.auc(values["distances"], values["heights"], y_lim=self.image[self.skeleton==1].mean(), xrange=(max(xmins), min(xmaxs))) # self.image[self.skeleton==1].mean()
+                        matched_branches[branch_idx]["fwhm2"] = fwhm2
+                    """
 
                     # add paired and unpaired branches to image plot
                     fwhms = []
@@ -1819,6 +1833,42 @@ class nodeStats:
                     "node_avg_mask": avg_img,
                 }
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
+
+    @staticmethod
+    def sq(curr, nxt, y_lim):
+        'Obtains the area of the square between y_lim and the 2 points'
+        lowest_y = min(curr[1], nxt[1])
+        y_diff = max(0, lowest_y  -y_lim)
+        return (nxt[0]-curr[0]) * y_diff
+
+    def tri(self, curr, nxt, y_lim):
+        'Obtains the area of the triangle between y_lim and the 2 points'
+        if y_lim <= min(curr[1], nxt[1]): # if below triangle
+            return (nxt[0]-curr[0]) * (abs(nxt[1] - curr[1])) / 2
+        if y_lim >= max(curr[1], nxt[1]): # if val above triangle
+            return 0
+        else: # linearly interpolate 
+            y_lim_x = self.lin_interp(curr, nxt, yvalue=y_lim)
+            if curr[1] > nxt[1]: # which coord has higher y
+                max_coord = curr
+            else:
+                max_coord = nxt
+            return abs(curr[0] - y_lim_x) * (max_coord[1] - y_lim) / 2
+
+    def auc(self, x, y, y_lim, xrange):
+        '''Get the area under the curve (or points in this case) by summing the
+        trapezoid areas between points above the y_lim and between the xrange.'''
+        xcap = x[(x >= xrange[0]) & (x <= xrange[1])]
+        ycap = y[(x >= xrange[0]) & (x <= xrange[1])]
+        auc = 0
+        for i in range(len(xcap)-1):
+            curr = xcap[i], ycap[i]
+            nxt = xcap[i+1], ycap[i+1]
+            square = self.sq(curr, nxt, y_lim)
+            triangle = self.tri(curr, nxt, y_lim)
+            auc += square + triangle
+
+        return auc, xcap, ycap, y_lim
 
     @staticmethod
     def detect_ridges(gray, sigma=1.0):

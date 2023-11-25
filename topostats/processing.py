@@ -14,7 +14,7 @@ from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_array
 from topostats.logs.logs import setup_logger, LOGGER_NAME
 from topostats.plottingfuncs import Images
-from topostats.plotting import plot_crossing_linetrace_halfmax
+from topostats.plotting import plot_crossing_linetrace_halfmax, plot_auc
 from topostats.tracing.dnatracing import trace_image, dnaTrace
 from topostats.utils import create_empty_dataframe, NpEncoder
 
@@ -419,10 +419,17 @@ def process_scan(
                                                     "title": "Heights of Crossing",
                                                     "cmap": "libby_blu_purp",
                                                 }
+                                                
                                                 fig, _ = plot_crossing_linetrace_halfmax(
                                                     single_node_stats["branch_stats"],
                                                     **plotting_config["plot_dict"]["line_trace"],
                                                 )
+                                                """
+                                                fig, _ = plot_auc(
+                                                    single_node_stats["branch_stats"],
+                                                    **plotting_config["plot_dict"]["line_trace"],
+                                                )
+                                                """
                                                 fig.savefig(
                                                     output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg",
                                                     format="svg",

@@ -384,3 +384,32 @@ def plot_crossing_linetrace_halfmax(branch_stats_dict: dict, cmap: matplotlib.co
     ax.set_title(title)
     ax.legend()
     return fig, ax
+
+def plot_auc(branch_stats_dict: dict, cmap: matplotlib.colors.Colormap, title: str):
+    fig, ax = plt.subplots(1, 1)
+    cmp = Colormap(cmap).get_cmap()
+    total_branches = len(branch_stats_dict)
+    # plot the highest first
+    fwhms = []
+    for branch_idx, values in branch_stats_dict.items():
+        fwhms.append(values["fwhm2"][0])
+    branch_idx_order = np.array(list(branch_stats_dict.keys()))[np.argsort(np.array(fwhms))]
+
+    for i, branch_idx in enumerate(branch_idx_order):
+        fwhm, xcap, ycap, y_lim = branch_stats_dict[branch_idx]["fwhm2"]
+        if total_branches == 1:
+            cmap_ratio = 0
+        else:
+            cmap_ratio = i / (total_branches - 1)
+        heights = branch_stats_dict[branch_idx]["heights"]
+        x = branch_stats_dict[branch_idx]["distances"]
+        ax.plot(x, heights, label=f"Branch: {branch_idx}, AUC: {fwhm:.1f}", c=cmp(cmap_ratio))
+
+    # plot above val line
+    plt.plot((xcap.min(), xcap.max()), (y_lim, y_lim), label="Area bounding line")
+
+    ax.set_xlabel("Distance from Node (nm)")
+    ax.set_ylabel("Height")
+    ax.set_title(title)
+    ax.legend()
+    return fig, ax
