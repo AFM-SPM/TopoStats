@@ -1758,6 +1758,14 @@ class nodeStats:
                         matched_branches[branch_idx]["fwhm2"] = fwhm2
                     """
 
+                    # get confidences
+                    crossing_quants = []
+                    for branch_idx, values in matched_branches.items():  # get hms
+                        crossing_quants.append(values["fwhm2"][0])
+                    combs = self.get_two_combinations(crossing_quants)
+                    conf = self.cross_confidence(combs)
+                    matched_branches[branch_idx]["confidence"] = conf
+
                     # add paired and unpaired branches to image plot
                     fwhms = []
                     for branch_idx, values in matched_branches.items():
@@ -1869,6 +1877,27 @@ class nodeStats:
             auc += square + triangle
 
         return auc, xcap, ycap, y_lim
+
+    @staticmethod
+    def get_two_combinations(fwhm_list):
+        combs = []
+        for i in range(len(fwhm_list)-1):
+            [combs.append([fwhm_list[i], j]) for j in fwhm_list[i+1:]]
+        return combs 
+
+    def cross_confidence(self, combs):
+        c = 0
+        for comb in combs:
+            c += self.per_diff(comb)
+        return c / len(combs)
+
+    @staticmethod
+    def recip(vals):
+        return 1 - min(vals) / max(vals)
+
+    @staticmethod
+    def per_diff(vals):
+        return abs(vals[0] - vals[1]) / (vals[0] + vals[1])
 
     @staticmethod
     def detect_ridges(gray, sigma=1.0):
