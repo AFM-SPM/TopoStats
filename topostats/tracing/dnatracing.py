@@ -1880,12 +1880,14 @@ class nodeStats:
 
     @staticmethod
     def get_two_combinations(fwhm_list):
+        """Gets all paired combinations of values in the list."""
         combs = []
         for i in range(len(fwhm_list)-1):
             [combs.append([fwhm_list[i], j]) for j in fwhm_list[i+1:]]
         return combs 
 
     def cross_confidence(self, combs):
+        """Obtains the average confidence of the combinations using the function provided."""
         c = 0
         for comb in combs:
             c += self.per_diff(comb)
@@ -1893,11 +1895,17 @@ class nodeStats:
 
     @staticmethod
     def recip(vals):
-        return 1 - min(vals) / max(vals)
+        try:
+            return 1 - min(vals) / max(vals)
+        except ZeroDivisionError:
+            return 0
 
     @staticmethod
     def per_diff(vals):
-        return abs(vals[0] - vals[1]) / (vals[0] + vals[1])
+        try:
+            return abs(vals[0] - vals[1]) / (vals[0] + vals[1])
+        except ZeroDivisionError:
+            return 0
 
     @staticmethod
     def detect_ridges(gray, sigma=1.0):
