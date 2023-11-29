@@ -156,7 +156,7 @@ class dnaTrace:
             )
             self.node_dict, self.node_image_dict = nodes.get_node_stats()
             self.node_image = nodes.connected_nodes
-            self.num_crossings = len(self.node_dict)
+            self.num_crossings = nodes.node_centre_mask.sum() #len(self.node_dict)
 
             # try: # try to order using nodeStats
             if nodes.check_node_errorless():
