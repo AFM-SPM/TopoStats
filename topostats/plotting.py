@@ -385,6 +385,7 @@ def plot_crossing_linetrace_halfmax(branch_stats_dict: dict, cmap: matplotlib.co
     ax.legend()
     return fig, ax
 
+
 def plot_auc(branch_stats_dict: dict, cmap: matplotlib.colors.Colormap, title: str):
     fig, ax = plt.subplots(1, 1)
     cmp = Colormap(cmap).get_cmap()

@@ -271,7 +271,7 @@ def process_scan(
 
                 else:
                     # Run dnatracing
-                    #try:
+                    # try:
                     if dnatracing_config["run"]:
                         dnatracing_config.pop("run")
                         LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
@@ -408,7 +408,7 @@ def process_scan(
                                             output_dir=output_dir / "nodes",
                                             **plotting_config["plot_dict"]["tripple_crossings"],
                                         ).plot_and_save()
-                            
+
                         for mol_no, mol_stats in node_stats[direction].items():
                             if mol_stats is not None:
                                 for node_no, single_node_stats in mol_stats.items():
@@ -419,7 +419,7 @@ def process_scan(
                                                 "title": "Heights of Crossing",
                                                 "cmap": "libby_blu_purp",
                                             }
-                                            
+
                                             fig, _ = plot_crossing_linetrace_halfmax(
                                                 single_node_stats["branch_stats"],
                                                 **plotting_config["plot_dict"]["line_trace"],
@@ -431,7 +431,9 @@ def process_scan(
                                             )
                                             """
                                             fig.savefig(
-                                                output_dir / "nodes" / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg",
+                                                output_dir
+                                                / "nodes"
+                                                / f"mol_{mol_no}_node_{node_no}_linetrace_halfmax.svg",
                                                 format="svg",
                                             )
                         LOGGER.info(f"[{filename}] : Finished Plotting DNA Tracing Images")
@@ -514,7 +516,7 @@ def process_scan(
                         results["basename"] = image_path.parent
                         node_stats = {"above": {}, "below": {}}
                     """
-                    
+
             else:
                 LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
                 results = create_empty_dataframe()
