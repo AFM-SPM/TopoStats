@@ -117,6 +117,7 @@ class dnaTrace:
         self.ordered_trace = None
         self.ordered_trace_img = np.zeros_like(image)
         self.num_crossings = None
+        self.avg_crossing_confidence = None
         self.topology = [None]
         self.fitted_traces = []
         self.fitted_trace_img = np.zeros_like(image)
@@ -155,8 +156,9 @@ class dnaTrace:
                 n_grain=self.n_grain,
             )
             self.node_dict, self.node_image_dict = nodes.get_node_stats()
+            self.avg_crossing_confidence = self.average_crossing_confs(self.node_dict)
             self.node_image = nodes.connected_nodes
-            self.num_crossings = len(self.node_dict)
+            self.num_crossings = len(self.node_dict) # nodes.node_centre_image.sum()
 
             # try: # try to order using nodeStats
             if nodes.check_node_errorless():
@@ -206,6 +208,14 @@ class dnaTrace:
             self.contour_lengths.append([])
             self.mol_is_circulars.append([])
             self.end_to_end_distances.append([])
+
+    @staticmethod
+    def average_crossing_confs(node_dict):
+        c = 0
+        for i, (_, values) in enumerate(node_dict.items()):
+            print("CONF: ", values["confidence"])
+            c+= values["confidence"]
+        return c / (i+1)
 
     def smooth_grains(self, grain: np.ndarray) -> None:
         """Smoothes grains based on the lower number added from dilation or gaussian.
@@ -1042,6 +1052,7 @@ def trace_grain(
             "circular": dnatrace.mol_is_circulars[i],
             "end_to_end_distance": dnatrace.end_to_end_distances[i],
             "num_crossings": dnatrace.num_crossings,
+            "grain_avg_crossing_confidence": dnatrace.avg_crossing_confidence,
             "topology": dnatrace.topology[i],
             "num_mols": dnatrace.num_mols,
         }
@@ -1764,7 +1775,6 @@ class nodeStats:
                         crossing_quants.append(values["fwhm2"][0])
                     combs = self.get_two_combinations(crossing_quants)
                     conf = self.cross_confidence(combs)
-                    matched_branches[branch_idx]["confidence"] = conf
 
                     # add paired and unpaired branches to image plot
                     fwhms = []
@@ -1823,6 +1833,7 @@ class nodeStats:
                     "crossing_type": None,
                     "branch_stats": matched_branches,
                     "node_coords": node_coords,
+                    "confidence": conf,
                 }
 
                 self.node_image_dict[real_node_count] = {
@@ -1890,20 +1901,26 @@ class nodeStats:
         """Obtains the average confidence of the combinations using the function provided."""
         c = 0
         for comb in combs:
-            c += self.per_diff(comb)
+            c += self.recip(comb)
         return c / len(combs)
 
     @staticmethod
     def recip(vals):
         try:
-            return 1 - min(vals) / max(vals)
+            if min(vals) == 0: # means fwhm variation hasn't worked
+                return 0
+            else:
+                return 1 - min(vals) / max(vals)
         except ZeroDivisionError:
             return 0
 
     @staticmethod
     def per_diff(vals):
         try:
-            return abs(vals[0] - vals[1]) / (vals[0] + vals[1])
+            if min(vals) == 0: # means fwhm variation hasn't worked
+                return 0
+            else:
+                return abs(vals[0] - vals[1]) / (vals[0] + vals[1])
         except ZeroDivisionError:
             return 0
 
@@ -2835,7 +2852,7 @@ class nodeStats:
         #   (https://topoly.cent.uw.edu.pl/dictionary.html#codes). Then look at each corssing zone again,
         #   determine which in in-undergoing and assign labels counter-clockwise
 
-        print("Getting PD Codes:")
+        #print("Getting PD Codes:")
         topology = self.get_topology(simple_trace)
         """
         if len(coord_trace) <= 2:
