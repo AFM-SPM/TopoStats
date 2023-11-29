@@ -192,10 +192,10 @@ class dnaTrace:
                     # self.saveCurvature()
                     self.contour_lengths.append(self.measure_contour_length(splined_trace, mol_is_circular))
                     self.end_to_end_distances.append(self.measure_end_to_end_distance(splined_trace, mol_is_circular))
-                else:
+                else: # fill the row with nothing so it can still be joined to grainstats
                     self.num_mols -= 1  # remove this from the num mols indexer
                     LOGGER.info(
-                        f"[{self.filename}] [{self.n_grain}] : Grain ordered trace pixels < {self.min_skeleton_size}"
+                        f"[{self.filename}] [grain {self.n_grain}] : Grain ordered trace pixels < {self.min_skeleton_size}"
                     )
                     self.contour_lengths.append([])
                     self.mol_is_circulars.append([])
@@ -1034,7 +1034,18 @@ def trace_grain(
     dnatrace.trace_dna()
     results = {}
 
-    for i in range(dnatrace.num_mols):
+    # incase no mols could be traced
+    results[0] = {
+            "image": dnatrace.filename,
+            "grain_number": n_grain,
+            "contour_length": dnatrace.contour_lengths[i],
+            "circular": dnatrace.mol_is_circulars[i],
+            "end_to_end_distance": dnatrace.end_to_end_distances[i],
+            "num_crossings": dnatrace.num_crossings,
+            "topology": dnatrace.topology[i],
+            "num_mols": dnatrace.num_mols,
+        }
+    for i in range(1, dnatrace.num_mols):
         results[i] = {
             "image": dnatrace.filename,
             "grain_number": n_grain,
@@ -1714,7 +1725,7 @@ class nodeStats:
                             )  # hess_area
                             masked_image[i]["avg_mask"] = mask
                         except (AssertionError, IndexError) as e: # Assertion - avg trace not advised, Index - wiggy branches
-                            LOGGER.info(f"[{self.filename}] : {e}, single trace only.")
+                            LOGGER.info(f"[{self.filename}] : avg trace failed with {e}, single trace only.")
                             average_trace_advised = False
                             distances = self.coord_dist_rad(
                                 single_branch_coords, [x, y]
@@ -2478,7 +2489,7 @@ class nodeStats:
             return None
 
     def average_height_trace(
-        self, img: np.ndarray, branch_mask: np.ndarray, branch_coords: np.ndarray, centre=None
+        self, img: np.ndarray, branch_mask: np.ndarray, branch_coords: np.ndarray, centre=[0, 0]
     ) -> tuple:
         """Dilates the original branch to create two additional side-by-side branches
         in order to get a more accurate average of the height traces. This function produces
