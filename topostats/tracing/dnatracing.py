@@ -158,7 +158,7 @@ class dnaTrace:
             self.node_dict, self.node_image_dict = nodes.get_node_stats()
             self.avg_crossing_confidence = self.average_crossing_confs(self.node_dict)
             self.node_image = nodes.connected_nodes
-            self.num_crossings = len(self.node_dict) # nodes.node_centre_image.sum()
+            self.num_crossings = nodes.node_centre_mask.sum() #len(self.node_dict)
 
             # try: # try to order using nodeStats
             if nodes.check_node_errorless():
@@ -194,10 +194,10 @@ class dnaTrace:
                     # self.saveCurvature()
                     self.contour_lengths.append(self.measure_contour_length(splined_trace, mol_is_circular))
                     self.end_to_end_distances.append(self.measure_end_to_end_distance(splined_trace, mol_is_circular))
-                else:
+                else: # fill the row with nothing so it can still be joined to grainstats
                     self.num_mols -= 1  # remove this from the num mols indexer
                     LOGGER.info(
-                        f"[{self.filename}] [{self.n_grain}] : Grain ordered trace pixels < {self.min_skeleton_size}"
+                        f"[{self.filename}] [grain {self.n_grain}] : Grain ordered trace pixels < {self.min_skeleton_size}"
                     )
                     self.contour_lengths.append([])
                     self.mol_is_circulars.append([])
@@ -1044,7 +1044,18 @@ def trace_grain(
     dnatrace.trace_dna()
     results = {}
 
-    for i in range(dnatrace.num_mols):
+    # incase no mols could be traced
+    results[0] = {
+            "image": dnatrace.filename,
+            "grain_number": n_grain,
+            "contour_length": dnatrace.contour_lengths[i],
+            "circular": dnatrace.mol_is_circulars[i],
+            "end_to_end_distance": dnatrace.end_to_end_distances[i],
+            "num_crossings": dnatrace.num_crossings,
+            "topology": dnatrace.topology[i],
+            "num_mols": dnatrace.num_mols,
+        }
+    for i in range(1, dnatrace.num_mols):
         results[i] = {
             "image": dnatrace.filename,
             "grain_number": n_grain,
@@ -1248,7 +1259,7 @@ class nodeStats:
             # connect the close nodes
             self.connected_nodes = self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
             # connect the odd-branch nodes
-            self.connected_nodes = self.connect_extended_nodes_nearest(self.connected_nodes)
+            self.connected_nodes = self.connect_extended_nodes_nearest(self.connected_nodes, extend_dist=14e-9/self.px_2_nm)
             #self.connected_nodes = self.connect_extended_nodes(self.connected_nodes)
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
             self.analyse_nodes(max_branch_length=20e-9)
@@ -1474,7 +1485,7 @@ class nodeStats:
         self.connected_nodes = connected_nodes
         return self.connected_nodes
     
-    def connect_extended_nodes_nearest(self, connected_nodes):
+    def connect_extended_nodes_nearest(self, connected_nodes, extend_dist=-1):
         just_nodes = np.where(connected_nodes == 3, 1, 0) # remove branches & termini points
         labelled_nodes = label(just_nodes)
 
@@ -1542,7 +1553,7 @@ class nodeStats:
         for i, (node1, branch_starts1) in enumerate(emanating_branch_starts_by_node.items()):
             for j, (node2, branch_starts2) in enumerate(emanating_branch_starts_by_node.items()):
                 if node1 != node2:  # Avoid comparing a node with itself
-                    # get shortest distance between all branch starts in n1 and n2
+                    # get shortest distance between all branch starts in n1 and n2, on #px not nm length
                     temp_length_matrix = np.zeros((len(branch_starts1), len(branch_starts2)))
                     for ii, bs1 in enumerate(branch_starts1):
                         for jj, bs2 in enumerate(branch_starts2):
@@ -1557,12 +1568,15 @@ class nodeStats:
         matches = self.best_matches(shortest_node_dists, max_weight_matching=False)
         # get paths of best matches. TODO: replace below with using shortest dist coords
         for node_pair_idx in matches:
-            branch_idxs = shortest_dists_branch_idxs[node_pair_idx[0], node_pair_idx[1]]
-            node_nums = list(emanating_branch_starts_by_node.keys())
-            source = tuple(emanating_branch_starts_by_node[node_nums[node_pair_idx[0]]][branch_idxs[0]])
-            target = tuple(emanating_branch_starts_by_node[node_nums[node_pair_idx[1]]][branch_idxs[1]])
-            path = np.array(nx.shortest_path(self.whole_skel_graph, source, target))
-            connected_nodes[path[:,0], path[:,1]] = 3
+            shortest_dist = shortest_node_dists[node_pair_idx[0], node_pair_idx[1]]
+            print("DIST short, extend: ", shortest_dist, extend_dist)
+            if shortest_dist <= extend_dist or extend_dist == -1:
+                branch_idxs = shortest_dists_branch_idxs[node_pair_idx[0], node_pair_idx[1]]
+                node_nums = list(emanating_branch_starts_by_node.keys())
+                source = tuple(emanating_branch_starts_by_node[node_nums[node_pair_idx[0]]][branch_idxs[0]])
+                target = tuple(emanating_branch_starts_by_node[node_nums[node_pair_idx[1]]][branch_idxs[1]])
+                path = np.array(nx.shortest_path(self.whole_skel_graph, source, target))
+                connected_nodes[path[:,0], path[:,1]] = 3
 
         self.connected_nodes = connected_nodes
         return self.connected_nodes
@@ -1722,7 +1736,7 @@ class nodeStats:
                             )  # hess_area
                             masked_image[i]["avg_mask"] = mask
                         except (AssertionError, IndexError) as e: # Assertion - avg trace not advised, Index - wiggy branches
-                            LOGGER.info(f"[{self.filename}] : {e}, single trace only.")
+                            LOGGER.info(f"[{self.filename}] : avg trace failed with {e}, single trace only.")
                             average_trace_advised = False
                             distances = self.coord_dist_rad(
                                 single_branch_coords, [x, y]
@@ -2529,7 +2543,7 @@ class nodeStats:
             return None
 
     def average_height_trace(
-        self, img: np.ndarray, branch_mask: np.ndarray, branch_coords: np.ndarray, centre=None
+        self, img: np.ndarray, branch_mask: np.ndarray, branch_coords: np.ndarray, centre=[0, 0]
     ) -> tuple:
         """Dilates the original branch to create two additional side-by-side branches
         in order to get a more accurate average of the height traces. This function produces
