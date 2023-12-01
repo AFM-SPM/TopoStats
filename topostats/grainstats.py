@@ -181,7 +181,7 @@ class GrainStats:
 
             # Skip grain if too small to calculate stats for
             LOGGER.debug(f"[{self.image_name}] : Grain size: {region.image.size}")
-            if min(region.image.shape) < 5:
+            if min(region.image.shape) < 2:
                 LOGGER.info(
                     f"[{self.image_name}] : Skipping grain due to being too small (size: {region.image.shape}) to calculate stats for."
                 )
@@ -193,7 +193,9 @@ class GrainStats:
             minr, minc, maxr, maxc = region.bbox
             grain_mask = np.array(region.image)
             grain_image = self.data[minr:maxr, minc:maxc]
-            grain_mask_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
+            grain_mask_image = np.ma.masked_array(
+                grain_image, mask=np.invert(grain_mask), fill_value=np.nan
+            ).filled()
 
             if self.cropped_size == -1:
                 for name, image in {
@@ -217,8 +219,12 @@ class GrainStats:
                 solo_mask = self.labelled_data.copy()
                 solo_mask[solo_mask != index + 1] = 0
                 solo_mask[solo_mask == index + 1] = 1
-                cropped_grain_image = self.get_cropped_region(self.data, length, np.asarray(grain_centre))
-                cropped_grain_mask = self.get_cropped_region(solo_mask, length, np.asarray(grain_centre)).astype(bool)
+                cropped_grain_image = self.get_cropped_region(
+                    self.data, length, np.asarray(grain_centre)
+                )
+                cropped_grain_mask = self.get_cropped_region(
+                    solo_mask, length, np.asarray(grain_centre)
+                ).astype(bool)
                 cropped_grain_mask_image = np.ma.masked_array(
                     grain_image, mask=np.invert(grain_mask), fill_value=np.nan
                 ).filled()
@@ -237,7 +243,9 @@ class GrainStats:
                     )
 
             points = self.calculate_points(grain_mask)
-            edges = self.calculate_edges(grain_mask, edge_detection_method=self.edge_detection_method)
+            edges = self.calculate_edges(
+                grain_mask, edge_detection_method=self.edge_detection_method
+            )
             radius_stats = self.calculate_radius_stats(edges, points)
             # hull, hull_indices, hull_simplexes = self.convex_hull(edges, output_grain)
             _, _, hull_simplexes = self.convex_hull(edges, output_grain)
@@ -283,7 +291,9 @@ class GrainStats:
                 "area_cartesian_bbox": region.area_bbox * area_scaling_factor,
                 "smallest_bounding_width": smallest_bounding_width * length_scaling_factor,
                 "smallest_bounding_length": smallest_bounding_length * length_scaling_factor,
-                "smallest_bounding_area": smallest_bounding_length * smallest_bounding_width * area_scaling_factor,
+                "smallest_bounding_area": smallest_bounding_length
+                * smallest_bounding_width
+                * area_scaling_factor,
                 "aspect_ratio": aspect_ratio,
                 "threshold": self.direction,
                 "max_feret": max_feret * length_scaling_factor,
@@ -515,7 +525,9 @@ class GrainStats:
         # Lists that allow sorting of points relative to a current comparision point
         smaller, equal, larger = [], [], []
         # Get a random point in the array to calculate the pivot angle from. This sorts the points relative to this point.
-        pivot_angle = self.get_angle(points[randint(0, len(points) - 1)], self.start_point)  # noqa: S311
+        pivot_angle = self.get_angle(
+            points[randint(0, len(points) - 1)], self.start_point
+        )  # noqa: S311
         for point in points:
             point_angle = self.get_angle(point, self.start_point)
             # If the
@@ -529,7 +541,11 @@ class GrainStats:
         # relative to that and _then_ sort it.
         # pivot_angles = self.get_angle(points, self.start_point)
         # Recursively sort the arrays until each point is sorted
-        return self.sort_points(smaller) + sorted(equal, key=self.calculate_squared_distance) + self.sort_points(larger)
+        return (
+            self.sort_points(smaller)
+            + sorted(equal, key=self.calculate_squared_distance)
+            + self.sort_points(larger)
+        )
         # Return sorted array where equal angle points are sorted by distance
 
     def get_start_point(self, edges) -> None:
@@ -637,7 +653,9 @@ class GrainStats:
         plt.savefig(file_path)
         plt.close()
 
-    def calculate_aspect_ratio(self, edges: list, hull_simplices: np.ndarray, path: Path, debug: bool = False) -> tuple:
+    def calculate_aspect_ratio(
+        self, edges: list, hull_simplices: np.ndarray, path: Path, debug: bool = False
+    ) -> tuple:
         """Calculate the width, length and aspect ratio of the smallest bounding rectangle of a grain.
 
         Parameters
@@ -685,7 +703,9 @@ class GrainStats:
             remapped_points = edges - centroid
 
             # Rotate the coordinates using a rotation matrix
-            rotated_coordinates = np.array(((np.cos(angle), -np.sin(angle)), (np.sin(angle), np.cos(angle))))
+            rotated_coordinates = np.array(
+                ((np.cos(angle), -np.sin(angle)), (np.sin(angle), np.cos(angle)))
+            )
 
             # For each point in the set, rotate it using the above rotation matrix.
             rotated_points = []
@@ -755,10 +775,15 @@ class GrainStats:
                     ],
                     "#994400",
                 )
-                plt.savefig(path / ("bounding_rectangle_construction_simplex_" + str(simplex_index) + ".png"))
+                plt.savefig(
+                    path
+                    / ("bounding_rectangle_construction_simplex_" + str(simplex_index) + ".png")
+                )
 
             # Calculate the area of the proposed bounding rectangle
-            bounding_area = (extremes["x_max"] - extremes["x_min"]) * (extremes["y_max"] - extremes["y_min"])
+            bounding_area = (extremes["x_max"] - extremes["x_min"]) * (
+                extremes["y_max"] - extremes["y_min"]
+            )
 
             # If current bounding rectangle is the smallest so far
             if smallest_bounding_area is None or bounding_area < smallest_bounding_area:
@@ -769,7 +794,9 @@ class GrainStats:
                 #     extremes["y_min"],
                 #     extremes["y_max"],
                 # )
-                aspect_ratio = (extremes["x_max"] - extremes["x_min"]) / (extremes["y_max"] - extremes["y_min"])
+                aspect_ratio = (extremes["x_max"] - extremes["x_min"]) / (
+                    extremes["y_max"] - extremes["y_min"]
+                )
                 smallest_bounding_width = min(
                     (extremes["x_max"] - extremes["x_min"]),
                     (extremes["y_max"] - extremes["y_min"]),
@@ -931,7 +958,9 @@ class GrainStats:
         ]
 
     @staticmethod
-    def get_triangle_height(base_point_1: np.array, base_point_2: np.array, top_point: np.array) -> float:
+    def get_triangle_height(
+        base_point_1: np.array, base_point_2: np.array, top_point: np.array
+    ) -> float:
         """Return the height of a triangle defined by the input point vectors.
 
         Parameters
@@ -1009,10 +1038,14 @@ class GrainStats:
         upper_hull = []
         lower_hull = []
         for point in edge_points:
-            while len(lower_hull) > 1 and GrainStats.is_clockwise(lower_hull[-2], lower_hull[-1], point):
+            while len(lower_hull) > 1 and GrainStats.is_clockwise(
+                lower_hull[-2], lower_hull[-1], point
+            ):
                 lower_hull.pop()
             lower_hull.append(point)
-            while len(upper_hull) > 1 and not GrainStats.is_clockwise(upper_hull[-2], upper_hull[-1], point):
+            while len(upper_hull) > 1 and not GrainStats.is_clockwise(
+                upper_hull[-2], upper_hull[-1], point
+            ):
                 upper_hull.pop()
             upper_hull.append(point)
 
@@ -1084,7 +1117,10 @@ class GrainStats:
         # Find the minimum and maximum distance in the contact points
         max_feret = None
         for point_pair in contact_points:
-            dist = np.sqrt((point_pair[0, 0] - point_pair[1, 0]) ** 2 + (point_pair[0, 1] - point_pair[1, 1]) ** 2)
+            dist = np.sqrt(
+                (point_pair[0, 0] - point_pair[1, 0]) ** 2
+                + (point_pair[0, 1] - point_pair[1, 1]) ** 2
+            )
             if max_feret is None or max_feret < dist:
                 max_feret = dist
 
