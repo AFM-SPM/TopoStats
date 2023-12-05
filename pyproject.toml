@@ -85,6 +85,7 @@ dev = [
   "pyupgrade",
   "pytest-durations",
   "pytest-xdist",
+  "snoop",
 ]
 pypi = [
   "build",
