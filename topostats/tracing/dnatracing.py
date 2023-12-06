@@ -158,7 +158,7 @@ class dnaTrace:
             self.node_dict, self.node_image_dict = nodes.get_node_stats()
             self.avg_crossing_confidence = self.average_crossing_confs(self.node_dict)
             self.node_image = nodes.connected_nodes
-            self.num_crossings = nodes.node_centre_mask.sum()  # len(self.node_dict)
+            self.num_crossings = nodes.num_crossings  # len(self.node_dict)
 
             # try: # try to order using nodeStats
             if nodes.check_node_errorless():
@@ -197,9 +197,9 @@ class dnaTrace:
                     LOGGER.info(
                         f"[{self.filename}] [grain {self.n_grain}] : Grain ordered trace pixels < {self.min_skeleton_size}"
                     )
-                    self.contour_lengths.append([])
-                    self.mol_is_circulars.append([])
-                    self.end_to_end_distances.append([])
+                    self.contour_lengths.append(None)
+                    self.mol_is_circulars.append(None)
+                    self.end_to_end_distances.append(None)
 
         else:
             LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
@@ -209,11 +209,17 @@ class dnaTrace:
 
     @staticmethod
     def average_crossing_confs(node_dict):
-        c = 0
+        sum_conf = 0
+        valid_confs = 0
         for i, (_, values) in enumerate(node_dict.items()):
-            print("CONF: ", values["confidence"])
-            c += values["confidence"]
-        return c / (i + 1)
+            conf = values["confidence"]
+            if conf is not None:
+                sum_conf += conf
+                valid_confs += 1
+            try:
+                return sum_conf / (i + 1)
+            except ZeroDivisionError:
+                return None
 
     def smooth_grains(self, grain: np.ndarray) -> None:
         """Smoothes grains based on the lower number added from dilation or gaussian.
@@ -1044,29 +1050,30 @@ def trace_grain(
     dnatrace.trace_dna()
     results = {}
 
-    # incase no mols could be traced
-    results[0] = {
-        "image": dnatrace.filename,
-        "grain_number": n_grain,
-        "contour_length": dnatrace.contour_lengths[i],
-        "circular": dnatrace.mol_is_circulars[i],
-        "end_to_end_distance": dnatrace.end_to_end_distances[i],
-        "num_crossings": dnatrace.num_crossings,
-        "topology": dnatrace.topology[i],
-        "num_mols": dnatrace.num_mols,
-    }
-    for i in range(1, dnatrace.num_mols):
-        results[i] = {
+    if dnatrace.num_mols == 0: # incase no mols could be traced
+        results[0] = {
             "image": dnatrace.filename,
             "grain_number": n_grain,
-            "contour_length": dnatrace.contour_lengths[i],
-            "circular": dnatrace.mol_is_circulars[i],
-            "end_to_end_distance": dnatrace.end_to_end_distances[i],
-            "num_crossings": dnatrace.num_crossings,
-            "grain_avg_crossing_confidence": dnatrace.avg_crossing_confidence,
-            "topology": dnatrace.topology[i],
-            "num_mols": dnatrace.num_mols,
+            "contour_length": None,
+            "circular": None,
+            "end_to_end_distance": None,
+            "num_crossings": None,
+            "topology": None,
+            "num_mols": None,
         }
+    else:
+        for i in range(dnatrace.num_mols):
+            results[i] = {
+                "image": dnatrace.filename,
+                "grain_number": n_grain,
+                "contour_length": dnatrace.contour_lengths[i],
+                "circular": dnatrace.mol_is_circulars[i],
+                "end_to_end_distance": dnatrace.end_to_end_distances[i],
+                "num_crossings": dnatrace.num_crossings,
+                "grain_avg_crossing_confidence": dnatrace.avg_crossing_confidence,
+                "topology": dnatrace.topology[i],
+                "num_mols": dnatrace.num_mols,
+            }
 
     images = {
         "image": dnatrace.image,
@@ -1213,6 +1220,7 @@ class nodeStats:
         self.whole_skel_graph = None
 
         self.node_centre_mask = None
+        self.num_crossings = 0
         self.node_dict = {}
         self.node_image_dict = {}
         self.test = None
@@ -1264,6 +1272,7 @@ class nodeStats:
             )
             # self.connected_nodes = self.connect_extended_nodes(self.connected_nodes)
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
+            self.num_crossings = (self.node_centre_mask == 3).sum()
             self.analyse_nodes(max_branch_length=20e-9)
         return self.node_dict, self.node_image_dict
         # self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
@@ -1590,7 +1599,6 @@ class nodeStats:
         # get paths of best matches. TODO: replace below with using shortest dist coords
         for node_pair_idx in matches:
             shortest_dist = shortest_node_dists[node_pair_idx[0], node_pair_idx[1]]
-            print("DIST short, extend: ", shortest_dist, extend_dist)
             if shortest_dist <= extend_dist or extend_dist == -1:
                 branch_idxs = shortest_dists_branch_idxs[node_pair_idx[0], node_pair_idx[1]]
                 node_nums = list(emanating_branch_starts_by_node.keys())
@@ -1806,10 +1814,13 @@ class nodeStats:
 
                     # get confidences
                     crossing_quants = []
-                    for branch_idx, values in matched_branches.items():  # get hms
+                    for branch_idx, values in matched_branches.items():
                         crossing_quants.append(values["fwhm2"][0])
-                    combs = self.get_two_combinations(crossing_quants)
-                    conf = self.cross_confidence(combs)
+                    if len(crossing_quants) == 1: # from 3 eminnating branches
+                        conf = None
+                    else:
+                        combs = self.get_two_combinations(crossing_quants)
+                        conf = self.cross_confidence(combs)
 
                     # add paired and unpaired branches to image plot
                     fwhms = []
