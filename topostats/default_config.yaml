@@ -57,7 +57,9 @@ dnatracing:
   pruning_params:
     pruning_method: joe # Options : joe, max (more to come)
     max_length: -1 # (for joe) The maximum length for a skeleton branch to not be pruned
-    min_height_threshold: 1.0e-9 # (for joe) The threshold for the minimum height of a skeleton segment to be below to be removed
+    method_values: mid
+    method_outlier: abs_mean
+    height_threshold: 1.0e-9 # (for joe) The threshold for the minimum height of a skeleton segment to be below to be removed
   pad_width: 20 # Cells to pad grains by when tracing
 #  cores: 1 # Number of cores to use for parallel processing
 plotting:

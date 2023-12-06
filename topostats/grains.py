@@ -1,23 +1,26 @@
 """Find grains in an image."""
+
+from pathlib import Path
+
 # pylint: disable=no-name-in-module
 from collections import defaultdict
 import logging
 from typing import List, Dict
 import numpy as np
-from pathlib import Path
 
 from skimage.segmentation import clear_border
 from skimage import morphology
 from skimage.measure import regionprops
 from skimage.color import label2rgb
+from skimage.filters import gaussian, threshold_otsu
 
-from topostats.grain_finding_cats_unet import predict_unet, test_GPU
+from topostats.grain_finding_cats_unet import predict_unet
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
 from topostats.utils import _get_mask, get_thresholds
-from skimage.filters import gaussian, threshold_otsu
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+
 
 # pylint: disable=fixme
 # pylint: disable=line-too-long
@@ -308,32 +311,14 @@ class Grains:
             absolute=self.threshold_absolute,
         )
         for direction in self.direction:
-            grain_finding_workflow = "unet"
-            grain_finding_workflow = "!unet"
-            if grain_finding_workflow == "unet":
-                LOGGER.info(f"[{self.filename}] : Finding {direction} grains via UNet")
-                self.directions[direction] = {}
-                predicted_mask = predict_unet(
-                    image=self.image,
-                    confidence=0.1,
-                    model_image_size=512,
-                    image_output_dir=Path("./"),
-                    filename=self.filename,
-                )
-                self.directions[direction] = {}
-                self.directions[direction]["mask_grains"] = predicted_mask
-
-            else:
-                LOGGER.info(
-                    f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})"
-                )
-                self.directions[direction] = {}
-                self.directions[direction]["mask_grains"] = _get_mask(
-                    self.image,
-                    thresh=self.thresholds[direction],
-                    threshold_direction=direction,
-                    img_name=self.filename,
-                )
+            LOGGER.info(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
+            self.directions[direction] = {}
+            self.directions[direction]["mask_grains"] = _get_mask(
+                self.image,
+                thresh=self.thresholds[direction],
+                threshold_direction=direction,
+                img_name=self.filename,
+            )
 
             self.directions[direction]["labelled_regions_01"] = self.label_regions(
                 self.directions[direction]["mask_grains"]
@@ -370,3 +355,69 @@ class Grains:
             )
             self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
             LOGGER.info(f"[{self.filename}] : Extracted bounding boxes ({direction})")
+
+            # For each detected molecule, create an image of just that molecule and run the UNet
+            # on that image to segment it
+            unet_mask = np.zeros_like(self.image)
+            for grain_number, region in enumerate(self.region_properties[direction]):
+                LOGGER.info(
+                    f"Unet predicting mask for grain {grain_number} of {len(self.region_properties[direction])}"
+                )
+
+                # Get the bounding box for the region
+                bounding_box = np.array(region.bbox)
+
+                # Make the bounding box square within the confines of the image
+                # Calculate the width and height of the bounding box
+                LOGGER.info(
+                    f"bounding_box: [0]: {bounding_box[0]} [1]: {bounding_box[1]} [2]: {bounding_box[2]} [3]:"
+                    f"{bounding_box[3]}"
+                )
+                width = bounding_box[3] - bounding_box[1]
+                height = bounding_box[2] - bounding_box[0]
+                # Make the width and height the same
+                if width > height:
+                    # Make the height the same as the width
+                    difference = width - height
+                    # Check which direction to expand the bounding box
+                    # Check if can expand up
+                    if bounding_box[0] - difference >= 0:
+                        # Expand up
+                        bounding_box[0] -= difference
+                    else:
+                        # Expand down
+                        bounding_box[2] += difference
+
+                elif height > width:
+                    # Make the width the same as the height
+                    difference = height - width
+                    # Check which direction to expand the bounding box
+                    # Check if can expand left
+                    if bounding_box[1] - difference >= 0:
+                        # Expand left
+                        bounding_box[1] -= difference
+                    else:
+                        # Expand right
+                        bounding_box[3] += difference
+
+                # Get the image of just the region
+                region_image = self.image[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]]
+
+                # Run the UNet on the region
+                predicted_mask = predict_unet(
+                    image=region_image,
+                    confidence=0.1,
+                    model_image_size=512,
+                    image_output_dir=Path("./"),
+                    filename=self.filename + f"_grain_{grain_number}",
+                )
+
+                # Add the predicted mask to the overall mask
+                unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]] = np.logical_or(
+                    unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]],
+                    predicted_mask,
+                )
+
+                self.directions[direction]["removed_small_objects"] = unet_mask
+                unet_labelled_regions = self.label_regions(unet_mask)
+                self.directions[direction]["labelled_regions_02"] = unet_labelled_regions
