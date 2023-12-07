@@ -305,14 +305,6 @@ class dnaTrace:
 
             # Use the perp array to index the guassian filtered image
             perp_array = np.column_stack((x_coords, y_coords))
-            print(
-                "EDDIE: ",
-                perp_array[:, 0].min(),
-                perp_array[:, 1].min(),
-                perp_array[:, 0].max(),
-                perp_array[:, 1].max(),
-                self.gauss_image.shape,
-            )
             try:
                 height_values = self.gauss_image[perp_array[:, 0], perp_array[:, 1]]
             except IndexError:
