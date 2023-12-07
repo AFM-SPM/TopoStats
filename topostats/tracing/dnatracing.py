@@ -249,12 +249,12 @@ class dnaTrace:
                 trace_coordinate[0] = index_width
             elif trace_coordinate[0] >= (self.number_of_rows - index_width):
                 # prevents indexing above image range causing IndexError
-                trace_coordinate[0] = self.number_of_rows - index_width
+                trace_coordinate[0] = self.number_of_rows - index_width - 1
             # do same for y coordinate
             elif trace_coordinate[1] < 0:
                 trace_coordinate[1] = index_width
             elif trace_coordinate[1] >= (self.number_of_columns - index_width):
-                trace_coordinate[1] = self.number_of_columns - index_width
+                trace_coordinate[1] = self.number_of_columns - index_width - 1
 
             # calculate vector to n - 2 coordinate in trace
             if self.mol_is_circular:
@@ -305,6 +305,7 @@ class dnaTrace:
 
             # Use the perp array to index the guassian filtered image
             perp_array = np.column_stack((x_coords, y_coords))
+            print("EDDIE: ", perp_array[:,0].min(), perp_array[:,1].min(), perp_array[:,0].max(), perp_array[:,1].max(), self.gauss_image.shape)
             try:
                 height_values = self.gauss_image[perp_array[:, 0], perp_array[:, 1]]
             except IndexError:
