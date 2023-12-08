@@ -59,7 +59,7 @@ dnatracing:
     max_length: -1 # (for joe) The maximum length for a skeleton branch to not be pruned
     method_values: mid
     method_outlier: abs_mean
-    height_threshold: 1.0e-9 # (for joe) The threshold for the minimum height of a skeleton segment to be below to be removed
+    height_threshold: 0.85 # (for joe) The threshold for the minimum height of a skeleton segment to be below to be removed
   pad_width: 20 # Cells to pad grains by when tracing
 #  cores: 1 # Number of cores to use for parallel processing
 plotting:
