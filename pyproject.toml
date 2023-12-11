@@ -36,21 +36,22 @@ keywords = [
 ]
 requires-python = ">=3.9"
 dependencies = [
+  "h5py",
   "igor2",
   "matplotlib",
   "numpy",
   "pandas",
   "pySPM",
+  "pyfiglet",
   "pyyaml",
   "ruamel.yaml",
   "schema",
   "scikit-image",
   "scipy",
   "seaborn",
+  "snoop",
   "tifffile",
   "tqdm",
-  "pyfiglet",
-  "h5py"
 ]
 
 [project.optional-dependencies]
