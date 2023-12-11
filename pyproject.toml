@@ -215,7 +215,7 @@ lint.ignore = [
   "B905",
   "E501",
   "S101",
-  "T201"]
+]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 lint.fixable = [
   "A", # flake8-builtins
