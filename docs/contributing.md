@@ -149,8 +149,8 @@ As described in [Parameter Configuration](configuration) options are primarily p
 have to ensure that the default configuration file (`topostats/default.yaml`) is updated to include your options.
 
 Further the `topostats.validation.validate.config()` function, which checks a valid configuration file with all necessary
-fields has been passed when invoking `run_topostats`, will also need updating to include new options in the Schema against
-which validation of configuration files is made.
+fields has been passed when invoking `topostats` sub-commands, will also need updating to include new options in the
+Schema against which validation of configuration files is made.
 
 ### IDE Configuration
 

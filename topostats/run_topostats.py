@@ -8,7 +8,6 @@ import sys
 from collections import defaultdict
 from functools import partial
 from multiprocessing import Pool
-from pathlib import Path
 from pprint import pformat
 
 import pandas as pd
@@ -20,7 +19,6 @@ from topostats.io import (
     find_files,
     read_yaml,
     save_folder_grainstats,
-    write_config_with_comments,
     write_yaml,
 )
 from topostats.logs.logs import LOGGER_NAME
@@ -70,8 +68,10 @@ def run_topostats(args=None):  # noqa: C901
     if args.create_config_file and args.config_file:
         raise ValueError("--create-config-file and --config cannot be used together.")
     if args.create_config_file:
-        write_config_with_comments(config=default_config, output_dir=Path.cwd(), filename=args.create_config_file)
-        sys.exit()
+        raise DeprecationWarning(
+            "run_topostats no longer supports --create-config-file option, please use"
+            " 'topostats create-config' instead."
+        )
 
     # Create base output directory
     config["output_dir"].mkdir(parents=True, exist_ok=True)

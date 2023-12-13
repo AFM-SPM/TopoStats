@@ -2,11 +2,11 @@
 
 Parses command-line arguments and passes input on to the relevant functions / modules.
 """
-
 import argparse as arg
 import sys
 
 from topostats import __version__
+from topostats.io import write_config_with_comments
 from topostats.plotting import run_toposum
 from topostats.run_topostats import run_topostats
 
@@ -26,7 +26,7 @@ def create_parser() -> arg.ArgumentParser:
 
     subparsers = parser.add_subparsers(title="program", description="Available programs, listed below:", dest="program")
 
-    # run_topostats parser
+    # process parser
     process_parser = subparsers.add_parser(
         "process",
         description="Process AFM images. Additional arguments over-ride those in the configuration file.",
@@ -243,6 +243,36 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Path to a YAML configuration file.",
     )
+
+    # create_config parser
+    create_config_parser = subparsers.add_parser(
+        "create-config",
+        description="Create a configuration file using the defaults.",
+        help="Create a configuration file using the defaults.",
+    )
+    create_config_parser.add_argument(
+        "-f",
+        "--filename",
+        dest="filename",
+        required=False,
+        default="config.yaml",
+        help="Name of YAML file to save configuration to (default 'config.yaml').",
+    )
+    create_config_parser.add_argument(
+        "-o",
+        "--output_dir",
+        dest="output_dir",
+        required=False,
+        default="./",
+        help="Path to where the YAML file should be saved (default './' the current directory).",
+    )
+    create_config_parser.add_argument(
+        "-c",
+        dest="config",
+        default=None,
+        help="Configuration to use, currently only one is supported, the 'default'.",
+    )
+    create_config_parser.set_defaults(func=write_config_with_comments)
 
     return parser
 

@@ -1,6 +1,7 @@
 """Functions for reading and writing data."""
 from __future__ import annotations
 
+import importlib.resources as pkg_resources
 import io
 import logging
 import os
@@ -103,19 +104,32 @@ def write_yaml(
             LOGGER.error(exception)
 
 
-def write_config_with_comments(config: str, output_dir: Path, filename: str = "config.yaml") -> None:
+def write_config_with_comments(args=None) -> None:
     """
     Write a sample configuration with in-line comments.
 
+    This function is not designed to be used interactively but can be, just call it without any arguments and it will
+    write a configuration to './config.yaml'.
+
     Parameters
     ----------
-    config: str
-        A string of the entire configuration file to be saved.
-    output_dir: Path
-        A pathlib path of where to create the config file.
-    filename: str
-        A name for the configuration file. Can have a ".yaml" on the end.
+    args: Namespace
+        A Namespace object parsed from argparse with values for 'filename',
     """
+    filename = "config" if args.filename is None else args.filename
+    output_dir = Path("./") if args.output_dir is None else Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    # If no config or default is requested we load the default_config.yaml
+    if args.config is None or args.config == "default":
+        config = pkg_resources.open_text(__package__, "default_config.yaml").read()
+    # Otherwise we have scope for loading different configs based on the argument, add future dictionaries to
+    # topostats/<sample_type>_config.yaml
+    else:
+        try:
+            config = pkg_resources.open_text(__package__, f"{args.config}_config.yaml").read()
+        except FileNotFoundError as e:
+            raise UserWarning(f"There is no configuration for samples of type : {args.config}") from e
+
     if ".yaml" not in filename and ".yml" not in filename:
         create_config_path = output_dir / f"{filename}.yaml"
     else:

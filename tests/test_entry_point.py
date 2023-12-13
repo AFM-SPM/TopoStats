@@ -10,6 +10,7 @@ from topostats.entry_point import (
     legacy_run_topostats_entry_point,
     legacy_toposum_entry_point,
 )
+from topostats.io import write_config_with_comments
 from topostats.plotting import run_toposum
 from topostats.run_topostats import run_topostats
 
@@ -47,6 +48,8 @@ def test_entry_point_help(capsys, option) -> None:
         ("dnatracing", "--help"),
         ("tracingstats", "-h"),
         ("tracingstats", "--help"),
+        ("create-config", "-h"),
+        ("create-config", "--help"),
     ],
 )
 def test_entry_point_subprocess_help(capsys, argument: str, option: str) -> None:
@@ -76,12 +79,12 @@ def test_entry_point_subprocess_help(capsys, argument: str, option: str) -> None
         ),
         (
             [
-                "process",
-                "--config",
+                "create-config",
+                "--filename",
                 "dummy/config/dir/config.yaml",
             ],
-            run_topostats,
-            "config_file",
+            write_config_with_comments,
+            "filename",
             "dummy/config/dir/config.yaml",
         ),
         (
@@ -112,8 +115,15 @@ def test_entry_point(
 
 def test_entry_point_create_config_file(tmp_path: Path) -> None:
     """Test that the entry point is able to produce a default config file when asked to."""
-    with pytest.raises(SystemExit):
-        entry_point(manually_provided_args=["process", "--create_config_file", f"{tmp_path}/test_create_config.yaml"])
+    entry_point(
+        manually_provided_args=[
+            "create-config",
+            "--filename",
+            "test_create_config.yaml",
+            "--output_dir",
+            f"{tmp_path}",
+        ]
+    )
 
     assert Path(f"{tmp_path}/test_create_config.yaml").is_file()
 
@@ -146,16 +156,6 @@ def test_legacy_run_topostats_entry_point(options: list, expected_arg_name: str,
     returned_args_dict = vars(returned_args)
 
     assert returned_args_dict[expected_arg_name] == expected_arg_value
-
-
-def test_legacy_run_topostats_entry_point_create_config_file(tmp_path: Path) -> None:
-    """Ensure legacy entry point is able to produce a default config file."""
-    with pytest.raises(SystemExit):
-        legacy_run_topostats_entry_point(
-            args=["--create-config-file", f"{tmp_path}/test_legacy_run_topostats_create_config.yaml"]
-        )
-
-    assert Path(f"{tmp_path}/test_legacy_run_topostats_create_config.yaml").is_file()
 
 
 def test_legacy_toposum_entry_point_create_config_file(tmp_path: Path) -> None:
