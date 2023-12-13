@@ -119,6 +119,7 @@ def network_density(
     density_map = np.zeros((int(np.floor(image.shape[0] / stepsize_px)), int(np.floor(image.shape[1] / stepsize_px))))
     internal_density_map = np.zeros(density_map.shape)
     near_outline_density_map = np.zeros(density_map.shape)
+    molecule_density_map = np.zeros(density_map.shape)
     densities_internal = []
     distances_internal = []
     densities_near_outline = []
@@ -151,22 +152,26 @@ def network_density(
             # ax.plot(y, x, marker='.', color=color)
             if in_polygon and not near_outline:
                 internal_density_map[j, i] = density
+                molecule_density_map[j, i] = density
                 densities_internal.append(density)
-                distances_internal.append(-1 * distance_to_outline(outline_mask, np.array([y, x])))
+                distances_internal.append(distance_to_outline(outline_mask, np.array([y, x])))
                 points_internal.append(np.array([y, x]))
             elif near_outline and in_polygon:
                 densities_near_outline.append(density)
-                distances_near_outline.append(-1 * distance_to_outline(outline_mask, np.array([y, x])))
+                molecule_density_map[j, i] = density
+                distances_near_outline.append(distance_to_outline(outline_mask, np.array([y, x])))
                 near_outline_density_map[j, i] = density
             elif near_outline and not in_polygon:
                 densities_near_outline.append(density)
-                distances_near_outline.append(distance_to_outline(outline_mask, np.array([y, x])))
+                molecule_density_map[j, i] = density
+                distances_near_outline.append(-1 * distance_to_outline(outline_mask, np.array([y, x])))
                 near_outline_density_map[j, i] = density
 
     # plt.plot(nodes[:, 1], nodes[:, 0], color='black')
     # plt.show()
     return (
         density_map,
+        molecule_density_map,
         internal_density_map,
         near_outline_density_map,
         densities_internal,
@@ -209,23 +214,23 @@ def point_in_polygon(point: np.ndarray, polygon: np.ndarray):
         return True
 
 
-def network_density(nodes: np.ndarray, image: np.ndarray, px_to_nm: float):
-    # Step over whole image
-    stepsize_px = 10
-    kernel_size = 5
-    density_map = np.zeros((np.floor(image.shape[0] / stepsize_px), np.floor(image.shape[1] / stepsize_px)))
-    for j in range(density_map.shape[0]):
-        for i in range(density_map.shape[1]):
-            # Calculate local density
-            area = stepsize_px**2 * px_to_nm**2
-            x = i * stepsize_px
-            y = j * stepsize_px
-            if point_in_polygon(np.array(x, y), nodes):
-                volume = np.sum(image[y - kernel_size : y + kernel_size, x - kernel_size : x + kernel_size])
-                density = volume / area
-                density_map[i, j] = density
-
-    return density_map
+#def network_density(nodes: np.ndarray, image: np.ndarray, px_to_nm: float):
+#    # Step over whole image
+#    stepsize_px = 10
+#    kernel_size = 5
+#    density_map = np.zeros((np.floor(image.shape[0] / stepsize_px), np.floor(image.shape[1] / stepsize_px)))
+#    for j in range(density_map.shape[0]):
+#        for i in range(density_map.shape[1]):
+#            # Calculate local density
+#            area = stepsize_px**2 * px_to_nm**2
+#            x = i * stepsize_px
+#            y = j * stepsize_px
+#            if point_in_polygon(np.array(x, y), nodes):
+#                volume = np.sum(image[y - kernel_size : y + kernel_size, x - kernel_size : x + kernel_size])
+#                density = volume / area
+#                density_map[i, j] = density
+#
+#    return density_map
 
 
 def polygon_perimeter(points: np.ndarray):
