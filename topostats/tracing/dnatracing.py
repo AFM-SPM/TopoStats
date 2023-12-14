@@ -23,6 +23,7 @@ from tqdm import tqdm
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.skeletonize import get_skeleton
 from topostats.tracing.tracingfuncs import genTracingFuncs, getSkeleton, reorderTrace
+from topostats.utils import bound_padded_coordinates_to_image
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -241,20 +242,12 @@ class dnaTrace:
         for coord_num, trace_coordinate in enumerate(individual_skeleton):
             height_values = None
 
-            # Block of code to prevent indexing outside image limits
-            # e.g. indexing self.gauss_image[130, 130] for 128x128 image
-            if trace_coordinate[0] < 0:
-                # prevents negative number indexing
-                # i.e. stops (trace_coordinate - index_width) < 0
-                trace_coordinate[0] = index_width
-            elif trace_coordinate[0] >= (self.number_of_rows - index_width):
-                # prevents indexing above image range causing IndexError
-                trace_coordinate[0] = self.number_of_rows - index_width - 1
-            # do same for y coordinate
-            elif trace_coordinate[1] < 0:
-                trace_coordinate[1] = index_width
-            elif trace_coordinate[1] >= (self.number_of_columns - index_width):
-                trace_coordinate[1] = self.number_of_columns - index_width - 1
+            # Ensure that padding will not exceed the image boundaries
+            trace_coordinate = bound_padded_coordinates_to_image(
+                coordinates=trace_coordinate,
+                padding=index_width,
+                image_shape=(self.number_of_rows, self.number_of_columns),
+            )
 
             # calculate vector to n - 2 coordinate in trace
             if self.mol_is_circular:
