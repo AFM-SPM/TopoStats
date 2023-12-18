@@ -64,15 +64,6 @@ def run_topostats(args=None):  # noqa: C901
     # Validate configuration
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
-    # Write sample configuration if asked to do so and exit
-    if args.create_config_file and args.config_file:
-        raise ValueError("--create-config-file and --config cannot be used together.")
-    if args.create_config_file:
-        raise DeprecationWarning(
-            "run_topostats no longer supports --create-config-file option, please use"
-            " 'topostats create-config' instead."
-        )
-
     # Create base output directory
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 

@@ -179,7 +179,7 @@ want to make to the default configuration and how to make them.
 TopoStats will use some reasonable default parameters by default, but typically you will want to customise the
 parameters that are used. This is achieved using a [configuration](configuration) file. This is a
 [YAML](https://yaml.org) file that contains parameters for different settings. For convenience you can generate
-a sample configuration file in your current working directory using the `topostats create-config-file` sub-command.  It
+a sample configuration file in your current working directory using the `topostats create-config` sub-command.  It
 takes a single argument, the name of the file to save the configuration to (e.g. `config.yaml` or `settings.yaml`), and
 it will write the current default configuration to that file.
 

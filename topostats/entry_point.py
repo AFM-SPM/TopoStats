@@ -305,13 +305,6 @@ def create_legacy_run_topostats_parser() -> arg.ArgumentParser:
         help="Path to a YAML configuration file.",
     )
     parser.add_argument(
-        "--create-config-file",
-        dest="create_config_file",
-        type=str,
-        required=False,
-        help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
-    )
-    parser.add_argument(
         "-s",
         "--summary_config",
         dest="summary_config",
