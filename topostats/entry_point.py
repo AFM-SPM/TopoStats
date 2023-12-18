@@ -262,6 +262,7 @@ def create_parser() -> arg.ArgumentParser:
     )
     create_config_parser.add_argument(
         "-c",
+        "--config",
         dest="config",
         default=None,
         help="Configuration to use, currently only one is supported, the 'default'.",
