@@ -123,9 +123,13 @@ def write_config_with_comments(args=None) -> None:
     filename = "config" if args.filename is None else args.filename
     output_dir = Path("./") if args.output_dir is None else Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    logger_msg = "A sample configuration has been written to"
     # If no config or default is requested we load the default_config.yaml
     if args.config is None or args.config == "default":
         config = pkg_resources.open_text(__package__, "default_config.yaml").read()
+    elif args.config == "topostats.mplstyle":
+        config = pkg_resources.open_text(__package__, "topostats.mplstyle").read()
+        logger_msg = "A sample matplotlibrc parameters file has been written to"
     # Otherwise we have scope for loading different configs based on the argument, add future dictionaries to
     # topostats/<sample_type>_config.yaml
     else:
@@ -134,7 +138,7 @@ def write_config_with_comments(args=None) -> None:
         except FileNotFoundError as e:
             raise UserWarning(f"There is no configuration for samples of type : {args.config}") from e
 
-    if ".yaml" not in filename and ".yml" not in filename:
+    if ".yaml" not in filename and ".yml" not in filename and ".mplstyle" not in filename:
         create_config_path = output_dir / f"{filename}.yaml"
     else:
         create_config_path = output_dir / filename
@@ -143,7 +147,7 @@ def write_config_with_comments(args=None) -> None:
         f.write(f"# Config file generated {get_date_time()}\n")
         f.write(f"# {CONFIG_DOCUMENTATION_REFERENCE}")
         f.write(config)
-    LOGGER.info(f"A sample configuration has been written to : {str(create_config_path)}")
+    LOGGER.info(f"{logger_msg} : {str(create_config_path)}")
     LOGGER.info(CONFIG_DOCUMENTATION_REFERENCE)
 
 
