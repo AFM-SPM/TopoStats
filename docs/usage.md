@@ -125,6 +125,41 @@ along with information about how to give feedback, report bugs and cite the soft
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
+The command `topostats process` has a number of additional flags for passing different options. These can be viewed
+using the `-h` or `--help` flag.
+
+``` bash
+ ❱ topostats process --help
+usage: topostats process [-h] [-c CONFIG_FILE] [-s SUMMARY_CONFIG] [--matplotlibrc MATPLOTLIBRC] [-b BASE_DIR] [-j CORES] [-l LOG_LEVEL] [-f FILE_EXT] [--channel CHANNEL] [-o OUTPUT_DIR] [--save-plots SAVE_PLOTS] [-m MASK] [-w WARNINGS]
+
+Process AFM images. Additional arguments over-ride those in the configuration file.
+
+options:
+  -h, --help            show this help message and exit
+  -c CONFIG_FILE, --config-file CONFIG_FILE
+                        Path to a YAML configuration file.
+  -s SUMMARY_CONFIG, --summary-config SUMMARY_CONFIG
+                        Path to a YAML configuration file for summary plots and statistics.
+  --matplotlibrc MATPLOTLIBRC
+                        Path to a matplotlibrc file.
+  -b BASE_DIR, --base-dir BASE_DIR
+                        Base directory to scan for images.
+  -j CORES, --cores CORES
+                        Number of CPU cores to use when processing.
+  -l LOG_LEVEL, --log-level LOG_LEVEL
+                        Logging level to use, default is 'info' for verbose output use 'debug'.
+  -f FILE_EXT, --file-ext FILE_EXT
+                        File extension to scan for.
+  --channel CHANNEL     Channel to extract.
+  -o OUTPUT_DIR, --output-dir OUTPUT_DIR
+                        Output directory to write results to.
+  --save-plots SAVE_PLOTS
+                        Whether to save plots.
+  -m MASK, --mask MASK  Mask the image.
+  -w WARNINGS, --warnings WARNINGS
+                        Whether to ignore warnings.
+```
+
 ### Reducing Output
 
 If you find the output too verbose or of no use you can reduce it by setting the `log_level` to either `error` or
@@ -149,7 +184,7 @@ takes a single argument, the name of the file to save the configuration to (e.g.
 it will write the current default configuration to that file.
 
 ``` bash
-topostats create-config-file --filename my_config.yaml
+topostats create-config --filename my_config.yaml
 ls -l
 my_config.yaml
 sample_image_scan_2022-12-08-1204.spm

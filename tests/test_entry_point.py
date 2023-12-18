@@ -79,6 +79,15 @@ def test_entry_point_subprocess_help(capsys, argument: str, option: str) -> None
         ),
         (
             [
+                "process",
+                "-b /tmp/",
+            ],
+            run_topostats,
+            "base_dir",
+            " /tmp/",
+        ),
+        (
+            [
                 "create-config",
                 "--filename",
                 "dummy/config/dir/config.yaml",
@@ -120,7 +129,7 @@ def test_entry_point_create_config_file(tmp_path: Path) -> None:
             "create-config",
             "--filename",
             "test_create_config.yaml",
-            "--output_dir",
+            "--output-dir",
             f"{tmp_path}",
         ]
     )
