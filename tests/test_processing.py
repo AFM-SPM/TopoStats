@@ -10,10 +10,10 @@ from topostats.io import LoadScans
 from topostats.processing import (
     check_run_steps,
     process_scan,
+    run_dnatracing,
     run_filters,
     run_grains,
     run_grainstats,
-    run_dnatracing,
 )
 from topostats.utils import update_plotting_config
 
@@ -282,7 +282,7 @@ def test_check_run_steps(
             False,
             False,
             "Detection of grains disabled, returning empty data frame.",
-            "15-gaussian_filtered",
+            "16-gaussian_filtered",
         ),
         (
             True,
@@ -290,7 +290,7 @@ def test_check_run_steps(
             False,
             False,
             "Calculation of grainstats disabled, returning empty dataframe.",
-            "24-labelled_image_bboxes",
+            "25-labelled_image_bboxes",
         ),
         (
             True,
@@ -497,4 +497,4 @@ def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
 
     assert isinstance(dnatracing_df, pd.DataFrame)
     assert dnatracing_df.shape[0] == 13
-    assert len(dnatracing_df.columns) == 23
+    assert len(dnatracing_df.columns) == 26

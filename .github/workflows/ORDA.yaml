@@ -20,7 +20,7 @@ jobs:
           mv "$ARCHIVE_NAME".zip data/
           mv "$ARCHIVE_NAME".tar.gz data/
       - name: upload-to-figshare
-        uses: figshare/github-upload-action@v1.1
+        uses: figshare/github-upload-action@v1
         with:
           FIGSHARE_TOKEN: ${{ secrets.FIGSHARE_TOKEN }}
           FIGSHARE_ENDPOINT: 'https://api.figshare.com/v2'

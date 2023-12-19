@@ -5,18 +5,26 @@
 [![PyPI version](https://badge.fury.io/py/topostats.svg)](https://badge.fury.io/py/topostats)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/topostats)
 [![Documentation Status](https://readthedocs.org/projects/topostats/badge/?version=dev)](https://topostats.readthedocs.io/en/dev/?badge=dev)
+[![Code style: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json))](https://github.com/astral-sh/ruff)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Code style: flake8](https://img.shields.io/badge/code%20style-flake8-456789.svg)](https://github.com/psf/flake8)
 [![codecov](https://codecov.io/gh/AFM-SPM/TopoStats/branch/dev/graph/badge.svg)](https://codecov.io/gh/AFM-SPM/TopoStats)
-[![Python 3.8](https://img.shields.io/badge/python-3.8-blue.svg)](https://www.python.org/downloads/release/python-380/)
-[![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/release/python-390/)
-[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-360/)
 [![pre-commit.ci
 status](https://results.pre-commit.ci/badge/github/AFM-SPM/TopoStats/main.svg)](https://results.pre-commit.ci/latest/github/AFM-SPM/TopoStats/main)
 [![ORDA](https://img.shields.io/badge/ORDA--DOI-10.15131%2Fshef.data.22633528.v.1-lightgrey)](https://figshare.shef.ac.uk/articles/software/TopoStats/22633528/1)
 
+</div>
+<div align="center">
+
+[![Downloads](https://static.pepy.tech/badge/topostats)](https://pepy.tech/project/topostats)
+[![Downloads](https://static.pepy.tech/badge/topostats/month)](https://pepy.tech/project/topostats)
+[![Downloads](https://static.pepy.tech/badge/topostats/week)](https://pepy.tech/project/topostats)
+
+</div>
+<div align="center">
+
 | [Installation](#installation) | [Tutorials and Examples](#tutorials-and-examples) | [Contributing](contributing.md) |
-| [Licence](#licence) | [Citation](#citation) |
+[Licence](#licence) | [Citation](#citation) |
 </div>
 
 --------------------------------------------------------------------------------

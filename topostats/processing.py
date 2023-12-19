@@ -1,5 +1,6 @@
 """Functions for procesing data."""
 from __future__ import annotations
+
 from collections import defaultdict
 from pathlib import Path
 
@@ -11,11 +12,11 @@ from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_array, save_topostats_file
-from topostats.logs.logs import setup_logger, LOGGER_NAME
+from topostats.logs.logs import LOGGER_NAME, setup_logger
 from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
+from topostats.statistics import image_statistics
 from topostats.tracing.dnatracing import trace_image
 from topostats.utils import create_empty_dataframe
-from topostats.statistics import image_statistics
 
 # pylint: disable=broad-except
 # pylint: disable=line-too-long
@@ -414,7 +415,7 @@ def run_dnatracing(  # noqa: C901
                 tracing_stats[direction] = tracing_results["statistics"]
                 ordered_traces = tracing_results["ordered_traces"]
                 cropped_images = tracing_results["cropped_images"]
-                image_trace = tracing_results["image_trace"]
+                image_spline_trace = tracing_results["image_spline_trace"]
                 tracing_stats[direction]["threshold"] = direction
 
                 # Plot traces for the whole image
@@ -422,7 +423,7 @@ def run_dnatracing(  # noqa: C901
                     image,
                     output_dir=core_out_path,
                     filename=f"{filename}_{direction}_traced",
-                    masked_array=image_trace,
+                    masked_array=image_spline_trace,
                     **plotting_config["plot_dict"]["all_molecule_traces"],
                 ).plot_and_save()
 

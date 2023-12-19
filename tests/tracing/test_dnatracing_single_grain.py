@@ -29,7 +29,7 @@ CIRCULAR_MASK = np.load(RESOURCES / "dnatracing_mask_circular.npy")
 
 @pytest.fixture()
 def dnatrace_linear() -> dnaTrace:
-    """DnaTrace object instantiated with a single linear grain."""  # noqa: D403
+    """dnaTrace object instantiated with a single linear grain."""  # noqa: D403
     return dnaTrace(
         image=LINEAR_IMAGE,
         grain=LINEAR_MASK,
@@ -42,7 +42,7 @@ def dnatrace_linear() -> dnaTrace:
 
 @pytest.fixture()
 def dnatrace_circular() -> dnaTrace:
-    """DnaTrace object instantiated with a single linear grain."""
+    """dnaTrace object instantiated with a single linear grain."""  # noqa: D403
     return dnaTrace(
         image=CIRCULAR_IMAGE,
         grain=CIRCULAR_MASK,
@@ -90,20 +90,6 @@ def test_get_disordered_trace(
     assert len(dnatrace.disordered_trace) == length
     np.testing.assert_array_equal(dnatrace.disordered_trace[0,], start)
     np.testing.assert_array_equal(dnatrace.disordered_trace[-1,], end)
-
-
-# Currently two errors are not caught, need to improve this when refactoring, just in case.
-@pytest.mark.parametrize(
-    ("min_skeleton_size", "problem"),
-    [
-        (4, None),
-        (4, 6),
-    ],
-)
-def test_purge_obvious_crap_exceptions(dnatrace_linear: dnaTrace, min_skeleton_size: int, problem) -> None:
-    """Test exceptions to purge_obvious_crap."""
-    dnatrace_linear.min_skeleton_size = min_skeleton_size
-    dnatrace_linear.disordered_trace = problem
 
 
 # Currently linear molecule isn't detected as linear, although it was when selecting and extracting in a Notebook
@@ -203,7 +189,7 @@ def test_get_splined_traces(dnatrace: dnaTrace, length: int, start: np.array, en
 @pytest.mark.parametrize(
     ("dnatrace", "contour_length"),
     [
-        (lazy_fixture("dnatrace_linear"), 9.040267985905399e-08),
+        (lazy_fixture("dnatrace_linear"), 9.040267985905398e-08),
         (lazy_fixture("dnatrace_circular"), 7.617314045334366e-08),
     ],
 )
@@ -403,9 +389,9 @@ def test_grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int, ta
             LINEAR_MASK,
             "linear_test_topostats",
             "topostats",
-            3.120049919984285e-08,
+            3.115753758716346e-08,
             False,
-            1.2382864476914832e-07,
+            5.684734982126664e-08,
         ),
         (
             CIRCULAR_IMAGE,
@@ -421,54 +407,54 @@ def test_grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int, ta
             LINEAR_MASK,
             "linear_test_zhang",
             "zhang",
-            2.257869018994927e-08,
+            2.6964685842539566e-08,
             False,
-            1.5050575430042103e-07,
+            6.194694383968303e-08,
         ),
         (
             CIRCULAR_IMAGE,
             CIRCULAR_MASK,
             "circular_test_zhang",
             "zhang",
-            1.2389530445725336e-08,
+            9.636691058914389e-09,
             False,
-            1.122049485057339e-07,
+            8.187508931608563e-08,
         ),
         (
             LINEAR_IMAGE,
             LINEAR_MASK,
             "linear_test_lee",
             "lee",
-            3.13837693459974e-08,
+            3.197879765453915e-08,
             False,
-            1.432248478041724e-07,
+            5.655032001817721e-08,
         ),
         (
             CIRCULAR_IMAGE,
             CIRCULAR_MASK,
             "circular_test_lee",
             "lee",
-            6.7191662793734405e-09,
+            8.261640682714017e-09,
             False,
-            1.1623401641268276e-07,
+            8.062559919860788e-08,
         ),
         (
             LINEAR_IMAGE,
             LINEAR_MASK,
             "linear_test_thin",
             "thin",
-            4.367667613976452e-08,
+            4.068855894099921e-08,
             False,
-            1.2709212267220064e-07,
+            5.518856387362746e-08,
         ),
         (
             CIRCULAR_IMAGE,
             CIRCULAR_MASK,
             "circular_test_thin",
             "thin",
-            3.440332307376993e-08,
+            3.638262839374549e-08,
             False,
-            8.576324241662498e-08,
+            3.6512544238919716e-08,
         ),
     ],
 )

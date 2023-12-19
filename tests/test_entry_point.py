@@ -1,7 +1,8 @@
 """Test the entry point of TopoStats and its ability to correctly direct to programs."""
 
-from pathlib import Path
 from collections.abc import Callable
+from pathlib import Path
+
 import pytest
 
 from topostats.entry_point import (
@@ -9,8 +10,8 @@ from topostats.entry_point import (
     legacy_run_topostats_entry_point,
     legacy_toposum_entry_point,
 )
-from topostats.run_topostats import run_topostats
 from topostats.plotting import run_toposum
+from topostats.run_topostats import run_topostats
 
 
 # Test "help" arguments
@@ -27,30 +28,37 @@ def test_entry_point_help(capsys, option) -> None:
     assert "program" in output
 
 
-@pytest.mark.parametrize("option", [("-h"), ("--help")])
-def test_entry_point_process_help(capsys, option):
-    """Test the help argument of the process program."""
+@pytest.mark.parametrize(
+    (("argument", "option")),
+    [
+        ("process", "-h"),
+        ("process", "--help"),
+        ("summary", "-h"),
+        ("summary", "--help"),
+        ("load", "-h"),
+        ("load", "--help"),
+        ("filter", "-h"),
+        ("filter", "--help"),
+        ("grains", "-h"),
+        ("grains", "--help"),
+        ("grainstats", "-h"),
+        ("grainstats", "--help"),
+        ("dnatracing", "-h"),
+        ("dnatracing", "--help"),
+        ("tracingstats", "-h"),
+        ("tracingstats", "--help"),
+    ],
+)
+def test_entry_point_subprocess_help(capsys, argument: str, option: str) -> None:
+    """Test the help argument to the master and sub entry points."""
     try:
-        entry_point(manually_provided_args=["process", option])
+        entry_point(manually_provided_args=[argument, option])
     except SystemExit:
         pass
     output = capsys.readouterr().out
 
     assert "usage:" in output
-    assert "process" in output
-
-
-@pytest.mark.parametrize("option", [("-h"), ("--help")])
-def test_entry_point_summary_help(capsys, option):
-    """Test the help argument of the summary program."""
-    try:
-        entry_point(manually_provided_args=["summary", option])
-    except SystemExit:
-        pass
-    output = capsys.readouterr().out
-
-    assert "usage:" in output
-    assert "summary" in output
+    assert argument in output
 
 
 # Test that the right functions are returned with the right arguments

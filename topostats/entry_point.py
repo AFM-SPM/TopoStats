@@ -3,12 +3,12 @@
 Parses command-line arguments and passes input on to the relevant functions / modules.
 """
 
-import sys
 import argparse as arg
+import sys
 
 from topostats import __version__
-from topostats.run_topostats import run_topostats
 from topostats.plotting import run_toposum
+from topostats.run_topostats import run_topostats
 
 
 def create_parser() -> arg.ArgumentParser:
@@ -51,6 +51,12 @@ def create_parser() -> arg.ArgumentParser:
         dest="summary_config",
         required=False,
         help="Path to a YAML configuration file for summary plots and statistics.",
+    )
+    process_parser.add_argument(
+        "--matplotlibrc",
+        dest="matplotlibrc",
+        required=False,
+        help="Path to a matplotlibrc file.",
     )
     process_parser.add_argument(
         "-b",
@@ -154,6 +160,90 @@ def create_parser() -> arg.ArgumentParser:
     )
     toposum_parser.set_defaults(func=run_toposum)
 
+    # load parser
+    load_parser = subparsers.add_parser(
+        "load",
+        description="Load and save all images as .topostats files for subsequent processing.",
+        help="Load and save all images as .topostats files for subsequent processing.",
+    )
+    load_parser.add_argument(
+        "-c",
+        "--config_file",
+        dest="config_file",
+        required=False,
+        help="Path to a YAML configuration file.",
+    )
+
+    # filter parser
+    filter_parser = subparsers.add_parser(
+        "filter",
+        description="Load and filter images, saving as .topostats files for subsequent processing.",
+        help="Load and filter images, saving as .topostats files for subsequent processing.",
+    )
+    filter_parser.add_argument(
+        "-c",
+        "--config_file",
+        dest="config_file",
+        required=False,
+        help="Path to a YAML configuration file.",
+    )
+
+    # grain parser
+    grain_parser = subparsers.add_parser(
+        "grains",
+        description="Load filtered images from '.topostats' files and detect grains.",
+        help="Load filtered images from '.topostats' files and detect grains.",
+    )
+    grain_parser.add_argument(
+        "-c",
+        "--config_file",
+        dest="config_file",
+        required=False,
+        help="Path to a YAML configuration file.",
+    )
+
+    # grainstats parser
+    grainstats_parser = subparsers.add_parser(
+        "grainstats",
+        description="Load images with grains from '.topostats' files and calculate statistics.",
+        help="Load images with grains from '.topostats' files and calculate statistics.",
+    )
+    grainstats_parser.add_argument(
+        "-c",
+        "--config_file",
+        dest="config_file",
+        required=False,
+        help="Path to a YAML configuration file.",
+    )
+
+    # dnatracing parser
+    dnatracing_parser = subparsers.add_parser(
+        "dnatracing",
+        description="Load images with grains from '.topostats' files and trace DNA molecules.",
+        help="Load images with grains from '.topostats' files and trace DNA molecules.",
+    )
+    dnatracing_parser.add_argument(
+        "-c",
+        "--config_file",
+        dest="config_file",
+        required=False,
+        help="Path to a YAML configuration file.",
+    )
+
+    # tracingstats parser
+    tracingstats_parser = subparsers.add_parser(
+        "tracingstats",
+        description="Load images with grains from '.topostats' files and trace DNA molecules.",
+        help="Load images with grains from '.topostats' files and trace DNA molecules.",
+    )
+    tracingstats_parser.add_argument(
+        "-c",
+        "--config_file",
+        dest="config_file",
+        required=False,
+        help="Path to a YAML configuration file.",
+    )
+
     return parser
 
 
@@ -162,8 +252,9 @@ def entry_point(manually_provided_args=None, testing=False) -> None:
     # Parse command line options, load config (or default) and update with command line options
     parser = create_parser()
     args = parser.parse_args() if manually_provided_args is None else parser.parse_args(manually_provided_args)
+
+    # No program specified, print help and exit
     if not args.program:
-        # no program specified, print help and exit
         parser.print_help()
         sys.exit()
 

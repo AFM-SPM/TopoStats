@@ -1,3 +1,7 @@
+# ruff - isort and numpy linting
+9e0502b9cce2257d6234f118091cb75dd07c21ee
+8d1729e7a4132e88562a8f6b1514a95abd8878c1
+
 # ruff and pydocstyle - Lint code base with ruff and pydocstyle using pre-commit
 3518612caeb76df02b5313893e172db4dd159535
 e9d4e30271cbe9884e9dfaca8c739a071d373a50
@@ -5,6 +9,7 @@ a239aa642d2a4f98d6b491e725368fecb0c93ead
 d975e08e5164a99c723dfa6bfee9a26ff2ac8df6
 22a38d80ca010959be11c64ceb5558853f2c5dec
 844f98d74d3cc5f4c091128758800baf083a9460
+d55d431672669ac26fa65a8f20089d8c3a3c3701
 b1b846722ccc89589954f89aaa617459062ffc7d
 
 # markdownlint-cli2 - Lint code base with markdownlint-cli2

@@ -1,8 +1,9 @@
 """Test validation function."""
 from contextlib import nullcontext as does_not_raise
 from pathlib import Path
-from schema import Or, Schema, SchemaError
+
 import pytest
+from schema import Or, Schema, SchemaError
 
 from topostats.validation import validate_config
 
