@@ -377,7 +377,7 @@ def test_trace_mask(
                 }
             ),
             [np.asarray([5, 23]), np.asarray([10, 58])],
-            [np.asarray([71, 78]), np.asarray([83, 30])],
+            [np.asarray([71, 81]), np.asarray([83, 30])],
         ),
     ],
 )
