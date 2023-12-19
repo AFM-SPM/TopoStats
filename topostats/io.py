@@ -10,7 +10,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from topofileformats import asd
 import h5py
 import numpy as np
 import pandas as pd
@@ -18,6 +17,7 @@ import pySPM
 import tifffile
 from igor2 import binarywave
 from ruamel.yaml import YAML, YAMLError
+from topofileformats import asd
 
 from topostats.logs.logs import LOGGER_NAME
 
