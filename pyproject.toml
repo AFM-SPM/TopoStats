@@ -39,7 +39,7 @@ requires-python = ">=3.8"
 dependencies = [
   "igor",
   "matplotlib",
-  "numpy==1.23.4",
+  "numpy>=1.23.4",
   "pandas",
   "pySPM",
   "pyyaml",
