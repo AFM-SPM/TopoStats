@@ -119,7 +119,7 @@ def test_linear_or_circular(dnatrace: dnaTrace, mol_is_circular: int) -> None:
 def test_get_ordered_traces(dnatrace: dnaTrace, length: int, start: np.array, end: np.array) -> None:
     """Test of the get_ordered_traces method.
 
-    Note the co-ordinates at the start and end differ from the fixtures for test_get_disordered_trace, but that the
+    Note the coordinates at the start and end differ from the fixtures for test_get_disordered_trace, but that the
     circular molecule starts and ends in the same place but the linear doesn't (even though it is currently reported as
     being circular!).
     """

@@ -5,12 +5,12 @@ of this repository, or included in the readme.
 
 ## Contribution Workflow
 
-* Check the issues and draft pull requests to see if anyone is working on something similar.
-* Make a branch for your contribution. If it is a bug fix for the current working version then you should branch from
+- Check the issues and draft pull requests to see if anyone is working on something similar.
+- Make a branch for your contribution. If it is a bug fix for the current working version then you should branch from
   `master`. If you are working on new features then please branch from `dev`.
-* Implement your feature, bug fix, documentation, etc. using commits.
-* Push your changes.
-*Make a pull request against the branch from which you originally branched from (`master` for bug fixes; `dev` for new features).
+- Implement your feature, bug fix, documentation, etc. using commits.
+- Push your changes.
+- Make a pull request against the branch from which you originally branched from (`master` for bug fixes; `dev` for new features).
 
 You are advised to make a draft pull request as soon as you start work so nobody else ends up working on the same thing.
 
@@ -21,19 +21,19 @@ not currently considered core elements of `topostats` apart from `Plotting.py`.
 
 Currently the `topostats` module consists of:
 
-* `default_config.ini` The default config file.
-* `dnatracing.py` Applies tracing functions to each molecule.
-* `pygwytracing.py` The "main" routine.
-* `tracingfuncs.py` Skeletonises and generates backbone traces from masks.
+- `default_config.ini` The default config file.
+- `dnatracing.py` Applies tracing functions to each molecule.
+- `pygwytracing.py` The "main" routine.
+- `tracingfuncs.py` Skeletonises and generates backbone traces from masks.
 
 The current working plan is to move to a more modular architecture with new (and existing) functionality being grouped
 by theme within files. We expect to add such files as:
 
-* `filters.py` Raster image filters (e.g. Gaussian blur).
-* `morphology.py` Morphological operations (e.g. identify connected components).
-* `curves.py` Operations on vectorised "1D" shapes (e.g. determine curvature).
-* `file_io.py` Input and output (e.g. load proprietary AFM data formats).
-* `plottingfuncs.py` Output plot functions (e.g. generate various plots for raw and processed AFM datasets).
+- `filters.py` Raster image filters (e.g. Gaussian blur).
+- `morphology.py` Morphological operations (e.g. identify connected components).
+- `curves.py` Operations on vectorised "1D" shapes (e.g. determine curvature).
+- `file_io.py` Input and output (e.g. load proprietary AFM data formats).
+- `plottingfuncs.py` Output plot functions (e.g. generate various plots for raw and processed AFM datasets).
 
 These can then be called by a "main" routine that performs batch analysis, and functions within them tested in isolation
 using `pytest` and reused in arbitrary contexts.
@@ -43,26 +43,26 @@ approaches which can be easier to maintain. Existing object orientation will be 
 
 ## Coding Style
 
-* [ ] There is no coding style.
-* [x] [PEP8](https://www.python.org/dev/peps/pep-0008/) is the preferred coding style, but is not mandated.
-* [ ] Code must be PEP8 compliant.
+- [ ] There is no coding style.
+- [x] [PEP8](https://www.python.org/dev/peps/pep-0008/) is the preferred coding style, but is not mandated.
+- [ ] Code must be PEP8 compliant.
 
 ## Documentation
 
-* [ ] There is no preferred style for documentation, but documentation is required.
-* [ ] [PEP257 docstrings](https://www.python.org/dev/peps/pep-0257/) are required.
-* [x] [Sphinx docstrings](https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html) are required.
+- [ ] There is no preferred style for documentation, but documentation is required.
+- [ ] [PEP257 docstrings](https://www.python.org/dev/peps/pep-0257/) are required.
+- [x] [Numpy docstrings](https://numpydoc.readthedocs.io/en/latest/format.html) are required.
 
 ## [Typehints](https://docs.python.org/3/library/typing.html)
 
-* [ ] Do not use typehints.
-* [x] Typehints are optional, but encouraged.
-* [ ] Typehints are required.
+- [ ] Do not use typehints.
+- [x] Typehints are optional, but encouraged.
+- [ ] Typehints are required.
 
 ## Tests
 
-* [x] The [`pytest`](https://docs.pytest.org/en/stable/) framework is used and tests are encouraged.
-* [ ] Code must be covered by unit tests. The `pytest` framework is used.
+- [x] The [`pytest`](https://docs.pytest.org/en/stable/) framework is used and tests are encouraged.
+- [ ] Code must be covered by unit tests. The `pytest` framework is used.
 
 To run tests:
 
@@ -72,7 +72,7 @@ python -m pytest
 
 ### Updating tests that use `.csv.bz2` files
 
-Here is an example of how to add / update tests that rely on creating _.csv.bz2 files:
+Here is an example of how to add / update tests that rely on creating \_.csv.bz2 files:
 Place the following in the test before generating/calling the fixture from `conftest.py` in the test arguments, run it, then
 comment it out / remove it, then run it again with the fixture and check if the test passes. This generates the data and
 saves it such that next time you run the tests, it will get picked up for testing against.
@@ -85,7 +85,7 @@ df.to_csv("tests/resources/image_random_remove_quadratic.csv.bz2", index=False, 
 
 ## Static Analysis
 
-* [x] Use [`pylint`](https://pypi.org/project/pylint/) to analyse your code before submission.
+- [x] Use [`pylint`](https://pypi.org/project/pylint/) to analyse your code before submission.
 
 ## Debug using docker
 

@@ -231,7 +231,7 @@ processed, please refer to <url to page where we document common problems> for m
         Parameters
         ----------
         image: np.ndarray
-            2D numpy heightmap array of floats with a polynomial trend to remmove.
+            2D numpy heightmap array of floats with a polynomial trend to remove.
         mask: np.ndarray
             2D numpy boolean array used to mask out any points in the image that are deemed not to be part of the
             heightmap's background data. This argument is optional.
@@ -286,7 +286,7 @@ processed, please refer to <url to page where we document common problems> for m
             f"[{self.filename}] : Nonlinear polynomial removal optimal params: const: {a} xy: {b} x: {c} y: {d}"
         )
 
-        # Use the optimised parameters to contstruct a prediction of the underlying surface
+        # Use the optimised parameters to construct a prediction of the underlying surface
         z_pred = model_func(xdata, ydata, a, b, c, d)
         # Subtract the fitted nonlinear polynomial from the image
         image -= z_pred

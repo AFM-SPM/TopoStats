@@ -49,7 +49,7 @@ class Grains:
         filename: str
             File being processed
         pixel_to_nm_scaling: float
-            Sacling of pixels to nanometre.
+            Scaling of pixels to nanometre.
         threshold_multiplier : Union[int, float]
             Factor by which below threshold is to be scaled prior to masking.
         threshold_method: str

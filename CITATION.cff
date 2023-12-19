@@ -12,32 +12,32 @@ authors:
     family-names: Pyne
     email: a.l.pyne@sheffield.ac.uk
     affiliation: The University of Sheffield
-    orcid: 'https://orcid.org/0000-0002-2658-8987'
+    orcid: "https://orcid.org/0000-0002-2658-8987"
   - given-names: Robert
     family-names: Turner
     email: r.d.turner@sheffield.ac.uk
     affiliation: The University of Sheffield
-    orcid: 'https://orcid.org/0000-0002-1353-1404'
+    orcid: "https://orcid.org/0000-0002-1353-1404"
   - given-names: Neil
     family-names: Shephard
     email: n.shephard@sheffield.ac.uk
     affiliation: The University of Sheffield
-    orcid: 'https://orcid.org/0000-0001-8301-6857'
+    orcid: "https://orcid.org/0000-0001-8301-6857"
   - given-names: Syliva
     family-names: Whittle
     email: sylvia.whittle@sheffield.ac.uk
     affiliation: The University of Sheffield
-    orcid: 'https://orcid.org/0009-0008-9164-9513'
+    orcid: "https://orcid.org/0009-0008-9164-9513"
   - given-names: Max
     family-names: Gamill
     email: mcgamill1@sheffield.ac.uk
     affiliation: The University of Sheffield
-    orcid: 'https://orcid.org/0009-0007-3250-5299'
+    orcid: "https://orcid.org/0009-0007-3250-5299"
   - email: mdu12@sheffield.ac.uk
     affiliation: The University of Sheffield
     given-names: Mingxue
     family-names: Du
-    orcid: 'https://orcid.org/0009-0008-9452-5719'
+    orcid: "https://orcid.org/0009-0008-9452-5719"
 identifiers:
   - type: doi
     value: 10.15131/shef.data.22633528.v1
@@ -53,4 +53,4 @@ keywords:
 license: GPL-3.0
 commit: cd0ec35a5071deb7f6f8ef6dce6598a542cb059b
 version: 2.1.0
-date-released: '2023-05-18'
+date-released: "2023-05-18"

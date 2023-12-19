@@ -152,7 +152,7 @@ class TopoSum:
 
         # Note: Plotting KDEs with Seaborn is not possible if all values are the same.
         # This is because the KDE is calculated using a Gaussian kernel and if all values
-        # are the same, the standard deviation is 0 wich results in a ZeroDivisionError with
+        # are the same, the standard deviation is 0 which results in a ZeroDivisionError with
         # is caught internally but then raises a numpy linalg error.
         # The try/catch is there to catch this error and skip plotting KDEs if all values are the same.
 

@@ -129,7 +129,7 @@ class dnaTrace:
 
         self.neighbours = 5  # The number of neighbours used for the curvature measurement
 
-        # supresses scipy splining warnings
+        # suppresses scipy splining warnings
         warnings.filterwarnings("ignore")
 
         LOGGER.debug(f"[{self.filename}] Performing DNA Tracing")
@@ -303,7 +303,7 @@ class dnaTrace:
                 y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
                 x_coords = np.full(len(y_coords), trace_coordinate[0])
 
-            # Use the perp array to index the guassian filtered image
+            # Use the perp array to index the gaussian filtered image
             perp_array = np.column_stack((x_coords, y_coords))
             try:
                 height_values = self.gauss_image[perp_array[:, 0], perp_array[:, 1]]
@@ -875,24 +875,24 @@ def trim_array(array: np.ndarray, pad_width: int) -> np.ndarray:
 
 
 def adjust_coordinates(coordinates: np.ndarray, pad_width: int) -> np.ndarray:
-    """Adjust co-ordinates of a trace by the pad_width.
+    """Adjust coordinates of a trace by the pad_width.
 
     A second padding is made to allow for grains that are "edge cases" and close to the bounding box edge. This adds the
     pad_width to the cropped grain array. In order to realign the trace with the original image we need to remove this
-    padding so that when the co-ordinates are combined with the "grain_anchor", which isn't padded twice, the
-    co-ordinates correctly align with the original image.
+    padding so that when the coordinates are combined with the "grain_anchor", which isn't padded twice, the
+    coordinates correctly align with the original image.
 
     Parameters
     ----------
     coordinates : np.ndarray
-        An array of trace co-ordinates (typically ordered).
+        An array of trace coordinates (typically ordered).
     pad_width : int
         The amount of padding used.
 
     Returns
     -------
     np.ndarray
-        Array of trace co-ordinates adjusted for secondary padding.
+        Array of trace coordinates adjusted for secondary padding.
     """
     return coordinates - pad_width
 
@@ -902,7 +902,7 @@ def trace_mask(
 ) -> np.ndarray:
     """Place the traced skeletons into an array of the original image for plotting/overlaying.
 
-    Adjusts the co-ordinates back to the original position based on each grains anchor co-ordinates of the padded
+    Adjusts the coordinates back to the original position based on each grains anchor coordinates of the padded
     bounding box. Adjustments are made for the secondary padding that is made.
 
     Parameters
@@ -910,7 +910,7 @@ def trace_mask(
     grain_anchors : List[np.ndarray]
         List of grain anchors for the padded bounding box.
     ordered_traces : List[np.ndarray]
-        List of co-ordinates for each grains trace.
+        List of coordinates for each grains trace.
     image_shape : tuple
         Shape of original image.
     pad_width : int
@@ -1020,8 +1020,8 @@ def trace_grain(
     5. Jiggling/Fitting
     6. Splining to improve resolution of image.
 
-    Pararmeters
-    ===========
+    Parameters
+    ==========
     cropped_image: np.ndarray
         Cropped array from the original image defined as the bounding box from the labelled mask.
     cropped_mask: np.ndarray
@@ -1049,7 +1049,7 @@ def trace_grain(
     =======
     Dictionary
         Dictionary of the contour length, whether the image is circular or linear, the end-to-end distance and an array
-    of co-ordinates.
+    of coordinates.
     """
     dnatrace = dnaTrace(
         image=cropped_image,
@@ -1086,7 +1086,7 @@ def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np
     array: np.ndarray
         2D Numpy array to be cropped.
     bounding_box: Tuple
-        Tuple of co-ordinates to crop, should be of form (min_row, min_col, max_row, max_col).
+        Tuple of coordinates to crop, should be of form (min_row, min_col, max_row, max_col).
     pad_width: int
         Padding to apply to bounding box.
 
@@ -1104,21 +1104,21 @@ def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np
 
 
 def pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int) -> list:
-    """Pad co-ordinates, if they extend beyond image boundaries stop at boundary.
+    """Pad coordinates, if they extend beyond image boundaries stop at boundary.
 
     Parameters
     ==========
     array_shape: tuple
         Shape of original image
     bounding_box: list
-        List of co-ordinates min_row, min_col, max_row, max_col
+        List of coordinates min_row, min_col, max_row, max_col
     pad_width: int
         Cells to pad arrays by.
 
     Returns
     =======
     list
-       List of padded co-ordinates
+       List of padded coordinates
     """
     # Top Row : Make this the first column if too close
     bounding_box[0] = 0 if bounding_box[0] - pad_width < 0 else bounding_box[0] - pad_width
