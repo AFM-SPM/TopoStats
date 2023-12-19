@@ -17,6 +17,7 @@ import pySPM
 import tifffile
 from igor2 import binarywave
 from ruamel.yaml import YAML, YAMLError
+from topofileformats import asd
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -69,7 +70,10 @@ def get_date_time() -> str:
 
 
 def write_yaml(
-    config: dict, output_dir: str | Path, config_file: str = "config.yaml", header_message: str = None
+    config: dict,
+    output_dir: str | Path,
+    config_file: str = "config.yaml",
+    header_message: str = None,
 ) -> None:
     """Write a configuration (stored as a dictionary) to a YAML file.
 
@@ -566,6 +570,26 @@ class LoadScans:
 
         return (image, pixel_to_nm_scaling)
 
+    def load_asd(self) -> tuple:
+        """Extract image and pixel to nm scaling from .asd files.
+
+        Returns
+        -------
+        tuple: (np.ndarray, float)
+            A tuple containing the image and its pixel to nanometre scaling value.
+        """
+        try:
+            frames: np.ndarray
+            pixel_to_nm_scaling: float
+            _: dict
+            frames, pixel_to_nm_scaling, _ = asd.load_asd(file_path=self.img_path, channel=self.channel)
+            LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
+        except FileNotFoundError:
+            LOGGER.info(f"[{self.filename}] : File not found. Path: {self.img_path}")
+            raise
+
+        return (frames, pixel_to_nm_scaling)
+
     def load_ibw(self) -> tuple:
         """Load image from Asylum Research (Igor) .ibw files.
 
@@ -870,6 +894,7 @@ class LoadScans:
             ".ibw": self.load_ibw,
             ".gwy": self.load_gwy,
             ".topostats": self.load_topostats,
+            ".asd": self.load_asd,
         }
 
         for img_path in self.img_paths:
@@ -889,7 +914,11 @@ class LoadScans:
                     else:
                         raise
                 else:
-                    self._check_image_size_and_add_to_dict()
+                    if suffix == ".asd":
+                        for index, frame in enumerate(self.image):
+                            self._check_image_size_and_add_to_dict(image=frame, filename=f"{self.filename}_{index}")
+                    else:
+                        self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
             else:
                 raise ValueError(
                     f"File type {suffix} not yet supported. Please make an issue at \
@@ -897,36 +926,43 @@ class LoadScans:
                 this file type."
                 )
 
-    def _check_image_size_and_add_to_dict(self) -> None:
+    def _check_image_size_and_add_to_dict(self, image: np.ndarray, filename: str) -> None:
         """Check the image is above a minimum size in both dimensions.
 
         Images that do not meet the minimum size are not included for processing.
-        """
-        if self.image.shape[0] < self.MINIMUM_IMAGE_SIZE or self.image.shape[1] < self.MINIMUM_IMAGE_SIZE:
-            LOGGER.warning(f"[{self.filename}] Skipping, image too small: {self.image.shape}")
-        else:
-            self.add_to_dict()
-            LOGGER.info(f"[{self.filename}] Image added to processing.")
-
-    def add_to_dict(self) -> None:
-        """Add image, image path and pixel to nanometre scaling to the img_dic dictionary under key filename.
 
         Parameters
         ----------
-        filename: str
-            The filename, idealy without an extension.
         image: np.ndarray
             An array of the extracted AFM image.
-        img_path: str
-            The path to the AFM file (with a frame number if applicable)
-        px_2_nm: float
-            The length of a pixel in nm.
+        filename: str
+            The name of the file
         """
-        self.img_dict[self.filename] = {
-            "filename": self.filename,
-            "img_path": self.img_path.with_name(self.filename),
+        if image.shape[0] < self.MINIMUM_IMAGE_SIZE or image.shape[1] < self.MINIMUM_IMAGE_SIZE:
+            LOGGER.warning(f"[{filename}] Skipping, image too small: {image.shape}")
+        else:
+            self.add_to_dict(image=image, filename=filename)
+            LOGGER.info(f"[{filename}] Image added to processing.")
+
+    def add_to_dict(self, image: np.ndarray, filename: str) -> None:
+        """Add an image and metadata to the img_dict dictionary under the key filename.
+
+        Adds the image and associated metadata such as any grain masks, and pixel to nanometere
+        scaling factor to the img_dict dictionary which is used as a place to store the image
+        information for processing.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            An array of the extracted AFM image.
+        filename: str
+            The name of the file
+        """
+        self.img_dict[filename] = {
+            "filename": filename,
+            "img_path": self.img_path.with_name(filename),
             "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-            "image_original": self.image,
+            "image_original": image,
             "image_flattened": None,
             "grain_masks": self.grain_masks,
         }

@@ -52,6 +52,9 @@ dependencies = [
   "snoop",
   "tifffile",
   "tqdm",
+  "pyfiglet",
+  "h5py",
+  "topofileformats"
 ]
 
 [project.optional-dependencies]

@@ -93,7 +93,12 @@ def test_write_yaml(tmp_path: Path) -> None:
 
 def test_path_to_str(tmp_path: Path) -> None:
     """Test that Path objects are converted to strings."""
-    CONFIG_PATH = {"this": "is", "a": "test", "with": tmp_path, "and": {"nested": tmp_path / "nested"}}
+    CONFIG_PATH = {
+        "this": "is",
+        "a": "test",
+        "with": tmp_path,
+        "and": {"nested": tmp_path / "nested"},
+    }
     CONFIG_STR = path_to_str(CONFIG_PATH)
 
     assert isinstance(CONFIG_STR, dict)
@@ -183,7 +188,10 @@ def test_read_gwy_component_dtype() -> None:
 @pytest.mark.parametrize(
     ("input_paths", "expected_paths"),
     [
-        ([Path("a/b/c/d"), Path("a/b/e/f"), Path("a/b/g"), Path("a/b/h")], ["c/d", "e/f", "g", "h"]),
+        (
+            [Path("a/b/c/d"), Path("a/b/e/f"), Path("a/b/g"), Path("a/b/h")],
+            ["c/d", "e/f", "g", "h"],
+        ),
         (["a/b/c/d", "a/b/e/f", "a/b/g", "a/b/h"], ["c/d", "e/f", "g", "h"]),
         (["g", "a/b/e/f", "a/b/g", "a/b/h"], ["g", "a/b/e/f", "a/b/g", "a/b/h"]),
         (["a/b/c/d"], ["a/b/c/d"]),
@@ -263,7 +271,12 @@ def test_convert_basename_to_relative_paths():
             Path("output/here/images/today/test"),
         ),
         # Relative path, nested under base_dir, no file suffix
-        (Path("/some/random/path"), Path("images/"), Path("output/here"), Path("output/here/images/")),
+        (
+            Path("/some/random/path"),
+            Path("images/"),
+            Path("output/here"),
+            Path("output/here/images/"),
+        ),
         # Absolute path, nested under base_dir, output not nested under base_dir, with file_suffix
         (
             Path("/some/random/path"),
@@ -297,7 +310,11 @@ def test_get_out_path(image_path: Path, base_dir: Path, output_dir: Path, expect
 def test_get_out_path_attributeerror() -> None:
     """Test get_out_path() raises AttribteError when passed a string instead of a Path() for image_path."""
     with pytest.raises(AttributeError):
-        get_out_path(image_path="images/test.spm", base_dir=Path("/some/random/path"), output_dir=Path("output/here"))
+        get_out_path(
+            image_path="images/test.spm",
+            base_dir=Path("/some/random/path"),
+            output_dir=Path("output/here"),
+        )
 
 
 def test_save_folder_grainstats(tmp_path: Path) -> None:
@@ -357,6 +374,27 @@ def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
     assert image.sum() == 33836850.232917726
     assert isinstance(px_to_nm_scaling, float)
     assert px_to_nm_scaling == 0.8468632812499975
+
+
+def test_load_scan_asd_file_not_found() -> None:
+    """Test file not found exception is raised when loading non existent .ASD file."""
+    load_scan_asd = LoadScans([Path("file_does_not_exist.asd")], channel="TP")
+    load_scan_asd.img_path = load_scan_asd.img_paths[0]
+    load_scan_asd.filename = load_scan_asd.img_paths[0].stem
+    with pytest.raises(FileNotFoundError):
+        load_scan_asd.load_asd()
+
+
+def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
+    """Test loading of a .asd file."""
+    load_scan_asd.img_path = load_scan_asd.img_paths[0]
+    load_scan_asd.filename = load_scan_asd.img_paths[0].stem
+    frames, px_to_nm_scaling = load_scan_asd.load_asd()
+    assert isinstance(frames, np.ndarray)
+    assert frames.shape == (197, 200, 200)
+    assert frames.sum() == -71724923530211.84
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 2.0
 
 
 def test_load_scan_topostats(load_scan_topostats: LoadScans) -> None:
@@ -426,6 +464,7 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
         ("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876),
         ("load_scan_gwy", 1, (512, 512), 33836850.232917726, "file", 0.8468632812499975),
         ("load_scan_topostats", 1, (1024, 1024), 182067.12616107278, "file", 0.4940029296875),
+        ("load_scan_asd", 197, (200, 200), -673381139990.2344, "file_122", 2.0),
     ],
 )
 def test_load_scan_get_data(
@@ -465,7 +504,7 @@ def test_load_scan_get_data_check_image_size_and_add_to_dict(
     load_scan_spm.filename = "minicircle"
     load_scan_spm.img_path = tmp_path
     load_scan_spm.image = np.ndarray((x, y))
-    load_scan_spm._check_image_size_and_add_to_dict()
+    load_scan_spm._check_image_size_and_add_to_dict(image=load_scan_spm.image, filename=load_scan_spm.filename)
     assert log_msg in caplog.text
 
 
@@ -492,7 +531,12 @@ def test_load_pkl() -> None:
             None,
             np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]),
         ),
-        (np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), 3.14159265, np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]), None),
+        (
+            np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+            3.14159265,
+            np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]),
+            None,
+        ),
         (
             np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
             3.14159265,
@@ -516,7 +560,9 @@ def test_save_topostats_file(
     }
 
     save_topostats_file(
-        output_dir=tmp_path, filename="topostats_file_test.topostats", topostats_object=topostats_object
+        output_dir=tmp_path,
+        filename="topostats_file_test.topostats",
+        topostats_object=topostats_object,
     )
 
     with h5py.File(f"{tmp_path}/topostats_file_test.topostats", "r") as f:
@@ -529,7 +575,12 @@ def test_save_topostats_file(
         if grain_mask_below is not None:
             grain_mask_below_read = f["grain_masks/below"][:]
 
-    assert hdf5_file_keys == ["grain_masks", "image", "pixel_to_nm_scaling", "topostats_file_version"]
+    assert hdf5_file_keys == [
+        "grain_masks",
+        "image",
+        "pixel_to_nm_scaling",
+        "topostats_file_version",
+    ]
     assert 0.1 == topostats_file_version_read
     np.testing.assert_array_equal(image, image_read)
     assert pixel_to_nm_scaling == pixel_to_nm_scaling_read
