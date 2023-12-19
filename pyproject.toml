@@ -250,7 +250,7 @@ convention = "numpy"
 fixture-parentheses = true
 
 [tool.codespell]
-skip = '*.po,*.ts,test'
+skip = '*.spm*,*.mplstyle'
 count = ''
 quiet-level = 3
 

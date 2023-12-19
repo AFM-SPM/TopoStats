@@ -245,9 +245,9 @@ def test_convert_basename_to_relative_paths():
         # Absolute path, nested under base_dir, with file suffix and multiple periods
         (
             Path("/some/random/path"),
-            Path("/some/random/path/images/te.st.spm"),
+            Path("/some/random/path/images/to.at.spm"),
             Path("output/here"),
-            Path("output/here/images/te.st/"),
+            Path("output/here/images/to.at/"),
         ),
         # Absolute path, nested under base_dir, with file suffix
         (

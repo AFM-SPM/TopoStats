@@ -10,7 +10,7 @@ of this repository, or included in the readme.
   `master`. If you are working on new features then please branch from `dev`.
 - Implement your feature, bug fix, documentation, etc. using commits.
 - Push your changes.
-  \*Make a pull request against the branch from which you originally branched from (`master` for bug fixes; `dev` for new features).
+- Make a pull request against the branch from which you originally branched from (`master` for bug fixes; `dev` for new features).
 
 You are advised to make a draft pull request as soon as you start work so nobody else ends up working on the same thing.
 
@@ -51,7 +51,7 @@ approaches which can be easier to maintain. Existing object orientation will be 
 
 - [ ] There is no preferred style for documentation, but documentation is required.
 - [ ] [PEP257 docstrings](https://www.python.org/dev/peps/pep-0257/) are required.
-- [x] [Sphinx docstrings](https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html) are required.
+- [x] [Numpy docstrings](https://numpydoc.readthedocs.io/en/latest/format.html) are required.
 
 ## [Typehints](https://docs.python.org/3/library/typing.html)
 

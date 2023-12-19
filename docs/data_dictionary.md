@@ -7,13 +7,15 @@ these files, the data types, a description and their units where appropriate.
 
 The `all_statistics.csv` file contains details on each grain that has been detected and traced and has the following fields.
 
+The `all_statistics.csv` file contains details on each grain that has been detected and traced and has the following fields.
+
 | Column / field / feature   | Description                                                                                            | Type    | Units            |
 | -------------------------- | ------------------------------------------------------------------------------------------------------ | ------- | ---------------- |
 | `image`                    | Filename (minus extension) of scan.                                                                    | `str`   | N/A              |
 | `threshold`                | Whether grain is `above` or `below` a threshold.                                                       | `str`   | N/A              |
 | `molecule_number`          | Number of found grain (starts at `0`)                                                                  | `int`   | N/A              |
-| `centre_x`                 | x co-ordinate of grain centre.                                                                         | `float` | m                |
-| `centre_y`                 | y co-ordinate of grain centre.                                                                         | `float` | m                |
+| `centre_x`                 | x coordinate of grain centre.                                                                          | `float` | m                |
+| `centre_y`                 | y coordinate of grain centre.                                                                          | `float` | m                |
 | `radius_min`               | minimum distance from the centroid to edge of the grain.                                               | `float` | m                |
 | `radius_max`               | maximum distance from the centroid to edge of the grain.                                               | `float` | m                |
 | `radius_mean`              | mean distance from the centroid to the edge of the grain.                                              | `float` | m                |
