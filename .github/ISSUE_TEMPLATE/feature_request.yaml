@@ -1,9 +1,9 @@
 name: Feature request
 description: Suggest an idea for this project
-title: '[feature] : '
-labels: 'enhancement'
+title: "[feature] : "
+labels: "enhancement"
 assignees:
-  - ''
+  - ""
 body:
   - type: markdown
     attributes:

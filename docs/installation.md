@@ -20,7 +20,7 @@ virtual environment for installing TopoStats for installing and running TopoStat
 (specified with the `--name topostats` option) and use Python 3.10 (the option `python=3.10`). After creating it we can,
 as per the instructions printed out, activate the environment.
 
-``` bash
+```bash
 conda create --name topostats python=3.10
 conda activate topostats
 ```
@@ -43,20 +43,20 @@ There are two options for installing TopoStats depending on your usage
 
 After activating your `topostats` Conda environment you can install TopoStats from PyPI using the following command.
 
-``` bash
+```bash
 pip install topostats
 ```
 
 This will install TopoStats under your virtual environment and the command `run_topostats` will be available at the
 command line. You can upgrade `topostats` by using the `--upgrade` flag...
 
-``` bash
+```bash
 pip install --upgrade topostats
 ```
 
 You can always install a specific version from PyPI
 
-``` bash
+```bash
 pip install topostats==2.0.0
 ```
 
@@ -67,10 +67,10 @@ documentation](https://pip.pypa.io/en/stable/user_guide/).
 
 You may wish to consider cloning and installing TopoStats from GitHub if...
 
-* You wish to try out new features that have been developed since the last release (if you find problems please create
-an [issue](https://github.com/AFM-SPM/TopoStats/issues)).
-* If you have found an issue in a released version and want to see if it has been fixed in the unreleased version.
-* If you wish to develop and extend TopoStats with new features yourself.
+- You wish to try out new features that have been developed since the last release (if you find problems please create
+  an [issue](https://github.com/AFM-SPM/TopoStats/issues)).
+- If you have found an issue in a released version and want to see if it has been fixed in the unreleased version.
+- If you wish to develop and extend TopoStats with new features yourself.
 
 If you do not have Git already installed please see [Git](installation#git). If you intend to contribute to the
 development of TopoStats please read through the [contributing](contributing) section.
@@ -78,7 +78,7 @@ development of TopoStats please read through the [contributing](contributing) se
 If you are familiar with the command line then you can clone and install TopoStats with the following _after_ activating
 your virtual environment.
 
-``` bash
+```bash
 git clone https://github.com/AFM-SPM/TopoStats.git
 # If you have SSH access configured to GitHub then you can use
 git clone git@github.com:AFM-SPM/TopoStats.git
@@ -98,7 +98,7 @@ selecting a destination to clone to.
 Once cloned you will have to open a Terminal and navigate to the directory you cloned and _after_ activating your
 virtual environment install TopoStats with the following.
 
-``` bash
+```bash
 cd /path/to/where/topostats/was/cloned/TopoStats
 pip install .
 ```
@@ -113,7 +113,7 @@ We include [notebooks](notebooks) which show how to use different aspects of Top
 [Jupyter Noteooks](https://jupyter.org/) then you can install the dependencies that are required from the cloned
 TopoStats repository using...
 
-``` bash
+```bash
 pip install ".[notebooks]"
 ```
 
@@ -125,7 +125,7 @@ installed which are not installed to your virtual environment by
 contribute to the development of TopoStats and making changes to the code base you will likely want to be able to run
 the tests. Install the necessary dependencies to do so with...
 
-``` bash
+```bash
 cd TopoStats
 git checkout dev
 pip install ".[tests]"
