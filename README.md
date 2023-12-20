@@ -25,9 +25,10 @@ status](https://results.pre-commit.ci/badge/github/AFM-SPM/TopoStats/main.svg)](
 
 | [Installation](#installation) | [Tutorials and Examples](#tutorials-and-examples) | [Contributing](contributing.md) |
 [Licence](#licence) | [Citation](#citation) |
+
 </div>
 
---------------------------------------------------------------------------------
+---
 
 An AFM image analysis program to batch process data and obtain statistics from images.
 
@@ -37,7 +38,7 @@ There is more complete documentation on the projects [documentation website](htt
 
 TopoStats is available via PyPI and can be installed in your Virtual Environment with...
 
-``` bash
+```bash
 pip install topostats
 ```
 
@@ -62,7 +63,7 @@ If you have your own YAML configuration file (see [Usage : Configuring
 TopoStats](https://afm-spm.github.io/TopoStats/main/usage.html#configuring_topostats)) then invoke `topostats process`
 and use the argument for `--config <config_file>.yaml` that points to your file.
 
-``` bash
+```bash
 # Edit and save my_config.yaml then run TopoStats with this configuration file
 topostats process --config my_config.yaml
 ```
@@ -76,7 +77,7 @@ configuration to the file `./config.yaml` (i.e. in the current directory). This 
 **NB** - This feature is only available in versions > v2.0.0 as it was introduced after v2.0.0 was released. In older
 version > 2.0.0 and <= 2.1.2 you can use the older `run_topostats --create-config`  option.
 
-``` bash
+```bash
 run_topostats --create-config-file config.yaml
 ```
 

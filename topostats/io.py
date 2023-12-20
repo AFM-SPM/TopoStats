@@ -264,7 +264,7 @@ def find_files(base_dir: str | Path = None, file_ext: str = ".spm") -> list:
 
 
 def save_folder_grainstats(output_dir: str | Path, base_dir: str | Path, all_stats_df: pd.DataFrame) -> None:
-    """Save a data frame of grain and tracing statictics at the folder level.
+    """Save a data frame of grain and tracing statistics at the folder level.
 
     Parameters
     ----------
@@ -512,7 +512,7 @@ class LoadScans:
             # trying to return the error with options of possible channel values
             labels = []
             for channel in [layer[b"@2:Image Data"][0] for layer in scan.layers]:
-                channel_description = channel.decode("latin1").split('"')[1]  # incase the blank field raises quesions?
+                channel_description = channel.decode("latin1").split('"')[1]  # in case blank field raises questions?
                 labels.append(channel_description)
             LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
             raise e
@@ -537,7 +537,7 @@ class LoadScans:
             "um": 1e3,
         }
         px_to_real = channel_data.pxs()
-        # Has potential for non-square pixels but not yet implimented
+        # Has potential for non-square pixels but not yet implemented
         pixel_to_nm_scaling = (
             px_to_real[0][0] * unit_dict[px_to_real[0][1]],
             px_to_real[1][0] * unit_dict[px_to_real[1][1]],
@@ -655,7 +655,7 @@ class LoadScans:
             if line.count(":"):
                 key, val = line.split(":", 1)
                 notes[key] = val.strip()
-        # Has potential for non-square pixels but not yet implimented
+        # Has potential for non-square pixels but not yet implemented
         pixel_to_nm_scaling = (
             float(notes["SlowScanSize"]) / scan["wave"]["wData"].shape[0] * 1e9,  # as in m
             float(notes["FastScanSize"]) / scan["wave"]["wData"].shape[1] * 1e9,  # as in m
@@ -681,8 +681,8 @@ class LoadScans:
         # Obtain channel list for all channels in file
         channel_list = {}
         for i, page in enumerate(tif.pages[1:]):  # [0] is thumbnail
-            available_channel = page.tags["32848"].value  # keys are hexidecimal vals
-            if page.tags["32849"].value == 0:  # wether img is trace or retrace
+            available_channel = page.tags["32848"].value  # keys are hexadecimal values
+            if page.tags["32849"].value == 0:  # whether img is trace or retrace
                 tr_rt = "trace"
             else:
                 tr_rt = "retrace"

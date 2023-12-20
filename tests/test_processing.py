@@ -20,7 +20,7 @@ from topostats.utils import update_plotting_config
 BASE_DIR = Path.cwd()
 
 
-# Can't see a way of paramterising with pytest-regtest as it writes to a file based on the file/function
+# Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
 # so instead we run three regression tests.
 def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly."""

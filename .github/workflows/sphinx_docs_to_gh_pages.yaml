@@ -6,7 +6,7 @@ on:
     # Uncomment if only tagged releases are to have documentation built
     # tags:
     #   - v*
-  workflow_dispatch:        # Uncomment line if you also want to trigger action manually
+  workflow_dispatch: # Uncomment line if you also want to trigger action manually
 
 jobs:
   sphinx_docs_to_gh-pages:
@@ -32,8 +32,8 @@ jobs:
           # defined as it defaults to 'main'.
           branch: main
           dir_docs: docs
-          sphinxapiexclude: '../*setup* ../*tests* ../*.ipynb ../demo.py ../make_baseline.py ../jupyter_notebook_config.py ../demo_ftrs.py'
-          sphinxapiopts: '--separate -o . ../'
-          sphinxopts: ''
+          sphinxapiexclude: "../*setup* ../*tests* ../*.ipynb ../demo.py ../make_baseline.py ../jupyter_notebook_config.py ../demo_ftrs.py"
+          sphinxapiopts: "--separate -o . ../"
+          sphinxopts: ""
           multiversion: true
-          multiversionopts: ''
+          multiversionopts: ""

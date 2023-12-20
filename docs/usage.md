@@ -26,14 +26,14 @@ commands on navigation. If you use Windows then for consistency it is recommende
 At the command line you use `cd` to `c`hange `d`irectory to the location of your files. For example if your scans are on
 the C-drive in `C:\User\me\work\spm\2022-12-08\scans` then you would
 
-``` bash
+```bash
 cd c:/User/me/work/spm/2022-12-08/scans
 ```
 
 If you are on a Linux or OSX system then paths are not prefixed with letters and your files may be saved to
 `/home/me/work/spm/2022-12-08/scans`. To change directory there you would...
 
-``` bash
+```bash
 cd /home/me/work/spm/2022-12-08/scans
 ```
 
@@ -44,14 +44,14 @@ understands forward-slash. Under Linux and OSX they mean different things and so
 You can always find out what location you are at in the command line using the `pwd` command (`p`rint `w`orking
 `d`irectory) and it will print out the directory you are currently at.
 
-``` bash
+```bash
 pwd
 /home/me/work/spm/2022-12-08/scans
 ```
 
 To navigate up one directory level use `cd ..`. These can be chained together and directories separated with `/`.
 
-``` bash
+```bash
 # Move up a single directory level
 cd ..
 pwd
@@ -64,7 +64,7 @@ pwd
 
 You can list the files in a directory using the `ls` command.
 
-``` bash
+```bash
 ls
 sample_image_scan_2022-12-08-1204.spm
 ```
@@ -82,7 +82,7 @@ shell/terminal you will therefore need to do two things.
 
 You can now run topostats by invoking `topostats process` and you should start to see some output similar to that below.
 
-``` bash
+```bash
 cd /path/to/where/scans/are/located
 topostats process
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration is valid.
@@ -100,7 +100,7 @@ topostats process
 On a successful completion you should see a message similar to the following which indicates various aspects of the run
 along with information about how to give feedback, report bugs and cite the software.
 
-``` bash
+```bash
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   Base Directory              : /home/neil/work/projects/topostats/TopoStats
@@ -195,7 +195,7 @@ e.g. `todays_first_run_configuration.yaml` is a valid name.
 
 ### Editing `config.yaml`
 
-**IMPORTANT** This file is an ASCII text file and  you should use NotePad (Windows), TextEdit (OSX) or Nano/Emacs/Vim
+**IMPORTANT** This file is an ASCII text file and you should use NotePad (Windows), TextEdit (OSX) or Nano/Emacs/Vim
 (GNU/Linux) or any other text editor. Do _not_ use Microsoft Word or any other Word Processor to edit this file.
 
 You can now start customising the configuration you are going to run TopoStats with. All fields have defaults but the
@@ -204,20 +204,20 @@ ones you may want to change are....
 * `base_dir` (default: `./`) the directory in which to search for scans. By default this is `./` which represents the
   directory from which `topostats process` is called and it is good practice to have one configuration file per batch of
   scans that are being processed.
-* `output_dir` (default: `output`) the location where the output is saved, by default this is the directory `output`
-  which will be   created if it doesn't exist. If you wish for the output to be somewhere else specify it here. If you
+- `output_dir` (default: `output`) the location where the output is saved, by default this is the directory `output`
+  which will be created if it doesn't exist. If you wish for the output to be somewhere else specify it here. If you
   want `Processed` directories to sit within the directories that images are found then simply set the `output_dir` to
   the same value as `base_dir`.
-* `log_level` (default: `info`) the verbosity of output to the console and log file, the options in order of verbosity
+- `log_level` (default: `info`) the verbosity of output to the console and log file, the options in order of verbosity
   are `debug` > `info` > `warning` > `error`. If you want less output set to `warning` or `error`. If you encounter
   errors please set to `debug` and run again and include the log in your [bug
   report](https://github.com/AFM-SPM/TopoStats/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
-* `cores` (default: `2`) the number of parallel processes to run processing of all found images. Set this to a maximum
+- `cores` (default: `2`) the number of parallel processes to run processing of all found images. Set this to a maximum
   of one less than the number of cores on your computers CPU. If unsure leave as is, but chances are you can increase
   this to at least `4` quite safely.
-* `file_ext` (default: `.spm`) the file extension of scans to search for within the current directory. The default is
+- `file_ext` (default: `.spm`) the file extension of scans to search for within the current directory. The default is
   `.spm` but other file format support is in the pipeline.
-* `plotting` : `image_set` (default `core`) specifies which steps of the processing to plot images of. The value `all`
+- `plotting` : `image_set` (default `core`) specifies which steps of the processing to plot images of. The value `all`
   gets images for all stages, `core` saves only a subset of images.
 
 Most of the other configuration options can be left on their default values for now. Once you have made any changes save
@@ -256,8 +256,8 @@ used your own customised configuration file (specifically if you have modified t
 
 At the top level of the output directory are two files `config.yaml` and `all_statistics.csv`
 
-* `config.yaml` : a copy of the configuration used to process the images.
-* `all_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the grain and DNA tracing statistics.
+- `config.yaml` : a copy of the configuration used to process the images.
+- `all_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the grain and DNA tracing statistics.
 
 The remaining directories of results is contingent on the structure of files within the `base_dir` that is specified in
 the configuration. If all files are in the top-level directory (i.e. no nesting) then you will have just a `Processed`
@@ -267,7 +267,7 @@ the specified `file_ext` has been found. This is perhaps best illustrated by way
 If you have the following three `.spm` files within your current directory, one at the top level, one under `level1` and
 one under `level1/a`...
 
-``` bash
+```bash
 [4.0K Nov 15 13:55]  .
 |-- [4.0K Nov 15 13:54]  ./level1
 |   |-- [4.0K Nov 15 13:54]  ./level1/a
@@ -278,7 +278,7 @@ one under `level1/a`...
 
 ...then under `output` (the default for`output_dir`) you will see the following directory structure.
 
-``` bash
+```bash
 [4.0K Nov 15 14:06]  output
 |-- [ 381 Nov 15 14:06]  output/all_statistics.csv
 |-- [7.4K Nov 15 14:06]  output/config.yaml
@@ -325,7 +325,7 @@ Configuration of summary plots is also via a YAML configuration file a descripti
 [configuration](configuration#summary-configuration) page. You can generate a sample configuration by invoking the
 `--create-config-file` option to `toposum`
 
-``` bash
+```bash
 toposum --create-config-file custom_summary_config.yaml
 ```
 
@@ -338,7 +338,7 @@ and uncommenting the statistic names under `stats_to_sum`.
 ### Labels
 
 Labels for the plots are generated from the file `topostats/var_to_label.yaml` which provides a dictionary that maps the
-variable name as the dictionary `key` to its description stored in the dictionary `value`.  If you wish to customise
+variable name as the dictionary `key` to its description stored in the dictionary `value`. If you wish to customise
 these you can do so and pass it to `toposum` using the `--plotting_dictionary` which takes as an argument the path to
 the file you have created.
 
