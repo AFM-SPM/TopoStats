@@ -28,7 +28,13 @@ from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import check_run_steps, completion_message, process_scan
 from topostats.utils import update_config, update_plotting_config
-from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA
+from topostats.validation import (
+    validate_config,
+    DEFAULT_CONFIG_SCHEMA,
+    PLOTTING_SCHEMA,
+    SUMMARY_SCHEMA,
+)
+from topostats.grain_finding_haribo_unet import test_GPU
 
 # We already setup the logger in __init__.py and it is idempotent so calling it here returns the same object as from
 # __init__.py
@@ -46,6 +52,8 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 def run_topostats(args=None):
     """Find and process all files."""
+
+    test_GPU()
 
     # Parse command line options, load config (or default) and update with command line options
     if args.config_file is not None:

@@ -1,15 +1,20 @@
 """Find grains in an image."""
+
+from pathlib import Path
+
 # pylint: disable=no-name-in-module
 from collections import defaultdict
 import logging
 from typing import List, Dict
 import numpy as np
+import matplotlib.pyplot as plt
 
 from skimage.segmentation import clear_border
 from skimage import morphology
 from skimage.measure import regionprops
 from skimage.color import label2rgb
 
+from topostats.grain_finding_haribo_unet import predict_unet, load_model
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
 from topostats.utils import _get_mask, get_thresholds
@@ -351,3 +356,127 @@ class Grains:
             )
             self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
             LOGGER.info(f"[{self.filename}] : Extracted bounding boxes ({direction})")
+
+            # For each detected molecule, create an image of just that molecule and run the UNet
+            # on that image to segment it
+            unet_mask = np.zeros_like(self.image)
+
+            # Get the path to a file in the topostats package
+            model_path = (
+                Path(__file__).parent
+                / "haribonet_single_class_2023-12-20_10-44-01_image-size-256x256_epochs-30_batch-size-32_learning-rate-0.001.h5"
+            )
+
+            LOGGER.info(f"Loading Unet model: {model_path.stem}")
+            model = load_model(model_path=model_path)
+            LOGGER.info(f"Loaded Unet model: {model_path.stem}")
+
+            for grain_number, region in enumerate(self.region_properties[direction]):
+                LOGGER.info(
+                    f"Unet predicting mask for grain {grain_number} of {len(self.region_properties[direction])}"
+                )
+
+                # Get the bounding box for the region
+                bounding_box = np.array(region.bbox)
+
+                # Make the bounding box square within the confines of the image
+                # Calculate the width and height of the bounding box
+                LOGGER.info(
+                    f"bounding_box: [0]: {bounding_box[0]} [1]: {bounding_box[1]} [2]: {bounding_box[2]} [3]:"
+                    f"{bounding_box[3]}"
+                )
+                width = bounding_box[3] - bounding_box[1]
+                height = bounding_box[2] - bounding_box[0]
+
+                # Pad the bounding box by 20% if it fits within the image
+                if bounding_box[0] - (height * 0.2) >= 0:
+                    # Expand up
+                    bounding_box[0] -= height * 0.2
+                if bounding_box[1] - (width * 0.2) >= 0:
+                    # Expand left
+                    bounding_box[1] -= width * 0.2
+                if bounding_box[2] + (height * 0.2) <= self.image.shape[0]:
+                    # Expand down
+                    bounding_box[2] += height * 0.2
+                if bounding_box[3] + (width * 0.2) <= self.image.shape[1]:
+                    # Expand right
+                    bounding_box[3] += width * 0.2
+
+                width = bounding_box[3] - bounding_box[1]
+                height = bounding_box[2] - bounding_box[0]
+
+                # # Plot the cropped region for testing
+                # fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+                # ax.imshow(
+                #     self.image[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]]
+                # )
+                # fig.tight_layout()
+                # plt.savefig(f"{self.filename}_grain_{grain_number}_cropped.png")
+
+                # Make the width and height the same
+                if width > height:
+                    # Make the height the same as the width
+                    difference = width - height
+                    # Check which direction to expand the bounding box
+                    # Check if can expand up
+                    if bounding_box[0] - difference >= 0:
+                        # Expand up
+                        bounding_box[0] -= difference
+                    else:
+                        # Expand down
+                        bounding_box[2] += difference
+
+                elif height > width:
+                    # Make the width the same as the height
+                    difference = height - width
+                    # Check which direction to expand the bounding box
+                    # Check if can expand left
+                    if bounding_box[1] - difference >= 0:
+                        # Expand left
+                        bounding_box[1] -= difference
+                    else:
+                        # Expand right
+                        bounding_box[3] += difference
+
+                LOGGER.info(
+                    f"Bounding box shape: width: {bounding_box[3] - bounding_box[1]} height: {bounding_box[2] - bounding_box[0]}"
+                )
+
+                # Get the image of just the region
+                region_image = self.image[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]]
+
+                LOGGER.info(f"Region image shape: {region_image.shape}")
+
+                # Run the UNet on the region
+                predicted_mask = predict_unet(
+                    image=region_image,
+                    model=model,
+                    confidence=0.5,
+                    model_image_size=256,
+                    image_output_dir=Path("./"),
+                    filename=self.filename + f"_grain_{grain_number}",
+                )
+
+                LOGGER.info(f"Predicted mask shape: {predicted_mask.shape}")
+
+                # Plot region image and predicted mask
+                # fig, ax = plt.subplots(1, 2, figsize=(20, 7))
+                # ax[0].imshow(region_image)
+                # ax[0].set_title("region image")
+                # ax[1].imshow(predicted_mask)
+                # ax[1].set_title("predicted mask")
+                # fig.tight_layout()
+                # plt.savefig(f"{self.filename}_grain_{grain_number}_predicted_mask.png")
+
+                LOGGER.info(f"bbox 2 - 0: {bounding_box[2] - bounding_box[0]}")
+                LOGGER.info(f"bbox 3 - 1: {bounding_box[3] - bounding_box[1]}")
+
+                # Add the predicted mask to the overall mask
+                unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]] = np.logical_or(
+                    unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]],
+                    predicted_mask,
+                )
+
+                self.directions[direction]["removed_small_objects"] = unet_mask
+                unet_labelled_regions = self.label_regions(unet_mask)
+                self.directions[direction]["labelled_regions_02"] = unet_labelled_regions
