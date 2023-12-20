@@ -128,7 +128,7 @@ along with information about how to give feedback, report bugs and cite the soft
 The command `topostats process` has a number of additional flags for passing different options. These can be viewed
 using the `-h` or `--help` flag.
 
-``` bash
+```bash
  ❱ topostats process --help
 usage: topostats process [-h] [-c CONFIG_FILE] [-s SUMMARY_CONFIG] [--matplotlibrc MATPLOTLIBRC] [-b BASE_DIR] [-j CORES] [-l LOG_LEVEL] [-f FILE_EXT] [--channel CHANNEL] [-o OUTPUT_DIR] [--save-plots SAVE_PLOTS] [-m MASK] [-w WARNINGS]
 
@@ -179,11 +179,11 @@ want to make to the default configuration and how to make them.
 TopoStats will use some reasonable default parameters by default, but typically you will want to customise the
 parameters that are used. This is achieved using a [configuration](configuration) file. This is a
 [YAML](https://yaml.org) file that contains parameters for different settings. For convenience you can generate
-a sample configuration file in your current working directory using the `topostats create-config` sub-command.  It
+a sample configuration file in your current working directory using the `topostats create-config` sub-command. It
 takes a single argument, the name of the file to save the configuration to (e.g. `config.yaml` or `settings.yaml`), and
 it will write the current default configuration to that file.
 
-``` bash
+```bash
 topostats create-config --filename my_config.yaml
 ls -l
 my_config.yaml
@@ -201,7 +201,7 @@ e.g. `todays_first_run_configuration.yaml` is a valid name.
 You can now start customising the configuration you are going to run TopoStats with. All fields have defaults but the
 ones you may want to change are....
 
-* `base_dir` (default: `./`) the directory in which to search for scans. By default this is `./` which represents the
+- `base_dir` (default: `./`) the directory in which to search for scans. By default this is `./` which represents the
   directory from which `topostats process` is called and it is good practice to have one configuration file per batch of
   scans that are being processed.
 - `output_dir` (default: `output`) the location where the output is saved, by default this is the directory `output`
@@ -232,7 +232,7 @@ this is done using the `--config config.yaml` file.
 you edited. That doesn't _have_ to be the case but it makes life easier for if you are not familiar with absolute
 and relative paths.
 
-``` bash
+```bash
 topostats process --config my_config.yaml
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Plotting configuration is valid.

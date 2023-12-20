@@ -55,7 +55,7 @@ A default configuration is loaded automatically and so the simplest method of pr
 `topostats process` in the same directory as your scans _after_ having activated the virtual environment in which you have
 installed TopoStats
 
-``` bash
+```bash
 topostats process
 ```
 
@@ -75,7 +75,7 @@ You can generate a sample configuration file using the `topostats create-config`
 configuration to the file `./config.yaml` (i.e. in the current directory). This will _not_ run any analyses.
 
 **NB** - This feature is only available in versions > v2.0.0 as it was introduced after v2.0.0 was released. In older
-version > 2.0.0 and <= 2.1.2 you can use the older `run_topostats --create-config`  option.
+version > 2.0.0 and <= 2.1.2 you can use the older `run_topostats --create-config` option.
 
 ```bash
 run_topostats --create-config-file config.yaml
@@ -84,7 +84,7 @@ run_topostats --create-config-file config.yaml
 ### Notebooks
 
 Example Jupyter Notebooks have been developed that show how to use TopoStats package interactively which is useful when
-you are unsure of what parameters are most suited to your scans.  Other notebooks exist which show how to produce plots
+you are unsure of what parameters are most suited to your scans. Other notebooks exist which show how to produce plots
 of the summary grain and tracing statistics or how to generate plots of scans from processed images which saves having
 to run the processing again. See the documentation on
 [Notebooks](https://afm-spm.github.io/TopoStats/main/notebooks.html) for further details.

@@ -15,7 +15,7 @@ was added afterwards). This writes the default configuration to the specified fi
 called `config.yaml` it could be called `spm-2023-02-20.yaml`). There are a few options available (use `topostats
 create-config --help` for further details).
 
-``` bash
+```bash
 topostats create-config
 ```
 
@@ -24,7 +24,7 @@ topostats create-config
 If you have generated a configuration file you can modify and edit a configuration it to change the parameters (see
 fields below). Once these changes have been saved, you can run TopoStats with this configuration file as shown below.
 
-``` bash
+```bash
 topostats process --config my_config.yaml
 ```
 
