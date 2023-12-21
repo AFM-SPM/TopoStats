@@ -3,6 +3,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Union, List, Tuple
 import json
+import pickle
 
 import numpy as np
 import pandas as pd
@@ -97,7 +98,9 @@ def run_filters(
                     plotting_config["plot_dict"][plot_name]["output_dir"] = filter_out_path
                     try:
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
-                        Images(array, **plotting_config["plot_dict"][plot_name]).plot_histogram_and_save()
+                        Images(
+                            array, **plotting_config["plot_dict"][plot_name]
+                        ).plot_histogram_and_save()
                     except AttributeError:
                         LOGGER.info(f"[{filename}] Unable to generate plot : {plot_name}")
             plotting_config["run"] = True
@@ -136,6 +139,7 @@ def run_grains(
     core_out_path: Path,
     plotting_config: dict,
     grains_config: dict,
+    data_save_dir: Path,
 ):
     """Function for running grain finding and plotting the results.
 
@@ -175,6 +179,7 @@ def run_grains(
                 image=image,
                 filename=filename,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
+                data_save_dir=data_save_dir,
                 **grains_config,
             )
             grains.find_grains()
@@ -185,8 +190,11 @@ def run_grains(
                 if len(grains.region_properties[direction]) == 0:
                     LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
         except Exception as e:
-            LOGGER.error(f"[{filename}] : An error occured during grain finding, skipping grainstats and dnatracing.")
+            LOGGER.error(
+                f"[{filename}] : An error occured during grain finding, skipping grainstats and dnatracing."
+            )
             LOGGER.error(f"[{filename}] : The error: {e}")
+            raise e
         else:
             for direction, region_props in grains.region_properties.items():
                 if len(region_props) == 0:
@@ -199,16 +207,22 @@ def run_grains(
                     LOGGER.info(f"[{filename}] : Plotting {direction} Grain Finding Images")
                     for plot_name, array in image_arrays.items():
                         LOGGER.info(f"[{filename}] : Plotting {plot_name} image")
-                        plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path / f"{direction}"
+                        plotting_config["plot_dict"][plot_name]["output_dir"] = (
+                            grain_out_path / f"{direction}"
+                        )
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
                     # Make a plot of coloured regions with bounding boxes
-                    plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path / f"{direction}"
+                    plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = (
+                        grain_out_path / f"{direction}"
+                    )
                     Images(
                         grains.directions[direction]["coloured_regions"],
                         **plotting_config["plot_dict"]["bounding_boxes"],
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
-                    plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path / f"{direction}"
+                    plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = (
+                        grain_out_path / f"{direction}"
+                    )
                     Images(
                         grains.directions[direction]["labelled_regions_02"],
                         **plotting_config["plot_dict"]["coloured_boxes"],
@@ -317,7 +331,9 @@ def run_grainstats(
 
                     # Plot grains if required
                     if plotting_config["image_set"] == "all":
-                        LOGGER.info(f"[{filename}] : Plotting grain images for direction: {direction}.")
+                        LOGGER.info(
+                            f"[{filename}] : Plotting grain images for direction: {direction}."
+                        )
                         for plot_data in grains_plot_data:
                             LOGGER.info(
                                 f"[{filename}] : Plotting grain image {plot_data['filename']} for direction: {direction}."
@@ -351,7 +367,9 @@ def run_grainstats(
             )
             return create_empty_dataframe()
     else:
-        LOGGER.info(f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe.")
+        LOGGER.info(
+            f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe."
+        )
         return create_empty_dataframe()
 
 
@@ -430,9 +448,15 @@ def run_dnatracing(
                 tracing_stats[direction]["threshold"] = direction
                 all_trace_heights = tracing_results["all_trace_heights"]
 
-                # Save the trace heights
-                with open(core_out_path / f"{filename}_trace_heights.json", "w", encoding="utf-8") as f:
+                # Save trace heights for each molecule
+                with open(
+                    core_out_path / f"{filename}_trace_heights.json", "w", encoding="utf-8"
+                ) as f:
                     json.dump(all_trace_heights, f)
+
+                # Pickle the ordered traces
+                with open(core_out_path / f"{filename}_ordered_traces.pkl", "wb") as f:
+                    pickle.dump(ordered_traces, f)
 
                 # Plot traces for the whole image
                 Images(
@@ -445,7 +469,9 @@ def run_dnatracing(
 
                 # Plot traces on each grain individually
                 if plotting_config["image_set"] == "all":
-                    for grain_index, (grain_trace, cropped_image) in enumerate(zip(ordered_traces, cropped_images)):
+                    for grain_index, (grain_trace, cropped_image) in enumerate(
+                        zip(ordered_traces, cropped_images)
+                    ):
                         grain_trace_mask = np.zeros(cropped_image.shape)
                         # Grain traces can be None if they do not trace successfully. Eg if they are too small.
                         if grain_trace is not None:
@@ -472,30 +498,38 @@ def run_dnatracing(
             # NB - Merge on image, molecule and threshold because we may have above and below molecules which
             #      gives duplicate molecule numbers as they are processed separately, if tracing stats
             #      are not available (because skeleton was too small), grainstats are still retained.
-            results = results_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left")
+            results = results_df.merge(
+                tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left"
+            )
             results["basename"] = image_path.parent
 
             return results
 
         # Otherwise, return the passed in dataframe and warn that tracing is disabled
-        LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
-        results = results_df
-        results["basename"] = image_path.parent
-
-        return results
-
-    except Exception:
-        # If no results we need a dummy dataframe to return.
-        LOGGER.warning(
-            f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, " "returning grain statistics"
+        LOGGER.info(
+            f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame."
         )
         results = results_df
         results["basename"] = image_path.parent
 
         return results
 
+    except Exception as e:
+        # If no results we need a dummy dataframe to return.
+        LOGGER.warning(
+            f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, "
+            "returning grain statistics"
+        )
+        LOGGER.warning(f"The error: {e}")
+        results = results_df
+        results["basename"] = image_path.parent
 
-def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
+        return results
+
+
+def get_out_paths(
+    image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict
+):
     """Returns various output paths for a given image and plotting config.
 
     Parameters
@@ -603,12 +637,18 @@ def process_scan(
         core_out_path=core_out_path,
         plotting_config=plotting_config,
         grains_config=grains_config,
+        data_save_dir=core_out_path,
     )
     # Update grain masks if new grain masks are returned. Else keep old grain masks. Topostats object's "grain_masks"
     # defaults to an empty dictionary so this is safe.
-    topostats_object["grain_masks"] = grain_masks if grain_masks is not None else topostats_object["grain_masks"]
+    topostats_object["grain_masks"] = (
+        grain_masks if grain_masks is not None else topostats_object["grain_masks"]
+    )
 
-    if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
+    if (
+        "above" in topostats_object["grain_masks"].keys()
+        or "below" in topostats_object["grain_masks"].keys()
+    ):
         # Grainstats :
         results_df = run_grainstats(
             image=topostats_object["image_flattened"],
@@ -654,13 +694,17 @@ def process_scan(
 
     # Save the topostats dictionary object to .topostats file.
     save_topostats_file(
-        output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
+        output_dir=core_out_path,
+        filename=str(topostats_object["filename"]),
+        topostats_object=topostats_object,
     )
 
     return topostats_object["img_path"], results_df, image_stats
 
 
-def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
+def check_run_steps(
+    filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool
+) -> None:
     """Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
 
     This checks that earlier steps required are enabled.
@@ -682,30 +726,44 @@ def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dn
     """
     if dnatracing_run:
         if grainstats_run is False:
-            LOGGER.error("DNA tracing enabled but Grainstats disabled. Please check your configuration file.")
+            LOGGER.error(
+                "DNA tracing enabled but Grainstats disabled. Please check your configuration file."
+            )
         elif grains_run is False:
-            LOGGER.error("DNA tracing enabled but Grains disabled. Please check your configuration file.")
+            LOGGER.error(
+                "DNA tracing enabled but Grains disabled. Please check your configuration file."
+            )
         elif filter_run is False:
-            LOGGER.error("DNA tracing enabled but Filters disabled. Please check your configuration file.")
+            LOGGER.error(
+                "DNA tracing enabled but Filters disabled. Please check your configuration file."
+            )
         else:
             LOGGER.info("Configuration run options are consistent, processing can proceed.")
     elif grainstats_run:
         if grains_run is False:
-            LOGGER.error("Grainstats enabled but Grains disabled. Please check your configuration file.")
+            LOGGER.error(
+                "Grainstats enabled but Grains disabled. Please check your configuration file."
+            )
         elif filter_run is False:
-            LOGGER.error("Grainstats enabled but Filters disabled. Please check your configuration file.")
+            LOGGER.error(
+                "Grainstats enabled but Filters disabled. Please check your configuration file."
+            )
         else:
             LOGGER.info("Configuration run options are consistent, processing can proceed.")
     elif grains_run:
         if filter_run is False:
-            LOGGER.error("Grains enabled but Filters disabled. Please check your configuration file.")
+            LOGGER.error(
+                "Grains enabled but Filters disabled. Please check your configuration file."
+            )
         else:
             LOGGER.info("Configuration run options are consistent, processing can proceed.")
     else:
         LOGGER.info("Configuration run options are consistent, processing can proceed.")
 
 
-def completion_message(config: Dict, img_files: List, summary_config: Dict, images_processed: int) -> None:
+def completion_message(
+    config: Dict, img_files: List, summary_config: Dict, images_processed: int
+) -> None:
     """Print a completion message summarising images processed.
 
     Parameters
