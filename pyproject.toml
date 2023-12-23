@@ -246,7 +246,7 @@ case-sensitive = true
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
-[tool.ruff.flake8-pytest-style]
+[tool.ruff.lint.flake8-pytest-style]
 fixture-parentheses = true
 
 [tool.codespell]

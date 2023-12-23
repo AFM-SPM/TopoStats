@@ -143,8 +143,8 @@ def test_create_empty_dataframe() -> None:
             2,  # Padding
             (2, 2),
         ),
-        # Padding is 3 which means the range of values this is inteded to be used with would be the co-ordinates (2, 2),
-        # minus the padding which would give (-1, -1), and so instead we shift the co-ordinates over so that the padding
+        # Padding is 3 which means the range of values this is intended to be used with would be the coordinates (2, 2),
+        # minus the padding which would give (-1, -1), and so instead we shift the coordinates over so that the padding
         # will start at (0, 0)
         (
             np.asarray(
@@ -159,7 +159,7 @@ def test_create_empty_dataframe() -> None:
             3,  # Padding
             (3, 3),
         ),
-        # With a padding of 2 the resulting co-ordinates to start the padding would be outside of the image range, so
+        # With a padding of 2 the resulting coordinates to start the padding would be outside of the image range, so
         # again we want to have this point shifted so that padding starts at (0, 0)
         (
             np.asarray(
@@ -201,7 +201,7 @@ def test_create_empty_dataframe() -> None:
             2,  # Padding
             (2, 2),
         ),
-        # And for completness check the edges
+        # And for completeness check the edges
         (
             np.asarray(
                 [

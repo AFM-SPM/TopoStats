@@ -247,21 +247,21 @@ def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: tuple =
 
 
 def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, image_shape: tuple) -> tuple:
-    """Ensure the padding of co-ordinates points does not fall outside of the image shape.
+    """Ensure the padding of coordinates points does not fall outside of the image shape.
 
-    This function is primarly used in the dnaTrace.get_fitted_traces() method which aims to adjust the points of a
+    This function is primarily used in the dnaTrace.get_fitted_traces() method which aims to adjust the points of a
     skeleton to sit on the highest points of a traced molecule. In order to do so it takes the ordered skeleton, which
     may not lie on the highest points as it is generated from a binary mask that is unaware of the heights, and then
     defines a padded boundary of 3nm profile perpendicular to the backbone of the DNA (which at this point is the
     skeleton based on a mask). Each point along the skeleton therefore needs padding by a minimum of 2 pixels (in this
     case each pixel equates to a cell in a NumPy array). If a point is within 2 pixels (i.e. 2 cells) of the border then
-    we can not pad beyond this region, we have to stop at the edge of the image and so the co-ordinates is adjusted such
+    we can not pad beyond this region, we have to stop at the edge of the image and so the coordinates is adjusted such
     that the padding will lie on the edge of the image/array.
 
     Parameters
     ----------
     coordinates : npt.NDArray
-        Co-ordinates of a point on the mask based skeleton.
+        Coordinates of a point on the mask based skeleton.
     padding : int
         Number of pixels/cells to pad around the point.
     image_shape : tuple
@@ -270,7 +270,7 @@ def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, im
     Returns
     -------
     tuple
-        Returns a tuple of co-ordinates that ensure that when the point is padded by the noted padding width in
+        Returns a tuple of coordinates that ensure that when the point is padded by the noted padding width in
         subsequent calculations it will not be outside of the image shape.
     """
     # Calculate the maximum row and column indexes
