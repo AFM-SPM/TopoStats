@@ -379,9 +379,19 @@ def load_scan_jpk() -> LoadScans:
 
 
 @pytest.fixture()
-def load_scan_gwy() -> LoadScans:
+def load_scan_gwy(loading_config: dict) -> LoadScans:
     """Instantiate a LoadScans object from a .gwy file."""
-    return LoadScans([RESOURCES / "file.gwy"], channel="dummy_channel")
+    # since channel str is in loading_config, no need to add a channel arg.
+    loading_config["channel"] = "ZSensor"  # the first channel
+    return LoadScans([RESOURCES / "file.gwy"], **loading_config)
+
+
+@pytest.fixture()
+def load_scan_gwy_nonsquare(loading_config: dict) -> LoadScans:
+    """Instantiate a LoadScans object from a .gwy file."""
+    loading_config["channel"] = "Height"  # dummy str
+    scan_loader = LoadScans([RESOURCES / "file_landscape.gwy"], **loading_config)
+    return scan_loader
 
 
 @pytest.fixture()

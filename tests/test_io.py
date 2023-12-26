@@ -364,6 +364,23 @@ def test_load_scan_jpk(load_scan_jpk: LoadScans) -> None:
     assert px_to_nm_scaling == 1.2770176335964876
 
 
+def test_get_gwy_channel_by_name(load_scan_gwy: LoadScans) -> None:
+    load_scan_gwy.img_path = load_scan_gwy.img_paths[0]
+    load_scan_gwy.filename = load_scan_gwy.img_paths[0].stem
+    load_scan_gwy.config["channel"] = "Height"
+    (_, _) = load_scan_gwy.load_gwy()
+    assert load_scan_gwy.config["gwy_field_idx"] == "7"  # Height
+
+
+def test_get_gwy_channel_by_unit(load_scan_gwy: LoadScans) -> None:
+    load_scan_gwy.img_path = load_scan_gwy.img_paths[0]
+    load_scan_gwy.filename = load_scan_gwy.img_paths[0].stem
+    load_scan_gwy.config["channel"] = "dummy"
+    load_scan_gwy.config["channel_unit"] = "m"
+    (_, _) = load_scan_gwy.load_gwy()
+    assert load_scan_gwy.config["gwy_field_idx"] == "0"  # ZSensor /m
+
+
 def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
     """Test loading of a .gwy file."""
     load_scan_gwy.img_path = load_scan_gwy.img_paths[0]
@@ -374,6 +391,19 @@ def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
     assert image.sum() == 33836850.232917726
     assert isinstance(px_to_nm_scaling, float)
     assert px_to_nm_scaling == 0.8468632812499975
+
+
+def test_load_scan_gwy_nonsquare(load_scan_gwy_nonsquare: LoadScans) -> None:
+    """Test loading landscape non-square .gwy file."""
+    load_scan_gwy_nonsquare.img_path = load_scan_gwy_nonsquare.img_paths[0]
+    load_scan_gwy_nonsquare.filename = load_scan_gwy_nonsquare.img_path.stem
+    image, px_to_nm_scaling = load_scan_gwy_nonsquare.load_gwy()
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (170, 220)  # (height, width)
+    assert isinstance(px_to_nm_scaling, float)
+    # conventional parameter, px_to_nm_scaling
+    expected_scaling_x = 1000.0 / 220.0
+    assert abs(px_to_nm_scaling - expected_scaling_x) < 1e-10
 
 
 def test_load_scan_asd_file_not_found() -> None:

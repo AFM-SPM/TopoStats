@@ -5,6 +5,7 @@ import io
 import logging
 import os
 import pickle as pkl
+import re
 import struct
 from datetime import datetime
 from pathlib import Path
@@ -455,6 +456,7 @@ class LoadScans:
         self,
         img_paths: list,
         channel: str,
+        **loading_conf: dict,
     ):
         """Initialise the class.
 
@@ -464,6 +466,8 @@ class LoadScans:
             Path to a valid AFM scan to load.
         channel: str
             Image channel to extract from the scan.
+        loading_conf: dict
+            Dict of configuration['loading'] from Yaml config.
         """
         self.img_paths = img_paths
         self.img_path = None
@@ -475,6 +479,10 @@ class LoadScans:
         self.grain_masks = {}
         self.img_dict = {}
         self.MINIMUM_IMAGE_SIZE = 10
+        self.config = loading_conf
+        self.config.setdefault("channel", self.channel)
+        self.config.setdefault("channel_unit", "m")
+        self.config.setdefault("scale", {})
 
     def load_spm(self) -> tuple:
         """Extract image and pixel to nm scaling from the Bruker .spm file.
@@ -795,7 +803,7 @@ class LoadScans:
             for index in range(array_size):
                 data[index] = read_64d(open_file=open_file)
             if "xres" in data_dict and "yres" in data_dict:
-                data = data.reshape((data_dict["xres"], data_dict["yres"]))
+                data = data.reshape((data_dict["yres"], data_dict["xres"]))
             data_dict["data"] = data
 
         return open_file.tell() - initial_byte_pos
@@ -834,6 +842,50 @@ class LoadScans:
         pre_string = ""
         LoadScans._gwy_print_dict(gwy_file_dict=gwy_file_dict, pre_string=pre_string)
 
+    def _get_gwy_channel_by_name(self, name: str, image_data_dict: dict) -> dict:
+        """Get data_dict having title of the specified name
+
+        Returns
+        -------
+        dict
+            data dict of found data (ex. /1/data). If none, returns None
+        """
+        reg_gwy_title_idx = r"(\d+)\/data\/title$"  # only the title key doesn't have / somehow!
+        for k, v in image_data_dict.items():  # component key is like '/0/data', '4/data/title'
+            match = re.match(reg_gwy_title_idx, k)
+            if match is None:  # not image data field
+                continue
+            if v == name:
+                idx = match[1]
+                LOGGER.debug(f"Channel at {idx} was selected by name, {name}.")
+                self.config["gwy_field_idx"] = idx
+                return image_data_dict[f"/{idx}/data"]
+        return None
+
+    def _get_gwy_channel_by_unit(self, unit: str, image_data_dict: dict) -> dict:
+        """Get data_dict having unit of the specified unit (m, V, deg)
+
+        Returns
+        -------
+        dict
+            data dict of found data (ex. /1/data). If none, returns None.
+        """
+        reg_gwy_data_idx = r"\/(\d+)\/data$"
+        for k, v in image_data_dict.items():  # component key is like '/0/data', '4/data/title'
+            match = re.match(reg_gwy_data_idx, k)
+            if match is None:  # not image data field
+                continue
+            # check unit of z value of this data
+            LOGGER.info(f"k is {k}")
+            if "si_unit_z" in v:
+                unit_z = v["si_unit_z"]["unitstr"]
+                if unit_z[-len(unit) :] == unit:
+                    idx = match[1]
+                    LOGGER.debug(f"Channel at {idx} was selected by unit, {unit}.")
+                    self.config["gwy_field_idx"] = idx
+                    return image_data_dict[f"/{idx}/data"]
+        return None
+
     def load_gwy(self) -> tuple:
         """Extract image and pixel to nm scaling from the Gwyddion .gwy file.
 
@@ -856,35 +908,64 @@ class LoadScans:
             # dictionary output showing the object - component structure and
             # available keys:
             # LoadScans._gwy_print_dict_wrapper(gwy_file_dict=image_data_dict)
-
-            if "/0/data" in image_data_dict:
-                image = image_data_dict["/0/data"]["data"]
-                units = image_data_dict["/0/data"]["si_unit_xy"]["unitstr"]
-                px_to_nm = image_data_dict["/0/data"]["xreal"] * 1e9 / image.shape[1]
-            elif "/1/data" in image_data_dict:
-                image = image_data_dict["/1/data"]["data"]
-                px_to_nm = image_data_dict["/1/data"]["xreal"] * 1e9 / image.shape[1]
-                units = image_data_dict["/1/data"]["si_unit_xy"]["unitstr"]
+            (name, unit) = (self.config["channel"], self.config["channel_unit"])
+            channel_dict = self._get_gwy_channel_by_name(name, image_data_dict)
+            if channel_dict is None:
+                channel_dict = self._get_gwy_channel_by_unit(unit, image_data_dict)
+                if channel_dict is None:
+                    raise ValueError("Image channel of topography was not found in the .gwy file.")
+                else:
+                    LOGGER.info(f"DataField was found by unit {unit}.")
             else:
-                raise KeyError(
-                    "Data location not defined in the .gwy file. Please locate it and add to the load_gwy() function."
-                )
+                LOGGER.info(f"DataField {name} was found by name.")
 
-            # Convert image heights to nanometresQ
-            if units == "m":
-                image = image * 1e9
-            else:
+            # Scaling dict and image data (nd.array)
+            # self.config["all_dict"] = image_data_dict  # for debug
+            scale_dict = self.config["scale"]
+            image = channel_dict["data"]
+            (xres, yres) = (image.shape[1], image.shape[0])
+
+            # Z-value handling by multiplying ndarray.
+            unit_z = channel_dict["si_unit_z"]["unitstr"]
+            unit_xy = channel_dict["si_unit_xy"]["unitstr"]
+            if unit_z not in scale_dict["factor_to_nm"]:
                 raise ValueError(
-                    f"Units '{units}' have not been added for .gwy files. Please add \
-                    an SI to nanometre conversion factor for these units in _gwy_read_component in \
-                    io.py."
+                    f"Units for Z'{unit_z}' have not been added in configuration file. \
+                        an SI to nanometre conversion factor for these units configuration YAML."
                 )
+
+            factor_z = scale_dict["factor_to_nm"][unit_z]
+            scale_dict["original_z_unit"] = unit_z
+            scale_dict["z_value_to_nm_scaling"] = factor_z
+            image = image * factor_z
+            LOGGER.info(f"DataField {unit_z} was multiplied by z-factor: {factor_z}")
+
+            # XY-values handling
+            if unit_xy not in scale_dict["factor_to_nm"]:
+                raise ValueError(
+                    f"Units for XY'{unit_xy}' have not been added in configuration file. \
+                        an SI to nanometre conversion factor for these units configuration YAML."
+                )
+            factor_xy = scale_dict["factor_to_nm"][unit_xy]
+            scale_dict["original_xy_unit"] = unit_xy
+            (xreal_nm, yreal_nm) = (
+                channel_dict["xreal"] * factor_xy,
+                channel_dict["yreal"] * factor_xy,
+            )  # original xy size in nm
+            (xscale, yscale) = (xreal_nm / xres, yreal_nm / yres)  # scaling factor of xy from pixel to nm
+            scale_dict["x_real_nm"] = xreal_nm
+            scale_dict["y_real_nm"] = yreal_nm
+            scale_dict["x_pixel_to_nm_scaling"] = xscale
+            scale_dict["y_pixel_to_nm_scaling"] = yscale
+            scale_dict["xy_aspect"] = yreal_nm / xreal_nm  # aspect ratio of original image
+            LOGGER.info(f"XY pixels: ({xres},{yres})")
+            LOGGER.info(f"XY physical scale: ({xreal_nm:.2e} nm,{yreal_nm:.2e} nm)")
 
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
             raise
 
-        return (image, px_to_nm)
+        return (image, scale_dict["x_pixel_to_nm_scaling"])
 
     def get_data(self) -> None:
         """Extract image, filepath and pixel to nm scaling value, and append these to the img_dic object."""
@@ -965,6 +1046,7 @@ class LoadScans:
             "image_original": image,
             "image_flattened": None,
             "grain_masks": self.grain_masks,
+            "loading_conf": self.config,
         }
 
 
