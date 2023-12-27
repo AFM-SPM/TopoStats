@@ -7,7 +7,7 @@ repos:
       - id: check-merge-conflict
       - id: check-toml
       - id: check-yaml
-      - id: debug statements
+      - id: debug-statements
       - id: end-of-file-fixer
         types: [python]
       - id: fix-byte-order-marker
