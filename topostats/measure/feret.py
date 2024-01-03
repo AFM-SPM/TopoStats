@@ -93,14 +93,15 @@ def rotating_calipers(points: npt.NDArray) -> list[tuple[list, list]]:
 
     Between two parallel lines that touch one point each, and yields the sequence
     of pairs of points touched by each pair of lines.
+
+    `Rotating Calipers <https://en.wikipedia.org/wiki/Rotating_calipers>_`
     """
     upper_hull, lower_hull = hulls(points)
     i = 0
     j = len(lower_hull) - 1
     while i < len(upper_hull) or j > 0:
         yield upper_hull[i], lower_hull[j]
-        # if all the way through one sid eof hull, advance the other side
-        # if i == len(upper_hull) - 1:
+        # if all the way through one side of hull, advance the other side
         if i == len(upper_hull):
             j -= 1
         elif j == 0:
