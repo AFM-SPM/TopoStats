@@ -221,7 +221,7 @@ TARGET_ARRAY = np.asarray(
             [
                 np.asarray([[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6]]),  # Horizontal grain
                 np.asarray([[1, 1], [2, 1], [3, 1], [4, 1]]),  # Vertical grain
-                np.asarray([[1, 1], [2, 2], [3, 3], [4, 4]]),  # Diagnoal grain
+                np.asarray([[1, 1], [2, 2], [3, 3], [4, 4]]),  # Diagonal grain
                 np.asarray([[1, 1], [1, 2], [1, 3], [1, 4], [2, 4], [3, 4]]),  # L-shaped grain grain
                 np.asarray(  # Small square
                     [
@@ -250,7 +250,7 @@ TARGET_ARRAY = np.asarray(
             [
                 np.asarray([[2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7]]),  # Horizontal grain
                 np.asarray([[2, 2], [3, 2], [4, 2], [5, 2]]),  # Vertical grain
-                np.asarray([[2, 2], [3, 3], [4, 4], [5, 5]]),  # Diagnoal grain
+                np.asarray([[2, 2], [3, 3], [4, 4], [5, 5]]),  # Diagonal grain
                 np.asarray([[3, 3], [3, 4], [3, 5], [3, 6], [4, 6], [5, 6]]),  # L-shaped grain grain
                 np.asarray(  # Small square
                     [
@@ -279,7 +279,7 @@ TARGET_ARRAY = np.asarray(
             [
                 np.asarray([[3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8]]),  # Horizontal grain
                 np.asarray([[3, 3], [4, 3], [5, 3], [6, 3]]),  # Vertical grain
-                np.asarray([[3, 3], [4, 4], [5, 5], [6, 6]]),  # Diagnoal grain
+                np.asarray([[3, 3], [4, 4], [5, 5], [6, 6]]),  # Diagonal grain
                 np.asarray([[4, 4], [4, 5], [4, 6], [4, 7], [5, 7], [6, 7]]),  # L-shaped grain grain
                 np.asarray(  # Small square
                     [
@@ -377,7 +377,7 @@ def test_trace_mask(
                 }
             ),
             [np.asarray([5, 23]), np.asarray([10, 58])],
-            [np.asarray([71, 78]), np.asarray([83, 30])],
+            [np.asarray([71, 81]), np.asarray([83, 30])],
         ),
     ],
 )

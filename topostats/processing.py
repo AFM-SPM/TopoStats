@@ -1,4 +1,4 @@
-"""Functions for procesing data."""
+"""Functions for processing data."""
 from __future__ import annotations
 
 from collections import defaultdict
@@ -178,7 +178,7 @@ def run_grains(  # noqa: C901
                 if len(grains.region_properties[direction]) == 0:
                     LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
         except Exception as e:
-            LOGGER.error(f"[{filename}] : An error occured during grain finding, skipping grainstats and dnatracing.")
+            LOGGER.error(f"[{filename}] : An error occurred during grain finding, skipping grainstats and dnatracing.")
             LOGGER.error(f"[{filename}] : The error: {e}")
         else:
             for direction, region_props in grains.region_properties.items():
@@ -382,7 +382,7 @@ def run_dnatracing(  # noqa: C901
     grain_out_path: Path
         Directory to save optional dna tracing visual information to.
     dna_tracing_config: dict
-        Dictionary configruation for the dna tracing function.
+        Dictionary configuration for the dna tracing function.
     plotting_config: dict
         Dictionary configuration for plotting images.
     results_df: pd.DataFrame

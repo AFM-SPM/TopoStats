@@ -2,10 +2,12 @@
 from pathlib import Path
 
 import numpy as np
+import numpy.typing as npt
 import pytest
 
 from topostats.utils import (
     ALL_STATISTICS_COLUMNS,
+    bound_padded_coordinates_to_image,
     convert_path,
     create_empty_dataframe,
     get_thresholds,
@@ -110,3 +112,142 @@ def test_create_empty_dataframe() -> None:
     assert "molecule_number" not in empty_df.columns
     assert empty_df.shape == (0, 26)
     assert {"image", "basename", "area"}.intersection(empty_df.columns)
+
+
+@pytest.mark.parametrize(
+    ("image", "padding", "expected"),
+    [
+        (
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            1,  # Padding
+            (2, 2),
+        ),
+        (
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            2,  # Padding
+            (2, 2),
+        ),
+        # Padding is 3 which means the range of values this is intended to be used with would be the coordinates (2, 2),
+        # minus the padding which would give (-1, -1), and so instead we shift the coordinates over so that the padding
+        # will start at (0, 0)
+        (
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            3,  # Padding
+            (3, 3),
+        ),
+        # With a padding of 2 the resulting coordinates to start the padding would be outside of the image range, so
+        # again we want to have this point shifted so that padding starts at (0, 0)
+        (
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            2,  # Padding
+            (2, 2),
+        ),
+        (
+            np.asarray(
+                [
+                    [1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            2,  # Padding
+            (2, 2),
+        ),
+        # We now check the other corners
+        (
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 1],
+                    [0, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 1, 0, 1, 0],
+                    [1, 0, 0, 0, 1],
+                ]
+            ),
+            2,  # Padding
+            (2, 2),
+        ),
+        # And for completeness check the edges
+        (
+            np.asarray(
+                [
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [1, 1, 0, 1, 1],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                ]
+            ),
+            2,  # Padding
+            (2, 2),
+        ),
+        # Check with larger padding (have to split these)
+        (
+            np.asarray(
+                [
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [1, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            3,  # Padding
+            (3, 3),
+        ),
+        (
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 1, 1],
+                    [0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 0, 0],
+                ]
+            ),
+            3,  # Padding
+            (2, 2),
+        ),
+    ],
+)
+def test_bound_padded_coordinates_to_image(image: npt.NDArray, padding: int, expected: tuple) -> None:
+    """Test that padding points does not exceed the image dimensions."""
+    coordinates = np.argwhere(image == 1)
+    for coordinate in coordinates:
+        padded_coords = bound_padded_coordinates_to_image(coordinate, padding, image.shape)
+        assert padded_coords == expected

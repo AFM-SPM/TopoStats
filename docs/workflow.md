@@ -27,7 +27,7 @@ graph TD;
   end
   subgraph Grain Finding
   A10 --> B1([Lower Thresholding])
-  B1 --> B2([Guassian Filtering])
+  B1 --> B2([Gaussian Filtering])
   B2 --> B3([Tidy Edges])
   B3 --> B4([Preliminary Statistics])
   B4 --> B5([Size Thresholding])

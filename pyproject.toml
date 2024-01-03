@@ -51,10 +51,8 @@ dependencies = [
   "seaborn",
   "snoop",
   "tifffile",
+  "topofileformats",
   "tqdm",
-  "pyfiglet",
-  "h5py",
-  "topofileformats"
 ]
 
 [project.optional-dependencies]
@@ -92,8 +90,8 @@ dev = [
 ]
 pypi = [
   "build",
+  "setuptools_scm[toml]",
   "wheel",
-  "setuptools_scm[toml]"
 ]
 notebooks = [
   "ipython",
@@ -248,8 +246,13 @@ case-sensitive = true
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
-[tool.ruff.flake8-pytest-style]
+[tool.ruff.lint.flake8-pytest-style]
 fixture-parentheses = true
+
+[tool.codespell]
+skip = '*.spm*,*.mplstyle'
+count = ''
+quiet-level = 3
 
 [project.scripts]
 topostats = "topostats.entry_point:entry_point"
