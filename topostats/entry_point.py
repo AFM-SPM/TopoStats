@@ -2,11 +2,11 @@
 
 Parses command-line arguments and passes input on to the relevant functions / modules.
 """
-
 import argparse as arg
 import sys
 
 from topostats import __version__
+from topostats.io import write_config_with_comments
 from topostats.plotting import run_toposum
 from topostats.run_topostats import run_topostats
 
@@ -26,7 +26,7 @@ def create_parser() -> arg.ArgumentParser:
 
     subparsers = parser.add_subparsers(title="program", description="Available programs, listed below:", dest="program")
 
-    # run_topostats parser
+    # process parser
     process_parser = subparsers.add_parser(
         "process",
         description="Process AFM images. Additional arguments over-ride those in the configuration file.",
@@ -34,20 +34,14 @@ def create_parser() -> arg.ArgumentParser:
     )
     process_parser.add_argument(
         "-c",
-        "--config_file",
+        "--config-file",
         dest="config_file",
         required=False,
         help="Path to a YAML configuration file.",
     )
     process_parser.add_argument(
-        "--create_config_file",
-        dest="create_config_file",
-        required=False,
-        help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
-    )
-    process_parser.add_argument(
         "-s",
-        "--summary_config",
+        "--summary-config",
         dest="summary_config",
         required=False,
         help="Path to a YAML configuration file for summary plots and statistics.",
@@ -60,7 +54,7 @@ def create_parser() -> arg.ArgumentParser:
     )
     process_parser.add_argument(
         "-b",
-        "--base_dir",
+        "--base-dir",
         dest="base_dir",
         type=str,
         required=False,
@@ -76,7 +70,7 @@ def create_parser() -> arg.ArgumentParser:
     )
     process_parser.add_argument(
         "-l",
-        "--log_level",
+        "--log-level",
         dest="log_level",
         type=str,
         required=False,
@@ -84,7 +78,7 @@ def create_parser() -> arg.ArgumentParser:
     )
     process_parser.add_argument(
         "-f",
-        "--file_ext",
+        "--file-ext",
         dest="file_ext",
         type=str,
         required=False,
@@ -99,14 +93,14 @@ def create_parser() -> arg.ArgumentParser:
     )
     process_parser.add_argument(
         "-o",
-        "--output_dir",
+        "--output-dir",
         dest="output_dir",
         type=str,
         required=False,
         help="Output directory to write results to.",
     )
     process_parser.add_argument(
-        "--save_plots",
+        "--save-plots",
         dest="save_plots",
         type=bool,
         required=False,
@@ -132,14 +126,14 @@ def create_parser() -> arg.ArgumentParser:
     toposum_parser.add_argument("-i", "--input_csv", dest="csv_file", required=False, help="Path to CSV file to plot.")
     toposum_parser.add_argument(
         "-c",
-        "--config_file",
+        "--config-file",
         dest="config_file",
         required=False,
         help="Path to a YAML plotting dictionary that maps variable names to labels.",
     )
     toposum_parser.add_argument(
         "-l",
-        "--var_to_label",
+        "--var-to-label",
         dest="var_to_label",
         required=False,
         help="Path to a YAML plotting dictionary that maps variable names to labels.",
@@ -168,7 +162,7 @@ def create_parser() -> arg.ArgumentParser:
     )
     load_parser.add_argument(
         "-c",
-        "--config_file",
+        "--config-file",
         dest="config_file",
         required=False,
         help="Path to a YAML configuration file.",
@@ -182,7 +176,7 @@ def create_parser() -> arg.ArgumentParser:
     )
     filter_parser.add_argument(
         "-c",
-        "--config_file",
+        "--config-file",
         dest="config_file",
         required=False,
         help="Path to a YAML configuration file.",
@@ -196,7 +190,7 @@ def create_parser() -> arg.ArgumentParser:
     )
     grain_parser.add_argument(
         "-c",
-        "--config_file",
+        "--config-file",
         dest="config_file",
         required=False,
         help="Path to a YAML configuration file.",
@@ -210,7 +204,7 @@ def create_parser() -> arg.ArgumentParser:
     )
     grainstats_parser.add_argument(
         "-c",
-        "--config_file",
+        "--config-file",
         dest="config_file",
         required=False,
         help="Path to a YAML configuration file.",
@@ -224,7 +218,7 @@ def create_parser() -> arg.ArgumentParser:
     )
     dnatracing_parser.add_argument(
         "-c",
-        "--config_file",
+        "--config-file",
         dest="config_file",
         required=False,
         help="Path to a YAML configuration file.",
@@ -238,11 +232,42 @@ def create_parser() -> arg.ArgumentParser:
     )
     tracingstats_parser.add_argument(
         "-c",
-        "--config_file",
+        "--config-file",
         dest="config_file",
         required=False,
         help="Path to a YAML configuration file.",
     )
+
+    # create_config parser
+    create_config_parser = subparsers.add_parser(
+        "create-config",
+        description="Create a configuration file using the defaults.",
+        help="Create a configuration file using the defaults.",
+    )
+    create_config_parser.add_argument(
+        "-f",
+        "--filename",
+        dest="filename",
+        required=False,
+        default="config.yaml",
+        help="Name of YAML file to save configuration to (default 'config.yaml').",
+    )
+    create_config_parser.add_argument(
+        "-o",
+        "--output-dir",
+        dest="output_dir",
+        required=False,
+        default="./",
+        help="Path to where the YAML file should be saved (default './' the current directory).",
+    )
+    create_config_parser.add_argument(
+        "-c",
+        "--config",
+        dest="config",
+        default=None,
+        help="Configuration to use, currently only one is supported, the 'default'.",
+    )
+    create_config_parser.set_defaults(func=write_config_with_comments)
 
     return parser
 
@@ -278,13 +303,6 @@ def create_legacy_run_topostats_parser() -> arg.ArgumentParser:
         dest="config_file",
         required=False,
         help="Path to a YAML configuration file.",
-    )
-    parser.add_argument(
-        "--create-config-file",
-        dest="create_config_file",
-        type=str,
-        required=False,
-        help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
     )
     parser.add_argument(
         "-s",
