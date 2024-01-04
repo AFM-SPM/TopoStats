@@ -47,7 +47,7 @@ def hulls(points: npt.NDArray) -> tuple[list, list]:
     Returns
     -------
     Tuple[list, list]
-        Tuple of two Numpy arrays of the original co-ordinates split into upper and lower hulls.
+        Tuple of two Numpy arrays of the original coordinates split into upper and lower hulls.
     """
     upper_hull = []
     lower_hull = []
@@ -71,7 +71,7 @@ def all_pairs(points: npt.NDArray) -> list[tuple[list, list]]:
     Parameters
     ----------
     points: npt.NDArray
-        Numpy array of co-ordinates defining the outline of an object.mro
+        Numpy array of coordinates defining the outline of an object.mro
 
     Returns
     -------
@@ -127,7 +127,7 @@ def min_max_feret(points: npt.NDArray) -> tuple[float, tuple[int, int], float, t
     Returns
     -------
     tuple
-        Tuple of the minimum feret distance and its co-ordinates and the maximum feret distance and  its co-ordinates.
+        Tuple of the minimum feret distance and its coordinates and the maximum feret distance and  its coordinates.
     """
     squared_distance_per_pair = [
         ((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2, (p, q)) for p, q in rotating_calipers(points)
@@ -140,7 +140,7 @@ def min_max_feret(points: npt.NDArray) -> tuple[float, tuple[int, int], float, t
 def get_feret_from_mask(mask_im: npt.NDArray) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
     """Calculate the minimum and maximum feret diameter of the foreground object of a binary mask.
 
-    The outline of the object is calculated and the pixel co-ordinates transformed to a list for calculation.
+    The outline of the object is calculated and the pixel coordinates transformed to a list for calculation.
 
     Parameters
     ----------
@@ -161,7 +161,7 @@ def get_feret_from_mask(mask_im: npt.NDArray) -> tuple[float, tuple[int, int], f
 
 
 def get_feret_from_labelim(label_image: npt.NDArray, labels: None | list | set = None) -> dict:
-    """Calculate the minimum and maximum feret and co-ordinates of each connected component within a labelled image.
+    """Calculate the minimum and maximum feret and coordinates of each connected component within a labelled image.
 
     If labels is None, all labels > 0
     will be analyzed.
@@ -177,7 +177,7 @@ def get_feret_from_labelim(label_image: npt.NDArray, labels: None | list | set =
     -------
     dict
         Dictionary with labels as keys and values are a tuple of the minimum and maximum feret distances and
-    co-ordinates.
+    coordinates.
     """
     if labels is None:
         labels = set(np.unique(label_image)) - {0}
