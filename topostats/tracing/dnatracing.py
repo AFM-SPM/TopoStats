@@ -19,12 +19,126 @@ from skimage.morphology import label, binary_dilation, binary_erosion, binary_cl
 from skimage.filters import gaussian, threshold_otsu
 import skimage.measure as skimage_measure
 from tqdm import tqdm
+from scipy.interpolate import splprep, splev, UnivariateSpline
+from skimage.morphology import skeletonize
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.skeletonize import get_skeleton
 from topostats.tracing.tracingfuncs import genTracingFuncs, getSkeleton, reorderTrace
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+
+
+def interpolate_points_spline(
+    points: np.ndarray, num_points: Union[int, None] = None, smoothing: float = 0.0
+):
+    """Interpolate a set of points using a spline.
+
+    Parameters
+    ----------
+    points: np.ndarray
+        Nx2 Numpy array of coordinates for the points.
+    num_points: int
+        The number of points to return following the calculated spline.
+
+    Returns
+    -------
+    interpolated_points: np.ndarray
+        An Ix2 Numpy array of coordinates of the interpolated points, where I is the number of points
+        specified.
+    """
+
+    if num_points is None:
+        num_points = points.shape[0]
+
+    x, y = splprep(points.T, u=None, s=smoothing, per=1)
+    x_spline = np.linspace(y.min(), y.max(), num_points)
+    x_new, y_new = splev(x_spline, x, der=0)
+    interpolated_points = np.array((x_new, y_new)).T
+    return interpolated_points
+
+
+def calculate_curvature_from_points(x_points, y_points, error=0.1, k=4):
+    """Calculate the curvature for a set of points"""
+    # Check that the number of points is the same for both x and y
+    if x_points.shape[0] != y_points.shape[0]:
+        raise ValueError(
+            f"x_points and y_points must have the same number of points. x_points has {x_points.shape[0]} points and y_points has {y_points.shape[0]} points."
+        )
+
+    # Weight the values so less weight is given to points with higher error
+    # K is the order of the spline to use. Increasing this increases the smoothness of the spline. A
+    # value of 1 is linear interpolation, 2 is quadratic, 3 is cubic, etc. 4 is used to ensure the
+    # spline is smooth enough to differentiate to the second derivative.
+    # t is the independent variable that monotically increases with the data, similar to how
+    # we use a dummy x variable in plotting calculations.
+
+    t = np.arange(x_points.shape[0])
+    weight_values = 1 / np.sqrt(error * np.ones_like(x_points))
+    fx = UnivariateSpline(t, x_points, k=k, w=weight_values)
+    fy = UnivariateSpline(t, y_points, k=k, w=weight_values)
+
+    spline_x = fx(t)
+    spline_y = fy(t)
+
+    dx = fx.derivative(1)(t)
+    dx2 = fx.derivative(2)(t)
+    dy = fy.derivative(1)(t)
+    dy2 = fy.derivative(2)(t)
+    curvatures = (dx * dy2 - dy * dx2) / np.power(dx**2 + dy**2, 3 / 2)
+    return curvatures, spline_x, spline_y
+
+
+def calculate_curvature_periodic_boundary(x_points, y_points, error=0.1, periods=2, k=4):
+    """Take a set of points that form a loop and calculate the curvature. Uses periodic boundary conditions, so
+    the first and last points are connected. This reduces the error in the curvature calculation at the
+    boundaries.
+
+    Parameters
+    ----------
+    x_points: np.ndarray
+        1D numpy array of x coordinates of the points.
+    y_points: np.ndarray
+        1D numpy array of y coordinates of the points.
+    error: float
+        Error in the points. Used to weight the points in the spline calculation.
+    periods: int
+        Number of times to repeat the points either side of the original points to reduce the error at the
+        boundaries.
+
+    Returns
+    -------
+    curvature: np.ndarray
+        1D numpy array of the curvature for each point.
+    """
+
+    # Check that the number of points is the same for both x and y
+    if x_points.shape[0] != y_points.shape[0]:
+        raise ValueError(
+            f"x_points and y_points must have the same number of points. x_points has"
+            f" {x_points.shape[0]} points and y_points has {y_points.shape[0]} points."
+        )
+
+    # Repeat the points either side of the original points to reduce the error at the boundaries
+    extended_points_x = np.copy(x_points)
+    extended_points_y = np.copy(y_points)
+    for i in range(periods * 2):
+        extended_points_x = np.append(extended_points_x, x_points)
+        extended_points_y = np.append(extended_points_y, y_points)
+
+    # Calculate the curvature
+    extended_curvature, spline_x, spline_y = calculate_curvature_from_points(
+        extended_points_x, extended_points_y, error=error, k=k
+    )
+
+    # Return only the original points
+    return (
+        extended_curvature[
+            x_points.shape[0] * int(periods / 2) : x_points.shape[0] * int((periods / 2) + 1)
+        ],
+        spline_x[x_points.shape[0] * int(periods / 2) : x_points.shape[0] * int((periods / 2) + 1)],
+        spline_y[x_points.shape[0] * int(periods / 2) : x_points.shape[0] * int((periods / 2) + 1)],
+    )
 
 
 class dnaTrace:
@@ -86,7 +200,9 @@ class dnaTrace:
         self.image = image * 1e-9 if convert_nm_to_m else image
         self.grain = grain
         self.filename = filename
-        self.pixel_to_nm_scaling = pixel_to_nm_scaling * 1e-9 if convert_nm_to_m else pixel_to_nm_scaling
+        self.pixel_to_nm_scaling = (
+            pixel_to_nm_scaling * 1e-9 if convert_nm_to_m else pixel_to_nm_scaling
+        )
         self.min_skeleton_size = min_skeleton_size
         self.skeletonisation_method = skeletonisation_method
         self.n_grain = n_grain
@@ -108,6 +224,10 @@ class dnaTrace:
 
         self.neighbours = 5  # The number of neighbours used for the curvature measurement
 
+        # Curvature
+        self.curvature_splined_trace = None
+        self.pixelated_splined_trace = None
+
         # supresses scipy splining warnings
         warnings.filterwarnings("ignore")
 
@@ -123,22 +243,69 @@ class dnaTrace:
             self.linear_or_circular(self.disordered_trace)
             self.get_ordered_traces()
             self.linear_or_circular(self.ordered_trace)
+
             self.get_fitted_traces()
             self.get_splined_traces()
+
             # self.find_curvature()
             # self.saveCurvature()
 
+            # Interpolate the points
+            interpolated_points = interpolate_points_spline(
+                self.ordered_trace, num_points=1000, smoothing=0.0
+            )
+
+            # Get curvature
+            self.curvature, spline_x, spline_y = calculate_curvature_periodic_boundary(
+                x_points=interpolated_points[:, 0],
+                y_points=interpolated_points[:, 1],
+                error=0.1,
+                periods=2,
+                k=5,
+            )
+            self.curvature_splined_trace = np.array((spline_x, spline_y)).T
+
             # Get trace heights
-            if self.splined_trace is not None:
-                # print(f"splined trace:\n{self.splined_trace}")
+            if self.curvature_splined_trace is not None:
+                # Round the splined trace to the nearest pixel to provide a pixelated version of the trace, removing any duplicates
+                self.pixelated_splined_trace = np.unique(
+                    np.round(self.curvature_splined_trace).astype(int), axis=0
+                )
+
+                pixelated_splined_trace_image = np.zeros_like(self.image)
+                pixelated_splined_trace_image[
+                    self.pixelated_splined_trace[:, 0], self.pixelated_splined_trace[:, 1]
+                ] = 1
+
+                # Skeletonise it since there will be points that have too many neighbours
+                self.pixelated_splined_trace_image = skeletonize(
+                    pixelated_splined_trace_image
+                ).astype(np.int32)
+
+                # plt.imshow(self.pixelated_splined_trace_image)
+                # plt.show()
+
+                self.pixelated_splined_trace = np.argwhere(
+                    self.pixelated_splined_trace_image == True
+                )
+
+                # print(f"shape pixelated trace {self.pixelated_splined_trace.shape}")
+                # print(f"@@@@@ PIXELATED TRACE {self.pixelated_splined_trace}")
+
                 self.trace_heights = []
-                for coordinate in self.splined_trace:
-                    self.trace_heights.append(self.image[int(coordinate[0]), int(coordinate[1])])
+                for x, y in self.pixelated_splined_trace:
+                    self.trace_heights.append(self.image[x, y])
+
+                # print(f"shape trace heights {np.array(self.trace_heights).shape}")
+                # print(f"@@@@ TRACE HEIGHTS {self.trace_heights}")
+                # self.trace_heights = np.array(self.trace_heights)
 
             self.measure_contour_length()
             self.measure_end_to_end_distance()
         else:
-            LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
+            LOGGER.info(
+                f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}"
+            )
 
     def smooth_grains(self, grain: np.ndarray) -> None:
         """Smoothes grains based on the lower number added from dilation or gaussian.
@@ -164,7 +331,9 @@ class dnaTrace:
                 0
             ]  # find the min value coords from the erroded mask
             print(centre)
-            gauss[centre[0] - 2 : centre[0] + 3, centre[1] - 2 : centre[1] + 3] = 0  # sets 3x3 area around min to 0
+            gauss[
+                centre[0] - 2 : centre[0] + 3, centre[1] - 2 : centre[1] + 3
+            ] = 0  # sets 3x3 area around min to 0
 
             # gauss = self.re_add_holes(grain, gauss)
             return gauss
@@ -196,7 +365,9 @@ class dnaTrace:
             0
         ]  # find the min value coords from the erroded mask
         print(centre)
-        filling[centre[0] - 2 : centre[0] + 3, centre[1] - 2 : centre[1] + 3] = 0  # sets 3x3 area around min to 0
+        filling[
+            centre[0] - 2 : centre[0] + 3, centre[1] - 2 : centre[1] + 3
+        ] = 0  # sets 3x3 area around min to 0
 
         # gauss = self.re_add_holes(grain, gauss)
         return filling
@@ -217,7 +388,9 @@ class dnaTrace:
         sigma = 0.01 / (self.pixel_to_nm_scaling * 1e9)
         very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
-        LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Skeletonising using {self.skeletonisation_method} method.")
+        LOGGER.info(
+            f"[{self.filename}] [{self.n_grain}] : Skeletonising using {self.skeletonisation_method} method."
+        )
         # try:
         if self.skeletonisation_method == "topostats":
             dna_skeleton = getSkeleton(
@@ -244,7 +417,8 @@ class dnaTrace:
     def linear_or_circular(self, traces):
         """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace
 
-        This function is sensitive to branches from the skeleton so might need to implement a function to remove them"""
+        This function is sensitive to branches from the skeleton so might need to implement a function to remove them
+        """
 
         points_with_one_neighbour = 0
         fitted_trace_list = traces.tolist()
@@ -327,29 +501,43 @@ class dnaTrace:
                 # positive diagonal (change in x and y)
                 # Take height values at the inverse of the positive diaganol
                 # (i.e. the negative diaganol)
-                y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)[::-1]
-                x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
+                y_coords = np.arange(
+                    trace_coordinate[1] - index_width, trace_coordinate[1] + index_width
+                )[::-1]
+                x_coords = np.arange(
+                    trace_coordinate[0] - index_width, trace_coordinate[0] + index_width
+                )
 
             # if angle is closest to 135 degrees
             elif 157.5 >= vector_angle >= 112.5:
                 perp_direction = "positive diaganol"
-                y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
-                x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
+                y_coords = np.arange(
+                    trace_coordinate[1] - index_width, trace_coordinate[1] + index_width
+                )
+                x_coords = np.arange(
+                    trace_coordinate[0] - index_width, trace_coordinate[0] + index_width
+                )
 
             # if angle is closest to 90 degrees
             if 112.5 > vector_angle >= 67.5:
                 perp_direction = "horizontal"
-                x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
+                x_coords = np.arange(
+                    trace_coordinate[0] - index_width, trace_coordinate[0] + index_width
+                )
                 y_coords = np.full(len(x_coords), trace_coordinate[1])
 
             elif 22.5 > vector_angle:  # if angle is closest to 0 degrees
                 perp_direction = "vertical"
-                y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
+                y_coords = np.arange(
+                    trace_coordinate[1] - index_width, trace_coordinate[1] + index_width
+                )
                 x_coords = np.full(len(y_coords), trace_coordinate[0])
 
             elif vector_angle >= 157.5:  # if angle is closest to 180 degrees
                 perp_direction = "vertical"
-                y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
+                y_coords = np.arange(
+                    trace_coordinate[1] - index_width, trace_coordinate[1] + index_width
+                )
                 x_coords = np.full(len(y_coords), trace_coordinate[0])
 
             # Use the perp array to index the guassian filtered image
@@ -358,10 +546,14 @@ class dnaTrace:
                 height_values = self.gauss_image[perp_array[:, 0], perp_array[:, 1]]
             except IndexError:
                 perp_array[:, 0] = np.where(
-                    perp_array[:, 0] > self.gauss_image.shape[0], self.gauss_image.shape[0], perp_array[:, 0]
+                    perp_array[:, 0] > self.gauss_image.shape[0],
+                    self.gauss_image.shape[0],
+                    perp_array[:, 0],
                 )
                 perp_array[:, 1] = np.where(
-                    perp_array[:, 1] > self.gauss_image.shape[1], self.gauss_image.shape[1], perp_array[:, 1]
+                    perp_array[:, 1] > self.gauss_image.shape[1],
+                    self.gauss_image.shape[1],
+                    perp_array[:, 1],
                 )
                 height_values = self.gauss_image[perp_array[:, 1], perp_array[:, 0]]
 
@@ -413,10 +605,16 @@ class dnaTrace:
 
             for i in range(step_size):
                 x_sampled = np.array(
-                    [self.fitted_trace[:, 0][j] for j in range(i, len(self.fitted_trace[:, 0]), step_size)]
+                    [
+                        self.fitted_trace[:, 0][j]
+                        for j in range(i, len(self.fitted_trace[:, 0]), step_size)
+                    ]
                 )
                 y_sampled = np.array(
-                    [self.fitted_trace[:, 1][j] for j in range(i, len(self.fitted_trace[:, 1]), step_size)]
+                    [
+                        self.fitted_trace[:, 1][j]
+                        for j in range(i, len(self.fitted_trace[:, 1]), step_size)
+                    ]
                 )
 
                 try:
@@ -427,10 +625,16 @@ class dnaTrace:
                     # Value error occurs when the "trace fitting" really messes up the traces
 
                     x = np.array(
-                        [self.ordered_trace[:, 0][j] for j in range(i, len(self.ordered_trace[:, 0]), step_size)]
+                        [
+                            self.ordered_trace[:, 0][j]
+                            for j in range(i, len(self.ordered_trace[:, 0]), step_size)
+                        ]
                     )
                     y = np.array(
-                        [self.ordered_trace[:, 1][j] for j in range(i, len(self.ordered_trace[:, 1]), step_size)]
+                        [
+                            self.ordered_trace[:, 1][j]
+                            for j in range(i, len(self.ordered_trace[:, 1]), step_size)
+                        ]
                     )
 
                     try:
@@ -492,7 +696,12 @@ class dnaTrace:
         plt.close()
 
     def saveTraceFigures(
-        self, filename: Union[str, Path], channel_name: str, vmaxval, vminval, output_dir: Union[str, Path] = None
+        self,
+        filename: Union[str, Path],
+        channel_name: str,
+        vmaxval,
+        vminval,
+        output_dir: Union[str, Path] = None,
     ):
         if output_dir:
             filename = self._checkForSaveDirectory(filename, output_dir)
@@ -568,7 +777,9 @@ class dnaTrace:
         plt.plot(self.splined_trace[:, 0], self.splined_trace[:, 1], color="c", linewidth=1.0)
         # plt.savefig("%s_%s_splinedtrace.png" % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_splinedtrace.png")
-        LOGGER.info(f"Splined Trace image saved to : {str(output_dir / filename / f'{channel_name}_splinedtrace.png')}")
+        LOGGER.info(
+            f"Splined Trace image saved to : {str(output_dir / filename / f'{channel_name}_splinedtrace.png')}"
+        )
         plt.close()
 
         # plt.pcolormesh(self.image, vmax=vmaxval, vmin=vminval)
@@ -601,7 +812,9 @@ class dnaTrace:
         # plt.savefig(output_dir / filename / f"{channel_name}_grains.png")
         # plt.savefig(output_dir / f"{filename}_grain.png")
         # plt.close()
-        LOGGER.info(f"Grains image saved to : {str(output_dir / filename / f'{channel_name}_grains.png')}")
+        LOGGER.info(
+            f"Grains image saved to : {str(output_dir / filename / f'{channel_name}_grains.png')}"
+        )
 
     # FIXME : Replace with Path() (.mkdir(parent=True, exists=True) negate need to handle errors.)
     def _checkForSaveDirectory(self, filename, new_output_dir):
@@ -612,7 +825,9 @@ class dnaTrace:
         except OSError:  # OSError happens if the directory already exists
             pass
 
-        updated_filename = os.path.join(split_directory_path[0], new_output_dir, split_directory_path[1])
+        updated_filename = os.path.join(
+            split_directory_path[0], new_output_dir, split_directory_path[1]
+        )
 
         return updated_filename
 
@@ -622,7 +837,9 @@ class dnaTrace:
         coordinates = np.zeros([2, self.neighbours * 2 + 1])
         for i, (x, y) in enumerate(self.splined_trace):
             # Extracts the coordinates for the required number of points and puts them in an array
-            if self.mol_is_circular or (self.neighbours < i < len(self.splined_trace) - self.neighbours):
+            if self.mol_is_circular or (
+                self.neighbours < i < len(self.splined_trace) - self.neighbours
+            ):
                 for j in range(self.neighbours * 2 + 1):
                     coordinates[0][j] = self.splined_trace[i - j][0]
                     coordinates[1][j] = self.splined_trace[i - j][1]
@@ -734,7 +951,9 @@ class dnaTrace:
                     except NameError:
                         hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
                 except IndexError:  # IndexError happens at last point in array
-                    self.contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
+                    self.contour_length = (
+                        np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
+                    )
                     del hypotenuse_array
                     break
 
@@ -793,17 +1012,24 @@ def trace_image(
     """
     # Check both arrays are the same shape
     if image.shape != grains_mask.shape:
-        raise ValueError(f"Image shape ({image.shape}) and Mask shape ({grains_mask.shape}) should match.")
+        raise ValueError(
+            f"Image shape ({image.shape}) and Mask shape ({grains_mask.shape}) should match."
+        )
 
     cropped_images, cropped_masks = prep_arrays(image, grains_mask, pad_width)
     region_properties = skimage_measure.regionprops(grains_mask)
-    grain_anchors = [grain_anchor(image.shape, list(grain.bbox), pad_width) for grain in region_properties]
+    grain_anchors = [
+        grain_anchor(image.shape, list(grain.bbox), pad_width) for grain in region_properties
+    ]
     n_grains = len(cropped_images)
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
     n_grain = 0
     results = {}
     ordered_traces = []
     all_trace_heights = {}
+    all_curvatures = {}
+    all_curvature_splines = {}
+    all_pixelated_splined_traces = {}
     for cropped_image, cropped_mask in zip(cropped_images, cropped_masks):
         result = trace_grain(
             cropped_image,
@@ -818,6 +1044,9 @@ def trace_image(
         ordered_traces.append(result.pop("ordered_trace"))
         all_trace_heights[n_grain] = result.pop("trace_heights")
         results[n_grain] = result
+        all_curvatures[n_grain] = result["curvature"]
+        all_curvature_splines[n_grain] = result["curvature_splined_trace"]
+        all_pixelated_splined_traces[n_grain] = result["pixelated_splined_trace"]
         n_grain += 1
     try:
         results = pd.DataFrame.from_dict(results, orient="index")
@@ -832,6 +1061,9 @@ def trace_image(
         "cropped_images": cropped_images,
         "image_trace": image_trace,
         "all_trace_heights": all_trace_heights,
+        "curvatures": all_curvatures,
+        "curvature_splines": all_curvature_splines,
+        "pixelated_splined_traces": all_pixelated_splined_traces,
     }
 
 
@@ -880,7 +1112,10 @@ def adjust_coordinates(coordinates: np.ndarray, pad_width: int) -> np.ndarray:
 
 
 def trace_mask(
-    grain_anchors: List[np.ndarray], ordered_traces: List[np.ndarray], image_shape: tuple, pad_width: int
+    grain_anchors: List[np.ndarray],
+    ordered_traces: List[np.ndarray],
+    image_shape: tuple,
+    pad_width: int,
 ) -> np.ndarray:
     """Place the traced skeletons into an array of the original image for plotting/overlaying.
 
@@ -917,7 +1152,9 @@ def trace_mask(
     return image
 
 
-def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
+def prep_arrays(
+    image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int
+) -> Tuple[list, list]:
     """Takes an image and labelled mask and crops individual grains and original heights to a list.
 
     A second padding is made after cropping to ensure for "edge cases" where grains are close to bounding box edges that
@@ -943,7 +1180,9 @@ def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: 
     # Subset image and grains then zip them up
     cropped_images = [crop_array(image, grain.bbox, pad_width) for grain in region_properties]
     cropped_images = [np.pad(grain, pad_width=pad_width) for grain in cropped_images]
-    cropped_masks = [crop_array(labelled_grains_mask, grain.bbox, pad_width) for grain in region_properties]
+    cropped_masks = [
+        crop_array(labelled_grains_mask, grain.bbox, pad_width) for grain in region_properties
+    ]
     cropped_masks = [np.pad(grain, pad_width=pad_width) for grain in cropped_masks]
     # Flip every labelled region to be 1 instead of its label
     cropped_masks = [np.where(grain == 0, 0, 1) for grain in cropped_masks]
@@ -1034,6 +1273,9 @@ def trace_grain(
         "end_to_end_distance": dnatrace.end_to_end_distance,
         "ordered_trace": dnatrace.ordered_trace,
         "trace_heights": dnatrace.trace_heights,
+        "curvature_splined_trace": dnatrace.curvature_splined_trace,
+        "curvature": dnatrace.curvature,
+        "pixelated_splined_trace": dnatrace.pixelated_splined_trace,
     }
 
 
@@ -1088,9 +1330,17 @@ def pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int) -> 
     # Left Column : Make this the first column if too close
     bounding_box[1] = 0 if bounding_box[1] - pad_width < 0 else bounding_box[1] - pad_width
     # Bottom Row : Make this the last row if too close
-    bounding_box[2] = array_shape[0] if bounding_box[2] + pad_width > array_shape[0] else bounding_box[2] + pad_width
+    bounding_box[2] = (
+        array_shape[0]
+        if bounding_box[2] + pad_width > array_shape[0]
+        else bounding_box[2] + pad_width
+    )
     # Right Column : Make this the last column if too close
-    bounding_box[3] = array_shape[1] if bounding_box[3] + pad_width > array_shape[1] else bounding_box[3] + pad_width
+    bounding_box[3] = (
+        array_shape[1]
+        if bounding_box[3] + pad_width > array_shape[1]
+        else bounding_box[3] + pad_width
+    )
     return bounding_box
 
 

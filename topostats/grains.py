@@ -375,7 +375,7 @@ class Grains:
             IMAGE_SAVE_DIR = Path(self.data_save_dir / "angle_data/" / self.filename)
             IMAGE_SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
-            sample_type = "dna_protein"
+            sample_type = "dna_only"
             LOGGER.info(f"SAMPLE TYPE: {sample_type}")
 
             if sample_type == "dna_only":

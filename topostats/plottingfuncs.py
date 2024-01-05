@@ -159,7 +159,11 @@ class Images:
         if self.image_set == "all":
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
-            ax.hist(self.data.flatten().astype(float), bins=self.histogram_bins, log=self.histogram_log_axis)
+            ax.hist(
+                self.data.flatten().astype(float),
+                bins=self.histogram_bins,
+                log=self.histogram_log_axis,
+            )
             ax.set_xlabel("pixel height")
             if self.histogram_log_axis:
                 ax.set_ylabel("frequency in image (log)")
@@ -199,7 +203,8 @@ class Images:
                     else:
                         self.save_array_figure()
         LOGGER.info(
-            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}" f".{self.save_format}"
+            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}"
+            f".{self.save_format}"
         )
         return fig, ax
 
@@ -219,7 +224,12 @@ class Images:
         if isinstance(self.data, np.ndarray):
             im = ax.imshow(
                 self.data,
-                extent=(0, shape[1] * self.pixel_to_nm_scaling, 0, shape[0] * self.pixel_to_nm_scaling),
+                extent=(
+                    0,
+                    shape[1] * self.pixel_to_nm_scaling,
+                    0,
+                    shape[0] * self.pixel_to_nm_scaling,
+                ),
                 interpolation=self.interpolation,
                 cmap=self.cmap,
                 vmin=self.zrange[0],
@@ -229,11 +239,11 @@ class Images:
                 self.masked_array[self.masked_array != 0] = 1
                 # If the image is too large for singles to be resolved in the mask, then dilate the mask proportionally
                 # to image size to enable clear viewing.
-                if np.max(self.masked_array.shape) > 500:
-                    dilation_strength = int(np.max(self.masked_array.shape) / 256)
-                    self.masked_array = dilate_binary_image(
-                        binary_image=self.masked_array, dilation_iterations=dilation_strength
-                    )
+                # if np.max(self.masked_array.shape) > 500:
+                #     dilation_strength = int(np.max(self.masked_array.shape) / 256)
+                #     self.masked_array = dilate_binary_image(
+                #         binary_image=self.masked_array, dilation_iterations=dilation_strength
+                #     )
                 mask = np.ma.masked_where(self.masked_array == 0, self.masked_array)
                 ax.imshow(
                     mask,
@@ -259,7 +269,9 @@ class Images:
                 cax = divider.append_axes("right", size="5%", pad=0.05)
                 plt.colorbar(im, cax=cax, label="Height (Nanometres)")
             if self.region_properties:
-                fig, ax = add_bounding_boxes_to_plot(fig, ax, shape, self.region_properties, self.pixel_to_nm_scaling)
+                fig, ax = add_bounding_boxes_to_plot(
+                    fig, ax, shape, self.region_properties, self.pixel_to_nm_scaling
+                )
             if not self.axes and not self.colorbar:
                 plt.title("")
                 fig.frameon = False
@@ -276,7 +288,12 @@ class Images:
             plt.ylabel("Nanometres")
             self.data.show(
                 ax=ax,
-                extent=(0, shape[1] * self.pixel_to_nm_scaling, 0, shape[0] * self.pixel_to_nm_scaling),
+                extent=(
+                    0,
+                    shape[1] * self.pixel_to_nm_scaling,
+                    0,
+                    shape[0] * self.pixel_to_nm_scaling,
+                ),
                 interpolation=self.interpolation,
                 cmap=self.cmap,
             )
@@ -296,7 +313,9 @@ class Images:
         plt.close()
 
 
-def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to_nm_scaling: float) -> None:
+def add_bounding_boxes_to_plot(
+    fig, ax, shape, region_properties: list, pixel_to_nm_scaling: float
+) -> None:
     """Add the bounding boxes to a plot.
 
     Parameters
@@ -324,6 +343,8 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
         # Correct y-axis
         min_y = (shape[0] * pixel_to_nm_scaling) - min_y
         max_y = (shape[0] * pixel_to_nm_scaling) - max_y
-        rectangle = Rectangle((min_x, min_y), max_x - min_x, max_y - min_y, fill=False, edgecolor="white", linewidth=2)
+        rectangle = Rectangle(
+            (min_x, min_y), max_x - min_x, max_y - min_y, fill=False, edgecolor="white", linewidth=2
+        )
         ax.add_patch(rectangle)
     return fig, ax

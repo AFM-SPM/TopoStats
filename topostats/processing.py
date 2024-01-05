@@ -7,6 +7,8 @@ import pickle
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib import gridspec
 
 from topostats import __version__
 from topostats.filters import Filters
@@ -448,6 +450,10 @@ def run_dnatracing(
                 tracing_stats[direction]["threshold"] = direction
                 all_trace_heights = tracing_results["all_trace_heights"]
 
+                all_curvatures = tracing_results["curvatures"]
+                all_curvature_splines = tracing_results["curvature_splines"]
+                all_pixelated_splined_traces = tracing_results["pixelated_splined_traces"]
+
                 # Save trace heights for each molecule
                 with open(
                     core_out_path / f"{filename}_trace_heights.json", "w", encoding="utf-8"
@@ -467,11 +473,130 @@ def run_dnatracing(
                     **plotting_config["plot_dict"]["all_molecule_traces"],
                 ).plot_and_save()
 
-                # Plot traces on each grain individually
+                # Extra plots
+
+                # print(f"curvature_splines: {all_curvature_splines}")
+
+                grain_trace: List[Tuple[int, int]]
+                for grain_index, (
+                    grain_trace,
+                    cropped_image,
+                    curvature,
+                    curvature_spline,
+                    height_trace,
+                    pixelated_splined_trace,
+                ) in enumerate(
+                    zip(
+                        ordered_traces,
+                        cropped_images,
+                        all_curvatures.values(),
+                        all_curvature_splines.values(),
+                        all_trace_heights.values(),
+                        all_pixelated_splined_traces.values(),
+                    )
+                ):
+                    if grain_trace is not None:
+                        # Plot the curvature and height info
+
+                        fig = plt.figure(figsize=(12, 12))
+                        gs = gridspec.GridSpec(4, 2, figure=fig)
+
+                        ax0 = fig.add_subplot(gs[0, 0])
+                        ax1 = fig.add_subplot(gs[0, 1])
+                        ax2 = fig.add_subplot(gs[1, 0])
+                        ax3 = fig.add_subplot(gs[1, 1])
+                        ax4 = fig.add_subplot(gs[2, :])
+                        ax5 = fig.add_subplot(gs[3, :])
+
+                        ax0.imshow(cropped_image)
+                        ax0.set_title("Cropped Image")
+
+                        ax1.imshow(cropped_image)
+                        # Plot the ordered trace
+                        ax1.plot(
+                            [coordinate[1] for coordinate in grain_trace],
+                            [coordinate[0] for coordinate in grain_trace],
+                            "r-",
+                            linewidth=2,
+                            label="Ordered Trace",
+                        )
+                        # Plot the splined trace
+                        ax1.plot(
+                            [coordinate[1] for coordinate in curvature_spline],
+                            [coordinate[0] for coordinate in curvature_spline],
+                            "b-",
+                            linewidth=2,
+                            label="Splined Trace",
+                        )
+                        # ax1.legend()
+                        ax1.set_title("Tracing")
+
+                        # plot the height trace overlaid on the cropped image
+                        ax2.imshow(cropped_image)
+                        # add a colourbar
+                        cbar = plt.colorbar(
+                            ax2.scatter(
+                                [coordinate[1] for coordinate in pixelated_splined_trace],
+                                [coordinate[0] for coordinate in pixelated_splined_trace],
+                                c=height_trace,
+                                cmap="magma_r",
+                                s=2,
+                            ),
+                            ax=ax2,
+                        )
+                        cbar.set_label("Height")
+                        # ax2.legend()
+                        ax2.set_title("Height")
+
+                        # Plot the splined trace with the colour as the curvature with a colourmap applied
+                        ax3.imshow(cropped_image)
+                        # add a colourbar
+                        cbar = plt.colorbar(
+                            ax3.scatter(
+                                [coordinate[1] for coordinate in curvature_spline],
+                                [coordinate[0] for coordinate in curvature_spline],
+                                c=curvature,
+                                cmap="magma_r",
+                                s=2,
+                            ),
+                            ax=ax3,
+                        )
+                        cbar.set_label("Curvature")
+                        ax3.legend()
+                        ax3.set_title("Curvature")
+
+                        # Plot the curvature and height trace
+                        ax4.plot(curvature, label="Curvature")
+                        ax4.legend()
+                        ax4.set_title(f"Curvature for grain {grain_index}")
+                        ax4.set_ylim(-0.5, 0.5)
+                        ax4.axhline(y=0, color="k", linestyle="-")
+                        ax4.set_title("Curvature Trace")
+
+                        ax5.plot(height_trace, label="Height Trace")
+                        ax5.legend()
+                        ax5.set_title(f"Height Trace for grain {grain_index}")
+
+                        # Save the figure
+                        # ensure the grain_out_path exists
+                        grain_out_path.mkdir(parents=True, exist_ok=True)
+                        (grain_out_path / direction).mkdir(parents=True, exist_ok=True)
+                        fig.savefig(
+                            grain_out_path / direction / f"curvature_{filename}_{grain_index}.png"
+                        )
+
                 if plotting_config["image_set"] == "all":
-                    for grain_index, (grain_trace, cropped_image) in enumerate(
-                        zip(ordered_traces, cropped_images)
+                    grain_trace: List[Tuple[int, int]]
+                    for grain_index, (
+                        grain_trace,
+                        cropped_image,
+                    ) in enumerate(
+                        zip(
+                            ordered_traces,
+                            cropped_images,
+                        )
                     ):
+                        # Plot traces on each grain individually
                         grain_trace_mask = np.zeros(cropped_image.shape)
                         # Grain traces can be None if they do not trace successfully. Eg if they are too small.
                         if grain_trace is not None:
@@ -524,7 +649,8 @@ def run_dnatracing(
         results = results_df
         results["basename"] = image_path.parent
 
-        return results
+        raise e
+        # return results
 
 
 def get_out_paths(
