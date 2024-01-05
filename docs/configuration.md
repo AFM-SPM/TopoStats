@@ -134,6 +134,59 @@ Configuration files are validated against a schema to check that the values in t
 expected ranges or valid parameters. This helps capture problems early and should provide informative messages as to
 what needs correcting if there are errors.
 
+## Matplotlib Style
+
+TopoStats generates a number of images of the scans at various steps in the processing. These are plotted using the
+Python library [Matplotlib](matplotlib.org/stable/). A custom
+[`matplotlibrc`](https://matplotlib.org/stable/users/explain/customizing.html#the-matplotlibrc-file) file is included in
+TopoStats which defines the default parameters for generating images. This covers _all_ aspects of a plot that can be
+customised, for example we define custom colour maps `nanoscope` and `afmhot` and by default the former is configured to
+be used in this file. Other parameters that are customised are the `font.size` which affects axis labels and titles.
+
+If you wish to modify the look of all images that are output you can generate a copy of the default configuration using
+`topostats create-matplotlibrc` command which will write the output to `topostats.mplstyle` by default (**NB** there are
+flags which allow you to specify the location and filename to write to, see `topostats create-matplotlibrc --help` for
+further details).
+
+You should read and understand this commented file in detail. Once changes have been made you can run TopoStats using
+this custom file using the following command (substituting `my_custom_topostats.mplstyle` for whatever you have saved
+your file as).
+
+```bash
+topostats process --matplotlibrc my_custom_topostats.mplstyle
+```
+
+**NB** Plotting with Matplotlib is highly configurable and there are a plethora of options that you may wish to
+tweak. Before delving into customising `matplotlibrc` files it is recommended that you develop and build the style of
+plot you wish to generate using Jupyter Notebooks and then translate them to the configuration file. Detailing all of
+the possible options is beyond the scope of TopoStats but the [Matplotlib documentation](https://matplotlib.org/) is
+comprehensive and there are some sample Jupyter Notebooks (see `notebooks/03-plotting-scans.ipynb`) that guide you
+through the basics.
+
+### Further customisation
+
+Whilst the broad overall look of images is controlled in this manner there is one additional file that controls how
+images are plotted in terms of filenames, titles and image types and whether an image is part of the `core` subset that
+are always generated or not.
+
+During development it was found that setting high DPI took a long time to generate and save some of the images which
+slowed down the overall processing time. The solution we have implemented is a file `topostats/plotting_dictionary.yaml`
+which sets these parameters on a per-image basis and these over-ride settings defined in default `topostats.mplstyle` or
+any user generated document.
+
+If you have to change these, for example if there is a particular image not included in the `core` set that you always
+want produced or you wish to change the DPI (Dots Per Inch) of a particular image you will have to locate this file and
+manually edit it. Where this is depends on how you have installed TopoStats, if it is from a clone of the Git repository
+then it can be found in `TopoStats/topostats/plotting_dictionary.yaml`. If you have installed from PyPI using `pip
+install topostats` then it will be under the virtual environment you have created
+e.g. `~/.virtualenvs/topostats/lib/python3.11/site-packages/topostats/topostats/plotting_dictionary.yaml` if you are
+using plain virtual environments or
+`~/miniconda3/envs/topostats/lib/python3.11/site-packages/topostats/topostats/plotting_dictionary.yaml` if you are using
+Conda environments and chose `~/miniconda3` as the base directory when installing Conda.
+
+**NB** The exact location will be highly specific to your system so the above are just guides as to where to find
+things.
+
 [^1] When writing file paths you can use absolute or relative paths. On Windows systems absolute paths start with the
 drive letter (e.g. `c:/`) on Linux and OSX systems they start with `/`. Relative paths are started either with a `./`
 which denotes the current directory or one or more `../` which means the higher level directory from the current
