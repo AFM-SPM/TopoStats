@@ -62,6 +62,10 @@ def turn_small_gem_regions_into_ring(combined_predicted_mask: np.ndarray, image:
     gem_labels = label(gem_mask)
     gem_regions = regionprops(gem_labels)
     gem_areas = [region.area for region in gem_regions]
+
+    if len(gem_areas) == 0:
+        return combined_predicted_mask
+
     largest_gem_region = gem_regions[np.argmax(gem_areas)]
 
     # For all the other regions, check if they touch a ring region
@@ -90,6 +94,8 @@ def remove_small_ring_regions(combined_predicted_mask):
     ring_mask = combined_predicted_mask == 1
     ring_mask_labelled = label(ring_mask)
     ring_props = regionprops(ring_mask_labelled)
+    if len(ring_props) == 0:
+        return combined_predicted_mask
     ring_areas = [region.area for region in ring_props]
     largest_ring_index = np.argmax(ring_areas)
     largest_ring_region = ring_props[largest_ring_index]
@@ -182,6 +188,10 @@ def find_centroids_of_connecting_regions(near_gem_and_ring):
 
     # Get the coordinates of the points
     coordinates = np.argwhere(near_gem_and_ring)
+
+    if len(coordinates) < 2:
+        raise ValueError("KMEANS: Not enough points to find centroids")
+
     # Cluster the points
     kmeans = KMeans(n_clusters=2, random_state=0).fit(coordinates)
     # Get mask of each cluster
@@ -243,9 +253,7 @@ def create_pathdinging_weighting(
     ring_pixel_image[ring_mask] = ring_pixels
 
     print(f"Ring Pixel Image Shape: {ring_pixel_image.shape}")
-    print(
-        f"Maximum Pixel Value: {np.max(ring_pixel_image)} Minimum Pixel Value: {np.min(ring_pixel_image)}"
-    )
+    print(f"Maximum Pixel Value: {np.max(ring_pixel_image)} Minimum Pixel Value: {np.min(ring_pixel_image)}")
 
     ring_pixel_image = ring_pixel_image - np.min(ring_pixel_image)
 
@@ -267,8 +275,7 @@ def create_pathdinging_weighting(
     distance_weighting_factor = 1.0
 
     final_weighting = (
-        distance_weighting_factor * distance_transform
-        + (1 - distance_weighting_factor) * ring_pixel_image
+        distance_weighting_factor * distance_transform + (1 - distance_weighting_factor) * ring_pixel_image
     )
 
     # Normalise
@@ -289,9 +296,7 @@ def find_path(image_512, centroid_1, centroid_2, final_weighting):
     # with the distance transform as the weight map
 
     # Get the path
-    path, weight = route_through_array(
-        final_weighting, centroid_1, centroid_2, fully_connected=True, geometric=True
-    )
+    path, weight = route_through_array(final_weighting, centroid_1, centroid_2, fully_connected=True, geometric=True)
 
     path = np.stack(path, axis=-1)
 
@@ -321,9 +326,7 @@ def find_path(image_512, centroid_1, centroid_2, final_weighting):
     return path_image, path
 
 
-def calculate_vectors_and_angle(
-    original_image, image_512, path, IMAGE_SAVE_DIR: Path, image_index=None
-):
+def calculate_vectors_and_angle(original_image, image_512, path, IMAGE_SAVE_DIR: Path, image_index=None):
     path_t = path.T
 
     # print(f"Path: \n{path_t[0:10]}")
@@ -453,17 +456,13 @@ def find_angle(
     centroid_1, centroid_2 = find_centroids_of_connecting_regions(near_gem_and_ring)
 
     # Create a weighting for pathfinding
-    final_weighting, final_weighting_high_outside = create_pathdinging_weighting(
-        image, combined_predicted_mask
-    )
+    final_weighting, final_weighting_high_outside = create_pathdinging_weighting(image, combined_predicted_mask)
 
     # Find the path
     path_image, path = find_path(image, centroid_1, centroid_2, final_weighting)
 
     # Calculate the angle
-    angle = calculate_vectors_and_angle(
-        original_image, image, path, IMAGE_SAVE_DIR, image_index=image_index
-    )
+    angle = calculate_vectors_and_angle(original_image, image, path, IMAGE_SAVE_DIR, image_index=image_index)
 
     return angle
 
@@ -590,9 +589,7 @@ def predict_unet_multiclass_and_get_angle(
     combined_predicted_mask[predicted_ring_mask] = 1
 
     # Do all the processing for finding the angle
-    angle = find_angle(
-        original_image_512, image, combined_predicted_mask, IMAGE_SAVE_DIR, image_index=image_index
-    )
+    angle = find_angle(original_image_512, image, combined_predicted_mask, IMAGE_SAVE_DIR, image_index=image_index)
 
     # Use the ring mask as the predicted mask
     predicted_mask = combined_predicted_mask == 1
