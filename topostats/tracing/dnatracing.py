@@ -33,7 +33,7 @@ from topostats.utils import convolve_skelly, ResolutionError
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-OUTPUT_DIR = Path("/Users/maxgamill/Desktop/")
+OUTPUT_DIR = Path("/Users/laurawiggins/Desktop/")
 
 
 class dnaTrace:
@@ -124,6 +124,7 @@ class dnaTrace:
         self.splined_traces = []
         self.splined_trace_img = np.zeros_like(image)
         self.contour_lengths = []
+        self.new_contour_length = None
         self.end_to_end_distances = []
         self.mol_is_circulars = []
         self.curvatures = []
@@ -142,6 +143,7 @@ class dnaTrace:
     def trace_dna(self):
         """Perform DNA tracing."""
         self.get_disordered_trace()
+        self.new_contour_length = self.fragment_skeleton_and_calc_contour_length()
         if self.disordered_trace is None:
             LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} failed to Skeletonise")
         elif len(self.disordered_trace) >= self.min_skeleton_size:
@@ -280,6 +282,7 @@ class dnaTrace:
         # np.savetxt(OUTPUT_DIR / "smooth.txt", self.smoothed_grain)
         self.pruned_skeleton = pruneSkeleton(self.gauss_image, self.skeleton).prune_skeleton(self.pruning_params.copy())
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
+        np.savetxt(OUTPUT_DIR / "pruned_skeleton.txt", self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
     @staticmethod
@@ -803,6 +806,64 @@ class dnaTrace:
         plt.savefig(f"{savename}_{dna_num}_curvature.png")
         plt.close()
 
+    @staticmethod
+    def keep_largest_contour(binary_skeleton):
+        # Label connected components with diagonal connections
+        labelled_mask = label(binary_skeleton, connectivity=2)
+
+        # Find properties of connected components
+        regions = skimage_measure.regionprops(labelled_mask)
+
+        # Find the largest contour
+        largest_contour = max(regions, key=lambda x: x.area)
+
+        # Create a new array with only the largest contour
+        largest_contour_mask = np.zeros_like(binary_skeleton)
+        for coord in largest_contour.coords:
+            largest_contour_mask[coord[0], coord[1]] = 1
+
+        return largest_contour_mask
+
+    @staticmethod
+    def measure_contour_length_from_skeleton(points, pixel_to_nm_scaling):
+        hypotenuse_array = []
+        for num in range(len(points) - 1):
+            x1, y1 = points[num]
+            x2, y2 = points[num + 1]
+            
+            try:
+                hypotenuse_array.append(np.hypot((x1 - x2), (y1 - y2)))
+            except NameError:
+                hypotenuse_array = [np.hypot((x1 - x2), (y1 - y2))]
+        
+        contour_length = np.sum(np.array(hypotenuse_array)) * pixel_to_nm_scaling
+        return contour_length
+    
+    def fragment_skeleton_and_calc_contour_length(self):
+        import trace_skeleton
+        import random
+
+        skeleton_to_use = self.keep_largest_contour(self.pruned_skeleton)
+
+        polys = trace_skeleton.from_numpy(skeleton_to_use.astype(int))
+
+        fig, ax = plt.subplots()
+        sum = 0
+        for points in polys:
+            x_values = [point[0] for point in points]
+            y_values = [point[1] for point in points]
+            color = (random.random(), random.random(), random.random())
+            ax.plot(x_values, y_values, color=color)
+        plt.savefig(OUTPUT_DIR / f"{self.n_grain}-image.png")
+
+        sum = 0
+        for points in polys:
+            x_values = [point[0] for point in points]
+            y_values = [point[1] for point in points]
+            contour_length = self.measure_contour_length_from_skeleton(points, self.pixel_to_nm_scaling)
+            sum += contour_length
+        return sum
+
     def measure_contour_length(self, splined_trace, mol_is_circular):
         """Measures the contour length for each of the splined traces taking into
         account whether the molecule is circular or linear
@@ -840,6 +901,8 @@ class dnaTrace:
                     contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
                     del hypotenuse_array
                     return contour_length
+                
+    
 
     def measure_end_to_end_distance(self, splined_trace, mol_is_circular):
         """Calculate the Euclidean distance between the start and end of linear molecules.
@@ -1067,6 +1130,7 @@ def trace_grain(
                 "image": dnatrace.filename,
                 "grain_number": n_grain,
                 "contour_length": dnatrace.contour_lengths[i],
+                "new_contour_length": dnatrace.new_contour_length,
                 "circular": dnatrace.mol_is_circulars[i],
                 "end_to_end_distance": dnatrace.end_to_end_distances[i],
                 "num_crossings": dnatrace.num_crossings,

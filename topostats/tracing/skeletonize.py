@@ -628,6 +628,7 @@ class joePrune:
             single_skeleton = np.where(labeled_skel == i, 1, 0)
             if self.max_length is not None:
                 single_skeleton = self._prune_single_skeleton(single_skeleton, max_length=self.max_length)
+            """   
             if self.height_threshold is not None:
                 single_skeleton = remove_bridges_abs(
                     single_skeleton,
@@ -636,6 +637,7 @@ class joePrune:
                     method_values=self.method_values,
                     method_outlier=self.method_outlier,
                 )
+            """
             """
             if self.min_height_threshold_mean is not None:
                 single_skeleton = remove_bridges_abs_mean(single_skeleton, self.image, threshold=self.min_height_threshold_mean)
