@@ -63,7 +63,7 @@ tests = [
   "pytest-github-actions-annotate-failures",
   "pytest-lazy-fixture",
   "pytest-mpl",
-  "pytest-regtest",
+  "pytest-regtest<2.0.0",
   "filetype",
 ]
 docs = [
@@ -236,6 +236,10 @@ lint.fixable = [
   "UP", # pyupgrade
 ]
 lint.unfixable = []
+
+# Numpy2 deprecation checks
+lint.extend-select = ["NPY201"]
+preview = true
 
 [tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"
