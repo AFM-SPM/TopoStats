@@ -24,6 +24,9 @@ output/config.yaml
 *.csv
 *.spm
 
+# Notebook checkpoints
+notebooks/.ipynb_checkpoints/
+
 # Example Data
 !minicircle.spm
 
