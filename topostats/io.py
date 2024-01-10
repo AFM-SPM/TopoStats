@@ -7,6 +7,7 @@ import struct
 from pathlib import Path
 import pickle as pkl
 from typing import Any, Dict, List, Union
+import re
 
 import numpy as np
 import pandas as pd
@@ -70,7 +71,10 @@ def get_date_time() -> str:
 
 
 def write_yaml(
-    config: dict, output_dir: Union[str, Path], config_file: str = "config.yaml", header_message: str = None
+    config: dict,
+    output_dir: Union[str, Path],
+    config_file: str = "config.yaml",
+    header_message: str = None,
 ) -> None:
     """Write a configuration (stored as a dictionary) to a YAML file.
 
@@ -92,10 +96,13 @@ def write_yaml(
     config_yaml = yaml_load(yaml_dump(config))
 
     if header_message:
-        config_yaml.yaml_set_start_comment(f"{header_message} : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE)
+        config_yaml.yaml_set_start_comment(
+            f"{header_message} : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
+        )
     else:
         config_yaml.yaml_set_start_comment(
-            f"Configuration from TopoStats run completed : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
+            f"Configuration from TopoStats run completed : {get_date_time()}\n"
+            + CONFIG_DOCUMENTATION_REFERENCE
         )
     with output_config.open("w") as f:
         try:
@@ -104,7 +111,9 @@ def write_yaml(
             LOGGER.error(exception)
 
 
-def write_config_with_comments(config: str, output_dir: Path, filename: str = "config.yaml") -> None:
+def write_config_with_comments(
+    config: str, output_dir: Path, filename: str = "config.yaml"
+) -> None:
     """
     Create a config file, retaining the comments by writing it as a string
     rather than using a yaml handling package.
@@ -195,7 +204,9 @@ def path_to_str(config: dict) -> Dict:
 
 
 def get_out_path(
-    image_path: Union[str, Path] = None, base_dir: Union[str, Path] = None, output_dir: Union[str, Path] = None
+    image_path: Union[str, Path] = None,
+    base_dir: Union[str, Path] = None,
+    output_dir: Union[str, Path] = None,
 ) -> Path:
     """Adds the image path relative to the base directory to the output directory.
 
@@ -284,7 +295,9 @@ def save_folder_grainstats(
             )
             LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/folder_grainstats.csv")
         except TypeError:
-            LOGGER.info(f"No folder-wise statistics for directory {_dir}, no grains detected in any images.")
+            LOGGER.info(
+                f"No folder-wise statistics for directory {_dir}, no grains detected in any images."
+            )
 
 
 def read_null_terminated_string(open_file: io.TextIOWrapper) -> str:
@@ -500,9 +513,13 @@ class LoadScans:
             # trying to return the error with options of possible channel values
             labels = []
             for channel in [layer[b"@2:Image Data"][0] for layer in scan.layers]:
-                channel_description = channel.decode("latin1").split('"')[1]  # incase the blank field raises quesions?
+                channel_description = channel.decode("latin1").split('"')[
+                    1
+                ]  # incase the blank field raises quesions?
                 labels.append(channel_description)
-            LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
+            LOGGER.error(
+                f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}"
+            )
             raise e
 
         return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
@@ -532,7 +549,9 @@ class LoadScans:
         )[0]
         if px_to_real[0][0] == 0 and px_to_real[1][0] == 0:
             pixel_to_nm_scaling = 1
-            LOGGER.warning(f"[{self.filename}] : Pixel size not found in metadata, defaulting to 1nm")
+            LOGGER.warning(
+                f"[{self.filename}] : Pixel size not found in metadata, defaulting to 1nm"
+            )
         LOGGER.info(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
         return pixel_to_nm_scaling
 
@@ -596,7 +615,9 @@ class LoadScans:
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
         except ValueError:
-            LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
+            LOGGER.error(
+                f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}"
+            )
             raise
         except Exception as exception:
             LOGGER.error(f"[{self.filename}] : {exception}")
@@ -730,7 +751,9 @@ class LoadScans:
             read_data_size += component_data_size
 
     @staticmethod
-    def _gwy_read_component(open_file: io.TextIOWrapper, initial_byte_pos: int, data_dict: dict) -> int:
+    def _gwy_read_component(
+        open_file: io.TextIOWrapper, initial_byte_pos: int, data_dict: dict
+    ) -> int:
         """Parse and extract data from a `.gwy` file object, starting at the current
         open file read position.
 
@@ -837,17 +860,39 @@ class LoadScans:
             # available keys:
             # LoadScans._gwy_print_dict_wrapper(gwy_file_dict=image_data_dict)
 
-            if "/0/data" in image_data_dict:
-                image = image_data_dict["/0/data"]["data"]
-                units = image_data_dict["/0/data"]["si_unit_xy"]["unitstr"]
-                px_to_nm = image_data_dict["/0/data"]["xreal"] * 1e9 / image.shape[1]
-            elif "/1/data" in image_data_dict:
-                image = image_data_dict["/1/data"]["data"]
-                px_to_nm = image_data_dict["/1/data"]["xreal"] * 1e9 / image.shape[1]
-                units = image_data_dict["/1/data"]["si_unit_xy"]["unitstr"]
-            else:
-                raise KeyError(
-                    "Data location not defined in the .gwy file. Please locate it and add to the load_gwy() function."
+            # For each entry that matches pattern "/number/data", find the title of the channel.
+            success = False
+            channels_found = []
+            for key, gwy_object in image_data_dict.items():
+                # print(key)
+                if re.match(r"\d+\/data/title", key):
+                    channel_title = gwy_object
+                    channels_found.append(channel_title)
+                    print(f"channel identified: {channel_title}")
+
+                    if channel_title == self.channel:
+                        print(f"target channel {channel_title} found")
+
+                        # Get the index of the channel
+                        channel_index = key.split("/")[0]
+
+                        # Get the data for the channel
+                        image = image_data_dict[f"/{channel_index}/data"]["data"]
+                        units = image_data_dict[f"/{channel_index}/data"]["si_unit_xy"]["unitstr"]
+                        px_to_nm = (
+                            image_data_dict[f"/{channel_index}/data"]["xreal"]
+                            * 1e9
+                            / image.shape[1]
+                        )
+                        success = True
+            if not success:
+                LOGGER.info(
+                    f"[{self.filename}] Channel {self.channel} not found in .gwy file. Channels found: {channels_found}"
+                )
+                for key, gwy_object in image_data_dict.items():
+                    print(f"key: {key}")
+                raise ValueError(
+                    f"Channel {self.channel} not found in .gwy file. Channels found: {channels_found}"
                 )
 
             # Convert image heights to nanometresQ
@@ -892,7 +937,9 @@ class LoadScans:
                     self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
                 except Exception as e:
                     if "Channel" in str(e) and "not found" in str(e):
-                        LOGGER.warning(f"[{self.filename}] Channel {self.channel} not found, skipping image.")
+                        LOGGER.warning(
+                            f"[{self.filename}] Channel {self.channel} not found, skipping image."
+                        )
                     else:
                         raise
                 else:
@@ -909,7 +956,10 @@ class LoadScans:
 
         Images that do not meet the minimum size are not included for processing.
         """
-        if self.image.shape[0] < self.MINIMUM_IMAGE_SIZE or self.image.shape[1] < self.MINIMUM_IMAGE_SIZE:
+        if (
+            self.image.shape[0] < self.MINIMUM_IMAGE_SIZE
+            or self.image.shape[1] < self.MINIMUM_IMAGE_SIZE
+        ):
             LOGGER.warning(f"[{self.filename}] Skipping, image too small: {self.image.shape}")
         else:
             self.add_to_dict()
