@@ -63,7 +63,7 @@ tests = [
   "pytest-github-actions-annotate-failures",
   "pytest-lazy-fixture",
   "pytest-mpl",
-  "pytest-regtest",
+  "pytest-regtest<2.0.0",
   "filetype",
 ]
 docs = [
