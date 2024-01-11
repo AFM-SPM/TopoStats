@@ -99,7 +99,22 @@ def rotating_calipers(points: npt.NDArray) -> list[tuple[list, list]]:
     upper_hull, lower_hull = hulls(points)
     i = 0
     j = len(lower_hull) - 1
+    counter = 0
+    print(f"Used for i {len(upper_hull)=}")
+    print(f"Used for j {len(lower_hull)=}")
     while i < len(upper_hull) or j > 0:
+        print(f"\n{counter=}")
+        print(f"{i=}")
+        print(f"{j=}")
+        print(f"upper_hull i + 1 : {i + 1}")
+        print(f"lower_hull j - 1 : {j + 1}")
+        print(f"i == len(upper_hull) : {(i == len(upper_hull))=}")
+        print(f"j == 0               : {(j == 0)=}")
+        a = upper_hull[i + 1][1] - upper_hull[i][1]
+        b = lower_hull[j][0] - lower_hull[j - 1][0]
+        c = lower_hull[j][1] - lower_hull[j - 1][1]
+        d = upper_hull[i + 1][0] - upper_hull[i][0]
+        print(f"LONG                 : {((a * b) > (c * d))=}")
         yield upper_hull[i], lower_hull[j]
         # if all the way through one side of hull, advance the other side
         if i == len(upper_hull):
@@ -114,6 +129,7 @@ def rotating_calipers(points: npt.NDArray) -> list[tuple[list, list]]:
             i += 1
         else:
             j -= 1
+        counter += 1
 
 
 def min_max_feret(points: npt.NDArray) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
