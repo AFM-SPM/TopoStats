@@ -100,9 +100,7 @@ def run_filters(
                     plotting_config["plot_dict"][plot_name]["output_dir"] = filter_out_path
                     try:
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
-                        Images(
-                            array, **plotting_config["plot_dict"][plot_name]
-                        ).plot_histogram_and_save()
+                        Images(array, **plotting_config["plot_dict"][plot_name]).plot_histogram_and_save()
                     except AttributeError:
                         LOGGER.info(f"[{filename}] Unable to generate plot : {plot_name}")
             plotting_config["run"] = True
@@ -192,9 +190,7 @@ def run_grains(
                 if len(grains.region_properties[direction]) == 0:
                     LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
         except Exception as e:
-            LOGGER.error(
-                f"[{filename}] : An error occured during grain finding, skipping grainstats and dnatracing."
-            )
+            LOGGER.error(f"[{filename}] : An error occured during grain finding, skipping grainstats and dnatracing.")
             LOGGER.error(f"[{filename}] : The error: {e}")
             raise e
         else:
@@ -209,22 +205,16 @@ def run_grains(
                     LOGGER.info(f"[{filename}] : Plotting {direction} Grain Finding Images")
                     for plot_name, array in image_arrays.items():
                         LOGGER.info(f"[{filename}] : Plotting {plot_name} image")
-                        plotting_config["plot_dict"][plot_name]["output_dir"] = (
-                            grain_out_path / f"{direction}"
-                        )
+                        plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path / f"{direction}"
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
                     # Make a plot of coloured regions with bounding boxes
-                    plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = (
-                        grain_out_path / f"{direction}"
-                    )
+                    plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path / f"{direction}"
                     Images(
                         grains.directions[direction]["coloured_regions"],
                         **plotting_config["plot_dict"]["bounding_boxes"],
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
-                    plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = (
-                        grain_out_path / f"{direction}"
-                    )
+                    plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path / f"{direction}"
                     Images(
                         grains.directions[direction]["labelled_regions_02"],
                         **plotting_config["plot_dict"]["coloured_boxes"],
@@ -333,9 +323,7 @@ def run_grainstats(
 
                     # Plot grains if required
                     if plotting_config["image_set"] == "all":
-                        LOGGER.info(
-                            f"[{filename}] : Plotting grain images for direction: {direction}."
-                        )
+                        LOGGER.info(f"[{filename}] : Plotting grain images for direction: {direction}.")
                         for plot_data in grains_plot_data:
                             LOGGER.info(
                                 f"[{filename}] : Plotting grain image {plot_data['filename']} for direction: {direction}."
@@ -369,9 +357,7 @@ def run_grainstats(
             )
             return create_empty_dataframe()
     else:
-        LOGGER.info(
-            f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe."
-        )
+        LOGGER.info(f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe.")
         return create_empty_dataframe()
 
 
@@ -433,6 +419,10 @@ def run_dnatracing(
     try:
         if dnatracing_config["run"]:
             dnatracing_config.pop("run")
+
+            defect_threshold = 1.8e-9
+            dnatracing_config["defect_threshold"] = defect_threshold
+
             LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
             tracing_stats = defaultdict()
             for direction, _ in grain_masks.items():
@@ -449,15 +439,13 @@ def run_dnatracing(
                 image_trace = tracing_results["image_trace"]
                 tracing_stats[direction]["threshold"] = direction
                 all_trace_heights = tracing_results["all_trace_heights"]
-
+                all_defect_largest_regions: dict = tracing_results["all_defect_largest_regions"]
                 all_curvatures = tracing_results["curvatures"]
                 all_curvature_splines = tracing_results["curvature_splines"]
                 all_pixelated_splined_traces = tracing_results["pixelated_splined_traces"]
 
                 # Save trace heights for each molecule
-                with open(
-                    core_out_path / f"{filename}_trace_heights.json", "w", encoding="utf-8"
-                ) as f:
+                with open(core_out_path / f"{filename}_trace_heights.json", "w", encoding="utf-8") as f:
                     json.dump(all_trace_heights, f)
 
                 # Pickle the ordered traces
@@ -477,113 +465,133 @@ def run_dnatracing(
 
                 # print(f"curvature_splines: {all_curvature_splines}")
 
-                grain_trace: List[Tuple[int, int]]
-                for grain_index, (
-                    grain_trace,
-                    cropped_image,
-                    curvature,
-                    curvature_spline,
-                    height_trace,
-                    pixelated_splined_trace,
-                ) in enumerate(
-                    zip(
-                        ordered_traces,
-                        cropped_images,
-                        all_curvatures.values(),
-                        all_curvature_splines.values(),
-                        all_trace_heights.values(),
-                        all_pixelated_splined_traces.values(),
-                    )
-                ):
-                    if grain_trace is not None:
-                        # Plot the curvature and height info
-
-                        fig = plt.figure(figsize=(12, 12))
-                        gs = gridspec.GridSpec(4, 2, figure=fig)
-
-                        ax0 = fig.add_subplot(gs[0, 0])
-                        ax1 = fig.add_subplot(gs[0, 1])
-                        ax2 = fig.add_subplot(gs[1, 0])
-                        ax3 = fig.add_subplot(gs[1, 1])
-                        ax4 = fig.add_subplot(gs[2, :])
-                        ax5 = fig.add_subplot(gs[3, :])
-
-                        ax0.imshow(cropped_image)
-                        ax0.set_title("Cropped Image")
-
-                        ax1.imshow(cropped_image)
-                        # Plot the ordered trace
-                        ax1.plot(
-                            [coordinate[1] for coordinate in grain_trace],
-                            [coordinate[0] for coordinate in grain_trace],
-                            "r-",
-                            linewidth=2,
-                            label="Ordered Trace",
+                plot_height_curvature = False
+                if plot_height_curvature:
+                    grain_trace: List[Tuple[int, int]]
+                    for grain_index, (
+                        grain_trace,
+                        cropped_image,
+                        curvature,
+                        curvature_spline,
+                        height_trace,
+                        pixelated_splined_trace,
+                        defect_largest_region,
+                    ) in enumerate(
+                        zip(
+                            ordered_traces,
+                            cropped_images,
+                            all_curvatures.values(),
+                            all_curvature_splines.values(),
+                            all_trace_heights.values(),
+                            all_pixelated_splined_traces.values(),
+                            all_defect_largest_regions.values(),
                         )
-                        # Plot the splined trace
-                        ax1.plot(
-                            [coordinate[1] for coordinate in curvature_spline],
-                            [coordinate[0] for coordinate in curvature_spline],
-                            "b-",
-                            linewidth=2,
-                            label="Splined Trace",
-                        )
-                        # ax1.legend()
-                        ax1.set_title("Tracing")
+                    ):
+                        if grain_trace is not None:
+                            # Plot the curvature and height info
 
-                        # plot the height trace overlaid on the cropped image
-                        ax2.imshow(cropped_image)
-                        # add a colourbar
-                        cbar = plt.colorbar(
-                            ax2.scatter(
-                                [coordinate[1] for coordinate in pixelated_splined_trace],
-                                [coordinate[0] for coordinate in pixelated_splined_trace],
-                                c=height_trace,
-                                cmap="magma_r",
-                                s=2,
-                            ),
-                            ax=ax2,
-                        )
-                        cbar.set_label("Height")
-                        # ax2.legend()
-                        ax2.set_title("Height")
+                            fig = plt.figure(figsize=(12, 12))
+                            gs = gridspec.GridSpec(4, 2, figure=fig)
 
-                        # Plot the splined trace with the colour as the curvature with a colourmap applied
-                        ax3.imshow(cropped_image)
-                        # add a colourbar
-                        cbar = plt.colorbar(
-                            ax3.scatter(
+                            ax0 = fig.add_subplot(gs[0, 0])
+                            ax1 = fig.add_subplot(gs[0, 1])
+                            ax2 = fig.add_subplot(gs[1, 0])
+                            ax3 = fig.add_subplot(gs[1, 1])
+                            ax4 = fig.add_subplot(gs[2, :])
+                            ax5 = fig.add_subplot(gs[3, :])
+
+                            ax0.imshow(cropped_image)
+                            ax0.set_title("Cropped Image")
+
+                            ax1.imshow(cropped_image)
+                            # Plot the ordered trace
+                            ax1.plot(
+                                [coordinate[1] for coordinate in grain_trace],
+                                [coordinate[0] for coordinate in grain_trace],
+                                "r-",
+                                linewidth=2,
+                                label="Ordered Trace",
+                            )
+                            # Plot the splined trace
+                            ax1.plot(
                                 [coordinate[1] for coordinate in curvature_spline],
                                 [coordinate[0] for coordinate in curvature_spline],
-                                c=curvature,
-                                cmap="magma_r",
-                                s=2,
-                            ),
-                            ax=ax3,
-                        )
-                        cbar.set_label("Curvature")
-                        ax3.legend()
-                        ax3.set_title("Curvature")
+                                "b-",
+                                linewidth=2,
+                                label="Splined Trace",
+                            )
+                            # ax1.legend()
+                            ax1.set_title("Tracing")
 
-                        # Plot the curvature and height trace
-                        ax4.plot(curvature, label="Curvature")
-                        ax4.legend()
-                        ax4.set_title(f"Curvature for grain {grain_index}")
-                        ax4.set_ylim(-0.5, 0.5)
-                        ax4.axhline(y=0, color="k", linestyle="-")
-                        ax4.set_title("Curvature Trace")
+                            # plot the height trace overlaid on the cropped image
+                            ax2.imshow(cropped_image)
+                            # add a colourbar
+                            cbar = plt.colorbar(
+                                ax2.scatter(
+                                    [coordinate[1] for coordinate in pixelated_splined_trace],
+                                    [coordinate[0] for coordinate in pixelated_splined_trace],
+                                    c=height_trace,
+                                    cmap="magma_r",
+                                    s=2,
+                                ),
+                                ax=ax2,
+                            )
+                            cbar.set_label("Height")
+                            # ax2.legend()
+                            ax2.set_title("Height")
 
-                        ax5.plot(height_trace, label="Height Trace")
-                        ax5.legend()
-                        ax5.set_title(f"Height Trace for grain {grain_index}")
+                            # Plot the splined trace with the colour as the curvature with a colourmap applied
+                            ax3.imshow(cropped_image)
+                            # add a colourbar
+                            cbar = plt.colorbar(
+                                ax3.scatter(
+                                    [coordinate[1] for coordinate in curvature_spline],
+                                    [coordinate[0] for coordinate in curvature_spline],
+                                    c=curvature,
+                                    cmap="magma_r",
+                                    s=2,
+                                ),
+                                ax=ax3,
+                            )
+                            cbar.set_label("Curvature")
+                            # ax3.legend()
+                            ax3.set_title("Curvature")
 
-                        # Save the figure
-                        # ensure the grain_out_path exists
-                        grain_out_path.mkdir(parents=True, exist_ok=True)
-                        (grain_out_path / direction).mkdir(parents=True, exist_ok=True)
-                        fig.savefig(
-                            grain_out_path / direction / f"curvature_{filename}_{grain_index}.png"
-                        )
+                            # Plot the curvature and height trace
+                            ax4.plot(curvature, label="Curvature")
+                            ax4.legend()
+                            ax4.set_title(f"Curvature for grain {grain_index}")
+                            ax4.set_ylim(-0.5, 0.5)
+                            ax4.axhline(y=0, color="k", linestyle="-")
+                            ax4.set_title("Curvature Trace")
+
+                            ax5.plot(height_trace, label="Height Trace")
+                            ax5.set_ylim(0, 4e-9)
+                            ax5.set_title(f"Height Trace for grain {grain_index}")
+                            # Mark on the plot where the height goes below a threshold
+                            if defect_largest_region is not None:
+                                ax5.axvspan(
+                                    defect_largest_region["start"],
+                                    defect_largest_region["end"],
+                                    alpha=0.5,
+                                    color="red",
+                                )
+                                ax5.axvline(
+                                    x=defect_largest_region["deepest_point_index"],
+                                    color="green",
+                                    linestyle="-",
+                                )
+                            ax5.axhline(y=defect_threshold, color="k", linestyle="-")
+                            ax5.legend()
+                            ax5.set_title("Height Trace")
+
+                            fig.tight_layout()
+
+                            # Save the figure
+                            # ensure the grain_out_path exists
+                            grain_out_path.mkdir(parents=True, exist_ok=True)
+                            (grain_out_path / direction).mkdir(parents=True, exist_ok=True)
+                            fig.savefig(grain_out_path / direction / f"curvature_{filename}_{grain_index}.png")
 
                 if plotting_config["image_set"] == "all":
                     grain_trace: List[Tuple[int, int]]
@@ -623,17 +631,13 @@ def run_dnatracing(
             # NB - Merge on image, molecule and threshold because we may have above and below molecules which
             #      gives duplicate molecule numbers as they are processed separately, if tracing stats
             #      are not available (because skeleton was too small), grainstats are still retained.
-            results = results_df.merge(
-                tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left"
-            )
+            results = results_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left")
             results["basename"] = image_path.parent
 
             return results
 
         # Otherwise, return the passed in dataframe and warn that tracing is disabled
-        LOGGER.info(
-            f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame."
-        )
+        LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
         results = results_df
         results["basename"] = image_path.parent
 
@@ -642,20 +646,17 @@ def run_dnatracing(
     except Exception as e:
         # If no results we need a dummy dataframe to return.
         LOGGER.warning(
-            f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, "
-            "returning grain statistics"
+            f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, " "returning grain statistics"
         )
         LOGGER.warning(f"The error: {e}")
         results = results_df
         results["basename"] = image_path.parent
 
-        raise e
-        # return results
+        # raise e
+        return results
 
 
-def get_out_paths(
-    image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict
-):
+def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
     """Returns various output paths for a given image and plotting config.
 
     Parameters
@@ -767,14 +768,9 @@ def process_scan(
     )
     # Update grain masks if new grain masks are returned. Else keep old grain masks. Topostats object's "grain_masks"
     # defaults to an empty dictionary so this is safe.
-    topostats_object["grain_masks"] = (
-        grain_masks if grain_masks is not None else topostats_object["grain_masks"]
-    )
+    topostats_object["grain_masks"] = grain_masks if grain_masks is not None else topostats_object["grain_masks"]
 
-    if (
-        "above" in topostats_object["grain_masks"].keys()
-        or "below" in topostats_object["grain_masks"].keys()
-    ):
+    if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
         # Grainstats :
         results_df = run_grainstats(
             image=topostats_object["image_flattened"],
@@ -828,9 +824,7 @@ def process_scan(
     return topostats_object["img_path"], results_df, image_stats
 
 
-def check_run_steps(
-    filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool
-) -> None:
+def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
     """Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
 
     This checks that earlier steps required are enabled.
@@ -852,44 +846,30 @@ def check_run_steps(
     """
     if dnatracing_run:
         if grainstats_run is False:
-            LOGGER.error(
-                "DNA tracing enabled but Grainstats disabled. Please check your configuration file."
-            )
+            LOGGER.error("DNA tracing enabled but Grainstats disabled. Please check your configuration file.")
         elif grains_run is False:
-            LOGGER.error(
-                "DNA tracing enabled but Grains disabled. Please check your configuration file."
-            )
+            LOGGER.error("DNA tracing enabled but Grains disabled. Please check your configuration file.")
         elif filter_run is False:
-            LOGGER.error(
-                "DNA tracing enabled but Filters disabled. Please check your configuration file."
-            )
+            LOGGER.error("DNA tracing enabled but Filters disabled. Please check your configuration file.")
         else:
             LOGGER.info("Configuration run options are consistent, processing can proceed.")
     elif grainstats_run:
         if grains_run is False:
-            LOGGER.error(
-                "Grainstats enabled but Grains disabled. Please check your configuration file."
-            )
+            LOGGER.error("Grainstats enabled but Grains disabled. Please check your configuration file.")
         elif filter_run is False:
-            LOGGER.error(
-                "Grainstats enabled but Filters disabled. Please check your configuration file."
-            )
+            LOGGER.error("Grainstats enabled but Filters disabled. Please check your configuration file.")
         else:
             LOGGER.info("Configuration run options are consistent, processing can proceed.")
     elif grains_run:
         if filter_run is False:
-            LOGGER.error(
-                "Grains enabled but Filters disabled. Please check your configuration file."
-            )
+            LOGGER.error("Grains enabled but Filters disabled. Please check your configuration file.")
         else:
             LOGGER.info("Configuration run options are consistent, processing can proceed.")
     else:
         LOGGER.info("Configuration run options are consistent, processing can proceed.")
 
 
-def completion_message(
-    config: Dict, img_files: List, summary_config: Dict, images_processed: int
-) -> None:
+def completion_message(config: Dict, img_files: List, summary_config: Dict, images_processed: int) -> None:
     """Print a completion message summarising images processed.
 
     Parameters
