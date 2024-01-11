@@ -2,6 +2,7 @@
 
 
 from pathlib import Path
+from typing import Tuple
 import logging
 
 import numpy as np
@@ -396,41 +397,57 @@ def calculate_vectors_and_angle(original_image, image_512, path, IMAGE_SAVE_DIR:
     #     f"Angle between vectors: {angle_between_vectors} radians, {angle_between_vectors_degrees} degrees"
     # )
 
-    # Plot the vectors
-    fig, axs = plt.subplots(1, 1, figsize=(20, 20))
-    axs.imshow(original_image, cmap=cmap, vmin=-4, vmax=8)
-    axs.scatter(path_start[1], path_start[0], c="red")
-    axs.scatter(path_end[1], path_end[0], c="blue")
-    axs.plot(path[1], path[0], linewidth=4, c="pink")
-    # Plot the average vectors
-    axs.plot(
-        [path_start[1], path_start[1] + start_vectors_mean[1]],
-        [path_start[0], path_start[0] + start_vectors_mean[0]],
-        linewidth=5,
-        c="red",
+    # # Plot the vectors
+    # fig, axs = plt.subplots(1, 1, figsize=(20, 20))
+    # axs.imshow(original_image, cmap=cmap, vmin=-4, vmax=8)
+    # axs.scatter(path_start[1], path_start[0], c="red")
+    # axs.scatter(path_end[1], path_end[0], c="blue")
+    # axs.plot(path[1], path[0], linewidth=4, c="pink")
+    # # Plot the average vectors
+    # axs.plot(
+    #     [path_start[1], path_start[1] + start_vectors_mean[1]],
+    #     [path_start[0], path_start[0] + start_vectors_mean[0]],
+    #     linewidth=5,
+    #     c="red",
+    # )
+    # axs.plot(
+    #     [path_end[1], path_end[1] + end_vectors_mean[1]],
+    #     [path_end[0], path_end[0] + end_vectors_mean[0]],
+    #     linewidth=5,
+    #     c="blue",
+    # )
+    # # Round the angle to 2 decimal places
+    # angle_between_vectors_degrees = np.round(angle_between_vectors_degrees, 2)
+    # axs.set_title("Path and Vectors, $\\alpha$ = " + str(angle_between_vectors_degrees))
+    # # Set title fond size
+    # axs.title.set_fontsize(50)
+
+    # # Remove ticks
+    # axs.set_xticks([])
+    # axs.set_yticks([])
+
+    # if image_index is not None:
+    #     plt.savefig(IMAGE_SAVE_DIR / f"path_and_vectors_{image_index}.png")
+    # else:
+    #     plt.show()
+
+    vector_visualisation_start_x = (path_start[1], path_start[1] + start_vectors_mean[1])
+    vector_visualisation_start_y = (path_start[0], path_start[0] + start_vectors_mean[0])
+    vector_visualisation_end_x = (path_end[1], path_end[1] + end_vectors_mean[1])
+    vector_visualisation_end_y = (path_end[0], path_end[0] + end_vectors_mean[0])
+
+    plotting_info = {
+        "path": path,
+        "vector_visualisation_start_x": vector_visualisation_start_x,
+        "vector_visualisation_start_y": vector_visualisation_start_y,
+        "vector_visualisation_end_x": vector_visualisation_end_x,
+        "vector_visualisation_end_y": vector_visualisation_end_y,
+    }
+
+    return (
+        angle_between_vectors_degrees,
+        plotting_info,
     )
-    axs.plot(
-        [path_end[1], path_end[1] + end_vectors_mean[1]],
-        [path_end[0], path_end[0] + end_vectors_mean[0]],
-        linewidth=5,
-        c="blue",
-    )
-    # Round the angle to 2 decimal places
-    angle_between_vectors_degrees = np.round(angle_between_vectors_degrees, 2)
-    axs.set_title("Path and Vectors, $\\alpha$ = " + str(angle_between_vectors_degrees))
-    # Set title fond size
-    axs.title.set_fontsize(50)
-
-    # Remove ticks
-    axs.set_xticks([])
-    axs.set_yticks([])
-
-    if image_index is not None:
-        plt.savefig(IMAGE_SAVE_DIR / f"path_and_vectors_{image_index}.png")
-    else:
-        plt.show()
-
-    return angle_between_vectors_degrees
 
 
 def find_angle(
@@ -462,9 +479,11 @@ def find_angle(
     path_image, path = find_path(image, centroid_1, centroid_2, final_weighting)
 
     # Calculate the angle
-    angle = calculate_vectors_and_angle(original_image, image, path, IMAGE_SAVE_DIR, image_index=image_index)
+    angle, plotting_info = calculate_vectors_and_angle(
+        original_image, image, path, IMAGE_SAVE_DIR, image_index=image_index
+    )
 
-    return angle
+    return angle, plotting_info
 
 
 def predict_unet(
@@ -541,7 +560,7 @@ def predict_unet_multiclass_and_get_angle(
     filename: str,
     IMAGE_SAVE_DIR: Path,
     image_index: int,
-) -> np.ndarray:
+) -> Tuple[np.ndarray, float]:
     """Predict cats segmentation from a flattened image."""
 
     # Make a copy of the original image
@@ -589,17 +608,23 @@ def predict_unet_multiclass_and_get_angle(
     combined_predicted_mask[predicted_ring_mask] = 1
 
     # Do all the processing for finding the angle
-    angle = find_angle(original_image_512, image, combined_predicted_mask, IMAGE_SAVE_DIR, image_index=image_index)
+    angle, plotting_info = find_angle(
+        original_image_512, image, combined_predicted_mask, IMAGE_SAVE_DIR, image_index=image_index
+    )
 
     # Use the ring mask as the predicted mask
-    predicted_mask = combined_predicted_mask == 1
+    # predicted_mask = combined_predicted_mask == 1
 
     # Resize the predicted mask back to the original image size
-    predicted_mask = Image.fromarray(predicted_mask)
-    predicted_mask = predicted_mask.resize(original_image.shape)
-    predicted_mask = np.array(predicted_mask)
+    # predicted_mask = Image.fromarray(predicted_mask)
+    # predicted_mask = predicted_mask.resize(original_image.shape)
+    # predicted_mask = np.array(predicted_mask)
 
-    return predicted_mask, angle
+    combined_predicted_mask = Image.fromarray(combined_predicted_mask)
+    combined_predicted_mask = combined_predicted_mask.resize(original_image.shape)
+    combined_predicted_mask = np.array(combined_predicted_mask)
+
+    return combined_predicted_mask, angle, plotting_info
 
 
 if __name__ == "__main__":
