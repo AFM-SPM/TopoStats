@@ -22,6 +22,10 @@ from topostats.grain_finding_haribo_unet import (
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
 from topostats.utils import _get_mask, get_thresholds
+from topostats.plottingfuncs import Colormap
+
+colormap = Colormap()
+cmap = colormap.get_cmap()
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -312,9 +316,7 @@ class Grains:
             absolute=self.threshold_absolute,
         )
         for direction in self.direction:
-            LOGGER.info(
-                f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})"
-            )
+            LOGGER.info(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
             self.directions[direction] = {}
             self.directions[direction]["mask_grains"] = _get_mask(
                 self.image,
@@ -331,9 +333,7 @@ class Grains:
                     self.directions[direction]["labelled_regions_01"]
                 )
             else:
-                self.directions[direction]["tidied_border"] = self.directions[direction][
-                    "labelled_regions_01"
-                ]
+                self.directions[direction]["tidied_border"] = self.directions[direction]["labelled_regions_01"]
 
             LOGGER.info(f"[{self.filename}] : Removing noise ({direction})")
             self.directions[direction]["removed_noise"] = self.area_thresholding(
@@ -375,7 +375,7 @@ class Grains:
             IMAGE_SAVE_DIR = Path(self.data_save_dir / "angle_data/" / self.filename)
             IMAGE_SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
-            sample_type = "dna_only"
+            sample_type = "dna_protein"
             LOGGER.info(f"SAMPLE TYPE: {sample_type}")
 
             if sample_type == "dna_only":
@@ -461,9 +461,7 @@ class Grains:
                     )
 
                     # Get the image of just the region
-                    region_image = self.image[
-                        bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]
-                    ]
+                    region_image = self.image[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]]
 
                     LOGGER.info(f"Region image shape: {region_image.shape}")
 
@@ -492,18 +490,14 @@ class Grains:
                     LOGGER.info(f"bbox 3 - 1: {bounding_box[3] - bounding_box[1]}")
 
                     # Add the predicted mask to the overall mask
-                    unet_mask[
-                        bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]
-                    ] = np.logical_or(
-                        unet_mask[
-                            bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]
-                        ],
+                    unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]] = np.logical_or(
+                        unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]],
                         predicted_mask,
                     )
 
-                    self.directions[direction]["removed_small_objects"] = unet_mask
-                    unet_labelled_regions = self.label_regions(unet_mask)
-                    self.directions[direction]["labelled_regions_02"] = unet_labelled_regions
+                self.directions[direction]["removed_small_objects"] = unet_mask
+                unet_labelled_regions = self.label_regions(unet_mask)
+                self.directions[direction]["labelled_regions_02"] = unet_labelled_regions
 
             elif sample_type == "dna_protein":
                 # Get the path to a file in the topostats package
@@ -523,6 +517,23 @@ class Grains:
                         f"Unet predicting mask for grain {grain_number} of {len(self.region_properties[direction])}"
                     )
 
+                    # Ensure that a proportion of the grain is high enough to be protein
+                    protein_threshold = 3.0
+                    percentage_protein_required = 0.1
+                    coordinates = region.coords
+                    # Get the height values for the coordinates
+                    heights = self.image[coordinates[:, 0], coordinates[:, 1]]
+                    # Get the number of heights above the protein threshold
+                    number_of_protein_heights = np.sum(heights > protein_threshold)
+                    # Get the percentage of heights above the protein threshold
+                    percentage_of_protein_heights = number_of_protein_heights / len(heights)
+                    # Check if the percentage of heights above the protein threshold is greater than the required
+                    # percentage
+                    if percentage_of_protein_heights < percentage_protein_required:
+                        # If not, skip this grain
+                        LOGGER.info(f"Not enough protein detected. Skipping grain {grain_number}")
+                        continue
+
                     # Get the bounding box for the region
                     bounding_box = np.array(region.bbox)
 
@@ -535,19 +546,20 @@ class Grains:
                     width = bounding_box[3] - bounding_box[1]
                     height = bounding_box[2] - bounding_box[0]
 
-                    # Pad the bounding box by 20% if it fits within the image
-                    if bounding_box[0] - (height * 0.2) >= 0:
+                    # Pad the bounding box by a percentage if it fits within the image
+                    padding_percentage = 0.1
+                    if bounding_box[0] - (height * padding_percentage) >= 0:
                         # Expand up
-                        bounding_box[0] -= height * 0.2
-                    if bounding_box[1] - (width * 0.2) >= 0:
+                        bounding_box[0] -= height * padding_percentage
+                    if bounding_box[1] - (width * padding_percentage) >= 0:
                         # Expand left
-                        bounding_box[1] -= width * 0.2
-                    if bounding_box[2] + (height * 0.2) <= self.image.shape[0]:
+                        bounding_box[1] -= width * padding_percentage
+                    if bounding_box[2] + (height * padding_percentage) <= self.image.shape[0]:
                         # Expand down
-                        bounding_box[2] += height * 0.2
-                    if bounding_box[3] + (width * 0.2) <= self.image.shape[1]:
+                        bounding_box[2] += height * padding_percentage
+                    if bounding_box[3] + (width * padding_percentage) <= self.image.shape[1]:
                         # Expand right
-                        bounding_box[3] += width * 0.2
+                        bounding_box[3] += width * padding_percentage
 
                     width = bounding_box[3] - bounding_box[1]
                     height = bounding_box[2] - bounding_box[0]
@@ -590,15 +602,17 @@ class Grains:
                     )
 
                     # Get the image of just the region
-                    region_image = self.image[
-                        bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]
-                    ]
+                    region_image = self.image[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]]
 
                     LOGGER.info(f"Region image shape: {region_image.shape}")
 
                     # Run the UNet on the region
                     try:
-                        predicted_mask, angle = predict_unet_multiclass_and_get_angle(
+                        (
+                            combined_predicted_mask,
+                            angle,
+                            plotting_info,
+                        ) = predict_unet_multiclass_and_get_angle(
                             image=region_image,
                             model=model,
                             confidence=0.5,
@@ -612,42 +626,90 @@ class Grains:
                         # Check if "found array witn 0 sample(s)" in error message
                         if "Found array with 0 sample(s)" in str(e):
                             # If so, skip this grain
+                            LOGGER.info(f"Angle calculation failed: k means 0 samples. Skipping grain {grain_number}")
+                            continue
+                        elif "KMEANS" in str(e):
                             LOGGER.info(
-                                f"Angle calculation failed: k means 0 samples. Skipping grain {grain_number}"
+                                f"Angle calculation failed: k means (too few touching coordinates). Skipping grain {grain_number}"
                             )
                             continue
                         else:
                             raise e
 
+                    # Ignore grains where the gem and ring masks are too small
+                    gem_min_size = 100
+                    ring_min_size = 200
+                    num_gem_pixels = np.sum(combined_predicted_mask == 2)
+                    num_ring_pixels = np.sum(combined_predicted_mask == 1)
+                    if num_gem_pixels < gem_min_size:
+                        LOGGER.info(f"Gem mask too small: {num_gem_pixels}. Skipping grain {grain_number}")
+                        continue
+                    if num_ring_pixels < ring_min_size:
+                        LOGGER.info(f"Ring mask too small: {num_ring_pixels}. Skipping grain {grain_number}")
+                        continue
+
+                    # Plot the angle visualisation
+                    path = plotting_info["path"]
+                    vector_visualisation_start_x = plotting_info["vector_visualisation_start_x"]
+                    vector_visualisation_start_y = plotting_info["vector_visualisation_start_y"]
+                    vector_visualisation_end_x = plotting_info["vector_visualisation_end_x"]
+                    vector_visualisation_end_y = plotting_info["vector_visualisation_end_y"]
+
+                    # Plot the vectors
+                    fig, axs = plt.subplots(1, 1, figsize=(20, 20))
+                    axs.imshow(region_image, cmap=cmap, vmin=-4, vmax=8)
+                    axs.scatter(vector_visualisation_start_x[0], vector_visualisation_start_y[0], c="red")
+                    axs.scatter(vector_visualisation_end_x[1], vector_visualisation_end_y[1], c="blue")
+                    axs.plot(path[1], path[0], linewidth=4, c="pink")
+                    # Plot the average vectors
+                    axs.plot(
+                        [vector_visualisation_start_x[0], vector_visualisation_start_x[1]],
+                        [vector_visualisation_start_y[0], vector_visualisation_start_y[1]],
+                        linewidth=5,
+                        c="red",
+                    )
+                    axs.plot(
+                        [vector_visualisation_end_x[0], vector_visualisation_end_x[1]],
+                        [vector_visualisation_end_y[0], vector_visualisation_end_y[1]],
+                        linewidth=5,
+                        c="blue",
+                    )
+                    # Round the angle to 2 decimal places
+                    angle_between_vectors_degrees = np.round(angle, 2)
+                    axs.set_title("Path and Vectors, $\\alpha$ = " + str(angle_between_vectors_degrees))
+                    # Set title fond size
+                    axs.title.set_fontsize(50)
+
+                    # Remove ticks
+                    axs.set_xticks([])
+                    axs.set_yticks([])
+
+                    plt.savefig(IMAGE_SAVE_DIR / f"path_and_vectors_{grain_number}.png")
+
                     angles.append(angle)
 
-                    LOGGER.info(f"Predicted mask shape: {predicted_mask.shape}")
+                    LOGGER.info(f"Combined predicted mask shape: {combined_predicted_mask.shape}")
 
                     # Plot region image and predicted mask
-                    # fig, ax = plt.subplots(1, 2, figsize=(20, 7))
-                    # ax[0].imshow(region_image)
-                    # ax[0].set_title("region image")
-                    # ax[1].imshow(predicted_mask)
-                    # ax[1].set_title("predicted mask")
-                    # fig.tight_layout()
-                    # plt.savefig(f"{self.filename}_grain_{grain_number}_predicted_mask.png")
+                    fig, ax = plt.subplots(1, 2, figsize=(20, 7))
+                    ax[0].imshow(region_image)
+                    ax[0].set_title("region image")
+                    ax[1].imshow(combined_predicted_mask)
+                    ax[1].set_title("predicted mask")
+                    fig.tight_layout()
+                    plt.savefig(f"{self.filename}_grain_{grain_number}_predicted_mask.png")
 
                     LOGGER.info(f"bbox 2 - 0: {bounding_box[2] - bounding_box[0]}")
                     LOGGER.info(f"bbox 3 - 1: {bounding_box[3] - bounding_box[1]}")
 
+                    predicted_ring_mask = combined_predicted_mask == 1
+
                     # Add the predicted mask to the overall mask
-                    unet_mask[
-                        bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]
-                    ] = np.logical_or(
-                        unet_mask[
-                            bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]
-                        ],
-                        predicted_mask,
+                    unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]] = np.logical_or(
+                        unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]],
+                        predicted_ring_mask,
                     )
 
-                    self.directions[direction]["removed_small_objects"] = unet_mask
-                    unet_labelled_regions = self.label_regions(unet_mask)
-                    self.directions[direction]["labelled_regions_02"] = unet_labelled_regions
-
-                # Save the angles
-                np.save(IMAGE_SAVE_DIR / "angles.npy", np.array(angles))
+                self.directions[direction]["removed_small_objects"] = unet_mask
+                unet_labelled_regions = self.label_regions(unet_mask)
+                self.directions[direction]["labelled_regions_02"] = unet_labelled_regions
