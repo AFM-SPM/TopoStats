@@ -2,6 +2,7 @@
 
 from keras.models import Model
 from keras.optimizers import SGD, Adam
+from keras import backend as K
 from keras.metrics import MeanIoU
 from keras.layers import (
     Input,
@@ -17,7 +18,20 @@ from keras.layers import (
 import tensorflow as tf
 
 # Get IoU metric
-iou_loss = tf.keras.metrics.MeanIoU(num_classes=2)
+# iou_loss = tf.keras.metrics.MeanIoU(num_classes=2)
+
+
+def iou(y_true, y_pred):
+    """Calculate the intersection over union loss."""
+    y_true_flat = K.flatten(y_true)
+    y_pred_flat = K.flatten(y_pred)
+    intersection = K.sum(y_true_flat * y_pred_flat)
+    return (intersection + 1.0) / (K.sum(y_true_flat) + K.sum(y_pred_flat) - intersection + 1.0)
+
+
+def iou_loss(y_true, y_pred):
+    """Calculate the intersection over union loss."""
+    return -iou(y_true, y_pred)
 
 
 def unet_model(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS, learning_rate: float = 0.01):
@@ -98,12 +112,15 @@ def unet_model(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS, learning_rate: float = 0.01)
     # model.compile(optimizer=sgd, loss="binary_crossentropy", metrics=["accuracy"])
 
     optimiser = Adam(learning_rate)
-    model.compile(optimizer=optimiser, loss="binary_crossentropy", metrics=["accuracy"])
+    # model.compile(optimizer=optimiser, loss="binary_crossentropy", metrics=["accuracy"])
     # model.compile(
     #     optimizer=optimiser,
     #     loss="binary_crossentropy",
     #     metrics=[MeanIoU(num_classes=2), "accuracy"],
     # )
+
+    # IOU
+    model.compile(optimizer=optimiser, loss=iou_loss, metrics=[iou, "accuracy"])
 
     model.summary()
 
