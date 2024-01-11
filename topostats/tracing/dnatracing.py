@@ -141,6 +141,128 @@ def calculate_curvature_periodic_boundary(x_points, y_points, error=0.1, periods
     )
 
 
+def turn_path_into_pixel_map(array: np.ndarray):
+    # Convert the spline to a pixelated trace 1 pixel thick
+
+    # Create a map of pixels
+    pixel_map = np.zeros((int(np.max(array) + 1), int(np.max(array) + 1)), dtype=int)
+    pixelated_path = np.empty((0, 2), dtype=int)
+
+    def check_is_touching(coordinate, original_coordinate):
+        if (
+            np.abs(coordinate[0] - original_coordinate[0]) <= 1
+            and np.abs(coordinate[1] - original_coordinate[1]) <= 1
+        ):
+            return True
+        else:
+            return False
+
+    # Convert the array to integers and remove duplicates
+    integer_array = np.array(array, dtype=int)
+    removed_duplicates = []
+    for index in range(len(integer_array)):
+        coordinate = integer_array[index]
+        if index > 0:
+            if np.array_equal(coordinate, integer_array[index - 1]):
+                # print(f"coordinate {coordinate} is a repeat of {integer_array[index - 1]}, skipping")
+                continue
+
+        removed_duplicates.append(coordinate)
+    integer_array = np.array(removed_duplicates)
+
+    last_coordinate = None
+    for index in range(len(integer_array)):
+        coordinate = integer_array[index]
+
+        # If the coordinate is a repeat, skip it
+        if index > 0:
+            if np.array_equal(coordinate, integer_array[index - 1]):
+                # print(
+                #     f"coordinate {coordinate} is a repeat of {integer_array[index - 1]}, skipping"
+                # )
+                continue
+
+        # print(f"coordinate: {coordinate}")
+        if index == 0:
+            pixel_map[coordinate[0], coordinate[1]] = 1
+            last_coordinate = coordinate
+        elif index == len(integer_array) - 1:
+            pixel_map[coordinate[0], coordinate[1]] = 1
+            last_coordinate = coordinate
+            break
+        else:
+            # Check if the coordinate after this one is touching the coordinate before this one
+            # and if so, skip this pixel
+            if check_is_touching(integer_array[index + 1], last_coordinate):
+                # print(f"coordinate {integer_array[index + 1]} is touching {last_coordinate}")
+                continue
+            else:
+                # print(
+                #     f"coordinate {integer_array[index+1]} is not touching {integer_array[index - 1]}. Adding to map"
+                # )
+
+                # Add the coordinate to the pixel map and the pixelated path
+                pixel_map[int(coordinate[0]), int(coordinate[1])] = 1
+                pixelated_path = np.vstack((pixelated_path, coordinate.reshape(1, 2)))
+                last_coordinate = coordinate
+
+    return pixel_map, pixelated_path
+
+
+def defect_stats(height_trace: np.ndarray, threshold: float):
+    regions = []
+    in_region = False
+    # Find the largest continuous region below the threshold
+    for index, value in enumerate(height_trace):
+        if value < threshold:
+            # print(f"index {index} is below threshold: {height_trace[index]}")
+            if not in_region:
+                # Start region
+                region_start = index
+                area = 0
+                deepest_point = value
+                deepest_point_index = index
+                in_region = True
+            else:
+                # print(f"value {height_trace[index]} is below threshold {threshold} by {threshold - height_trace[index]}")
+                area += threshold - value
+                if value < deepest_point:
+                    deepest_point = value
+                    deepest_point_index = index
+        elif in_region:
+            regions.append(
+                {
+                    "start": region_start,
+                    "end": index,
+                    "area": area,
+                    "deepest_point_index": deepest_point_index,
+                    "defect_threshold": threshold,
+                }
+            )
+            in_region = False
+
+    # Number of defects
+    number_of_defects = len(regions)
+
+    # Find the largest region
+    largest_region_below_threshold = None
+    largest_area = 0
+    for region in regions:
+        if region["area"] > largest_area:
+            largest_area = region["area"]
+            largest_region_below_threshold = region
+
+    return {
+        "defect_number": number_of_defects,
+        "defect_largest_region": largest_region_below_threshold,
+        "defect_regions": regions,
+    }
+
+
+def curvature_stats(curvatures: np.ndarray, threshold: float):
+    return None
+
+
 class dnaTrace:
     """
     This class gets all the useful functions from the old tracing code and staples
@@ -174,6 +296,7 @@ class dnaTrace:
         convert_nm_to_m: bool = True,
         skeletonisation_method: str = "topostats",
         n_grain: int = None,
+        defect_threshold: float = 1.8e-9,
     ):
         """Initialise the class.
 
@@ -228,6 +351,14 @@ class dnaTrace:
         self.curvature_splined_trace = None
         self.pixelated_splined_trace = None
 
+        # Defects
+        self.defect_threshold = defect_threshold
+        self.defect_stats = {
+            "defect_number": 0,
+            "defect_largest_region": None,
+            "defect_regions": None,
+        }
+
         # supresses scipy splining warnings
         warnings.filterwarnings("ignore")
 
@@ -268,37 +399,40 @@ class dnaTrace:
             # Get trace heights
             if self.curvature_splined_trace is not None:
                 # Round the splined trace to the nearest pixel to provide a pixelated version of the trace, removing any duplicates
-                self.pixelated_splined_trace = np.unique(
-                    np.round(self.curvature_splined_trace).astype(int), axis=0
-                )
+                # self.pixelated_splined_trace = np.unique(
+                #     np.round(self.curvature_splined_trace).astype(int), axis=0
+                # )
 
-                pixelated_splined_trace_image = np.zeros_like(self.image)
-                pixelated_splined_trace_image[
-                    self.pixelated_splined_trace[:, 0], self.pixelated_splined_trace[:, 1]
-                ] = 1
+                # pixelated_splined_trace_image = np.zeros_like(self.image)
+                # pixelated_splined_trace_image[
+                #     self.pixelated_splined_trace[:, 0], self.pixelated_splined_trace[:, 1]
+                # ] = 1
 
                 # Skeletonise it since there will be points that have too many neighbours
-                self.pixelated_splined_trace_image = skeletonize(
-                    pixelated_splined_trace_image
-                ).astype(np.int32)
+                # self.pixelated_splined_trace_image = skeletonize(pixelated_splined_trace_image).astype(np.int32)
 
                 # plt.imshow(self.pixelated_splined_trace_image)
                 # plt.show()
 
-                self.pixelated_splined_trace = np.argwhere(
-                    self.pixelated_splined_trace_image == True
+                # self.pixelated_splined_trace = np.argwhere(self.pixelated_splined_trace_image == True)
+
+                _, self.pixelated_splined_trace = turn_path_into_pixel_map(
+                    self.curvature_splined_trace
                 )
 
                 # print(f"shape pixelated trace {self.pixelated_splined_trace.shape}")
-                # print(f"@@@@@ PIXELATED TRACE {self.pixelated_splined_trace}")
+                # print(f"@@@@@ PIXELATED TRACE {self.pixelated_splined_trace[0:10]}")
 
                 self.trace_heights = []
-                for x, y in self.pixelated_splined_trace:
-                    self.trace_heights.append(self.image[x, y])
+                for coord in self.pixelated_splined_trace:
+                    self.trace_heights.append(self.image[coord[0], coord[1]])
 
                 # print(f"shape trace heights {np.array(self.trace_heights).shape}")
-                # print(f"@@@@ TRACE HEIGHTS {self.trace_heights}")
+                # print(f"@@@@ TRACE HEIGHTS {self.trace_heights[0:10]}")
                 # self.trace_heights = np.array(self.trace_heights)
+
+            # Get defect points
+            self.defect_stats = defect_stats(self.trace_heights, self.defect_threshold)
 
             self.measure_contour_length()
             self.measure_end_to_end_distance()
@@ -981,6 +1115,7 @@ def trace_image(
     skeletonisation_method: str,
     pad_width: int = 1,
     cores: int = 1,
+    defect_threshold: float = 1.8e-9,
 ) -> Dict:
     """Processor function for tracing image.
 
@@ -1030,6 +1165,8 @@ def trace_image(
     all_curvatures = {}
     all_curvature_splines = {}
     all_pixelated_splined_traces = {}
+    all_defect_regions = {}
+    all_defect_largest_regions = {}
     for cropped_image, cropped_mask in zip(cropped_images, cropped_masks):
         result = trace_grain(
             cropped_image,
@@ -1039,14 +1176,19 @@ def trace_image(
             min_skeleton_size,
             skeletonisation_method,
             n_grain,
+            defect_threshold,
         )
+        # Note: need to pop the arrays from the result dict as they should not go into the csv file.
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
         ordered_traces.append(result.pop("ordered_trace"))
         all_trace_heights[n_grain] = result.pop("trace_heights")
+        all_curvatures[n_grain] = result.pop("curvature")
+        all_curvature_splines[n_grain] = result.pop("curvature_splined_trace")
+        all_pixelated_splined_traces[n_grain] = result.pop("pixelated_splined_trace")
+        all_defect_regions[n_grain] = result.pop("defect_regions")
+        all_defect_largest_regions[n_grain] = result.pop("defect_largest_region")
+
         results[n_grain] = result
-        all_curvatures[n_grain] = result["curvature"]
-        all_curvature_splines[n_grain] = result["curvature_splined_trace"]
-        all_pixelated_splined_traces[n_grain] = result["pixelated_splined_trace"]
         n_grain += 1
     try:
         results = pd.DataFrame.from_dict(results, orient="index")
@@ -1064,6 +1206,9 @@ def trace_image(
         "curvatures": all_curvatures,
         "curvature_splines": all_curvature_splines,
         "pixelated_splined_traces": all_pixelated_splined_traces,
+        "all_defect_regions": all_defect_regions,
+        "all_defect_largest_regions": all_defect_largest_regions,
+        "defect_threshold": defect_threshold,
     }
 
 
@@ -1219,6 +1364,7 @@ def trace_grain(
     min_skeleton_size: int = 10,
     skeletonisation_method: str = "topostats",
     n_grain: int = None,
+    defect_threshold: float = 1.8e-9,
 ) -> Dict:
     """Trace an individual grain.
 
@@ -1264,6 +1410,7 @@ def trace_grain(
         min_skeleton_size=min_skeleton_size,
         skeletonisation_method=skeletonisation_method,
         n_grain=n_grain,
+        defect_threshold=defect_threshold,
     )
     dnatrace.trace_dna()
     return {
@@ -1276,6 +1423,9 @@ def trace_grain(
         "curvature_splined_trace": dnatrace.curvature_splined_trace,
         "curvature": dnatrace.curvature,
         "pixelated_splined_trace": dnatrace.pixelated_splined_trace,
+        "defect_regions": dnatrace.defect_stats["defect_regions"],
+        "defect_largest_region": dnatrace.defect_stats["defect_largest_region"],
+        "defect_number": dnatrace.defect_stats["defect_number"],
     }
 
 
