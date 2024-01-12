@@ -2,6 +2,7 @@
 
 Parses command-line arguments and passes input on to the relevant functions / modules.
 """
+
 import argparse as arg
 import sys
 
@@ -9,6 +10,8 @@ from topostats import __version__
 from topostats.io import write_config_with_comments
 from topostats.plotting import run_toposum
 from topostats.run_topostats import run_topostats
+
+# pylint: disable=too-many-statements
 
 
 def create_parser() -> arg.ArgumentParser:
@@ -29,8 +32,8 @@ def create_parser() -> arg.ArgumentParser:
     # Create a sub-parsers for different stages of processing and tasks
     process_parser = subparsers.add_parser(
         "process",
-        description="Process AFM images. Additional arguments over-ride those in the configuration file.",
-        help="Process AFM images. Additional arguments over-ride those in the configuration file.",
+        description="Process AFM images. Additional arguments over-ride defaults or those in the configuration file.",
+        help="Process AFM images. Additional arguments over-ride defaults or those in the configuration file.",
     )
     process_parser.add_argument(
         "-c",
@@ -106,6 +109,27 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Whether to save plots.",
     )
+    process_parser.add_argument(
+        "--savefig-format",
+        dest="savefig_format",
+        type=str,
+        required=False,
+        help="Format for saving figures to, options are 'png', 'svg', or other valid Matplotlib supported formats.",
+    )
+    process_parser.add_argument(
+        "--savefig-dpi",
+        dest="savefig_dpi",
+        type=int,
+        required=False,
+        help="Dots Per Inch for plots, should be integer for dots per inch.",
+    )
+    process_parser.add_argument(
+        "--cmap",
+        dest="cmap",
+        type=str,
+        required=False,
+        help="Colormap to use, options include 'nanoscope', 'afmhot' and any valid Matplotlib colormap.",
+    )
     process_parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
     process_parser.add_argument(
         "-w",
@@ -150,6 +174,13 @@ def create_parser() -> arg.ArgumentParser:
         type=str,
         required=False,
         help="Filename to write a sample YAML label file to (should end in '.yaml').",
+    )
+    toposum_parser.add_argument(
+        "--savefig-format",
+        dest="savefig_format",
+        type=str,
+        required=False,
+        help="Format for saving figures to, options are 'png', 'svg', or other valid Matplotlib supported formats.",
     )
     toposum_parser.set_defaults(func=run_toposum)
 

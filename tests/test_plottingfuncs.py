@@ -1,4 +1,5 @@
 """Tests of plotting functions."""
+
 from pathlib import Path
 
 import matplotlib as mpl
@@ -282,7 +283,7 @@ def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/", savefig_kwargs={"dpi": DPI})
 def test_high_dpi(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting with high DPI."""
-    plotting_config["dpi"] = DPI
+    plotting_config["savefig_dpi"] = DPI
     fig, _ = Images(
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         output_dir=tmp_path,
