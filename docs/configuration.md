@@ -185,6 +185,8 @@ z_threshed:
   core_set: true
 ```
 
+Whilst it is possible to edit this file it is not recommended to do so.
+
 The following section describes how to override the DPI settings defined in this file and change the global `cmap`
 (colormap/colourmap) used in plotting and output format.
 
