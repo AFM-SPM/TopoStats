@@ -356,6 +356,7 @@ class Grains:
             self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
             LOGGER.info(f"[{self.filename}] : Extracted bounding boxes ({direction})")
 
+"""
             # For each detected molecule, create an image of just that molecule and run the UNet
             # on that image to segment it
             unet_mask = np.zeros_like(self.image)
@@ -406,7 +407,7 @@ class Grains:
                 # Run the UNet on the region
                 predicted_mask = predict_unet(
                     image=region_image,
-                    confidence=0.0001,
+                    confidence=0.0000001,
                     model_image_size=512,
                     image_output_dir=Path("./"),
                     filename=self.filename + f"_grain_{grain_number}",
@@ -420,8 +421,8 @@ class Grains:
 
                 self.directions[direction]["mask_grains"] = unet_mask
                 self.directions[direction]["labelled_regions_01"] = self.label_regions(
-                self.directions[direction]["mask_grains"]
-            )
+                    self.directions[direction]["mask_grains"]
+                )
             self.directions[direction]["tidied_border"] = self.tidy_border(
                 self.directions[direction]["labelled_regions_01"]
             )
@@ -452,3 +453,4 @@ class Grains:
             self.directions[direction]["coloured_regions"] = self.colour_regions(
                 self.directions[direction]["labelled_regions_02"]
             )
+"""

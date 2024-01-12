@@ -107,6 +107,7 @@ class dnaTrace:
         self.sigma = 2  # 0.7 / (self.pixel_to_nm_scaling * 1e9)
 
         self.gauss_image = gaussian(self.image, self.sigma)
+        np.savetxt(OUTPUT_DIR / "gauss_image", self.gauss_image)
         self.smoothed_grain = np.zeros_like(image)
         self.skeleton = np.zeros_like(image)
         self.pruned_skeleton = np.zeros_like(image)
@@ -128,6 +129,7 @@ class dnaTrace:
         self.end_to_end_distances = []
         self.mol_is_circulars = []
         self.curvatures = []
+        self.height_info = []
         self.num_mols = 1
 
         self.visuals = np.zeros_like(image)
@@ -169,6 +171,7 @@ class dnaTrace:
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} ordered via nodeStats.")
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} has {len(ordered_traces)} molecules.")
                 self.ordered_trace = ordered_traces
+                self.get_trace_heights()
             else:
                 LOGGER.info(
                     f"[{self.filename}] : Grain {self.n_grain} couldn't be traced due to errors in analysing the nodes."
@@ -396,6 +399,57 @@ class dnaTrace:
 
         elif not self.mol_is_circular:
             self.ordered_trace = reorderTrace.linearTrace(self.disordered_trace.tolist())
+
+    @staticmethod
+    def coord_dist(coords: np.ndarray, px_2_nm: float = 1) -> np.ndarray:
+        """Takes a list/array of coordinates (Nx2) and produces an array which
+        accumulates a real distance as if traversing from pixel to pixel.
+
+        Parameters
+        ----------
+        coords: np.ndarray
+            A Nx2 integer array corresponding to the ordered coordinates of a binary trace.
+        px_2_nm: float
+            The pixel to nanometer scaling factor.
+
+        Returns
+        -------
+        np.ndarray
+            An array of length N containing thcumulative sum of the distances.
+        """
+        dist_list = [0]
+        dist = 0
+        for i in range(len(coords) - 1):
+            if abs(coords[i] - coords[i + 1]).sum() == 2:
+                dist += 2**0.5
+            else:
+                dist += 1
+            dist_list.append(dist)
+        return np.asarray(dist_list) * px_2_nm
+
+    def get_trace_heights(self) -> None:
+        """Take ordered coorinates and return their heights."""
+
+        x_coords = [coord[0] for array in self.ordered_trace for coord in array]
+        y_coords = [coord[1] for array in self.ordered_trace for coord in array]
+        minX = min(x_coords)
+        maxX = max(x_coords)
+        minY = min(y_coords) 
+        maxY = max(y_coords)
+        print("Shape of gauss_image:", self.gauss_image.shape)
+        plt.clf()
+        plt.imshow(self.gauss_image[minX:maxX, minY:maxY], cmap='gray')  # Assuming grayscale image
+        #plt.scatter(y_coords, x_coords, c='red', marker='o')
+        plt.savefig(OUTPUT_DIR / 'output_figure.png')
+        # Access elements in the gauss_image array using integer indices
+        heights = self.gauss_image[x_coords, y_coords]
+        np.savetxt(OUTPUT_DIR / "trace.txt", np.concatenate(self.ordered_trace, axis=0))
+        distances = self.coord_dist(np.concatenate(self.ordered_trace, axis=0), self.pixel_to_nm_scaling)
+        len_vector_2d = heights.reshape(-1, 1)
+        distances_vector_2d = distances.reshape(-1, 1)
+        # Concatenate the vectors side by side along the second axis (axis=1)
+        self.height_info = np.concatenate((len_vector_2d, distances_vector_2d), axis=1)
+        np.savetxt(OUTPUT_DIR / "HEIGHTS.txt", self.height_info)
 
     def get_fitted_traces(self, ordered_trace, mol_is_circular):
         """Create trace coordinates (for each identified molecule) that are adjusted to lie
@@ -830,15 +884,15 @@ class dnaTrace:
         for num in range(len(points) - 1):
             x1, y1 = points[num]
             x2, y2 = points[num + 1]
-            
+
             try:
                 hypotenuse_array.append(np.hypot((x1 - x2), (y1 - y2)))
             except NameError:
                 hypotenuse_array = [np.hypot((x1 - x2), (y1 - y2))]
-        
+
         contour_length = np.sum(np.array(hypotenuse_array)) * pixel_to_nm_scaling
         return contour_length
-    
+
     def fragment_skeleton_and_calc_contour_length(self):
         import trace_skeleton
         import random
@@ -901,8 +955,6 @@ class dnaTrace:
                     contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
                     del hypotenuse_array
                     return contour_length
-                
-    
 
     def measure_end_to_end_distance(self, splined_trace, mol_is_circular):
         """Calculate the Euclidean distance between the start and end of linear molecules.
@@ -1113,7 +1165,7 @@ def trace_grain(
     dnatrace.trace_dna()
     results = {}
 
-    if dnatrace.num_mols == 0: # incase no mols could be traced
+    if dnatrace.num_mols == 0:  # incase no mols could be traced
         results[0] = {
             "image": dnatrace.filename,
             "grain_number": n_grain,
@@ -1880,7 +1932,7 @@ class nodeStats:
                     crossing_quants = []
                     for branch_idx, values in matched_branches.items():
                         crossing_quants.append(values["fwhm2"][0])
-                    if len(crossing_quants) == 1: # from 3 eminnating branches
+                    if len(crossing_quants) == 1:  # from 3 eminnating branches
                         conf = None
                     else:
                         combs = self.get_two_combinations(crossing_quants)

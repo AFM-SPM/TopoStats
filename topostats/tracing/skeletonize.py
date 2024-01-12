@@ -414,7 +414,11 @@ class joeSkeletonize:
             )
 
             # Checks for case 1 and 3 pixels
-            if self._binary_thin_check_b_returncount() == 2 and self._binary_final_thin_check_a() and not self.binary_thin_check_max():
+            if (
+                self._binary_thin_check_b_returncount() == 2
+                and self._binary_final_thin_check_a()
+                and not self.binary_thin_check_max()
+            ):
                 self.mask[x, y] = 0
             # Checks for case 2 pixels
             elif self._binary_thin_check_b_returncount() == 3 and self._binary_final_thin_check_b():
@@ -444,10 +448,10 @@ class joeSkeletonize:
             self.p6 * self.p8 * self.p2,
             self.p8 * self.p2 * self.p4,
         )
-    
+
     def binary_thin_check_max(self) -> bool:
         """Checks if opposite corner diagonals are present."""
-        return 1 in (self.p7*self.p3, self.p5*self.p9)
+        return 1 in (self.p7 * self.p3, self.p5 * self.p9)
 
     @staticmethod
     def get_local_pixels_binary(binary_map, x, y) -> np.ndarray:
