@@ -1,4 +1,5 @@
 """Plotting and summary of TopoStats output statistics."""
+
 from collections import defaultdict
 
 import importlib.resources as pkg_resources
@@ -43,7 +44,7 @@ class TopoSum:
         figsize: tuple = (16, 9),
         alpha: float = 0.5,
         palette: str = "deep",
-        file_ext: str = "png",
+        savefig_format: str = "png",
         output_dir: Union[str, Path] = ".",
         var_to_label: dict = None,
         hue: str = "basename",
@@ -105,7 +106,7 @@ class TopoSum:
         self.figsize = figsize
         self.alpha = alpha
         self.palette = palette
-        self.file_ext = file_ext
+        self.savefig_format = savefig_format
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.var_to_label = var_to_label
@@ -264,9 +265,10 @@ for KDE plot being the same. KDE plots cannot be made as there is no variance, s
         outfile: str
             Output file name to save figure to.
         """
-        plt.savefig(self.output_dir / f"{outfile}.{self.file_ext}")
+        plt.savefig(self.output_dir / f"{outfile}.{self.savefig_format}")
         LOGGER.info(
-            f"[plotting] Plotted {self.stat_to_sum} to : " f"{str(self.output_dir / f'{outfile}.{self.file_ext}')}"
+            f"[plotting] Plotted {self.stat_to_sum} to : "
+            f"{str(self.output_dir / f'{outfile}.{self.savefig_format}')}"
         )
 
     def _set_label(self, var: str):

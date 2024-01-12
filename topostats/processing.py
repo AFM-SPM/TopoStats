@@ -1,4 +1,5 @@
 """Functions for processing data."""
+
 from __future__ import annotations
 
 from collections import defaultdict
@@ -718,9 +719,12 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
         f"  File Extension              : {config['file_ext']}\n"
         f"  Files Found                 : {len(img_files)}\n"
         f"  Successfully Processed^1    : {images_processed} ({(images_processed * 100) / len(img_files)}%)\n"
-        f"  Configuration               : {config['output_dir']}/config.yaml\n"
         f"  All statistics              : {str(config['output_dir'])}/all_statistics.csv\n"
         f"  Distribution Plots          : {distribution_plots_message}\n\n"
+        f"  Configuration               : {config['output_dir']}/config.yaml\n"
+        f"      DPI                     : {config['plotting']['savefig_dpi']}\n"
+        f"      Output image format     : {config['plotting']['savefig_format']}\n"
+        f"      Colormap                : {config['plotting']['cmap']}\n\n"
         f"  Email                       : topostats@sheffield.ac.uk\n"
         f"  Documentation               : https://afm-spm.github.io/topostats/\n"
         f"  Source Code                 : https://github.com/AFM-SPM/TopoStats/\n"
