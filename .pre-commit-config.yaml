@@ -7,11 +7,13 @@ repos:
       - id: check-merge-conflict
       - id: check-toml
       - id: check-yaml
+      - id: debug-statements
       - id: end-of-file-fixer
         types: [python]
       - id: fix-byte-order-marker
       - id: name-tests-test
         args: ["--pytest-test-first"]
+      - id: no-commit-to-branch # Protects main/master by default
       - id: requirements-txt-fixer
       - id: trailing-whitespace
         types: [python, yaml, markdown]
@@ -30,13 +32,13 @@ repos:
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.1.8
+    rev: v0.1.9
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, --show-fixes]
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.12.0
+    rev: 23.12.1
     hooks:
       - id: black
         types: [python]
@@ -57,7 +59,7 @@ repos:
       - id: codespell
 
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.1.0
+    rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
 
@@ -78,6 +80,6 @@ repos:
 ci:
   autofix_prs: true
   autofix_commit_msg: "[pre-commit.ci] Fixing issues with pre-commit"
-  autoupdate_schedule: weekly
+  autoupdate_schedule: monthly
   autoupdate_commit_msg: "[pre-commit.ci] pre-commit-autoupdate"
   skip: [pylint] # Optionally list ids of hooks to skip on CI

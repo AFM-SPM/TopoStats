@@ -237,6 +237,10 @@ lint.fixable = [
 ]
 lint.unfixable = []
 
+# Numpy2 deprecation checks
+lint.extend-select = ["NPY201"]
+preview = true
+
 [tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"
 

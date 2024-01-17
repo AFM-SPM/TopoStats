@@ -24,6 +24,9 @@ output/config.yaml
 *.csv
 *.spm
 
+# Notebook checkpoints
+notebooks/.ipynb_checkpoints/
+
 # Example Data
 !minicircle.spm
 
@@ -49,3 +52,6 @@ _build/
 
 # Ignore topostats/_version.py as per setuptools_scm
 topostats/_version.py
+
+# default output directory, often common from testing
+output/
