@@ -365,6 +365,7 @@ def test_load_scan_jpk(load_scan_jpk: LoadScans) -> None:
 
 
 def test_get_gwy_channel_by_name(load_scan_gwy: LoadScans) -> None:
+    """Test getting channel by name."""
     load_scan_gwy.img_path = load_scan_gwy.img_paths[0]
     load_scan_gwy.filename = load_scan_gwy.img_paths[0].stem
     load_scan_gwy.config["channel"] = "Height"
@@ -373,6 +374,7 @@ def test_get_gwy_channel_by_name(load_scan_gwy: LoadScans) -> None:
 
 
 def test_get_gwy_channel_by_unit(load_scan_gwy: LoadScans) -> None:
+    """Test getting channel by its unit (e.g. m)."""
     load_scan_gwy.img_path = load_scan_gwy.img_paths[0]
     load_scan_gwy.filename = load_scan_gwy.img_paths[0].stem
     load_scan_gwy.config["channel"] = "dummy"
@@ -404,6 +406,23 @@ def test_load_scan_gwy_nonsquare(load_scan_gwy_nonsquare: LoadScans) -> None:
     # conventional parameter, px_to_nm_scaling
     expected_scaling_x = 1000.0 / 220.0
     assert abs(px_to_nm_scaling - expected_scaling_x) < 1e-10
+
+
+def test_gwy_process_z_values(load_scan_gwy: LoadScans) -> None:
+    """Test Z-data handling with units."""
+    z = np.ones((3, 3))
+    z = load_scan_gwy.gwy_process_z_values(z, "um")
+    assert load_scan_gwy.config["scale"]["z_value_to_nm_scaling"] == 1000
+    assert z[1][1] == 1000  # um value in nm
+
+
+def test_gwy_process_xy_values(load_scan_gwy: LoadScans) -> None:
+    """Test XY-data handling with units."""
+    load_scan_gwy.gwy_process_xy_values("um", 3.0, 1.5, 300, 300)
+    assert load_scan_gwy.config["scale"]["x_real_nm"] == 3000
+    assert load_scan_gwy.config["scale"]["y_real_nm"] == 1500
+    assert load_scan_gwy.config["scale"]["x_pixel_to_nm_scaling"] == 10
+    assert load_scan_gwy.config["scale"]["y_pixel_to_nm_scaling"] == 5
 
 
 def test_load_scan_asd_file_not_found() -> None:

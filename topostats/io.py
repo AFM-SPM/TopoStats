@@ -843,7 +843,7 @@ class LoadScans:
         LoadScans._gwy_print_dict(gwy_file_dict=gwy_file_dict, pre_string=pre_string)
 
     def _get_gwy_channel_by_name(self, name: str, image_data_dict: dict) -> dict:
-        """Get data_dict having title of the specified name
+        """Get data_dict having title of the specified name.
 
         Returns
         -------
@@ -863,7 +863,7 @@ class LoadScans:
         return None
 
     def _get_gwy_channel_by_unit(self, unit: str, image_data_dict: dict) -> dict:
-        """Get data_dict having unit of the specified unit (m, V, deg)
+        """Get data_dict having unit of the specified unit (m, V, deg).
 
         Returns
         -------
@@ -914,58 +914,84 @@ class LoadScans:
                 channel_dict = self._get_gwy_channel_by_unit(unit, image_data_dict)
                 if channel_dict is None:
                     raise ValueError("Image channel of topography was not found in the .gwy file.")
-                else:
-                    LOGGER.info(f"DataField was found by unit {unit}.")
+                LOGGER.info(f"DataField was found by unit {unit}.")
             else:
                 LOGGER.info(f"DataField {name} was found by name.")
 
-            # Scaling dict and image data (nd.array)
-            # self.config["all_dict"] = image_data_dict  # for debug
-            scale_dict = self.config["scale"]
             image = channel_dict["data"]
-            (xres, yres) = (image.shape[1], image.shape[0])
 
-            # Z-value handling by multiplying ndarray.
+            # Scaling Z data (np.ndarray) and units handling
             unit_z = channel_dict["si_unit_z"]["unitstr"]
+            image = self.gwy_process_z_values(image, unit_z)
+
+            # XY shape and units handling
             unit_xy = channel_dict["si_unit_xy"]["unitstr"]
-            if unit_z not in scale_dict["factor_to_nm"]:
-                raise ValueError(
-                    f"Units for Z'{unit_z}' have not been added in configuration file. \
-                        an SI to nanometre conversion factor for these units configuration YAML."
-                )
-
-            factor_z = scale_dict["factor_to_nm"][unit_z]
-            scale_dict["original_z_unit"] = unit_z
-            scale_dict["z_value_to_nm_scaling"] = factor_z
-            image = image * factor_z
-            LOGGER.info(f"DataField {unit_z} was multiplied by z-factor: {factor_z}")
-
-            # XY-values handling
-            if unit_xy not in scale_dict["factor_to_nm"]:
-                raise ValueError(
-                    f"Units for XY'{unit_xy}' have not been added in configuration file. \
-                        an SI to nanometre conversion factor for these units configuration YAML."
-                )
-            factor_xy = scale_dict["factor_to_nm"][unit_xy]
-            scale_dict["original_xy_unit"] = unit_xy
-            (xreal_nm, yreal_nm) = (
-                channel_dict["xreal"] * factor_xy,
-                channel_dict["yreal"] * factor_xy,
-            )  # original xy size in nm
-            (xscale, yscale) = (xreal_nm / xres, yreal_nm / yres)  # scaling factor of xy from pixel to nm
-            scale_dict["x_real_nm"] = xreal_nm
-            scale_dict["y_real_nm"] = yreal_nm
-            scale_dict["x_pixel_to_nm_scaling"] = xscale
-            scale_dict["y_pixel_to_nm_scaling"] = yscale
-            scale_dict["xy_aspect"] = yreal_nm / xreal_nm  # aspect ratio of original image
-            LOGGER.info(f"XY pixels: ({xres},{yres})")
-            LOGGER.info(f"XY physical scale: ({xreal_nm:.2e} nm,{yreal_nm:.2e} nm)")
+            xres, yres = image.shape[1], image.shape[0]
+            xreal, yreal = channel_dict["xreal"], channel_dict["yreal"]
+            self.gwy_process_xy_values(unit_xy, xreal, yreal, xres, yres)
 
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
             raise
 
-        return (image, scale_dict["x_pixel_to_nm_scaling"])
+        return (image, self.config["scale"]["x_pixel_to_nm_scaling"])
+
+    def gwy_process_z_values(self, image, unit_z) -> dict:
+        """Handle z value and unit.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            Z-data to be scaled
+        unit_z: str
+            unit for z of the gwyddion channel
+
+        Returns
+        -------
+        np.ndarray
+            Scaled Z data
+        """
+        scale_dict = self.config["scale"]
+        if unit_z not in scale_dict["factor_to_nm"]:
+            raise ValueError(f"Units for Z'{unit_z}' have not been added in the configuration file.")
+
+        factor_z = scale_dict["factor_to_nm"][unit_z]
+        scale_dict["original_z_unit"] = unit_z
+        scale_dict["z_value_to_nm_scaling"] = factor_z
+        image = image * factor_z
+        LOGGER.info(f"DataField {unit_z} was multiplied by z-factor: {factor_z}")
+        return image
+
+    def gwy_process_xy_values(self, unit_xy, xreal, yreal, xres, yres) -> None:
+        """Handle XY geometry and unit.
+
+        Parameters
+        ----------
+        unit_xy: str
+            Unit for xy of the gwyddion channel
+        xreal, yreal
+            Physical size of image in unit of unit_xy
+        xres, yres
+            Pixel count for x, y axes
+        """
+        scale_dict = self.config["scale"]
+        if unit_xy not in scale_dict["factor_to_nm"]:
+            raise ValueError(f"Units for XY'{unit_xy}' have not been added in the configuration file.")
+
+        factor_xy = scale_dict["factor_to_nm"][unit_xy]
+        scale_dict["original_xy_unit"] = unit_xy
+        xreal_nm, yreal_nm = xreal * factor_xy, yreal * factor_xy
+        xscale, yscale = xreal_nm / xres, yreal_nm / yres
+        scale_dict.update(
+            {
+                "x_real_nm": xreal_nm,
+                "y_real_nm": yreal_nm,
+                "x_pixel_to_nm_scaling": xscale,
+                "y_pixel_to_nm_scaling": yscale,
+                "xy_aspect": yreal_nm / xreal_nm,
+            }
+        )
+        LOGGER.info(f"XY pixels: ({xres},{yres}), XY physical scale: ({xreal_nm:.2e} nm,{yreal_nm:.2e} nm)")
 
     def get_data(self) -> None:
         """Extract image, filepath and pixel to nm scaling value, and append these to the img_dic object."""
