@@ -35,6 +35,16 @@ def test_GPU():
     LOGGER.info("============= GPU TEST DONE =============")
 
 
+def mean_iou(y_true, y_pred):
+    """Mean Intersection Over Union metric, ignoring the background class."""
+    y_true_f = tf.reshape(y_true[:, :, :, 1:], [-1])  # ignore background class
+    y_pred_f = tf.round(tf.reshape(y_pred[:, :, :, 1:], [-1]))  # ignore background class
+    intersect = tf.reduce_sum(y_true_f * y_pred_f)
+    union = tf.reduce_sum(y_true_f) + tf.reduce_sum(y_pred_f) - intersect
+    smooth = tf.ones(tf.shape(intersect))
+    return tf.reduce_mean((intersect + smooth) / (union - intersect + smooth))
+
+
 def normalise_image(image: np.ndarray) -> np.ndarray:
     """Normalise image"""
     image = image - np.min(image)
@@ -49,9 +59,9 @@ def detect_ridges(gray, sigma=1.0):
     return maxima_ridges, minima_ridges
 
 
-def load_model(model_path: Path):
+def load_model(model_path: Path, custom_objects=None):
     """Load a keras unet model"""
-    return tf.keras.models.load_model(model_path)
+    return tf.keras.models.load_model(model_path, custom_objects=custom_objects)
 
 
 def turn_small_gem_regions_into_ring(combined_predicted_mask: np.ndarray, image: np.ndarray):
@@ -565,10 +575,10 @@ def predict_unet_multiclass_and_get_angle(
 
     # Make a copy of the original image
     original_image = image.copy()
-    original_image_512 = original_image.copy()
-    original_image_512 = Image.fromarray(original_image_512)
-    original_image_512 = original_image_512.resize((512, 512))
-    original_image_512 = np.array(original_image_512)
+    original_image_resized = original_image.copy()
+    original_image_resized = Image.fromarray(original_image_resized)
+    original_image_resized = original_image_resized.resize((model_image_size, model_image_size))
+    original_image_resized = np.array(original_image_resized)
 
     # # Print summary
     # LOGGER.info(
@@ -589,8 +599,13 @@ def predict_unet_multiclass_and_get_angle(
 
     # Normalise the image
     LOGGER.info("normalising image")
-    image = image - np.min(image)
-    image = image / np.max(image)
+    # image = image - np.min(image)
+    # image = image / np.max(image)
+    LOWER_LIMIT = -1
+    UPPER_LIMIT = 8
+    image = np.clip(image, LOWER_LIMIT, UPPER_LIMIT)
+    image = image - LOWER_LIMIT
+    image = image / (UPPER_LIMIT - LOWER_LIMIT)
 
     # Predict the mask
     LOGGER.info("Running Unet & predicting mask")
@@ -609,7 +624,11 @@ def predict_unet_multiclass_and_get_angle(
 
     # Do all the processing for finding the angle
     angle, plotting_info = find_angle(
-        original_image_512, image, combined_predicted_mask, IMAGE_SAVE_DIR, image_index=image_index
+        original_image_resized,
+        image,
+        combined_predicted_mask,
+        IMAGE_SAVE_DIR,
+        image_index=image_index,
     )
 
     # Use the ring mask as the predicted mask
@@ -625,6 +644,74 @@ def predict_unet_multiclass_and_get_angle(
     combined_predicted_mask = np.array(combined_predicted_mask)
 
     return combined_predicted_mask, angle, plotting_info
+
+
+def predict_unet_multiclass(
+    image: np.ndarray,
+    model: tf.keras.models.Model,
+    confidence: float,
+    model_image_size: int,
+    image_output_dir: Path,
+    filename: str,
+    IMAGE_SAVE_DIR: Path,
+    image_index: int,
+) -> Tuple[np.ndarray, float]:
+    """Predict cats segmentation from a flattened image."""
+
+    # Make a copy of the original image
+    original_image = image.copy()
+    original_image_resized = original_image.copy()
+    original_image_resized = Image.fromarray(original_image_resized)
+    original_image_resized = original_image_resized.resize((model_image_size, model_image_size))
+    original_image_resized = np.array(original_image_resized)
+
+    # # Print summary
+    # LOGGER.info(
+    #     "===============================================================================\n\n"
+    # )
+    # model.summary()
+    # LOGGER.info(
+    #     "===============================================================================\n\n"
+    # )
+
+    # Run the model on a single image
+    print("Preprocessing image for Unet prediction...")
+
+    # Resize the image
+    image = Image.fromarray(image)
+    image = image.resize((model_image_size, model_image_size))
+    image = np.array(image)
+
+    # Normalise the image
+    print("normalising image")
+    # image = image - np.min(image)
+    # image = image / np.max(image)
+    LOWER_LIMIT = -1
+    UPPER_LIMIT = 8
+    image = np.clip(image, LOWER_LIMIT, UPPER_LIMIT)
+    image = image - LOWER_LIMIT
+    image = image / (UPPER_LIMIT - LOWER_LIMIT)
+
+    # Predict the mask
+    print("Running Unet & predicting mask")
+    prediction = model.predict(np.expand_dims(image, axis=0))[0]
+    print("Unet finished, predicted mask. saving...")
+
+    # Remove the batch dimension
+    # Gem
+    predicted_gem_mask = prediction[:, :, 2] > confidence
+    predicted_ring_mask = prediction[:, :, 1] > confidence
+    predicted_background_mask = prediction[:, :, 0] > confidence
+
+    combined_predicted_mask = np.zeros_like(predicted_gem_mask).astype(np.uint8)
+    combined_predicted_mask[predicted_gem_mask] = 2
+    combined_predicted_mask[predicted_ring_mask] = 1
+
+    combined_predicted_mask = Image.fromarray(combined_predicted_mask)
+    combined_predicted_mask = combined_predicted_mask.resize(original_image.shape)
+    combined_predicted_mask = np.array(combined_predicted_mask)
+
+    return combined_predicted_mask
 
 
 if __name__ == "__main__":
