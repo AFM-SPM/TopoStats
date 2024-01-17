@@ -1,4 +1,5 @@
 name: Publish package to PyPi
+# See https://docs.pypi.org/trusted-publishers/adding-a-publisher/
 
 on:
   push:
@@ -9,6 +10,7 @@ on:
 jobs:
   build-release:
     runs-on: ubuntu-latest
+    environment: pypi-publish
     name: Publish package to PyPi
     steps:
       - uses: actions/checkout@v4
