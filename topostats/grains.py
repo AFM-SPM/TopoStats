@@ -18,6 +18,7 @@ from topostats.grain_finding_haribo_unet import (
     predict_unet,
     load_model,
     predict_unet_multiclass_and_get_angle,
+    mean_iou,
 )
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
@@ -316,7 +317,9 @@ class Grains:
             absolute=self.threshold_absolute,
         )
         for direction in self.direction:
-            LOGGER.info(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
+            LOGGER.info(
+                f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})"
+            )
             self.directions[direction] = {}
             self.directions[direction]["mask_grains"] = _get_mask(
                 self.image,
@@ -333,7 +336,9 @@ class Grains:
                     self.directions[direction]["labelled_regions_01"]
                 )
             else:
-                self.directions[direction]["tidied_border"] = self.directions[direction]["labelled_regions_01"]
+                self.directions[direction]["tidied_border"] = self.directions[direction][
+                    "labelled_regions_01"
+                ]
 
             LOGGER.info(f"[{self.filename}] : Removing noise ({direction})")
             self.directions[direction]["removed_noise"] = self.area_thresholding(
@@ -461,7 +466,9 @@ class Grains:
                     )
 
                     # Get the image of just the region
-                    region_image = self.image[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]]
+                    region_image = self.image[
+                        bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]
+                    ]
 
                     LOGGER.info(f"Region image shape: {region_image.shape}")
 
@@ -490,8 +497,12 @@ class Grains:
                     LOGGER.info(f"bbox 3 - 1: {bounding_box[3] - bounding_box[1]}")
 
                     # Add the predicted mask to the overall mask
-                    unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]] = np.logical_or(
-                        unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]],
+                    unet_mask[
+                        bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]
+                    ] = np.logical_or(
+                        unet_mask[
+                            bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]
+                        ],
                         predicted_mask,
                     )
 
@@ -501,13 +512,18 @@ class Grains:
 
             elif sample_type == "dna_protein":
                 # Get the path to a file in the topostats package
+                # model_path = (
+                #     Path(__file__).parent
+                #     / "haribonet_multiclass_2023-10-20_14-01-15_intial_results_multiclass_cropped.h5"
+                # )
+
                 model_path = (
                     Path(__file__).parent
-                    / "haribonet_multiclass_2023-10-20_14-01-15_intial_results_multiclass_cropped.h5"
+                    / "haribonet_multiclass_improved_norm_big_95_good2024-01-14_16-06-47.h5"
                 )
 
                 LOGGER.info(f"Loading Unet model: {model_path.stem}")
-                model = load_model(model_path=model_path)
+                model = load_model(model_path=model_path, custom_objects={"mean_iou": mean_iou})
                 LOGGER.info(f"Loaded Unet model: {model_path.stem}")
 
                 angles = []
@@ -602,9 +618,16 @@ class Grains:
                     )
 
                     # Get the image of just the region
-                    region_image = self.image[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]]
+                    region_image = self.image[
+                        bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]
+                    ]
 
                     LOGGER.info(f"Region image shape: {region_image.shape}")
+
+                    # ////// PROPOSED FUNCTION
+
+                    model_image_size = 256
+                    model_to_original_image_size_factor = region_image.shape[0] / model_image_size
 
                     # Run the UNet on the region
                     try:
@@ -616,7 +639,7 @@ class Grains:
                             image=region_image,
                             model=model,
                             confidence=0.5,
-                            model_image_size=512,
+                            model_image_size=model_image_size,
                             image_output_dir=Path("./"),
                             filename=self.filename + f"_grain_{grain_number}",
                             IMAGE_SAVE_DIR=IMAGE_SAVE_DIR,
@@ -626,7 +649,9 @@ class Grains:
                         # Check if "found array witn 0 sample(s)" in error message
                         if "Found array with 0 sample(s)" in str(e):
                             # If so, skip this grain
-                            LOGGER.info(f"Angle calculation failed: k means 0 samples. Skipping grain {grain_number}")
+                            LOGGER.info(
+                                f"Angle calculation failed: k means 0 samples. Skipping grain {grain_number}"
+                            )
                             continue
                         elif "KMEANS" in str(e):
                             LOGGER.info(
@@ -642,10 +667,14 @@ class Grains:
                     num_gem_pixels = np.sum(combined_predicted_mask == 2)
                     num_ring_pixels = np.sum(combined_predicted_mask == 1)
                     if num_gem_pixels < gem_min_size:
-                        LOGGER.info(f"Gem mask too small: {num_gem_pixels}. Skipping grain {grain_number}")
+                        LOGGER.info(
+                            f"Gem mask too small: {num_gem_pixels}. Skipping grain {grain_number}"
+                        )
                         continue
                     if num_ring_pixels < ring_min_size:
-                        LOGGER.info(f"Ring mask too small: {num_ring_pixels}. Skipping grain {grain_number}")
+                        LOGGER.info(
+                            f"Ring mask too small: {num_ring_pixels}. Skipping grain {grain_number}"
+                        )
                         continue
 
                     # Plot the angle visualisation
@@ -658,25 +687,52 @@ class Grains:
                     # Plot the vectors
                     fig, axs = plt.subplots(1, 1, figsize=(20, 20))
                     axs.imshow(region_image, cmap=cmap, vmin=-4, vmax=8)
-                    axs.scatter(vector_visualisation_start_x[0], vector_visualisation_start_y[0], c="red")
-                    axs.scatter(vector_visualisation_end_x[1], vector_visualisation_end_y[1], c="blue")
-                    axs.plot(path[1], path[0], linewidth=4, c="pink")
+                    axs.scatter(
+                        vector_visualisation_start_x[0] * model_to_original_image_size_factor,
+                        vector_visualisation_start_y[0] * model_to_original_image_size_factor,
+                        c="red",
+                    )
+                    axs.scatter(
+                        vector_visualisation_end_x[1] * model_to_original_image_size_factor,
+                        vector_visualisation_end_y[1] * model_to_original_image_size_factor,
+                        c="blue",
+                    )
+                    axs.plot(
+                        path[1] * model_to_original_image_size_factor,
+                        path[0] * model_to_original_image_size_factor,
+                        linewidth=4,
+                        c="pink",
+                    )
                     # Plot the average vectors
                     axs.plot(
-                        [vector_visualisation_start_x[0], vector_visualisation_start_x[1]],
-                        [vector_visualisation_start_y[0], vector_visualisation_start_y[1]],
+                        [
+                            vector_visualisation_start_x[0] * model_to_original_image_size_factor,
+                            vector_visualisation_start_x[1] * model_to_original_image_size_factor,
+                        ],
+                        [
+                            vector_visualisation_start_y[0] * model_to_original_image_size_factor,
+                            vector_visualisation_start_y[1] * model_to_original_image_size_factor,
+                        ],
                         linewidth=5,
                         c="red",
                     )
                     axs.plot(
-                        [vector_visualisation_end_x[0], vector_visualisation_end_x[1]],
-                        [vector_visualisation_end_y[0], vector_visualisation_end_y[1]],
+                        [
+                            vector_visualisation_end_x[0] * model_to_original_image_size_factor,
+                            vector_visualisation_end_x[1] * model_to_original_image_size_factor,
+                        ],
+                        [
+                            vector_visualisation_end_y[0] * model_to_original_image_size_factor,
+                            vector_visualisation_end_y[1] * model_to_original_image_size_factor,
+                        ],
                         linewidth=5,
                         c="blue",
                     )
                     # Round the angle to 2 decimal places
                     angle_between_vectors_degrees = np.round(angle, 2)
-                    axs.set_title("Path and Vectors, $\\alpha$ = " + str(angle_between_vectors_degrees))
+                    axs.set_title(
+                        "Path and Vectors, $\\alpha$ = " + str(angle_between_vectors_degrees)
+                    )
                     # Set title fond size
                     axs.title.set_fontsize(50)
 
@@ -704,9 +760,15 @@ class Grains:
 
                     predicted_ring_mask = combined_predicted_mask == 1
 
+                    # ////// END PROPOSED FUNCTION
+
                     # Add the predicted mask to the overall mask
-                    unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]] = np.logical_or(
-                        unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]],
+                    unet_mask[
+                        bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]
+                    ] = np.logical_or(
+                        unet_mask[
+                            bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]
+                        ],
                         predicted_ring_mask,
                     )
 
