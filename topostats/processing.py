@@ -199,6 +199,19 @@ def run_grains(
                     LOGGER.warning(f"[{filename}] : No grains found for the {direction} direction.")
             # Optionally plot grain finding stage if we have found grains and plotting is required
             if plotting_config["run"]:
+                # Save the grain mask
+
+                grain_data_out_path = core_out_path / "grain_data"
+                grain_data_out_path.mkdir(parents=True, exist_ok=True)
+                np.save(
+                    grain_data_out_path / f"{filename.replace('.', '_')}_image_p2nm_{pixel_to_nm_scaling:.2f}.npy",
+                    image,
+                )
+                np.save(
+                    grain_data_out_path / f"{filename.replace('.', '_')}_grain_mask_p2nm_{pixel_to_nm_scaling:.2f}.npy",
+                    grains.directions["above"]["labelled_regions_02"],
+                )
+
                 plotting_config.pop("run")
                 LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
                 for direction, image_arrays in grains.directions.items():
