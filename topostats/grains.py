@@ -368,7 +368,7 @@ class Grains:
             self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
             LOGGER.info(f"[{self.filename}] : Extracted bounding boxes ({direction})")
 
-            use_unet = False
+            use_unet = True
             if use_unet:
                 # For each detected molecule, create an image of just that molecule and run the UNet
                 # on that image to segment it
@@ -378,7 +378,7 @@ class Grains:
                 IMAGE_SAVE_DIR = Path(self.data_save_dir / "angle_data/" / self.filename)
                 IMAGE_SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
-                sample_type = "dna_protein"
+                sample_type = "dna_only"
                 LOGGER.info(f"SAMPLE TYPE: {sample_type}")
 
                 if sample_type == "dna_only":
@@ -409,19 +409,20 @@ class Grains:
                         width = bounding_box[3] - bounding_box[1]
                         height = bounding_box[2] - bounding_box[0]
 
-                        # Pad the bounding box by 20% if it fits within the image
-                        if bounding_box[0] - (height * 0.2) >= 0:
+                        # Pad the bounding box by a percentage % if it fits within the image
+                        percentage = 0.2
+                        if bounding_box[0] - (height * percentage) >= 0:
                             # Expand up
-                            bounding_box[0] -= height * 0.2
-                        if bounding_box[1] - (width * 0.2) >= 0:
+                            bounding_box[0] -= height * percentage
+                        if bounding_box[1] - (width * percentage) >= 0:
                             # Expand left
-                            bounding_box[1] -= width * 0.2
-                        if bounding_box[2] + (height * 0.2) <= self.image.shape[0]:
+                            bounding_box[1] -= width * percentage
+                        if bounding_box[2] + (height * percentage) <= self.image.shape[0]:
                             # Expand down
-                            bounding_box[2] += height * 0.2
-                        if bounding_box[3] + (width * 0.2) <= self.image.shape[1]:
+                            bounding_box[2] += height * percentage
+                        if bounding_box[3] + (width * percentage) <= self.image.shape[1]:
                             # Expand right
-                            bounding_box[3] += width * 0.2
+                            bounding_box[3] += width * percentage
 
                         width = bounding_box[3] - bounding_box[1]
                         height = bounding_box[2] - bounding_box[0]
