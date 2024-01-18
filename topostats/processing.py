@@ -457,13 +457,21 @@ def run_dnatracing(
                 all_curvature_splines = tracing_results["curvature_splines"]
                 all_pixelated_splined_traces = tracing_results["pixelated_splined_traces"]
 
-                # Save trace heights for each molecule
-                with open(core_out_path / f"{filename}_trace_heights.json", "w", encoding="utf-8") as f:
-                    json.dump(all_trace_heights, f)
+                # # Save trace heights for each molecule
+                # with open(
+                #     core_out_path / f"{filename}_trace_heights.json", "w", encoding="utf-8"
+                # ) as f:
+                #     json.dump(all_trace_heights, f)
 
-                # Pickle the ordered traces
-                with open(core_out_path / f"{filename}_ordered_traces.pkl", "wb") as f:
-                    pickle.dump(ordered_traces, f)
+                # Pickle the image with ordered trace information
+                with open(core_out_path / f"{filename}_grain_image_trace_info.pkl", "wb") as f:
+                    all_grain_image_and_trace_info = {
+                        "all_cropped_images": cropped_images,
+                        "all_ordered_traces": ordered_traces,
+                        "all_trace_heights": all_trace_heights,
+                    }
+
+                    pickle.dump(all_grain_image_and_trace_info, f)
 
                 # Plot traces for the whole image
                 Images(
