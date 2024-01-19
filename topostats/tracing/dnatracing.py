@@ -118,6 +118,7 @@ class dnaTrace:
         self.ordered_trace_img = np.zeros_like(image)
         self.num_crossings = None
         self.avg_crossing_confidence = None
+        self.min_crossing_confidence = None
         self.topology = [None]
         self.fitted_traces = []
         self.fitted_trace_img = np.zeros_like(image)
@@ -157,6 +158,7 @@ class dnaTrace:
             )
             self.node_dict, self.node_image_dict = nodes.get_node_stats()
             self.avg_crossing_confidence = self.average_crossing_confs(self.node_dict)
+            self.min_crossing_confidence = self.minimum_crossing_confs(self.node_dict)
             self.node_image = nodes.connected_nodes
             self.num_crossings = nodes.num_crossings  # len(self.node_dict)
 
@@ -220,6 +222,20 @@ class dnaTrace:
                 return sum_conf / (i + 1)
             except ZeroDivisionError:
                 return None
+            
+    @staticmethod
+    def minimum_crossing_confs(node_dict):
+        confs = []
+        valid_confs = 0
+        for i, (_, values) in enumerate(node_dict.items()):
+            conf = values["confidence"]
+            if conf is not None:
+                confs.append(conf)
+                valid_confs += 1
+        try:
+            return min(confs)
+        except ValueError:
+            return None
 
     def smooth_grains(self, grain: np.ndarray) -> None:
         """Smoothes grains based on the lower number added from dilation or gaussian.
@@ -271,8 +287,8 @@ class dnaTrace:
         return holey_smooth
 
     def get_disordered_trace(self):
-        self.smoothed_grain = self.smooth_grains(self.grain)
-        self.skeleton = getSkeleton(self.gauss_image, self.smoothed_grain).get_skeleton(
+        #self.smoothed_grain = self.smooth_grains(self.grain)
+        self.skeleton = getSkeleton(self.gauss_image, self.grain).get_skeleton(
             self.skeletonisation_params.copy()
         )
         # np.savetxt(OUTPUT_DIR / "skel.txt", self.skeleton)
@@ -940,9 +956,6 @@ def trace_image(
             grains_results = pd.concat([grains_results, pd_result])
         except NameError:  # if grain results not present
             grains_results = pd.DataFrame.from_dict(result, orient="index")
-        except ValueError as error:
-            LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
-            LOGGER.error(error)
 
         for key, value in all_images.items():
             crop = images[key]
@@ -1071,6 +1084,7 @@ def trace_grain(
                 "end_to_end_distance": dnatrace.end_to_end_distances[i],
                 "num_crossings": dnatrace.num_crossings,
                 "grain_avg_crossing_confidence": dnatrace.avg_crossing_confidence,
+                "grain_min_crossing_confidence": dnatrace.min_crossing_confidence,
                 "topology": dnatrace.topology[i],
                 "num_mols": dnatrace.num_mols,
             }
@@ -1346,7 +1360,7 @@ class nodeStats:
             new_skeleton[
                 node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
                 node_centre[1] - node_len // 2 - overflow : node_centre[1] + node_len // 2 + overflow,
-            ] = self.smoothed_grain[
+            ] = self.grain[
                 node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
                 node_centre[1] - node_len // 2 - overflow : node_centre[1] + node_len // 2 + overflow,
             ]
@@ -1646,7 +1660,7 @@ class nodeStats:
 
         # check whether average trace resides inside the grain mask
         dilate = ndimage.binary_dilation(self.skeleton, iterations=2)
-        average_trace_advised = dilate[self.smoothed_grain == 1].sum() == dilate.sum()
+        average_trace_advised = False #dilate[self.smoothed_grain == 1].sum() == dilate.sum()
         LOGGER.info(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
 
         # iterate over the nodes to find areas
@@ -1811,7 +1825,6 @@ class nodeStats:
                         fwhm2 = self.auc(values["distances"], values["heights"], y_lim=self.image[self.skeleton==1].mean(), xrange=(max(xmins), min(xmaxs))) # self.image[self.skeleton==1].mean()
                         matched_branches[branch_idx]["fwhm2"] = fwhm2
                     """
-
                     # get confidences
                     crossing_quants = []
                     for branch_idx, values in matched_branches.items():
