@@ -138,7 +138,7 @@ class Filters:
                 image[row, :] -= m
             else:
                 LOGGER.warning(
-                    """f[{self.filename}] Large grain detected image can not be
+                    f"""[{self.filename}] Large grain detected image can not be
 processed, please refer to <url to page where we document common problems> for more information."""
                 )
 
