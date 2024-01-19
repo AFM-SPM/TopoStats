@@ -533,7 +533,7 @@ class pruneSkeleton:
         if method == "joe":
             return self._prune_joe(self.image, self.skeleton, prune_args)
         if method == "max":
-            return self._prune_max(self.image, self.skeleton)
+            return self._prune_max(self.image, self.skeleton, prune_args)
         # I've read about a "Discrete Skeleton Evolultion" (DSE) method that looks useful
         raise ValueError(method)
 
@@ -556,7 +556,7 @@ class pruneSkeleton:
         return joePrune(image, skeleton, **prune_args).prune_all_skeletons()
 
     @staticmethod
-    def _prune_max(image: np.ndarray, skeleton: np.ndarray) -> np.ndarray:
+    def _prune_max(image: np.ndarray, skeleton: np.ndarray, prune_args: dict) -> np.ndarray:
         """Wrapper for Pyne-lab member Joe's pruning method.
 
         Parameters
@@ -571,7 +571,7 @@ class pruneSkeleton:
         np.ndarray
             The skeleton with spurious branching artefacts removed.
         """
-        return maxPrune(image, skeleton).prune_all_skeletons()
+        return maxPrune(image, skeleton, **prune_args).prune_all_skeletons()
 
 
 class joePrune:
@@ -707,6 +707,7 @@ class joePrune:
 
                     # why not `and branch_continues`?
                     if len(branch_coordinates) > max_branch_length:
+                        print(f"Removed: {len(branch_coordinates)} / {len(coordinates)}, {max_branch_length}")
                         branch_continues = False
                         is_branch = False
                 #
@@ -746,7 +747,15 @@ class joePrune:
 class maxPrune:
     """A class for pruning small branches based on convolutions."""
 
-    def __init__(self, image: np.ndarray, skeleton: np.ndarray) -> np.ndarray:
+    def __init__(
+        self,
+        image: np.ndarray,
+        skeleton: np.ndarray,
+        max_length: float = None,
+        height_threshold: float = None,
+        method_values: str = None,
+        method_outlier: str = None
+    ) -> np.ndarray:
         """Initialise the class.
 
         Parameters
@@ -761,6 +770,10 @@ class maxPrune:
         """
         self.image = image
         self.skeleton = skeleton.copy()
+        self.max_length = max_length
+        self.height_threshold = height_threshold
+        self.method_values = method_values
+        self.method_outlier = method_outlier
 
     def prune_all_skeletons(self) -> np.ndarray:
         """Wrapper function to prune all skeletons by labling and iterating through
@@ -773,20 +786,26 @@ class maxPrune:
             A single mask with all pruned skeletons.
         """
         pruned_skeleton_mask = np.zeros_like(self.skeleton)
-        for i in range(1, label(self.skeleton).max() + 1):
-            single_skeleton = self.skeleton.copy()
-            single_skeleton[single_skeleton != i] = 0
-            single_skeleton[single_skeleton == i] = 1
-            pruned_skeleton_mask += self._prune_single_skeleton(
-                single_skeleton
-            )  # maybe need to add other option for large images of like 20px
-            # pruned_skeleton_mask = self._remove_low_dud_branches(pruned_skeleton_mask, self.image)
-            pruned_skeleton_mask = getSkeleton(self.image, pruned_skeleton_mask).get_skeleton(
+        labeled_skel = label(self.skeleton)
+        for i in range(1, labeled_skel.max() + 1):
+            single_skeleton = np.where(labeled_skel == i, 1, 0)
+            if self.max_length is not None:
+                single_skeleton = self._prune_single_skeleton(single_skeleton, max_length=self.max_length)
+            if self.height_threshold is not None:
+                single_skeleton = remove_bridges_abs(
+                    single_skeleton,
+                    self.image,
+                    threshold=self.height_threshold,
+                    method_values=self.method_values,
+                    method_outlier=self.method_outlier,
+                )
+            pruned_skeleton_mask += getSkeleton(self.image, single_skeleton).get_skeleton(
                 {"skeletonisation_method": "zhang"}
-            )
+            )  # reskel to remove nibs
+
         return pruned_skeleton_mask
 
-    def _prune_single_skeleton(self, single_skeleton: np.ndarray, threshold: float = 0.15) -> np.ndarray:
+    def _prune_single_skeleton(self, single_skeleton: np.ndarray, max_length=-1) -> np.ndarray:
         """Function to remove the hanging branches from a single skeleton via local-area convoluions.
 
         Parameters
@@ -805,12 +824,14 @@ class maxPrune:
         nodeless = self.skeleton.copy()
         nodeless[conv_skelly == 3] = 0
 
+        # The branches are typically short so if a branch is longer than
+        #  0.15 * total points, its assumed to be part of the real data
+        max_branch_length = max_length if max_length != -1 else int(len(total_points) * 0.15)
+
         nodeless_labels = label(nodeless)
         for i in range(1, nodeless_labels.max() + 1):
             vals = conv_skelly[nodeless_labels == i]
-            # The branches are typically short so if a branch is longer than
-            #  0.15 * total points, its assumed to be part of the real data
-            if (vals == 2).any() and vals.size < total_points * threshold:
+            if (vals == 2).any() and (vals.size < max_branch_length):
                 single_skeleton[nodeless_labels == i] = 0
                 print("Pruned short branch: ", i)
         return single_skeleton
