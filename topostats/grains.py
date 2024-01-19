@@ -370,7 +370,7 @@ class Grains:
                 # Make the bounding box square within the confines of the image
                 # Calculate the width and height of the bounding box
                 LOGGER.info(
-                    f"bounding_box: [0]: {bounding_box[0]} [1]: {bounding_box[1]} [2]: {bounding_box[2]} [3]:"
+                    f"bounding_box_og: [0]: {bounding_box[0]} [1]: {bounding_box[1]} [2]: {bounding_box[2]} [3]:"
                     f"{bounding_box[3]}"
                 )
                 width = bounding_box[3] - bounding_box[1]
@@ -384,9 +384,27 @@ class Grains:
                     if bounding_box[0] - difference >= 0:
                         # Expand up
                         bounding_box[0] -= difference
-                    else:
-                        # Expand down
+                    elif bounding_box[2] + difference <= self.image.shape[1]:
+                        # Expand right
                         bounding_box[2] += difference
+                    else:
+                        # expand both ways
+                        bounding_to_image = np.array([bounding_box[0], self.image.shape[1]]) - [0, bounding_box[2]]
+                        diff = np.ceil(difference / 2)
+                        low = bounding_to_image.min()
+                        if low >= diff:
+                            bounding_box[0] -= diff
+                            bounding_box[2] += diff
+                        else:
+                            l_or_r_min_idx = bounding_to_image.argmin()
+                            if l_or_r_min_idx == 0:
+                                bounding_box[0] -= bounding_to_image[l_or_r_min_idx]
+                                diff += diff - bounding_to_image[l_or_r_min_idx]
+                                bounding_box[2] += diff
+                            if l_or_r_min_idx == 1:
+                                bounding_box[2] += bounding_to_image[l_or_r_min_idx]
+                                diff += diff - bounding_to_image[l_or_r_min_idx]
+                                bounding_box[0] -= diff
 
                 elif height > width:
                     # Make the width the same as the height
@@ -396,9 +414,27 @@ class Grains:
                     if bounding_box[1] - difference >= 0:
                         # Expand left
                         bounding_box[1] -= difference
-                    else:
+                    elif bounding_box[3] + difference <= self.image.shape[1]:
                         # Expand right
                         bounding_box[3] += difference
+                    else:
+                        # expand both ways
+                        bounding_to_image = np.array([bounding_box[1], self.image.shape[1]]) - [0, bounding_box[3]]
+                        diff = np.ceil(difference / 2)
+                        low = bounding_to_image.min()
+                        if low >= diff:
+                            bounding_box[1] -= diff
+                            bounding_box[3] += diff
+                        else:
+                            l_or_r_min_idx = bounding_to_image.argmin()
+                            if l_or_r_min_idx == 0:
+                                bounding_box[1] -= bounding_to_image[l_or_r_min_idx]
+                                diff += diff - bounding_to_image[l_or_r_min_idx]
+                                bounding_box[3] += diff
+                            if l_or_r_min_idx == 1:
+                                bounding_box[3] += bounding_to_image[l_or_r_min_idx]
+                                diff += diff - bounding_to_image[l_or_r_min_idx]
+                                bounding_box[1] -= diff
 
                 # Get the image of just the region
                 region_image = self.image[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]]
@@ -411,6 +447,11 @@ class Grains:
                     image_output_dir=Path("./"),
                     filename=self.filename + f"_grain_{grain_number}",
                 )
+
+                # Get only the biggest segmentation object
+                pred_labeled = morphology.label(predicted_mask)
+                sizes = np.array([(pred_labeled==lbl).sum() for lbl in range(1, pred_labeled.max()+1)])
+                predicted_mask = np.where(pred_labeled==sizes.argmax()+1, predicted_mask, 0)
 
                 # Add the predicted mask to the overall mask
                 unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]] = np.logical_or(
