@@ -57,7 +57,6 @@ dependencies = [
 
 [project.optional-dependencies]
 tests = [
-  "py",
   "pytest",
   "pytest-cov",
   "pytest-github-actions-annotate-failures",
@@ -236,6 +235,10 @@ lint.fixable = [
   "UP", # pyupgrade
 ]
 lint.unfixable = []
+
+# Numpy2 deprecation checks
+lint.extend-select = ["NPY201"]
+preview = true
 
 [tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"

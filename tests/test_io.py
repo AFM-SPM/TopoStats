@@ -1,4 +1,5 @@
 """Tests of IO."""
+import argparse
 from datetime import datetime
 from pathlib import Path
 
@@ -60,23 +61,56 @@ def test_read_yaml() -> None:
     assert sample_config == CONFIG
 
 
-def test_write_config_with_comments(tmp_path: Path) -> None:
-    """Test writing of config file with comments."""
-    # Read default config with comments
-    with Path.open(BASE_DIR / "topostats" / "default_config.yaml", encoding="utf-8") as f:
-        default_config_string = f.read()
+@pytest.mark.parametrize(
+    ("filename", "config", "expected_filename"),
+    [
+        ("test_config_with_comments.yaml", None, "test_config_with_comments.yaml"),
+        ("test_config_with_comments", None, "test_config_with_comments.yaml"),
+        (None, "default", "config.yaml"),
+        (None, None, "config.yaml"),
+        # Example of how to test `dna_config.yaml`
+        # (None, "dna", "dna_config.yaml")
+    ],
+)
+def test_write_config_with_comments(tmp_path: Path, filename: str, config: str, expected_filename: str) -> None:
+    """Test writing of config file with comments.
+
+    If and when specific configurations for different sample types are introduced then the parametrisation can be
+    extended to allow these adding their names under "config" and introducing specific parameters that may differe
+    between the configuration files.
+    """
+    # Setup argparse.Namespace with the tests parameters
+    args = argparse.Namespace()
+    args.filename = filename
+    args.output_dir = tmp_path
+    args.config = config
 
     # Write default config with comments to file
-    write_config_with_comments(config=default_config_string, output_dir=tmp_path, filename="test_config_with_comments")
+    write_config_with_comments(args)
 
     # Read the written config
-    with Path.open(tmp_path / "test_config_with_comments.yaml", encoding="utf-8") as f:
+    with Path.open(tmp_path / expected_filename, encoding="utf-8") as f:
         written_config = f.read()
 
     # Validate that the written config has comments in it
-    assert default_config_string in written_config
     assert "Config file generated" in written_config
     assert "For more information on configuration and how to use it" in written_config
+    # Validate some of the parameters are present
+    assert "loading:" in written_config
+    assert "gaussian_mode: nearest" in written_config
+    assert "style: topostats.mplstyle" in written_config
+    assert "pixel_interpolation: null" in written_config
+
+
+def test_write_config_with_comments_user_warning(tmp_path: Path) -> None:
+    """Tests a user warning is raised if an attempt is made to request a configuration file type that does not exist."""
+    args = argparse.Namespace()
+    args.filename = "config.yaml"
+    args.output_dir = tmp_path
+    args.config = "nonsense"
+
+    with pytest.raises(UserWarning):
+        write_config_with_comments(args)
 
 
 def test_write_yaml(tmp_path: Path) -> None:

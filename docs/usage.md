@@ -1,7 +1,7 @@
 # Usage
 
 After having [installed](installation) TopoStats you are ready to run it. For convenience TopoStats provides a command
-line interface `run_topostats` that will load a default configuration file and process all images with reasonable
+line interface `topostats` that will load a default configuration file and process all images with reasonable
 default configuration options.
 
 However, because the location of your image files can not be known in advance you must make a copy of the default
@@ -80,11 +80,11 @@ shell/terminal you will therefore need to do two things.
 1. Navigate to the location of the scans you wish to process using `cd /path/to/where/scans/are/located`.
 2. Activate the virtual environment under which you installed TopoStats (refer to [installed](installation) if unsure).
 
-You can now run topostats by invoking `run_topostats` and you should start to see some output similar to that below.
+You can now run topostats by invoking `topostats process` and you should start to see some output similar to that below.
 
 ```bash
 cd /path/to/where/scans/are/located
-run_topostats
+topostats process
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Plotting configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration file loaded from      : None
@@ -125,11 +125,46 @@ along with information about how to give feedback, report bugs and cite the soft
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
+The command `topostats process` has a number of additional flags for passing different options. These can be viewed
+using the `-h` or `--help` flag.
+
+```bash
+ ❱ topostats process --help
+usage: topostats process [-h] [-c CONFIG_FILE] [-s SUMMARY_CONFIG] [--matplotlibrc MATPLOTLIBRC] [-b BASE_DIR] [-j CORES] [-l LOG_LEVEL] [-f FILE_EXT] [--channel CHANNEL] [-o OUTPUT_DIR] [--save-plots SAVE_PLOTS] [-m MASK] [-w WARNINGS]
+
+Process AFM images. Additional arguments over-ride those in the configuration file.
+
+options:
+  -h, --help            show this help message and exit
+  -c CONFIG_FILE, --config-file CONFIG_FILE
+                        Path to a YAML configuration file.
+  -s SUMMARY_CONFIG, --summary-config SUMMARY_CONFIG
+                        Path to a YAML configuration file for summary plots and statistics.
+  --matplotlibrc MATPLOTLIBRC
+                        Path to a matplotlibrc file.
+  -b BASE_DIR, --base-dir BASE_DIR
+                        Base directory to scan for images.
+  -j CORES, --cores CORES
+                        Number of CPU cores to use when processing.
+  -l LOG_LEVEL, --log-level LOG_LEVEL
+                        Logging level to use, default is 'info' for verbose output use 'debug'.
+  -f FILE_EXT, --file-ext FILE_EXT
+                        File extension to scan for.
+  --channel CHANNEL     Channel to extract.
+  -o OUTPUT_DIR, --output-dir OUTPUT_DIR
+                        Output directory to write results to.
+  --save-plots SAVE_PLOTS
+                        Whether to save plots.
+  -m MASK, --mask MASK  Mask the image.
+  -w WARNINGS, --warnings WARNINGS
+                        Whether to ignore warnings.
+```
+
 ### Reducing Output
 
 If you find the output too verbose or of no use you can reduce it by setting the `log_level` to either `error` or
 `warning`. This can be done either in the configuration file (see [Configuration](configuration.md) below)
-or using the `-l`/`--log-level` flag for example `run_topostats --log_level warning`.
+or using the `-l`/`--log-level` flag for example `topostats process --log_level warning`.
 
 ## Configuring TopoStats
 
@@ -144,14 +179,12 @@ want to make to the default configuration and how to make them.
 TopoStats will use some reasonable default parameters by default, but typically you will want to customise the
 parameters that are used. This is achieved using a [configuration](configuration) file. This is a
 [YAML](https://yaml.org) file that contains parameters for different settings. For convenience you can generate
-a sample configuration file in your current working directory using the `--create-config-file` option. It takes a
-single argument, the name of the file to save the configuration to (e.g. `config.yaml` or `settings.yaml`), and it will
-write the current default configuration to that file.
-
-**NB** - This feature is only available in versions > v2.0.0 as it was introduced after v2.0.0 was released.
+a sample configuration file in your current working directory using the `topostats create-config` sub-command. It
+takes a single argument, the name of the file to save the configuration to (e.g. `config.yaml` or `settings.yaml`), and
+it will write the current default configuration to that file.
 
 ```bash
-run_topostats --create-config-file my_config.yaml
+topostats create-config --filename my_config.yaml
 ls -l
 my_config.yaml
 sample_image_scan_2022-12-08-1204.spm
@@ -169,7 +202,7 @@ You can now start customising the configuration you are going to run TopoStats w
 ones you may want to change are....
 
 - `base_dir` (default: `./`) the directory in which to search for scans. By default this is `./` which represents the
-  directory from which `run_topostats` is called and it is good practice to have one configuration file per batch of
+  directory from which `topostats process` is called and it is good practice to have one configuration file per batch of
   scans that are being processed.
 - `output_dir` (default: `output`) the location where the output is saved, by default this is the directory `output`
   which will be created if it doesn't exist. If you wish for the output to be somewhere else specify it here. If you
@@ -192,15 +225,15 @@ the file and return to your terminal.
 
 ### Running TopoStats with `my_config.yaml`
 
-To use your new configuration file you need to inform `run_topostats` to use that file rather than the defaults, this is
-done using the `--config config.yaml` file.
+To use your new configuration file you need to inform `topostats process` to use that file rather than the defaults,
+this is done using the `--config config.yaml` file.
 
 **NB** this assumes that you are in the same directory as your scans where you have saved the `my_config.yaml` file that
 you edited. That doesn't _have_ to be the case but it makes life easier for if you are not familiar with absolute
 and relative paths.
 
 ```bash
-run_topostats --config my_config.yaml
+topostats process --config my_config.yaml
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Plotting configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration file loaded from      : None
@@ -218,8 +251,8 @@ On successful completion you should see the same message noted above.
 ## Output
 
 The output from running TopoStats is saved in the location defined in the configuration file by `output_dir`. The
-default is the directory `output` within the directory from which `run_topostats`. This may differ if you have
-used your own customised configuration file.
+default is the directory `output` within the directory from which `topostats process`. This may differ if you have
+used your own customised configuration file (specifically if you have modified the `output_dir:` option).
 
 At the top level of the output directory are two files `config.yaml` and `all_statistics.csv`
 
