@@ -869,6 +869,7 @@ class LoadScans:
             Name of the channel to be extracted.
         image_data_dict: dict
             Dictionary of data containing the channel to be extracted.
+
         Returns
         -------
         dict
