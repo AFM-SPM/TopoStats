@@ -873,18 +873,16 @@ class LoadScans:
         Returns
         -------
         dict
-            data dict of found data (ex. /1/data). If none, returns None
+            Dictionary of data associated with the named channel (ex. /1/data). If channel is not present, returns None.
         """
-        reg_gwy_title_idx = r"(\d+)\/data\/title$"  # only the title key doesn't have / somehow!
         for k, v in image_data_dict.items():  # component key is like '/0/data', '4/data/title'
-            match = re.match(reg_gwy_title_idx, k)
-            if match is None:  # not image data field
-                continue
             if v == name:
-                idx = match[1]
-                LOGGER.debug(f"Channel at {idx} was selected by name, {name}.")
-                self.config["gwy_field_idx"] = idx
-                return image_data_dict[f"/{idx}/data"]
+                match = re.match(r"(\d+)\/data\/title$", k)  # Note: only the title key doesn't start with / somehow!
+                if match:
+                    idx = match[1]
+                    LOGGER.debug(f"Channel at {idx} was selected by name, {name}.")
+                    self.config["gwy_field_idx"] = idx
+                    return image_data_dict[f"/{idx}/data"]
         return None
 
     def _get_gwy_channel_by_unit(self, unit: str, image_data_dict: dict) -> dict:
@@ -893,16 +891,12 @@ class LoadScans:
         Returns
         -------
         dict
-            data dict of found data (ex. /1/data). If none, returns None.
+            Dictionary of data associated with the unit. If channel is not present, returns None.
         """
-        reg_gwy_data_idx = r"\/(\d+)\/data$"
-        for k, v in image_data_dict.items():  # component key is like '/0/data', '4/data/title'
-            match = re.match(reg_gwy_data_idx, k)
-            if match is None:  # not image data field
-                continue
+        for k, v in image_data_dict.items():
+            match = re.match(r"\/(\d+)\/data$", k)
             # check unit of z value of this data
-            LOGGER.info(f"k is {k}")
-            if "si_unit_z" in v:
+            if match and "si_unit_z" in v:
                 unit_z = v["si_unit_z"]["unitstr"]
                 if unit_z[-len(unit) :] == unit:
                     idx = match[1]
@@ -962,7 +956,7 @@ class LoadScans:
         return (image, self.config["scale"]["x_pixel_to_nm_scaling"])
 
     def gwy_process_z_values(self, image, unit_z) -> dict:
-        """Handle z value and unit.
+        """Scale heights by the given unit.
 
         Parameters
         ----------
@@ -984,7 +978,7 @@ class LoadScans:
         scale_dict["original_z_unit"] = unit_z
         scale_dict["z_value_to_nm_scaling"] = factor_z
         image = image * factor_z
-        LOGGER.info(f"DataField {unit_z} was multiplied by z-factor: {factor_z}")
+        LOGGER.info(f"DataField {unit_z} was scaled by z-factor: {factor_z}")
         return image
 
     def gwy_process_xy_values(self, unit_xy, xreal, yreal, xres, yres) -> None:
