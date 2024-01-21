@@ -863,6 +863,12 @@ class LoadScans:
     def _get_gwy_channel_by_name(self, name: str, image_data_dict: dict) -> dict:
         """Get data_dict having title of the specified name.
 
+        Parameters
+        ----------
+        name: str
+            Name of the channel to be extracted.
+        image_data_dict: dict
+            Dictionary of data containing the channel to be extracted.
         Returns
         -------
         dict
