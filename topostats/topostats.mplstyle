@@ -13,8 +13,9 @@
 ## default Matplotlib values.
 ##
 ## Once you have saved changes to your copy you can run topostats with it using
-## the --matplotlibrc option. If for example your copy is 'my_custom.mplstyle'
-## you would use it with the following
+## the --matplotlibrc option or updating the sytle sheet path in the plotting section
+## of the configuration file. If for example your copy is 'my_custom.mplstyle' you
+## would use it with the following
 ##
 ##    topostats process --matplotlibrc my_custom.mplstyle
 ##
