@@ -99,9 +99,6 @@ def run_topostats(args=None):  # noqa: C901
         sys.exit()
     LOGGER.info(f"Thresholding method (Filtering)     : {config['filter']['threshold_method']}")
     LOGGER.info(f"Thresholding method (Grains)        : {config['grains']['threshold_method']}")
-    LOGGER.info(f"DPI                                 : {config['plotting']['savefig_dpi']}")
-    LOGGER.info(f"Output image format                 : {config['plotting']['savefig_format']}")
-    LOGGER.info(f"Colormap                            : {config['plotting']['cmap']}")
     LOGGER.debug(f"Configuration after update         : \n{pformat(config, indent=4)}")  # noqa : T203
 
     processing_function = partial(
@@ -223,4 +220,5 @@ def run_topostats(args=None):  # noqa: C901
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
     LOGGER.debug(f"Images processed : {images_processed}")
+    # Update config with plotting defaults for printing
     completion_message(config, img_files, summary_config, images_processed)

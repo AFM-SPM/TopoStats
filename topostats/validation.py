@@ -284,10 +284,9 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "cmap": Or(
                 None,
-                "afmhot",
-                "nanoscope",
-                "gwyddion",
-                error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot', 'nanoscope' or 'gwyddion'",
+                str,
+                error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot', 'nanoscope', "
+                "'gwyddion' or values supported by Matplotlib",
             ),
             "mask_cmap": str,
             "histogram_log_axis": Or(
