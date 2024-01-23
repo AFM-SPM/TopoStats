@@ -448,6 +448,7 @@ def run_dnatracing(
                 )
                 tracing_stats[direction] = tracing_results["statistics"]
                 ordered_traces = tracing_results["ordered_traces"]
+                all_fitted_traces = tracing_results["fitted_traces"]
                 cropped_images = tracing_results["cropped_images"]
                 image_trace = tracing_results["image_trace"]
                 tracing_stats[direction]["threshold"] = direction
@@ -469,6 +470,8 @@ def run_dnatracing(
                         "all_cropped_images": cropped_images,
                         "all_ordered_traces": ordered_traces,
                         "all_trace_heights": all_trace_heights,
+                        "all_fitted_traces": all_fitted_traces,
+                        "px_2_nm": pixel_to_nm_scaling,
                     }
 
                     pickle.dump(all_grain_image_and_trace_info, f)
@@ -486,7 +489,7 @@ def run_dnatracing(
 
                 # print(f"curvature_splines: {all_curvature_splines}")
 
-                plot_height_curvature = False
+                plot_height_curvature = True
                 if plot_height_curvature:
                     grain_trace: List[Tuple[int, int]]
                     for grain_index, (
