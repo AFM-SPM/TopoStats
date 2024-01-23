@@ -29,9 +29,7 @@ from topostats.tracing.tracingfuncs import genTracingFuncs, getSkeleton, reorder
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-def interpolate_points_spline(
-    points: np.ndarray, num_points: Union[int, None] = None, smoothing: float = 0.0
-):
+def interpolate_points_spline(points: np.ndarray, num_points: Union[int, None] = None, smoothing: float = 0.0):
     """Interpolate a set of points using a spline.
 
     Parameters
@@ -133,9 +131,7 @@ def calculate_curvature_periodic_boundary(x_points, y_points, error=0.1, periods
 
     # Return only the original points
     return (
-        extended_curvature[
-            x_points.shape[0] * int(periods / 2) : x_points.shape[0] * int((periods / 2) + 1)
-        ],
+        extended_curvature[x_points.shape[0] * int(periods / 2) : x_points.shape[0] * int((periods / 2) + 1)],
         spline_x[x_points.shape[0] * int(periods / 2) : x_points.shape[0] * int((periods / 2) + 1)],
         spline_y[x_points.shape[0] * int(periods / 2) : x_points.shape[0] * int((periods / 2) + 1)],
     )
@@ -149,10 +145,7 @@ def turn_path_into_pixel_map(array: np.ndarray):
     pixelated_path = np.empty((0, 2), dtype=int)
 
     def check_is_touching(coordinate, original_coordinate):
-        if (
-            np.abs(coordinate[0] - original_coordinate[0]) <= 1
-            and np.abs(coordinate[1] - original_coordinate[1]) <= 1
-        ):
+        if np.abs(coordinate[0] - original_coordinate[0]) <= 1 and np.abs(coordinate[1] - original_coordinate[1]) <= 1:
             return True
         else:
             return False
@@ -323,9 +316,7 @@ class dnaTrace:
         self.image = image * 1e-9 if convert_nm_to_m else image
         self.grain = grain
         self.filename = filename
-        self.pixel_to_nm_scaling = (
-            pixel_to_nm_scaling * 1e-9 if convert_nm_to_m else pixel_to_nm_scaling
-        )
+        self.pixel_to_nm_scaling = pixel_to_nm_scaling * 1e-9 if convert_nm_to_m else pixel_to_nm_scaling
         self.min_skeleton_size = min_skeleton_size
         self.skeletonisation_method = skeletonisation_method
         self.n_grain = n_grain
@@ -382,9 +373,7 @@ class dnaTrace:
             # self.saveCurvature()
 
             # Interpolate the points
-            interpolated_points = interpolate_points_spline(
-                self.ordered_trace, num_points=1000, smoothing=0.0
-            )
+            interpolated_points = interpolate_points_spline(self.ordered_trace, num_points=1000, smoothing=0.0)
 
             # Get curvature
             self.curvature, spline_x, spline_y = calculate_curvature_periodic_boundary(
@@ -416,9 +405,7 @@ class dnaTrace:
 
                 # self.pixelated_splined_trace = np.argwhere(self.pixelated_splined_trace_image == True)
 
-                _, self.pixelated_splined_trace = turn_path_into_pixel_map(
-                    self.curvature_splined_trace
-                )
+                _, self.pixelated_splined_trace = turn_path_into_pixel_map(self.curvature_splined_trace)
 
                 # print(f"shape pixelated trace {self.pixelated_splined_trace.shape}")
                 # print(f"@@@@@ PIXELATED TRACE {self.pixelated_splined_trace[0:10]}")
@@ -437,9 +424,7 @@ class dnaTrace:
             self.measure_contour_length()
             self.measure_end_to_end_distance()
         else:
-            LOGGER.info(
-                f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}"
-            )
+            LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
 
     def smooth_grains(self, grain: np.ndarray) -> None:
         """Smoothes grains based on the lower number added from dilation or gaussian.
@@ -465,9 +450,7 @@ class dnaTrace:
                 0
             ]  # find the min value coords from the erroded mask
             print(centre)
-            gauss[
-                centre[0] - 2 : centre[0] + 3, centre[1] - 2 : centre[1] + 3
-            ] = 0  # sets 3x3 area around min to 0
+            gauss[centre[0] - 2 : centre[0] + 3, centre[1] - 2 : centre[1] + 3] = 0  # sets 3x3 area around min to 0
 
             # gauss = self.re_add_holes(grain, gauss)
             return gauss
@@ -499,9 +482,7 @@ class dnaTrace:
             0
         ]  # find the min value coords from the erroded mask
         print(centre)
-        filling[
-            centre[0] - 2 : centre[0] + 3, centre[1] - 2 : centre[1] + 3
-        ] = 0  # sets 3x3 area around min to 0
+        filling[centre[0] - 2 : centre[0] + 3, centre[1] - 2 : centre[1] + 3] = 0  # sets 3x3 area around min to 0
 
         # gauss = self.re_add_holes(grain, gauss)
         return filling
@@ -522,9 +503,7 @@ class dnaTrace:
         sigma = 0.01 / (self.pixel_to_nm_scaling * 1e9)
         very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
 
-        LOGGER.info(
-            f"[{self.filename}] [{self.n_grain}] : Skeletonising using {self.skeletonisation_method} method."
-        )
+        LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Skeletonising using {self.skeletonisation_method} method.")
         # try:
         if self.skeletonisation_method == "topostats":
             dna_skeleton = getSkeleton(
@@ -635,43 +614,29 @@ class dnaTrace:
                 # positive diagonal (change in x and y)
                 # Take height values at the inverse of the positive diaganol
                 # (i.e. the negative diaganol)
-                y_coords = np.arange(
-                    trace_coordinate[1] - index_width, trace_coordinate[1] + index_width
-                )[::-1]
-                x_coords = np.arange(
-                    trace_coordinate[0] - index_width, trace_coordinate[0] + index_width
-                )
+                y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)[::-1]
+                x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
 
             # if angle is closest to 135 degrees
             elif 157.5 >= vector_angle >= 112.5:
                 perp_direction = "positive diaganol"
-                y_coords = np.arange(
-                    trace_coordinate[1] - index_width, trace_coordinate[1] + index_width
-                )
-                x_coords = np.arange(
-                    trace_coordinate[0] - index_width, trace_coordinate[0] + index_width
-                )
+                y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
+                x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
 
             # if angle is closest to 90 degrees
             if 112.5 > vector_angle >= 67.5:
                 perp_direction = "horizontal"
-                x_coords = np.arange(
-                    trace_coordinate[0] - index_width, trace_coordinate[0] + index_width
-                )
+                x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
                 y_coords = np.full(len(x_coords), trace_coordinate[1])
 
             elif 22.5 > vector_angle:  # if angle is closest to 0 degrees
                 perp_direction = "vertical"
-                y_coords = np.arange(
-                    trace_coordinate[1] - index_width, trace_coordinate[1] + index_width
-                )
+                y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
                 x_coords = np.full(len(y_coords), trace_coordinate[0])
 
             elif vector_angle >= 157.5:  # if angle is closest to 180 degrees
                 perp_direction = "vertical"
-                y_coords = np.arange(
-                    trace_coordinate[1] - index_width, trace_coordinate[1] + index_width
-                )
+                y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
                 x_coords = np.full(len(y_coords), trace_coordinate[0])
 
             # Use the perp array to index the guassian filtered image
@@ -739,16 +704,10 @@ class dnaTrace:
 
             for i in range(step_size):
                 x_sampled = np.array(
-                    [
-                        self.fitted_trace[:, 0][j]
-                        for j in range(i, len(self.fitted_trace[:, 0]), step_size)
-                    ]
+                    [self.fitted_trace[:, 0][j] for j in range(i, len(self.fitted_trace[:, 0]), step_size)]
                 )
                 y_sampled = np.array(
-                    [
-                        self.fitted_trace[:, 1][j]
-                        for j in range(i, len(self.fitted_trace[:, 1]), step_size)
-                    ]
+                    [self.fitted_trace[:, 1][j] for j in range(i, len(self.fitted_trace[:, 1]), step_size)]
                 )
 
                 try:
@@ -759,16 +718,10 @@ class dnaTrace:
                     # Value error occurs when the "trace fitting" really messes up the traces
 
                     x = np.array(
-                        [
-                            self.ordered_trace[:, 0][j]
-                            for j in range(i, len(self.ordered_trace[:, 0]), step_size)
-                        ]
+                        [self.ordered_trace[:, 0][j] for j in range(i, len(self.ordered_trace[:, 0]), step_size)]
                     )
                     y = np.array(
-                        [
-                            self.ordered_trace[:, 1][j]
-                            for j in range(i, len(self.ordered_trace[:, 1]), step_size)
-                        ]
+                        [self.ordered_trace[:, 1][j] for j in range(i, len(self.ordered_trace[:, 1]), step_size)]
                     )
 
                     try:
@@ -911,9 +864,7 @@ class dnaTrace:
         plt.plot(self.splined_trace[:, 0], self.splined_trace[:, 1], color="c", linewidth=1.0)
         # plt.savefig("%s_%s_splinedtrace.png" % (save_file, channel_name))
         plt.savefig(output_dir / filename / f"{channel_name}_splinedtrace.png")
-        LOGGER.info(
-            f"Splined Trace image saved to : {str(output_dir / filename / f'{channel_name}_splinedtrace.png')}"
-        )
+        LOGGER.info(f"Splined Trace image saved to : {str(output_dir / filename / f'{channel_name}_splinedtrace.png')}")
         plt.close()
 
         # plt.pcolormesh(self.image, vmax=vmaxval, vmin=vminval)
@@ -946,9 +897,7 @@ class dnaTrace:
         # plt.savefig(output_dir / filename / f"{channel_name}_grains.png")
         # plt.savefig(output_dir / f"{filename}_grain.png")
         # plt.close()
-        LOGGER.info(
-            f"Grains image saved to : {str(output_dir / filename / f'{channel_name}_grains.png')}"
-        )
+        LOGGER.info(f"Grains image saved to : {str(output_dir / filename / f'{channel_name}_grains.png')}")
 
     # FIXME : Replace with Path() (.mkdir(parent=True, exists=True) negate need to handle errors.)
     def _checkForSaveDirectory(self, filename, new_output_dir):
@@ -959,9 +908,7 @@ class dnaTrace:
         except OSError:  # OSError happens if the directory already exists
             pass
 
-        updated_filename = os.path.join(
-            split_directory_path[0], new_output_dir, split_directory_path[1]
-        )
+        updated_filename = os.path.join(split_directory_path[0], new_output_dir, split_directory_path[1])
 
         return updated_filename
 
@@ -971,9 +918,7 @@ class dnaTrace:
         coordinates = np.zeros([2, self.neighbours * 2 + 1])
         for i, (x, y) in enumerate(self.splined_trace):
             # Extracts the coordinates for the required number of points and puts them in an array
-            if self.mol_is_circular or (
-                self.neighbours < i < len(self.splined_trace) - self.neighbours
-            ):
+            if self.mol_is_circular or (self.neighbours < i < len(self.splined_trace) - self.neighbours):
                 for j in range(self.neighbours * 2 + 1):
                     coordinates[0][j] = self.splined_trace[i - j][0]
                     coordinates[1][j] = self.splined_trace[i - j][1]
@@ -1085,9 +1030,7 @@ class dnaTrace:
                     except NameError:
                         hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
                 except IndexError:  # IndexError happens at last point in array
-                    self.contour_length = (
-                        np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
-                    )
+                    self.contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
                     del hypotenuse_array
                     break
 
@@ -1147,15 +1090,11 @@ def trace_image(
     """
     # Check both arrays are the same shape
     if image.shape != grains_mask.shape:
-        raise ValueError(
-            f"Image shape ({image.shape}) and Mask shape ({grains_mask.shape}) should match."
-        )
+        raise ValueError(f"Image shape ({image.shape}) and Mask shape ({grains_mask.shape}) should match.")
 
     cropped_images, cropped_masks = prep_arrays(image, grains_mask, pad_width)
     region_properties = skimage_measure.regionprops(grains_mask)
-    grain_anchors = [
-        grain_anchor(image.shape, list(grain.bbox), pad_width) for grain in region_properties
-    ]
+    grain_anchors = [grain_anchor(image.shape, list(grain.bbox), pad_width) for grain in region_properties]
     n_grains = len(cropped_images)
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
     n_grain = 0
@@ -1300,9 +1239,7 @@ def trace_mask(
     return image
 
 
-def prep_arrays(
-    image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int
-) -> Tuple[list, list]:
+def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
     """Takes an image and labelled mask and crops individual grains and original heights to a list.
 
     A second padding is made after cropping to ensure for "edge cases" where grains are close to bounding box edges that
@@ -1328,9 +1265,7 @@ def prep_arrays(
     # Subset image and grains then zip them up
     cropped_images = [crop_array(image, grain.bbox, pad_width) for grain in region_properties]
     cropped_images = [np.pad(grain, pad_width=pad_width) for grain in cropped_images]
-    cropped_masks = [
-        crop_array(labelled_grains_mask, grain.bbox, pad_width) for grain in region_properties
-    ]
+    cropped_masks = [crop_array(labelled_grains_mask, grain.bbox, pad_width) for grain in region_properties]
     cropped_masks = [np.pad(grain, pad_width=pad_width) for grain in cropped_masks]
     # Flip every labelled region to be 1 instead of its label
     cropped_masks = [np.where(grain == 0, 0, 1) for grain in cropped_masks]
@@ -1484,17 +1419,9 @@ def pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int) -> 
     # Left Column : Make this the first column if too close
     bounding_box[1] = 0 if bounding_box[1] - pad_width < 0 else bounding_box[1] - pad_width
     # Bottom Row : Make this the last row if too close
-    bounding_box[2] = (
-        array_shape[0]
-        if bounding_box[2] + pad_width > array_shape[0]
-        else bounding_box[2] + pad_width
-    )
+    bounding_box[2] = array_shape[0] if bounding_box[2] + pad_width > array_shape[0] else bounding_box[2] + pad_width
     # Right Column : Make this the last column if too close
-    bounding_box[3] = (
-        array_shape[1]
-        if bounding_box[3] + pad_width > array_shape[1]
-        else bounding_box[3] + pad_width
-    )
+    bounding_box[3] = array_shape[1] if bounding_box[3] + pad_width > array_shape[1] else bounding_box[3] + pad_width
     return bounding_box
 
 
