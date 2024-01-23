@@ -1161,6 +1161,7 @@ def trace_image(
     n_grain = 0
     results = {}
     ordered_traces = []
+    all_fitted_traces = {}
     all_trace_heights = {}
     all_curvatures = {}
     all_curvature_splines = {}
@@ -1181,6 +1182,7 @@ def trace_image(
         # Note: need to pop the arrays from the result dict as they should not go into the csv file.
         LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
         ordered_traces.append(result.pop("ordered_trace"))
+        all_fitted_traces[n_grain] = result.pop("fitted_trace")
         all_trace_heights[n_grain] = result.pop("trace_heights")
         all_curvatures[n_grain] = result.pop("curvature")
         all_curvature_splines[n_grain] = result.pop("curvature_splined_trace")
@@ -1200,6 +1202,7 @@ def trace_image(
     return {
         "statistics": results,
         "ordered_traces": ordered_traces,
+        "fitted_traces": all_fitted_traces,
         "cropped_images": cropped_images,
         "image_trace": image_trace,
         "all_trace_heights": all_trace_heights,
@@ -1419,6 +1422,7 @@ def trace_grain(
         "circular": dnatrace.mol_is_circular,
         "end_to_end_distance": dnatrace.end_to_end_distance,
         "ordered_trace": dnatrace.ordered_trace,
+        "fitted_trace": dnatrace.fitted_trace,
         "trace_heights": dnatrace.trace_heights,
         "curvature_splined_trace": dnatrace.curvature_splined_trace,
         "curvature": dnatrace.curvature,
