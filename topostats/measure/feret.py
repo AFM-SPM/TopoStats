@@ -32,13 +32,34 @@ def orientation(p: npt.NDArray, q: npt.NDArray, r: npt.NDArray) -> int:
     Returns
     -------
     int:
-        Returns a positive value of p-q-r are clockwise, neg if counter-clock-wise, zero if colinear.
+        Returns a positive value if p-q-r are clockwise, neg if counter-clock-wise, zero if colinear.
     """
     return (q[1] - p[1]) * (r[0] - p[0]) - (q[0] - p[0]) * (r[1] - p[1])
 
 
+def sort_coords(points: npt.NDArray) -> npt.NDArray:
+    """
+    Sort the coordinates.
+
+    Parameters
+    ----------
+    points: npt.NDArray
+        Array of coordinates
+
+    Returns
+    -------
+    npt.NDArray
+        Array sorted by row then column.
+    """
+    order = np.lexsort((points[:, 0], points[:, 1]))
+    return points[order]
+
+
 def hulls(points: npt.NDArray) -> tuple[list, list]:
-    """Graham scan to find upper and lower convex hulls of a set of 2-D points.
+    """
+    Graham scan to find upper and lower convex hulls of a set of 2-D points.
+
+    Points should be sorted in asecnding order first.
 
     Parameters
     ----------
@@ -52,7 +73,7 @@ def hulls(points: npt.NDArray) -> tuple[list, list]:
     """
     upper_hull = []
     lower_hull = []
-    for p in points:
+    for p in sort_coords(points):
         # Remove points if they are not in the correct hull
         while len(upper_hull) > 1 and orientation(upper_hull[-2], upper_hull[-1], p) <= 0:
             upper_hull.pop()
@@ -61,6 +82,7 @@ def hulls(points: npt.NDArray) -> tuple[list, list]:
         # Append point to each hull (removed from one in next pass)
         upper_hull.append(list(p))
         lower_hull.append(list(p))
+
     return upper_hull, lower_hull
 
 
@@ -100,24 +122,9 @@ def rotating_calipers(points: npt.NDArray) -> list[tuple[list, list]]:
     upper_hull, lower_hull = hulls(points)
     i = 0
     j = len(lower_hull) - 1
-    counter = 0
-    print(f"Used for i {len(upper_hull)=}")
-    print(f"Used for j {len(lower_hull)=}")
-    while i < len(upper_hull) or j > 0:
-        print(f"\n{counter=}")
-        print(f"{i=}")
-        print(f"{j=}")
-        print(f"upper_hull i + 1 : {i + 1}")
-        print(f"lower_hull j - 1 : {j + 1}")
-        print(f"i == len(upper_hull) : {(i == len(upper_hull))=}")
-        print(f"j == 0               : {(j == 0)=}")
-        a = upper_hull[i + 1][1] - upper_hull[i][1]
-        b = lower_hull[j][0] - lower_hull[j - 1][0]
-        c = lower_hull[j][1] - lower_hull[j - 1][1]
-        d = upper_hull[i + 1][0] - upper_hull[i][0]
-        print(f"LONG                 : {((a * b) > (c * d))=}")
+    while i < len(upper_hull) - 1 or j > 0:
         yield upper_hull[i], lower_hull[j]
-        # if all the way through one side of hull, advance the other side
+        # If all the way through one side of hull, advance the other side
         if i == len(upper_hull):
             j -= 1
         elif j == 0:
@@ -130,7 +137,6 @@ def rotating_calipers(points: npt.NDArray) -> list[tuple[list, list]]:
             i += 1
         else:
             j -= 1
-        counter += 1
 
 
 def min_max_feret(points: npt.NDArray) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
