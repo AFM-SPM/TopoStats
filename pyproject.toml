@@ -48,6 +48,7 @@ dependencies = [
   "scikit-image",
   "scipy",
   "seaborn",
+  "tensorflow==2.13.*"
   "tifffile",
   "topoly",
   "tqdm",
