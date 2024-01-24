@@ -172,6 +172,8 @@ class dnaTrace:
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} has {len(ordered_traces)} molecules.")
                 self.ordered_trace = ordered_traces
                 self.get_trace_heights()
+                drop_indices, nick_indices, change_points = self.analyse_nicks(5)
+                print(drop_indices)
             else:
                 LOGGER.info(
                     f"[{self.filename}] : Grain {self.n_grain} couldn't be traced due to errors in analysing the nodes."
@@ -434,13 +436,12 @@ class dnaTrace:
         y_coords = [coord[1] for array in self.ordered_trace for coord in array]
         minX = min(x_coords)
         maxX = max(x_coords)
-        minY = min(y_coords) 
+        minY = min(y_coords)
         maxY = max(y_coords)
         print("Shape of gauss_image:", self.gauss_image.shape)
         plt.clf()
-        plt.imshow(self.gauss_image[minX:maxX, minY:maxY], cmap='gray')  # Assuming grayscale image
-        #plt.scatter(y_coords, x_coords, c='red', marker='o')
-        plt.savefig(OUTPUT_DIR / 'output_figure.png')
+        # plt.scatter(y_coords, x_coords, c='red', marker='o')
+        plt.savefig(OUTPUT_DIR / "output_figure.png")
         # Access elements in the gauss_image array using integer indices
         heights = self.gauss_image[x_coords, y_coords]
         np.savetxt(OUTPUT_DIR / "trace.txt", np.concatenate(self.ordered_trace, axis=0))
@@ -450,6 +451,87 @@ class dnaTrace:
         # Concatenate the vectors side by side along the second axis (axis=1)
         self.height_info = np.concatenate((len_vector_2d, distances_vector_2d), axis=1)
         np.savetxt(OUTPUT_DIR / "HEIGHTS.txt", self.height_info)
+        return self.height_info
+    
+    def analyse_nicks(self, percentile: int = 1):
+
+        from scipy.signal import savgol_filter
+
+        def nick_sandwich(nick_indices, derivative_values, derivative_threshold):
+            min_nick = min(nick_indices)
+            max_nick = max(nick_indices)
+            before_nick = abs(derivative_values[min_nick - 10 : min_nick]) > derivative_threshold
+            after_nick = abs(derivative_values[max_nick : max_nick + 10]) > derivative_threshold
+
+            result = any(before_nick) and any(after_nick)
+            return result
+
+        y = self.height_info[:,0]
+        
+        # Apply Savitzky-Golay filter
+        y_filtered = savgol_filter(y, window_length=20, polyorder=1)
+        y_derivative = np.gradient(y_filtered)
+        #plt.plot(abs(y_derivative))
+
+        # Set sensitivity for nick detection based on the derivative
+        derivative_percentile = 95  # You can adjust this value
+        threshold_derivative = np.percentile(np.abs(y_derivative), derivative_percentile)
+        print(threshold_derivative)
+        change_points = np.where((np.abs(y_derivative) > threshold_derivative))[0]
+
+        threshold = np.percentile(y_filtered, percentile)  # Set sensitivity for nick detection
+
+        drop_indices = np.where(y_filtered < threshold)[0] # Identify lowest regions along molecule 
+
+        threshold_distance = 5 # Set a threshold for considering consecutive indices as part of the same cluster
+
+        # Initialise clusters
+        clusters = []
+        current_cluster = []
+
+        # Iterate through the dropped indices
+        for index in drop_indices:
+            if not current_cluster or index - current_cluster[-1] <= threshold_distance:
+                current_cluster.append(index)
+            else:
+                clusters.append(current_cluster)
+                current_cluster = [index]
+
+        # Add the last cluster
+        clusters.append(current_cluster)
+
+        number_of_nicks = 0
+        nick_indices = []
+
+        for cluster in clusters:
+            is_nick = nick_sandwich(cluster, abs(y_derivative), threshold_derivative)
+            if(is_nick):
+                if(any(abs(y_derivative[cluster[1:-1]]) < threshold_derivative)):
+                    number_of_nicks = number_of_nicks + 1
+                    nick_indices.append(cluster)
+                else:
+                    continue
+        trace = np.concatenate(self.ordered_trace, axis=0)
+        f, ax = plt.subplots(1, 2, figsize=(15, 15))
+
+        # Display image on the first axis
+        ax[0].imshow(self.gauss_image, cmap="afmhot")
+        ax[0].set_title("Original Image")
+
+        ax[1].imshow(self.gauss_image, cmap="afmhot")
+
+        for idx in nick_indices:
+         ax[1].scatter(trace[idx, 1], trace[idx, 0], color='b', marker='o', s=20)
+         ax[1].set_title("Low regions")
+        plt.savefig(OUTPUT_DIR / f"detected_nicks/{self.filename}_grain{self.n_grain}_detected_nicks.png")
+
+        
+
+        # Print the identified clusters
+        print("Number of clusters:", number_of_nicks)
+        print("Cluster indices:", nick_indices)
+
+        return drop_indices, nick_indices, change_points
 
     def get_fitted_traces(self, ordered_trace, mol_is_circular):
         """Create trace coordinates (for each identified molecule) that are adjusted to lie
