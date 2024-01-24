@@ -10,11 +10,17 @@ so this step was removed.
 
 from __future__ import annotations
 
+import logging
+from collections.abc import Generator
 from math import sqrt
 
 import numpy as np
 import numpy.typing as npt
 import skimage.morphology
+
+from topostats.logs.logs import LOGGER_NAME
+
+LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def orientation(p: npt.NDArray, q: npt.NDArray, r: npt.NDArray) -> int:
@@ -37,7 +43,7 @@ def orientation(p: npt.NDArray, q: npt.NDArray, r: npt.NDArray) -> int:
     return (q[1] - p[1]) * (r[0] - p[0]) - (q[0] - p[0]) * (r[1] - p[1])
 
 
-def sort_coords(points: npt.NDArray) -> npt.NDArray:
+def sort_coords(points: npt.NDArray, axis: int = 1) -> npt.NDArray:
     """
     Sort the coordinates.
 
@@ -45,35 +51,48 @@ def sort_coords(points: npt.NDArray) -> npt.NDArray:
     ----------
     points: npt.NDArray
         Array of coordinates
+    axis : int
+        Which axis to axis coordinates on 0 for row; 1 for columns (default).
 
     Returns
     -------
     npt.NDArray
         Array sorted by row then column.
     """
-    order = np.lexsort((points[:, 0], points[:, 1]))
+    if axis == 1:
+        order = np.lexsort((points[:, 0], points[:, 1]))
+    elif axis == 0:
+        order = np.lexsort((points[:, 1], points[:, 0]))
+    else:
+        raise ValueError("Invalid axis provided for sorting, only 0 and 1 permitted.")
     return points[order]
 
 
-def hulls(points: npt.NDArray) -> tuple[list, list]:
+def hulls(points: npt.NDArray, axis: int = 1) -> tuple[list, list]:
     """
     Graham scan to find upper and lower convex hulls of a set of 2-D points.
 
     Points should be sorted in asecnding order first.
 
+    `Graham scan <https://en.wikipedia.org/wiki/Graham_scan>`
+
     Parameters
     ----------
     points : npt.NDArray
         2-D Array of points for the outline of an object.
+    axis : int
+        Which axis to sort coordinates on 0 for row; 1 for columns (default).
 
     Returns
     -------
     Tuple[list, list]
         Tuple of two Numpy arrays of the original coordinates split into upper and lower hulls.
     """
-    upper_hull = []
-    lower_hull = []
-    for p in sort_coords(points):
+    upper_hull: list = []
+    lower_hull: list = []
+    if axis:
+        points = sort_coords(points, axis)
+    for p in points:
         # Remove points if they are not in the correct hull
         while len(upper_hull) > 1 and orientation(upper_hull[-2], upper_hull[-1], p) <= 0:
             upper_hull.pop()
@@ -111,41 +130,62 @@ def all_pairs(points: npt.NDArray) -> list[tuple[list, list]]:
     return list(unique_combinations.values())
 
 
-def rotating_calipers(points: npt.NDArray) -> list[tuple[list, list]]:
-    """Given a list of 2d points, finds all ways of sandwiching the points.
+def rotating_calipers(points: npt.NDArray, axis: int = 0) -> Generator:
+    """Given a list of 2d points, finds all ways of sandwiching the points between two parallel lines.
 
-    Between two parallel lines that touch one point each, and yields the sequence
-    of pairs of points touched by each pair of lines.
+    This yields the sequence of pairs of points touched by each pair of lines across all points around the hull of a
+    polygon.
 
     `Rotating Calipers <https://en.wikipedia.org/wiki/Rotating_calipers>_`
+
+    Parameters
+    ----------
+    points: npt.NDArray
+        Numpy array of coordinates defining the outline of an object.
+    axis : int
+        Which axis to sort coordinates on, 0 for row (default); 1 for columns.
+
+    Returns
+    -------
+    Generator
+        Numpy array of pairs of points
     """
-    upper_hull, lower_hull = hulls(points)
+    upper_hull, lower_hull = hulls(points, axis)
+    upper_hull = sort_coords(np.asarray(upper_hull), axis)
+    lower_hull = sort_coords(np.asarray(lower_hull), axis)
     i = 0
     j = len(lower_hull) - 1
+
+    counter = 0
     while i < len(upper_hull) - 1 or j > 0:
         yield upper_hull[i], lower_hull[j]
         # If all the way through one side of hull, advance the other side
-        if i == len(upper_hull):
+        if i == len(upper_hull) - 1:
             j -= 1
         elif j == 0:
             i += 1
         # still points left on both lists, compare slopes of next hull edges
-        # being careful to avoid divide-by-zero in slope calculation
+        # being careful to avoid ZeroDivisionError in slope calculation
         elif ((upper_hull[i + 1][1] - upper_hull[i][1]) * (lower_hull[j][0] - lower_hull[j - 1][0])) > (
             (lower_hull[j][1] - lower_hull[j - 1][1]) * (upper_hull[i + 1][0] - upper_hull[i][0])
         ):
             i += 1
         else:
             j -= 1
+        counter += 1
 
 
-def min_max_feret(points: npt.NDArray) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
+def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
     """Given a list of 2-D points, returns the minimum and maximum feret diameters.
+
+    `Feret diameter <https://en.wikipedia.org/wiki/Feret_diameter>`
 
     Parameters
     ----------
     points: npt.NDArray
         A 2-D array of points for the outline of an object.
+    axis: int
+        Which axis to sort coordinates on, 0 for row (default); 1 for columns.
 
     Returns
     -------
@@ -153,14 +193,14 @@ def min_max_feret(points: npt.NDArray) -> tuple[float, tuple[int, int], float, t
         Tuple of the minimum feret distance and its coordinates and the maximum feret distance and  its coordinates.
     """
     squared_distance_per_pair = [
-        ((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2, (p, q)) for p, q in rotating_calipers(points)
+        ((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2, (list(p), list(q))) for p, q in rotating_calipers(points, axis)
     ]
     min_feret_sq, min_feret_coords = min(squared_distance_per_pair)
     max_feret_sq, max_feret_coords = max(squared_distance_per_pair)
     return sqrt(min_feret_sq), min_feret_coords, sqrt(max_feret_sq), max_feret_coords
 
 
-def get_feret_from_mask(mask_im: npt.NDArray) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
+def get_feret_from_mask(mask_im: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
     """Calculate the minimum and maximum feret diameter of the foreground object of a binary mask.
 
     The outline of the object is calculated and the pixel coordinates transformed to a list for calculation.
@@ -169,6 +209,8 @@ def get_feret_from_mask(mask_im: npt.NDArray) -> tuple[float, tuple[int, int], f
     ----------
     mask_im: npt.NDArray
         Binary Numpy array.
+    axis: int
+        Which axis to sort coordinates on, 0 for row (default); 1 for columns.
 
     Returns
     -------
@@ -180,14 +222,13 @@ def get_feret_from_mask(mask_im: npt.NDArray) -> tuple[float, tuple[int, int], f
     boundary_points = np.argwhere(outline > 0)
     # convert numpy array to a list of (x,y) tuple points
     boundary_point_list = list(map(list, list(boundary_points)))
-    return min_max_feret(boundary_point_list)
+    return min_max_feret(boundary_point_list, axis)
 
 
-def get_feret_from_labelim(label_image: npt.NDArray, labels: None | list | set = None) -> dict:
+def get_feret_from_labelim(label_image: npt.NDArray, labels: None | list | set = None, axis: int = 0) -> dict:
     """Calculate the minimum and maximum feret and coordinates of each connected component within a labelled image.
 
-    If labels is None, all labels > 0
-    will be analyzed.
+    If labels is None, all labels > 0 will be analyzed.
 
     Parameters
     ----------
@@ -195,6 +236,8 @@ def get_feret_from_labelim(label_image: npt.NDArray, labels: None | list | set =
         Numpy array with labelled connected components (integer)
     labels: None | list
         A list of labelled objects for which to calculate
+    axis: int
+        Which axis to sort coordinates on, 0 for row (default); 1 for columns.
 
     Returns
     -------
@@ -206,5 +249,5 @@ def get_feret_from_labelim(label_image: npt.NDArray, labels: None | list | set =
         labels = set(np.unique(label_image)) - {0}
     results = {}
     for label in labels:
-        results[label] = get_feret_from_mask(label_image == label)
+        results[label] = get_feret_from_mask(label_image == label, axis)
     return results
