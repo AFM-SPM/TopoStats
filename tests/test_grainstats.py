@@ -300,7 +300,72 @@ def test_grainstats_get_triangle_height(base_point_1, base_point_2, top_point, e
     assert GrainStats.get_triangle_height(base_point_1, base_point_2, top_point) == expected
 
 
-@pytest.mark.parametrize(("edge_points", "expected"), [([[0, 0], [0, 1], [1, 0], [1, 1]], (1.0, 1.4142135623730951))])
-def test_get_min_max_ferets(edge_points, expected) -> None:
+@pytest.mark.parametrize(
+    ("edge_points", "min_expected", "max_expected"),
+    [
+        pytest.param([[0, 0], [0, 1], [1, 0], [1, 1]], 1.0, 1.4142135623730951, id="square"),
+        pytest.param([[1, 1], [1, 2], [2, 1]], 0.7071067811865476, 1.4142135623730951, id="triangle"),
+        pytest.param([[0, 0], [1, 0], [0, 2]], 0.7071067811865476, 1.4142135623730951, id="triangle"),
+        pytest.param([[0, 1], [1, 0], [1, 2], [2, 1]], 1.4142135623730951, 2.0, id="circle"),
+        pytest.param([[1, 2], [2, 1], [2, 4], [5, 2]], 2.4961508830135313, 4, id="quadrilateral"),
+        pytest.param(
+            [
+                [1, 3],
+                [1, 4],
+                [1, 5],
+                [1, 6],
+                [1, 7],
+                [2, 2],
+                [2, 8],
+                [3, 1],
+                [3, 9],
+                [4, 1],
+                [4, 9],
+                [5, 1],
+                [5, 9],
+                [6, 2],
+                [6, 8],
+                [7, 3],
+                [7, 4],
+                [7, 5],
+                [7, 6],
+                [7, 7],
+            ],
+            6.0,
+            8.246211251235321,
+            id="horizontal ellipse",
+        ),
+        pytest.param(
+            [
+                [1, 2],
+                [1, 3],
+                [1, 4],
+                [2, 1],
+                [2, 5],
+                [3, 2],
+                [3, 6],
+                [4, 3],
+                [4, 7],
+                [5, 4],
+                [5, 8],
+                [6, 5],
+                [6, 6],
+                [6, 7],
+            ],
+            2.82842712474619,
+            7.615773105863909,
+            id="angled ellipse",
+        ),
+        pytest.param(
+            [[1, 5], [2, 3], [2, 4], [3, 2], [4, 1], [5, 1], [6, 2], [6, 3], [7, 4], [7, 5], [7, 6], [8, 7], [8, 8]],
+            5.252257314388902,
+            8.06225774829855,
+            id="curved line",
+        ),
+    ],
+)
+def test_get_min_max_ferets(edge_points, min_expected, max_expected) -> None:
     """Tests the GrainStats.get_min_max_ferets method."""
-    assert GrainStats.get_max_min_ferets(edge_points) == expected
+    min_feret, max_feret = GrainStats.get_max_min_ferets(edge_points)
+    np.testing.assert_almost_equal(min_feret, min_expected)
+    np.testing.assert_almost_equal(max_feret, max_expected)
