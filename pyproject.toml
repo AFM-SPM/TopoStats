@@ -43,7 +43,7 @@ dependencies = [
   "pandas",
   "pySPM",
   "pyyaml",
-  "ruamel.yaml",
+  "ruamel.yaml==0.17.*",
   "schema",
   "scikit-image",
   "scipy",
