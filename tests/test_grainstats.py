@@ -304,8 +304,8 @@ def test_grainstats_get_triangle_height(base_point_1, base_point_2, top_point, e
     ("edge_points", "min_expected", "max_expected"),
     [
         pytest.param([[0, 0], [0, 1], [1, 0], [1, 1]], 1.0, 1.4142135623730951, id="square"),
-        pytest.param([[1, 1], [1, 2], [2, 1]], 0.7071067811865476, 1.4142135623730951, id="triangle"),
-        pytest.param([[0, 0], [1, 0], [0, 2]], 0.7071067811865476, 1.4142135623730951, id="triangle"),
+        pytest.param([[1, 1], [1, 2], [2, 1]], 0.7071067811865476, 1.4142135623730951, id="triangle (isosceles)"),
+        pytest.param([[0, 0], [1, 0], [0, 2]], 0.8944271909999159, 2.23606797749979, id="triangle"),
         pytest.param([[0, 1], [1, 0], [1, 2], [2, 1]], 1.4142135623730951, 2.0, id="circle"),
         pytest.param([[1, 2], [2, 1], [2, 4], [5, 2]], 2.4961508830135313, 4, id="quadrilateral"),
         pytest.param(
