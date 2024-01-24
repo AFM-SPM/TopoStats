@@ -1,9 +1,9 @@
 """Functions for processing data."""
 from __future__ import annotations
 
+import json
 from collections import defaultdict
 from pathlib import Path
-import json
 
 import numpy as np
 import pandas as pd
