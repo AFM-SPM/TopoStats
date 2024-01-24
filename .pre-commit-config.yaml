@@ -1,23 +1,25 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0  # Use the ref you want to point at
+    rev: v4.5.0 # Use the ref you want to point at
     hooks:
       - id: check-case-conflict
       - id: check-docstring-first
       - id: check-merge-conflict
       - id: check-toml
       - id: check-yaml
+      - id: debug-statements
       - id: end-of-file-fixer
         types: [python]
       - id: fix-byte-order-marker
       - id: name-tests-test
         args: ["--pytest-test-first"]
+      - id: no-commit-to-branch # Protects main/master by default
       - id: requirements-txt-fixer
       - id: trailing-whitespace
         types: [python, yaml, markdown]
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.10.0
+    rev: v0.11.0
     hooks:
       - id: markdownlint-cli2
         args: []
@@ -30,19 +32,36 @@ repos:
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.0.292
+    rev: v0.1.9
     hooks:
       - id: ruff
-        args: [ --fix, --exit-non-zero-on-fix ]
+        args: [--fix, --exit-non-zero-on-fix, --show-fixes]
 
-  - repo: https://github.com/psf/black
-    rev: 23.9.1
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 23.12.1
     hooks:
       - id: black
         types: [python]
-        additional_dependencies: ['click==8.0.4']
+        additional_dependencies: ["click==8.0.4"]
         args: ["--extend-exclude", "topostats/plotting.py"]
       - id: black-jupyter
+
+  - repo: https://github.com/adamchainz/blacken-docs
+    rev: 1.16.0
+    hooks:
+      - id: blacken-docs
+        additional_dependencies:
+          - black==22.12.0
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.6
+    hooks:
+      - id: codespell
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
 
   - repo: https://github.com/kynan/nbstripout
     rev: 0.6.1
@@ -60,7 +79,7 @@ repos:
 
 ci:
   autofix_prs: true
-  autofix_commit_msg: '[pre-commit.ci] Fixing issues with pre-commit'
-  autoupdate_schedule: weekly
-  autoupdate_commit_msg: '[pre-commit.ci] pre-commit-autoupdate'
+  autofix_commit_msg: "[pre-commit.ci] Fixing issues with pre-commit"
+  autoupdate_schedule: monthly
+  autoupdate_commit_msg: "[pre-commit.ci] pre-commit-autoupdate"
   skip: [pylint] # Optionally list ids of hooks to skip on CI

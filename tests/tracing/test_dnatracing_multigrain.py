@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from topostats.tracing.dnatracing import trace_image, prep_arrays, trace_mask
+from topostats.tracing.dnatracing import prep_arrays, trace_image, trace_mask
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
@@ -193,13 +193,35 @@ TARGET_ARRAY = np.asarray(
 @pytest.mark.parametrize(
     ("grain_anchors", "ordered_traces", "image_shape", "expected", "pad_width"),
     [
+        # Ensure that grains whose traces are outside of the image bounds are skipped
+        (
+            [
+                [0, 0],
+                [7, 7],
+            ],
+            [
+                np.asarray([[1, 1], [1, 2], [1, 3]]),  # Grain 0's points plus anchor 0 is inside image bounds
+                np.asarray([[1, 1], [1, 2], [1, 3]]),  # Grain 1's points plus anchor 1 are outside image bounds
+            ],
+            (5, 5),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            0,
+        ),
         # pad_width = 0
         (
             [[0, 0], [0, 9], [7, 0], [5, 4], [10, 7]],
             [
                 np.asarray([[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6]]),  # Horizontal grain
                 np.asarray([[1, 1], [2, 1], [3, 1], [4, 1]]),  # Vertical grain
-                np.asarray([[1, 1], [2, 2], [3, 3], [4, 4]]),  # Diagnoal grain
+                np.asarray([[1, 1], [2, 2], [3, 3], [4, 4]]),  # Diagonal grain
                 np.asarray([[1, 1], [1, 2], [1, 3], [1, 4], [2, 4], [3, 4]]),  # L-shaped grain grain
                 np.asarray(  # Small square
                     [
@@ -228,7 +250,7 @@ TARGET_ARRAY = np.asarray(
             [
                 np.asarray([[2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7]]),  # Horizontal grain
                 np.asarray([[2, 2], [3, 2], [4, 2], [5, 2]]),  # Vertical grain
-                np.asarray([[2, 2], [3, 3], [4, 4], [5, 5]]),  # Diagnoal grain
+                np.asarray([[2, 2], [3, 3], [4, 4], [5, 5]]),  # Diagonal grain
                 np.asarray([[3, 3], [3, 4], [3, 5], [3, 6], [4, 6], [5, 6]]),  # L-shaped grain grain
                 np.asarray(  # Small square
                     [
@@ -257,7 +279,7 @@ TARGET_ARRAY = np.asarray(
             [
                 np.asarray([[3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8]]),  # Horizontal grain
                 np.asarray([[3, 3], [4, 3], [5, 3], [6, 3]]),  # Vertical grain
-                np.asarray([[3, 3], [4, 4], [5, 5], [6, 6]]),  # Diagnoal grain
+                np.asarray([[3, 3], [4, 4], [5, 5], [6, 6]]),  # Diagonal grain
                 np.asarray([[4, 4], [4, 5], [4, 6], [4, 7], [5, 7], [6, 7]]),  # L-shaped grain grain
                 np.asarray(  # Small square
                     [
@@ -301,7 +323,7 @@ def test_trace_mask(
                 {
                     "molecule_number": [0, 1],
                     "image": ["multigrain_topostats", "multigrain_topostats"],
-                    "contour_length": [1.2382864476914832e-07, 7.617314045334366e-08],
+                    "contour_length": [5.684734982126663e-08, 7.574136072208753e-08],
                     "circular": [False, True],
                     "end_to_end_distance": [3.120049919984285e-08, 0.000000e00],
                 }
@@ -317,7 +339,7 @@ def test_trace_mask(
                 {
                     "molecule_number": [0, 1],
                     "image": ["multigrain_zhang", "multigrain_zhang"],
-                    "contour_length": [1.5050575430042103e-07, 1.122049485057339e-07],
+                    "contour_length": [6.194694383968301e-08, 8.187508931608563e-08],
                     "circular": [False, False],
                     "end_to_end_distance": [2.257869018994927e-08, 1.2389530445725336e-08],
                 }
@@ -333,7 +355,7 @@ def test_trace_mask(
                 {
                     "molecule_number": [0, 1],
                     "image": ["multigrain_lee", "multigrain_lee"],
-                    "contour_length": [1.432248478041724e-07, 1.1623401641268276e-07],
+                    "contour_length": [5.6550320018177204e-08, 8.062559919860786e-08],
                     "circular": [False, False],
                     "end_to_end_distance": [3.13837693459974e-08, 6.7191662793734405e-09],
                 }
@@ -349,13 +371,13 @@ def test_trace_mask(
                 {
                     "molecule_number": [0, 1],
                     "image": ["multigrain_thin", "multigrain_thin"],
-                    "contour_length": [1.2709212267220064e-07, 8.576324241662498e-08],
+                    "contour_length": [5.4926652806911664e-08, 3.6512544238919696e-08],
                     "circular": [False, False],
                     "end_to_end_distance": [4.367667613976452e-08, 3.440332307376993e-08],
                 }
             ),
             [np.asarray([5, 23]), np.asarray([10, 58])],
-            [np.asarray([71, 78]), np.asarray([83, 30])],
+            [np.asarray([71, 81]), np.asarray([83, 30])],
         ),
     ],
 )

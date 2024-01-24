@@ -1,34 +1,35 @@
 """Tests of IO."""
+import argparse
+from datetime import datetime
 from pathlib import Path
 
-from datetime import datetime
+import h5py
 import numpy as np
 import pandas as pd
 import pytest
-import h5py
 
 from topostats.io import (
-    read_yaml,
-    get_date_time,
-    write_config_with_comments,
-    write_yaml,
-    save_array,
-    load_array,
-    find_files,
-    get_out_path,
-    path_to_str,
-    save_folder_grainstats,
     LoadScans,
-    save_pkl,
+    convert_basename_to_relative_paths,
+    find_files,
+    get_date_time,
+    get_out_path,
+    get_relative_paths,
+    load_array,
     load_pkl,
+    path_to_str,
+    read_64d,
+    read_char,
+    read_gwy_component_dtype,
     read_null_terminated_string,
     read_u32i,
-    read_64d,
-    read_gwy_component_dtype,
-    read_char,
-    get_relative_paths,
-    convert_basename_to_relative_paths,
+    read_yaml,
+    save_array,
+    save_folder_grainstats,
+    save_pkl,
     save_topostats_file,
+    write_config_with_comments,
+    write_yaml,
 )
 
 BASE_DIR = Path.cwd()
@@ -60,23 +61,56 @@ def test_read_yaml() -> None:
     assert sample_config == CONFIG
 
 
-def test_write_config_with_comments(tmp_path: Path) -> None:
-    """Test writing of config file with comments."""
-    # Read default config with comments
-    with Path.open(BASE_DIR / "topostats" / "default_config.yaml", encoding="utf-8") as f:
-        default_config_string = f.read()
+@pytest.mark.parametrize(
+    ("filename", "config", "expected_filename"),
+    [
+        ("test_config_with_comments.yaml", None, "test_config_with_comments.yaml"),
+        ("test_config_with_comments", None, "test_config_with_comments.yaml"),
+        (None, "default", "config.yaml"),
+        (None, None, "config.yaml"),
+        # Example of how to test `dna_config.yaml`
+        # (None, "dna", "dna_config.yaml")
+    ],
+)
+def test_write_config_with_comments(tmp_path: Path, filename: str, config: str, expected_filename: str) -> None:
+    """Test writing of config file with comments.
+
+    If and when specific configurations for different sample types are introduced then the parametrisation can be
+    extended to allow these adding their names under "config" and introducing specific parameters that may differe
+    between the configuration files.
+    """
+    # Setup argparse.Namespace with the tests parameters
+    args = argparse.Namespace()
+    args.filename = filename
+    args.output_dir = tmp_path
+    args.config = config
 
     # Write default config with comments to file
-    write_config_with_comments(config=default_config_string, output_dir=tmp_path, filename="test_config_with_comments")
+    write_config_with_comments(args)
 
     # Read the written config
-    with Path.open(tmp_path / "test_config_with_comments.yaml", encoding="utf-8") as f:
+    with Path.open(tmp_path / expected_filename, encoding="utf-8") as f:
         written_config = f.read()
 
     # Validate that the written config has comments in it
-    assert default_config_string in written_config
     assert "Config file generated" in written_config
     assert "For more information on configuration and how to use it" in written_config
+    # Validate some of the parameters are present
+    assert "loading:" in written_config
+    assert "gaussian_mode: nearest" in written_config
+    assert "style: topostats.mplstyle" in written_config
+    assert "pixel_interpolation: null" in written_config
+
+
+def test_write_config_with_comments_user_warning(tmp_path: Path) -> None:
+    """Tests a user warning is raised if an attempt is made to request a configuration file type that does not exist."""
+    args = argparse.Namespace()
+    args.filename = "config.yaml"
+    args.output_dir = tmp_path
+    args.config = "nonsense"
+
+    with pytest.raises(UserWarning):
+        write_config_with_comments(args)
 
 
 def test_write_yaml(tmp_path: Path) -> None:
@@ -93,7 +127,12 @@ def test_write_yaml(tmp_path: Path) -> None:
 
 def test_path_to_str(tmp_path: Path) -> None:
     """Test that Path objects are converted to strings."""
-    CONFIG_PATH = {"this": "is", "a": "test", "with": tmp_path, "and": {"nested": tmp_path / "nested"}}
+    CONFIG_PATH = {
+        "this": "is",
+        "a": "test",
+        "with": tmp_path,
+        "and": {"nested": tmp_path / "nested"},
+    }
     CONFIG_STR = path_to_str(CONFIG_PATH)
 
     assert isinstance(CONFIG_STR, dict)
@@ -183,7 +222,10 @@ def test_read_gwy_component_dtype() -> None:
 @pytest.mark.parametrize(
     ("input_paths", "expected_paths"),
     [
-        ([Path("a/b/c/d"), Path("a/b/e/f"), Path("a/b/g"), Path("a/b/h")], ["c/d", "e/f", "g", "h"]),
+        (
+            [Path("a/b/c/d"), Path("a/b/e/f"), Path("a/b/g"), Path("a/b/h")],
+            ["c/d", "e/f", "g", "h"],
+        ),
         (["a/b/c/d", "a/b/e/f", "a/b/g", "a/b/h"], ["c/d", "e/f", "g", "h"]),
         (["g", "a/b/e/f", "a/b/g", "a/b/h"], ["g", "a/b/e/f", "a/b/g", "a/b/h"]),
         (["a/b/c/d"], ["a/b/c/d"]),
@@ -237,9 +279,9 @@ def test_convert_basename_to_relative_paths():
         # Absolute path, nested under base_dir, with file suffix and multiple periods
         (
             Path("/some/random/path"),
-            Path("/some/random/path/images/te.st.spm"),
+            Path("/some/random/path/images/to.at.spm"),
             Path("output/here"),
-            Path("output/here/images/te.st/"),
+            Path("output/here/images/to.at/"),
         ),
         # Absolute path, nested under base_dir, with file suffix
         (
@@ -263,7 +305,12 @@ def test_convert_basename_to_relative_paths():
             Path("output/here/images/today/test"),
         ),
         # Relative path, nested under base_dir, no file suffix
-        (Path("/some/random/path"), Path("images/"), Path("output/here"), Path("output/here/images/")),
+        (
+            Path("/some/random/path"),
+            Path("images/"),
+            Path("output/here"),
+            Path("output/here/images/"),
+        ),
         # Absolute path, nested under base_dir, output not nested under base_dir, with file_suffix
         (
             Path("/some/random/path"),
@@ -297,7 +344,11 @@ def test_get_out_path(image_path: Path, base_dir: Path, output_dir: Path, expect
 def test_get_out_path_attributeerror() -> None:
     """Test get_out_path() raises AttribteError when passed a string instead of a Path() for image_path."""
     with pytest.raises(AttributeError):
-        get_out_path(image_path="images/test.spm", base_dir=Path("/some/random/path"), output_dir=Path("output/here"))
+        get_out_path(
+            image_path="images/test.spm",
+            base_dir=Path("/some/random/path"),
+            output_dir=Path("output/here"),
+        )
 
 
 def test_save_folder_grainstats(tmp_path: Path) -> None:
@@ -357,6 +408,27 @@ def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
     assert image.sum() == 33836850.232917726
     assert isinstance(px_to_nm_scaling, float)
     assert px_to_nm_scaling == 0.8468632812499975
+
+
+def test_load_scan_asd_file_not_found() -> None:
+    """Test file not found exception is raised when loading non existent .ASD file."""
+    load_scan_asd = LoadScans([Path("file_does_not_exist.asd")], channel="TP")
+    load_scan_asd.img_path = load_scan_asd.img_paths[0]
+    load_scan_asd.filename = load_scan_asd.img_paths[0].stem
+    with pytest.raises(FileNotFoundError):
+        load_scan_asd.load_asd()
+
+
+def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
+    """Test loading of a .asd file."""
+    load_scan_asd.img_path = load_scan_asd.img_paths[0]
+    load_scan_asd.filename = load_scan_asd.img_paths[0].stem
+    frames, px_to_nm_scaling = load_scan_asd.load_asd()
+    assert isinstance(frames, np.ndarray)
+    assert frames.shape == (197, 200, 200)
+    assert frames.sum() == -71724923530211.84
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 2.0
 
 
 def test_load_scan_topostats(load_scan_topostats: LoadScans) -> None:
@@ -426,6 +498,7 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
         ("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876),
         ("load_scan_gwy", 1, (512, 512), 33836850.232917726, "file", 0.8468632812499975),
         ("load_scan_topostats", 1, (1024, 1024), 182067.12616107278, "file", 0.4940029296875),
+        ("load_scan_asd", 197, (200, 200), -673381139990.2344, "file_122", 2.0),
     ],
 )
 def test_load_scan_get_data(
@@ -465,7 +538,7 @@ def test_load_scan_get_data_check_image_size_and_add_to_dict(
     load_scan_spm.filename = "minicircle"
     load_scan_spm.img_path = tmp_path
     load_scan_spm.image = np.ndarray((x, y))
-    load_scan_spm._check_image_size_and_add_to_dict()
+    load_scan_spm._check_image_size_and_add_to_dict(image=load_scan_spm.image, filename=load_scan_spm.filename)
     assert log_msg in caplog.text
 
 
@@ -492,7 +565,12 @@ def test_load_pkl() -> None:
             None,
             np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]),
         ),
-        (np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), 3.14159265, np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]), None),
+        (
+            np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+            3.14159265,
+            np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]),
+            None,
+        ),
         (
             np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
             3.14159265,
@@ -516,7 +594,9 @@ def test_save_topostats_file(
     }
 
     save_topostats_file(
-        output_dir=tmp_path, filename="topostats_file_test.topostats", topostats_object=topostats_object
+        output_dir=tmp_path,
+        filename="topostats_file_test.topostats",
+        topostats_object=topostats_object,
     )
 
     with h5py.File(f"{tmp_path}/topostats_file_test.topostats", "r") as f:
@@ -529,7 +609,12 @@ def test_save_topostats_file(
         if grain_mask_below is not None:
             grain_mask_below_read = f["grain_masks/below"][:]
 
-    assert hdf5_file_keys == ["grain_masks", "image", "pixel_to_nm_scaling", "topostats_file_version"]
+    assert hdf5_file_keys == [
+        "grain_masks",
+        "image",
+        "pixel_to_nm_scaling",
+        "topostats_file_version",
+    ]
     assert 0.1 == topostats_file_version_read
     np.testing.assert_array_equal(image, image_read)
     assert pixel_to_nm_scaling == pixel_to_nm_scaling_read

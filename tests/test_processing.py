@@ -10,17 +10,17 @@ from topostats.io import LoadScans
 from topostats.processing import (
     check_run_steps,
     process_scan,
+    run_dnatracing,
     run_filters,
     run_grains,
     run_grainstats,
-    run_dnatracing,
 )
 from topostats.utils import update_plotting_config
 
 BASE_DIR = Path.cwd()
 
 
-# Can't see a way of paramterising with pytest-regtest as it writes to a file based on the file/function
+# Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
 # so instead we run three regression tests.
 def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly."""
@@ -497,4 +497,4 @@ def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
 
     assert isinstance(dnatracing_df, pd.DataFrame)
     assert dnatracing_df.shape[0] == 13
-    assert len(dnatracing_df.columns) == 23
+    assert len(dnatracing_df.columns) == 26

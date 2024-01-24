@@ -1,16 +1,17 @@
 """Contains class for calculating the statistics of grains - 2d raster images."""
 from __future__ import annotations
+
 import logging
 from pathlib import Path
 from random import randint
 
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import scipy.ndimage
+import skimage.feature as skimage_feature
 import skimage.measure as skimage_measure
 import skimage.morphology as skimage_morphology
-import skimage.feature as skimage_feature
-import scipy.ndimage
-import matplotlib.pyplot as plt
-import pandas as pd
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import create_empty_dataframe
@@ -300,7 +301,7 @@ class GrainStats:
 
     @staticmethod
     def calculate_points(grain_mask: np.ndarray):
-        """Convert a 2D boolean array to a list of co-ordinates.
+        """Convert a 2D boolean array to a list of coordinates.
 
         Parameters
         ----------
@@ -402,12 +403,12 @@ class GrainStats:
         Parameters
         ----------
         points: list
-            A 2D python list containing the co-ordinates of the points in a grain.
+            A 2D python list containing the coordinates of the points in a grain.
 
         Returns
         -------
         tuple
-            The co-ordinates of the centroid.
+            The coordinates of the centroid.
         """
         # FIXME : Remove once we have a numpy array returned by calculate_edges
         points = np.array(points)
@@ -441,7 +442,7 @@ class GrainStats:
         Parameters
         ----------
         edges : list
-            A python list contianing the coordinates of the edges of the grain.
+            A python list containing the coordinates of the edges of the grain.
         base_output_dir : Union[str, Path]
             Directory to save output to.
         debug : bool
@@ -511,7 +512,7 @@ class GrainStats:
         # Return if the list is length 1 or 0 (i.e. a single point).
         if len(points) <= 1:
             return points
-        # Lists that allow sorting of points relative to a current comparision point
+        # Lists that allow sorting of points relative to a current comparison point
         smaller, equal, larger = [], [], []
         # Get a random point in the array to calculate the pivot angle from. This sorts the points relative to this point.
         pivot_angle = self.get_angle(points[randint(0, len(points) - 1)], self.start_point)  # noqa: S311
@@ -572,7 +573,7 @@ class GrainStats:
             if point[1] == edges[min_y_index][1] and point[0] < edges[min_y_index][0]:
                 min_y_index = index
         self.start_point = edges[min_y_index]
-        # This does the same thing, but as a separate method and with Numpy Array rather than a lsit
+        # This does the same thing, but as a separate method and with Numpy Array rather than a list
         # self.get_start_point(edges)
         # Sort the points
         points_sorted_by_angle = self.sort_points(edges)
@@ -1025,7 +1026,7 @@ class GrainStats:
         min_feret = None
         while upper_index < len(upper_hull) - 1 or lower_index > 0:
             contact_points.append([lower_hull[lower_index, :], upper_hull[upper_index, :]])
-            # If we have reached the end of the upper hull, continute iterating over the lower hull
+            # If we have reached the end of the upper hull, continue iterating over the lower hull
             if upper_index == len(upper_hull) - 1:
                 lower_index -= 1
                 small_feret = GrainStats.get_triangle_height(
@@ -1056,7 +1057,7 @@ class GrainStats:
             ) > (lower_hull[lower_index, 1] - lower_hull[lower_index - 1, 1]) * (
                 upper_hull[upper_index + 1, 0] - upper_hull[upper_index, 0]
             ):
-                # If the upper hull is encoutnered first, increment the iteration index for the upper hull
+                # If the upper hull is encountered first, increment the iteration index for the upper hull
                 # Also consider the triangle that is made as the two upper hull vertices are colinear with the caliper
                 upper_index += 1
                 small_feret = GrainStats.get_triangle_height(

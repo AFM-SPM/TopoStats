@@ -1,29 +1,31 @@
 """Functions for reading and writing data."""
 from __future__ import annotations
-import os
-import logging
-from datetime import datetime
+
+import importlib.resources as pkg_resources
 import io
-import struct
-from pathlib import Path
+import logging
+import os
 import pickle as pkl
+import struct
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
+import h5py
 import numpy as np
 import pandas as pd
 import pySPM
-from igor2 import binarywave
 import tifffile
-import h5py
+from igor2 import binarywave
 from ruamel.yaml import YAML, YAMLError
-from ruamel.yaml.main import round_trip_load as yaml_load, round_trip_dump as yaml_dump
+from topofileformats import asd
 
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-CONFIG_DOCUMENTATION_REFERENCE = """For more information on configuration and how to use it:
+CONFIG_DOCUMENTATION_REFERENCE = """# For more information on configuration and how to use it:
 # https://afm-spm.github.io/TopoStats/main/configuration.html\n"""
 
 # pylint: disable=broad-except
@@ -69,7 +71,10 @@ def get_date_time() -> str:
 
 
 def write_yaml(
-    config: dict, output_dir: str | Path, config_file: str = "config.yaml", header_message: str = None
+    config: dict,
+    output_dir: str | Path,
+    config_file: str = "config.yaml",
+    header_message: str = None,
 ) -> None:
     """Write a configuration (stored as a dictionary) to a YAML file.
 
@@ -88,35 +93,52 @@ def write_yaml(
     output_config = Path(output_dir) / config_file
     # Revert PosixPath items to string
     config = path_to_str(config)
-    config_yaml = yaml_load(yaml_dump(config))
 
     if header_message:
-        config_yaml.yaml_set_start_comment(f"{header_message} : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE)
+        header = f"# {header_message} : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
     else:
-        config_yaml.yaml_set_start_comment(
-            f"Configuration from TopoStats run completed : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
-        )
-    with output_config.open("w") as f:
+        header = f"# Configuration from TopoStats run completed : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
+    output_config.write_text(header, encoding="utf-8")
+
+    yaml = YAML(typ="safe")
+    with output_config.open("a", encoding="utf-8") as f:
         try:
-            f.write(yaml_dump(config_yaml))
+            yaml.dump(config, f)
         except YAMLError as exception:
             LOGGER.error(exception)
 
 
-def write_config_with_comments(config: str, output_dir: Path, filename: str = "config.yaml") -> None:
+def write_config_with_comments(args=None) -> None:
     """
     Write a sample configuration with in-line comments.
 
+    This function is not designed to be used interactively but can be, just call it without any arguments and it will
+    write a configuration to './config.yaml'.
+
     Parameters
     ----------
-    config: str
-        A string of the entire configuration file to be saved.
-    output_dir: Path
-        A pathlib path of where to create the config file.
-    filename: str
-        A name for the configuration file. Can have a ".yaml" on the end.
+    args: Namespace
+        A Namespace object parsed from argparse with values for 'filename',
     """
-    if ".yaml" not in filename and ".yml" not in filename:
+    filename = "config" if args.filename is None else args.filename
+    output_dir = Path("./") if args.output_dir is None else Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    logger_msg = "A sample configuration has been written to"
+    # If no config or default is requested we load the default_config.yaml
+    if args.config is None or args.config == "default":
+        config = pkg_resources.open_text(__package__, "default_config.yaml").read()
+    elif args.config == "topostats.mplstyle":
+        config = pkg_resources.open_text(__package__, "topostats.mplstyle").read()
+        logger_msg = "A sample matplotlibrc parameters file has been written to"
+    # Otherwise we have scope for loading different configs based on the argument, add future dictionaries to
+    # topostats/<sample_type>_config.yaml
+    else:
+        try:
+            config = pkg_resources.open_text(__package__, f"{args.config}_config.yaml").read()
+        except FileNotFoundError as e:
+            raise UserWarning(f"There is no configuration for samples of type : {args.config}") from e
+
+    if ".yaml" not in filename and ".yml" not in filename and ".mplstyle" not in filename:
         create_config_path = output_dir / f"{filename}.yaml"
     else:
         create_config_path = output_dir / filename
@@ -125,7 +147,7 @@ def write_config_with_comments(config: str, output_dir: Path, filename: str = "c
         f.write(f"# Config file generated {get_date_time()}\n")
         f.write(f"# {CONFIG_DOCUMENTATION_REFERENCE}")
         f.write(config)
-    LOGGER.info(f"A sample configuration has been written to : {str(create_config_path)}")
+    LOGGER.info(f"{logger_msg} : {str(create_config_path)}")
     LOGGER.info(CONFIG_DOCUMENTATION_REFERENCE)
 
 
@@ -246,7 +268,7 @@ def find_files(base_dir: str | Path = None, file_ext: str = ".spm") -> list:
 
 
 def save_folder_grainstats(output_dir: str | Path, base_dir: str | Path, all_stats_df: pd.DataFrame) -> None:
-    """Save a data frame of grain and tracing statictics at the folder level.
+    """Save a data frame of grain and tracing statistics at the folder level.
 
     Parameters
     ----------
@@ -494,7 +516,7 @@ class LoadScans:
             # trying to return the error with options of possible channel values
             labels = []
             for channel in [layer[b"@2:Image Data"][0] for layer in scan.layers]:
-                channel_description = channel.decode("latin1").split('"')[1]  # incase the blank field raises quesions?
+                channel_description = channel.decode("latin1").split('"')[1]  # in case blank field raises questions?
                 labels.append(channel_description)
             LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
             raise e
@@ -519,7 +541,7 @@ class LoadScans:
             "um": 1e3,
         }
         px_to_real = channel_data.pxs()
-        # Has potential for non-square pixels but not yet implimented
+        # Has potential for non-square pixels but not yet implemented
         pixel_to_nm_scaling = (
             px_to_real[0][0] * unit_dict[px_to_real[0][1]],
             px_to_real[1][0] * unit_dict[px_to_real[1][1]],
@@ -565,6 +587,26 @@ class LoadScans:
             raise e
 
         return (image, pixel_to_nm_scaling)
+
+    def load_asd(self) -> tuple:
+        """Extract image and pixel to nm scaling from .asd files.
+
+        Returns
+        -------
+        tuple: (np.ndarray, float)
+            A tuple containing the image and its pixel to nanometre scaling value.
+        """
+        try:
+            frames: np.ndarray
+            pixel_to_nm_scaling: float
+            _: dict
+            frames, pixel_to_nm_scaling, _ = asd.load_asd(file_path=self.img_path, channel=self.channel)
+            LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
+        except FileNotFoundError:
+            LOGGER.info(f"[{self.filename}] : File not found. Path: {self.img_path}")
+            raise
+
+        return (frames, pixel_to_nm_scaling)
 
     def load_ibw(self) -> tuple:
         """Load image from Asylum Research (Igor) .ibw files.
@@ -617,7 +659,7 @@ class LoadScans:
             if line.count(":"):
                 key, val = line.split(":", 1)
                 notes[key] = val.strip()
-        # Has potential for non-square pixels but not yet implimented
+        # Has potential for non-square pixels but not yet implemented
         pixel_to_nm_scaling = (
             float(notes["SlowScanSize"]) / scan["wave"]["wData"].shape[0] * 1e9,  # as in m
             float(notes["FastScanSize"]) / scan["wave"]["wData"].shape[1] * 1e9,  # as in m
@@ -643,8 +685,8 @@ class LoadScans:
         # Obtain channel list for all channels in file
         channel_list = {}
         for i, page in enumerate(tif.pages[1:]):  # [0] is thumbnail
-            available_channel = page.tags["32848"].value  # keys are hexidecimal vals
-            if page.tags["32849"].value == 0:  # wether img is trace or retrace
+            available_channel = page.tags["32848"].value  # keys are hexadecimal values
+            if page.tags["32849"].value == 0:  # whether img is trace or retrace
                 tr_rt = "trace"
             else:
                 tr_rt = "retrace"
@@ -870,6 +912,7 @@ class LoadScans:
             ".ibw": self.load_ibw,
             ".gwy": self.load_gwy,
             ".topostats": self.load_topostats,
+            ".asd": self.load_asd,
         }
 
         for img_path in self.img_paths:
@@ -889,7 +932,11 @@ class LoadScans:
                     else:
                         raise
                 else:
-                    self._check_image_size_and_add_to_dict()
+                    if suffix == ".asd":
+                        for index, frame in enumerate(self.image):
+                            self._check_image_size_and_add_to_dict(image=frame, filename=f"{self.filename}_{index}")
+                    else:
+                        self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
             else:
                 raise ValueError(
                     f"File type {suffix} not yet supported. Please make an issue at \
@@ -897,36 +944,43 @@ class LoadScans:
                 this file type."
                 )
 
-    def _check_image_size_and_add_to_dict(self) -> None:
+    def _check_image_size_and_add_to_dict(self, image: np.ndarray, filename: str) -> None:
         """Check the image is above a minimum size in both dimensions.
 
         Images that do not meet the minimum size are not included for processing.
-        """
-        if self.image.shape[0] < self.MINIMUM_IMAGE_SIZE or self.image.shape[1] < self.MINIMUM_IMAGE_SIZE:
-            LOGGER.warning(f"[{self.filename}] Skipping, image too small: {self.image.shape}")
-        else:
-            self.add_to_dict()
-            LOGGER.info(f"[{self.filename}] Image added to processing.")
-
-    def add_to_dict(self) -> None:
-        """Add image, image path and pixel to nanometre scaling to the img_dic dictionary under key filename.
 
         Parameters
         ----------
-        filename: str
-            The filename, idealy without an extension.
         image: np.ndarray
             An array of the extracted AFM image.
-        img_path: str
-            The path to the AFM file (with a frame number if applicable)
-        px_2_nm: float
-            The length of a pixel in nm.
+        filename: str
+            The name of the file
         """
-        self.img_dict[self.filename] = {
-            "filename": self.filename,
-            "img_path": self.img_path.with_name(self.filename),
+        if image.shape[0] < self.MINIMUM_IMAGE_SIZE or image.shape[1] < self.MINIMUM_IMAGE_SIZE:
+            LOGGER.warning(f"[{filename}] Skipping, image too small: {image.shape}")
+        else:
+            self.add_to_dict(image=image, filename=filename)
+            LOGGER.info(f"[{filename}] Image added to processing.")
+
+    def add_to_dict(self, image: np.ndarray, filename: str) -> None:
+        """Add an image and metadata to the img_dict dictionary under the key filename.
+
+        Adds the image and associated metadata such as any grain masks, and pixel to nanometere
+        scaling factor to the img_dict dictionary which is used as a place to store the image
+        information for processing.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            An array of the extracted AFM image.
+        filename: str
+            The name of the file
+        """
+        self.img_dict[filename] = {
+            "filename": filename,
+            "img_path": self.img_path.with_name(filename),
             "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-            "image_original": self.image,
+            "image_original": image,
             "image_flattened": None,
             "grain_masks": self.grain_masks,
         }

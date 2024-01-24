@@ -149,7 +149,7 @@ removed_small_objects:
   dpi: 100
   core_set: false
 mask_overlay:
-  title: "Height Thresholded with Mask"
+  title: "Masked Objects"
   image_type: "non-binary"
   dpi: 100
   core_set: true

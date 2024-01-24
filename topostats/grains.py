@@ -1,13 +1,13 @@
 """Find grains in an image."""
 # pylint: disable=no-name-in-module
-from collections import defaultdict
 import logging
-import numpy as np
+from collections import defaultdict
 
-from skimage.segmentation import clear_border
+import numpy as np
 from skimage import morphology
-from skimage.measure import regionprops
 from skimage.color import label2rgb
+from skimage.measure import regionprops
+from skimage.segmentation import clear_border
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
@@ -49,7 +49,7 @@ class Grains:
         filename: str
             File being processed
         pixel_to_nm_scaling: float
-            Sacling of pixels to nanometre.
+            Scaling of pixels to nanometre.
         threshold_multiplier : Union[int, float]
             Factor by which below threshold is to be scaled prior to masking.
         threshold_method: str

@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from topostats.logs.logs import LOGGER_NAME
 from topostats.entry_point import entry_point
+from topostats.logs.logs import LOGGER_NAME
 
 BASE_DIR = Path.cwd()
 
@@ -31,9 +31,9 @@ def test_run_topostats_process_all(caplog) -> None:
             "process",
             "--config",
             f"{BASE_DIR / 'topostats' / 'default_config.yaml'}",
-            "--base_dir",
+            "--base-dir",
             "./tests/resources/test_image/",
-            "--file_ext",
+            "--file-ext",
             ".topostats",
         ]
     )
@@ -52,9 +52,9 @@ def test_run_topostats_process_debug(caplog) -> None:
                 f"{BASE_DIR / 'topostats' / 'default_config.yaml'}",
                 "-l",
                 "debug",
-                "--base_dir",
+                "--base-dir",
                 "./tests/resources/test_image/",
-                "--file_ext",
+                "--file-ext",
                 ".topostats",
             ]
         )

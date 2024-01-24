@@ -2,8 +2,8 @@
 from pathlib import Path
 
 import numpy as np
-from skimage.filters import gaussian  # noqa: E0611
 import pytest
+from skimage.filters import gaussian  # pylint: disable=no-name-in-module
 
 from topostats.filters import Filters
 

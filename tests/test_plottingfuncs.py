@@ -1,16 +1,23 @@
 """Tests of plotting functions."""
 from pathlib import Path
 
-import pytest
-from matplotlib.figure import Figure
-from matplotlib.axes import Axes
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
+import pytest
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from skimage import io
 
 from topostats.grains import Grains
 from topostats.io import LoadScans
-from topostats.plottingfuncs import dilate_binary_image, Images, add_pixel_to_nm_to_plotting_config
-
+from topostats.plottingfuncs import (
+    Images,
+    add_pixel_to_nm_to_plotting_config,
+    dilate_binary_image,
+    load_mplstyle,
+    set_n_ticks,
+)
 
 DPI = 300.0
 RNG = np.random.default_rng(seed=1000)
@@ -28,6 +35,22 @@ def test_add_pixel_to_nm_to_plotting_config(plotting_config_with_plot_dict):
     for _, plot_config in plotting_config["plot_dict"].items():
         if plot_config["pixel_to_nm_scaling"] != 1.23456789:
             raise AssertionError()
+
+
+@pytest.mark.parametrize(
+    ("style", "axes_titlesize", "font_size", "image_cmap", "savefig_format"),
+    [
+        ("topostats.mplstyle", 18, 16.0, "nanoscope", "png"),
+        ("tests/resources/my_custom.mplstyle", 34, 5.0, "viridis", "svg"),
+    ],
+)
+def test_load_mplstyle(style: str, axes_titlesize: int, font_size: float, image_cmap: str, savefig_format: str) -> None:
+    """Test loading of topostats.mplstyle and a custom style."""
+    load_mplstyle(style)
+    assert mpl.rcParams["axes.titlesize"] == axes_titlesize
+    assert mpl.rcParams["font.size"] == font_size
+    assert mpl.rcParams["image.cmap"] == image_cmap
+    assert mpl.rcParams["savefig.format"] == savefig_format
 
 
 @pytest.mark.parametrize(
@@ -52,9 +75,12 @@ def test_dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int,
     np.testing.assert_array_equal(result, expected)
 
 
+rng = np.random.default_rng()
+
+
 @pytest.mark.parametrize(
     ("masked_array", "axes_colorbar", "region_properties"),
-    [(np.random.rand(10, 10), True, None), (None, True, None), (None, False, True)],
+    [(rng.random((10, 10)), True, None), (None, True, None), (None, False, True)],
 )
 def test_save_figure(
     masked_array: np.ndarray,
@@ -83,8 +109,9 @@ def test_save_figure(
 
 def test_save_array_figure(tmp_path: Path):
     """Tests that the image array is saved."""
+    rng2 = np.random.default_rng()
     Images(
-        data=np.random.rand(10, 10),
+        data=rng2.random((10, 10)),
         output_dir=tmp_path,
         filename="result",
     ).save_array_figure()
@@ -279,3 +306,33 @@ def test_mask_dilation(plotting_config: dict, tmp_path: Path) -> None:
         **plotting_config,
     ).plot_and_save()
     return fig
+
+
+@pytest.mark.parametrize(
+    ("n", "expected"),
+    [
+        (
+            [2, 2],
+            (np.array([0, 8]), np.array([0, 10])),
+        ),
+        (
+            [3, 4],
+            (np.array([0, 4, 8]), np.array([0, 3, 6, 10])),
+        ),
+    ],
+)
+def test_set_n_ticks(n: list[int, int], expected: np.ndarray) -> None:
+    """Test the function to set the number of x and y axis ticks."""
+    arr = np.arange(0, 80).reshape(10, 8)
+    _, ax = plt.subplots(1, 1)
+    ax.imshow(arr)
+
+    set_n_ticks(ax, n)
+
+    xticks = ax.get_xticks()
+    assert len(xticks) == n[0]
+    assert (xticks == expected[0]).all()
+
+    yticks = ax.get_yticks()
+    assert len(yticks) == n[1]
+    assert (yticks == expected[1]).all()

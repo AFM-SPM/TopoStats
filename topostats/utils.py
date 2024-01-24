@@ -1,15 +1,17 @@
 """Utilities."""
 from __future__ import annotations
-from argparse import Namespace
+
 import logging
-from pathlib import Path
+from argparse import Namespace
 from collections import defaultdict
+from pathlib import Path
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 
-from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
+from topostats.thresholds import threshold
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -242,3 +244,45 @@ def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: tuple =
     """
     empty_df = pd.DataFrame(columns=columns)
     return empty_df.set_index(index)
+
+
+def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, image_shape: tuple) -> tuple:
+    """Ensure the padding of coordinates points does not fall outside of the image shape.
+
+    This function is primarily used in the dnaTrace.get_fitted_traces() method which aims to adjust the points of a
+    skeleton to sit on the highest points of a traced molecule. In order to do so it takes the ordered skeleton, which
+    may not lie on the highest points as it is generated from a binary mask that is unaware of the heights, and then
+    defines a padded boundary of 3nm profile perpendicular to the backbone of the DNA (which at this point is the
+    skeleton based on a mask). Each point along the skeleton therefore needs padding by a minimum of 2 pixels (in this
+    case each pixel equates to a cell in a NumPy array). If a point is within 2 pixels (i.e. 2 cells) of the border then
+    we can not pad beyond this region, we have to stop at the edge of the image and so the coordinates is adjusted such
+    that the padding will lie on the edge of the image/array.
+
+    Parameters
+    ----------
+    coordinates : npt.NDArray
+        Coordinates of a point on the mask based skeleton.
+    padding : int
+        Number of pixels/cells to pad around the point.
+    image_shape : tuple
+        The shape of the original image from which the pixel is obtained.
+
+    Returns
+    -------
+    tuple
+        Returns a tuple of coordinates that ensure that when the point is padded by the noted padding width in
+        subsequent calculations it will not be outside of the image shape.
+    """
+    # Calculate the maximum row and column indexes
+    max_row = image_shape[0] - 1
+    max_col = image_shape[1] - 1
+    row_coord, col_coord = coordinates
+
+    def check(coord, max_val):
+        if coord - padding < 0:
+            coord = padding
+        elif coord + padding > max_val:
+            coord = max_val - padding
+        return coord
+
+    return check(row_coord, max_row), check(col_coord, max_col)

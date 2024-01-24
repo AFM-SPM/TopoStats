@@ -2,33 +2,30 @@
 
 This provides an entry point for running TopoStats as a command line programme.
 """
-from collections import defaultdict
-from functools import partial
 import importlib.resources as pkg_resources
 import logging
+import sys
+from collections import defaultdict
+from functools import partial
 from multiprocessing import Pool
 from pprint import pformat
-import sys
-from pathlib import Path
-import yaml
 
 import pandas as pd
+import yaml
 from tqdm import tqdm
 
 from topostats.io import (
+    LoadScans,
     find_files,
     read_yaml,
     save_folder_grainstats,
     write_yaml,
-    write_config_with_comments,
-    LoadScans,
 )
-
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import check_run_steps, completion_message, process_scan
 from topostats.utils import update_config, update_plotting_config
-from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA
+from topostats.validation import DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA, validate_config
 
 # We already setup the logger in __init__.py and it is idempotent so calling it here returns the same object as from
 # __init__.py
@@ -66,13 +63,6 @@ def run_topostats(args=None):  # noqa: C901
         LOGGER.setLevel("INFO")
     # Validate configuration
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
-
-    # Write sample configuration if asked to do so and exit
-    if args.create_config_file and args.config_file:
-        raise ValueError("--create-config-file and --config cannot be used together.")
-    if args.create_config_file:
-        write_config_with_comments(config=default_config, output_dir=Path.cwd(), filename=args.create_config_file)
-        sys.exit()
 
     # Create base output directory
     config["output_dir"].mkdir(parents=True, exist_ok=True)

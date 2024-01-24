@@ -1,6 +1,8 @@
 """Image artefact correction functions that interpolates values filling the space of any detected scars."""
 import logging
+
 import numpy as np
+
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -42,7 +44,7 @@ def _mark_if_positive_scar(
         or decrease in height might constitute the top or bottom of a scar.
     max_scar_width: int
         A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,
-        rather vertical, this is because we conside scars to be laying flat, horizontally, so their width is
+        rather vertical, this is because we consider scars to be laying flat, horizontally, so their width is
         vertical and their length is horizontal.
 
     Returns
@@ -106,7 +108,7 @@ def _mark_if_negative_scar(
         or decrease in height might constitute the top or bottom of a scar.
     max_scar_width: int
         A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,
-        rather vertical, this is because we conside scars to be laying flat, horizontally, so their width is
+        rather vertical, this is because we consider scars to be laying flat, horizontally, so their width is
         vertical and their length is horizontal.
 
     Returns
@@ -199,7 +201,7 @@ def _remove_short_scars(marked: np.ndarray, threshold_high: float, min_scar_leng
 
     min_scar_length: int
         A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,
-        rather vertical, this is because we conside scars to be laying flat, horizontally, so their width is
+        rather vertical, this is because we consider scars to be laying flat, horizontally, so their width is
         vertical and their length is horizontal.
 
     Returns
@@ -388,10 +390,10 @@ def remove_scars(
         that result in values in the mask higher than this threshold are automatically considered scars.
     max_scar_width: int
         A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,
-        rather vertical, this is because we conside scars to be laying flat, horizontally, so their width is
+        rather vertical, this is because we consider scars to be laying flat, horizontally, so their width is
         vertical and their length is horizontal.
     min_scar_length: int
-        An integer that restricts the algorithm to only mark scars taht are as long or longer than this length.
+        An integer that restricts the algorithm to only mark scars that are as long or longer than this length.
         This is important for ensuring that noise or legitimate but sharp datapoints do not get detected as scars.
         Note that length here is horizontal, as scars are thin, horizontal features.
 
