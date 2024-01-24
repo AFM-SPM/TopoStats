@@ -239,7 +239,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 None,
                 "figure",
                 lambda n: n > 0,
-                error="Invalid value in config for plotting.savefig_dpi, valid" "values are 'figure' or integers",
+                error="Invalid value in config for plotting.savefig_dpi, valid" "values are 'figure' or floats",
             ),
             "image_set": Or(
                 "all",
