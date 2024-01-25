@@ -914,6 +914,7 @@ class LoadScans:
             A tuple containing the image and its pixel to nanometre scaling value.
         """
         LOGGER.info(f"Loading image from : {self.img_path}")
+        self.config["scale"]["factor_to_nm"] = {"nm": 1.0, "um": 1e3, "mm": 1e6, "m": 1e9, "pm": 1e-3, "fm": 1e-6}
         try:
             image_data_dict = {}
             with Path.open(self.img_path, "rb") as open_file:  # pylint: disable=unspecified-encoding
@@ -953,7 +954,7 @@ class LoadScans:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
             raise
 
-        return (image, self.config["scale"]["x_pixel_to_nm_scaling"])
+        return (image, self.config["scale"]["x_pixel_to_nm"])
 
     def gwy_process_z_values(self, image, unit_z) -> dict:
         """Scale heights by the given unit.
@@ -971,12 +972,9 @@ class LoadScans:
             Scaled Z data
         """
         scale_dict = self.config["scale"]
-        if unit_z not in scale_dict["factor_to_nm"]:
-            raise ValueError(f"Units for Z'{unit_z}' have not been added in the configuration file.")
-
         factor_z = scale_dict["factor_to_nm"][unit_z]
         scale_dict["original_z_unit"] = unit_z
-        scale_dict["z_value_to_nm_scaling"] = factor_z
+        scale_dict["z_value_to_nm"] = factor_z
         image = image * factor_z
         LOGGER.info(f"DataField {unit_z} was scaled by z-factor: {factor_z}")
         return image
@@ -994,9 +992,6 @@ class LoadScans:
             Pixel count for x, y axes
         """
         scale_dict = self.config["scale"]
-        if unit_xy not in scale_dict["factor_to_nm"]:
-            raise ValueError(f"Units for XY'{unit_xy}' have not been added in the configuration file.")
-
         factor_xy = scale_dict["factor_to_nm"][unit_xy]
         scale_dict["original_xy_unit"] = unit_xy
         xreal_nm, yreal_nm = xreal * factor_xy, yreal * factor_xy
@@ -1005,9 +1000,10 @@ class LoadScans:
             {
                 "x_real_nm": xreal_nm,
                 "y_real_nm": yreal_nm,
-                "x_pixel_to_nm_scaling": xscale,
-                "y_pixel_to_nm_scaling": yscale,
-                "xy_aspect": yreal_nm / xreal_nm,
+                "x_pixel_to_nm": xscale,
+                "y_pixel_to_nm": yscale,
+                "xres": xres,
+                "yres": yres,
             }
         )
         LOGGER.info(f"XY pixels: ({xres},{yres}), XY physical scale: ({xreal_nm:.2e} nm,{yreal_nm:.2e} nm)")

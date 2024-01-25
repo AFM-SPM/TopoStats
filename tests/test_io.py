@@ -444,19 +444,21 @@ def test_load_scan_gwy_nonsquare(load_scan_gwy_nonsquare: LoadScans) -> None:
 
 def test_gwy_process_z_values(load_scan_gwy: LoadScans) -> None:
     """Test Z-data handling with units."""
+    load_scan_gwy.config["scale"]["factor_to_nm"] = {"nm": 1.0, "um": 1e3, "mm": 1e6, "m": 1e9, "pm": 1e-3, "fm": 1e-6}
     z = np.ones((3, 3))
     z = load_scan_gwy.gwy_process_z_values(z, "um")
-    assert load_scan_gwy.config["scale"]["z_value_to_nm_scaling"] == 1000
+    assert load_scan_gwy.config["scale"]["z_value_to_nm"] == 1000
     assert z[1][1] == 1000  # um value in nm
 
 
 def test_gwy_process_xy_values(load_scan_gwy: LoadScans) -> None:
     """Test XY-data handling with units."""
+    load_scan_gwy.config["scale"]["factor_to_nm"] = {"nm": 1.0, "um": 1e3, "mm": 1e6, "m": 1e9, "pm": 1e-3, "fm": 1e-6}
     load_scan_gwy.gwy_process_xy_values("um", 3.0, 1.5, 300, 300)
     assert load_scan_gwy.config["scale"]["x_real_nm"] == 3000
     assert load_scan_gwy.config["scale"]["y_real_nm"] == 1500
-    assert load_scan_gwy.config["scale"]["x_pixel_to_nm_scaling"] == 10
-    assert load_scan_gwy.config["scale"]["y_pixel_to_nm_scaling"] == 5
+    assert load_scan_gwy.config["scale"]["x_pixel_to_nm"] == 10
+    assert load_scan_gwy.config["scale"]["y_pixel_to_nm"] == 5
 
 
 def test_load_scan_asd_file_not_found() -> None:
