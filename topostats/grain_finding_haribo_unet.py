@@ -509,15 +509,6 @@ def predict_unet(
     # Make a copy of the original image
     original_image = image.copy()
 
-    # # Print summary
-    # LOGGER.info(
-    #     "===============================================================================\n\n"
-    # )
-    # model.summary()
-    # LOGGER.info(
-    #     "===============================================================================\n\n"
-    # )
-
     # Run the model on a single image
     LOGGER.info("Preprocessing image for Unet prediction...")
 
@@ -545,18 +536,6 @@ def predict_unet(
     predicted_mask = Image.fromarray(predicted_mask)
     predicted_mask = predicted_mask.resize(original_image.shape)
     predicted_mask = np.array(predicted_mask)
-
-    # Save the predicted mask
-    # fig, ax = plt.subplots(1, 3, figsize=(20, 7))
-    # ax[1].imshow(original_image)
-    # ax[1].set_title("normalised image")
-    # ax[0].imshow(original_image)
-    # ax[0].set_title("original image")
-    # ax[2].imshow(predicted_mask)
-    # ax[2].set_title("predicted mask")
-    # fig.suptitle(f"strictness: {confidence}")
-    # fig.tight_layout()
-    # plt.savefig(image_output_dir / f"{filename}_prediction.png")
 
     return predicted_mask
 
