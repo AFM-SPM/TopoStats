@@ -97,7 +97,10 @@ def write_yaml(
     if header_message:
         header = f"# {header_message} : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
     else:
-        header = f"# Configuration from TopoStats run completed : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
+        header = (
+            f"# Configuration from TopoStats run completed : {get_date_time()}\n"
+            + CONFIG_DOCUMENTATION_REFERENCE
+        )
     output_config.write_text(header, encoding="utf-8")
 
     yaml = YAML(typ="safe")
@@ -136,7 +139,9 @@ def write_config_with_comments(args=None) -> None:
         try:
             config = pkg_resources.open_text(__package__, f"{args.config}_config.yaml").read()
         except FileNotFoundError as e:
-            raise UserWarning(f"There is no configuration for samples of type : {args.config}") from e
+            raise UserWarning(
+                f"There is no configuration for samples of type : {args.config}"
+            ) from e
 
     if ".yaml" not in filename and ".yml" not in filename and ".mplstyle" not in filename:
         create_config_path = output_dir / f"{filename}.yaml"
@@ -213,7 +218,30 @@ def path_to_str(config: dict) -> dict:
     return config
 
 
-def get_out_path(image_path: str | Path = None, base_dir: str | Path = None, output_dir: str | Path = None) -> Path:
+def dict_numpy_array_to_list(dictionary: dict) -> dict:
+    """Recursively traverse a dictionary and convert any numpy arrays to lists for writing to JSON.
+
+    Parameters
+    ----------
+    dictionary: dict
+        Dictionary to be converted.
+
+    Returns
+    -------
+    Dict:
+        The same dictionary with any numpy arrays converted to lists.
+    """
+    for key, value in dictionary.items():
+        if isinstance(value, np.ndarray):
+            dictionary[key] = value.tolist()
+        elif isinstance(value, dict):
+            dictionary[key] = dict_numpy_array_to_list(value)
+    return dictionary
+
+
+def get_out_path(
+    image_path: str | Path = None, base_dir: str | Path = None, output_dir: str | Path = None
+) -> Path:
     """Add the image path relative to the base directory to the output directory.
 
     Parameters
@@ -267,7 +295,9 @@ def find_files(base_dir: str | Path = None, file_ext: str = ".spm") -> list:
     return list(base_dir.glob("**/*" + file_ext))
 
 
-def save_folder_grainstats(output_dir: str | Path, base_dir: str | Path, all_stats_df: pd.DataFrame) -> None:
+def save_folder_grainstats(
+    output_dir: str | Path, base_dir: str | Path, all_stats_df: pd.DataFrame
+) -> None:
     """Save a data frame of grain and tracing statistics at the folder level.
 
     Parameters
@@ -299,7 +329,9 @@ def save_folder_grainstats(output_dir: str | Path, base_dir: str | Path, all_sta
             )
             LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/folder_grainstats.csv")
         except TypeError:
-            LOGGER.info(f"No folder-wise statistics for directory {_dir}, no grains detected in any images.")
+            LOGGER.info(
+                f"No folder-wise statistics for directory {_dir}, no grains detected in any images."
+            )
 
 
 def read_null_terminated_string(open_file: io.TextIOWrapper) -> str:
@@ -516,9 +548,13 @@ class LoadScans:
             # trying to return the error with options of possible channel values
             labels = []
             for channel in [layer[b"@2:Image Data"][0] for layer in scan.layers]:
-                channel_description = channel.decode("latin1").split('"')[1]  # in case blank field raises questions?
+                channel_description = channel.decode("latin1").split('"')[
+                    1
+                ]  # in case blank field raises questions?
                 labels.append(channel_description)
-            LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
+            LOGGER.error(
+                f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}"
+            )
             raise e
 
         return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
@@ -548,7 +584,9 @@ class LoadScans:
         )[0]
         if px_to_real[0][0] == 0 and px_to_real[1][0] == 0:
             pixel_to_nm_scaling = 1
-            LOGGER.warning(f"[{self.filename}] : Pixel size not found in metadata, defaulting to 1nm")
+            LOGGER.warning(
+                f"[{self.filename}] : Pixel size not found in metadata, defaulting to 1nm"
+            )
         LOGGER.info(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
         return pixel_to_nm_scaling
 
@@ -600,7 +638,9 @@ class LoadScans:
             frames: np.ndarray
             pixel_to_nm_scaling: float
             _: dict
-            frames, pixel_to_nm_scaling, _ = asd.load_asd(file_path=self.img_path, channel=self.channel)
+            frames, pixel_to_nm_scaling, _ = asd.load_asd(
+                file_path=self.img_path, channel=self.channel
+            )
             LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] : File not found. Path: {self.img_path}")
@@ -633,7 +673,9 @@ class LoadScans:
         except FileNotFoundError:
             LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
         except ValueError:
-            LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
+            LOGGER.error(
+                f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}"
+            )
             raise
         except Exception as exception:
             LOGGER.error(f"[{self.filename}] : {exception}")
@@ -766,7 +808,9 @@ class LoadScans:
             read_data_size += component_data_size
 
     @staticmethod
-    def _gwy_read_component(open_file: io.TextIOWrapper, initial_byte_pos: int, data_dict: dict) -> int:
+    def _gwy_read_component(
+        open_file: io.TextIOWrapper, initial_byte_pos: int, data_dict: dict
+    ) -> int:
         """Parse and extract data from a `.gwy` file object, starting at the current open file read position.
 
         Parameters
@@ -863,7 +907,9 @@ class LoadScans:
         LOGGER.info(f"Loading image from : {self.img_path}")
         try:
             image_data_dict = {}
-            with Path.open(self.img_path, "rb") as open_file:  # pylint: disable=unspecified-encoding
+            with Path.open(
+                self.img_path, "rb"
+            ) as open_file:  # pylint: disable=unspecified-encoding
                 # Read header
                 header = open_file.read(4)
                 LOGGER.debug(f"Gwy file header: {header}")
@@ -928,15 +974,21 @@ class LoadScans:
                     self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
                 except Exception as e:
                     if "Channel" in str(e) and "not found" in str(e):
-                        LOGGER.warning(f"[{self.filename}] Channel {self.channel} not found, skipping image.")
+                        LOGGER.warning(
+                            f"[{self.filename}] Channel {self.channel} not found, skipping image."
+                        )
                     else:
                         raise
                 else:
                     if suffix == ".asd":
                         for index, frame in enumerate(self.image):
-                            self._check_image_size_and_add_to_dict(image=frame, filename=f"{self.filename}_{index}")
+                            self._check_image_size_and_add_to_dict(
+                                image=frame, filename=f"{self.filename}_{index}"
+                            )
                     else:
-                        self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
+                        self._check_image_size_and_add_to_dict(
+                            image=self.image, filename=self.filename
+                        )
             else:
                 raise ValueError(
                     f"File type {suffix} not yet supported. Please make an issue at \
