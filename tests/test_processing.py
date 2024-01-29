@@ -1,4 +1,5 @@
 """Test end-to-end running of topostats."""
+
 import json
 from pathlib import Path
 
@@ -109,7 +110,7 @@ def test_save_cropped_grains(
     """Tests if cropped grains are saved only when image set is 'all' rather than 'core'."""
     process_scan_config["plotting"]["image_set"] = image_set
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
-    process_scan_config["plotting"]["dpi"] = 50
+    process_scan_config["plotting"]["savefig_dpi"] = 50
 
     img_dic = load_scan_data.img_dict
     _, _, _ = process_scan(
@@ -153,7 +154,7 @@ def test_save_cropped_grains(
 def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path, extension: str):
     """Tests if save format applied to cropped images."""
     process_scan_config["plotting"]["image_set"] = "all"
-    process_scan_config["plotting"]["save_format"] = extension
+    process_scan_config["plotting"]["savefig_format"] = extension
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
 
     img_dic = load_scan_data.img_dict

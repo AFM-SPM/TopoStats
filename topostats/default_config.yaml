@@ -62,13 +62,15 @@ dnatracing:
 plotting:
   run: true # Options : true, false
   style: topostats.mplstyle # Options : topostats.mplstyle or path to a matplotlibrc params file
-  save_format: png # Options : see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
+  savefig_format: null # Options : null (defaults to png) or see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
+  savefig_dpi: null # Options : null (defaults to figure) see https://afm-spm.github.io/TopoStats/main/configuration.html#further-customisation and https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
   pixel_interpolation: null # Options : https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html
   image_set: core # Options : all, core
   zrange: [null, null] # low and high height range for core images (can take [null, null]). low <= high
   colorbar: true # Options : true, false
   axes: true # Options : true, false (due to off being a bool when parsed)
   num_ticks: [null, null] # Number of ticks to have along the x and y axes. Options : null (auto) or integer > 1
+  cmap: null # Colormap/colourmap to use (default is 'nanoscope' which is used if null, other options are 'afmhot', 'viridis' etc.)
   mask_cmap: blu # Options : blu, jet_r and any in matplotlib
   histogram_log_axis: false # Options : true, false
 summary_stats:

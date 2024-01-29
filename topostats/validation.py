@@ -1,4 +1,5 @@
 """Validation of configuration."""
+
 import logging
 import os
 from pathlib import Path
@@ -234,7 +235,17 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     error="Invalid value in config for 'plotting.style', valid values are 'topostats.mplstyle' or None",
                 ),
             ),
-            "save_format": str,
+            "savefig_format": Or(
+                None,
+                str,
+                error="Invalid value in config for plotting.savefig_format" "must be a value supported by Matplotlib.",
+            ),
+            "savefig_dpi": Or(
+                None,
+                "figure",
+                lambda n: n > 0,
+                error="Invalid value in config for plotting.savefig_dpi, valid" "values are 'figure' or floats",
+            ),
             "image_set": Or(
                 "all",
                 "core",
@@ -275,6 +286,12 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "num_ticks": Or(
                 [None, And(int, lambda n: n > 1)],
                 error="Invalid value in config plotting.for 'num_ticks', valid values are 'null' or integers > 1",
+            ),
+            "cmap": Or(
+                None,
+                str,
+                error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot', 'nanoscope', "
+                "'gwyddion' or values supported by Matplotlib",
             ),
             "mask_cmap": str,
             "histogram_log_axis": Or(
@@ -319,7 +336,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -334,7 +351,7 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config 'pixels.image_type', valid values are 'binary' or 'non-binary'",
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -352,7 +369,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -370,7 +387,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -388,7 +405,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -406,7 +423,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -424,7 +441,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -442,7 +459,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -457,7 +474,7 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config 'mask.image_type', valid values are 'binary' or 'non-binary'",
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -475,7 +492,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -493,7 +510,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -511,7 +528,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -529,7 +546,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -547,7 +564,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -565,7 +582,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -583,7 +600,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -601,7 +618,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -617,7 +634,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": True,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -634,7 +651,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -652,7 +669,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -669,7 +686,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -686,7 +703,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -704,7 +721,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -720,7 +737,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": True,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -738,7 +755,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -756,7 +773,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -773,7 +790,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -790,7 +807,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -807,7 +824,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -822,7 +839,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": False,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -835,7 +852,7 @@ PLOTTING_SCHEMA = Schema(
                 error=("Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -851,7 +868,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -867,7 +884,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
-            "dpi": Or(
+            "savefig_dpi": Or(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
@@ -881,11 +898,11 @@ SUMMARY_SCHEMA = Schema(
         "base_dir": Path,
         "output_dir": Path,
         "csv_file": str,
-        "file_ext": Or(
+        "savefig_format": Or(
             "png",
             "pdf",
             "svg",
-            error=("Invalid value in config 'file_ext', valid values are 'png', 'pdf' or 'svg' "),
+            error=("Invalid value in config 'savefig_format', valid values are 'png', 'pdf' or 'svg' "),
         ),
         "pickle_plots": Or(
             True,
