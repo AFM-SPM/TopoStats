@@ -1,5 +1,6 @@
 """Tests of IO."""
 import argparse
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -24,8 +25,10 @@ from topostats.io import (
     read_null_terminated_string,
     read_u32i,
     read_yaml,
+    recursive_numpy_array_to_list,
     save_array,
     save_folder_grainstats,
+    save_grain_trace_json_data,
     save_pkl,
     save_topostats_file,
     write_config_with_comments,
@@ -123,6 +126,113 @@ def test_write_yaml(tmp_path: Path) -> None:
     )
     outfile = tmp_path / "test.yaml"
     assert outfile.is_file()
+
+
+@pytest.mark.parametrize(
+    "grain_trace_data",
+    [
+        {
+            "pixel_to_nm_scaling": 0.49,
+            "ordered_traces": [
+                [
+                    [0, 1],
+                    [1, 2],
+                    [3, 4],
+                ],
+                [
+                    [5, 5],
+                    [6, 6],
+                    [7, 7],
+                    [8, 8],
+                ],
+            ],
+            "trace_heights": {
+                "0": [1.0, 2.0, 2.5],
+                "1": [2.6, 10.7, 2.4, 5.7],
+            },
+            "trace_cumulative_distances": {
+                "0": [0.0, 1.0, 2.0],
+                "1": [0.0, 1.0, 2.0, 3.0],
+            },
+        },
+        {
+            "pixel_to_nm_scaling": 0.49,
+            "ordered_traces": [
+                None,
+                [
+                    [5, 5],
+                    [6, 6],
+                    [7, 7],
+                    [8, 8],
+                ],
+            ],
+            "trace_heights": {
+                "1": [2.6, 10.7, 2.4, 5.7],
+            },
+            "trace_cumulative_distances": {
+                "1": [0.0, 1.0, 2.0, 3.0],
+            },
+        },
+        {},
+    ],
+)
+def test_grain_trace_json_data(tmp_path: Path, grain_trace_data: dict, caplog: pytest.LogCaptureFixture) -> None:
+    """Test writing of grain trace data to JSON."""
+    save_grain_trace_json_data(
+        grain_json_data=grain_trace_data,
+        filename="test",
+        path=tmp_path,
+    )
+
+    if grain_trace_data:
+        outfile = tmp_path / "test_grain_trace_data.json"
+        assert outfile.is_file()
+
+        # Check that the written JSON file is the same as the input data
+        with Path.open(outfile, encoding="utf-8") as f:
+            loaded_data = json.load(f)
+        assert loaded_data == grain_trace_data
+    else:
+        # Check the logs to see if the warning was raised
+        assert "Grain json data is empty" in caplog.text
+
+
+@pytest.mark.parametrize(
+    ("object_to_convert", "expected"),
+    [
+        (np.array([1, 2, 3]), [1, 2, 3]),  # Test a numpy array
+        (np.array([[1, 2, 3], [4, 5, 6]]), [[1, 2, 3], [4, 5, 6]]),  # Test a 2D numpy array
+        (np.array([1, 2, None]), [1, 2, None]),  # Test a numpy array with None values
+        (np.array([]), []),  # Test an empty numpy array
+        ({}, {}),  # Test an empty dictionary
+        ([], []),  # Test an empty list
+        ((), ()),  # Test an empty tuple
+        ([np.array([1, 2, 3]), np.array([4, 5, 6])], [[1, 2, 3], [4, 5, 6]]),  # Test a list of numpy arrays
+        ((np.array([1, 2, 3]), np.array([4, 5, 6])), ([1, 2, 3], [4, 5, 6])),  # Test a tuple of numpy arrays
+        (
+            {"a": np.array([1, 2, 3]), "b": np.array([4, 5, 6])},
+            {"a": [1, 2, 3], "b": [4, 5, 6]},
+        ),  # Test a dictionary of numpy arrays
+        (
+            {"a": [np.array([1, 2, 3]), np.array([4, 5, 6])], "b": [np.array([7, 8, 9]), np.array([10, 11, 12])]},
+            {"a": [[1, 2, 3], [4, 5, 6]], "b": [[7, 8, 9], [10, 11, 12]]},
+        ),  # Test a dictionary of lists of numpy arrays
+        (
+            {
+                "a": {"b": np.array([1, 2, 3]), "c": np.array([4, 5, 6])},
+                "d": {"e": np.array([7, 8, 9]), "f": np.array([10, 11, 12])},
+            },
+            {"a": {"b": [1, 2, 3], "c": [4, 5, 6]}, "d": {"e": [7, 8, 9], "f": [10, 11, 12]}},
+        ),  # Test a nested dictionary of numpy arrays
+    ],
+)
+def test_recursive_numpy_array_to_list(
+    object_to_convert: dict | list | tuple | np.ndarray, expected: dict | list | tuple | set
+) -> None:
+    """Test recursive conversion of numpy arrays to lists."""
+    converted_object = recursive_numpy_array_to_list(object_to_convert)
+
+    assert converted_object == expected
 
 
 def test_path_to_str(tmp_path: Path) -> None:
@@ -508,7 +618,7 @@ def test_load_scan_get_data(
     image_sum: float,
     filename: str,
     pixel_to_nm_scaling: float,
-    request,
+    request: pytest.FixtureRequest,
 ) -> None:
     """Test the LoadScan.get_data() method."""
     scan = request.getfixturevalue(load_scan_object)
@@ -532,7 +642,7 @@ def test_load_scan_get_data(
     ],
 )
 def test_load_scan_get_data_check_image_size_and_add_to_dict(
-    load_scan_spm: LoadScans, x: int, y: int, log_msg: str, caplog, tmp_path
+    load_scan_spm: LoadScans, x: int, y: int, log_msg: str, caplog: pytest.LogCaptureFixture, tmp_path: Path
 ) -> None:
     """Test errors are raised when images that are too small are passed."""
     load_scan_spm.filename = "minicircle"
@@ -542,7 +652,7 @@ def test_load_scan_get_data_check_image_size_and_add_to_dict(
     assert log_msg in caplog.text
 
 
-def test_save_pkl(summary_config: dict, tmp_path) -> None:
+def test_save_pkl(summary_config: dict, tmp_path: Path) -> None:
     """Test saving a pickle."""
     outfile = tmp_path / "test.pkl"
     save_pkl(outfile=outfile, to_pkl=summary_config)
