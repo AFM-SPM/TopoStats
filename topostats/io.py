@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import importlib.resources as pkg_resources
 import io
+import json
 import logging
 import os
 import pickle as pkl
@@ -151,6 +152,36 @@ def write_config_with_comments(args=None) -> None:
     LOGGER.info(CONFIG_DOCUMENTATION_REFERENCE)
 
 
+def save_grain_trace_json_data(grain_json_data: dict, filename: str, path: Path) -> None:
+    """Save grain json data to a file. Note that the dictionaries need to contain only lists and not numpy arrays.
+
+    Use the dict_numpy_arrays_to_list() function in io.py to convert numpy arrays to lists in dictionaries.
+
+    Parameters
+    ----------
+    grain_json_data: dict
+        Dictionary containing grain json data.
+    filename: str
+        Name of the image.
+    path: Path
+        Path to save the grain json data to.
+
+    Returns
+    -------
+    None
+    """
+    json_file_name = f"{filename}_grain_trace_data.json"
+    LOGGER.info(f"[{filename}] : Saving grain json data to {path / json_file_name}")
+    # Check if the dictionary is empty
+    if grain_json_data:
+        LOGGER.info(f"[{filename}] : Saving grain json data to JSON file.")
+        json_grain_data = json.dumps(grain_json_data, indent=4)
+        with Path.open(path / json_file_name, "w", encoding="UTF-8") as json_file:
+            json_file.write(json_grain_data)
+    else:
+        LOGGER.error(f"[{filename}] : Grain json data is empty. Not saving to JSON file.")
+
+
 def save_array(array: np.ndarray, outpath: Path, filename: str, array_type: str) -> None:
     """Save a Numpy array to disk.
 
@@ -213,25 +244,30 @@ def path_to_str(config: dict) -> dict:
     return config
 
 
-def dict_numpy_array_to_list(dictionary: dict) -> dict:
-    """Recursively traverse a dictionary and convert any numpy arrays to lists for writing to JSON.
+def recursive_numpy_array_to_list(obj: dict | list | tuple | np.ndarray) -> dict | list | tuple | set:
+    """Recursively turn numpy arrays into lists. Takes a dictionary, list, or tuple and returns the same type.
+
+    Does not handle custom classes, only built-in types.
 
     Parameters
     ----------
-    dictionary: dict
-        Dictionary to be converted.
+    obj: Union[Dict, List, Tuple, np.ndarray]
+        Dictionary, list, tuple or set to be converted.
 
     Returns
     -------
-    Dict:
-        The same dictionary with any numpy arrays converted to lists.
+    Union[Dict, List, Tuple]
+        The same object as the input but with any numpy arrays converted to lists.
     """
-    for key, value in dictionary.items():
-        if isinstance(value, np.ndarray):
-            dictionary[key] = value.tolist()
-        elif isinstance(value, dict):
-            dictionary[key] = dict_numpy_array_to_list(value)
-    return dictionary
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, dict):
+        return {key: recursive_numpy_array_to_list(value) for key, value in obj.items()}
+    if isinstance(obj, list):
+        return [recursive_numpy_array_to_list(value) for value in obj]
+    if isinstance(obj, tuple):
+        return tuple(recursive_numpy_array_to_list(value) for value in obj)
+    return obj
 
 
 def get_out_path(image_path: str | Path = None, base_dir: str | Path = None, output_dir: str | Path = None) -> Path:
