@@ -1,7 +1,6 @@
 """Functions for processing data."""
 from __future__ import annotations
 
-import json
 from collections import defaultdict
 from pathlib import Path
 
@@ -12,7 +11,13 @@ from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import get_out_path, save_array, save_topostats_file
+from topostats.io import (
+    get_out_path,
+    recursive_numpy_array_to_list,
+    save_array,
+    save_grain_trace_json_data,
+    save_topostats_file,
+)
 from topostats.logs.logs import LOGGER_NAME, setup_logger
 from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
 from topostats.statistics import image_statistics
@@ -426,27 +431,23 @@ def run_dnatracing(  # noqa: C901
                     all_trace_heights = tracing_results["all_trace_heights"]
                     all_trace_cumulative_distances = tracing_results["all_trace_cumulative_distances"]
 
-                    LOGGER.info(f"[{filename}] : Saving trace json data.")
-                    # Check if the dictionary is empty
-                    if all_trace_heights:
-                        LOGGER.info(f"[{filename}] : Saving trace heights to JSON file.")
-                        json_all_height_trace_data = json.dumps(all_trace_heights)
-                        with Path.open(
-                            core_out_path / f"{filename}_{direction}_trace_heights.json", "w", encoding="UTF-8"
-                        ) as json_file:
-                            json_file.write(json_all_height_trace_data)
+                    # Construct dictionary of trace data
+                    grain_trace_data = {
+                        "pixel_to_nm_scaling": pixel_to_nm_scaling,
+                        "ordered_traces": ordered_traces,
+                        "trace_heights": all_trace_heights,
+                        "trace_cumulative_distances": all_trace_cumulative_distances,
+                    }
 
-                    # Save the trace cumulative distances to a JSON file
-                    # Check if the dictionary is empty
-                    if all_trace_cumulative_distances:
-                        LOGGER.info(f"[{filename}] : Saving trace cumulative distances to JSON file.")
-                        json_all_cumulative_distances = json.dumps(all_trace_cumulative_distances)
-                        with Path.open(
-                            core_out_path / f"{filename}_{direction}_trace_cumulative_distances.json",
-                            "w",
-                            encoding="UTF-8",
-                        ) as json_file:
-                            json_file.write(json_all_cumulative_distances)
+                    # Convert all numpy arrays to lists
+                    grain_trace_data = recursive_numpy_array_to_list(grain_trace_data)
+
+                    # Save the grain trace data to a JSON file
+                    save_grain_trace_json_data(
+                        grain_json_data=grain_trace_data,
+                        filename=filename,
+                        path=core_out_path,
+                    )
 
                 # Plot traces for the whole image
                 Images(
@@ -668,7 +669,9 @@ def process_scan(
 
     # Save the topostats dictionary object to .topostats file.
     save_topostats_file(
-        output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
+        output_dir=core_out_path,
+        filename=str(topostats_object["filename"]),
+        topostats_object=topostats_object,
     )
 
     return topostats_object["img_path"], results_df, image_stats
