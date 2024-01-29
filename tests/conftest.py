@@ -53,6 +53,8 @@ def process_scan_config() -> dict:
     config["filter"]["remove_scars"]["run"] = True
     config["grains"]["threshold_std_dev"]["below"] = 1.0
     config["grains"]["absolute_area_threshold"]["above"] = [500, 800]
+    # For testing that trace heights etc save correctly
+    config["dnatracing"]["save_trace_json_data"] = True
     config["plotting"]["zrange"] = [0, 3]
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())

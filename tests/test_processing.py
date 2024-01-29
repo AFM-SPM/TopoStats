@@ -498,3 +498,5 @@ def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
     assert isinstance(dnatracing_df, pd.DataFrame)
     assert dnatracing_df.shape[0] == 13
     assert len(dnatracing_df.columns) == 26
+    # Check that the json data has been saved correctly
+    assert Path.exists(tmp_path / "dummy filename_grain_trace_data.json")
