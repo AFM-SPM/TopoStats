@@ -506,8 +506,8 @@ def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
     assert Path.exists(tmp_path / "dummy filename_grain_trace_data.json")
 
     # Check that the contents of the json file are as expected
-    with open(tmp_path / "dummy filename_grain_trace_data.json", encoding="UTF-8") as json_file:
+    with Path.open(tmp_path / "dummy filename_grain_trace_data.json", encoding="UTF-8") as json_file:
         json_data = json.load(json_file)
-    with open(expected_json_output_path, encoding="UTF-8") as json_file:
+    with Path.open(expected_json_output_path, encoding="UTF-8") as json_file:
         expected_json_data = json.load(json_file)
     assert json_data == expected_json_data
