@@ -57,7 +57,7 @@ dependencies = [
 
 [project.optional-dependencies]
 tests = [
-  "pytest",
+  "pytest<8.0.0",
   "pytest-cov",
   "pytest-github-actions-annotate-failures",
   "pytest-lazy-fixture",
