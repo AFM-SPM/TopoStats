@@ -986,6 +986,47 @@ class LoadScans:
         }
 
 
+def _hdf5_add_known_datatype(
+    open_hdf5_file: h5py.File, group_path: str, item: list | str | int | float | np.ndarray | Path | dict, key: str
+) -> None:
+    """Add a known datatype to an open hdf5 file."""
+    # Lists need to be converted to numpy arrays
+    if isinstance(item, list):
+        item = np.array(item)
+    # Strings need to be encoded to bytes
+    elif isinstance(item, str):
+        open_hdf5_file[group_path + key] = item.encode("utf8")
+    # Integers, floats and numpy arrays can be added directly to the hdf5 file
+    elif isinstance(item, int | float | np.ndarray):
+        open_hdf5_file[group_path + key] = item
+    # Path objects need to be encoded to bytes
+    elif isinstance(item, Path):
+        open_hdf5_file[group_path + key] = str(item).encode("utf8")
+    # Dictionaries need to be recursively saved
+    elif isinstance(item, dict):  # a sub-dictionary, so we need to recurse
+        dict_to_hdf5(open_hdf5_file, group_path + key + "/", item)
+
+
+def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -> None:
+    """Recursively save a dictionary to an open hdf5 file."""
+    for key, item in dictionary.items():
+        LOGGER.info(f"Saving key: {key}")
+
+        if item is None:
+            LOGGER.warning(f"Item '{key}' is None. Skipping.")
+        # Make sure the key is a string
+        key = str(key)
+
+        # Check if the item is a known datatype
+        if isinstance(item, list | str | int | float | np.ndarray | Path | dict):
+            _hdf5_add_known_datatype(open_hdf5_file, group_path, item, key)
+        else:  # attempt to save an item that is not a numpy array or a dictionary
+            try:
+                open_hdf5_file[group_path + key] = item
+            except Exception as e:
+                print(f"Cannot save key '{key}' to HDF5. Item type: {type(item)}. Skipping. {e}")
+
+
 def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict) -> None:
     """Save a topostats dictionary object to a .topostats (hdf5 format) file.
 
@@ -1006,21 +1047,15 @@ def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict)
     else:
         save_file_path = output_dir / filename
 
+    topostats_object["topostats_file_version"] = 0.2
+
     with h5py.File(save_file_path, "w") as f:
         # It may be possible for topostats_object["image_flattened"] to be None.
         # Make sure that this is not the case.
         if topostats_object["image_flattened"] is not None:
-            f["topostats_file_version"] = 0.1
-            f["image"] = topostats_object["image_flattened"]
-            # It should not be possible for topostats_object["pixel_to_nm_scaling"] to be None
-            f["pixel_to_nm_scaling"] = topostats_object["pixel_to_nm_scaling"]
-            if topostats_object["grain_masks"]:
-                if "above" in topostats_object["grain_masks"].keys():
-                    if topostats_object["grain_masks"]["above"] is not None:
-                        f["grain_masks/above"] = topostats_object["grain_masks"]["above"]
-                if "below" in topostats_object["grain_masks"].keys():
-                    if topostats_object["grain_masks"]["below"] is not None:
-                        f["grain_masks/below"] = topostats_object["grain_masks"]["below"]
+            # Recursively save the topostats object dictionary to the .topostats file
+            dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
+
         else:
             raise ValueError(
                 "TopoStats object dictionary does not contain an 'image_flattened'. \
