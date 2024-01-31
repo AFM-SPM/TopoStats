@@ -1018,7 +1018,8 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
         key = str(key)
 
         # Check if the item is a known datatype
-        if isinstance(item, list | str | int | float | np.ndarray | Path | dict):
+        # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
+        if isinstance(item, (list, str, int, float, np.ndarray, Path, dict)):  # noqa: UP038
             _hdf5_add_known_datatype(open_hdf5_file, group_path, item, key)
         else:  # attempt to save an item that is not a numpy array or a dictionary
             try:
