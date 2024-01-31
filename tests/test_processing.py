@@ -483,7 +483,7 @@ def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
     mask_below = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
     grain_masks = {"above": mask_above, "below": mask_below}
 
-    dnatracing_df = run_dnatracing(
+    dnatracing_df, grain_trace_data = run_dnatracing(
         image=flattened_image,
         grain_masks=grain_masks,
         pixel_to_nm_scaling=0.4940029296875,
@@ -496,6 +496,8 @@ def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
         results_df=pd.read_csv("./tests/resources/minicircle_cropped_grainstats.csv"),
     )
 
+    assert isinstance(grain_trace_data, dict)
+    assert list(grain_trace_data.keys()) == ["above", "below"]
     assert isinstance(dnatracing_df, pd.DataFrame)
     assert dnatracing_df.shape[0] == 13
     assert len(dnatracing_df.columns) == 26

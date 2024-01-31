@@ -145,11 +145,9 @@ SMALL_MASK = np.asarray(
 def test_prep_arrays(pad_width: int, target_image: np.ndarray, target_mask: np.ndarray) -> None:
     """Tests the image and masks are correctly prepared to lists."""
     images, masks = prep_arrays(image=SMALL_ARRAY, labelled_grains_mask=SMALL_MASK, pad_width=pad_width)
-    grain = 0
-    for image, mask in zip(images, masks):  # noqa: PT011
+    for (grain, image), (grain, mask) in zip(images.items(), masks.items()):
         np.testing.assert_array_almost_equal(image, target_image[grain])
         np.testing.assert_array_equal(mask, target_mask[grain])
-        grain += 1
 
 
 def test_image_trace_unequal_arrays() -> None:
@@ -199,10 +197,10 @@ TARGET_ARRAY = np.asarray(
                 [0, 0],
                 [7, 7],
             ],
-            [
-                np.asarray([[1, 1], [1, 2], [1, 3]]),  # Grain 0's points plus anchor 0 is inside image bounds
-                np.asarray([[1, 1], [1, 2], [1, 3]]),  # Grain 1's points plus anchor 1 are outside image bounds
-            ],
+            {
+                "0": np.asarray([[1, 1], [1, 2], [1, 3]]),  # Grain 0's points plus anchor 0 is inside image bounds
+                "1": np.asarray([[1, 1], [1, 2], [1, 3]]),  # Grain 1's points plus anchor 1 are outside image bounds
+            },
             (5, 5),
             np.asarray(
                 [
@@ -218,12 +216,12 @@ TARGET_ARRAY = np.asarray(
         # pad_width = 0
         (
             [[0, 0], [0, 9], [7, 0], [5, 4], [10, 7]],
-            [
-                np.asarray([[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6]]),  # Horizontal grain
-                np.asarray([[1, 1], [2, 1], [3, 1], [4, 1]]),  # Vertical grain
-                np.asarray([[1, 1], [2, 2], [3, 3], [4, 4]]),  # Diagonal grain
-                np.asarray([[1, 1], [1, 2], [1, 3], [1, 4], [2, 4], [3, 4]]),  # L-shaped grain grain
-                np.asarray(  # Small square
+            {
+                "0": np.asarray([[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6]]),  # Horizontal grain
+                "1": np.asarray([[1, 1], [2, 1], [3, 1], [4, 1]]),  # Vertical grain
+                "2": np.asarray([[1, 1], [2, 2], [3, 3], [4, 4]]),  # Diagonal grain
+                "3": np.asarray([[1, 1], [1, 2], [1, 3], [1, 4], [2, 4], [3, 4]]),  # L-shaped grain grain
+                "4": np.asarray(  # Small square
                     [
                         [1, 1],
                         [1, 2],
@@ -239,7 +237,7 @@ TARGET_ARRAY = np.asarray(
                         [4, 4],
                     ]
                 ),
-            ],
+            },
             (16, 13),
             TARGET_ARRAY,
             0,
@@ -247,12 +245,12 @@ TARGET_ARRAY = np.asarray(
         # pad_width = 1
         (
             [[0, 0], [0, 9], [7, 0], [4, 3], [9, 6]],
-            [
-                np.asarray([[2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7]]),  # Horizontal grain
-                np.asarray([[2, 2], [3, 2], [4, 2], [5, 2]]),  # Vertical grain
-                np.asarray([[2, 2], [3, 3], [4, 4], [5, 5]]),  # Diagonal grain
-                np.asarray([[3, 3], [3, 4], [3, 5], [3, 6], [4, 6], [5, 6]]),  # L-shaped grain grain
-                np.asarray(  # Small square
+            {
+                "0": np.asarray([[2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7]]),  # Horizontal grain
+                "1": np.asarray([[2, 2], [3, 2], [4, 2], [5, 2]]),  # Vertical grain
+                "2": np.asarray([[2, 2], [3, 3], [4, 4], [5, 5]]),  # Diagonal grain
+                "3": np.asarray([[3, 3], [3, 4], [3, 5], [3, 6], [4, 6], [5, 6]]),  # L-shaped grain grain
+                "4": np.asarray(  # Small square
                     [
                         [3, 3],
                         [3, 4],
@@ -268,7 +266,7 @@ TARGET_ARRAY = np.asarray(
                         [6, 6],
                     ]
                 ),
-            ],
+            },
             (16, 13),
             TARGET_ARRAY,
             1,
@@ -276,12 +274,12 @@ TARGET_ARRAY = np.asarray(
         # pad_width = 2
         (
             [[0, 0], [0, 9], [7, 0], [4, 3], [9, 6]],
-            [
-                np.asarray([[3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8]]),  # Horizontal grain
-                np.asarray([[3, 3], [4, 3], [5, 3], [6, 3]]),  # Vertical grain
-                np.asarray([[3, 3], [4, 4], [5, 5], [6, 6]]),  # Diagonal grain
-                np.asarray([[4, 4], [4, 5], [4, 6], [4, 7], [5, 7], [6, 7]]),  # L-shaped grain grain
-                np.asarray(  # Small square
+            {
+                "0": np.asarray([[3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8]]),  # Horizontal grain
+                "1": np.asarray([[3, 3], [4, 3], [5, 3], [6, 3]]),  # Vertical grain
+                "2": np.asarray([[3, 3], [4, 4], [5, 5], [6, 6]]),  # Diagonal grain
+                "3": np.asarray([[4, 4], [4, 5], [4, 6], [4, 7], [5, 7], [6, 7]]),  # L-shaped grain grain
+                "4": np.asarray(  # Small square
                     [
                         [4, 4],
                         [4, 5],
@@ -297,7 +295,7 @@ TARGET_ARRAY = np.asarray(
                         [7, 7],
                     ]
                 ),
-            ],
+            },
             (16, 13),
             TARGET_ARRAY,
             2,
@@ -404,6 +402,8 @@ def test_trace_image(
     )
     statistics.set_index(["molecule_number"], inplace=True)
     pd.testing.assert_frame_equal(results["statistics"], statistics)
-    for ordered_trace, start, end in zip(results["ordered_traces"], ordered_trace_start, ordered_trace_end):
+    for ordered_trace, start, end in zip(
+        results["all_ordered_traces"].values(), ordered_trace_start, ordered_trace_end
+    ):
         np.testing.assert_array_equal(ordered_trace[1], start)
         np.testing.assert_array_equal(ordered_trace[-1], end)

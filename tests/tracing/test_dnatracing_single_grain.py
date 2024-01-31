@@ -88,8 +88,14 @@ def test_get_disordered_trace(
     dnatrace.get_disordered_trace()
     assert isinstance(dnatrace.disordered_trace, np.ndarray)
     assert len(dnatrace.disordered_trace) == length
-    np.testing.assert_array_equal(dnatrace.disordered_trace[0,], start)
-    np.testing.assert_array_equal(dnatrace.disordered_trace[-1,], end)
+    np.testing.assert_array_equal(
+        dnatrace.disordered_trace[0,],
+        start,
+    )
+    np.testing.assert_array_equal(
+        dnatrace.disordered_trace[-1,],
+        end,
+    )
 
 
 # Currently linear molecule isn't detected as linear, although it was when selecting and extracting in a Notebook
@@ -129,8 +135,14 @@ def test_get_ordered_traces(dnatrace: dnaTrace, length: int, start: np.array, en
     dnatrace.get_ordered_traces()
     assert isinstance(dnatrace.ordered_trace, np.ndarray)
     assert len(dnatrace.ordered_trace) == length
-    np.testing.assert_array_equal(dnatrace.ordered_trace[0,], start)
-    np.testing.assert_array_almost_equal(dnatrace.ordered_trace[-1,], end)
+    np.testing.assert_array_equal(
+        dnatrace.ordered_trace[0,],
+        start,
+    )
+    np.testing.assert_array_almost_equal(
+        dnatrace.ordered_trace[-1,],
+        end,
+    )
 
 
 @pytest.mark.parametrize(
@@ -150,8 +162,14 @@ def test_get_fitted_traces(dnatrace: dnaTrace, length: int, start: np.array, end
     dnatrace.get_fitted_traces()
     assert isinstance(dnatrace.fitted_trace, np.ndarray)
     assert len(dnatrace.fitted_trace) == length
-    np.testing.assert_array_equal(dnatrace.fitted_trace[0,], start)
-    np.testing.assert_array_almost_equal(dnatrace.fitted_trace[-1,], end)
+    np.testing.assert_array_equal(
+        dnatrace.fitted_trace[0,],
+        start,
+    )
+    np.testing.assert_array_almost_equal(
+        dnatrace.fitted_trace[-1,],
+        end,
+    )
 
 
 @pytest.mark.parametrize(
@@ -182,8 +200,14 @@ def test_get_splined_traces(dnatrace: dnaTrace, length: int, start: np.array, en
     dnatrace.get_splined_traces()
     assert isinstance(dnatrace.splined_trace, np.ndarray)
     assert len(dnatrace.splined_trace) == length
-    np.testing.assert_array_almost_equal(dnatrace.splined_trace[0,], start)
-    np.testing.assert_array_almost_equal(dnatrace.splined_trace[-1,], end)
+    np.testing.assert_array_almost_equal(
+        dnatrace.splined_trace[0,],
+        start,
+    )
+    np.testing.assert_array_almost_equal(
+        dnatrace.splined_trace[-1,],
+        end,
+    )
 
 
 @pytest.mark.parametrize(

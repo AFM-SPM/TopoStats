@@ -601,8 +601,9 @@ def test_save_topostats_file(
 
     with h5py.File(f"{tmp_path}/topostats_file_test.topostats", "r") as f:
         hdf5_file_keys = list(f.keys())
+        print(f"keys: {hdf5_file_keys}")
         topostats_file_version_read = f["topostats_file_version"][()]
-        image_read = f["image"][:]
+        image_read = f["image_flattened"][:]
         pixel_to_nm_scaling_read = f["pixel_to_nm_scaling"][()]
         if grain_mask_above is not None:
             grain_mask_above_read = f["grain_masks/above"][:]
@@ -611,11 +612,11 @@ def test_save_topostats_file(
 
     assert hdf5_file_keys == [
         "grain_masks",
-        "image",
+        "image_flattened",
         "pixel_to_nm_scaling",
         "topostats_file_version",
     ]
-    assert 0.1 == topostats_file_version_read
+    assert 0.2 == topostats_file_version_read
     np.testing.assert_array_equal(image, image_read)
     assert pixel_to_nm_scaling == pixel_to_nm_scaling_read
     if grain_mask_above is not None:
