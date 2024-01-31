@@ -997,7 +997,8 @@ def _hdf5_add_known_datatype(
     elif isinstance(item, str):
         open_hdf5_file[group_path + key] = item.encode("utf8")
     # Integers, floats and numpy arrays can be added directly to the hdf5 file
-    elif isinstance(item, int | float | np.ndarray):
+    # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
+    elif isinstance(item, (int, float, np.ndarray)):  # noqa: UP038
         open_hdf5_file[group_path + key] = item
     # Path objects need to be encoded to bytes
     elif isinstance(item, Path):
