@@ -226,10 +226,11 @@ class dnaTrace:
 
         cumulative_distance_list = [0]
         distance = 0
+        diagonal_distance = np.sqrt(2)
         for i in range(len(coordinates) - 1):
             # If the pixels are diagonally touching, add sqrt 2
             if abs(coordinates[i] - coordinates[i + 1]).sum() == 2:
-                distance += 1.41421356237  # Saves a sqrt call
+                distance += diagonal_distance
             else:
                 distance += 1.0
             cumulative_distance_list.append(distance)
