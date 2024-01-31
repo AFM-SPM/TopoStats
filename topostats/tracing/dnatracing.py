@@ -166,7 +166,7 @@ class dnaTrace:
 
     def get_ordered_trace_heights(self) -> None:
         """
-         Populate a `dnaTrace` instance's `self.trace_heights` array with the heights of each pixel in the
+         Populate the `trace_heights` attribute with an array of pixel heights from the ordered trace.
          `self.ordered_trace` list.
 
         Gets the heights of each pixel in the ordered trace from the gaussian filtered image. The pixel coordinates
