@@ -859,14 +859,13 @@ def trace_image(
     grain_anchors = [grain_anchor(image.shape, list(grain.bbox), pad_width) for grain in region_properties]
     n_grains = len(cropped_images)
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
-    n_grain = 0
     results = {}
     ordered_traces = {}
     splined_traces = {}
     all_ordered_trace_heights = {}
     all_ordered_trace_cumulative_distances = {}
-    for image_index, cropped_image in cropped_images.items():
-        cropped_mask = cropped_masks[image_index]
+    for cropped_image_index, cropped_image in cropped_images.items():
+        cropped_mask = cropped_masks[cropped_image_index]
 
         result = trace_grain(
             cropped_image,
@@ -878,15 +877,14 @@ def trace_image(
             spline_step_size,
             spline_linear_smoothing,
             spline_circular_smoothing,
-            n_grain,
+            cropped_image_index,
         )
-        LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
-        ordered_traces[n_grain] = result.pop("ordered_trace")
-        splined_traces[n_grain] = result.pop("splined_trace")
-        all_ordered_trace_heights[n_grain] = result.pop("ordered_trace_heights")
-        all_ordered_trace_cumulative_distances[n_grain] = result.pop("ordered_trace_cumulative_distances")
-        results[n_grain] = result
-        n_grain += 1
+        LOGGER.info(f"[{filename}] : Traced grain {cropped_image_index + 1} of {n_grains}")
+        ordered_traces[cropped_image_index] = result.pop("ordered_trace")
+        splined_traces[cropped_image_index] = result.pop("splined_trace")
+        all_ordered_trace_heights[cropped_image_index] = result.pop("ordered_trace_heights")
+        all_ordered_trace_cumulative_distances[cropped_image_index] = result.pop("ordered_trace_cumulative_distances")
+        results[cropped_image_index] = result
     try:
         results = pd.DataFrame.from_dict(results, orient="index")
         results.index.name = "molecule_number"
