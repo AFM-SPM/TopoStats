@@ -1026,7 +1026,18 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
             try:
                 open_hdf5_file[group_path + key] = item
             except Exception as e:
-                print(f"Cannot save key '{key}' to HDF5. Item type: {type(item)}. Skipping. {e}")
+                LOGGER.info(f"Cannot save key '{key}' to HDF5. Item type: {type(item)}. Skipping. {e}")
+
+
+def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
+    """Read a dictionary from an open hdf5 file."""
+    data_dict = {}
+    for key, item in open_hdf5_file[group_path].items():
+        if isinstance(item, h5py.Group):
+            data_dict[key] = hdf5_to_dict(open_hdf5_file, group_path + key + "/")
+        else:
+            data_dict[key] = item[()]
+    return data_dict
 
 
 def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict) -> None:
