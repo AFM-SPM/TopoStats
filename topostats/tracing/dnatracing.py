@@ -224,18 +224,25 @@ class dnaTrace:
             full molecule length at the last entry)
         """
 
-        cumulative_distance_list = [0]
-        distance = 0
-        diagonal_distance = np.sqrt(2)
-        for i in range(len(coordinates) - 1):
-            # If the pixels are diagonally touching, add sqrt 2
-            if abs(coordinates[i] - coordinates[i + 1]).sum() == 2:
-                distance += diagonal_distance
-            else:
-                distance += 1.0
-            cumulative_distance_list.append(distance)
+        # Shift the array by one coordinate so the end is at the start and the second to last is at the end
+        # this allows for the calculation of the distance between each pixel by subtracting the shifted array
+        # from the original array
+        rolled_coords = np.roll(coordinates, 1, axis=0)
 
-        return np.array(cumulative_distance_list) * px_to_nm
+        # Calculate the distance between each pixel in the trace
+        pixel_diffs = coordinates - rolled_coords
+        pixel_distances = np.linalg.norm(pixel_diffs, axis=1)
+
+        # Set the first distance to zero since we don't want to count the distance from the last pixel to the first
+        pixel_distances[0] = 0
+
+        # Calculate the cumulative sum of the distances
+        cumulative_distances = np.cumsum(pixel_distances)
+
+        # Convert the cumulative distances from pixels to nanometres
+        cumulative_distances_nm = cumulative_distances * px_to_nm
+
+        return cumulative_distances_nm
 
     def get_disordered_trace(self):
         """Create a skeleton for each of the grains in the image.
