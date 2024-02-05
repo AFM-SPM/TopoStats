@@ -3,11 +3,12 @@
 from pathlib import Path
 
 import filetype
+import h5py
 import numpy as np
 import pandas as pd
 import pytest
 
-from topostats.io import LoadScans
+from topostats.io import LoadScans, hdf5_to_dict
 from topostats.processing import (
     check_run_steps,
     process_scan,
@@ -19,6 +20,7 @@ from topostats.processing import (
 from topostats.utils import update_plotting_config
 
 BASE_DIR = Path.cwd()
+RESOURCES = BASE_DIR / "tests/resources"
 
 
 # Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
@@ -94,6 +96,18 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     results.drop(["basename"], axis=1, inplace=True)
     print(img_stats.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
     print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
+
+    # Regtest for the topostats file
+    assert Path.exists(tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats")
+    with h5py.File(RESOURCES / "process_scan_topostats_file_regtest.topostats", "r") as f:
+        expected_topostats = hdf5_to_dict(f, group_path="/")
+    with h5py.File(tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats", "r") as f:
+        saved_topostats = hdf5_to_dict(f, group_path="/")
+
+    # Check the keys, this will flag all new keys when adding output stats
+    assert expected_topostats.keys() == saved_topostats.keys()
+    # Check exact match of the data
+    np.testing.assert_equal(expected_topostats, saved_topostats)
 
 
 @pytest.mark.parametrize(
