@@ -1,4 +1,5 @@
 """Perform DNA Tracing"""
+
 from collections import OrderedDict
 from functools import partial
 from itertools import repeat

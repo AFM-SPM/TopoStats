@@ -1,4 +1,5 @@
 """Fixtures for testing."""
+
 import importlib.resources as pkg_resources
 from pathlib import Path
 
@@ -428,10 +429,10 @@ def minicircle_initial_tilt_removal(minicircle_initial_median_flatten: Filters) 
 @pytest.fixture()
 def minicircle_initial_quadratic_removal(minicircle_initial_tilt_removal: Filters) -> Filters:
     """Initial quadratic removal on unmasked data."""
-    minicircle_initial_tilt_removal.images[
-        "initial_quadratic_removal"
-    ] = minicircle_initial_tilt_removal.remove_quadratic(
-        minicircle_initial_tilt_removal.images["initial_tilt_removal"], mask=None
+    minicircle_initial_tilt_removal.images["initial_quadratic_removal"] = (
+        minicircle_initial_tilt_removal.remove_quadratic(
+            minicircle_initial_tilt_removal.images["initial_tilt_removal"], mask=None
+        )
     )
     return minicircle_initial_tilt_removal
 
@@ -511,10 +512,10 @@ def minicircle_masked_quadratic_removal(minicircle_masked_tilt_removal: Filters)
 @pytest.fixture()
 def minicircle_grain_gaussian_filter(minicircle_masked_quadratic_removal: Filters) -> Filters:
     """Apply Gaussian filter."""
-    minicircle_masked_quadratic_removal.images[
-        "gaussian_filtered"
-    ] = minicircle_masked_quadratic_removal.gaussian_filter(
-        image=minicircle_masked_quadratic_removal.images["masked_quadratic_removal"]
+    minicircle_masked_quadratic_removal.images["gaussian_filtered"] = (
+        minicircle_masked_quadratic_removal.gaussian_filter(
+            image=minicircle_masked_quadratic_removal.images["masked_quadratic_removal"]
+        )
     )
     return minicircle_masked_quadratic_removal
 
@@ -603,9 +604,9 @@ def minicircle_grain_remove_noise(minicircle_grain_clear_border: Grains) -> Grai
 @pytest.fixture()
 def minicircle_grain_labelled_all(minicircle_grain_remove_noise: Grains) -> Grains:
     """Labelled regions."""
-    minicircle_grain_remove_noise.directions["above"][
-        "labelled_regions_01"
-    ] = minicircle_grain_remove_noise.label_regions(minicircle_grain_remove_noise.directions["above"]["removed_noise"])
+    minicircle_grain_remove_noise.directions["above"]["labelled_regions_01"] = (
+        minicircle_grain_remove_noise.label_regions(minicircle_grain_remove_noise.directions["above"]["removed_noise"])
+    )
     return minicircle_grain_remove_noise
 
 
@@ -621,10 +622,10 @@ def minicircle_minimum_grain_size(minicircle_grain_labelled_all: Grains) -> Grai
 @pytest.fixture()
 def minicircle_small_objects_removed(minicircle_minimum_grain_size: Grains) -> Grains:
     """Small objects removed."""
-    minicircle_minimum_grain_size.directions["above"][
-        "removed_small_objects"
-    ] = minicircle_minimum_grain_size.remove_small_objects(
-        minicircle_minimum_grain_size.directions["above"]["labelled_regions_01"]
+    minicircle_minimum_grain_size.directions["above"]["removed_small_objects"] = (
+        minicircle_minimum_grain_size.remove_small_objects(
+            minicircle_minimum_grain_size.directions["above"]["labelled_regions_01"]
+        )
     )
     return minicircle_minimum_grain_size
 
@@ -633,11 +634,11 @@ def minicircle_small_objects_removed(minicircle_minimum_grain_size: Grains) -> G
 def minicircle_area_thresholding(minicircle_grain_labelled_all: Grains) -> Grains:
     """Small objects removed."""
     absolute_area_thresholds = [30, 2000]
-    minicircle_grain_labelled_all.directions["above"][
-        "removed_small_objects"
-    ] = minicircle_grain_labelled_all.area_thresholding(
-        image=minicircle_grain_labelled_all.directions["above"]["labelled_regions_01"],
-        area_thresholds=absolute_area_thresholds,
+    minicircle_grain_labelled_all.directions["above"]["removed_small_objects"] = (
+        minicircle_grain_labelled_all.area_thresholding(
+            image=minicircle_grain_labelled_all.directions["above"]["labelled_regions_01"],
+            area_thresholds=absolute_area_thresholds,
+        )
     )
     return minicircle_grain_labelled_all
 
@@ -645,10 +646,10 @@ def minicircle_area_thresholding(minicircle_grain_labelled_all: Grains) -> Grain
 @pytest.fixture()
 def minicircle_grain_labelled_post_removal(minicircle_small_objects_removed: np.array) -> Grains:
     """Labelled regions."""
-    minicircle_small_objects_removed.directions["above"][
-        "labelled_regions_02"
-    ] = minicircle_small_objects_removed.label_regions(
-        minicircle_small_objects_removed.directions["above"]["removed_small_objects"]
+    minicircle_small_objects_removed.directions["above"]["labelled_regions_02"] = (
+        minicircle_small_objects_removed.label_regions(
+            minicircle_small_objects_removed.directions["above"]["removed_small_objects"]
+        )
     )
     return minicircle_small_objects_removed
 
@@ -666,10 +667,10 @@ def minicircle_grain_region_properties_post_removal(
 @pytest.fixture()
 def minicircle_grain_coloured(minicircle_grain_labelled_post_removal: np.array) -> Grains:
     """Coloured regions."""
-    minicircle_grain_labelled_post_removal.directions["above"][
-        "coloured_regions"
-    ] = minicircle_grain_labelled_post_removal.colour_regions(
-        minicircle_grain_labelled_post_removal.directions["above"]["labelled_regions_02"]
+    minicircle_grain_labelled_post_removal.directions["above"]["coloured_regions"] = (
+        minicircle_grain_labelled_post_removal.colour_regions(
+            minicircle_grain_labelled_post_removal.directions["above"]["labelled_regions_02"]
+        )
     )
     return minicircle_grain_labelled_post_removal
 

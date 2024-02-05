@@ -1,4 +1,5 @@
 """Test of thresholds."""
+
 # pylint: disable=no-name-in-module
 import numpy as np
 import pytest

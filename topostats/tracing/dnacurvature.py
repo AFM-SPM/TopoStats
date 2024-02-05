@@ -1,4 +1,5 @@
 """Module for calculating curvature statistics."""
+
 import logging
 
 # from pathlib import Path

@@ -1,4 +1,5 @@
 """Module for filtering 2D Numpy arrays."""
+
 from __future__ import annotations
 
 import logging

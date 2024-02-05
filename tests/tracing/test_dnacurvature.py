@@ -1,4 +1,5 @@
 """Tests of the dnacurvature module."""
+
 import pytest
 
 import math
