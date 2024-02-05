@@ -749,7 +749,7 @@ def test_save_and_load_topostats_file(
     loadscans.get_data()
     read_topostats_file_data_dict = loadscans.img_dict["topostats_file_test"]
 
-    assert list(read_topostats_file_data_dict.keys()) == [
+    assert set(read_topostats_file_data_dict.keys()) == {
         "image_original",
         "img_path",
         "filename",
@@ -757,7 +757,7 @@ def test_save_and_load_topostats_file(
         "grain_trace_data",
         "image_flattened",
         "pixel_to_nm_scaling",
-    ]
+    }
 
     np.testing.assert_array_equal(image, read_topostats_file_data_dict["image_original"])
     assert pixel_to_nm_scaling == read_topostats_file_data_dict["pixel_to_nm_scaling"]
