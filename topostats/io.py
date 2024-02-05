@@ -1085,6 +1085,9 @@ def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict)
         # It may be possible for topostats_object["image_flattened"] to be None.
         # Make sure that this is not the case.
         if topostats_object["image_flattened"] is not None:
+            # Rename the key to "image" for backwards compatibility
+            topostats_object["image"] = topostats_object.pop("image_flattened")
+
             # Recursively save the topostats object dictionary to the .topostats file
             dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
 
