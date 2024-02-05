@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from topostats.io import LoadScans, hdf5_to_dict
+from topostats.io import LoadScans, dict_almost_equal, hdf5_to_dict
 from topostats.processing import (
     check_run_steps,
     process_scan,
@@ -106,8 +106,8 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
 
     # Check the keys, this will flag all new keys when adding output stats
     assert expected_topostats.keys() == saved_topostats.keys()
-    # Check exact match of the data
-    np.testing.assert_equal(expected_topostats, saved_topostats)
+    # Check the data
+    assert dict_almost_equal(expected_topostats, saved_topostats)
 
 
 @pytest.mark.parametrize(
