@@ -53,15 +53,21 @@ def dict_almost_equal(dict1, dict2, abs_tol=1e-9):
     if dict1.keys() != dict2.keys():
         return False
 
+    LOGGER.info("Compating dictionaries")
+
     for key in dict1:
+        LOGGER.info(f"Comparing key {key}")
         if isinstance(dict1[key], dict) and isinstance(dict2[key], dict):
             if not dict_almost_equal(dict1[key], dict2[key], abs_tol=abs_tol):
+                LOGGER.info(f"Key {key} not equal")
                 return False
         elif isinstance(dict1[key], np.ndarray) and isinstance(dict2[key], np.ndarray):
             if not np.allclose(dict1[key], dict2[key], atol=abs_tol):
+                LOGGER.info(f"Key {key} type: {type(dict1[key])} not equal")
                 return False
         elif isinstance(dict1[key], float) and isinstance(dict2[key], float):
             if not np.isclose(dict1[key], dict2[key], atol=abs_tol):
+                LOGGER.info(f"Key {key} type: {type(dict1[key])} not equal")
                 return False
         elif dict1[key] != dict2[key]:
             return False
