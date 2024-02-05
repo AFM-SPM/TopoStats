@@ -1,4 +1,5 @@
 """Functions for reading and writing data."""
+
 from __future__ import annotations
 
 import importlib.resources as pkg_resources
@@ -491,6 +492,7 @@ class LoadScans:
         self.image = None
         self.pixel_to_nm_scaling = None
         self.grain_masks = {}
+        self.grain_trace_data = {}
         self.img_dict = {}
         self.MINIMUM_IMAGE_SIZE = 10
 
@@ -568,19 +570,26 @@ class LoadScans:
         LOGGER.info(f"Loading image from : {self.img_path}")
         try:
             with h5py.File(self.img_path, "r") as f:
-                keys = f.keys()
-                file_version = f["topostats_file_version"][()]
+                # Load the hdf5 data to dictionary
+                loaded_dictionary = hdf5_to_dict(open_hdf5_file=f, group_path="/")
+                main_keys = loaded_dictionary.keys()
+
+                file_version = loaded_dictionary["topostats_file_version"]
                 LOGGER.info(f"TopoStats file version: {file_version}")
-                image = f["image"][:]
-                pixel_to_nm_scaling = f["pixel_to_nm_scaling"][()]
-                if "grain_masks" in keys:
-                    grain_masks_keys = f["grain_masks"].keys()
+                image = loaded_dictionary["image"]
+                pixel_to_nm_scaling = loaded_dictionary["pixel_to_nm_scaling"]
+                if "grain_masks" in main_keys:
+                    grain_masks_keys = loaded_dictionary["grain_masks"].keys()
                     if "above" in grain_masks_keys:
                         LOGGER.info(f"[{self.filename}] : Found grain mask for above direction")
-                        self.grain_masks["above"] = f["grain_masks"]["above"][:]
+                        self.grain_masks["above"] = loaded_dictionary["grain_masks"]["above"]
                     if "below" in grain_masks_keys:
                         LOGGER.info(f"[{self.filename}] : Found grain mask for below direction")
-                        self.grain_masks["below"] = f["grain_masks"]["below"][:]
+                        self.grain_masks["below"] = loaded_dictionary["grain_masks"]["below"]
+                if "grain_trace_data" in main_keys:
+                    LOGGER.info(f"[{self.filename}] : Found grain trace data")
+                    self.grain_trace_data = loaded_dictionary["grain_trace_data"]
+
         except OSError as e:
             if "Unable to open file" in str(e):
                 LOGGER.info(f"[{self.filename}] File not found: {self.img_path}")
@@ -983,6 +992,7 @@ class LoadScans:
             "image_original": image,
             "image_flattened": None,
             "grain_masks": self.grain_masks,
+            "grain_trace_data": self.grain_trace_data,
         }
 
 
@@ -1033,10 +1043,19 @@ def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
     """Read a dictionary from an open hdf5 file."""
     data_dict = {}
     for key, item in open_hdf5_file[group_path].items():
+        LOGGER.info(f"Loading hdf5 key: {key}")
         if isinstance(item, h5py.Group):
+            LOGGER.info(f" {key} is a group")
             data_dict[key] = hdf5_to_dict(open_hdf5_file, group_path + key + "/")
+        # Decode byte strings to utf-8. The data type "O" is a byte string.
+        elif isinstance(item, h5py.Dataset) and item.dtype == "O":
+            LOGGER.debug(f" {key} is a byte string")
+            data_dict[key] = item[()].decode("utf-8")
+            LOGGER.debug(f" {key} type: {type(data_dict[key])}")
         else:
+            LOGGER.debug(f" {key} is other type of dataset")
             data_dict[key] = item[()]
+            LOGGER.debug(f" {key} type: {type(data_dict[key])}")
     return data_dict
 
 
