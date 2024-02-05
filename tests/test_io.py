@@ -12,10 +12,12 @@ import pytest
 from topostats.io import (
     LoadScans,
     convert_basename_to_relative_paths,
+    dict_to_hdf5,
     find_files,
     get_date_time,
     get_out_path,
     get_relative_paths,
+    hdf5_to_dict,
     load_array,
     load_pkl,
     path_to_str,
@@ -561,40 +563,179 @@ def test_load_pkl() -> None:
 
 
 @pytest.mark.parametrize(
-    ("image", "pixel_to_nm_scaling", "grain_mask_above", "grain_mask_below"),
+    ("input_dict", "group_path", "expected"),
     [
-        (
-            np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
-            3.14159265,
-            None,
-            np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]),
+        pytest.param(
+            {
+                "a": 1,
+                "b": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+                "c": "test",
+                "d": {"e": 1, "f": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), "g": "test"},
+            },
+            "/",
+            {
+                "a": 1,
+                "b": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+                "c": "test",
+                "d": {"e": 1, "f": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), "g": "test"},
+            },
+            id="nested dict with arrays starting at base",
         ),
-        (
-            np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
-            3.14159265,
-            np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]),
-            None,
-        ),
-        (
-            np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
-            3.14159265,
-            np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]),
-            np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]]),
+        pytest.param(
+            {
+                "a": 1,
+                "b": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+                "c": "test",
+                "d": {"e": 1, "f": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), "g": "test"},
+            },
+            "/d",
+            {"e": 1, "f": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), "g": "test"},
+            id="nested dict with arrays starting at /d",
         ),
     ],
 )
-def test_save_topostats_file(
+def test_dict_to_hdf5_and_hdf5_to_dict(tmp_path: Path, input_dict: dict, group_path: str, expected: dict) -> None:
+    """Test saving a dictionary to HDF5."""
+    outfile = tmp_path / "test.hdf5"
+    with h5py.File(outfile, "w") as f:
+        dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=input_dict)
+    with h5py.File(outfile, "r") as f:
+        np.testing.assert_equal(hdf5_to_dict(open_hdf5_file=f, group_path=group_path), expected)
+
+
+@pytest.mark.parametrize(
+    ("image", "pixel_to_nm_scaling", "grain_mask_above", "grain_mask_below", "grain_trace_data"),
+    [
+        (
+            np.arange(0, 100).reshape(10, 10),
+            3.14159265,
+            None,
+            np.zeros((10, 10)),
+            {
+                "above": {
+                    "ordered_traces": {
+                        "0": np.array(
+                            [
+                                [0, 1],
+                                [1, 0],
+                                [2, 2],
+                            ]
+                        ),
+                        "1": np.array(
+                            [
+                                [0, 0],
+                                [2, 1],
+                                [3, 0],
+                            ]
+                        ),
+                    },
+                    "cropped_images": {
+                        "0": np.array([[0, 1, 2], [1, 2, 3], [2, 2, 1]]),
+                        "1": np.array([[0, 1, 3], [2, 2, 4], [3, 4, 5]]),
+                    },
+                    "ordered_trace_heights": {
+                        "0": np.array([5, 2, 3]),
+                        "1": np.array([5, 7, 10]),
+                    },
+                    "ordered_trace_cumulative_distances": {
+                        "0": np.array([0, 1.41, 2.41]),
+                        "1": np.array([0, 1, 2]),
+                    },
+                    "splined_traces": {
+                        "0": np.array(
+                            [
+                                [0, 1],
+                                [1, 0],
+                                [2, 2],
+                            ]
+                        ),
+                        "1": np.array(
+                            [
+                                [0, 0],
+                                [2, 1],
+                                [3, 0],
+                            ]
+                        ),
+                    },
+                },
+                "below": {
+                    "ordered_traces": {
+                        "0": np.array(
+                            [
+                                [0, 1],
+                                [1, 0],
+                                [2, 2],
+                            ]
+                        ),
+                        "1": np.array(
+                            [
+                                [0, 0],
+                                [2, 1],
+                                [3, 0],
+                            ]
+                        ),
+                    },
+                    "cropped_images": {
+                        "0": np.array([[0, 1, 2], [1, 2, 3], [2, 2, 1]]),
+                        "1": np.array([[0, 1, 3], [2, 2, 4], [3, 4, 5]]),
+                    },
+                    "ordered_trace_heights": {
+                        "0": np.array([5, 2, 3]),
+                        "1": np.array([5, 7, 10]),
+                    },
+                    "ordered_trace_cumulative_distances": {
+                        "0": np.array([0, 1.41, 2.41]),
+                        "1": np.array([0, 1, 2]),
+                    },
+                    "splined_traces": {
+                        "0": np.array(
+                            [
+                                [0, 1],
+                                [1, 0],
+                                [2, 2],
+                            ]
+                        ),
+                        "1": np.array(
+                            [
+                                [0, 0],
+                                [2, 1],
+                                [3, 0],
+                            ]
+                        ),
+                    },
+                },
+            },
+        ),
+        (
+            np.arange(0, 100).reshape(10, 10),
+            3.14159265,
+            np.zeros((10, 10)),
+            None,
+            None,
+        ),
+        (
+            np.arange(0, 100).reshape(10, 10),
+            3.14159265,
+            np.zeros((10, 10)),
+            np.zeros((10, 10)),
+            None,
+        ),
+    ],
+)
+def test_save_and_load_topostats_file(
     tmp_path: Path,
     image: np.ndarray,
     pixel_to_nm_scaling: float,
     grain_mask_above: np.ndarray,
     grain_mask_below: np.ndarray,
+    grain_trace_data: dict,
 ) -> None:
     """Test saving a .topostats file."""
     topostats_object = {
         "image_flattened": image,
         "pixel_to_nm_scaling": pixel_to_nm_scaling,
         "grain_masks": {"above": grain_mask_above, "below": grain_mask_below},
+        "grain_trace_data": grain_trace_data,
     }
 
     save_topostats_file(
@@ -603,27 +744,26 @@ def test_save_topostats_file(
         topostats_object=topostats_object,
     )
 
-    with h5py.File(f"{tmp_path}/topostats_file_test.topostats", "r") as f:
-        hdf5_file_keys = list(f.keys())
-        print(f"keys: {hdf5_file_keys}")
-        topostats_file_version_read = f["topostats_file_version"][()]
-        image_read = f["image_flattened"][:]
-        pixel_to_nm_scaling_read = f["pixel_to_nm_scaling"][()]
-        if grain_mask_above is not None:
-            grain_mask_above_read = f["grain_masks/above"][:]
-        if grain_mask_below is not None:
-            grain_mask_below_read = f["grain_masks/below"][:]
+    # Load the saved .topostats file using LoadScans
+    loadscans = LoadScans([tmp_path / "topostats_file_test.topostats"], channel="")
+    loadscans.get_data()
+    read_topostats_file_data_dict = loadscans.img_dict["topostats_file_test"]
 
-    assert hdf5_file_keys == [
+    assert list(read_topostats_file_data_dict.keys()) == [
+        "image_original",
+        "img_path",
+        "filename",
         "grain_masks",
+        "grain_trace_data",
         "image_flattened",
         "pixel_to_nm_scaling",
-        "topostats_file_version",
     ]
-    assert 0.2 == topostats_file_version_read
-    np.testing.assert_array_equal(image, image_read)
-    assert pixel_to_nm_scaling == pixel_to_nm_scaling_read
+
+    np.testing.assert_array_equal(image, read_topostats_file_data_dict["image_original"])
+    assert pixel_to_nm_scaling == read_topostats_file_data_dict["pixel_to_nm_scaling"]
     if grain_mask_above is not None:
-        np.testing.assert_array_equal(grain_mask_above, grain_mask_above_read)
+        np.testing.assert_array_equal(grain_mask_above, read_topostats_file_data_dict["grain_masks"]["above"])
     if grain_mask_below is not None:
-        np.testing.assert_array_equal(grain_mask_below, grain_mask_below_read)
+        np.testing.assert_array_equal(grain_mask_below, read_topostats_file_data_dict["grain_masks"]["below"])
+    if grain_trace_data is not None:
+        np.testing.assert_equal(grain_trace_data, read_topostats_file_data_dict["grain_trace_data"])
