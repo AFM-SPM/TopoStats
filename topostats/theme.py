@@ -1,4 +1,5 @@
 """Custom Bruker Nanoscope colorscale."""
+
 import logging
 
 import matplotlib as mpl

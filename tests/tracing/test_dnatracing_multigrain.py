@@ -1,4 +1,5 @@
 """Tests for tracing images with multiple (2) grains."""
+
 from pathlib import Path
 
 import numpy as np

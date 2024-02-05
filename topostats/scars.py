@@ -1,4 +1,5 @@
 """Image artefact correction functions that interpolates values filling the space of any detected scars."""
+
 import logging
 
 import numpy as np

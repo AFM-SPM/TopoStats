@@ -1,4 +1,5 @@
 """Test finding of grains."""
+
 import logging
 
 import numpy as np

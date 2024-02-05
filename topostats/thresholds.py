@@ -1,4 +1,5 @@
 """Functions for calculating thresholds."""
+
 # pylint: disable=no-name-in-module
 import logging
 from collections.abc import Callable
