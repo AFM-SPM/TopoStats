@@ -1,4 +1,5 @@
 """Tests of IO."""
+
 import argparse
 from datetime import datetime
 from pathlib import Path
@@ -438,14 +439,17 @@ def test_load_scan_topostats(load_scan_topostats: LoadScans) -> None:
     image, px_to_nm_scaling = load_scan_topostats.load_topostats()
     grain_masks = load_scan_topostats.grain_masks
     above_grain_mask = grain_masks["above"]
+    grain_trace_data = load_scan_topostats.grain_trace_data
     assert isinstance(image, np.ndarray)
     assert image.shape == (1024, 1024)
-    assert image.sum() == 182067.12616107278
+    assert image.sum() == 184140.8593819073
     assert isinstance(px_to_nm_scaling, float)
     assert px_to_nm_scaling == 0.4940029296875
     # Check that the grain mask is loaded correctly
     assert isinstance(above_grain_mask, np.ndarray)
-    assert above_grain_mask.sum() == 635628
+    assert above_grain_mask.sum() == 633746
+    assert isinstance(grain_trace_data, dict)
+    assert grain_trace_data.keys() == {"above"}
 
 
 def test_gwy_read_object(load_scan_dummy: LoadScans) -> None:
@@ -497,7 +501,7 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
         ("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625),
         ("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876),
         ("load_scan_gwy", 1, (512, 512), 33836850.232917726, "file", 0.8468632812499975),
-        ("load_scan_topostats", 1, (1024, 1024), 182067.12616107278, "file", 0.4940029296875),
+        ("load_scan_topostats", 1, (1024, 1024), 184140.8593819073, "file", 0.4940029296875),
         ("load_scan_asd", 197, (200, 200), -673381139990.2344, "file_122", 2.0),
     ],
 )
