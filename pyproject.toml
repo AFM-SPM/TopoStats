@@ -215,6 +215,7 @@ lint.ignore = [
   "B905",
   "E501",
   "S101",
+  "S403",
 ]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 lint.fixable = [
@@ -238,7 +239,7 @@ lint.unfixable = []
 
 # Numpy2 deprecation checks
 lint.extend-select = ["NPY201"]
-preview = true
+preview = false
 
 [tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"
