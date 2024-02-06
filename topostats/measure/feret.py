@@ -7,6 +7,7 @@ https://gist.github.com/VolkerH/0d07d05d5cb189b56362e8ee41882abf
 During testing it was discovered that sorting points prior to derivation of upper and lower convex hulls was problematic
 so this step was removed.
 """
+
 from __future__ import annotations
 
 from math import sqrt
