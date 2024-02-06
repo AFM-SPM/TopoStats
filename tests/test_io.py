@@ -12,6 +12,7 @@ import pytest
 from topostats.io import (
     LoadScans,
     convert_basename_to_relative_paths,
+    dict_almost_equal,
     dict_to_hdf5,
     find_files,
     get_date_time,
@@ -159,6 +160,38 @@ def test_load_array() -> None:
     expected = np.load(RESOURCES / "test_scars_synthetic_scar_image.npy")
 
     np.testing.assert_array_equal(target, expected)
+
+
+@pytest.mark.parametrize(
+    ("dict1", "dict2", "tolerance", "expected"),
+    [
+        pytest.param(
+            {
+                "a": "test",
+                "b": np.array([1.00001, 2.00002, 3.00005]),
+                "c": {"d": np.array([1.00001, 2.00002, 3.00005])},
+            },
+            {"a": "test", "b": np.array([1.0, 2.0, 3.0]), "c": {"d": np.array([1.0, 2.0, 3.0])}},
+            0.0001,
+            True,
+            id="generous tolerance",
+        ),
+        pytest.param(
+            {
+                "a": "test",
+                "b": np.array([1.00001, 2.00002, 3.00005]),
+                "c": {"d": np.array([1.00001, 2.00002, 3.00005])},
+            },
+            {"a": "test", "b": np.array([1.0, 2.0, 3.0]), "c": {"d": np.array([1.0, 2.0, 3.0])}},
+            0.000001,
+            False,
+            id="strict tolerance",
+        ),
+    ],
+)
+def test_dict_almost_equal(dict1: dict, dict2: dict, tolerance: float, expected: bool) -> None:
+    """Test that two dictionaries are almost equal."""
+    assert dict_almost_equal(dict1, dict2, tolerance) == expected
 
 
 @pytest.mark.parametrize("non_existant_file", [("does_not_exist.npy"), ("does_not_exist.np"), ("does_not_exist.csv")])
