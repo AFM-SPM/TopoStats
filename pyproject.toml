@@ -57,13 +57,12 @@ dependencies = [
 
 [project.optional-dependencies]
 tests = [
-  "py",
-  "pytest",
+  "pytest<8.0.0",
   "pytest-cov",
   "pytest-github-actions-annotate-failures",
   "pytest-lazy-fixture",
   "pytest-mpl",
-  "pytest-regtest<2.0.0",
+  "pytest-regtest",
   "filetype",
 ]
 docs = [
