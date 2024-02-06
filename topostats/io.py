@@ -1045,6 +1045,7 @@ def _hdf5_add_known_datatype(
     # Lists need to be converted to numpy arrays
     if isinstance(item, list):
         item = np.array(item)
+        open_hdf5_file[group_path + key] = item
     # Strings need to be encoded to bytes
     elif isinstance(item, str):
         open_hdf5_file[group_path + key] = item.encode("utf8")

@@ -671,6 +671,18 @@ def test_load_pkl() -> None:
             {"e": 1, "f": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), "g": "test"},
             id="nested dict with arrays starting at /d",
         ),
+        pytest.param(
+            {
+                "list": [1, 2, 3],
+                "2d list": [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+            },
+            "/",
+            {
+                "list": np.array([1, 2, 3]),
+                "2d list": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+            },
+            id="nested list",
+        ),
     ],
 )
 def test_dict_to_hdf5_and_hdf5_to_dict(tmp_path: Path, input_dict: dict, group_path: str, expected: dict) -> None:
