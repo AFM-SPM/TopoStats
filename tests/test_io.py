@@ -691,13 +691,14 @@ def test_dict_to_hdf5_and_hdf5_to_dict(tmp_path: Path, input_dict: dict, group_p
     with h5py.File(outfile, "w") as f:
         dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=input_dict)
     with h5py.File(outfile, "r") as f:
-        np.testing.assert_equal(hdf5_to_dict(open_hdf5_file=f, group_path=group_path), expected)
+        loaded_dict = hdf5_to_dict(open_hdf5_file=f, group_path=group_path)
+    np.testing.assert_equal(loaded_dict, expected)
 
 
 @pytest.mark.parametrize(
     ("image", "pixel_to_nm_scaling", "grain_mask_above", "grain_mask_below", "grain_trace_data"),
     [
-        (
+        pytest.param(
             np.arange(0, 100).reshape(10, 10),
             3.14159265,
             None,
@@ -796,20 +797,23 @@ def test_dict_to_hdf5_and_hdf5_to_dict(tmp_path: Path, input_dict: dict, group_p
                     },
                 },
             },
+            id="below_grain_mask_with_grain_trace_data",
         ),
-        (
+        pytest.param(
             np.arange(0, 100).reshape(10, 10),
             3.14159265,
             np.zeros((10, 10)),
             None,
             None,
+            id="above_grain_mask_without_grain_trace_data",
         ),
-        (
+        pytest.param(
             np.arange(0, 100).reshape(10, 10),
             3.14159265,
             np.zeros((10, 10)),
             np.zeros((10, 10)),
             None,
+            id="above_and_below_grain_masks_without_grain_trace_data",
         ),
     ],
 )

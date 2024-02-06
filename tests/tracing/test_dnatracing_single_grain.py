@@ -1,4 +1,5 @@
 """Tests for tracing single molecules."""
+
 from pathlib import Path
 
 import numpy as np
@@ -168,8 +169,8 @@ def test_get_ordered_trace_heights(dnatrace: dnaTrace, length: int, start: float
 @pytest.mark.parametrize(
     ("dnatrace", "length", "start", "end"),
     [
-        (lazy_fixture("dnatrace_linear"), 118, 0.0, 6.8234101e-08),
-        (lazy_fixture("dnatrace_circular"), 151, 0.0, 8.3513084e-08),
+        pytest.param(lazy_fixture("dnatrace_linear"), 118, 0.0, 6.8234101e-08, id="linear"),
+        pytest.param(lazy_fixture("dnatrace_circular"), 151, 0.0, 8.3513084e-08, id="circular"),
     ],
 )
 def test_ordered_get_trace_cumulative_distances(dnatrace: dnaTrace, length: int, start: float, end: float) -> None:
@@ -191,25 +192,14 @@ def test_ordered_get_trace_cumulative_distances(dnatrace: dnaTrace, length: int,
 @pytest.mark.parametrize(
     ("coordinate_list", "pixel_to_nm_scaling", "target_list"),
     [
-        (
-            np.asarray([[1, 1], [1, 2]]),
-            1.0,
-            np.asarray([0.0, 1.0]),
-        ),
-        (
-            np.asarray([[1, 1], [1, 2]]),
-            0.5,
-            np.asarray([0.0, 0.5]),
-        ),
-        (
-            np.asarray([[1, 1], [2, 2]]),
-            1.0,
-            np.asarray([0.0, np.sqrt(2)]),
-        ),
-        (
+        pytest.param(np.asarray([[1, 1], [1, 2]]), 1.0, np.asarray([0.0, 1.0]), id="Horizontal line; scaling 1.0"),
+        pytest.param(np.asarray([[1, 1], [1, 2]]), 0.5, np.asarray([0.0, 0.5]), id="Horizontal line; scaling 0.5"),
+        pytest.param(np.asarray([[1, 1], [2, 2]]), 1.0, np.asarray([0.0, np.sqrt(2)]), id="Diagonal line; scaling 1.0"),
+        pytest.param(
             np.asarray([[1, 1], [2, 2], [3, 2], [4, 2], [4, 3]]),
             1.0,
             np.asarray([0.0, np.sqrt(2), np.sqrt(2) + 1.0, np.sqrt(2) + 2.0, np.sqrt(2) + 3.0]),
+            id="Complex line; scaling 1.0",
         ),
     ],
 )

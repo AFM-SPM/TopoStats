@@ -1,4 +1,5 @@
 """Perform DNA Tracing"""
+
 from collections import OrderedDict
 from functools import partial
 from itertools import repeat
@@ -185,7 +186,7 @@ class dnaTrace:
 
     def get_ordered_trace_cumulative_distances(self) -> None:
         """
-        Populate a `dnaTrace` instance's `self.trace_distances` list with the cumulative distances of
+        Populate the `self.trace_distances` attribute with a list of the cumulative distances of
         each pixel in the `self.ordered_trace` list.
         Parameters
         ----------
@@ -1053,20 +1054,15 @@ def prep_arrays(
     # Get bounding boxes for each grain
     region_properties = skimage_measure.regionprops(labelled_grains_mask)
     # Subset image and grains then zip them up
-    # cropped_images = [crop_array(image, grain.bbox, pad_width) for grain in region_properties]
     cropped_images_dict = {
         index: crop_array(image, grain.bbox, pad_width) for index, grain in enumerate(region_properties)
     }
-    # cropped_images = [np.pad(grain, pad_width=pad_width) for grain in cropped_images]
     cropped_images_dict = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_images_dict.items()}
-    # cropped_masks = [crop_array(labelled_grains_mask, grain.bbox, pad_width) for grain in region_properties]
     cropped_masks_dict = {
         index: crop_array(labelled_grains_mask, grain.bbox, pad_width) for index, grain in enumerate(region_properties)
     }
-    # cropped_masks = [np.pad(grain, pad_width=pad_width) for grain in cropped_masks]
     cropped_masks_dict = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_masks_dict.items()}
     # Flip every labelled region to be 1 instead of its label
-    # cropped_masks = [np.where(grain == 0, 0, 1) for grain in cropped_masks]
     cropped_masks_dict = {index: np.where(grain == 0, 0, 1) for index, grain in cropped_masks_dict.items()}
     return (cropped_images_dict, cropped_masks_dict)
 
