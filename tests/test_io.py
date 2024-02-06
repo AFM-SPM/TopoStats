@@ -166,6 +166,27 @@ def test_load_array() -> None:
     ("dict1", "dict2", "tolerance", "expected"),
     [
         pytest.param(
+            {"a": "test", "b": np.array([1.0, 2.0, 3.0])},
+            {"c": "test", "d": np.array([1.0, 2.0, 3.0])},
+            0.00001,
+            False,
+            id="keys not equal",
+        ),
+        pytest.param(
+            {"a": "test", "b": np.array([1.0, 2.0, 3.0])},
+            {"a": "test", "b": np.array([1.0, 2.0, 3.0])},
+            0.00001,
+            True,
+            id="string equal",
+        ),
+        pytest.param(
+            {"a": "test", "b": np.array([1.0, 2.0, 3.0])},
+            {"a": "WRONG", "b": np.array([1.0, 2.0, 3.0])},
+            0.00001,
+            False,
+            id="string not equal",
+        ),
+        pytest.param(
             {
                 "a": "test",
                 "b": np.array([1.00001, 2.00002, 3.00005]),
@@ -186,6 +207,31 @@ def test_load_array() -> None:
             0.000001,
             False,
             id="strict tolerance",
+        ),
+        pytest.param(
+            {
+                "a": "test",
+                "b": np.array([1.0, 2.0, 3.0]),
+                "c": {"d": np.array([1.0, 2.0, 3.0])},
+            },
+            {"a": "test", "b": np.array([1.0, 2.0, 3.0]), "c": {"d": np.array([1.0, 2.0, 9.0])}},
+            0.0001,
+            False,
+            id="nested dict not equal",
+        ),
+        pytest.param(
+            {"a": 0.01},
+            {"a": 0.02},
+            0.1,
+            True,
+            id="float equal",
+        ),
+        pytest.param(
+            {"a": 0.01},
+            {"a": 0.02},
+            0.001,
+            False,
+            id="float not equal",
         ),
     ],
 )
