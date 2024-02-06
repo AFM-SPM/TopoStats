@@ -1,4 +1,5 @@
 """Testing of grainstats class."""
+
 import logging
 from pathlib import Path
 

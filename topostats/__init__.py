@@ -1,4 +1,5 @@
 """Topostats."""
+
 from importlib.metadata import version
 
 import matplotlib.pyplot as plt

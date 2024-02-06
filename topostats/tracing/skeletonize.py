@@ -1,4 +1,5 @@
 """Skeletonize molecules."""
+
 import logging
 from collections.abc import Callable
 

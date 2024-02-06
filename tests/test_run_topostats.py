@@ -1,4 +1,5 @@
 """Test end-to-end running of topostats."""
+
 import logging
 from pathlib import Path
 

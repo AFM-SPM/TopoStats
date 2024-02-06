@@ -1,4 +1,5 @@
 """Functions for reading and writing data."""
+
 from __future__ import annotations
 
 import importlib.resources as pkg_resources

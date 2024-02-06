@@ -1,4 +1,5 @@
 """Tests for tracing single molecules."""
+
 from pathlib import Path
 
 import numpy as np

@@ -1,4 +1,5 @@
 """Tests of the filters module."""
+
 from pathlib import Path
 
 import numpy as np
