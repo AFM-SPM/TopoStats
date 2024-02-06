@@ -1041,7 +1041,23 @@ class LoadScans:
 def _hdf5_add_known_datatype(
     open_hdf5_file: h5py.File, group_path: str, item: list | str | int | float | np.ndarray | Path | dict, key: str
 ) -> None:
-    """Add a known datatype to an open hdf5 file."""
+    """Add a known datatype to an open hdf5 file.
+
+    Parameters
+    ----------
+    open_hdf5_file: h5py.File
+        An open hdf5 file object.
+    group_path: str
+        The path to the group in the hdf5 file to start saving data from.
+    item: list | str | int | float | np.ndarray | Path | dict
+        The data to save.
+    key: str
+        The key to save the data under in the hdf5 file.
+
+    Returns
+    -------
+    None
+    """
     # Lists need to be converted to numpy arrays
     if isinstance(item, list):
         item = np.array(item)
@@ -1062,7 +1078,21 @@ def _hdf5_add_known_datatype(
 
 
 def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -> None:
-    """Recursively save a dictionary to an open hdf5 file."""
+    """Recursively save a dictionary to an open hdf5 file.
+
+    Parameters
+    ----------
+    open_hdf5_file: h5py.File
+        An open hdf5 file object.
+    group_path: str
+        The path to the group in the hdf5 file to start saving data from.
+    dictionary: dict
+        A dictionary of the data to save.
+
+    Returns
+    -------
+    None
+    """
     for key, item in dictionary.items():
         LOGGER.info(f"Saving key: {key}")
 
@@ -1083,7 +1113,20 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
 
 
 def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
-    """Read a dictionary from an open hdf5 file."""
+    """Read a dictionary from an open hdf5 file.
+
+    Parameters
+    ----------
+    open_hdf5_file: h5py.File
+        An open hdf5 file object.
+    group_path: str
+        The path to the group in the hdf5 file to start reading data from.
+
+    Returns
+    -------
+    dict
+        A dictionary of the hdf5 file data.
+    """
     data_dict = {}
     for key, item in open_hdf5_file[group_path].items():
         LOGGER.info(f"Loading hdf5 key: {key}")
@@ -1122,12 +1165,11 @@ def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict)
     else:
         save_file_path = output_dir / filename
 
-    topostats_object["topostats_file_version"] = 0.2
-
     with h5py.File(save_file_path, "w") as f:
         # It may be possible for topostats_object["image_flattened"] to be None.
         # Make sure that this is not the case.
         if topostats_object["image_flattened"] is not None:
+            topostats_object["topostats_file_version"] = 0.2
             # Rename the key to "image" for backwards compatibility
             topostats_object["image"] = topostats_object.pop("image_flattened")
 
