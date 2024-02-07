@@ -689,7 +689,7 @@ def test_dict_to_hdf5_and_hdf5_to_dict(tmp_path: Path, input_dict: dict, group_p
     """Test saving a dictionary to HDF5."""
     outfile = tmp_path / "test.hdf5"
     with h5py.File(outfile, "w") as f:
-        dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=input_dict)
+        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=input_dict)
     with h5py.File(outfile, "r") as f:
         loaded_dict = hdf5_to_dict(open_hdf5_file=f, group_path=group_path)
     np.testing.assert_equal(loaded_dict, expected)
