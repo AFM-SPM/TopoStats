@@ -142,6 +142,12 @@ expected. The [pytest](https://docs.pytest.org/en/latest/) framework is used for
 plugins ([pytest-regtest](https://gitlab.com/uweschmitt/pytest-regtest) for regression testing;
 [pytest-mpl](https://github.com/matplotlib/pytest-mpl) for testing generated Matplotlib images).
 
+## Debugging
+
+To aid with debugging we include the [snoop](https://github.com/alexmojaki/snoop) package. The package is disabled by
+default, but when you have a class, method or function you wish to debug you should add `snoop.install(enabled=True)` to
+the file you wish to debug and use the `@snoop` decorator around the function/method you wish to debug.
+
 ## Configuration
 
 As described in [Parameter Configuration](configuration) options are primarily passed to TopoStats via a
