@@ -1,5 +1,6 @@
 """Test end-to-end running of topostats."""
 
+import json
 from pathlib import Path
 
 import filetype
@@ -496,6 +497,17 @@ def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
         results_df=pd.read_csv("./tests/resources/minicircle_cropped_grainstats.csv"),
     )
 
+    expected_json_output_path = Path("./tests/resources/minicircle_cropped_grain_trace_data.json")
+
     assert isinstance(dnatracing_df, pd.DataFrame)
     assert dnatracing_df.shape[0] == 13
     assert len(dnatracing_df.columns) == 26
+    # Check that the json data has been saved
+    assert Path.exists(tmp_path / "dummy filename_grain_trace_data.json")
+
+    # Check that the contents of the json file are as expected
+    with Path.open(tmp_path / "dummy filename_grain_trace_data.json", encoding="UTF-8") as json_file:
+        json_data = json.load(json_file)
+    with Path.open(expected_json_output_path, encoding="UTF-8") as json_file:
+        expected_json_data = json.load(json_file)
+    assert json_data == expected_json_data

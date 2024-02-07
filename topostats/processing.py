@@ -12,7 +12,13 @@ from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import get_out_path, save_array, save_topostats_file
+from topostats.io import (
+    get_out_path,
+    recursive_numpy_array_to_list,
+    save_array,
+    save_grain_trace_json_data,
+    save_topostats_file,
+)
 from topostats.logs.logs import LOGGER_NAME, setup_logger
 from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
 from topostats.statistics import image_statistics
@@ -403,6 +409,7 @@ def run_dnatracing(  # noqa: C901
     try:
         if dnatracing_config["run"]:
             dnatracing_config.pop("run")
+            save_trace_json_data = dnatracing_config.pop("save_trace_json_data")
             LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
             tracing_stats = defaultdict()
             for direction, _ in grain_masks.items():
@@ -418,6 +425,30 @@ def run_dnatracing(  # noqa: C901
                 cropped_images = tracing_results["cropped_images"]
                 image_spline_trace = tracing_results["image_spline_trace"]
                 tracing_stats[direction]["threshold"] = direction
+
+                # Save the trace heights to a JSON file
+                if save_trace_json_data:
+                    # Get and save the trace heights and cumulative distances
+                    all_trace_heights = tracing_results["all_trace_heights"]
+                    all_trace_cumulative_distances = tracing_results["all_trace_cumulative_distances"]
+
+                    # Construct dictionary of trace data
+                    grain_trace_data = {
+                        "pixel_to_nm_scaling": pixel_to_nm_scaling,
+                        "ordered_traces": ordered_traces,
+                        "trace_heights": all_trace_heights,
+                        "trace_cumulative_distances": all_trace_cumulative_distances,
+                    }
+
+                    # Convert all numpy arrays to lists
+                    grain_trace_data = recursive_numpy_array_to_list(grain_trace_data)
+
+                    # Save the grain trace data to a JSON file
+                    save_grain_trace_json_data(
+                        grain_json_data=grain_trace_data,
+                        filename=filename,
+                        path=core_out_path,
+                    )
 
                 # Plot traces for the whole image
                 Images(
@@ -639,7 +670,9 @@ def process_scan(
 
     # Save the topostats dictionary object to .topostats file.
     save_topostats_file(
-        output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
+        output_dir=core_out_path,
+        filename=str(topostats_object["filename"]),
+        topostats_object=topostats_object,
     )
 
     return topostats_object["img_path"], results_df, image_stats
