@@ -263,10 +263,13 @@ topostats process --cmap rainbow
 
 Matplotlib, and by extension TopoStats, supports saving images in a range of different formats including `png`
 ([Portable Network Graphic](https://en.wikipedia.org/wiki/PNG)), `svg` ([Scalable Vector
-Graphics](https://en.wikipedia.org/wiki/SVG)) and `pdf` ([Portable Document
-Format](https://en.wikipedia.org/wiki/PDF)). The default is `png` but, as with both DPI and Colormap, these can be
-easily changed via a custom configuration file or command line options to change these without having to edit
-the [Matplotlib Style file](matplotlib-style).
+Graphics](https://en.wikipedia.org/wiki/SVG)), `pdf` ([Portable Document
+Format](https://en.wikipedia.org/wiki/PDF)), and `tif` ([Tag Image File
+Format](https://en.wikipedia.org/wiki/TIFF)). The default is `png` but, as with both DPI and Colormap, these can be
+easily changed via a custom configuration file or command line options to change these without having to edit the
+[Matplotlib Style file](matplotlib-style). If using `tif` it is worth being aware that although the image will be saved,
+this will be without metadata since this is not supported for `tif` files (see the note under `metadata` of [Matplotlib
+savefig](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html)).
 
 If you want to modify the output file format that is used you have two options. Firstly you can [generate a
 configuration](generating-a-configuration) file and modify the field `savefig_format` to your choice. The example below

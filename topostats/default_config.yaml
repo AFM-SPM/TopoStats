@@ -61,7 +61,7 @@ dnatracing:
 plotting:
   run: true # Options : true, false
   style: topostats.mplstyle # Options : topostats.mplstyle or path to a matplotlibrc params file
-  savefig_format: null # Options : null (defaults to png) or see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
+  savefig_format: null # Options : null, png, svg or pdf. tif is also available although no metadata will be saved. (defaults to png) See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
   savefig_dpi: null # Options : null (defaults to figure) see https://afm-spm.github.io/TopoStats/main/configuration.html#further-customisation and https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
   pixel_interpolation: null # Options : https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html
   image_set: core # Options : all, core
