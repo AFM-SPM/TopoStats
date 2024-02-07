@@ -995,7 +995,8 @@ def trace_mask(
     ----------
     grain_anchors : List[np.ndarray]
         List of grain anchors for the padded bounding box.
-    ordered_traces : List[np.ndarray]
+    ordered_traces : Dict[np.ndarray]
+        Coordinates for each grain trace.
         Dict of coordinates for each grains trace.
     image_shape : tuple
         Shape of original image.
