@@ -538,8 +538,10 @@ class LoadScans:
             Pixel to nm scaling factor.
         """
         unit_dict = {
+            "pm": 1e-3,
             "nm": 1,
             "um": 1e3,
+            "mm": 1e6,
         }
         px_to_real = channel_data.pxs()
         # Has potential for non-square pixels but not yet implemented
