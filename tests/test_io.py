@@ -3,11 +3,13 @@
 import argparse
 from datetime import datetime
 from pathlib import Path
+from unittest.mock import patch
 
 import h5py
 import numpy as np
 import pandas as pd
 import pytest
+import pySPM
 
 from topostats.io import (
     LoadScans,
@@ -474,21 +476,27 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
         assert list(test_dict.keys()) == ["test object component"]
         assert list(test_dict.values()) == [{"test nested component": 3}]
 
-
-# FIXME : Get this test working
-# @pytest.mark.parametrize(
-#     "unit, x, y, expected",
-#     [
-#         ("um", 100, 100, 97.65625),
-#         ("nm", 50, 50, 0.048828125),
-#     ],
-# )
-# def test_extract_pixel_to_nm_scaling(load_scan: LoadScans, unit, x, y, expected) -> None:
-#     """Test extraction of pixels to nanometer scaling."""
-#     load_scan.load_spm()
-#     load_scan._spm_pixel_to_nm_scaling() {"unit": unit, "x": x, "y": y}
-#     test_filters_random.extract_pixel_to_nm_scaling()
-#     assert test_filters_random.pixel_to_nm_scaling == expected
+@patch('pySPM.SPM.SPM_image.pxs')
+@pytest.mark.parametrize(
+    ("unit, x, y, expected_px2nm"),
+    [
+        ("um", 1.5, 1.5, 1500),
+        ("nm", 50, 50, 50),
+    ],
+)
+def test__spm_pixel_to_nm_scaling(
+    mock_pxs,
+    load_scan_spm: LoadScans,
+    spm_channel_data: pySPM.SPM.SPM_image,
+    unit: str,
+    x: int,
+    y: int,
+    expected_px2nm: float,
+    ) -> None:
+    """Test extraction of pixels to nanometer scaling."""
+    mock_pxs.return_value = [(x, unit), (y, unit)] # issue is that pxs is a func that returns the data
+    result = load_scan_spm._spm_pixel_to_nm_scaling(spm_channel_data)
+    assert result == expected_px2nm
 
 
 @pytest.mark.parametrize(
