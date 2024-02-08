@@ -8,8 +8,8 @@ from unittest.mock import patch
 import h5py
 import numpy as np
 import pandas as pd
-import pytest
 import pySPM
+import pytest
 
 from topostats.io import (
     LoadScans,
@@ -476,7 +476,8 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
         assert list(test_dict.keys()) == ["test object component"]
         assert list(test_dict.values()) == [{"test nested component": 3}]
 
-@patch('pySPM.SPM.SPM_image.pxs')
+
+@patch("pySPM.SPM.SPM_image.pxs")
 @pytest.mark.parametrize(
     ("unit, x, y, expected_px2nm"),
     [
@@ -492,9 +493,9 @@ def test__spm_pixel_to_nm_scaling(
     x: int,
     y: int,
     expected_px2nm: float,
-    ) -> None:
+) -> None:
     """Test extraction of pixels to nanometer scaling."""
-    mock_pxs.return_value = [(x, unit), (y, unit)] # issue is that pxs is a func that returns the data
+    mock_pxs.return_value = [(x, unit), (y, unit)]  # issue is that pxs is a func that returns the data
     result = load_scan_spm._spm_pixel_to_nm_scaling(spm_channel_data)
     assert result == expected_px2nm
 
