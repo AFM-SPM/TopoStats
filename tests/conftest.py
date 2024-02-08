@@ -5,8 +5,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import pytest
 import pySPM
+import pytest
 import yaml
 
 import topostats
@@ -366,6 +366,7 @@ def load_scan_data() -> LoadScans:
 def load_scan_spm() -> LoadScans:
     """Instantiate a LoadScans object from a .spm file."""
     return LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
+
 
 @pytest.fixture()
 def spm_channel_data() -> pySPM.SPM.SPM_image:
