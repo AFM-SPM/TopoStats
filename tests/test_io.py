@@ -481,8 +481,10 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
 @pytest.mark.parametrize(
     ("unit", "x", "y", "expected_px2nm"),
     [
+        ("mm", 0.01, 0.01, 10000),
         ("um", 1.5, 1.5, 1500),
         ("nm", 50, 50, 50),
+        ("pm", 233, 233, 0.233),
     ],
 )
 def test__spm_pixel_to_nm_scaling(
