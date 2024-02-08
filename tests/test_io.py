@@ -478,7 +478,7 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
 
 @patch('pySPM.SPM.SPM_image.pxs')
 @pytest.mark.parametrize(
-    ("unit, x, y, expected_px2nm"),
+    ("unit", "x", "y", "expected_px2nm"),
     [
         ("um", 1.5, 1.5, 1500),
         ("nm", 50, 50, 50),
