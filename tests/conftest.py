@@ -347,6 +347,12 @@ def load_scan_dummy() -> LoadScans:
 
 
 @pytest.fixture()
+def load_scan_topostats_test_file(loading_config: dict) -> LoadScans:
+    """Instance of a LoadScans object for an example .topostats file."""
+    return LoadScans([RESOURCES / "topostats_file_test.topostats"], **loading_config)
+
+
+@pytest.fixture()
 def load_scan(loading_config: dict) -> LoadScans:
     """Instantiate a LoadScans object from a small .topostats image file."""
     return LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], **loading_config)
