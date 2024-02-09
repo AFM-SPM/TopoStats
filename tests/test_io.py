@@ -1,6 +1,7 @@
 """Tests of IO."""
 
 import argparse
+import logging
 from datetime import datetime
 from pathlib import Path
 
@@ -12,7 +13,6 @@ import pytest
 from topostats.io import (
     LoadScans,
     convert_basename_to_relative_paths,
-    dict_almost_equal,
     dict_to_hdf5,
     find_files,
     get_date_time,
@@ -35,6 +35,9 @@ from topostats.io import (
     write_config_with_comments,
     write_yaml,
 )
+from topostats.logs.logs import LOGGER_NAME
+
+LOGGER = logging.getLogger(LOGGER_NAME)
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
@@ -52,6 +55,48 @@ CONFIG = {
 
 # pylint: disable=protected-access
 # pylint: disable=too-many-lines
+
+
+def dict_almost_equal(dict1, dict2, abs_tol=1e-9):
+    """Recursively check if two dictionaries are almost equal with a given absolute tolerance.
+
+    Parameters
+    ----------
+    dict1: dict
+        First dictionary to compare.
+    dict2: dict
+        Second dictionary to compare.
+    abs_tol: float
+        Absolute tolerance to check for equality.
+
+    Returns
+    -------
+    bool
+        True if the dictionaries are almost equal, False otherwise.
+    """
+    if dict1.keys() != dict2.keys():
+        return False
+
+    LOGGER.info("Comparing dictionaries")
+
+    for key in dict1:
+        LOGGER.info(f"Comparing key {key}")
+        if isinstance(dict1[key], dict) and isinstance(dict2[key], dict):
+            if not dict_almost_equal(dict1[key], dict2[key], abs_tol=abs_tol):
+                return False
+        elif isinstance(dict1[key], np.ndarray) and isinstance(dict2[key], np.ndarray):
+            if not np.allclose(dict1[key], dict2[key], atol=abs_tol):
+                LOGGER.info(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
+                return False
+        elif isinstance(dict1[key], float) and isinstance(dict2[key], float):
+            if not np.isclose(dict1[key], dict2[key], atol=abs_tol):
+                LOGGER.info(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
+                return False
+        elif dict1[key] != dict2[key]:
+            LOGGER.info(f"Key {key} not equal: {dict1[key]} != {dict2[key]}")
+            return False
+
+    return True
 
 
 def test_get_date_time() -> None:
