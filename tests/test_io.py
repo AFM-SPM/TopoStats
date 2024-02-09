@@ -1253,9 +1253,9 @@ def test_save_and_load_topostats_file(
     # Load the saved .topostats file using LoadScans
     loadscans = load_scan_topostats_test_file
     loadscans.get_data()
-    read_topostats_file_data_dict = loadscans.img_dict["topostats_file_test"]
+    topostats_data = loadscans.img_dict["topostats_file_test"]
 
-    assert set(read_topostats_file_data_dict.keys()) == {
+    assert set(topostats_data.keys()) == {
         "image_original",
         "img_path",
         "filename",
@@ -1265,11 +1265,11 @@ def test_save_and_load_topostats_file(
         "pixel_to_nm_scaling",
     }
 
-    np.testing.assert_array_equal(image, read_topostats_file_data_dict["image_original"])
-    assert pixel_to_nm_scaling == read_topostats_file_data_dict["pixel_to_nm_scaling"]
+    np.testing.assert_array_equal(image, topostats_data["image_original"])
+    assert pixel_to_nm_scaling == topostats_data["pixel_to_nm_scaling"]
     if grain_mask_above is not None:
-        np.testing.assert_array_equal(grain_mask_above, read_topostats_file_data_dict["grain_masks"]["above"])
+        np.testing.assert_array_equal(grain_mask_above, topostats_data["grain_masks"]["above"])
     if grain_mask_below is not None:
-        np.testing.assert_array_equal(grain_mask_below, read_topostats_file_data_dict["grain_masks"]["below"])
+        np.testing.assert_array_equal(grain_mask_below, topostats_data["grain_masks"]["below"])
     if grain_trace_data is not None:
-        np.testing.assert_equal(grain_trace_data, read_topostats_file_data_dict["grain_trace_data"])
+        np.testing.assert_equal(grain_trace_data, topostats_data["grain_trace_data"])
