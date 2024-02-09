@@ -1055,17 +1055,15 @@ def prep_arrays(
     # Get bounding boxes for each grain
     region_properties = skimage_measure.regionprops(labelled_grains_mask)
     # Subset image and grains then zip them up
-    cropped_images_dict = {
-        index: crop_array(image, grain.bbox, pad_width) for index, grain in enumerate(region_properties)
-    }
-    cropped_images_dict = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_images_dict.items()}
-    cropped_masks_dict = {
+    cropped_images = {index: crop_array(image, grain.bbox, pad_width) for index, grain in enumerate(region_properties)}
+    cropped_images = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_images.items()}
+    cropped_masks = {
         index: crop_array(labelled_grains_mask, grain.bbox, pad_width) for index, grain in enumerate(region_properties)
     }
-    cropped_masks_dict = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_masks_dict.items()}
+    cropped_masks = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_masks.items()}
     # Flip every labelled region to be 1 instead of its label
-    cropped_masks_dict = {index: np.where(grain == 0, 0, 1) for index, grain in cropped_masks_dict.items()}
-    return (cropped_images_dict, cropped_masks_dict)
+    cropped_masks = {index: np.where(grain == 0, 0, 1) for index, grain in cropped_masks.items()}
+    return (cropped_images, cropped_masks)
 
 
 def grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int) -> list:
