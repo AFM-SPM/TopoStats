@@ -1228,6 +1228,7 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
     ],
 )
 def test_save_and_load_topostats_file(
+    load_scan_topostats_test_file: LoadScans,
     tmp_path: Path,
     image: np.ndarray,
     pixel_to_nm_scaling: float,
@@ -1250,7 +1251,7 @@ def test_save_and_load_topostats_file(
     )
 
     # Load the saved .topostats file using LoadScans
-    loadscans = LoadScans([tmp_path / "topostats_file_test.topostats"], channel="")
+    loadscans = load_scan_topostats_test_file
     loadscans.get_data()
     read_topostats_file_data_dict = loadscans.img_dict["topostats_file_test"]
 

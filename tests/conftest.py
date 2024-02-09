@@ -1,4 +1,5 @@
 """Fixtures for testing."""
+
 import importlib.resources as pkg_resources
 from pathlib import Path
 
@@ -347,9 +348,9 @@ def load_scan_dummy() -> LoadScans:
 
 
 @pytest.fixture()
-def load_scan_topostats_test_file(loading_config: dict) -> LoadScans:
-    """Instance of a LoadScans object for an example .topostats file."""
-    return LoadScans([RESOURCES / "topostats_file_test.topostats"], **loading_config)
+def load_scan_topostats_test_file(tmp_path: Path, loading_config: dict) -> LoadScans:
+    """Instantiate a LoadScans object for a temporarily saved test .topostats file."""
+    return LoadScans([tmp_path / "topostats_file_test.topostats"], **loading_config)
 
 
 @pytest.fixture()
