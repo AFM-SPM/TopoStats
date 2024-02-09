@@ -571,24 +571,24 @@ class LoadScans:
         try:
             with h5py.File(self.img_path, "r") as f:
                 # Load the hdf5 data to dictionary
-                loaded_dictionary = hdf5_to_dict(open_hdf5_file=f, group_path="/")
-                main_keys = loaded_dictionary.keys()
+                topodata = hdf5_to_dict(open_hdf5_file=f, group_path="/")
+                main_keys = topodata.keys()
 
-                file_version = loaded_dictionary["topostats_file_version"]
+                file_version = topodata["topostats_file_version"]
                 LOGGER.info(f"TopoStats file version: {file_version}")
-                image = loaded_dictionary["image"]
-                pixel_to_nm_scaling = loaded_dictionary["pixel_to_nm_scaling"]
+                image = topodata["image"]
+                pixel_to_nm_scaling = topodata["pixel_to_nm_scaling"]
                 if "grain_masks" in main_keys:
-                    grain_masks_keys = loaded_dictionary["grain_masks"].keys()
+                    grain_masks_keys = topodata["grain_masks"].keys()
                     if "above" in grain_masks_keys:
                         LOGGER.info(f"[{self.filename}] : Found grain mask for above direction")
-                        self.grain_masks["above"] = loaded_dictionary["grain_masks"]["above"]
+                        self.grain_masks["above"] = topodata["grain_masks"]["above"]
                     if "below" in grain_masks_keys:
                         LOGGER.info(f"[{self.filename}] : Found grain mask for below direction")
-                        self.grain_masks["below"] = loaded_dictionary["grain_masks"]["below"]
+                        self.grain_masks["below"] = topodata["grain_masks"]["below"]
                 if "grain_trace_data" in main_keys:
                     LOGGER.info(f"[{self.filename}] : Found grain trace data")
-                    self.grain_trace_data = loaded_dictionary["grain_trace_data"]
+                    self.grain_trace_data = topodata["grain_trace_data"]
 
         except OSError as e:
             if "Unable to open file" in str(e):
@@ -996,45 +996,6 @@ class LoadScans:
         }
 
 
-def _hdf5_add_known_datatype(
-    open_hdf5_file: h5py.File, group_path: str, item: list | str | int | float | np.ndarray | Path | dict, key: str
-) -> None:
-    """Add a known datatype to an open hdf5 file.
-
-    Parameters
-    ----------
-    open_hdf5_file: h5py.File
-        An open hdf5 file object.
-    group_path: str
-        The path to the group in the hdf5 file to start saving data from.
-    item: list | str | int | float | np.ndarray | Path | dict
-        The data to save.
-    key: str
-        The key to save the data under in the hdf5 file.
-
-    Returns
-    -------
-    None
-    """
-    # Lists need to be converted to numpy arrays
-    if isinstance(item, list):
-        item = np.array(item)
-        open_hdf5_file[group_path + key] = item
-    # Strings need to be encoded to bytes
-    elif isinstance(item, str):
-        open_hdf5_file[group_path + key] = item.encode("utf8")
-    # Integers, floats and numpy arrays can be added directly to the hdf5 file
-    # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
-    elif isinstance(item, (int, float, np.ndarray)):  # noqa: UP038
-        open_hdf5_file[group_path + key] = item
-    # Path objects need to be encoded to bytes
-    elif isinstance(item, Path):
-        open_hdf5_file[group_path + key] = str(item).encode("utf8")
-    # Dictionaries need to be recursively saved
-    elif isinstance(item, dict):  # a sub-dictionary, so we need to recurse
-        dict_to_hdf5(open_hdf5_file, group_path + key + "/", item)
-
-
 def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -> None:
     """Recursively save a dictionary to an open hdf5 file.
 
@@ -1062,7 +1023,23 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
         # Check if the item is a known datatype
         # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
         if isinstance(item, (list, str, int, float, np.ndarray, Path, dict)):  # noqa: UP038
-            _hdf5_add_known_datatype(open_hdf5_file, group_path, item, key)
+            # Lists need to be converted to numpy arrays
+            if isinstance(item, list):
+                item = np.array(item)
+                open_hdf5_file[group_path + key] = item
+            # Strings need to be encoded to bytes
+            elif isinstance(item, str):
+                open_hdf5_file[group_path + key] = item.encode("utf8")
+            # Integers, floats and numpy arrays can be added directly to the hdf5 file
+            # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
+            elif isinstance(item, (int, float, np.ndarray)):  # noqa: UP038
+                open_hdf5_file[group_path + key] = item
+            # Path objects need to be encoded to bytes
+            elif isinstance(item, Path):
+                open_hdf5_file[group_path + key] = str(item).encode("utf8")
+            # Dictionaries need to be recursively saved
+            elif isinstance(item, dict):  # a sub-dictionary, so we need to recurse
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item)
         else:  # attempt to save an item that is not a numpy array or a dictionary
             try:
                 open_hdf5_file[group_path + key] = item
