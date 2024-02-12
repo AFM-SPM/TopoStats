@@ -131,6 +131,9 @@ class dnaTrace:
 
         self.neighbours = 5  # The number of neighbours used for the curvature measurement
 
+        self.ordered_trace_heights = None
+        self.ordered_trace_cumulative_distances = None
+
         # suppresses scipy splining warnings
         warnings.filterwarnings("ignore")
 
@@ -145,6 +148,8 @@ class dnaTrace:
         elif len(self.disordered_trace) >= self.min_skeleton_size:
             self.linear_or_circular(self.disordered_trace)
             self.get_ordered_traces()
+            self.get_ordered_trace_heights()
+            self.get_ordered_trace_cumulative_distances()
             self.linear_or_circular(self.ordered_trace)
             self.get_fitted_traces()
             self.get_splined_traces()
@@ -159,6 +164,86 @@ class dnaTrace:
         """Apply Gaussian filter"""
         self.gauss_image = gaussian(self.image, sigma=self.sigma, **kwargs)
         LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Gaussian filter applied.")
+
+    def get_ordered_trace_heights(self) -> None:
+        """
+         Populate the `trace_heights` attribute with an array of pixel heights from the ordered trace.
+         `self.ordered_trace` list.
+
+        Gets the heights of each pixel in the ordered trace from the gaussian filtered image. The pixel coordinates
+        for the ordered trace are stored in the ordered trace list as part of the class.
+
+         Parameters
+         ----------
+         None
+
+         Returns
+         -------
+         None
+        """
+
+        self.ordered_trace_heights = np.array(self.gauss_image[self.ordered_trace[:, 0], self.ordered_trace[:, 1]])
+
+    def get_ordered_trace_cumulative_distances(self) -> None:
+        """
+        Populate the `self.trace_distances` attribute with a list of the cumulative distances of
+        each pixel in the `self.ordered_trace` list.
+        Parameters
+        ----------
+        None
+        Returns
+        -------
+        None
+        """
+
+        # Get the cumulative distances of each pixel in the ordered trace from the gaussian filtered image
+        # the pixel coordinates are stored in the ordered trace list.
+        self.ordered_trace_cumulative_distances = self.coord_dist(
+            coordinates=self.ordered_trace, px_to_nm=self.pixel_to_nm_scaling
+        )
+
+    @staticmethod
+    def coord_dist(coordinates: np.ndarray, px_to_nm: float) -> np.ndarray:
+        """
+        Returns a list of the cumulative real distances between each pixel in a trace.
+        Take a Nx2 numpy array of (grid adjacent) coordinates and produce a list of cumulative distances in
+        nanometres, travelling from pixel to pixel. 1D example: coordinates: [0, 0], [0, 1], [1, 1], [2, 2] cumulative
+        distances: [0, 1, 2, 3.4142]. Counts diagonal connections as 1.4142 distance. Converts distances from
+        pixels to nanometres using px_to_nm scaling factor.
+        Note that the pixels have to be adjacent.
+        Parameters
+        ----------
+        coords: np.ndarray
+            A Nx2 integer array of coordinates of the pixels of a trace from a binary trace image.
+        px_to_nm: float
+            Pixel to nanometre scaling factor to allow for real length measurements of distances rather
+            than pixels.
+        Returns
+        -------
+        np.ndarray
+            Numpy array of length N containing the cumulative sum of distances (0 at the first entry,
+            full molecule length at the last entry)
+        """
+
+        # Shift the array by one coordinate so the end is at the start and the second to last is at the end
+        # this allows for the calculation of the distance between each pixel by subtracting the shifted array
+        # from the original array
+        rolled_coords = np.roll(coordinates, 1, axis=0)
+
+        # Calculate the distance between each pixel in the trace
+        pixel_diffs = coordinates - rolled_coords
+        pixel_distances = np.linalg.norm(pixel_diffs, axis=1)
+
+        # Set the first distance to zero since we don't want to count the distance from the last pixel to the first
+        pixel_distances[0] = 0
+
+        # Calculate the cumulative sum of the distances
+        cumulative_distances = np.cumsum(pixel_distances)
+
+        # Convert the cumulative distances from pixels to nanometres
+        cumulative_distances_nm = cumulative_distances * px_to_nm
+
+        return cumulative_distances_nm
 
     def get_disordered_trace(self):
         """Create a skeleton for each of the grains in the image.
@@ -782,11 +867,14 @@ def trace_image(
     grain_anchors = [grain_anchor(image.shape, list(grain.bbox), pad_width) for grain in region_properties]
     n_grains = len(cropped_images)
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
-    n_grain = 0
     results = {}
-    ordered_traces = []
-    splined_traces = []
-    for cropped_image, cropped_mask in zip(cropped_images, cropped_masks):
+    ordered_traces = {}
+    splined_traces = {}
+    all_ordered_trace_heights = {}
+    all_ordered_trace_cumulative_distances = {}
+    for cropped_image_index, cropped_image in cropped_images.items():
+        cropped_mask = cropped_masks[cropped_image_index]
+
         result = trace_grain(
             cropped_image,
             cropped_mask,
@@ -797,13 +885,14 @@ def trace_image(
             spline_step_size,
             spline_linear_smoothing,
             spline_circular_smoothing,
-            n_grain,
+            cropped_image_index,
         )
-        LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
-        ordered_traces.append(result.pop("ordered_trace"))
-        splined_traces.append(result.pop("splined_trace"))
-        results[n_grain] = result
-        n_grain += 1
+        LOGGER.info(f"[{filename}] : Traced grain {cropped_image_index + 1} of {n_grains}")
+        ordered_traces[cropped_image_index] = result.pop("ordered_trace")
+        splined_traces[cropped_image_index] = result.pop("splined_trace")
+        all_ordered_trace_heights[cropped_image_index] = result.pop("ordered_trace_heights")
+        all_ordered_trace_cumulative_distances[cropped_image_index] = result.pop("ordered_trace_cumulative_distances")
+        results[cropped_image_index] = result
     try:
         results = pd.DataFrame.from_dict(results, orient="index")
         results.index.name = "molecule_number"
@@ -815,34 +904,37 @@ def trace_image(
         LOGGER.error(error)
     return {
         "statistics": results,
-        "ordered_traces": ordered_traces,
-        "splined_traces": splined_traces,
-        "cropped_images": cropped_images,
-        "image_trace": image_trace,
+        "all_ordered_traces": ordered_traces,
+        "all_splined_traces": splined_traces,
+        "all_cropped_images": cropped_images,
+        "image_ordered_trace": image_trace,
         "image_spline_trace": image_spline_trace,
+        "all_ordered_trace_heights": all_ordered_trace_heights,
+        "all_ordered_trace_cumulative_distances": all_ordered_trace_cumulative_distances,
     }
 
 
-def round_splined_traces(splined_traces: list):
-    """Round a list of floating point coordinates to integer floating point coordinates.
-    Note that if a trace has failed and is None, it will be skipped, so the indexes will NOT be correct.
+def round_splined_traces(splined_traces: Dict):
+    """Round a Dict of floating point coordinates to integer floating point coordinates.
 
     Parameters
     ----------
-    splined_traces: list
-        List of floating point coordinates, or Nones
+    splined_traces: Dict
+        Dict of floating point coordinates, or Nones
 
     Returns
     -------
-    rounded_splined_traces: list
-        List of integer coordates, without Nones
+    rounded_splined_traces: Dict
+        Dictionary of integer coordates, without Nones
 
     """
-    rounded_splined_traces = []
-    for splined_trace in splined_traces:
+    rounded_splined_traces = {}
+    for grain_number, splined_trace in splined_traces.items():
         if splined_trace is not None:
             rounded_splined_trace = np.round(splined_trace).astype(int)
-            rounded_splined_traces.append(rounded_splined_trace)
+            rounded_splined_traces[grain_number] = rounded_splined_trace
+        else:
+            rounded_splined_traces[grain_number] = None
 
     return rounded_splined_traces
 
@@ -892,7 +984,7 @@ def adjust_coordinates(coordinates: np.ndarray, pad_width: int) -> np.ndarray:
 
 
 def trace_mask(
-    grain_anchors: List[np.ndarray], ordered_traces: List[np.ndarray], image_shape: tuple, pad_width: int
+    grain_anchors: List[np.ndarray], ordered_traces: Dict[str, np.ndarray], image_shape: tuple, pad_width: int
 ) -> np.ndarray:
     """Place the traced skeletons into an array of the original image for plotting/overlaying.
 
@@ -903,8 +995,9 @@ def trace_mask(
     ----------
     grain_anchors : List[np.ndarray]
         List of grain anchors for the padded bounding box.
-    ordered_traces : List[np.ndarray]
-        List of coordinates for each grains trace.
+    ordered_traces : Dict[np.ndarray]
+        Coordinates for each grain trace.
+        Dict of coordinates for each grains trace.
     image_shape : tuple
         Shape of original image.
     pad_width : int
@@ -917,7 +1010,7 @@ def trace_mask(
 
     """
     image = np.zeros(image_shape)
-    for grain_number, (grain_anchor, ordered_trace) in enumerate(zip(grain_anchors, ordered_traces)):
+    for grain_number, (grain_anchor, ordered_trace) in enumerate(zip(grain_anchors, ordered_traces.values())):
         # Don't always have an ordered_trace for a given grain_anchor if for example the trace was too small
         if ordered_trace is not None:
             ordered_trace = adjust_coordinates(ordered_trace, pad_width)
@@ -936,7 +1029,9 @@ def trace_mask(
     return image
 
 
-def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
+def prep_arrays(
+    image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int
+) -> Tuple[Dict[int, np.ndarray], Dict[int, np.ndarray]]:
     """Takes an image and labelled mask and crops individual grains and original heights to a list.
 
     A second padding is made after cropping to ensure for "edge cases" where grains are close to bounding box edges that
@@ -955,17 +1050,19 @@ def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: 
     Returns
     =======
     Tuple
-        Returns a tuple of two lists, each consisting of cropped arrays.
+        Returns a tuple of two dictionaries, each consisting of cropped arrays.
     """
     # Get bounding boxes for each grain
     region_properties = skimage_measure.regionprops(labelled_grains_mask)
     # Subset image and grains then zip them up
-    cropped_images = [crop_array(image, grain.bbox, pad_width) for grain in region_properties]
-    cropped_images = [np.pad(grain, pad_width=pad_width) for grain in cropped_images]
-    cropped_masks = [crop_array(labelled_grains_mask, grain.bbox, pad_width) for grain in region_properties]
-    cropped_masks = [np.pad(grain, pad_width=pad_width) for grain in cropped_masks]
+    cropped_images = {index: crop_array(image, grain.bbox, pad_width) for index, grain in enumerate(region_properties)}
+    cropped_images = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_images.items()}
+    cropped_masks = {
+        index: crop_array(labelled_grains_mask, grain.bbox, pad_width) for index, grain in enumerate(region_properties)
+    }
+    cropped_masks = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_masks.items()}
     # Flip every labelled region to be 1 instead of its label
-    cropped_masks = [np.where(grain == 0, 0, 1) for grain in cropped_masks]
+    cropped_masks = {index: np.where(grain == 0, 0, 1) for index, grain in cropped_masks.items()}
     return (cropped_images, cropped_masks)
 
 
@@ -1065,6 +1162,8 @@ def trace_grain(
         "end_to_end_distance": dnatrace.end_to_end_distance,
         "ordered_trace": dnatrace.ordered_trace,
         "splined_trace": dnatrace.splined_trace,
+        "ordered_trace_heights": dnatrace.ordered_trace_heights,
+        "ordered_trace_cumulative_distances": dnatrace.ordered_trace_cumulative_distances,
     }
 
 

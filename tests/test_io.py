@@ -1,6 +1,7 @@
 """Tests of IO."""
 
 import argparse
+import logging
 from datetime import datetime
 from pathlib import Path
 
@@ -12,10 +13,12 @@ import pytest
 from topostats.io import (
     LoadScans,
     convert_basename_to_relative_paths,
+    dict_to_hdf5,
     find_files,
     get_date_time,
     get_out_path,
     get_relative_paths,
+    hdf5_to_dict,
     load_array,
     load_pkl,
     path_to_str,
@@ -32,6 +35,9 @@ from topostats.io import (
     write_config_with_comments,
     write_yaml,
 )
+from topostats.logs.logs import LOGGER_NAME
+
+LOGGER = logging.getLogger(LOGGER_NAME)
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
@@ -48,6 +54,49 @@ CONFIG = {
 }
 
 # pylint: disable=protected-access
+# pylint: disable=too-many-lines
+
+
+def dict_almost_equal(dict1, dict2, abs_tol=1e-9):
+    """Recursively check if two dictionaries are almost equal with a given absolute tolerance.
+
+    Parameters
+    ----------
+    dict1: dict
+        First dictionary to compare.
+    dict2: dict
+        Second dictionary to compare.
+    abs_tol: float
+        Absolute tolerance to check for equality.
+
+    Returns
+    -------
+    bool
+        True if the dictionaries are almost equal, False otherwise.
+    """
+    if dict1.keys() != dict2.keys():
+        return False
+
+    LOGGER.info("Comparing dictionaries")
+
+    for key in dict1:
+        LOGGER.info(f"Comparing key {key}")
+        if isinstance(dict1[key], dict) and isinstance(dict2[key], dict):
+            if not dict_almost_equal(dict1[key], dict2[key], abs_tol=abs_tol):
+                return False
+        elif isinstance(dict1[key], np.ndarray) and isinstance(dict2[key], np.ndarray):
+            if not np.allclose(dict1[key], dict2[key], atol=abs_tol):
+                LOGGER.info(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
+                return False
+        elif isinstance(dict1[key], float) and isinstance(dict2[key], float):
+            if not np.isclose(dict1[key], dict2[key], atol=abs_tol):
+                LOGGER.info(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
+                return False
+        elif dict1[key] != dict2[key]:
+            LOGGER.info(f"Key {key} not equal: {dict1[key]} != {dict2[key]}")
+            return False
+
+    return True
 
 
 def test_get_date_time() -> None:
@@ -157,6 +206,84 @@ def test_load_array() -> None:
     expected = np.load(RESOURCES / "test_scars_synthetic_scar_image.npy")
 
     np.testing.assert_array_equal(target, expected)
+
+
+@pytest.mark.parametrize(
+    ("dict1", "dict2", "tolerance", "expected"),
+    [
+        pytest.param(
+            {"a": "test", "b": np.array([1.0, 2.0, 3.0])},
+            {"c": "test", "d": np.array([1.0, 2.0, 3.0])},
+            0.00001,
+            False,
+            id="keys not equal",
+        ),
+        pytest.param(
+            {"a": "test", "b": np.array([1.0, 2.0, 3.0])},
+            {"a": "test", "b": np.array([1.0, 2.0, 3.0])},
+            0.00001,
+            True,
+            id="string equal",
+        ),
+        pytest.param(
+            {"a": "test", "b": np.array([1.0, 2.0, 3.0])},
+            {"a": "WRONG", "b": np.array([1.0, 2.0, 3.0])},
+            0.00001,
+            False,
+            id="string not equal",
+        ),
+        pytest.param(
+            {
+                "a": "test",
+                "b": np.array([1.00001, 2.00002, 3.00005]),
+                "c": {"d": np.array([1.00001, 2.00002, 3.00005])},
+            },
+            {"a": "test", "b": np.array([1.0, 2.0, 3.0]), "c": {"d": np.array([1.0, 2.0, 3.0])}},
+            0.0001,
+            True,
+            id="generous tolerance",
+        ),
+        pytest.param(
+            {
+                "a": "test",
+                "b": np.array([1.00001, 2.00002, 3.00005]),
+                "c": {"d": np.array([1.00001, 2.00002, 3.00005])},
+            },
+            {"a": "test", "b": np.array([1.0, 2.0, 3.0]), "c": {"d": np.array([1.0, 2.0, 3.0])}},
+            0.000001,
+            False,
+            id="strict tolerance",
+        ),
+        pytest.param(
+            {
+                "a": "test",
+                "b": np.array([1.0, 2.0, 3.0]),
+                "c": {"d": np.array([1.0, 2.0, 3.0])},
+            },
+            {"a": "test", "b": np.array([1.0, 2.0, 3.0]), "c": {"d": np.array([1.0, 2.0, 9.0])}},
+            0.0001,
+            False,
+            id="nested dict not equal",
+        ),
+        pytest.param(
+            {"a": 0.01},
+            {"a": 0.02},
+            0.1,
+            True,
+            id="float equal",
+        ),
+        pytest.param(
+            {"a": 0.01},
+            {"a": 0.02},
+            0.001,
+            False,
+            id="float not equal",
+        ),
+    ],
+)
+def test_dict_almost_equal(dict1: dict, dict2: dict, tolerance: float, expected: bool) -> None:
+    """Test that two dictionaries are almost equal."""
+    assert dict_almost_equal(dict1, dict2, tolerance) == expected
 
 
 @pytest.mark.parametrize("non_existant_file", [("does_not_exist.npy"), ("does_not_exist.np"), ("does_not_exist.csv")])
@@ -439,14 +566,17 @@ def test_load_scan_topostats(load_scan_topostats: LoadScans) -> None:
     image, px_to_nm_scaling = load_scan_topostats.load_topostats()
     grain_masks = load_scan_topostats.grain_masks
     above_grain_mask = grain_masks["above"]
+    grain_trace_data = load_scan_topostats.grain_trace_data
     assert isinstance(image, np.ndarray)
     assert image.shape == (1024, 1024)
-    assert image.sum() == 182067.12616107278
+    assert image.sum() == 184140.8593819073
     assert isinstance(px_to_nm_scaling, float)
     assert px_to_nm_scaling == 0.4940029296875
     # Check that the grain mask is loaded correctly
     assert isinstance(above_grain_mask, np.ndarray)
-    assert above_grain_mask.sum() == 635628
+    assert above_grain_mask.sum() == 633746
+    assert isinstance(grain_trace_data, dict)
+    assert grain_trace_data.keys() == {"above"}
 
 
 def test_gwy_read_object(load_scan_dummy: LoadScans) -> None:
@@ -498,7 +628,7 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
         ("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625),
         ("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876),
         ("load_scan_gwy", 1, (512, 512), 33836850.232917726, "file", 0.8468632812499975),
-        ("load_scan_topostats", 1, (1024, 1024), 182067.12616107278, "file", 0.4940029296875),
+        ("load_scan_topostats", 1, (1024, 1024), 184140.8593819073, "file", 0.4940029296875),
         ("load_scan_asd", 197, (200, 200), -673381139990.2344, "file_122", 2.0),
     ],
 )
@@ -557,41 +687,561 @@ def test_load_pkl() -> None:
     assert isinstance(small_dictionary, dict)
 
 
+def test_dict_to_hdf5_all_together_group_path_default(tmp_path: Path) -> None:
+    """Test saving a nested dictionary with arrays to HDF5 format with group path as default."""
+    to_save = {
+        "a": 1,
+        "b": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+        "c": "test",
+        "d": {"e": 1, "f": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), "g": "test"},
+        "h": [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+    }
+
+    expected = {
+        "a": 1,
+        "b": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+        "c": "test",
+        "d": {"e": 1, "f": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), "g": "test"},
+        "h": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+    }
+
+    group_path = "/"
+
+    with h5py.File(tmp_path / "hdf5_file_nested_with_arrays_group_path_standard.hdf5", "w") as f:
+        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_nested_with_arrays_group_path_standard.hdf5", "r") as f:
+        # Check keys are the same
+        assert list(f.keys()) == list(expected.keys())
+        assert f["a"][()] == expected["a"]
+        np.testing.assert_array_equal(f["b"][()], expected["b"])
+        # pylint thinks that f["c"] is a group but it is a bytes object that can be decoded
+        # pylint: disable=no-member
+        assert f["c"][()].decode("utf-8") == expected["c"]
+        assert f["d"]["e"][()] == expected["d"]["e"]
+        np.testing.assert_array_equal(f["d"]["f"][()], expected["d"]["f"])
+        assert f["d"]["g"][()].decode("utf-8") == expected["d"]["g"]
+        np.testing.assert_array_equal(f["h"][()], expected["h"])
+
+
+def test_dict_to_hdf5_all_together_group_path_non_standard(tmp_path: Path) -> None:
+    """Test saving a nested dictionary with arrays to HDF5 format with a non-standard group path."""
+    to_save = {
+        "a": 1,
+        "b": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+        "c": "test",
+        "d": {"e": 1, "f": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), "g": "test"},
+        "h": [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+    }
+
+    expected = {
+        "d": {
+            "a": 1,
+            "b": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+            "c": "test",
+            "d": {"e": 1, "f": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), "g": "test"},
+            "h": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+        }
+    }
+
+    group_path = "/d/"
+
+    with h5py.File(tmp_path / "hdf5_file_all_together_group_path_nonstandard.hdf5", "w") as f:
+        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_all_together_group_path_nonstandard.hdf5", "r") as f:
+        # Check keys are the same
+        assert list(f.keys()) == list(expected.keys())
+        assert f["d"]["a"][()] == expected["d"]["a"]
+        np.testing.assert_array_equal(f["d"]["b"][()], expected["d"]["b"])
+        assert f["d"]["c"][()].decode("utf-8") == expected["d"]["c"]
+        assert f["d"]["d"]["e"][()] == expected["d"]["d"]["e"]
+        np.testing.assert_array_equal(f["d"]["d"]["f"][()], expected["d"]["d"]["f"])
+        assert f["d"]["d"]["g"][()].decode("utf-8") == expected["d"]["d"]["g"]
+        np.testing.assert_array_equal(f["d"]["h"][()], expected["d"]["h"])
+
+
+def test_dict_to_hdf5_int(tmp_path: Path) -> None:
+    """Test saving a dictionary with an integer to HDF5 format."""
+    to_save = {"a": 1, "b": 2}
+    expected = {"a": 1, "b": 2}
+    group_path = "/"
+
+    with h5py.File(tmp_path / "hdf5_file_int.hdf5", "w") as f:
+        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_int.hdf5", "r") as f:
+        # Check keys are the same
+        assert list(f.keys()) == list(expected.keys())
+        assert f["a"][()] == expected["a"]
+        assert f["b"][()] == expected["b"]
+
+
+def test_dict_to_hdf5_float(tmp_path: Path) -> None:
+    """Test saving a dictionary with a float to HDF5 format."""
+    to_save = {"a": 0.01, "b": 0.02}
+    expected = {"a": 0.01, "b": 0.02}
+    group_path = "/"
+
+    with h5py.File(tmp_path / "hdf5_file_float.hdf5", "w") as f:
+        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_float.hdf5", "r") as f:
+        # Check keys are the same
+        assert list(f.keys()) == list(expected.keys())
+        assert f["a"][()] == expected["a"]
+        assert f["b"][()] == expected["b"]
+
+
+def test_dict_to_hdf5_str(tmp_path: Path) -> None:
+    """Test saving a dictionary with a string to HDF5 format."""
+    to_save = {"a": "test", "b": "test2"}
+    expected = {"a": "test", "b": "test2"}
+    group_path = "/"
+
+    with h5py.File(tmp_path / "hdf5_file_str.hdf5", "w") as f:
+        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_str.hdf5", "r") as f:
+        # Check keys are the same
+        assert list(f.keys()) == list(expected.keys())
+        # pylint thinks that f["a"] is a group but it is a bytes object that can be decoded
+        # pylint: disable=no-member
+        assert f["a"][()].decode("utf-8") == expected["a"]
+        # pylint thinks that f["b"] is a group but it is a bytes object that can be decoded
+        # pylint: disable=no-member
+        assert f["b"][()].decode("utf-8") == expected["b"]
+
+
+def test_dict_to_hdf5_nested_lists(tmp_path: Path) -> None:
+    """Test saving a nested dictionary with lists to HDF5 format."""
+    to_save = {
+        "list": [1, 2, 3],
+        "2d list": [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+    }
+
+    expected = {
+        "list": np.array([1, 2, 3]),
+        "2d list": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+    }
+
+    group_path = "/"
+
+    with h5py.File(tmp_path / "hdf5_file_nested_lists.hdf5", "w") as f:
+        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_nested_lists.hdf5", "r") as f:
+        # Check keys are the same
+        assert sorted(f.keys()) == sorted(expected.keys())
+        np.testing.assert_array_equal(f["list"][()], expected["list"])
+        np.testing.assert_array_equal(f["2d list"][()], expected["2d list"])
+
+
+def test_dict_to_hdf5_nested_dict(tmp_path: Path) -> None:
+    """Test saving a nested dictionary to HDF5 format."""
+    to_save = {
+        "a": 1,
+        "b": 2,
+        "c": {"d": 3, "e": 4},
+    }
+
+    expected = {
+        "a": 1,
+        "b": 2,
+        "c": {
+            "d": 3,
+            "e": 4,
+        },
+    }
+
+    group_path = "/"
+
+    with h5py.File(tmp_path / "hdf5_file_nested_dict.hdf5", "w") as f:
+        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_nested_dict.hdf5", "r") as f:
+        # Check keys are the same
+        assert sorted(f.keys()) == sorted(expected.keys())
+        assert f["a"][()] == expected["a"]
+        assert f["b"][()] == expected["b"]
+        assert sorted(f["c"].keys()) == sorted(expected["c"].keys())
+        assert f["c"]["d"][()] == expected["c"]["d"]
+        assert f["c"]["e"][()] == expected["c"]["e"]
+
+
+def test_dict_to_hdf5_nested_dict_group_path(tmp_path: Path) -> None:
+    """Test saving a nested dictionary to HDF5 format with a non-standard group path."""
+    to_save = {
+        "a": 1,
+        "b": 2,
+        "c": {"d": 3, "e": 4},
+    }
+
+    expected = {
+        "nested": {
+            "a": 1,
+            "b": 2,
+            "c": {
+                "d": 3,
+                "e": 4,
+            },
+        }
+    }
+
+    group_path = "/nested/"
+
+    with h5py.File(tmp_path / "hdf5_file_nested_dict_group_path.hdf5", "w") as f:
+        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_nested_dict_group_path.hdf5", "r") as f:
+        # Check keys are the same
+        assert sorted(f.keys()) == sorted(expected.keys())
+        assert f["nested"]["a"][()] == expected["nested"]["a"]
+        assert f["nested"]["b"][()] == expected["nested"]["b"]
+        assert sorted(f["nested"]["c"].keys()) == sorted(expected["nested"]["c"].keys())
+        assert f["nested"]["c"]["d"][()] == expected["nested"]["c"]["d"]
+        assert f["nested"]["c"]["e"][()] == expected["nested"]["c"]["e"]
+
+
+def test_dict_to_hdf5_list(tmp_path: Path) -> None:
+    """Test saving a dictionary with a list to HDF5 format."""
+    to_save = {"list": [1, 2, 3]}
+    expected = {"list": np.array([1, 2, 3])}
+    group_path = "/"
+
+    with h5py.File(tmp_path / "hdf5_file_list.hdf5", "w") as f:
+        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_list.hdf5", "r") as f:
+        # Check keys are the same
+        assert sorted(f.keys()) == sorted(expected.keys())
+        np.testing.assert_array_equal(f["list"][()], expected["list"])
+
+
+def test_hdf5_to_dict_all_together_group_path_default(tmp_path: Path) -> None:
+    """Test loading a nested dictionary with arrays from HDF5 format with group path as default."""
+    to_save = {
+        "a": 1,
+        "b": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+        "c": "test",
+        "d": {"e": 1, "f": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), "g": "test"},
+    }
+
+    group_path = "/"
+
+    # Manually save the dictionary to HDF5 format
+    with h5py.File(tmp_path / "hdf5_file_nested_with_arrays_group_path_standard.hdf5", "w") as f:
+        # Write the datasets and groups to the file without using the dict_to_hdf5 function
+        f.create_dataset("a", data=to_save["a"])
+        f.create_dataset("b", data=to_save["b"])
+        f.create_dataset("c", data=to_save["c"])
+        d = f.create_group("d")
+        d.create_dataset("e", data=to_save["d"]["e"])
+        d.create_dataset("f", data=to_save["d"]["f"])
+        d.create_dataset("g", data=to_save["d"]["g"])
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_nested_with_arrays_group_path_standard.hdf5", "r") as f:
+        result = hdf5_to_dict(open_hdf5_file=f, group_path=group_path)
+
+    np.testing.assert_equal(result, to_save)
+
+
+def test_hdf5_to_dict_all_together_group_path_non_standard(tmp_path: Path) -> None:
+    """Test loading a nested dictionary with arrays from HDF5 format with a non-standard group path."""
+    to_save = {
+        "a": 1,
+        "b": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+        "c": "test",
+        "d": {"e": 1, "f": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), "g": "test"},
+    }
+
+    group_path = "/d/"
+
+    expected = {
+        "e": 1,
+        "f": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+        "g": "test",
+    }
+
+    # Manually save the dictionary to HDF5 format
+    with h5py.File(tmp_path / "hdf5_file_all_together_group_path_nonstandard.hdf5", "w") as f:
+        # Write the datasets and groups to the file without using the dict_to_hdf5 function
+        f.create_dataset("a", data=to_save["a"])
+        f.create_dataset("b", data=to_save["b"])
+        f.create_dataset("c", data=to_save["c"])
+        d = f.create_group("d")
+        d.create_dataset("e", data=to_save["d"]["e"])
+        d.create_dataset("f", data=to_save["d"]["f"])
+        d.create_dataset("g", data=to_save["d"]["g"])
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_all_together_group_path_nonstandard.hdf5", "r") as f:
+        result = hdf5_to_dict(open_hdf5_file=f, group_path=group_path)
+
+    np.testing.assert_equal(result, expected)
+
+
+def test_hdf5_to_dict_int(tmp_path: Path) -> None:
+    """Test loading a dictionary with an integer from HDF5 format."""
+    to_save = {"a": 1, "b": 2}
+
+    group_path = "/"
+
+    # Manually save the dictionary to HDF5 format
+    with h5py.File(tmp_path / "hdf5_file_int.hdf5", "w") as f:
+        # Write the datasets and groups to the file without using the dict_to_hdf5 function
+        f.create_dataset("a", data=to_save["a"])
+        f.create_dataset("b", data=to_save["b"])
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_int.hdf5", "r") as f:
+        result = hdf5_to_dict(open_hdf5_file=f, group_path=group_path)
+
+    np.testing.assert_equal(result, to_save)
+
+
+def test_hdf5_to_dict_float(tmp_path: Path) -> None:
+    """Test loading a dictionary with a float from HDF5 format."""
+    to_save = {"a": 0.01, "b": 0.02}
+
+    group_path = "/"
+
+    # Manually save the dictionary to HDF5 format
+    with h5py.File(tmp_path / "hdf5_file_float.hdf5", "w") as f:
+        # Write the datasets and groups to the file without using the dict_to_hdf5 function
+        f.create_dataset("a", data=to_save["a"])
+        f.create_dataset("b", data=to_save["b"])
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_float.hdf5", "r") as f:
+        result = hdf5_to_dict(open_hdf5_file=f, group_path=group_path)
+
+    np.testing.assert_equal(result, to_save)
+
+
+def test_hdf5_to_dict_str(tmp_path: Path) -> None:
+    """Test loading a dictionary with a string from HDF5 format."""
+    to_save = {"a": "test", "b": "test2"}
+
+    group_path = "/"
+
+    # Manually save the dictionary to HDF5 format
+    with h5py.File(tmp_path / "hdf5_file_str.hdf5", "w") as f:
+        # Write the datasets and groups to the file without using the dict_to_hdf5 function
+        f.create_dataset("a", data=to_save["a"])
+        f.create_dataset("b", data=to_save["b"])
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_str.hdf5", "r") as f:
+        result = hdf5_to_dict(open_hdf5_file=f, group_path=group_path)
+
+    np.testing.assert_equal(result, to_save)
+
+
+def test_hdf5_to_dict_dict_nested_dict(tmp_path: Path) -> None:
+    """Test loading a nested dictionary from HDF5 format."""
+    to_save = {
+        "a": 1,
+        "b": 2,
+        "c": {"d": 3, "e": 4},
+    }
+
+    group_path = "/"
+
+    # Manually save the dictionary to HDF5 format
+    with h5py.File(tmp_path / "hdf5_file_nested_dict.hdf5", "w") as f:
+        # Write the datasets and groups to the file without using the dict_to_hdf5 function
+        f.create_dataset("a", data=to_save["a"])
+        f.create_dataset("b", data=to_save["b"])
+        c = f.create_group("c")
+        c.create_dataset("d", data=to_save["c"]["d"])
+        c.create_dataset("e", data=to_save["c"]["e"])
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_nested_dict.hdf5", "r") as f:
+        result = hdf5_to_dict(open_hdf5_file=f, group_path=group_path)
+
+    np.testing.assert_equal(result, to_save)
+
+
+def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
+    """Test loading a nested dictionary from HDF5 format with a non-standard group path."""
+    to_save = {
+        "a": 1,
+        "b": 2,
+        "c": {"d": 3, "e": 4},
+    }
+
+    group_path = "/c/"
+
+    expected = {
+        "d": 3,
+        "e": 4,
+    }
+
+    # Manually save the dictionary to HDF5 format
+    with h5py.File(tmp_path / "hdf5_file_nested_dict_group_path.hdf5", "w") as f:
+        # Write the datasets and groups to the file without using the dict_to_hdf5 function
+        f.create_dataset("a", data=to_save["a"])
+        f.create_dataset("b", data=to_save["b"])
+        c = f.create_group("c")
+        c.create_dataset("d", data=to_save["c"]["d"])
+        c.create_dataset("e", data=to_save["c"]["e"])
+
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file_nested_dict_group_path.hdf5", "r") as f:
+        result = hdf5_to_dict(open_hdf5_file=f, group_path=group_path)
+
+    np.testing.assert_equal(result, expected)
+
+
 @pytest.mark.parametrize(
-    ("image", "pixel_to_nm_scaling", "grain_mask_above", "grain_mask_below"),
+    ("image", "pixel_to_nm_scaling", "grain_mask_above", "grain_mask_below", "grain_trace_data"),
     [
-        (
-            np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+        pytest.param(
+            np.arange(0, 100).reshape(10, 10),
             3.14159265,
             None,
-            np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]),
+            np.zeros((10, 10)),
+            {
+                "above": {
+                    "ordered_traces": {
+                        "0": np.array(
+                            [
+                                [0, 1],
+                                [1, 0],
+                                [2, 2],
+                            ]
+                        ),
+                        "1": np.array(
+                            [
+                                [0, 0],
+                                [2, 1],
+                                [3, 0],
+                            ]
+                        ),
+                    },
+                    "cropped_images": {
+                        "0": np.array([[0, 1, 2], [1, 2, 3], [2, 2, 1]]),
+                        "1": np.array([[0, 1, 3], [2, 2, 4], [3, 4, 5]]),
+                    },
+                    "ordered_trace_heights": {
+                        "0": np.array([5, 2, 3]),
+                        "1": np.array([5, 7, 10]),
+                    },
+                    "ordered_trace_cumulative_distances": {
+                        "0": np.array([0, 1.41, 2.41]),
+                        "1": np.array([0, 1, 2]),
+                    },
+                    "splined_traces": {
+                        "0": np.array(
+                            [
+                                [0, 1],
+                                [1, 0],
+                                [2, 2],
+                            ]
+                        ),
+                        "1": np.array(
+                            [
+                                [0, 0],
+                                [2, 1],
+                                [3, 0],
+                            ]
+                        ),
+                    },
+                },
+                "below": {
+                    "ordered_traces": {
+                        "0": np.array(
+                            [
+                                [0, 1],
+                                [1, 0],
+                                [2, 2],
+                            ]
+                        ),
+                        "1": np.array(
+                            [
+                                [0, 0],
+                                [2, 1],
+                                [3, 0],
+                            ]
+                        ),
+                    },
+                    "cropped_images": {
+                        "0": np.array([[0, 1, 2], [1, 2, 3], [2, 2, 1]]),
+                        "1": np.array([[0, 1, 3], [2, 2, 4], [3, 4, 5]]),
+                    },
+                    "ordered_trace_heights": {
+                        "0": np.array([5, 2, 3]),
+                        "1": np.array([5, 7, 10]),
+                    },
+                    "ordered_trace_cumulative_distances": {
+                        "0": np.array([0, 1.41, 2.41]),
+                        "1": np.array([0, 1, 2]),
+                    },
+                    "splined_traces": {
+                        "0": np.array(
+                            [
+                                [0, 1],
+                                [1, 0],
+                                [2, 2],
+                            ]
+                        ),
+                        "1": np.array(
+                            [
+                                [0, 0],
+                                [2, 1],
+                                [3, 0],
+                            ]
+                        ),
+                    },
+                },
+            },
+            id="below_grain_mask_with_grain_trace_data",
         ),
-        (
-            np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+        pytest.param(
+            np.arange(0, 100).reshape(10, 10),
             3.14159265,
-            np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]),
+            np.zeros((10, 10)),
             None,
+            None,
+            id="above_grain_mask_without_grain_trace_data",
         ),
-        (
-            np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+        pytest.param(
+            np.arange(0, 100).reshape(10, 10),
             3.14159265,
-            np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]),
-            np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]]),
+            np.zeros((10, 10)),
+            np.zeros((10, 10)),
+            None,
+            id="above_and_below_grain_masks_without_grain_trace_data",
         ),
     ],
 )
-def test_save_topostats_file(
+def test_save_and_load_topostats_file(
+    load_scan_topostats_test_file: LoadScans,
     tmp_path: Path,
     image: np.ndarray,
     pixel_to_nm_scaling: float,
     grain_mask_above: np.ndarray,
     grain_mask_below: np.ndarray,
+    grain_trace_data: dict,
 ) -> None:
     """Test saving a .topostats file."""
     topostats_object = {
         "image_flattened": image,
         "pixel_to_nm_scaling": pixel_to_nm_scaling,
         "grain_masks": {"above": grain_mask_above, "below": grain_mask_below},
+        "grain_trace_data": grain_trace_data,
     }
 
     save_topostats_file(
@@ -600,26 +1250,26 @@ def test_save_topostats_file(
         topostats_object=topostats_object,
     )
 
-    with h5py.File(f"{tmp_path}/topostats_file_test.topostats", "r") as f:
-        hdf5_file_keys = list(f.keys())
-        topostats_file_version_read = f["topostats_file_version"][()]
-        image_read = f["image"][:]
-        pixel_to_nm_scaling_read = f["pixel_to_nm_scaling"][()]
-        if grain_mask_above is not None:
-            grain_mask_above_read = f["grain_masks/above"][:]
-        if grain_mask_below is not None:
-            grain_mask_below_read = f["grain_masks/below"][:]
+    # Load the saved .topostats file using LoadScans
+    loadscans = load_scan_topostats_test_file
+    loadscans.get_data()
+    topostats_data = loadscans.img_dict["topostats_file_test"]
 
-    assert hdf5_file_keys == [
+    assert set(topostats_data.keys()) == {
+        "image_original",
+        "img_path",
+        "filename",
         "grain_masks",
-        "image",
+        "grain_trace_data",
+        "image_flattened",
         "pixel_to_nm_scaling",
-        "topostats_file_version",
-    ]
-    assert 0.1 == topostats_file_version_read
-    np.testing.assert_array_equal(image, image_read)
-    assert pixel_to_nm_scaling == pixel_to_nm_scaling_read
+    }
+
+    np.testing.assert_array_equal(image, topostats_data["image_original"])
+    assert pixel_to_nm_scaling == topostats_data["pixel_to_nm_scaling"]
     if grain_mask_above is not None:
-        np.testing.assert_array_equal(grain_mask_above, grain_mask_above_read)
+        np.testing.assert_array_equal(grain_mask_above, topostats_data["grain_masks"]["above"])
     if grain_mask_below is not None:
-        np.testing.assert_array_equal(grain_mask_below, grain_mask_below_read)
+        np.testing.assert_array_equal(grain_mask_below, topostats_data["grain_masks"]["below"])
+    if grain_trace_data is not None:
+        np.testing.assert_equal(grain_trace_data, topostats_data["grain_trace_data"])
