@@ -481,10 +481,12 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
 @pytest.mark.parametrize(
     ("unit", "x", "y", "expected_px2nm"),
     [
-        ("mm", 0.01, 0.01, 10000),
-        ("um", 1.5, 1.5, 1500),
-        ("nm", 50, 50, 50),
-        ("pm", 233, 233, 0.233),
+        pytest.param("mm", 0.01, 0.01, 10000, id="mm units; square"),
+        pytest.param("um", 1.5, 1.5, 1500, id="um units; square"),
+        pytest.param("nm", 50, 50, 50, id="nm units; square"),
+        pytest.param("pm", 233, 233, 0.233, id="pm units; square"),
+        pytest.param("pm", 1, 512, 0.001, id="pm units; rectangular (thin)"),
+        pytest.param("pm", 512, 1, 0.512, id="pm units; rectangular (tall)"),
     ],
 )
 def test__spm_pixel_to_nm_scaling(
