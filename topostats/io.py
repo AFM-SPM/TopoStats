@@ -492,6 +492,7 @@ class LoadScans:
         self.image = None
         self.pixel_to_nm_scaling = None
         self.grain_masks = {}
+        self.grain_trace_data = {}
         self.img_dict = {}
         self.MINIMUM_IMAGE_SIZE = 10
 
@@ -569,19 +570,26 @@ class LoadScans:
         LOGGER.info(f"Loading image from : {self.img_path}")
         try:
             with h5py.File(self.img_path, "r") as f:
-                keys = f.keys()
-                file_version = f["topostats_file_version"][()]
+                # Load the hdf5 data to dictionary
+                topodata = hdf5_to_dict(open_hdf5_file=f, group_path="/")
+                main_keys = topodata.keys()
+
+                file_version = topodata["topostats_file_version"]
                 LOGGER.info(f"TopoStats file version: {file_version}")
-                image = f["image"][:]
-                pixel_to_nm_scaling = f["pixel_to_nm_scaling"][()]
-                if "grain_masks" in keys:
-                    grain_masks_keys = f["grain_masks"].keys()
+                image = topodata["image"]
+                pixel_to_nm_scaling = topodata["pixel_to_nm_scaling"]
+                if "grain_masks" in main_keys:
+                    grain_masks_keys = topodata["grain_masks"].keys()
                     if "above" in grain_masks_keys:
                         LOGGER.info(f"[{self.filename}] : Found grain mask for above direction")
-                        self.grain_masks["above"] = f["grain_masks"]["above"][:]
+                        self.grain_masks["above"] = topodata["grain_masks"]["above"]
                     if "below" in grain_masks_keys:
                         LOGGER.info(f"[{self.filename}] : Found grain mask for below direction")
-                        self.grain_masks["below"] = f["grain_masks"]["below"][:]
+                        self.grain_masks["below"] = topodata["grain_masks"]["below"]
+                if "grain_trace_data" in main_keys:
+                    LOGGER.info(f"[{self.filename}] : Found grain trace data")
+                    self.grain_trace_data = topodata["grain_trace_data"]
+
         except OSError as e:
             if "Unable to open file" in str(e):
                 LOGGER.info(f"[{self.filename}] File not found: {self.img_path}")
@@ -984,7 +992,92 @@ class LoadScans:
             "image_original": image,
             "image_flattened": None,
             "grain_masks": self.grain_masks,
+            "grain_trace_data": self.grain_trace_data,
         }
+
+
+def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -> None:
+    """Recursively save a dictionary to an open hdf5 file.
+
+    Parameters
+    ----------
+    open_hdf5_file: h5py.File
+        An open hdf5 file object.
+    group_path: str
+        The path to the group in the hdf5 file to start saving data from.
+    dictionary: dict
+        A dictionary of the data to save.
+
+    Returns
+    -------
+    None
+    """
+    for key, item in dictionary.items():
+        LOGGER.info(f"Saving key: {key}")
+
+        if item is None:
+            LOGGER.warning(f"Item '{key}' is None. Skipping.")
+        # Make sure the key is a string
+        key = str(key)
+
+        # Check if the item is a known datatype
+        # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
+        if isinstance(item, (list, str, int, float, np.ndarray, Path, dict)):  # noqa: UP038
+            # Lists need to be converted to numpy arrays
+            if isinstance(item, list):
+                item = np.array(item)
+                open_hdf5_file[group_path + key] = item
+            # Strings need to be encoded to bytes
+            elif isinstance(item, str):
+                open_hdf5_file[group_path + key] = item.encode("utf8")
+            # Integers, floats and numpy arrays can be added directly to the hdf5 file
+            # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
+            elif isinstance(item, (int, float, np.ndarray)):  # noqa: UP038
+                open_hdf5_file[group_path + key] = item
+            # Path objects need to be encoded to bytes
+            elif isinstance(item, Path):
+                open_hdf5_file[group_path + key] = str(item).encode("utf8")
+            # Dictionaries need to be recursively saved
+            elif isinstance(item, dict):  # a sub-dictionary, so we need to recurse
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item)
+        else:  # attempt to save an item that is not a numpy array or a dictionary
+            try:
+                open_hdf5_file[group_path + key] = item
+            except Exception as e:
+                LOGGER.info(f"Cannot save key '{key}' to HDF5. Item type: {type(item)}. Skipping. {e}")
+
+
+def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
+    """Read a dictionary from an open hdf5 file.
+
+    Parameters
+    ----------
+    open_hdf5_file: h5py.File
+        An open hdf5 file object.
+    group_path: str
+        The path to the group in the hdf5 file to start reading data from.
+
+    Returns
+    -------
+    dict
+        A dictionary of the hdf5 file data.
+    """
+    data_dict = {}
+    for key, item in open_hdf5_file[group_path].items():
+        LOGGER.info(f"Loading hdf5 key: {key}")
+        if isinstance(item, h5py.Group):
+            LOGGER.info(f" {key} is a group")
+            data_dict[key] = hdf5_to_dict(open_hdf5_file, group_path + key + "/")
+        # Decode byte strings to utf-8. The data type "O" is a byte string.
+        elif isinstance(item, h5py.Dataset) and item.dtype == "O":
+            LOGGER.debug(f" {key} is a byte string")
+            data_dict[key] = item[()].decode("utf-8")
+            LOGGER.debug(f" {key} type: {type(data_dict[key])}")
+        else:
+            LOGGER.debug(f" {key} is other type of dataset")
+            data_dict[key] = item[()]
+            LOGGER.debug(f" {key} type: {type(data_dict[key])}")
+    return data_dict
 
 
 def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict) -> None:
@@ -1011,17 +1104,13 @@ def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict)
         # It may be possible for topostats_object["image_flattened"] to be None.
         # Make sure that this is not the case.
         if topostats_object["image_flattened"] is not None:
-            f["topostats_file_version"] = 0.1
-            f["image"] = topostats_object["image_flattened"]
-            # It should not be possible for topostats_object["pixel_to_nm_scaling"] to be None
-            f["pixel_to_nm_scaling"] = topostats_object["pixel_to_nm_scaling"]
-            if topostats_object["grain_masks"]:
-                if "above" in topostats_object["grain_masks"].keys():
-                    if topostats_object["grain_masks"]["above"] is not None:
-                        f["grain_masks/above"] = topostats_object["grain_masks"]["above"]
-                if "below" in topostats_object["grain_masks"].keys():
-                    if topostats_object["grain_masks"]["below"] is not None:
-                        f["grain_masks/below"] = topostats_object["grain_masks"]["below"]
+            topostats_object["topostats_file_version"] = 0.2
+            # Rename the key to "image" for backwards compatibility
+            topostats_object["image"] = topostats_object.pop("image_flattened")
+
+            # Recursively save the topostats object dictionary to the .topostats file
+            dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
+
         else:
             raise ValueError(
                 "TopoStats object dictionary does not contain an 'image_flattened'. \

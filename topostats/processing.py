@@ -401,10 +401,12 @@ def run_dnatracing(  # noqa: C901
 
     # Run dnatracing
     try:
+        grain_trace_data = None
         if dnatracing_config["run"]:
             dnatracing_config.pop("run")
             LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
             tracing_stats = defaultdict()
+            grain_trace_data = defaultdict()
             for direction, _ in grain_masks.items():
                 tracing_results = trace_image(
                     image=image,
@@ -414,10 +416,18 @@ def run_dnatracing(  # noqa: C901
                     **dnatracing_config,
                 )
                 tracing_stats[direction] = tracing_results["statistics"]
-                ordered_traces = tracing_results["ordered_traces"]
-                cropped_images = tracing_results["cropped_images"]
+                ordered_traces = tracing_results["all_ordered_traces"]
+                cropped_images: dict[int, np.ndarray] = tracing_results["all_cropped_images"]
                 image_spline_trace = tracing_results["image_spline_trace"]
                 tracing_stats[direction]["threshold"] = direction
+
+                grain_trace_data[direction] = {
+                    "ordered_traces": ordered_traces,
+                    "cropped_images": cropped_images,
+                    "ordered_trace_heights": tracing_results["all_ordered_trace_heights"],
+                    "ordered_trace_cumulative_distances": tracing_results["all_ordered_trace_cumulative_distances"],
+                    "splined_traces": tracing_results["all_splined_traces"],
+                }
 
                 # Plot traces for the whole image
                 Images(
@@ -430,7 +440,8 @@ def run_dnatracing(  # noqa: C901
 
                 # Plot traces on each grain individually
                 if plotting_config["image_set"] == "all":
-                    for grain_index, (grain_trace, cropped_image) in enumerate(zip(ordered_traces, cropped_images)):
+                    for grain_index, grain_trace in ordered_traces.items():
+                        cropped_image = cropped_images[grain_index]
                         grain_trace_mask = np.zeros(cropped_image.shape)
                         # Grain traces can be None if they do not trace successfully. Eg if they are too small.
                         if grain_trace is not None:
@@ -460,14 +471,14 @@ def run_dnatracing(  # noqa: C901
             results = results_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left")
             results["basename"] = image_path.parent
 
-            return results
+            return results, grain_trace_data
 
         # Otherwise, return the passed in dataframe and warn that tracing is disabled
         LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
         results = results_df
         results["basename"] = image_path.parent
 
-        return results
+        return results, grain_trace_data
 
     except Exception:
         # If no results we need a dummy dataframe to return.
@@ -476,8 +487,8 @@ def run_dnatracing(  # noqa: C901
         )
         results = results_df
         results["basename"] = image_path.parent
-
-        return results
+        grain_trace_data = None
+        return results, grain_trace_data
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
@@ -606,7 +617,7 @@ def process_scan(
         )
 
         # DNAtracing
-        results_df = run_dnatracing(
+        results_df, grain_trace_data = run_dnatracing(
             image=topostats_object["image_flattened"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
@@ -618,6 +629,9 @@ def process_scan(
             dnatracing_config=dnatracing_config,
             results_df=results_df,
         )
+
+        # Add grain trace data to topostats object
+        topostats_object["grain_trace_data"] = grain_trace_data
 
     else:
         results_df = create_empty_dataframe()
