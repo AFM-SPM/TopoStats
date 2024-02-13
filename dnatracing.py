@@ -391,7 +391,6 @@ class dnaTrace(object):
         is important for getting a good fit on the lower res data'''
 
         step_size_px = int(self.step_size_m / (self.pixel_size))
-        # step_size = int(7e-9 / (self.pixel_size)) # 3 nm step size
         interp_step = int(1e-10 / self.pixel_size)
 
         for dna_num in sorted(self.fitted_traces.keys()):
@@ -477,7 +476,6 @@ class dnaTrace(object):
                 #        self.ordered_traces.pop(dna_num)
 
             else:
-                # ev_array = np.linspace(0, 1, 1000)
                 ev_array = np.linspace(0, 1, nbr * step_size_px)
 
                 for i in range(step_size_px):
@@ -553,13 +551,19 @@ class dnaTrace(object):
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
-        plt.savefig('%s_%s_originalImage.png' % (save_file, channel_name))
+        ax = plt.axes()
+        ax.patch.set_alpha(0)
+        plt.axis('equal')
+        plt.savefig('%s_%s_originalImage.png' % (save_file, channel_name), dpi=1000)
         plt.close()
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
         for dna_num in sorted(self.splined_traces.keys()):
             plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=2.0)
+        ax = plt.axes()
+        ax.patch.set_alpha(0)
+        plt.axis('equal')
         plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name), dpi=1000)
         plt.close()
 
@@ -618,6 +622,26 @@ class dnaTrace(object):
                      color='c')
         plt.savefig('%s_%s_fittedtrace.png' % (save_file, channel_name))
         plt.close()
+
+        # for dna_num in sorted(self.fitted_traces.keys()):
+        #     plt.plot(self.fitted_traces[dna_num][:, 0], self.fitted_traces[dna_num][:, 1], 'c.', markersize=1)
+        # ax = plt.axes()
+        # ax.patch.set_alpha(0)
+        # plt.axis('equal')
+        # plt.xticks([])
+        # plt.yticks([])
+        # plt.savefig('%s_%s_fittedtrace.png' % (save_file, channel_name), dpi=1000)
+        # plt.close()
+        #
+        # for dna_num in sorted(self.splined_traces.keys()):
+        #     plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], 'c.', markersize=1)
+        # ax = plt.axes()
+        # ax.patch.set_alpha(0)
+        # plt.axis('equal')
+        # plt.xticks([])
+        # plt.yticks([])
+        # plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name), dpi=1000)
+        # plt.close()
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
@@ -955,6 +979,8 @@ class dnaTrace(object):
 
         plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], 'k.', markersize=5)
         plt.axis('equal')
+        ax = plt.axes()
+        ax.patch.set_alpha(0)
         length = len(coordinates_array)
         plt.plot(coordinates_array[0, 0],
                  coordinates_array[0, 1],
