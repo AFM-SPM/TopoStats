@@ -129,6 +129,19 @@ def test_sort_coords(shape: npt.NDArray, axis: str, target: npt.NDArray) -> None
 
 
 @pytest.mark.parametrize(
+    ("shape", "axis"),
+    [
+        pytest.param(tiny_triangle, 2, id="integer not 0 or 1"),
+        pytest.param(tiny_triangle, "row", id="string"),
+    ],
+)
+def test_sort_coords_invalid_axis(shape: npt.NDArray, axis: int | str) -> None:
+    """Test ValueError raised when axis is not 0 or 1."""
+    with pytest.raises(ValueError):  # noqa: PT011
+        feret.sort_coords(np.argwhere(shape == 1), axis)
+
+
+@pytest.mark.parametrize(
     ("shape", "axis", "upper_target", "lower_target"),
     [
         pytest.param(
