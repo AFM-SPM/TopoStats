@@ -191,17 +191,17 @@ def plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath
 
 
 def plotkde2var(
-    df,
-    plotarg,
-    df2=None,
-    plotarg2=None,
-    label1=None,
-    label2=None,
-    xmin=None,
-    xmax=None,
-    nm=False,
-    specpath=None,
-    grouparg=None,  # Defined outside scope of function but required for testing
+        df,
+        plotarg,
+        df2=None,
+        plotarg2=None,
+        label1=None,
+        label2=None,
+        xmin=None,
+        xmax=None,
+        nm=False,
+        specpath=None,
+        grouparg=None,  # Defined outside scope of function but required for testing
 ):
     """Creating a KDE plot for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
@@ -292,23 +292,23 @@ def plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
 
 
 def plothist2var(
-    df,
-    plotarg,
-    df2=None,
-    df3=None,
-    plotarg2=None,
-    plotarg3=None,
-    label1=None,
-    label2=None,
-    label3='Damaged with protein',
-    xmin=None,
-    xmax=None,
-    color1='#B45F06',
-    color2='#0B5394',
-    color3='#52C932',
-    nm=False,
-    specpath=None,
-    bins=12,  # Missing argument defined outside scope of function required within for testing
+        df,
+        plotarg,
+        df2=None,
+        df3=None,
+        plotarg2=None,
+        plotarg3=None,
+        label1=None,
+        label2=None,
+        label3='Damaged with protein',
+        xmin=None,
+        xmax=None,
+        color1='#B45F06',
+        color2='#0B5394',
+        color3='#52C932',
+        nm=False,
+        specpath=None,
+        bins=12,  # Missing argument defined outside scope of function required within for testing
 ):
     """Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
     default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
@@ -341,13 +341,15 @@ def plothist2var(
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
     dfnew[plotarg].plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, color=color1, density=True)
-    dfnew2[plotarg2].plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, color=color2, density=True, histtype="barstacked")
+    dfnew2[plotarg2].plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, color=color2, density=True,
+                               histtype="barstacked")
 
     # For the third set of data
     if df3 is not None:
         dfnew3 = df3.copy()
         dfnew3[plotarg3] = dataunitconversion(df3[plotarg3], plotarg3, nm)
-        dfnew3[plotarg3].plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, color=color3, density=True, histtype="barstacked")
+        dfnew3[plotarg3].plot.hist(ax=ax, alpha=0.5, linewidth=3.0, bins=bins, color=color3, density=True,
+                                   histtype="barstacked")
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
@@ -359,12 +361,11 @@ def plothist2var(
         ax.legend(labels=[label1, label2, label3])
     else:
         ax.legend(labels=[label1, label2])
-    # Need to return fig in order to test
     plt.savefig(savename)
 
 
-def plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None, plotname=None, color=None):
-
+def plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None, plotname=None,
+             color=None):
     """Creating a dist plot, which is the combination of a histogram and a KDE plot; doesn't support grouped plots
     yet"""
     # Commenting out caused an error as only one argument provided for the first %s, none for the second.
@@ -402,25 +403,40 @@ def plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False
 
 
 def plotdist2var(
-    df,
-    plotarg,
-    plotarg2,
-    df2=None,
-    xmin=None,
-    xmax=None,
-    bins=20,
-    nm=False,
-    specpath=None,
-    plotname=None,
-    c1=None,
-    c2=None,
-    label1=None,
-    label2=None,
-    extension=".png",  # Defined globally and not within this functions scope, required for testing
+        df,
+        plotarg,
+        df2=None,
+        df3=None,
+        plotarg2=None,
+        plotarg3=None,
+        xmin=None,
+        xmax=None,
+        bins=20,
+        nm=False,
+        specpath=None,
+        plotname=None,
+        c1=None,
+        c2=None,
+        c3=None,
+        label1=None,
+        label2=None,
+        label3=None,
+        extension=".png",  # Defined globally and not within this functions scope, required for testing
 ):
-    """Dist plot for 2 variables"""
+    """Dist plot for 2 or 3 variables"""
 
-    print("Plotting dist plot of %s and %s" % (plotarg, plotarg2))
+    if label1 is None:
+        label1 = plotarg
+    if label2 is None:
+        label2 = plotarg2
+    if df2 is None:
+        df2 = df
+    if plotarg2 is None:
+        plotarg2 = plotarg
+    if plotarg3 is None:
+        plotarg3 = plotarg
+
+    print("Plotting dist plot of %s and %s" % (label1, label2))
 
     if plotname is None:
         plotname = plotarg + "_and_" + plotarg2
@@ -429,9 +445,6 @@ def plotdist2var(
     if specpath is None:
         specpath = path
     savename = os.path.join(pathman(specpath, output_dir) + "_" + plotname.replace("/", "_") + "_dist" + extension)
-
-    if df2 is None:
-        df2 = df
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -443,6 +456,13 @@ def plotdist2var(
     fig, ax = plt.subplots(figsize=(15, 12))
     sns.distplot(dfnew[plotarg], ax=ax, bins=bins, color=c1)
     sns.distplot(dfnew2[plotarg2], ax=ax, bins=bins, color=c2)
+
+    # For the third set of data
+    if df3 is not None:
+        dfnew3 = df3.copy()
+        dfnew3[plotarg3] = dataunitconversion(df3[plotarg3], plotarg3, nm)
+        sns.distplot(dfnew3[plotarg3], ax=ax, bins=bins, color=c3)
+
     # Label plot and save figure
     plt.xlim(xmin, xmax)
     plt.xlabel(plotname)
@@ -452,11 +472,12 @@ def plotdist2var(
     ax.tick_params(direction="out", bottom=True, left=True)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.legend(labels=[label1, label2])
-    # Need to return fig in order to test
+    if label3 is not None:
+        ax.legend(labels=[label1, label2, label3])
+    else:
+        ax.legend(labels=[label1, label2])
     plt.savefig(savename)
     # plt.show()
-    # return fig
 
 
 def plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specpath=None):
@@ -551,7 +572,6 @@ def computeStats(data, columns, min, max):
     dfmax.to_csv(pathman(path, output_dir) + ".csv")
 
 
-
 # def computeStats(data: pd.DataFrame, metrics: List[str] = None, groupby: str = None, output_dir: Union[Path, str]) -> pd.DataFrame:
 #     """Calculate summary statistics for the desired metrics.
 
@@ -580,25 +600,6 @@ def computeStats(data, columns, min, max):
 
 if __name__ == "__main__":
 
-    # import data from the csv file
-    path = plotting_config["file"]
-    df = importfromfile(path)
-    # df = df[df['Basename'] == 'NiCl2']
-    # df = df[df['Basename'] == 'PLO']
-    # df = df[df['bending_angle'] != 0]
-    path2 = plotting_config["file2"]
-    path3 = plotting_config["file3"]
-    if path2 is not None:
-        df2 = importfromfile(path2)
-        # df2 = df2[df2['Basename'] == 'PLO']
-        # df2 = df2[df2['bending_angle'] != 0]
-    else:
-        df2 = None
-    if path3 is not None:
-        df3 = importfromfile(path3)
-        # df3 = df3[df3['bending_angle'] != 0]
-    else:
-        df3 = None
     extension = plotting_config["extension"]
     output_dir = plotting_config["output_dir"]
     compute_stats = plotting_config["stats"]
@@ -607,6 +608,29 @@ if __name__ == "__main__":
         column_names = []
         compute_stats_min = []
         compute_stats_max = []
+
+    # import data from the csv file
+    path = plotting_config["file"]
+    df = importfromfile(path)
+    df = df[df['directory'] == 'Ni']
+    # df = df[df['Basename'] == 'NiCl2']
+    # df = df[df['Basename'] == 'PLO']
+    # df = df[df['bending_angle'] != 0]
+    path2 = plotting_config["file2"]
+    path3 = plotting_config["file3"]
+    if path2 is not None:
+        df2 = importfromfile(path2)
+        df2 = df2[df2['directory'] == 'Mg-Ni exchange']
+        # df2 = df2[df2['Basename'] == 'PLO']
+        # df2 = df2[df2['bending_angle'] != 0]
+    else:
+        df2 = None
+    if path3 is not None:
+        df3 = importfromfile(path3)
+        df3 = df3[df3['directory'] == 'PLO']
+        # df3 = df3[df3['bending_angle'] != 0]
+    else:
+        df3 = None
 
     for plot in plotting_config["plots"]:
         plotname = plotting_config["plots"][plot]["title"]
@@ -628,6 +652,16 @@ if __name__ == "__main__":
         color1 = plotting_config["plots"][plot]["color1"]
         color2 = plotting_config["plots"][plot]["color2"]
         color3 = plotting_config["plots"][plot]["color3"]
+
+        if compute_stats:
+            for dataframe in [df, df2, df3]:
+                data_to_compute = dataunitconversion(dataframe[parameter], parameter, nm)
+                stats_to_compute.append(data_to_compute)
+                compute_stats_min.append(xmin)
+                compute_stats_max.append(xmax)
+            for label in [label1, label2, label3]:
+                column_names.append(label)
+
         if plottype == "histogram":
             plothist(df, parameter, nm=nm, grouparg=grouparg, xmin=xmin, xmax=xmax, bins=np.linspace(start, end, bins))
         elif plottype == "histogram2":
@@ -641,18 +675,14 @@ if __name__ == "__main__":
             sns.set_palette(sns.color_palette([color1, color2, color3]))
             plotviolin(df, parameter, nm=nm, grouparg=grouparg, ymin=ymin, ymax=ymax)
         elif plottype == "dist":
-            plotdist(df, parameter, nm=nm, grouparg=grouparg, bins=np.linspace(start, end, bins), xmin=xmin, xmax=xmax, plotname=plotname, color=color1)
+            plotdist(df, parameter, nm=nm, grouparg=grouparg, bins=np.linspace(start, end, bins), xmin=xmin, xmax=xmax,
+                     plotname=plotname, color=color1)
         elif plottype == "dist2":
-            plotdist2var(df, parameter, parameter2, df2=df2, nm=nm, xmin=xmin, xmax=xmax, label1=label1,
-                         label2=label2, bins=np.linspace(start, end, bins), plotname=plotname, c1=color1, c2=color2)
+            plotdist2var(df, parameter, df2=df2, df3=df3, nm=nm, xmin=xmin, xmax=xmax, label1=label1,
+                         label2=label2, label3=label3, bins=np.linspace(start, end, bins), plotname=plotname,
+                         c1=color1, c2=color2, c3=color3)
         elif plottype == "joint":
             plotjoint(df, parameter, nm=nm)
-        if compute_stats:
-            data_to_compute = dataunitconversion(df[parameter], parameter, nm)
-            stats_to_compute.append(data_to_compute)
-            column_names.append(parameter)
-            compute_stats_min.append(xmin)
-            compute_stats_max.append(xmax)
 
     if compute_stats:
         computeStats(stats_to_compute, column_names, compute_stats_min, compute_stats_max)
@@ -700,7 +730,6 @@ if __name__ == "__main__":
     # # savestats(path, allstats1)
     # Set palette for all plots with length number of topoisomers and reverse
     # # palette = sns.color_palette('PuBu', n_colors=len(topos))
-
 
 # Setting a continuous colour palette; useful for certain grouped plots, but can be commented out if unsuitable.
 # sns.set_palette(sns.color_palette('BuPu', n_colors=len(df.groupby(grouparg))))
