@@ -539,23 +539,37 @@ def test_triangle_heights(
     np.testing.assert_almost_equal(height, target_height)
 
 
-# TODO : Remove ultimately redundant its not the mid-point that is required
 @pytest.mark.parametrize(
-    ("base1", "base2", "apex", "opposite_target"),
+    ("base1", "base2", "apex", "round_coord", "opposite_target"),
     [
-        pytest.param([1, 0], [0, 1], [0, 0], [1, 1], id="tiny triangle (apex top left)"),
-        pytest.param([1, 0], [0, 1], [1, 1], [0, 0], id="tiny triangle (apex top right)"),
-        pytest.param([0, 0], [1, 1], [1, 0], [0, 1], id="tiny triangle (apex bottom left)"),
-        pytest.param([0, 0], [1, 1], [0, 1], [1, 0], id="tiny triangle (apex bottom right)"),
-        pytest.param([1, 2], [2, 1], [1, 1], [2, 2], id="tiny triangle (from tests)"),
+        pytest.param([1, 0], [0, 1], [0, 0], True, np.asarray([1, 1]), id="tiny triangle (apex top left, rounding)"),
+        pytest.param([1, 0], [0, 1], [1, 1], True, np.asarray([0, 0]), id="tiny triangle (apex top right, rounding)"),
+        pytest.param([0, 0], [1, 1], [1, 0], True, np.asarray([0, 1]), id="tiny triangle (apex bottom left, rounding)"),
+        pytest.param(
+            [0, 0], [1, 1], [0, 1], True, np.asarray([1, 0]), id="tiny triangle (apex bottom right, rounding)"
+        ),
+        pytest.param([1, 2], [2, 1], [1, 1], True, np.asarray([2, 2]), id="tiny triangle (from tests, rounding)"),
+        pytest.param([2, 1], [8, 2], [5, 4], True, np.asarray([6, 1]), id="another triangle (rounding)"),
+        pytest.param(
+            [2, 1],
+            [8, 2],
+            [5, 4],
+            False,
+            np.asarray([5.405405405405405, 1.5675675675675649]),
+            id="another triangle (no rounding)",
+        ),
     ],
 )
-def test_mid_point(
-    base1: npt.NDArray | list, base2: npt.NDArray | list, apex: npt.NDArray | list, opposite_target: float
+def test_min_feret_coord(
+    base1: npt.NDArray | list,
+    base2: npt.NDArray | list,
+    apex: npt.NDArray | list,
+    round_coord: bool,
+    opposite_target: float,
 ) -> None:
     """Test calculation of mid_point of the triangle formed by rotating caliper and next point on convex hull."""
-    opposite = feret._mid_point(base1, base2, apex)
-    assert opposite == opposite_target
+    opposite = feret._min_feret_coord(base1, base2, apex, round_coord)
+    np.testing.assert_array_equal(opposite, opposite_target)
 
 
 # pylint: disable=unused-argument
@@ -840,7 +854,7 @@ def test_rotating_calipers(
             1.0,
             ([1, 1], [1, 2]),
             1.4142135623730951,
-            ([2, 2], [1, 1]),
+            ([2, 2], [1, 1]),  ### WRONG!!!
             id="tiny square sorted on axis 0",
         ),
         pytest.param(

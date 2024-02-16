@@ -190,13 +190,11 @@ def rotating_calipers(points: npt.NDArray, axis: int = 0) -> Generator:
             base1 = lower_hull[lower_index + 1]  # original lower caliper
             base2 = lower_hull[lower_index]  # previous point on lower hull
             apex = upper_hull[upper_index]  # original upper caliper
-        yield triangle_height(base1, base2, apex), calipers, [list(_mid_point(base1, base2, apex)), apex]
+        yield triangle_height(base1, base2, apex), calipers, [list(_min_feret_coord(base1, base2, apex)), apex]
 
 
 # @snoop
-def triangle_height(
-    base1: npt.NDArray | list, base2: npt.NDArray | list, apex: npt.NDArray | list
-) -> tuple[float, list]:
+def triangle_height(base1: npt.NDArray | list, base2: npt.NDArray | list, apex: npt.NDArray | list) -> float:
     """Calculate the height of triangle formed by three points.
 
     Parameters
@@ -210,7 +208,7 @@ def triangle_height(
 
     Returns
     -------
-    tuple
+    float
         Height of the triangle.
 
     Examples
@@ -223,68 +221,47 @@ def triangle_height(
     return np.linalg.norm(np.cross(a_b, a_c)) / np.linalg.norm(a_b)
 
 
-# TODO : Remove, ultimately redundant its not the mid-point that is required.
-def _mid_point(point1: npt.NDArray | list, point2: npt.NDArray | list, apex: npt.NDArray | list) -> list:
-    """Return the closest integer to the mid-point between two adjacent calliper points.
+def _min_feret_coord(
+    base1: npt.NDArray, base2: npt.NDArray, apex: npt.NDArray, round_coord: bool = False
+) -> npt.NDArray:
+    """Calculate the coordinate opposite the apex that is prependicular to the base of the triangle.
 
-    When using triangles to calculate the minimum feret the height of the triangle formed by antipodal points and the
-    next point on the convex hull is the minimum feret. In order to trake a profile the position at which the height
-    touches the line between adjacent convex hulls is required. This is half the linear distance between these two
-    points, but because we are dealing with arrays this needs rounding so that we have a coordinate in the `x,y` point
-    of the array. Whether the floor or ceiling is taken depends on where the point is relative to the apex.
-
-     Example 1        Example 2
-
-       1 1              0 1
-       1 0              1 1
-
-    In both these examples the minimum feret is between the apex and the baseline formed by the points [[1, 0], [0, 1]]
-    which in Example 1 is [0, 0] in Example 2 its [1, 1]. The minimum feret distance is sqrt(2) / 2  (i.e. 0.707106) and
-    formed by the coordinates [[1, 1], [0.5, 0.5]] but the later point is not a valid point in a Numpy array where
-    indices are integers and so we have to find the next point "outwards" for which to obtain the opposite feret
-    coordinates. For Example 1 this would be the ceiling (i.e. rounding up) of both points, whilst for Example 2 it
-    would be the floor (i.e. rounding down) of both points.
+    Code courtesy of @SylviaWhittle.
 
     Parameters
     ----------
-    point1: npt.NDArray | list
-        Position of the first point on the convex hull.
-    point2: npt.NDArray | list
-        Position of the second point on the convex hull.
-    apex: npt.NDArray | list
-        Position of the apex of the triangle on the convex hull.
+    base1 : list
+        Coordinates of one point on base of triangle, these are on the same side of the hull.
+    base2 : list
+        Coordinates of second point on base of triangle, these are on the same side of the hull.
+    apex : list
+        Coordinate of the apex of the triangle, this is on the opposite hull.
+    round_coord : bool
+        Whether to round the point to the nearest NumPy index relative to the apex's position (i.e. either floor or
+        ceiling).
 
     Returns
     -------
-    list
-        coordinate of the nearest point to the mid-point.
-    """
-    mid_x = (point1[0] + point2[0]) / 2
-    mid_y = (point1[1] + point2[1]) / 2
-    mid_x = np.ceil(mid_x) if mid_x > apex[0] else np.floor(mid_x)
-    mid_y = np.ceil(mid_y) if mid_y > apex[1] else np.floor(mid_y)
-    return [int(mid_x), int(mid_y)]
-
-
-def _min_feret_coord(base1: list, base2: list, apex: list):
-    """
-    Calculate the coordinate opposite the apex that is prependicular to the base of the triangle.
-
-    Code courtesy of @SylviaWhittle.
+    npt.NDArray
+        Coordinates of the point perpendicular to the base line that is opposite the apex, this line is the minimum
+        feret distance for acute triangles (but not scalene triangles).
     """
     # Find the perpendicular gradient to bc
     grad_base = (base2[1] - base1[1]) / (base2[0] - base1[0])
-    grad_ad = -1 / grad_base
+    grad_apex_base = -1 / grad_base
     # Find the intercept
-    intercept_ad = base1[1] - grad_ad * base1[0]
+    intercept_ad = apex[1] - grad_apex_base * apex[0]
     intercept_bc = base1[1] - grad_base * base1[0]
     # Find the intersection
-    x = (intercept_bc - intercept_ad) / (grad_ad - grad_base)
-    y = grad_ad * x + intercept_ad
-    # Round up/down base on position relative to apex
-    x = np.ceil(x) if x > apex[0] else np.floor(x)
-    y = np.ceil(y) if y > apex[1] else np.floor(y)
-    return [int(x), int(y)]
+    x = (intercept_bc - intercept_ad) / (grad_apex_base - grad_base)
+    y = grad_apex_base * x + intercept_ad
+
+    if round_coord:
+        # Round up/down base on position relative to apex to get an actual cell
+        x = np.ceil(x) if x > apex[0] else np.floor(x)
+        y = np.ceil(y) if y > apex[1] else np.floor(y)
+        return np.asarray([int(x), int(y)])
+    return np.asarray([x, y])
 
 
 # @snoop
@@ -308,7 +285,7 @@ def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int,
     caliper_min_feret = list(rotating_calipers(points, axis))
     # TODO : Use this instead once we are using the min_feret_coords
     # min_ferets, calipers, min_feret_coords = zip(*caliper_min_feret)
-    min_ferets, calipers, _ = zip(*caliper_min_feret)
+    min_ferets, calipers, triangle_heights = zip(*caliper_min_feret)
     # Calculate the squared distance between caliper pairs for max feret
     calipers = np.asarray(calipers)
     caliper1 = calipers[:, 0]
