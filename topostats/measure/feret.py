@@ -14,6 +14,7 @@ import logging
 from collections.abc import Generator
 from math import sqrt
 
+import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 import skimage.morphology
@@ -284,8 +285,8 @@ def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int,
     """
     caliper_min_feret = list(rotating_calipers(points, axis))
     # TODO : Use this instead once we are using the min_feret_coords
-    # min_ferets, calipers, min_feret_coords = zip(*caliper_min_feret)
-    min_ferets, calipers, triangle_heights = zip(*caliper_min_feret)
+    min_ferets, calipers, min_feret_coords = zip(*caliper_min_feret)
+    # min_ferets, calipers, _ = zip(*caliper_min_feret)
     # Calculate the squared distance between caliper pairs for max feret
     calipers = np.asarray(calipers)
     caliper1 = calipers[:, 0]
@@ -294,8 +295,10 @@ def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int,
         ((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2, (list(p), list(q))) for p, q in zip(caliper1, caliper2)
     ]
     # TODO : replace calipers with min_feret_coords once correctly calculated
-    caliper_min_feret = [[x, (list(map(list, y)))] for x, y in zip(min_ferets, calipers)]
-    min_feret, min_feret_coord = min(caliper_min_feret)
+    # caliper_min_feret = [[x, (list(map(list, y)))] for x, y in zip(min_ferets, calipers)]
+    # min_feret, min_feret_coord = min(caliper_min_feret)
+    triangle_min_feret = [[x, (list(map(list, y)))] for x, y in zip(min_ferets, min_feret_coords)]
+    min_feret, min_feret_coord = min(triangle_min_feret)
     max_feret_sq, max_feret_coord = max(squared_distance_per_pair)
     return min_feret, min_feret_coord, sqrt(max_feret_sq), max_feret_coord
 
@@ -351,3 +354,117 @@ def get_feret_from_labelim(label_image: npt.NDArray, labels: None | list | set =
     for label in labels:
         results[label] = get_feret_from_mask(label_image == label, axis)
     return results
+
+
+def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals
+    points: npt.NDArray,
+    axis: int = 0,
+    plot_points: str = "k",
+    plot_hulls: tuple = ("g-", "r-"),
+    plot_calipers: str = "y-",
+    plot_triangle_heights: str = "b:",
+    plot_min_feret: str = "m--",
+    plot_max_feret: str = "m--",
+) -> None:
+    """Plot upper and lower convex hulls with rotating calipers and optionally the minimum feret distances.
+
+    Plot varying levels of details in constructing convex hulls and deriving the minimum and maximum feret.
+
+    For format strings see the Notes section of `matplotlib.pyplot.plot
+    <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html>`.
+
+    Parameters
+    ----------
+    points : npt.NDArray
+        Points to be plotted which form the shape of interest.
+    axis : int
+        Which axis to sort coordinates on, 0 for row (default); 1 for columns. (Should give the same results!).
+    plot_points : str
+        Format string for plotting points. If 'None' points are not plotted.
+    plot_hulls : tuple
+        Tuple of length 2 of format strings for plotting the convex hull, these should differe to allow distinction
+        between hulls. If 'None' hulls are not plotted.
+    plot_calipers : str
+        Format string for plotting calipers. If 'None' calipers are not plotted.
+    plot_triangle_heights : str
+        Format string for plotting the triangle heights used in calulcating the minimum feret. These should cross the
+    opposite edge perpendicularly. If 'None' triangle heights are not plotted.
+    plot_min_feret : str
+        Format string for plotting the minimum feret. If 'None' the minimum feret is not plotted.
+    plot_max_feret : str
+        Format string for plotting the maximum feret. If 'None' the maximum feret is not plotted.
+
+    Examples
+    --------
+    >>> from skimage import draw
+    >>> from topostats.measure import feret
+
+    >>> tiny_quadrilateral = np.asarray(
+        [
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0],
+            [0, 1, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0],
+        ],
+        dtype=np.uint8)
+
+    >>> feret.plot_feret(np.argwhere(tiny_quadrilateral == 1))
+
+    >>> holo_ellipse_angled = np.zeros((8, 10), dtype=np.uint8)
+        rr, cc = draw.ellipse_perimeter(4, 5, 1, 3, orientation=np.deg2rad(30))
+        holo_ellipse_angled[rr, cc] = 1
+
+    >>> feret.plot_feret(np.argwhere(holo_ellipse_angled == 1), plot_heights = None)
+
+    >>> another_triangle = np.asarray([[5, 4], [2, 1], [8,2]])
+
+    >>> feret.plot_feret(another_triangle)
+    """
+    upper_hull, lower_hull = hulls(points)
+    upper_hull = np.asarray(upper_hull)
+    lower_hull = np.asarray(lower_hull)
+    min_feret_calipers_base = list(rotating_calipers(points, axis))
+    _, calipers, triangle_coords = zip(*min_feret_calipers_base)
+    calipers = np.asarray(calipers)
+    triangle_coords = np.asarray(triangle_coords)
+    min_feret_distance, min_feret_coords, max_feret_distance, max_feret_coords = min_max_feret(points, axis)
+    min_feret_coords = np.asarray(min_feret_coords)
+    max_feret_coords = np.asarray(max_feret_coords)
+
+    if plot_points is not None:
+        plt.scatter(points[:, 0], points[:, 1], c=plot_points)
+    if plot_hulls is not None:
+        plt.plot(upper_hull[:, 0], upper_hull[:, 1], plot_hulls[0], label="Upper Hull")
+        plt.scatter(upper_hull[:, 0], upper_hull[:, 1], c=plot_hulls[0][0])
+        plt.plot(lower_hull[:, 0], lower_hull[:, 1], plot_hulls[1], label="Lower Hull")
+        plt.scatter(lower_hull[:, 0], lower_hull[:, 1], c=plot_hulls[1][0])
+    if plot_calipers is not None:
+        for caliper in calipers:
+            plt.plot(caliper[:, 0], caliper[:, 1], plot_calipers)
+    if plot_triangle_heights is not None:
+        for triangle_h in triangle_coords:
+            plt.plot(triangle_h[:, 0], triangle_h[:, 1], plot_triangle_heights)
+    if plot_min_feret is not None:
+        # for min_feret in min_feret_coords:
+        plt.plot(
+            min_feret_coords[:, 0],
+            min_feret_coords[:, 1],
+            plot_min_feret,
+            label=f"Minimum Feret ({min_feret_distance:.3f})",
+        )
+    if plot_max_feret is not None:
+        # for max_feret in max_feret_coords:
+        plt.plot(
+            max_feret_coords[:, 0],
+            max_feret_coords[:, 1],
+            plot_min_feret,
+            label=f"Maximum Feret ({max_feret_distance:.3f})",
+        )
+    plt.title("Upper and Lower Convex Hulls")
+    plt.axis("equal")
+    plt.legend()
+    plt.grid(True)
+    plt.show()

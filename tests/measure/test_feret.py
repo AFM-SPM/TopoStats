@@ -581,7 +581,7 @@ def test_min_feret_coord(
             0,
             (([2, 1], [0, 1]), ([1, 0], [0, 1]), ([1, 0], [1, 2]), ([0, 1], [1, 2])),
             (1.414213562373095, 1.414213562373095, 1.414213562373095, 1.414213562373095),
-            (([2, 0], [0, 1]), ([0, 2], [1, 0]), ([0, 0], [1, 2]), ([2, 2], [0, 1])),
+            ([[1.0, 0.0], [0, 1]], [[-0.0, 1.0], [1, 0]], [[0.0, 1.0], [1, 2]], [[1.0, 2.0], [0, 1]]),
             id="tiny circle sorted by axis 0",
         ),
         pytest.param(
@@ -589,7 +589,12 @@ def test_min_feret_coord(
             0,
             (([5, 2], [1, 2]), ([5, 2], [2, 4]), ([2, 1], [2, 4]), ([2, 1], [5, 2])),
             (3.5777087639996634, 2.846049894151541, 2.4961508830135313, 2.82842712474619),
-            (([1, 3], [5, 2]), ([4, 1], [2, 4]), ([2, 1], [2, 4]), ([2, 1], [5, 2])),
+            (
+                [[1.8, 3.6], [5, 2]],
+                [[2.9, 1.3000000000000007], [2, 4]],
+                [[3.3846153846153846, 3.0769230769230766], [2, 1]],
+                [[3.0, 0.0], [5, 2]],
+            ),
             id="tiny quadrilateral sorted by axis 0",
         ),
         pytest.param(
@@ -597,7 +602,12 @@ def test_min_feret_coord(
             0,
             (([2, 2], [1, 1]), ([2, 1], [1, 1]), ([2, 1], [1, 2]), ([1, 1], [1, 2])),
             (1.0, 1.0, 1.0, 1.0),
-            (([2, 2], [1, 1]), ([1, 2], [2, 1]), ([2, 1], [1, 2]), ([2, 2], [1, 1])),
+            (
+                [[np.nan, np.nan], [1, 1]],
+                [[np.nan, np.nan], [2, 1]],
+                [[np.nan, np.nan], [1, 2]],
+                [[np.nan, np.nan], [1, 1]],
+            ),
             id="tiny square sorted by axis 0",
         ),
         pytest.param(
@@ -605,7 +615,7 @@ def test_min_feret_coord(
             0,
             (([2, 1], [1, 1]), ([2, 1], [1, 2]), ([1, 1], [1, 2])),
             (1.0, 1.0, 0.7071067811865475),
-            (([1, 2], [2, 1]), ([2, 1], [1, 2]), ([2, 2], [1, 1])),
+            ([[np.nan, np.nan], [2, 1]], [[np.nan, np.nan], [1, 2]], [[1.5, 1.5], [1, 1]]),
             id="tiny triangle sorted by axis 0",
         ),
         pytest.param(
@@ -613,7 +623,12 @@ def test_min_feret_coord(
             0,
             (([3, 2], [1, 1]), ([3, 1], [1, 1]), ([3, 1], [1, 2]), ([1, 1], [1, 2])),
             (2.0, 2.0, 1.0, 1.0),
-            (([3, 2], [1, 1]), ([1, 2], [3, 1]), ([2, 1], [1, 2]), ([2, 2], [1, 1])),
+            (
+                [[np.nan, np.nan], [1, 1]],
+                [[np.nan, np.nan], [3, 1]],
+                [[np.nan, np.nan], [1, 2]],
+                [[np.nan, np.nan], [1, 1]],
+            ),
             id="tiny rectangle sorted by axis 0",
         ),
         pytest.param(
@@ -629,12 +644,12 @@ def test_min_feret_coord(
             ),
             (2.82842712474619, 2.82842712474619, 2.0, 2.0, 2.82842712474619, 2.82842712474619),
             (
-                ([5, 2], [1, 2]),
-                ([4, 1], [1, 2]),
-                ([4, 1], [2, 3]),
-                ([2, 1], [2, 3]),
-                ([2, 1], [4, 3]),
-                ([1, 2], [4, 3]),
+                [[3.0, 0.0], [1, 2]],
+                [[2.0, 3.0], [4, 1]],
+                [[np.nan, np.nan], [2, 3]],
+                [[np.nan, np.nan], [2, 1]],
+                [[2.0, 1.0], [4, 3]],
+                [[3.0, 4.0], [1, 2]],
             ),
             id="tiny ellipse sorted by axis 0",
         ),
@@ -653,14 +668,14 @@ def test_min_feret_coord(
             ),
             (4.0, 4.0, 4.242640687119285, 4.242640687119285, 4.0, 4.0, 4.242640687119285, 4.242640687119285),
             (
-                ([4, 3], [0, 1]),
-                ([4, 1], [0, 1]),
-                ([4, 1], [0, 3]),
-                ([3, 0], [0, 3]),
-                ([3, 0], [1, 4]),
-                ([1, 0], [1, 4]),
-                ([1, 0], [3, 4]),
-                ([0, 1], [3, 4]),
+                [[np.nan, np.nan], [0, 1]],
+                [[np.nan, np.nan], [4, 1]],
+                [[3.0, 0.0], [0, 3]],
+                [[-0.0, 3.0], [3, 0]],
+                [[np.nan, np.nan], [1, 4]],
+                [[np.nan, np.nan], [1, 0]],
+                [[0.0, 1.0], [3, 4]],
+                [[3.0, 4.0], [0, 1]],
             ),
             id="small circle sorted by axis 0",
         ),
@@ -679,14 +694,14 @@ def test_min_feret_coord(
             ),
             (4.0, 4.0, 4.242640687119285, 4.242640687119285, 4.0, 4.0, 4.242640687119285, 4.242640687119285),
             (
-                ([5, 4], [1, 2]),
-                ([5, 2], [1, 2]),
-                ([5, 2], [1, 4]),
-                ([4, 1], [1, 4]),
-                ([4, 1], [2, 5]),
-                ([2, 1], [2, 5]),
-                ([2, 1], [4, 5]),
-                ([1, 2], [4, 5]),
+                [[np.nan, np.nan], [1, 2]],
+                [[np.nan, np.nan], [5, 2]],
+                [[4.0, 1.0], [1, 4]],
+                [[1.0, 4.0], [4, 1]],
+                [[np.nan, np.nan], [2, 5]],
+                [[np.nan, np.nan], [2, 1]],
+                [[1.0, 2.0], [4, 5]],
+                [[4.0, 5.0], [1, 2]],
             ),
             id="holo circle sorted by axis 0",
         ),
@@ -705,14 +720,14 @@ def test_min_feret_coord(
             ),
             (6.0, 6.0, 7.071067811865475, 7.071067811865475, 8.0, 8.0, 7.071067811865475, 7.071067811865475),
             (
-                ([7, 7], [1, 3]),
-                ([7, 3], [1, 3]),
-                ([7, 3], [1, 7]),
-                ([5, 1], [1, 7]),
-                ([5, 1], [3, 9]),
-                ([3, 1], [3, 9]),
-                ([3, 1], [5, 9]),
-                ([1, 3], [5, 9]),
+                [[np.nan, np.nan], [1, 3]],
+                [[np.nan, np.nan], [7, 3]],
+                [[6.0, 2.0], [1, 7]],
+                [[-0.0, 6.0], [5, 1]],
+                [[np.nan, np.nan], [3, 9]],
+                [[np.nan, np.nan], [3, 1]],
+                [[0.0, 4.0], [5, 9]],
+                [[6.0, 8.0], [1, 3]],
             ),
             id="holo ellipse horizontal sorted by axis 0",
         ),
@@ -731,14 +746,14 @@ def test_min_feret_coord(
             ),
             (8.0, 8.0, 7.071067811865475, 7.071067811865475, 6.0, 6.0, 7.071067811865475, 7.071067811865475),
             (
-                ([9, 5], [1, 3]),
-                ([9, 3], [1, 3]),
-                ([9, 3], [1, 5]),
-                ([7, 1], [1, 5]),
-                ([7, 1], [3, 7]),
-                ([3, 1], [3, 7]),
-                ([3, 1], [7, 7]),
-                ([1, 3], [7, 7]),
+                [[np.nan, np.nan], [1, 3]],
+                [[np.nan, np.nan], [9, 3]],
+                [[6.0, 0.0], [1, 5]],
+                [[2.0, 6.0], [7, 1]],
+                [[np.nan, np.nan], [3, 7]],
+                [[np.nan, np.nan], [3, 1]],
+                [[2.0, 2.0], [7, 7]],
+                [[6.0, 8.0], [1, 3]],
             ),
             id="holo ellipse vertical sorted by axis 0",
         ),
@@ -755,12 +770,12 @@ def test_min_feret_coord(
             ),
             (5.0, 5.0, 2.82842712474619, 2.82842712474619, 7.071067811865475, 7.071067811865475),
             (
-                ([6, 7], [1, 2]),
-                ([6, 5], [1, 2]),
-                ([6, 5], [1, 4]),
-                ([2, 1], [1, 4]),
-                ([2, 1], [5, 8]),
-                ([1, 2], [5, 8]),
+                [[np.nan, np.nan], [1, 2]],
+                [[np.nan, np.nan], [6, 5]],
+                [[3.0, 2.0], [1, 4]],
+                [[-0.0, 3.0], [2, 1]],
+                [[0.0, 3.0], [5, 8]],
+                [[6.0, 7.0], [1, 2]],
             ),
             id="holo ellipse angled sorted by axis 0",
         ),
@@ -788,14 +803,14 @@ def test_min_feret_coord(
                 7.602631123499284,
             ),
             (
-                ([8, 8], [1, 5]),
-                ([8, 7], [1, 5]),
-                ([7, 4], [1, 5]),
-                ([6, 2], [1, 5]),
-                ([5, 1], [1, 5]),
-                ([5, 1], [8, 8]),
-                ([4, 1], [8, 8]),
-                ([2, 3], [8, 8]),
+                [[np.nan, np.nan], [1, 5]],
+                [[6.699999999999999, 3.1], [1, 5]],
+                [[6.2, 2.4], [1, 5]],
+                [[5.0, 1.0], [1, 5]],
+                [[2.9310344827586214, 5.827586206896551], [5, 1]],
+                [[np.nan, np.nan], [8, 8]],
+                [[2.5, 2.5], [8, 8]],
+                [[1.2, 4.6], [8, 8]],
             ),
             id="curved line sorted by axis 0",
         ),
@@ -806,9 +821,7 @@ def test_rotating_calipers(
 ) -> None:
     """Test calculation of rotating caliper pairs."""
     caliper_min_feret = feret.rotating_calipers(np.argwhere(shape == 1), axis)
-    # TODO : Use this once we have correct min feret coordinates
-    # min_ferets, calipers, min_feret_coords = zip(*caliper_min_feret)
-    min_ferets, calipers, _ = zip(*caliper_min_feret)
+    min_ferets, calipers, min_feret_coords = zip(*caliper_min_feret)
     # print(f"{min_ferets=}")
     # print(f"{calipers=}")
     # print(f"{calipers_target=}")
@@ -816,8 +829,8 @@ def test_rotating_calipers(
     # print(f"{min_feret_coords_target=}")
     np.testing.assert_array_equal(calipers, calipers_target)
     np.testing.assert_array_equal(min_ferets, min_ferets_target)
-    # TODO : Test min_feret_coords once correctly calculated
-    # np.testing.assert_array_equal(min_feret_coords, min_feret_coords_target)
+    # TODO : Sort of zero division errors
+    np.testing.assert_array_equal(min_feret_coords, min_feret_coords_target)
 
 
 @pytest.mark.parametrize(
@@ -975,105 +988,112 @@ def test_min_max_feret(
     np.testing.assert_array_equal(max_feret_coord, max_feret_coord_target)
 
 
-# ToDO : Enable and correct tests once correct coordinates are calculated
-# @pytest.mark.parametrize(
-#     (
-#         "shape",
-#         "axis",
-#         "min_feret_distance_target",
-#         "min_feret_coord_target",
-#         "max_feret_distance_target",
-#         "max_feret_coord_target",
-#     ),
-#     [
-#         pytest.param(
-#             filled_circle,
-#             0,
-#             6.0,
-#             ([2, 1], [2, 7]),
-#             7.211102550927978,
-#             ([6, 7], [2, 1]),
-#             id="filled circle sorted on axis 0",
-#         ),
-#         pytest.param(
-#             filled_ellipse_horizontal,
-#             0,
-#             4.0,
-#             ([5, 2], [1, 2]),
-#             6.324555320336759,
-#             ([4, 7], [2, 1]),
-#             id="filled ellipse horizontal sorted on axis 0",
-#         ),
-#         pytest.param(
-#             filled_ellipse_vertical,
-#             0,
-#             4.0,
-#             ([2, 5], [2, 1]),
-#             6.324555320336759,
-#             ([1, 4], [7, 2]),
-#             id="filled ellipse vertical sorted on axis 0",
-#         ),
-#         pytest.param(
-#             filled_ellipse_angled,
-#             0,
-#             5.385164807134504,
-#             ([6, 7], [1, 5]),
-#             8.94427190999916,
-#             ([2, 9], [6, 1]),
-#             id="filled ellipse angled sorted on axis 0",
-#         ),
-#     ],
-# )
-# def test_get_feret_from_mask(
-#     shape: npt.NDArray,
-#     axis: int,
-#     min_feret_distance_target: float,
-#     min_feret_coord_target: list,
-#     max_feret_distance_target: float,
-#     max_feret_coord_target: list,
-# ) -> None:
-#     """Test calculation of min/max feret for a single masked object."""
-#     min_feret_distance, min_feret_coord, max_feret_distance, max_feret_coord = feret.get_feret_from_mask(shape, axis)
-#     np.testing.assert_approx_equal(min_feret_distance, min_feret_distance_target)
-#     np.testing.assert_array_equal(min_feret_coord, min_feret_coord_target)
-#     np.testing.assert_approx_equal(max_feret_distance, max_feret_distance_target)
-#     np.testing.assert_array_equal(max_feret_coord, max_feret_coord_target)
+@pytest.mark.parametrize(
+    (
+        "shape",
+        "axis",
+        "min_feret_distance_target",
+        "min_feret_coord_target",
+        "max_feret_distance_target",
+        "max_feret_coord_target",
+    ),
+    [
+        pytest.param(
+            filled_circle,
+            0,
+            6.0,
+            [[np.nan, np.nan], [1, 2]],
+            7.211102550927978,
+            ([7, 6], [1, 2]),
+            id="filled circle sorted on axis 0",
+        ),
+        pytest.param(
+            filled_ellipse_horizontal,
+            0,
+            4.0,
+            [[np.nan, np.nan], [1, 2]],
+            6.324555320336759,
+            ([4, 1], [2, 7]),
+            id="filled ellipse horizontal sorted on axis 0",
+        ),
+        pytest.param(
+            filled_ellipse_vertical,
+            0,
+            4.0,
+            ([np.nan, np.nan], [2, 5]),
+            6.324555320336759,
+            ([7, 4], [1, 2]),
+            id="filled ellipse vertical sorted on axis 0",
+        ),
+        pytest.param(
+            filled_ellipse_angled,
+            0,
+            5.366563145999495,
+            ([1.2, 4.6], [6, 7]),
+            8.94427190999916,
+            ([6, 1], [2, 9]),
+            id="filled ellipse angled sorted on axis 0",
+        ),
+    ],
+)
+def test_get_feret_from_mask(
+    shape: npt.NDArray,
+    axis: int,
+    min_feret_distance_target: float,
+    min_feret_coord_target: list,
+    max_feret_distance_target: float,
+    max_feret_coord_target: list,
+) -> None:
+    """Test calculation of min/max feret for a single masked object."""
+    min_feret_distance, min_feret_coord, max_feret_distance, max_feret_coord = feret.get_feret_from_mask(shape, axis)
+    np.testing.assert_approx_equal(min_feret_distance, min_feret_distance_target)
+    np.testing.assert_array_equal(min_feret_coord, min_feret_coord_target)
+    np.testing.assert_approx_equal(max_feret_distance, max_feret_distance_target)
+    np.testing.assert_array_equal(max_feret_coord, max_feret_coord_target)
 
 
-# # Concatenate images to have two labeled objects within them
-# holo_ellipse_angled2 = holo_ellipse_angled.copy()
-# holo_ellipse_angled2[holo_ellipse_angled2 == 1] = 2
-# # Need to pad the holo_circle
-# holo_image = np.concatenate((np.pad(holo_circle, pad_width=((0, 1), (0, 3))), holo_ellipse_angled2))
-# filled_ellipse_angled2 = filled_ellipse_angled.copy()
-# filled_ellipse_angled2[filled_ellipse_angled2 == 1] = 2
-# filled_image = np.concatenate((np.pad(filled_circle, pad_width=((0, 0), (0, 2))), filled_ellipse_angled2))
+# Concatenate images to have two labeled objects within them
+holo_ellipse_angled2 = holo_ellipse_angled.copy()
+holo_ellipse_angled2[holo_ellipse_angled2 == 1] = 2
+# Need to pad the holo_circle
+holo_image = np.concatenate((np.pad(holo_circle, pad_width=((0, 1), (0, 3))), holo_ellipse_angled2))
+filled_ellipse_angled2 = filled_ellipse_angled.copy()
+filled_ellipse_angled2[filled_ellipse_angled2 == 1] = 2
+filled_image = np.concatenate((np.pad(filled_circle, pad_width=((0, 0), (0, 2))), filled_ellipse_angled2))
 
 
-# @pytest.mark.parametrize(
-#     ("shape", "axis", "target"),
-#     [
-#         pytest.param(
-#             holo_image,
-#             0,
-#             {
-#                 1: (4.0, ([1, 2], [5, 2]), 4.47213595499958, ([4, 5], [2, 1])),
-#                 2: (3.1622776601683795, ([9, 4], [10, 1]), 7.615773105863909, ([13, 8], [10, 1])),
-#             },
-#             id="holo image",
-#         ),
-#         pytest.param(
-#             filled_image,
-#             0,
-#             {
-#                 1: (6.0, ([1, 2], [7, 2]), 7.211102550927978, ([6, 7], [2, 1])),
-#                 2: (5.385164807134504, ([15, 7], [10, 5]), 8.94427190999916, ([11, 9], [15, 1])),
-#             },
-#             id="filled image",
-#         ),
-#     ],
-# )
-# def test_get_feret_from_labelim(shape: npt.NDArray, axis: int, target: dict) -> None:
-#     """Test calculation of min/max feret for a labelled image with multiuple objects."""
-#     min_max_feret_size_coord = feret.get_feret_from_labelim(shape, axis=axis)
-#     assert min_max_feret_size_coord == target
+@pytest.mark.parametrize(
+    ("shape", "axis", "target"),
+    [
+        pytest.param(
+            holo_image,
+            0,
+            {
+                1: (4.0, [[np.nan, np.nan], [1, 2]], 4.47213595499958, ([5, 4], [1, 2])),
+                2: (2.82842712474619, [[8.0, 3.0], [10, 1]], 7.615773105863909, ([10, 1], [13, 8])),
+            },
+            id="holo image",
+        ),
+        pytest.param(
+            filled_image,
+            0,
+            {
+                1: (6.0, [[np.nan, np.nan], [1, 2]], 7.211102550927978, ([7, 6], [1, 2])),
+                2: (5.366563145999495, [[10.2, 4.6], [15, 7]], 8.94427190999916, ([15, 1], [11, 9])),
+            },
+            id="filled image",
+        ),
+    ],
+)
+def test_get_feret_from_labelim(shape: npt.NDArray, axis: int, target: dict) -> None:
+    """Test calculation of min/max feret for a labelled image with multiuple objects."""
+    min_max_feret_size_coord = feret.get_feret_from_labelim(shape, axis=axis)
+    for key, value in min_max_feret_size_coord.items():
+        # Min Feret
+        np.testing.assert_equal(value[0], target[key][0])
+        # Min Feret coordinates
+        np.testing.assert_array_equal(value[1], target[key][1])
+        # Max Feret
+        np.testing.assert_equal(value[2], target[key][2])
+        # Max Feret coordinates
+        np.testing.assert_array_equal(value[3], target[key][3])
