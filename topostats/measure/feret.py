@@ -11,6 +11,7 @@ so this step was removed.
 from __future__ import annotations
 
 import logging
+import warnings
 from collections.abc import Generator
 from math import sqrt
 
@@ -22,6 +23,9 @@ import skimage.morphology
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+
+# Handle warnings as exceptions (encountered when gradient of base triangle is zero)
+warnings.filterwarnings("error")
 
 # pylint: disable=fixme
 
@@ -191,7 +195,10 @@ def rotating_calipers(points: npt.NDArray, axis: int = 0) -> Generator:
             base1 = lower_hull[lower_index + 1]  # original lower caliper
             base2 = lower_hull[lower_index]  # previous point on lower hull
             apex = upper_hull[upper_index]  # original upper caliper
-        yield triangle_height(base1, base2, apex), calipers, [list(_min_feret_coord(base1, base2, apex)), apex]
+        yield triangle_height(base1, base2, apex), calipers, [
+            list(_min_feret_coord(np.asarray(base1), np.asarray(base2), np.asarray(apex))),
+            apex,
+        ]
 
 
 # @snoop
@@ -231,11 +238,11 @@ def _min_feret_coord(
 
     Parameters
     ----------
-    base1 : list
+    base1 : npt.NDArray
         Coordinates of one point on base of triangle, these are on the same side of the hull.
-    base2 : list
+    base2 : npt.NDArray
         Coordinates of second point on base of triangle, these are on the same side of the hull.
-    apex : list
+    apex : npt.NDArray
         Coordinate of the apex of the triangle, this is on the opposite hull.
     round_coord : bool
         Whether to round the point to the nearest NumPy index relative to the apex's position (i.e. either floor or
@@ -247,22 +254,22 @@ def _min_feret_coord(
         Coordinates of the point perpendicular to the base line that is opposite the apex, this line is the minimum
         feret distance for acute triangles (but not scalene triangles).
     """
-    # Find the perpendicular gradient to bc
-    grad_base = (base2[1] - base1[1]) / (base2[0] - base1[0])
-    grad_apex_base = -1 / grad_base
-    # Find the intercept
-    intercept_ad = apex[1] - grad_apex_base * apex[0]
-    intercept_bc = base1[1] - grad_base * base1[0]
-    # Find the intersection
-    x = (intercept_bc - intercept_ad) / (grad_apex_base - grad_base)
-    y = grad_apex_base * x + intercept_ad
 
+    def angle_between(apex, b):
+        return np.arccos(np.dot(apex, b) / (np.linalg.norm(apex) * np.linalg.norm(b)))
+
+    angle_apex_base1_base2 = angle_between(apex - base1, base2 - base1)
+    len_apex_base2 = np.linalg.norm(apex - base1)
+    cos_apex_base1_base2 = np.cos(angle_apex_base1_base2)
+    k = len_apex_base2 * cos_apex_base1_base2
+    unit_base1_base2 = (base1 - base2) / np.linalg.norm(base2 - base1)
+    d = base1 - k * unit_base1_base2
     if round_coord:
         # Round up/down base on position relative to apex to get an actual cell
-        x = np.ceil(x) if x > apex[0] else np.floor(x)
-        y = np.ceil(y) if y > apex[1] else np.floor(y)
-        return np.asarray([int(x), int(y)])
-    return np.asarray([x, y])
+        d[0] = np.ceil(d[0]) if d[0] > apex[0] else np.floor(d[0])
+        d[1] = np.ceil(d[1]) if d[1] > apex[1] else np.floor(d[1])
+        return np.asarray([int(d[0]), int(d[1])])
+    return np.asarray([d[0], d[1]])
 
 
 # @snoop
@@ -284,22 +291,19 @@ def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int,
         Tuple of the minimum feret distance and its coordinates and the maximum feret distance and  its coordinates.
     """
     caliper_min_feret = list(rotating_calipers(points, axis))
-    # TODO : Use this instead once we are using the min_feret_coords
     min_ferets, calipers, min_feret_coords = zip(*caliper_min_feret)
-    # min_ferets, calipers, _ = zip(*caliper_min_feret)
     # Calculate the squared distance between caliper pairs for max feret
     calipers = np.asarray(calipers)
     caliper1 = calipers[:, 0]
     caliper2 = calipers[:, 1]
+    # Determine maximum feret (and coordinates) from all possible calipers
     squared_distance_per_pair = [
         ((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2, (list(p), list(q))) for p, q in zip(caliper1, caliper2)
     ]
-    # TODO : replace calipers with min_feret_coords once correctly calculated
-    # caliper_min_feret = [[x, (list(map(list, y)))] for x, y in zip(min_ferets, calipers)]
-    # min_feret, min_feret_coord = min(caliper_min_feret)
+    max_feret_sq, max_feret_coord = max(squared_distance_per_pair)
+    # Determine minimum feret (and coordinates) from all caliper triangles
     triangle_min_feret = [[x, (list(map(list, y)))] for x, y in zip(min_ferets, min_feret_coords)]
     min_feret, min_feret_coord = min(triangle_min_feret)
-    max_feret_sq, max_feret_coord = max(squared_distance_per_pair)
     return min_feret, min_feret_coord, sqrt(max_feret_sq), max_feret_coord
 
 
