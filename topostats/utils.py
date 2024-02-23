@@ -11,6 +11,7 @@ from pprint import pformat
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+from scipy.ndimage import convolve
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
@@ -339,3 +340,54 @@ def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, im
         return coord
 
     return check(row_coord, max_row, padding), check(col_coord, max_col, padding)
+
+def convolve_skelly(skeleton) -> np.ndarray:
+    """Convolves the skeleton with a 3x3 ones kernel to produce an array
+    of the skeleton as 1, endpoints as 2, and nodes as 3.
+
+    Parameters
+    ----------
+    skeleton: np.ndarray
+        Single pixel thick binary trace(s) within an array.
+
+    Returns
+    -------
+    np.ndarray
+        The skeleton (=1) with endpoints (=2), and crossings (=3) highlighted.
+    """
+    conv = convolve(skeleton.astype(np.int32), np.ones((3, 3)))
+    conv[skeleton == 0] = 0  # remove non-skeleton points
+    conv[conv == 3] = 1  # skelly = 1
+    conv[conv > 3] = 3  # nodes = 3
+    return conv
+
+
+class ResolutionError(Exception):
+    "Raised when the image resolution is too small for accuurate tracing."
+    pass
+
+
+def coords_2_img(coords, image, ordered=False) -> np.ndarray:
+    """Turns coordinates to a binary image.
+
+    Parameters
+    ----------
+    coords : np.ndarray
+        An array of 2xN interger coords.
+    image : np.ndarray
+        An MxL array to assign the above coords onto.
+    ordered : bool, optional
+        If True, incremements the value of each coord to show order.
+
+    Returns
+    -------
+    np.ndarray
+        An array the same shape as 'image' with the cordinates highlighted.
+    """
+    comb = np.zeros_like(image)
+    if ordered:
+        comb[coords[:, 0].astype(np.int32), coords[:, 1].astype(np.int32)] = np.arange(1, len(coords) + 1)
+    else:
+        coords = coords[(coords[:,0] < image.shape[0]) & (coords[:,1] < image.shape[1]) & (coords[:,0] > 0) & (coords[:,1] > 0)]
+        comb[np.floor(coords[:, 0]).astype(np.int32), np.floor(coords[:, 1]).astype(np.int32)] = 1
+    return comb
