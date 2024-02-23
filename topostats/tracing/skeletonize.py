@@ -6,8 +6,8 @@ import numpy as np
 import numpy.typing as npt
 from skimage.morphology import label, medial_axis, skeletonize, thin, binary_dilation
 
-from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import genTracingFuncs
+from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import convolve_skelly
 
 LOGGER = logging.getLogger(LOGGER_NAME)
