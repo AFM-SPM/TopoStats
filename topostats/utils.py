@@ -12,7 +12,6 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from scipy.ndimage import convolve
-from scipy.ndimage import convolve
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
