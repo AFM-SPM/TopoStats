@@ -347,7 +347,7 @@ def run_dnatracing(  # noqa: C901
     image_path: Path,
     filename: str,
     core_out_path: Path,
-    grain_out_path: Path,
+    tracing_out_path: Path,
     dnatracing_config: dict,
     plotting_config: dict,
     results_df: pd.DataFrame = None,
@@ -373,7 +373,7 @@ def run_dnatracing(  # noqa: C901
     core_out_path: Path
         General output directory for outputs such as the grain statistics
         DataFrame.
-    grain_out_path: Path
+    tracing_out_path: Path
         Directory to save optional dna tracing visual information to.
     dna_tracing_config: dict
         Dictionary configuration for the dna tracing function.
@@ -393,86 +393,109 @@ def run_dnatracing(  # noqa: C901
         results_df = create_empty_dataframe()
 
     # Run dnatracing
-    try:
-        grain_trace_data = None
-        if dnatracing_config["run"]:
-            dnatracing_config.pop("run")
-            LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
-            tracing_stats = defaultdict()
-            grain_trace_data = defaultdict()
-            for direction, _ in grain_masks.items():
-                tracing_results = trace_image(
-                    image=image,
-                    grains_mask=grain_masks[direction],
-                    filename=filename,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                    **dnatracing_config,
-                )
-                tracing_stats[direction] = tracing_results["statistics"]
-                ordered_traces = tracing_results["all_ordered_traces"]
-                cropped_images: dict[int, np.ndarray] = tracing_results["all_cropped_images"]
-                image_spline_trace = tracing_results["image_spline_trace"]
-                tracing_stats[direction]["threshold"] = direction
+    #try:
+    grain_trace_data = None
+    if dnatracing_config["run"]:
+        dnatracing_config.pop("run")
+        LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
+        tracing_stats = defaultdict()
+        grain_trace_data = defaultdict()
+        for direction, _ in grain_masks.items():
+            tracing_results = trace_image(
+                image=image,
+                grains_mask=grain_masks[direction],
+                filename=filename,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                **dnatracing_config,
+            )
+            tracing_stats[direction] = tracing_results["grain_statistics"]
+            tracing_stats[direction]["threshold"] = direction
+            #ordered_traces = tracing_results["all_ordered_traces"]
+            #cropped_images: dict[int, np.ndarray] = tracing_results["all_cropped_images"]
+            #image_spline_trace = tracing_results["all_images"]["splines"]
 
-                grain_trace_data[direction] = {
-                    "ordered_traces": ordered_traces,
-                    "cropped_images": cropped_images,
-                    "ordered_trace_heights": tracing_results["all_ordered_trace_heights"],
-                    "ordered_trace_cumulative_distances": tracing_results["all_ordered_trace_cumulative_distances"],
-                    "splined_traces": tracing_results["all_splined_traces"],
-                }
+            grain_trace_data[direction] = {
+                "ordered_traces": tracing_results["all_ordered_traces"],
+                #"cropped_images": cropped_images,
+                "ordered_trace_heights": tracing_results["all_ordered_trace_heights"],
+                "ordered_trace_cumulative_distances": tracing_results["all_ordered_trace_cumulative_distances"],
+                "splined_traces": tracing_results["all_splined_traces"],
+                "tracingstats": tracing_results["dnatracing_statistics"]
+            }
+            # want to keep all of the above in
 
-                # Plot traces for the whole image
+            # Plot traces for the whole image
+            Images(
+                image,
+                output_dir=core_out_path,
+                filename=f"{filename}_{direction}_traced",
+                plot_coords=tracing_results["splined_traces_image_frame"],
+                #masked_array=image_spline_trace,
+                **plotting_config["plot_dict"]["all_molecule_traces"],
+            ).plot_and_save()
+
+            # Plot traces on each grain individually
+            """
+            if plotting_config["image_set"] == "all": # this should be done within the images.plot_and_save
+                for grain_index, grain_trace in ordered_traces.items():
+                    cropped_image = cropped_images[grain_index]
+                    grain_trace_mask = np.zeros(cropped_image.shape)
+                    # Grain traces can be None if they do not trace successfully. Eg if they are too small.
+                    if grain_trace is not None:
+                        for coordinate in grain_trace:
+                            grain_trace_mask[coordinate[0], coordinate[1]] = 1
+                    Images(
+                        cropped_image,
+                        output_dir=grain_out_path / direction,
+                        filename=f"{filename}_grain_trace_{grain_index}",
+                        masked_array=grain_trace_mask,
+                        **plotting_config["plot_dict"]["single_molecule_trace"],
+                    ).plot_and_save()
+            """
+            
+            plot_names = {
+                "orig_grains": tracing_results["all_images"]["grain"],
+                "smoothed_grains": tracing_results["all_images"]["smoothed_grain"],
+                "orig_skeletons": tracing_results["all_images"]["skeleton"],
+                "pruned_skeletons": tracing_results["all_images"]["pruned_skeleton"],
+                "nodes": tracing_results["all_images"]["node_img"],
+                "visual": tracing_results["all_images"]["visual"],
+                "ordered_trace": tracing_results["all_images"]["ordered_traces"],
+                "fitted_trace": tracing_results["all_images"]["fitted_traces"],
+            }
+            for plot_name, image_value in plot_names.items():
                 Images(
                     image,
-                    output_dir=core_out_path,
-                    filename=f"{filename}_{direction}_traced",
-                    masked_array=image_spline_trace,
-                    **plotting_config["plot_dict"]["all_molecule_traces"],
+                    masked_array=image_value,
+                    output_dir=tracing_out_path / direction,
+                    **plotting_config["plot_dict"][plot_name],
                 ).plot_and_save()
 
-                # Plot traces on each grain individually
-                if plotting_config["image_set"] == "all":
-                    for grain_index, grain_trace in ordered_traces.items():
-                        cropped_image = cropped_images[grain_index]
-                        grain_trace_mask = np.zeros(cropped_image.shape)
-                        # Grain traces can be None if they do not trace successfully. Eg if they are too small.
-                        if grain_trace is not None:
-                            for coordinate in grain_trace:
-                                grain_trace_mask[coordinate[0], coordinate[1]] = 1
-                        Images(
-                            cropped_image,
-                            output_dir=grain_out_path / direction,
-                            filename=f"{filename}_grain_trace_{grain_index}",
-                            masked_array=grain_trace_mask,
-                            **plotting_config["plot_dict"]["single_molecule_trace"],
-                        ).plot_and_save()
-
-            # Set create tracing_stats_df from above and below results
-            if "above" in tracing_stats and "below" in tracing_stats:
-                tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
-            elif "above" in tracing_stats:
-                tracing_stats_df = tracing_stats["above"]
-            elif "below" in tracing_stats:
-                tracing_stats_df = tracing_stats["below"]
-            LOGGER.info(
-                f"[{filename}] : Combining {list(tracing_stats.keys())} grain statistics and dnatracing statistics"
-            )
-            # NB - Merge on image, molecule and threshold because we may have above and below molecules which
-            #      gives duplicate molecule numbers as they are processed separately, if tracing stats
-            #      are not available (because skeleton was too small), grainstats are still retained.
-            results = results_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left")
-            results["basename"] = image_path.parent
-
-            return results, grain_trace_data
-
-        # Otherwise, return the passed in dataframe and warn that tracing is disabled
-        LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
-        results = results_df
+        # Set create tracing_stats_df from above and below results
+        if "above" in tracing_stats and "below" in tracing_stats:
+            tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
+        elif "above" in tracing_stats:
+            tracing_stats_df = tracing_stats["above"]
+        elif "below" in tracing_stats:
+            tracing_stats_df = tracing_stats["below"]
+        LOGGER.info(
+            f"[{filename}] : Combining {list(tracing_stats.keys())} grain statistics and dnatracing statistics"
+        )
+        # NB - Merge on image, molecule and threshold because we may have above and below molecules which
+        #      gives duplicate molecule numbers as they are processed separately, if tracing stats
+        #      are not available (because skeleton was too small), grainstats are still retained.
+        results = results_df.merge(tracing_stats_df, on=["image", "threshold", "grain_number"], how="left")
         results["basename"] = image_path.parent
 
         return results, grain_trace_data
 
+    # Otherwise, return the passed in dataframe and warn that tracing is disabled
+    LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
+    results = results_df
+    results["basename"] = image_path.parent
+
+    return results, grain_trace_data
+    """
     except Exception:
         # If no results we need a dummy dataframe to return.
         LOGGER.warning(
@@ -482,7 +505,7 @@ def run_dnatracing(  # noqa: C901
         results["basename"] = image_path.parent
         grain_trace_data = None
         return results, grain_trace_data
-
+    """
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
     """Determine components of output paths for a given image and plotting config.
@@ -511,12 +534,15 @@ def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: 
     core_out_path.mkdir(parents=True, exist_ok=True)
     filter_out_path = core_out_path / filename / "filters"
     grain_out_path = core_out_path / filename / "grains"
+    tracing_out_path = core_out_path / filename / "dnatracing"
     if plotting_config["image_set"] == "all":
         filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
         Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "above", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "below", parents=True, exist_ok=True)
 
-    return core_out_path, filter_out_path, grain_out_path
+    return core_out_path, filter_out_path, grain_out_path, tracing_out_path
 
 
 def process_scan(
@@ -558,7 +584,7 @@ def process_scan(
         TopoStats dictionary object, DataFrame containing grain statistics and dna tracing statistics,
         and dictionary containing general image statistics
     """
-    core_out_path, filter_out_path, grain_out_path = get_out_paths(
+    core_out_path, filter_out_path, grain_out_path, tracing_out_path = get_out_paths(
         image_path=topostats_object["img_path"],
         base_dir=base_dir,
         output_dir=output_dir,
@@ -616,7 +642,7 @@ def process_scan(
             grain_masks=topostats_object["grain_masks"],
             filename=topostats_object["filename"],
             core_out_path=core_out_path,
-            grain_out_path=grain_out_path,
+            tracing_out_path=tracing_out_path,
             image_path=topostats_object["img_path"],
             plotting_config=plotting_config,
             dnatracing_config=dnatracing_config,
