@@ -222,7 +222,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 ),
                 "max_length": Or(int, float, None),
                 "method_values": Or("min", "median", "mid"),
-                "method_outlier": Or("abs", "mean_abs", "iqr"),
+                "method_outlier": Or("abs", "abs_mean", "iqr"),
                 "height_threshold": Or(int, float, None),
             },
             "joining_node_length": float,
@@ -870,6 +870,7 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
         },
+
         "orig_grains": {
             "filename": str,
             "title": str,
