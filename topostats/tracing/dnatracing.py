@@ -16,15 +16,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import ndimage, spatial, interpolate as interp
-from skimage import morphology
-from skimage.filters import gaussian
+from skimage.morphology import label
+from skimage.filters import gaussian, threshold_otsu
 import skimage.measure as skimage_measure
 from tqdm import tqdm
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.tracing.skeletonize import get_skeleton
-from topostats.tracing.tracingfuncs import genTracingFuncs, getSkeleton, reorderTrace
-from topostats.utils import bound_padded_coordinates_to_image
+from topostats.tracing.nodestats import nodeStats
+from topostats.tracing.skeletonize import getSkeleton, pruneSkeleton
+from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
+from topostats.utils import bound_padded_coordinates_to_image, coords_2_img
+
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -58,10 +60,12 @@ class dnaTrace:
         grain: np.ndarray,
         filename: str,
         pixel_to_nm_scaling: float,
-        min_skeleton_size: int = 10,
         convert_nm_to_m: bool = True,
-        skeletonisation_method: str = "topostats",
+        min_skeleton_size: int = 10,
+        skeletonisation_params={"skeletonisation_method": "zhang"},
+        pruning_params={"pruning_method": "topostats"},
         n_grain: int = None,
+        joining_node_length=7e-9,
         spline_step_size: float = 7e-9,
         spline_linear_smoothing: float = 5.0,
         spline_circular_smoothing: float = 0.0,
@@ -105,34 +109,50 @@ class dnaTrace:
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling * 1e-9 if convert_nm_to_m else pixel_to_nm_scaling
         self.min_skeleton_size = min_skeleton_size
-        self.skeletonisation_method = skeletonisation_method
+        self.skeletonisation_params = skeletonisation_params
+        self.pruning_params = pruning_params
         self.n_grain = n_grain
+        self.joining_node_length = joining_node_length
         self.number_of_rows = self.image.shape[0]
         self.number_of_columns = self.image.shape[1]
         self.sigma = 0.7 / (self.pixel_to_nm_scaling * 1e9)
-
-        self.gauss_image = None
-        self.grain = grain
+        # Images
+        self.smoothed_grain = np.zeros_like(image)
+        self.skeleton = np.zeros_like(image)
+        self.pruned_skeleton = np.zeros_like(image)
+        self.node_image = np.zeros_like(image)
+        self.ordered_trace_img = np.zeros_like(image)
+        self.fitted_trace_img = np.zeros_like(image)
+        self.splined_trace_img = np.zeros_like(image)
+        self.visuals = np.zeros_like(image)
+        # Nodestats objects
+        self.node_dict = None
+        self.node_image_dict = None
+        # Metrics
+        self.num_crossings = None
+        self.avg_crossing_confidence = None
+        self.min_crossing_confidence = None
+        self.topology = [None]
+        self.topology2 = [None]
+        self.contour_lengths = []
+        self.end_to_end_distances = []
+        self.mol_is_circulars = []
+        self.curvatures = []
+        self.num_mols = 1
+        # Traces
         self.disordered_trace = None
-        self.ordered_trace = None
-        self.fitted_trace = None
-        self.splined_trace = None
-        self.contour_length = np.nan
-        self.end_to_end_distance = np.nan
-        self.mol_is_circular = np.nan
-        self.curvature = np.nan
-
+        self.ordered_traces = None
+        self.fitted_traces = []
+        self.splined_traces = []
         # Splining parameters
         self.spline_step_size: float = spline_step_size
         self.spline_linear_smoothing: float = spline_linear_smoothing
         self.spline_circular_smoothing: float = spline_circular_smoothing
         self.spline_quiet: bool = spline_quiet
         self.spline_degree: int = spline_degree
-
-        self.neighbours = 5  # The number of neighbours used for the curvature measurement
-
-        self.ordered_trace_heights = None
-        self.ordered_trace_cumulative_distances = None
+        # height-trace objects
+        self.ordered_trace_heights = []
+        self.ordered_trace_cumulative_distances = []
 
         # suppresses scipy splining warnings
         warnings.filterwarnings("ignore")
@@ -140,32 +160,142 @@ class dnaTrace:
         LOGGER.debug(f"[{self.filename}] Performing DNA Tracing")
 
     def trace_dna(self):
-        """Perform DNA tracing."""
-        self.gaussian_filter()
+        """Perform the DNA tracing pipeline."""
+        self.smoothed_grain += self.smooth_grains(self.grain)
         self.get_disordered_trace()
+
         if self.disordered_trace is None:
             LOGGER.info(f"[{self.filename}] : Grain failed to Skeletonise")
         elif len(self.disordered_trace) >= self.min_skeleton_size:
             self.linear_or_circular(self.disordered_trace)
-            self.get_ordered_traces()
-            self.get_ordered_trace_heights()
-            self.get_ordered_trace_cumulative_distances()
-            self.linear_or_circular(self.ordered_trace)
-            self.get_fitted_traces()
-            self.get_splined_traces()
-            # self.find_curvature()
-            # self.saveCurvature()
-            self.measure_contour_length()
-            self.measure_end_to_end_distance()
+            #self.get_ordered_traces()
+            nodes = nodeStats(
+                filename=self.filename,
+                image=self.image,
+                grain=self.grain,
+                smoothed_grain=self.smoothed_grain,
+                skeleton=self.pruned_skeleton,
+                px_2_nm=self.pixel_to_nm_scaling,
+                n_grain=self.n_grain,
+                node_joining_length=self.joining_node_length,
+            )
+            self.node_dict, self.node_image_dict = nodes.get_node_stats()
+            self.avg_crossing_confidence = nodeStats.average_crossing_confs(self.node_dict)
+            self.min_crossing_confidence = nodeStats.minimum_crossing_confs(self.node_dict)
+            self.node_image = nodes.connected_nodes
+            self.num_crossings = nodes.num_crossings  
+
+            # try: # try to order using nodeStats
+            if nodes.check_node_errorless():
+                self.ordered_traces, self.visuals = nodes.compile_trace()
+                self.num_mols = len(self.ordered_traces)
+                LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} ordered via nodeStats.")
+                LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} has {len(self.ordered_traces)} molecules.")
+            
+            else:
+                LOGGER.info(
+                    f"[{self.filename}] : Grain {self.n_grain} couldn't be traced due to errors in analysing the nodes."
+                )
+                raise ValueError
+            """
+            except ValueError: # if nodestats fails, use default ordering method
+                LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} failed to order through nodeStats, trying standard ordering.")
+                self.get_ordered_traces()
+            """
+            
+            for trace in self.ordered_traces: # can be multiple traces from 1 grain like in catenated mols
+                self.ordered_trace_img += coords_2_img(trace, self.image, ordered=True)
+                if len(trace) >= self.min_skeleton_size:
+                    self.ordered_trace_heights.append(self.get_ordered_trace_heights(trace))
+                    self.ordered_trace_cumulative_distances.append(self.get_ordered_trace_cumulative_distances(trace))
+                    
+                    mol_is_circular = self.linear_or_circular(trace)
+                    self.mol_is_circulars.append(mol_is_circular)
+                    fitted_trace = self.get_fitted_traces(trace, mol_is_circular)
+                    self.fitted_trace_img += coords_2_img(fitted_trace, self.image)
+                    # Propper cleanup needed - ordered trace instead of fitted trace?
+                    
+                    splined_trace = self.get_splined_traces(fitted_trace, mol_is_circular)
+                    # sometimes traces can get skwiffy
+                    splined_trace = splined_trace[
+                        (splined_trace[:,0] < self.image.shape[0]) & 
+                        (splined_trace[:,1] < self.image.shape[1]) & 
+                        (splined_trace[:,0] > 0) & 
+                        (splined_trace[:,1] > 0)
+                        ]
+                    self.splined_traces.append(np.array(splined_trace))
+                    self.splined_trace_img += coords_2_img(np.array(splined_trace, dtype=np.int32), self.image)
+                   
+                    # self.find_curvature()
+                    # self.saveCurvature()
+                    self.contour_lengths.append(self.measure_contour_length(splined_trace, mol_is_circular))
+                    self.end_to_end_distances.append(self.measure_end_to_end_distance(splined_trace, mol_is_circular))
+                else:  # fill the row with nothing so it can still be joined to grainstats
+                    self.num_mols -= 1  # remove this from the num mols indexer
+                    LOGGER.info(
+                        f"[{self.filename}] [grain {self.n_grain}] : Grain ordered trace pixels < {self.min_skeleton_size}"
+                    )
+                    self.contour_lengths.append(None)
+                    self.mol_is_circulars.append(None)
+                    self.end_to_end_distances.append(None)
+
         else:
             LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain skeleton pixels < {self.min_skeleton_size}")
+            self.contour_lengths.append([])
+            self.mol_is_circulars.append([])
+            self.end_to_end_distances.append([])
 
     def gaussian_filter(self, **kwargs) -> np.array:
         """Apply Gaussian filter"""
-        self.gauss_image = gaussian(self.image, sigma=self.sigma, **kwargs)
+        self.smoothed_grain = gaussian(self.image, sigma=self.sigma, **kwargs)
         LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Gaussian filter applied.")
 
-    def get_ordered_trace_heights(self) -> None:
+    def smooth_grains(self, grain: np.ndarray) -> np.ndarray:
+        """Smoothes grains based on the lower number added from dilation or gaussian.
+        (makes sure gaussian isnt too agressive."""
+        dilation = ndimage.binary_dilation(grain, iterations=2).astype(np.int32)
+        gauss = gaussian(grain, sigma=max(grain.shape) / 256)
+        gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
+        gauss[gauss != 1] = 0
+        gauss = gauss.astype(np.int32)
+        if dilation.sum() - grain.sum() > gauss.sum() - grain.sum():
+            gauss = self.re_add_holes(grain, gauss)
+            return gauss
+        else:
+            dilation = self.re_add_holes(grain, dilation)
+            return dilation
+
+    def re_add_holes(self, orig_mask, new_mask, holearea_min_max=[4, np.inf]):
+        """As gaussian and dilation smoothing methods can close holes in the original mask,
+        this function obtains those holes (based on the general background being the first due
+        to padding) and adds them back into the smoothed mask. When paired, this essentailly
+        just smooths the outer edge of the grains.
+
+        Parameters:
+        -----------
+            orig_mask (_type_): _description_
+            new_mask (_type_): _description_
+            holearea_min_max (_type_): _description_
+        """
+        holesize_min_px = holearea_min_max[0] / ((self.pixel_to_nm_scaling / 1e-9) ** 2)
+        holesize_max_px = holearea_min_max[1] / ((self.pixel_to_nm_scaling / 1e-9) ** 2)
+        holes = 1 - orig_mask
+        holes = label(holes)
+        sizes = [holes[holes == i].size for i in range(1, holes.max() + 1)]
+        holes[holes == 1] = 0  # set background to 0
+
+        for i, size in enumerate(sizes):
+            if size < holesize_min_px or size > holesize_max_px:  # small holes may be fake are left out
+                holes[holes == i + 1] = 0
+        holes[holes != 0] = 1
+
+        # compare num holes in each mask
+        holey_smooth = new_mask.copy()
+        holey_smooth[holes == 1] = 0
+
+        return holey_smooth
+
+    def get_ordered_trace_heights(self, ordered_trace) -> None:
         """
          Populate the `trace_heights` attribute with an array of pixel heights from the ordered trace.
          `self.ordered_trace` list.
@@ -182,9 +312,9 @@ class dnaTrace:
          None
         """
 
-        self.ordered_trace_heights = np.array(self.gauss_image[self.ordered_trace[:, 0], self.ordered_trace[:, 1]])
+        return np.array(self.smoothed_grain[ordered_trace[:, 0], ordered_trace[:, 1]])
 
-    def get_ordered_trace_cumulative_distances(self) -> None:
+    def get_ordered_trace_cumulative_distances(self, ordered_trace) -> None:
         """
         Populate the `self.trace_distances` attribute with a list of the cumulative distances of
         each pixel in the `self.ordered_trace` list.
@@ -198,8 +328,8 @@ class dnaTrace:
 
         # Get the cumulative distances of each pixel in the ordered trace from the gaussian filtered image
         # the pixel coordinates are stored in the ordered trace list.
-        self.ordered_trace_cumulative_distances = self.coord_dist(
-            coordinates=self.ordered_trace, px_to_nm=self.pixel_to_nm_scaling
+        return self.coord_dist(
+            coordinates=ordered_trace, px_to_nm=self.pixel_to_nm_scaling
         )
 
     @staticmethod
@@ -246,38 +376,30 @@ class dnaTrace:
         return cumulative_distances_nm
 
     def get_disordered_trace(self):
-        """Create a skeleton for each of the grains in the image.
+        self.skeleton = getSkeleton(self.smoothed_grain, self.smoothed_grain).get_skeleton(
+            self.skeletonisation_params.copy()
+        )
+        # np.savetxt(OUTPUT_DIR / "skel.txt", self.skeleton)
+        # np.savetxt(OUTPUT_DIR / "image.txt", self.image)
+        # np.savetxt(OUTPUT_DIR / "smooth.txt", self.smoothed_grain)
+        self.pruned_skeleton = pruneSkeleton(self.smoothed_grain, self.skeleton).prune_skeleton(self.pruning_params.copy())
+        self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
+        self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
-        Uses my own skeletonisation function from tracingfuncs module. I will
-        eventually get round to editing this function to try to reduce the branching
-        and to try to better trace from looped molecules"""
-        smoothed_grain = ndimage.binary_dilation(self.grain, iterations=1).astype(self.grain.dtype)
+    @staticmethod
+    def remove_touching_edge(skeleton: np.ndarray):
+        """Removes any skeletons touching the boarder (to prevent errors later).
 
-        sigma = 0.01 / (self.pixel_to_nm_scaling * 1e9)
-        very_smoothed_grain = ndimage.gaussian_filter(smoothed_grain, sigma)
-
-        LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Skeletonising using {self.skeletonisation_method} method.")
-        try:
-            if self.skeletonisation_method == "topostats":
-                dna_skeleton = getSkeleton(
-                    self.gauss_image,
-                    smoothed_grain,
-                    self.number_of_columns,
-                    self.number_of_rows,
-                    self.pixel_to_nm_scaling,
-                )
-                self.disordered_trace = dna_skeleton.output_skeleton
-            elif self.skeletonisation_method in ["lee", "zhang", "thin"]:
-                self.disordered_trace = np.argwhere(
-                    get_skeleton(smoothed_grain, method=self.skeletonisation_method) == True
-                )
-            else:
-                raise ValueError
-        except IndexError as e:
-            # Some gwyddion grains touch image border causing IndexError
-            # These grains are deleted
-            LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Grain failed to skeletonise.")
-            # raise e
+        Parameters
+        ----------
+        skeleton: np.ndarray
+            A binary array where touching clusters of 1's become 0's if touching the edge of the array.
+        """
+        for edge in [skeleton[0, :-1], skeleton[:-1, -1], skeleton[-1, 1:], skeleton[1:, 0]]:
+            uniques = np.unique(edge)
+            for i in uniques:
+                skeleton[skeleton == i] = 0
+        return skeleton
 
     def linear_or_circular(self, traces):
         """Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace
@@ -289,15 +411,15 @@ class dnaTrace:
 
         # For loop determines how many neighbours a point has - if only one it is an end
         for x, y in fitted_trace_list:
-            if genTracingFuncs.countNeighbours(x, y, fitted_trace_list) == 1:
+            if genTracingFuncs.count_and_get_neighbours(x, y, fitted_trace_list)[0] == 1:
                 points_with_one_neighbour += 1
             else:
                 pass
 
         if points_with_one_neighbour == 0:
-            self.mol_is_circular = True
+            return True
         else:
-            self.mol_is_circular = False
+            return False
 
     def get_ordered_traces(self):
         if self.mol_is_circular:
@@ -313,38 +435,44 @@ class dnaTrace:
         elif not self.mol_is_circular:
             self.ordered_trace = reorderTrace.linearTrace(self.disordered_trace.tolist())
 
-    def get_fitted_traces(self):
+    def get_fitted_traces(self, ordered_trace, mol_is_circular: bool):
         """Create trace coordinates (for each identified molecule) that are adjusted to lie
         along the highest points of each traced molecule
         """
-
-        individual_skeleton = self.ordered_trace
         # This indexes a 3 nm height profile perpendicular to DNA backbone
         # note that this is a hard coded parameter
         index_width = int(3e-9 / (self.pixel_to_nm_scaling))
         if index_width < 2:
             index_width = 2
 
-        for coord_num, trace_coordinate in enumerate(individual_skeleton):
+        for coord_num, trace_coordinate in enumerate(ordered_trace):
             height_values = None
 
-            # Ensure that padding will not exceed the image boundaries
-            trace_coordinate = bound_padded_coordinates_to_image(
-                coordinates=trace_coordinate,
-                padding=index_width,
-                image_shape=(self.number_of_rows, self.number_of_columns),
-            )
+            # Block of code to prevent indexing outside image limits
+            # e.g. indexing self.smoothed_grain[130, 130] for 128x128 image
+            if trace_coordinate[0] < 0:
+                # prevents negative number indexing
+                # i.e. stops (trace_coordinate - index_width) < 0
+                trace_coordinate[0] = index_width
+            elif trace_coordinate[0] >= (self.number_of_rows - index_width):
+                # prevents indexing above image range causing IndexError
+                trace_coordinate[0] = self.number_of_rows - index_width
+            # do same for y coordinate
+            elif trace_coordinate[1] < 0:
+                trace_coordinate[1] = index_width
+            elif trace_coordinate[1] >= (self.number_of_columns - index_width):
+                trace_coordinate[1] = self.number_of_columns - index_width
 
             # calculate vector to n - 2 coordinate in trace
-            if self.mol_is_circular:
-                nearest_point = individual_skeleton[coord_num - 2]
+            if mol_is_circular:
+                nearest_point = ordered_trace[coord_num - 2]
                 vector = np.subtract(nearest_point, trace_coordinate)
                 vector_angle = math.degrees(math.atan2(vector[1], vector[0]))
             else:
                 try:
-                    nearest_point = individual_skeleton[coord_num + 2]
+                    nearest_point = ordered_trace[coord_num + 2]
                 except IndexError:
-                    nearest_point = individual_skeleton[coord_num - 2]
+                    nearest_point = ordered_trace[coord_num - 2]
                 vector = np.subtract(nearest_point, trace_coordinate)
                 vector_angle = math.degrees(math.atan2(vector[1], vector[0]))
 
@@ -382,18 +510,18 @@ class dnaTrace:
                 y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
                 x_coords = np.full(len(y_coords), trace_coordinate[0])
 
-            # Use the perp array to index the gaussian filtered image
+            # Use the perp array to index the guassian filtered image
             perp_array = np.column_stack((x_coords, y_coords))
             try:
-                height_values = self.gauss_image[perp_array[:, 0], perp_array[:, 1]]
+                height_values = self.smoothed_grain[perp_array[:, 0], perp_array[:, 1]]
             except IndexError:
                 perp_array[:, 0] = np.where(
-                    perp_array[:, 0] > self.gauss_image.shape[0], self.gauss_image.shape[0], perp_array[:, 0]
+                    perp_array[:, 0] > self.smoothed_grain.shape[0], self.smoothed_grain.shape[0], perp_array[:, 0]
                 )
                 perp_array[:, 1] = np.where(
-                    perp_array[:, 1] > self.gauss_image.shape[1], self.gauss_image.shape[1], perp_array[:, 1]
+                    perp_array[:, 1] > self.smoothed_grain.shape[1], self.smoothed_grain.shape[1], perp_array[:, 1]
                 )
-                height_values = self.gauss_image[perp_array[:, 1], perp_array[:, 0]]
+                height_values = self.image[perp_array[:, 1], perp_array[:, 0]]
 
             # Grab x,y coordinates for highest point
             # fine_coords = np.column_stack((fine_x_coords, fine_y_coords))
@@ -406,7 +534,7 @@ class dnaTrace:
             except UnboundLocalError:
                 fitted_coordinate_array = highest_point
 
-        self.fitted_trace = fitted_coordinate_array
+        return fitted_coordinate_array
         del fitted_coordinate_array  # cleaned up by python anyway?
 
     @staticmethod
@@ -436,6 +564,8 @@ class dnaTrace:
 
     def get_splined_traces(
         self,
+        fitted_trace,
+        mol_is_circular,
     ) -> None:
         """Gets a splined version of the fitted trace - useful for finding the radius of gyration etc.
 
@@ -445,10 +575,10 @@ class dnaTrace:
 
         # Fitted traces are Nx2 numpy arrays of coordinates
         # All self references are here for easy turning into static method if wanted, also type hints and short documentation
-        fitted_trace: np.ndarray = self.fitted_trace  # boolean 2d numpy array of fitted traces to spline
+        fitted_trace: np.ndarray = fitted_trace  # boolean 2d numpy array of fitted traces to spline
         step_size_m: float = self.spline_step_size  # the step size for the splines to skip pixels in the fitted trace
         pixel_to_nm_scaling: float = self.pixel_to_nm_scaling  # pixel to nanometre scaling factor for the image
-        mol_is_circular: bool = self.mol_is_circular  # whether or not the molecule is classed as circular
+        mol_is_circular: bool = mol_is_circular  # whether or not the molecule is classed as circular
         n_grain: int = self.n_grain  # the grain index (for logging purposes)
 
         # Calculate the step size in pixels from the step size in metres.
@@ -537,10 +667,10 @@ class dnaTrace:
         # This is an attempt to find a better spline by averaging our candidates
         spline_average = np.divide(spline_sum, [step_size_px, step_size_px])
 
-        self.splined_trace = spline_average
+        return spline_average
 
     def show_traces(self):
-        plt.pcolormesh(self.gauss_image, vmax=-3e-9, vmin=3e-9)
+        plt.pcolormesh(self.smoothed_grain, vmax=-3e-9, vmin=3e-9)
         plt.colorbar()
         plt.plot(self.ordered_trace[:, 0], self.ordered_trace[:, 1], markersize=1)
         plt.plot(self.fitted_trace[:, 0], self.fitted_trace[:, 1], markersize=1)
@@ -759,56 +889,58 @@ class dnaTrace:
         plt.savefig(f"{savename}_{dna_num}_curvature.png")
         plt.close()
 
-    def measure_contour_length(self):
+    def measure_contour_length(self, splined_trace, mol_is_circular):
         """Measures the contour length for each of the splined traces taking into
         account whether the molecule is circular or linear
 
         Contour length units are nm"""
-        if self.mol_is_circular:
-            for num, i in enumerate(self.splined_trace):
-                x1 = self.splined_trace[num - 1, 0]
-                y1 = self.splined_trace[num - 1, 1]
-                x2 = self.splined_trace[num, 0]
-                y2 = self.splined_trace[num, 1]
+        if mol_is_circular:
+            for num, i in enumerate(splined_trace):
+                x1 = splined_trace[num - 1, 0]
+                y1 = splined_trace[num - 1, 1]
+                x2 = splined_trace[num, 0]
+                y2 = splined_trace[num, 1]
 
                 try:
                     hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
                 except NameError:
                     hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
 
-            self.contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
+            contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
             del hypotenuse_array
 
         else:
-            for num, i in enumerate(self.splined_trace):
+            for num, i in enumerate(splined_trace):
                 try:
-                    x1 = self.splined_trace[num, 0]
-                    y1 = self.splined_trace[num, 1]
-                    x2 = self.splined_trace[num + 1, 0]
-                    y2 = self.splined_trace[num + 1, 1]
+                    x1 = splined_trace[num, 0]
+                    y1 = splined_trace[num, 1]
+                    x2 = splined_trace[num + 1, 0]
+                    y2 = splined_trace[num + 1, 1]
 
                     try:
                         hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
                     except NameError:
                         hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
                 except IndexError:  # IndexError happens at last point in array
-                    self.contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
+                    contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_to_nm_scaling
                     del hypotenuse_array
                     break
+        return contour_length
 
-    def measure_end_to_end_distance(self):
+    def measure_end_to_end_distance(self, splined_trace, mol_is_circular):
         """Calculate the Euclidean distance between the start and end of linear molecules.
         The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
         molecules. If the molecule is circular then the distance is set to zero (0).
         """
-        if self.mol_is_circular:
-            self.end_to_end_distance = 0
+        if mol_is_circular:
+            end_to_end_distance = 0
         else:
-            x1 = self.splined_trace[0, 0]
-            y1 = self.splined_trace[0, 1]
-            x2 = self.splined_trace[-1, 0]
-            y2 = self.splined_trace[-1, 1]
-            self.end_to_end_distance = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_to_nm_scaling
+            x1 = splined_trace[0, 0]
+            y1 = splined_trace[0, 1]
+            x2 = splined_trace[-1, 0]
+            y2 = splined_trace[-1, 1]
+            end_to_end_distance = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_to_nm_scaling
+        return end_to_end_distance
 
 
 def trace_image(
@@ -817,7 +949,9 @@ def trace_image(
     filename: str,
     pixel_to_nm_scaling: float,
     min_skeleton_size: int,
-    skeletonisation_method: str,
+    skeletonisation_params: dict,
+    pruning_params: dict,
+    joining_node_length: float = 7e-9,
     spline_step_size: float = 7e-9,
     spline_linear_smoothing: float = 5.0,
     spline_circular_smoothing: float = 0.0,
@@ -858,57 +992,98 @@ def trace_image(
         Statistics from skeletonising and tracing the grains in the image.
 
     """
-    # Check both arrays are the same shape
+    # Check both arrays are the same shape - should this be a test instead
     if image.shape != grains_mask.shape:
         raise ValueError(f"Image shape ({image.shape}) and Mask shape ({grains_mask.shape}) should match.")
 
-    cropped_images, cropped_masks = prep_arrays(image, grains_mask, pad_width)
+    cropped_images, cropped_masks, bboxs = prep_arrays(image, grains_mask, pad_width)
     region_properties = skimage_measure.regionprops(grains_mask)
     grain_anchors = [grain_anchor(image.shape, list(grain.bbox), pad_width) for grain in region_properties]
     n_grains = len(cropped_images)
-    LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
-    results = {}
-    ordered_traces = {}
-    splined_traces = {}
+    img_base = np.zeros_like(image)
+
+    grain_results = {}
+    trace_results = {}
+    full_node_image_dict = {}
     all_ordered_trace_heights = {}
     all_ordered_trace_cumulative_distances = {}
+    ordered_traces = {}
+    splined_traces = {}
+
+    # want to get each cropped image, use some anchor coords to match them onto the image,
+    #   and compile all the grain images onto a single image
+    all_images = {
+        "grain": img_base,
+        "smoothed_grain": img_base.copy(),
+        "skeleton": img_base.copy(),
+        "pruned_skeleton": img_base.copy(),
+        "node_img": img_base.copy(),
+        "ordered_traces": img_base.copy(),
+        "fitted_traces": img_base.copy(),
+        "visual": img_base.copy(),
+    }
+    spline_traces_image_frame = []
+
+    LOGGER.info(f"[{filename}] : Calculating DNA tracing statistics for {n_grains} grains.")
+
     for cropped_image_index, cropped_image in cropped_images.items():
         cropped_mask = cropped_masks[cropped_image_index]
-
-        result = trace_grain(
-            cropped_image,
-            cropped_mask,
-            pixel_to_nm_scaling,
-            filename,
-            min_skeleton_size,
-            skeletonisation_method,
-            spline_step_size,
-            spline_linear_smoothing,
-            spline_circular_smoothing,
-            cropped_image_index,
+        result, trace_images, node_image_dict = trace_grain(
+            cropped_image=cropped_image,
+            cropped_mask=cropped_mask,
+            pixel_to_nm_scaling=pixel_to_nm_scaling,
+            skeletonisation_params=skeletonisation_params,
+            pruning_params=pruning_params,
+            filename=filename,
+            min_skeleton_size=min_skeleton_size,
+            joining_node_length=joining_node_length,
+            spline_step_size =spline_step_size,
+            spline_linear_smoothing=spline_linear_smoothing,
+            spline_circular_smoothing=spline_circular_smoothing,
+            n_grain=cropped_image_index,
         )
         LOGGER.info(f"[{filename}] : Traced grain {cropped_image_index + 1} of {n_grains}")
-        ordered_traces[cropped_image_index] = result.pop("ordered_trace")
-        splined_traces[cropped_image_index] = result.pop("splined_trace")
-        all_ordered_trace_heights[cropped_image_index] = result.pop("ordered_trace_heights")
-        all_ordered_trace_cumulative_distances[cropped_image_index] = result.pop("ordered_trace_cumulative_distances")
-        results[cropped_image_index] = result
+        
+        grain_results[cropped_image_index] = result["grainstats_results"]
+        trace_results[f"grain_{cropped_image_index}"] = result["tracingstats_results"]
+        all_ordered_trace_heights[f"grain_{cropped_image_index}"] = {mol_idx: mol_dict.pop("trace_heights") for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()}
+        all_ordered_trace_cumulative_distances[f"grain_{cropped_image_index}"] = {mol_idx: mol_dict.pop("trace_distances") for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()}
+        ordered_traces[f"grain_{cropped_image_index}"] = {mol_idx: mol_dict.pop("ordered_trace") for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()}
+        splined_traces[f"grain_{cropped_image_index}"] = {mol_idx: mol_dict["splined_trace"] for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()}
+        
+        full_node_image_dict[f"grain_{cropped_image_index}"] = node_image_dict
+
+        # remap the cropped images back onto the original
+        for image_name, full_image in all_images.items():
+            crop = trace_images[image_name]
+            bbox = bboxs[cropped_image_index]
+            full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+
+        # adjust the traces to be within image bounds
+        for _, mol_dict in result["tracingstats_results"]["metrics"].items():
+            spline_traces_image_frame.append(mol_dict.pop("splined_trace") + [bbox[0] - pad_width, bbox[1] - pad_width])
+
     try:
-        results = pd.DataFrame.from_dict(results, orient="index")
-        results.index.name = "molecule_number"
-        image_trace = trace_mask(grain_anchors, ordered_traces, image.shape, pad_width)
-        rounded_splined_traces = round_splined_traces(splined_traces=splined_traces)
-        image_spline_trace = trace_mask(grain_anchors, rounded_splined_traces, image.shape, pad_width)
+        grain_results = pd.DataFrame.from_dict(grain_results, orient="index")
+        grain_results.index.name = "grain_number"
+        #image_trace = trace_mask(grain_anchors, ordered_traces, image.shape, pad_width)
+        #rounded_splined_traces = round_splined_traces(splined_traces=splined_trace)
+        #image_spline_trace = trace_mask(grain_anchors, rounded_splined_traces, image.shape, pad_width)
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
+        
     return {
-        "statistics": results,
+        "grain_statistics": grain_results,
+        "dnatracing_statistics": trace_results,
+        "node_images": full_node_image_dict,
         "all_ordered_traces": ordered_traces,
         "all_splined_traces": splined_traces,
-        "all_cropped_images": cropped_images,
-        "image_ordered_trace": image_trace,
-        "image_spline_trace": image_spline_trace,
+        "splined_traces_image_frame": spline_traces_image_frame,
+        #"all_cropped_images": cropped_images,
+        #"image_ordered_trace": image_trace,
+        #"image_spline_trace": image_spline_trace,
+        "all_images": all_images,
         "all_ordered_trace_heights": all_ordered_trace_heights,
         "all_ordered_trace_cumulative_distances": all_ordered_trace_cumulative_distances,
     }
@@ -1055,6 +1230,12 @@ def prep_arrays(
     # Get bounding boxes for each grain
     region_properties = skimage_measure.regionprops(labelled_grains_mask)
     # Subset image and grains then zip them up
+    cropped_images = {}
+    cropped_masks = {}
+    
+    #for index, grain in enumerate(region_properties):
+    #    cropped_image, cropped_bbox = crop_array(image, grain.bbox, pad_width)
+
     cropped_images = {index: crop_array(image, grain.bbox, pad_width) for index, grain in enumerate(region_properties)}
     cropped_images = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_images.items()}
     cropped_masks = {
@@ -1063,7 +1244,10 @@ def prep_arrays(
     cropped_masks = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_masks.items()}
     # Flip every labelled region to be 1 instead of its label
     cropped_masks = {index: np.where(grain == 0, 0, 1) for index, grain in cropped_masks.items()}
-    return (cropped_images, cropped_masks)
+    # Get BBOX coords to remap crops to images
+    bboxs = [pad_bounding_box(image.shape, list(grain.bbox), pad_width=pad_width) for grain in region_properties]
+
+    return (cropped_images, cropped_masks, bboxs)
 
 
 def grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int) -> list:
@@ -1092,9 +1276,11 @@ def trace_grain(
     cropped_image: np.ndarray,
     cropped_mask: np.ndarray,
     pixel_to_nm_scaling: float,
+    skeletonisation_params: dict,
+    pruning_params: dict,
     filename: str = None,
     min_skeleton_size: int = 10,
-    skeletonisation_method: str = "topostats",
+    joining_node_length: float = 7e-9,
     spline_step_size: float = 7e-9,
     spline_linear_smoothing: float = 5.0,
     spline_circular_smoothing: float = 0.0,
@@ -1105,7 +1291,7 @@ def trace_grain(
     Tracing involves multiple steps...
 
     1. Skeletonisation
-    2. Pruning of side branch artefacts from skeletonisation.
+    2. Pruning of side branches (artefacts from skeletonisation).
     3. Ordering of the skeleton.
     4. Determination of molecule shape.
     5. Jiggling/Fitting
@@ -1148,23 +1334,72 @@ def trace_grain(
         filename=filename,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         min_skeleton_size=min_skeleton_size,
-        skeletonisation_method=skeletonisation_method,
+        skeletonisation_params=skeletonisation_params,
+        pruning_params=pruning_params,
+        joining_node_length=joining_node_length,
         spline_step_size=spline_step_size,
         spline_linear_smoothing=spline_linear_smoothing,
         spline_circular_smoothing=spline_circular_smoothing,
         n_grain=n_grain,
     )
+
     dnatrace.trace_dna()
-    return {
-        "image": dnatrace.filename,
-        "contour_length": dnatrace.contour_length,
-        "circular": dnatrace.mol_is_circular,
-        "end_to_end_distance": dnatrace.end_to_end_distance,
-        "ordered_trace": dnatrace.ordered_trace,
-        "splined_trace": dnatrace.splined_trace,
-        "ordered_trace_heights": dnatrace.ordered_trace_heights,
-        "ordered_trace_cumulative_distances": dnatrace.ordered_trace_cumulative_distances,
+    results = {"grainstats_results": {
+                    "image": dnatrace.filename,
+                    "num_crossings": dnatrace.num_crossings,
+                    "num_mols": dnatrace.num_mols,
+                    "total_contour_length": np.nansum(np.array(dnatrace.contour_lengths, dtype=np.float64)),
+                    "grain_avg_crossing_confidence": dnatrace.avg_crossing_confidence,
+                    "grain_min_crossing_confidence": dnatrace.min_crossing_confidence,
+                },
+                "tracingstats_results": {
+                    "image": dnatrace.filename,
+                    "num_mols": dnatrace.num_mols,
+                    "num_crossings": dnatrace.num_crossings,
+                    "total_contour_length": np.nansum(np.array(dnatrace.contour_lengths, dtype=np.float64)),
+                    "grain_avg_crossing_confidence": dnatrace.avg_crossing_confidence,
+                    "grain_min_crossing_confidence": dnatrace.min_crossing_confidence,
+                    "metrics": {
+                        "mol_0": {
+                            "contour_length": None,
+                            "circular": None,
+                            "end_to_end_distance": None,
+                            "trace_heights": None,
+                            "trace_distances": None,
+                            "ordered_trace": None,
+                            "splined_trace": None,
+                        }, # incase no mols could be traced, need empties to attempt to merge on
+                    },
+                    "nodeStats": dnatrace.node_dict,
+                    }
+                }
+
+
+    print("CIRC: ", dnatrace.mol_is_circulars)
+    for i in range(dnatrace.num_mols):
+        results["tracingstats_results"]["metrics"][f"mol_{i}"] = {
+            "contour_length": dnatrace.contour_lengths[i],
+            "circular": dnatrace.mol_is_circulars[i],
+            "end_to_end_distance": dnatrace.end_to_end_distances[i],
+            "trace_heights": dnatrace.ordered_trace_heights[i],
+            "trace_distances": dnatrace.ordered_trace_cumulative_distances[i],
+            "ordered_trace": dnatrace.ordered_traces[i],
+            "splined_trace": dnatrace.splined_traces[i],
+        }
+
+    images = {
+        "image": dnatrace.image,
+        "grain": dnatrace.grain,
+        "smoothed_grain": dnatrace.smoothed_grain,
+        "skeleton": dnatrace.skeleton,
+        "pruned_skeleton": dnatrace.pruned_skeleton,
+        "node_img": dnatrace.node_image,
+        "ordered_traces": dnatrace.ordered_trace_img,
+        "fitted_traces": dnatrace.fitted_trace_img,
+        "visual": dnatrace.visuals,
     }
+
+    return results, images, dnatrace.node_image_dict
 
 
 def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np.ndarray:
