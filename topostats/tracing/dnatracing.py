@@ -361,7 +361,9 @@ class dnaTrace:
 
         # Get the cumulative distances of each pixel in the ordered trace from the gaussian filtered image
         # the pixel coordinates are stored in the ordered trace list.
-        return self.coord_dist(coordinates=ordered_trace, px_to_nm=self.pixel_to_nm_scaling)
+        return self.coord_dist(
+            coordinates=ordered_trace, px_to_nm=self.pixel_to_nm_scaling
+        )
 
     @staticmethod
     def coord_dist(coordinates: npt.NDArray, px_to_nm: float) -> npt.NDArray:
@@ -1089,6 +1091,9 @@ def trace_image(
         raise ValueError(f"Image shape ({image.shape}) and Mask shape ({grains_mask.shape}) should match.")
 
     cropped_images, cropped_masks, bboxs = prep_arrays(image, grains_mask, pad_width)
+    cropped_images, cropped_masks, bboxs = prep_arrays(image, grains_mask, pad_width)
+    region_properties = skimage_measure.regionprops(grains_mask)
+    grain_anchors = [grain_anchor(image.shape, list(grain.bbox), pad_width) for grain in region_properties]
     n_grains = len(cropped_images)
     img_base = np.zeros_like(image)
 
@@ -1517,6 +1522,8 @@ def trace_grain(
         "fitted_traces": dnatrace.fitted_trace_img,
         "visual": dnatrace.visuals,
     }
+
+    return results, images, dnatrace.node_image_dict
 
     return results, images, dnatrace.node_image_dict
 
