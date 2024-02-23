@@ -1,21 +1,20 @@
 """Perform Crossing Region Processing and Analysis"""
 
-import logging
 import math
-
-import networkx as nx
 import numpy as np
+import networkx as nx
+from skimage.morphology import label
 from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.feature import hessian_matrix, hessian_matrix_eigvals
-from skimage.morphology import label
+import logging
+from typing import Dict, Union, Tuple
 
 from topostats.logs.logs import LOGGER_NAME
+from topostats.utils import convolve_skelly, ResolutionError, coords_2_img
 from topostats.tracing.skeletonize import getSkeleton, pruneSkeleton
-from topostats.utils import ResolutionError, convolve_skelly, coords_2_img
 
 LOGGER = logging.getLogger(LOGGER_NAME)
-
 
 class nodeStats:
     """Class containing methods to find and analyse the nodes/crossings within a grain"""
@@ -40,7 +39,7 @@ class nodeStats:
         self.n_grain = n_grain
         self.node_joining_length = node_joining_length
 
-        # sigma = (-3.5 / 3) * self.px_2_nm * 1e9 + 15.5 / 3
+        #sigma = (-3.5 / 3) * self.px_2_nm * 1e9 + 15.5 / 3
         self.hess = self.detect_ridges(self.image * 1e9, 4)
 
         self.conv_skelly = np.zeros_like(self.skeleton)
@@ -51,14 +50,12 @@ class nodeStats:
         self.node_centre_mask = None
         self.num_crossings = 0
         self.node_dict = {}
-        self.image_dict = {
-            "nodes": {},
-            "grain": {
-                "grain_image": self.image,
-                "grain_mask": self.grain,
-                "grain_visual_crossings": None,
-            },
-        }
+        self.image_dict = {'nodes': {},
+                           'grain': {
+                               'grain_image': self.image,
+                               'grain_mask': self.grain,
+                               'grain_visual_crossings': None,
+                               }}
         self.full_dict = {}
         self.mol_coords = {}
         self.visuals = {}
@@ -67,8 +64,8 @@ class nodeStats:
     def get_node_stats(self) -> tuple:
         """The workflow for obtaining the node statistics.
 
-        Returns
-        -------
+        Returns:
+        --------
         dict
             Key structure:  <grain_number>
                             |-> <node_number>
@@ -97,7 +94,7 @@ class nodeStats:
         self.conv_skelly = convolve_skelly(self.skeleton)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             # convolve to see crossing and end points
-            self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
+            #self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
             # reset skeleton var as tidy branches may have modified it
             self.skeleton = np.where(self.conv_skelly != 0, 1, 0)
             # get graph of skeleton
@@ -194,9 +191,7 @@ class nodeStats:
         new_skeleton = getSkeleton(image, new_skeleton).get_skeleton(
             {"skeletonisation_method": "topostats", "height_bias": 0.6}
         )
-        new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton(
-            {"pruning_method": "topostats", "max_length": -1}
-        )
+        new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton({"pruning_method": "topostats", "max_length": -1})
         new_skeleton = getSkeleton(image, new_skeleton).get_skeleton(
             {"skeletonisation_method": "zhang"}
         )  # cleanup around nibs
@@ -394,9 +389,9 @@ class nodeStats:
                     )
                     if touching:
                         emanating_branches.append(branch_start)
-                    emanating_branch_starts_by_node[node_num - 1] = (
-                        emanating_branches  # Store emanating branches for this label
-                    )
+                    emanating_branch_starts_by_node[
+                        node_num - 1
+                    ] = emanating_branches  # Store emanating branches for this label
                     # assert len(emanating_branches) // 2 == 1
 
         if (
@@ -475,8 +470,8 @@ class nodeStats:
 
         bg = 0, skeleton = 1, endpoints = 2, nodes = 3.
 
-        Parameters
-        ----------
+        Parameters:
+        -----------
         max_branch_length: float
             The side length of the box around the node to analyse (in nm).
 
@@ -486,7 +481,7 @@ class nodeStats:
 
         # check whether average trace resides inside the grain mask
         dilate = binary_dilation(self.skeleton, iterations=2)
-        average_trace_advised = False  # dilate[self.smoothed_grain == 1].sum() == dilate.sum()
+        average_trace_advised = False #dilate[self.smoothed_grain == 1].sum() == dilate.sum()
         LOGGER.info(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
 
         # iterate over the nodes to find areas
@@ -655,7 +650,7 @@ class nodeStats:
                     crossing_quants = []
                     for branch_idx, values in matched_branches.items():
                         crossing_quants.append(values["fwhm2"][0])
-                    if len(crossing_quants) == 1:  # from 3 eminnating branches
+                    if len(crossing_quants) == 1: # from 3 eminnating branches
                         conf = None
                     else:
                         combs = self.get_two_combinations(crossing_quants)
@@ -716,10 +711,10 @@ class nodeStats:
                 }
 
                 self.image_dict["nodes"][real_node_count] = {
-                    # "node_area_image": self.image,  # [
+                    #"node_area_image": self.image,  # [
                     # image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
                     # ],  # self.hess
-                    # "node_area_grain": self.grain,  # [
+                    #"node_area_grain": self.grain,  # [
                     # image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
                     # ],
                     "node_area_skeleton": reduced_node_area,  # [
@@ -734,13 +729,13 @@ class nodeStats:
 
     @staticmethod
     def sq(curr, nxt, y_lim):
-        """Obtains the area of the square between y_lim and the 2 points"""
+        "Obtains the area of the square between y_lim and the 2 points"
         lowest_y = min(curr[1], nxt[1])
         y_diff = max(0, lowest_y - y_lim)
         return (nxt[0] - curr[0]) * y_diff
 
     def tri(self, curr, nxt, y_lim):
-        """Obtains the area of the triangle between y_lim and the 2 points"""
+        "Obtains the area of the triangle between y_lim and the 2 points"
         if y_lim <= min(curr[1], nxt[1]):  # if below triangle
             return (nxt[0] - curr[0]) * (abs(nxt[1] - curr[1])) / 2
         if y_lim >= max(curr[1], nxt[1]):  # if val above triangle
@@ -755,8 +750,7 @@ class nodeStats:
 
     def auc(self, x, y, y_lim, xrange):
         """Get the area under the curve (or points in this case) by summing the
-        trapezoid areas between points above the y_lim and between the xrange.
-        """
+        trapezoid areas between points above the y_lim and between the xrange."""
         xcap = x[(x >= xrange[0]) & (x <= xrange[1])]
         ycap = y[(x >= xrange[0]) & (x <= xrange[1])]
         auc = 0
@@ -976,8 +970,8 @@ class nodeStats:
         vectors: np.ndarray
             Array of 2x1 vectors to be paired.
 
-        Returns
-        -------
+        Returns:
+        --------
         np.ndarray
             An array of the matching pair indicies.
         """
@@ -1025,12 +1019,12 @@ class nodeStats:
         """Pairs angles that are 180 degrees to eachother and removes them before selecting the next pair.
 
         Parameters
-        ----------
+         ----------
          angles : np.ndarray
              Square array (i,j) of angles between i and j.
 
-        Returns
-        -------
+         Returns
+         -------
          list
              A list of paired indexes in a list.
         """
@@ -1069,15 +1063,15 @@ class nodeStats:
     def fwhm(self, heights: np.ndarray, distances: np.ndarray) -> tuple:
         """Fits a gaussian to the branch heights, and calculates the FWHM.
 
-        Parameters
-        ----------
+        Parameters:
+        -----------
         heights: np.ndarray
             Array of height values.
         distances: np.ndarray
             array of distance values.
 
-        Returns
-        -------
+        Returns:
+        --------
         tuple
             A tuple of the FWHM value, and x,y matrix from curve fitting.
 
@@ -1094,7 +1088,7 @@ class nodeStats:
 
         return 2.3548 * popt[2], popt  # 2*(2ln2)^1/2 * sigma = FWHM
 
-    def fwhm2(self, heights: np.ndarray, distances: np.ndarray, hm: float | None = None) -> tuple:
+    def fwhm2(self, heights: np.ndarray, distances: np.ndarray, hm: Union[float, None] = None) -> tuple:
         """A second function to caculate the FWHM value by identifying the HM then finding the closest values
         in the distances array and using linear interpolation to calculate the FWHM.
 
@@ -1199,7 +1193,7 @@ class nodeStats:
         )
 
     @staticmethod
-    def lin_interp(point_1: list, point_2: list, xvalue: float | None = None, yvalue: float | None = None):
+    def lin_interp(point_1: list, point_2: list, xvalue: Union[float, None] = None, yvalue: Union[float, None] = None):
         """Linear interp 2 points by finding line equation and subbing.
 
         Parameters
@@ -1621,7 +1615,7 @@ class nodeStats:
 
     @staticmethod
     def average_uniques(arr1, arr2):
-        """Takes two arrays, gets the uniques of both with the average of common values in the second."""
+        "Takes two arrays, gets the uniques of both with the average of common values in the second."
         arr1_uniq, index = np.unique(arr1, return_index=True)
         arr2_new = np.zeros_like(arr1_uniq).astype(np.float64)
         for i, val in enumerate(arr1[index]):
@@ -1672,7 +1666,7 @@ class nodeStats:
         for node_num, crossings in enumerate(crossing_coords):
             for crossing_num, crossing in enumerate(crossings):
                 both[crossing[:, 0], crossing[:, 1]] = node_num + crossing_num + minus.max()
-
+        
         # setup z array
         z = []
         # order minus segments
@@ -1704,10 +1698,10 @@ class nodeStats:
             cross_add[single_cross_img != 0] = i + 1
 
         coord_trace = self.trace(ordered, cross_add)
-
+        
         # visual over under img
         visual = self.get_visual_img(coord_trace, fwhms, crossing_coords)
-        self.image_dict["grain"]["grain_visual_crossings"] = visual
+        self.image_dict['grain']['grain_visual_crossings'] = visual
 
         return coord_trace, visual
 
@@ -1740,7 +1734,7 @@ class nodeStats:
         mol_coords = []
         remaining = both_img.copy().astype(np.int32)
         endpoints = np.unique(remaining[convolve_skelly(remaining) == 2])  # uniq incase of whole mol
-
+        
         while remaining.max() != 0:
             # select endpoint to start if there is one
             endpoints = [i for i in endpoints if i in np.unique(remaining)]  # remove if removed from remaining
@@ -1914,7 +1908,7 @@ class nodeStats:
                 return sum_conf / (i + 1)
             except ZeroDivisionError:
                 return None
-
+            
     @staticmethod
     def minimum_crossing_confs(node_dict):
         confs = []
