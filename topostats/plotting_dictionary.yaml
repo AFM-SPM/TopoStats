@@ -11,6 +11,8 @@
 # | image_type   | String  | Whether the plot includes the height (non-binary) or the outline (binary)    |
 # | savefig_dpi  | int     | Dots Per Inch for plotting                                                   |
 # | core_set     | Boolean | Whether a plot is considered part of the core set of images that are plotted.|
+
+# Flattening Troubleshooting Images
 extracted_channel:
   filename: "00-raw_heightmap"
   title: "Raw Height"
@@ -118,6 +120,7 @@ z_threshed:
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: true
+# Grainfinding Troubleshooting Images
 mask_grains:
   filename: "17-mask_grains"
   title: "Mask for Grains"
@@ -177,11 +180,6 @@ coloured_boxes:
   image_type: "binary"
   savefig_dpi: 100
   core_set: false
-all_molecule_traces:
-  title: "Molecule Traces"
-  image_type: "non-binary"
-  savefig_dpi: 800
-  core_set: true
 grain_image:
   image_type: "non-binary"
   savefig_dpi: 100
@@ -194,6 +192,98 @@ grain_mask_image:
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+# DNA Tracing Troubleshooting Images
+orig_grains:
+  filename: "20-original_grains"
+  title: "Image with Threshold Mask"
+  image_type: "non-binary"
+  mask_cmap: "green_black"
+  core_set: false
+smoothed_grains:
+  filename: "21-smoothed_grains"
+  title: "Image with Gaussian-Smoothed Threshold Mask"
+  image_type: "non-binary"
+  mask_cmap: "green_black"
+  core_set: false
+orig_skeletons:
+  filename: "22-original_skeletons"
+  title: "Image with Overlapping Original Skeletons"
+  image_type: "non-binary"
+  mask_cmap: "green_black"
+  core_set: false
+  savefig_dpi: 600
+pruned_skeletons:
+  filename: "23-pruned_skeletons"
+  title: "Image with Overlapping Pruned Skeletons"
+  image_type: "non-binary"
+  mask_cmap: "green_black"
+  core_set: false
+  savefig_dpi: 600
+nodes:
+  filename: "24-nodes"
+  title: "Image with Skeletons and Highlighted Nodes"
+  image_type: "non-binary"
+  mask_cmap: "green_black"
+  core_set: false
+  savefig_dpi: 600
+zoom_node:
+  title: "Zoom of Node Skeleton"
+  image_type: "non-binary"
+  core_set: false
+  mask_cmap: "green_black"
+  savefig_dpi: 600
+crossings:
+  title: "Crossing and Skeleton Branches"
+  image_type: "non-binary"
+  core_set: false
+  mask_cmap: "green_green"
+  savefig_dpi: 600
+tripple_crossings:
+  title: "Image with Main and Paralell Traces"
+  image_type: "non-binary"
+  mask_cmap: "green_green"
+  core_set: false
+line_trace:
+  title: "Heights of Crossing"
+  image_type: "non-binary"
+  cmap: "green_green"
+visual_crop:
+  title: "Visualised Molecule Crossings"
+  image_type: "non-binary"
+  mask_cmap: "blu_purp_green"
+  core_set: false
+visual:
+  filename: "25-molecule_crossings"
+  title: "Visualised Molecule Crossings"
+  image_type: "non-binary"
+  mask_cmap: "blu_purp_green"
+  core_set: false
+  savefig_dpi: 600
+single_mol:
+  title: "Separated Molecule"
+  image_type: "non-binary"
+  mask_cmap: "blu_purp"
+  core_set: false
+  savefig_dpi: 600
+ordered_trace:
+  filename: "26-ordered-traces"
+  title: "Ordered Traces"
+  image_type: "non-binary"
+  mask_cmap: "viridis"
+  core_set: false
+  savefig_dpi: 600
+fitted_trace:
+  filename: "27-fitted-traces"
+  title: "Fitted Trace"
+  image_type: "non-binary"
+  mask_cmap: "blu_purp"
+  core_set: false
+  savefig_dpi: 600
+all_molecule_traces:
+  title: "Molecule Traces"
+  image_type: "non-binary"
+  savefig_dpi: 600
+  core_set: true
 single_molecule_trace:
   image_type: "non-binary"
   savefig_dpi: 100
