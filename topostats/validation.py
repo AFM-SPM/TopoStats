@@ -217,7 +217,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "pruning_params": {
                 "pruning_method": Or(
                     "topostats",
-                    "max",
+                    "conv",
                     error="Invalid value in config for 'dnatracing.pruning_method', valid values are 'topostats', 'max",
                 ),
                 "max_length": Or(int, float, None),
