@@ -328,12 +328,21 @@ class dnaTrace:
 
         return holey_smooth
 
-    def get_ordered_trace_heights(self, ordered_trace: npt.NDArray) -> None:
+    def get_ordered_trace_heights(self, ordered_trace) -> None:
         """
-        Derive the pixel heights from the ordered trace `ordered_trace` array.
+         Populate the `trace_heights` attribute with an array of pixel heights from the ordered trace.
+         `self.ordered_trace` list.
 
         Gets the heights of each pixel in the ordered trace from the gaussian filtered image. The pixel coordinates
         for the ordered trace are stored in the ordered trace list as part of the class.
+
+         Parameters
+         ----------
+         None
+
+         Returns
+         -------
+         None
         """
 
         return np.array(self.smoothed_grain[ordered_trace[:, 0], ordered_trace[:, 1]])
@@ -352,7 +361,9 @@ class dnaTrace:
 
         # Get the cumulative distances of each pixel in the ordered trace from the gaussian filtered image
         # the pixel coordinates are stored in the ordered trace list.
-        return self.coord_dist(coordinates=ordered_trace, px_to_nm=self.pixel_to_nm_scaling)
+        return self.coord_dist(
+            coordinates=ordered_trace, px_to_nm=self.pixel_to_nm_scaling
+        )
 
     @staticmethod
     def coord_dist(coordinates: npt.NDArray, px_to_nm: float) -> npt.NDArray:
@@ -401,13 +412,13 @@ class dnaTrace:
         return cumulative_distances_nm
 
     def get_disordered_trace(self):
-        self.skeleton = getSkeleton(self.image, self.smoothed_grain).get_skeleton(self.skeletonisation_params.copy())
+        self.skeleton = getSkeleton(self.smoothed_grain, self.smoothed_grain).get_skeleton(
+            self.skeletonisation_params.copy()
+        )
         # np.savetxt(OUTPUT_DIR / "skel.txt", self.skeleton)
         # np.savetxt(OUTPUT_DIR / "image.txt", self.image)
         # np.savetxt(OUTPUT_DIR / "smooth.txt", self.smoothed_grain)
-        self.pruned_skeleton = pruneSkeleton(self.smoothed_grain, self.skeleton).prune_skeleton(
-            self.pruning_params.copy()
-        )
+        self.pruned_skeleton = pruneSkeleton(self.smoothed_grain, self.skeleton).prune_skeleton(self.pruning_params.copy())
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
@@ -1075,11 +1086,13 @@ def trace_image(
     dict
         Statistics from skeletonising and tracing the grains in the image.
     """
-    # Check both arrays are the same shape - should this be a test instead, why should this ever occur?
+    # Check both arrays are the same shape - should this be a test instead
     if image.shape != grains_mask.shape:
         raise ValueError(f"Image shape ({image.shape}) and Mask shape ({grains_mask.shape}) should match.")
 
     cropped_images, cropped_masks, bboxs = prep_arrays(image, grains_mask, pad_width)
+    region_properties = skimage_measure.regionprops(grains_mask)
+    grain_anchors = [grain_anchor(image.shape, list(grain.bbox), pad_width) for grain in region_properties]
     n_grains = len(cropped_images)
     img_base = np.zeros_like(image)
 
@@ -1088,6 +1101,25 @@ def trace_image(
     full_node_image_dict = {}
     all_ordered_trace_heights = {}
     all_ordered_trace_cumulative_distances = {}
+    ordered_traces = {}
+    splined_traces = {}
+
+    # want to get each cropped image, use some anchor coords to match them onto the image,
+    #   and compile all the grain images onto a single image
+    all_images = {
+        "grain": img_base,
+        "smoothed_grain": img_base.copy(),
+        "skeleton": img_base.copy(),
+        "pruned_skeleton": img_base.copy(),
+        "node_img": img_base.copy(),
+        "ordered_traces": img_base.copy(),
+        "fitted_traces": img_base.copy(),
+        "visual": img_base.copy(),
+    }
+    spline_traces_image_frame = []
+
+    LOGGER.info(f"[{filename}] : Calculating DNA tracing statistics for {n_grains} grains.")
+
     ordered_traces = {}
     splined_traces = {}
 
@@ -1118,7 +1150,7 @@ def trace_image(
             filename=filename,
             min_skeleton_size=min_skeleton_size,
             joining_node_length=joining_node_length,
-            spline_step_size=spline_step_size,
+            spline_step_size =spline_step_size,
             spline_linear_smoothing=spline_linear_smoothing,
             spline_circular_smoothing=spline_circular_smoothing,
             n_grain=cropped_image_index,
@@ -1489,8 +1521,6 @@ def trace_grain(
         "fitted_traces": dnatrace.fitted_trace_img,
         "visual": dnatrace.visuals,
     }
-
-    return results, images, dnatrace.node_image_dict
 
     return results, images, dnatrace.node_image_dict
 
