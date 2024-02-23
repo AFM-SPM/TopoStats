@@ -76,7 +76,7 @@ class TopoSum:
         base_dir: str | Path = None,
         csv_file: str | Path = None,
         stat_to_sum: str = None,
-        molecule_id: str = "molecule_number",
+        molecule_id: str = "grain_number",
         image_id: str = "image",
         hist: bool = True,
         stat: str = "count",
@@ -304,7 +304,7 @@ for KDE plot being the same. KDE plots cannot be made as there is no variance, s
         pd.DataFrame
             Data in long-format with descriptive variable names.
         """
-        melted_data = pd.melt(df.reset_index(), id_vars=["molecule_number", "basename"], value_vars=stat_to_summarize)
+        melted_data = pd.melt(df.reset_index(), id_vars=["grain_number", "basename"], value_vars=stat_to_summarize)
         melted_data["variable"] = melted_data["variable"].map(var_to_label)
         LOGGER.info("[plotting] Data has been melted to long format for plotting.")
 
