@@ -34,7 +34,9 @@ def iou_loss(y_true, y_pred):
     return -iou(y_true, y_pred)
 
 
-def unet_model(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS, learning_rate: float = 0.01):
+def unet_model(
+    IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS, learning_rate: float = 0.01, loss_function: str = "binary_crossentropy"
+):
     """U-NET model definition function."""
 
     inputs = Input((IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS))
@@ -112,15 +114,18 @@ def unet_model(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS, learning_rate: float = 0.01)
     # model.compile(optimizer=sgd, loss="binary_crossentropy", metrics=["accuracy"])
 
     optimiser = Adam(learning_rate)
-    # model.compile(optimizer=optimiser, loss="binary_crossentropy", metrics=["accuracy"])
-    # model.compile(
-    #     optimizer=optimiser,
-    #     loss="binary_crossentropy",
-    #     metrics=[MeanIoU(num_classes=2), "accuracy"],
-    # )
-
+    if loss_function == "binary_crossentropy":
+        model.compile(optimizer=optimiser, loss="binary_crossentropy", metrics=["accuracy"])
+        model.compile(
+            optimizer=optimiser,
+            loss="binary_crossentropy",
+            metrics=[iou, "accuracy"],
+        )
     # IOU
-    model.compile(optimizer=optimiser, loss=iou_loss, metrics=[iou, "accuracy"])
+    elif loss_function == "iou":
+        model.compile(optimizer=optimiser, loss=iou_loss, metrics=[iou, "accuracy"])
+    else:
+        raise ValueError("Invalid loss function")
 
     model.summary()
 
