@@ -1077,13 +1077,11 @@ def trace_image(
     dict
         Statistics from skeletonising and tracing the grains in the image.
     """
-    # Check both arrays are the same shape - should this be a test instead
+    # Check both arrays are the same shape - should this be a test instead, why should this ever occur?
     if image.shape != grains_mask.shape:
         raise ValueError(f"Image shape ({image.shape}) and Mask shape ({grains_mask.shape}) should match.")
 
     cropped_images, cropped_masks, bboxs = prep_arrays(image, grains_mask, pad_width)
-    region_properties = skimage_measure.regionprops(grains_mask)
-    grain_anchors = [grain_anchor(image.shape, list(grain.bbox), pad_width) for grain in region_properties]
     n_grains = len(cropped_images)
     img_base = np.zeros_like(image)
 
@@ -1131,12 +1129,13 @@ def trace_image(
         
         grain_results[cropped_image_index] = result["grainstats_results"]
         trace_results[f"grain_{cropped_image_index}"] = result["tracingstats_results"]
+        full_node_image_dict[f"grain_{cropped_image_index}"] = node_image_dict
+
         all_ordered_trace_heights[f"grain_{cropped_image_index}"] = {mol_idx: mol_dict.pop("trace_heights") for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()}
         all_ordered_trace_cumulative_distances[f"grain_{cropped_image_index}"] = {mol_idx: mol_dict.pop("trace_distances") for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()}
-        ordered_traces[f"grain_{cropped_image_index}"] = {mol_idx: mol_dict.pop("ordered_trace") for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()}
-        splined_traces[f"grain_{cropped_image_index}"] = {mol_idx: mol_dict["splined_trace"] for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()}
         
-        full_node_image_dict[f"grain_{cropped_image_index}"] = node_image_dict
+        ordered_traces[f"grain_{cropped_image_index}"] = {mol_idx: mol_dict["ordered_trace"] for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()}
+        splined_traces[f"grain_{cropped_image_index}"] = {mol_idx: mol_dict["splined_trace"] for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()}
 
         # remap the cropped images back onto the original
         for image_name, full_image in all_images.items():
@@ -1144,16 +1143,13 @@ def trace_image(
             bbox = bboxs[cropped_image_index]
             full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
 
-        # adjust the traces to be within image bounds
+        # remap spline coords to the original image
         for _, mol_dict in result["tracingstats_results"]["metrics"].items():
             spline_traces_image_frame.append(mol_dict.pop("splined_trace") + [bbox[0] - pad_width, bbox[1] - pad_width])
 
     try:
         grain_results = pd.DataFrame.from_dict(grain_results, orient="index")
         grain_results.index.name = "grain_number"
-        #image_trace = trace_mask(grain_anchors, ordered_traces, image.shape, pad_width)
-        #rounded_splined_traces = round_splined_traces(splined_traces=splined_trace)
-        #image_spline_trace = trace_mask(grain_anchors, rounded_splined_traces, image.shape, pad_width)
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
@@ -1165,9 +1161,7 @@ def trace_image(
         "all_ordered_traces": ordered_traces,
         "all_splined_traces": splined_traces,
         "splined_traces_image_frame": spline_traces_image_frame,
-        #"all_cropped_images": cropped_images,
-        #"image_ordered_trace": image_trace,
-        #"image_spline_trace": image_spline_trace,
+        "cropped_images": cropped_images,
         "all_images": all_images,
         "all_ordered_trace_heights": all_ordered_trace_heights,
         "all_ordered_trace_cumulative_distances": all_ordered_trace_cumulative_distances,
@@ -1462,8 +1456,6 @@ def trace_grain(
                     }
                 }
 
-
-    print("CIRC: ", dnatrace.mol_is_circulars)
     for i in range(dnatrace.num_mols):
         results["tracingstats_results"]["metrics"][f"mol_{i}"] = {
             "contour_length": dnatrace.contour_lengths[i],

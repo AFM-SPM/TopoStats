@@ -363,9 +363,9 @@ class Images:
             # if coordinates are provided (such as in splines, plot those)
             elif self.plot_coords is not None:
                 for grain_coords in self.plot_coords:
-                    plt.plot(
+                    ax.plot(
                         grain_coords[:, 1] * self.pixel_to_nm_scaling,
-                        (shape[1] - grain_coords[:, 0]) * self.pixel_to_nm_scaling,
+                        (shape[0] - grain_coords[:, 0]) * self.pixel_to_nm_scaling,
                         c="c",
                         linewidth=2.5,
                     )
