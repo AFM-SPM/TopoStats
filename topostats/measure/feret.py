@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 import skimage.morphology
+from shapely import LineString, Polygon, contains
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -137,10 +138,6 @@ def all_pairs(points: npt.NDArray) -> list[tuple[list, list]]:
     return list(unique_combinations.values())
 
 
-# snoop.install(enabled=True)
-
-
-# @snoop
 def rotating_calipers(points: npt.NDArray, axis: int = 0) -> Generator:
     """Given a list of 2d points, finds all ways of sandwiching the points between two parallel lines.
 
@@ -164,6 +161,7 @@ def rotating_calipers(points: npt.NDArray, axis: int = 0) -> Generator:
     upper_hull, lower_hull = hulls(points, axis)
     upper_index = 0
     lower_index = len(lower_hull) - 1
+    counter = 0
     while upper_index < len(upper_hull) - 1 or lower_index > 0:
         # yield upper_hull[upper_index], lower_hull[lower_index]
         calipers = (lower_hull[lower_index], upper_hull[upper_index])
@@ -195,13 +193,15 @@ def rotating_calipers(points: npt.NDArray, axis: int = 0) -> Generator:
             base1 = lower_hull[lower_index + 1]  # original lower caliper
             base2 = lower_hull[lower_index]  # previous point on lower hull
             apex = upper_hull[upper_index]  # original upper caliper
-        yield triangle_height(base1, base2, apex), calipers, [
-            list(_min_feret_coord(np.asarray(base1), np.asarray(base2), np.asarray(apex))),
-            apex,
-        ]
+        counter += 1
+        yield triangle_height(base1, base2, apex), calipers, np.asarray(
+            [
+                list(_min_feret_coord(np.asarray(base1), np.asarray(base2), np.asarray(apex))),
+                apex,
+            ]
+        )
 
 
-# @snoop
 def triangle_height(base1: npt.NDArray | list, base2: npt.NDArray | list, apex: npt.NDArray | list) -> float:
     """Calculate the height of triangle formed by three points.
 
@@ -224,9 +224,9 @@ def triangle_height(base1: npt.NDArray | list, base2: npt.NDArray | list, apex: 
     >>> min_feret([4, 0], [4, 3], [0,0])
         4.0
     """
-    a_b = np.asarray(base1) - np.asarray(base2)
-    a_c = np.asarray(base1) - np.asarray(apex)
-    return np.linalg.norm(np.cross(a_b, a_c)) / np.linalg.norm(a_b)
+    base1_base2 = np.asarray(base1) - np.asarray(base2)
+    base1_apex = np.asarray(base1) - np.asarray(apex)
+    return np.linalg.norm(np.cross(base1_base2, base1_apex)) / np.linalg.norm(base1_base2)
 
 
 def _min_feret_coord(
@@ -272,7 +272,83 @@ def _min_feret_coord(
     return np.asarray([d[0], d[1]])
 
 
-# @snoop
+def sort_clockwise(coordinates: npt.NDArray) -> npt.NDArray:
+    """Sort an array of coordinates in a clockwise order.
+
+    Parameters
+    ----------
+    coordinates : npt.NDArray
+        Unordered array of points. Typically a convex hull.
+
+    Returns
+    -------
+    npt.NDArray
+        Points ordered in a clockwise direction.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from topostats.measure import feret
+    >>> unordered = np.asarray([[0, 0], [5, 5], [0, 5], [5, 0]])
+    >>> feret.sort_clockwise(unordered)
+
+        array([[0, 0],
+               [0, 5],
+               [5, 5],
+               [5, 0]])
+    """
+    center_x, center_y = coordinates.mean(0)
+    x, y = coordinates.T
+    angles = np.arctan2(x - center_x, y - center_y)
+    order = np.argsort(angles)
+    return coordinates[order]
+
+
+def in_polygon(line: npt.NDArray, lower_hull: npt.NDArray, upper_hull: npt.NDArray) -> bool:
+    """Check whether a line is within or on the edge of a polygon.
+
+    If either or both of the line points the edges of the polygon this is considered to be within, but if one of the
+    points is outside of the polygon it is not contained within. Uses Shapely for most checks but it was found that if a
+    given  line was identical to one of the edges of the polygon it was considered to be outside and this is not the
+    desired behaviour as such lines, typically the height of triangles used when determining minimum feret distances,
+    are the values we wish to retain. It is only lines with points that are completely outside of the polygon that we
+    wish to exclude.
+
+    Parameters
+    ----------
+    line : npt.NDArray
+        Numpy array defining the coordinates of a single, linear line.
+    lower_hull : npt.NDArray
+        The lower convex hull.
+    upper_hull : npt.NDArray
+        The upper convex hull of the polygon.
+
+    Returns
+    -------
+    bool
+        Whether the line is contained within or is on the border of the polygon.
+    """
+    # Combine the upper and lower hulls
+    hull = np.unique(np.concatenate([lower_hull, upper_hull], axis=0), axis=0)
+    # Sort the hull and create Polygon (closes the shape for testing last edge)
+    polygon = Polygon(sort_clockwise(hull))
+    # Extract coordinates for comparison to line.
+    x, y = polygon.exterior.coords.xy
+    closed_shape = np.asarray(tuple(zip(x, y)))
+    # Check whether the line (notionally the triangle height) is equivalent to one of the edges. Required as Shapely
+    # returns False in such situations.
+    line = LineString(sort_clockwise(line))
+    length = len(closed_shape)
+    edge_count = 0
+    while edge_count < length - 1:
+        sorted_edge = sort_clockwise(closed_shape[edge_count : edge_count + 2])
+        edge = LineString(sorted_edge)
+        if list(line.coords) == list(edge.coords):
+            return True
+        edge_count += 1
+    return contains(polygon, line)
+
+
 def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
     """Given a list of 2-D points, returns the minimum and maximum feret diameters.
 
@@ -301,10 +377,14 @@ def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int,
         ((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2, (list(p), list(q))) for p, q in zip(caliper1, caliper2)
     ]
     max_feret_sq, max_feret_coord = max(squared_distance_per_pair)
-    # Determine minimum feret (and coordinates) from all caliper triangles
-    triangle_min_feret = [[x, (list(map(list, y)))] for x, y in zip(min_ferets, min_feret_coords)]
+    # Determine minimum feret (and coordinates) from all caliper triangles, but only if the min_feret_coords (y) are
+    # within the polygon
+    hull = hulls(points)
+    triangle_min_feret = [
+        [x, (list(map(list, y)))] for x, y in zip(min_ferets, min_feret_coords) if in_polygon(y, hull[0], hull[1])
+    ]
     min_feret, min_feret_coord = min(triangle_min_feret)
-    return min_feret, min_feret_coord, sqrt(max_feret_sq), max_feret_coord
+    return min_feret, np.asarray(min_feret_coord), sqrt(max_feret_sq), np.asarray(max_feret_coord)
 
 
 def get_feret_from_mask(mask_im: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
@@ -327,8 +407,7 @@ def get_feret_from_mask(mask_im: npt.NDArray, axis: int = 0) -> tuple[float, tup
     eroded = skimage.morphology.erosion(mask_im)
     outline = mask_im ^ eroded
     boundary_points = np.argwhere(outline > 0)
-    # convert numpy array to a list of (x,y) tuple points
-    boundary_point_list = list(map(list, list(boundary_points)))
+    boundary_point_list = np.asarray(list(map(list, list(boundary_points))))
     return min_max_feret(boundary_point_list, axis)
 
 
