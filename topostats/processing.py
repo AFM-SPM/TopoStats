@@ -420,7 +420,7 @@ def run_dnatracing(  # noqa: C901
             tracing_stats[direction]["threshold"] = direction
             ordered_traces = tracing_results["all_ordered_traces"]
             cropped_images: dict[int, np.ndarray] = tracing_results["cropped_images"]
-
+            
             grain_trace_data[direction] = {
                 "cropped_images": cropped_images,
                 "ordered_traces": tracing_results["all_ordered_traces"],
