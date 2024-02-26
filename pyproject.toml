@@ -49,6 +49,7 @@ dependencies = [
   "scikit-image",
   "scipy",
   "seaborn",
+  "shapely",
   "snoop",
   "tifffile",
   "topofileformats",
