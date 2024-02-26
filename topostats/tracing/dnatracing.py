@@ -1086,13 +1086,11 @@ def trace_image(
     dict
         Statistics from skeletonising and tracing the grains in the image.
     """
-    # Check both arrays are the same shape - should this be a test instead
+    # Check both arrays are the same shape - should this be a test instead, why should this ever occur?
     if image.shape != grains_mask.shape:
         raise ValueError(f"Image shape ({image.shape}) and Mask shape ({grains_mask.shape}) should match.")
 
     cropped_images, cropped_masks, bboxs = prep_arrays(image, grains_mask, pad_width)
-    region_properties = skimage_measure.regionprops(grains_mask)
-    grain_anchors = [grain_anchor(image.shape, list(grain.bbox), pad_width) for grain in region_properties]
     n_grains = len(cropped_images)
     img_base = np.zeros_like(image)
 
