@@ -14,6 +14,7 @@ import logging
 import warnings
 from collections.abc import Generator
 from math import sqrt
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -439,7 +440,7 @@ def get_feret_from_labelim(label_image: npt.NDArray, labels: None | list | set =
     return results
 
 
-def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals
+def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals # noqa: C901
     points: npt.NDArray,
     axis: int = 0,
     plot_points: str = "k",
@@ -448,6 +449,8 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals
     plot_triangle_heights: str = "b:",
     plot_min_feret: str = "m--",
     plot_max_feret: str = "m--",
+    filename: str | Path | None = "./feret.png",
+    show: bool = False,
 ) -> None:
     """Plot upper and lower convex hulls with rotating calipers and optionally the minimum feret distances.
 
@@ -476,6 +479,10 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals
         Format string for plotting the minimum feret. If 'None' the minimum feret is not plotted.
     plot_max_feret : str
         Format string for plotting the maximum feret. If 'None' the maximum feret is not plotted.
+    filename : str | Path | None
+        Location to save the image to.
+    show: bool
+        Whether to display the image.
 
     Examples
     --------
@@ -506,6 +513,8 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals
 
     >>> feret.plot_feret(another_triangle)
     """
+    # Derive everything needed regardless of required, routine is only for investigating/debugging so speed not
+    # critical.
     upper_hull, lower_hull = hulls(points)
     upper_hull = np.asarray(upper_hull)
     lower_hull = np.asarray(lower_hull)
@@ -517,6 +526,7 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals
     min_feret_coords = np.asarray(min_feret_coords)
     max_feret_coords = np.asarray(max_feret_coords)
 
+    fig, ax = plt.subplots(1, 1)
     if plot_points is not None:
         plt.scatter(points[:, 0], points[:, 1], c=plot_points)
     if plot_hulls is not None:
@@ -543,11 +553,16 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals
         plt.plot(
             max_feret_coords[:, 0],
             max_feret_coords[:, 1],
-            plot_min_feret,
+            plot_max_feret,
             label=f"Maximum Feret ({max_feret_distance:.3f})",
         )
     plt.title("Upper and Lower Convex Hulls")
     plt.axis("equal")
     plt.legend()
     plt.grid(True)
-    plt.show()
+    if filename is not None:
+        plt.savefig(filename)
+    if show:
+        plt.show()
+
+    return fig, ax

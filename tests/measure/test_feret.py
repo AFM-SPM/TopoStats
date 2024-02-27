@@ -1211,3 +1211,49 @@ def test_get_feret_from_labelim(shape: npt.NDArray, axis: int, target: dict) -> 
         np.testing.assert_equal(value[2], target[key][2])
         # Max Feret coordinates
         np.testing.assert_array_almost_equal(value[3], target[key][3])
+
+
+@pytest.mark.parametrize(
+    (
+        "shape",
+        "axis",
+        "plot_points",
+        "plot_hulls",
+        "plot_calipers",
+        "plot_triangle_heights",
+        "plot_min_feret",
+        "plot_max_feret",
+    ),
+    [
+        pytest.param(tiny_quadrilateral, 0, "k", ("g-", "r-"), "y-", "b:", "m--", "m--", id="Plot everything"),
+        pytest.param(tiny_quadrilateral, 0, None, ("g-", "r-"), "y-", "b:", "m--", "m--", id="Exclude points"),
+        pytest.param(tiny_quadrilateral, 0, "k", None, "y-", "b:", "m--", "m--", id="Exclude hull"),
+        pytest.param(tiny_quadrilateral, 0, "k", ("g-", "r-"), None, "b:", "m--", "m--", id="Exclude calipers"),
+        pytest.param(tiny_quadrilateral, 0, "k", ("g-", "r-"), "y-", None, "m--", "m--", id="Exclude triangle heights"),
+        pytest.param(tiny_quadrilateral, 0, "k", ("g-", "r-"), "y-", "b:", None, "m--", id="Exclude min feret"),
+        pytest.param(tiny_quadrilateral, 0, "k", ("g-", "r-"), "y-", "b:", "m--", None, id="Exclude max feret"),
+    ],
+)
+@pytest.mark.mpl_image_compare(baseline_dir="../resources/img/feret")
+def test_plot_feret(  # pylint: disable=too-many-arguments
+    shape: npt.NDArray,
+    axis: int,
+    plot_points: str | None,
+    plot_hulls: tuple | None,
+    plot_calipers: str | None,
+    plot_triangle_heights: str | None,
+    plot_min_feret: str | None,
+    plot_max_feret: str | None,
+) -> None:
+    """Tests the plotting function used for investigating whether feret distances are correct."""
+    fig, _ = feret.plot_feret(
+        np.argwhere(shape == 1),
+        axis,
+        plot_points,
+        plot_hulls,
+        plot_calipers,
+        plot_triangle_heights,
+        plot_min_feret,
+        plot_max_feret,
+    )
+    return fig
