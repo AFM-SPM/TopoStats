@@ -737,21 +737,6 @@ class dnaTrace(object):
                 d2x = d2x[length:2 * length]
                 d2y = d2y[length:2 * length]
             else:
-                # longlist = np.concatenate(
-                #     [np.flip(self.splined_traces[dna_num], 0), self.splined_traces[dna_num], np.flip(self.splined_traces[dna_num], 0)])
-                # longlist = np.concatenate(
-                #     [np.flip(self.splined_traces[dna_num], 0), self.splined_traces[dna_num],
-                #      np.flip(self.splined_traces[dna_num], 0)])
-                # dx = np.gradient(longlist, axis=0)[:, 0]
-                # dy = np.gradient(longlist, axis=0)[:, 1]
-                # d2x = np.gradient(dx)
-                # d2y = np.gradient(dy)
-                #
-                # dx = dx[length:2 * length]
-                # dy = dy[length:2 * length]
-                # d2x = d2x[length:2 * length]
-                # d2y = d2y[length:2 * length]
-
                 dx = np.gradient(self.simplified_splined_traces[dna_num], axis=0, edge_order=2)[:, 0]
                 dy = np.gradient(self.simplified_splined_traces[dna_num], axis=0, edge_order=2)[:, 1]
                 d2x = np.gradient(dx)
@@ -759,46 +744,45 @@ class dnaTrace(object):
 
             for i, (x, y) in enumerate(self.simplified_splined_traces[dna_num]):
                 # Extracts the coordinates for the required number of points and puts them in an array
-                if self.mol_is_circular[dna_num] or not self.mol_is_circular[dna_num]:
-                    # (self.neighbours < i < len(self.splined_traces[dna_num]) - self.neighbours)
-                    # for j in range(self.neighbours * 2 + 1):
-                    #     coordinates[0][j] = self.splined_traces[dna_num][i - j][0]
-                    #     coordinates[1][j] = self.splined_traces[dna_num][i - j][1]
-                    # gradients[0][j] = dx[i - j]
-                    # gradients[1][j] = dy[i - j]
-                    # dxmean[i] = np.mean(gradients[0])
-                    # dymean[i] = np.mean(gradients[1])
+                # (self.neighbours < i < len(self.splined_traces[dna_num]) - self.neighbours)
+                # for j in range(self.neighbours * 2 + 1):
+                #     coordinates[0][j] = self.splined_traces[dna_num][i - j][0]
+                #     coordinates[1][j] = self.splined_traces[dna_num][i - j][1]
+                # gradients[0][j] = dx[i - j]
+                # gradients[1][j] = dy[i - j]
+                # dxmean[i] = np.mean(gradients[0])
+                # dymean[i] = np.mean(gradients[1])
 
-                    # Calculates the angles for the tangent lines to the left and the right of the point
-                    # theta1 = math.atan((coordinates[1][self.neighbours] - coordinates[1][0]) / (
-                    #         coordinates[0][self.neighbours] - coordinates[0][0]))
-                    # theta2 = math.atan((coordinates[1][-1] - coordinates[1][self.neighbours]) / (
-                    #         coordinates[0][-1] - coordinates[0][self.neighbours]))
-                    #
-                    # left = coordinates[:, :self.neighbours + 1]
-                    # right = coordinates[:, -(self.neighbours + 1):]
-                    #
-                    # xa = np.mean(left[0])
-                    # ya = np.mean(left[1])
+                # Calculates the angles for the tangent lines to the left and the right of the point
+                # theta1 = math.atan((coordinates[1][self.neighbours] - coordinates[1][0]) / (
+                #         coordinates[0][self.neighbours] - coordinates[0][0]))
+                # theta2 = math.atan((coordinates[1][-1] - coordinates[1][self.neighbours]) / (
+                #         coordinates[0][-1] - coordinates[0][self.neighbours]))
+                #
+                # left = coordinates[:, :self.neighbours + 1]
+                # right = coordinates[:, -(self.neighbours + 1):]
+                #
+                # xa = np.mean(left[0])
+                # ya = np.mean(left[1])
 
-                    # xb = np.mean(right[0])
-                    # yb = np.mean(right[1])
+                # xb = np.mean(right[0])
+                # yb = np.mean(right[1])
 
-                    # Calculates the curvature using the change in angle divided by the distance
-                    # dist = math.hypot((xb - xa), (yb - ya))
-                    # dist_real = dist * self.pixel_size
-                    # curve.append([i, contour, (theta2 - theta1) / dist_real])
+                # Calculates the curvature using the change in angle divided by the distance
+                # dist = math.hypot((xb - xa), (yb - ya))
+                # dist_real = dist * self.pixel_size
+                # curve.append([i, contour, (theta2 - theta1) / dist_real])
 
-                    curvature_local = (d2x[i] * dy[i] - dx[i] * d2y[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
-                    curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
+                curvature_local = (d2x[i] * dy[i] - dx[i] * d2y[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
+                curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
 
-                    if i < (length - 1):
-                        contour = contour + math.hypot(
-                            (self.simplified_splined_traces[dna_num][(i + 1), 0] - self.simplified_splined_traces[dna_num][i, 0]),
-                            (self.simplified_splined_traces[dna_num][(i + 1), 1] - self.simplified_splined_traces[dna_num][i, 1])
-                            # (coordinates[0][self.neighbours] - coordinates[0][self.neighbours - 1]),
-                            # (coordinates[1][self.neighbours] - coordinates[1][self.neighbours - 1])
-                        )
+                if i < (length - 1):
+                    contour = contour + math.hypot(
+                        (self.simplified_splined_traces[dna_num][(i + 1), 0] - self.simplified_splined_traces[dna_num][i, 0]),
+                        (self.simplified_splined_traces[dna_num][(i + 1), 1] - self.simplified_splined_traces[dna_num][i, 1])
+                        # (coordinates[0][self.neighbours] - coordinates[0][self.neighbours - 1]),
+                        # (coordinates[1][self.neighbours] - coordinates[1][self.neighbours - 1])
+                    )
             curve = np.array(curve)
             # curvature_smoothed = scipy.ndimage.gaussian_filter(curve[:, 2], 10, mode='nearest')
             # curve[:, 2] = curvature_smoothed
