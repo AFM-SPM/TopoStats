@@ -5,6 +5,7 @@ Parses command-line arguments and passes input on to the relevant functions / mo
 
 import argparse as arg
 import sys
+from pathlib import Path
 
 from topostats import __version__
 from topostats.io import write_config_with_comments
@@ -39,6 +40,7 @@ def create_parser() -> arg.ArgumentParser:
         "-c",
         "--config-file",
         dest="config_file",
+        type=Path,
         required=False,
         help="Path to a YAML configuration file.",
     )
@@ -52,6 +54,7 @@ def create_parser() -> arg.ArgumentParser:
     process_parser.add_argument(
         "--matplotlibrc",
         dest="matplotlibrc",
+        type=Path,
         required=False,
         help="Path to a matplotlibrc file.",
     )
@@ -59,7 +62,7 @@ def create_parser() -> arg.ArgumentParser:
         "-b",
         "--base-dir",
         dest="base_dir",
-        type=str,
+        type=Path,
         required=False,
         help="Base directory to scan for images.",
     )
@@ -98,7 +101,7 @@ def create_parser() -> arg.ArgumentParser:
         "-o",
         "--output-dir",
         dest="output_dir",
-        type=str,
+        type=Path,
         required=False,
         help="Output directory to write results to.",
     )
@@ -151,6 +154,7 @@ def create_parser() -> arg.ArgumentParser:
         "-c",
         "--config-file",
         dest="config_file",
+        type=Path,
         required=False,
         help="Path to a YAML plotting dictionary that maps variable names to labels.",
     )
@@ -158,20 +162,21 @@ def create_parser() -> arg.ArgumentParser:
         "-l",
         "--var-to-label",
         dest="var_to_label",
+        type=Path,
         required=False,
         help="Path to a YAML plotting dictionary that maps variable names to labels.",
     )
     toposum_parser.add_argument(
         "--create-config-file",
         dest="create_config_file",
-        type=str,
+        type=Path,
         required=False,
         help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
     )
     toposum_parser.add_argument(
         "--create-label-file",
         dest="create_label_file",
-        type=str,
+        type=Path,
         required=False,
         help="Filename to write a sample YAML label file to (should end in '.yaml').",
     )
@@ -193,6 +198,7 @@ def create_parser() -> arg.ArgumentParser:
         "-c",
         "--config-file",
         dest="config_file",
+        type=Path,
         required=False,
         help="Path to a YAML configuration file.",
     )
@@ -206,6 +212,7 @@ def create_parser() -> arg.ArgumentParser:
         "-c",
         "--config-file",
         dest="config_file",
+        type=Path,
         required=False,
         help="Path to a YAML configuration file.",
     )
@@ -219,6 +226,7 @@ def create_parser() -> arg.ArgumentParser:
         "-c",
         "--config-file",
         dest="config_file",
+        type=Path,
         required=False,
         help="Path to a YAML configuration file.",
     )
@@ -232,6 +240,7 @@ def create_parser() -> arg.ArgumentParser:
         "-c",
         "--config-file",
         dest="config_file",
+        type=Path,
         required=False,
         help="Path to a YAML configuration file.",
     )
@@ -245,6 +254,7 @@ def create_parser() -> arg.ArgumentParser:
         "-c",
         "--config-file",
         dest="config_file",
+        type=Path,
         required=False,
         help="Path to a YAML configuration file.",
     )
@@ -258,6 +268,7 @@ def create_parser() -> arg.ArgumentParser:
         "-c",
         "--config-file",
         dest="config_file",
+        type=Path,
         required=False,
         help="Path to a YAML configuration file.",
     )
@@ -271,6 +282,7 @@ def create_parser() -> arg.ArgumentParser:
         "-f",
         "--filename",
         dest="filename",
+        type=Path,
         required=False,
         default="config.yaml",
         help="Name of YAML file to save configuration to (default 'config.yaml').",
@@ -279,6 +291,7 @@ def create_parser() -> arg.ArgumentParser:
         "-o",
         "--output-dir",
         dest="output_dir",
+        type=Path,
         required=False,
         default="./",
         help="Path to where the YAML file should be saved (default './' the current directory).",
@@ -287,6 +300,7 @@ def create_parser() -> arg.ArgumentParser:
         "-c",
         "--config",
         dest="config",
+        type=str,
         default=None,
         help="Configuration to use, currently only one is supported, the 'default'.",
     )
@@ -301,6 +315,7 @@ def create_parser() -> arg.ArgumentParser:
         "-f",
         "--filename",
         dest="filename",
+        type=Path,
         required=False,
         default="topostats.mplstyle",
         help="Name of file to save Matplotlibrc configuration to (default 'topostats.mplstyle').",
@@ -309,6 +324,7 @@ def create_parser() -> arg.ArgumentParser:
         "-o",
         "--output-dir",
         dest="output_dir",
+        type=Path,
         required=False,
         default="./",
         help="Path to where the YAML file should be saved (default './' the current directory).",
@@ -354,6 +370,7 @@ def create_legacy_run_topostats_parser() -> arg.ArgumentParser:
         "-c",
         "--config_file",
         dest="config_file",
+        type=Path,
         required=False,
         help="Path to a YAML configuration file.",
     )
@@ -361,6 +378,7 @@ def create_legacy_run_topostats_parser() -> arg.ArgumentParser:
         "-s",
         "--summary_config",
         dest="summary_config",
+        type=Path,
         required=False,
         help="Path to a YAML configuration file for summary plots and statistics.",
     )
@@ -368,7 +386,7 @@ def create_legacy_run_topostats_parser() -> arg.ArgumentParser:
         "-b",
         "--base_dir",
         dest="base_dir",
-        type=str,
+        type=Path,
         required=False,
         help="Base directory to scan for images.",
     )
@@ -407,7 +425,7 @@ def create_legacy_run_topostats_parser() -> arg.ArgumentParser:
         "-o",
         "--output_dir",
         dest="output_dir",
-        type=str,
+        type=Path,
         required=False,
         help="Output directory to write results to.",
     )
@@ -448,6 +466,7 @@ def create_legacy_toposum_parser() -> arg.ArgumentParser:
         "-c",
         "--config_file",
         dest="config_file",
+        type=Path,
         required=False,
         help="Path to a YAML configuration file.",
     )
@@ -455,20 +474,21 @@ def create_legacy_toposum_parser() -> arg.ArgumentParser:
         "-l",
         "--var_to_label",
         dest="var_to_label",
+        type=Path,
         required=False,
         help="Path to a YAML plotting dictionary that maps variable names to labels.",
     )
     parser.add_argument(
         "--create-config-file",
         dest="create_config_file",
-        type=str,
+        type=Path,
         required=False,
         help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
     )
     parser.add_argument(
         "--create-label-file",
         dest="create_label_file",
-        type=str,
+        type=Path,
         required=False,
         help="Filename to write a sample YAML label file to (should end in '.yaml').",
     )
