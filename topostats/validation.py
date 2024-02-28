@@ -260,6 +260,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config plotting.for 'axes', valid values are 'True' or 'False'",
             ),
             "cmap": Or(
+                str,
                 "afmhot",
                 "nanoscope",
                 "gwyddion",
@@ -752,6 +753,18 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "cmap": str,
+        },
+        "visual_crop": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
         },
         "visual": {
             "filename": str,

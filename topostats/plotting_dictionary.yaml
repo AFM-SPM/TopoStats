@@ -196,11 +196,16 @@ line_trace:
   title: "Heights of Crossing"
   image_type: "non-binary"
   cmap: "green_green"
+visual_crop:
+  title: "Visualised Molecule Crossings"
+  image_type: "non-binary"
+  mask_cmap: "blu_purp_green"
+  core_set: false
 visual:
   filename: "25-molecule_crossings"
   title: "Visualised Molecule Crossings"
   image_type: "non-binary"
-  mask_cmap: "blu_purp"
+  mask_cmap: "blu_purp_green"
   core_set: false
   dpi: 500
 single_mol:

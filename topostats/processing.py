@@ -102,7 +102,7 @@ def process_scan(
         filtered_image.filter_image()
 
         # Optionally plot filter stage
-        if plotting_config["run"]:
+        if False: #plotting_config["run"]:
             plotting_config.pop("run")
             LOGGER.info(f"[{filename}] : Plotting Filtering Images")
             # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
@@ -161,9 +161,8 @@ def process_scan(
                 )
                 if len(grains.region_properties[direction]) == 0:
                     LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
-        except Exception as e:
+        except Exception:
             LOGGER.error(f"[{filename}] : An error occured during grain finding, skipping grainstats and dnatracing.")
-            LOGGER.error(f"[{filename}] : The error: {e}")
             results = create_empty_dataframe()
             node_stats = {"above": {}, "below": {}}
         else:
@@ -171,7 +170,7 @@ def process_scan(
                 if len(region_props) == 0:
                     LOGGER.warning(f"[{filename}] : No grains found for the {direction} direction.")
             # Optionally plot grain finding stage if we have found grains and plotting is required
-            if plotting_config["run"]:
+            if False: #plotting_config["run"]:
                 plotting_config.pop("run")
                 LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
                 for direction, image_arrays in grains.directions.items():
@@ -193,20 +192,19 @@ def process_scan(
                         **plotting_config["plot_dict"]["coloured_boxes"],
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
-                    # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
-                    plot_name = "mask_overlay"
-                    plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
-                    Images(
-                        filtered_image.images["gaussian_filtered"],
-                        filename=f"{filename}_{direction}_masked",
-                        masked_array=grains.directions[direction]["removed_small_objects"],
-                        **plotting_config["plot_dict"][plot_name],
-                    ).plot_and_save()
-
                 plotting_config["run"] = True
             else:
                 LOGGER.info(f"[{filename}] : Plotting disabled for Grain Finding Images")
-
+            # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
+            plot_name = "mask_overlay"
+            plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
+            Images(
+                filtered_image.images["gaussian_filtered"],
+                filename=f"{filename}_{direction}_masked",
+                masked_array=grains.directions[direction]["removed_small_objects"],
+                **plotting_config["plot_dict"][plot_name],
+            ).plot_and_save()
+            #np.save(core_out_path / f"mask.npy", grains.directions[direction]["removed_small_objects"])
             # Grainstats :
             # Calculate statistics if required
             if grainstats_config["run"]:
@@ -271,20 +269,20 @@ def process_scan(
 
                 else:
                     # Run dnatracing
-                    # try:
+                    #try:
                     if dnatracing_config["run"]:
                         dnatracing_config.pop("run")
                         LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
                         tracing_stats = defaultdict()
                         node_stats = defaultdict()
-                        node_image_stats = defaultdict()
+                        node_stats_images = defaultdict()
                         images = defaultdict()
                         all_traces = defaultdict()
                         for direction, _ in grainstats.items():
                             (
                                 tracing_stats[direction],
                                 node_stats[direction],
-                                node_image_stats[direction],
+                                node_stats_images[direction],
                                 images[direction],
                                 all_traces[direction],
                             ) = trace_image(
@@ -314,36 +312,35 @@ def process_scan(
                         # Plot dnatracing images
                         LOGGER.info(f"[{filename}] : Plotting DNA Tracing Images")
                         output_dir = Path(dna_tracing_out_path / f"{direction}")
-                        print("UNIQ Plot: ", np.unique(images[direction]["skeleton"]))
                         plot_names = [
                             "orig_grains",
-                            "smoothed_grains",
-                            "orig_skeletons",
+                            #"smoothed_grains",
+                            #"orig_skeletons",
                             "pruned_skeletons",
-                            "nodes",
+                            #"nodes",
                             "visual",
-                            "ordered_trace",
-                            "fitted_trace",
+                            #"ordered_trace",
+                            #"fitted_trace",
                         ]
                         data2s = [
                             images[direction]["grain"],
-                            images[direction]["smoothed_grain"],
-                            images[direction]["skeleton"],
+                            #images[direction]["smoothed_grain"],
+                            #images[direction]["skeleton"],
                             images[direction]["pruned_skeleton"],
-                            images[direction]["node_img"],
+                            #images[direction]["node_img"],
                             images[direction]["visual"],
-                            images[direction]["ordered_traces"],
-                            images[direction]["fitted_traces"],
+                            #images[direction]["ordered_traces"],
+                            #images[direction]["fitted_traces"],
                         ]
                         for i, plot_name in enumerate(plot_names):
                             plotting_config["plot_dict"][plot_name]["output_dir"] = output_dir
                             plotting_config["plot_dict"][plot_name]["mask_cmap"] = "cyan"
                             if plot_name == "visual":
                                 plotting_config["plot_dict"]["visual"]["mask_cmap"] = "blu_purp_green"
-                            if plot_name == "ordered_trace":
-                                plotting_config["plot_dict"]["ordered_trace"]["mask_cmap"] = "viridis"
-                            if plot_name == "nodes":
-                                plotting_config["plot_dict"][plot_name]["mask_cmap"] = "cyan_black"
+                            #if plot_name == "ordered_trace":
+                            #    plotting_config["plot_dict"]["ordered_trace"]["mask_cmap"] = "viridis"
+                            #if plot_name == "nodes":
+                            #    plotting_config["plot_dict"][plot_name]["mask_cmap"] = "cyan_black"
                             Images(
                                 filtered_image.images["gaussian_filtered"],
                                 masked_array=data2s[i],
@@ -364,50 +361,61 @@ def process_scan(
                         # np.savetxt(f"{core_out_path}_{filename}_connect.txt", nodes.all_connected_nodes)
 
                         # plot nodes and line traces
-                        for mol_no, mol_stats in node_image_stats[direction].items():
+                        for mol_no, mol_stats in node_stats_images[direction].items():
                             if mol_stats is not None:
-                                for node_no, single_node_stats in mol_stats.items():
+                                for node_no, single_node_stats in mol_stats['nodes'].items():
                                     plotting_config["plot_dict"]["zoom_node"]["mask_cmap"] = "cyan_black"
                                     plotting_config["plot_dict"]["crossings"]["mask_cmap"] = "libby_blu_purp"
-                                    plotting_config["plot_dict"]["tripple_crossings"]["mask_cmap"] = "libby_blu_purp"
+                                    #plotting_config["plot_dict"]["tripple_crossings"]["mask_cmap"] = "libby_blu_purp"
                                     # plotting_config["plot_dict"]["zoom_node"]["z_range"] = [None, None]
                                     # plotting_config["plot_dict"]["crossings"]["z_range"] = [None, None]
                                     # plotting_config["plot_dict"]["tripple_crossings"]["z_range"] = [None, None]
                                     # plot node + skeleton
                                     Images(
-                                        single_node_stats["node_area_image"],
-                                        background=single_node_stats["node_area_grain"],
-                                        filename=f"mol_{mol_no}_node_{node_no}_crop",
+                                        mol_stats["grain"]["grain_image"],
+                                        background=mol_stats["grain"]["grain_mask"],
+                                        filename=f"{mol_no}_{node_no}_crop",
                                         output_dir=output_dir / "nodes",
                                         **plotting_config["plot_dict"]["zoom_node"],
                                     ).plot_and_save()
                                     Images(
-                                        single_node_stats["node_area_image"],
+                                        mol_stats["grain"]["grain_image"],
                                         masked_array=single_node_stats["node_area_skeleton"],
-                                        background=single_node_stats["node_area_grain"],
-                                        filename=f"mol_{mol_no}_node_{node_no}_node_area",
+                                        background=mol_stats["grain"]["grain_mask"],
+                                        filename=f"{mol_no}_{node_no}_node_area",
                                         output_dir=output_dir / "nodes",
                                         **plotting_config["plot_dict"]["zoom_node"],
                                     ).plot_and_save()
                                     # plot branch mask
                                     Images(
-                                        single_node_stats["node_area_image"],
+                                        mol_stats["grain"]["grain_image"],
                                         masked_array=single_node_stats["node_branch_mask"],
-                                        background=single_node_stats["node_area_grain"],
-                                        filename=f"mol_{mol_no}_node_{node_no}_crossings",
+                                        background=mol_stats["grain"]["grain_mask"],
+                                        filename=f"{mol_no}_{node_no}_crossings",
                                         output_dir=output_dir / "nodes",
                                         **plotting_config["plot_dict"]["crossings"],
                                     ).plot_and_save()
                                     # plot avg branch mask
                                     if single_node_stats["node_avg_mask"] is not None:
                                         Images(
-                                            single_node_stats["node_area_image"],
+                                            mol_stats["grain"]["grain_image"],
                                             masked_array=single_node_stats["node_avg_mask"],
-                                            background=single_node_stats["node_area_grain"],
-                                            filename=f"mol_{mol_no}_node_{node_no}_average_crossings",
+                                            background=mol_stats["grain"]["node_area_grain"],
+                                            filename=f"{mol_no}_{node_no}_average_crossings",
                                             output_dir=output_dir / "nodes",
                                             **plotting_config["plot_dict"]["tripple_crossings"],
                                         ).plot_and_save()
+                                # plot visual grain
+                                plotting_config["plot_dict"]["visual_crop"]["mask_cmap"] = "blu_purp_green"
+                                if mol_stats["grain"]["grain_visual_crossings"] is not None:
+                                    Images(
+                                        mol_stats["grain"]["grain_image"],
+                                        masked_array=mol_stats['grain']["grain_visual_crossings"],
+                                        background=mol_stats["grain"]["grain_mask"],
+                                        filename=f"{mol_no}_visual_crossings",
+                                        output_dir=output_dir / "nodes",
+                                        **plotting_config["plot_dict"]["visual_crop"],
+                                    ).plot_and_save()
 
                         for mol_no, mol_stats in node_stats[direction].items():
                             if mol_stats is not None:
@@ -419,7 +427,7 @@ def process_scan(
                                                 "title": "Heights of Crossing",
                                                 "cmap": "libby_blu_purp",
                                             }
-
+                                            
                                             fig, _ = plot_crossing_linetrace_halfmax(
                                                 single_node_stats["branch_stats"],
                                                 **plotting_config["plot_dict"]["line_trace"],
@@ -516,6 +524,7 @@ def process_scan(
                         results["basename"] = image_path.parent
                         node_stats = {"above": {}, "below": {}}
                     """
+                    
 
             else:
                 LOGGER.info(f"[{filename}] Calculation of grainstats disabled, returning empty data frame.")
