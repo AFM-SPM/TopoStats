@@ -12,7 +12,7 @@ from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import get_out_path, save_array, save_topostats_file
+from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME, setup_logger
 from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
 from topostats.statistics import image_statistics
@@ -104,13 +104,6 @@ def run_filters(
             filename=filename,
             **plotting_config["plot_dict"][plot_name],
         ).plot_and_save()
-        # Save the z_threshed image (aka "Height_Thresholded") numpy array
-        save_array(
-            array=filters.images["gaussian_filtered"],
-            outpath=core_out_path,
-            filename=filename,
-            array_type="height_thresholded",
-        )
 
         return filters.images["gaussian_filtered"]
 
