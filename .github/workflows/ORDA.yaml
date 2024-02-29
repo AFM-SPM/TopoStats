@@ -10,7 +10,7 @@ jobs:
       ARCHIVE_NAME: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}
     steps:
       - name: prepare-data-folder
-        run : mkdir 'data'
+        run: mkdir 'data'
       - name: download-archive
         run: |
           curl -sL "${{ github.event.release.zipball_url }}" > "$ARCHIVE_NAME".zip
@@ -20,9 +20,9 @@ jobs:
           mv "$ARCHIVE_NAME".zip data/
           mv "$ARCHIVE_NAME".tar.gz data/
       - name: upload-to-figshare
-        uses: figshare/github-upload-action@v1.1
+        uses: figshare/github-upload-action@v1
         with:
           FIGSHARE_TOKEN: ${{ secrets.FIGSHARE_TOKEN }}
-          FIGSHARE_ENDPOINT: 'https://api.figshare.com/v2'
+          FIGSHARE_ENDPOINT: "https://api.figshare.com/v2"
           FIGSHARE_ARTICLE_ID: 22633528
-          DATA_DIR: 'data'
+          DATA_DIR: "data"

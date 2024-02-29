@@ -1,4 +1,5 @@
 """Tests for tracing single molecules."""
+
 from pathlib import Path
 
 import numpy as np
@@ -88,8 +89,14 @@ def test_get_disordered_trace(
     dnatrace.get_disordered_trace()
     assert isinstance(dnatrace.disordered_trace, np.ndarray)
     assert len(dnatrace.disordered_trace) == length
-    np.testing.assert_array_equal(dnatrace.disordered_trace[0,], start)
-    np.testing.assert_array_equal(dnatrace.disordered_trace[-1,], end)
+    np.testing.assert_array_equal(
+        dnatrace.disordered_trace[0,],
+        start,
+    )
+    np.testing.assert_array_equal(
+        dnatrace.disordered_trace[-1,],
+        end,
+    )
 
 
 # Currently linear molecule isn't detected as linear, although it was when selecting and extracting in a Notebook
@@ -119,7 +126,7 @@ def test_linear_or_circular(dnatrace: dnaTrace, mol_is_circular: int) -> None:
 def test_get_ordered_traces(dnatrace: dnaTrace, length: int, start: np.array, end: np.array) -> None:
     """Test of the get_ordered_traces method.
 
-    Note the co-ordinates at the start and end differ from the fixtures for test_get_disordered_trace, but that the
+    Note the coordinates at the start and end differ from the fixtures for test_get_disordered_trace, but that the
     circular molecule starts and ends in the same place but the linear doesn't (even though it is currently reported as
     being circular!).
     """
@@ -129,8 +136,80 @@ def test_get_ordered_traces(dnatrace: dnaTrace, length: int, start: np.array, en
     dnatrace.get_ordered_traces()
     assert isinstance(dnatrace.ordered_trace, np.ndarray)
     assert len(dnatrace.ordered_trace) == length
-    np.testing.assert_array_equal(dnatrace.ordered_trace[0,], start)
-    np.testing.assert_array_almost_equal(dnatrace.ordered_trace[-1,], end)
+    np.testing.assert_array_equal(
+        dnatrace.ordered_trace[0,],
+        start,
+    )
+    np.testing.assert_array_almost_equal(
+        dnatrace.ordered_trace[-1,],
+        end,
+    )
+
+
+@pytest.mark.parametrize(
+    ("dnatrace", "length", "start", "end"),
+    [
+        (lazy_fixture("dnatrace_linear"), 118, 8.8224769e-10, 1.7610771e-09),
+        (lazy_fixture("dnatrace_circular"), 151, 2.5852866e-09, 2.5852866e-09),
+    ],
+)
+def test_get_ordered_trace_heights(dnatrace: dnaTrace, length: int, start: float, end: float) -> None:
+    """Test of the get_trace_heights method."""
+    dnatrace.gaussian_filter()
+    dnatrace.get_disordered_trace()
+    dnatrace.linear_or_circular(dnatrace.disordered_trace)
+    dnatrace.get_ordered_traces()
+    dnatrace.get_ordered_trace_heights()
+    assert isinstance(dnatrace.ordered_trace_heights, np.ndarray)
+    assert len(dnatrace.ordered_trace_heights) == length
+    assert dnatrace.ordered_trace_heights[0] == pytest.approx(start, abs=1e-12)
+    assert dnatrace.ordered_trace_heights[-1] == pytest.approx(end, abs=1e-12)
+
+
+@pytest.mark.parametrize(
+    ("dnatrace", "length", "start", "end"),
+    [
+        pytest.param(lazy_fixture("dnatrace_linear"), 118, 0.0, 6.8234101e-08, id="linear"),
+        pytest.param(lazy_fixture("dnatrace_circular"), 151, 0.0, 8.3513084e-08, id="circular"),
+    ],
+)
+def test_ordered_get_trace_cumulative_distances(dnatrace: dnaTrace, length: int, start: float, end: float) -> None:
+    """Test of the get_trace_cumulative_distances method."""
+    dnatrace.gaussian_filter()
+    dnatrace.get_disordered_trace()
+    dnatrace.linear_or_circular(dnatrace.disordered_trace)
+    dnatrace.get_ordered_traces()
+    dnatrace.get_ordered_trace_heights()
+    dnatrace.get_ordered_trace_cumulative_distances()
+    assert isinstance(dnatrace.ordered_trace_cumulative_distances, np.ndarray)
+    assert len(dnatrace.ordered_trace_cumulative_distances) == length
+    assert dnatrace.ordered_trace_cumulative_distances[0] == pytest.approx(start, abs=1e-11)
+    assert dnatrace.ordered_trace_cumulative_distances[-1] == pytest.approx(end, abs=1e-11)
+    # Check that the cumulative distance is always increasing
+    assert np.all(np.diff(dnatrace.ordered_trace_cumulative_distances) > 0)
+
+
+@pytest.mark.parametrize(
+    ("coordinate_list", "pixel_to_nm_scaling", "target_list"),
+    [
+        pytest.param(np.asarray([[1, 1], [1, 2]]), 1.0, np.asarray([0.0, 1.0]), id="Horizontal line; scaling 1.0"),
+        pytest.param(np.asarray([[1, 1], [1, 2]]), 0.5, np.asarray([0.0, 0.5]), id="Horizontal line; scaling 0.5"),
+        pytest.param(np.asarray([[1, 1], [2, 2]]), 1.0, np.asarray([0.0, np.sqrt(2)]), id="Diagonal line; scaling 1.0"),
+        pytest.param(
+            np.asarray([[1, 1], [2, 2], [3, 2], [4, 2], [4, 3]]),
+            1.0,
+            np.asarray([0.0, np.sqrt(2), np.sqrt(2) + 1.0, np.sqrt(2) + 2.0, np.sqrt(2) + 3.0]),
+            id="Complex line; scaling 1.0",
+        ),
+    ],
+)
+def test_coord_dist(coordinate_list: list, pixel_to_nm_scaling: float, target_list: list) -> None:
+    """Test of the coord_dist method."""
+    cumulative_distance_list = dnaTrace.coord_dist(coordinate_list, pixel_to_nm_scaling)
+
+    assert isinstance(cumulative_distance_list, np.ndarray)
+    assert cumulative_distance_list.shape[0] == target_list.shape[0]
+    np.testing.assert_array_almost_equal(cumulative_distance_list, target_list)
 
 
 @pytest.mark.parametrize(
@@ -150,8 +229,14 @@ def test_get_fitted_traces(dnatrace: dnaTrace, length: int, start: np.array, end
     dnatrace.get_fitted_traces()
     assert isinstance(dnatrace.fitted_trace, np.ndarray)
     assert len(dnatrace.fitted_trace) == length
-    np.testing.assert_array_equal(dnatrace.fitted_trace[0,], start)
-    np.testing.assert_array_almost_equal(dnatrace.fitted_trace[-1,], end)
+    np.testing.assert_array_equal(
+        dnatrace.fitted_trace[0,],
+        start,
+    )
+    np.testing.assert_array_almost_equal(
+        dnatrace.fitted_trace[-1,],
+        end,
+    )
 
 
 @pytest.mark.parametrize(
@@ -182,8 +267,14 @@ def test_get_splined_traces(dnatrace: dnaTrace, length: int, start: np.array, en
     dnatrace.get_splined_traces()
     assert isinstance(dnatrace.splined_trace, np.ndarray)
     assert len(dnatrace.splined_trace) == length
-    np.testing.assert_array_almost_equal(dnatrace.splined_trace[0,], start)
-    np.testing.assert_array_almost_equal(dnatrace.splined_trace[-1,], end)
+    np.testing.assert_array_almost_equal(
+        dnatrace.splined_trace[0,],
+        start,
+    )
+    np.testing.assert_array_almost_equal(
+        dnatrace.splined_trace[-1,],
+        end,
+    )
 
 
 @pytest.mark.parametrize(

@@ -1,26 +1,30 @@
 """Test end-to-end running of topostats."""
+
 from pathlib import Path
 
 import filetype
+import h5py
 import numpy as np
 import pandas as pd
 import pytest
+from test_io import dict_almost_equal
 
-from topostats.io import LoadScans
+from topostats.io import LoadScans, hdf5_to_dict
 from topostats.processing import (
     check_run_steps,
     process_scan,
+    run_dnatracing,
     run_filters,
     run_grains,
     run_grainstats,
-    run_dnatracing,
 )
 from topostats.utils import update_plotting_config
 
 BASE_DIR = Path.cwd()
+RESOURCES = BASE_DIR / "tests/resources"
 
 
-# Can't see a way of paramterising with pytest-regtest as it writes to a file based on the file/function
+# Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
 # so instead we run three regression tests.
 def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly."""
@@ -94,6 +98,22 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     print(img_stats.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
     print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
+    # Regtest for the topostats file
+    assert Path.exists(tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats")
+    with h5py.File(RESOURCES / "process_scan_topostats_file_regtest.topostats", "r") as f:
+        expected_topostats = hdf5_to_dict(f, group_path="/")
+    with h5py.File(tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats", "r") as f:
+        saved_topostats = hdf5_to_dict(f, group_path="/")
+
+    # Remove the image path as this differs on CI
+    expected_topostats.pop("img_path")
+    saved_topostats.pop("img_path")
+
+    # Check the keys, this will flag all new keys when adding output stats
+    assert expected_topostats.keys() == saved_topostats.keys()
+    # Check the data
+    assert dict_almost_equal(expected_topostats, saved_topostats)
+
 
 @pytest.mark.parametrize(
     ("image_set", "expected"),
@@ -108,7 +128,7 @@ def test_save_cropped_grains(
     """Tests if cropped grains are saved only when image set is 'all' rather than 'core'."""
     process_scan_config["plotting"]["image_set"] = image_set
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
-    process_scan_config["plotting"]["dpi"] = 50
+    process_scan_config["plotting"]["savefig_dpi"] = 50
 
     img_dic = load_scan_data.img_dict
     _, _, _ = process_scan(
@@ -152,7 +172,7 @@ def test_save_cropped_grains(
 def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path, extension: str):
     """Tests if save format applied to cropped images."""
     process_scan_config["plotting"]["image_set"] = "all"
-    process_scan_config["plotting"]["save_format"] = extension
+    process_scan_config["plotting"]["savefig_format"] = extension
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
 
     img_dic = load_scan_data.img_dict
@@ -482,7 +502,7 @@ def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
     mask_below = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
     grain_masks = {"above": mask_above, "below": mask_below}
 
-    dnatracing_df = run_dnatracing(
+    dnatracing_df, grain_trace_data = run_dnatracing(
         image=flattened_image,
         grain_masks=grain_masks,
         pixel_to_nm_scaling=0.4940029296875,
@@ -495,6 +515,8 @@ def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
         results_df=pd.read_csv("./tests/resources/minicircle_cropped_grainstats.csv"),
     )
 
+    assert isinstance(grain_trace_data, dict)
+    assert list(grain_trace_data.keys()) == ["above", "below"]
     assert isinstance(dnatracing_df, pd.DataFrame)
     assert dnatracing_df.shape[0] == 13
     assert len(dnatracing_df.columns) == 26

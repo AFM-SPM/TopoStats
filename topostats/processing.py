@@ -1,5 +1,7 @@
-"""Functions for procesing data."""
+"""Functions for processing data."""
+
 from __future__ import annotations
+
 from collections import defaultdict
 from pathlib import Path
 
@@ -10,12 +12,12 @@ from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import get_out_path, save_array, save_topostats_file
-from topostats.logs.logs import setup_logger, LOGGER_NAME
+from topostats.io import get_out_path, save_topostats_file
+from topostats.logs.logs import LOGGER_NAME, setup_logger
 from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
+from topostats.statistics import image_statistics
 from topostats.tracing.dnatracing import trace_image
 from topostats.utils import create_empty_dataframe
-from topostats.statistics import image_statistics
 
 # pylint: disable=broad-except
 # pylint: disable=line-too-long
@@ -102,13 +104,6 @@ def run_filters(
             filename=filename,
             **plotting_config["plot_dict"][plot_name],
         ).plot_and_save()
-        # Save the z_threshed image (aka "Height_Thresholded") numpy array
-        save_array(
-            array=filters.images["gaussian_filtered"],
-            outpath=core_out_path,
-            filename=filename,
-            array_type="height_thresholded",
-        )
 
         return filters.images["gaussian_filtered"]
 
@@ -177,7 +172,7 @@ def run_grains(  # noqa: C901
                 if len(grains.region_properties[direction]) == 0:
                     LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
         except Exception as e:
-            LOGGER.error(f"[{filename}] : An error occured during grain finding, skipping grainstats and dnatracing.")
+            LOGGER.error(f"[{filename}] : An error occurred during grain finding, skipping grainstats and dnatracing.")
             LOGGER.error(f"[{filename}] : The error: {e}")
         else:
             for direction, region_props in grains.region_properties.items():
@@ -381,7 +376,7 @@ def run_dnatracing(  # noqa: C901
     grain_out_path: Path
         Directory to save optional dna tracing visual information to.
     dna_tracing_config: dict
-        Dictionary configruation for the dna tracing function.
+        Dictionary configuration for the dna tracing function.
     plotting_config: dict
         Dictionary configuration for plotting images.
     results_df: pd.DataFrame
@@ -399,10 +394,12 @@ def run_dnatracing(  # noqa: C901
 
     # Run dnatracing
     try:
+        grain_trace_data = None
         if dnatracing_config["run"]:
             dnatracing_config.pop("run")
             LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
             tracing_stats = defaultdict()
+            grain_trace_data = defaultdict()
             for direction, _ in grain_masks.items():
                 tracing_results = trace_image(
                     image=image,
@@ -412,10 +409,18 @@ def run_dnatracing(  # noqa: C901
                     **dnatracing_config,
                 )
                 tracing_stats[direction] = tracing_results["statistics"]
-                ordered_traces = tracing_results["ordered_traces"]
-                cropped_images = tracing_results["cropped_images"]
+                ordered_traces = tracing_results["all_ordered_traces"]
+                cropped_images: dict[int, np.ndarray] = tracing_results["all_cropped_images"]
                 image_spline_trace = tracing_results["image_spline_trace"]
                 tracing_stats[direction]["threshold"] = direction
+
+                grain_trace_data[direction] = {
+                    "ordered_traces": ordered_traces,
+                    "cropped_images": cropped_images,
+                    "ordered_trace_heights": tracing_results["all_ordered_trace_heights"],
+                    "ordered_trace_cumulative_distances": tracing_results["all_ordered_trace_cumulative_distances"],
+                    "splined_traces": tracing_results["all_splined_traces"],
+                }
 
                 # Plot traces for the whole image
                 Images(
@@ -428,7 +433,8 @@ def run_dnatracing(  # noqa: C901
 
                 # Plot traces on each grain individually
                 if plotting_config["image_set"] == "all":
-                    for grain_index, (grain_trace, cropped_image) in enumerate(zip(ordered_traces, cropped_images)):
+                    for grain_index, grain_trace in ordered_traces.items():
+                        cropped_image = cropped_images[grain_index]
                         grain_trace_mask = np.zeros(cropped_image.shape)
                         # Grain traces can be None if they do not trace successfully. Eg if they are too small.
                         if grain_trace is not None:
@@ -458,14 +464,14 @@ def run_dnatracing(  # noqa: C901
             results = results_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left")
             results["basename"] = image_path.parent
 
-            return results
+            return results, grain_trace_data
 
         # Otherwise, return the passed in dataframe and warn that tracing is disabled
         LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
         results = results_df
         results["basename"] = image_path.parent
 
-        return results
+        return results, grain_trace_data
 
     except Exception:
         # If no results we need a dummy dataframe to return.
@@ -474,8 +480,8 @@ def run_dnatracing(  # noqa: C901
         )
         results = results_df
         results["basename"] = image_path.parent
-
-        return results
+        grain_trace_data = None
+        return results, grain_trace_data
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
@@ -604,7 +610,7 @@ def process_scan(
         )
 
         # DNAtracing
-        results_df = run_dnatracing(
+        results_df, grain_trace_data = run_dnatracing(
             image=topostats_object["image_flattened"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
@@ -616,6 +622,9 @@ def process_scan(
             dnatracing_config=dnatracing_config,
             results_df=results_df,
         )
+
+        # Add grain trace data to topostats object
+        topostats_object["grain_trace_data"] = grain_trace_data
 
     else:
         results_df = create_empty_dataframe()
@@ -717,9 +726,9 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
         f"  File Extension              : {config['file_ext']}\n"
         f"  Files Found                 : {len(img_files)}\n"
         f"  Successfully Processed^1    : {images_processed} ({(images_processed * 100) / len(img_files)}%)\n"
-        f"  Configuration               : {config['output_dir']}/config.yaml\n"
         f"  All statistics              : {str(config['output_dir'])}/all_statistics.csv\n"
         f"  Distribution Plots          : {distribution_plots_message}\n\n"
+        f"  Configuration               : {config['output_dir']}/config.yaml\n\n"
         f"  Email                       : topostats@sheffield.ac.uk\n"
         f"  Documentation               : https://afm-spm.github.io/topostats/\n"
         f"  Source Code                 : https://github.com/AFM-SPM/TopoStats/\n"

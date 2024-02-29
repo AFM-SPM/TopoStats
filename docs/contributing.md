@@ -45,7 +45,7 @@ that shows who has worked on the branch, the issue it pertains to and a short de
 will see branches with the form `<GITHUB_USERNAME>/<GITHUB_ISSUE>-<DESCRIPTION>`. Some examples are shown below...
 
 | Branch                                | User                                                | Issue                                                  | Description                                                                              |
-|:--------------------------------------|:----------------------------------------------------|:-------------------------------------------------------|:-----------------------------------------------------------------------------------------|
+| :------------------------------------ | :-------------------------------------------------- | :----------------------------------------------------- | :--------------------------------------------------------------------------------------- |
 | `ns-rse/259-contributing`             | [`ns-rse`](https://github.com/ns-rse)               | [259](https://github.com/AFM-SPM/TopoStats/issues/259) | `contributing` short for the issue subject _Add contributing section to documentation_.  |
 | `SylviaWhittle/204-nanometre-scaling` | [`SylviaWhittle`](https://github.com/SylviaWhittle) | [204](https://github.com/AFM-SPM/TopoStats/issues/259) | `nanometre-scaling` short for the issue subject _Colour scale in nanometers not pixels_. |
 
@@ -142,6 +142,12 @@ expected. The [pytest](https://docs.pytest.org/en/latest/) framework is used for
 plugins ([pytest-regtest](https://gitlab.com/uweschmitt/pytest-regtest) for regression testing;
 [pytest-mpl](https://github.com/matplotlib/pytest-mpl) for testing generated Matplotlib images).
 
+## Debugging
+
+To aid with debugging we include the [snoop](https://github.com/alexmojaki/snoop) package. The package is disabled by
+default, but when you have a class, method or function you wish to debug you should add `snoop.install(enabled=True)` to
+the file you wish to debug and use the `@snoop` decorator around the function/method you wish to debug.
+
 ## Configuration
 
 As described in [Parameter Configuration](configuration) options are primarily passed to TopoStats via a
@@ -149,8 +155,8 @@ As described in [Parameter Configuration](configuration) options are primarily p
 have to ensure that the default configuration file (`topostats/default.yaml`) is updated to include your options.
 
 Further the `topostats.validation.validate.config()` function, which checks a valid configuration file with all necessary
-fields has been passed when invoking `run_topostats`, will also need updating to include new options in the Schema against
-which validation of configuration files is made.
+fields has been passed when invoking `topostats` sub-commands, will also need updating to include new options in the
+Schema against which validation of configuration files is made.
 
 ### IDE Configuration
 
@@ -159,9 +165,9 @@ formatting is applied on saving a file or the code is analysed with `pylint` on 
 and configuring IDEs to work in this manner is beyond the scope of this document but some links to articles on how to do
 so are provided.
 
-* [Linting Python in Visual Studio Code](https://code.visualstudio.com/docs/python/linting)
-* [Code Analysis — Spyder](http://docs.spyder-ide.org/current/panes/pylint.html) for `pylint` for Black see [How to use
+- [Linting Python in Visual Studio Code](https://code.visualstudio.com/docs/python/linting)
+- [Code Analysis — Spyder](http://docs.spyder-ide.org/current/panes/pylint.html) for `pylint` for Black see [How to use
   code formatter Black with Spyder](https://stackoverflow.com/a/66458706).
-* [Code Quality Assistance Tips and Tricks, or How to Make Your Code Look Pretty? |
+- [Code Quality Assistance Tips and Tricks, or How to Make Your Code Look Pretty? |
   PyCharm](https://www.jetbrains.com/help/pycharm/tutorial-code-quality-assistance-tips-and-tricks.html#525ee883)
-* [Reformat and rearrange code | PyCharm](https://www.jetbrains.com/help/pycharm/reformat-and-rearrange-code.html)
+- [Reformat and rearrange code | PyCharm](https://www.jetbrains.com/help/pycharm/reformat-and-rearrange-code.html)

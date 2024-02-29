@@ -3,12 +3,15 @@
 Parses command-line arguments and passes input on to the relevant functions / modules.
 """
 
-import sys
 import argparse as arg
+import sys
 
 from topostats import __version__
-from topostats.run_topostats import run_topostats
+from topostats.io import write_config_with_comments
 from topostats.plotting import run_toposum
+from topostats.run_topostats import run_topostats
+
+# pylint: disable=too-many-statements
 
 
 def create_parser() -> arg.ArgumentParser:
@@ -26,28 +29,22 @@ def create_parser() -> arg.ArgumentParser:
 
     subparsers = parser.add_subparsers(title="program", description="Available programs, listed below:", dest="program")
 
-    # run_topostats parser
+    # Create a sub-parsers for different stages of processing and tasks
     process_parser = subparsers.add_parser(
         "process",
-        description="Process AFM images. Additional arguments over-ride those in the configuration file.",
-        help="Process AFM images. Additional arguments over-ride those in the configuration file.",
+        description="Process AFM images. Additional arguments over-ride defaults or those in the configuration file.",
+        help="Process AFM images. Additional arguments over-ride defaults or those in the configuration file.",
     )
     process_parser.add_argument(
         "-c",
-        "--config_file",
+        "--config-file",
         dest="config_file",
         required=False,
         help="Path to a YAML configuration file.",
     )
     process_parser.add_argument(
-        "--create_config_file",
-        dest="create_config_file",
-        required=False,
-        help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
-    )
-    process_parser.add_argument(
         "-s",
-        "--summary_config",
+        "--summary-config",
         dest="summary_config",
         required=False,
         help="Path to a YAML configuration file for summary plots and statistics.",
@@ -60,7 +57,7 @@ def create_parser() -> arg.ArgumentParser:
     )
     process_parser.add_argument(
         "-b",
-        "--base_dir",
+        "--base-dir",
         dest="base_dir",
         type=str,
         required=False,
@@ -76,7 +73,7 @@ def create_parser() -> arg.ArgumentParser:
     )
     process_parser.add_argument(
         "-l",
-        "--log_level",
+        "--log-level",
         dest="log_level",
         type=str,
         required=False,
@@ -84,7 +81,7 @@ def create_parser() -> arg.ArgumentParser:
     )
     process_parser.add_argument(
         "-f",
-        "--file_ext",
+        "--file-ext",
         dest="file_ext",
         type=str,
         required=False,
@@ -99,18 +96,39 @@ def create_parser() -> arg.ArgumentParser:
     )
     process_parser.add_argument(
         "-o",
-        "--output_dir",
+        "--output-dir",
         dest="output_dir",
         type=str,
         required=False,
         help="Output directory to write results to.",
     )
     process_parser.add_argument(
-        "--save_plots",
+        "--save-plots",
         dest="save_plots",
         type=bool,
         required=False,
         help="Whether to save plots.",
+    )
+    process_parser.add_argument(
+        "--savefig-format",
+        dest="savefig_format",
+        type=str,
+        required=False,
+        help="Format for saving figures to, options are 'png', 'svg', or other valid Matplotlib supported formats.",
+    )
+    process_parser.add_argument(
+        "--savefig-dpi",
+        dest="savefig_dpi",
+        type=int,
+        required=False,
+        help="Dots Per Inch for plots, should be integer for dots per inch.",
+    )
+    process_parser.add_argument(
+        "--cmap",
+        dest="cmap",
+        type=str,
+        required=False,
+        help="Colormap to use, options include 'nanoscope', 'afmhot' and any valid Matplotlib colormap.",
     )
     process_parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
     process_parser.add_argument(
@@ -123,7 +141,6 @@ def create_parser() -> arg.ArgumentParser:
     )
     process_parser.set_defaults(func=run_topostats)
 
-    # toposum parser
     toposum_parser = subparsers.add_parser(
         "summary",
         description="Plotting and summary of TopoStats output statistics.",
@@ -132,14 +149,14 @@ def create_parser() -> arg.ArgumentParser:
     toposum_parser.add_argument("-i", "--input_csv", dest="csv_file", required=False, help="Path to CSV file to plot.")
     toposum_parser.add_argument(
         "-c",
-        "--config_file",
+        "--config-file",
         dest="config_file",
         required=False,
         help="Path to a YAML plotting dictionary that maps variable names to labels.",
     )
     toposum_parser.add_argument(
         "-l",
-        "--var_to_label",
+        "--var-to-label",
         dest="var_to_label",
         required=False,
         help="Path to a YAML plotting dictionary that maps variable names to labels.",
@@ -158,7 +175,152 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Filename to write a sample YAML label file to (should end in '.yaml').",
     )
+    toposum_parser.add_argument(
+        "--savefig-format",
+        dest="savefig_format",
+        type=str,
+        required=False,
+        help="Format for saving figures to, options are 'png', 'svg', or other valid Matplotlib supported formats.",
+    )
     toposum_parser.set_defaults(func=run_toposum)
+
+    load_parser = subparsers.add_parser(
+        "load",
+        description="Load and save all images as .topostats files for subsequent processing.",
+        help="Load and save all images as .topostats files for subsequent processing.",
+    )
+    load_parser.add_argument(
+        "-c",
+        "--config-file",
+        dest="config_file",
+        required=False,
+        help="Path to a YAML configuration file.",
+    )
+
+    filter_parser = subparsers.add_parser(
+        "filter",
+        description="Load and filter images, saving as .topostats files for subsequent processing.",
+        help="Load and filter images, saving as .topostats files for subsequent processing.",
+    )
+    filter_parser.add_argument(
+        "-c",
+        "--config-file",
+        dest="config_file",
+        required=False,
+        help="Path to a YAML configuration file.",
+    )
+
+    grain_parser = subparsers.add_parser(
+        "grains",
+        description="Load filtered images from '.topostats' files and detect grains.",
+        help="Load filtered images from '.topostats' files and detect grains.",
+    )
+    grain_parser.add_argument(
+        "-c",
+        "--config-file",
+        dest="config_file",
+        required=False,
+        help="Path to a YAML configuration file.",
+    )
+
+    grainstats_parser = subparsers.add_parser(
+        "grainstats",
+        description="Load images with grains from '.topostats' files and calculate statistics.",
+        help="Load images with grains from '.topostats' files and calculate statistics.",
+    )
+    grainstats_parser.add_argument(
+        "-c",
+        "--config-file",
+        dest="config_file",
+        required=False,
+        help="Path to a YAML configuration file.",
+    )
+
+    dnatracing_parser = subparsers.add_parser(
+        "dnatracing",
+        description="Load images with grains from '.topostats' files and trace DNA molecules.",
+        help="Load images with grains from '.topostats' files and trace DNA molecules.",
+    )
+    dnatracing_parser.add_argument(
+        "-c",
+        "--config-file",
+        dest="config_file",
+        required=False,
+        help="Path to a YAML configuration file.",
+    )
+
+    tracingstats_parser = subparsers.add_parser(
+        "tracingstats",
+        description="Load images with grains from '.topostats' files and trace DNA molecules.",
+        help="Load images with grains from '.topostats' files and trace DNA molecules.",
+    )
+    tracingstats_parser.add_argument(
+        "-c",
+        "--config-file",
+        dest="config_file",
+        required=False,
+        help="Path to a YAML configuration file.",
+    )
+
+    create_config_parser = subparsers.add_parser(
+        "create-config",
+        description="Create a configuration file using the defaults.",
+        help="Create a configuration file using the defaults.",
+    )
+    create_config_parser.add_argument(
+        "-f",
+        "--filename",
+        dest="filename",
+        required=False,
+        default="config.yaml",
+        help="Name of YAML file to save configuration to (default 'config.yaml').",
+    )
+    create_config_parser.add_argument(
+        "-o",
+        "--output-dir",
+        dest="output_dir",
+        required=False,
+        default="./",
+        help="Path to where the YAML file should be saved (default './' the current directory).",
+    )
+    create_config_parser.add_argument(
+        "-c",
+        "--config",
+        dest="config",
+        default=None,
+        help="Configuration to use, currently only one is supported, the 'default'.",
+    )
+    create_config_parser.set_defaults(func=write_config_with_comments)
+
+    create_matplotlibrc_parser = subparsers.add_parser(
+        "create-matplotlibrc",
+        description="Create a Matplotlibrc parameters file.",
+        help="Create a Matplotlibrc parameters file using the defaults.",
+    )
+    create_matplotlibrc_parser.add_argument(
+        "-f",
+        "--filename",
+        dest="filename",
+        required=False,
+        default="topostats.mplstyle",
+        help="Name of file to save Matplotlibrc configuration to (default 'topostats.mplstyle').",
+    )
+    create_matplotlibrc_parser.add_argument(
+        "-o",
+        "--output-dir",
+        dest="output_dir",
+        required=False,
+        default="./",
+        help="Path to where the YAML file should be saved (default './' the current directory).",
+    )
+    create_matplotlibrc_parser.add_argument(
+        "-c",
+        "--config",
+        dest="config",
+        default="topostats.mplstyle",
+        help="Matplotlibrc style file to use, currently only one is supported, the 'topostats.mplstyle'.",
+    )
+    create_matplotlibrc_parser.set_defaults(func=write_config_with_comments)
 
     return parser
 
@@ -168,8 +330,9 @@ def entry_point(manually_provided_args=None, testing=False) -> None:
     # Parse command line options, load config (or default) and update with command line options
     parser = create_parser()
     args = parser.parse_args() if manually_provided_args is None else parser.parse_args(manually_provided_args)
+
+    # No program specified, print help and exit
     if not args.program:
-        # no program specified, print help and exit
         parser.print_help()
         sys.exit()
 
@@ -193,13 +356,6 @@ def create_legacy_run_topostats_parser() -> arg.ArgumentParser:
         dest="config_file",
         required=False,
         help="Path to a YAML configuration file.",
-    )
-    parser.add_argument(
-        "--create-config-file",
-        dest="create_config_file",
-        type=str,
-        required=False,
-        help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
     )
     parser.add_argument(
         "-s",

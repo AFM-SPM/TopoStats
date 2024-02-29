@@ -1,4 +1,5 @@
 """Perform DNA Tracing"""
+
 from collections import OrderedDict
 from functools import partial
 from itertools import repeat
@@ -23,6 +24,7 @@ from tqdm import tqdm
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.skeletonize import get_skeleton
 from topostats.tracing.tracingfuncs import genTracingFuncs, getSkeleton, reorderTrace
+from topostats.utils import bound_padded_coordinates_to_image
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -129,7 +131,10 @@ class dnaTrace:
 
         self.neighbours = 5  # The number of neighbours used for the curvature measurement
 
-        # supresses scipy splining warnings
+        self.ordered_trace_heights = None
+        self.ordered_trace_cumulative_distances = None
+
+        # suppresses scipy splining warnings
         warnings.filterwarnings("ignore")
 
         LOGGER.debug(f"[{self.filename}] Performing DNA Tracing")
@@ -143,6 +148,8 @@ class dnaTrace:
         elif len(self.disordered_trace) >= self.min_skeleton_size:
             self.linear_or_circular(self.disordered_trace)
             self.get_ordered_traces()
+            self.get_ordered_trace_heights()
+            self.get_ordered_trace_cumulative_distances()
             self.linear_or_circular(self.ordered_trace)
             self.get_fitted_traces()
             self.get_splined_traces()
@@ -157,6 +164,86 @@ class dnaTrace:
         """Apply Gaussian filter"""
         self.gauss_image = gaussian(self.image, sigma=self.sigma, **kwargs)
         LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Gaussian filter applied.")
+
+    def get_ordered_trace_heights(self) -> None:
+        """
+         Populate the `trace_heights` attribute with an array of pixel heights from the ordered trace.
+         `self.ordered_trace` list.
+
+        Gets the heights of each pixel in the ordered trace from the gaussian filtered image. The pixel coordinates
+        for the ordered trace are stored in the ordered trace list as part of the class.
+
+         Parameters
+         ----------
+         None
+
+         Returns
+         -------
+         None
+        """
+
+        self.ordered_trace_heights = np.array(self.gauss_image[self.ordered_trace[:, 0], self.ordered_trace[:, 1]])
+
+    def get_ordered_trace_cumulative_distances(self) -> None:
+        """
+        Populate the `self.trace_distances` attribute with a list of the cumulative distances of
+        each pixel in the `self.ordered_trace` list.
+        Parameters
+        ----------
+        None
+        Returns
+        -------
+        None
+        """
+
+        # Get the cumulative distances of each pixel in the ordered trace from the gaussian filtered image
+        # the pixel coordinates are stored in the ordered trace list.
+        self.ordered_trace_cumulative_distances = self.coord_dist(
+            coordinates=self.ordered_trace, px_to_nm=self.pixel_to_nm_scaling
+        )
+
+    @staticmethod
+    def coord_dist(coordinates: np.ndarray, px_to_nm: float) -> np.ndarray:
+        """
+        Returns a list of the cumulative real distances between each pixel in a trace.
+        Take a Nx2 numpy array of (grid adjacent) coordinates and produce a list of cumulative distances in
+        nanometres, travelling from pixel to pixel. 1D example: coordinates: [0, 0], [0, 1], [1, 1], [2, 2] cumulative
+        distances: [0, 1, 2, 3.4142]. Counts diagonal connections as 1.4142 distance. Converts distances from
+        pixels to nanometres using px_to_nm scaling factor.
+        Note that the pixels have to be adjacent.
+        Parameters
+        ----------
+        coords: np.ndarray
+            A Nx2 integer array of coordinates of the pixels of a trace from a binary trace image.
+        px_to_nm: float
+            Pixel to nanometre scaling factor to allow for real length measurements of distances rather
+            than pixels.
+        Returns
+        -------
+        np.ndarray
+            Numpy array of length N containing the cumulative sum of distances (0 at the first entry,
+            full molecule length at the last entry)
+        """
+
+        # Shift the array by one coordinate so the end is at the start and the second to last is at the end
+        # this allows for the calculation of the distance between each pixel by subtracting the shifted array
+        # from the original array
+        rolled_coords = np.roll(coordinates, 1, axis=0)
+
+        # Calculate the distance between each pixel in the trace
+        pixel_diffs = coordinates - rolled_coords
+        pixel_distances = np.linalg.norm(pixel_diffs, axis=1)
+
+        # Set the first distance to zero since we don't want to count the distance from the last pixel to the first
+        pixel_distances[0] = 0
+
+        # Calculate the cumulative sum of the distances
+        cumulative_distances = np.cumsum(pixel_distances)
+
+        # Convert the cumulative distances from pixels to nanometres
+        cumulative_distances_nm = cumulative_distances * px_to_nm
+
+        return cumulative_distances_nm
 
     def get_disordered_trace(self):
         """Create a skeleton for each of the grains in the image.
@@ -241,20 +328,12 @@ class dnaTrace:
         for coord_num, trace_coordinate in enumerate(individual_skeleton):
             height_values = None
 
-            # Block of code to prevent indexing outside image limits
-            # e.g. indexing self.gauss_image[130, 130] for 128x128 image
-            if trace_coordinate[0] < 0:
-                # prevents negative number indexing
-                # i.e. stops (trace_coordinate - index_width) < 0
-                trace_coordinate[0] = index_width
-            elif trace_coordinate[0] >= (self.number_of_rows - index_width):
-                # prevents indexing above image range causing IndexError
-                trace_coordinate[0] = self.number_of_rows - index_width
-            # do same for y coordinate
-            elif trace_coordinate[1] < 0:
-                trace_coordinate[1] = index_width
-            elif trace_coordinate[1] >= (self.number_of_columns - index_width):
-                trace_coordinate[1] = self.number_of_columns - index_width
+            # Ensure that padding will not exceed the image boundaries
+            trace_coordinate = bound_padded_coordinates_to_image(
+                coordinates=trace_coordinate,
+                padding=index_width,
+                image_shape=(self.number_of_rows, self.number_of_columns),
+            )
 
             # calculate vector to n - 2 coordinate in trace
             if self.mol_is_circular:
@@ -303,7 +382,7 @@ class dnaTrace:
                 y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
                 x_coords = np.full(len(y_coords), trace_coordinate[0])
 
-            # Use the perp array to index the guassian filtered image
+            # Use the perp array to index the gaussian filtered image
             perp_array = np.column_stack((x_coords, y_coords))
             try:
                 height_values = self.gauss_image[perp_array[:, 0], perp_array[:, 1]]
@@ -788,11 +867,14 @@ def trace_image(
     grain_anchors = [grain_anchor(image.shape, list(grain.bbox), pad_width) for grain in region_properties]
     n_grains = len(cropped_images)
     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
-    n_grain = 0
     results = {}
-    ordered_traces = []
-    splined_traces = []
-    for cropped_image, cropped_mask in zip(cropped_images, cropped_masks):
+    ordered_traces = {}
+    splined_traces = {}
+    all_ordered_trace_heights = {}
+    all_ordered_trace_cumulative_distances = {}
+    for cropped_image_index, cropped_image in cropped_images.items():
+        cropped_mask = cropped_masks[cropped_image_index]
+
         result = trace_grain(
             cropped_image,
             cropped_mask,
@@ -803,13 +885,14 @@ def trace_image(
             spline_step_size,
             spline_linear_smoothing,
             spline_circular_smoothing,
-            n_grain,
+            cropped_image_index,
         )
-        LOGGER.info(f"[{filename}] : Traced grain {n_grain + 1} of {n_grains}")
-        ordered_traces.append(result.pop("ordered_trace"))
-        splined_traces.append(result.pop("splined_trace"))
-        results[n_grain] = result
-        n_grain += 1
+        LOGGER.info(f"[{filename}] : Traced grain {cropped_image_index + 1} of {n_grains}")
+        ordered_traces[cropped_image_index] = result.pop("ordered_trace")
+        splined_traces[cropped_image_index] = result.pop("splined_trace")
+        all_ordered_trace_heights[cropped_image_index] = result.pop("ordered_trace_heights")
+        all_ordered_trace_cumulative_distances[cropped_image_index] = result.pop("ordered_trace_cumulative_distances")
+        results[cropped_image_index] = result
     try:
         results = pd.DataFrame.from_dict(results, orient="index")
         results.index.name = "molecule_number"
@@ -821,34 +904,37 @@ def trace_image(
         LOGGER.error(error)
     return {
         "statistics": results,
-        "ordered_traces": ordered_traces,
-        "splined_traces": splined_traces,
-        "cropped_images": cropped_images,
-        "image_trace": image_trace,
+        "all_ordered_traces": ordered_traces,
+        "all_splined_traces": splined_traces,
+        "all_cropped_images": cropped_images,
+        "image_ordered_trace": image_trace,
         "image_spline_trace": image_spline_trace,
+        "all_ordered_trace_heights": all_ordered_trace_heights,
+        "all_ordered_trace_cumulative_distances": all_ordered_trace_cumulative_distances,
     }
 
 
-def round_splined_traces(splined_traces: list):
-    """Round a list of floating point coordinates to integer floating point coordinates.
-    Note that if a trace has failed and is None, it will be skipped, so the indexes will NOT be correct.
+def round_splined_traces(splined_traces: Dict):
+    """Round a Dict of floating point coordinates to integer floating point coordinates.
 
     Parameters
     ----------
-    splined_traces: list
-        List of floating point coordinates, or Nones
+    splined_traces: Dict
+        Dict of floating point coordinates, or Nones
 
     Returns
     -------
-    rounded_splined_traces: list
-        List of integer coordates, without Nones
+    rounded_splined_traces: Dict
+        Dictionary of integer coordates, without Nones
 
     """
-    rounded_splined_traces = []
-    for splined_trace in splined_traces:
+    rounded_splined_traces = {}
+    for grain_number, splined_trace in splined_traces.items():
         if splined_trace is not None:
             rounded_splined_trace = np.round(splined_trace).astype(int)
-            rounded_splined_traces.append(rounded_splined_trace)
+            rounded_splined_traces[grain_number] = rounded_splined_trace
+        else:
+            rounded_splined_traces[grain_number] = None
 
     return rounded_splined_traces
 
@@ -875,42 +961,43 @@ def trim_array(array: np.ndarray, pad_width: int) -> np.ndarray:
 
 
 def adjust_coordinates(coordinates: np.ndarray, pad_width: int) -> np.ndarray:
-    """Adjust co-ordinates of a trace by the pad_width.
+    """Adjust coordinates of a trace by the pad_width.
 
     A second padding is made to allow for grains that are "edge cases" and close to the bounding box edge. This adds the
     pad_width to the cropped grain array. In order to realign the trace with the original image we need to remove this
-    padding so that when the co-ordinates are combined with the "grain_anchor", which isn't padded twice, the
-    co-ordinates correctly align with the original image.
+    padding so that when the coordinates are combined with the "grain_anchor", which isn't padded twice, the
+    coordinates correctly align with the original image.
 
     Parameters
     ----------
     coordinates : np.ndarray
-        An array of trace co-ordinates (typically ordered).
+        An array of trace coordinates (typically ordered).
     pad_width : int
         The amount of padding used.
 
     Returns
     -------
     np.ndarray
-        Array of trace co-ordinates adjusted for secondary padding.
+        Array of trace coordinates adjusted for secondary padding.
     """
     return coordinates - pad_width
 
 
 def trace_mask(
-    grain_anchors: List[np.ndarray], ordered_traces: List[np.ndarray], image_shape: tuple, pad_width: int
+    grain_anchors: List[np.ndarray], ordered_traces: Dict[str, np.ndarray], image_shape: tuple, pad_width: int
 ) -> np.ndarray:
     """Place the traced skeletons into an array of the original image for plotting/overlaying.
 
-    Adjusts the co-ordinates back to the original position based on each grains anchor co-ordinates of the padded
+    Adjusts the coordinates back to the original position based on each grains anchor coordinates of the padded
     bounding box. Adjustments are made for the secondary padding that is made.
 
     Parameters
     ----------
     grain_anchors : List[np.ndarray]
         List of grain anchors for the padded bounding box.
-    ordered_traces : List[np.ndarray]
-        List of co-ordinates for each grains trace.
+    ordered_traces : Dict[np.ndarray]
+        Coordinates for each grain trace.
+        Dict of coordinates for each grains trace.
     image_shape : tuple
         Shape of original image.
     pad_width : int
@@ -923,7 +1010,7 @@ def trace_mask(
 
     """
     image = np.zeros(image_shape)
-    for grain_number, (grain_anchor, ordered_trace) in enumerate(zip(grain_anchors, ordered_traces)):
+    for grain_number, (grain_anchor, ordered_trace) in enumerate(zip(grain_anchors, ordered_traces.values())):
         # Don't always have an ordered_trace for a given grain_anchor if for example the trace was too small
         if ordered_trace is not None:
             ordered_trace = adjust_coordinates(ordered_trace, pad_width)
@@ -942,7 +1029,9 @@ def trace_mask(
     return image
 
 
-def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
+def prep_arrays(
+    image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int
+) -> Tuple[Dict[int, np.ndarray], Dict[int, np.ndarray]]:
     """Takes an image and labelled mask and crops individual grains and original heights to a list.
 
     A second padding is made after cropping to ensure for "edge cases" where grains are close to bounding box edges that
@@ -961,17 +1050,19 @@ def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: 
     Returns
     =======
     Tuple
-        Returns a tuple of two lists, each consisting of cropped arrays.
+        Returns a tuple of two dictionaries, each consisting of cropped arrays.
     """
     # Get bounding boxes for each grain
     region_properties = skimage_measure.regionprops(labelled_grains_mask)
     # Subset image and grains then zip them up
-    cropped_images = [crop_array(image, grain.bbox, pad_width) for grain in region_properties]
-    cropped_images = [np.pad(grain, pad_width=pad_width) for grain in cropped_images]
-    cropped_masks = [crop_array(labelled_grains_mask, grain.bbox, pad_width) for grain in region_properties]
-    cropped_masks = [np.pad(grain, pad_width=pad_width) for grain in cropped_masks]
+    cropped_images = {index: crop_array(image, grain.bbox, pad_width) for index, grain in enumerate(region_properties)}
+    cropped_images = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_images.items()}
+    cropped_masks = {
+        index: crop_array(labelled_grains_mask, grain.bbox, pad_width) for index, grain in enumerate(region_properties)
+    }
+    cropped_masks = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_masks.items()}
     # Flip every labelled region to be 1 instead of its label
-    cropped_masks = [np.where(grain == 0, 0, 1) for grain in cropped_masks]
+    cropped_masks = {index: np.where(grain == 0, 0, 1) for index, grain in cropped_masks.items()}
     return (cropped_images, cropped_masks)
 
 
@@ -1020,8 +1111,8 @@ def trace_grain(
     5. Jiggling/Fitting
     6. Splining to improve resolution of image.
 
-    Pararmeters
-    ===========
+    Parameters
+    ==========
     cropped_image: np.ndarray
         Cropped array from the original image defined as the bounding box from the labelled mask.
     cropped_mask: np.ndarray
@@ -1049,7 +1140,7 @@ def trace_grain(
     =======
     Dictionary
         Dictionary of the contour length, whether the image is circular or linear, the end-to-end distance and an array
-    of co-ordinates.
+    of coordinates.
     """
     dnatrace = dnaTrace(
         image=cropped_image,
@@ -1071,6 +1162,8 @@ def trace_grain(
         "end_to_end_distance": dnatrace.end_to_end_distance,
         "ordered_trace": dnatrace.ordered_trace,
         "splined_trace": dnatrace.splined_trace,
+        "ordered_trace_heights": dnatrace.ordered_trace_heights,
+        "ordered_trace_cumulative_distances": dnatrace.ordered_trace_cumulative_distances,
     }
 
 
@@ -1086,7 +1179,7 @@ def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np
     array: np.ndarray
         2D Numpy array to be cropped.
     bounding_box: Tuple
-        Tuple of co-ordinates to crop, should be of form (min_row, min_col, max_row, max_col).
+        Tuple of coordinates to crop, should be of form (min_row, min_col, max_row, max_col).
     pad_width: int
         Padding to apply to bounding box.
 
@@ -1104,21 +1197,21 @@ def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np
 
 
 def pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int) -> list:
-    """Pad co-ordinates, if they extend beyond image boundaries stop at boundary.
+    """Pad coordinates, if they extend beyond image boundaries stop at boundary.
 
     Parameters
     ==========
     array_shape: tuple
         Shape of original image
     bounding_box: list
-        List of co-ordinates min_row, min_col, max_row, max_col
+        List of coordinates min_row, min_col, max_row, max_col
     pad_width: int
         Cells to pad arrays by.
 
     Returns
     =======
     list
-       List of padded co-ordinates
+       List of padded coordinates
     """
     # Top Row : Make this the first column if too close
     bounding_box[0] = 0 if bounding_box[0] - pad_width < 0 else bounding_box[0] - pad_width

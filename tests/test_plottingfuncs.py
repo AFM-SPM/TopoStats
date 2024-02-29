@@ -1,22 +1,23 @@
 """Tests of plotting functions."""
+
 from pathlib import Path
 
-import pytest
 import matplotlib as mpl
-from matplotlib.figure import Figure
-from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
 import numpy as np
+import pytest
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from skimage import io
 
 from topostats.grains import Grains
 from topostats.io import LoadScans
 from topostats.plottingfuncs import (
-    dilate_binary_image,
     Images,
     add_pixel_to_nm_to_plotting_config,
-    set_n_ticks,
+    dilate_binary_image,
     load_mplstyle,
+    set_n_ticks,
 )
 
 DPI = 300.0
@@ -75,9 +76,12 @@ def test_dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int,
     np.testing.assert_array_equal(result, expected)
 
 
+rng = np.random.default_rng()
+
+
 @pytest.mark.parametrize(
     ("masked_array", "axes_colorbar", "region_properties"),
-    [(np.random.rand(10, 10), True, None), (None, True, None), (None, False, True)],
+    [(rng.random((10, 10)), True, None), (None, True, None), (None, False, True)],
 )
 def test_save_figure(
     masked_array: np.ndarray,
@@ -106,8 +110,9 @@ def test_save_figure(
 
 def test_save_array_figure(tmp_path: Path):
     """Tests that the image array is saved."""
+    rng2 = np.random.default_rng()
     Images(
-        data=np.random.rand(10, 10),
+        data=rng2.random((10, 10)),
         output_dir=tmp_path,
         filename="result",
     ).save_array_figure()
@@ -278,7 +283,7 @@ def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/", savefig_kwargs={"dpi": DPI})
 def test_high_dpi(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting with high DPI."""
-    plotting_config["dpi"] = DPI
+    plotting_config["savefig_dpi"] = DPI
     fig, _ = Images(
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         output_dir=tmp_path,

@@ -1,9 +1,10 @@
 """Tests for logging."""
+
 import logging
+
 import pytest
 
-from topostats.logs.logs import setup_logger, LOGGER_NAME
-
+from topostats.logs.logs import LOGGER_NAME, setup_logger
 
 LOGGER = setup_logger(LOGGER_NAME)
 

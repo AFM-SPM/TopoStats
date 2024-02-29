@@ -1,7 +1,7 @@
 """Tests of the filters module."""
+
 # + pylint: disable=invalid-name
 import numpy as np
-
 import pytest
 
 from topostats.filters import Filters

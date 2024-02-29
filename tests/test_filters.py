@@ -1,9 +1,10 @@
 """Tests of the filters module."""
+
 from pathlib import Path
 
 import numpy as np
-from skimage.filters import gaussian  # pylint: disable=no-name-in-module
 import pytest
+from skimage.filters import gaussian  # pylint: disable=no-name-in-module
 
 from topostats.filters import Filters
 

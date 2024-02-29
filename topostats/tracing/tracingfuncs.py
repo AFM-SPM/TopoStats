@@ -4,7 +4,6 @@ import math
 
 
 class getSkeleton:
-
     """Skeltonisation algorithm based on the paper "A Fast Parallel Algorithm for
     Thinning Digital Patterns" by Zhang et al., 1984"""
 
@@ -732,7 +731,7 @@ class reorderTrace:
 
                     vector_to_new_point = abs(math.hypot(best_next_pixel[0] - x_n, best_next_pixel[1] - y_n))
 
-                    if vector_to_new_point > 5:  # arbitary distinction but mostly valid probably
+                    if vector_to_new_point > 5:  # arbitrary distinction but mostly valid probably
                         return np.array(ordered_points), False
                     else:
                         ordered_points.append(best_next_pixel)

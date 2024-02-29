@@ -1,9 +1,11 @@
 """Functions for calculating thresholds."""
+
 # pylint: disable=no-name-in-module
 import logging
 from collections.abc import Callable
+
 import numpy as np
-from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, threshold_yen, threshold_triangle
+from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, threshold_triangle, threshold_yen
 
 from topostats.logs.logs import LOGGER_NAME
 

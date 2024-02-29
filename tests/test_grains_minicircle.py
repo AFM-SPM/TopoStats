@@ -1,6 +1,6 @@
 """Tests for Find Grains."""
-import numpy as np
 
+import numpy as np
 import pytest
 from skimage.measure._regionprops import RegionProperties
 

@@ -1,21 +1,22 @@
 """Fixtures for testing."""
+
 import importlib.resources as pkg_resources
 from pathlib import Path
-import yaml
 
 import numpy as np
 import pandas as pd
+import pySPM
 import pytest
+import yaml
 
 import topostats
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.io import read_yaml, LoadScans
+from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
 from topostats.tracing.dnatracing import dnaTrace
-from topostats.utils import get_thresholds, get_mask, _get_mask
-
+from topostats.utils import _get_mask, get_mask, get_thresholds
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
@@ -348,6 +349,12 @@ def load_scan_dummy() -> LoadScans:
 
 
 @pytest.fixture()
+def load_scan_topostats_test_file(tmp_path: Path, loading_config: dict) -> LoadScans:
+    """Instantiate a LoadScans object for a temporarily saved test .topostats file."""
+    return LoadScans([tmp_path / "topostats_file_test.topostats"], **loading_config)
+
+
+@pytest.fixture()
 def load_scan(loading_config: dict) -> LoadScans:
     """Instantiate a LoadScans object from a small .topostats image file."""
     return LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], **loading_config)
@@ -365,6 +372,13 @@ def load_scan_data() -> LoadScans:
 def load_scan_spm() -> LoadScans:
     """Instantiate a LoadScans object from a .spm file."""
     return LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
+
+
+@pytest.fixture()
+def spm_channel_data() -> pySPM.SPM.SPM_image:
+    """Instantiate channel data from a LoadScans object."""
+    scan = pySPM.Bruker(RESOURCES / "minicircle.spm")
+    return scan.get_channel("Height")
 
 
 @pytest.fixture()
@@ -389,6 +403,12 @@ def load_scan_gwy() -> LoadScans:
 def load_scan_topostats() -> LoadScans:
     """Instantiate a LoadScans object from a .topostats file."""
     return LoadScans([RESOURCES / "file.topostats"], channel="dummy_channel")
+
+
+@pytest.fixture()
+def load_scan_asd() -> LoadScans:
+    """Instantiate a LoadScans object from a .asd file."""
+    return LoadScans([RESOURCES / "file.asd"], channel="TP")
 
 
 # Minicircle fixtures
@@ -423,10 +443,10 @@ def minicircle_initial_tilt_removal(minicircle_initial_median_flatten: Filters) 
 @pytest.fixture()
 def minicircle_initial_quadratic_removal(minicircle_initial_tilt_removal: Filters) -> Filters:
     """Initial quadratic removal on unmasked data."""
-    minicircle_initial_tilt_removal.images[
-        "initial_quadratic_removal"
-    ] = minicircle_initial_tilt_removal.remove_quadratic(
-        minicircle_initial_tilt_removal.images["initial_tilt_removal"], mask=None
+    minicircle_initial_tilt_removal.images["initial_quadratic_removal"] = (
+        minicircle_initial_tilt_removal.remove_quadratic(
+            minicircle_initial_tilt_removal.images["initial_tilt_removal"], mask=None
+        )
     )
     return minicircle_initial_tilt_removal
 
@@ -506,10 +526,10 @@ def minicircle_masked_quadratic_removal(minicircle_masked_tilt_removal: Filters)
 @pytest.fixture()
 def minicircle_grain_gaussian_filter(minicircle_masked_quadratic_removal: Filters) -> Filters:
     """Apply Gaussian filter."""
-    minicircle_masked_quadratic_removal.images[
-        "gaussian_filtered"
-    ] = minicircle_masked_quadratic_removal.gaussian_filter(
-        image=minicircle_masked_quadratic_removal.images["masked_quadratic_removal"]
+    minicircle_masked_quadratic_removal.images["gaussian_filtered"] = (
+        minicircle_masked_quadratic_removal.gaussian_filter(
+            image=minicircle_masked_quadratic_removal.images["masked_quadratic_removal"]
+        )
     )
     return minicircle_masked_quadratic_removal
 
@@ -598,9 +618,9 @@ def minicircle_grain_remove_noise(minicircle_grain_clear_border: Grains) -> Grai
 @pytest.fixture()
 def minicircle_grain_labelled_all(minicircle_grain_remove_noise: Grains) -> Grains:
     """Labelled regions."""
-    minicircle_grain_remove_noise.directions["above"][
-        "labelled_regions_01"
-    ] = minicircle_grain_remove_noise.label_regions(minicircle_grain_remove_noise.directions["above"]["removed_noise"])
+    minicircle_grain_remove_noise.directions["above"]["labelled_regions_01"] = (
+        minicircle_grain_remove_noise.label_regions(minicircle_grain_remove_noise.directions["above"]["removed_noise"])
+    )
     return minicircle_grain_remove_noise
 
 
@@ -616,10 +636,10 @@ def minicircle_minimum_grain_size(minicircle_grain_labelled_all: Grains) -> Grai
 @pytest.fixture()
 def minicircle_small_objects_removed(minicircle_minimum_grain_size: Grains) -> Grains:
     """Small objects removed."""
-    minicircle_minimum_grain_size.directions["above"][
-        "removed_small_objects"
-    ] = minicircle_minimum_grain_size.remove_small_objects(
-        minicircle_minimum_grain_size.directions["above"]["labelled_regions_01"]
+    minicircle_minimum_grain_size.directions["above"]["removed_small_objects"] = (
+        minicircle_minimum_grain_size.remove_small_objects(
+            minicircle_minimum_grain_size.directions["above"]["labelled_regions_01"]
+        )
     )
     return minicircle_minimum_grain_size
 
@@ -628,11 +648,11 @@ def minicircle_small_objects_removed(minicircle_minimum_grain_size: Grains) -> G
 def minicircle_area_thresholding(minicircle_grain_labelled_all: Grains) -> Grains:
     """Small objects removed."""
     absolute_area_thresholds = [30, 2000]
-    minicircle_grain_labelled_all.directions["above"][
-        "removed_small_objects"
-    ] = minicircle_grain_labelled_all.area_thresholding(
-        image=minicircle_grain_labelled_all.directions["above"]["labelled_regions_01"],
-        area_thresholds=absolute_area_thresholds,
+    minicircle_grain_labelled_all.directions["above"]["removed_small_objects"] = (
+        minicircle_grain_labelled_all.area_thresholding(
+            image=minicircle_grain_labelled_all.directions["above"]["labelled_regions_01"],
+            area_thresholds=absolute_area_thresholds,
+        )
     )
     return minicircle_grain_labelled_all
 
@@ -640,10 +660,10 @@ def minicircle_area_thresholding(minicircle_grain_labelled_all: Grains) -> Grain
 @pytest.fixture()
 def minicircle_grain_labelled_post_removal(minicircle_small_objects_removed: np.array) -> Grains:
     """Labelled regions."""
-    minicircle_small_objects_removed.directions["above"][
-        "labelled_regions_02"
-    ] = minicircle_small_objects_removed.label_regions(
-        minicircle_small_objects_removed.directions["above"]["removed_small_objects"]
+    minicircle_small_objects_removed.directions["above"]["labelled_regions_02"] = (
+        minicircle_small_objects_removed.label_regions(
+            minicircle_small_objects_removed.directions["above"]["removed_small_objects"]
+        )
     )
     return minicircle_small_objects_removed
 
@@ -661,10 +681,10 @@ def minicircle_grain_region_properties_post_removal(
 @pytest.fixture()
 def minicircle_grain_coloured(minicircle_grain_labelled_post_removal: np.array) -> Grains:
     """Coloured regions."""
-    minicircle_grain_labelled_post_removal.directions["above"][
-        "coloured_regions"
-    ] = minicircle_grain_labelled_post_removal.colour_regions(
-        minicircle_grain_labelled_post_removal.directions["above"]["labelled_regions_02"]
+    minicircle_grain_labelled_post_removal.directions["above"]["coloured_regions"] = (
+        minicircle_grain_labelled_post_removal.colour_regions(
+            minicircle_grain_labelled_post_removal.directions["above"]["labelled_regions_02"]
+        )
     )
     return minicircle_grain_labelled_post_removal
 

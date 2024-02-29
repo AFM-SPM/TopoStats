@@ -1,15 +1,16 @@
 """Tests for the plotting module."""
+
 import importlib.resources as pkg_resources
 from pathlib import Path
-import yaml
 
-from matplotlib.figure import Figure
 import pandas as pd
 import pytest
+import yaml
+from matplotlib.figure import Figure
 
 import topostats
-from topostats.plotting import TopoSum, toposum
 from topostats.entry_point import entry_point
+from topostats.plotting import TopoSum, toposum
 
 # pylint: disable=protected-access
 
@@ -58,7 +59,7 @@ def test_toposum_class(toposum_object_multiple_directories: TopoSum) -> None:
     assert isinstance(toposum_object_multiple_directories.image_id, str)
     assert isinstance(toposum_object_multiple_directories.hist, bool)
     assert isinstance(toposum_object_multiple_directories.kde, bool)
-    assert isinstance(toposum_object_multiple_directories.file_ext, str)
+    assert isinstance(toposum_object_multiple_directories.savefig_format, str)
     assert isinstance(toposum_object_multiple_directories.output_dir, Path)
     assert isinstance(toposum_object_multiple_directories.var_to_label, dict)
 

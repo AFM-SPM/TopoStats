@@ -1,8 +1,8 @@
 """Tests for image statistics."""
 
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
 
 from topostats.statistics import image_statistics, roughness_rms
 

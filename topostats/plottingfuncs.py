@@ -1,14 +1,16 @@
 """Plotting data."""
+
 from __future__ import annotations
+
 import importlib.resources as pkg_resources
-from pathlib import Path
 import logging
+from pathlib import Path
 
 import matplotlib as mpl
-from matplotlib.patches import Rectangle, Patch
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
+from matplotlib.patches import Patch, Rectangle
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from skimage.morphology import binary_dilation
 
 import topostats
@@ -118,10 +120,10 @@ class Images:
         axes: bool = True,
         num_ticks: list[int | None, int | None] = (None, None),
         save: bool = True,
-        save_format: str = None,
+        savefig_format: str | None = None,
         histogram_log_axis: bool = True,
         histogram_bins: int | None = None,
-        dpi: str | float | None = None,
+        savefig_dpi: str | float | None = None,
     ) -> None:
         """
         Initialise the class.
@@ -172,7 +174,7 @@ class Images:
             Optionally use a logarithmic y axis for the histogram plots.
         histogram_bin: int
             Number of bins for histograms to use.
-        dpi: Union[str, float]
+        savefig_dpi: Union[str, float]
             The resolution of the saved plot (default 'figure').
         """
         if style is None:
@@ -199,10 +201,10 @@ class Images:
         self.axes = axes
         self.num_ticks = num_ticks
         self.save = save
-        self.save_format = mpl.rcParams["savefig.format"] if save_format is None else save_format
+        self.savefig_format = mpl.rcParams["savefig.format"] if savefig_format is None else savefig_format
         self.histogram_log_axis = histogram_log_axis
         self.histogram_bins = mpl.rcParams["hist.bins"] if histogram_bins is None else histogram_bins
-        self.dpi = mpl.rcParams["savefig.dpi"] if dpi is None else dpi
+        self.savefig_dpi = mpl.rcParams["savefig.dpi"] if savefig_dpi is None else savefig_dpi
 
     def plot_histogram_and_save(self):
         """
@@ -226,10 +228,10 @@ class Images:
                 ax.set_ylabel("frequency in image")
             plt.title(self.title)
             plt.savefig(
-                (self.output_dir / f"{self.filename}_histogram.{self.save_format}"),
+                (self.output_dir / f"{self.filename}_histogram.{self.savefig_format}"),
                 bbox_inches="tight",
                 pad_inches=0.5,
-                dpi=self.dpi,
+                dpi=self.savefig_dpi,
             )
             plt.close()
 
@@ -258,8 +260,8 @@ class Images:
                     else:
                         self.save_array_figure()
         LOGGER.info(
-            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.save_format}\
- | DPI: {self.dpi}"
+            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}\
+ | DPI: {self.savefig_dpi}"
         )
         return fig, ax
 
@@ -324,13 +326,13 @@ class Images:
                 plt.title("")
                 fig.frameon = False
                 plt.savefig(
-                    (self.output_dir / f"{self.filename}.{self.save_format}"),
+                    (self.output_dir / f"{self.filename}.{self.savefig_format}"),
                     bbox_inches="tight",
                     pad_inches=0,
-                    dpi=self.dpi,
+                    dpi=self.savefig_dpi,
                 )
             else:
-                plt.savefig((self.output_dir / f"{self.filename}.{self.save_format}"), dpi=self.dpi)
+                plt.savefig((self.output_dir / f"{self.filename}.{self.savefig_format}"), dpi=self.savefig_dpi)
         else:
             plt.xlabel("Nanometres")
             plt.ylabel("Nanometres")
@@ -346,12 +348,12 @@ class Images:
     def save_array_figure(self) -> None:
         """Save the image array as an image using plt.imsave()."""
         plt.imsave(
-            (self.output_dir / f"{self.filename}.{self.save_format}"),
+            (self.output_dir / f"{self.filename}.{self.savefig_format}"),
             self.data,
             cmap=self.cmap,
             vmin=self.zrange[0],
             vmax=self.zrange[1],
-            format=self.save_format,
+            format=self.savefig_format,
         )
         plt.close()
 

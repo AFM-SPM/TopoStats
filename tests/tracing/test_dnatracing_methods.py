@@ -1,10 +1,11 @@
 """Additional tests of dnaTracing methods."""
+
 from pathlib import Path
 
 import numpy as np
 import pytest
 
-from topostats.tracing.dnatracing import dnaTrace, crop_array, round_splined_traces
+from topostats.tracing.dnatracing import crop_array, dnaTrace, round_splined_traces
 from topostats.tracing.tracingfuncs import reorderTrace
 
 # This is required because of the inheritance used throughout
@@ -757,10 +758,10 @@ def test_get_splined_traces(
 
 def test_round_splined_traces():
     """Test the round splined traces function of dnatracing.py."""
-    splined_traces = [np.array([[1.2, 2.3], [3.4, 4.5]]), None, np.array([[5.6, 6.7], [7.8, 8.9]])]
-    expected_result = np.array([[[1, 2], [3, 4]], [[6, 7], [8, 9]]])
+    splined_traces = {"0": np.array([[1.2, 2.3], [3.4, 4.5]]), "1": None, "2": np.array([[5.6, 6.7], [7.8, 8.9]])}
+    expected_result = {"0": np.array([[1, 2], [3, 4]]), "1": None, "2": np.array([[6, 7], [8, 9]])}
     result = round_splined_traces(splined_traces)
-    np.testing.assert_array_equal(result, expected_result)
+    np.testing.assert_equal(result, expected_result)
 
 
 @pytest.mark.parametrize(

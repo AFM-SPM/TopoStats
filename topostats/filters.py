@@ -1,17 +1,19 @@
 """Module for filtering 2D Numpy arrays."""
+
 from __future__ import annotations
+
 import logging
+
+import numpy as np
+from scipy.optimize import curve_fit
 
 # ruff: noqa: disable=no-name-in-module
 # pylint: disable=no-name-in-module
 from skimage.filters import gaussian
-from scipy.optimize import curve_fit
-import numpy as np
 
-
-from topostats.logs.logs import LOGGER_NAME
-from topostats.utils import get_thresholds, get_mask
 from topostats import scars
+from topostats.logs.logs import LOGGER_NAME
+from topostats.utils import get_mask, get_thresholds
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -230,7 +232,7 @@ processed, please refer to <url to page where we document common problems> for m
         Parameters
         ----------
         image: np.ndarray
-            2D numpy heightmap array of floats with a polynomial trend to remmove.
+            2D numpy heightmap array of floats with a polynomial trend to remove.
         mask: np.ndarray
             2D numpy boolean array used to mask out any points in the image that are deemed not to be part of the
             heightmap's background data. This argument is optional.
@@ -285,7 +287,7 @@ processed, please refer to <url to page where we document common problems> for m
             f"[{self.filename}] : Nonlinear polynomial removal optimal params: const: {a} xy: {b} x: {c} y: {d}"
         )
 
-        # Use the optimised parameters to contstruct a prediction of the underlying surface
+        # Use the optimised parameters to construct a prediction of the underlying surface
         z_pred = model_func(xdata, ydata, a, b, c, d)
         # Subtract the fitted nonlinear polynomial from the image
         image -= z_pred

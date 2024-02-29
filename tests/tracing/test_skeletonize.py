@@ -1,4 +1,5 @@
 """Test the skeletonize module."""
+
 import numpy as np
 import pytest
 

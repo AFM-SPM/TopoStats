@@ -2,33 +2,31 @@
 
 This provides an entry point for running TopoStats as a command line programme.
 """
-from collections import defaultdict
-from functools import partial
+
 import importlib.resources as pkg_resources
 import logging
+import sys
+from collections import defaultdict
+from functools import partial
 from multiprocessing import Pool
 from pprint import pformat
-import sys
-from pathlib import Path
-import yaml
 
 import pandas as pd
+import yaml
 from tqdm import tqdm
 
 from topostats.io import (
+    LoadScans,
     find_files,
     read_yaml,
     save_folder_grainstats,
     write_yaml,
-    write_config_with_comments,
-    LoadScans,
 )
-
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import check_run_steps, completion_message, process_scan
 from topostats.utils import update_config, update_plotting_config
-from topostats.validation import validate_config, DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA
+from topostats.validation import DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA, validate_config
 
 # We already setup the logger in __init__.py and it is idempotent so calling it here returns the same object as from
 # __init__.py
@@ -67,22 +65,16 @@ def run_topostats(args=None):  # noqa: C901
     # Validate configuration
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
-    # Write sample configuration if asked to do so and exit
-    if args.create_config_file and args.config_file:
-        raise ValueError("--create-config-file and --config cannot be used together.")
-    if args.create_config_file:
-        write_config_with_comments(config=default_config, output_dir=Path.cwd(), filename=args.create_config_file)
-        sys.exit()
-
     # Create base output directory
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 
-    # Load plotting_dictionary and validate
+    # Load plotting_dictionary and validate then update with command line options
     plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
     validate_config(
         config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML plotting configuration file"
     )
+    config["plotting"] = update_config(config["plotting"], args)
 
     # Check earlier stages of processing are enabled for later.
     check_run_steps(
@@ -91,8 +83,9 @@ def run_topostats(args=None):  # noqa: C901
         grainstats_run=config["grainstats"]["run"],
         dnatracing_run=config["dnatracing"]["run"],
     )
-    # Update the config["plotting"]["plot_dict"] with plotting options
+    # Ensures each image has all plotting options which are passed as **kwargs
     config["plotting"] = update_plotting_config(config["plotting"])
+    LOGGER.debug(f"Plotting configuration after update :\n{pformat(config['plotting'], indent=4)}")
 
     LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
     LOGGER.info(f"Scanning for images in              : {config['base_dir']}")
@@ -104,8 +97,8 @@ def run_topostats(args=None):  # noqa: C901
         LOGGER.error(f"No images with extension {config['file_ext']} in {config['base_dir']}")
         LOGGER.error("Please check your configuration and directories.")
         sys.exit()
-    LOGGER.info(f'Thresholding method (Filtering)     : {config["filter"]["threshold_method"]}')
-    LOGGER.info(f'Thresholding method (Grains)        : {config["grains"]["threshold_method"]}')
+    LOGGER.info(f"Thresholding method (Filtering)     : {config['filter']['threshold_method']}")
+    LOGGER.info(f"Thresholding method (Grains)        : {config['grains']['threshold_method']}")
     LOGGER.debug(f"Configuration after update         : \n{pformat(config, indent=4)}")  # noqa : T203
 
     processing_function = partial(
@@ -171,7 +164,7 @@ def run_topostats(args=None):  # noqa: C901
             summary_config = yaml.safe_load(summary_yaml.read())
 
         # Do not pass command line arguments to toposum as they clash with process command line arguments
-        summary_config = update_config(summary_config, {})
+        summary_config = update_config(summary_config, config["plotting"])
 
         validate_config(summary_config, SUMMARY_SCHEMA, config_type="YAML summarisation config")
         # We never want to load data from CSV as we are using the data that has just been processed.
@@ -227,4 +220,5 @@ def run_topostats(args=None):  # noqa: C901
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
     LOGGER.debug(f"Images processed : {images_processed}")
+    # Update config with plotting defaults for printing
     completion_message(config, img_files, summary_config, images_processed)

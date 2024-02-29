@@ -1,21 +1,25 @@
 """Functions for reading and writing data."""
+
 from __future__ import annotations
-import os
-import logging
-from datetime import datetime
+
+import importlib.resources as pkg_resources
 import io
-import struct
-from pathlib import Path
+import logging
+import os
 import pickle as pkl
+import struct
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
+import h5py
 import numpy as np
 import pandas as pd
 import pySPM
-from igor2 import binarywave
 import tifffile
-import h5py
+from igor2 import binarywave
 from ruamel.yaml import YAML, YAMLError
+from topofileformats import asd
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -68,7 +72,10 @@ def get_date_time() -> str:
 
 
 def write_yaml(
-    config: dict, output_dir: str | Path, config_file: str = "config.yaml", header_message: str = None
+    config: dict,
+    output_dir: str | Path,
+    config_file: str = "config.yaml",
+    header_message: str = None,
 ) -> None:
     """Write a configuration (stored as a dictionary) to a YAML file.
 
@@ -102,20 +109,37 @@ def write_yaml(
             LOGGER.error(exception)
 
 
-def write_config_with_comments(config: str, output_dir: Path, filename: str = "config.yaml") -> None:
+def write_config_with_comments(args=None) -> None:
     """
     Write a sample configuration with in-line comments.
 
+    This function is not designed to be used interactively but can be, just call it without any arguments and it will
+    write a configuration to './config.yaml'.
+
     Parameters
     ----------
-    config: str
-        A string of the entire configuration file to be saved.
-    output_dir: Path
-        A pathlib path of where to create the config file.
-    filename: str
-        A name for the configuration file. Can have a ".yaml" on the end.
+    args: Namespace
+        A Namespace object parsed from argparse with values for 'filename',
     """
-    if ".yaml" not in filename and ".yml" not in filename:
+    filename = "config" if args.filename is None else args.filename
+    output_dir = Path("./") if args.output_dir is None else Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    logger_msg = "A sample configuration has been written to"
+    # If no config or default is requested we load the default_config.yaml
+    if args.config is None or args.config == "default":
+        config = pkg_resources.open_text(__package__, "default_config.yaml").read()
+    elif args.config == "topostats.mplstyle":
+        config = pkg_resources.open_text(__package__, "topostats.mplstyle").read()
+        logger_msg = "A sample matplotlibrc parameters file has been written to"
+    # Otherwise we have scope for loading different configs based on the argument, add future dictionaries to
+    # topostats/<sample_type>_config.yaml
+    else:
+        try:
+            config = pkg_resources.open_text(__package__, f"{args.config}_config.yaml").read()
+        except FileNotFoundError as e:
+            raise UserWarning(f"There is no configuration for samples of type : {args.config}") from e
+
+    if ".yaml" not in filename and ".yml" not in filename and ".mplstyle" not in filename:
         create_config_path = output_dir / f"{filename}.yaml"
     else:
         create_config_path = output_dir / filename
@@ -124,7 +148,7 @@ def write_config_with_comments(config: str, output_dir: Path, filename: str = "c
         f.write(f"# Config file generated {get_date_time()}\n")
         f.write(f"# {CONFIG_DOCUMENTATION_REFERENCE}")
         f.write(config)
-    LOGGER.info(f"A sample configuration has been written to : {str(create_config_path)}")
+    LOGGER.info(f"{logger_msg} : {str(create_config_path)}")
     LOGGER.info(CONFIG_DOCUMENTATION_REFERENCE)
 
 
@@ -245,7 +269,7 @@ def find_files(base_dir: str | Path = None, file_ext: str = ".spm") -> list:
 
 
 def save_folder_grainstats(output_dir: str | Path, base_dir: str | Path, all_stats_df: pd.DataFrame) -> None:
-    """Save a data frame of grain and tracing statictics at the folder level.
+    """Save a data frame of grain and tracing statistics at the folder level.
 
     Parameters
     ----------
@@ -468,6 +492,7 @@ class LoadScans:
         self.image = None
         self.pixel_to_nm_scaling = None
         self.grain_masks = {}
+        self.grain_trace_data = {}
         self.img_dict = {}
         self.MINIMUM_IMAGE_SIZE = 10
 
@@ -493,7 +518,7 @@ class LoadScans:
             # trying to return the error with options of possible channel values
             labels = []
             for channel in [layer[b"@2:Image Data"][0] for layer in scan.layers]:
-                channel_description = channel.decode("latin1").split('"')[1]  # incase the blank field raises quesions?
+                channel_description = channel.decode("latin1").split('"')[1]  # in case blank field raises questions?
                 labels.append(channel_description)
             LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
             raise e
@@ -514,11 +539,13 @@ class LoadScans:
             Pixel to nm scaling factor.
         """
         unit_dict = {
+            "pm": 1e-3,
             "nm": 1,
             "um": 1e3,
+            "mm": 1e6,
         }
         px_to_real = channel_data.pxs()
-        # Has potential for non-square pixels but not yet implimented
+        # Has potential for non-square pixels but not yet implemented
         pixel_to_nm_scaling = (
             px_to_real[0][0] * unit_dict[px_to_real[0][1]],
             px_to_real[1][0] * unit_dict[px_to_real[1][1]],
@@ -545,25 +572,52 @@ class LoadScans:
         LOGGER.info(f"Loading image from : {self.img_path}")
         try:
             with h5py.File(self.img_path, "r") as f:
-                keys = f.keys()
-                file_version = f["topostats_file_version"][()]
+                # Load the hdf5 data to dictionary
+                topodata = hdf5_to_dict(open_hdf5_file=f, group_path="/")
+                main_keys = topodata.keys()
+
+                file_version = topodata["topostats_file_version"]
                 LOGGER.info(f"TopoStats file version: {file_version}")
-                image = f["image"][:]
-                pixel_to_nm_scaling = f["pixel_to_nm_scaling"][()]
-                if "grain_masks" in keys:
-                    grain_masks_keys = f["grain_masks"].keys()
+                image = topodata["image"]
+                pixel_to_nm_scaling = topodata["pixel_to_nm_scaling"]
+                if "grain_masks" in main_keys:
+                    grain_masks_keys = topodata["grain_masks"].keys()
                     if "above" in grain_masks_keys:
                         LOGGER.info(f"[{self.filename}] : Found grain mask for above direction")
-                        self.grain_masks["above"] = f["grain_masks"]["above"][:]
+                        self.grain_masks["above"] = topodata["grain_masks"]["above"]
                     if "below" in grain_masks_keys:
                         LOGGER.info(f"[{self.filename}] : Found grain mask for below direction")
-                        self.grain_masks["below"] = f["grain_masks"]["below"][:]
+                        self.grain_masks["below"] = topodata["grain_masks"]["below"]
+                if "grain_trace_data" in main_keys:
+                    LOGGER.info(f"[{self.filename}] : Found grain trace data")
+                    self.grain_trace_data = topodata["grain_trace_data"]
+
         except OSError as e:
             if "Unable to open file" in str(e):
                 LOGGER.info(f"[{self.filename}] File not found: {self.img_path}")
             raise e
 
         return (image, pixel_to_nm_scaling)
+
+    def load_asd(self) -> tuple:
+        """Extract image and pixel to nm scaling from .asd files.
+
+        Returns
+        -------
+        tuple: (np.ndarray, float)
+            A tuple containing the image and its pixel to nanometre scaling value.
+        """
+        try:
+            frames: np.ndarray
+            pixel_to_nm_scaling: float
+            _: dict
+            frames, pixel_to_nm_scaling, _ = asd.load_asd(file_path=self.img_path, channel=self.channel)
+            LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
+        except FileNotFoundError:
+            LOGGER.info(f"[{self.filename}] : File not found. Path: {self.img_path}")
+            raise
+
+        return (frames, pixel_to_nm_scaling)
 
     def load_ibw(self) -> tuple:
         """Load image from Asylum Research (Igor) .ibw files.
@@ -616,7 +670,7 @@ class LoadScans:
             if line.count(":"):
                 key, val = line.split(":", 1)
                 notes[key] = val.strip()
-        # Has potential for non-square pixels but not yet implimented
+        # Has potential for non-square pixels but not yet implemented
         pixel_to_nm_scaling = (
             float(notes["SlowScanSize"]) / scan["wave"]["wData"].shape[0] * 1e9,  # as in m
             float(notes["FastScanSize"]) / scan["wave"]["wData"].shape[1] * 1e9,  # as in m
@@ -642,8 +696,8 @@ class LoadScans:
         # Obtain channel list for all channels in file
         channel_list = {}
         for i, page in enumerate(tif.pages[1:]):  # [0] is thumbnail
-            available_channel = page.tags["32848"].value  # keys are hexidecimal vals
-            if page.tags["32849"].value == 0:  # wether img is trace or retrace
+            available_channel = page.tags["32848"].value  # keys are hexadecimal values
+            if page.tags["32849"].value == 0:  # whether img is trace or retrace
                 tr_rt = "trace"
             else:
                 tr_rt = "retrace"
@@ -869,6 +923,7 @@ class LoadScans:
             ".ibw": self.load_ibw,
             ".gwy": self.load_gwy,
             ".topostats": self.load_topostats,
+            ".asd": self.load_asd,
         }
 
         for img_path in self.img_paths:
@@ -888,7 +943,11 @@ class LoadScans:
                     else:
                         raise
                 else:
-                    self._check_image_size_and_add_to_dict()
+                    if suffix == ".asd":
+                        for index, frame in enumerate(self.image):
+                            self._check_image_size_and_add_to_dict(image=frame, filename=f"{self.filename}_{index}")
+                    else:
+                        self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
             else:
                 raise ValueError(
                     f"File type {suffix} not yet supported. Please make an issue at \
@@ -896,39 +955,131 @@ class LoadScans:
                 this file type."
                 )
 
-    def _check_image_size_and_add_to_dict(self) -> None:
+    def _check_image_size_and_add_to_dict(self, image: np.ndarray, filename: str) -> None:
         """Check the image is above a minimum size in both dimensions.
 
         Images that do not meet the minimum size are not included for processing.
-        """
-        if self.image.shape[0] < self.MINIMUM_IMAGE_SIZE or self.image.shape[1] < self.MINIMUM_IMAGE_SIZE:
-            LOGGER.warning(f"[{self.filename}] Skipping, image too small: {self.image.shape}")
-        else:
-            self.add_to_dict()
-            LOGGER.info(f"[{self.filename}] Image added to processing.")
-
-    def add_to_dict(self) -> None:
-        """Add image, image path and pixel to nanometre scaling to the img_dic dictionary under key filename.
 
         Parameters
         ----------
-        filename: str
-            The filename, idealy without an extension.
         image: np.ndarray
             An array of the extracted AFM image.
-        img_path: str
-            The path to the AFM file (with a frame number if applicable)
-        px_2_nm: float
-            The length of a pixel in nm.
+        filename: str
+            The name of the file
         """
-        self.img_dict[self.filename] = {
-            "filename": self.filename,
-            "img_path": self.img_path.with_name(self.filename),
+        if image.shape[0] < self.MINIMUM_IMAGE_SIZE or image.shape[1] < self.MINIMUM_IMAGE_SIZE:
+            LOGGER.warning(f"[{filename}] Skipping, image too small: {image.shape}")
+        else:
+            self.add_to_dict(image=image, filename=filename)
+            LOGGER.info(f"[{filename}] Image added to processing.")
+
+    def add_to_dict(self, image: np.ndarray, filename: str) -> None:
+        """Add an image and metadata to the img_dict dictionary under the key filename.
+
+        Adds the image and associated metadata such as any grain masks, and pixel to nanometere
+        scaling factor to the img_dict dictionary which is used as a place to store the image
+        information for processing.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            An array of the extracted AFM image.
+        filename: str
+            The name of the file
+        """
+        self.img_dict[filename] = {
+            "filename": filename,
+            "img_path": self.img_path.with_name(filename),
             "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-            "image_original": self.image,
+            "image_original": image,
             "image_flattened": None,
             "grain_masks": self.grain_masks,
+            "grain_trace_data": self.grain_trace_data,
         }
+
+
+def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -> None:
+    """Recursively save a dictionary to an open hdf5 file.
+
+    Parameters
+    ----------
+    open_hdf5_file: h5py.File
+        An open hdf5 file object.
+    group_path: str
+        The path to the group in the hdf5 file to start saving data from.
+    dictionary: dict
+        A dictionary of the data to save.
+
+    Returns
+    -------
+    None
+    """
+    for key, item in dictionary.items():
+        LOGGER.info(f"Saving key: {key}")
+
+        if item is None:
+            LOGGER.warning(f"Item '{key}' is None. Skipping.")
+        # Make sure the key is a string
+        key = str(key)
+
+        # Check if the item is a known datatype
+        # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
+        if isinstance(item, (list, str, int, float, np.ndarray, Path, dict)):  # noqa: UP038
+            # Lists need to be converted to numpy arrays
+            if isinstance(item, list):
+                item = np.array(item)
+                open_hdf5_file[group_path + key] = item
+            # Strings need to be encoded to bytes
+            elif isinstance(item, str):
+                open_hdf5_file[group_path + key] = item.encode("utf8")
+            # Integers, floats and numpy arrays can be added directly to the hdf5 file
+            # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
+            elif isinstance(item, (int, float, np.ndarray)):  # noqa: UP038
+                open_hdf5_file[group_path + key] = item
+            # Path objects need to be encoded to bytes
+            elif isinstance(item, Path):
+                open_hdf5_file[group_path + key] = str(item).encode("utf8")
+            # Dictionaries need to be recursively saved
+            elif isinstance(item, dict):  # a sub-dictionary, so we need to recurse
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item)
+        else:  # attempt to save an item that is not a numpy array or a dictionary
+            try:
+                open_hdf5_file[group_path + key] = item
+            except Exception as e:
+                LOGGER.info(f"Cannot save key '{key}' to HDF5. Item type: {type(item)}. Skipping. {e}")
+
+
+def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
+    """Read a dictionary from an open hdf5 file.
+
+    Parameters
+    ----------
+    open_hdf5_file: h5py.File
+        An open hdf5 file object.
+    group_path: str
+        The path to the group in the hdf5 file to start reading data from.
+
+    Returns
+    -------
+    dict
+        A dictionary of the hdf5 file data.
+    """
+    data_dict = {}
+    for key, item in open_hdf5_file[group_path].items():
+        LOGGER.info(f"Loading hdf5 key: {key}")
+        if isinstance(item, h5py.Group):
+            LOGGER.info(f" {key} is a group")
+            data_dict[key] = hdf5_to_dict(open_hdf5_file, group_path + key + "/")
+        # Decode byte strings to utf-8. The data type "O" is a byte string.
+        elif isinstance(item, h5py.Dataset) and item.dtype == "O":
+            LOGGER.debug(f" {key} is a byte string")
+            data_dict[key] = item[()].decode("utf-8")
+            LOGGER.debug(f" {key} type: {type(data_dict[key])}")
+        else:
+            LOGGER.debug(f" {key} is other type of dataset")
+            data_dict[key] = item[()]
+            LOGGER.debug(f" {key} type: {type(data_dict[key])}")
+    return data_dict
 
 
 def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict) -> None:
@@ -955,17 +1106,13 @@ def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict)
         # It may be possible for topostats_object["image_flattened"] to be None.
         # Make sure that this is not the case.
         if topostats_object["image_flattened"] is not None:
-            f["topostats_file_version"] = 0.1
-            f["image"] = topostats_object["image_flattened"]
-            # It should not be possible for topostats_object["pixel_to_nm_scaling"] to be None
-            f["pixel_to_nm_scaling"] = topostats_object["pixel_to_nm_scaling"]
-            if topostats_object["grain_masks"]:
-                if "above" in topostats_object["grain_masks"].keys():
-                    if topostats_object["grain_masks"]["above"] is not None:
-                        f["grain_masks/above"] = topostats_object["grain_masks"]["above"]
-                if "below" in topostats_object["grain_masks"].keys():
-                    if topostats_object["grain_masks"]["below"] is not None:
-                        f["grain_masks/below"] = topostats_object["grain_masks"]["below"]
+            topostats_object["topostats_file_version"] = 0.2
+            # Rename the key to "image" for backwards compatibility
+            topostats_object["image"] = topostats_object.pop("image_flattened")
+
+            # Recursively save the topostats object dictionary to the .topostats file
+            dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
+
         else:
             raise ValueError(
                 "TopoStats object dictionary does not contain an 'image_flattened'. \

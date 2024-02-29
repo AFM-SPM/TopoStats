@@ -1,8 +1,10 @@
 """Module for calculating curvature statistics."""
+
 import logging
 
 # from pathlib import Path
 import numpy as np
+
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -46,7 +48,7 @@ class Curvature:
             Whether the molecule has been determined as being circular or not.
         edge_order: int
             Gradient is passed to numpy.gradient and Gradient is calculated using N-th order accurate differences at
-            boundaries. Also used to expand the array by the necessary number of co-ordinates at either end to form a
+            boundaries. Also used to expand the array by the necessary number of coordinates at either end to form a
             loop for the calculations.
         """
         # If circular we need gradients correctly calculated at the start and end and so the array has the number of

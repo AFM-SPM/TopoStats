@@ -1,6 +1,8 @@
 """Skeletonize molecules."""
+
 import logging
 from collections.abc import Callable
+
 import numpy as np
 from skimage.morphology import skeletonize, thin
 
