@@ -326,24 +326,6 @@ class dnaTrace:
             return grain_array[rows.argmax() : m - rows[::-1].argmax(), cols.argmax() : n - cols[::-1].argmax()]
         return np.empty((0, 0), dtype=bool)
 
-    def _crop_array(array: np.ndarray, bounding_box: Tuple) -> np.ndarray:
-        """Crop an array.
-
-        Parameters
-        ----------
-        array: np.ndarray
-            2D Numpy array to be cropped.
-        bounding_box: Tuple
-            Tuple of co-ordinates to crop, should be of form (max_x, min_x, max_y, min_y) as returned by
-        _get_bounding_box().
-
-        Returns
-        -------
-        np.ndarray()
-            Cropped array
-        """
-        return array[bounding_box[0] : bounding_box[1], bounding_box[2] : bounding_box[3]]
-
     @staticmethod
     def coords_2_img(coords, image, ordered=False):
         comb = np.zeros_like(image)
@@ -992,14 +974,14 @@ def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: 
     # Get bounding boxes for each grain
     region_properties = skimage_measure.regionprops(labelled_grains_mask)
     # Subset image and grains then zip them up
-    cropped_images = [crop_array(image, grain.bbox, 0) for grain in region_properties]
+    cropped_images = [crop_array(image, grain.bbox, pad_width) for grain in region_properties]
     cropped_images = [np.pad(grain, pad_width=pad_width) for grain in cropped_images]
-    cropped_masks = [crop_array(np.where(labelled_grains_mask == i+1, 1, 0), grain.bbox, 0) for i, grain in enumerate(region_properties)]
+    cropped_masks = [crop_array(np.where(labelled_grains_mask == i+1, 1, 0), grain.bbox, pad_width) for i, grain in enumerate(region_properties)]
     cropped_masks = [np.pad(grain, pad_width=pad_width) for grain in cropped_masks]
     # Flip every labelled region to be 1 instead of its label
     cropped_masks = [np.where(grain == 0, 0, 1) for grain in cropped_masks]
     # Get BBOX coords to remap crops to images
-    bboxs = [np.array(grain.bbox) for grain in region_properties]
+    bboxs = [pad_bounding_box(image.shape, list(grain.bbox), pad_width=pad_width) for grain in region_properties]
 
     return (cropped_images, cropped_masks, bboxs)
 
@@ -1127,19 +1109,39 @@ def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np
         Cropped array
     """
     bounding_box = list(bounding_box)
-    # Top Row : Make this the first column if too close
-    bounding_box[0] = 0 if bounding_box[0] - pad_width < 0 else bounding_box[0] - pad_width
-    # Bottom Row : Make this the last row if too close
-    bounding_box[2] = array.shape[0] if bounding_box[2] + pad_width > array.shape[0] else bounding_box[2] + pad_width
-    # Left Column : Make this the first column if too close
-    bounding_box[1] = 0 if bounding_box[1] - pad_width < 0 else bounding_box[1] - pad_width
-    # Right Column : Make this the last column if too close
-    bounding_box[3] = array.shape[1] if bounding_box[3] + pad_width > array.shape[1] else bounding_box[3] + pad_width
+    bounding_box = pad_bounding_box(array.shape, bounding_box, pad_width)
     return array[
         bounding_box[0] : bounding_box[2],
         bounding_box[1] : bounding_box[3],
     ]
 
+
+def pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int) -> list:
+    """Pad coordinates, if they extend beyond image boundaries stop at boundary.
+
+    Parameters
+    ==========
+    array_shape: tuple
+        Shape of original image
+    bounding_box: list
+        List of coordinates min_row, min_col, max_row, max_col
+    pad_width: int
+        Cells to pad arrays by.
+
+    Returns
+    =======
+    list
+       List of padded coordinates
+    """
+    # Top Row : Make this the first column if too close
+    bounding_box[0] = 0 if bounding_box[0] - pad_width < 0 else bounding_box[0] - pad_width
+    # Left Column : Make this the first column if too close
+    bounding_box[1] = 0 if bounding_box[1] - pad_width < 0 else bounding_box[1] - pad_width
+    # Bottom Row : Make this the last row if too close
+    bounding_box[2] = array_shape[0] if bounding_box[2] + pad_width > array_shape[0] else bounding_box[2] + pad_width
+    # Right Column : Make this the last column if too close
+    bounding_box[3] = array_shape[1] if bounding_box[3] + pad_width > array_shape[1] else bounding_box[3] + pad_width
+    return bounding_box
 
 # 2023-06-09 - Code that runs dnatracing in parallel across grains, left deliberately for use when we remodularise the
 #              entry-points/workflow. Will require that the gaussian filtered array is saved and passed in along with
