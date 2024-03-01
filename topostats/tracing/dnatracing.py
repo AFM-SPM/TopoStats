@@ -945,8 +945,7 @@ def trace_image(
             bbox = bboxs[n_grain]
             value[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
 
-        for mol_trace in trace:
-            all_traces.append(mol_trace + [bbox[0] - pad_width, bbox[1] - pad_width])
+        all_traces.append([mol_trace + [bbox[0] - pad_width, bbox[1] - pad_width] for mol_trace in trace])
 
     print(grains_results)
 
