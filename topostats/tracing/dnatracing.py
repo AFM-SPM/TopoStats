@@ -1285,7 +1285,7 @@ class nodeStats:
         self.conv_skelly = convolve_skelly(self.skeleton)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             # convolve to see crossing and end points
-            self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
+            #self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
             # reset skeleton var as tidy branches may have modified it
             self.skeleton = np.where(self.conv_skelly != 0, 1, 0)
             # get graph of skeleton
@@ -1376,7 +1376,7 @@ class nodeStats:
                 node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
                 node_centre[1] - node_len // 2 - overflow : node_centre[1] + node_len // 2 + overflow,
             ]
-        # remove any artifacts of thre grain caught in the overflow areas
+        # remove any artifacts of the grain caught in the overflow areas
         new_skeleton = self.keep_biggest_object(new_skeleton)
         # Re-skeletonise
         new_skeleton = getSkeleton(image, new_skeleton).get_skeleton(
@@ -1901,7 +1901,6 @@ class nodeStats:
                 self.node_dict[f"node_{real_node_count}"] = {
                     "error": error,
                     "px_2_nm": self.px_2_nm,
-                    "crossing_type": None,
                     "branch_stats": matched_branches,
                     "node_coords": node_coords,
                     "confidence": conf,
