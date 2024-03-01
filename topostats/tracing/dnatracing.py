@@ -2755,8 +2755,8 @@ class nodeStats:
         return rtn_image
 
     @staticmethod
-    def _only_centre_branches(node_image: np.ndarray, node_coordinate):
-        """Looks identifies the node being examined and removes all
+    def _only_centre_branches(node_image: np.ndarray, node_coordinate, pad_nodes=2):
+        """Identifies the node being examined and removes all
         branches not connected to it.
 
         Parameters
@@ -2764,6 +2764,12 @@ class nodeStats:
         node_image : np.ndarray
             An image of the skeletonised area surrounding the node where
             the background = 0, skeleton = 1, termini = 2, nodes = 3.
+        node_coordinate : np.ndarray
+            The coordinates [X, Y] where the node is located. Used to identify
+            the closest node cluster in the image.
+        pad_nodes : int
+            Ammount to pad non-central nodes as to not encroach too close to
+            the other nodes.
 
         Returns
         -------
@@ -2806,7 +2812,9 @@ class nodeStats:
                     coord[j] = 1
                 if coord_val + 2 > node_image_cp.shape[j]:
                     coord[j] = node_image_cp.shape[j] - 2
-            node_image_cp[coord[0] - 1 : coord[0] + 2, coord[1] - 1 : coord[1] + 2] = 0
+            node_image_cp[
+                coord[0] - pad_nodes : coord[0] + pad_nodes + 1,
+                coord[1] - pad_nodes : coord[1] + pad_nodes + 1] = 0
 
         return node_image_cp
 
