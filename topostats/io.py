@@ -139,7 +139,7 @@ def write_config_with_comments(args=None) -> None:
         except FileNotFoundError as e:
             raise UserWarning(f"There is no configuration for samples of type : {args.config}") from e
 
-    if ".yaml" not in filename and ".yml" not in filename and ".mplstyle" not in filename:
+    if ".yaml" not in str(filename) and ".yml" not in str(filename) and ".mplstyle" not in str(filename):
         create_config_path = output_dir / f"{filename}.yaml"
     else:
         create_config_path = output_dir / filename

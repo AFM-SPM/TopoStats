@@ -68,25 +68,29 @@ def test_entry_point_subprocess_help(capsys, argument: str, option: str) -> None
 @pytest.mark.parametrize(
     ("options", "expected_function", "expected_arg_name", "expected_arg_value"),
     [
-        (
+        pytest.param(
             [
                 "process",
-                "-c dummy/config/dir/config.yaml",
+                "-c",
+                "dummy/config/dir/config.yaml",
             ],
             run_topostats,
             "config_file",
-            " dummy/config/dir/config.yaml",
+            Path("dummy/config/dir/config.yaml"),
+            id="Process with config file argument",
         ),
-        (
+        pytest.param(
             [
                 "process",
-                "-b /tmp/",
+                "-b",
+                "/tmp/",  # noqa: S108
             ],
             run_topostats,
             "base_dir",
-            " /tmp/",
+            Path("/tmp/"),  # noqa: S108
+            id="Process with base dir argument",
         ),
-        (
+        pytest.param(
             [
                 "create-config",
                 "--filename",
@@ -94,16 +98,19 @@ def test_entry_point_subprocess_help(capsys, argument: str, option: str) -> None
             ],
             write_config_with_comments,
             "filename",
-            "dummy/config/dir/config.yaml",
+            Path("dummy/config/dir/config.yaml"),
+            id="Create config with output filename",
         ),
-        (
+        pytest.param(
             [
                 "summary",
-                "-l dummy/config/dir/var_to_label.yaml",
+                "-l",
+                "dummy/config/dir/var_to_label.yaml",
             ],
             run_toposum,
             "var_to_label",
-            " dummy/config/dir/var_to_label.yaml",
+            Path("dummy/config/dir/var_to_label.yaml"),
+            id="Summary with label file.",
         ),
     ],
 )
@@ -114,10 +121,8 @@ def test_entry_point(
     returned_args = entry_point(options, testing=True)
     # convert argparse's Namespace object to dictionary
     returned_args_dict = vars(returned_args)
-
     # check that the correct function is collected
     assert returned_args.func == expected_function
-
     # check that the argument has successfully been passed through into the dictionary
     assert returned_args_dict[expected_arg_name] == expected_arg_value
 
@@ -133,7 +138,6 @@ def test_entry_point_create_config_file(tmp_path: Path) -> None:
             f"{tmp_path}",
         ]
     )
-
     assert Path(f"{tmp_path}/test_create_config.yaml").is_file()
 
 
@@ -141,20 +145,23 @@ def test_entry_point_create_config_file(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("options", "expected_arg_name", "expected_arg_value"),
     [
-        (
+        pytest.param(
             [
-                "-c dummy/config/dir/config.yaml",
+                "-c",
+                "dummy/config/dir/config.yaml",
             ],
             "config_file",
-            " dummy/config/dir/config.yaml",
+            Path("dummy/config/dir/config.yaml"),
+            id="Test using -c flag for config file",
         ),
-        (
+        pytest.param(
             [
                 "--config",
                 "dummy/config/dir/config.yaml",
             ],
             "config_file",
-            "dummy/config/dir/config.yaml",
+            Path("dummy/config/dir/config.yaml"),
+            id="Test using --config flag for config file",
         ),
     ],
 )
