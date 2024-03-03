@@ -1,12 +1,12 @@
 """For segmenting cats grains using a specifically trained unet"""
 
-
 from pathlib import Path
 from typing import Tuple
 import logging
 
 import numpy as np
 import tensorflow as tf
+from keras import backend as K
 from PIL import Image
 import matplotlib.pyplot as plt
 from skimage.feature import hessian_matrix, hessian_matrix_eigvals
@@ -16,6 +16,7 @@ from skimage.color import label2rgb
 from sklearn.cluster import KMeans
 from scipy.ndimage import distance_transform_edt
 from skimage.graph import route_through_array
+
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plottingfuncs import Colormap
@@ -33,6 +34,14 @@ def test_GPU():
     LOGGER.info("============= GPU TEST =============")
     tf.test.gpu_device_name()
     LOGGER.info("============= GPU TEST DONE =============")
+
+
+def iou(y_true, y_pred):
+    """Calculate the intersection over union loss."""
+    y_true_flat = K.flatten(y_true)
+    y_pred_flat = K.flatten(y_pred)
+    intersection = K.sum(y_true_flat * y_pred_flat)
+    return (intersection + 1.0) / (K.sum(y_true_flat) + K.sum(y_pred_flat) - intersection + 1.0)
 
 
 def mean_iou(y_true, y_pred):
