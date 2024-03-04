@@ -8,7 +8,6 @@ import numpy as np
 import pytest
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from skimage import io
 
 from topostats.grains import Grains
 from topostats.io import LoadScans
@@ -108,30 +107,19 @@ def test_save_figure(
     assert isinstance(ax, Axes)
 
 
-def test_save_array_figure(tmp_path: Path):
-    """Tests that the image array is saved."""
-    rng2 = np.random.default_rng()
-    Images(
-        data=rng2.random((10, 10)),
-        output_dir=tmp_path,
-        filename="result",
-    ).save_array_figure()
-    assert Path(tmp_path / "result.png").exists()
-
-
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_no_colorbar(load_scan_data: LoadScans, tmp_path: Path) -> None:
+def test_plot_and_save_no_colorbar(load_scan_data: LoadScans, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without colorbar."""
+    plotting_config["colorbar"] = False
     fig, _ = Images(
         data=load_scan_data.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
         pixel_to_nm_scaling=load_scan_data.pixel_to_nm_scaling,
         title="Raw Height",
-        colorbar=False,
-        axes=True,
-        image_set="all",
+        **plotting_config,
     ).plot_and_save()
+    # pytest.fail()
     return fig
 
 
@@ -145,17 +133,15 @@ def test_plot_histogram_and_save(load_scan_data: LoadScans, tmp_path: Path) -> N
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_colorbar(load_scan_data: LoadScans, tmp_path: Path) -> None:
-    """Test plotting with colorbar."""
+def test_plot_and_save_colorbar_and_axes(load_scan_data: LoadScans, plotting_config: dict, tmp_path: Path) -> None:
+    """Test plotting with colorbar and axes (True in default_config.yaml)."""
     fig, _ = Images(
         data=load_scan_data.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
         pixel_to_nm_scaling=load_scan_data.pixel_to_nm_scaling,
         title="Raw Height",
-        colorbar=True,
-        axes=True,
-        image_set="all",
+        **plotting_config,
     ).plot_and_save()
     return fig
 
@@ -174,20 +160,43 @@ def test_plot_and_save_no_axes(load_scan_data: LoadScans, plotting_config: dict,
     return fig
 
 
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScans, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting without axes and without the colourbar."""
     plotting_config["axes"] = False
     plotting_config["colorbar"] = False
-    Images(
+    fig, _ = Images(
         data=load_scan_data.image,
         output_dir=tmp_path,
         filename="01-raw_heightmap",
         title="Raw Height",
         **plotting_config,
     ).plot_and_save()
-    img = io.imread(tmp_path / "01-raw_heightmap.png")
-    assert np.sum(img) == 1535334
-    assert img.shape == (64, 64, 4)
+    return fig
+
+
+@pytest.mark.parametrize(
+    ("save", "image_set", "core_set"),
+    [
+        pytest.param(False, "all", False, id="save option is false, no images can be plotted"),
+        pytest.param(True, "nothing", False, id="image_set is invalid, core_set false, no images can be plotted"),
+    ],
+)
+def test_plot_and_save_false_raises_exception(
+    load_scan_data: LoadScans, plotting_config: dict, save: bool, image_set: str, core_set: bool, tmp_path: Path
+) -> None:
+    """Test ValueError is raised if invalid save/image_set/core_set values are passed."""
+    plotting_config["save"] = save
+    plotting_config["image_set"] = image_set
+    plotting_config["core_set"] = core_set
+    with pytest.raises(ValueError):  # noqa: PT011
+        _, _ = Images(
+            data=load_scan_data.image,
+            output_dir=tmp_path,
+            filename="01-raw_heightmap",
+            title="Raw Height",
+            **plotting_config,
+        ).plot_and_save()
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")

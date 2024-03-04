@@ -240,7 +240,7 @@ class Images:
 
     def plot_and_save(self):
         """
-        Plot and save the images with savefig or imsave depending on config file parameters.
+        Plot and save the image.
 
         Returns
         -------
@@ -251,19 +251,16 @@ class Images:
         """
         fig, ax = None, None
         if self.save:
-            if self.image_set == "all" or self.core_set:
-                if self.axes or self.colorbar:
-                    fig, ax = self.save_figure()
-                else:
-                    if isinstance(self.masked_array, np.ndarray) or self.region_properties:
-                        fig, ax = self.save_figure()
-                    else:
-                        self.save_array_figure()
-        LOGGER.info(
-            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}\
- | DPI: {self.savefig_dpi}"
-        )
-        return fig, ax
+            if self.image_set in ["all", "core"] or self.core_set:
+                fig, ax = self.save_figure()
+                LOGGER.info(
+                    f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}"
+                    " | DPI: {self.savefig_dpi}"
+                )
+                plt.close()
+                return fig, ax
+            raise ValueError(f"Invalid image_set ({self.image_set=}) or core_set ({self.core_set=})")
+        raise ValueError(f"The 'save' option is False ({self.save=}), set to 'True' to save figures.")
 
     def save_figure(self):
         """Save figures as plt.savefig objects.
@@ -325,6 +322,8 @@ class Images:
             if not self.axes and not self.colorbar:
                 plt.title("")
                 fig.frameon = False
+                plt.box(False)
+                plt.tight_layout()
                 plt.savefig(
                     (self.output_dir / f"{self.filename}.{self.savefig_format}"),
                     bbox_inches="tight",
@@ -344,18 +343,6 @@ class Images:
             )
         plt.close()
         return fig, ax
-
-    def save_array_figure(self) -> None:
-        """Save the image array as an image using plt.imsave()."""
-        plt.imsave(
-            (self.output_dir / f"{self.filename}.{self.savefig_format}"),
-            self.data,
-            cmap=self.cmap,
-            vmin=self.zrange[0],
-            vmax=self.zrange[1],
-            format=self.savefig_format,
-        )
-        plt.close()
 
 
 def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to_nm_scaling: float) -> None:
