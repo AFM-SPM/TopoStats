@@ -79,7 +79,6 @@ def run_filters(
             **filter_config,
         )
         filters.filter_image()
-
         # Optionally plot filter stage
         if plotting_config["run"]:
             plotting_config.pop("run")
@@ -89,7 +88,9 @@ def run_filters(
                 if plot_name not in ["scan_raw"]:
                     if plot_name == "extracted_channel":
                         array = np.flipud(array.pixels)
-                    plotting_config["plot_dict"][plot_name]["output_dir"] = filter_out_path
+                    plotting_config["plot_dict"][plot_name]["output_dir"] = (
+                        filter_out_path if plotting_config["plot_dict"][plot_name]["core_set"] else core_out_path
+                    )
                     try:
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_histogram_and_save()
@@ -184,18 +185,20 @@ def run_grains(  # noqa: C901
                 LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
                 for direction, image_arrays in grains.directions.items():
                     LOGGER.info(f"[{filename}] : Plotting {direction} Grain Finding Images")
+                    grain_out_path_direction = grain_out_path / f"{direction}"
+                    grain_out_path_direction.mkdir(parents=True, exist_ok=True)
                     for plot_name, array in image_arrays.items():
                         LOGGER.info(f"[{filename}] : Plotting {plot_name} image")
-                        plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path / f"{direction}"
+                        plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
                     # Make a plot of coloured regions with bounding boxes
-                    plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path / f"{direction}"
+                    plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path_direction
                     Images(
                         grains.directions[direction]["coloured_regions"],
                         **plotting_config["plot_dict"]["bounding_boxes"],
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
-                    plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path / f"{direction}"
+                    plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
                     Images(
                         grains.directions[direction]["labelled_regions_02"],
                         **plotting_config["plot_dict"]["coloured_boxes"],
@@ -534,7 +537,8 @@ def process_scan(
     Parameters
     ----------
     img_path_px2nm : Dict[str, Union[np.ndarray, Path, float]]
-        A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's pixel to namometre scaling value.
+        A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's
+    pixel to namometre scaling value.
     base_dir : Union[str, Path]
         Directory to recursively search for files, if not specified the current directory is scanned.
     filter_config : dict
