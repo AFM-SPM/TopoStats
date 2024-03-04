@@ -83,13 +83,14 @@ def run_filters(
         if plotting_config["run"]:
             plotting_config.pop("run")
             LOGGER.info(f"[{filename}] : Plotting Filtering Images")
+            filter_out_path.mkdir(parents=True, exist_ok=True)
             # Generate plots
             for plot_name, array in filters.images.items():
                 if plot_name not in ["scan_raw"]:
                     if plot_name == "extracted_channel":
                         array = np.flipud(array.pixels)
                     plotting_config["plot_dict"][plot_name]["output_dir"] = (
-                        filter_out_path if plotting_config["plot_dict"][plot_name]["core_set"] else core_out_path
+                        core_out_path if plotting_config["plot_dict"][plot_name]["core_set"] else filter_out_path
                     )
                     try:
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()

@@ -288,45 +288,50 @@ def test_check_run_steps(
 @pytest.mark.parametrize(
     ("filter_run", "grains_run", "grainstats_run", "dnatracing_run", "log_msg1", "log_msg2"),
     [
-        (
+        pytest.param(
             False,
             False,
             False,
             False,
             "You have not included running the initial filter stage.",
             "Please check your configuration file.",
+            id="All stages are disabled",
         ),
-        (
+        pytest.param(
             True,
             False,
             False,
             False,
             "Detection of grains disabled, returning empty data frame.",
-            "16-gaussian_filtered",
+            "minicircle_small.png",
+            id="Only filtering enabled",
         ),
-        (
+        pytest.param(
             True,
             True,
             False,
             False,
             "Calculation of grainstats disabled, returning empty dataframe.",
-            "25-labelled_image_bboxes",
+            "minicircle_small_above_masked.png",
+            id="Filtering and Grain enabled",
         ),
-        (
+        pytest.param(
             True,
             True,
             True,
             False,
             "Processing grain",
             "Calculation of DNA Tracing disabled, returning grainstats data frame.",
+            id="Filtering, Grain and GrainStats enabled",
         ),
-        (
+        pytest.param(
             True,
             True,
             True,
             True,
             "Traced grain 3 of 3",
             "Combining ['above'] grain statistics and dnatracing statistics",
+            id="Filtering, Grain, GrainStats and DNA Tracing enabled",
         ),
     ],
 )

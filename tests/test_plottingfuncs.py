@@ -119,7 +119,6 @@ def test_plot_and_save_no_colorbar(load_scan_data: LoadScans, plotting_config: d
         title="Raw Height",
         **plotting_config,
     ).plot_and_save()
-    # pytest.fail()
     return fig
 
 
@@ -173,30 +172,6 @@ def test_plot_and_save_no_axes_no_colorbar(load_scan_data: LoadScans, plotting_c
         **plotting_config,
     ).plot_and_save()
     return fig
-
-
-@pytest.mark.parametrize(
-    ("save", "image_set", "core_set"),
-    [
-        pytest.param(False, "all", False, id="save option is false, no images can be plotted"),
-        pytest.param(True, "nothing", False, id="image_set is invalid, core_set false, no images can be plotted"),
-    ],
-)
-def test_plot_and_save_false_raises_exception(
-    load_scan_data: LoadScans, plotting_config: dict, save: bool, image_set: str, core_set: bool, tmp_path: Path
-) -> None:
-    """Test ValueError is raised if invalid save/image_set/core_set values are passed."""
-    plotting_config["save"] = save
-    plotting_config["image_set"] = image_set
-    plotting_config["core_set"] = core_set
-    with pytest.raises(ValueError):  # noqa: PT011
-        _, _ = Images(
-            data=load_scan_data.image,
-            output_dir=tmp_path,
-            filename="01-raw_heightmap",
-            title="Raw Height",
-            **plotting_config,
-        ).plot_and_save()
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")

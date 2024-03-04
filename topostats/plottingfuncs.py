@@ -128,6 +128,11 @@ class Images:
         """
         Initialise the class.
 
+        There are two key parameters that ensure whether and image is plotted that are passed in from the update
+        plotting dictionary. These are the `image_set` which defines whether to plot 'all' images or just the `core`
+        set. There is then the 'core_set' which defines whether an individual images belongs to the 'core_set' or not.
+        If it doesn't then it is not plotted when `image_set == "core"`.
+
         Parameters
         ----------
         data : np.array
@@ -251,7 +256,8 @@ class Images:
         """
         fig, ax = None, None
         if self.save:
-            if self.image_set in ["all", "core"] or self.core_set:
+            # Only plot if image_set is "all" (i.e. user wants all images) or an image is in the core_set
+            if self.image_set == "all" or self.core_set:
                 fig, ax = self.save_figure()
                 LOGGER.info(
                     f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}"
@@ -259,8 +265,7 @@ class Images:
                 )
                 plt.close()
                 return fig, ax
-            raise ValueError(f"Invalid image_set ({self.image_set=}) or core_set ({self.core_set=})")
-        raise ValueError(f"The 'save' option is False ({self.save=}), set to 'True' to save figures.")
+        return fig, ax
 
     def save_figure(self):
         """Save figures as plt.savefig objects.
