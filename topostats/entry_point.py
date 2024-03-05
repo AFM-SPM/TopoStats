@@ -1,4 +1,5 @@
-"""Entry point for all TopoStats programs.
+"""
+Entry point for all TopoStats programs.
 
 Parses command-line arguments and passes input on to the relevant functions / modules.
 """
@@ -16,7 +17,16 @@ from topostats.run_topostats import run_topostats
 
 
 def create_parser() -> arg.ArgumentParser:
-    """Create a parser for reading options."""
+    """
+    Create a parser for reading options.
+
+    Creates a parser, with multiple sub-parsers for reading options to run 'topostats'.
+
+    Returns
+    -------
+    arg.ArgumentParser
+        Argument parser.
+    """
     parser = arg.ArgumentParser(
         description="Run various programs relating to AFM data. Add the name of the program you wish to run."
     )
@@ -342,7 +352,24 @@ def create_parser() -> arg.ArgumentParser:
 
 
 def entry_point(manually_provided_args=None, testing=False) -> None:
-    """Entry point for all TopoStats programs."""
+    """
+    Entry point for all TopoStats programs.
+
+    Main entry point for running 'topostats' which allows the different processing steps ('process', 'filter',
+    'create_config' etc.) to be run.
+
+    Parameters
+    ----------
+    manually_provided_args : None
+        Manually provided arguments.
+    testing : bool
+        Whether testing is being carried out.
+
+    Returns
+    -------
+    None
+        Does not return anything.
+    """
     # Parse command line options, load config (or default) and update with command line options
     parser = create_parser()
     args = parser.parse_args() if manually_provided_args is None else parser.parse_args(manually_provided_args)
@@ -362,7 +389,14 @@ def entry_point(manually_provided_args=None, testing=False) -> None:
 
 
 def create_legacy_run_topostats_parser() -> arg.ArgumentParser:
-    """Create a parser reading options for the 'run_topostats' processing entry point."""
+    """
+    Create a parser reading options for the 'run_topostats' processing entry point.
+
+    Returns
+    -------
+    arg.ArgumentParser
+        Arguments to be passed to 'run_topostats'.
+    """
     parser = arg.ArgumentParser(
         description="Process AFM images. Additional arguments over-ride those in the configuration file."
     )
@@ -456,7 +490,14 @@ def create_legacy_run_topostats_parser() -> arg.ArgumentParser:
 
 
 def create_legacy_toposum_parser() -> arg.ArgumentParser:
-    """Create a parser reading options for the legacy 'toposum' summarize entry point."""
+    """
+    Create a parser reading options for the legacy 'toposum' summarize entry point.
+
+    Returns
+    -------
+    arg.ArgumentParser
+        Arguments to be passed to 'toposum'.
+    """
     parser = arg.ArgumentParser(
         description="Summarise and plot histograms, kernel density estimates and scatter plots of TopoStats"
         "grain and DNA Tracing statistics."
@@ -496,7 +537,21 @@ def create_legacy_toposum_parser() -> arg.ArgumentParser:
 
 
 def legacy_run_topostats_entry_point(args=None, testing=False) -> None:
-    """Legacy entry point for the run_topostats processing function."""
+    """
+    Legacy entry point for the run_topostats processing function.
+
+    Parameters
+    ----------
+    args : None
+        Arguments.
+    testing : bool
+        Whether functions is being tested.
+
+    Returns
+    -------
+    None
+        Does not return anything.
+    """
     parser = create_legacy_run_topostats_parser()
     args = parser.parse_args() if args is None else parser.parse_args(args)
 
@@ -509,7 +564,21 @@ def legacy_run_topostats_entry_point(args=None, testing=False) -> None:
 
 
 def legacy_toposum_entry_point(args=None, testing=False) -> None:
-    """Legacy entry point for the toposum summarizing function."""
+    """
+    Legacy entry point for the toposum summarizing function.
+
+    Parameters
+    ----------
+    args : None
+        Arguments.
+    testing : bool
+        Whether functions is being tested.
+
+    Returns
+    -------
+    None
+        Does not return anything.
+    """
     parser = create_legacy_toposum_parser()
     args = parser.parse_args() if args is None else parser.parse_args(args)
 
