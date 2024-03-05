@@ -83,7 +83,9 @@ def run_filters(
         if plotting_config["run"]:
             plotting_config.pop("run")
             LOGGER.info(f"[{filename}] : Plotting Filtering Images")
-            filter_out_path.mkdir(parents=True, exist_ok=True)
+            if plotting_config["image_set"] == "all":
+                filter_out_path.mkdir(parents=True, exist_ok=True)
+                LOGGER.debug(f"[{filename}] : Target filter directory created : {filter_out_path}")
             # Generate plots
             for plot_name, array in filters.images.items():
                 if plot_name not in ["scan_raw"]:
@@ -187,7 +189,9 @@ def run_grains(  # noqa: C901
                 for direction, image_arrays in grains.directions.items():
                     LOGGER.info(f"[{filename}] : Plotting {direction} Grain Finding Images")
                     grain_out_path_direction = grain_out_path / f"{direction}"
-                    grain_out_path_direction.mkdir(parents=True, exist_ok=True)
+                    if plotting_config["image_set"] == "all":
+                        grain_out_path_direction.mkdir(parents=True, exist_ok=True)
+                        LOGGER.debug(f"[{filename}] : Target grain directory created : {grain_out_path_direction}")
                     for plot_name, array in image_arrays.items():
                         LOGGER.info(f"[{filename}] : Plotting {plot_name} image")
                         plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
