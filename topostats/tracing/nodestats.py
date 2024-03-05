@@ -94,7 +94,7 @@ class nodeStats:
         self.conv_skelly = convolve_skelly(self.skeleton)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             # convolve to see crossing and end points
-            #self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
+            self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
             # reset skeleton var as tidy branches may have modified it
             self.skeleton = np.where(self.conv_skelly != 0, 1, 0)
             # get graph of skeleton
