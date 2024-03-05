@@ -1,13 +1,52 @@
+"""Miscellaneous tracing functions."""
 import numpy as np
+import numpy.typing as npt
 import matplotlib.pyplot as plt
 import math
 
 
 class getSkeleton:
-    """Skeltonisation algorithm based on the paper "A Fast Parallel Algorithm for
-    Thinning Digital Patterns" by Zhang et al., 1984"""
+    """
+    Skeltonisation : "A Fast Parallel Algorithm for Thinning Digital Patterns" by Zhang et al., 1984.
 
-    def __init__(self, image_data, binary_map, number_of_columns, number_of_rows, pixel_size):
+    Parameters
+    ----------
+    image_data : npt.NDArray
+        Image to be traced.
+    binary_map : npt.NDArray
+        Image mask.
+    number_of_columns : int
+        Number of columns.
+    number_of_rows : int
+        Number of rows.
+    pixel_size : float
+        Pixel to nm scaling.
+    """
+
+    def __init__(
+        self,
+        image_data: npt.NDArray,
+        binary_map: npt.NDArray,
+        number_of_columns: int,
+        number_of_rows: int,
+        pixel_size: float,
+    ) -> None:
+        """
+        Initialise the class.
+
+        Parameters
+        ----------
+        image_data : npt.NDArray
+            Image to be traced.
+        binary_map : npt.NDArray
+            Image mask.
+        number_of_columns : int
+            Number of columns.
+        number_of_rows : int
+            Number of rows.
+        pixel_size : float
+            Pixel to nm scaling.
+        """
         self.image_data = image_data
         self.binary_map = binary_map
         self.number_of_columns = number_of_columns
@@ -44,13 +83,14 @@ class getSkeleton:
         self.doSkeletonising()
 
     def getDNAmolHeightStats(self):
+        """Get molecule heights."""
         coordinates = np.argwhere(self.binary_map == 1)
         flat_indices = np.ravel_multi_index(coordinates.T, self.image_data.shape)
         heights = self.image_data.flat[flat_indices]
         self.average_height = np.average(heights)
 
     def doSkeletonising(self):
-        """Simple while loop to check if the skeletonising is finished"""
+        """Check if the skeletonising is finished."""
 
         self.mask_being_skeletonised = self.binary_map
 
@@ -67,9 +107,11 @@ class getSkeleton:
         self.output_skeleton = np.argwhere(self.mask_being_skeletonised == 1)
 
     def _doSkeletonisingIteration(self):
-        """Do an iteration of skeletonisation - check for the local binary pixel
-        environment and assess the local height values to decide whether to
-        delete a point
+        """
+        Do an iteration of skeletonisation.
+
+        Check for the local binary pixel environment and assess the local height values to decide whether to delete a
+        point.
         """
 
         number_of_deleted_points = 0
@@ -105,9 +147,20 @@ class getSkeleton:
         if number_of_deleted_points == 0:
             self.skeleton_converged = True
 
-    def _deletePixelSubit1(self, point):
-        """Function to check whether a single point should be deleted based
-        on both its local binary environment and its local height values"""
+    def _deletePixelSubit1(self, point: npt.NDArray) -> bool:
+        """
+        Check whether a point should be deleted based on local binary environment and local height values.
+
+        Parameters
+        ----------
+        point : npt.NDArray
+            Point to be checked.
+
+        Returns
+        -------
+        bool
+            Whether the point should be deleted.
+        """
 
         self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(
             self.mask_being_skeletonised, point[0], point[1]
@@ -123,9 +176,20 @@ class getSkeleton:
         else:
             return False
 
-    def _deletePixelSubit2(self, point):
-        """Function to check whether a single point should be deleted based
-        on both its local binary environment and its local height values"""
+    def _deletePixelSubit2(self, point: npt.NDArray) -> bool:
+        """
+        Check whether a point should be deleted based on local binary environment and local height values.
+
+        Parameters
+        ----------
+        point : npt.NDArray
+            Point to be checked.
+
+        Returns
+        -------
+        bool
+            Whether the point should be deleted.
+        """
 
         self.p2, self.p3, self.p4, self.p5, self.p6, self.p7, self.p8, self.p9 = genTracingFuncs.getLocalPixelsBinary(
             self.mask_being_skeletonised, point[0], point[1]
@@ -148,14 +212,29 @@ class getSkeleton:
     I can use the information from the c,d,c' and d' tests to determine a good
     direction to search for higher height values """
 
-    def _binaryThinCheck_a(self):
+    def _binaryThinCheck_a(self) -> bool:
+        """
+        Binary thin check A.
+
+        Returns
+        -------
+        bool:
+            Whether the condition is met.
+        """
         # Condition A protects the endpoints (which will be > 2) - add in code here to prune low height points
         if 2 <= self.p2 + self.p3 + self.p4 + self.p5 + self.p6 + self.p7 + self.p8 + self.p9 <= 6:
             return True
         else:
             return False
 
-    def _binaryThinCheck_b(self):
+    def _binaryThinCheck_b(self) -> bool:
+        """
+        Binary thin check B.
+
+        Returns
+        -------
+        bool:
+            Whether the condition is met."""
         count = 0
 
         if [self.p2, self.p3] == [0, 1]:
@@ -180,31 +259,75 @@ class getSkeleton:
         else:
             return False
 
-    def _binaryThinCheck_c(self):
+    def _binaryThinCheck_c(self) -> bool:
+        """
+        Binary thin check C.
+
+        Returns
+        -------
+        bool:
+            Whether the condition is met.
+        """
         if self.p2 * self.p4 * self.p6 == 0:
             return True
         else:
             return False
 
-    def _binaryThinCheck_d(self):
+    def _binaryThinCheck_d(self) -> bool:
+        """
+        Binary thin check D.
+
+        Returns
+        -------
+        bool:
+            Whether the condition is met.
+        """
         if self.p4 * self.p6 * self.p8 == 0:
             return True
         else:
             return False
 
-    def _binaryThinCheck_csharp(self):
+    def _binaryThinCheck_csharp(self) -> bool:
+        """
+        Binary thin check C#.
+
+        Returns
+        -------
+        bool:
+            Whether the condition is met.
+        """
         if self.p2 * self.p4 * self.p8 == 0:
             return True
         else:
             return False
 
-    def _binaryThinCheck_dsharp(self):
+    def _binaryThinCheck_dsharp(self) -> bool:
+        """
+        Binary thin check D#
+
+        Returns
+        -------
+        bool:
+            Whether the condition is met.
+        """
         if self.p2 * self.p6 * self.p8 == 0:
             return True
         else:
             return False
 
-    def _checkHeights(self, candidate_points):
+    def _checkHeights(self, candidate_points: npt.NDArray) -> npt.NDArray:
+        """Check heights.
+
+        Parameters
+        ----------
+        candidate_points : npt.NDArray) - > npt.NDArra
+            Candidate points to be checked.
+
+        Returns
+        -------
+        npt.NDArray
+            Candidate points.
+        """
         try:
             candidate_points = candidate_points.tolist()
         except AttributeError:
@@ -257,6 +380,7 @@ class getSkeleton:
         return candidate_points
 
     def _checkWhichHeightPoints(self):
+        """Check which height points."""
         # Is the point on the left hand edge?
         # if (self.p8 == 1 and self.p4 == 0 and self.p2 == self.p6):
         if self.p7 + self.p8 + self.p9 == 3 and self.p3 + self.p4 + self.p5 == 0 and self.p2 == self.p6:
@@ -322,7 +446,22 @@ class getSkeleton:
 
         return height_cropping_funcs
 
-    def _getHorizontalLeftHeights(self, x, y):
+    def _getHorizontalLeftHeights(self, x: int, y: int) -> float:
+        """
+        Calculate heights left (west).
+
+        Parameters
+        ----------
+        x: int
+            X coordinate.
+        y: int
+            Y coordinate.
+
+        Returns
+        -------
+        float
+            Height left (west).
+        """
         heights = []  # [self.image_data[x,y]]
 
         for i in range(-self.search_window, self.search_window):
@@ -332,6 +471,21 @@ class getSkeleton:
         return heights
 
     def _getHorizontalRightHeights(self, x, y):
+        """
+        Calculate heights right (east).
+
+        Parameters
+        ----------
+        x: int
+            X coordinate.
+        y: int
+            Y coordinate.
+
+        Returns
+        -------
+        float
+            Height right (east).
+        """
         heights = []  # [self.image_data[x,y]]
 
         for i in range(-self.search_window, self.search_window):
@@ -341,6 +495,21 @@ class getSkeleton:
         return heights
 
     def _getVerticalUpwardHeights(self, x, y):
+        """
+        Calculate heights upwards (north).
+
+        Parameters
+        ----------
+        x: int
+            X coordinate.
+        y: int
+            Y coordinate.
+
+        Returns
+        -------
+        float
+            Height upwards (north).
+        """
         heights = []  # [self.image_data[x,y]]
 
         for i in range(-self.search_window, self.search_window):
@@ -350,6 +519,21 @@ class getSkeleton:
         return heights
 
     def _getVerticalDonwardHeights(self, x, y):
+        """
+        Calculate heights downwards (south).
+
+        Parameters
+        ----------
+        x: int
+            X coordinate.
+        y: int
+            Y coordinate.
+
+        Returns
+        -------
+        float
+            Height downwards (south).
+        """
         heights = []  # [self.image_data[x,y]]
 
         for i in range(-self.search_window, self.search_window):
@@ -359,6 +543,21 @@ class getSkeleton:
         return heights
 
     def _getDiaganolLeftUpwardHeights(self, x, y):
+        """
+        Calculate heights diagonal left upwards (north east).
+
+        Parameters
+        ----------
+        x: int
+            X coordinate.
+        y: int
+            Y coordinate.
+
+        Returns
+        -------
+        float
+            Height to diagonal left upwards (north east).
+        """
         heights = []  # [self.image_data[x,y]]
 
         for i in range(-self.search_window, self.search_window):
@@ -368,6 +567,21 @@ class getSkeleton:
         return heights
 
     def _getDiaganolLeftDownwardHeights(self, x, y):
+        """
+        Calculate heights diagonal left downwards (south west).
+
+        Parameters
+        ----------
+        x: int
+            X coordinate.
+        y: int
+            Y coordinate.
+
+        Returns
+        -------
+        float
+            Height diagonal left downwards (south west).
+        """
         heights = []  # [self.image_data[x,y]]
 
         for i in range(-self.search_window, self.search_window):
@@ -376,7 +590,22 @@ class getSkeleton:
             heights.append(self.image_data[x - i, y - i])
         return heights
 
-    def _getDiaganolRightUpwardHeights(self, x, y):
+    def _getDiaganolRightUpwardHeights(self, x: int, y: int) -> float:
+        """
+        Calculate heights diagonal right upwards (north east).
+
+        Parameters
+        ----------
+        x: int
+            X coordinate.
+        y: int
+            Y coordinate.
+
+        Returns
+        -------
+        float
+            Height diagonal right upwards (north east).
+        """
         heights = []  # [self.image_data[x,y]]
 
         for i in range(-self.search_window, self.search_window):
@@ -386,6 +615,21 @@ class getSkeleton:
         return heights
 
     def _getDiaganolRightDownwardHeights(self, x, y):
+        """
+        Calculate heights diagonal right downwards (south east).
+
+        Parameters
+        ----------
+        x: int
+            X coordinate.
+        y: int
+            Y coordinate.
+
+        Returns
+        -------
+        float
+            Height heights diagonal right downwards (south east).
+        """
         heights = []  # [self.image_data[x,y]]
 
         for i in range(-self.search_window, self.search_window):
@@ -394,7 +638,22 @@ class getSkeleton:
             heights.append(self.image_data[x + i, y - i])
         return heights
 
-    def _condemnPoint(self, x, y):
+    def _condemnPoint(self, x: int, y: int) -> float:
+        """
+        Condemn a point.
+
+        Parameters
+        ----------
+        x: int
+            X coordinate.
+        y: int
+            Y coordinate.
+
+        Returns
+        -------
+        float
+            Height to be condemned.
+        """
         heights = []  # [self.image_data[x,y]]
 
         for i in range(1, self.search_window):
@@ -430,6 +689,7 @@ class getSkeleton:
 
     def finalSkeletonisationIteration(self):
         """A final skeletonisation iteration that removes "hanging" pixels.
+
         Examples of such pixels are:
 
                     [0, 0, 0]               [0, 1, 0]            [0, 0, 0]
@@ -461,6 +721,7 @@ class getSkeleton:
                 self.mask_being_skeletonised[x, y] = 0
 
     def _binaryFinalThinCheck_a(self):
+        """Binary final thin check A."""
         if self.p2 * self.p4 == 1:
             return True
         elif self.p4 * self.p6 == 1:
@@ -471,6 +732,7 @@ class getSkeleton:
             return True
 
     def _binaryFinalThinCheck_b(self):
+        """Binary final thin check B."""
         if self.p2 * self.p4 * self.p6 == 1:
             return True
         elif self.p4 * self.p6 * self.p8 == 1:
@@ -481,6 +743,7 @@ class getSkeleton:
             return True
 
     def _binaryThinCheck_b_returncount(self):
+        """Binary final thin check B return count."""
         count = 0
 
         if [self.p2, self.p3] == [0, 1]:
@@ -503,8 +766,9 @@ class getSkeleton:
         return count
 
     def pruneSkeleton(self):
-        """Function to remove the hanging branches from the skeletons - these
-        are a persistent problem in the overall tracing process."""
+        """Function to remove the hanging branches from the skeletons.
+
+        These are a persistent problem in the overall tracing process."""
 
         number_of_branches = 0
         coordinates = np.argwhere(self.mask_being_skeletonised == 1).tolist()
