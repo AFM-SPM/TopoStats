@@ -342,6 +342,7 @@ def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, im
     return check(row_coord, max_row, padding), check(col_coord, max_col, padding)
 
 
+
 def convolve_skelly(skeleton) -> np.ndarray:
     """Convolves the skeleton with a 3x3 ones kernel to produce an array
     of the skeleton as 1, endpoints as 2, and nodes as 3.

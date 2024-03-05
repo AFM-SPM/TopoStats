@@ -4,10 +4,10 @@ import logging
 from collections.abc import Callable
 import numpy as np
 import numpy.typing as npt
-from skimage.morphology import label, medial_axis, skeletonize, thin, binary_dilation
+from skimage.morphology import binary_dilation, label, medial_axis, skeletonize, thin
 
-from topostats.tracing.tracingfuncs import genTracingFuncs
 from topostats.logs.logs import LOGGER_NAME
+from topostats.tracing.tracingfuncs import genTracingFuncs
 from topostats.utils import convolve_skelly
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -404,7 +404,7 @@ class topostatsSkeletonize:
             case 1: [0, 1, 0]   or  case 2: [0, 1, 0]   or case 3: [1, 1, 0]
 
         This is useful for the future functions that rely on local pixel environment
-        to make assessments about the overall shape/structure of traces.
+        to make assessments about the overall shape/structure of traces
         """
         remaining_coordinates = np.argwhere(self.mask).tolist()
 

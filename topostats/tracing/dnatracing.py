@@ -361,9 +361,7 @@ class dnaTrace:
 
         # Get the cumulative distances of each pixel in the ordered trace from the gaussian filtered image
         # the pixel coordinates are stored in the ordered trace list.
-        return self.coord_dist(
-            coordinates=ordered_trace, px_to_nm=self.pixel_to_nm_scaling
-        )
+        return self.coord_dist(coordinates=ordered_trace, px_to_nm=self.pixel_to_nm_scaling)
 
     @staticmethod
     def coord_dist(coordinates: npt.NDArray, px_to_nm: float) -> npt.NDArray:
@@ -418,7 +416,9 @@ class dnaTrace:
         # np.savetxt(OUTPUT_DIR / "skel.txt", self.skeleton)
         # np.savetxt(OUTPUT_DIR / "image.txt", self.image)
         # np.savetxt(OUTPUT_DIR / "smooth.txt", self.smoothed_grain)
-        self.pruned_skeleton = pruneSkeleton(self.smoothed_grain, self.skeleton).prune_skeleton(self.pruning_params.copy())
+        self.pruned_skeleton = pruneSkeleton(self.smoothed_grain, self.skeleton).prune_skeleton(
+            self.pruning_params.copy()
+        )
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
@@ -1148,7 +1148,7 @@ def trace_image(
             filename=filename,
             min_skeleton_size=min_skeleton_size,
             joining_node_length=joining_node_length,
-            spline_step_size =spline_step_size,
+            spline_step_size=spline_step_size,
             spline_linear_smoothing=spline_linear_smoothing,
             spline_circular_smoothing=spline_circular_smoothing,
             n_grain=cropped_image_index,
