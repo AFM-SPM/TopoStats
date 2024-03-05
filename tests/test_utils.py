@@ -1,4 +1,4 @@
-"""Test utils."""
+"""Test the utils module."""
 
 from pathlib import Path
 
@@ -46,11 +46,14 @@ def test_update_config(caplog) -> None:
 @pytest.mark.parametrize(
     ("image_name", "core_set", "title", "zrange"),
     [
-        ("extracted_channel", False, "Raw Height", [0, 3]),
-        ("z_threshed", True, "Height Thresholded", [0, 3]),
-        ("grain_image", False, "", [0, 3]),  # non-binary image
-        ("grain_mask", False, "", [None, None]),  # binary image
-        ("grain_mask_image", False, "", [0, 3]),  # non-binary image
+        pytest.param("extracted_channel", False, "Raw Height", [0, 3], id="Non-binary image, not in core, with title"),
+        pytest.param("z_threshed", True, "Height Thresholded", [0, 3], id="Non-binary image, in core, with title"),
+        pytest.param(
+            "grain_mask", False, "", [None, None], id="Binary image, not in core, set no title"
+        ),  # binary image
+        pytest.param(
+            "grain_mask_image", False, "", [0, 3], id="Non-binary image, not in core, set no title"
+        ),  # non-binary image
     ],
 )
 def test_update_plotting_config(
@@ -66,6 +69,75 @@ def test_update_plotting_config(
     # Ensure that both types (binary, non-binary) of image have the correct z-ranges
     # ([None, None] for binary, user defined for non-binary)
     assert process_scan_config["plotting"]["plot_dict"][image_name]["zrange"] == zrange
+
+
+@pytest.mark.parametrize(
+    ("plotting_config", "target_config"),
+    [
+        pytest.param(
+            {
+                "run": True,
+                "savefig_dpi": None,
+                "pixel_interpolation": None,
+                "plot_dict": {
+                    "extracted_channel": {
+                        "filename": "00-raw_heightmap",
+                        "image_type": "non-binary",
+                        "savefig_dpi": 100,
+                    }
+                },
+            },
+            {
+                "run": True,
+                "savefig_dpi": None,
+                "pixel_interpolation": None,
+                "plot_dict": {
+                    "extracted_channel": {
+                        "filename": "00-raw_heightmap",
+                        "image_type": "non-binary",
+                        "savefig_dpi": 100,
+                        "pixel_interpolation": None,
+                    }
+                },
+            },
+            id="DPI None in main, extracted channel DPI should stay at 100",
+        ),
+        pytest.param(
+            {
+                "run": True,
+                "savefig_dpi": 600,
+                "pixel_interpolation": None,
+                "plot_dict": {
+                    "extracted_channel": {
+                        "filename": "00-raw_heightmap",
+                        "image_type": "non-binary",
+                        "savefig_dpi": 100,
+                    }
+                },
+            },
+            {
+                "run": True,
+                "savefig_dpi": 600,
+                "pixel_interpolation": None,
+                "plot_dict": {
+                    "extracted_channel": {
+                        "filename": "00-raw_heightmap",
+                        "image_type": "non-binary",
+                        "savefig_dpi": 600,
+                        "pixel_interpolation": None,
+                    }
+                },
+            },
+            id="DPI 600 in main, extracted channel DPI should update to 600",
+        ),
+    ],
+)
+def test_udpate_plotting_config_adding_required_options(plotting_config: dict, target_config: dict, caplog) -> None:
+    """Only updates plotting_dict parameters from parent plotting config if value is not None."""
+    update_plotting_config(plotting_config)
+    assert plotting_config == target_config
+    if plotting_config["savefig_dpi"] == 600:
+        assert "100 > 600" in caplog.text
 
 
 def test_get_thresholds_otsu(image_random: np.ndarray) -> None:
