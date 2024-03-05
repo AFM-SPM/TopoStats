@@ -293,7 +293,7 @@ class Images:
                 vmax=self.zrange[1],
             )
             if isinstance(self.masked_array, np.ndarray):
-                #self.masked_array[self.masked_array != 0] = 1
+                # self.masked_array[self.masked_array != 0] = 1
                 # If the image is too large for singles to be resolved in the mask, then dilate the mask proportionally
                 # to image size to enable clear viewing.
                 if np.max(self.masked_array.shape) > 500:

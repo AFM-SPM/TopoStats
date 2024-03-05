@@ -168,7 +168,7 @@ class dnaTrace:
             LOGGER.info(f"[{self.filename}] : Grain failed to Skeletonise")
         elif len(self.disordered_trace) >= self.min_skeleton_size:
             self.linear_or_circular(self.disordered_trace)
-            #self.get_ordered_traces()
+            # self.get_ordered_traces()
             nodes = nodeStats(
                 filename=self.filename,
                 image=self.image,
@@ -183,7 +183,7 @@ class dnaTrace:
             self.avg_crossing_confidence = nodeStats.average_crossing_confs(self.node_dict)
             self.min_crossing_confidence = nodeStats.minimum_crossing_confs(self.node_dict)
             self.node_image = nodes.connected_nodes
-            self.num_crossings = nodes.num_crossings  
+            self.num_crossings = nodes.num_crossings
 
             # try: # try to order using nodeStats
             if nodes.check_node_errorless():
@@ -191,7 +191,7 @@ class dnaTrace:
                 self.num_mols = len(self.ordered_traces)
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} ordered via nodeStats.")
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} has {len(self.ordered_traces)} molecules.")
-            
+
             else:
                 LOGGER.info(
                     f"[{self.filename}] : Grain {self.n_grain} couldn't be traced due to errors in analysing the nodes."
@@ -202,30 +202,30 @@ class dnaTrace:
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} failed to order through nodeStats, trying standard ordering.")
                 self.get_ordered_traces()
             """
-            
-            for trace in self.ordered_traces: # can be multiple traces from 1 grain like in catenated mols
+
+            for trace in self.ordered_traces:  # can be multiple traces from 1 grain like in catenated mols
                 self.ordered_trace_img += coords_2_img(trace, self.image, ordered=True)
                 if len(trace) >= self.min_skeleton_size:
                     self.ordered_trace_heights.append(self.get_ordered_trace_heights(trace))
                     self.ordered_trace_cumulative_distances.append(self.get_ordered_trace_cumulative_distances(trace))
-                    
+
                     mol_is_circular = self.linear_or_circular(trace)
                     self.mol_is_circulars.append(mol_is_circular)
                     fitted_trace = self.get_fitted_traces(trace, mol_is_circular)
                     self.fitted_trace_img += coords_2_img(fitted_trace, self.image)
                     # Propper cleanup needed - ordered trace instead of fitted trace?
-                    
+
                     splined_trace = self.get_splined_traces(fitted_trace, mol_is_circular)
                     # sometimes traces can get skwiffy
                     splined_trace = splined_trace[
-                        (splined_trace[:,0] < self.image.shape[0]) & 
-                        (splined_trace[:,1] < self.image.shape[1]) & 
-                        (splined_trace[:,0] > 0) & 
-                        (splined_trace[:,1] > 0)
-                        ]
+                        (splined_trace[:, 0] < self.image.shape[0])
+                        & (splined_trace[:, 1] < self.image.shape[1])
+                        & (splined_trace[:, 0] > 0)
+                        & (splined_trace[:, 1] > 0)
+                    ]
                     self.splined_traces.append(np.array(splined_trace))
                     self.splined_trace_img += coords_2_img(np.array(splined_trace, dtype=np.int32), self.image)
-                   
+
                     # self.find_curvature()
                     # self.saveCurvature()
                     self.contour_lengths.append(self.measure_contour_length(splined_trace, mol_is_circular))
@@ -328,9 +328,7 @@ class dnaTrace:
 
         # Get the cumulative distances of each pixel in the ordered trace from the gaussian filtered image
         # the pixel coordinates are stored in the ordered trace list.
-        return self.coord_dist(
-            coordinates=ordered_trace, px_to_nm=self.pixel_to_nm_scaling
-        )
+        return self.coord_dist(coordinates=ordered_trace, px_to_nm=self.pixel_to_nm_scaling)
 
     @staticmethod
     def coord_dist(coordinates: np.ndarray, px_to_nm: float) -> np.ndarray:
@@ -382,7 +380,9 @@ class dnaTrace:
         # np.savetxt(OUTPUT_DIR / "skel.txt", self.skeleton)
         # np.savetxt(OUTPUT_DIR / "image.txt", self.image)
         # np.savetxt(OUTPUT_DIR / "smooth.txt", self.smoothed_grain)
-        self.pruned_skeleton = pruneSkeleton(self.smoothed_grain, self.skeleton).prune_skeleton(self.pruning_params.copy())
+        self.pruned_skeleton = pruneSkeleton(self.smoothed_grain, self.skeleton).prune_skeleton(
+            self.pruning_params.copy()
+        )
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
@@ -1035,22 +1035,34 @@ def trace_image(
             filename=filename,
             min_skeleton_size=min_skeleton_size,
             joining_node_length=joining_node_length,
-            spline_step_size =spline_step_size,
+            spline_step_size=spline_step_size,
             spline_linear_smoothing=spline_linear_smoothing,
             spline_circular_smoothing=spline_circular_smoothing,
             n_grain=cropped_image_index,
         )
         LOGGER.info(f"[{filename}] : Traced grain {cropped_image_index + 1} of {n_grains}")
-        
+
         grain_results[cropped_image_index] = result["grainstats_results"]
         trace_results[f"grain_{cropped_image_index}"] = result["tracingstats_results"]
         full_node_image_dict[f"grain_{cropped_image_index}"] = node_image_dict
 
-        all_ordered_trace_heights[f"grain_{cropped_image_index}"] = {mol_idx: mol_dict.pop("trace_heights") for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()}
-        all_ordered_trace_cumulative_distances[f"grain_{cropped_image_index}"] = {mol_idx: mol_dict.pop("trace_distances") for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()}
-        
-        ordered_traces[f"grain_{cropped_image_index}"] = {mol_idx: mol_dict["ordered_trace"] for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()}
-        splined_traces[f"grain_{cropped_image_index}"] = {mol_idx: mol_dict["splined_trace"] for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()}
+        all_ordered_trace_heights[f"grain_{cropped_image_index}"] = {
+            mol_idx: mol_dict.pop("trace_heights")
+            for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()
+        }
+        all_ordered_trace_cumulative_distances[f"grain_{cropped_image_index}"] = {
+            mol_idx: mol_dict.pop("trace_distances")
+            for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()
+        }
+
+        ordered_traces[f"grain_{cropped_image_index}"] = {
+            mol_idx: mol_dict["ordered_trace"]
+            for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()
+        }
+        splined_traces[f"grain_{cropped_image_index}"] = {
+            mol_idx: mol_dict["splined_trace"]
+            for mol_idx, mol_dict in result["tracingstats_results"]["metrics"].items()
+        }
 
         # remap the cropped images back onto the original
         for image_name, full_image in all_images.items():
@@ -1068,7 +1080,7 @@ def trace_image(
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
-        
+
     return {
         "grain_statistics": grain_results,
         "dnatracing_statistics": trace_results,
@@ -1226,8 +1238,8 @@ def prep_arrays(
     # Subset image and grains then zip them up
     cropped_images = {}
     cropped_masks = {}
-    
-    #for index, grain in enumerate(region_properties):
+
+    # for index, grain in enumerate(region_properties):
     #    cropped_image, cropped_bbox = crop_array(image, grain.bbox, pad_width)
 
     cropped_images = {index: crop_array(image, grain.bbox, pad_width) for index, grain in enumerate(region_properties)}
@@ -1338,35 +1350,36 @@ def trace_grain(
     )
 
     dnatrace.trace_dna()
-    results = {"grainstats_results": {
-                    "image": dnatrace.filename,
-                    "num_crossings": dnatrace.num_crossings,
-                    "num_mols": dnatrace.num_mols,
-                    "total_contour_length": np.nansum(np.array(dnatrace.contour_lengths, dtype=np.float64)),
-                    "grain_avg_crossing_confidence": dnatrace.avg_crossing_confidence,
-                    "grain_min_crossing_confidence": dnatrace.min_crossing_confidence,
-                },
-                "tracingstats_results": {
-                    "image": dnatrace.filename,
-                    "num_mols": dnatrace.num_mols,
-                    "num_crossings": dnatrace.num_crossings,
-                    "total_contour_length": np.nansum(np.array(dnatrace.contour_lengths, dtype=np.float64)),
-                    "grain_avg_crossing_confidence": dnatrace.avg_crossing_confidence,
-                    "grain_min_crossing_confidence": dnatrace.min_crossing_confidence,
-                    "metrics": {
-                        "mol_0": {
-                            "contour_length": None,
-                            "circular": None,
-                            "end_to_end_distance": None,
-                            "trace_heights": None,
-                            "trace_distances": None,
-                            "ordered_trace": None,
-                            "splined_trace": None,
-                        }, # incase no mols could be traced, need empties to attempt to merge on
-                    },
-                    "nodeStats": dnatrace.node_dict,
-                    }
-                }
+    results = {
+        "grainstats_results": {
+            "image": dnatrace.filename,
+            "num_crossings": dnatrace.num_crossings,
+            "num_mols": dnatrace.num_mols,
+            "total_contour_length": np.nansum(np.array(dnatrace.contour_lengths, dtype=np.float64)),
+            "grain_avg_crossing_confidence": dnatrace.avg_crossing_confidence,
+            "grain_min_crossing_confidence": dnatrace.min_crossing_confidence,
+        },
+        "tracingstats_results": {
+            "image": dnatrace.filename,
+            "num_mols": dnatrace.num_mols,
+            "num_crossings": dnatrace.num_crossings,
+            "total_contour_length": np.nansum(np.array(dnatrace.contour_lengths, dtype=np.float64)),
+            "grain_avg_crossing_confidence": dnatrace.avg_crossing_confidence,
+            "grain_min_crossing_confidence": dnatrace.min_crossing_confidence,
+            "metrics": {
+                "mol_0": {
+                    "contour_length": None,
+                    "circular": None,
+                    "end_to_end_distance": None,
+                    "trace_heights": None,
+                    "trace_distances": None,
+                    "ordered_trace": None,
+                    "splined_trace": None,
+                },  # incase no mols could be traced, need empties to attempt to merge on
+            },
+            "nodeStats": dnatrace.node_dict,
+        },
+    }
 
     for i in range(dnatrace.num_mols):
         results["tracingstats_results"]["metrics"][f"mol_{i}"] = {
