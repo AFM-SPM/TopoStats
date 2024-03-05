@@ -14,15 +14,17 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def validate_config(config: dict, schema: Schema, config_type: str) -> None:
-    """Validate configuration.
+    """
+    Validate configuration.
 
     Parameters
     ----------
-    config: dict
+    config : dict
         Config dictionary imported by read_yaml() and parsed through clean_config().
-    schema: Schema
+    schema : Schema
         A schema against which the configuration is to be compared.
-    config_type: str
+    config_type : str
+        Description of of configuration being validated.
     """
     try:
         schema.validate(config)
