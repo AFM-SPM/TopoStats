@@ -868,7 +868,6 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
         },
-
         "orig_grains": {
             "filename": str,
             "title": str,

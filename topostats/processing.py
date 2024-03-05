@@ -401,7 +401,7 @@ def run_dnatracing(  # noqa: C901
         results_df = create_empty_dataframe()
 
     # Run dnatracing
-    #try:
+    # try:
     grain_trace_data = None
     if dnatracing_config["run"]:
         dnatracing_config.pop("run")
@@ -420,14 +420,14 @@ def run_dnatracing(  # noqa: C901
             tracing_stats[direction]["threshold"] = direction
             ordered_traces = tracing_results["all_ordered_traces"]
             cropped_images: dict[int, np.ndarray] = tracing_results["cropped_images"]
-            
+
             grain_trace_data[direction] = {
                 "cropped_images": cropped_images,
                 "ordered_traces": tracing_results["all_ordered_traces"],
                 "splined_traces": tracing_results["all_splined_traces"],
                 "ordered_trace_heights": tracing_results["all_ordered_trace_heights"],
                 "ordered_trace_cumulative_distances": tracing_results["all_ordered_trace_cumulative_distances"],
-                "tracingstats": tracing_results["dnatracing_statistics"]
+                "tracingstats": tracing_results["dnatracing_statistics"],
             }
 
             # Plot traces for the whole image
@@ -448,7 +448,7 @@ def run_dnatracing(  # noqa: C901
                     plot_coords=[trace for trace in mol_dict.values()],
                     **plotting_config["plot_dict"]["single_molecule_trace"],
                 ).plot_and_save()
-            
+
             plot_names = {
                 "orig_grains": tracing_results["all_images"]["grain"],
                 "smoothed_grains": tracing_results["all_images"]["smoothed_grain"],
@@ -474,9 +474,7 @@ def run_dnatracing(  # noqa: C901
             tracing_stats_df = tracing_stats["above"]
         elif "below" in tracing_stats:
             tracing_stats_df = tracing_stats["below"]
-        LOGGER.info(
-            f"[{filename}] : Combining {list(tracing_stats.keys())} grain statistics and dnatracing statistics"
-        )
+        LOGGER.info(f"[{filename}] : Combining {list(tracing_stats.keys())} grain statistics and dnatracing statistics")
         # NB - Merge on image, molecule and threshold because we may have above and below molecules which
         #      gives duplicate molecule numbers as they are processed separately, if tracing stats
         #      are not available (because skeleton was too small), grainstats are still retained.
@@ -502,6 +500,7 @@ def run_dnatracing(  # noqa: C901
         grain_trace_data = None
         return results, grain_trace_data
     """
+
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
     """Determine components of output paths for a given image and plotting config.
