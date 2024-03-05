@@ -1,18 +1,21 @@
 """Skeletonize molecules"""
+
 import logging
 from collections.abc import Callable
+import numpy as np
 import numpy.typing as npt
 from skimage.morphology import label, medial_axis, skeletonize, thin, binary_dilation
 
-from topostats.tracing.tracingfuncs import genTracingFuncs
 from topostats.logs.logs import LOGGER_NAME
+from topostats.tracing.tracingfuncs import genTracingFuncs
 from topostats.utils import convolve_skelly
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 class getSkeleton:
     """Class containing skeletonization code from factory methods to functions
-    depaendant on the method"""
+    depaendant on the method
+    """
 
     def __init__(self, image: npt.NDArray, mask: npt.NDArray):
         """Initialise the class.
@@ -241,9 +244,9 @@ class topostatsSkeletonize:
             hight_sort_idx = np.argsort(heights)[
                 : int(np.ceil(len(heights) * self.height_bias))
             ]  # idx of lowest height_bias%
-            self.mask[
-                pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]
-            ] = 0  # remove lowest height_bias%
+            self.mask[pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]] = (
+                0  # remove lowest height_bias%
+            )
 
         pixels_to_delete = []
         # Sub-iteration 2 - binary check
@@ -260,9 +263,9 @@ class topostatsSkeletonize:
             hight_sort_idx = np.argsort(heights)[
                 : int(np.ceil(len(heights) * self.height_bias))
             ]  # idx of lowest height_bias%
-            self.mask[
-                pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]
-            ] = 0  # remove lowest height_bias%
+            self.mask[pixels_to_delete[hight_sort_idx, 0], pixels_to_delete[hight_sort_idx, 1]] = (
+                0  # remove lowest height_bias%
+            )
 
         if len(pixels_to_delete) == 0:
             self.skeleton_converged = True
@@ -284,7 +287,6 @@ class topostatsSkeletonize:
             Returns T/F depending if the surrounding points have met the criteria
             of the binary thin a, b returncount, c and d checks below.
         """
-
         self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.get_local_pixels_binary(
             self.mask, point[0], point[1]
         )
@@ -310,7 +312,6 @@ class topostatsSkeletonize:
             Returns T/F depending if the surrounding points have met the criteria
             of the binary thin a, b returncount, csharp and dsharp checks below.
         """
-
         self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.get_local_pixels_binary(
             self.mask, point[0], point[1]
         )
@@ -398,8 +399,8 @@ class topostatsSkeletonize:
             case 1: [0, 1, 0]   or  case 2: [0, 1, 0] or case 3: [1, 1, 0]
 
         This is useful for the future functions that rely on local pixel environment
-        to make assessments about the overall shape/structure of traces"""
-
+        to make assessments about the overall shape/structure of traces
+        """
         remaining_coordinates = np.argwhere(self.mask).tolist()
 
         for x, y in remaining_coordinates:
@@ -408,7 +409,11 @@ class topostatsSkeletonize:
             )
 
             # Checks for case 1 and 3 pixels
-            if self._binary_thin_check_b_returncount() == 2 and self._binary_final_thin_check_a() and not self.binary_thin_check_max():
+            if (
+                self._binary_thin_check_b_returncount() == 2
+                and self._binary_final_thin_check_a()
+                and not self.binary_thin_check_max()
+            ):
                 self.mask[x, y] = 0
             # Checks for case 2 pixels
             elif self._binary_thin_check_b_returncount() == 3 and self._binary_final_thin_check_b():
@@ -438,10 +443,10 @@ class topostatsSkeletonize:
             self.p6 * self.p8 * self.p2,
             self.p8 * self.p2 * self.p4,
         )
-    
+
     def binary_thin_check_max(self) -> bool:
         """Checks if opposite corner diagonals are present."""
-        return 1 in (self.p7*self.p3, self.p5*self.p9)
+        return 1 in (self.p7 * self.p3, self.p5 * self.p9)
 
     @staticmethod
     def get_local_pixels_binary(binary_map, x, y) -> npt.NDArray:
@@ -475,7 +480,8 @@ class topostatsSkeletonize:
 class pruneSkeleton:
     """Class containing skeletonization pruning code from factory methods to functions
     depaendant on the method. Pruning is the act of removing spurious branches commonly
-    found when implimenting skeletonization algorithms."""
+    found when implimenting skeletonization algorithms.
+    """
 
     def __init__(self, image: npt.NDArray, skeleton: npt.NDArray) -> None:
         """Initialise the class.
@@ -505,7 +511,6 @@ class pruneSkeleton:
 
         Notes
         -----
-
         This is a thin wrapper to the methods provided within the pruning classes below.
         """
         return self._prune_method(prune_args)
@@ -826,7 +831,8 @@ class maxPrune:
 def remove_bridges_abs(skeleton, image, threshold, method_values, method_outlier) -> npt.NDArray:
     """Identifies branches which cross the skeleton in places they shouldn't due to
     poor thresholding and holes in the mask. Segments are removed based on heights lower
-    than 1.5 * interquartile range of heights."""
+    than 1.5 * interquartile range of heights.
+    """
     # might need to check that the image *with nodes* is returned
     skeleton_rtn = skeleton.copy()
     conv = convolve_skelly(skeleton)
