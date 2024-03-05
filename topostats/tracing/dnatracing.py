@@ -361,9 +361,7 @@ class dnaTrace:
 
         # Get the cumulative distances of each pixel in the ordered trace from the gaussian filtered image
         # the pixel coordinates are stored in the ordered trace list.
-        return self.coord_dist(
-            coordinates=ordered_trace, px_to_nm=self.pixel_to_nm_scaling
-        )
+        return self.coord_dist(coordinates=ordered_trace, px_to_nm=self.pixel_to_nm_scaling)
 
     @staticmethod
     def coord_dist(coordinates: npt.NDArray, px_to_nm: float) -> npt.NDArray:
