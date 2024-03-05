@@ -14,20 +14,21 @@ def image_statistics(
     pixel_to_nm_scaling: float,
     results_df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Calculate statistics pertaining to the whole image.
+    """
+    Calculate statistics pertaining to the whole image.
 
     Calculates the size of the image in pixels and metres, the root-mean-squared roughness and the grains per metre
     squared.
 
     Parameters
     ----------
-    image: np.ndarray
+    image : np.ndarray
         Numpy 2D image array of the image to calculate stats for.
-    filename: str
+    filename : str
         The name of the file being processed.
-    pixel_to_nm_scaling: float
+    pixel_to_nm_scaling : float
         Float of the scaling factor between pixels and nanometres.
-    results_df: pd.DataFrame
+    results_df : pd.DataFrame
         Pandas DataFrame of statistics pertaining to individual grains including from grainstats and
         dna tracing.
 
@@ -80,12 +81,13 @@ def image_statistics(
 
 
 def roughness_rms(image: np.ndarray) -> float:
-    """Calculate the root-mean-square roughness of a heightmap image.
+    """
+    Calculate the root-mean-square roughness of a heightmap image.
 
     Parameters
     ----------
-    image: np.ndarray
-        2D numpy array of heightmap data to calculate the roughness of
+    image : np.ndarray
+        2-D numpy array of heightmap data to calculate roughness.
 
     Returns
     -------
