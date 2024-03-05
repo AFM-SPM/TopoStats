@@ -150,7 +150,7 @@ class getSkeleton:
         return thin(image)
 
     @staticmethod
-    def _skeletonize_topostats(image: np.ndarray, mask: np.ndarray, params={"height_bias": 0.6}) -> np.ndarray:
+    def _skeletonize_topostats(image: np.ndarray, mask: np.ndarray, params) -> np.ndarray:
         """Wrapper for Pyne-lab member Joe's skeletonisation method.
 
         Parameters
@@ -181,7 +181,7 @@ class topostatsSkeletonize:
     should someone be upto the task, it is possible to include the heights when skeletonising.
     """
 
-    def __init__(self, image: np.ndarray, mask: np.ndarray, height_bias: float = 0.6):
+    def __init__(self, image: np.ndarray, mask: np.ndarray, height_bias):
         """Initialises the class
 
         Parameters
