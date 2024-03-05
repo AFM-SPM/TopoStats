@@ -341,6 +341,7 @@ def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, im
 
     return check(row_coord, max_row, padding), check(col_coord, max_col, padding)
 
+
 def convolve_skelly(skeleton) -> np.ndarray:
     """Convolves the skeleton with a 3x3 ones kernel to produce an array
     of the skeleton as 1, endpoints as 2, and nodes as 3.
@@ -363,7 +364,8 @@ def convolve_skelly(skeleton) -> np.ndarray:
 
 
 class ResolutionError(Exception):
-    "Raised when the image resolution is too small for accuurate tracing."
+    """Raised when the image resolution is too small for accuurate tracing."""
+
     pass
 
 
@@ -388,6 +390,8 @@ def coords_2_img(coords, image, ordered=False) -> np.ndarray:
     if ordered:
         comb[coords[:, 0].astype(np.int32), coords[:, 1].astype(np.int32)] = np.arange(1, len(coords) + 1)
     else:
-        coords = coords[(coords[:,0] < image.shape[0]) & (coords[:,1] < image.shape[1]) & (coords[:,0] > 0) & (coords[:,1] > 0)]
+        coords = coords[
+            (coords[:, 0] < image.shape[0]) & (coords[:, 1] < image.shape[1]) & (coords[:, 0] > 0) & (coords[:, 1] > 0)
+        ]
         comb[np.floor(coords[:, 0]).astype(np.int32), np.floor(coords[:, 1]).astype(np.int32)] = 1
     return comb
