@@ -54,7 +54,7 @@ dnatracing:
   min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.
   skeletonisation_params:
     skeletonisation_method: topostats # Options : zhang | lee | thin | topostats
-    height_bias: 0.1 # Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
+    height_bias: 0.6 # Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
   pruning_params:
     pruning_method: topostats # Method to clean branches of the skeleton. Options : max | topostats
     max_length: -1 # Maximum length in nm to remove a branch containing an endpoint. '-1' is 15% of total trace length (in pixels).
