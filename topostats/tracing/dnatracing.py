@@ -1906,7 +1906,7 @@ class nodeStats:
                     "confidence": conf,
                 }
 
-                self.image_dict["nodes"][real_node_count] = {
+                self.image_dict["nodes"][f"node_{real_node_count}"] = {
                     #"node_area_image": self.image,  # [
                     # image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
                     # ],  # self.hess
@@ -2878,7 +2878,7 @@ class nodeStats:
         for node_num, crossings in enumerate(crossing_coords):
             for crossing_num, crossing in enumerate(crossings):
                 both[crossing[:, 0], crossing[:, 1]] = node_num + crossing_num + minus.max()
-        # np.savetxt(OUTPUT_DIR / "both.txt", both)
+        #np.save(OUTPUT_DIR / "both", both)
 
         # setup z array
         z = []
@@ -2908,12 +2908,13 @@ class nodeStats:
                 z.append(z_idx[j])
 
         # get an image of each ordered segment
+        # this needs to produce an image where branch segments start+end a litter further from the nodes
         cross_add = np.zeros_like(self.image)
         for i, coords in enumerate(ordered):
             single_cross_img = dnaTrace.coords_2_img(np.array(coords), cross_add)
             cross_add[single_cross_img != 0] = i + 1
 
-        # np.savetxt(OUTPUT_DIR / "cross_add.txt", cross_add)
+        #np.save(OUTPUT_DIR / "cross_add", cross_add)
         LOGGER.info(f"[{self.filename}] Getting coordinate trace")
 
         coord_trace, simple_trace = self.simple_xyz_trace(ordered, cross_add, z, n=100)
@@ -2924,13 +2925,14 @@ class nodeStats:
         #self.identify_trivial_crossings(node_coords)
 
         im = np.zeros_like(self.skeleton)
-        for i in coord_trace:
-            im[i[:, 0], i[:, 1]] = 1
-        # np.savetxt(OUTPUT_DIR / "trace.txt", coord_trace[0])
+        for i, coords in enumerate(coord_trace):
+            im[coords[:, 0], coords[:, 1]] += i + 1
+        #np.save(OUTPUT_DIR / "trace", coord_trace[0])
 
         # visual over under img
         visual = self.get_visual_img(coord_trace, fwhms, crossing_coords)
-        self.image_dict['grain']['grain_visual_crossings'] = visual
+        if not reverse_min_conf_crossing:
+            self.image_dict['grain']['grain_visual_crossings'] = visual
 
         # np.savetxt(OUTPUT_DIR / "visual.txt", visual)
 
@@ -2976,7 +2978,7 @@ class nodeStats:
 
     def simple_xyz_trace(self, ordered_segment_coords, both_img, zs, n=100):
         """Obtains a trace and simplified trace of the molecule by following connected segments."""
-        np.save(OUTPUT_DIR / "both.txt", both_img)
+        #np.save(OUTPUT_DIR / "both", both_img)
         mol_coords = []
         simple_coords = []
         remaining = both_img.copy().astype(np.int32)
@@ -2992,6 +2994,7 @@ class nodeStats:
                 coord_idx = np.unique(remaining)[1] - 1  # avoid choosing 0
             coord_trace = np.empty((0, 2)).astype(np.int32)
             simple_trace = np.empty((0, 3)).astype(np.int32)
+            
             while coord_idx > -1:  # either cycled through all or hits terminus -> all will be just background
                 remaining[remaining == coord_idx + 1] = 0
                 trace_segment = self.get_trace_segment(remaining, ordered_segment_coords, coord_idx)
@@ -3022,7 +3025,7 @@ class nodeStats:
             nxyz = np.column_stack((np.arange(0, len(simple_trace)), simple_trace))
             if len(nxyz) > 2 and (nxyz[0][1] - nxyz[-1][1]) ** 2 + (nxyz[0][2] - nxyz[-1][2]) ** 2 <= 2:
                 # single coord traces mean nxyz[0]==[1] so cause issues when duplicating for topoly
-                print("Looped so duplicating index 0: ", nxyz[0])
+                print("Looped so duplicating first index (nxyz): ", nxyz[0], nxyz[-1])
                 nxyz = np.append(nxyz, nxyz[0][np.newaxis, :], axis=0)
             simple_coords.append(nxyz)
 

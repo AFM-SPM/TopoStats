@@ -8,7 +8,7 @@ from collections import defaultdict
 import json
 import numpy as np
 import pandas as pd
-from scipy.ndimage import convolve
+from scipy.ndimage import convolve, binary_dilation
 
 from topostats.thresholds import threshold
 from topostats.logs.logs import LOGGER_NAME
@@ -307,3 +307,14 @@ class NpEncoder(json.JSONEncoder):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         return super().default(obj)
+
+def dilate_layered_image(arr: np.ndarray, iterations=1) -> np.ndarray:
+    """Dilates an image in descending order of non-binary values."""
+    dilated_arr = np.zeros(arr.shape, dtype=np.int32)
+    uniques = np.unique(arr)
+    print(uniques[uniques > 0])
+    for value in uniques[uniques > 0]:
+        temp_arr = np.where(arr == value, 1, 0)
+        temp_arr = binary_dilation(temp_arr, iterations=iterations) * value
+        dilated_arr[temp_arr == value] = value
+    return dilated_arr
