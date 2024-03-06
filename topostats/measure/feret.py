@@ -33,15 +33,16 @@ warnings.filterwarnings("error")
 
 
 def orientation(p: npt.NDArray, q: npt.NDArray, r: npt.NDArray) -> int:
-    """Determine the orientation of three points as either clockwise, counter-clock-wise or colinear.
+    """
+    Determine the orientation of three points as either clockwise, counter-clock-wise or colinear.
 
     Parameters
     ----------
-    p: npt.NDArray
+    p : npt.NDArray
         First point (assumed to have a length of 2).
-    q: npt.NDArray
+    q : npt.NDArray
         Second point (assumed to have a length of 2).
-    r: npt.NDArray
+    r : npt.NDArray
         Third point (assumed to have a length of 2).
 
     Returns
@@ -58,7 +59,7 @@ def sort_coords(points: npt.NDArray, axis: int = 1) -> npt.NDArray:
 
     Parameters
     ----------
-    points: npt.NDArray
+    points : npt.NDArray
         Array of coordinates
     axis : int
         Which axis to axis coordinates on 0 for row; 1 for columns (default).
@@ -115,13 +116,14 @@ def hulls(points: npt.NDArray, axis: int = 1) -> tuple[list, list]:
 
 
 def all_pairs(points: npt.NDArray) -> list[tuple[list, list]]:
-    """Given a list of 2d points, finds all ways of sandwiching the points.
+    """
+    Given a list of 2-D points, finds all ways of sandwiching the points.
 
     Calculates the upper and lower convex hulls and then finds all pairwise combinations between each set of points.
 
     Parameters
     ----------
-    points: npt.NDArray
+    points : npt.NDArray
         Numpy array of coordinates defining the outline of an object.mro
 
     Returns
@@ -140,7 +142,8 @@ def all_pairs(points: npt.NDArray) -> list[tuple[list, list]]:
 
 
 def rotating_calipers(points: npt.NDArray, axis: int = 0) -> Generator:
-    """Given a list of 2d points, finds all ways of sandwiching the points between two parallel lines.
+    """
+    Given a list of 2-D points, finds all ways of sandwiching the points between two parallel lines.
 
     This yields the sequence of pairs of points touched by each pair of lines across all points around the hull of a
     polygon.
@@ -149,7 +152,7 @@ def rotating_calipers(points: npt.NDArray, axis: int = 0) -> Generator:
 
     Parameters
     ----------
-    points: npt.NDArray
+    points : npt.NDArray
         Numpy array of coordinates defining the outline of an object.
     axis : int
         Which axis to sort coordinates on, 0 for row (default); 1 for columns.
@@ -204,7 +207,8 @@ def rotating_calipers(points: npt.NDArray, axis: int = 0) -> Generator:
 
 
 def triangle_height(base1: npt.NDArray | list, base2: npt.NDArray | list, apex: npt.NDArray | list) -> float:
-    """Calculate the height of triangle formed by three points.
+    """
+    Calculate the height of triangle formed by three points.
 
     Parameters
     ----------
@@ -233,7 +237,8 @@ def triangle_height(base1: npt.NDArray | list, base2: npt.NDArray | list, apex: 
 def _min_feret_coord(
     base1: npt.NDArray, base2: npt.NDArray, apex: npt.NDArray, round_coord: bool = False
 ) -> npt.NDArray:
-    """Calculate the coordinate opposite the apex that is prependicular to the base of the triangle.
+    """
+    Calculate the coordinate opposite the apex that is prependicular to the base of the triangle.
 
     Code courtesy of @SylviaWhittle.
 
@@ -306,7 +311,8 @@ def sort_clockwise(coordinates: npt.NDArray) -> npt.NDArray:
 
 
 def in_polygon(line: npt.NDArray, lower_hull: npt.NDArray, upper_hull: npt.NDArray) -> bool:
-    """Check whether a line is within or on the edge of a polygon.
+    """
+    Check whether a line is within or on the edge of a polygon.
 
     If either or both of the line points the edges of the polygon this is considered to be within, but if one of the
     points is outside of the polygon it is not contained within. Uses Shapely for most checks but it was found that if a
@@ -351,7 +357,8 @@ def in_polygon(line: npt.NDArray, lower_hull: npt.NDArray, upper_hull: npt.NDArr
 
 
 def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
-    """Given a list of 2-D points, returns the minimum and maximum feret diameters.
+    """
+    Given a list of 2-D points, returns the minimum and maximum feret diameters.
 
     `Feret diameter <https://en.wikipedia.org/wiki/Feret_diameter>`
 
@@ -389,15 +396,16 @@ def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int,
 
 
 def get_feret_from_mask(mask_im: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
-    """Calculate the minimum and maximum feret diameter of the foreground object of a binary mask.
+    """
+    Calculate the minimum and maximum feret diameter of the foreground object of a binary mask.
 
     The outline of the object is calculated and the pixel coordinates transformed to a list for calculation.
 
     Parameters
     ----------
-    mask_im: npt.NDArray
+    mask_im : npt.NDArray
         Binary Numpy array.
-    axis: int
+    axis : int
         Which axis to sort coordinates on, 0 for row (default); 1 for columns.
 
     Returns
@@ -413,17 +421,18 @@ def get_feret_from_mask(mask_im: npt.NDArray, axis: int = 0) -> tuple[float, tup
 
 
 def get_feret_from_labelim(label_image: npt.NDArray, labels: None | list | set = None, axis: int = 0) -> dict:
-    """Calculate the minimum and maximum feret and coordinates of each connected component within a labelled image.
+    """
+    Calculate the minimum and maximum feret and coordinates of each connected component within a labelled image.
 
     If labels is None, all labels > 0 will be analyzed.
 
     Parameters
     ----------
-    label_image: npt.NDArray
+    label_image : npt.NDArray
         Numpy array with labelled connected components (integer)
-    labels: None | list
+    labels : None | list
         A list of labelled objects for which to calculate
-    axis: int
+    axis : int
         Which axis to sort coordinates on, 0 for row (default); 1 for columns.
 
     Returns
@@ -452,7 +461,8 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals # noqa: C9
     filename: str | Path | None = "./feret.png",
     show: bool = False,
 ) -> None:
-    """Plot upper and lower convex hulls with rotating calipers and optionally the minimum feret distances.
+    """
+    Plot upper and lower convex hulls with rotating calipers and optionally the minimum feret distances.
 
     Plot varying levels of details in constructing convex hulls and deriving the minimum and maximum feret.
 
@@ -481,7 +491,7 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals # noqa: C9
         Format string for plotting the maximum feret. If 'None' the maximum feret is not plotted.
     filename : str | Path | None
         Location to save the image to.
-    show: bool
+    show : bool
         Whether to display the image.
 
     Examples
