@@ -19,6 +19,7 @@ from topostats.grain_finding_haribo_unet import (
     load_model,
     predict_unet_multiclass_and_get_angle,
     mean_iou,
+    iou,
 )
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
@@ -383,13 +384,19 @@ class Grains:
 
                 if sample_type == "dna_only":
                     # Get the path to a file in the topostats package
+                    # NON SHARP MODEL
+                    # model_path = (
+                    #     Path(__file__).parent
+                    #     / "haribonet_single_class_2023-12-20_10-44-01_image-size-256x256_epochs-30_batch-size-32_learning-rate-0.001.h5"
+                    # )
+                    # SHARPER MODEL
                     model_path = (
                         Path(__file__).parent
-                        / "haribonet_single_class_2023-12-20_10-44-01_image-size-256x256_epochs-30_batch-size-32_learning-rate-0.001.h5"
+                        / "haribonet_dna_only_single_class_sharper_2024-02-23_13-38-41_image-size-256x256_epochs-20_batch-size-16_learning-rate-0.001.h5"
                     )
 
                     LOGGER.info(f"Loading Unet model: {model_path.stem}")
-                    model = load_model(model_path=model_path)
+                    model = load_model(model_path=model_path, custom_objects={"iou": iou})
                     LOGGER.info(f"Loaded Unet model: {model_path.stem}")
 
                     for grain_number, region in enumerate(self.region_properties[direction]):
