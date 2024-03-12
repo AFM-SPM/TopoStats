@@ -42,7 +42,6 @@ class dnaTrace(object):
         self.ordered_traces = {}
         self.fitted_traces = {}
         self.splined_traces = {}
-        self.simplified_splined_traces = {}
         self.contour_lengths = {}
         self.end_to_end_distance = {}
         self.mol_is_circular = {}
@@ -523,7 +522,6 @@ class dnaTrace(object):
                 spline_average = np.divide(spline_running_total, [step_size_px, step_size_px])
                 del spline_running_total
                 self.splined_traces[dna_num] = spline_average
-            self.simplified_splined_traces[dna_num] = self.splined_traces[dna_num][::1]
 
     def showTraces(self):
 
@@ -594,7 +592,7 @@ class dnaTrace(object):
             plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 0],
                      self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 1],
                      color='#CC79A7', markersize=3.0, marker=5)
-        plt.savefig('%s_%s_splinedtrace_with_markers.png' % (save_file, channel_name))
+        plt.savefig('%s_%s_splinedtrace_with_markers.png' % (save_file, channel_name), dpi=1000)
         plt.close()
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
@@ -652,8 +650,8 @@ class dnaTrace(object):
         plt.close()
 
         for dna_num in sorted(self.ordered_traces.keys()):
-            plt.scatter(x=self.simplified_splined_traces[dna_num][:, 0],
-                        y=self.simplified_splined_traces[dna_num][:, 1],
+            plt.scatter(x=self.splined_traces[dna_num][:, 0],
+                        y=self.splined_traces[dna_num][:, 1],
                         c=self.curvature[dna_num][:, 2],
                         s=1)
 
@@ -713,10 +711,10 @@ class dnaTrace(object):
         # self.splined_traces[0] = np.column_stack((x, y))
         # self.mol_is_circular[0] = False
 
-        for dna_num in sorted(self.simplified_splined_traces.keys()):  # the number of molecules identified
+        for dna_num in sorted(self.splined_traces.keys()):  # the number of molecules identified
             # splined_traces is a dictionary, where the keys are the number of the molecule, and the values are a
             # list of coordinates, in a numpy.ndarray
-            length = len(self.simplified_splined_traces[dna_num])
+            length = len(self.splined_traces[dna_num])
             curve = []
             contour = 0
             # coordinates = np.zeros([2, self.neighbours * 2 + 1])
@@ -724,9 +722,9 @@ class dnaTrace(object):
             # dymean = np.zeros(length)
             # gradients = np.zeros([2, self.neighbours * 2 + 1])
             if self.mol_is_circular[dna_num]:
-                longlist = np.concatenate([self.simplified_splined_traces[dna_num],
-                                           self.simplified_splined_traces[dna_num],
-                                           self.simplified_splined_traces[dna_num]])
+                longlist = np.concatenate([self.splined_traces[dna_num],
+                                           self.splined_traces[dna_num],
+                                           self.splined_traces[dna_num]])
                 dx = np.gradient(longlist, axis=0)[:, 0]
                 dy = np.gradient(longlist, axis=0)[:, 1]
                 d2x = np.gradient(dx)
@@ -737,12 +735,12 @@ class dnaTrace(object):
                 d2x = d2x[length:2 * length]
                 d2y = d2y[length:2 * length]
             else:
-                dx = np.gradient(self.simplified_splined_traces[dna_num], axis=0, edge_order=2)[:, 0]
-                dy = np.gradient(self.simplified_splined_traces[dna_num], axis=0, edge_order=2)[:, 1]
+                dx = np.gradient(self.splined_traces[dna_num], axis=0, edge_order=2)[:, 0]
+                dy = np.gradient(self.splined_traces[dna_num], axis=0, edge_order=2)[:, 1]
                 d2x = np.gradient(dx)
                 d2y = np.gradient(dy)
 
-            for i, (x, y) in enumerate(self.simplified_splined_traces[dna_num]):
+            for i, (x, y) in enumerate(self.splined_traces[dna_num]):
                 # Extracts the coordinates for the required number of points and puts them in an array
                 # (self.neighbours < i < len(self.splined_traces[dna_num]) - self.neighbours)
                 # for j in range(self.neighbours * 2 + 1):
@@ -768,24 +766,39 @@ class dnaTrace(object):
                 # xb = np.mean(right[0])
                 # yb = np.mean(right[1])
 
+                # Calculates the angles for the tangent lines to the left and the right of the point
+                # theta1 = math.atan((coordinates[1][self.neighbours] - ya) / (
+                #       coordinates[0][self.neighbours] - xa))
+                # theta2 = math.atan((yb - coordinates[1][self.neighbours]) / (
+                #       xb - coordinates[0][self.neighbours]))
+
                 # Calculates the curvature using the change in angle divided by the distance
                 # dist = math.hypot((xb - xa), (yb - ya))
                 # dist_real = dist * self.pixel_size
                 # curve.append([i, contour, (theta2 - theta1) / dist_real])
+                # curve.append([i, contour, (theta2 - theta1) / dist])  # curvature in pixels
 
                 curvature_local = (d2x[i] * dy[i] - dx[i] * d2y[i]) / (dx[i] ** 2 + dy[i] ** 2) ** 1.5
                 curve.append([i, contour, curvature_local, dx[i], dy[i], d2x[i], d2y[i]])
 
                 if i < (length - 1):
                     contour = contour + math.hypot(
-                        (self.simplified_splined_traces[dna_num][(i + 1), 0] - self.simplified_splined_traces[dna_num][i, 0]),
-                        (self.simplified_splined_traces[dna_num][(i + 1), 1] - self.simplified_splined_traces[dna_num][i, 1])
+                        (self.splined_traces[dna_num][(i + 1), 0] - self.splined_traces[dna_num][
+                            i, 0]),
+                        (self.splined_traces[dna_num][(i + 1), 1] - self.splined_traces[dna_num][
+                            i, 1])
                         # (coordinates[0][self.neighbours] - coordinates[0][self.neighbours - 1]),
                         # (coordinates[1][self.neighbours] - coordinates[1][self.neighbours - 1])
                     )
             curve = np.array(curve)
             # curvature_smoothed = scipy.ndimage.gaussian_filter(curve[:, 2], 10, mode='nearest')
             # curve[:, 2] = curvature_smoothed
+
+            # shifting the curvature so that it matches with the points
+            # curvature_to_shift = curve[:, 2]
+            # curvature_shifted = np.roll(curvature_to_shift, -self.neighbours)
+            # curve[:, 2] = curvature_shifted
+
             self.curvature[dna_num] = curve
 
     def saveCurvature(self):
@@ -826,6 +839,10 @@ class dnaTrace(object):
 
         """Plot the curvature of the chosen molecule as a function of the contour length (in metres)"""
 
+        sns.set()
+        sns.set_style("white", {"font.family": ["sans-serif"]})
+        sns.set_context("poster", font_scale=1.4)
+
         curvature = np.array(self.curvature[dna_num])
         length = len(curvature)
         if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Curvature")):
@@ -833,7 +850,7 @@ class dnaTrace(object):
         directory = os.path.join(os.path.dirname(self.afm_image_name), "Curvature")
         savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
 
-        plt.figure
+        plt.figure(figsize=(15, 12))
         # fig, ax = plt.subplots(figsize=(25, 25))
 
         # if dna_num == 0:
@@ -854,7 +871,7 @@ class dnaTrace(object):
             # plt.xlim(0, 105)
             # plt.ylim(-0.1, 0.2)
             sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='black', linewidth=5)
-            plt.ticklabel_format(axis='both', style='sci', scilimits=(-2, 2))
+            plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
             plt.axvline(curvature[0][1], color="#D55E00", linewidth=5, alpha=0.8)
             plt.axvline(curvature[int(length / 6)][1] * self.pixel_size * 1e9, color="#E69F00", linewidth=5, alpha=0.8)
             plt.axvline(curvature[int(length / 6 * 2)][1] * self.pixel_size * 1e9, color="#F0E442", linewidth=5,
@@ -865,11 +882,17 @@ class dnaTrace(object):
                         alpha=0.8)
             plt.axvline(curvature[int(length / 6 * 5)][1] * self.pixel_size * 1e9, color="#CC79A7", linewidth=5,
                         alpha=0.8)
-        plt.xlabel('Length alongside molecule / nm')
+        plt.xlabel('Length Along Trajectory of Molecule / nm')
         plt.ylabel('Curvature / $\mathregular{nm^{-1}}$')
         # plt.xticks(fontsize=20)
         # plt.yticks(fontsize=20)
-        plt.savefig('%s_%s_curvature.png' % (savename, dna_num))
+        plt.ylim(-0.6, 0.6)
+        ax = plt.axes()
+        ax.patch.set_alpha(0)
+        ax.tick_params(direction="out", bottom=True, left=True)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        plt.savefig('%s_%s_curvature.png' % (savename, dna_num), dpi=400)
         plt.close()
 
     def plotGradient(self, dna_num):
@@ -965,29 +988,30 @@ class dnaTrace(object):
         plt.axis('equal')
         ax = plt.axes()
         ax.patch.set_alpha(0)
+        ax.set_axis_off()
         length = len(coordinates_array)
         plt.plot(coordinates_array[0, 0],
                  coordinates_array[0, 1],
-                 color='#D55E00', markersize=10, marker='o')
+                 color='#D55E00', markersize=15, marker='o')
         plt.plot(coordinates_array[int(length / 6), 0],
                  coordinates_array[int(length / 6), 1],
-                 color='#E69F00', markersize=10, marker='o')
+                 color='#E69F00', markersize=15, marker='o')
         plt.plot(coordinates_array[int(length / 6 * 2), 0],
                  coordinates_array[int(length / 6 * 2), 1],
-                 color='#F0E442', markersize=10, marker='o')
+                 color='#F0E442', markersize=15, marker='o')
         plt.plot(coordinates_array[int(length / 6 * 3), 0],
                  coordinates_array[int(length / 6 * 3), 1],
-                 color='#009E74', markersize=10, marker='o')
+                 color='#009E74', markersize=15, marker='o')
         plt.plot(coordinates_array[int(length / 6 * 4), 0],
                  coordinates_array[int(length / 6 * 4), 1],
-                 color='#56B4E9', markersize=10, marker='o')
+                 color='#56B4E9', markersize=15, marker='o')
         plt.plot(coordinates_array[int(length / 6 * 5), 0],
                  coordinates_array[int(length / 6 * 5), 1],
-                 color='#CC79A7', markersize=10, marker='o')
+                 color='#CC79A7', markersize=15, marker='o')
         plt.xticks([])
         plt.yticks([])
 
-        plt.savefig('%s_%s_coordinates.png' % (savename, dna_num))
+        plt.savefig('%s_%s_coordinates.png' % (savename, dna_num), dpi=300)
         plt.close()
 
         # curvature = np.array(self.curvature[dna_num])

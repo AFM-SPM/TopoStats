@@ -985,7 +985,6 @@ if __name__ == '__main__':
                     except KeyError:
                         continue
 
-                # dna_traces.plotGradient(8)
             else:
                 print("Not tracing identified molecules")
 
