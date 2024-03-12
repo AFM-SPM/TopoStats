@@ -6,6 +6,7 @@ import logging
 from argparse import Namespace
 from collections import defaultdict
 from pathlib import Path
+from pprint import pformat
 
 import numpy as np
 import numpy.typing as npt
@@ -118,8 +119,20 @@ def update_plotting_config(plotting_config: dict) -> dict:
     main_config = plotting_config.copy()
     for opt in ["plot_dict", "run"]:
         main_config.pop(opt)
+    LOGGER.debug(
+        f"Main plotting options that need updating/adding to plotting dict :\n{pformat(main_config, indent=4)}"
+    )
     for image, options in plotting_config["plot_dict"].items():
-        plotting_config["plot_dict"][image] = {**options, **main_config}
+        LOGGER.debug(f"Dictionary for image : {image}")
+        LOGGER.debug(f"{pformat(options, indent=4)}")
+        # First update options with values that exist in main_config
+        plotting_config["plot_dict"][image] = update_config(options, main_config)
+        LOGGER.debug(f"Updated values :\n{pformat(plotting_config['plot_dict'][image])}")
+        # Then combine the remaining key/values we need from main_config that don't already exist
+        for key_main, value_main in main_config.items():
+            if key_main not in plotting_config["plot_dict"][image]:
+                plotting_config["plot_dict"][image][key_main] = value_main
+        LOGGER.debug(f"After adding missing configuration options :\n{pformat(plotting_config['plot_dict'][image])}")
         # Make it so that binary images do not have the user-defined z-scale
         # applied, but non-binary images do.
         if plotting_config["plot_dict"][image]["image_type"] == "binary":
