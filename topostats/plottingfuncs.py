@@ -128,6 +128,11 @@ class Images:
         """
         Initialise the class.
 
+        There are two key parameters that ensure whether and image is plotted that are passed in from the update
+        plotting dictionary. These are the `image_set` which defines whether to plot 'all' images or just the `core`
+        set. There is then the 'core_set' which defines whether an individual images belongs to the 'core_set' or not.
+        If it doesn't then it is not plotted when `image_set == "core"`.
+
         Parameters
         ----------
         data : np.array
@@ -240,7 +245,7 @@ class Images:
 
     def plot_and_save(self):
         """
-        Plot and save the images with savefig or imsave depending on config file parameters.
+        Plot and save the image.
 
         Returns
         -------
@@ -251,18 +256,15 @@ class Images:
         """
         fig, ax = None, None
         if self.save:
+            # Only plot if image_set is "all" (i.e. user wants all images) or an image is in the core_set
             if self.image_set == "all" or self.core_set:
-                if self.axes or self.colorbar:
-                    fig, ax = self.save_figure()
-                else:
-                    if isinstance(self.masked_array, np.ndarray) or self.region_properties:
-                        fig, ax = self.save_figure()
-                    else:
-                        self.save_array_figure()
-        LOGGER.info(
-            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}\
- | DPI: {self.savefig_dpi}"
-        )
+                fig, ax = self.save_figure()
+                LOGGER.info(
+                    f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}"
+                    " | DPI: {self.savefig_dpi}"
+                )
+                plt.close()
+                return fig, ax
         return fig, ax
 
     def save_figure(self):
@@ -325,6 +327,8 @@ class Images:
             if not self.axes and not self.colorbar:
                 plt.title("")
                 fig.frameon = False
+                plt.box(False)
+                plt.tight_layout()
                 plt.savefig(
                     (self.output_dir / f"{self.filename}.{self.savefig_format}"),
                     bbox_inches="tight",
@@ -344,18 +348,6 @@ class Images:
             )
         plt.close()
         return fig, ax
-
-    def save_array_figure(self) -> None:
-        """Save the image array as an image using plt.imsave()."""
-        plt.imsave(
-            (self.output_dir / f"{self.filename}.{self.savefig_format}"),
-            self.data,
-            cmap=self.cmap,
-            vmin=self.zrange[0],
-            vmax=self.zrange[1],
-            format=self.savefig_format,
-        )
-        plt.close()
 
 
 def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to_nm_scaling: float) -> None:
