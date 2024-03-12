@@ -45,6 +45,8 @@ tiny_square = np.asarray([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]
 
 tiny_triangle = np.asarray([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 0, 0], [0, 0, 0, 0]], dtype=np.uint8)
 
+arbitrary_triangle = np.array([[1.18727719, 2.96140198], [4.14262995, 3.17983179], [6.92472119, 0.64147496]])
+
 tiny_rectangle = np.asarray([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]], dtype=np.uint8)
 
 tiny_ellipse = np.asarray(
@@ -122,10 +124,33 @@ def test_orientation(point1: tuple, point2: tuple, point3: tuple, target: int) -
         pytest.param(tiny_quadrilateral, 0, [[1, 2], [2, 1], [2, 4], [5, 2]], id="tiny quadrilateral sorted on axis 0"),
     ],
 )
-def test_sort_coords(shape: npt.NDArray, axis: str, target: npt.NDArray) -> None:
+def test_sort_coords(shape: npt.NDArray, axis: int, target: npt.NDArray) -> None:
     """Test sorting of coordinates."""
     sorted_coords = feret.sort_coords(np.argwhere(shape == 1), axis)
     np.testing.assert_array_equal(sorted_coords, target)
+
+
+@pytest.mark.parametrize(
+    ("coords", "axis", "target"),
+    [
+        pytest.param(
+            arbitrary_triangle,
+            0,
+            [[1.187277, 2.961402], [4.14263, 3.179832], [6.924721, 0.641475]],
+            id="arbitrary triangle sorted on axis 0",
+        ),
+        pytest.param(
+            arbitrary_triangle,
+            1,
+            [[6.924721, 0.641475], [1.187277, 2.961402], [4.14263, 3.179832]],
+            id="arbitrary triangle sorted on axis 1",
+        ),
+    ],
+)
+def test_sort_coords_arbitrary(coords: npt.NDArray, axis: int, target: npt.NDArray) -> None:
+    """Test sorting of coordinates."""
+    sorted_coords = feret.sort_coords(coords, axis)
+    np.testing.assert_array_almost_equal(sorted_coords, target)
 
 
 @pytest.mark.parametrize(
@@ -281,6 +306,25 @@ def test_hulls(shape: npt.NDArray, axis: bool, upper_target: list, lower_target:
     upper, lower = feret.hulls(np.argwhere(shape == 1), axis)
     np.testing.assert_array_equal(upper, upper_target)
     np.testing.assert_array_equal(lower, lower_target)
+
+
+@pytest.mark.parametrize(
+    ("coords", "axis", "upper_target", "lower_target"),
+    [
+        pytest.param(
+            arbitrary_triangle,
+            0,
+            [[1.187277, 2.961402], [4.14263, 3.179832], [6.924721, 0.641475]],
+            [[1.187277, 2.961402], [6.924721, 0.641475]],
+            id="arbitrary triangle sorted on axis 0",
+        ),
+    ],
+)
+def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lower_target: list) -> None:
+    """Test construction of upper and lower hulls."""
+    upper, lower = feret.hulls(coords, axis)
+    np.testing.assert_array_almost_equal(upper, upper_target)
+    np.testing.assert_array_almost_equal(lower, lower_target)
 
 
 @pytest.mark.parametrize(
@@ -529,6 +573,27 @@ def test_all_pairs(shape: npt.NDArray, points_target: list) -> None:
         ),
         pytest.param([4, 3], [4, 6], [0, 0], 4.0, id="offset"),
         pytest.param([4, 3], [3, 6], [0, 0], 4.743416490252569, id="offset"),
+        pytest.param(
+            [1.187277, 2.961402],
+            [4.14263, 3.179832],
+            [6.924721, 0.641475],
+            2.736517033606448,
+            id="arbitrary triangle, height 1",
+        ),
+        pytest.param(
+            [1.187277, 2.961402],
+            [6.924721, 0.641475],
+            [4.14263, 3.179832],
+            1.3103558947980252,
+            id="arbitrary triangle height 2",
+        ),
+        pytest.param(
+            [6.924721, 0.641475],
+            [4.14263, 3.179832],
+            [1.187277, 2.961402],
+            2.1532876859324226,
+            id="arbitrary triangle height 3",
+        ),
     ],
 )
 def test_triangle_heights(
@@ -581,6 +646,30 @@ def test_triangle_heights(
             False,
             np.asarray([1, 1]),
             id="tiny triangle with base gradient zero, apex gradient 0.5 (rounding)",
+        ),
+        pytest.param(
+            [1.187277, 2.961402],
+            [4.14263, 3.179832],
+            [6.924721, 0.641475],
+            False,
+            [6.723015, 3.370548],
+            id="arbitrary triangle, height 1",
+        ),
+        pytest.param(
+            [1.187277, 2.961402],
+            [6.924721, 0.641475],
+            [4.14263, 3.179832],
+            False,
+            [3.651425, 1.965027],
+            id="arbitrary triangle height 2",
+        ),
+        pytest.param(
+            [6.924721, 0.641475],
+            [4.14263, 3.179832],
+            [1.187277, 2.961402],
+            False,
+            [2.638607, 4.55209],
+            id="arbitrary triangle height 3",
         ),
     ],
 )
@@ -851,6 +940,52 @@ def test_rotating_calipers(
 
 
 @pytest.mark.parametrize(
+    ("coords", "axis", "calipers_target", "min_ferets_target", "min_feret_coords_target"),
+    [
+        pytest.param(
+            arbitrary_triangle,
+            0,
+            (
+                ([6.92472119, 0.64147496], [1.18727719, 2.96140198]),
+                ([6.92472119, 0.64147496], [4.14262995, 3.17983179]),
+                ([1.18727719, 2.96140198], [4.14262995, 3.17983179]),
+            ),
+            (2.7365167317626233, 1.3103556366489382, 2.153287228471869),
+            (
+                [[6.7230157, 3.37054783], [6.92472119, 0.64147496]],
+                [[3.65142552, 1.96502724], [4.14262995, 3.17983179]],
+                [[2.63860725, 4.55208955], [1.18727719, 2.96140198]],
+            ),
+            id="arbitrary triangle sorted by axis 0",
+        ),
+    ],
+)
+def test_rotating_calipers_arbitrary(
+    coords: npt.NDArray, axis: int, calipers_target: tuple, min_ferets_target: tuple, min_feret_coords_target: tuple
+) -> None:
+    """Test calculation of rotating caliper pairs."""
+    caliper_min_feret = feret.rotating_calipers(coords, axis)
+    min_ferets, calipers, min_feret_coords = zip(*caliper_min_feret)
+    np.testing.assert_array_almost_equal(calipers, calipers_target)
+    np.testing.assert_array_almost_equal(min_ferets, min_ferets_target)
+    np.testing.assert_array_almost_equal(min_feret_coords, min_feret_coords_target)
+
+
+@pytest.mark.parametrize(
+    ("base1", "base2", "apex", "target_angle"),
+    [
+        pytest.param(np.asarray([1, 1]), np.asarray([1, 0]), np.asarray([0, 0]), 45.0, id="45-degree"),
+        pytest.param(np.asarray([1, 3]), np.asarray([1, 0]), np.asarray([0, 0]), 18.434948822922017, id="18.43-degree"),
+        pytest.param(np.asarray([1, 4]), np.asarray([1, 0]), np.asarray([0, 0]), 14.036243467926484, id="-degree"),
+    ],
+)
+def test_angle_between(base1: npt.NDArray, base2: npt.NDArray, apex: npt.NDArray, target_angle: float) -> None:
+    """Test calculation of angle between base and apex."""
+    angle = feret._angle_between(apex - base1, base2 - base1)
+    assert np.rad2deg(angle) == pytest.approx(target_angle)
+
+
+@pytest.mark.parametrize(
     ("coordinates", "target"),
     [
         pytest.param(
@@ -883,6 +1018,11 @@ def test_rotating_calipers(
             ([5, 1], [4, 1], [2, 3], [1, 5], [8, 8], [8, 7], [7, 4], [6, 2]),
             id="Curved line.",
         ),
+        pytest.param(
+            arbitrary_triangle,
+            ([[1.18727719, 2.96140198], [4.14262995, 3.17983179], [6.92472119, 0.64147496]]),
+            id="Arbitrary triangle",
+        ),
     ],
 )
 def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
@@ -893,14 +1033,168 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
 
 
 @pytest.mark.parametrize(
+    ("lower_hull", "upper_hull", "line", "precision", "within"),
+    [
+        # pytest.param(
+        #     np.asarray([[0, 0], [0, 5], [5, 5]]),
+        #     np.asarray([[0, 0], [5, 0], [5, 5]]),
+        #     np.asarray([[3, 3], [4, 4]]),
+        #     6,
+        #     [True],
+        #     id="Square with line inside.",
+        # ),
+        # pytest.param(
+        #     np.asarray([[0, 0], [0, 5], [5, 5]]),
+        #     np.asarray([[0, 0], [5, 0], [5, 5]]),
+        #     np.asarray([[3, 3], [3, 6]]),
+        #     6,
+        #     False,
+        #     id="Square with line extending outside",
+        # ),
+        # pytest.param(
+        #     np.asarray([[0, 0], [0, 5], [5, 5]]),
+        #     np.asarray([[0, 0], [5, 0], [5, 5]]),
+        #     np.asarray([[0, 0], [0, 6]]),
+        #     6,
+        #     False,
+        #     id="Square with line extending beyond top edge",
+        # ),
+        # pytest.param(
+        #     np.asarray([[0, 0], [0, 5], [5, 5]]),
+        #     np.asarray([[0, 0], [5, 0], [5, 5]]),
+        #     np.asarray([[0, 3], [3, 3]]),
+        #     6,
+        #     True,
+        #     id="Square with line on part of top edge",
+        # ),
+        # pytest.param(
+        #     np.asarray([[0, 0], [0, 5], [5, 5]]),
+        #     np.asarray([[0, 0], [5, 0], [5, 5]]),
+        #     np.asarray([[0, 5], [5, 5]]),
+        #     6,
+        #     True,
+        #     id="Square with line identical to right edge",
+        # ),
+        # pytest.param(
+        #     np.asarray([[1, 1], [1, 2], [2, 2]]),
+        #     np.asarray([[1, 1], [2, 1], [2, 2]]),
+        #     np.asarray([[2, 1], [1, 1]]),
+        #     6,
+        #     True,
+        #     id="Tiny square with line identical to right edge",
+        # ),
+        # pytest.param(
+        #     feret.hulls(np.argwhere(holo_ellipse_angled == 1))[1],
+        #     feret.hulls(np.argwhere(holo_ellipse_angled == 1))[0],
+        #     np.asarray([[2, 1], [0, 2]]),
+        #     6,
+        #     False,
+        #     id="Angled ellipse incorrect min feret.",
+        # ),
+        pytest.param(
+            feret.hulls(arbitrary_triangle)[1],
+            feret.hulls(arbitrary_triangle)[0],
+            np.asarray([[2, 1], [0, 2]]),
+            6,
+            False,
+            id="Arbitrary triangle, arbitrary outside.",
+        ),
+        pytest.param(
+            feret.hulls(arbitrary_triangle)[1],
+            feret.hulls(arbitrary_triangle)[0],
+            np.asarray([[1.187277, 2.961402], [2.638607, 4.55209]]),
+            6,
+            False,
+            id="Arbitrary triangle, triangle height outside 1.",
+        ),
+        pytest.param(
+            feret.hulls(arbitrary_triangle)[1],
+            feret.hulls(arbitrary_triangle)[0],
+            np.asarray([[6.924721, 0.641475], [6.723015, 3.370548]]),
+            6,
+            False,
+            id="Arbitrary triangle, triangle height outside 2.",
+        ),
+        pytest.param(
+            feret.hulls(arbitrary_triangle)[1],
+            feret.hulls(arbitrary_triangle)[0],
+            np.asarray([[4.14262995, 3.17983179], [3.6514255204, 1.9650272367]]),
+            10,
+            True,
+            id="Arbitrary triangle, triangle height inside; precision 12.",
+        ),
+        pytest.param(
+            feret.hulls(arbitrary_triangle)[1],
+            feret.hulls(arbitrary_triangle)[0],
+            np.asarray([[4.14262995, 3.17983179], [3.651425, 1.965027]]),
+            6,
+            False,
+            id="Arbitrary triangle, triangle height inside; precision 6 and fails to mark line as within polygon.",
+        ),
+    ],
+)
+def test_in_polygon(
+    lower_hull: npt.NDArray, upper_hull: npt.NDArray, line: npt.NDArray, precision: int, within: bool
+) -> None:
+    """Test whether points are within polygon."""
+    assert feret.in_polygon(line, lower_hull, upper_hull, precision) == within
+
+
+@pytest.mark.parametrize(
+    ("point", "polygon", "within"),
+    [
+        pytest.param(
+            np.asarray([3, 3]),
+            np.asarray([[0, 0], [0, 5], [5, 5], [5, 0]]),
+            True,
+            id="Square with point inside",
+        ),
+        pytest.param(
+            np.asarray([6, 6]),
+            np.asarray([[0, 0], [0, 5], [5, 5], [5, 0]]),
+            False,
+            id="Square with point outside",
+        ),
+        pytest.param(
+            np.asarray([0, 3]),
+            np.asarray([[0, 0], [0, 5], [5, 5], [5, 0]]),
+            True,
+            id="Square with point on top edge",
+        ),
+        pytest.param(
+            np.asarray([3, 0]),
+            np.asarray([[0, 0], [0, 5], [5, 5], [5, 0]]),
+            True,
+            id="Square with point on left edge",
+        ),
+        pytest.param(
+            np.asarray([5, 3]),
+            np.asarray([[0, 0], [0, 5], [5, 5], [5, 0]]),
+            True,
+            id="Square with point on bottom edge",
+        ),
+        pytest.param(
+            np.asarray([3, 5]),
+            np.asarray([[0, 0], [0, 5], [5, 5], [5, 0]]),
+            True,
+            id="Square with point on right edge",
+        ),
+    ],
+)
+def test_point_in_polygon(point: npt.NDArray, polygon: npt.NDArray, within: bool) -> None:
+    """Test whether points are within polygons."""
+    assert feret.point_in_polygon(point, polygon) == within
+
+
+@pytest.mark.parametrize(
     ("lower_hull", "upper_hull", "line", "within"),
     [
         pytest.param(
             np.asarray([[0, 0], [0, 5], [5, 5]]),
             np.asarray([[0, 0], [5, 0], [5, 5]]),
             np.asarray([[3, 3], [4, 4]]),
-            [True],
-            id="Square with line inside.",
+            True,
+            id="Square with line inside",
         ),
         pytest.param(
             np.asarray([[0, 0], [0, 5], [5, 5]]),
@@ -944,11 +1238,39 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
             False,
             id="Angled ellipse incorrect min feret.",
         ),
+        pytest.param(
+            feret.hulls(arbitrary_triangle)[1],
+            feret.hulls(arbitrary_triangle)[0],
+            np.asarray([[2, 1], [0, 2]]),
+            False,
+            id="Arbitrary triangle, arbitrary outside.",
+        ),
+        pytest.param(
+            feret.hulls(arbitrary_triangle)[1],
+            feret.hulls(arbitrary_triangle)[0],
+            np.asarray([[1.187277, 2.961402], [2.638607, 4.55209]]),
+            False,
+            id="Arbitrary triangle, triangle height outside 1.",
+        ),
+        pytest.param(
+            feret.hulls(arbitrary_triangle)[1],
+            feret.hulls(arbitrary_triangle)[0],
+            np.asarray([[6.924721, 0.641475], [6.723015, 3.370548]]),
+            False,
+            id="Arbitrary triangle, triangle height outside 2.",
+        ),
+        pytest.param(
+            feret.hulls(arbitrary_triangle)[1],
+            feret.hulls(arbitrary_triangle)[0],
+            np.asarray([[4.14262995, 3.17983179], [3.651425, 1.965027]]),
+            False,
+            id="Arbitrary triangle, triangle height inside",
+        ),
     ],
 )
-def test_in_polygon(lower_hull: npt.NDArray, upper_hull: npt.NDArray, line: list, within: bool) -> None:
-    """Test whether points are within polygon."""
-    np.testing.assert_array_equal(feret.in_polygon(line, lower_hull, upper_hull), within)
+def test_line_in_polygon(lower_hull: npt.NDArray, upper_hull: npt.NDArray, line: npt.NDArray, within: bool) -> None:
+    """Test whether points are within hull."""
+    assert feret.line_in_polygon(line, lower_hull, upper_hull) == within
 
 
 @pytest.mark.parametrize(
@@ -966,6 +1288,7 @@ def test_in_polygon(lower_hull: npt.NDArray, upper_hull: npt.NDArray, line: list
             0,
             1.4142135623730951,
             ([0, 1], [1, 0]),
+            # ([1, 2], [0, 1]),
             2.0,
             ([2, 1], [0, 1]),
             id="tiny circle sorted on axis 0",
@@ -1035,7 +1358,13 @@ def test_in_polygon(lower_hull: npt.NDArray, upper_hull: npt.NDArray, line: list
             id="small circle sorted on axis 0",
         ),
         pytest.param(
-            holo_circle, 0, 4.0, ([1, 2], [5, 2]), 4.47213595499958, ([5, 4], [1, 2]), id="holo circle sorted on axis 0"
+            holo_circle,
+            0,
+            4.0,
+            ([1, 2], [5, 2]),
+            4.47213595499958,
+            ([5, 4], [1, 2]),
+            id="holo circle sorted on axis 0",
         ),
         pytest.param(
             holo_ellipse_horizontal,
@@ -1200,7 +1529,7 @@ filled_image = np.concatenate((np.pad(filled_circle, pad_width=((0, 0), (0, 2)))
     ],
 )
 def test_get_feret_from_labelim(shape: npt.NDArray, axis: int, target: dict) -> None:
-    """Test calculation of min/max feret for a labelled image with multiuple objects."""
+    """Test calculation of min/max feret for a labelled image with multiple objects."""
     min_max_feret_size_coord = feret.get_feret_from_labelim(shape, axis=axis)
     for key, value in min_max_feret_size_coord.items():
         # Min Feret

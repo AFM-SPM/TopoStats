@@ -21,6 +21,7 @@ import numpy as np
 import numpy.typing as npt
 import skimage.morphology
 from shapely import LineString, Polygon, contains
+from shapely.ops import transform
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -260,11 +261,7 @@ def _min_feret_coord(
         Coordinates of the point perpendicular to the base line that is opposite the apex, this line is the minimum
         feret distance for acute triangles (but not scalene triangles).
     """
-
-    def angle_between(apex, b):
-        return np.arccos(np.dot(apex, b) / (np.linalg.norm(apex) * np.linalg.norm(b)))
-
-    angle_apex_base1_base2 = angle_between(apex - base1, base2 - base1)
+    angle_apex_base1_base2 = _angle_between(apex - base1, base2 - base1)
     len_apex_base2 = np.linalg.norm(apex - base1)
     cos_apex_base1_base2 = np.cos(angle_apex_base1_base2)
     k = len_apex_base2 * cos_apex_base1_base2
@@ -276,6 +273,25 @@ def _min_feret_coord(
         d[1] = np.ceil(d[1]) if d[1] > apex[1] else np.floor(d[1])
         return np.asarray([int(d[0]), int(d[1])])
     return np.asarray([d[0], d[1]])
+
+
+def _angle_between(apex: npt.NDArray, b: npt.NDArray) -> float:
+    """
+    Calculate the angle between the apex and base of the triangle.
+
+    Parameters
+    ----------
+    apex: npt.NDArray
+        Difference between apex and base1 coordinates.
+    b: npt.NDArray
+        Difference between base2 and base1 coordinates.
+
+    Returns
+    -------
+    float
+        The angle between the base and the apex.
+    """
+    return np.arccos(np.dot(apex, b) / (np.linalg.norm(apex) * np.linalg.norm(b)))
 
 
 def sort_clockwise(coordinates: npt.NDArray) -> npt.NDArray:
@@ -310,7 +326,7 @@ def sort_clockwise(coordinates: npt.NDArray) -> npt.NDArray:
     return coordinates[order]
 
 
-def in_polygon(line: npt.NDArray, lower_hull: npt.NDArray, upper_hull: npt.NDArray) -> bool:
+def in_polygon(line: npt.NDArray, lower_hull: npt.NDArray, upper_hull: npt.NDArray, precision: int | None = 6) -> bool:
     """
     Check whether a line is within or on the edge of a polygon.
 
@@ -329,6 +345,8 @@ def in_polygon(line: npt.NDArray, lower_hull: npt.NDArray, upper_hull: npt.NDArr
         The lower convex hull.
     upper_hull : npt.NDArray
         The upper convex hull of the polygon.
+    precision : int | None
+        Precision to round line points to when testing if line is within the polygon.
 
     Returns
     -------
@@ -353,10 +371,133 @@ def in_polygon(line: npt.NDArray, lower_hull: npt.NDArray, upper_hull: npt.NDArr
         if list(line.coords) == list(edge.coords):
             return True
         edge_count += 1
+
+    # Refine the precision of the lines if required
+    # if precision is not None:
+    #     line = round_geom(line, precision)
     return contains(polygon, line)
 
 
-def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
+def point_in_polygon(point: npt.NDarray, polygon: npt.NDArray) -> bool:
+    """
+    Raycasting Algorithm to find whether a point is in a given polygon.
+
+    Performs the even-odd-rule Algorithm to find out whether a point is in a given polygon.
+    This runs in O(n) where n is the number of edges of the polygon.
+
+    Parameters
+    ----------
+    point : npt.NDArray
+        coordinates of a point.
+    polygon : npt.NDArray
+        Hull (typically convex) of coordinates forming the polygon.
+
+    Returns
+    -------
+    bool
+        Whether the point is in the polygon (not on the edge, just turn < into <= and > into >= for that)
+    """
+    # A point is in a polygon if a line from the point to infinity crosses the polygon an odd number of times
+    odd_right = False
+    odd_left = False
+    # For each edge (In this case for each point of the polygon and the previous one)
+    i = 0
+    j = len(polygon) - 1
+    while i < len(polygon) - 1:
+        i = i + 1
+        # If a line from the point stretching rightwards crosses the edge it is within the polygon.
+        if ((polygon[i][1] >= point[1]) != (polygon[j][1] >= point[1])) and (
+            point[0]
+            <= ((polygon[j][0] - polygon[i][0]) * (point[1] - polygon[i][1]) / (polygon[j][1] - polygon[i][1]))
+            + polygon[i][0]
+        ):
+            # Invert odd
+            odd_right = not odd_right
+        # ...and check the other direction to make sure its not on the edge.
+        if ((polygon[i][1] <= point[1]) != (polygon[j][1] <= point[1])) and (
+            point[0]
+            >= ((polygon[j][0] - polygon[i][0]) * (point[1] - polygon[i][1]) / (polygon[j][1] - polygon[i][1]))
+            + polygon[i][0]
+        ):
+            # Invert odd
+            odd_right = not odd_right
+        j = i
+    # If the number of crossings was odd, the point is in the polygon
+    return True if odd_left or odd_right else False
+
+
+def line_in_polygon(line: npt.NDArray, lower_hull: npt.NDArray, upper_hull: npt.NDArray) -> bool:
+    """Determine if either points of a line are within a polygon.
+
+    Parameters
+    ----------
+    line : npt.NDArray
+        Numpy array defining the coordinates of a single, linear line.
+    lower_hull : npt.NDArray
+        The lower convex hull.
+    upper_hull : npt.NDArray
+        The upper convex hull of the polygon.
+
+    Returns
+    -------
+    bool
+        Indicator of whether both points of the line are within the hull/polygon.
+    """
+    polygon = np.unique(np.concatenate([lower_hull, upper_hull], axis=0), axis=0)
+    n_inside = 0
+    for point in line:
+        if point_in_polygon(point, polygon):
+            n_inside += 1
+    return True if n_inside == 2 else False
+
+
+def round_geom(geom: Polygon | LineString, precision: int = 12) -> Polygon | LineString:
+    """
+    Transform the precision of coordinates of a Shapely geom.
+
+    Parameters
+    ----------
+    geom : LineString
+        coordinates of line to be rounded.
+    ndigits : int
+        Precision to round points to.
+
+    Returns
+    -------
+    Polygon | LineString
+        Shapely object with points to specified precision.
+    """
+
+    def _round_geom(x, y, z=None):
+        """
+        Round the points.
+
+        Parameters
+        ----------
+        x : int | float
+            The x coordinate.
+        y : int | float
+            The y coordinate.
+        z : int | float
+            The z coordinate.
+
+        Returns
+        -------
+        list
+            List of rounded coordinates.
+        """
+        x = round(x, precision)
+        y = round(y, precision)
+        if z is not None:
+            z = round(z, precision)
+        return [c for c in (x, y, z) if c is not None]
+
+    return transform(_round_geom, geom)
+
+
+def min_max_feret(
+    points: npt.NDArray, axis: int = 0, precision: int = 6
+) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
     """
     Given a list of 2-D points, returns the minimum and maximum feret diameters.
 
@@ -368,6 +509,8 @@ def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int,
         A 2-D array of points for the outline of an object.
     axis : int
         Which axis to sort coordinates on, 0 for row (default); 1 for columns.
+    precision : int
+        Number of decimal places passed on to in_polygon() for rounding.
 
     Returns
     -------
@@ -388,8 +531,14 @@ def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int,
     # Determine minimum feret (and coordinates) from all caliper triangles, but only if the min_feret_coords (y) are
     # within the polygon
     hull = hulls(points)
+    print(f"{min_ferets=}")
+    print(f"{min_feret_coords=}")
+    for min_feret_coord in min_feret_coords:
+        print(f"{in_polygon(min_feret_coord, hull[0], hull[1])=}")
     triangle_min_feret = [
-        [x, (list(map(list, y)))] for x, y in zip(min_ferets, min_feret_coords) if in_polygon(y, hull[0], hull[1])
+        [x, (list(map(list, y)))]
+        for x, y in zip(min_ferets, min_feret_coords)
+        if in_polygon(y, hull[0], hull[1], precision)
     ]
     min_feret, min_feret_coord = min(triangle_min_feret)
     return min_feret, np.asarray(min_feret_coord), sqrt(max_feret_sq), np.asarray(max_feret_coord)
@@ -452,12 +601,12 @@ def get_feret_from_labelim(label_image: npt.NDArray, labels: None | list | set =
 def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals # noqa: C901
     points: npt.NDArray,
     axis: int = 0,
-    plot_points: str = "k",
-    plot_hulls: tuple = ("g-", "r-"),
-    plot_calipers: str = "y-",
-    plot_triangle_heights: str = "b:",
-    plot_min_feret: str = "m--",
-    plot_max_feret: str = "m--",
+    plot_points: str | None = "k",
+    plot_hulls: tuple | None = ("g-", "r-"),
+    plot_calipers: str | None = "y-",
+    plot_triangle_heights: str | None = "b:",
+    plot_min_feret: str | None = "m--",
+    plot_max_feret: str | None = "m--",
     filename: str | Path | None = "./feret.png",
     show: bool = False,
 ) -> None:
@@ -475,19 +624,19 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals # noqa: C9
         Points to be plotted which form the shape of interest.
     axis : int
         Which axis to sort coordinates on, 0 for row (default); 1 for columns. (Should give the same results!).
-    plot_points : str
+    plot_points : str | None
         Format string for plotting points. If 'None' points are not plotted.
-    plot_hulls : tuple
+    plot_hulls : tuple | None
         Tuple of length 2 of format strings for plotting the convex hull, these should differe to allow distinction
         between hulls. If 'None' hulls are not plotted.
-    plot_calipers : str
+    plot_calipers : str | None
         Format string for plotting calipers. If 'None' calipers are not plotted.
-    plot_triangle_heights : str
+    plot_triangle_heights : str | None
         Format string for plotting the triangle heights used in calulcating the minimum feret. These should cross the
     opposite edge perpendicularly. If 'None' triangle heights are not plotted.
-    plot_min_feret : str
+    plot_min_feret : str | None
         Format string for plotting the minimum feret. If 'None' the minimum feret is not plotted.
-    plot_max_feret : str
+    plot_max_feret : str | None
         Format string for plotting the maximum feret. If 'None' the maximum feret is not plotted.
     filename : str | Path | None
         Location to save the image to.
