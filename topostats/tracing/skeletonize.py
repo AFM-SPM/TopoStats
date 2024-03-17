@@ -13,6 +13,7 @@ from topostats.utils import convolve_skelly
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+
 class getSkeleton:
     """Class containing skeletonization code from factory methods to functions
     depaendant on the method
@@ -92,7 +93,7 @@ class getSkeleton:
         Returns
         -------
         npt.NDArray
-            The mask array reduce to a single pixel thickness
+            The mask array reduce to a single pixel thickness.
         """
         return skeletonize(mask, method="zhang")
 
@@ -108,7 +109,7 @@ class getSkeleton:
         Returns
         -------
         npt.NDArray
-            The mask array reduce to a single pixel thickness
+            The mask array reduce to a single pixel thickness.
         """
         return skeletonize(mask, method="lee")
 
@@ -124,7 +125,7 @@ class getSkeleton:
         Returns
         -------
         npt.NDArray
-            The mask array reduce to a single pixel thickness
+            The mask array reduce to a single pixel thickness.
         """
         return medial_axis(mask, return_distance=False)
 
@@ -140,7 +141,7 @@ class getSkeleton:
         Returns
         -------
         npt.NDArray
-            The mask array reduce to a single pixel thickness
+            The mask array reduce to a single pixel thickness.
         """
         return thin(mask)
 
@@ -158,7 +159,7 @@ class getSkeleton:
         Returns
         -------
         npt.NDArray
-            The mask array reduce to a single pixel thickness
+            The mask array reduce to a single pixel thickness.
 
         Notes
         -----
@@ -175,7 +176,7 @@ class topostatsSkeletonize:
     """
 
     def __init__(self, image: npt.NDArray, mask: npt.NDArray, height_bias: float = 0.6):
-        """Initialises the class
+        """Initialises the class.
 
         Parameters
         ----------
@@ -405,7 +406,7 @@ class topostatsSkeletonize:
             case 1: [0, 1, 0]   or  case 2: [0, 1, 0]   or case 3: [1, 1, 0]
 
         This is useful for the future functions that rely on local pixel environment
-        to make assessments about the overall shape/structure of traces
+        to make assessments about the overall shape/structure of traces.
         """
         remaining_coordinates = np.argwhere(self.mask).tolist()
 
