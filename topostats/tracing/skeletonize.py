@@ -11,12 +11,6 @@ from topostats.tracing.tracingfuncs import genTracingFuncs
 from topostats.utils import convolve_skelly
 
 LOGGER = logging.getLogger(LOGGER_NAME)
-OUTPUT_DIR = "/Users/maxgamill/Desktop"
-
-# Max notes: Want to separate this module into:
-#   the different skeletonisation skimage methods & joe's
-#   the different branch pruning methods (mine & joe's)
-#   skeleton descriptors (mine)
 
 
 class getSkeleton:
@@ -42,25 +36,8 @@ class getSkeleton:
 
         Parameters
         ----------
-        method : str
-            Method to use, default is 'zhang' other options are 'lee', 'medial_axis', 'thin' and 'topostats'.
-        Parameters
-        ----------
-        image: np.ndarray
-            The image used to generate the mask.
-        mask: np.ndarray
-            The binary mask of features in the image.
-        """
-        self.image = image
-        self.mask = mask
-
-    def get_skeleton(self, params={"method": "zhang"}) -> np.ndarray:
-        """Factory method for skeletonizing molecules.
-
-        Parameters
-        ----------
-        method : str
-            Method to use, default is 'zhang' other options are 'lee', 'medial_axis', 'thin' and 'topostats'.
+        params : dict
+            Dictionary of skeletonisation parameters including the method, default is 'zhang'.
 
         Returns
         -------
@@ -73,8 +50,7 @@ class getSkeleton:
 
         Notes
         -----
-        This is a thin wrapper to the methods provided
-        by the `skimage.morphology
+        This is a thin wrapper to the methods provided by the `skimage.morphology
         <https://scikit-image.org/docs/stable/api/skimage.morphology.html?highlight=skeletonize>`_
         module. See also the `examples
         <https://scikit-image.org/docs/stable/auto_examples/edges/plot_skeleton.html>_
@@ -82,12 +58,13 @@ class getSkeleton:
         return self._get_skeletonize(params)
 
     def _get_skeletonize(self, params={"skeletonisation_method": "zhang"}) -> Callable:
-        """Creator component which determines which skeletonize method to use.
+        """Creator component which determines which skeletonize method to use. Methods are 'zhang' (default),
+        'lee', 'medial_axis', 'thin' and 'topostats'.
 
         Parameters
         ----------
-        method: str
-            Method to use for skeletonizing, methods are 'zhang' (default), 'lee', 'medial_axis', 'thin' and 'topostats'.
+        params: dict
+            Dictionary of skeletonisation parameters including the method.
 
         Returns
         -------
@@ -119,7 +96,7 @@ class getSkeleton:
         Returns
         -------
         np.ndarray
-            The mask array reduce to a single pixel thickness
+            The mask array reduce to a single pixel thickness.
         """
         return skeletonize(mask, method="zhang")
 
@@ -135,7 +112,7 @@ class getSkeleton:
         Returns
         -------
         np.ndarray
-            The mask array reduce to a single pixel thickness
+            The mask array reduce to a single pixel thickness.
         """
         return skeletonize(mask, method="lee")
 
@@ -151,13 +128,12 @@ class getSkeleton:
         Returns
         -------
         np.ndarray
-            The mask array reduce to a single pixel thickness
+            The mask array reduce to a single pixel thickness.
         """
-        # don't know how these work - do they need img or mask?
         return medial_axis(mask, return_distance=False)
 
     @staticmethod
-    def _skeletonize_thin(image: np.ndarray) -> np.ndarray:
+    def _skeletonize_thin(mask: np.ndarray) -> np.ndarray:
         """Wrapper for the scikit image implimentation of the thin skeletonisation method.
 
         Parameters
@@ -168,10 +144,9 @@ class getSkeleton:
         Returns
         -------
         np.ndarray
-            The mask array reduce to a single pixel thickness
+            The mask array reduce to a single pixel thickness.
         """
-        # don't know how these work - do they need img or mask?
-        return thin(image)
+        return thin(mask)
 
     @staticmethod
     def _skeletonize_topostats(image: np.ndarray, mask: np.ndarray, params) -> np.ndarray:
@@ -179,13 +154,15 @@ class getSkeleton:
 
         Parameters
         ----------
+        image: np.ndarray
+            A 2D array to bias skeletonisation towards larger pixel values.
         mask: np.ndarray
             A binary array to skeletonise.
 
         Returns
         -------
         np.ndarray
-            The mask array reduce to a single pixel thickness
+            The mask array reduce to a single pixel thickness.
 
         Notes
         -----
@@ -196,29 +173,24 @@ class getSkeleton:
 
 
 class topostatsSkeletonize:
-    """Contains all the functions used for Joe's topostats skeletonisation code
-
-    Notes
-    -----
-    This code contains only the minimum viable product code as much of the other code
-    relating to skeletonising based on heights was unused. This also means that
-    should someone be upto the task, it is possible to include the heights when skeletonising.
+    """Functions to skeletonise a binary array following Zhang's algorithm (Zhang and Suen, 1984)
+    with modifications during the removal step to remove the smallest fraction of values and not
+    all of them. All operations are performed on the mask entered.
     """
 
     def __init__(self, image: np.ndarray, mask: np.ndarray, height_bias):
-        """Initialises the class
+        """Initialises the class.
 
         Parameters
         ----------
         image: np.ndarray
-            The original image containing the data.
+            The original 2D image containing the data.
         mask: np.ndarray
-            The binary image containing the grain(s) to be skeletonised.
+            The binary image containing the object(s) to be skeletonised. Must match image dimensions.
         """
         self.image = image
         self.mask = mask.copy()
         self.height_bias = height_bias
-        print("BIAS: ", height_bias)
 
         self.skeleton_converged = False
         self.p2 = None
@@ -239,23 +211,19 @@ class topostatsSkeletonize:
         np.ndarray
             The single pixel thick, skeletonised array.
         """
-        # do we need padding because of config padding?
-        # self.mask = np.pad(self.mask, 1)  # pad to avoid hitting border
-        # self.image = np.pad(self.mask, 1) # pad to make same as mask
         while not self.skeleton_converged:
             self._do_skeletonising_iteration()
         # When skeleton converged do an additional iteration of thinning to remove hanging points
         self.final_skeletonisation_iteration()
-        self.mask = getSkeleton(self.image, self.mask).get_skeleton({"skeletonisation_method": "zhang"})
+        self.mask = getSkeleton(self.image, self.mask).get_skeleton({"skeletonisation_method": "zhang"}) # not sure if this is needed?
 
         return self.mask
 
     def _do_skeletonising_iteration(self) -> None:
-        """Do an iteration of skeletonisation - check for the local binary pixel
+        """Do an iteration of skeletonisation - obtain the local binary pixel
         environment and assess the local height values to decide whether to
         delete a point.
         """
-        self.counter += 1
         skel_img = self.mask.copy()
         pixels_to_delete = []
         # Sub-iteration 1 - binary check
@@ -264,7 +232,7 @@ class topostatsSkeletonize:
             if self._delete_pixel_subit1(point):
                 pixels_to_delete.append(point)
 
-        # remove points based on height (lowest 60%)
+        # remove points based on height (lowest height_bias%)
         pixels_to_delete = np.asarray(pixels_to_delete)  # turn into array
         if pixels_to_delete.shape != (0,):  # ensure array not empty
             skel_img[pixels_to_delete[:, 0], pixels_to_delete[:, 1]] = 2
@@ -283,7 +251,7 @@ class topostatsSkeletonize:
             if self._delete_pixel_subit2(point):
                 pixels_to_delete.append(point)
 
-        # remove points based on height (lowest 60%)
+        # remove points based on height (lowest height_bias%)
         pixels_to_delete = np.asarray(pixels_to_delete)
         if pixels_to_delete.shape != (0,):
             skel_img[pixels_to_delete[:, 0], pixels_to_delete[:, 1]] = 3
@@ -298,22 +266,24 @@ class topostatsSkeletonize:
         if len(pixels_to_delete) == 0:
             self.skeleton_converged = True
 
-        # np.savetxt(f"{OUTPUT_DIR}/Uni/PhD/topo_cats/TopoStats/test/processed/taut/dna_tracing/upper/skel_iters/skel_iter_{self.counter}.txt", skel_img)
-
     def _delete_pixel_subit1(self, point: list) -> bool:
-        """Function to check whether a single point should be deleted based
-        on both its local binary environment.
+        """Function to check whether a single point (P1) should be deleted based
+        on its local binary environment:
+        (a) 2 ≤ B(P1) ≤ 6, where B(P1) is the number of non-zero neighbours of P1.
+        (b) A(P1) = 1, where A(P1) is the # of 01's around P1.
+        (C) P2 * P4 * P6 = 0
+        (d) P4 * P6 * P8 = 0
 
         Parameters
         ----------
         point: list
-            List of [x, y] coordinate positions
+            List of an [x, y] coordinate position.
 
         Returns
         -------
         bool
-            Returns T/F depending if the surrounding points have met the criteria
-            of the binary thin a, b returncount, c and d checks below.
+            Returns T/F (to delete or not) depending if the surrounding points have met 
+            the criteria of the binary thin a, b returncount, c and d checks below.
         """
         self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.get_local_pixels_binary(
             self.mask, point[0], point[1]
@@ -321,13 +291,18 @@ class topostatsSkeletonize:
         return (
             self._binary_thin_check_a()
             and self._binary_thin_check_b_returncount() == 1
+            # c and d remove only north-west corner points and south-east boundary points.
             and self._binary_thin_check_c()
             and self._binary_thin_check_d()
         )
 
     def _delete_pixel_subit2(self, point) -> bool:
-        """Function to check whether a single point should be deleted based
-        on both its local binary environment.
+        """Function to check whether a single point (P1) should be deleted based
+        on its local binary environment:
+        (a) 2 ≤ B(P1) ≤ 6, where B(P1) is the number of non-zero neighbours of P1.
+        (b) A(P1) = 1, where A(P1) is the # of 01's around P1.
+        (c') P2 * P4 * P8 = 0
+        (d') P2 * P6 * P8 = 0
 
         Parameters
         ----------
@@ -347,23 +322,30 @@ class topostatsSkeletonize:
         return (
             self._binary_thin_check_a()
             and self._binary_thin_check_b_returncount() == 1
+            # c' and d' remove only north-west boundary points or south-east corner points.
             and self._binary_thin_check_csharp()
             and self._binary_thin_check_dsharp()
         )
 
     def _binary_thin_check_a(self) -> bool:
         """Checks the surrounding area to see if the point lies on the edge of the grain.
-        Condition A protects the endpoints (which will be > 2)
+        Condition A protects the endpoints (which will be < 2)
 
         Returns
         -------
         bool
-            if point lies on edge of graph and isn't an endpoint.
+            If point lies on edge of graph and isn't an endpoint.
         """
         return 2 <= self.p2 + self.p3 + self.p4 + self.p5 + self.p6 + self.p7 + self.p8 + self.p9 <= 6
 
-    def _binary_thin_check_b_returncount(self) -> bool:
-        """Assess local area connectivity?"""
+    def _binary_thin_check_b_returncount(self) -> int:
+        """Count local area 01's in order around P1.
+
+        Returns
+        -------
+        int
+            The number of 01's around P1.
+        """
         count = sum(
             [
                 [self.p2, self.p3] == [0, 1],
@@ -380,54 +362,54 @@ class topostatsSkeletonize:
         return count
 
     def _binary_thin_check_c(self) -> bool:
-        """Check if p2, p4 or p6 is 0 - seems very specific
+        """Check if p2, p4 or p6 is 0.
 
         Returns
         -------
         bool
-            if p2, p4 or p6 is 0.
+            If p2, p4 or p6 is 0.
         """
         return self.p2 * self.p4 * self.p6 == 0
 
     def _binary_thin_check_d(self) -> bool:
-        """Check if p4, p6 or p8 is 0 - seems very specific
+        """Check if p4, p6 or p8 is 0. 
 
         Returns
         -------
         bool
-            if p4, p6 or p8 is 0.
+            If p4, p6 or p8 is 0.
         """
         return self.p4 * self.p6 * self.p8 == 0
 
     def _binary_thin_check_csharp(self) -> bool:
-        """Check if p2, p4 or p8 is 0 - seems very specific
+        """Check if p2, p4 or p8 is 0.
 
         Returns
         -------
         bool
-            if p2, p4 or p8 is 0.
+            If p2, p4 or p8 is 0.
         """
         return self.p2 * self.p4 * self.p8 == 0
 
     def _binary_thin_check_dsharp(self) -> bool:
-        """Check if p2, p6 or p8 is 0 - seems very specific
+        """Check if p2, p6 or p8 is 0.
 
         Returns
         -------
         bool
-            if p2, p6 or p8 is 0.
+            If p2, p6 or p8 is 0.
         """
         return self.p2 * self.p6 * self.p8 == 0
 
     def final_skeletonisation_iteration(self) -> None:
         """A final skeletonisation iteration that removes "hanging" pixels.
         Examples of such pixels are:
-                    [0, 0, 0]               [0, 1, 0]            [0, 0, 0]
-                    [0, 1, 1]               [0, 1, 1]            [0, 1, 1]
-            case 1: [0, 1, 0]   or  case 2: [0, 1, 0] or case 3: [1, 1, 0]
+                    [0, 0, 0]               [0, 1, 0]              [0, 0, 0]
+                    [0, 1, 1]               [0, 1, 1]              [0, 1, 1]
+            case 1: [0, 1, 0]   or  case 2: [0, 1, 0]   or case 3: [1, 1, 0]
 
         This is useful for the future functions that rely on local pixel environment
-        to make assessments about the overall shape/structure of traces
+        to make assessments about the overall shape/structure of traces.
         """
         remaining_coordinates = np.argwhere(self.mask).tolist()
 
@@ -440,7 +422,7 @@ class topostatsSkeletonize:
             if (
                 self._binary_thin_check_b_returncount() == 2
                 and self._binary_final_thin_check_a()
-                and not self.binary_thin_check_max()
+                and not self.binary_thin_check_diag()
             ):
                 self.mask[x, y] = 0
             # Checks for case 2 pixels
@@ -472,24 +454,31 @@ class topostatsSkeletonize:
             self.p8 * self.p2 * self.p4,
         )
 
-    def binary_thin_check_max(self) -> bool:
-        """Checks if opposite corner diagonals are present."""
+    def binary_thin_check_diag(self) -> bool:
+        """Checks if opposite corner diagonals are present.
+        
+        Returns
+        -------
+        bool
+            Wether a diagonal exists.
+        """
         return 1 in (self.p7 * self.p3, self.p5 * self.p9)
 
     @staticmethod
     def get_local_pixels_binary(binary_map, x, y) -> np.ndarray:
-        """Get the values of the pixels in the local 8-connectivit area around
-        the coordinate described by x and y.
+        """Get the values of the pixels in the local 8-connectivity area around
+        the coordinate (P1) described by x and y. P1 must not lie on the edge of
+        binary map.
 
         [[p7, p8, p9],    [[0,1,2],
-         [p6, na, p2], ->  [3,4,5], -> [0,1,2,3,5,6,7,8]
+         [p6, P1, p2], ->  [3,4,5], -> [0,1,2,3,5,6,7,8]
          [p5, p4, p3]]     [6,7,8]]
-        delete coordinate pixel to only get local area.
+        delete P1 to only get local area.
 
         Parameters
         ----------
         binary_map: np.ndarray
-            The binary array containing the grains.
+            The binary array containing the object.
         x: int
             An x coordinate within the binary map.
         y: int
@@ -499,7 +488,7 @@ class topostatsSkeletonize:
         -------
         np.ndarray
             A flattened 8-long array describing the values in the binary map
-            around the x,y point
+            around the x,y point.
         """
         local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
         return np.delete(local_pixels, 4)
@@ -507,7 +496,7 @@ class topostatsSkeletonize:
 
 class pruneSkeleton:
     """Class containing skeletonization pruning code from factory methods to functions
-    depaendant on the method. Pruning is the act of removing spurious branches commonly
+    dependant on the method. Pruning is the act of removing spurious branches commonly
     found when implimenting skeletonization algorithms.
     """
 
@@ -517,7 +506,7 @@ class pruneSkeleton:
         Parameters
         ----------
         image: np.ndarray
-            The original image the skeleton derives from (not the binary mask)
+            The original image the skeleton derives from (not the binary mask).
         skeleton: np.ndarray
             The single-pixel-thick skeleton pertaining to features of the image.
         """
@@ -559,9 +548,9 @@ class pruneSkeleton:
         method = prune_args.pop("pruning_method")
         if method == "topostats":
             return self._prune_topostats(self.image, self.skeleton, prune_args)
-        if method == "max":
-            return self._prune_max(self.image, self.skeleton, prune_args)
-        # I've read about a "Discrete Skeleton Evolultion" (DSE) method that looks useful
+        if method == "conv":
+            return self._prune_conv(self.image, self.skeleton, prune_args)
+        # I've read about a "Discrete Skeleton Evolultion" (DSE) method that might be useful
         raise ValueError(method)
 
     @staticmethod
@@ -571,9 +560,11 @@ class pruneSkeleton:
         Parameters
         ----------
         image: np.ndarray
-            The image used to find the skeleton (doesn't have to be binary)
+            The image used to find the skeleton (doesn't have to be binary).
         skeleton: np.ndarray
-            Binary array containing skelton(s)
+            Binary array containing skelton(s).
+        prune_args:
+            A dictionary containing pruning arguments for topostatsPrune.
 
         Returns
         -------
@@ -583,32 +574,29 @@ class pruneSkeleton:
         return topostatsPrune(image, skeleton, **prune_args).prune_all_skeletons()
 
     @staticmethod
-    def _prune_max(image: np.ndarray, skeleton: np.ndarray, prune_args: dict) -> np.ndarray:
+    def _prune_conv(image: np.ndarray, skeleton: np.ndarray, prune_args: dict) -> np.ndarray:
         """Wrapper for Pyne-lab member Max's pruning method.
 
         Parameters
         ----------
         image: np.ndarray
-            The image used to find the skeleton (doesn't have to be binary)
+            The image used to find the skeleton (doesn't have to be binary).
         skeleton: np.ndarray
-            Binary array containing skelton(s)
+            Binary array containing skelton(s).
+        prune_args:
+            A dictionary containing pruning arguments for convPrune.
 
         Returns
         -------
         np.ndarray
             The skeleton with spurious branching artefacts removed.
         """
-        return maxPrune(image, skeleton, **prune_args).prune_all_skeletons()
+        return convPrune(image, skeleton, **prune_args).prune_all_skeletons()
 
 
 class topostatsPrune:
-    """Contains all the functions used for Joe's pruning code
-
-    Notes
-    -----
-    This code contains only the minimum viable product code as much of the other code
-    relating to pruning based on heights was unused. This also means that
-    should someone be upto the task, it is possible to include the heights when pruning.
+    """Aims to prune spurious skeletal branches based on their length and/or height.
+    Contains all the functions used for Joe's pruning code.
     """
 
     def __init__(
@@ -619,20 +607,30 @@ class topostatsPrune:
         height_threshold: float = None,
         method_values: str = None,
         method_outlier: str = None,
-    ) -> np.ndarray:
+    ) -> None:
         """Initialise the class.
 
         Parameters
         ----------
         image: np.ndarray
             The original data to help with branch removal.
-
         skeleton np.ndarray
             The skeleton to remove unwanted branches from.
+        max_length: float | int
+            The maximum length of the branch to prune in nm.
+        height_threshold: float
+            Absolute height value to remove branches below in nm.
+        method_values: str
+            Method of obtaining the height thresholding values. Options: min (minimum value
+            of the branch) | median (median value of the branch) | mid (ordered branch middle 
+            coordinate value).
+        method_outlier: str
+            Method to prune branches based on height.  Options: abs (below absolute value) | 
+            mean_abs (below the skeleton mean - absolute threshold) | iqr (below 1.5 * inter-quartile range)
 
         Returns
         -------
-            np.ndarray: _description_
+        None
         """
         self.image = image
         self.skeleton = skeleton.copy()
@@ -656,21 +654,21 @@ class topostatsPrune:
         for i in range(1, labeled_skel.max() + 1):
             single_skeleton = np.where(labeled_skel == i, 1, 0)
             if self.max_length is not None:
-                single_skeleton = self._prune_single_skeleton(single_skeleton, max_length=self.max_length)
+                single_skeleton = self._prune_by_length(single_skeleton, max_length=self.max_length)
             if self.height_threshold is not None:
-                single_skeleton = remove_bridges_abs(
+                single_skeleton = heightPruning(
                     single_skeleton,
                     self.image,
                     threshold=self.height_threshold,
                     method_values=self.method_values,
                     method_outlier=self.method_outlier,
-                )
+                ).remove_bridges()
             pruned_skeleton_mask += getSkeleton(self.image, single_skeleton).get_skeleton(
                 {"skeletonisation_method": "zhang"}
             )  # reskel to remove nibs
         return pruned_skeleton_mask
 
-    def _prune_single_skeleton(self, single_skeleton: np.ndarray, max_length=-1) -> np.ndarray:
+    def _prune_by_length(self, single_skeleton: np.ndarray, max_length=-1) -> np.ndarray:
         """Function to remove the hanging branches from a single skeleton as this
         function is an iterative process. These are a persistent problem in the
         overall tracing process.
@@ -679,6 +677,8 @@ class topostatsPrune:
         ----------
         single_skeleton: np.ndarray
             A binary array containing a single skeleton.
+        max_length: float | int
+            The maximum length of the branch to prune in nm. Default = -1 (15% of total skeleton length).
 
         Returns
         -------
@@ -728,7 +728,6 @@ class topostatsPrune:
 
                     # why not `and branch_continues`?
                     if len(branch_coordinates) > max_branch_length:
-                        print(f"Removed: {len(branch_coordinates)} / {len(coordinates)}, {max_branch_length}")
                         branch_continues = False
                         is_branch = False
                 #
@@ -744,7 +743,8 @@ class topostatsPrune:
 
     @staticmethod
     def _find_branch_ends(coordinates) -> list:
-        """Identifies branch ends as they only have one connected point.
+        """Identifies branch ends as they only have one connected point via iterating through the coordinates 
+        and assessing the local pixel area.
 
         Parameters
         ----------
@@ -765,8 +765,9 @@ class topostatsPrune:
         return potential_branch_ends
 
 
-class maxPrune:
-    """A class for pruning small branches based on convolutions."""
+class convPrune:
+    """Aims to prune spurious skeletal branches based on their length and/or height
+    based on convolutions to *possibly* speed up the process compared to topostatsPrune."""
 
     def __init__(
         self,
@@ -776,21 +777,32 @@ class maxPrune:
         height_threshold: float = None,
         method_values: str = None,
         method_outlier: str = None,
-    ) -> np.ndarray:
+    ) -> None:
         """Initialise the class.
 
         Parameters
         ----------
         image: np.ndarray
             The original data to help with branch removal.
-
         skeleton np.ndarray
             The skeleton to remove unwanted branches from.
+        max_length: float | int
+            The maximum length of the branch to prune in nm.
+        height_threshold: float
+            Absolute height value to remove branches below in nm.
+        method_values: str
+            Method of obtaining the height thresholding values. Options: min (minimum value
+            of the branch) | median (median value of the branch) | mid (ordered branch middle 
+            coordinate value).
+        method_outlier: str
+            Method to prune branches based on height.  Options: abs (below absolute value) | 
+            mean_abs (below the skeleton mean - absolute threshold) | iqr (below 1.5 * inter-quartile range)
 
         Returns
         -------
-            np.ndarray: _description_
+        None
         """
+
         self.image = image
         self.skeleton = skeleton.copy()
         self.max_length = max_length
@@ -813,28 +825,30 @@ class maxPrune:
         for i in range(1, labeled_skel.max() + 1):
             single_skeleton = np.where(labeled_skel == i, 1, 0)
             if self.max_length is not None:
-                single_skeleton = self._prune_single_skeleton(single_skeleton, max_length=self.max_length)
+                single_skeleton = self._prune_by_length(single_skeleton, max_length=self.max_length)
             if self.height_threshold is not None:
-                single_skeleton = remove_bridges_abs(
-                    single_skeleton,
+                single_skeleton = heightPruning(
                     self.image,
-                    threshold=self.height_threshold,
+                    single_skeleton,
+                    height_threshold=self.height_threshold,
                     method_values=self.method_values,
                     method_outlier=self.method_outlier,
-                )
+                ).remove_bridges()
             pruned_skeleton_mask += getSkeleton(self.image, single_skeleton).get_skeleton(
                 {"skeletonisation_method": "zhang"}
             )  # reskel to remove nibs
 
         return pruned_skeleton_mask
 
-    def _prune_single_skeleton(self, single_skeleton: np.ndarray, max_length=-1) -> np.ndarray:
+    def _prune_by_length(self, single_skeleton: np.ndarray, max_length=-1) -> np.ndarray:
         """Function to remove the hanging branches from a single skeleton via local-area convoluions.
 
         Parameters
         ----------
         single_skeleton: np.ndarray
             A binary array containing a single skeleton.
+        max_length: float | int
+            The maximum length of the branch to prune in nm. Default = -1 (15% of total skeleton length).
 
         Returns
         -------
@@ -851,62 +865,197 @@ class maxPrune:
         #  0.15 * total points, its assumed to be part of the real data
         max_branch_length = max_length if max_length != -1 else int(len(total_points) * 0.15)
 
+        # iterate through branches
         nodeless_labels = label(nodeless)
         for i in range(1, nodeless_labels.max() + 1):
             vals = conv_skelly[nodeless_labels == i]
+            # check if there is an endpoint and length is below expected
             if (vals == 2).any() and (vals.size < max_branch_length):
                 single_skeleton[nodeless_labels == i] = 0
-                print("Pruned short branch: ", i)
+
         return single_skeleton
 
 
-def remove_bridges_abs(skeleton, image, threshold, method_values, method_outlier) -> np.ndarray:
-    """Identifies branches which cross the skeleton in places they shouldn't due to
-    poor thresholding and holes in the mask. Segments are removed based on heights lower
-    than 1.5 * interquartile range of heights.
-    """
-    # might need to check that the image *with nodes* is returned
-    skeleton_rtn = skeleton.copy()
-    conv = convolve_skelly(skeleton)
-    nodeless = np.where(conv == 3, 0, conv)
-    segments = label(nodeless)
-    if method_values == "min":
-        height_values = [np.min(image[segments == i]) for i in range(1, segments.max() + 1)]
-    elif method_values == "median":
-        height_values = [np.median(image[segments == i]) for i in range(1, segments.max() + 1)]
-    elif method_values == "mid":
-        height_values = np.zeros(segments.max())
+class heightPruning:
+    """Contains helper functions for dealing removing branches based on height."""
+
+    def __init__(
+        self,
+        image: np.ndarray,
+        skeleton: np.ndarray,
+        max_length: float = None,
+        height_threshold: float = None,
+        method_values: str = None,
+        method_outlier: str = None,
+    ) -> None:
+        """Initialise the class.
+
+        Parameters
+        ----------
+        image: np.ndarray
+            The original data to help with branch removal.
+        skeleton np.ndarray
+            The skeleton to remove unwanted branches from.
+        max_length: float | int
+            The maximum length of the branch to prune in nm.
+        height_threshold: float
+            Absolute height value to remove branches below in nm.
+        method_values: str
+            Method of obtaining the height thresholding values. Options: min (minimum value
+            of the branch) | median (median value of the branch) | mid (ordered branch middle 
+            coordinate value).
+        method_outlier: str
+            Method to prune branches based on height.  Options: abs (below absolute value) | 
+            mean_abs (below the skeleton mean - absolute threshold) | iqr (below 1.5 * inter-quartile range)
+
+        Returns
+        -------
+        None
+        """
+        self.image = image
+        self.skeleton = skeleton
+        self.max_length = max_length
+        self.height_threshold = height_threshold,
+        self.method_values = method_values,
+        self.method_outlier = method_outlier,
+
+    @staticmethod
+    def _get_branch_mins(image: np.ndarray, segments: np.ndarray) -> np.ndarray:
+        """Collects the minimum height value of each labeled branch.
+
+        Parameters
+        ----------
+        image : np.ndarray
+            The original image data to help with branch removal.
+        segments : np.ndarray
+            Integer labeled array matching the dimensions of the image.
+
+        Returns
+        -------
+        np.ndarray
+            Array of minimum values of each branch index -1.
+        """
+        branch_min_heights = [np.min(image[segments == i]) for i in range(1, segments.max() + 1)]
+        return np.array(branch_min_heights)
+    
+    @staticmethod
+    def _get_branch_medians(image: np.ndarray, segments: np.ndarray) -> np.ndarray:
+        """Collects the median height value of each labeled branch.
+
+        Parameters
+        ----------
+        image : np.ndarray
+            The original image data to help with branch removal.
+        segments : np.ndarray
+            Integer labeled array matching the dimensions of the image.
+
+        Returns
+        -------
+        np.ndarray
+            Array of median values of each branch index -1.
+        """
+        branch_median_heights = [np.median(image[segments == i]) for i in range(1, segments.max() + 1)]
+        return np.array(branch_median_heights)
+    
+    @staticmethod
+    def _get_branch_middles(image: np.ndarray, segments: np.ndarray) -> np.ndarray:
+        """Collects the positionally ordered middle height value of each labeled branch.
+
+        Parameters
+        ----------
+        image : np.ndarray
+            The original image data to help with branch removal.
+        segments : np.ndarray
+            Integer labeled array matching the dimensions of the image.
+
+        Returns
+        -------
+        np.ndarray
+            Array of middle values of each branch.
+        """
+        branch_middles = np.zeros(segments.max())
         for i in range(1, segments.max() + 1):
             segment = np.where(segments == i, 1, 0)
             if segment.sum() > 2:
-                # sometimes start is not found
+                # sometimes start is not found ?
                 start = np.argwhere(convolve_skelly(segment) == 2)[0]
                 ordered_coords = order_branch_from_start(segment, start)
                 mid_coord = ordered_coords[len(ordered_coords) // 2]
             else:
                 mid_coord = np.argwhere(segment == 1)[0]
-            height_values[i - 1] += image[mid_coord[0], mid_coord[1]]
-        print("PRUNE: ", height_values)
-    else:
-        print("Incorrect 'method_values' value.")
+            branch_middles[i - 1] += image[mid_coord[0], mid_coord[1]]
+        return branch_middles
+    
+    @staticmethod
+    def _get_abs_thresh_idx(height_values: np.ndarray, threshold: float | int) -> np.ndarray:
+        """Collects the labeled branch indicies whose height values are < threshold.
 
-    # threshold heights to remove segments
-    if method_outlier == "abs":
-        idxs = np.asarray(np.where(np.asarray(height_values) < threshold))[0] + 1
-    elif method_outlier == "abs_mean":
+        Parameters
+        ----------
+        height_values : np.ndarray
+            Array of each branches' height to be thresholded against.
+        threshold : float | int
+            Value to threshold the heights by.
+
+        Returns
+        -------
+        np.ndarray
+            Branch indexs which are < threshold.
+        """
+        return np.asarray(np.where(height_values < threshold))[0] + 1
+    
+    @staticmethod
+    def _get_mean_abs_thresh_idx(height_values: np.ndarray, threshold: float | int, image: np.ndarray, skeleton: np.ndarray) -> np.ndarray:
+        """Collects the labeled branch indicies whose height values are < the mean skeleton height - threshold.
+        
+        I.e. a thresold of 0.85nm would idealy remove all segments whose lowest point is < avg-0.85nm = 1.15nm for 
+        DNA, with 0.85nm being the depth of the major groove.
+
+        Parameters
+        ----------
+        height_values : np.ndarray
+            Array of each branches' height to be thresholded against.
+        threshold : float | int
+            Value to threshold the heights by.
+        avg : float | int
+            Average height of the whole skeleton.
+
+        Returns
+        -------
+        np.ndarray
+            Branch indexs which are < avg-threshold.
+        """
         avg = image[skeleton == 1].mean()
-        idxs = np.asarray(np.where(np.asarray(height_values) < (avg - threshold)))[0] + 1
-        print("THRESH: ", avg, threshold, avg - threshold)
-    elif method_outlier == "iqr":
-        coords = np.argwhere(skeleton == 1)
-        heights = image[coords[:, 0], coords[:, 1]]
+        return np.asarray(np.where(np.asarray(height_values) < (avg - threshold)))[0] + 1
+    
+    @staticmethod
+    def _get_iqr_thresh_idx(image: np.ndarray, segments: np.ndarray) -> np.ndarray:
+        """Collects the labeled branch indicies whose height values are outliers deffined by height values < 
+        1.5 * interquartile range of all the branch heights.
+
+        Parameters
+        ----------
+        height_values : np.ndarray
+            Array of each branches' height to be thresholded against.
+        threshold : float | int
+            Value to threshold the heights by.
+        segments : np.ndarray
+            Binary (or integer) array of the skeleton branches.
+
+        Returns
+        -------
+        np.ndarray
+            Branch indexs which are < 1.5 * IQR.
+        """
+        coords = np.argwhere(segments != 0)
+        heights = image[coords[:, 0], coords[:, 1]] # all skel heights else distribution isn't representitive
         q75, q25 = np.percentile(heights, [75, 25])
         iqr = q75 - q25
         threshold = q25 - 1.5 * iqr
-        # print("IQR Thresh: ", q25, q75, threshold)
         low_coords = coords[heights < threshold]
         low_segment_idxs = []
         low_segment_mins = []
+        # iterate through each branch segment and see if any low_coords are in a branch
         for segment_num in range(1, segments.max() + 1):
             segment_coords = np.argwhere(segments == segment_num)
             for low_coord in low_coords:
@@ -915,140 +1064,133 @@ def remove_bridges_abs(skeleton, image, threshold, method_values, method_outlier
                     low_segment_idxs.append(segment_num)
                     low_segment_mins.append(image[segments == segment_num].min())
                     break
-
         idxs = np.array(low_segment_idxs)[np.argsort(low_segment_mins)]  # sort in order of ascending mins
-    else:
-        print("Incorrect 'meth_outlier' value.")
+        return idxs
+        
+    @staticmethod
+    def check_skeleton_one_object(skeleton: np.ndarray) -> bool:
+        """Ensures that the skeleton hasn't been broken up upon removing a segment.
 
-    for i in idxs:
-        temp_skel = skeleton_rtn.copy()
-        temp_skel[segments == i] = 0
-        if check_skeleton_one_object(temp_skel):
-            print("Removed dud branch: ", i)
-            skeleton_rtn[segments == i] = 0
-        else:
-            print(f"Bridge {i} breaks skeleton, not removed")
-    return skeleton_rtn
+        Parameters
+        ----------
+        skeleton : np.ndarray
+            2D single pixel thick array. 
+
+        Returns
+        -------
+        bool
+            True or False depending on wether there is 1 or !1 objects.
+        """
+        skeleton = np.where(skeleton != 0, 1, 0)
+        return label(skeleton).max() == 1
+
+    def remove_bridges(self) -> np.ndarray:
+        """Identifies branches which cross the skeleton in places they shouldn't due to
+        poor thresholding and holes in the mask, creating false "bridges" which misrepresent the 
+        skeleton of the molecule.
+
+        Parameters
+        ----------
+        method_values: str
+                Method of obtaining the height thresholding values. Options: min (minimum value
+                of the branch) | median (median value of the branch) | mid (ordered branch middle 
+                coordinate value).
+        method_outlier: str
+            Method to prune branches based on height.  Options: abs (below absolute value) | 
+            mean_abs (below the skeleton mean - absolute threshold) | iqr (below 1.5 * inter-quartile range)
+
+        Returns
+        -------
+        np.ndarray
+            A the skeleton with branches removed by height.
+        """
+        # might need to check that the image *with nodes* is returned
+        skeleton_rtn = self.skeleton.copy()
+        conv = convolve_skelly(self.skeleton)
+        nodeless = np.where(conv == 3, 0, conv)
+        segments = label(nodeless)
+        # Obtain the height of each branch via the min | median | mid methods
+        if self.method_values == "min":
+            height_values = self._get_branch_mins(self.image, segments)
+        elif self.method_values == "median":
+            height_values = self._get_branch_medians(self.image, segments)
+        elif self.method_values == "mid":
+            height_values = self._get_branch_middles(self.image, segments)
+
+        # threshold heights to obtain indexes of branches to be removed
+        if self.method_outlier == "abs":
+            idxs = self._get_abs_thresh_idx(height_values, self.height_threshold)
+        elif self.method_outlier == "mean_abs":
+            idxs = self._get_mean_abs_thresh_idx(height_values, self.height_threshold, self.image, self.skeleton)
+        elif self.method_outlier == "iqr":
+            idxs = self._get_iqr_thresh_idx(self.image, segments)
+
+        # Only remove the bridge if the skeleton remains a single object.
+        for i in idxs:
+            temp_skel = skeleton_rtn.copy()
+            temp_skel[segments == i] = 0
+            if self.check_skeleton_one_object(temp_skel):
+                skeleton_rtn[segments == i] = 0
+
+        return skeleton_rtn
 
 
-def remove_bridges_abs_mean(skeleton, image, threshold) -> np.ndarray:
-    """Identifies branches which cross the skeleton in places they shouldn't due to
-    poor thresholding and holes in the mask. Segments are removed based on their minium
-    heights being lower then the mean-threshold.
-    I.e. for dna a thresold of 0.85nm would remove all segments whose lowest point is <
-    2-0.85nm or 1.15nm. (0.85nm from the depth of the major groove)
-    """
-    # might need to check that the image *with nodes* is returned
-    skeleton_rtn = skeleton.copy()
-    avg = image[skeleton == 1].mean()
-    conv = convolve_skelly(skeleton)
-    nodeless = np.where(conv == 3, 0, conv)
-    segments = label(nodeless)
-    min_heights = [np.min(image[segments == i]) for i in range(1, segments.max() + 1)]
-    # print("Min Heights: ", min_heights)
-    # print("VALS: ", avg, threshold, (avg-threshold))
-    # threshold heights to remove segments
-    idxs = np.asarray(np.where(np.asarray(min_heights) < (avg - threshold)))[0] + 1
-    for i in idxs:
-        temp_skel = skeleton_rtn.copy()
-        temp_skel[segments == i] = 0
-        if check_skeleton_one_object(temp_skel):
-            print("Removed dud branch: ", i)
-            skeleton_rtn[segments == i] = 0
-        else:
-            print(f"Bridge {i} breaks skeleton, not removed")
-    return skeleton_rtn
-
-
-def remove_bridges_iqr(skeleton, image):
-    """Removes bridges via the outlier metric Q1 + 1.5 * IQR of each skeleton pixel's heights.
+def order_branch_from_start(nodeless: np.ndarray, start: list, max_length: float=np.inf) -> np.ndarray:
+    """Takes a linear branch and orders its coordinates starting from a specific endpoint.
 
     Parameters
     ----------
-    skeleton : np.ndarray
+    nodeless : np.ndarray
         _description_
-    image : np.ndarray
+    start : list
+        _description_
+    max_length : float, optional
+        _description_, by default np.inf
+
+    Returns
+    -------
+    np.ndarray
         _description_
     """
-    skeleton_rtn = skeleton.copy()
-    conv = convolve_skelly(skeleton)
-    nodeless = np.where(conv == 3, 0, conv)
-    segments = label(nodeless)
+    dist = 0
+    # add starting point to ordered array
+    ordered = []
+    ordered.append(start)
+    nodeless[start[0], start[1]] = 0  # remove from array
 
-    coords = np.argwhere(skeleton == 1)
-    heights = image[coords[:, 0], coords[:, 1]]
-    q75, q25 = np.percentile(heights, [75, 25])
-    iqr = q75 - q25
-    threshold = q25 - 1.5 * iqr
-    # print("IQR Thresh: ", q25, q75, threshold)
-    low_coords = coords[heights < threshold]
+    # iterate to order the rest of the points
+    current_point = ordered[-1]  # get last point
+    area, _ = local_area_sum(nodeless, current_point)  # look at local area
+    local_next_point = np.argwhere(
+        area.reshape(
+            (
+                3,
+                3,
+            )
+        )
+        == 1
+    ) - (1, 1)
+    dist += np.sqrt(2) if abs(local_next_point).sum() > 1 else 1
 
-    low_segment_idxs = []
-    low_segment_mins = []
-    for segment_num in range(1, segments.max() + 1):
-        segment_coords = np.argwhere(segments == segment_num)
-        for low_coord in low_coords:
-            place = np.isin(segment_coords, low_coord).all(axis=1)
-            if place.any():
-                low_segment_idxs.append(segment_num)
-                low_segment_mins.append(image[segments == segment_num].min())
-                break
+    while len(local_next_point) != 0 and dist <= max_length:
+        next_point = (current_point + local_next_point)[0]
+        # find where to go next
+        ordered.append(next_point)
+        nodeless[next_point[0], next_point[1]] = 0  # set value to zero
+        current_point = ordered[-1]  # get last point
+        area, _ = local_area_sum(nodeless, current_point)  # look at local area
+        local_next_point = np.argwhere(
+            area.reshape(
+                (
+                    3,
+                    3,
+                )
+            )
+            == 1
+        ) - (1, 1)
+        dist += np.sqrt(2) if abs(local_next_point).sum() > 1 else 1
 
-    low_segment_idxs = np.array(low_segment_idxs)[np.argsort(low_segment_mins)]  # sort in order of ascending mins
-    for i in low_segment_idxs:
-        temp_skel = skeleton_rtn.copy()
-        temp_skel[segments == i] = 0
-        if check_skeleton_one_object(temp_skel):
-            print("Removed dud branch: ", i)
-            skeleton_rtn[segments == i] = 0
-        else:
-            print(f"Bridge {i} breaks skeleton, not removed")
-
-    return skeleton_rtn
-
-
-def remove_bridges_mid(skeleton, image, threshold) -> np.ndarray:
-    """Identifies branches which cross the skeleton in places they shouldn't due to
-    poor thresholding and holes in the mask. Segments are removed based on their minium
-    heights being lower then the mean-threshold.
-    I.e. for dna a thresold of 0.85nm would remove all segments whose lowest point is <
-    2-0.85nm or 1.15nm. (0.85nm from the depth of the major groove)
-    """
-    # might need to check that the image *with nodes* is returned
-    skeleton_rtn = skeleton.copy()
-    avg = image[skeleton == 1].mean()
-    conv = convolve_skelly(skeleton)
-    nodeless = np.where(conv == 3, 0, conv)
-    segments = label(nodeless)
-
-    mids = np.zeros(len(segments.max()))
-
-    for i in range(1, segments.max() + 1):
-        segment = np.where(segments == i, 1, 0)
-        start = np.argwhere(convolve_skelly(segment) == 1)[0]
-        ordered_coords = order_branch_from_start(segment, start)
-        mid_coord = ordered_coords[len(ordered_coords) // 2]
-        mids[i - 1] += image[mid_coord[0], mid_coord[1]]
-
-    # threshold heights to remove segments
-    idxs = np.asarray(np.where(mids < (avg - threshold)))[0] + 1
-    for i in idxs:
-        temp_skel = skeleton_rtn.copy()
-        temp_skel[segments == i] = 0
-        if check_skeleton_one_object(temp_skel):
-            print("Removed dud branch: ", i)
-            skeleton_rtn[segments == i] = 0
-        else:
-            print(f"Bridge {i} breaks skeleton, not removed")
-    return skeleton_rtn
-
-
-def check_skeleton_one_object(skeleton):
-    """Ensures that the skeleton hasn't been broken up upon removing a segment."""
-    skeleton = np.where(skeleton != 0, 1, 0)
-    # print("UNIQ_SKELS: ", label(skeleton).max())
-    return label(skeleton).max() == 1
-
+    return np.array(ordered)
 
 def rm_nibs(skeleton):
     """Attempts to remove single pixel branches (nibs) not identified by nearest neighbour
@@ -1092,49 +1234,6 @@ def rm_nibs(skeleton):
             skeleton[labeled_nodeless == unique[k]] = 0
 
     return skeleton
-
-
-def order_branch_from_start(nodeless, start, max_length=np.inf):
-    dist = 0
-    # add starting point to ordered array
-    ordered = []
-    ordered.append(start)
-    nodeless[start[0], start[1]] = 0  # remove from array
-
-    # iterate to order the rest of the points
-    current_point = ordered[-1]  # get last point
-    area, _ = local_area_sum(nodeless, current_point)  # look at local area
-    local_next_point = np.argwhere(
-        area.reshape(
-            (
-                3,
-                3,
-            )
-        )
-        == 1
-    ) - (1, 1)
-    dist += np.sqrt(2) if abs(local_next_point).sum() > 1 else 1
-
-    while len(local_next_point) != 0 and dist <= max_length:
-        next_point = (current_point + local_next_point)[0]
-        # find where to go next
-        ordered.append(next_point)
-        nodeless[next_point[0], next_point[1]] = 0  # set value to zero
-        current_point = ordered[-1]  # get last point
-        area, _ = local_area_sum(nodeless, current_point)  # look at local area
-        local_next_point = np.argwhere(
-            area.reshape(
-                (
-                    3,
-                    3,
-                )
-            )
-            == 1
-        ) - (1, 1)
-        dist += np.sqrt(2) if abs(local_next_point).sum() > 1 else 1
-
-    return np.array(ordered)
-
 
 def local_area_sum(binary_map, point):
     """Evaluates the local area around a point in a binary map.
