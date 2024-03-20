@@ -56,8 +56,9 @@ class dnaTrace(object):
         self.num_circular = 0
         self.num_linear = 0
 
-        self.n_points = 200
+        self.n_points = 500
         self.displacement = 0
+        self.radius = float(1)
         self.major = float(5)
         self.minor = float(1)
         self.step_size_m = 7e-9  # Used for getting the splines
@@ -681,18 +682,14 @@ class dnaTrace(object):
     def findCurvature(self):
 
         # Testing with a circle
-        # radius = float(1)
         # self.splined_traces[0] = np.zeros([self.n_points, 2])
         # for i in range(self.n_points):
         #     theta = 2 * math.pi / self.n_points * i
-        #     x = - math.cos(theta) * radius
-        #     y = math.sin(theta) * radius
+        #     x = - math.cos(theta) * self.radius
+        #     y = math.sin(theta) * self.radius
         #     self.splined_traces[0][i][0] = x
         #     self.splined_traces[0][i][1] = y
         # self.mol_is_circular[0] = True
-        #
-        # self.splined_traces[101] = self.splined_traces[1]*5
-        # self.mol_is_circular[101] = True
 
         # Testing with an ellipse
         # self.splined_traces[0] = np.zeros([self.n_points, 2])
@@ -850,26 +847,28 @@ class dnaTrace(object):
         directory = os.path.join(os.path.dirname(self.afm_image_name), "Curvature")
         savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
 
-        plt.figure(figsize=(15, 12))
+        plt.figure(figsize=(16, 12))
         # fig, ax = plt.subplots(figsize=(25, 25))
 
-        # if dna_num == 0:
-        #     plt.ylim(0, 2)
-
         if dna_num == 0:
+            # plt.ylim(0, 2 / self.radius)  # For circle
+            sns.set_palette(sns.color_palette("bright"))
             theory = np.zeros(length)
             for i in range(length):
+                # For circle
+                # theory[i] = 1 / self.radius
                 # For ellipse
-                theory[i] = self.major * self.minor * (-1 / ((self.major ** 2 - self.minor ** 2) * math.cos(
-                    math.pi * 2 / self.n_points * i) ** 2 - self.major ** 2)) ** 1.5
-                theory = np.roll(theory, int(self.n_points * self.displacement), axis=0)
+                # theory[i] = self.major * self.minor * (-1 / ((self.major ** 2 - self.minor ** 2) * math.cos(
+                #     math.pi * 2 / self.n_points * i) ** 2 - self.major ** 2)) ** 1.5
+                # theory = np.roll(theory, int(self.n_points * self.displacement), axis=0)
                 # For parabola
-                # theory[i] = - 2/(1+(2*self.splined_traces[0][i][0])**2)**1.5
-            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, theory, color='b')
-            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='y')
+                theory[i] = - 2/(1+(2*self.splined_traces[0][i][0])**2)**1.5
+            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, theory, alpha=0, linewidth=5)
+            sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], alpha=1, linewidth=5)
         else:
             # plt.xlim(0, 105)
             # plt.ylim(-0.1, 0.2)
+            plt.ylim(-0.6, 0.6)
             sns.lineplot(curvature[:, 1] * self.pixel_size * 1e9, curvature[:, 2], color='black', linewidth=5)
             plt.ticklabel_format(axis='both', style='sci', scilimits=(-3, 3))
             plt.axvline(curvature[0][1], color="#D55E00", linewidth=5, alpha=0.8)
@@ -886,7 +885,6 @@ class dnaTrace(object):
         plt.ylabel('Curvature / $\mathregular{nm^{-1}}$')
         # plt.xticks(fontsize=20)
         # plt.yticks(fontsize=20)
-        plt.ylim(-0.6, 0.6)
         ax = plt.axes()
         ax.patch.set_alpha(0)
         ax.tick_params(direction="out", bottom=True, left=True)
