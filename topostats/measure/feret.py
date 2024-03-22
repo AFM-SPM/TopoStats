@@ -324,7 +324,7 @@ def sort_clockwise(coordinates: npt.NDArray) -> npt.NDArray:
     return coordinates[order]
 
 
-def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
+def min_max_feret(points: npt.NDArray, axis: int = 0) -> dict[float, tuple[int, int], float, tuple[int, int]]:
     """
     Given a list of 2-D points, returns the minimum and maximum feret diameters.
 
@@ -341,7 +341,7 @@ def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int,
 
     Returns
     -------
-    tuple
+    dictionary
         Tuple of the minimum feret distance and its coordinates and the maximum feret distance and  its coordinates.
     """
     caliper_min_feret = list(rotating_calipers(points, axis))
