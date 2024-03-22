@@ -553,7 +553,7 @@ class dnaTrace(object):
         ax = plt.axes()
         ax.patch.set_alpha(0)
         plt.axis('equal')
-        plt.savefig('%s_%s_originalImage.png' % (save_file, channel_name), dpi=1000)
+        plt.savefig('%s_%s_originalImage.png' % (save_file, channel_name), dpi=400)
         plt.close()
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
@@ -563,7 +563,7 @@ class dnaTrace(object):
         ax = plt.axes()
         ax.patch.set_alpha(0)
         plt.axis('equal')
-        plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name), dpi=1000)
+        plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name), dpi=400)
         plt.close()
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
@@ -593,7 +593,7 @@ class dnaTrace(object):
             plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 0],
                      self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 1],
                      color='#CC79A7', markersize=3.0, marker=5)
-        plt.savefig('%s_%s_splinedtrace_with_markers.png' % (save_file, channel_name), dpi=1000)
+        plt.savefig('%s_%s_splinedtrace_with_markers.png' % (save_file, channel_name), dpi=400)
         plt.close()
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)

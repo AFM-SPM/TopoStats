@@ -955,7 +955,10 @@ if __name__ == '__main__':
                 trace_end = time.time()
                 # #dna_traces.showTraces()
                 print("Saving trace figures")
-                dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'Processed')
+                try:
+                    dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'Processed')
+                except MemoryError:
+                    print('Unable to save trace figures')
 
                 # dna_traces.writeContourLengths(filename, channel_name)
 
@@ -972,6 +975,8 @@ if __name__ == '__main__':
                     curvature_stats.updateCurvature(dna_traces)
                 except NameError:
                     curvature_stats = dnatracing.curvatureStats(dna_traces)
+                except MemoryError:
+                    print('Unable to save curvature stats')
 
                 curvature_stats.saveCurvatureStats(path)
 
