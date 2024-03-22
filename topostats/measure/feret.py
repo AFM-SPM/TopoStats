@@ -20,8 +20,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 import skimage.morphology
-from shapely import LineString, Polygon, contains
-from shapely.ops import transform
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -326,178 +324,7 @@ def sort_clockwise(coordinates: npt.NDArray) -> npt.NDArray:
     return coordinates[order]
 
 
-def in_polygon(line: npt.NDArray, lower_hull: npt.NDArray, upper_hull: npt.NDArray, precision: int | None = 6) -> bool:
-    """
-    Check whether a line is within or on the edge of a polygon.
-
-    If either or both of the line points the edges of the polygon this is considered to be within, but if one of the
-    points is outside of the polygon it is not contained within. Uses Shapely for most checks but it was found that if a
-    given  line was identical to one of the edges of the polygon it was considered to be outside and this is not the
-    desired behaviour as such lines, typically the height of triangles used when determining minimum feret distances,
-    are the values we wish to retain. It is only lines with points that are completely outside of the polygon that we
-    wish to exclude.
-
-    Parameters
-    ----------
-    line : npt.NDArray
-        Numpy array defining the coordinates of a single, linear line.
-    lower_hull : npt.NDArray
-        The lower convex hull.
-    upper_hull : npt.NDArray
-        The upper convex hull of the polygon.
-    precision : int | None
-        Precision to round line points to when testing if line is within the polygon.
-
-    Returns
-    -------
-    bool
-        Whether the line is contained within or is on the border of the polygon.
-    """
-    # Combine the upper and lower hulls
-    hull = np.unique(np.concatenate([lower_hull, upper_hull], axis=0), axis=0)
-    # Sort the hull and create Polygon (closes the shape for testing last edge)
-    polygon = Polygon(sort_clockwise(hull))
-    # Extract coordinates for comparison to line.
-    x, y = polygon.exterior.coords.xy
-    closed_shape = np.asarray(tuple(zip(x, y)))
-    # Check whether the line (notionally the triangle height) is equivalent to one of the edges. Required as Shapely
-    # returns False in such situations.
-    line = LineString(sort_clockwise(line))
-    length = len(closed_shape)
-    edge_count = 0
-    while edge_count < length - 1:
-        sorted_edge = sort_clockwise(closed_shape[edge_count : edge_count + 2])
-        edge = LineString(sorted_edge)
-        if list(line.coords) == list(edge.coords):
-            return True
-        edge_count += 1
-
-    # Refine the precision of the lines if required
-    # if precision is not None:
-    #     line = round_geom(line, precision)
-    return contains(polygon, line)
-
-
-def point_in_polygon(point: npt.NDarray, polygon: npt.NDArray) -> bool:
-    """
-    Raycasting Algorithm to find whether a point is in a given polygon.
-
-    Performs the even-odd-rule Algorithm to find out whether a point is in a given polygon.
-    This runs in O(n) where n is the number of edges of the polygon.
-
-    Parameters
-    ----------
-    point : npt.NDArray
-        coordinates of a point.
-    polygon : npt.NDArray
-        Hull (typically convex) of coordinates forming the polygon.
-
-    Returns
-    -------
-    bool
-        Whether the point is in the polygon (not on the edge, just turn < into <= and > into >= for that)
-    """
-    # A point is in a polygon if a line from the point to infinity crosses the polygon an odd number of times
-    odd_right = False
-    odd_left = False
-    # For each edge (In this case for each point of the polygon and the previous one)
-    i = 0
-    j = len(polygon) - 1
-    while i < len(polygon) - 1:
-        i = i + 1
-        # If a line from the point stretching rightwards crosses the edge it is within the polygon.
-        if ((polygon[i][1] >= point[1]) != (polygon[j][1] >= point[1])) and (
-            point[0]
-            <= ((polygon[j][0] - polygon[i][0]) * (point[1] - polygon[i][1]) / (polygon[j][1] - polygon[i][1]))
-            + polygon[i][0]
-        ):
-            # Invert odd
-            odd_right = not odd_right
-        # ...and check the other direction to make sure its not on the edge.
-        if ((polygon[i][1] <= point[1]) != (polygon[j][1] <= point[1])) and (
-            point[0]
-            >= ((polygon[j][0] - polygon[i][0]) * (point[1] - polygon[i][1]) / (polygon[j][1] - polygon[i][1]))
-            + polygon[i][0]
-        ):
-            # Invert odd
-            odd_right = not odd_right
-        j = i
-    # If the number of crossings was odd, the point is in the polygon
-    return True if odd_left or odd_right else False
-
-
-def line_in_polygon(line: npt.NDArray, lower_hull: npt.NDArray, upper_hull: npt.NDArray) -> bool:
-    """Determine if either points of a line are within a polygon.
-
-    Parameters
-    ----------
-    line : npt.NDArray
-        Numpy array defining the coordinates of a single, linear line.
-    lower_hull : npt.NDArray
-        The lower convex hull.
-    upper_hull : npt.NDArray
-        The upper convex hull of the polygon.
-
-    Returns
-    -------
-    bool
-        Indicator of whether both points of the line are within the hull/polygon.
-    """
-    polygon = np.unique(np.concatenate([lower_hull, upper_hull], axis=0), axis=0)
-    n_inside = 0
-    for point in line:
-        if point_in_polygon(point, polygon):
-            n_inside += 1
-    return True if n_inside == 2 else False
-
-
-def round_geom(geom: Polygon | LineString, precision: int = 12) -> Polygon | LineString:
-    """
-    Transform the precision of coordinates of a Shapely geom.
-
-    Parameters
-    ----------
-    geom : LineString
-        coordinates of line to be rounded.
-    ndigits : int
-        Precision to round points to.
-
-    Returns
-    -------
-    Polygon | LineString
-        Shapely object with points to specified precision.
-    """
-
-    def _round_geom(x, y, z=None):
-        """
-        Round the points.
-
-        Parameters
-        ----------
-        x : int | float
-            The x coordinate.
-        y : int | float
-            The y coordinate.
-        z : int | float
-            The z coordinate.
-
-        Returns
-        -------
-        list
-            List of rounded coordinates.
-        """
-        x = round(x, precision)
-        y = round(y, precision)
-        if z is not None:
-            z = round(z, precision)
-        return [c for c in (x, y, z) if c is not None]
-
-    return transform(_round_geom, geom)
-
-
-def min_max_feret(
-    points: npt.NDArray, axis: int = 0, precision: int = 6
-) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
+def min_max_feret(points: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
     """
     Given a list of 2-D points, returns the minimum and maximum feret diameters.
 
@@ -530,18 +357,14 @@ def min_max_feret(
     max_feret_sq, max_feret_coord = max(squared_distance_per_pair)
     # Determine minimum feret (and coordinates) from all caliper triangles, but only if the min_feret_coords (y) are
     # within the polygon
-    hull = hulls(points)
-    print(f"{min_ferets=}")
-    print(f"{min_feret_coords=}")
-    for min_feret_coord in min_feret_coords:
-        print(f"{in_polygon(min_feret_coord, hull[0], hull[1])=}")
-    triangle_min_feret = [
-        [x, (list(map(list, y)))]
-        for x, y in zip(min_ferets, min_feret_coords)
-        if in_polygon(y, hull[0], hull[1], precision)
-    ]
+    triangle_min_feret = [[x, (list(map(list, y)))] for x, y in zip(min_ferets, min_feret_coords)]
     min_feret, min_feret_coord = min(triangle_min_feret)
-    return min_feret, np.asarray(min_feret_coord), sqrt(max_feret_sq), np.asarray(max_feret_coord)
+    return {
+        "min_feret": min_feret,
+        "min_feret_coords": np.asarray(min_feret_coord),
+        "max_feret": sqrt(max_feret_sq),
+        "max_feret_coords": np.asarray(max_feret_coord),
+    }
 
 
 def get_feret_from_mask(mask_im: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
@@ -681,9 +504,9 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals # noqa: C9
     _, calipers, triangle_coords = zip(*min_feret_calipers_base)
     calipers = np.asarray(calipers)
     triangle_coords = np.asarray(triangle_coords)
-    min_feret_distance, min_feret_coords, max_feret_distance, max_feret_coords = min_max_feret(points, axis)
-    min_feret_coords = np.asarray(min_feret_coords)
-    max_feret_coords = np.asarray(max_feret_coords)
+    statistics = min_max_feret(points, axis)
+    min_feret_coords = np.asarray(statistics["min_feret_coords"])
+    max_feret_coords = np.asarray(statistics["max_feret_coords"])
 
     fig, ax = plt.subplots(1, 1)
     if plot_points is not None:
@@ -705,7 +528,7 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals # noqa: C9
             min_feret_coords[:, 0],
             min_feret_coords[:, 1],
             plot_min_feret,
-            label=f"Minimum Feret ({min_feret_distance:.3f})",
+            label=f"Minimum Feret ({statistics['min_feret']:.3f})",
         )
     if plot_max_feret is not None:
         # for max_feret in max_feret_coords:
@@ -713,7 +536,7 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals # noqa: C9
             max_feret_coords[:, 0],
             max_feret_coords[:, 1],
             plot_max_feret,
-            label=f"Maximum Feret ({max_feret_distance:.3f})",
+            label=f"Maximum Feret ({statistics['max_feret']:.3f})",
         )
     plt.title("Upper and Lower Convex Hulls")
     plt.axis("equal")
