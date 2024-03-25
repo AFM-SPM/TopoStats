@@ -360,10 +360,10 @@ def min_max_feret(points: npt.NDArray, axis: int = 0) -> dict[float, tuple[int, 
     triangle_min_feret = [[x, (list(map(list, y)))] for x, y in zip(min_ferets, min_feret_coords)]
     min_feret, min_feret_coord = min(triangle_min_feret)
     return {
-        "min_feret": min_feret,
-        "min_feret_coords": np.asarray(min_feret_coord),
         "max_feret": sqrt(max_feret_sq),
+        "min_feret": min_feret,
         "max_feret_coords": np.asarray(max_feret_coord),
+        "min_feret_coords": np.asarray(min_feret_coord),
     }
 
 

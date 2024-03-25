@@ -15,6 +15,7 @@ import skimage.measure as skimage_measure
 import skimage.morphology as skimage_morphology
 
 from topostats.logs.logs import LOGGER_NAME
+from topostats.measure import feret
 from topostats.utils import create_empty_dataframe
 
 # pylint: disable=too-many-lines
@@ -256,14 +257,18 @@ class GrainStats:
                 path=output_grain,
             )
 
-            # Calculate minimum and maximum feret diameters
-            min_feret, max_feret = self.get_max_min_ferets(edge_points=edges)
+            # Calculate scaling factors
+            length_scaling_factor = self.pixel_to_nanometre_scaling * self.metre_scaling_factor
+            area_scaling_factor = length_scaling_factor**2
+
+            # Calculate minimum and maximum feret diameters and scale the distances
+            feret_statistics = feret.min_max_feret(points)
+            feret_statistics["min_feret"] = feret_statistics["min_feret"] * length_scaling_factor
+            feret_statistics["max_feret"] = feret_statistics["max_feret"] * length_scaling_factor
 
             # Save the stats to dictionary. Note that many of the stats are multiplied by a scaling factor to convert
             # from pixel units to nanometres.
             # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
-            length_scaling_factor = self.pixel_to_nanometre_scaling * self.metre_scaling_factor
-            area_scaling_factor = length_scaling_factor**2
             stats = {
                 "centre_x": centre_x * length_scaling_factor,
                 "centre_y": centre_y * length_scaling_factor,
@@ -287,8 +292,7 @@ class GrainStats:
                 "smallest_bounding_area": smallest_bounding_length * smallest_bounding_width * area_scaling_factor,
                 "aspect_ratio": aspect_ratio,
                 "threshold": self.direction,
-                "max_feret": max_feret * length_scaling_factor,
-                "min_feret": min_feret * length_scaling_factor,
+                **feret_statistics,
             }
             stats_array.append(stats)
         if len(stats_array) > 0:
@@ -930,161 +934,3 @@ class GrainStats:
             centre[0] - length - shiftx : centre[0] + length + 1 - shiftx,  # noqa: E203
             centre[1] - length - shifty : centre[1] + length + 1 - shifty,  # noqa: E203
         ]
-
-    @staticmethod
-    def get_triangle_height(base_point_1: np.array, base_point_2: np.array, top_point: np.array) -> float:
-        """Return the height of a triangle defined by the input point vectors.
-
-        Parameters
-        ----------
-        base_point_1: np.ndarray
-            a base point of the triangle, eg: [5, 3].
-
-        base_point_2: np.ndarray
-            a base point of the triangle, eg: [8, 3].
-
-        top_point: np.ndarray
-            the top point of the triangle, defining the height from the line between the two base points, eg: [6,10].
-
-        Returns
-        -------
-        Float
-            The height of the triangle - ie the shortest distance between the top point and the line between the two
-        base points.
-        """
-        # Height of triangle = A/b = ||AB X AC|| / ||AB||
-        a_b = base_point_1 - base_point_2
-        a_c = base_point_1 - top_point
-        return np.linalg.norm(np.cross(a_b, a_c)) / np.linalg.norm(a_b)
-
-    @staticmethod
-    def get_max_min_ferets(edge_points: list):  # noqa: C901
-        """Return the minimum and maximum feret diameters for a grain.
-
-        These are defined as the smallest and greatest distances between a pair of callipers that are rotating around a
-        2d object, maintaining contact at all times.
-
-        Parameters
-        ----------
-        edge_points: list
-            a list of the vector positions of the pixels comprising the edge of the
-            grain. Eg: [[0, 0], [1, 0], [2, 1]]
-
-        Returns
-        -------
-        min_feret: float
-            the minimum feret diameter of the grain
-        max_feret: float
-            the maximum feret diameter of the grain
-
-        Notes
-        -----
-        The method starts out by calculating the upper and lower convex hulls using  an algorithm based on the Graham
-        Scan Algorithm [1]. Using these upper and lower hulls, the callipers are simulated as rotating clockwise around
-        the grain. We determine the order in which vertices are encountered by comparing the gradients of the slopes
-        between vertices. An array of pairs of points that are in contact with either calliper at a given time is
-        created in order to be able to calculate the maximum feret diameter. The minimum diameter is a little tricky,
-        since it won't simply be the shortest distance between two contact points, but it will occur somewhere during
-        the rotation around a pair of contact points. It turns out that the point will always be such that two points
-        are in contact with one calliper while the other calliper is in contact with another point. We can use this fact
-        to be sure of finding the smallest feret diameter, simply by testing each triangle of 3 contact points as we
-        iterate, finding the height of the triangle that is formed between the three aforementioned points, as this will
-        be the perpendicular distance between the callipers.
-
-        References
-        ----------
-        [1] Graham, R.L. (1972).
-            "An Efficient Algorithm for Determining the Convex Hull of a Finite Planar Set".
-            Information Processing Letters. 1 (4): 132-133.
-            doi:10.1016/0020-0190(72)90045-2.
-        """
-        # Sort the vectors by their x coordinate and then by their y coordinate.
-        # The conversion between list and numpy array can be removed, though it would be harder
-        # to read.
-        edge_points.sort()
-        edge_points = np.array(edge_points)
-
-        # Construct upper and lower hulls for the edge points. Sadly we can't just use the standard hull
-        # that graham_scan() returns, since we need to separate the upper and lower hulls. I might streamline
-        # these two into one method later.
-        upper_hull = []
-        lower_hull = []
-        for point in edge_points:
-            while len(lower_hull) > 1 and GrainStats.is_clockwise(lower_hull[-2], lower_hull[-1], point):
-                lower_hull.pop()
-            lower_hull.append(point)
-            while len(upper_hull) > 1 and not GrainStats.is_clockwise(upper_hull[-2], upper_hull[-1], point):
-                upper_hull.pop()
-            upper_hull.append(point)
-
-        upper_hull = np.array(upper_hull)
-        lower_hull = np.array(lower_hull)
-        # Create list of contact vertices for calipers on the antipodal hulls
-        contact_points = []
-        upper_index = 0
-        lower_index = len(lower_hull) - 1
-        min_feret = None
-        while upper_index < len(upper_hull) - 1 or lower_index > 0:
-            contact_points.append([lower_hull[lower_index, :], upper_hull[upper_index, :]])
-            # If we have reached the end of the upper hull, continue iterating over the lower hull
-            if upper_index == len(upper_hull) - 1:
-                lower_index -= 1
-                small_feret = GrainStats.get_triangle_height(
-                    np.array(lower_hull[lower_index + 1, :]),
-                    np.array(lower_hull[lower_index, :]),
-                    np.array(upper_hull[upper_index, :]),
-                )
-                if min_feret is None or small_feret < min_feret:
-                    min_feret = small_feret
-            # If we have reached the end of the lower hull, continue iterating over the upper hull
-            elif lower_index == 0:
-                upper_index += 1
-                small_feret = GrainStats.get_triangle_height(
-                    np.array(upper_hull[upper_index - 1, :]),
-                    np.array(upper_hull[upper_index, :]),
-                    np.array(lower_hull[lower_index, :]),
-                )
-                if min_feret is None or small_feret < min_feret:
-                    min_feret = small_feret
-            # Check if the gradient of the last point and the proposed next point in the upper hull is greater than the gradient
-            # of the two corresponding points in the lower hull, if so, this means that the next point in the upper hull
-            # will be encountered before the next point in the lower hull and vice versa.
-            # Note that the calculation here for gradients is the simple delta upper_y / delta upper_x > delta lower_y / delta lower_x
-            # however I have multiplied through the denominators such that there are no instances of division by zero. The
-            # inequality still holds and provides what is needed.
-            elif (upper_hull[upper_index + 1, 1] - upper_hull[upper_index, 1]) * (
-                lower_hull[lower_index, 0] - lower_hull[lower_index - 1, 0]
-            ) > (lower_hull[lower_index, 1] - lower_hull[lower_index - 1, 1]) * (
-                upper_hull[upper_index + 1, 0] - upper_hull[upper_index, 0]
-            ):
-                # If the upper hull is encountered first, increment the iteration index for the upper hull
-                # Also consider the triangle that is made as the two upper hull vertices are colinear with the caliper
-                upper_index += 1
-                small_feret = GrainStats.get_triangle_height(
-                    np.array(upper_hull[upper_index - 1, :]),
-                    np.array(upper_hull[upper_index, :]),
-                    np.array(lower_hull[lower_index, :]),
-                )
-                if min_feret is None or small_feret < min_feret:
-                    min_feret = small_feret
-            else:
-                # The next point in the lower hull will be encountered first, so increment the lower hull iteration index.
-                lower_index -= 1
-                small_feret = GrainStats.get_triangle_height(
-                    np.array(lower_hull[lower_index + 1, :]),
-                    np.array(lower_hull[lower_index, :]),
-                    np.array(upper_hull[upper_index, :]),
-                )
-
-                if min_feret is None or small_feret < min_feret:
-                    min_feret = small_feret
-
-        contact_points = np.array(contact_points)
-        # Find the minimum and maximum distance in the contact points
-        max_feret = None
-        for point_pair in contact_points:
-            dist = np.sqrt((point_pair[0, 0] - point_pair[1, 0]) ** 2 + (point_pair[0, 1] - point_pair[1, 1]) ** 2)
-            if max_feret is None or max_feret < dist:
-                max_feret = dist
-
-        return min_feret, max_feret
