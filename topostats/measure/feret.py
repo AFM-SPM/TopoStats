@@ -1,4 +1,5 @@
-"""Calculate feret distances for 2-D objects.
+"""
+Calculate feret distances for 2-D objects.
 
 This code comes from a gist written by @VolkerH under BSD-3 License
 
@@ -59,7 +60,7 @@ def sort_coords(points: npt.NDArray, axis: int = 1) -> npt.NDArray:
     Parameters
     ----------
     points : npt.NDArray
-        Array of coordinates
+        Array of coordinates.
     axis : int
         Which axis to axis coordinates on 0 for row; 1 for columns (default).
 
@@ -123,11 +124,12 @@ def all_pairs(points: npt.NDArray) -> list[tuple[list, list]]:
     Parameters
     ----------
     points : npt.NDArray
-        Numpy array of coordinates defining the outline of an object.mro
+        Numpy array of coordinates defining the outline of an object.
 
     Returns
     -------
     List[tuple[int, int]]
+        List of all pair-wise combinations of points between lower and upper hulls.
     """
     upper_hull, lower_hull = hulls(points)
     unique_combinations = {}
@@ -159,7 +161,7 @@ def rotating_calipers(points: npt.NDArray, axis: int = 0) -> Generator:
     Returns
     -------
     Generator
-        Numpy array of pairs of points
+        Numpy array of pairs of points.
     """
     upper_hull, lower_hull = hulls(points, axis)
     upper_index = 0
@@ -283,9 +285,9 @@ def _angle_between(apex: npt.NDArray, b: npt.NDArray) -> float:
 
     Parameters
     ----------
-    apex: npt.NDArray
+    apex : npt.NDArray
         Difference between apex and base1 coordinates.
-    b: npt.NDArray
+    b : npt.NDArray
         Difference between base2 and base1 coordinates.
 
     Returns
@@ -297,7 +299,8 @@ def _angle_between(apex: npt.NDArray, b: npt.NDArray) -> float:
 
 
 def sort_clockwise(coordinates: npt.NDArray) -> npt.NDArray:
-    """Sort an array of coordinates in a clockwise order.
+    """
+    Sort an array of coordinates in a clockwise order.
 
     Parameters
     ----------
@@ -407,17 +410,16 @@ def get_feret_from_labelim(label_image: npt.NDArray, labels: None | list | set =
     Parameters
     ----------
     label_image : npt.NDArray
-        Numpy array with labelled connected components (integer)
+        Numpy array with labelled connected components (integer).
     labels : None | list
-        A list of labelled objects for which to calculate
+        A list of labelled objects for which to calculate.
     axis : int
         Which axis to sort coordinates on, 0 for row (default); 1 for columns.
 
     Returns
     -------
     dict
-        Dictionary with labels as keys and values are a tuple of the minimum and maximum feret distances and
-    coordinates.
+        Labels as keys and values are a tuple of the minimum and maximum feret distances and coordinates.
     """
     if labels is None:
         labels = set(np.unique(label_image)) - {0}
@@ -438,7 +440,7 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals # noqa: C9
     plot_max_feret: str | None = "m--",
     filename: str | Path | None = "./feret.png",
     show: bool = False,
-) -> None:
+) -> tuple:
     """
     Plot upper and lower convex hulls with rotating calipers and optionally the feret distances.
 
@@ -462,7 +464,7 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals # noqa: C9
         Format string for plotting calipers. If 'None' calipers are not plotted.
     plot_triangle_heights : str | None
         Format string for plotting the triangle heights used in calulcating the minimum feret. These should cross the
-    opposite edge perpendicularly. If 'None' triangle heights are not plotted.
+        opposite edge perpendicularly. If 'None' triangle heights are not plotted.
     plot_min_feret : str | None
         Format string for plotting the minimum feret. If 'None' the minimum feret is not plotted.
     plot_max_feret : str | None
@@ -471,6 +473,11 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals # noqa: C9
         Location to save the image to.
     show : bool
         Whether to display the image.
+
+    Returns
+    -------
+    fig, ax
+        Returns Matplotlib figure and axis objects.
 
     Examples
     --------
