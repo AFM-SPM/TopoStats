@@ -197,11 +197,15 @@ def rotating_calipers(points: npt.NDArray, axis: int = 0) -> Generator:
             base2 = lower_hull[lower_index]  # previous point on lower hull
             apex = upper_hull[upper_index]  # original upper caliper
         counter += 1
-        yield triangle_height(base1, base2, apex), calipers, np.asarray(
-            [
-                list(_min_feret_coord(np.asarray(base1), np.asarray(base2), np.asarray(apex))),
-                apex,
-            ]
+        yield (
+            triangle_height(base1, base2, apex),
+            calipers,
+            np.asarray(
+                [
+                    list(_min_feret_coord(np.asarray(base1), np.asarray(base2), np.asarray(apex))),
+                    apex,
+                ]
+            ),
         )
 
 
@@ -324,7 +328,9 @@ def sort_clockwise(coordinates: npt.NDArray) -> npt.NDArray:
     return coordinates[order]
 
 
-def min_max_feret(points: npt.NDArray, axis: int = 0) -> dict[float, tuple[int, int], float, tuple[int, int]]:
+def min_max_feret(
+    points: npt.NDArray, axis: int = 0, precision: int = 13
+) -> dict[float, tuple[int, int], float, tuple[int, int]]:
     """
     Given a list of 2-D points, returns the minimum and maximum feret diameters.
 
@@ -362,8 +368,8 @@ def min_max_feret(points: npt.NDArray, axis: int = 0) -> dict[float, tuple[int, 
     return {
         "max_feret": sqrt(max_feret_sq),
         "min_feret": min_feret,
-        "max_feret_coords": np.asarray(max_feret_coord),
-        "min_feret_coords": np.asarray(min_feret_coord),
+        "max_feret_coords": np.asarray(max_feret_coord).round(decimals=precision),
+        "min_feret_coords": np.asarray(min_feret_coord).round(decimals=precision),
     }
 
 
@@ -434,7 +440,7 @@ def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals # noqa: C9
     show: bool = False,
 ) -> None:
     """
-    Plot upper and lower convex hulls with rotating calipers and optionally the minimum feret distances.
+    Plot upper and lower convex hulls with rotating calipers and optionally the feret distances.
 
     Plot varying levels of details in constructing convex hulls and deriving the minimum and maximum feret.
 
