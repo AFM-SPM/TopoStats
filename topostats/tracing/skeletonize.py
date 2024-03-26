@@ -653,9 +653,9 @@ class topostatsPrune:
                 single_skeleton = self._prune_by_length(single_skeleton, max_length=self.max_length)
             if self.height_threshold is not None:
                 single_skeleton = heightPruning(
-                    single_skeleton,
                     self.image,
-                    threshold=self.height_threshold,
+                    single_skeleton,
+                    height_threshold=self.height_threshold,
                     method_values=self.method_values,
                     method_outlier=self.method_outlier,
                 ).remove_bridges()
