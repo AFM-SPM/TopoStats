@@ -1071,7 +1071,6 @@ class GrainStats:
 
         upper_hull = np.array(upper_hull)
         lower_hull = np.array(lower_hull)
-
         # Create list of contact vertices for calipers on the antipodal hulls
         contact_points = []
         upper_index = 0
@@ -1133,7 +1132,6 @@ class GrainStats:
                     min_feret = small_feret
 
         contact_points = np.array(contact_points)
-
         # Find the minimum and maximum distance in the contact points
         max_feret = None
         for point_pair in contact_points:
