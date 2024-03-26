@@ -43,10 +43,6 @@ class getSkeleton:
         -------
         np.ndarray
             Skeletonised version of the binary mask (possibly using criteria from the image).
-        Returns
-        -------
-        np.ndarray
-            Skeletonised version of the binary mask (possibly using criteria from the image).
 
         Notes
         -----

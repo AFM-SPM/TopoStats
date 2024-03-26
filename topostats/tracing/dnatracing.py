@@ -1404,8 +1404,6 @@ def trace_grain(
 
     return results, images, dnatrace.node_image_dict
 
-    return results, images, dnatrace.node_image_dict
-
 
 def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np.ndarray:
     """Crop an array.
