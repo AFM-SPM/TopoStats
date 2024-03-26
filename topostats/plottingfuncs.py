@@ -107,6 +107,7 @@ class Images:
         style: str | Path = None,
         pixel_to_nm_scaling: float = 1.0,
         masked_array: np.array = None,
+        plot_coords: np.array = None,
         title: str = None,
         image_type: str = "non-binary",
         image_set: str = "core",
@@ -192,6 +193,7 @@ class Images:
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.masked_array = masked_array
+        self.plot_coords = plot_coords
         self.title = title
         self.image_type = image_type
         self.image_set = image_set
@@ -289,14 +291,16 @@ class Images:
                 vmax=self.zrange[1],
             )
             if isinstance(self.masked_array, np.ndarray):
-                self.masked_array[self.masked_array != 0] = 1
+                #self.masked_array[self.masked_array != 0] = 1
                 # If the image is too large for singles to be resolved in the mask, then dilate the mask proportionally
                 # to image size to enable clear viewing.
                 if np.max(self.masked_array.shape) > 500:
                     dilation_strength = int(np.max(self.masked_array.shape) / 256)
+                    """
                     self.masked_array = dilate_binary_image(
                         binary_image=self.masked_array, dilation_iterations=dilation_strength
                     )
+                    """
                 mask = np.ma.masked_where(self.masked_array == 0, self.masked_array)
                 ax.imshow(
                     mask,
@@ -312,6 +316,15 @@ class Images:
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1.02, 1.09))
+            # if coordinates are provided (such as in splines, plot those)
+            elif self.plot_coords is not None:
+                for grain_coords in self.plot_coords:
+                    plt.plot(
+                        grain_coords[:, 1] * self.pixel_to_nm_scaling,
+                        (shape[1] - grain_coords[:, 0]) * self.pixel_to_nm_scaling,
+                        c="c",
+                        linewidth=2.5,
+                    )
 
             plt.title(self.title)
             plt.xlabel("Nanometres")
