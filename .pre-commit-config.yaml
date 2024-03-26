@@ -68,6 +68,11 @@ repos:
     hooks:
       - id: nbstripout
 
+  - repo: https://github.com/numpy/numpydoc
+    rev: v1.6.0
+    hooks:
+      - id: numpydoc-validation
+
   - repo: local
     hooks:
       - id: pylint

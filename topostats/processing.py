@@ -39,27 +39,26 @@ def run_filters(
     core_out_path: Path,
     filter_config: dict,
     plotting_config: dict,
-) -> np.ndarray:
-    """Filter and flatten an image.
-
-    Optionally plots the results, returning the flattened image.
+) -> np.ndarray | None:
+    """
+    Filter and flatten an image. Optionally plots the results, returning the flattened image.
 
     Parameters
     ----------
-    unprocessed_image: np.ndarray
-        Image to be flattened
-    pixel_to_nm_scaling: float
+    unprocessed_image : np.ndarray
+        Image to be flattened.
+    pixel_to_nm_scaling : float
         Scaling factor for converting pixel length scales to nanometres.
         ie the number of pixels per nanometre.
-    filename: str
-        File name for the image
-    filter_out_path: Path
+    filename : str
+        File name for the image.
+    filter_out_path : Path
         Output directory for step-by-step flattening plots.
-    core_out_path: Path
+    core_out_path : Path
         General output directory for outputs such as the flattened image.
-    filter_config: dict
+    filter_config : dict
         Dictionary of configuration for the Filters class to use when initialised.
-    plotting_config: dict
+    plotting_config : dict
         Dictionary of configuration for plotting output images.
 
     Returns
@@ -129,25 +128,24 @@ def run_grains(  # noqa: C901
     plotting_config: dict,
     grains_config: dict,
 ):
-    """Find grains within an image.
-
-    Identifies grains (molecules) and optionally plots the results.
+    """
+    Identify grains (molecules) and optionally plots the results.
 
     Parameters
     ----------
-    image: np.ndarray
-        2d numpy array image to find grains in
-    pixel_to_nm_scaling: float
-        Scaling factor for converting pixel length scales to nanometres.
-        ie the number of pixels per nanometre.
-    grain_out_path:
-        Output path for step-by-step grain finding plots
-    core_out_path:
-        General output directory for outputs such as the flattened image with
-        grain masks overlaid.
-    plotting_config:
+    image : np.ndarray
+        2d numpy array image to find grains in.
+    pixel_to_nm_scaling : float
+        Scaling factor for converting pixel length scales to nanometres. I.e. the number of pixels per nanometre.
+    filename : str
+        Name of file being processed (used in logging).
+    grain_out_path : Path
+        Output path for step-by-step grain finding plots.
+    core_out_path : Path
+        General output directory for outputs such as the flattened image with grain masks overlaid.
+    plotting_config : dict
         Dictionary of configuration for plotting images.
-    grains_config:
+    grains_config : dict
         Dictionary of configuration for the Grains class to use when initialised.
 
     Returns
@@ -246,27 +244,26 @@ def run_grainstats(
     plotting_config: dict,
     grain_out_path: Path,
 ):
-    """Calculate grain statistics.
-
-    Calculates grain statistics for an image and optionally plots the results.
+    """
+    Calculate grain statistics for an image and optionally plots the results.
 
     Parameters
     ----------
-    image: np.ndarray
+    image : np.ndarray
         2D numpy array image for grain statistics calculations.
-    pixel_to_nm_scaling: float
+    pixel_to_nm_scaling : float
         Scaling factor for converting pixel length scales to nanometres.
         ie the number of pixels per nanometre.
-    grain_masks: dict
+    grain_masks : dict
         Dictionary of grain masks, keys "above" or "below" with values of 2d numpy
         boolean arrays indicating the pixels that have been masked as grains.
-    filename: str
+    filename : str
         Name of the image.
-    grainstats_config: dict
+    grainstats_config : dict
         Dictionary of configuration for the GrainStats class to be used when initialised.
-    plotting_config: dict
+    plotting_config : dict
         Dictionary of configuration for plotting images.
-    grain_out_path:
+    grain_out_path : Path
         Directory to save optional grain statistics visual information to.
 
     Returns
@@ -360,34 +357,33 @@ def run_dnatracing(  # noqa: C901
     plotting_config: dict,
     results_df: pd.DataFrame = None,
 ):
-    """Calculate DNA traces.
-
-    Traces DNA molecules for the supplied grains adding results to statistics data frames and optionally plots results.
+    """
+    Trace DNA molecule for the supplied grains adding results to statistics data frames and optionally plot results.
 
     Parameters
     ----------
-    image: np.ndarray
-        Image containing the DNA to pass to the dna tracing function
-    grain_masks: dict
+    image : np.ndarray
+        Image containing the DNA to pass to the dna tracing function.
+    grain_masks : dict
         Dictionary of grain masks, keys "above" or "below" with values of 2d numpy
         boolean arrays indicating the pixels that have been masked as grains.
-    pixel_to_nm_scaling: float
+    pixel_to_nm_scaling : float
         Scaling factor for converting pixel length scales to nanometres.
         ie the number of pixels per nanometre.
-    image_path: Path
+    image_path : Path
         Path to the image file. Used for DataFrame indexing.
-    filename: str
+    filename : str
         Name of the image.
-    core_out_path: Path
+    core_out_path : Path
         General output directory for outputs such as the grain statistics
         DataFrame.
-    grain_out_path: Path
+    grain_out_path : Path
         Directory to save optional dna tracing visual information to.
-    dna_tracing_config: dict
+    dnatracing_config : dict
         Dictionary configuration for the dna tracing function.
-    plotting_config: dict
+    plotting_config : dict
         Dictionary configuration for plotting images.
-    results_df: pd.DataFrame
+    results_df : pd.DataFrame
         Pandas DataFrame containing grain statistics.
 
     Returns
@@ -493,19 +489,20 @@ def run_dnatracing(  # noqa: C901
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
-    """Determine components of output paths for a given image and plotting config.
+    """
+    Determine components of output paths for a given image and plotting config.
 
     Parameters
     ----------
-    image_path: Path
-        Path of the image being processed
-    base_dir: Path
-        Path of the data folder
-    output_dir: Path
-        Base output directory for output data
-    filename: str
-        Name of the image being processed
-    plotting_config: dict
+    image_path : Path
+        Path of the image being processed.
+    base_dir : Path
+        Path of the data folder.
+    output_dir : Path
+        Base output directory for output data.
+    filename : str
+        Name of the image being processed.
+    plotting_config : dict
         Dictionary of configuration for plotting images.
 
     Returns
@@ -537,13 +534,14 @@ def process_scan(
     plotting_config: dict,
     output_dir: str | Path = "output",
 ) -> tuple[dict, pd.DataFrame, dict]:
-    """Process a single image, filtering, finding grains and calculating their statistics.
+    """
+    Process a single image, filtering, finding grains and calculating their statistics.
 
     Parameters
     ----------
-    img_path_px2nm : Dict[str, Union[np.ndarray, Path, float]]
+    topostats_object : dict[str, Union[np.ndarray, Path, float]]
         A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's
-    pixel to namometre scaling value.
+        pixel to namometre scaling value.
     base_dir : Union[str, Path]
         Directory to recursively search for files, if not specified the current directory is scanned.
     filter_config : dict
@@ -560,12 +558,11 @@ def process_scan(
         Directory to save output to, it will be created if it does not exist. If it already exists then it is possible
         that output will be over-written.
 
-
     Returns
     -------
     tuple[dict, pd.DataFrame, dict]
         TopoStats dictionary object, DataFrame containing grain statistics and dna tracing statistics,
-        and dictionary containing general image statistics
+        and dictionary containing general image statistics.
     """
     core_out_path, filter_out_path, grain_out_path = get_out_paths(
         image_path=topostats_object["img_path"],
@@ -662,24 +659,21 @@ def process_scan(
 
 
 def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
-    """Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
+    """
+    Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
 
     This checks that earlier steps required are enabled.
 
     Parameters
     ----------
-    filter_run: bool
+    filter_run : bool
         Flag for running Filtering.
-    grains_run: bool
+    grains_run : bool
         Flag for running Grains.
-    grainstats_run: bool
+    grainstats_run : bool
         Flag for running GrainStats.
-    dnatracing_run: bool
+    dnatracing_run : bool
         Flag for running DNA Tracing.
-
-    Returns
-    -------
-    None
     """
     if dnatracing_run:
         if grainstats_run is False:
@@ -707,22 +701,19 @@ def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dn
 
 
 def completion_message(config: dict, img_files: list, summary_config: dict, images_processed: int) -> None:
-    """Print a completion message summarising images processed.
+    """
+    Print a completion message summarising images processed.
 
     Parameters
     ----------
-    config: dict
+    config : dict
         Configuration dictionary.
-    img_files: list()
+    img_files : list()
         List of found image paths.
-    summary_config: dict(
+    summary_config : dict(
         Configuration for plotting summary statistics.
-    images_processed: int
+    images_processed : int
         Pandas DataFrame of results.
-
-    Results
-    -------
-    None
     """
     if summary_config is not None:
         distribution_plots_message = str(summary_config["output_dir"])

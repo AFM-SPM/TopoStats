@@ -5,6 +5,7 @@ import logging
 from collections import defaultdict
 
 import numpy as np
+import numpy.typing as npt
 from skimage import morphology
 from skimage.color import label2rgb
 from skimage.measure import regionprops
@@ -25,11 +26,39 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 class Grains:
-    """Find grains in an image."""
+    """
+    Find grains in an image.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        2-D Numpy array of image.
+    filename : str
+        File being processed (used in logging).
+    pixel_to_nm_scaling : float
+        Scaling of pixels to nanometres.
+    threshold_method : str
+        Method for determining thershold to mask values, default is 'otsu'.
+    otsu_threshold_multiplier : float
+        Factor by which the below threshold is to be scaled prior to masking.
+    threshold_std_dev : dict
+        Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
+        if threshold_method is 'std_dev'.
+    threshold_absolute : dict
+        Dictionary of absolute 'below' and 'above' thresholds for grain finding.
+    absolute_area_threshold : dict
+        Dictionary of above and below grain's area thresholds.
+    direction : str
+        Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
+    smallest_grain_size_nm2 : float
+        Whether or not to remove grains that intersect the edge of the image.
+    remove_edge_intersecting_grains : bool
+        Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
+    """
 
     def __init__(
         self,
-        image: np.ndarray,
+        image: npt.NDArray,
         filename: str,
         pixel_to_nm_scaling: float,
         threshold_method: str = None,
@@ -41,30 +70,34 @@ class Grains:
         smallest_grain_size_nm2: float = None,
         remove_edge_intersecting_grains: bool = True,
     ):
-        """Initialise the class.
+        """
+        Initialise the class.
 
         Parameters
         ----------
-        image: np.ndarray
-            2D Numpy array of image
-        filename: str
-            File being processed
-        pixel_to_nm_scaling: float
-            Scaling of pixels to nanometre.
-        threshold_multiplier : Union[int, float]
-            Factor by which below threshold is to be scaled prior to masking.
-        threshold_method: str
-            Method for determining threshold to mask values, default is 'otsu'.
-        threshold_std_dev: dict
-            Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold if threshold_method is 'std_dev'.
-        threshold_absolute: dict
+        image : npt.NDArray
+            2-D Numpy array of image.
+        filename : str
+            File being processed (used in logging).
+        pixel_to_nm_scaling : float
+            Scaling of pixels to nanometres.
+        threshold_method : str
+            Method for determining thershold to mask values, default is 'otsu'.
+        otsu_threshold_multiplier : float
+            Factor by which the below threshold is to be scaled prior to masking.
+        threshold_std_dev : dict
+            Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
+            if threshold_method is 'std_dev'.
+        threshold_absolute : dict
             Dictionary of absolute 'below' and 'above' thresholds for grain finding.
-        absolute_area_threshold: dict
-            Dictionary of above and below grain's area thresholds
-        direction: str
-            Direction for which grains are to be detected, valid values are above, below and both.
-        remove_edge_intersecting_grains: bool
+        absolute_area_threshold : dict
+            Dictionary of above and below grain's area thresholds.
+        direction : str
+            Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
+        smallest_grain_size_nm2 : float
             Whether or not to remove grains that intersect the edge of the image.
+        remove_edge_intersecting_grains : bool
+            Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
         """
         if absolute_area_threshold is None:
             absolute_area_threshold = {"above": [None, None], "below": [None, None]}
@@ -95,45 +128,62 @@ class Grains:
         self.bounding_boxes = defaultdict()
         self.grainstats = None
 
-    def tidy_border(self, image: np.array, **kwargs) -> np.array:
-        """Remove grains touching the border.
+    def tidy_border(self, image: npt.NDArray, **kwargs) -> npt.NDArray:
+        """
+        Remove grains touching the border.
 
         Parameters
         ----------
-        image: np.array
-            Numpy array representing image.
+        image : npt.NDarray
+            2-D Numpy array representing the image.
+        **kwargs
+            Arguments passed to 'skimage.segmentation.clear_border(**kwargs)'.
 
         Returns
         -------
-        np.array
-            Numpy array of image with borders tidied.
+        npt.NDarray
+            2-D Numpy array of image without objects touching the border.
         """
         LOGGER.info(f"[{self.filename}] : Tidying borders")
         return clear_border(image, **kwargs)
 
-    def label_regions(self, image: np.array) -> np.array:
-        """Label regions.
+    def label_regions(self, image: npt.NDArray, background: int = 0) -> npt.NDArray:
+        """
+        Label regions.
 
-        This method is used twice, once prior to removal of small regions, and again afterwards, hence requiring an
-        argument of what image to label.
+        This method is used twice, once prior to removal of small regions and again afterwards which is why an image
+        must be supplied rather than using 'self'.
 
         Parameters
         ----------
-        image: np.array
-            Numpy array representing image.
+        image : npt.NDArray
+            2-D Numpy array of image.
+        background : int
+            Value used to indicate background of image. Default = 0.
 
         Returns
         -------
-        np.array
-            Numpy array of image with objects coloured.
+        npt.NDArray
+            2-D Numpy array of image with regions numbered.
         """
         LOGGER.info(f"[{self.filename}] : Labelling Regions")
-        return morphology.label(image, background=0)
+        return morphology.label(image, background)
 
-    def calc_minimum_grain_size(self, image: np.ndarray) -> float:
-        """Calculate the minimum grain size in pixels squared.
+    def calc_minimum_grain_size(self, image: npt.NDArray) -> float:
+        """
+        Calculate the minimum grain size in pixels squared.
 
         Very small objects are first removed via thresholding before calculating the below extreme.
+
+        Parameters
+        ----------
+        image : npt.NDArray
+            2-D Numpy image from which to calculate the minimum grain size.
+
+        Returns
+        -------
+        float
+            Minimum grains size in pixels squared. If there are areas a value of -1 is returned.
         """
         region_properties = self.get_region_properties(image)
         grain_areas = np.array([grain.area for grain in region_properties])
@@ -148,20 +198,23 @@ class Grains:
         else:
             self.minimum_grain_size = -1
 
-    def remove_noise(self, image: np.ndarray, **kwargs) -> np.ndarray:
-        """Remove noise which are objects smaller than the 'smallest_grain_size_nm2'.
+    def remove_noise(self, image: npt.NDArray, **kwargs) -> npt.NDArray:
+        """
+        Remove noise which are objects smaller than the 'smallest_grain_size_nm2'.
 
         This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.
 
         Parameters
         ----------
-        image: np.ndarray
-            2D Numpy image to be cleaned.
+        image : npt.NDArray
+            2-D Numpy array to be cleaned.
+        **kwargs
+            Arguments passed to 'skimage.morphology.remove_small_objects(**kwargs)'.
 
         Returns
         -------
-        np.ndarray
-            2D Numpy array of image with objects < smallest_grain_size_nm2 removed.
+        npt.NDArray
+            2-D Numpy array of image with objects < smallest_grain_size_nm2 removed.
         """
         LOGGER.info(
             f"[{self.filename}] : Removing noise (< {self.smallest_grain_size_nm2} nm^2"
@@ -171,20 +224,23 @@ class Grains:
             image, min_size=self.smallest_grain_size_nm2 / (self.pixel_to_nm_scaling**2), **kwargs
         )
 
-    def remove_small_objects(self, image: np.array, **kwargs):
-        """Remove small objects from the input image.
+    def remove_small_objects(self, image: np.array, **kwargs) -> npt.NDArray:
+        """
+        Remove small objects from the input image.
 
         Threshold determined by the minimum grain size, in pixels squared, of the classes initialisation.
 
         Parameters
         ----------
-        image: np.ndarray
-            2D Numpy image to remove small objects from.
+        image : np.array
+            2-D Numpy array to remove small objects from.
+        **kwargs
+            Arguments passed to 'skimage.morphology.remove_small_objects(**kwargs)'.
 
         Returns
         -------
-        np.ndarray
-            2D Numpy array of image with objects < minimum_grain_size removed.
+        npt.NDArray
+            2-D Numpy array of image with objects < minimumm_grain_size removed.
         """
         # If self.minimum_grain_size is -1, then this means that
         # there were no grains to calculate the minimum grian size from.
@@ -201,22 +257,22 @@ class Grains:
             return small_objects_removed > 0.0
         return image
 
-    def area_thresholding(self, image: np.ndarray, area_thresholds: list):
-        """Remove objects larger and smaller than the specified thresholds.
+    def area_thresholding(self, image: npt.NDArray, area_thresholds: tuple) -> npt.NDArray:
+        """
+        Remove objects larger and smaller than the specified thresholds.
 
         Parameters
         ----------
-        image: np.ndarray
-            Image array where the background == 0 and grains are labelled as integers > 0.
-        area_thresholds: list
-            List of area thresholds (in nanometres squared, not pixels squared), first should be
-            the lower limit for size, and the second should be the upper limit for size.
+        image : npt.NDArray
+            Image array where the background == 0 and grains are labelled as integers >0.
+        area_thresholds : tuple
+            List of area thresholds (in nanometres squared, not pixels squared), first is the lower limit for size,
+            second is the upper.
 
         Returns
         -------
-        np.ndarray
-            Image where grains outside the thresholds have been removed, as a re-numbered labeled image.
-
+        npt.NDArray
+            Array with small and large objects removed.
         """
         image_cp = image.copy()
         lower_size_limit, upper_size_limit = area_thresholds
@@ -242,13 +298,16 @@ class Grains:
                 image_cp[image_cp == grain_no] = grain_count
         return image_cp
 
-    def colour_regions(self, image: np.array, **kwargs) -> np.array:
-        """Colour the regions.
+    def colour_regions(self, image: npt.NDArray, **kwargs) -> npt.NDArray:
+        """
+        Colour the regions.
 
         Parameters
         ----------
-        image: np.array
-            Numpy array representing image.
+        image : npt.NDArray
+            2-D array of labelled regions to be coloured.
+        **kwargs
+            Arguments passed to 'skimage.color.label2rgb(**kwargs)'.
 
         Returns
         -------
@@ -261,26 +320,30 @@ class Grains:
 
     @staticmethod
     def get_region_properties(image: np.array, **kwargs) -> list:
-        """Extract the properties of each region.
+        """
+        Extract the properties of each region.
 
         Parameters
         ----------
-        image: np.array
-            Numpy array representing image
+        image : np.array
+            Numpy array representing image.
+        **kwargs :
+            Arguments passed to 'skimage.measure.regionprops(**kwargs)'.
 
         Returns
         -------
-        List
+        list
             List of region property objects.
         """
         return regionprops(image, **kwargs)
 
-    def get_bounding_boxes(self, direction) -> dict:
-        """Derive a list of bounding boxes for each region from the derived region_properties.
+    def get_bounding_boxes(self, direction: str) -> dict:
+        """
+        Derive a list of bounding boxes for each region from the derived region_properties.
 
         Parameters
         ----------
-        direction: str
+        direction : str
             Direction of threshold for which bounding boxes are being calculated.
 
         Returns

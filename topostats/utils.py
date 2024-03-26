@@ -50,34 +50,36 @@ ALL_STATISTICS_COLUMNS = (
 
 
 def convert_path(path: str | Path) -> Path:
-    """Ensure path is Path object.
+    """
+    Ensure path is Path object.
 
     Parameters
     ----------
-    path: Union[str, Path]
+    path : str | Path
         Path to be converted.
 
     Returns
     -------
     Path
-        pathlib Path
+        Pathlib object of path.
     """
     return Path().cwd() if path == "./" else Path(path).expanduser()
 
 
 def update_config(config: dict, args: dict | Namespace) -> dict:
-    """Update the configuration with any arguments.
+    """
+    Update the configuration with any arguments.
 
     Parameters
     ----------
-    config: dict
-        Dictionary of configuration (typically read from YAML file specified with '-c/--config <filename>')
-    args: Namespace
-        Command line arguments
+    config : dict
+        Dictionary of configuration (typically read from YAML file specified with '-c/--config <filename>').
+    args : Namespace
+        Command line arguments.
 
     Returns
     -------
-    Dict
+    dict
         Dictionary updated with command arguments.
     """
     args = vars(args) if isinstance(args, Namespace) else args
@@ -99,9 +101,20 @@ def update_config(config: dict, args: dict | Namespace) -> dict:
 
 
 def update_plotting_config(plotting_config: dict) -> dict:
-    """Update the plotting config for each of the plots in plot_dict.
+    """
+    Update the plotting config for each of the plots in plot_dict.
 
     Ensures that each entry has all the plotting configuration values that are needed.
+
+    Parameters
+    ----------
+    plotting_config : dict
+        Plotting configuration to be updated.
+
+    Returns
+    -------
+    dict
+        Updated plotting configuration.
     """
     main_config = plotting_config.copy()
     for opt in ["plot_dict", "run"]:
@@ -128,23 +141,24 @@ def update_plotting_config(plotting_config: dict) -> dict:
     return plotting_config
 
 
-def _get_mask(image: np.ndarray, thresh: float, threshold_direction: str, img_name: str = None) -> np.ndarray:
-    """Calculate a mask for pixels that exceed the threshold.
+def _get_mask(image: npt.NDArray, thresh: float, threshold_direction: str, img_name: str = None) -> npt.NDArray:
+    """
+    Calculate a mask for pixels that exceed the threshold.
 
     Parameters
     ----------
-    image: np.array
+    image : np.array
         Numpy array representing image.
-    threshold: float
-        A float representing the threshold
-    threshold_direction: str
-        A string representing the direction that should be thresholded. ("above", "below")
-    img_name: str
-        Name of image being processed
+    thresh : float
+        A float representing the threshold.
+    threshold_direction : str
+        A string representing the direction that should be thresholded. ("above", "below").
+    img_name : str
+        Name of image being processed.
 
     Returns
     -------
-    np.array
+    npt.NDArray
         Numpy array of image with objects coloured.
     """
     if threshold_direction == "above":
@@ -155,23 +169,23 @@ def _get_mask(image: np.ndarray, thresh: float, threshold_direction: str, img_na
     # LOGGER.fatal(f"[{img_name}] : Threshold direction invalid: {threshold_direction}")
 
 
-def get_mask(image: np.ndarray, thresholds: dict, img_name: str = None) -> np.ndarray:
-    """Mask data that should not be included in flattening.
+def get_mask(image: npt.NDArray, thresholds: dict, img_name: str = None) -> npt.NDArray:
+    """
+    Mask data that should not be included in flattening.
 
     Parameters
     ----------
-    image: np.ndarray
+    image : npt.NDArray
         2D Numpy array of the image to have a mask derived for.
-
-    thresholds: dict
+    thresholds : dict
         Dictionary of thresholds, at a bare minimum must have key 'below' with an associated value, second key is
         to have an 'above' threshold.
-    img_name: str
+    img_name : str
         Image name that is being masked.
 
     Returns
     -------
-    np.ndarray
+    npt.NDArray
         2D Numpy boolean array of points to mask.
     """
     # Both thresholds are applicable
@@ -189,26 +203,30 @@ def get_mask(image: np.ndarray, thresholds: dict, img_name: str = None) -> np.nd
 
 # pylint: disable=unused-argument
 def get_thresholds(  # noqa: C901
-    image: np.ndarray,
+    image: npt.NDArray,
     threshold_method: str,
     otsu_threshold_multiplier: float = None,
     threshold_std_dev: dict = None,
     absolute: dict = None,
     **kwargs,
 ) -> dict:
-    """Obtain thresholds for masking data points.
+    """
+    Obtain thresholds for masking data points.
 
     Parameters
     ----------
-    image : np.ndarray
-        2D Numpy array of image to be masked
+    image : npt.NDArray
+        2D Numpy array of image to be masked.
     threshold_method : str
         Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
+    otsu_threshold_multiplier : float
+        Scaling value for Otsu threshold.
     threshold_std_dev : dict
         Dict of above and below thresholds for the standard deviation method.
     absolute : tuple
         Dict of below and above thresholds.
-    **kwargs:
+    **kwargs :
+        Dictionary passed to 'topostats.threshold(**kwargs)'.
 
     Returns
     -------
@@ -243,13 +261,16 @@ def get_thresholds(  # noqa: C901
     return thresholds
 
 
-def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: tuple = "molecule_number") -> pd.DataFrame:
-    """Create an empty data frame for returning when no results are found.
+def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: str = "molecule_number") -> pd.DataFrame:
+    """
+    Create an empty data frame for returning when no results are found.
 
     Parameters
     ----------
-    columns: list
+    columns : list
         Columns of the empty dataframe.
+    index : str
+        Column to set as index of empty dataframe.
 
     Returns
     -------
@@ -261,7 +282,8 @@ def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: tuple =
 
 
 def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, image_shape: tuple) -> tuple:
-    """Ensure the padding of coordinates points does not fall outside of the image shape.
+    """
+    Ensure the padding of coordinates points does not fall outside of the image shape.
 
     This function is primarily used in the dnaTrace.get_fitted_traces() method which aims to adjust the points of a
     skeleton to sit on the highest points of a traced molecule. In order to do so it takes the ordered skeleton, which
@@ -292,11 +314,28 @@ def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, im
     max_col = image_shape[1] - 1
     row_coord, col_coord = coordinates
 
-    def check(coord, max_val):
+    def check(coord: npt.NDArray, max_val: int, padding: int) -> npt.NDArray:
+        """
+        Check coordinates are within the bounds of the padding.
+
+        Parameters
+        ----------
+        coord : npt.NDArray
+            Coordinates (length = 2).
+        max_val : int
+            Maximum width in the dimension being checked (max_row or max_col).
+        padding : int
+            Padding used in the image.
+
+        Returns
+        -------
+        npt.NDArray
+            Coordinates adjusted for padding.
+        """
         if coord - padding < 0:
             coord = padding
         elif coord + padding > max_val:
             coord = max_val - padding
         return coord
 
-    return check(row_coord, max_row), check(col_coord, max_col)
+    return check(row_coord, max_row, padding), check(col_coord, max_col, padding)

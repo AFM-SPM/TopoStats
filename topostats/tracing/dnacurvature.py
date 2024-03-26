@@ -15,20 +15,31 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 class Curvature:
-    """Class for determining the curvature of molecules."""
+    """
+    Class for determining the curvature of molecules.
+
+    Parameters
+    ----------
+    molecule_coordinates : np.ndarray
+        Coordinates of the simplified splined trace of a molecule. These are returned by dnaTracing.
+    circular : bool
+        Whether the image is circular or not.
+    """
 
     def __init__(
         self,
         molecule_coordinates: np.ndarray,
         circular: bool,
     ):
-        """Initialise the class.
+        """
+        Initialise the class.
 
         Parameters
         ----------
-        molecule_coordinates: np.ndarray
+        molecule_coordinates : np.ndarray
             Coordinates of the simplified splined trace of a molecule. These are returned by dnaTracing.
-        circular: bool
+        circular : bool
+            Whether the image is circular or not.
         """
         self.molecule_coordinates = molecule_coordinates
         self.circular = circular
@@ -38,15 +49,12 @@ class Curvature:
         self.local_curvature = None
 
     def calculate_derivatives(self, edge_order: int = 1) -> None:
-        """Find the curvature for an individual molecule.
+        """
+        Find the curvature for an individual molecule.
 
         Parameters
         ----------
-        molecule_coordinates: np.ndarray
-            Coordinates of the simplified splined trace of a molecule. These are returned by dnaTracing.
-        circular: bool
-            Whether the molecule has been determined as being circular or not.
-        edge_order: int
+        edge_order : int
             Gradient is passed to numpy.gradient and Gradient is calculated using N-th order accurate differences at
             boundaries. Also used to expand the array by the necessary number of coordinates at either end to form a
             loop for the calculations.
