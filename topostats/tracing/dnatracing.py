@@ -1089,7 +1089,6 @@ def trace_image(
         raise ValueError(f"Image shape ({image.shape}) and Mask shape ({grains_mask.shape}) should match.")
 
     cropped_images, cropped_masks, bboxs = prep_arrays(image, grains_mask, pad_width)
-    cropped_images, cropped_masks, bboxs = prep_arrays(image, grains_mask, pad_width)
     region_properties = skimage_measure.regionprops(grains_mask)
     grain_anchors = [grain_anchor(image.shape, list(grain.bbox), pad_width) for grain in region_properties]
     n_grains = len(cropped_images)
@@ -1100,25 +1099,6 @@ def trace_image(
     full_node_image_dict = {}
     all_ordered_trace_heights = {}
     all_ordered_trace_cumulative_distances = {}
-    ordered_traces = {}
-    splined_traces = {}
-
-    # want to get each cropped image, use some anchor coords to match them onto the image,
-    #   and compile all the grain images onto a single image
-    all_images = {
-        "grain": img_base,
-        "smoothed_grain": img_base.copy(),
-        "skeleton": img_base.copy(),
-        "pruned_skeleton": img_base.copy(),
-        "node_img": img_base.copy(),
-        "ordered_traces": img_base.copy(),
-        "fitted_traces": img_base.copy(),
-        "visual": img_base.copy(),
-    }
-    spline_traces_image_frame = []
-
-    LOGGER.info(f"[{filename}] : Calculating DNA tracing statistics for {n_grains} grains.")
-
     ordered_traces = {}
     splined_traces = {}
 
@@ -1520,8 +1500,6 @@ def trace_grain(
         "fitted_traces": dnatrace.fitted_trace_img,
         "visual": dnatrace.visuals,
     }
-
-    return results, images, dnatrace.node_image_dict
 
     return results, images, dnatrace.node_image_dict
 
