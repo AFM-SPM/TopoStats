@@ -444,7 +444,8 @@ def plotdist2var(
     # Set the name of the file
     if specpath is None:
         specpath = path
-    savename = os.path.join(pathman(specpath, output_dir) + "_" + plotname.replace("/", "_") + "_dist" + extension)
+    # savename = os.path.join(pathman(specpath, output_dir) + "_" + plotname.replace("/", "_") + "_dist" + extension)
+    savename = os.path.join(pathman(specpath, output_dir) + "_" + 'test' + "_dist" + extension)
 
     # Convert the unit of the data to nm if specified by the user
     dfnew = df.copy()
@@ -613,21 +614,21 @@ if __name__ == "__main__":
     path = plotting_config["file"]
     df = importfromfile(path)
     # df = df[df['directory'] == 'Ni']
-    # df = df[df['Basename'] == 'NiCl2']
+    df = df[df['Basename'] == 'Ni']
     # df = df[df['Basename'] == 'PLO']
     # df = df[df['bending_angle'] != 0]
     path2 = plotting_config["file2"]
     path3 = plotting_config["file3"]
     if path2 is not None:
         df2 = importfromfile(path2)
-        # df2 = df2[df2['directory'] == 'Mg-Ni exchange']
+        df2 = df2[df2['Basename'] == 'Mg-Ni exchange']
         # df2 = df2[df2['Basename'] == 'PLO']
         # df2 = df2[df2['bending_angle'] != 0]
     else:
         df2 = None
     if path3 is not None:
         df3 = importfromfile(path3)
-        # df3 = df3[df3['directory'] == 'PLO']
+        df3 = df3[df3['Basename'] == 'PLO']
         # df3 = df3[df3['bending_angle'] != 0]
     else:
         df3 = None
@@ -654,12 +655,12 @@ if __name__ == "__main__":
         color3 = plotting_config["plots"][plot]["color3"]
 
         if compute_stats:
-            for dataframe in [df]:
+            for dataframe in [df, df2, df3]:
                 data_to_compute = dataunitconversion(dataframe[parameter], parameter, nm)
                 stats_to_compute.append(data_to_compute)
                 compute_stats_min.append(xmin)
                 compute_stats_max.append(xmax)
-            for label in [label1]:
+            for label in [label1, label2, label3]:
                 column_names.append(label)
 
         if plottype == "histogram":
