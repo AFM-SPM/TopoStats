@@ -48,7 +48,8 @@ class dnaTrace(object):
         self.curvature = {}
         self.max_curvature = {}
         self.max_curvature_location = {}
-        self.mean_curvature = {}
+        self.mean_absolute_curvature = {}
+        self.absolute_mean_curvature = {}
         self.curvature_variance = {}
         self.curvature_variance_abs = {}
 
@@ -823,12 +824,14 @@ class dnaTrace(object):
             max_value = np.amax(np.abs(self.curvature[dna_num][:, 2]))
             max_index = np.argmax(np.abs(self.curvature[dna_num][:, 2]))
             max_location = self.curvature[dna_num][max_index, 1] * self.pixel_size * 1e9
-            mean_value = np.average(np.abs(self.curvature[dna_num][:, 2]))
+            mean_absolute_value = np.average(np.abs(self.curvature[dna_num][:, 2]))
+            absolute_mean_value = np.abs(np.average(self.curvature[dna_num][:, 2]))
             variance = np.var(self.curvature[dna_num][:, 2])
             variance_absolute = np.var(np.abs(self.curvature[dna_num][:, 2]))
             self.max_curvature[dna_num] = max_value
             self.max_curvature_location[dna_num] = max_location
-            self.mean_curvature[dna_num] = mean_value
+            self.mean_absolute_curvature[dna_num] = mean_absolute_value
+            self.absolute_mean_curvature[dna_num] = absolute_mean_value
             self.curvature_variance[dna_num] = variance
             self.curvature_variance_abs[dna_num] = variance_absolute
 
@@ -1072,7 +1075,8 @@ class traceStats(object):
                 data_dict['End to End Distance'].append(self.trace_object.end_to_end_distance[dna_num])
                 data_dict['Max Curvature'].append(self.trace_object.max_curvature[dna_num])
                 data_dict['Max Curvature Location'].append(self.trace_object.max_curvature_location[dna_num])
-                data_dict['Mean Curvature'].append(self.trace_object.mean_curvature[dna_num])
+                data_dict['Mean Absolute Curvature'].append(self.trace_object.mean_absolute_curvature[dna_num])
+                data_dict['Absolute Mean Curvature'].append(self.trace_object.absolute_mean_curvature[dna_num])
                 data_dict['Variance of Curvature'].append(self.trace_object.curvature_variance[dna_num])
                 data_dict['Variance of Absolute Curvature'].append(self.trace_object.curvature_variance_abs[dna_num])
             except KeyError:
@@ -1085,7 +1089,8 @@ class traceStats(object):
                 data_dict['End to End Distance'] = [self.trace_object.end_to_end_distance[dna_num]]
                 data_dict['Max Curvature'] = [self.trace_object.max_curvature[dna_num]]
                 data_dict['Max Curvature Location'] = [self.trace_object.max_curvature_location[dna_num]]
-                data_dict['Mean Curvature'] = [self.trace_object.mean_curvature[dna_num]]
+                data_dict['Mean Absolute Curvature'] = [self.trace_object.mean_absolute_curvature[dna_num]]
+                data_dict['Absolute Mean Curvature'] = [self.trace_object.absolute_mean_curvature[dna_num]]
                 data_dict['Variance of Curvature'] = [self.trace_object.curvature_variance[dna_num]]
                 data_dict['Variance of Absolute Curvature'] = [self.trace_object.curvature_variance_abs[dna_num]]
         self.pd_dataframe = pd.DataFrame(data=data_dict)
@@ -1111,7 +1116,8 @@ class traceStats(object):
                 data_dict['End to End Distance'].append(new_traces.end_to_end_distance[dna_num])
                 data_dict['Max Curvature'].append(new_traces.max_curvature[dna_num])
                 data_dict['Max Curvature Location'].append(new_traces.max_curvature_location[dna_num])
-                data_dict['Mean Curvature'].append(new_traces.mean_curvature[dna_num])
+                data_dict['Mean Absolute Curvature'].append(new_traces.mean_absolute_curvature[dna_num])
+                data_dict['Absolute Mean Curvature'].append(new_traces.absolute_mean_curvature[dna_num])
                 data_dict['Variance of Curvature'].append(new_traces.curvature_variance[dna_num])
                 data_dict['Variance of Absolute Curvature'].append(new_traces.curvature_variance_abs[dna_num])
             except KeyError:
@@ -1124,7 +1130,8 @@ class traceStats(object):
                 data_dict['End to End Distance'] = [new_traces.end_to_end_distance[dna_num]]
                 data_dict['Max Curvature'] = [new_traces.max_curvature[dna_num]]
                 data_dict['Max Curvature Location'] = [new_traces.max_curvature_location[dna_num]]
-                data_dict['Mean Curvature'] = [new_traces.mean_curvature[dna_num]]
+                data_dict['Mean Absolute Curvature'] = [new_traces.mean_absolute_curvature[dna_num]]
+                data_dict['Absolute Mean Curvature'] = [new_traces.absolute_mean_curvature[dna_num]]
                 data_dict['Variance of Curvature'] = [new_traces.curvature_variance[dna_num]]
                 data_dict['Variance of Absolute Curvature'] = [new_traces.curvature_variance_abs[dna_num]]
 
