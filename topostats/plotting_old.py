@@ -613,15 +613,14 @@ if __name__ == "__main__":
     # import data from the csv file
     path = plotting_config["file"]
     df = importfromfile(path)
-    # df = df[df['directory'] == 'Ni']
-    df = df[df['Basename'] == 'Ni']
-    # df = df[df['Basename'] == 'PLO']
+    # df = df[df['Basename'] == 'Ni']
+    df = df[df['Basename'] == 'Without NDP52']
     # df = df[df['bending_angle'] != 0]
     path2 = plotting_config["file2"]
     path3 = plotting_config["file3"]
     if path2 is not None:
         df2 = importfromfile(path2)
-        df2 = df2[df2['Basename'] == 'Mg-Ni exchange']
+        df2 = df2[df2['Basename'] == 'With NDP52']
         # df2 = df2[df2['Basename'] == 'PLO']
         # df2 = df2[df2['bending_angle'] != 0]
     else:
@@ -655,12 +654,12 @@ if __name__ == "__main__":
         color3 = plotting_config["plots"][plot]["color3"]
 
         if compute_stats:
-            for dataframe in [df, df2, df3]:
+            for dataframe in [df, df2]:
                 data_to_compute = dataunitconversion(dataframe[parameter], parameter, nm)
                 stats_to_compute.append(data_to_compute)
                 compute_stats_min.append(xmin)
                 compute_stats_max.append(xmax)
-            for label in [label1, label2, label3]:
+            for label in [label1, label2]:
                 column_names.append(label)
 
         if plottype == "histogram":
