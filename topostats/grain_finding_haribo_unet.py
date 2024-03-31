@@ -1,7 +1,7 @@
 """For segmenting cats grains using a specifically trained unet"""
 
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Union
 import logging
 
 import numpy as np
@@ -512,19 +512,36 @@ def predict_unet(
     model_image_size: int,
     image_output_dir: Path,
     filename: str,
+    normalisation_set_range: Union[Tuple[float, float], None] = None,
+    quiet: bool = False,
 ) -> np.ndarray:
-    """Predict cats segmentation from a flattened image."""
+    """Predict grain segmentation from a crop of a molecule in a flattened image."""
 
     # Make a copy of the original image
     original_image = image.copy()
 
     # Run the model on a single image
-    LOGGER.info("Preprocessing image for Unet prediction...")
+    if not quiet:
+        LOGGER.info("Preprocessing image for Unet prediction...")
 
     # Normalise the image
-    LOGGER.info("normalising image")
-    image = image - np.min(image)
-    image = image / np.max(image)
+    if not quiet:
+        LOGGER.info("normalising image")
+    if normalisation_set_range[0] is None and normalisation_set_range[1] is None:
+        if not quiet:
+            LOGGER.info("Normalising image using MIN MAX method")
+        image = image - np.min(image)
+        image = image / np.max(image)
+    elif normalisation_set_range[0] is not None and normalisation_set_range[1] is not None:
+        if not quiet:
+            LOGGER.info(f"Normalising image using custom range: {normalisation_set_range}")
+        LOWER_LIMIT = normalisation_set_range[0]
+        UPPER_LIMIT = normalisation_set_range[1]
+        image = np.clip(image, LOWER_LIMIT, UPPER_LIMIT)
+        image = image - LOWER_LIMIT
+        image = image / (UPPER_LIMIT - LOWER_LIMIT)
+    else:
+        raise ValueError(f"Normalisation range not set correctly: {normalisation_set_range}")
 
     # Resize the image
     image = Image.fromarray(image)
@@ -532,9 +549,11 @@ def predict_unet(
     image = np.array(image)
 
     # Predict the mask
-    LOGGER.info("Running Unet & predicting mask")
+    if not quiet:
+        LOGGER.info("Running Unet & predicting mask")
     prediction = model.predict(np.expand_dims(image, axis=0))
-    LOGGER.info("Unet finished, predicted mask. saving...")
+    if not quiet:
+        LOGGER.info("Unet finished, predicted mask. saving...")
 
     # Threshold the predicted mask
     predicted_mask = prediction > confidence
@@ -643,6 +662,8 @@ def predict_unet_multiclass(
     filename: str,
     IMAGE_SAVE_DIR: Path,
     image_index: int,
+    normalisation_set_range: Tuple[float, float] = None,
+    quiet: bool = False,
 ) -> Tuple[np.ndarray, float]:
     """Predict cats segmentation from a flattened image."""
 
@@ -671,19 +692,24 @@ def predict_unet_multiclass(
     image = np.array(image)
 
     # Normalise the image
-    print("normalising image")
-    # image = image - np.min(image)
-    # image = image / np.max(image)
-    LOWER_LIMIT = -1
-    UPPER_LIMIT = 8
-    image = np.clip(image, LOWER_LIMIT, UPPER_LIMIT)
-    image = image - LOWER_LIMIT
-    image = image / (UPPER_LIMIT - LOWER_LIMIT)
+    if not quiet:
+        print("normalising image")
+    if normalisation_set_range is not None:
+        LOWER_LIMIT = normalisation_set_range[0]
+        UPPER_LIMIT = normalisation_set_range[1]
+        image = np.clip(image, LOWER_LIMIT, UPPER_LIMIT)
+        image = image - LOWER_LIMIT
+        image = image / (UPPER_LIMIT - LOWER_LIMIT)
+    else:
+        image = image - np.min(image)
+        image = image / np.max(image)
 
     # Predict the mask
-    print("Running Unet & predicting mask")
+    if not quiet:
+        print("Running Unet & predicting mask")
     prediction = model.predict(np.expand_dims(image, axis=0))[0]
-    print("Unet finished, predicted mask. saving...")
+    if not quiet:
+        print("Unet finished, predicted mask. saving...")
 
     # Remove the batch dimension
     # Gem
