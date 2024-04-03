@@ -441,7 +441,7 @@ def run_dnatracing(  # noqa: C901
                     cropped_images[grain_index],
                     output_dir=tracing_out_path / direction,
                     filename=f"{filename}_grain_trace_{grain_index}",
-                    plot_coords=[trace for trace in mol_dict.values()],
+                    plot_coords=list(mol_dict.values()),
                     **plotting_config["plot_dict"]["single_molecule_trace"],
                 ).plot_and_save()
 
