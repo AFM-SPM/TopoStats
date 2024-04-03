@@ -189,6 +189,7 @@ exclude = [
   "topostats/tracing/dnatracing.py",
   "topostats/tracing/tracing_dna.py",
   "topostats/tracing/tracingfuncs.py",
+  "topostats/tracing/nodestats.py",
   "venv",
 ]
 # per-file-ignores = []
