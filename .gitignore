@@ -23,6 +23,7 @@ output/config.yaml
 *.npy
 *.csv
 *.spm
+*.svg
 
 # Notebook checkpoints
 notebooks/.ipynb_checkpoints/

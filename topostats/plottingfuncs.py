@@ -100,32 +100,34 @@ class Images:
 
     Parameters
     ----------
-    data : np.array
+    data : npt.NDarray
         Numpy array to plot.
-    output_dir : Union[str, Path]
+    output_dir : str | Path
         Output directory to save the file to.
-    filename : Union[str, Path]
+    filename : str
         Filename to save image as.
-    style : dict
-        Filename of matploglibrc Params.
+    style : str | Path
+        Filename of matplotlibrc parameters.
     pixel_to_nm_scaling : float
-        The scaling factor showing the real length of 1 pixel, in nm.
-    masked_array : npt.NDArray
+        The scaling factor showing the real length of 1 pixel in nanometers (nm).
+    masked_array : npt.NDarray
         Optional mask array to overlay onto an image.
+    plot_coords : npt.NDArray
+        ??? Needs defining.
     title : str
         Title for plot.
     image_type : str
-        The image data type - binary or non-binary.
+        The image data type, options are 'binary' or 'non-binary'.
     image_set : str
-        The set of images to process - core or all.
+        The set of images to process, options are 'core' or 'all'.
     core_set : bool
         Flag to identify image as part of the core image set or not.
-    pixel_interpolation : str | None
-        Interpolation to use (default: None).
-    cmap : str
+    pixel_interpolation : str, optional
+        Interpolation to use (default is 'None').
+    cmap : str, optional
         Colour map to use (default 'nanoscope', 'afmhot' also available).
     mask_cmap : str
-        Colour map to use for the secondary (masked) data (default 'jet_r', 'blu' proivides more contrast).
+        Colour map to use for the secondary (masked) data (default 'jet_r', 'blu' provides more contrast).
     region_properties : dict
         Dictionary of region properties, adds bounding boxes if specified.
     zrange : list
@@ -135,28 +137,28 @@ class Images:
     axes : bool
         Optionally add/remove axes from the image.
     num_ticks : tuple[int | None]
-        The number of x and y ticks to display on the image.
+        The number of x and y ticks to display on the iage.
     save : bool
         Whether to save the image.
-    savefig_format : str
+    savefig_format : str, optional
         Format to save the image as.
     histogram_log_axis : bool
-        Optionally use a logarithmic y axis for the histogram plots.
-    histogram_bins : int
+        Optionally use a loagrithmic y-axis for the histogram plots.
+    histogram_bins : int, optional
         Number of bins for histograms to use.
-    savefig_dpi : str | float | None
+    savefig_dpi : str | float, optional
         The resolution of the saved plot (default 'figure').
     """
 
     def __init__(
         self,
-        data: np.array,
+        data: npt.NDarray,
         output_dir: str | Path,
         filename: str,
         style: str | Path = None,
         pixel_to_nm_scaling: float = 1.0,
-        masked_array: np.array = None,
-        plot_coords: np.array = None,
+        masked_array: npt.NDarray = None,
+        plot_coords: npt.NDArray = None,
         title: str = None,
         image_type: str = "non-binary",
         image_set: str = "core",
@@ -178,39 +180,41 @@ class Images:
         """
         Initialise the class.
 
-        There are two key parameters that ensure whether and image is plotted that are passed in from the update
+        There are two key parameters that ensure whether an image is plotted that are passed in from the updated
         plotting dictionary. These are the `image_set` which defines whether to plot 'all' images or just the `core`
-        set. There is then the 'core_set' which defines whether an individual images belongs to the 'core_set' or not.
-        If it doesn't then it is not plotted when `image_set == "core"`.
+        set. There is then the 'core_set' which defines whether an individual images belongs to the 'core_set' or
+        not. If it doesn't then it is not plotted when `image_set == "core"`.
 
         Parameters
         ----------
-        data : np.array
+        data : npt.NDarray
             Numpy array to plot.
-        output_dir : Union[str, Path]
+        output_dir : str | Path
             Output directory to save the file to.
-        filename : Union[str, Path]
+        filename : str
             Filename to save image as.
-        style : dict
-            Filename of matploglibrc Params.
+        style : str | Path
+            Filename of matplotlibrc parameters.
         pixel_to_nm_scaling : float
-            The scaling factor showing the real length of 1 pixel, in nm.
-        masked_array : npt.NDArray
+            The scaling factor showing the real length of 1 pixel in nanometers (nm).
+        masked_array : npt.NDarray
             Optional mask array to overlay onto an image.
+        plot_coords : npt.NDArray
+            ??? Needs defining.
         title : str
             Title for plot.
         image_type : str
-            The image data type - binary or non-binary.
+            The image data type, options are 'binary' or 'non-binary'.
         image_set : str
-            The set of images to process - core or all.
+            The set of images to process, options are 'core' or 'all'.
         core_set : bool
             Flag to identify image as part of the core image set or not.
-        pixel_interpolation : str | None
-            Interpolation to use (default: None).
-        cmap : str
+        pixel_interpolation : str, optional
+            Interpolation to use (default is 'None').
+        cmap : str, optional
             Colour map to use (default 'nanoscope', 'afmhot' also available).
         mask_cmap : str
-            Colour map to use for the secondary (masked) data (default 'jet_r', 'blu' proivides more contrast).
+            Colour map to use for the secondary (masked) data (default 'jet_r', 'blu' provides more contrast).
         region_properties : dict
             Dictionary of region properties, adds bounding boxes if specified.
         zrange : list
@@ -220,16 +224,16 @@ class Images:
         axes : bool
             Optionally add/remove axes from the image.
         num_ticks : tuple[int | None]
-            The number of x and y ticks to display on the image.
+            The number of x and y ticks to display on the iage.
         save : bool
             Whether to save the image.
-        savefig_format : str
+        savefig_format : str, optional
             Format to save the image as.
         histogram_log_axis : bool
-            Optionally use a logarithmic y axis for the histogram plots.
-        histogram_bins : int
+            Optionally use a loagrithmic y-axis for the histogram plots.
+        histogram_bins : int, optional
             Number of bins for histograms to use.
-        savefig_dpi : str | float | None
+        savefig_dpi : str | float, optional
             The resolution of the saved plot (default 'figure').
         """
         if style is None:
@@ -338,13 +342,11 @@ class Images:
                 # self.masked_array[self.masked_array != 0] = 1
                 # If the image is too large for singles to be resolved in the mask, then dilate the mask proportionally
                 # to image size to enable clear viewing.
-                if np.max(self.masked_array.shape) > 500:
-                    dilation_strength = int(np.max(self.masked_array.shape) / 256)
-                    """
-                    self.masked_array = dilate_binary_image(
-                        binary_image=self.masked_array, dilation_iterations=dilation_strength
-                    )
-                    """
+                # if np.max(self.masked_array.shape) > 500:
+                #     dilation_strength = int(np.max(self.masked_array.shape) / 256)
+                #     self.masked_array = dilate_binary_image(
+                #         binary_image=self.masked_array, dilation_iterations=dilation_strength
+                #     )
                 mask = np.ma.masked_where(self.masked_array == 0, self.masked_array)
                 ax.imshow(
                     mask,

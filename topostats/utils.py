@@ -231,7 +231,7 @@ def get_thresholds(  # noqa: C901
 
     Returns
     -------
-    Dict
+    dict
         Dictionary of thresholds, contains keys 'below' and optionally 'above'.
     """
     thresholds = defaultdict()
@@ -339,16 +339,16 @@ def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, im
             coord = max_val - padding
         return coord
 
-    return check(row_coord, max_row), check(col_coord, max_col)
+    return check(row_coord, max_row, padding), check(col_coord, max_col, padding)
 
 
 def convolve_skelly(skeleton) -> np.ndarray:
-    """Convolves the skeleton with a 3x3 ones kernel to produce an array
-    of the skeleton as 1, endpoints as 2, and nodes as 3.
+    """
+    Convolve skeleton with a 3x3 kernel to produce an array of the skeleton as 1, endpoints as 2, and nodes as 3.
 
     Parameters
     ----------
-    skeleton: np.ndarray
+    skeleton : np.ndarray
         Single pixel thick binary trace(s) within an array.
 
     Returns
@@ -366,25 +366,26 @@ def convolve_skelly(skeleton) -> np.ndarray:
 class ResolutionError(Exception):
     """Raised when the image resolution is too small for accuurate tracing."""
 
-    pass
+    pass  # pylint: disable=unnecessary-pass
 
 
 def coords_2_img(coords, image, ordered=False) -> np.ndarray:
-    """Turns coordinates to a binary image.
+    """
+    Convert coordinates to a binary image.
 
     Parameters
     ----------
     coords : np.ndarray
-        An array of 2xN interger coords.
+        An array of 2xN integer coordinates.
     image : np.ndarray
-        An MxL array to assign the above coords onto.
+        An MxL array to assign the above coordinates onto.
     ordered : bool, optional
         If True, incremements the value of each coord to show order.
 
     Returns
     -------
     np.ndarray
-        An array the same shape as 'image' with the cordinates highlighted.
+        An array the same shape as 'image' with the coordinates highlighted.
     """
     comb = np.zeros_like(image)
     if ordered:

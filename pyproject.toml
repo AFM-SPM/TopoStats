@@ -255,7 +255,7 @@ convention = "numpy"
 fixture-parentheses = true
 
 [tool.codespell]
-skip = '*.spm*,*.mplstyle'
+skip = '*.spm*,*.mplstyle,*.svg,*nodestats.py,*dnatracing.py'
 count = ''
 quiet-level = 3
 
@@ -272,9 +272,11 @@ exclude = [  # don't report on objects that match any of these regex
     "\\.__repr__$",
     "^test_",
     "^conftest",
-    "^dnatrcing",
+    "^dnatracing",
+    "^nodestats",
     "^tracingfuncs",
     "^conf$",
+    "^theme",
 ]
 override_SS05 = [  # override SS05 to allow docstrings starting with these words
     "^Process ",

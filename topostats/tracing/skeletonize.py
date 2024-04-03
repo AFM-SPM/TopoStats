@@ -354,25 +354,6 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
             Whether surrounding points have met the criteria of the binary thin a, b returncount, csharp and dsharp
             checks below.
         """
-        # """
-        # Check whether a single point (P1) should be deleted based on its local binary environment.
-
-        # (a) 2 ≤ B(P1) ≤ 6, where B(P1) is the number of non-zero neighbours of P1.
-        # (b) A(P1) = 1, where A(P1) is the # of 01's around P1.
-        # (c') P2 * P4 * P8 = 0
-        # (d') P2 * P6 * P8 = 0
-
-        # Parameters
-        # ----------
-        # point: list
-        #     List of [x, y] coordinate positions.
-
-        # Returns
-        # -------
-        # bool
-        #     Returns T/F depending if the surrounding points have met the criteria of the binary thin a, b returncount,
-        #     csharp and dsharp checks below.
-        # """
         self.p7, self.p8, self.p9, self.p6, self.p2, self.p5, self.p4, self.p3 = self.get_local_pixels_binary(
             self.mask, point[0], point[1]
         )

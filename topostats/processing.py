@@ -6,6 +6,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 
 from topostats import __version__
@@ -32,20 +33,20 @@ LOGGER = setup_logger(LOGGER_NAME)
 
 
 def run_filters(
-    unprocessed_image: np.ndarray,
+    unprocessed_image: npt.NDArray,
     pixel_to_nm_scaling: float,
     filename: str,
     filter_out_path: Path,
     core_out_path: Path,
     filter_config: dict,
     plotting_config: dict,
-) -> np.ndarray | None:
+) -> npt.NDArray | None:
     """
     Filter and flatten an image. Optionally plots the results, returning the flattened image.
 
     Parameters
     ----------
-    unprocessed_image : np.ndarray
+    unprocessed_image : npt.NDArray
         Image to be flattened.
     pixel_to_nm_scaling : float
         Scaling factor for converting pixel length scales to nanometres.
@@ -63,7 +64,7 @@ def run_filters(
 
     Returns
     -------
-    Union[np.ndarray, None]
+    npt.NDArray | None
         Either a numpy array of the flattened image, or None if an error occurs or
         flattening is disabled in the configuration.
     """
@@ -120,20 +121,20 @@ def run_filters(
 
 
 def run_grains(  # noqa: C901
-    image: np.ndarray,
+    image: npt.NDArray,
     pixel_to_nm_scaling: float,
     filename: str,
     grain_out_path: Path,
     core_out_path: Path,
     plotting_config: dict,
     grains_config: dict,
-):
+) -> dict | None:
     """
     Identify grains (molecules) and optionally plots the results.
 
     Parameters
     ----------
-    image : np.ndarray
+    image : npt.NDArray
         2d numpy array image to find grains in.
     pixel_to_nm_scaling : float
         Scaling factor for converting pixel length scales to nanometres. I.e. the number of pixels per nanometre.
@@ -150,7 +151,7 @@ def run_grains(  # noqa: C901
 
     Returns
     -------
-    Union[dict, None]
+    dict | None
         Either None in the case of error or grain finding being disabled or a dictionary
         with keys of "above" and or "below" containing binary masks depicting where grains
         have been detected.
@@ -236,7 +237,7 @@ def run_grains(  # noqa: C901
 
 
 def run_grainstats(
-    image: np.ndarray,
+    image: npt.NDArray,
     pixel_to_nm_scaling: float,
     grain_masks: dict,
     filename: str,
@@ -249,7 +250,7 @@ def run_grainstats(
 
     Parameters
     ----------
-    image : np.ndarray
+    image : npt.NDArray
         2D numpy array image for grain statistics calculations.
     pixel_to_nm_scaling : float
         Scaling factor for converting pixel length scales to nanometres.
@@ -345,8 +346,9 @@ def run_grainstats(
         return create_empty_dataframe()
 
 
-def run_dnatracing(  # noqa: C901
-    image: np.ndarray,
+# noqa: C901
+def run_dnatracing(
+    image: npt.NDArray,
     grain_masks: dict,
     pixel_to_nm_scaling: float,
     image_path: Path,
@@ -356,31 +358,31 @@ def run_dnatracing(  # noqa: C901
     dnatracing_config: dict,
     plotting_config: dict,
     results_df: pd.DataFrame = None,
-):
+) -> tuple[dict, pd.DataFrame]:
     """
     Trace DNA molecule for the supplied grains adding results to statistics data frames and optionally plot results.
 
+    Image containing the DNA to pass to the tracing function.
+
     Parameters
     ----------
-    image : np.ndarray
-        Image containing the DNA to pass to the dna tracing function.
+    image : npt.NDArray
+        Dictionary of grain masks, keys "above" or "below" with values of 2D Numpy boolean arrays indicating the pixels
+        that have been masked as grains.
     grain_masks : dict
-        Dictionary of grain masks, keys "above" or "below" with values of 2d numpy
-        boolean arrays indicating the pixels that have been masked as grains.
+        Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixesl per nanometres (nm).
     pixel_to_nm_scaling : float
-        Scaling factor for converting pixel length scales to nanometres.
-        ie the number of pixels per nanometre.
+        Pat to the original image file (used for DataFrame indexing).
     image_path : Path
-        Path to the image file. Used for DataFrame indexing.
-    filename : str
         Name of the image.
+    filename : str
+        General output directory for outputs such as the grain statistics dataframe.
     core_out_path : Path
-        General output directory for outputs such as the grain statistics
-        DataFrame.
-    tracing_out_path: Path
-        Directory to save optional dna tracing visual information to.
+        Directory to save optional DNA tracing visual information to.
+    tracing_out_path : Path
+        Dictionary to save optional DNA tracing visual information to.
     dnatracing_config : dict
-        Dictionary configuration for the dna tracing function.
+        Dictionary configuration for the DNA tracing.
     plotting_config : dict
         Dictionary configuration for plotting images.
     results_df : pd.DataFrame
@@ -388,9 +390,9 @@ def run_dnatracing(  # noqa: C901
 
     Returns
     -------
-    pd.DataFrame
-        Pandas DataFrame containing grain statistics and dna tracing statistics.
-        Keys are file path and molecule number.
+    tuple[dict, pd.DataFrame]
+        Dictionary of results and Pandas DataFrame containing grain statistics and dna tracing statistics. Keys are file
+        path and molecule number.
     """
     # Create empty dataframe is none is passed
     if results_df is None:
@@ -415,7 +417,7 @@ def run_dnatracing(  # noqa: C901
             tracing_stats[direction] = tracing_results["grain_statistics"]
             tracing_stats[direction]["threshold"] = direction
             ordered_traces = tracing_results["all_ordered_traces"]
-            cropped_images: dict[int, np.ndarray] = tracing_results["cropped_images"]
+            cropped_images: dict[int, npt.NDArray] = tracing_results["cropped_images"]
 
             grain_trace_data[direction] = {
                 "cropped_images": cropped_images,
@@ -485,17 +487,15 @@ def run_dnatracing(  # noqa: C901
     results["basename"] = image_path.parent
 
     return results, grain_trace_data
-    """
-    except Exception:
-        # If no results we need a dummy dataframe to return.
-        LOGGER.warning(
-            f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, " "returning grain statistics"
-        )
-        results = results_df
-        results["basename"] = image_path.parent
-        grain_trace_data = None
-        return results, grain_trace_data
-    """
+    # except Exception:
+    #     # If no results we need a dummy dataframe to return.
+    #     LOGGER.warning(
+    #         f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, " "returning grain statistics"
+    #     )
+    #     results = results_df
+    #     results["basename"] = image_path.parent
+    #     grain_trace_data = None
+    #     return results, grain_trace_data
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
@@ -552,10 +552,10 @@ def process_scan(
 
     Parameters
     ----------
-    topostats_object : dict[str, Union[np.ndarray, Path, float]]
+    topostats_object : dict[str, Union[npt.NDArray, Path, float]]
         A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's
         pixel to namometre scaling value.
-    base_dir : Union[str, Path]
+    base_dir : str | Path
         Directory to recursively search for files, if not specified the current directory is scanned.
     filter_config : dict
         Dictionary of configuration options for running the Filter stage.
@@ -567,7 +567,7 @@ def process_scan(
         Dictionary of configuration options for running the DNA Tracing stage.
     plotting_config : dict
         Dictionary of configuration options for plotting figures.
-    output_dir : Union[str, Path]
+    output_dir : str | Path
         Directory to save output to, it will be created if it does not exist. If it already exists then it is possible
         that output will be over-written.
 

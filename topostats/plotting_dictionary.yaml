@@ -239,7 +239,7 @@ crossings:
   mask_cmap: "green_green"
   savefig_dpi: 600
 tripple_crossings:
-  title: "Image with Main and Paralell Traces"
+  title: "Image with Main and Parallel Traces"
   image_type: "non-binary"
   mask_cmap: "green_green"
   core_set: false
