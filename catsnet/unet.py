@@ -12,6 +12,25 @@ from keras.layers import (
     Dropout,
     Lambda,
 )
+import tensorflow as tf
+
+
+# DICE Loss
+def dice_loss(y_true, y_pred, smooth=1e-5):
+    intersection = tf.reduce_sum(y_true * y_pred, axis=(1, 2))
+    sum_of_squares_pred = tf.reduce_sum(tf.square(y_pred), axis=(1, 2))
+    sum_of_squares_true = tf.reduce_sum(tf.square(y_true), axis=(1, 2))
+    dice = 1 - (2 * intersection + smooth) / (sum_of_squares_pred + sum_of_squares_true + smooth)
+    return dice
+
+
+# IoU Loss
+def iou_loss(y_true, y_pred, smooth=1e-5):
+    intersection = tf.reduce_sum(y_true * y_pred, axis=(1, 2))
+    sum_of_squares_pred = tf.reduce_sum(tf.square(y_pred), axis=(1, 2))
+    sum_of_squares_true = tf.reduce_sum(tf.square(y_true), axis=(1, 2))
+    iou = (intersection + smooth) / (sum_of_squares_pred + sum_of_squares_true - intersection + smooth)
+    return iou
 
 
 def unet_model(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS):
@@ -81,7 +100,7 @@ def unet_model(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS):
     outputs = Conv2D(1, kernel_size=(1, 1), activation="sigmoid")(conv9)
 
     model = Model(inputs=[inputs], outputs=[outputs])
-    model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
+    model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy", dice_loss, iou_loss])
     model.summary()
 
     return model
