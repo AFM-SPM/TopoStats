@@ -16,9 +16,6 @@ from topostats.io import read_yaml
 
 plotting_config = read_yaml(Path("../config/jean_plotting_config.yml"))
 
-# Need to define extension for tests to pass
-extension = ".png"
-
 # Set seaborn to override matplotlib for plot output
 sns.set()
 sns.set_style("white", {"font.family": ["sans-serif"]})
@@ -79,6 +76,9 @@ def importfromfile(path):
         return importeddata
     elif filextension == ".csv":
         importeddata = pd.read_csv(path)
+        return importeddata
+    elif filextension == ".xlsx":
+        importeddata = pd.read_excel(path)
         return importeddata
     else:
         print("Unsupported file type")
@@ -421,7 +421,6 @@ def plotdist2var(
         label1=None,
         label2=None,
         label3=None,
-        extension=".png",  # Defined globally and not within this functions scope, required for testing
 ):
     """Dist plot for 2 or 3 variables"""
 
@@ -614,6 +613,7 @@ if __name__ == "__main__":
     path = plotting_config["file"]
     df = importfromfile(path)
     # df = df[df['Basename'] == 'Ni']
+    # df = df[df['Basename'] == 'PLO']
     df = df[df['Basename'] == 'Without NDP52']
     # df = df[df['bending_angle'] != 0]
     path2 = plotting_config["file2"]
@@ -621,6 +621,7 @@ if __name__ == "__main__":
     if path2 is not None:
         df2 = importfromfile(path2)
         df2 = df2[df2['Basename'] == 'With NDP52']
+        # df2 = df2[df2['Basename'] == 'Mg-Ni exchange']
         # df2 = df2[df2['Basename'] == 'PLO']
         # df2 = df2[df2['bending_angle'] != 0]
     else:
