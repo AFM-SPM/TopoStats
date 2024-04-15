@@ -3,6 +3,7 @@
 import logging
 
 import matplotlib as mpl
+import matplotlib.cm
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 
@@ -12,24 +13,47 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 class Colormap:
-    """Class for setting the Colormap."""
+    """
+    Class for setting the Colormap.
+
+    Parameters
+    ----------
+    name : str
+        Name of colormap to use.
+    """
 
     def __init__(self, name: str = "nanoscope"):
+        """
+        Initialise the class.
+
+        Parameters
+        ----------
+        name : str
+            Name of colormap to use.
+        """
         self.name = name
         self.cmap = None
         self.set_cmap(self.name)
 
-    def __str__(self):
-        """Return string representation of object."""
+    def __str__(self) -> str:
+        """
+        Return string representation of object.
+
+        Returns
+        -------
+        str
+            String detailing the colormap.
+        """
         return f"TopoStats Colormap: {self.name}"
 
-    def set_cmap(self, name: str):
-        """Set the ColorMap.
+    def set_cmap(self, name: str) -> None:
+        """
+        Set the ColorMap.
 
         Parameters
         ----------
-        name: str
-            Name of colormap
+        name : str
+            Name of the colormap to return.
         """
         if name.lower() == "nanoscope":
             self.cmap = self.nanoscope()
@@ -42,16 +66,28 @@ class Colormap:
             self.cmap = mpl.colormaps[name]
         LOGGER.debug(f"[theme] Colormap set to : {name}")
 
-    def get_cmap(self):
-        """Return the matplotlib.cm colormap object."""
+    def get_cmap(self) -> matplotlib.cm:
+        """
+        Return the matplotlib.cm colormap object.
+
+        Returns
+        -------
+        matplotlib.cm
+            Matplotlib Color map object.
+        """
         return self.cmap
 
     @staticmethod
-    def nanoscope():
+    def nanoscope() -> LinearSegmentedColormap:
         """
         Matplotlib compatible colormap that replicates the Bruker Nanoscope colorscale.
 
         The colormap is implemented in Gwyddion's GwyGradient via 'Nanoscope.txt'.
+
+        Returns
+        -------
+        LinearSegmentedColormap
+            MatplotLib LinearSegmentedColourmap that replicates Bruker Nanoscope colorscale.
         """
         cdict = {
             "red": (
@@ -107,8 +143,15 @@ class Colormap:
         return LinearSegmentedColormap("nanoscope", cdict)
 
     @staticmethod
-    def gwyddion():
-        """Set RGBA colour map for the Gwyddion.net colour gradient."""
+    def gwyddion() -> LinearSegmentedColormap:
+        """
+        Set RGBA colour map for the Gwyddion.net colour gradient.
+
+        Returns
+        -------
+        LinearSegmentedColormap
+            The 'gwyddion' colormap.
+        """
         N = 4  # Number of values
         vals = np.ones((N, 4))  # Initialise the array to be full of 1.0
         vals[0] = [0.0, 0.0, 0.0, 1]
@@ -119,6 +162,13 @@ class Colormap:
         return LinearSegmentedColormap.from_list("gwyddion", vals, N=256)
 
     @staticmethod
-    def blu():
-        """Set RGBA colour map of just the colour blue."""
+    def blu() -> ListedColormap:
+        """
+        Set RGBA colour map of just the colour blue.
+
+        Returns
+        -------
+        ListedColormap
+            The 'blu' colormap.
+        """
         return ListedColormap([[32 / 256, 226 / 256, 205 / 256]], "blu", N=256)

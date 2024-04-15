@@ -20,7 +20,8 @@ LOGGER_NAME = "topostats"
 
 
 def setup_logger(log_name: str = LOGGER_NAME) -> logging.Logger:
-    """Logger setup.
+    """
+    Logger setup.
 
     The logger for the module is initialised when the module is loaded (as this functions is called from
     __init__.py). This creates two stream handlers, one for general output and one for errors which are formatted

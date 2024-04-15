@@ -9,6 +9,7 @@ from pathlib import Path
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 from matplotlib.patches import Patch, Rectangle
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from skimage.morphology import binary_dilation
@@ -31,22 +32,22 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def add_pixel_to_nm_to_plotting_config(plotting_config: dict, pixel_to_nm_scaling: float) -> dict:
-    """Add the pixel to nanometre scaling factor to plotting configs.
+    """
+    Add the pixel to nanometre scaling factor to plotting configs.
 
     Ensures plots are in nanometres and not pixels.
 
     Parameters
     ----------
-    plotting_config: dict
-        TopoStats plotting configuration dictionary
-    pixel_to_nm_scaling: float
+    plotting_config : dict
+        TopoStats plotting configuration dictionary.
+    pixel_to_nm_scaling : float
         Pixel to nanometre scaling factor for the image.
 
     Returns
     -------
-    plotting_config: dict
-        Updated plotting config with the pixel to nanometre scaling factor
-        applied to all the image configurations.
+    dict
+        Updated plotting config with the pixel to nanometre scaling factor applied to all the image configurations.
     """
     # Update PLOT_DICT with pixel_to_nm_scaling (can't add _output_dir since it changes)
     plot_opts = {"pixel_to_nm_scaling": pixel_to_nm_scaling}
@@ -55,20 +56,21 @@ def add_pixel_to_nm_to_plotting_config(plotting_config: dict, pixel_to_nm_scalin
     return plotting_config
 
 
-def dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int) -> np.ndarray:
-    """Dilate a supplied binary image a given number of times.
+def dilate_binary_image(binary_image: npt.NDArray, dilation_iterations: int) -> npt.NDArray:
+    """
+    Dilate a supplied binary image a given number of times.
 
     Parameters
     ----------
-    binary_image: np.ndarray
-        Binary image to be dilated
-    dilation_iterations: int
-        Number of dilation iterations to be performed
+    binary_image : npt.NDArray
+        Binary image to be dilated.
+    dilation_iterations : int
+        Number of dilation iterations to be performed.
 
     Returns
     -------
-    binary_image: np.ndarray
-        Dilated binary image
+    npt.NDArray
+        Dilated binary image.
     """
     binary_image = binary_image.copy()
     for _ in range(dilation_iterations):
@@ -78,17 +80,13 @@ def dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int) -> n
 
 
 def load_mplstyle(style: str | Path) -> None:
-    """Load the Matplotlibrc parameter file.
+    """
+    Load the Matplotlibrc parameter file.
 
     Parameters
     ----------
-    style: str | Path
+    style : str | Path
         Path to a Matplotlib Style file.
-
-    Returns
-    -------
-    None
-        Only loads the style file.
     """
     if style == "topostats.mplstyle":
         plt.style.use(pkg_resources.files(topostats) / style)
@@ -97,7 +95,58 @@ def load_mplstyle(style: str | Path) -> None:
 
 
 class Images:
-    """Plots image arrays."""
+    """
+    Plots image arrays.
+
+    Parameters
+    ----------
+    data : np.array
+        Numpy array to plot.
+    output_dir : Union[str, Path]
+        Output directory to save the file to.
+    filename : Union[str, Path]
+        Filename to save image as.
+    style : dict
+        Filename of matploglibrc Params.
+    pixel_to_nm_scaling : float
+        The scaling factor showing the real length of 1 pixel, in nm.
+    masked_array : npt.NDArray
+        Optional mask array to overlay onto an image.
+    title : str
+        Title for plot.
+    image_type : str
+        The image data type - binary or non-binary.
+    image_set : str
+        The set of images to process - core or all.
+    core_set : bool
+        Flag to identify image as part of the core image set or not.
+    pixel_interpolation : str | None
+        Interpolation to use (default: None).
+    cmap : str
+        Colour map to use (default 'nanoscope', 'afmhot' also available).
+    mask_cmap : str
+        Colour map to use for the secondary (masked) data (default 'jet_r', 'blu' proivides more contrast).
+    region_properties : dict
+        Dictionary of region properties, adds bounding boxes if specified.
+    zrange : list
+        Lower and upper bound to clip core images to.
+    colorbar : bool
+        Optionally add a colorbar to plots, default is False.
+    axes : bool
+        Optionally add/remove axes from the image.
+    num_ticks : tuple[int | None]
+        The number of x and y ticks to display on the image.
+    save : bool
+        Whether to save the image.
+    savefig_format : str
+        Format to save the image as.
+    histogram_log_axis : bool
+        Optionally use a logarithmic y axis for the histogram plots.
+    histogram_bins : int
+        Number of bins for histograms to use.
+    savefig_dpi : str | float | None
+        The resolution of the saved plot (default 'figure').
+    """
 
     def __init__(
         self,
@@ -118,7 +167,7 @@ class Images:
         zrange: list = None,
         colorbar: bool = True,
         axes: bool = True,
-        num_ticks: list[int | None, int | None] = (None, None),
+        num_ticks: tuple[int | None] = (None, None),
         save: bool = True,
         savefig_format: str | None = None,
         histogram_log_axis: bool = True,
@@ -128,6 +177,11 @@ class Images:
         """
         Initialise the class.
 
+        There are two key parameters that ensure whether and image is plotted that are passed in from the update
+        plotting dictionary. These are the `image_set` which defines whether to plot 'all' images or just the `core`
+        set. There is then the 'core_set' which defines whether an individual images belongs to the 'core_set' or not.
+        If it doesn't then it is not plotted when `image_set == "core"`.
+
         Parameters
         ----------
         data : np.array
@@ -136,11 +190,11 @@ class Images:
             Output directory to save the file to.
         filename : Union[str, Path]
             Filename to save image as.
-        style: dict
+        style : dict
             Filename of matploglibrc Params.
         pixel_to_nm_scaling : float
             The scaling factor showing the real length of 1 pixel, in nm.
-        masked_array : np.ndarray
+        masked_array : npt.NDArray
             Optional mask array to overlay onto an image.
         title : str
             Title for plot.
@@ -150,31 +204,31 @@ class Images:
             The set of images to process - core or all.
         core_set : bool
             Flag to identify image as part of the core image set or not.
-        pixel_interpolation: Union[str, None]
+        pixel_interpolation : str | None
             Interpolation to use (default: None).
         cmap : str
             Colour map to use (default 'nanoscope', 'afmhot' also available).
         mask_cmap : str
             Colour map to use for the secondary (masked) data (default 'jet_r', 'blu' proivides more contrast).
-        region_properties: dict
+        region_properties : dict
             Dictionary of region properties, adds bounding boxes if specified.
         zrange : list
             Lower and upper bound to clip core images to.
-        colorbar: bool
+        colorbar : bool
             Optionally add a colorbar to plots, default is False.
-        axes: bool
+        axes : bool
             Optionally add/remove axes from the image.
-        num_ticks: list[int, int]
+        num_ticks : tuple[int | None]
             The number of x and y ticks to display on the image.
-        save: bool
+        save : bool
             Whether to save the image.
-        save_format: str
+        savefig_format : str
             Format to save the image as.
-        histogram_log_axis: bool
+        histogram_log_axis : bool
             Optionally use a logarithmic y axis for the histogram plots.
-        histogram_bin: int
+        histogram_bins : int
             Number of bins for histograms to use.
-        savefig_dpi: Union[str, float]
+        savefig_dpi : str | float | None
             The resolution of the saved plot (default 'figure').
         """
         if style is None:
@@ -206,16 +260,14 @@ class Images:
         self.histogram_bins = mpl.rcParams["hist.bins"] if histogram_bins is None else histogram_bins
         self.savefig_dpi = mpl.rcParams["savefig.dpi"] if savefig_dpi is None else savefig_dpi
 
-    def plot_histogram_and_save(self):
+    def plot_histogram_and_save(self) -> tuple | None:
         """
         Plot and save a histogram of the height map.
 
         Returns
         -------
-        fig: plt.figure.Figure
-            Matplotlib.pyplot figure object
-        ax: plt.axes._subplots.AxesSubplot
-            Matplotlib.pyplot axes object
+        tuple | None
+            Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
         """
         if self.image_set == "all":
             fig, ax = plt.subplots(1, 1)
@@ -240,40 +292,34 @@ class Images:
 
     def plot_and_save(self):
         """
-        Plot and save the images with savefig or imsave depending on config file parameters.
+        Plot and save the image.
 
         Returns
         -------
-        fig: plt.figure.Figure
-            Matplotlib.pyplot figure object
-        ax: plt.axes._subplots.AxesSubplot
-            Matplotlib.pyplot axes object
+        tuple
+            Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
         """
         fig, ax = None, None
         if self.save:
+            # Only plot if image_set is "all" (i.e. user wants all images) or an image is in the core_set
             if self.image_set == "all" or self.core_set:
-                if self.axes or self.colorbar:
-                    fig, ax = self.save_figure()
-                else:
-                    if isinstance(self.masked_array, np.ndarray) or self.region_properties:
-                        fig, ax = self.save_figure()
-                    else:
-                        self.save_array_figure()
-        LOGGER.info(
-            f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}\
- | DPI: {self.savefig_dpi}"
-        )
+                fig, ax = self.save_figure()
+                LOGGER.info(
+                    f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}"
+                    " | DPI: {self.savefig_dpi}"
+                )
+                plt.close()
+                return fig, ax
         return fig, ax
 
     def save_figure(self):
-        """Save figures as plt.savefig objects.
+        """
+        Save figures as plt.savefig objects.
 
         Returns
         -------
-        fig: plt.figure.Figure
-            Matplotlib.pyplot figure object
-        ax: plt.axes._subplots.AxesSubplot
-            Matplotlib.pyplot axes object
+        tuple
+            Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
         """
         fig, ax = plt.subplots(1, 1)
         shape = self.data.shape
@@ -325,6 +371,8 @@ class Images:
             if not self.axes and not self.colorbar:
                 plt.title("")
                 fig.frameon = False
+                plt.box(False)
+                plt.tight_layout()
                 plt.savefig(
                     (self.output_dir / f"{self.filename}.{self.savefig_format}"),
                     bbox_inches="tight",
@@ -345,41 +393,28 @@ class Images:
         plt.close()
         return fig, ax
 
-    def save_array_figure(self) -> None:
-        """Save the image array as an image using plt.imsave()."""
-        plt.imsave(
-            (self.output_dir / f"{self.filename}.{self.savefig_format}"),
-            self.data,
-            cmap=self.cmap,
-            vmin=self.zrange[0],
-            vmax=self.zrange[1],
-            format=self.savefig_format,
-        )
-        plt.close()
 
-
-def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to_nm_scaling: float) -> None:
-    """Add the bounding boxes to a plot.
+def add_bounding_boxes_to_plot(fig, ax, shape: tuple, region_properties: list, pixel_to_nm_scaling: float) -> tuple:
+    """
+    Add the bounding boxes to a plot.
 
     Parameters
     ----------
-    fig: plt.figure.Figure
-        Matplotlib.pyplot figure object
-    ax: plt.axes._subplots.AxesSubplot.
-        Matplotlib.pyplot axes object
-    shape: tuple
+    fig : plt.figure.Figure
+        Matplotlib.pyplot figure object.
+    ax : plt.axes._subplots.AxesSubplot
+        Matplotlib.pyplot axes object.
+    shape : tuple
         Tuple of the image-to-be-plot's shape.
-    region_properties:
+    region_properties : list
         Region properties to add bounding boxes from.
-    pixel_to_nm_scaling: float
+    pixel_to_nm_scaling : float
         The scaling factor from px to nm.
 
     Returns
     -------
-    fig: plt.figure.Figure
-        Matplotlib.pyplot figure object.
-    ax: plt.axes._subplots.AxesSubplot
-        Matplotlib.pyplot axes object.
+    tuple
+        Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
     """
     for region in region_properties:
         min_y, min_x, max_y, max_x = (x * pixel_to_nm_scaling for x in region.bbox)
@@ -392,7 +427,8 @@ def add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to
 
 
 def set_n_ticks(ax: plt.Axes.axes, n_xy: list[int | None, int | None]) -> None:
-    """Set the number of ticks along the y and x axes and lets matplotlib assign the values.
+    """
+    Set the number of ticks along the y and x axes and lets matplotlib assign the values.
 
     Parameters
     ----------

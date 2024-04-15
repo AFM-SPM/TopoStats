@@ -3,7 +3,7 @@
 import logging
 from collections.abc import Callable
 
-import numpy as np
+import numpy.typing as npt
 from skimage.morphology import skeletonize, thin
 
 from topostats.logs.logs import LOGGER_NAME
@@ -11,21 +11,21 @@ from topostats.logs.logs import LOGGER_NAME
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-def get_skeleton(image: np.ndarray, method: str) -> np.ndarray:
-    """Skeletonizing masked molecules.
+def get_skeleton(image: npt.NDArray, method: str) -> npt.NDArray:
+    """
+    Skeletonizing masked molecules.
 
     Parameters
     ----------
-    image : np.ndarray
+    image : npt.NDArray
         Image of molecule to be skeletonized.
-
     method : str
         Method to use, default is 'zhang' other options are 'lee', and 'thin'.
 
     Returns
     -------
-    np.ndarray
-        Skeletonised version of the image.all($0)
+    npt.NDArray
+        Skeletonised version of the image.all($0).
 
     Notes
     -----
@@ -40,11 +40,12 @@ def get_skeleton(image: np.ndarray, method: str) -> np.ndarray:
 
 
 def _get_skeletonize(method: str = "zhang") -> Callable:
-    """Creator component which determines which skeletonize method to use.
+    """
+    Creator component which determines which skeletonize method to use.
 
     Parameters
     ----------
-    method: str
+    method : str
         Method to use for skeletonizing, methods are 'zhang' (default), 'lee', and 'thin'.
 
     Returns
@@ -61,13 +62,52 @@ def _get_skeletonize(method: str = "zhang") -> Callable:
     raise ValueError(method)
 
 
-def _skeletonize_zhang(image: np.ndarray) -> np.ndarray:
+def _skeletonize_zhang(image: npt.NDArray) -> npt.NDArray:
+    """
+    Skeletonize using Zhang method.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        Numpy array to be skeletonized.
+
+    Returns
+    -------
+    npt.NDArray
+        Skeletonized Numpy array.
+    """
     return skeletonize(image, method="zhang")
 
 
-def _skeletonize_lee(image: np.ndarray) -> np.ndarray:
+def _skeletonize_lee(image: npt.NDArray) -> npt.NDArray:
+    """
+    Skeletonize using Lee method.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        Numpy array to be skeletonized.
+
+    Returns
+    -------
+    npt.NDArray
+        Skeletonized Numpy array.
+    """
     return skeletonize(image, method="lee")
 
 
-def _skeletonize_thin(image: np.ndarray) -> np.ndarray:
+def _skeletonize_thin(image: npt.NDArray) -> npt.NDArray:
+    """
+    Skeletonize using thinning method.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        Numpy array to be skeletonized.
+
+    Returns
+    -------
+    npt.NDArray
+        Skeletonized Numpy array.
+    """
     return thin(image)

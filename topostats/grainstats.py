@@ -8,6 +8,7 @@ from random import randint
 
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import scipy.ndimage
 import skimage.feature as skimage_feature
@@ -58,12 +59,39 @@ GRAIN_STATS_COLUMNS = [
 
 
 class GrainStats:
-    """Class for calculating grain stats."""
+    """
+    Class for calculating grain stats.
+
+    Parameters
+    ----------
+    data : npt.NDArray
+        2D Numpy array containing the flattened afm image. Data in this 2D array is floating point.
+    labelled_data : npt.NDArray
+        2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.
+    pixel_to_nanometre_scaling : float
+        Floating point value that defines the scaling factor between nanometres and pixels.
+    direction : str
+        Direction for which grains have been detected ("above" or "below").
+    base_output_dir : Path
+        Path to the folder that will store the grain stats output images and data.
+    image_name : str
+        The name of the file being processed.
+    edge_detection_method : str
+        Method used for detecting the edges of grain masks before calculating statistics on them.
+        Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
+    cropped_size : float
+        Length of square side (in nm) to crop grains to.
+    plot_opts : dict
+        Plotting options dictionary for the cropped grains.
+    metre_scaling_factor : float
+        Multiplier to convert the current length scale to metres. Default: 1e-9 for the
+        usual AFM length scale of nanometres.
+    """
 
     def __init__(
         self,
-        data: np.ndarray,
-        labelled_data: np.ndarray,
+        data: npt.NDArray,
+        labelled_data: npt.NDArray,
         pixel_to_nanometre_scaling: float,
         direction: str,
         base_output_dir: str | Path,
@@ -73,17 +101,18 @@ class GrainStats:
         plot_opts: dict = None,
         metre_scaling_factor: float = 1e-9,
     ):
-        """Initialise the class.
+        """
+        Initialise the class.
 
         Parameters
         ----------
-        data : np.ndarray
+        data : npt.NDArray
             2D Numpy array containing the flattened afm image. Data in this 2D array is floating point.
-        labelled_data : np.ndarray
+        labelled_data : npt.NDArray
             2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.
         pixel_to_nanometre_scaling : float
             Floating point value that defines the scaling factor between nanometres and pixels.
-        direction: str
+        direction : str
             Direction for which grains have been detected ("above" or "below").
         base_output_dir : Path
             Path to the folder that will store the grain stats output images and data.
@@ -95,7 +124,7 @@ class GrainStats:
         cropped_size : float
             Length of square side (in nm) to crop grains to.
         plot_opts : dict
-            Plotting options dictionary for the cropped grains
+            Plotting options dictionary for the cropped grains.
         metre_scaling_factor : float
             Multiplier to convert the current length scale to metres. Default: 1e-9 for the
             usual AFM length scale of nanometres.
@@ -114,33 +143,35 @@ class GrainStats:
 
     @staticmethod
     def get_angle(point_1: tuple, point_2: tuple) -> float:
-        """Calculate the angle in radians between two points.
+        """
+        Calculate the angle in radians between two points.
 
         Parameters
         ----------
-        point1: tuple
+        point_1 : tuple
             Coordinate vectors for the first point to find the angle between.
-        point2: tuple
+        point_2 : tuple
             Coordinate vectors for the second point to find the angle between.
 
         Returns
         -------
-        angle : float
+        float
             The angle in radians between the two input vectors.
         """
         return np.arctan2(point_1[1] - point_2[1], point_1[0] - point_2[0])
 
     @staticmethod
     def is_clockwise(p_1: tuple, p_2: tuple, p_3: tuple) -> bool:
-        """Determine if three points make a clockwise or counter-clockwise turn.
+        """
+        Determine if three points make a clockwise or counter-clockwise turn.
 
         Parameters
         ----------
-        p_1: tuple
+        p_1 : tuple
             First point to be used to calculate turn.
-        p_2: tuple
+        p_2 : tuple
             Second point to be used to calculate turn.
-        p_3: tuple
+        p_3 : tuple
             Third point to be used to calculate turn.
 
         Returns
@@ -151,18 +182,18 @@ class GrainStats:
         # Determine if three points form a clockwise or counter-clockwise turn.
         # I use the method of calculating the determinant of the following rotation matrix here. If the determinant
         # is > 0 then the rotation is counter-clockwise.
-        rotation_matrix = np.array(((p_1[0], p_1[1], 1), (p_2[0], p_2[1], 1), (p_3[0], p_3[1], 1)))
+        rotation_matrix = np.asarray(((p_1[0], p_1[1], 1), (p_2[0], p_2[1], 1), (p_3[0], p_3[1], 1)))
         return not np.linalg.det(rotation_matrix) > 0
 
-    def calculate_stats(self) -> dict:
-        """Calculate the stats of grains in the labelled image.
+    def calculate_stats(self) -> tuple(pd.DataFrame, dict):
+        """
+        Calculate the stats of grains in the labelled image.
 
         Returns
         -------
-        grainstats: pd.DataFrame
-            A DataFrame containing all the grain stats that have been calculated for the labelled image.
-        grains_plot_data:
-            A list of dictionaries containing grain data to be plotted.
+        tuple
+            Consists of a pd.DataFrame containing all the grain stats that have been calculated for the labelled image
+            and a list of dictionaries containing grain data to be plotted.
         """
         grains_plot_data = []
         if self.labelled_data is None:
@@ -305,18 +336,19 @@ class GrainStats:
         return grainstats_df, grains_plot_data
 
     @staticmethod
-    def calculate_points(grain_mask: np.ndarray):
-        """Convert a 2D boolean array to a list of coordinates.
+    def calculate_points(grain_mask: npt.NDArray) -> list:
+        """
+        Convert a 2D boolean array to a list of coordinates.
 
         Parameters
         ----------
-        grain_mask : np.ndarray
+        grain_mask : npt.NDArray
             A 2D numpy array image of a grain. Data in the array must be boolean.
 
         Returns
         -------
-        points : list
-        A python list containing the coordinates of the pixels in the grain.
+        list
+            A python list containing the coordinates of the pixels in the grain.
         """
         nonzero_coordinates = grain_mask.nonzero()
         points = []
@@ -326,12 +358,13 @@ class GrainStats:
         return points
 
     @staticmethod
-    def calculate_edges(grain_mask: np.ndarray, edge_detection_method: str):
-        """Convert 2D boolean array to list of the coordinates of the edges of the grain.
+    def calculate_edges(grain_mask: npt.NDArray, edge_detection_method: str) -> list:
+        """
+        Convert 2D boolean array to list of the coordinates of the edges of the grain.
 
         Parameters
         ----------
-        grain_mask : np.ndarray
+        grain_mask : npt.NDArray
             A 2D numpy array image of a grain. Data in the array must be boolean.
         edge_detection_method : str
             Method used for detecting the edges of grain masks before calculating statistics on them.
@@ -339,7 +372,7 @@ class GrainStats:
 
         Returns
         -------
-        edges : list
+        list
             List containing the coordinates of the edges of the grain.
         """
         # Fill any holes
@@ -365,28 +398,25 @@ class GrainStats:
         # FIXME : Switched to list comprehension but should be unnecessary to create this as a list as we can use
         # np.stack() to combine the arrays and use that...
         # return np.stack(nonzero_coordinates, axis=1)
-        # edges = []
-        # for vector in np.transpose(nonzero_coordinates):
-        #     edges.append(list(vector))
-        # return edges
         return [list(vector) for vector in np.transpose(nonzero_coordinates)]
 
-    def calculate_radius_stats(self, edges: list, points: list) -> tuple:
-        """Calculate the radius of grains.
+    def calculate_radius_stats(self, edges: list, points: list) -> tuple[float]:
+        """
+        Calculate the radius of grains.
 
         The radius in this context is the distance from the centroid to points on the edge of the grain.
 
         Parameters
         ----------
-        edges: list
+        edges : list
             A 2D python list containing the coordinates of the edges of a grain.
-        points: list
+        points : list
             A 2D python list containing the coordinates of the points in a grain.
 
         Returns
         -------
-        Tuple[float]
-            A tuple of the minimum, maximum, mean and median radius of the grain
+        tuple[float]
+            A tuple of the minimum, maximum, mean and median radius of the grain.
         """
         # Calculate the centroid of the grain
         centroid = self._calculate_centroid(points)
@@ -403,11 +433,12 @@ class GrainStats:
 
     @staticmethod
     def _calculate_centroid(points: np.array) -> tuple:
-        """Calculate the centroid of a bounding box.
+        """
+        Calculate the centroid of a bounding box.
 
         Parameters
         ----------
-        points: list
+        points : list
             A 2D python list containing the coordinates of the points in a grain.
 
         Returns
@@ -420,27 +451,45 @@ class GrainStats:
         return (np.mean(points[:, 0]), np.mean(points[:, 1]))
 
     @staticmethod
-    def _calculate_displacement(edges: np.array, centroid: tuple) -> np.array:
-        """Calculate the displacement between the centroid and edges."""
+    def _calculate_displacement(edges: npt.NDArray, centroid: tuple) -> npt.NDArray:
+        """
+        Calculate the displacement between the edges and centroid.
+
+        Parameters
+        ----------
+        edges : npt.NDArray
+            Coordinates of the edge points.
+        centroid : tuple
+            Coordinates of the centroid.
+
+        Returns
+        -------
+        npt.NDArray
+            Array of displacements.
+        """
         # FIXME : Remove once we have a numpy array returned by calculate_edges
         return np.array(edges) - centroid
 
     @staticmethod
-    def _calculate_radius(displacements) -> np.array:
-        """Calculate the radius of each point from the centroid.
+    def _calculate_radius(displacements: list[list]) -> npt.NDarray:
+        """
+        Calculate the radius of each point from the centroid.
 
         Parameters
         ----------
-        displacements: List[list]
+        displacements : List[list]
+            A list of displacements.
 
-        Retrurns
-        --------
-        np.array
+        Returns
+        -------
+        npt.NDarray
+            Array of radii of each point from the centroid.
         """
         return np.array([np.sqrt(radius[0] ** 2 + radius[1] ** 2) for radius in displacements])
 
-    def convex_hull(self, edges: list, base_output_dir: Path, debug: bool = False):
-        """Calculate a grain's convex hull.
+    def convex_hull(self, edges: list, base_output_dir: Path, debug: bool = False) -> tuple[list, list, list]:
+        """
+        Calculate a grain's convex hull.
 
         Based off of the Graham Scan algorithm and should ideally scale in time with O(nlog(n)).
 
@@ -448,19 +497,18 @@ class GrainStats:
         ----------
         edges : list
             A python list containing the coordinates of the edges of the grain.
-        base_output_dir : Union[str, Path]
+        base_output_dir : Path
             Directory to save output to.
         debug : bool
-            Default false. If true, debug information will be displayed to the terminal and plots for the convex hulls and edges will be saved.
+            Default false. If true, debug information will be displayed to the terminal and plots for the convex hulls
+            and edges will be saved.
 
         Returns
         -------
-        hull : list
-            Coordinates of the points in the hull.
-        hull_indices : list
-            The hull points indices inside the edges list. In other words, this provides a way to find the points from the hull inside the edges list that was passed.
-        simplices : list
-            List of tuples, each tuple representing a simplex of the convex hull. These simplices are sorted such that they follow each other in counterclockwise order.
+        tuple[list, list, list]
+            A hull (list) of the coordinates of each point on the hull. Hull indices providing a way to find the points
+            from the hill inside the edge list that was passed. Simplices (list) of tuples each representing a simplex
+            of the convex hull, these are sorted in a counter-clockwise order.
         """
         hull, hull_indices, simplexes = self.graham_scan(edges)
 
@@ -476,7 +524,8 @@ class GrainStats:
         return hull, hull_indices, simplexes
 
     def calculate_squared_distance(self, point_2: tuple, point_1: tuple = None) -> float:
-        """Calculate the squared distance between two points.
+        """
+        Calculate the squared distance between two points.
 
         Used for distance sorting purposes and therefore does not perform a square root in the interests of efficiency.
 
@@ -486,11 +535,11 @@ class GrainStats:
             The point to find the squared distance to.
         point_1 : tuple
             Optional - defaults to the starting point defined in the graham_scan() function. The point to find the
-        squared distance from.
+            squared distance from.
 
         Returns
         -------
-        distance_squared : float
+        float
             The squared distance between the two points.
         """
         # Get the distance squared between two points. If the second point is not provided, use the starting point.
@@ -502,17 +551,18 @@ class GrainStats:
 
     def sort_points(self, points: list) -> list:
         #    def sort_points(self, points: np.array) -> List:
-        """Sort points in counter-clockwise order of angle made with the starting point.
+        """
+        Sort points in counter-clockwise order of angle made with the starting point.
 
         Parameters
         ----------
-        points: list
+        points : list
             A python list of the coordinates to sort.
 
         Returns
         -------
-        sorted_points : list
-            A python list of sorted points.
+        list
+            Points (coordinates) sorted counter-clockwise.
         """
         # Return if the list is length 1 or 0 (i.e. a single point).
         if len(points) <= 1:
@@ -537,19 +587,21 @@ class GrainStats:
         return self.sort_points(smaller) + sorted(equal, key=self.calculate_squared_distance) + self.sort_points(larger)
         # Return sorted array where equal angle points are sorted by distance
 
-    def get_start_point(self, edges) -> None:
-        """Determine the index of the bottom most point of the hull when sorted by x-position.
+    def get_start_point(self, edges: npt.NDArray) -> None:
+        """
+        Determine the index of the bottom most point of the hull when sorted by x-position.
 
         Parameters
         ----------
-        edges: np.array
-
+        edges : npt.NDArray
+            Array of coordinates.
         """
         min_y_index = np.argmin(edges[:, 1])
         self.start_point = edges[min_y_index]
 
-    def graham_scan(self, edges: list):
-        """Construct the convex hull using the  Graham Scan algorithm.
+    def graham_scan(self, edges: list) -> tuple[list, list, list]:
+        """
+        Construct the convex hull using the  Graham Scan algorithm.
 
         Ideally this algorithm will take O( n * log(n) ) time.
 
@@ -560,14 +612,10 @@ class GrainStats:
 
         Returns
         -------
-        hull : list
-            A list containing coordinates of the points in the hull.
-        hull_indices : list
-            A list containing the hull points indices inside the edges list. In other words, this provides a way to find
-            the points from the hull inside the edges list that was passed.
-        simplices : list
-            A  list of tuples, each tuple representing a simplex of the convex hull. These simplices are sorted such
-            that they follow each other in counterclockwise order.
+        tuple[list, list, list]
+            A hull (list) of the coordinates of each point on the hull. Hull indices providing a way to find the points
+            from the hill inside the edge list that was passed. Simplices (list) of tuples each representing a simplex
+            of the convex hull, these are sorted in a counter-clockwise order.
         """
         # FIXME : Make this an isolated method
         # Find a point guaranteed to be on the hull. I find the bottom most point(s) and sort by x-position.
@@ -615,11 +663,12 @@ class GrainStats:
 
     @staticmethod
     def plot(edges: list, convex_hull: list = None, file_path: Path = None) -> None:
-        """Plot and save the coordinates of the edges in the grain and optionally the hull.
+        """
+        Plot and save the coordinates of the edges in the grain and optionally the hull.
 
         Parameters
         ----------
-        coordinates : list
+        edges : list
             A list of points to be plotted.
         convex_hull : list
             Optional argument. A list of points that form the convex hull. Will be plotted with the coordinates if
@@ -642,14 +691,17 @@ class GrainStats:
         plt.savefig(file_path)
         plt.close()
 
-    def calculate_aspect_ratio(self, edges: list, hull_simplices: np.ndarray, path: Path, debug: bool = False) -> tuple:
-        """Calculate the width, length and aspect ratio of the smallest bounding rectangle of a grain.
+    def calculate_aspect_ratio(
+        self, edges: list, hull_simplices: npt.NDArray, path: Path, debug: bool = False
+    ) -> tuple:
+        """
+        Calculate the width, length and aspect ratio of the smallest bounding rectangle of a grain.
 
         Parameters
         ----------
         edges : list
             A python list of coordinates of the edge of the grain.
-        hull_simplices : np.ndarray
+        hull_simplices : npt.NDArray
             A 2D numpy array of simplices that the hull is comprised of.
         path : Path
             Path to the save folder for the grain.
@@ -658,13 +710,11 @@ class GrainStats:
 
         Returns
         -------
-        smallest_bounding_width : float
-            The width in pixels (not nanometres), of the smallest bounding rectangle for the grain.
-        smallest_bounding_length : float
-            The length in pixels (not nanometres), of the smallest bounding rectangle for the grain.
-        aspect_ratio : float
-            The width divided by the length of the smallest bounding rectangle for the grain. It will always be greater
-            or equal to 1.
+        tuple:
+            The smallest_bouning_width (float) in pixels (not nanometres) of the smallest bounding rectangle for the
+            grain. The smallest_bounding_length (float) in pixels (not nanometres), of the smallest bounding rectangle
+            for the grain. And the aspect_ratio (float) the width divided by the length of the smallest bounding
+            rectangle for the grain. It will always be greater or equal to 1.
         """
         # Ensure the edges are in the form of a numpy array.
         edges = np.array(edges)
@@ -864,18 +914,19 @@ class GrainStats:
         return smallest_bounding_width, smallest_bounding_length, aspect_ratio
 
     @staticmethod
-    def find_cartesian_extremes(rotated_points: np.ndarray) -> dict:
-        """Find the limits of x and y of rotated points.
+    def find_cartesian_extremes(rotated_points: npt.NDArray) -> dict:
+        """
+        Find the limits of x and y of rotated points.
 
         Parameters
         ----------
-        rotated_points: np.ndarray
+        rotated_points : npt.NDArray
             2-D array of rotated points.
 
         Returns
         -------
         Dict
-            Dictionary of the x and y min and max.__annotations__
+            Dictionary of the x and y min and max.__annotations__.
         """
         extremes = {}
         extremes["x_min"] = np.min(rotated_points[:, 0])
@@ -885,14 +936,15 @@ class GrainStats:
         return extremes
 
     @staticmethod
-    def get_shift(coords: np.ndarray, shape: np.ndarray) -> int:
-        """Obtain the coordinate shift to reflect the cropped image box for molecules near the edges of the image.
+    def get_shift(coords: npt.NDArray, shape: npt.NDArray) -> int:
+        """
+        Obtain the coordinate shift to reflect the cropped image box for molecules near the edges of the image.
 
         Parameters
         ----------
-        coords: np.ndarray
+        coords : npt.NDArray
             Value representing integer coordinates which may be outside of the image.
-        shape: np.ndarray
+        shape : npt.NDArray
             Array of the shape of an image.
 
         Returns
@@ -907,21 +959,22 @@ class GrainStats:
         max_index = np.argmax(abs(shift))
         return shift[max_index]
 
-    def get_cropped_region(self, image: np.ndarray, length: int, centre: np.ndarray) -> np.ndarray:
-        """Crops the image with respect to a given pixel length around the centre coordinates.
+    def get_cropped_region(self, image: npt.NDArray, length: int, centre: npt.NDArray) -> npt.NDArray:
+        """
+        Crop the image with respect to a given pixel length around the centre coordinates.
 
         Parameters
         ----------
-        image: np.ndarray
+        image : npt.NDArray
             The image array.
-        length: int
+        length : int
             The length (in pixels) of the resultant cropped image.
-        centre: np.ndarray
+        centre : npt.NDArray
             The centre of the object to crop.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             Cropped array of the image.
         """
         shape = image.shape

@@ -14,6 +14,7 @@ from typing import Any
 
 import h5py
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import pySPM
 import tifffile
@@ -34,11 +35,12 @@ CONFIG_DOCUMENTATION_REFERENCE = """# For more information on configuration and 
 
 
 def read_yaml(filename: str | Path) -> dict:
-    """Read a YAML file.
+    """
+    Read a YAML file.
 
     Parameters
     ----------
-    filename: Union[str, Path]
+    filename : Union[str, Path]
         YAML file to read.
 
     Returns
@@ -59,10 +61,6 @@ def get_date_time() -> str:
     """
     Get a date and time for adding to generated files or logging.
 
-    Parameters
-    ----------
-    None
-
     Returns
     -------
     str
@@ -77,18 +75,19 @@ def write_yaml(
     config_file: str = "config.yaml",
     header_message: str = None,
 ) -> None:
-    """Write a configuration (stored as a dictionary) to a YAML file.
+    """
+    Write a configuration (stored as a dictionary) to a YAML file.
 
     Parameters
     ----------
-    config: dict
+    config : dict
         Configuration dictionary.
-    output_dir: Union[str, Path]
+    output_dir : Union[str, Path]
         Path to save the dictionary to as a YAML file (it will be called 'config.yaml').
-    config_file: str
+    config_file : str
         Filename to write to.
-    header_message: str
-        String to write to the header message of the YAML file
+    header_message : str
+        String to write to the header message of the YAML file.
     """
     # Save the configuration to output directory
     output_config = Path(output_dir) / config_file
@@ -118,8 +117,8 @@ def write_config_with_comments(args=None) -> None:
 
     Parameters
     ----------
-    args: Namespace
-        A Namespace object parsed from argparse with values for 'filename',
+    args : Namespace
+        A Namespace object parsed from argparse with values for 'filename'.
     """
     filename = "config" if args.filename is None else args.filename
     output_dir = Path("./") if args.output_dir is None else Path(args.output_dir)
@@ -139,7 +138,7 @@ def write_config_with_comments(args=None) -> None:
         except FileNotFoundError as e:
             raise UserWarning(f"There is no configuration for samples of type : {args.config}") from e
 
-    if ".yaml" not in filename and ".yml" not in filename and ".mplstyle" not in filename:
+    if ".yaml" not in str(filename) and ".yml" not in str(filename) and ".mplstyle" not in str(filename):
         create_config_path = output_dir / f"{filename}.yaml"
     else:
         create_config_path = output_dir / filename
@@ -152,27 +151,29 @@ def write_config_with_comments(args=None) -> None:
     LOGGER.info(CONFIG_DOCUMENTATION_REFERENCE)
 
 
-def save_array(array: np.ndarray, outpath: Path, filename: str, array_type: str) -> None:
-    """Save a Numpy array to disk.
+def save_array(array: npt.NDArray, outpath: Path, filename: str, array_type: str) -> None:
+    """
+    Save a Numpy array to disk.
 
     Parameters
     ----------
-    array : np.ndarray
+    array : npt.NDArray
         Numpy array to be saved.
     outpath : Path
-        Location array should be saved
+        Location array should be saved.
     filename : str
         Filename of the current image from which the array is derived.
     array_type : str
         Short string describing the array type e.g. z_threshold. Ideally should not have periods or spaces in (use
-    underscores '_' instead).
+        underscores '_' instead).
     """
     np.save(outpath / f"{filename}_{array_type}.npy", array)
     LOGGER.info(f"[{filename}] Numpy array saved to : {outpath}/{filename}_{array_type}.npy")
 
 
-def load_array(array_path: str | Path) -> np.ndarray:
-    """Load a Numpy array from file.
+def load_array(array_path: str | Path) -> npt.NDArray:
+    """
+    Load a Numpy array from file.
 
     Should have been saved using save_array() or numpy.save().
 
@@ -183,7 +184,7 @@ def load_array(array_path: str | Path) -> np.ndarray:
 
     Returns
     -------
-    np.ndarray
+    npt.NDArray
         Returns the loaded Numpy array.
     """
     try:
@@ -193,11 +194,12 @@ def load_array(array_path: str | Path) -> np.ndarray:
 
 
 def path_to_str(config: dict) -> dict:
-    """Recursively traverse a dictionary and convert any Path() objects to strings for writing to YAML.
+    """
+    Recursively traverse a dictionary and convert any Path() objects to strings for writing to YAML.
 
     Parameters
     ----------
-    config: dict
+    config : dict
         Dictionary to be converted.
 
     Returns
@@ -215,15 +217,16 @@ def path_to_str(config: dict) -> dict:
 
 
 def get_out_path(image_path: str | Path = None, base_dir: str | Path = None, output_dir: str | Path = None) -> Path:
-    """Add the image path relative to the base directory to the output directory.
+    """
+    Add the image path relative to the base directory to the output directory.
 
     Parameters
     ----------
-    image_path: Path
+    image_path : Path
         The path of the current image.
-    base_dir: Path
+    base_dir : Path
         Directory to recursively search for files.
-    output_dir: Path
+    output_dir : Path
         The output directory specified in the configuration file.
 
     Returns
@@ -250,13 +253,14 @@ def get_out_path(image_path: str | Path = None, base_dir: str | Path = None, out
 
 
 def find_files(base_dir: str | Path = None, file_ext: str = ".spm") -> list:
-    """Recursively scan the specified directory for images with the given file extension.
+    """
+    Recursively scan the specified directory for images with the given file extension.
 
     Parameters
     ----------
-    base_dir: Union[str, Path]
+    base_dir : Union[str, Path]
         Directory to recursively search for files, if not specified the current directory is scanned.
-    file_ext: str
+    file_ext : str
         File extension to search for.
 
     Returns
@@ -269,15 +273,16 @@ def find_files(base_dir: str | Path = None, file_ext: str = ".spm") -> list:
 
 
 def save_folder_grainstats(output_dir: str | Path, base_dir: str | Path, all_stats_df: pd.DataFrame) -> None:
-    """Save a data frame of grain and tracing statistics at the folder level.
+    """
+    Save a data frame of grain and tracing statistics at the folder level.
 
     Parameters
     ----------
-    output_dir: Union[str, Path]
+    output_dir : Union[str, Path]
         Path of the output directory head.
-    base_dir: Union[str, Path]
+    base_dir : Union[str, Path]
         Path of the base directory where files were found.
-    all_stats_df: pd.DataFrame
+    all_stats_df : pd.DataFrame
         The dataframe containing all sample statistics run.
 
     Returns
@@ -304,11 +309,12 @@ def save_folder_grainstats(output_dir: str | Path, base_dir: str | Path, all_sta
 
 
 def read_null_terminated_string(open_file: io.TextIOWrapper) -> str:
-    """Read an open file from the current position in the open binary file, until the next null value.
+    """
+    Read an open file from the current position in the open binary file, until the next null value.
 
     Parameters
     ----------
-    open_file: io.TextIOWrapper
+    open_file : io.TextIOWrapper
         An open file object.
 
     Returns
@@ -325,11 +331,12 @@ def read_null_terminated_string(open_file: io.TextIOWrapper) -> str:
 
 
 def read_u32i(open_file: io.TextIOWrapper) -> str:
-    """Read an unsigned 32 bit integer from an open binary file (in little-endian form).
+    """
+    Read an unsigned 32 bit integer from an open binary file (in little-endian form).
 
     Parameters
     ----------
-    open_file: io.TextIOWrapper
+    open_file : io.TextIOWrapper
         An open file object.
 
     Returns
@@ -341,11 +348,12 @@ def read_u32i(open_file: io.TextIOWrapper) -> str:
 
 
 def read_64d(open_file: io.TextIOWrapper) -> str:
-    """Read a 64-bit double from an open binary file.
+    """
+    Read a 64-bit double from an open binary file.
 
     Parameters
     ----------
-    open_file:
+    open_file : io.TextIOWrapper
         An open file object.
 
     Returns
@@ -357,11 +365,12 @@ def read_64d(open_file: io.TextIOWrapper) -> str:
 
 
 def read_char(open_file: io.TextIOWrapper) -> str:
-    """Read a character from an open binary file.
+    """
+    Read a character from an open binary file.
 
     Parameters
     ----------
-    open_file: io.TextIOWrapper
+    open_file : io.TextIOWrapper
         An open file object.
 
     Returns
@@ -373,7 +382,8 @@ def read_char(open_file: io.TextIOWrapper) -> str:
 
 
 def read_gwy_component_dtype(open_file: io.TextIOWrapper) -> str:
-    """Read the data type of a `.gwy` file component.
+    """
+    Read the data type of a `.gwy` file component.
 
     Possible data types are as follows:
 
@@ -397,32 +407,32 @@ def read_gwy_component_dtype(open_file: io.TextIOWrapper) -> str:
 
     Parameters
     ----------
-    open_file: io.TextIOWrapper
+    open_file : io.TextIOWrapper
         An open file object.
 
     Returns
     -------
     str
-        Python string (one character long) of the data type of the
-        component's value.
+        Python string (one character long) of the data type of the component's value.
     """
     return open_file.read(1).decode("ascii")
 
 
 def get_relative_paths(paths: list[Path]) -> list[str]:
-    """Extract a list of relative paths, removing the common suffix.
+    """
+    Extract a list of relative paths, removing the common suffix.
 
-    From a list of paths, create a list where each path is relative to all path's closest common parent. For
-    example, ['a/b/c', 'a/b/d', 'a/b/e/f'] would return ['c', 'd', 'e/f'].
+    From a list of paths, create a list where each path is relative to all path's closest common parent. For example,
+    ['a/b/c', 'a/b/d', 'a/b/e/f'] would return ['c', 'd', 'e/f'].
 
     Parameters
     ----------
-    paths: list
+    paths : list
         List of string or pathlib paths.
 
     Returns
     -------
-    relative_paths: list
+    list
         List of string paths, relative to the common parent.
     """
     # Ensure paths are all pathlib paths, and not strings
@@ -441,20 +451,21 @@ def get_relative_paths(paths: list[Path]) -> list[str]:
 
 
 def convert_basename_to_relative_paths(df: pd.DataFrame):
-    """Convert paths in the 'basename' column of a dataframe to relative paths.
+    """
+    Convert paths in the 'basename' column of a dataframe to relative paths.
 
     If the 'basename' column has the following paths: ['/usr/topo/data/a/b', '/usr/topo/data/c/d'], the output will be:
     ['a/b', 'c/d'].
 
     Parameters
     ----------
-    df: pd.DataFrame
+    df : pd.DataFrame
         A pandas dataframe containing a column 'basename' which contains the paths
         indicating the locations of the image data files.
 
     Returns
     -------
-    df: pd.DataFrame
+    pd.DataFrame
         A pandas dataframe where the 'basename' column has paths relative to a common
         parent.
     """
@@ -468,20 +479,30 @@ def convert_basename_to_relative_paths(df: pd.DataFrame):
 
 # pylint: disable=too-many-instance-attributes
 class LoadScans:
-    """Load the image and image parameters from a file path."""
+    """
+    Load the image and image parameters from a file path.
+
+    Parameters
+    ----------
+    img_paths : list[str, Path]
+        Path to a valid AFM scan to load.
+    channel : str
+        Image channel to extract from the scan.
+    """
 
     def __init__(
         self,
-        img_paths: list,
+        img_paths: list[str | Path],
         channel: str,
     ):
-        """Initialise the class.
+        """
+        Initialise the class.
 
         Parameters
         ----------
-        img_path: Union[str, Path]
+        img_paths : list[str | Path]
             Path to a valid AFM scan to load.
-        channel: str
+        channel : str
             Image channel to extract from the scan.
         """
         self.img_paths = img_paths
@@ -496,12 +517,13 @@ class LoadScans:
         self.img_dict = {}
         self.MINIMUM_IMAGE_SIZE = 10
 
-    def load_spm(self) -> tuple:
-        """Extract image and pixel to nm scaling from the Bruker .spm file.
+    def load_spm(self) -> tuple[npt.NDArray, float]:
+        """
+        Extract image and pixel to nm scaling from the Bruker .spm file.
 
         Returns
         -------
-        tuple(np.ndarray, float)
+        tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
         LOGGER.info(f"Loading image from : {self.img_path}")
@@ -526,11 +548,12 @@ class LoadScans:
         return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
 
     def _spm_pixel_to_nm_scaling(self, channel_data: pySPM.SPM.SPM_image) -> float:
-        """Extract pixel to nm scaling from the SPM image metadata.
+        """
+        Extract pixel to nm scaling from the SPM image metadata.
 
         Parameters
         ----------
-        channel_data: pySPM.SPM.SPM_image
+        channel_data : pySPM.SPM.SPM_image
             Channel data from PySPM.
 
         Returns
@@ -539,8 +562,10 @@ class LoadScans:
             Pixel to nm scaling factor.
         """
         unit_dict = {
+            "pm": 1e-3,
             "nm": 1,
             "um": 1e3,
+            "mm": 1e6,
         }
         px_to_real = channel_data.pxs()
         # Has potential for non-square pixels but not yet implemented
@@ -554,8 +579,9 @@ class LoadScans:
         LOGGER.info(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
         return pixel_to_nm_scaling
 
-    def load_topostats(self) -> tuple:
-        """Load a .topostats file (hdf5 format).
+    def load_topostats(self) -> tuple[npt.NDArray, float]:
+        """
+        Load a .topostats file (hdf5 format).
 
         Loads and extracts the image, pixel to nanometre scaling factor and any grain masks.
 
@@ -564,7 +590,7 @@ class LoadScans:
 
         Returns
         -------
-        tuple(np.ndarray, float)
+        tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
         LOGGER.info(f"Loading image from : {self.img_path}")
@@ -597,12 +623,13 @@ class LoadScans:
 
         return (image, pixel_to_nm_scaling)
 
-    def load_asd(self) -> tuple:
-        """Extract image and pixel to nm scaling from .asd files.
+    def load_asd(self) -> tuple[npt.NDArray, float]:
+        """
+        Extract image and pixel to nm scaling from .asd files.
 
         Returns
         -------
-        tuple: (np.ndarray, float)
+        tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
         try:
@@ -617,12 +644,13 @@ class LoadScans:
 
         return (frames, pixel_to_nm_scaling)
 
-    def load_ibw(self) -> tuple:
-        """Load image from Asylum Research (Igor) .ibw files.
+    def load_ibw(self) -> tuple[npt.NDArray, float]:
+        """
+        Load image from Asylum Research (Igor) .ibw files.
 
         Returns
         -------
-        tuple(np.ndarray, float)
+        tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
         LOGGER.info(f"Loading image from : {self.img_path}")
@@ -650,11 +678,12 @@ class LoadScans:
         return (image, self._ibw_pixel_to_nm_scaling(scan))
 
     def _ibw_pixel_to_nm_scaling(self, scan: dict) -> float:
-        """Extract pixel to nm scaling from the IBW image metadata.
+        """
+        Extract pixel to nm scaling from the IBW image metadata.
 
         Parameters
         ----------
-        scan: dict
+        scan : dict
             The loaded binary wave object.
 
         Returns
@@ -676,12 +705,13 @@ class LoadScans:
         LOGGER.info(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
         return pixel_to_nm_scaling
 
-    def load_jpk(self) -> tuple:
-        """Load image from JPK Instruments .jpk files.
+    def load_jpk(self) -> tuple[npt.NDArray, float]:
+        """
+        Load image from JPK Instruments .jpk files.
 
         Returns
         -------
-        tuple(np.ndarray, float)
+        tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
         # Load the file
@@ -723,11 +753,12 @@ class LoadScans:
 
     @staticmethod
     def _jpk_pixel_to_nm_scaling(tiff_page: tifffile.tifffile.TiffPage) -> float:
-        """Extract pixel to nm scaling from the JPK image metadata.
+        """
+        Extract pixel to nm scaling from the JPK image metadata.
 
         Parameters
         ----------
-        tiff_page: tifffile.tifffile.TiffPage
+        tiff_page : tifffile.tifffile.TiffPage
             An image file directory (IFD) of .jpk files.
 
         Returns
@@ -748,18 +779,15 @@ class LoadScans:
 
     @staticmethod
     def _gwy_read_object(open_file: io.TextIOWrapper, data_dict: dict) -> None:
-        """Parse and extract data from a `.gwy` file object, starting at the current open file read position.
+        """
+        Parse and extract data from a `.gwy` file object, starting at the current open file read position.
 
         Parameters
         ----------
-        open_file: io.TextIOWrapper
+        open_file : io.TextIOWrapper
             An open file object.
-        data_dict: dict
+        data_dict : dict
             Dictionary of `.gwy` file image properties.
-
-        Returns
-        -------
-        None
         """
         object_name = read_null_terminated_string(open_file=open_file)
         data_size = read_u32i(open_file)
@@ -776,13 +804,16 @@ class LoadScans:
 
     @staticmethod
     def _gwy_read_component(open_file: io.TextIOWrapper, initial_byte_pos: int, data_dict: dict) -> int:
-        """Parse and extract data from a `.gwy` file object, starting at the current open file read position.
+        """
+        Parse and extract data from a `.gwy` file object, starting at the current open file read position.
 
         Parameters
         ----------
-        open_file: io.TextIOWrapper,
+        open_file : io.TextIOWrapper
             An open file object.
-        data_dict: dict
+        initial_byte_pos : int
+            Initial position, as byte.
+        data_dict : dict
             Dictionary of `.gwy` file image properties.
 
         Returns
@@ -829,14 +860,17 @@ class LoadScans:
 
     @staticmethod
     def _gwy_print_dict(gwy_file_dict: dict, pre_string: str) -> None:
-        """Print the nested object / component structure.
+        """
+        Recursively print nested dictionary.
 
         Can be used to find labels and values of objects / components in the `.gwy` file.
 
         Parameters
         ----------
-        gwy_file_dict: dict
+        gwy_file_dict : dict
             Dictionary of the nested object / component structure of a `.gwy` file.
+        pre_string : str
+            Prefix to use when printing string.
         """
         for key, value in gwy_file_dict.items():
             if isinstance(value, dict):
@@ -849,24 +883,26 @@ class LoadScans:
 
     @staticmethod
     def _gwy_print_dict_wrapper(gwy_file_dict: dict) -> None:
-        """Print dictionaries.
+        """
+        Print dictionaries.
 
         This is a wrapper for the _gwy_print_dict() method.
 
         Parameters
         ----------
-        gwy_file_dict: dict
+        gwy_file_dict : dict
             Dictionary of the nested object / component structure of a `.gwy` file.
         """
         pre_string = ""
         LoadScans._gwy_print_dict(gwy_file_dict=gwy_file_dict, pre_string=pre_string)
 
-    def load_gwy(self) -> tuple:
-        """Extract image and pixel to nm scaling from the Gwyddion .gwy file.
+    def load_gwy(self) -> tuple[npt.NDArray, float]:
+        """
+        Extract image and pixel to nm scaling from the Gwyddion .gwy file.
 
         Returns
         -------
-        tuple(np.ndarray, float)
+        tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
         LOGGER.info(f"Loading image from : {self.img_path}")
@@ -953,17 +989,18 @@ class LoadScans:
                 this file type."
                 )
 
-    def _check_image_size_and_add_to_dict(self, image: np.ndarray, filename: str) -> None:
-        """Check the image is above a minimum size in both dimensions.
+    def _check_image_size_and_add_to_dict(self, image: npt.NDArray, filename: str) -> None:
+        """
+        Check the image is above a minimum size in both dimensions.
 
         Images that do not meet the minimum size are not included for processing.
 
         Parameters
         ----------
-        image: np.ndarray
+        image : npt.NDArray
             An array of the extracted AFM image.
-        filename: str
-            The name of the file
+        filename : str
+            The name of the file.
         """
         if image.shape[0] < self.MINIMUM_IMAGE_SIZE or image.shape[1] < self.MINIMUM_IMAGE_SIZE:
             LOGGER.warning(f"[{filename}] Skipping, image too small: {image.shape}")
@@ -971,8 +1008,9 @@ class LoadScans:
             self.add_to_dict(image=image, filename=filename)
             LOGGER.info(f"[{filename}] Image added to processing.")
 
-    def add_to_dict(self, image: np.ndarray, filename: str) -> None:
-        """Add an image and metadata to the img_dict dictionary under the key filename.
+    def add_to_dict(self, image: npt.NDArray, filename: str) -> None:
+        """
+        Add an image and metadata to the img_dict dictionary under the key filename.
 
         Adds the image and associated metadata such as any grain masks, and pixel to nanometere
         scaling factor to the img_dict dictionary which is used as a place to store the image
@@ -980,10 +1018,10 @@ class LoadScans:
 
         Parameters
         ----------
-        image: np.ndarray
+        image : npt.NDArray
             An array of the extracted AFM image.
-        filename: str
-            The name of the file
+        filename : str
+            The name of the file.
         """
         self.img_dict[filename] = {
             "filename": filename,
@@ -997,23 +1035,20 @@ class LoadScans:
 
 
 def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -> None:
-    """Recursively save a dictionary to an open hdf5 file.
+    """
+    Recursively save a dictionary to an open hdf5 file.
 
     Parameters
     ----------
-    open_hdf5_file: h5py.File
+    open_hdf5_file : h5py.File
         An open hdf5 file object.
-    group_path: str
+    group_path : str
         The path to the group in the hdf5 file to start saving data from.
-    dictionary: dict
+    dictionary : dict
         A dictionary of the data to save.
-
-    Returns
-    -------
-    None
     """
     for key, item in dictionary.items():
-        LOGGER.info(f"Saving key: {key}")
+        LOGGER.debug(f"Saving key: {key}")
 
         if item is None:
             LOGGER.warning(f"Item '{key}' is None. Skipping.")
@@ -1048,13 +1083,14 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
 
 
 def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
-    """Read a dictionary from an open hdf5 file.
+    """
+    Read a dictionary from an open hdf5 file.
 
     Parameters
     ----------
-    open_hdf5_file: h5py.File
+    open_hdf5_file : h5py.File
         An open hdf5 file object.
-    group_path: str
+    group_path : str
         The path to the group in the hdf5 file to start reading data from.
 
     Returns
@@ -1081,17 +1117,18 @@ def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
 
 
 def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict) -> None:
-    """Save a topostats dictionary object to a .topostats (hdf5 format) file.
+    """
+    Save a topostats dictionary object to a .topostats (hdf5 format) file.
 
     Parameters
     ----------
-    output_dir: Path
+    output_dir : Path
         Directory to save the .topostats file in.
-    filename: str
+    filename : str
         File name of the .topostats file.
-    topostats_object: dict
-        Dictionary of the topostats data to save. Must include a flattened image and
-        pixel to nanometre scaling factor. May also include grain masks.
+    topostats_object : dict
+        Dictionary of the topostats data to save. Must include a flattened image and pixel to nanometre scaling
+        factor. May also include grain masks.
     """
     LOGGER.info(f"[{filename}] : Saving image to .topostats file")
 
@@ -1119,29 +1156,27 @@ def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict)
 
 
 def save_pkl(outfile: Path, to_pkl: dict) -> None:
-    """Pickle objects for working with later.
+    """
+    Pickle objects for working with later.
 
     Parameters
     ----------
-    outfile: Path
+    outfile : Path
         Path and filename to save pickle to.
-    to_pkl: dict
+    to_pkl : dict
         Object to be picled.
-
-    Returns
-    -------
-    None
     """
     with outfile.open(mode="wb", encoding=None) as f:
         pkl.dump(to_pkl, f)
 
 
 def load_pkl(infile: Path) -> Any:
-    """Load data from a pickle.
+    """
+    Load data from a pickle.
 
     Parameters
     ----------
-    infile: Path
+    infile : Path
         Path to a valid pickle.
 
     Returns
@@ -1149,9 +1184,8 @@ def load_pkl(infile: Path) -> Any:
     dict:
         Dictionary of generated images.
 
-    Example
-    -------
-
+    Examples
+    --------
     from pathlib import Path
 
     from topostats.io import load_plots
@@ -1168,7 +1202,6 @@ def load_pkl(infile: Path) -> Any:
     figure, axis = my_plots["area"]["dist"].values()
     # Get the figure and axis object for a given metrics violin plot
     figure, axis = my_plots["area"]["violin"].values()
-
     """
     with infile.open("rb", encoding=None) as f:
         return pkl.load(f)  # noqa: S301

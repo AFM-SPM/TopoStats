@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 import numpy as np
+import numpy.typing as npt
 from scipy.optimize import curve_fit
 
 # ruff: noqa: disable=no-name-in-module
@@ -28,11 +29,42 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 class Filters:
-    """Class for filtering scans."""
+    """
+    Class for filtering scans.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        The raw image from the Atomic Force Microscopy machine.
+    filename : str
+        The filename (used in logging only).
+    pixel_to_nm_scaling : float
+        Value for converting pixels to nanometers.
+    row_alignment_quantile : float
+        Quantile (0.0 to 1.0) to be used to determine the average background for the image below values may improve
+        flattening of large features.
+    threshold_method : str
+        Method for thresholding, default 'otsu', valid options 'otsu', 'std_dev' and 'absolute'.
+    otsu_threshold_multiplier : float
+        Value for scaling the derived Otsu threshold.
+    threshold_std_dev : dict
+        If using the 'std_dev' threshold method. Dictionary that contains above and below threshold values for the
+        number of standard deviations from the mean to threshold.
+    threshold_absolute : dict
+        If using the 'absolute' threshold method. Dictionary that contains above and below absolute threshold values
+        for flattening.
+    gaussian_size : float
+        If using the 'absolute' threshold method. Dictionary that contains above and below absolute threshold values
+        for flattening.
+    gaussian_mode : str
+        Method passed to 'skimage.filters.gaussian(mode = gaussian_mode)'.
+    remove_scars : dict
+        Dictionary containing configuration parameters for the scar removal function.
+    """  # numpydoc: ignore=PR01
 
     def __init__(
         self,
-        image: np.ndarray,
+        image: npt.NDArray,
         filename: str,
         pixel_to_nm_scaling: float,
         row_alignment_quantile: float = 0.5,
@@ -44,30 +76,36 @@ class Filters:
         gaussian_mode: str = "nearest",
         remove_scars: dict = None,
     ):
-        """Initialise the class.
+        """
+        Initialise the class.
 
         Parameters
         ----------
-        image: np.ndarray
-            The raw image from the AFM.
-        filename: str
-            The filename (used for logging outputs only).
-        pixel_to_nm_scaling: float
+        image : npt.NDArray
+            The raw image from the Atomic Force Microscopy machine.
+        filename : str
+            The filename (used in logging only).
+        pixel_to_nm_scaling : float
             Value for converting pixels to nanometers.
-        row_alignment_quantile: float
-            Quantile (0.0 to 1.0) to be used to determine the average background for the image.
-            below values may improve flattening of large features.
-        threshold_method: str
+        row_alignment_quantile : float
+            Quantile (0.0 to 1.0) to be used to determine the average background for the image below values may improve
+            flattening of large features.
+        threshold_method : str
             Method for thresholding, default 'otsu', valid options 'otsu', 'std_dev' and 'absolute'.
-        otsu_threshold_multiplier: float
-            Value for scaling the derived Otsu threshold (optional).
-        threshold_std_dev: dict
-            If using the 'std_dev' threshold method. Dictionary that contains above and below
-            threshold values for the number of standard deviations from the mean to threshold.
-        threshold_absolute: dict
-            If using the 'absolute' threshold method. Dictionary that contains above and below
-            absolute threshold values for flattening.
-        remove_scars: dict
+        otsu_threshold_multiplier : float
+            Value for scaling the derived Otsu threshold.
+        threshold_std_dev : dict
+            If using the 'std_dev' threshold method. Dictionary that contains above and below threshold values for the
+            number of standard deviations from the mean to threshold.
+        threshold_absolute : dict
+            If using the 'absolute' threshold method. Dictionary that contains above and below absolute threshold values
+            for flattening.
+        gaussian_size : float
+            If using the 'absolute' threshold method. Dictionary that contains above and below absolute threshold values
+            for flattening.
+        gaussian_mode : str
+            Method passed to 'skimage.filters.gaussian(mode = gaussian_mode)'.
+        remove_scars : dict
             Dictionary containing configuration parameters for the scar removal function.
         """
         self.filename = filename
@@ -107,9 +145,10 @@ class Filters:
         }
 
     def median_flatten(
-        self, image: np.ndarray, mask: np.ndarray = None, row_alignment_quantile: float = 0.5
-    ) -> np.ndarray:
-        """Flatten images using median differences.
+        self, image: npt.NDArray, mask: npt.NDArray = None, row_alignment_quantile: float = 0.5
+    ) -> npt.NDArray:
+        """
+        Flatten images using median differences.
 
         Flatten the rows of an image, aligning the rows and centering the median around zero. When used with a mask,
         this has the effect of centering the background data on zero.
@@ -118,17 +157,17 @@ class Filters:
 
         Parameters
         ----------
-        image: np.ndarray
+        image : npt.NDArray
             2-D image of the data to align the rows of.
-        mask: np.ndarray
-            Boolean array of points to mask out (ignore).
-        row_alignment_quantile: float
-            Quantile (0.0 to 1.0) used for defining the average background.
+        mask : npt.NDArray
+            Boolean array of points to mask (ignore).
+        row_alignment_quantile : float
+            Quantile (in the range 0.0 to 1.0) used for defining the average background.
 
         Returns
         -------
-        np.ndarray
-            Returns a copy of the input image with rows aligned
+        npt.NDArray
+            Copy of the input image with rows aligned.
         """
         image = image.copy()
         if mask is not None:
@@ -151,26 +190,24 @@ processed, please refer to <url to page where we document common problems> for m
 
         return image
 
-    def remove_tilt(self, image: np.ndarray, mask: np.ndarray = None):
+    def remove_tilt(self, image: npt.NDArray, mask: npt.NDArray = None) -> npt.NDArray:
         """
-        Remove planar tilt from an image (linear in 2D space).
+        Remove the planar tilt from an image (linear in 2D spaces).
 
         Uses a linear fit of the medians of the rows and columns to determine the linear slants in x and y directions
         and then subtracts the fit from the columns.
 
         Parameters
         ----------
-        image: np.ndarray
+        image : npt.NDArray
             2-D image of the data to remove the planar tilt from.
-        mask: np.ndarray
-            Boolean array of points to mask out (ignore).
-        img_name: str
-            Name of the image (to be able to print information in the console).
+        mask : npt.NDArray
+            Boolean array of points to mask (ignore).
 
         Returns
         -------
-        np.ndarray
-            Returns a copy of the input image with the planar tilt removed
+        npt.NDArray
+            Numpy array of image with tilt removed.
         """
         image = image.copy()
         if mask is not None:
@@ -217,10 +254,9 @@ processed, please refer to <url to page where we document common problems> for m
 
         return image
 
-    def remove_nonlinear_polynomial(self, image: np.ndarray, mask: np.ndarray | None = None) -> np.ndarray:
-        # Script has a lot of locals but I feel this is necessary for readability?
-        # pylint: disable=too-many-locals
-        """Fit and remove a "saddle" shaped nonlinear polynomial from the image.
+    def remove_nonlinear_polynomial(self, image: npt.NDArray, mask: npt.NDArray | None = None) -> npt.NDArray:
+        """
+        Fit and remove a "saddle" shaped nonlinear polynomial from the image.
 
         "Saddles" with the form a + b * x * y - c * x - d * y from the supplied image. AFM images sometimes contain a
         "saddle" shape trend to their background, and so to remove them we fit a nonlinear polynomial of x and y and
@@ -231,20 +267,45 @@ processed, please refer to <url to page where we document common problems> for m
 
         Parameters
         ----------
-        image: np.ndarray
-            2D numpy heightmap array of floats with a polynomial trend to remove.
-        mask: np.ndarray
-            2D numpy boolean array used to mask out any points in the image that are deemed not to be part of the
-            heightmap's background data. This argument is optional.
+        image : npt.NDArray
+            2-D numpy height-map array of floats with a polynomial trend to remove.
+        mask : npt.NDArray, optional
+            2-D Numpy boolean array used to mask any points in the image that are deemed not to be part of the
+            height-map's background data.
 
         Returns
         -------
-        np.ndarray
-            Copy of the supplied image with the polynomial trend subtracted.
+        npt.NDArray
+            Image with the polynomial trend subtracted.
         """
+        # Script has a lot of locals but I feel this is necessary for readability?
+        # pylint: disable=too-many-locals
 
         # Define the polynomial function to fit to the image
-        def model_func(x, y, a, b, c, d):
+        def model_func(x: float, y: float, a: float, b: float, c: float, d: float) -> float:
+            """
+            Polynomial function to fit to the image.
+
+            Parameters
+            ----------
+            x : float
+                X.
+            y : float
+                Y.
+            a : float
+                A.
+            b : float
+                B.
+            c : float
+                C.
+            d : float
+                D.
+
+            Returns
+            -------
+            float
+                Result of applying the polynomial a + (b * x * y) - (c * x) - (d * y).
+            """
             return a + b * x * y - c * x - d * y
 
         image = image.copy()
@@ -294,7 +355,7 @@ processed, please refer to <url to page where we document common problems> for m
 
         return image
 
-    def remove_quadratic(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
+    def remove_quadratic(self, image: npt.NDArray, mask: npt.NDArray = None) -> npt.NDArray:
         """
         Remove the quadratic bowing that can be seen in some large-scale AFM images.
 
@@ -303,15 +364,15 @@ processed, please refer to <url to page where we document common problems> for m
 
         Parameters
         ----------
-        image: np.ndarray
+        image : npt.NDArray
             2-D image of the data to remove the quadratic from.
-        mask: np.ndarray
-            Boolean array of points to mask out (ignore).
+        mask : npt.NDArray
+            Boolean array of points to mask (ignore).
 
         Returns
         -------
-        np.ndarray
-            Returns a copy of the input image with the quadratic bowing removed
+        npt.NDArray
+            Image with the quadratic bowing removed.
         """
         image = image.copy()
         if mask is not None:
@@ -344,27 +405,54 @@ processed, please refer to <url to page where we document common problems> for m
         return image
 
     @staticmethod
-    def calc_diff(array: np.ndarray) -> np.ndarray:
-        """Calculate the difference of an array."""
-        return array[-1] - array[0]
-
-    def calc_gradient(self, array: np.ndarray, shape: int) -> np.ndarray:
-        """Calculate the gradient of an array."""
-        return self.calc_diff(array) / shape
-
-    def average_background(self, image: np.ndarray, mask: np.ndarray = None) -> np.ndarray:
-        """Zero the background by subtracting the non-masked mean from all pixels.
+    def calc_diff(array: npt.NDArray) -> npt.NDArray:
+        """
+        Calculate the difference between the last and first rows of a 2-D array.
 
         Parameters
         ----------
-        image: np.array
-            Numpy array representing image.
-        mask: np.array
+        array : npt.NDArray
+            A Numpy array.
+
+        Returns
+        -------
+        npt.NDArray
+            An array of the difference between the last and first rows of an array.
+        """
+        return array[-1] - array[0]
+
+    def calc_gradient(self, array: npt.NDArray, shape: int) -> npt.NDArray:
+        """
+        Calculate the gradient of an array.
+
+        Parameters
+        ----------
+        array : npt.NDArray
+            Array for gradient to be calculated.
+        shape : int
+            Shape of the array.
+
+        Returns
+        -------
+        npt.NDArray
+            Gradient across the array.
+        """
+        return self.calc_diff(array) / shape
+
+    def average_background(self, image: npt.NDArray, mask: npt.NDArray = None) -> npt.NDArray:
+        """
+        Zero the background by subtracting the non-masked mean from all pixels.
+
+        Parameters
+        ----------
+        image : npt.NDArray
+            Numpy array representing the image.
+        mask : npt.NDArray
             Mask of the array, should have the same dimensions as image.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             Numpy array of image zero averaged.
         """
         if mask is None:
@@ -373,19 +461,21 @@ processed, please refer to <url to page where we document common problems> for m
         LOGGER.info(f"[{self.filename}] : Zero averaging background : {mean} nm")
         return image - mean
 
-    def gaussian_filter(self, image: np.ndarray, **kwargs) -> np.array:
-        """Apply Gaussian filter to an image.
+    def gaussian_filter(self, image: npt.NDArray, **kwargs) -> npt.NDArray:
+        """
+        Apply Gaussian filter to an image.
 
         Parameters
         ----------
-        image: np.array
-            Numpy array representing image.
+        image : npt.NDArray
+            Numpy array representing the image.
+        **kwargs
+            Keyword arguments passed on to the skimage.filters.gaussian() function.
 
         Returns
         -------
-        np.array
-            Numpy array of gaussian blurred image.
-
+        npt.NDArray
+            Numpy array that represent the image after Gaussian filtering.
         """
         LOGGER.info(
             f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode};"
@@ -398,11 +488,17 @@ processed, please refer to <url to page where we document common problems> for m
             **kwargs,
         )
 
-    def filter_image(self) -> None:
-        """Process a single image, filtering, finding grains and calculating their statistics.
+    def filter_image(self) -> None:  # numpydoc: ignore=GL07
+        """
+        Process a single image, filtering, finding grains and calculating their statistics.
 
-        Example
+        Returns
         -------
+        None
+            Does not return anything.
+
+        Examples
+        --------
         from topostats.io import LoadScan
         from topostats.topotracing import Filter, process_scan
 
@@ -411,7 +507,6 @@ processed, please refer to <url to page where we document common problems> for m
         ...             filename=load_scan.filename,
         ...             threshold_method='otsu')
         filter.filter_image()
-
         """
         self.images["initial_median_flatten"] = self.median_flatten(
             self.images["pixels"], mask=None, row_alignment_quantile=self.row_alignment_quantile
