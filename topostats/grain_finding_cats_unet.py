@@ -1,6 +1,5 @@
 """For segmenting cats grains using a specifically trained unet"""
 
-
 from pathlib import Path
 
 import os
@@ -9,6 +8,24 @@ import tensorflow as tf
 from PIL import Image
 import matplotlib.pyplot as plt
 from skimage.feature import hessian_matrix, hessian_matrix_eigvals
+
+
+# DICE Loss
+def dice_loss(y_true, y_pred, smooth=1e-5):
+    intersection = tf.reduce_sum(y_true * y_pred, axis=(1, 2))
+    sum_of_squares_pred = tf.reduce_sum(tf.square(y_pred), axis=(1, 2))
+    sum_of_squares_true = tf.reduce_sum(tf.square(y_true), axis=(1, 2))
+    dice = 1 - (2 * intersection + smooth) / (sum_of_squares_pred + sum_of_squares_true + smooth)
+    return dice
+
+
+# IoU Loss
+def iou_loss(y_true, y_pred, smooth=1e-5):
+    intersection = tf.reduce_sum(y_true * y_pred, axis=(1, 2))
+    sum_of_squares_pred = tf.reduce_sum(tf.square(y_pred), axis=(1, 2))
+    sum_of_squares_true = tf.reduce_sum(tf.square(y_true), axis=(1, 2))
+    iou = (intersection + smooth) / (sum_of_squares_pred + sum_of_squares_true - intersection + smooth)
+    return iou
 
 
 def test_GPU():
@@ -33,9 +50,9 @@ def detect_ridges(gray, sigma=1.0):
     return maxima_ridges, minima_ridges
 
 
-def load_model(model_path: Path):
+def load_model(model_path: Path, custom_objects=None):
     """Load a keras unet model"""
-    return tf.keras.models.load_model(model_path)
+    return tf.keras.models.load_model(model_path, custom_objects=custom_objects)
 
 
 def predict_unet(
@@ -48,7 +65,6 @@ def predict_unet(
     """Predict cats segmentation from a flattened image."""
 
     original_image = image.copy()
-
 
     # Scale the image to ensure there are no messy negatives etc
     image = image - np.min(image)
@@ -70,7 +86,7 @@ def predict_unet(
     # fig.colorbar(im1)
     # fig.colorbar(im2)
     # fig.savefig("./maxima_minima.png")
-    
+
     # Use maxima
     ridges = maxima
 
@@ -93,7 +109,8 @@ def predict_unet(
     # Predict segmentation
     # model = load_model(model_path="./models/20230817_10-26-23_cats_512_b4_e50_hessian_upper_4_0.hdf5")
     model = load_model(
-        model_path="/Users/sylvi/Documents/TopoStats/catsnet/catsnet/saved_models/20230817_10-26-23_cats_512_b4_e50_hessian_upper_4_0.hdf5"
+        model_path="/Users/sylvi/Documents/TopoStats/catsnet/catsnet/saved_models/20230817_10-26-23_cats_512_b4_e50_hessian_upper_4_0.hdf5",
+        custom_objects={"dice_loss": dice_loss, "iou_loss": iou_loss},
     )
     prediction = (model.predict(to_predict)[0, :, :, 0] > confidence).astype(np.uint8)
 
