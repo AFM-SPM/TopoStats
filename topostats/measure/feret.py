@@ -29,8 +29,6 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # Handle warnings as exceptions (encountered when gradient of base triangle is zero)
 warnings.filterwarnings("error")
 
-# pylint: disable=fixme
-
 
 def orientation(p: npt.NDArray, q: npt.NDArray, r: npt.NDArray) -> int:
     """
