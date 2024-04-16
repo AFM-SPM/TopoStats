@@ -1048,7 +1048,7 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
         A dictionary of the data to save.
     """
     for key, item in dictionary.items():
-        #LOGGER.info(f"Saving key: {key}")
+        # LOGGER.info(f"Saving key: {key}")
 
         if item is None:
             LOGGER.warning(f"Item '{key}' is None. Skipping.")

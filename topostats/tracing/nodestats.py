@@ -191,15 +191,12 @@ class nodeStats:
         # remove any artifacts of thre grain caught in the overflow areas
         new_skeleton = self.keep_biggest_object(new_skeleton)
         # Re-skeletonise
-        new_skeleton = getSkeleton(image, new_skeleton).get_skeleton(
-            {"skeletonisation_method": "topostats", "height_bias": 0.6}
-        )
+        new_skeleton = getSkeleton(image, new_skeleton, method="topostats", height_bias=0.6).get_skeleton()
         new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton(
             {"pruning_method": "topostats", "max_length": -1}
         )
-        new_skeleton = getSkeleton(image, new_skeleton).get_skeleton(
-            {"skeletonisation_method": "zhang"}
-        )  # cleanup around nibs
+        # cleanup around nibs
+        new_skeleton = getSkeleton(image, new_skeleton, method="zhang").get_skeleton()
         # might also need to remove segments that have squares connected
 
         return convolve_skelly(new_skeleton)

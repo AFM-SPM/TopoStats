@@ -23,6 +23,7 @@ fail-under=10.0
 ignore=CVS,
        _version.py,
        dnatracing.py,
+       nodestats.py,
        dnacurvature.py,
        conf.py,
        test_dnacurvature.py,

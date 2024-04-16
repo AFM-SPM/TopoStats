@@ -410,7 +410,14 @@ class dnaTrace:
         return cumulative_distances_nm
 
     def get_disordered_trace(self):
-        self.skeleton = getSkeleton(self.image, self.smoothed_grain).get_skeleton(self.skeletonisation_params.copy())
+        print(f"{self.skeletonisation_params=}")
+        self.skeleton = getSkeleton(
+            self.image,
+            self.smoothed_grain,
+            method=self.skeletonisation_params["skeletonisation_method"],
+            height_bias=self.skeletonisation_params["height_bias"],
+        ).get_skeleton()
+        # self.skeleton = getSkeleton(self.image, self.smoothed_grain).get_skeleton(self.skeletonisation_params.copy())
         # np.savetxt(OUTPUT_DIR / "skel.txt", self.skeleton)
         # np.savetxt(OUTPUT_DIR / "image.txt", self.image)
         # np.savetxt(OUTPUT_DIR / "smooth.txt", self.smoothed_grain)
