@@ -20,83 +20,17 @@ POINT4 = (2, 0)
 POINT5 = (0, 1)
 POINT6 = (0, 2)
 
-tiny_circle = np.zeros((3, 3), dtype=np.uint8)
-rr, cc = draw.circle_perimeter(1, 1, 1)
-tiny_circle[rr, cc] = 1
 
-small_circle = np.zeros((5, 5), dtype=np.uint8)
-rr, cc = draw.circle_perimeter(2, 2, 2)
-small_circle[rr, cc] = 1
-
-tiny_quadrilateral = np.asarray(
-    [
-        [0, 0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0],
-        [0, 1, 0, 0, 1, 0],
-        [0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0],
-    ],
-    dtype=np.uint8,
-)
-
-tiny_square = np.asarray([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]], dtype=np.uint8)
-
-tiny_triangle = np.asarray([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 0, 0], [0, 0, 0, 0]], dtype=np.uint8)
-
-arbitrary_triangle = np.array([[1.18727719, 2.96140198], [4.14262995, 3.17983179], [6.92472119, 0.64147496]])
-
-tiny_rectangle = np.asarray([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]], dtype=np.uint8)
-
-tiny_ellipse = np.asarray(
-    [
-        [0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0],
-        [0, 1, 0, 1, 0],
-        [0, 1, 0, 1, 0],
-        [0, 1, 0, 1, 0],
-        [0, 0, 1, 0, 0],
-        [0, 0, 0, 0, 0],
-    ],
-    dtype=np.uint8,
-)
-
-holo_circle = np.zeros((7, 7), dtype=np.uint8)
-rr, cc = draw.circle_perimeter(3, 3, 2)
-holo_circle[rr, cc] = 1
-
-holo_ellipse_vertical = np.zeros((11, 9), dtype=np.uint8)
-rr, cc = draw.ellipse_perimeter(5, 4, 4, 3)
-holo_ellipse_vertical[rr, cc] = 1
-
-holo_ellipse_horizontal = np.zeros((9, 11), dtype=np.uint8)
-rr, cc = draw.ellipse_perimeter(4, 5, 3, 4)
-holo_ellipse_horizontal[rr, cc] = 1
-
-holo_ellipse_angled = np.zeros((8, 10), dtype=np.uint8)
-rr, cc = draw.ellipse_perimeter(4, 5, 1, 3, orientation=np.deg2rad(30))
-holo_ellipse_angled[rr, cc] = 1
-
-curved_line = np.zeros((10, 10), dtype=np.uint8)
-rr, cc = draw.bezier_curve(1, 5, 5, -2, 8, 8, 2)
-curved_line[rr, cc] = 1
-
-filled_circle = np.zeros((9, 9), dtype=np.uint8)
-rr, cc = draw.disk((4, 4), 4)
-filled_circle[rr, cc] = 1
-
-filled_ellipse_vertical = np.zeros((9, 7), dtype=np.uint8)
-rr, cc = draw.ellipse(4, 3, 4, 3)
-filled_ellipse_vertical[rr, cc] = 1
-
-filled_ellipse_horizontal = np.zeros((7, 9), dtype=np.uint8)
-rr, cc = draw.ellipse(3, 4, 3, 4)
-filled_ellipse_horizontal[rr, cc] = 1
-
-filled_ellipse_angled = np.zeros((9, 11), dtype=np.uint8)
-rr, cc = draw.ellipse(4, 5, 3, 5, rotation=np.deg2rad(30))
-filled_ellipse_angled[rr, cc] = 1
+# NB : These tests use fixtures defined in the adjacent conftest.py in the parametrization. In order to access these
+#      fixtures they are quoted in the `@pytest.mark.parametrize()` and within the test function definition the
+#      `request` fixture is used to access these (via the `.getfixturevalue()` method). This can be slightly confusing
+#      on first encounter since the `request` fixture isn't explicitly imported but is available courtesty of
+#      `use pytest`
+#
+# For more information see...
+#
+# https://docs.pytest.org/en/7.1.x/reference/reference.html?highlight=request#pytest.FixtureRequest.getfixturevalue
+# https://blog.nshephard.dev/posts/pytest-param/#request.getfixturevalue
 
 
 @pytest.mark.parametrize(
@@ -116,17 +50,21 @@ def test_orientation(point1: tuple, point2: tuple, point3: tuple, target: int) -
 @pytest.mark.parametrize(
     ("shape", "axis", "target"),
     [
-        pytest.param(tiny_circle, 1, [[1, 0], [0, 1], [2, 1], [1, 2]], id="tiny circle sorted on axis 1"),
-        pytest.param(tiny_circle, 0, [[0, 1], [1, 0], [1, 2], [2, 1]], id="tiny circle sorted on axis 0"),
-        pytest.param(tiny_square, 1, [[1, 1], [2, 1], [1, 2], [2, 2]], id="tiny square sorted on axis 1"),
-        pytest.param(tiny_square, 0, [[1, 1], [1, 2], [2, 1], [2, 2]], id="tiny square sorted on axis 0"),
-        pytest.param(tiny_quadrilateral, 1, [[2, 1], [1, 2], [5, 2], [2, 4]], id="tiny quadrilateral sorted on axis 1"),
-        pytest.param(tiny_quadrilateral, 0, [[1, 2], [2, 1], [2, 4], [5, 2]], id="tiny quadrilateral sorted on axis 0"),
+        pytest.param("tiny_circle", 1, [[1, 0], [0, 1], [2, 1], [1, 2]], id="tiny circle sorted on axis 1"),
+        pytest.param("tiny_circle", 0, [[0, 1], [1, 0], [1, 2], [2, 1]], id="tiny circle sorted on axis 0"),
+        pytest.param("tiny_square", 1, [[1, 1], [2, 1], [1, 2], [2, 2]], id="tiny square sorted on axis 1"),
+        pytest.param("tiny_square", 0, [[1, 1], [1, 2], [2, 1], [2, 2]], id="tiny square sorted on axis 0"),
+        pytest.param(
+            "tiny_quadrilateral", 1, [[2, 1], [1, 2], [5, 2], [2, 4]], id="tiny quadrilateral sorted on axis 1"
+        ),
+        pytest.param(
+            "tiny_quadrilateral", 0, [[1, 2], [2, 1], [2, 4], [5, 2]], id="tiny quadrilateral sorted on axis 0"
+        ),
     ],
 )
-def test_sort_coords(shape: npt.NDArray, axis: int, target: npt.NDArray) -> None:
+def test_sort_coords(shape: npt.NDArray, axis: int, target: npt.NDArray, request) -> None:
     """Test sorting of coordinates."""
-    sorted_coords = feret.sort_coords(np.argwhere(shape == 1), axis)
+    sorted_coords = feret.sort_coords(np.argwhere(request.getfixturevalue(shape) == 1), axis)
     np.testing.assert_array_equal(sorted_coords, target)
 
 
@@ -134,166 +72,178 @@ def test_sort_coords(shape: npt.NDArray, axis: int, target: npt.NDArray) -> None
     ("coords", "axis", "target"),
     [
         pytest.param(
-            arbitrary_triangle,
+            "arbitrary_triangle",
             0,
             [[1.187277, 2.961402], [4.14263, 3.179832], [6.924721, 0.641475]],
             id="arbitrary triangle sorted on axis 0",
         ),
         pytest.param(
-            arbitrary_triangle,
+            "arbitrary_triangle",
             1,
             [[6.924721, 0.641475], [1.187277, 2.961402], [4.14263, 3.179832]],
             id="arbitrary triangle sorted on axis 1",
         ),
     ],
 )
-def test_sort_coords_arbitrary(coords: npt.NDArray, axis: int, target: npt.NDArray) -> None:
+def test_sort_coords_arbitrary(coords: npt.NDArray, axis: int, target: npt.NDArray, request) -> None:
     """Test sorting of coordinates."""
-    sorted_coords = feret.sort_coords(coords, axis)
+    sorted_coords = feret.sort_coords(request.getfixturevalue(coords), axis)
     np.testing.assert_array_almost_equal(sorted_coords, target)
 
 
 @pytest.mark.parametrize(
     ("shape", "axis"),
     [
-        pytest.param(tiny_triangle, 2, id="integer not 0 or 1"),
-        pytest.param(tiny_triangle, "row", id="string"),
+        pytest.param("tiny_triangle", 2, id="integer not 0 or 1"),
+        pytest.param("tiny_triangle", "row", id="string"),
     ],
 )
-def test_sort_coords_invalid_axis(shape: npt.NDArray, axis: int | str) -> None:
+def test_sort_coords_invalid_axis(shape: npt.NDArray, axis: int | str, request) -> None:
     """Test ValueError raised when axis is not 0 or 1."""
     with pytest.raises(ValueError):  # noqa: PT011
-        feret.sort_coords(np.argwhere(shape == 1), axis)
+        feret.sort_coords(np.argwhere(request.getfixturevalue(shape) == 1), axis)
 
 
 @pytest.mark.parametrize(
     ("shape", "axis", "upper_target", "lower_target"),
     [
         pytest.param(
-            tiny_circle, 0, [[0, 1], [1, 2], [2, 1]], [[0, 1], [1, 0], [2, 1]], id="tiny circle sorted on axis 0"
+            "tiny_circle", 0, [[0, 1], [1, 2], [2, 1]], [[0, 1], [1, 0], [2, 1]], id="tiny circle sorted on axis 0"
         ),
-        pytest.param(tiny_circle, 1, [[1, 0], [0, 1], [1, 2]], [[1, 0], [2, 1], [1, 2]], id="tiny circle on axis 1"),
+        pytest.param("tiny_circle", 1, [[1, 0], [0, 1], [1, 2]], [[1, 0], [2, 1], [1, 2]], id="tiny circle on axis 1"),
         pytest.param(
-            tiny_square, 0, [[1, 1], [1, 2], [2, 2]], [[1, 1], [2, 1], [2, 2]], id="tiny square sorted on axis 0"
-        ),
-        pytest.param(
-            tiny_square, 1, [[1, 1], [1, 2], [2, 2]], [[1, 1], [2, 1], [2, 2]], id="tiny square sorted on axis 1"
-        ),
-        pytest.param(tiny_triangle, 0, [[1, 1], [1, 2], [2, 1]], [[1, 1], [2, 1]], id="tiny triangle sorted on axis 0"),
-        pytest.param(tiny_triangle, 1, [[1, 1], [1, 2]], [[1, 1], [2, 1], [1, 2]], id="tiny triangle sorted on axis 1"),
-        pytest.param(
-            tiny_rectangle, 0, [[1, 1], [1, 2], [3, 2]], [[1, 1], [3, 1], [3, 2]], id="tiny rectangle sorted on axis 0"
+            "tiny_square", 0, [[1, 1], [1, 2], [2, 2]], [[1, 1], [2, 1], [2, 2]], id="tiny square sorted on axis 0"
         ),
         pytest.param(
-            tiny_rectangle, 1, [[1, 1], [1, 2], [3, 2]], [[1, 1], [3, 1], [3, 2]], id="tiny rectangle sorted on axis 1"
+            "tiny_square", 1, [[1, 1], [1, 2], [2, 2]], [[1, 1], [2, 1], [2, 2]], id="tiny square sorted on axis 1"
         ),
         pytest.param(
-            tiny_ellipse,
+            "tiny_triangle", 0, [[1, 1], [1, 2], [2, 1]], [[1, 1], [2, 1]], id="tiny triangle sorted on axis 0"
+        ),
+        pytest.param(
+            "tiny_triangle", 1, [[1, 1], [1, 2]], [[1, 1], [2, 1], [1, 2]], id="tiny triangle sorted on axis 1"
+        ),
+        pytest.param(
+            "tiny_rectangle",
+            0,
+            [[1, 1], [1, 2], [3, 2]],
+            [[1, 1], [3, 1], [3, 2]],
+            id="tiny rectangle sorted on axis 0",
+        ),
+        pytest.param(
+            "tiny_rectangle",
+            1,
+            [[1, 1], [1, 2], [3, 2]],
+            [[1, 1], [3, 1], [3, 2]],
+            id="tiny rectangle sorted on axis 1",
+        ),
+        pytest.param(
+            "tiny_ellipse",
             0,
             [[1, 2], [2, 3], [4, 3], [5, 2]],
             [[1, 2], [2, 1], [4, 1], [5, 2]],
             id="tiny ellipse sorted on axis 0",
         ),
         pytest.param(
-            tiny_ellipse,
+            "tiny_ellipse",
             1,
             [[2, 1], [1, 2], [2, 3], [4, 3]],
             [[2, 1], [4, 1], [5, 2], [4, 3]],
             id="tiny ellipse sorted on axis 1",
         ),
         pytest.param(
-            tiny_quadrilateral,
+            "tiny_quadrilateral",
             0,
             [[1, 2], [2, 4], [5, 2]],
             [[1, 2], [2, 1], [5, 2]],
             id="tiny quadrialteral sorted on axis 0",
         ),
         pytest.param(
-            tiny_quadrilateral,
+            "tiny_quadrilateral",
             1,
             [[2, 1], [1, 2], [2, 4]],
             [[2, 1], [5, 2], [2, 4]],
             id="tiny quadrialteral sorted on axis 1",
         ),
         pytest.param(
-            small_circle,
+            "small_circle",
             0,
             [[0, 1], [0, 3], [1, 4], [3, 4], [4, 3]],
             [[0, 1], [1, 0], [3, 0], [4, 1], [4, 3]],
             id="small circle sorted on axis 0",
         ),
         pytest.param(
-            small_circle,
+            "small_circle",
             1,
             [[1, 0], [0, 1], [0, 3], [1, 4], [3, 4]],
             [[1, 0], [3, 0], [4, 1], [4, 3], [3, 4]],
             id="small circle sorted on axis 1",
         ),
         pytest.param(
-            holo_circle,
+            "holo_circle",
             0,
             [[1, 2], [1, 4], [2, 5], [4, 5], [5, 4]],
             [[1, 2], [2, 1], [4, 1], [5, 2], [5, 4]],
             id="holo circle sorted on axis 0",
         ),
         pytest.param(
-            holo_circle,
+            "holo_circle",
             1,
             [[2, 1], [1, 2], [1, 4], [2, 5], [4, 5]],
             [[2, 1], [4, 1], [5, 2], [5, 4], [4, 5]],
             id="holo circle sorted on axis 1",
         ),
         pytest.param(
-            holo_ellipse_horizontal,
+            "holo_ellipse_horizontal",
             0,
             [[1, 3], [1, 7], [3, 9], [5, 9], [7, 7]],
             [[1, 3], [3, 1], [5, 1], [7, 3], [7, 7]],
             id="holo ellipse horizontal sorted on axis 0",
         ),
         pytest.param(
-            holo_ellipse_horizontal,
+            "holo_ellipse_horizontal",
             1,
             [[3, 1], [1, 3], [1, 7], [3, 9], [5, 9]],
             [[3, 1], [5, 1], [7, 3], [7, 7], [5, 9]],
             id="holo ellipse horizontal sorted on axis 1",
         ),
         pytest.param(
-            holo_ellipse_vertical,
+            "holo_ellipse_vertical",
             0,
             [[1, 3], [1, 5], [3, 7], [7, 7], [9, 5]],
             [[1, 3], [3, 1], [7, 1], [9, 3], [9, 5]],
             id="holo ellipse vertical sorted on axis 0",
         ),
         pytest.param(
-            holo_ellipse_vertical,
+            "holo_ellipse_vertical",
             1,
             [[3, 1], [1, 3], [1, 5], [3, 7], [7, 7]],
             [[3, 1], [7, 1], [9, 3], [9, 5], [7, 7]],
             id="holo ellipse vertical sorted on axis 1",
         ),
         pytest.param(
-            holo_ellipse_angled,
+            "holo_ellipse_angled",
             0,
             [[1, 2], [1, 4], [5, 8], [6, 7]],
             [[1, 2], [2, 1], [6, 5], [6, 7]],
             id="holo ellipse angled sorted on axis 0",
         ),
         pytest.param(
-            holo_ellipse_angled,
+            "holo_ellipse_angled",
             1,
             [[2, 1], [1, 2], [1, 4], [5, 8]],
             [[2, 1], [6, 5], [6, 7], [5, 8]],
             id="holo ellipse angled sorted on axis 1",
         ),
         pytest.param(
-            curved_line,
+            "curved_line",
             0,
             [[1, 5], [8, 8]],
             [[1, 5], [2, 3], [4, 1], [5, 1], [6, 2], [7, 4], [8, 7], [8, 8]],
             id="curved line sorted on axis 0",
         ),
         pytest.param(
-            curved_line,
+            "curved_line",
             1,
             [[4, 1], [2, 3], [1, 5], [8, 8]],
             [[4, 1], [5, 1], [6, 2], [7, 4], [8, 7], [8, 8]],
@@ -301,9 +251,9 @@ def test_sort_coords_invalid_axis(shape: npt.NDArray, axis: int | str) -> None:
         ),
     ],
 )
-def test_hulls(shape: npt.NDArray, axis: bool, upper_target: list, lower_target: list) -> None:
+def test_hulls(shape: npt.NDArray, axis: bool, upper_target: list, lower_target: list, request) -> None:
     """Test construction of upper and lower hulls."""
-    upper, lower = feret.hulls(np.argwhere(shape == 1), axis)
+    upper, lower = feret.hulls(np.argwhere(request.getfixturevalue(shape) == 1), axis)
     np.testing.assert_array_equal(upper, upper_target)
     np.testing.assert_array_equal(lower, lower_target)
 
@@ -312,7 +262,7 @@ def test_hulls(shape: npt.NDArray, axis: bool, upper_target: list, lower_target:
     ("coords", "axis", "upper_target", "lower_target"),
     [
         pytest.param(
-            arbitrary_triangle,
+            "arbitrary_triangle",
             0,
             [[1.187277, 2.961402], [4.14263, 3.179832], [6.924721, 0.641475]],
             [[1.187277, 2.961402], [6.924721, 0.641475]],
@@ -320,9 +270,9 @@ def test_hulls(shape: npt.NDArray, axis: bool, upper_target: list, lower_target:
         ),
     ],
 )
-def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lower_target: list) -> None:
+def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lower_target: list, request) -> None:
     """Test construction of upper and lower hulls."""
-    upper, lower = feret.hulls(coords, axis)
+    upper, lower = feret.hulls(request.getfixturevalue(coords), axis)
     np.testing.assert_array_almost_equal(upper, upper_target)
     np.testing.assert_array_almost_equal(lower, lower_target)
 
@@ -331,7 +281,7 @@ def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lo
     ("shape", "points_target"),
     [
         pytest.param(
-            tiny_circle,
+            "tiny_circle",
             [
                 ([1, 0], [2, 1]),
                 ([1, 0], [1, 2]),
@@ -343,7 +293,7 @@ def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lo
             id="tiny circle",
         ),
         pytest.param(
-            tiny_square,
+            "tiny_square",
             [
                 ([1, 1], [2, 1]),
                 ([1, 1], [2, 2]),
@@ -355,7 +305,7 @@ def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lo
             id="tiny square",
         ),
         pytest.param(
-            tiny_triangle,
+            "tiny_triangle",
             [
                 ([1, 1], [2, 1]),
                 ([1, 1], [1, 2]),
@@ -364,7 +314,7 @@ def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lo
             id="tiny triangle",
         ),
         pytest.param(
-            tiny_rectangle,
+            "tiny_rectangle",
             [
                 ([1, 1], [3, 1]),
                 ([1, 1], [3, 2]),
@@ -376,7 +326,7 @@ def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lo
             id="tiny rectangle",
         ),
         pytest.param(
-            tiny_ellipse,
+            "tiny_ellipse",
             [
                 ([2, 1], [4, 1]),
                 ([2, 1], [5, 2]),
@@ -395,7 +345,7 @@ def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lo
             id="tiny ellipse",
         ),
         pytest.param(
-            small_circle,
+            "small_circle",
             [
                 ([1, 0], [3, 0]),
                 ([1, 0], [4, 1]),
@@ -423,7 +373,7 @@ def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lo
             id="small circle",
         ),
         pytest.param(
-            holo_circle,
+            "holo_circle",
             [
                 ([2, 1], [4, 1]),
                 ([2, 1], [5, 2]),
@@ -451,7 +401,7 @@ def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lo
             id="holo circle",
         ),
         pytest.param(
-            holo_ellipse_horizontal,
+            "holo_ellipse_horizontal",
             [
                 ([3, 1], [5, 1]),
                 ([3, 1], [7, 3]),
@@ -479,7 +429,7 @@ def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lo
             id="holo ellipse horizontal",
         ),
         pytest.param(
-            holo_ellipse_vertical,
+            "holo_ellipse_vertical",
             [
                 ([3, 1], [7, 1]),
                 ([3, 1], [9, 3]),
@@ -507,7 +457,7 @@ def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lo
             id="holo ellipse vertical",
         ),
         pytest.param(
-            holo_ellipse_angled,
+            "holo_ellipse_angled",
             [
                 ([2, 1], [6, 5]),
                 ([2, 1], [6, 7]),
@@ -526,7 +476,7 @@ def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lo
             id="holo ellipse angled",
         ),
         pytest.param(
-            curved_line,
+            "curved_line",
             [
                 ([4, 1], [5, 1]),
                 ([4, 1], [6, 2]),
@@ -554,9 +504,9 @@ def test_hulls_arbitrary(coords: npt.NDArray, axis: bool, upper_target: list, lo
         ),
     ],
 )
-def test_all_pairs(shape: npt.NDArray, points_target: list) -> None:
+def test_all_pairs(shape: npt.NDArray, points_target: list, request) -> None:
     """Test calculation of all pairs."""
-    points = feret.all_pairs(np.argwhere(shape == 1))
+    points = feret.all_pairs(np.argwhere(request.getfixturevalue(shape) == 1))
     np.testing.assert_array_equal(list(points), points_target)
 
 
@@ -689,7 +639,7 @@ def test_min_feret_coord(
     ("shape", "axis", "calipers_target", "min_ferets_target", "min_feret_coords_target"),
     [
         pytest.param(
-            tiny_circle,
+            "tiny_circle",
             0,
             (([2, 1], [0, 1]), ([1, 0], [0, 1]), ([1, 0], [1, 2]), ([0, 1], [1, 2])),
             (1.414213562373095, 1.414213562373095, 1.414213562373095, 1.414213562373095),
@@ -697,7 +647,7 @@ def test_min_feret_coord(
             id="tiny circle sorted by axis 0",
         ),
         pytest.param(
-            tiny_quadrilateral,
+            "tiny_quadrilateral",
             0,
             (([5, 2], [1, 2]), ([5, 2], [2, 4]), ([2, 1], [2, 4]), ([2, 1], [5, 2])),
             (3.5777087639996634, 2.846049894151541, 2.4961508830135313, 2.82842712474619),
@@ -710,7 +660,7 @@ def test_min_feret_coord(
             id="tiny quadrilateral sorted by axis 0",
         ),
         pytest.param(
-            tiny_square,
+            "tiny_square",
             0,
             (([2, 2], [1, 1]), ([2, 1], [1, 1]), ([2, 1], [1, 2]), ([1, 1], [1, 2])),
             (1.0, 1.0, 1.0, 1.0),
@@ -723,7 +673,7 @@ def test_min_feret_coord(
             id="tiny square sorted by axis 0",
         ),
         pytest.param(
-            tiny_triangle,
+            "tiny_triangle",
             0,
             (([2, 1], [1, 1]), ([2, 1], [1, 2]), ([1, 1], [1, 2])),
             (1.0, 1.0, 0.7071067811865475),
@@ -731,7 +681,7 @@ def test_min_feret_coord(
             id="tiny triangle sorted by axis 0",
         ),
         pytest.param(
-            tiny_rectangle,
+            "tiny_rectangle",
             0,
             (([3, 2], [1, 1]), ([3, 1], [1, 1]), ([3, 1], [1, 2]), ([1, 1], [1, 2])),
             (2.0, 2.0, 1.0, 1.0),
@@ -744,7 +694,7 @@ def test_min_feret_coord(
             id="tiny rectangle sorted by axis 0",
         ),
         pytest.param(
-            tiny_ellipse,
+            "tiny_ellipse",
             0,
             (
                 ([5, 2], [1, 2]),
@@ -766,7 +716,7 @@ def test_min_feret_coord(
             id="tiny ellipse sorted by axis 0",
         ),
         pytest.param(
-            small_circle,
+            "small_circle",
             0,
             (
                 ([4, 3], [0, 1]),
@@ -792,7 +742,7 @@ def test_min_feret_coord(
             id="small circle sorted by axis 0",
         ),
         pytest.param(
-            holo_circle,
+            "holo_circle",
             0,
             (
                 ([5, 4], [1, 2]),
@@ -818,7 +768,7 @@ def test_min_feret_coord(
             id="holo circle sorted by axis 0",
         ),
         pytest.param(
-            holo_ellipse_horizontal,
+            "holo_ellipse_horizontal",
             0,
             (
                 ([7, 7], [1, 3]),
@@ -844,7 +794,7 @@ def test_min_feret_coord(
             id="holo ellipse horizontal sorted by axis 0",
         ),
         pytest.param(
-            holo_ellipse_vertical,
+            "holo_ellipse_vertical",
             0,
             (
                 ([9, 5], [1, 3]),
@@ -870,7 +820,7 @@ def test_min_feret_coord(
             id="holo ellipse vertical sorted by axis 0",
         ),
         pytest.param(
-            holo_ellipse_angled,
+            "holo_ellipse_angled",
             0,
             (
                 ([6, 7], [1, 2]),
@@ -892,7 +842,7 @@ def test_min_feret_coord(
             id="holo ellipse angled sorted by axis 0",
         ),
         pytest.param(
-            curved_line,
+            "curved_line",
             0,
             (
                 ([8, 8], [1, 5]),
@@ -929,10 +879,15 @@ def test_min_feret_coord(
     ],
 )
 def test_rotating_calipers(
-    shape: npt.NDArray, axis: int, calipers_target: tuple, min_ferets_target: tuple, min_feret_coords_target: tuple
+    shape: npt.NDArray,
+    axis: int,
+    calipers_target: tuple,
+    min_ferets_target: tuple,
+    min_feret_coords_target: tuple,
+    request,
 ) -> None:
     """Test calculation of rotating caliper pairs."""
-    caliper_min_feret = feret.rotating_calipers(np.argwhere(shape == 1), axis)
+    caliper_min_feret = feret.rotating_calipers(np.argwhere(request.getfixturevalue(shape) == 1), axis)
     min_ferets, calipers, min_feret_coords = zip(*caliper_min_feret)
     np.testing.assert_array_almost_equal(calipers, calipers_target)
     np.testing.assert_array_almost_equal(min_ferets, min_ferets_target)
@@ -943,7 +898,7 @@ def test_rotating_calipers(
     ("coords", "axis", "calipers_target", "min_ferets_target", "min_feret_coords_target"),
     [
         pytest.param(
-            arbitrary_triangle,
+            "arbitrary_triangle",
             0,
             (
                 ([6.92472119, 0.64147496], [1.18727719, 2.96140198]),
@@ -961,10 +916,15 @@ def test_rotating_calipers(
     ],
 )
 def test_rotating_calipers_arbitrary(
-    coords: npt.NDArray, axis: int, calipers_target: tuple, min_ferets_target: tuple, min_feret_coords_target: tuple
+    coords: npt.NDArray,
+    axis: int,
+    calipers_target: tuple,
+    min_ferets_target: tuple,
+    min_feret_coords_target: tuple,
+    request,
 ) -> None:
     """Test calculation of rotating caliper pairs."""
-    caliper_min_feret = feret.rotating_calipers(coords, axis)
+    caliper_min_feret = feret.rotating_calipers(request.getfixturevalue(coords), axis)
     min_ferets, calipers, min_feret_coords = zip(*caliper_min_feret)
     np.testing.assert_array_almost_equal(calipers, calipers_target)
     np.testing.assert_array_almost_equal(min_ferets, min_ferets_target)
@@ -976,7 +936,7 @@ def test_rotating_calipers_arbitrary(
     [
         pytest.param(np.asarray([1, 1]), np.asarray([1, 0]), np.asarray([0, 0]), 45.0, id="45-degree"),
         pytest.param(np.asarray([1, 3]), np.asarray([1, 0]), np.asarray([0, 0]), 18.434948822922017, id="18.43-degree"),
-        pytest.param(np.asarray([1, 4]), np.asarray([1, 0]), np.asarray([0, 0]), 14.036243467926484, id="-degree"),
+        pytest.param(np.asarray([1, 4]), np.asarray([1, 0]), np.asarray([0, 0]), 14.036243467926484, id="14.03-degree"),
     ],
 )
 def test_angle_between(base1: npt.NDArray, base2: npt.NDArray, apex: npt.NDArray, target_angle: float) -> None:
@@ -989,45 +949,57 @@ def test_angle_between(base1: npt.NDArray, base2: npt.NDArray, apex: npt.NDArray
     ("coordinates", "target"),
     [
         pytest.param(
-            np.asarray([[0, 0], [0, 5], [5, 0], [5, 5]]),
-            ([[0, 0], [0, 5], [5, 5], [5, 0]]),
+            "tiny_square",
+            ([[1, 1], [1, 2], [2, 2], [2, 1]]),
             id="Simple square Top Left > Top Right > Bottom Left > Bottom Right",
         ),
         pytest.param(
-            np.asarray([[1, 1], [1, 0], [0, 0]]),
-            ([0, 0], [1, 1], [1, 0]),
+            "tiny_triangle",
+            ([1, 1], [1, 2], [2, 1]),
             id="Simple Triangle Bottom Right > Bottom Left > Apex",
         ),
         pytest.param(
-            np.argwhere(holo_ellipse_angled == 1),
+            "holo_ellipse_angled",
             ([2, 1], [1, 2], [1, 4], [5, 8], [6, 7], [6, 5]),
             id="Angled ellipse.",
         ),
         pytest.param(
-            np.argwhere(holo_ellipse_horizontal == 1),
+            "holo_ellipse_horizontal",
             ([3, 1], [1, 3], [1, 7], [3, 9], [5, 9], [7, 7], [7, 3], [5, 1]),
             id="Horizontal ellipse.",
         ),
         pytest.param(
-            np.argwhere(holo_ellipse_vertical == 1),
+            "holo_ellipse_vertical",
             ([3, 1], [1, 3], [1, 5], [3, 7], [7, 7], [9, 5], [9, 3], [7, 1]),
             id="Vertical ellipse.",
         ),
         pytest.param(
-            np.argwhere(curved_line == 1),
+            "curved_line",
             ([5, 1], [4, 1], [2, 3], [1, 5], [8, 8], [8, 7], [7, 4], [6, 2]),
             id="Curved line.",
         ),
+    ],
+)
+def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray, request) -> None:
+    """Test sorting of coordinates in a clockwise direction."""
+    upper_hull, lower_hull = feret.hulls(np.argwhere(request.getfixturevalue(coordinates) == 1))
+    hull = np.unique(np.concatenate([lower_hull, upper_hull], axis=0), axis=0)
+    np.testing.assert_array_equal(feret.sort_clockwise(hull), target)
+
+
+@pytest.mark.parametrize(
+    ("coordinates", "target"),
+    [
         pytest.param(
-            arbitrary_triangle,
+            "arbitrary_triangle",
             ([[1.18727719, 2.96140198], [4.14262995, 3.17983179], [6.92472119, 0.64147496]]),
             id="Arbitrary triangle",
         ),
     ],
 )
-def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
+def test_sort_clockwise_arbitrary(coordinates: npt.NDArray, target: npt.NDArray, request) -> None:
     """Test sorting of coordinates in a clockwise direction."""
-    upper_hull, lower_hull = feret.hulls(coordinates)
+    upper_hull, lower_hull = feret.hulls(request.getfixturevalue(coordinates))
     hull = np.unique(np.concatenate([lower_hull, upper_hull], axis=0), axis=0)
     np.testing.assert_array_equal(feret.sort_clockwise(hull), target)
 
@@ -1043,7 +1015,7 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
     ),
     [
         pytest.param(
-            tiny_circle,
+            "tiny_circle",
             0,
             1.4142135623730951,
             ([0, 1], [1, 0]),
@@ -1052,7 +1024,7 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
             id="tiny circle sorted on axis 0",
         ),
         pytest.param(
-            tiny_circle,
+            "tiny_circle",
             1,
             1.4142135623730951,
             ([0, 1], [1, 0]),
@@ -1061,7 +1033,7 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
             id="tiny circle sorted on axis 1",
         ),
         pytest.param(
-            tiny_square,
+            "tiny_square",
             0,
             1.0,
             ([1, 1], [1, 2]),
@@ -1070,7 +1042,7 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
             id="tiny square sorted on axis 0",
         ),
         pytest.param(
-            tiny_quadrilateral,
+            "tiny_quadrilateral",
             0,
             2.4961508830135313,
             ([3.384615384615385, 3.0769230769230766], [2, 1]),
@@ -1079,7 +1051,7 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
             id="tiny quadrilateral sorted on axis 0",
         ),
         pytest.param(
-            tiny_quadrilateral,
+            "tiny_quadrilateral",
             1,
             2.4961508830135313,
             ([3.384615384615385, 3.0769230769230766], [2, 1]),
@@ -1088,7 +1060,7 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
             id="tiny quadrilateral sorted on axis 1",
         ),
         pytest.param(
-            tiny_triangle,
+            "tiny_triangle",
             0,
             0.7071067811865475,
             ([1.5, 1.5], [1, 1]),
@@ -1097,7 +1069,7 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
             id="tiny triangle sorted on axis 0",
         ),
         pytest.param(
-            tiny_rectangle,
+            "tiny_rectangle",
             0,
             1.0,
             ([1, 1], [1, 2]),
@@ -1105,9 +1077,11 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
             ([3, 2], [1, 1]),
             id="tiny rectangle sorted on axis 0",
         ),
-        pytest.param(tiny_ellipse, 0, 2.0, ([2, 1], [2, 3]), 4.0, ([5, 2], [1, 2]), id="tiny ellipse sorted on axis 0"),
         pytest.param(
-            small_circle,
+            "tiny_ellipse", 0, 2.0, ([2, 1], [2, 3]), 4.0, ([5, 2], [1, 2]), id="tiny ellipse sorted on axis 0"
+        ),
+        pytest.param(
+            "small_circle",
             1,
             4.0,
             ([0, 1], [4, 1]),
@@ -1116,7 +1090,7 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
             id="small circle sorted on axis 0",
         ),
         pytest.param(
-            holo_circle,
+            "holo_circle",
             0,
             4.0,
             ([1, 2], [5, 2]),
@@ -1125,7 +1099,7 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
             id="holo circle sorted on axis 0",
         ),
         pytest.param(
-            holo_ellipse_horizontal,
+            "holo_ellipse_horizontal",
             0,
             6.0,
             ([1, 3], [7, 3]),
@@ -1134,7 +1108,7 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
             id="holo ellipse horizontal on axis 0",
         ),
         pytest.param(
-            holo_ellipse_vertical,
+            "holo_ellipse_vertical",
             0,
             6.0,
             ([3, 1], [3, 7]),
@@ -1143,7 +1117,7 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
             id="holo ellipse vertical on axis 0",
         ),
         pytest.param(
-            holo_ellipse_angled,
+            "holo_ellipse_angled",
             0,
             2.82842712474619,
             ([0, 3], [2, 1]),
@@ -1152,7 +1126,7 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
             id="holo ellipse angled on axis 0",
         ),
         pytest.param(
-            curved_line,
+            "curved_line",
             0,
             5.252257314388902,
             ([2.93103448275862, 5.827586206896552], [5, 1]),
@@ -1161,7 +1135,7 @@ def test_sort_clockwise(coordinates: npt.NDArray, target: npt.NDArray) -> None:
             id="curved line sorted on axis 0",
         ),
         pytest.param(
-            curved_line,
+            "curved_line",
             1,
             5.252257314388902,
             ([2.93103448275862, 5.827586206896552], [5, 1]),
@@ -1178,9 +1152,10 @@ def test_min_max_feret(
     min_feret_coord_target: list,
     max_feret_distance_target: float,
     max_feret_coord_target: list,
+    request,
 ) -> None:
     """Test calculation of min/max feret."""
-    feret_statistics = feret.min_max_feret(np.argwhere(shape == 1), axis)
+    feret_statistics = feret.min_max_feret(np.argwhere(request.getfixturevalue(shape) == 1), axis)
     np.testing.assert_approx_equal(feret_statistics["min_feret"], min_feret_distance_target)
     np.testing.assert_array_almost_equal(feret_statistics["min_feret_coords"], min_feret_coord_target)
     np.testing.assert_approx_equal(feret_statistics["max_feret"], max_feret_distance_target)
@@ -1198,7 +1173,7 @@ def test_min_max_feret(
     ),
     [
         pytest.param(
-            filled_circle,
+            "filled_circle",
             0,
             6.0,
             ([1.0, 2.0], [7.0, 2.0]),
@@ -1207,7 +1182,7 @@ def test_min_max_feret(
             id="filled circle sorted on axis 0",
         ),
         pytest.param(
-            filled_ellipse_horizontal,
+            "filled_ellipse_horizontal",
             0,
             4.0,
             ([1.0, 2.0], [5.0, 2.0]),
@@ -1216,7 +1191,7 @@ def test_min_max_feret(
             id="filled ellipse horizontal sorted on axis 0",
         ),
         pytest.param(
-            filled_ellipse_vertical,
+            "filled_ellipse_vertical",
             0,
             4.0,
             ([2.0, 1.0], [2.0, 5.0]),
@@ -1225,7 +1200,7 @@ def test_min_max_feret(
             id="filled ellipse vertical sorted on axis 0",
         ),
         pytest.param(
-            filled_ellipse_angled,
+            "filled_ellipse_angled",
             0,
             5.366563145999495,
             ([1.2, 4.6], [6.0, 7.0]),
@@ -1242,9 +1217,10 @@ def test_get_feret_from_mask(
     min_feret_coord_target: list,
     max_feret_distance_target: float,
     max_feret_coord_target: list,
+    request,
 ) -> None:
     """Test calculation of min/max feret for a single masked object."""
-    feret_statistics = feret.get_feret_from_mask(shape, axis)
+    feret_statistics = feret.get_feret_from_mask(request.getfixturevalue(shape), axis)
     np.testing.assert_approx_equal(feret_statistics["min_feret"], min_feret_distance_target)
     np.testing.assert_array_almost_equal(feret_statistics["min_feret_coords"], min_feret_coord_target)
     np.testing.assert_approx_equal(feret_statistics["max_feret"], max_feret_distance_target)
@@ -1252,13 +1228,28 @@ def test_get_feret_from_mask(
 
 
 # Concatenate images to have two labeled objects within them
-holo_ellipse_angled2 = holo_ellipse_angled.copy()
-holo_ellipse_angled2[holo_ellipse_angled2 == 1] = 2
+# Can't work out how to access fixtures outside of functions so recreate images.
+ellipse_angled = np.zeros((8, 10), dtype=np.uint8)
+rr, cc = draw.ellipse_perimeter(4, 5, 1, 3, orientation=np.deg2rad(30))
+ellipse_angled[rr, cc] = 1
+circle = np.zeros((7, 7), dtype=np.uint8)
+rr, cc = draw.circle_perimeter(3, 3, 2)
+circle[rr, cc] = 1
+ellipse_angled2 = ellipse_angled.copy()
+ellipse_angled2[ellipse_angled2 == 1] = 2
 # Need to pad the holo_circle
-holo_image = np.concatenate((np.pad(holo_circle, pad_width=((0, 1), (0, 3))), holo_ellipse_angled2))
-filled_ellipse_angled2 = filled_ellipse_angled.copy()
-filled_ellipse_angled2[filled_ellipse_angled2 == 1] = 2
-filled_image = np.concatenate((np.pad(filled_circle, pad_width=((0, 0), (0, 2))), filled_ellipse_angled2))
+holo_image = np.concatenate((np.pad(circle, pad_width=((0, 1), (0, 3))), ellipse_angled2))
+
+# Repeat for filled images
+ellipse_angled = np.zeros((9, 11), dtype=np.uint8)
+rr, cc = draw.ellipse(4, 5, 3, 5, rotation=np.deg2rad(30))
+ellipse_angled[rr, cc] = 1
+circle = np.zeros((9, 9), dtype=np.uint8)
+rr, cc = draw.disk((4, 4), 4)
+circle[rr, cc] = 1
+ellipse_angled2 = ellipse_angled.copy()
+ellipse_angled2[ellipse_angled2 == 1] = 2
+filled_image = np.concatenate((np.pad(circle, pad_width=((0, 0), (0, 2))), ellipse_angled2))
 
 
 @pytest.mark.parametrize(
@@ -1326,13 +1317,15 @@ def test_get_feret_from_labelim(shape: npt.NDArray, axis: int, target: dict) -> 
         "plot_max_feret",
     ),
     [
-        pytest.param(tiny_quadrilateral, 0, "k", ("g-", "r-"), "y-", "b:", "m--", "m--", id="Plot everything"),
-        pytest.param(tiny_quadrilateral, 0, None, ("g-", "r-"), "y-", "b:", "m--", "m--", id="Exclude points"),
-        pytest.param(tiny_quadrilateral, 0, "k", None, "y-", "b:", "m--", "m--", id="Exclude hull"),
-        pytest.param(tiny_quadrilateral, 0, "k", ("g-", "r-"), None, "b:", "m--", "m--", id="Exclude calipers"),
-        pytest.param(tiny_quadrilateral, 0, "k", ("g-", "r-"), "y-", None, "m--", "m--", id="Exclude triangle heights"),
-        pytest.param(tiny_quadrilateral, 0, "k", ("g-", "r-"), "y-", "b:", None, "m--", id="Exclude min feret"),
-        pytest.param(tiny_quadrilateral, 0, "k", ("g-", "r-"), "y-", "b:", "m--", None, id="Exclude max feret"),
+        pytest.param("tiny_quadrilateral", 0, "k", ("g-", "r-"), "y-", "b:", "m--", "m--", id="Plot everything"),
+        pytest.param("tiny_quadrilateral", 0, None, ("g-", "r-"), "y-", "b:", "m--", "m--", id="Exclude points"),
+        pytest.param("tiny_quadrilateral", 0, "k", None, "y-", "b:", "m--", "m--", id="Exclude hull"),
+        pytest.param("tiny_quadrilateral", 0, "k", ("g-", "r-"), None, "b:", "m--", "m--", id="Exclude calipers"),
+        pytest.param(
+            "tiny_quadrilateral", 0, "k", ("g-", "r-"), "y-", None, "m--", "m--", id="Exclude triangle heights"
+        ),
+        pytest.param("tiny_quadrilateral", 0, "k", ("g-", "r-"), "y-", "b:", None, "m--", id="Exclude min feret"),
+        pytest.param("tiny_quadrilateral", 0, "k", ("g-", "r-"), "y-", "b:", "m--", None, id="Exclude max feret"),
     ],
 )
 @pytest.mark.mpl_image_compare(baseline_dir="../resources/img/feret")
@@ -1345,10 +1338,11 @@ def test_plot_feret(  # pylint: disable=too-many-arguments
     plot_triangle_heights: str | None,
     plot_min_feret: str | None,
     plot_max_feret: str | None,
+    request,
 ) -> None:
     """Tests the plotting function used for investigating whether feret distances are correct."""
     fig, _ = feret.plot_feret(
-        np.argwhere(shape == 1),
+        np.argwhere(request.getfixturevalue(shape) == 1),
         axis,
         plot_points,
         plot_hulls,
