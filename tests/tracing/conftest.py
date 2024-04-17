@@ -151,5 +151,5 @@ def skeletonize_linear_bool_int(skeletonize_linear) -> np.ndarray:
 
 @pytest.fixture()
 def topostats_skeletonise_init(skeletonize_circular, skeletonize_circular_bool_int):
-    "Initialises topostatsSkeletonise for testing individual functions."
+    """Initialises topostatsSkeletonise for testing individual functions."""
     return topostatsSkeletonize(skeletonize_circular, skeletonize_circular_bool_int, 0.6)
