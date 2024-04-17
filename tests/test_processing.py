@@ -419,7 +419,7 @@ def test_process_scan_align_grainstats_dnatracing(
     )
     tracing_to_check = ["contour_length", "circular", "end_to_end_distance"]
 
-    assert results.shape == (3, 25)
+    assert results.shape == (3, 27)
     assert np.isnan(results.loc[2, "contour_length"])
     assert np.isnan(sum(results.loc[2, tracing_to_check]))
 
@@ -497,7 +497,7 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
 
     assert isinstance(grainstats_df, pd.DataFrame)
     assert grainstats_df.shape[0] == 13
-    assert len(grainstats_df.columns) == 21
+    assert len(grainstats_df.columns) == 23
 
 
 def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
