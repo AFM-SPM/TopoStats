@@ -323,7 +323,8 @@ class GrainStats:
                 "smallest_bounding_area": smallest_bounding_length * smallest_bounding_width * area_scaling_factor,
                 "aspect_ratio": aspect_ratio,
                 "threshold": self.direction,
-                **feret_statistics,
+                "max_feret": feret_statistics["max_feret"],
+                "min_feret": feret_statistics["min_feret"],
             }
             stats_array.append(stats)
         if len(stats_array) > 0:
