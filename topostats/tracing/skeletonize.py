@@ -270,7 +270,7 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
         if pixels_to_delete.shape != (0,):  # ensure array not empty
             skel_img[pixels_to_delete[:, 0], pixels_to_delete[:, 1]] = 2
             heights = self.image[pixels_to_delete[:, 0], pixels_to_delete[:, 1]]  # get heights of pixels
-            height_sort_idx = np.argsort(heights)[
+            height_sort_idx = self.sort_and_shuffle(heights)[1][
                 : int(np.ceil(len(heights) * self.height_bias))
             ]  # idx of lowest height_bias%
             self.mask[pixels_to_delete[height_sort_idx, 0], pixels_to_delete[height_sort_idx, 1]] = (
@@ -289,7 +289,7 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
         if pixels_to_delete.shape != (0,):
             skel_img[pixels_to_delete[:, 0], pixels_to_delete[:, 1]] = 3
             heights = self.image[pixels_to_delete[:, 0], pixels_to_delete[:, 1]]
-            height_sort_idx = np.argsort(heights)[
+            height_sort_idx = self.sort_and_shuffle(heights)[1][
                 : int(np.ceil(len(heights) * self.height_bias))
             ]  # idx of lowest height_bias%
             self.mask[pixels_to_delete[height_sort_idx, 0], pixels_to_delete[height_sort_idx, 1]] = (
@@ -540,3 +540,34 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
         """
         local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
         return np.delete(local_pixels, 4)
+    
+    @staticmethod
+    def sort_and_shuffle(arr: npt.NDArray) -> tuple[npt.NDArray, npt.NDArray]:
+        """Sort a flat array in ascending order and shuffle the order where the array values are the same.
+
+        Parameters
+        ----------
+        arr : npt.NDArray
+            A flattened (1D) array.
+
+        Returns
+        -------
+        npt.NDArray
+            An ascending order array where identical value orders are also shuffled.
+        npt.NDArray
+            An ascending order index array of above where identical value orders are also shuffled.
+        """
+        # Find unique values
+        unique_values_r = np.unique(arr)
+    
+        # Shuffle the order of elements with the same value
+        sorted_and_shuffled_indices = []
+        for val in unique_values_r:
+            indices = np.where(arr == val)[0]
+            np.random.shuffle(indices)
+            sorted_and_shuffled_indices.extend(indices)
+    
+        # Rearrange the sorted array according to shuffled indices
+        sorted_and_shuffled_arr = arr[sorted_and_shuffled_indices]
+    
+        return sorted_and_shuffled_arr, sorted_and_shuffled_indices

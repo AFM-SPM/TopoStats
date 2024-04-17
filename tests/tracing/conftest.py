@@ -9,7 +9,7 @@ import pytest
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.tracing.dnatracing import dnaTrace
-from topostats.tracing.skeletonize import getSkeleton
+from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
@@ -147,3 +147,9 @@ def skeletonize_linear() -> np.ndarray:
 def skeletonize_linear_bool_int(skeletonize_linear) -> np.ndarray:
     """Linear molecule for testing skeletonizing as a boolean integer array."""
     return np.array(skeletonize_linear, dtype="bool").astype(int)
+
+
+@pytest.fixture()
+def topostats_skeletonise_init(skeletonize_circular, skeletonize_circular_bool_int):
+    "Initialises topostatsSkeletonise for testing individual functions."
+    return topostatsSkeletonize(skeletonize_circular, skeletonize_circular_bool_int, 0.6)
