@@ -542,13 +542,16 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
         return np.delete(local_pixels, 4)
 
     @staticmethod
-    def sort_and_shuffle(arr: npt.NDArray) -> tuple[npt.NDArray, npt.NDArray]:
-        """Sort a flat array in ascending order and shuffle the order where the array values are the same.
+    def sort_and_shuffle(arr: npt.NDArray, seed: int = 23790101) -> tuple[npt.NDArray, npt.NDArray]:
+        """
+        Sort array in ascending order and shuffle the order of identical values are the same.
 
         Parameters
         ----------
         arr : npt.NDArray
             A flattened (1D) array.
+        seed : int
+            Seed for random number generator.
 
         Returns
         -------
@@ -560,14 +563,16 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
         # Find unique values
         unique_values_r = np.unique(arr)
 
+        rng = np.random.default_rng(seed)
+
         # Shuffle the order of elements with the same value
-        sorted_and_shuffled_indices = []
+        sorted_and_shuffled_indices: list = []
         for val in unique_values_r:
             indices = np.where(arr == val)[0]
-            np.random.shuffle(indices)
+            rng.shuffle(indices)
             sorted_and_shuffled_indices.extend(indices)
 
         # Rearrange the sorted array according to shuffled indices
-        sorted_and_shuffled_arr = arr[sorted_and_shuffled_indices]
+        sorted_and_shuffled_arr: list = arr[sorted_and_shuffled_indices]
 
         return sorted_and_shuffled_arr, sorted_and_shuffled_indices
