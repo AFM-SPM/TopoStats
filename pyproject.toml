@@ -255,7 +255,7 @@ convention = "numpy"
 fixture-parentheses = true
 
 [tool.codespell]
-skip = '*.spm*,*.mplstyle,*.svg,*nodestats.py,*dnatracing.py'
+skip = '*.spm*,*.mplstyle,*.svg,*nodestats.py'
 count = ''
 quiet-level = 3
 

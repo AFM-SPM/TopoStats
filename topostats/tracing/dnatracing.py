@@ -242,7 +242,7 @@ class dnaTrace:
                     self.mol_is_circulars.append(mol_is_circular)
                     fitted_trace = self.get_fitted_traces(trace, mol_is_circular)
                     self.fitted_trace_img += coords_2_img(fitted_trace, self.image)
-                    # Propper cleanup needed - ordered trace instead of fitted trace?
+                    # Proper cleanup needed - ordered trace instead of fitted trace?
 
                     splined_trace = self.get_splined_traces(fitted_trace, mol_is_circular)
                     # sometimes traces can get skwiffy
@@ -292,7 +292,7 @@ class dnaTrace:
         """
         Smooth grains based on the lower number of binary pixels added from dilation or gaussian.
 
-        This method ensures gaussian smoothing isn't too agressive and covers / creates gaps in the mask.
+        This method ensures gaussian smoothing isn't too aggressive and covers / creates gaps in the mask.
 
         Parameters
         ----------
@@ -333,7 +333,7 @@ class dnaTrace:
 
         As Gaussian dilation smoothing methods can close holes in the original mask, this function obtains those holes
         (based on the general background being the first due to padding) and adds them back into the smoothed mask. When
-        paired, this essentailly just smooths the outer edge of the grains.
+        paired, this essentially just smooths the outer edge of the grains.
 
         Parameters
         ----------
@@ -378,7 +378,7 @@ class dnaTrace:
         Parameters
         ----------
         ordered_trace : npt.NDArray
-            Array of ordered trace co-ordinates.
+            Array of ordered trace coordinates.
 
         Returns
         -------
@@ -629,7 +629,7 @@ class dnaTrace:
                 y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
                 x_coords = np.full(len(y_coords), trace_coordinate[0])
 
-            # Use the perp array to index the guassian filtered image
+            # Use the perp array to index the gaussian filtered image
             perp_array = np.column_stack((x_coords, y_coords))
             try:
                 height_values = self.smoothed_grain[perp_array[:, 0], perp_array[:, 1]]
@@ -1596,7 +1596,7 @@ def trace_grain(
                     "trace_distances": None,
                     "ordered_trace": None,
                     "splined_trace": None,
-                },  # incase no mols could be traced, need empties to attempt to merge on
+                },  # in case no mols could be traced, need empties to attempt to merge on
             },
             "nodeStats": dnatrace.node_dict,
         },
