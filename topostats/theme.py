@@ -38,8 +38,6 @@ class Colormap:
             self.cmap = self.cyan()
         elif name.lower() == "blu_purp":
             self.cmap = self.blu_purp()
-        elif name.lower() == "libby_blu_purp":
-            self.cmap = self.libby_blu_purp()
         elif name.lower() == "pink_black":
             self.cmap = self.pink_black()
         elif name.lower() == "green_black":
@@ -50,6 +48,12 @@ class Colormap:
             self.cmap = self.green_green()
         elif name.lower() == "blu_purp_green":
             self.cmap = self.blu_purp_green()
+        elif name.lower() == "tripple":
+            self.cmap = self.tripple()
+        elif name.lower() == "pink_green":
+            self.cmap = self.pink_green()
+        elif name.lower() == "topology":
+            self.cmap = self.topology()
         else:
             # Get one of the matplotlib colormaps
             self.cmap = mpl.colormaps[name]
@@ -138,11 +142,6 @@ class Colormap:
         return ListedColormap([[0 / 256, 157 / 256, 229 / 256], [255 / 256, 100 / 256, 225 / 256]], "blu_purp", N=256)
 
     @staticmethod
-    def libby_blu_purp():
-        "RGBA colour map of just the colour blue."
-        return ListedColormap([[36 / 256, 166 / 256, 120 / 256], [91 / 256, 0 / 256, 250 / 256]], "blu_purp", N=256)
-
-    @staticmethod
     def blu():
         "RGBA colour map of just the colour blue."
         return ListedColormap([[32 / 256, 226 / 256, 205 / 256]], "blu", N=256)
@@ -177,6 +176,33 @@ class Colormap:
         "RGBA colour map of just the colour blue."
         return ListedColormap(
             [[0 / 256, 157 / 256, 229 / 256], [255 / 256, 100 / 256, 225 / 256], [0 / 256, 1, 139 / 256]],
+            "blu_purp_green",
+            N=3,
+        )
+    
+    @staticmethod
+    def tripple():
+        "RGBA colour map of just the colour blue."
+        return ListedColormap(
+            [[255 / 256, 100 / 256, 225 / 256], [0 / 256, 1, 139 / 256]],
+            "tripple",
+            N=2,
+        )
+    
+    @staticmethod
+    def pink_green():
+        "RGBA colour map of just the colour blue."
+        return ListedColormap(
+            [[255 / 256, 100 / 256, 225 / 256], [0 / 256, 1, 139 / 256]],
+            "pink_green",
+            N=2,
+        )
+    
+    @staticmethod
+    def topology():
+        "RGBA colour map of pink, lime, and cyan."
+        return ListedColormap(
+            [[255 / 255, 26 / 255, 237 / 255], [144 / 255, 255 / 255, 75 / 255], [0 / 255, 255 /255, 255 / 255]],
             "blu_purp_green",
             N=3,
         )

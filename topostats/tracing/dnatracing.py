@@ -158,6 +158,7 @@ class dnaTrace:
                 n_grain=self.n_grain,
             )
             self.node_dict, self.node_image_dict = nodes.get_node_stats()
+            self.test2 = nodes.test2
             self.avg_crossing_confidence = self.average_crossing_confs(self.node_dict)
             self.min_crossing_confidence = self.minimum_crossing_confs(self.node_dict)
             self.node_image = nodes.connected_nodes
@@ -167,6 +168,7 @@ class dnaTrace:
             if nodes.check_node_errorless():
                 ordered_traces, self.visuals, self.topology = nodes.compile_trace()
                 _, _, self.topology2 = nodes.compile_trace(reverse_min_conf_crossing=True)
+                self.test3 = nodes.test3
                 self.num_mols = len(ordered_traces)
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} ordered via nodeStats.")
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} has {len(ordered_traces)} molecules.")
@@ -920,7 +922,7 @@ def trace_image(
     all_traces = []
 
     for n_grain, (cropped_image, cropped_mask) in enumerate(zip(cropped_images, cropped_masks)):
-        result, node_dict, node_image_dict, images, trace = trace_grain(
+        result, node_dict, node_image_dict, images, trace, test2 = trace_grain(
             cropped_image,
             cropped_mask,
             pixel_to_nm_scaling,
@@ -949,7 +951,7 @@ def trace_image(
 
     print(grains_results)
 
-    return grains_results, full_node_dict, full_node_image_dict, all_images, all_traces
+    return grains_results, full_node_dict, full_node_image_dict, all_images, all_traces, test2
 
 
 def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
@@ -1083,7 +1085,7 @@ def trace_grain(
         "fitted_traces": dnatrace.fitted_trace_img,
         "visual": dnatrace.visuals,
     }
-    return results, dnatrace.node_dict, dnatrace.node_image_dict, images, dnatrace.splined_traces
+    return results, dnatrace.node_dict, dnatrace.node_image_dict, images, dnatrace.splined_traces, [dnatrace.test2, dnatrace.test3]
 
 
 def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np.ndarray:
@@ -1672,7 +1674,7 @@ class nodeStats:
 
         # check whether average trace resides inside the grain mask
         dilate = ndimage.binary_dilation(self.skeleton, iterations=2)
-        average_trace_advised = False #dilate[self.smoothed_grain == 1].sum() == dilate.sum()
+        average_trace_advised = True #dilate[self.smoothed_grain == 1].sum() == dilate.sum()
         LOGGER.info(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
 
         # iterate over the nodes to find areas
@@ -1707,6 +1709,10 @@ class nodeStats:
             branch_mask[branch_mask == 3] = 0
             branch_mask[branch_mask == 2] = 1
             node_coords = np.argwhere(reduced_node_area == 3)
+            
+            nodeless = reduced_node_area.copy()
+            nodeless[reduced_node_area==3] = 0
+            node_test = label(nodeless)
 
             error = False  # to see if node too complex or region too small
 
@@ -1869,8 +1875,8 @@ class nodeStats:
                         branch_label += 1
                         branch_img[ordered_branches[i][:, 0], ordered_branches[i][:, 1]] = branch_label
 
-                    if node_no == 0:
-                        self.test3 = avg_img
+                    #if node_no == 0:
+                        #self.test3 = avg_img
 
                     # calc crossing angle
                     # get full branch vectors
@@ -1920,6 +1926,7 @@ class nodeStats:
                     # image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
                     # ],
                     "node_avg_mask": avg_img,
+                    "node_test": node_test,
                 }
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
 
@@ -2879,6 +2886,7 @@ class nodeStats:
             for crossing_num, crossing in enumerate(crossings):
                 both[crossing[:, 0], crossing[:, 1]] = node_num + crossing_num + minus.max()
         #np.save(OUTPUT_DIR / "both", both)
+        self.test3 = both
 
         # setup z array
         z = []
@@ -2918,7 +2926,7 @@ class nodeStats:
         LOGGER.info(f"[{self.filename}] Getting coordinate trace")
 
         coord_trace, simple_trace = self.simple_xyz_trace(ordered, cross_add, z, n=100)
-
+        #np.save("/Users/Maxgamill/Downloads/trace")
         # TODO: Finish / do triv identification via maybe:
         #   one segment 2 branches
         #   topology based -> 0_1 all triv, 2^2_1 -> 2 real (may have to check against no. nodes to see which are real)
@@ -3163,7 +3171,7 @@ class nodeStats:
         for mol_no, coords in enumerate(coord_trace):
             temp_img = np.zeros_like(img)
             temp_img[coords[:, 0], coords[:, 1]] = 1
-            temp_img = binary_dilation(temp_img)
+            #temp_img = binary_dilation(temp_img)
             img[temp_img != 0] = 1  # mol_no + 1
 
         # np.savetxt(OUTPUT_DIR / "preimg.txt", img)
@@ -3204,7 +3212,7 @@ class nodeStats:
                     matching_coords = np.append(matching_coords, c)
                     val = matching_coords.argmax() + 1
                     temp_img[cross_coords[:, 0], cross_coords[:, 1]] = 1
-                    temp_img = binary_dilation(temp_img)
+                    #temp_img = binary_dilation(temp_img)
                     img[temp_img != 0] = i + 2
 
         return img

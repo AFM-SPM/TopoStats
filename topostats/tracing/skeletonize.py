@@ -636,14 +636,6 @@ class joePrune:
                     method_values=self.method_values,
                     method_outlier=self.method_outlier,
                 )
-            """
-            if self.min_height_threshold_mean is not None:
-                single_skeleton = remove_bridges_abs_mean(single_skeleton, self.image, threshold=self.min_height_threshold_mean)
-                print("MAX_HEI_MEAN_NUM: ", (single_skeleton != 0).sum())
-            if self.outlier_height_thresh is not None:
-                single_skeleton = remove_bridges_iqr(single_skeleton, self.image)
-                print("OUT_NUM: ", (single_skeleton != 0).sum())
-            """
             pruned_skeleton_mask += getSkeleton(self.image, single_skeleton).get_skeleton(
                 {"skeletonisation_method": "zhang"}
             )  # reskel to remove nibs
@@ -855,6 +847,7 @@ def remove_bridges_abs(skeleton, image, threshold, method_values, method_outlier
         for i in range(1, segments.max() + 1):
             segment = np.where(segments == i, 1, 0)
             if segment.sum() > 2:
+                # sometimes start is not found
                 start = np.argwhere(convolve_skelly(segment) == 2)[0]
                 ordered_coords = order_branch_from_start(segment, start)
                 mid_coord = ordered_coords[len(ordered_coords) // 2]
