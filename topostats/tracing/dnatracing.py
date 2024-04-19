@@ -2,15 +2,10 @@
 
 from __future__ import annotations
 
-from collections import OrderedDict
-from functools import partial
-from itertools import repeat
 import logging
 import math
-from multiprocessing import Pool
 import os
 from pathlib import Path
-from typing import Dict, List, Union, Tuple
 import warnings
 
 import numpy as np
@@ -18,17 +13,17 @@ import numpy.typing as npt
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy import ndimage, spatial, interpolate as interp
+from scipy import ndimage, interpolate as interp
 from skimage.morphology import label
 from skimage.filters import gaussian, threshold_otsu
 import skimage.measure as skimage_measure
-from tqdm import tqdm
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.nodestats import nodeStats
-from topostats.tracing.skeletonize import getSkeleton, pruneSkeleton
+from topostats.tracing.skeletonize import getSkeleton
+from topostats.tracing.pruning import pruneSkeleton
 from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
-from topostats.utils import bound_padded_coordinates_to_image, coords_2_img
+from topostats.utils import coords_2_img
 
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -58,15 +53,19 @@ class dnaTrace:
         Filename being processed.
     pixel_to_nm_scaling : float
         Pixel to nm scaling.
-    min_skeleton_size : int
-        Minimum skeleton size below which tracing statistics are not calculated.
     convert_nm_to_m : bool
         Convert nanometers to metres.
-    skeletonisation_method : str
-        Method of skeletonisation to use 'topostats' is the original TopoStats method. Three methods from
-        scikit-image are available 'zhang', 'lee' and 'thin'.
+    min_skeleton_size : int
+        Minimum skeleton size below which tracing statistics are not calculated.
+    skeletonisation_params : dict
+        Skeletonisation Parameters. Method of skeletonisation to use 'topostats' is the original TopoStats
+        method. Three methods from scikit-image are available 'zhang', 'lee' and 'thin'.
+    pruning_params : dict
+            Pruning parameters.
     n_grain : int
         Grain number being processed (only  used in logging).
+    joining_node_length : float
+        ???.
     spline_step_size : float
         Step size for spline evaluation in metres.
     spline_linear_smoothing : float
@@ -110,15 +109,19 @@ class dnaTrace:
             Filename being processed.
         pixel_to_nm_scaling : float
             Pixel to nm scaling.
-        min_skeleton_size : int
-            Minimum skeleton size below which tracing statistics are not calculated.
         convert_nm_to_m : bool
             Convert nanometers to metres.
-        skeletonisation_method : str
-            Method of skeletonisation to use 'topostats' is the original TopoStats method. Three methods from
-            scikit-image are available 'zhang', 'lee' and 'thin'.
+        min_skeleton_size : int
+            Minimum skeleton size below which tracing statistics are not calculated.
+        skeletonisation_params : dict
+            Skeletonisation Parameters. Method of skeletonisation to use 'topostats' is the original TopoStats
+            method. Three methods from scikit-image are available 'zhang', 'lee' and 'thin'.
+        pruning_params : dict
+            Pruning parameters.
         n_grain : int
             Grain number being processed (only  used in logging).
+        joining_node_length : float
+            ???.
         spline_step_size : float
             Step size for spline evaluation in metres.
         spline_linear_smoothing : float
@@ -271,7 +274,7 @@ class dnaTrace:
             self.mol_is_circulars.append([])
             self.end_to_end_distances.append([])
 
-    def gaussian_filter(self, **kwargs) -> np.array:
+    def gaussian_filter(self, **kwargs) -> npt.NDArray:
         """
         Apply Gaussian filter.
 
@@ -283,9 +286,23 @@ class dnaTrace:
         self.smoothed_grain = gaussian(self.image, sigma=self.sigma, **kwargs)
         LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Gaussian filter applied.")
 
-    def smooth_grains(self, grain: np.ndarray) -> np.ndarray:
-        """Smoothes grains based on the lower number added from dilation or gaussian.
-        (makes sure gaussian isnt too agressive."""
+    def smooth_grains(self, grain: npt.NDArray) -> npt.NDArray:
+        """
+        Smoothe grains based on the lower number added from dilation or gaussian.
+
+        This method ensures gaussian smoothing isn't too agressive. ??? Check - how is this achieved? Should perhaps
+        parametrize the sigma value passed?
+
+        Parameters
+        ----------
+        grain : npt.NDArray
+            Numpy array of grain.
+
+        Returns
+        -------
+        npt.NDArray
+            Numpy array of smmoothed image.
+        """
         dilation = ndimage.binary_dilation(grain, iterations=2).astype(np.int32)
         gauss = gaussian(grain, sigma=max(grain.shape) / 256)
         gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
@@ -298,18 +315,31 @@ class dnaTrace:
             dilation = self.re_add_holes(grain, dilation)
             return dilation
 
-    def re_add_holes(self, orig_mask, new_mask, holearea_min_max=[4, np.inf]):
-        """As gaussian and dilation smoothing methods can close holes in the original mask,
-        this function obtains those holes (based on the general background being the first due
-        to padding) and adds them back into the smoothed mask. When paired, this essentailly
-        just smooths the outer edge of the grains.
-
-        Parameters:
-        -----------
-            orig_mask (_type_): _description_
-            new_mask (_type_): _description_
-            holearea_min_max (_type_): _description_
+    def re_add_holes(
+        self, orig_mask: npt.NDArray, new_mask: npt.NDArray, holearea_min_max: list = [4, np.inf]
+    ) -> npt.NDArray:
         """
+        Restore holes in masks that were occluded by dilation.
+
+        As Gaussian dilation smoothing methods can close holes in the original mask, this function obtains those holes
+        (based on the general background being the first due to padding) and adds them back into the smoothed mask. When
+        paired, this essentailly just smooths the outer edge of the grains.
+
+        Parameters
+        ----------
+        orig_mask : npt.NDArray
+            Original mask.
+        new_mask : npt.NDArray
+            New mask.
+        holearea_min_max : list
+            List of minimum and maximum hole area (in pixels).
+
+        Returns
+        -------
+        npt.NDArray
+            Smoothed mask with holes restored.
+        """
+
         holesize_min_px = holearea_min_max[0] / ((self.pixel_to_nm_scaling / 1e-9) ** 2)
         holesize_max_px = holearea_min_max[1] / ((self.pixel_to_nm_scaling / 1e-9) ** 2)
         holes = 1 - orig_mask
@@ -328,35 +358,38 @@ class dnaTrace:
 
         return holey_smooth
 
-    def get_ordered_trace_heights(self, ordered_trace) -> None:
+    def get_ordered_trace_heights(self, ordered_trace) -> npt.NDArray:
         """
-         Populate the `trace_heights` attribute with an array of pixel heights from the ordered trace.
-         `self.ordered_trace` list.
+        Sort the smoothed grain array by the ordered trace.
 
         Gets the heights of each pixel in the ordered trace from the gaussian filtered image. The pixel coordinates
         for the ordered trace are stored in the ordered trace list as part of the class.
 
-         Parameters
-         ----------
-         None
-
-         Returns
-         -------
-         None
-        """
-
-        return np.array(self.smoothed_grain[ordered_trace[:, 0], ordered_trace[:, 1]])
-
-    def get_ordered_trace_cumulative_distances(self, ordered_trace) -> None:
-        """
-        Populate the `self.trace_distances` attribute with a list of the cumulative distances of
-        each pixel in the `self.ordered_trace` list.
         Parameters
         ----------
-        None
+        ordered_trace : npt.NDArray
+            Array of ordered trace co-ordinates.
+
         Returns
         -------
-        None
+        npt.NDArray
+            Smoothed array ordered by the ordered trace.
+        """
+        return np.array(self.smoothed_grain[ordered_trace[:, 0], ordered_trace[:, 1]])
+
+    def get_ordered_trace_cumulative_distances(self, ordered_trace: npt.NDArray) -> npt.NDArray:
+        """
+        List of the cumulative distances of each pixel in the `self.ordered_trace` list.
+
+        Parameters
+        ----------
+        ordered_trace : npt.NDArray
+            ???.
+
+        Returns
+        -------
+        npt.NDArray
+            ???.
         """
 
         # Get the cumulative distances of each pixel in the ordered trace from the gaussian filtered image
@@ -410,7 +443,7 @@ class dnaTrace:
         return cumulative_distances_nm
 
     def get_disordered_trace(self):
-        print(f"{self.skeletonisation_params=}")
+        """Derive disordered trace."""
         self.skeleton = getSkeleton(
             self.image,
             self.smoothed_grain,
@@ -428,13 +461,19 @@ class dnaTrace:
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
     @staticmethod
-    def remove_touching_edge(skeleton: np.ndarray):
-        """Removes any skeletons touching the boarder (to prevent errors later).
+    def remove_touching_edge(skeleton: npt.NDArray) -> npt.NDArray:
+        """
+        Remove any skeleton points touching the boarder (to prevent errors later).
 
         Parameters
         ----------
-        skeleton: np.ndarray
+        skeleton : npt.NDArray
             A binary array where touching clusters of 1's become 0's if touching the edge of the array.
+
+        Returns
+        -------
+        npt.NDArray
+            Skeleton without points touching the border.
         """
         for edge in [skeleton[0, :-1], skeleton[:-1, -1], skeleton[-1, 1:], skeleton[1:, 0]]:
             uniques = np.unique(edge)
@@ -442,16 +481,22 @@ class dnaTrace:
                 skeleton[skeleton == i] = 0
         return skeleton
 
-    def linear_or_circular(self, traces) -> None:
+    def linear_or_circular(self, traces) -> bool:
         """
-        Determine whether molecule is circular or linear based on the local environment of each pixel from the trace.
+        Determine whether molecule circular or linear based.
 
-        This function is sensitive to branches from the skeleton so might need to implement a function to remove them.
+        This function is sensitive to branches from the skeleton because it is based on whether any given point has zero
+        neighbours or not so the traces should be pruned.
 
         Parameters
         ----------
         traces : npt.NDArray
             The array of coordinates to be assessed.
+
+        Returns
+        -------
+        bool
+            Whether a molecule is linear or not (True if linear, False otherwise).
         """
 
         points_with_one_neighbour = 0
@@ -466,8 +511,7 @@ class dnaTrace:
 
         if points_with_one_neighbour == 0:
             return True
-        else:
-            return False
+        return False
 
     def get_ordered_traces(self):
         """Order a trace."""
@@ -484,9 +528,21 @@ class dnaTrace:
         elif not self.mol_is_circular:
             self.ordered_trace = reorderTrace.linearTrace(self.disordered_trace.tolist())
 
-    def get_fitted_traces(self, ordered_trace, mol_is_circular: bool):
-        """Create trace coordinates (for each identified molecule) that are adjusted to lie
-        along the highest points of each traced molecule
+    def get_fitted_traces(self, ordered_trace: npt.NDArray, mol_is_circular: bool) -> npt.NDArray:
+        """
+        Adjust coordinates to lie along the highest points of the molecule.
+
+        Parameters
+        ----------
+        ordered_trace : npt.NDArray
+            Ordered trace.
+        mol_is_circular : bool
+            Whether molecule is circular.
+
+        Returns
+        -------
+        npt.NDArray
+            Adjusted ordered trace sitting on the highest points of the molecule.
         """
         # This indexes a 3 nm height profile perpendicular to DNA backbone
         # note that this is a hard coded parameter
@@ -616,19 +672,31 @@ class dnaTrace:
 
     def get_splined_traces(
         self,
-        fitted_trace,
-        mol_is_circular,
-    ) -> None:
+        fitted_trace: npt.NDArray,
+        mol_is_circular: bool,
+    ) -> npt.NDArray:
         """
         Get a splined version of the fitted trace - useful for finding the radius of gyration etc.
 
         This function actually calculates the average of several splines which is important for getting a good fit on
         the lower resolution data.
+
+        Parameters
+        ----------
+        fitted_trace : npt.NDArray
+            Numpy array of the fitted trace.
+        mol_is_circular : bool
+            Is the molecule circular.
+
+        Returns
+        -------
+        npt.NDArray
+            Splined (smoothed) array of trace.
         """
 
         # Fitted traces are Nx2 numpy arrays of coordinates
         # All self references are here for easy turning into static method if wanted, also type hints and short documentation
-        fitted_trace: np.ndarray = fitted_trace  # boolean 2d numpy array of fitted traces to spline
+        fitted_trace: npt.NDArray = fitted_trace  # boolean 2d numpy array of fitted traces to spline
         step_size_m: float = self.spline_step_size  # the step size for the splines to skip pixels in the fitted trace
         pixel_to_nm_scaling: float = self.pixel_to_nm_scaling  # pixel to nanometre scaling factor for the image
         mol_is_circular: bool = mol_is_circular  # whether or not the molecule is classed as circular
@@ -723,6 +791,7 @@ class dnaTrace:
         return spline_average
 
     def show_traces(self):
+        """Plot traces."""
         plt.pcolormesh(self.smoothed_grain, vmax=-3e-9, vmin=3e-9)
         plt.colorbar()
         plt.plot(self.ordered_trace[:, 0], self.ordered_trace[:, 1], markersize=1)
@@ -988,11 +1057,24 @@ class dnaTrace:
         plt.savefig(f"{savename}_{dna_num}_curvature.png")
         plt.close()
 
-    def measure_contour_length(self, splined_trace, mol_is_circular):
-        """Measures the contour length for each of the splined traces taking into
-        account whether the molecule is circular or linear
+    def measure_contour_length(self, splined_trace: npt.NDArray, mol_is_circular: bool) -> float:
+        """
+        Contour length for each of the splined traces accounting  for whether the molecule is circular or linear.
 
-        Contour length units are nm"""
+        Contour length units are nm.
+
+        Parameters
+        ----------
+        splined_trace : npt.NDArray
+            The splined trace.
+        mol_is_circular : bool
+            Whether the molecule is circular or not.
+
+        Returns
+        -------
+        float
+            Length of molecule in nanometres (nm).
+        """
         if mol_is_circular:
             for num, i in enumerate(splined_trace):
                 x1 = splined_trace[num - 1, 0]
@@ -1027,19 +1109,30 @@ class dnaTrace:
         return contour_length
 
     def measure_end_to_end_distance(self, splined_trace, mol_is_circular):
-        """Calculate the Euclidean distance between the start and end of linear molecules.
+        """
+        Euclidean distance between the start and end of linear molecules.
+
         The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
         molecules. If the molecule is circular then the distance is set to zero (0).
+
+        Parameters
+        ----------
+        splined_trace : npt.NDArray
+            The splined trace.
+        mol_is_circular : bool
+            Whether the molecule is circular or not.
+
+        Returns
+        -------
+        float
+            Length of molecule in nanometres (nm).
         """
-        if mol_is_circular:
-            end_to_end_distance = 0
-        else:
-            x1 = splined_trace[0, 0]
-            y1 = splined_trace[0, 1]
-            x2 = splined_trace[-1, 0]
-            y2 = splined_trace[-1, 1]
-            end_to_end_distance = math.hypot((x1 - x2), (y1 - y2)) * self.pixel_to_nm_scaling
-        return end_to_end_distance
+        if not mol_is_circular:
+            return (
+                math.hypot((splined_trace[0, 0] - splined_trace[-1, 0]), (splined_trace[0, 1] - splined_trace[-1, 1]))
+                * self.pixel_to_nm_scaling
+            )
+        return 0
 
 
 def trace_image(
@@ -1072,9 +1165,13 @@ def trace_image(
         Pixel to nm scaling.
     min_skeleton_size : int
         Minimum size of grain in pixels after skeletonisation.
-    skeletonisation_method : str
-        Method of skeletonisation, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin' (scikitimage) or
-       'topostats' (original TopoStats method).
+    skeletonisation_params : dicxt
+        Dictionary of options for skeletonisation, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin'
+        (scikitimage) or 'topostats' (original TopoStats method).
+    pruning_params : dict
+        Dictionary of options for pruning.
+    joining_node_length : float
+        ???.
     spline_step_size : float
         Step size for spline evaluation in metres.
     spline_linear_smoothing : float
@@ -1416,13 +1513,17 @@ def trace_grain(
         converted to a binary mask.
     pixel_to_nm_scaling : float
         Pixel to nm scaling.
+    skeletonisation_params : dict
+        Dictionary of skeletonisation parameters, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin'
+        (scikitimage) or 'topostats' (original TopoStats method).
+    pruning_params : dict
+        Dictionary of pruning parameters.
     filename : str
         File being processed.
     min_skeleton_size : int
         Minimum size of grain in pixels after skeletonisation.
-    skeletonisation_method : str
-        Method of skeletonisation, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin' (scikitimage) or
-       'topostats' (original TopoStats method).
+    joining_node_length : float
+        ???.
     spline_step_size : float
         Step size for spline evaluation in metres.
     spline_linear_smoothing : float

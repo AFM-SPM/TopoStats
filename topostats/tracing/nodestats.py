@@ -11,7 +11,8 @@ from skimage.feature import hessian_matrix, hessian_matrix_eigvals
 from skimage.morphology import label
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.tracing.skeletonize import getSkeleton, pruneSkeleton
+from topostats.tracing.skeletonize import getSkeleton
+from topostats.tracing.pruning import pruneSkeleton
 from topostats.utils import ResolutionError, convolve_skelly, coords_2_img
 
 LOGGER = logging.getLogger(LOGGER_NAME)

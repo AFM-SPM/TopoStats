@@ -4,12 +4,10 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-# pytest: disable=
+# pylint: disable=unnecessary-pass
 # pytest: disable=import-error
-# from topostats.tracing.skeletonize import get_skeleton
 from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
 
-np.random.seed(2024)
 
 def test_skeletonize_method(skeletonize_get_skeleton: getSkeleton) -> None:
     """Test unsupported method raises the appropriate error."""
@@ -163,7 +161,7 @@ def test_skeletonize_method(skeletonize_get_skeleton: getSkeleton) -> None:
             "topostats",
             0.6,
             (21, 21),
-            40,
+            36,
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -182,9 +180,9 @@ def test_skeletonize_method(skeletonize_get_skeleton: getSkeleton) -> None:
                     [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 ]
@@ -413,7 +411,7 @@ def test_skeletonize_method(skeletonize_get_skeleton: getSkeleton) -> None:
             "topostats",
             0.6,
             (24, 20),
-            14,
+            17,
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -422,15 +420,15 @@ def test_skeletonize_method(skeletonize_get_skeleton: getSkeleton) -> None:
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -439,7 +437,7 @@ def test_skeletonize_method(skeletonize_get_skeleton: getSkeleton) -> None:
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 ]
             ),
             id="TopoStats, linear, height_bias 0.6",
@@ -450,7 +448,7 @@ def test_skeletonize_method(skeletonize_get_skeleton: getSkeleton) -> None:
             "topostats",
             0.1,
             (24, 20),
-            16,
+            13,
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -464,19 +462,19 @@ def test_skeletonize_method(skeletonize_get_skeleton: getSkeleton) -> None:
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 ]
             ),
             id="TopoStats, linear, height_bias 0.1",
@@ -487,7 +485,7 @@ def test_skeletonize_method(skeletonize_get_skeleton: getSkeleton) -> None:
             "topostats",
             0.9,
             (24, 20),
-            17,
+            14,
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -496,25 +494,25 @@ def test_skeletonize_method(skeletonize_get_skeleton: getSkeleton) -> None:
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- ]
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
             ),
             id="TopoStats, linear, height_bias 0.9",
         ),
@@ -537,26 +535,124 @@ def test_get_skeleton(  # pylint: disable=too-many-arguments
     skeletonize_get_skeleton.method = method
     skeletonize_get_skeleton.height_bias = height_bias
     skeleton = skeletonize_get_skeleton.get_skeleton()
-    print(skeleton)
     assert isinstance(skeleton, np.ndarray)
     assert skeleton.ndim == 2
     assert skeleton.shape == shape
     assert skeleton.sum() == array_sum
     np.testing.assert_array_equal(skeleton, target)
 
+
+# Tests for topopstatsSkeletonize class
+def test_do_skeletonising_iteration() -> None:
+    """Test of do skeletonising iteration."""
+    pass
+
+
+def test_delete_pixel_subit1() -> None:
+    """Test of  method."""
+    pass
+
+
+def test_delete_pixel_subit2() -> None:
+    """Test of  method."""
+    pass
+
+
+def test_binary_thin_check_a() -> None:
+    """Test of  method."""
+    pass
+
+
+def test_binary_thin_check_b_returncount() -> None:
+    """Test of  method."""
+    pass
+
+
+def test_binary_thin_check_c() -> None:
+    """Test of  method."""
+    pass
+
+
+def test_binary_thin_check_d() -> None:
+    """Test of  method."""
+    pass
+
+
+def test_binary_thin_check_csharp() -> None:
+    """Test of  method."""
+    pass
+
+
+def test_binary_thin_check_dsharp() -> None:
+    """Test of  method."""
+    pass
+
+
+def test_final_skeletonisation_iteration() -> None:
+    """Test of  method."""
+    pass
+
+
+def test_binary_final_thin_check_a() -> None:
+    """Test of  method."""
+    pass
+
+
+def test_binary_final_thin_check_b() -> None:
+    """Test of  method."""
+    pass
+
+
+def test_binary_thin_check_diag() -> None:
+    """Test of  method."""
+    pass
+
+
+def test_get_local_pixels_binary() -> None:
+    """Test of  method."""
+    pass
+
+
+def test_do_skeletonising() -> None:
+    """Test of  method."""
+    pass
+
+
+# Miscellaneous functions
+def test_order_branch_from_start() -> None:
+    """Test of order_branch_from_start()."""
+    pass
+
+
+def test_rm_nibs() -> None:
+    """Test of rm_nibs()."""
+    pass
+
+
+def test_local_area_sum() -> None:
+    """Test local_area_sum()."""
+    pass
+
+
 @pytest.mark.parametrize(
-    ("array", "target_array", "target_indicies"),
+    ("array", "seed", "target_array", "target_indicies"),
     [
-        (np.array([1, 1, 1, 1, 3, 3, 2, 1]), np.array([1, 1, 1, 1, 1, 2, 3, 3]), np.array([2, 1, 3, 7, 0, 6, 5, 4]))
+        (
+            np.array([1, 1, 1, 1, 3, 3, 2, 1]),
+            2024,
+            np.array([1, 1, 1, 1, 1, 2, 3, 3]),
+            np.array([3, 7, 1, 2, 0, 6, 4, 5]),
+        )
     ],
-    )
+)
 def test_sort_and_shuffle(
-    topostats_skeletonise_init: topostatsSkeletonize,
-    array: npt.NDArray, target_array: npt.NDArray,
-    target_indicies: npt.NDArray
-    ) -> None:
-    "Tests the topostatsSkeletonize.sort_and_shuffle() method."
-    sort_and_shuffled_array, sort_and_shuffled_indicies = topostats_skeletonise_init.sort_and_shuffle(array)
+    topostats_skeletonise: topostatsSkeletonize,
+    array: npt.NDArray,
+    seed: int,
+    target_array: npt.NDArray,
+    target_indicies: npt.NDArray,
+) -> None:
+    """Tests the topostatsSkeletonize.sort_and_shuffle() method."""
+    sort_and_shuffled_array, sort_and_shuffled_indicies = topostats_skeletonise.sort_and_shuffle(array, seed)
     np.testing.assert_array_equal(sort_and_shuffled_array, target_array)
     np.testing.assert_array_equal(sort_and_shuffled_indicies, target_indicies)
-
