@@ -25,7 +25,8 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
     method : str
         Method for skeletonizing. Options 'zhang' (default), 'lee', 'medial_axis', 'thin' and 'topostats'.
     height_bias : float
-        Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang.
+        Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels
+        smiilar to Zhang.
     """
 
     def __init__(self, image: npt.NDArray, mask: npt.NDArray, method: str = "zhang", height_bias: float = 0.6):
@@ -46,7 +47,8 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         method : str
             Method for skeletonizing. Options 'zhang' (default), 'lee', 'medial_axis', 'thin' and 'topostats'.
         height_bias : float
-            Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang.
+            Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all
+            pixels smiilar to Zhang.
         """
         # Q What benefit is there to having a class getSkeleton over the get_skeleton() function? Ostensibly the class
         # is doing only one thing, we don't need to change state/modify anything here. Beyond encapsulating all
@@ -173,7 +175,8 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         mask : npt.NDArray
             Binary array to skeletonise.
         height_bias : float
-            Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang.
+            Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all
+            pixels smiilar to Zhang.
 
         Returns
         -------
@@ -187,8 +190,8 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
     """
     Skeletonise a binary array following Zhang's algorithm (Zhang and Suen, 1984).
 
-    Modifications are made to the published algorithm during the removal step to remove a fraction of the smallest pixel values
-    opposed to all of them in the aforementioned algorithm. All operations are performed on the mask entered.
+    Modifications are made to the published algorithm during the removal step to remove a fraction of the smallest pixel
+    values opposed to all of them in the aforementioned algorithm. All operations are performed on the mask entered.
 
     Parameters
     ----------
@@ -197,7 +200,8 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
     mask : npt.NDArray
         Binary image containing the object to be skeletonised. Dimensions should match those of 'image'.
     height_bias : float
-        Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang.
+        Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels
+        smiilar to Zhang.
     """
 
     def __init__(self, image: npt.NDArray, mask: npt.NDArray, height_bias: float = 0.6):
@@ -211,7 +215,8 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
         mask : npt.NDArray
             Binary image containing the object to be skeletonised. Dimensions should match those of 'image'.
         height_bias : float
-            Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang.
+            Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all
+            pixels smiilar to Zhang.
         """
         self.image = image
         self.mask = mask.copy()
@@ -253,7 +258,8 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
 
         This determines whether to delete a point according to the Zhang algorithm.
 
-        Then removes Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang.
+        Then removes ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1
+        is all pixels smiilar to Zhang.
         """
         skel_img = self.mask.copy()
         pixels_to_delete = []
