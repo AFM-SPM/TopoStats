@@ -297,6 +297,12 @@ class dnaTrace:
         grain : npt.NDArray
             Numpy array of grain.
 
+        dilation_iterations : int | None
+            Number of times to dilate the grain to smooth it. If None, defaults to 2.
+
+        gaussian_sigma : float | None
+            Gaussian sigma value to smooth the grains after an Otsu threshold. If None, defaults to max(grain.shape) / 256.
+
         Returns
         -------
         npt.NDArray
@@ -381,7 +387,7 @@ class dnaTrace:
 
     def get_ordered_trace_cumulative_distances(self, ordered_trace: npt.NDArray) -> npt.NDArray:
         """
-        Measures the cumulative distances of each pixel in the ordered_trace.
+        Measure the cumulative distances of each pixel in the ordered_trace.
 
         Parameters
         ----------
@@ -444,12 +450,9 @@ class dnaTrace:
 
         return cumulative_distances_nm
 
-    def get_disordered_trace(self) -> None:
-        """Derives the disordered trace coordinates from the binary mask and image via skeletonisation and pruning.
-        
-        Returns
-        -------
-        None
+    def get_disordered_trace(self):
+        """
+        Derive the disordered trace coordinates from the binary mask and image via skeletonisation and pruning.
         """
         self.skeleton = getSkeleton(
             self.image,
@@ -520,12 +523,9 @@ class dnaTrace:
             return True
         return False
 
-    def get_ordered_traces(self) -> None:
-        """Obtain ordered traces from disordered traces.
-        
-        Returns
-        -------
-        None
+    def get_ordered_traces(self):
+        """
+        Obtain ordered traces from disordered traces.
         """
         if self.mol_is_circular:
             self.ordered_trace, trace_completed = reorderTrace.circularTrace(self.disordered_trace)
