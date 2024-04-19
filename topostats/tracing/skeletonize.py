@@ -25,7 +25,7 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
     method : str
         Method for skeletonizing. Options 'zhang' (default), 'lee', 'medial_axis', 'thin' and 'topostats'.
     height_bias : float
-        Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang. 
+        Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang.
     """
 
     def __init__(self, image: npt.NDArray, mask: npt.NDArray, method: str = "zhang", height_bias: float = 0.6):
@@ -46,7 +46,7 @@ class getSkeleton:  # pylint: disable=too-few-public-methods
         method : str
             Method for skeletonizing. Options 'zhang' (default), 'lee', 'medial_axis', 'thin' and 'topostats'.
         height_bias : float
-            Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang. 
+            Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang.
         """
         # Q What benefit is there to having a class getSkeleton over the get_skeleton() function? Ostensibly the class
         # is doing only one thing, we don't need to change state/modify anything here. Beyond encapsulating all
@@ -197,7 +197,7 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
     mask : npt.NDArray
         Binary image containing the object to be skeletonised. Dimensions should match those of 'image'.
     height_bias : float
-        Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang. 
+        Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang.
     """
 
     def __init__(self, image: npt.NDArray, mask: npt.NDArray, height_bias: float = 0.6):
@@ -211,7 +211,7 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
         mask : npt.NDArray
             Binary image containing the object to be skeletonised. Dimensions should match those of 'image'.
         height_bias : float
-            Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang. 
+            Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang.
         """
         self.image = image
         self.mask = mask.copy()
