@@ -227,7 +227,7 @@ class topostatsPrune:  # pylint: disable=too-few-public-methods
         self, single_skeleton: npt.NDArray, max_length: float | int = -1
     ) -> npt.NDArray:
         """
-        Remove hanging branches from a skeleton.
+        Remove hanging branches from a skeleton by their length.
 
         This is an iterative process as these are a persistent problem in the overall tracing process.
 
@@ -329,7 +329,7 @@ class topostatsPrune:  # pylint: disable=too-few-public-methods
 
 class convPrune:  # pylint: disable=too-few-public-methods
     """
-    Prune spurious branches based on their length and/or height using convolutions.
+    Prune spurious branches based on their length and/or height using sliding window convolutions.
 
     Parameters
     ----------
@@ -514,7 +514,7 @@ class heightPruning:
     @staticmethod
     def _get_branch_mins(image: npt.NDArray, segments: npt.NDArray) -> npt.NDArray:
         """
-        Collect the minimum height value of each labeled branch.
+        Collect the minimum height value of each individually labeled branch.
 
         Parameters
         ----------
@@ -742,7 +742,7 @@ def order_branch_from_start(nodeless: npt.NDArray, start: list, max_length: floa
     Returns
     -------
     npt.NDArray
-        ??? Needs a description.
+        The input linear branch ordered from the start coordinate.
     """
     dist = 0
     # add starting point to ordered array

@@ -65,7 +65,7 @@ class dnaTrace:
     n_grain : int
         Grain number being processed (only  used in logging).
     joining_node_length : float
-        ???.
+        The length over which to join skeleton crossing points due to misalignment.
     spline_step_size : float
         Step size for spline evaluation in metres.
     spline_linear_smoothing : float
@@ -121,7 +121,7 @@ class dnaTrace:
         n_grain : int
             Grain number being processed (only  used in logging).
         joining_node_length : float
-            ???.
+            The length over which to join skeleton crossing points due to misalignment.
         spline_step_size : float
             Step size for spline evaluation in metres.
         spline_linear_smoothing : float
@@ -286,25 +286,35 @@ class dnaTrace:
         self.smoothed_grain = gaussian(self.image, sigma=self.sigma, **kwargs)
         LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Gaussian filter applied.")
 
-    def smooth_grains(self, grain: npt.NDArray) -> npt.NDArray:
+    def smooth_grains(
+        self, grain: npt.NDArray, dilation_iterations: int | None, gaussian_sigma: float | None
+    ) -> npt.NDArray:
         """
-        Smoothe grains based on the lower number added from dilation or gaussian.
+        Smooth grains based on the lower number of binary pixels added from dilation or gaussian.
 
-        This method ensures gaussian smoothing isn't too agressive. ??? Check - how is this achieved? Should perhaps
-        parametrize the sigma value passed?
+        This method ensures gaussian smoothing isn't too agressive and covers / creates gaps in the mask.
 
         Parameters
         ----------
         grain : npt.NDArray
             Numpy array of grain.
 
+        dilation_iterations : int | None
+            Number of times to dilate the grain to smooth it. If None, defaults to 2.
+
+        gaussian_sigma : float | None
+            Gaussian sigma value to smooth the grains after an Otsu threshold. If None, defaults to max(grain.shape) / 256.
+
         Returns
         -------
         npt.NDArray
             Numpy array of smmoothed image.
         """
-        dilation = ndimage.binary_dilation(grain, iterations=2).astype(np.int32)
-        gauss = gaussian(grain, sigma=max(grain.shape) / 256)
+        dilation_iterations = dilation_iterations if dilation_iterations is None else 2
+        gaussian_sigma = gaussian_sigma if gaussian_sigma is None else max(grain.shape) / 256
+
+        dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
+        gauss = gaussian(grain, sigma=gaussian_sigma)
         gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
         gauss[gauss != 1] = 0
         gauss = gauss.astype(np.int32)
@@ -379,17 +389,17 @@ class dnaTrace:
 
     def get_ordered_trace_cumulative_distances(self, ordered_trace: npt.NDArray) -> npt.NDArray:
         """
-        List of the cumulative distances of each pixel in the `self.ordered_trace` list.
+        Measure the cumulative distances of each pixel in the ordered_trace.
 
         Parameters
         ----------
         ordered_trace : npt.NDArray
-            ???.
+            An ordered pixelwise path representing a trace.
 
         Returns
         -------
         npt.NDArray
-            ???.
+            An array of cumulative distances from the start of the trace.
         """
 
         # Get the cumulative distances of each pixel in the ordered trace from the gaussian filtered image
@@ -443,7 +453,9 @@ class dnaTrace:
         return cumulative_distances_nm
 
     def get_disordered_trace(self):
-        """Derive disordered trace."""
+        """
+        Derive the disordered trace coordinates from the binary mask and image via skeletonisation and pruning.
+        """
         self.skeleton = getSkeleton(
             self.image,
             self.smoothed_grain,
@@ -463,7 +475,7 @@ class dnaTrace:
     @staticmethod
     def remove_touching_edge(skeleton: npt.NDArray) -> npt.NDArray:
         """
-        Remove any skeleton points touching the boarder (to prevent errors later).
+        Remove any skeleton points touching the border (to prevent errors later).
 
         Parameters
         ----------
@@ -483,7 +495,7 @@ class dnaTrace:
 
     def linear_or_circular(self, traces) -> bool:
         """
-        Determine whether molecule circular or linear based.
+        Determine whether the molecule is circular or linear via >1 points in the local start area.
 
         This function is sensitive to branches from the skeleton because it is based on whether any given point has zero
         neighbours or not so the traces should be pruned.
@@ -514,7 +526,9 @@ class dnaTrace:
         return False
 
     def get_ordered_traces(self):
-        """Order a trace."""
+        """
+        Obtain ordered traces from disordered traces.
+        """
         if self.mol_is_circular:
             self.ordered_trace, trace_completed = reorderTrace.circularTrace(self.disordered_trace)
 
@@ -1171,7 +1185,7 @@ def trace_image(
     pruning_params : dict
         Dictionary of options for pruning.
     joining_node_length : float
-        ???.
+        The length over which to join skeleton crossing points due to misalignment.
     spline_step_size : float
         Step size for spline evaluation in metres.
     spline_linear_smoothing : float
@@ -1293,6 +1307,7 @@ def trace_image(
     }
 
 
+# not used
 def round_splined_traces(splined_traces: dict) -> dict:
     """
     Round a Dict of floating point coordinates to integer floating point coordinates.
@@ -1317,6 +1332,7 @@ def round_splined_traces(splined_traces: dict) -> dict:
     return rounded_splined_traces
 
 
+# not used
 def trim_array(array: npt.NDArray, pad_width: int) -> npt.NDArray:
     """
     Trim an array by the specified pad_width.
@@ -1523,7 +1539,7 @@ def trace_grain(
     min_skeleton_size : int
         Minimum size of grain in pixels after skeletonisation.
     joining_node_length : float
-        ???.
+        The length over which to join skeleton crossing points due to misalignment.
     spline_step_size : float
         Step size for spline evaluation in metres.
     spline_linear_smoothing : float
