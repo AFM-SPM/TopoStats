@@ -286,7 +286,9 @@ class dnaTrace:
         self.smoothed_grain = gaussian(self.image, sigma=self.sigma, **kwargs)
         LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Gaussian filter applied.")
 
-    def smooth_grains(self, grain: npt.NDArray, dilation_iterations: int | None, gaussian_sigma: float | None) -> npt.NDArray:
+    def smooth_grains(
+        self, grain: npt.NDArray, dilation_iterations: int | None, gaussian_sigma: float | None
+    ) -> npt.NDArray:
         """
         Smooth grains based on the lower number of binary pixels added from dilation or gaussian.
 
@@ -1304,6 +1306,7 @@ def trace_image(
         "all_ordered_trace_cumulative_distances": all_ordered_trace_cumulative_distances,
     }
 
+
 # not used
 def round_splined_traces(splined_traces: dict) -> dict:
     """
@@ -1328,6 +1331,7 @@ def round_splined_traces(splined_traces: dict) -> dict:
 
     return rounded_splined_traces
 
+
 # not used
 def trim_array(array: npt.NDArray, pad_width: int) -> npt.NDArray:
     """
@@ -1349,6 +1353,7 @@ def trim_array(array: npt.NDArray, pad_width: int) -> npt.NDArray:
         Trimmed array.
     """
     return array[pad_width:-pad_width, pad_width:-pad_width]
+
 
 def adjust_coordinates(coordinates: npt.NDArray, pad_width: int) -> npt.NDArray:
     """

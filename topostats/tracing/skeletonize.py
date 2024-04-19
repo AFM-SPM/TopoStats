@@ -253,7 +253,7 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
 
         This determines whether to delete a point according to the Zhang algorithm.
 
-        Then removes Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang. 
+        Then removes Raito of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels smiilar to Zhang.
         """
         skel_img = self.mask.copy()
         pixels_to_delete = []
