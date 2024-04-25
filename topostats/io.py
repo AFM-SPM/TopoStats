@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import importlib.resources as pkg_resources
 import io
 import logging
 import os
 import pickle as pkl
 import struct
 from datetime import datetime
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -126,15 +126,15 @@ def write_config_with_comments(args=None) -> None:
     logger_msg = "A sample configuration has been written to"
     # If no config or default is requested we load the default_config.yaml
     if args.config is None or args.config == "default":
-        config = pkg_resources.open_text(__package__, "default_config.yaml").read()
+        config = (resources.files(__package__) / "default_config.yaml").read_text()
     elif args.config == "topostats.mplstyle":
-        config = pkg_resources.open_text(__package__, "topostats.mplstyle").read()
+        config = (resources.files(__package__) / "topostats.mplstyle").read_text()
         logger_msg = "A sample matplotlibrc parameters file has been written to"
     # Otherwise we have scope for loading different configs based on the argument, add future dictionaries to
     # topostats/<sample_type>_config.yaml
     else:
         try:
-            config = pkg_resources.open_text(__package__, f"{args.config}_config.yaml").read()
+            config = (resources.files(__package__) / f"{args.config}_config.yaml").read_text()
         except FileNotFoundError as e:
             raise UserWarning(f"There is no configuration for samples of type : {args.config}") from e
 

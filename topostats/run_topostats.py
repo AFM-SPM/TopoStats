@@ -4,11 +4,11 @@ Run TopoStats.
 This provides an entry point for running TopoStats as a command line programme.
 """
 
-import importlib.resources as pkg_resources
 import logging
 import sys
 from collections import defaultdict
 from functools import partial
+from importlib import resources
 from multiprocessing import Pool
 from pprint import pformat
 
@@ -56,7 +56,7 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
     if args.config_file is not None:
         config = read_yaml(args.config_file)
     else:
-        default_config = pkg_resources.open_text(__package__, "default_config.yaml").read()
+        default_config = (resources.files(__package__) / "default_config.yaml").read_text()
         config = yaml.safe_load(default_config)
     # Override the config with command line arguments passed in, eg --output_dir ./output/
     config = update_config(config, args)
@@ -77,8 +77,8 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 
     # Load plotting_dictionary and validate then update with command line options
-    plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
-    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    plotting_dictionary = (resources.files(__package__) / "plotting_dictionary.yaml").read_text()
+    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary)
     validate_config(
         config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML plotting configuration file"
     )
@@ -168,8 +168,8 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         elif config["summary_stats"]["config"] is not None:
             summary_config = read_yaml(config["summary_stats"]["config"])
         else:
-            summary_yaml = pkg_resources.open_text(__package__, "summary_config.yaml")
-            summary_config = yaml.safe_load(summary_yaml.read())
+            summary_yaml = (resources.files(__package__) / "summary_config.yaml").read_text()
+            summary_config = yaml.safe_load(summary_yaml)
 
         # Do not pass command line arguments to toposum as they clash with process command line arguments
         summary_config = update_config(summary_config, config["plotting"])
@@ -179,8 +179,8 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         summary_config.pop("csv_file")
 
         # Load variable to label mapping
-        plotting_yaml = pkg_resources.open_text(__package__, "var_to_label.yaml")
-        summary_config["var_to_label"] = yaml.safe_load(plotting_yaml.read())
+        plotting_yaml = (resources.files(__package__) / "var_to_label.yaml").read_text()
+        summary_config["var_to_label"] = yaml.safe_load(plotting_yaml)
         LOGGER.info("[plotting] Default variable to labels mapping loaded.")
 
         # If we don't have a dataframe or we do and it is all NaN there is nothing to plot
