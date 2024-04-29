@@ -1,6 +1,6 @@
 """Tests for the plotting module."""
 
-import importlib.resources as pkg_resources
+from importlib import resources
 from pathlib import Path
 
 import pandas as pd
@@ -92,8 +92,8 @@ def test_var_to_label_config(tmp_path: Path) -> None:
     with var_to_label_config.open("r", encoding="utf-8") as f:
         var_to_label_str = f.read()
     var_to_label = yaml.safe_load(var_to_label_str)
-    plotting_yaml = pkg_resources.open_text(topostats.__package__, "var_to_label.yaml")
-    expected_var_to_label = yaml.safe_load(plotting_yaml.read())
+    plotting_yaml = (resources.files(topostats.__package__) / "var_to_label.yaml").read_text()
+    expected_var_to_label = yaml.safe_load(plotting_yaml)
 
     assert var_to_label == expected_var_to_label
 

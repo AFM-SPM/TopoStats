@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-import importlib.resources as pkg_resources
+from importlib import resources
 import logging
 from pathlib import Path
 import sys
@@ -427,16 +427,16 @@ def run_toposum(args=None) -> None:
         config = read_yaml(args.config_file)
         LOGGER.info(f"[plotting] Configuration file loaded from : {args.config_file}")
     else:
-        summary_yaml = pkg_resources.open_text(__package__, "summary_config.yaml")
-        config = yaml.safe_load(summary_yaml.read())
+        summary_yaml = (resources.files(__package__) / "summary_config.yaml").read_text()
+        config = yaml.safe_load(summary_yaml)
         LOGGER.info("[plotting] Default configuration file loaded.")
     config = update_config(config, args)
     if args.var_to_label is not None:
         config["var_to_label"] = read_yaml(args.var_to_label)
         LOGGER.info("[plotting] Variable to labels mapping loaded from : {args.var_to_label}")
     else:
-        plotting_yaml = pkg_resources.open_text(__package__, "var_to_label.yaml")
-        config["var_to_label"] = yaml.safe_load(plotting_yaml.read())
+        plotting_yaml = (resources.files(__package__) / "var_to_label.yaml").read_text()
+        config["var_to_label"] = yaml.safe_load(plotting_yaml)
         LOGGER.info("[plotting] Default variable to labels mapping loaded.")
     if args.csv_file is not None:
         config["csv_file"] = args.csv_file
