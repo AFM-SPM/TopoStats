@@ -13,7 +13,7 @@ from skimage.morphology import label
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.tracing.pruning import pruneSkeleton
-from topostats.utils import ResolutionError, convolve_skelly, coords_2_img
+from topostats.utils import ResolutionError, convolve_skeleton, coords_2_img
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -95,7 +95,7 @@ class nodeStats:
 
         """
         LOGGER.info(f"Node Stats - Processing Grain: {self.n_grain}")
-        self.conv_skelly = convolve_skelly(self.skeleton)
+        self.conv_skelly = convolve_skeleton(self.skeleton)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             # convolve to see crossing and end points
             self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
@@ -200,7 +200,7 @@ class nodeStats:
         new_skeleton = getSkeleton(image, new_skeleton, method="zhang").get_skeleton()
         # might also need to remove segments that have squares connected
 
-        return convolve_skelly(new_skeleton)
+        return convolve_skeleton(new_skeleton)
 
     @staticmethod
     def keep_biggest_object(mask: np.ndarray) -> np.ndarray:
@@ -861,7 +861,7 @@ class nodeStats:
             return np.argwhere(skel == 1)
 
         # get branch starts
-        endpoints_highlight = convolve_skelly(skel)
+        endpoints_highlight = convolve_skeleton(skel)
         endpoints = np.argwhere(endpoints_highlight == 2)
         if len(endpoints) != 0:  # if any endpoints, start closest to anchor
             dist_vals = abs(endpoints - anchor).sum(axis=1)
@@ -1452,7 +1452,7 @@ class nodeStats:
         #   if parallel trace doesn't exit window, can get 1 label
         #       occurs when skeleton has poor connections (extra branches which cut corners)
         if labels.max() == 1:
-            conv = convolve_skelly(branch_mask)
+            conv = convolve_skeleton(branch_mask)
             endpoints = np.argwhere(conv == 2)
             for endpoint in endpoints:  # may be >1 endpoint
                 para_trace_coords = np.argwhere(labels == 1)
@@ -1737,7 +1737,7 @@ class nodeStats:
 
         mol_coords = []
         remaining = both_img.copy().astype(np.int32)
-        endpoints = np.unique(remaining[convolve_skelly(remaining) == 2])  # uniq incase of whole mol
+        endpoints = np.unique(remaining[convolve_skeleton(remaining) == 2])  # uniq incase of whole mol
 
         while remaining.max() != 0:
             # select endpoint to start if there is one

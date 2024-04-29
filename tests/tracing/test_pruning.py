@@ -1,97 +1,2301 @@
 """Test the skeletonize module."""
 
+import numpy as np
+import numpy.typing as npt
 import pytest
 
-# from topostats.tracing.pruning import get_skeleton
+from topostats.tracing.pruning import heightPruning, local_area_sum, order_branch_from_end, rm_nibs, topostatsPrune
 
-# pylint: disable=unnecessary-pass
-
-
-# Tests for pruneSkeleton class
-@pytest.mark.parametrize()
-def test_prune_skeleton() -> None:
-    """Test of prune_skeleton() method of pruneSkeleton class."""
-    pass
+# pylint: disable=too-many-lines
+# pylint: disable=protected-access
+# pylint: disable=too-many-arguments
 
 
-def test_prune_method() -> None:
-    """Test of prune_method() method of pruneSkeleton class."""
-    pass
+@pytest.mark.parametrize(
+    (
+        "img_skeleton",
+        "max_length",
+        "height_threshold",
+        "method_values",
+        "method_outliers",
+        "target_ends",
+        "target_pruned_coords",
+    ),
+    [
+        pytest.param(
+            "pruning_skeleton_loop1",
+            -1,
+            90,
+            "min",
+            "abs",
+            np.asarray([[6, 33], [34, 18], [89, 29], [104, 77], [109, 105]]),
+            np.asarray(
+                [
+                    [49, 61],
+                    [49, 62],
+                    [50, 60],
+                    [50, 63],
+                    [51, 60],
+                    [51, 64],
+                    [52, 59],
+                    [52, 65],
+                    [53, 59],
+                    [53, 66],
+                    [54, 59],
+                    [54, 67],
+                    [55, 58],
+                    [55, 68],
+                    [56, 58],
+                    [56, 69],
+                    [57, 58],
+                    [57, 70],
+                    [58, 58],
+                    [58, 71],
+                    [59, 58],
+                    [59, 72],
+                    [60, 59],
+                    [60, 73],
+                    [61, 60],
+                    [61, 74],
+                    [62, 61],
+                    [62, 75],
+                    [63, 62],
+                    [63, 76],
+                    [64, 63],
+                    [64, 77],
+                    [65, 64],
+                    [65, 78],
+                    [66, 65],
+                    [66, 79],
+                    [67, 66],
+                    [67, 80],
+                    [68, 67],
+                    [68, 81],
+                    [69, 68],
+                    [69, 82],
+                    [70, 69],
+                    [70, 83],
+                    [71, 70],
+                    [71, 84],
+                    [72, 71],
+                    [72, 85],
+                    [73, 72],
+                    [73, 86],
+                    [74, 73],
+                    [74, 87],
+                    [75, 74],
+                    [75, 88],
+                    [76, 75],
+                    [76, 89],
+                    [77, 76],
+                    [77, 90],
+                    [78, 77],
+                    [78, 91],
+                    [79, 77],
+                    [79, 92],
+                    [80, 77],
+                    [80, 92],
+                    [81, 77],
+                    [81, 93],
+                    [82, 77],
+                    [82, 94],
+                    [83, 77],
+                    [83, 95],
+                    [84, 77],
+                    [84, 96],
+                    [85, 77],
+                    [85, 97],
+                    [86, 77],
+                    [86, 98],
+                    [87, 77],
+                    [87, 99],
+                    [88, 77],
+                    [88, 100],
+                    [89, 77],
+                    [89, 101],
+                    [90, 77],
+                    [90, 102],
+                    [91, 77],
+                    [91, 103],
+                    [92, 77],
+                    [92, 104],
+                    [93, 77],
+                    [93, 105],
+                    [94, 77],
+                    [94, 106],
+                    [95, 77],
+                    [95, 106],
+                    [96, 77],
+                    [96, 106],
+                    [97, 78],
+                    [97, 106],
+                    [98, 78],
+                    [98, 106],
+                    [99, 79],
+                    [99, 106],
+                    [100, 80],
+                    [100, 106],
+                    [101, 81],
+                    [101, 105],
+                    [102, 82],
+                    [102, 83],
+                    [102, 84],
+                    [102, 85],
+                    [102, 86],
+                    [102, 87],
+                    [102, 88],
+                    [102, 89],
+                    [102, 90],
+                    [102, 91],
+                    [102, 92],
+                    [102, 93],
+                    [102, 94],
+                    [102, 95],
+                    [102, 96],
+                    [102, 97],
+                    [102, 98],
+                    [102, 99],
+                    [102, 100],
+                    [102, 101],
+                    [102, 102],
+                    [102, 103],
+                    [102, 104],
+                ]
+            ),
+            id="skeleton loop 1",
+            # marks=pytest.mark.skip(),
+        ),
+        pytest.param(
+            "pruning_skeleton_loop2",
+            -1,
+            90,
+            "min",
+            "abs",
+            np.asarray([[3, 16], [5, 125], [38, 31], [42, 81], [85, 86]]),
+            np.asarray(
+                [
+                    [1, 47],
+                    [1, 48],
+                    [1, 49],
+                    [1, 50],
+                    [1, 51],
+                    [1, 52],
+                    [1, 53],
+                    [1, 54],
+                    [1, 55],
+                    [1, 56],
+                    [1, 57],
+                    [2, 46],
+                    [2, 58],
+                    [2, 102],
+                    [2, 103],
+                    [2, 104],
+                    [2, 105],
+                    [2, 106],
+                    [2, 107],
+                    [2, 108],
+                    [2, 109],
+                    [2, 110],
+                    [2, 111],
+                    [2, 112],
+                    [2, 113],
+                    [2, 114],
+                    [2, 115],
+                    [2, 116],
+                    [2, 117],
+                    [2, 118],
+                    [2, 119],
+                    [2, 120],
+                    [3, 45],
+                    [3, 59],
+                    [3, 101],
+                    [3, 121],
+                    [4, 44],
+                    [4, 60],
+                    [4, 100],
+                    [4, 122],
+                    [4, 123],
+                    [5, 43],
+                    [5, 61],
+                    [5, 99],
+                    [5, 124],
+                    [5, 125],
+                    [6, 42],
+                    [6, 62],
+                    [6, 98],
+                    [7, 41],
+                    [7, 63],
+                    [7, 97],
+                    [8, 40],
+                    [8, 64],
+                    [8, 96],
+                    [9, 39],
+                    [9, 65],
+                    [9, 95],
+                    [10, 38],
+                    [10, 66],
+                    [10, 94],
+                    [11, 37],
+                    [11, 67],
+                    [11, 93],
+                    [12, 36],
+                    [12, 68],
+                    [12, 92],
+                    [13, 35],
+                    [13, 69],
+                    [13, 91],
+                    [14, 34],
+                    [14, 70],
+                    [14, 90],
+                    [15, 33],
+                    [15, 71],
+                    [15, 89],
+                    [16, 33],
+                    [16, 72],
+                    [16, 88],
+                    [17, 33],
+                    [17, 73],
+                    [17, 87],
+                    [18, 33],
+                    [18, 74],
+                    [18, 86],
+                    [19, 33],
+                    [19, 75],
+                    [19, 85],
+                    [20, 33],
+                    [20, 76],
+                    [20, 84],
+                    [21, 33],
+                    [21, 77],
+                    [21, 83],
+                    [22, 33],
+                    [22, 78],
+                    [22, 82],
+                    [23, 33],
+                    [23, 79],
+                    [23, 80],
+                    [23, 81],
+                    [24, 33],
+                    [24, 80],
+                    [25, 33],
+                    [25, 80],
+                    [26, 33],
+                    [26, 80],
+                    [27, 33],
+                    [27, 80],
+                    [28, 33],
+                    [28, 80],
+                    [29, 33],
+                    [29, 80],
+                    [30, 33],
+                    [30, 79],
+                    [31, 33],
+                    [31, 79],
+                    [32, 33],
+                    [32, 79],
+                    [33, 33],
+                    [33, 79],
+                    [34, 33],
+                    [34, 79],
+                    [35, 33],
+                    [35, 79],
+                    [36, 33],
+                    [36, 79],
+                    [37, 33],
+                    [37, 79],
+                    [38, 33],
+                    [38, 34],
+                    [38, 35],
+                    [38, 79],
+                    [39, 36],
+                    [39, 79],
+                    [40, 37],
+                    [40, 79],
+                    [41, 38],
+                    [41, 39],
+                    [41, 79],
+                    [42, 40],
+                    [42, 79],
+                    [42, 80],
+                    [43, 41],
+                    [43, 42],
+                    [43, 79],
+                    [44, 43],
+                    [44, 44],
+                    [44, 78],
+                    [45, 45],
+                    [45, 46],
+                    [45, 77],
+                    [46, 47],
+                    [46, 76],
+                    [47, 48],
+                    [47, 49],
+                    [47, 75],
+                    [48, 50],
+                    [48, 51],
+                    [48, 52],
+                    [48, 74],
+                    [49, 53],
+                    [49, 54],
+                    [49, 73],
+                    [50, 55],
+                    [50, 56],
+                    [50, 72],
+                    [51, 57],
+                    [51, 58],
+                    [51, 71],
+                    [52, 59],
+                    [52, 60],
+                    [52, 61],
+                    [52, 70],
+                    [53, 62],
+                    [53, 63],
+                    [53, 64],
+                    [53, 69],
+                    [54, 65],
+                    [54, 66],
+                    [54, 67],
+                    [54, 68],
+                    [55, 68],
+                    [56, 68],
+                    [57, 69],
+                    [58, 69],
+                    [59, 69],
+                    [60, 70],
+                    [61, 70],
+                    [62, 70],
+                    [63, 71],
+                    [64, 71],
+                    [65, 72],
+                    [66, 72],
+                    [67, 73],
+                    [68, 73],
+                    [69, 73],
+                    [70, 74],
+                    [71, 74],
+                    [72, 75],
+                    [73, 75],
+                    [74, 76],
+                    [75, 76],
+                    [76, 77],
+                    [77, 78],
+                    [78, 78],
+                    [79, 79],
+                    [80, 79],
+                    [81, 79],
+                    [82, 79],
+                    [83, 79],
+                    [84, 80],
+                    [85, 81],
+                    [85, 85],
+                    [85, 86],
+                    [86, 82],
+                    [86, 83],
+                    [86, 84],
+                ]
+            ),
+            id="skeleton loop 2",
+            # marks=pytest.mark.skip(),
+        ),
+        pytest.param(
+            "pruning_skeleton_linear1",
+            -1,
+            90,
+            "min",
+            "abs",
+            np.asarray(
+                [[2, 71], [5, 115], [10, 31], [12, 126], [14, 123], [22, 122], [29, 22], [45, 16], [88, 23], [112, 102]]
+            ),
+            np.asarray(
+                [
+                    [10, 115],
+                    [10, 116],
+                    [10, 117],
+                    [10, 118],
+                    [10, 119],
+                    [11, 114],
+                    [11, 120],
+                    [12, 114],
+                    [13, 114],
+                    [14, 113],
+                    [15, 112],
+                    [16, 111],
+                    [17, 110],
+                    [18, 109],
+                    [19, 108],
+                    [20, 107],
+                    [21, 107],
+                    [22, 106],
+                    [23, 105],
+                    [24, 31],
+                    [24, 104],
+                    [25, 32],
+                    [25, 33],
+                    [25, 103],
+                    [26, 34],
+                    [26, 35],
+                    [26, 36],
+                    [26, 102],
+                    [27, 37],
+                    [27, 38],
+                    [27, 101],
+                    [28, 39],
+                    [28, 40],
+                    [28, 41],
+                    [28, 42],
+                    [28, 43],
+                    [28, 100],
+                    [29, 44],
+                    [29, 99],
+                    [30, 45],
+                    [30, 98],
+                    [31, 46],
+                    [31, 97],
+                    [32, 47],
+                    [32, 96],
+                    [33, 48],
+                    [33, 95],
+                    [34, 49],
+                    [34, 94],
+                    [35, 50],
+                    [35, 93],
+                    [36, 51],
+                    [36, 92],
+                    [37, 52],
+                    [37, 91],
+                    [38, 53],
+                    [38, 90],
+                    [39, 54],
+                    [39, 87],
+                    [39, 88],
+                    [39, 89],
+                    [40, 55],
+                    [40, 80],
+                    [40, 81],
+                    [40, 82],
+                    [40, 83],
+                    [40, 84],
+                    [40, 85],
+                    [40, 86],
+                    [41, 56],
+                    [41, 78],
+                    [41, 79],
+                    [42, 57],
+                    [42, 77],
+                    [43, 58],
+                    [43, 76],
+                    [44, 59],
+                    [44, 76],
+                    [45, 60],
+                    [45, 76],
+                    [46, 61],
+                    [46, 76],
+                    [47, 62],
+                    [47, 76],
+                    [48, 63],
+                    [48, 76],
+                    [49, 64],
+                    [49, 76],
+                    [50, 65],
+                    [50, 76],
+                    [51, 66],
+                    [51, 74],
+                    [51, 75],
+                    [51, 76],
+                    [52, 67],
+                    [52, 72],
+                    [52, 73],
+                    [52, 77],
+                    [53, 68],
+                    [53, 69],
+                    [53, 70],
+                    [53, 71],
+                    [53, 78],
+                    [54, 67],
+                    [54, 79],
+                    [55, 36],
+                    [55, 66],
+                    [55, 80],
+                    [56, 35],
+                    [56, 37],
+                    [56, 64],
+                    [56, 65],
+                    [56, 81],
+                    [57, 36],
+                    [57, 37],
+                    [57, 63],
+                    [57, 82],
+                    [58, 37],
+                    [58, 62],
+                    [58, 82],
+                    [59, 38],
+                    [59, 61],
+                    [59, 83],
+                    [60, 39],
+                    [60, 58],
+                    [60, 59],
+                    [60, 60],
+                    [60, 83],
+                    [61, 40],
+                    [61, 55],
+                    [61, 56],
+                    [61, 57],
+                    [61, 83],
+                    [62, 41],
+                    [62, 53],
+                    [62, 54],
+                    [62, 83],
+                    [63, 42],
+                    [63, 51],
+                    [63, 52],
+                    [63, 83],
+                    [64, 43],
+                    [64, 50],
+                    [64, 84],
+                    [65, 44],
+                    [65, 45],
+                    [65, 46],
+                    [65, 47],
+                    [65, 48],
+                    [65, 49],
+                    [65, 84],
+                    [66, 84],
+                    [67, 84],
+                    [68, 85],
+                    [69, 85],
+                    [70, 85],
+                    [71, 85],
+                    [72, 86],
+                    [73, 86],
+                    [74, 86],
+                    [75, 86],
+                    [76, 87],
+                    [77, 87],
+                    [78, 88],
+                    [79, 88],
+                    [80, 89],
+                    [81, 89],
+                    [82, 90],
+                    [83, 90],
+                    [84, 91],
+                    [85, 92],
+                    [86, 92],
+                    [87, 93],
+                    [88, 93],
+                    [89, 93],
+                    [90, 93],
+                    [91, 93],
+                    [92, 93],
+                    [93, 93],
+                    [94, 93],
+                    [95, 94],
+                    [96, 94],
+                    [97, 94],
+                    [98, 94],
+                    [99, 95],
+                    [100, 95],
+                    [101, 96],
+                    [102, 96],
+                    [103, 97],
+                    [104, 97],
+                    [105, 98],
+                    [106, 99],
+                    [107, 99],
+                    [108, 100],
+                    [109, 100],
+                    [110, 100],
+                    [111, 101],
+                    [112, 102],
+                ]
+            ),
+            id="skeleton linear 1",
+            # marks=pytest.mark.skip(),
+        ),
+        pytest.param(
+            "pruning_skeleton_linear2",
+            -1,
+            90,
+            "min",
+            "abs",
+            np.asarray([[75, 84], [88, 76], [102, 18]]),
+            np.asarray(
+                [
+                    [69, 67],
+                    [69, 68],
+                    [69, 69],
+                    [69, 70],
+                    [70, 66],
+                    [70, 71],
+                    [70, 72],
+                    [71, 66],
+                    [71, 73],
+                    [71, 74],
+                    [71, 75],
+                    [72, 65],
+                    [72, 76],
+                    [72, 77],
+                    [73, 65],
+                    [73, 78],
+                    [73, 79],
+                    [73, 80],
+                    [74, 64],
+                    [74, 65],
+                    [74, 81],
+                    [74, 82],
+                    [75, 62],
+                    [75, 63],
+                    [75, 66],
+                    [75, 83],
+                    [75, 84],
+                    [76, 59],
+                    [76, 60],
+                    [76, 61],
+                    [76, 67],
+                    [77, 57],
+                    [77, 58],
+                    [77, 68],
+                    [78, 54],
+                    [78, 55],
+                    [78, 56],
+                    [78, 69],
+                    [79, 52],
+                    [79, 53],
+                    [79, 70],
+                    [80, 50],
+                    [80, 51],
+                    [80, 71],
+                    [81, 49],
+                    [81, 72],
+                    [82, 48],
+                    [82, 73],
+                    [83, 47],
+                    [83, 73],
+                    [84, 46],
+                    [84, 74],
+                    [85, 45],
+                    [85, 74],
+                    [86, 44],
+                    [86, 75],
+                    [87, 43],
+                    [87, 75],
+                    [88, 42],
+                    [88, 76],
+                    [89, 41],
+                    [90, 40],
+                    [91, 39],
+                    [92, 38],
+                    [93, 37],
+                    [94, 36],
+                    [95, 35],
+                    [96, 34],
+                    [97, 33],
+                    [98, 32],
+                    [99, 31],
+                    [100, 30],
+                    [101, 29],
+                    [102, 18],
+                    [102, 19],
+                    [102, 20],
+                    [102, 21],
+                    [102, 22],
+                    [102, 28],
+                    [103, 23],
+                    [103, 24],
+                    [103, 25],
+                    [103, 26],
+                    [103, 27],
+                ]
+            ),
+            id="skeleton linear 2",
+            # marks=pytest.mark.skip(),
+        ),
+        pytest.param(
+            "pruning_skeleton_linear3",
+            -1,
+            90,
+            "min",
+            "abs",
+            np.asarray(
+                [
+                    [9, 88],
+                    [13, 64],
+                    [15, 35],
+                    [15, 61],
+                    [17, 81],
+                    [19, 109],
+                    [34, 31],
+                    [40, 98],
+                    [40, 121],
+                    [68, 33],
+                    [68, 92],
+                    [93, 36],
+                    [116, 114],
+                ]
+            ),
+            np.asarray(
+                [
+                    [16, 63],
+                    [17, 63],
+                    [18, 62],
+                    [18, 83],
+                    [19, 62],
+                    [19, 83],
+                    [20, 62],
+                    [20, 83],
+                    [21, 62],
+                    [21, 83],
+                    [22, 62],
+                    [22, 83],
+                    [23, 62],
+                    [23, 83],
+                    [24, 62],
+                    [24, 83],
+                    [25, 62],
+                    [25, 83],
+                    [26, 62],
+                    [26, 83],
+                    [27, 62],
+                    [27, 83],
+                    [28, 62],
+                    [28, 83],
+                    [29, 62],
+                    [29, 83],
+                    [30, 62],
+                    [30, 83],
+                    [31, 62],
+                    [31, 83],
+                    [32, 62],
+                    [32, 83],
+                    [33, 62],
+                    [33, 82],
+                    [34, 62],
+                    [34, 81],
+                    [35, 62],
+                    [35, 80],
+                    [36, 62],
+                    [36, 79],
+                    [37, 63],
+                    [37, 77],
+                    [37, 78],
+                    [38, 64],
+                    [38, 75],
+                    [38, 76],
+                    [39, 65],
+                    [39, 73],
+                    [39, 74],
+                    [40, 66],
+                    [40, 72],
+                    [41, 67],
+                    [41, 71],
+                    [42, 68],
+                    [42, 69],
+                    [42, 70],
+                    [43, 69],
+                    [44, 69],
+                    [45, 68],
+                    [46, 68],
+                    [47, 68],
+                    [48, 68],
+                    [49, 68],
+                    [50, 67],
+                    [51, 67],
+                    [52, 66],
+                    [53, 64],
+                    [53, 65],
+                    [54, 62],
+                    [54, 63],
+                    [55, 61],
+                    [56, 60],
+                    [57, 60],
+                    [58, 61],
+                    [59, 61],
+                    [60, 61],
+                    [61, 61],
+                    [62, 61],
+                    [63, 61],
+                    [64, 61],
+                    [65, 61],
+                    [66, 61],
+                    [67, 61],
+                    [68, 61],
+                    [69, 61],
+                    [70, 61],
+                    [71, 61],
+                    [72, 61],
+                    [73, 61],
+                    [74, 61],
+                    [75, 61],
+                    [76, 61],
+                    [77, 61],
+                    [78, 61],
+                    [79, 61],
+                    [80, 61],
+                    [81, 62],
+                    [82, 63],
+                    [82, 64],
+                    [83, 65],
+                    [83, 66],
+                    [84, 67],
+                    [84, 68],
+                    [85, 69],
+                    [85, 70],
+                    [86, 71],
+                    [86, 72],
+                    [87, 73],
+                    [87, 74],
+                    [87, 75],
+                    [87, 76],
+                    [87, 77],
+                    [87, 78],
+                    [87, 79],
+                    [87, 80],
+                    [88, 81],
+                    [89, 82],
+                    [90, 83],
+                    [91, 84],
+                    [91, 85],
+                    [91, 86],
+                    [91, 87],
+                    [91, 88],
+                    [91, 89],
+                    [91, 90],
+                    [91, 91],
+                    [91, 92],
+                    [91, 93],
+                    [91, 94],
+                    [91, 95],
+                    [91, 96],
+                    [91, 97],
+                    [91, 98],
+                    [91, 99],
+                    [91, 100],
+                    [91, 101],
+                    [92, 102],
+                    [93, 102],
+                    [94, 102],
+                    [95, 102],
+                    [96, 102],
+                    [97, 102],
+                    [98, 102],
+                    [99, 102],
+                    [100, 102],
+                    [101, 102],
+                    [102, 102],
+                    [103, 103],
+                    [104, 104],
+                    [105, 105],
+                    [106, 106],
+                    [107, 107],
+                    [108, 108],
+                    [109, 109],
+                    [110, 110],
+                    [110, 111],
+                    [110, 112],
+                    [110, 113],
+                    [110, 114],
+                    [111, 115],
+                    [112, 115],
+                    [113, 115],
+                    [114, 115],
+                    [115, 115],
+                    [116, 114],
+                ]
+            ),
+            id="skeleton linear 3",
+            # marks=pytest.mark.skip(),
+        ),
+    ],
+)
+class TestTopoStatsPrune:
+    """Tests of topostatsPrine() class."""
 
+    def topostats_pruner(
+        self,
+        img_skeleton: str,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        request,
+    ) -> None:
+        """Instantiate a topostatsPrune object."""
+        img_skeleton = request.getfixturevalue(img_skeleton)
+        return topostatsPrune(
+            img_skeleton["img"],
+            img_skeleton["skeleton"],
+            max_length,
+            height_threshold,
+            method_values,
+            method_outliers,
+        )
 
-def test_prune_topostats() -> None:
-    """Test of prune_topostats() method of pruneSkeleton class."""
-    pass
+    # def test_prune(
+    #     self,
+    #     img_skeleton: dict,
+    #     max_length: float,
+    #     height_threshold: float,
+    #     method_values: str,
+    #     method_outliers: str,
+    #     request,
+    # ):
+    #     pruner = self.topostats_pruner(
+    #         img_skeleton,
+    #         max_length,
+    #         height_threshold,
+    #         method_values,
+    #         method_outliers,
+    #         request,
+    #     )
+    #     assert isinstance(pruner, topostatsPrune)
 
+    def test_find_branch_ends(
+        self,
+        img_skeleton: dict,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        target_ends: npt.NDArray,
+        target_pruned_coords: npt.NDArray,  # pylint: disable=unused-argument
+        request,
+    ) -> None:
+        """
+        Test of topostats_find_branch_ends() method of topostatsPrune class.
 
-def test_prune_conv() -> None:
-    """Test of prune_conv() method of pruneSkeleton class."""
-    pass
+        Currently have to convert the coordinates of the skeleton to a list otherwise
+        genTracinfFuncs.count_and_get_neighbours() always returns 8 as assessing whether the coordinates which are a
+        list are within the 2D Numpy array always returns True Once tests are in place we can look at refactoring all
+        these classes to work with Numpy arrays rather than flipping back and forth between Numpy arrays and lists as is
+        the current situation. (Took 2 hrs to work this out!)
+        """
+        pruner = self.topostats_pruner(
+            img_skeleton,
+            max_length,
+            height_threshold,
+            method_values,
+            method_outliers,
+            request,
+        )
+        coords = np.argwhere(request.getfixturevalue(img_skeleton)["skeleton"] == 1).tolist()
+        ends = pruner._find_branch_ends(coords)
+        np.testing.assert_array_equal(ends, target_ends)
 
+    def test_prune_by_length(
+        self,
+        img_skeleton: dict,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        target_ends: npt.NDArray,  # pylint: disable=unused-argument
+        target_pruned_coords: npt.NDArray,
+        request,
+    ) -> None:
+        """
+        Test of topostats_prune_by_length() method of topostatsPrune class.
 
-# Tests for topostatsPrune class
-def test_topostats_prune_all_skeletons() -> None:
-    """Test of topostats_prune_all_skeletons() method of topostatsPrune class."""
-    pass
+        Relies on rm_nib() and tests and currently the below tests fail and nibs appear _not_ to be removed.
 
+        This is a large function which does a lot and should probably be refactored into smaller, the branch checking
+        could be a method of its own.
+        """
+        pruner = self.topostats_pruner(
+            img_skeleton,
+            max_length,
+            height_threshold,
+            method_values,
+            method_outliers,
+            request,
+        )
+        pruned_skeleton = pruner._prune_by_length(pruner.skeleton, pruner.max_length)
+        pruned_coords = np.argwhere(pruned_skeleton == 1)
+        np.testing.assert_array_equal(pruned_coords, target_pruned_coords)
 
-def test_topostats_prune_by_length() -> None:
-    """Test of topostats_prune_by_length() method of topostatsPrune class."""
-    pass
-
-
-def test_topostats_find_branch_ends() -> None:
-    """Test of topostats_find_branch_ends() method of topostatsPrune class."""
-    pass
+    # @pytest.mark.skip(reason="awaiting test development")
+    # def test_prune_all_skeletons(self, topostats_pruner) -> None:
+    #     """Test of topostats_prune_all_skeletons() method of topostatsPrune class."""
 
 
 # Tests for convPrune class
-def test_conv_prune_all_skeletons() -> None:
-    """Test of conv_prune_all_skeletons() method of convPrune class."""
-    pass
+# @pytest.mark.parametrize(
+#     ("img_skeleton", "max_length", "height_threshold", "method_values", "method_outliers"),
+#     [pytest.param("pruning_skeleton_loop1", 10, 90, "min", "abs", id="skeleton loop1")],
+# )
+# class TestConvPrune:
+#     """Tests of the convPrune() class."""
 
+#     @pytest.mark.skip(reason="awaiting test development")
+#     def test_prune_all_skeletons(self) -> None:
+#         """Test of conv_prune_all_skeletons() method of convPrune class."""
 
-def test_conv_prune_by_length() -> None:
-    """Test of conv_prune_by_length() method of convPrune class."""
-    pass
+#     @pytest.mark.skip(reason="awaiting test development")
+#     def test_prune_by_length(self) -> None:
+#         """Test of conv_prune_by_length() method of convPrune class."""
 
 
 # Tests for heightPruning class
-def test_conv_get_branch_mins() -> None:
-    """Test of conv_get_branch_mins() method of heightPruning class."""
-    pass
+@pytest.mark.parametrize(
+    (
+        "img_skeleton",
+        "max_length",
+        "height_threshold",
+        "method_values",
+        "method_outliers",
+        "convolved_skeleton_target",
+        "segmented_skeleton_target",
+        "labelled_skeleton_target",
+        "branch_mins_target",
+        "branch_medians_target",
+        "branch_middles_target",
+        "abs_thresh_idx_target",
+        "mean_abs_thresh_idx_target",
+        "iqr_thresh_idx_target",
+        "check_skeleton_one_object_target",
+        "remove_bridges_target",
+    ),
+    [
+        pytest.param(
+            {
+                "skeleton": np.asarray(
+                    [
+                        [0, 0, 0, 0, 0, 0],
+                        [0, 1, 0, 0, 0, 0],
+                        [0, 1, 0, 0, 0, 0],
+                        [0, 1, 0, 0, 0, 0],
+                        [0, 1, 1, 1, 1, 0],
+                        [0, 1, 0, 0, 0, 0],
+                        [0, 1, 0, 0, 0, 0],
+                        [0, 1, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+                "img": np.asarray(
+                    [
+                        [0, 0, 0, 0, 0, 0],
+                        [0, 10, 0, 0, 0, 0],
+                        [0, 9, 0, 0, 0, 0],
+                        [0, 9, 0, 0, 0, 0],
+                        [0, 10, 8, 8, 10, 0],
+                        [0, 7, 0, 0, 0, 0],
+                        [0, 7, 0, 0, 0, 0],
+                        [0, 10, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+            },
+            -1,
+            9,
+            "min",
+            "abs",
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 2, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 3, 0, 0, 0, 0],
+                    [0, 3, 3, 1, 2, 0],
+                    [0, 3, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 2, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 2, 2, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 3, 0, 0, 0, 0],
+                    [0, 3, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray([9, 8, 7]),  # branch_mins
+            np.asarray([9.5, 9, 8.5]),  # branch_medians : Used in _abs_thresh_idx with threshold of 9
+            np.asarray([10, 8, 7]),  # branch_middles
+            np.asarray([3]),  # abs_thresh_idx : index + 1 in above noted array that are < 9
+            np.asarray([]),  # mean_abs_thresh_idx
+            np.asarray([]),  # iqr_thresh_idx
+            False,
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            id="basic T-shape",
+        ),
+        pytest.param(
+            {
+                "skeleton": np.asarray(
+                    [
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 0, 0, 0, 0, 0, 1, 0],
+                        [0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+                        [0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+                        [0, 1, 0, 0, 0, 1, 0, 1, 0, 0],
+                        [0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+                        [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                        [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                        [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+                "img": np.asarray(
+                    [
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 10, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 9, 0, 0, 0, 0, 0, 10, 0],
+                        [0, 0, 0, 9, 0, 0, 0, 0, 8, 0],
+                        [0, 0, 7, 0, 9, 0, 0, 0, 8, 0],
+                        [0, 7, 0, 0, 0, 9, 0, 10, 0, 0],
+                        [0, 7, 0, 0, 0, 0, 9, 0, 0, 0],
+                        [0, 7, 0, 0, 0, 0, 0, 9, 0, 0],
+                        [0, 7, 0, 0, 0, 0, 0, 0, 9, 0],
+                        [0, 10, 0, 0, 0, 0, 0, 0, 10, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+            },
+            -1,
+            9,
+            "min",
+            "abs",
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 2, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 2, 0],
+                    [0, 0, 0, 3, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 3, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 2, 0, 0, 0, 0, 0, 0, 2, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 2, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 2, 0],
+                    [0, 0, 3, 0, 4, 0, 0, 0, 2, 0],
+                    [0, 3, 0, 0, 0, 4, 0, 2, 0, 0],
+                    [0, 3, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 3, 0, 0, 0, 0, 0, 5, 0, 0],
+                    [0, 3, 0, 0, 0, 0, 0, 0, 5, 0],
+                    [0, 3, 0, 0, 0, 0, 0, 0, 5, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray([9, 8, 7, 9, 9]),  # branch_mins
+            np.asarray([9.5, 9, 7, 9, 9]),  # branch_medians : Used in _abs_thresh_idx with threshold of 9
+            np.asarray([10, 8, 7, 9, 9]),  # branch_middles
+            np.asarray([3]),  # abs_thresh_idx : index + 1 in above noted array that are < 9
+            np.asarray([3]),  # mean_abs_thresh_idx
+            np.asarray([]),  # iqr_thresh_idx
+            False,
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            id="disjointed x-shape",
+        ),
+        pytest.param(
+            {
+                "skeleton": np.asarray(
+                    [
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                        [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                        [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                        [0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0],
+                        [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                        [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                        [0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+                "img": np.asarray(
+                    [
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 9, 8, 8, 9, 0, 0, 0, 0, 0],
+                        [0, 0, 9, 0, 0, 0, 0, 9, 0, 0, 0, 0],
+                        [0, 9, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0],
+                        [0, 9, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0],
+                        [0, 9, 9, 7, 7, 9, 0, 0, 9, 0, 0, 0],
+                        [0, 9, 0, 0, 0, 0, 0, 0, 9, 0, 6, 0],
+                        [0, 9, 0, 0, 0, 0, 0, 0, 9, 0, 6, 0],
+                        [0, 0, 9, 0, 0, 0, 0, 9, 0, 9, 0, 0],
+                        [0, 0, 0, 9, 8, 8, 9, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+            },
+            -1,
+            9,
+            "min",
+            "abs",
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 3, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 3, 3, 1, 1, 2, 0, 0, 1, 0, 0, 0],
+                    [0, 3, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 3, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, 2, 2, 2, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 0],
+                    [0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0],
+                    [0, 0, 4, 0, 0, 0, 0, 4, 0, 3, 0, 0],
+                    [0, 0, 0, 4, 4, 4, 4, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray([8, 7, 6, 8]),  # branch_mins
+            np.asarray([9, 7, 6, 9]),  # branch_medians : Used in _abs_thresh_idx with threshold of 9
+            np.asarray([9, 7, 6, 8]),  # branch_middles
+            np.asarray([2, 3]),  # abs_thresh_idx : index + 1 in above noted array that are < 9
+            np.asarray([2, 3]),  # mean_abs_thresh_idx
+            np.asarray([3]),  # iqr_thresh_idx
+            False,
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            id="ring with branches",
+            # marks=pytest.mark.xfail(reason="splits ring in two places, should this be so?"),
+        ),
+        pytest.param(
+            {
+                "skeleton": np.asarray(
+                    [
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 0, 0, 0, 1, 0, 0],
+                        [0, 0, 1, 0, 1, 0, 1, 0, 0, 0],
+                        [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+                        [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+                        [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+                        [0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+                        [0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+                        [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+                "img": np.asarray(
+                    [
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 15, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 10, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 10, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 10, 9, 0, 0, 0, 14, 0, 0],
+                        [0, 0, 10, 0, 9, 0, 8, 0, 0, 0],
+                        [0, 0, 10, 0, 0, 9, 0, 0, 0, 0],
+                        [0, 0, 10, 0, 0, 9, 0, 0, 0, 0],
+                        [0, 0, 10, 0, 0, 9, 0, 0, 0, 0],
+                        [0, 0, 10, 0, 0, 0, 12, 0, 0, 0],
+                        [0, 0, 10, 0, 0, 0, 0, 12, 0, 0],
+                        [0, 0, 0, 11, 0, 0, 0, 0, 12, 0],
+                        [0, 0, 0, 10, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 10, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 10, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 10, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+            },
+            -1,
+            10,
+            "min",
+            "abs",
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 2, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 3, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 3, 3, 0, 0, 0, 2, 0, 0],
+                    [0, 0, 3, 0, 1, 0, 1, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 3, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 2, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 2, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 1, 0, 1, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 2, 0, 0],
+                    [0, 0, 0, 0, 3, 0, 2, 0, 0, 0],
+                    [0, 0, 4, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 4, 0, 0, 5, 0, 0, 0, 0],
+                    [0, 0, 4, 0, 0, 5, 0, 0, 0, 0],
+                    [0, 0, 4, 0, 0, 0, 5, 0, 0, 0],
+                    [0, 0, 4, 0, 0, 0, 0, 5, 0, 0],
+                    [0, 0, 0, 4, 0, 0, 0, 0, 5, 0],
+                    [0, 0, 0, 4, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 4, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 4, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 4, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray([10, 8, 9, 10, 9]),  # branch_mins
+            np.asarray([12.5, 11.0, 9.0, 10.0, 12.0]),  # branch_medians : Used in _abs_thresh_idx with threshold of 9
+            np.asarray([15.0, 14.0, 9.0, 11.0, 12.0]),  # branch_middles
+            np.asarray([3]),  # abs_thresh_idx : index + 1 in above noted array that are < 10
+            np.asarray([3]),  # mean_abs_thresh_idx
+            np.asarray([2]),  # iqr_thresh_idx
+            False,
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            id="long straight skeleton with forked branch",
+            # marks=pytest.mark.xfail(reason="Not sure middles are correct, arbitrarily takes point left or gith of even
+            # lengthed branches see region 1"),
+        ),
+    ],
+)
+class TestHeightPruningBasic:
+    """Tests for heightPruning() class using very basic shapes."""
+
+    # pylint: disable=unused-argument
+    # pylint: disable=too-many-locals
+    def topostats_height_pruner(
+        self,
+        img_skeleton: str,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+    ) -> None:
+        """Instantiate a topostatsPrune object."""
+        return heightPruning(
+            img_skeleton["img"],
+            img_skeleton["skeleton"],
+            max_length,
+            height_threshold,
+            method_values,
+            method_outliers,
+        )
+
+    def test_convolve_skeleton(
+        self,
+        img_skeleton: str,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        convolved_skeleton_target: npt.NDArray,
+        segmented_skeleton_target: npt.NDArray,
+        labelled_skeleton_target: npt.NDArray,
+        branch_mins_target: npt.NDArray,
+        branch_medians_target: npt.NDArray,
+        branch_middles_target: npt.NDArray,
+        abs_thresh_idx_target: npt.NDArray,
+        mean_abs_thresh_idx_target: npt.NDArray,
+        iqr_thresh_idx_target: npt.NDArray,
+        check_skeleton_one_object_target: bool,
+        remove_bridges_target: npt.NDArray,
+    ) -> None:
+        """Test convolve_skeleton() method of heightPruning class."""
+        height_pruning = self.topostats_height_pruner(
+            img_skeleton, max_length, height_threshold, method_values, method_outliers
+        )
+        np.testing.assert_array_equal(height_pruning.skeleton["convolved_skeleton"], convolved_skeleton_target)
+
+    def test_segment_skeleton(
+        self,
+        img_skeleton: str,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        convolved_skeleton_target: npt.NDArray,
+        segmented_skeleton_target: npt.NDArray,
+        labelled_skeleton_target: npt.NDArray,
+        branch_mins_target: npt.NDArray,
+        branch_medians_target: npt.NDArray,
+        branch_middles_target: npt.NDArray,
+        abs_thresh_idx_target: npt.NDArray,
+        mean_abs_thresh_idx_target: npt.NDArray,
+        iqr_thresh_idx_target: npt.NDArray,
+        check_skeleton_one_object_target: bool,
+        remove_bridges_target: npt.NDArray,
+    ) -> None:
+        """Test segment_skeleton() method of heightPruning class."""
+        height_pruning = self.topostats_height_pruner(
+            img_skeleton, max_length, height_threshold, method_values, method_outliers
+        )
+        np.testing.assert_array_equal(height_pruning.skeleton["branches"], segmented_skeleton_target)
+
+    def test_label_branches(
+        self,
+        img_skeleton: str,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        convolved_skeleton_target: npt.NDArray,
+        segmented_skeleton_target: npt.NDArray,
+        labelled_skeleton_target: npt.NDArray,
+        branch_mins_target: npt.NDArray,
+        branch_medians_target: npt.NDArray,
+        branch_middles_target: npt.NDArray,
+        abs_thresh_idx_target: npt.NDArray,
+        mean_abs_thresh_idx_target: npt.NDArray,
+        iqr_thresh_idx_target: npt.NDArray,
+        check_skeleton_one_object_target: bool,
+        remove_bridges_target: npt.NDArray,
+    ) -> None:
+        """Test label_branches() method of HeightPruning class."""
+        height_pruning = self.topostats_height_pruner(
+            img_skeleton, max_length, height_threshold, method_values, method_outliers
+        )
+        np.testing.assert_array_equal(height_pruning.skeleton["labelled_branches"], labelled_skeleton_target)
+
+    def test_get_branch_mins(
+        self,
+        img_skeleton: str,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        convolved_skeleton_target: npt.NDArray,
+        segmented_skeleton_target: npt.NDArray,
+        labelled_skeleton_target: npt.NDArray,
+        branch_mins_target: npt.NDArray,
+        branch_medians_target: npt.NDArray,
+        branch_middles_target: npt.NDArray,
+        abs_thresh_idx_target: npt.NDArray,
+        mean_abs_thresh_idx_target: npt.NDArray,
+        iqr_thresh_idx_target: npt.NDArray,
+        check_skeleton_one_object_target: bool,
+        remove_bridges_target: npt.NDArray,
+    ) -> None:
+        """Test of get_branch_mins() method of heightPruning class."""
+        height_pruning = self.topostats_height_pruner(
+            img_skeleton, max_length, height_threshold, method_values, method_outliers
+        )
+        branch_mins = height_pruning._get_branch_mins(
+            height_pruning.image, height_pruning.skeleton["labelled_branches"]
+        )
+        np.testing.assert_array_equal(branch_mins, branch_mins_target)
+
+    def test_get_branch_medians(
+        self,
+        img_skeleton: str,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        convolved_skeleton_target: npt.NDArray,
+        segmented_skeleton_target: npt.NDArray,
+        labelled_skeleton_target: npt.NDArray,
+        branch_mins_target: npt.NDArray,
+        branch_medians_target: npt.NDArray,
+        branch_middles_target: npt.NDArray,
+        abs_thresh_idx_target: npt.NDArray,
+        mean_abs_thresh_idx_target: npt.NDArray,
+        iqr_thresh_idx_target: npt.NDArray,
+        check_skeleton_one_object_target: bool,
+        remove_bridges_target: npt.NDArray,
+    ) -> None:
+        """Test of get_branch_medians() method of heightPruning class."""
+        height_pruning = self.topostats_height_pruner(
+            img_skeleton, max_length, height_threshold, method_values, method_outliers
+        )
+        branch_medians = height_pruning._get_branch_medians(
+            height_pruning.image, height_pruning.skeleton["labelled_branches"]
+        )
+        np.testing.assert_array_equal(branch_medians, branch_medians_target)
+
+    def test_get_branch_middles(
+        self,
+        img_skeleton: str,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        convolved_skeleton_target: npt.NDArray,
+        segmented_skeleton_target: npt.NDArray,
+        labelled_skeleton_target: npt.NDArray,
+        branch_mins_target: npt.NDArray,
+        branch_medians_target: npt.NDArray,
+        branch_middles_target: npt.NDArray,
+        abs_thresh_idx_target: npt.NDArray,
+        mean_abs_thresh_idx_target: npt.NDArray,
+        iqr_thresh_idx_target: npt.NDArray,
+        check_skeleton_one_object_target: bool,
+        remove_bridges_target: npt.NDArray,
+    ) -> None:
+        """
+        Test of get_branch_middles() method of heightPruning class.
+
+        NB - Surprised that when the branch has an even number of points in it that the median height of the two middle
+        points is not returned.
+        """
+        height_pruning = self.topostats_height_pruner(
+            img_skeleton, max_length, height_threshold, method_values, method_outliers
+        )
+        branch_middles = height_pruning._get_branch_middles(
+            height_pruning.image, height_pruning.skeleton["labelled_branches"]
+        )
+        np.testing.assert_array_equal(branch_middles, branch_middles_target)
+
+    def test_get_abs_thresh_idx(
+        self,
+        img_skeleton: str,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        convolved_skeleton_target: npt.NDArray,
+        segmented_skeleton_target: npt.NDArray,
+        labelled_skeleton_target: npt.NDArray,
+        branch_mins_target: npt.NDArray,
+        branch_medians_target: npt.NDArray,
+        branch_middles_target: npt.NDArray,
+        abs_thresh_idx_target: npt.NDArray,
+        mean_abs_thresh_idx_target: npt.NDArray,
+        iqr_thresh_idx_target: npt.NDArray,
+        check_skeleton_one_object_target: bool,
+        remove_bridges_target: npt.NDArray,
+    ) -> None:
+        """
+        Test of get_abs_thresh_idx(self) method of heightPruning class.
+
+        NB - Doesn't appear to do what the docstring states which is get indices _on_ branches, rather it gets indices
+        _of summarised (either min/median/middles) branch heights_
+        """
+        height_pruning = self.topostats_height_pruner(
+            img_skeleton, max_length, height_threshold, method_values, method_outliers
+        )
+        abs_thresh_idx = height_pruning._get_abs_thresh_idx(branch_medians_target, height_pruning.height_threshold)
+        np.testing.assert_array_equal(abs_thresh_idx, abs_thresh_idx_target)
+
+    def test_get_mean_abs_thresh_idx(
+        self,
+        img_skeleton: str,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        convolved_skeleton_target: npt.NDArray,
+        segmented_skeleton_target: npt.NDArray,
+        labelled_skeleton_target: npt.NDArray,
+        branch_mins_target: npt.NDArray,
+        branch_medians_target: npt.NDArray,
+        branch_middles_target: npt.NDArray,
+        abs_thresh_idx_target: npt.NDArray,
+        mean_abs_thresh_idx_target: npt.NDArray,
+        iqr_thresh_idx_target: npt.NDArray,
+        check_skeleton_one_object_target: bool,
+        remove_bridges_target: npt.NDArray,
+    ) -> None:
+        """
+        Test of get_mean_abs_thresh_idx() method of heightPruning class.
+
+        NB - Doesn't appear to do what the docstring states which is get indices _on_ branches, rather it gets indices
+        _of summarised (either min/median/middles) branch heights_
+        """
+        height_pruning = self.topostats_height_pruner(
+            img_skeleton, max_length, height_threshold, method_values, method_outliers
+        )
+        mean_abs_thresh_idx = height_pruning._get_mean_abs_thresh_idx(
+            branch_medians_target,
+            height_pruning.height_threshold / 9,
+            height_pruning.image,
+            height_pruning.skeleton["skeleton"],
+        )
+        np.testing.assert_array_equal(mean_abs_thresh_idx, mean_abs_thresh_idx_target)
+
+    def test_get_iqr_thresh_idx(
+        self,
+        img_skeleton: str,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        convolved_skeleton_target: npt.NDArray,
+        segmented_skeleton_target: npt.NDArray,
+        labelled_skeleton_target: npt.NDArray,
+        branch_mins_target: npt.NDArray,
+        branch_medians_target: npt.NDArray,
+        branch_middles_target: npt.NDArray,
+        abs_thresh_idx_target: npt.NDArray,
+        mean_abs_thresh_idx_target: npt.NDArray,
+        iqr_thresh_idx_target: npt.NDArray,
+        check_skeleton_one_object_target: bool,
+        remove_bridges_target: npt.NDArray,
+    ) -> None:
+        """Test of get_iqr_thresh_idx() method of heightPruning class."""
+        height_pruning = self.topostats_height_pruner(
+            img_skeleton, max_length, height_threshold, method_values, method_outliers
+        )
+        iqr_thresh_idx = height_pruning._get_iqr_thresh_idx(
+            height_pruning.image, height_pruning.skeleton["labelled_branches"]
+        )
+        np.testing.assert_array_equal(iqr_thresh_idx, iqr_thresh_idx_target)
+
+    def test_check_skeleton_one_object(
+        self,
+        img_skeleton: str,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        convolved_skeleton_target: npt.NDArray,
+        segmented_skeleton_target: npt.NDArray,
+        labelled_skeleton_target: npt.NDArray,
+        branch_mins_target: npt.NDArray,
+        branch_medians_target: npt.NDArray,
+        branch_middles_target: npt.NDArray,
+        abs_thresh_idx_target: npt.NDArray,
+        mean_abs_thresh_idx_target: npt.NDArray,
+        iqr_thresh_idx_target: npt.NDArray,
+        check_skeleton_one_object_target: bool,
+        remove_bridges_target: npt.NDArray,
+    ) -> None:
+        """Test of check_skeleton_one_object() method of heightPruning class."""
+        height_pruning = self.topostats_height_pruner(
+            img_skeleton, max_length, height_threshold, method_values, method_outliers
+        )
+        check_skeleton_one_object = height_pruning.check_skeleton_one_object(
+            height_pruning.skeleton["labelled_branches"]
+        )
+        assert check_skeleton_one_object == check_skeleton_one_object_target
+
+    @pytest.mark.xfail(reason="Skeletons aren't pruned as expected (if at all)")
+    def test_remove_bridges(
+        self,
+        img_skeleton: str,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        convolved_skeleton_target: npt.NDArray,
+        segmented_skeleton_target: npt.NDArray,
+        labelled_skeleton_target: npt.NDArray,
+        branch_mins_target: npt.NDArray,
+        branch_medians_target: npt.NDArray,
+        branch_middles_target: npt.NDArray,
+        abs_thresh_idx_target: npt.NDArray,
+        mean_abs_thresh_idx_target: npt.NDArray,
+        iqr_thresh_idx_target: npt.NDArray,
+        check_skeleton_one_object_target: bool,
+        remove_bridges_target: npt.NDArray,
+    ) -> None:
+        """Test of remove_bridges() method of heightPruning class."""
+        height_pruning = self.topostats_height_pruner(
+            img_skeleton, max_length, height_threshold, method_values, method_outliers
+        )
+        remove_bridges = height_pruning.remove_bridges()
+        print(f"{remove_bridges=}")
+        np.testing.assert_array_equal(remove_bridges, remove_bridges_target)
 
 
-def test_conv_get_branch_medians() -> None:
-    """Test of conv_get_branch_medians() method of heightPruning class."""
-    pass
+# @pytest.mark.parametrize(
+#     ("img_skeleton", "max_length", "height_threshold", "method_values", "method_outliers"),
+#     [pytest.param("pruning_skeleton_loop1", id="skeleton loop1")],
+# )
+# class TestHeightPruningImages:
+#     """Tests for heightPruning() class using dummy skeletons and heights."""
+
+#     img_skeleton = request.getfixturevalue(img_skeleton)
+#     img = img_skeleton["height"]
+#     skeleton = img_skeleton["skeleton"]
+#     self.height_pruning = heightPruning(img, skeleton, height_threshold, method_values, method_outlier)
+
+#     @pytest.mark.skip(reason="awaiting test development")
+#     def test_get_branch_mins(self) -> None:
+#         """Test of conve_get_branch_mins() method of heightPruning class."""
+
+#     @pytest.mark.skip(reason="awaiting test development")
+#     def test_get_branch_medians(self) -> None:
+#         """Test of conv_get_branch_medians() method of heightPruning class."""
+
+#     @pytest.mark.skip(reason="awaiting test development")
+#     def test_get_branch_middles(self) -> None:
+#         """Test of conv_get_branch_middles() method of heightPruning class."""
+
+#     @pytest.mark.skip(reason="awaiting test development")
+#     def test_get_abs_thresh_idx(self) -> None:
+#         """Test of conv_get_abs_thresh_idx(self) method of heightPruning class."""
+
+#     @pytest.mark.skip(reason="awaiting test development")
+#     def test_get_mean_abs_thresh_idx(self) -> None:
+#         """Test of conv_get_mean_abs_thresh_idx() method of heightPruning class."""
+
+#     @pytest.mark.skip(reason="awaiting test development")
+#     def test_get_iqr_thresh_idx(self) -> None:
+#         """Test of conv_get_iqr_thresh_idx() method of heightPruning class."""
+
+#     @pytest.mark.skip(reason="awaiting test development")
+#     def test_check_skeleton_one_object(self) -> None:
+#         """Test of conv_check_skeleton_one_object() method of heightPruning class."""
+
+#     @pytest.mark.skip(reason="awaiting test development")
+#     def test_remove_bridges(self) -> None:
+#         """Test of remove_bridges() method of heightPruning class."""
 
 
-def test_conv_get_branch_middles() -> None:
-    """Test of conv_get_branch_middles() method of heightPruning class."""
-    pass
+@pytest.mark.parametrize(
+    ("skeleton_nodeless", "start", "max_length", "order_branch_target"),
+    [
+        pytest.param(
+            np.asarray(
+                [
+                    [0, 0, 0],
+                    [0, 2, 0],
+                    [0, 1, 0],
+                    [0, 1, 0],
+                    [0, 1, 0],
+                    [0, 1, 0],
+                    [0, 0, 0],
+                ]
+            ),
+            (1, 1),
+            9,
+            np.asarray(
+                [
+                    [1, 1],
+                    [2, 1],
+                    [3, 1],
+                    [4, 1],
+                    [5, 1],
+                ]
+            ),
+            id="single vertical branch",
+        ),
+        pytest.param(
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 2, 0, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 0, 1, 1, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            (1, 1),
+            9,
+            np.asarray(
+                [
+                    [1, 1],
+                    [2, 1],
+                    [3, 1],
+                    [4, 1],
+                    [5, 2],
+                    [5, 3],
+                ]
+            ),
+            id="single bent branch, start top left",
+        ),
+        pytest.param(
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 2, 0],
+                    [0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0],
+                    [0, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            (1, 3),
+            9,
+            np.asarray(
+                [
+                    [1, 3],
+                    [2, 3],
+                    [3, 3],
+                    [4, 3],
+                    [5, 2],
+                    [5, 1],
+                ]
+            ),
+            id="single bent branch, start top right",
+        ),
+        pytest.param(
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0],
+                    [0, 2, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            (5, 1),
+            9,
+            np.asarray(
+                [
+                    [5, 1],
+                    [5, 2],
+                    [4, 3],
+                    [3, 3],
+                    [2, 3],
+                    [1, 3],
+                ]
+            ),
+            id="single bent branch, start bottom left",
+        ),
+        pytest.param(
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 1, 0, 1, 0],
+                    [0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0],
+                    [0, 2, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            (5, 1),
+            9,
+            np.asarray(
+                [
+                    [5, 1],
+                    [5, 2],
+                    [4, 3],
+                    [3, 3],
+                    [2, 3],
+                    [1, 2],
+                    [2, 1],
+                ]
+            ),
+            id="single curled branch, start bottom right",
+        ),
+    ],
+)
+def test_order_branch_from_end(
+    skeleton_nodeless: npt.NDArray, start: list, max_length: int, order_branch_target: npt.NDArray
+) -> None:
+    """Test of order_branch_from_start() function."""
+    order_branch = order_branch_from_end(skeleton_nodeless, start, max_length)
+    np.testing.assert_array_equal(order_branch, order_branch_target)
 
 
-def test_conv_get_abs_thresh_idx() -> None:
-    """Test of conv_get_abs_thresh_idx() method of heightPruning class."""
-    pass
+# Tests for pruneSkeleton class
+# @pytest.mark.parametrize(
+#     ("img_skeleton", "max_length", "height_threshold", "method_values", "method_outliers"),
+#     [pytest.param("pruning_skeleton_loop1", 10, 90, "min", "abs", id="skeleton loop1")],
+# )
+# class TestPruneSkeleton:
+#     img_skeleton = request.getfixturevalue(img_skeleton)
+#     img = img_skeleton["height"]
+#     skeleton = img_skeleton["skeleton"]
+#     topostats_pruner = pruneSkeleton(img, skeleton, height_threshold, method_values, method_outlier)
+
+#     @pytest.mark.skip(reason="awaiting test development")
+#     def test_prune_skeleton() -> None:
+#         """Test of prune_skeleton() method of pruneSkeleton class."""
+
+#     @pytest.mark.skip(reason="awaiting test development")
+#     def test_prune_method() -> None:
+#         """Test of prune_method() method of pruneSkeleton class."""
+
+#     @pytest.mark.skip(reason="awaiting test development")
+#     def test_prune_topostats() -> None:
+#         """Test of prune_topostats() method of pruneSkeleton class."""
+
+#     @pytest.mark.skip(reason="awaiting test development")
+#     def test_prune_conv() -> None:
+#         """Test of prune_conv() method of pruneSkeleton class."""
 
 
-def test_conv_get_mean_abs_thresh_idx() -> None:
-    """Test of conv_get_mean_abs_thresh_idx() method of heightPruning class."""
-    pass
+@pytest.mark.parametrize(
+    ("img", "target"),
+    [
+        pytest.param(
+            np.asarray(
+                [
+                    [0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 1, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                ]
+            ),
+            id="linear with single 1-pixel branch",
+            marks=pytest.mark.xfail(reason="not sure why this is failing?"),
+        ),
+        pytest.param(
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 1, 0],
+                    [0, 1, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 1, 0],
+                    [0, 1, 1, 0, 1, 0],
+                    [0, 1, 0, 0, 1, 0],
+                    [0, 1, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 1, 0],
+                    [0, 1, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 1, 0],
+                    [0, 1, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            id="circular with single 1-pixel branch internally",
+            marks=pytest.mark.xfail(
+                reason="not sure why this is failing? also skeleton shape actually changes unexpectedly"
+            ),
+        ),
+    ],
+)
+def test_rm_nibs(img: npt.NDArray, target: npt.NDArray) -> None:
+    """Test of rm_nibs() function."""
+    clean_skeleton = rm_nibs(img)
+    np.testing.assert_array_equal(clean_skeleton, target)
 
 
-def test_conv_get_iqr_thresh_idx() -> None:
-    """Test of conv_get_iqr_thresh_idx() method of heightPruning class."""
-    pass
+@pytest.mark.parametrize(
+    ("img", "point", "local_pixels_target", "local_pixels_sum_target"),
+    [
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            [1, 1],
+            np.asarray([1, 1, 1, 1, 0, 1, 1, 1, 1]),
+            8,
+            id="3x3 binary all 1's; point as list",
+        ),
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            (1, 1),
+            np.asarray([1, 1, 1, 1, 0, 1, 1, 1, 1]),
+            8,
+            id="3x3 binary all 1's; point as tuple",
+        ),
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            np.asarray([1, 1]),
+            np.asarray([1, 1, 1, 1, 0, 1, 1, 1, 1]),
+            8,
+            id="3x3 binary all 1's; point as npt.NDArray",
+        ),
+        pytest.param(
+            np.asarray([[0, 1, 0], [1, 1, 1], [0, 1, 0]]),
+            [1, 1],
+            np.asarray([0, 1, 0, 1, 0, 1, 0, 1, 0]),
+            4,
+            id="3x3 binary 0's and 1's 50/50; point as list",
+        ),
+        pytest.param(
+            np.asarray([[0, 1, 1], [1, 0, 1], [1, 1, 0]]),
+            [1, 1],
+            np.asarray([0, 1, 1, 1, 0, 1, 1, 1, 0]),
+            6,
+            id="3x3 binary 0's and 1's 30/70; point as list",
+        ),
+        pytest.param(
+            np.asarray([[1, 2, 1], [1, 1, 1], [1, 1, 1]]),
+            [1, 1],
+            np.asarray([1, 2, 1, 1, 0, 1, 1, 1, 1]),
+            9,
+            id="3x3 non-binary array; point as list",
+            marks=pytest.mark.xfail(reason="Array is not binary."),
+        ),
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            [0, 1],
+            np.asarray([0, 1, 1, 1, 0, 1, 1, 1, 0]),
+            6,
+            id="3x3 1's; point on top edge",
+            marks=pytest.mark.xfail(reason="Point on top edge of image."),
+        ),
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            [1, 0],
+            np.asarray([0, 1, 1, 1, 0, 1, 1, 1, 0]),
+            6,
+            id="3x3 1's; point on left edge",
+            marks=pytest.mark.xfail(reason="Point on left edge of image."),
+        ),
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            [1, 2],
+            np.asarray([0, 1, 1, 1, 0, 1, 1, 1, 0]),
+            6,
+            id="3x3 1's; point on right edge",
+            marks=pytest.mark.xfail(reason="Point on right edge of image."),
+        ),
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            [2, 1],
+            np.asarray([0, 1, 1, 1, 0, 1, 1, 1, 0]),
+            6,
+            id="3x3 1's; point on bottom edge",
+            marks=pytest.mark.xfail(reason="Point on bottom edge of image."),
+        ),
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            [2, 2],
+            np.asarray([0, 1, 1, 1, 0, 1, 1, 1, 0]),
+            6,
+            id="3x3 1's; point on corner",
+            marks=pytest.mark.xfail(reason="Point on corner of image."),
+        ),
+    ],
+)
+def test_local_area_sum(
+    img: npt.NDArray,
+    point: list | tuple | npt.NDArray,
+    local_pixels_target: npt.NDArray,
+    local_pixels_sum_target: int,
+) -> None:
+    """Test of local_area_sum() function."""
+    local_pixels, local_pixels_sum = local_area_sum(img, point)
+    np.testing.assert_array_equal(local_pixels, local_pixels_target)
+    assert local_pixels_sum == local_pixels_sum_target
 
 
-def test_conv_check_skeleton_one_object() -> None:
-    """Test of conv_check_skeleton_one_object() method of heightPruning class."""
-    pass
+@pytest.mark.parametrize(
+    ("img", "point", "exception"),
+    [
+        pytest.param(
+            np.asarray([[1, 2, 1], [1, 1, 1], [1, 1, 1]]),
+            [1, 1],
+            ValueError,
+            id="3x3 non-binary array in cells adjacent to point",
+        ),
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 2, 1], [1, 1, 1]]),
+            [1, 1],
+            ValueError,
+            id="3x3 non-binary array in point",
+        ),
+    ],
+)
+def test_local_area_sum_value_error(img: npt.NDArray, point: list | tuple | npt.NDArray, exception: ValueError) -> None:
+    """Test local_area_sum() function raises error if non-binary array is passed."""
+    with pytest.raises(exception):
+        local_area_sum(img, point)
 
 
-def test_conv_remove_bridges() -> None:
-    """Test of remove_bridges() method of heightPruning class."""
-    pass
+@pytest.mark.parametrize(
+    ("img", "point", "exception"),
+    [
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            [0, 1],
+            IndexError,
+            id="3x3 1's; point on top edge",
+        ),
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            [1, 0],
+            IndexError,
+            id="3x3 1's; point on left edge",
+        ),
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            [1, 2],
+            IndexError,
+            id="3x3 1's; point on right edge",
+        ),
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            [2, 1],
+            IndexError,
+            id="3x3 1's; point on bottom edge",
+        ),
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            [2, 2],
+            IndexError,
+            id="3x3 1's; point on top left corner",
+        ),
+        pytest.param(
+            np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+            [2, 2],
+            IndexError,
+            id="3x3 1's; point on bottom right corner",
+        ),
+    ],
+)
+def test_local_area_sum_index_error(img: npt.NDArray, point: list | tuple | npt.NDArray, exception: ValueError) -> None:
+    """Test local_area_sum() function raises error if point is on edge of array."""
+    with pytest.raises(exception):
+        local_area_sum(img, point)
