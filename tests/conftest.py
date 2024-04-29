@@ -4,10 +4,13 @@ import importlib.resources as pkg_resources
 from pathlib import Path
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import pySPM
 import pytest
 import yaml
+from skimage import draw
+from skimage.morphology import skeletonize
 
 import topostats
 from topostats.filters import Filters
@@ -725,4 +728,34 @@ def minicircle_grainstats(
     )
 
 
-# Curvature Fixtures
+# Random shapes
+# Generate a random skeletons, first is a skeleton with a closed loop with side branches
+kwargs = {
+    "image_shape": (60, 32),
+    "max_shapes": 10,
+    "channel_axis": None,
+    "shape": None,
+    "allow_overlap": True,
+    "min_size": 20,
+}
+
+
+@pytest.fixture()
+def utils_skeleton_linear1() -> npt.NDArray:
+    """Linear skeleton."""
+    random_images, _ = draw.random_shapes(rng=1, **kwargs)
+    return skeletonize(random_images != 255)
+
+
+@pytest.fixture()
+def utils_skeleton_linear2() -> npt.NDArray:
+    """Linear skeleton T-junction and side-branch."""
+    random_images, _ = draw.random_shapes(rng=165103, **kwargs)
+    return skeletonize(random_images != 255)
+
+
+@pytest.fixture()
+def utils_skeleton_linear3() -> npt.NDArray:
+    """Linear skeleton with several branches."""
+    random_images, _ = draw.random_shapes(rng=7334281, **kwargs)
+    return skeletonize(random_images != 255)

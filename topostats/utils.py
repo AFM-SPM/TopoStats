@@ -342,18 +342,21 @@ def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, im
     return check(row_coord, max_row, padding), check(col_coord, max_col, padding)
 
 
-def convolve_skelly(skeleton) -> np.ndarray:
+def convolve_skeleton(skeleton: npt.NDArray) -> npt.NDArray:
     """
-    Convolve skeleton with a 3x3 kernel to produce an array of the skeleton as 1, endpoints as 2, and nodes as 3.
+    Convolve skeleton with a 3x3 kernel.
+
+    This produces an array where the branches of the skeleton are denoted with '1', endpoints are denoted as '2', and
+    pixels at nodes as '3'.
 
     Parameters
     ----------
-    skeleton : np.ndarray
+    skeleton : npt.NDArray
         Single pixel thick binary trace(s) within an array.
 
     Returns
     -------
-    np.ndarray
+    npt.NDArray
         The skeleton (=1) with endpoints (=2), and crossings (=3) highlighted.
     """
     conv = convolve(skeleton.astype(np.int32), np.ones((3, 3)))
