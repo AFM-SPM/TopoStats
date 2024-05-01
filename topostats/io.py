@@ -308,7 +308,7 @@ def save_folder_grainstats(output_dir: str | Path, base_dir: str | Path, all_sta
             LOGGER.info(f"No folder-wise statistics for directory {_dir}, no grains detected in any images.")
 
 
-def read_null_terminated_string(open_file: io.TextIOWrapper) -> str:
+def read_null_terminated_string(open_file: io.TextIOWrapper, encoding: str = "utf-8") -> str:
     """
     Read an open file from the current position in the open binary file, until the next null value.
 
@@ -316,18 +316,37 @@ def read_null_terminated_string(open_file: io.TextIOWrapper) -> str:
     ----------
     open_file : io.TextIOWrapper
         An open file object.
+    encoding : str
+        Encoding to use when decoding the bytes.
 
     Returns
     -------
     str
         String of the ASCII decoded bytes before the next null byte.
+
+    Examples
+    --------
+    >>> with open("test.txt", "rb") as f:
+    ...     print(read_null_terminated_string(f), encoding="utf-8")
     """
     byte = open_file.read(1)
     value = b""
     while byte != b"\x00":
         value += byte
         byte = open_file.read(1)
-    return str(value.decode("utf-8"))
+    # Sometimes encodings cannot decode a byte that is not defined in the encoding.
+    # Try 'latin1' in this case as it is able to handle symbols such as micro (µ).
+    try:
+        return str(value.decode(encoding=encoding))
+    except UnicodeDecodeError as e:
+        if "codec can't decode byte" in str(e):
+            bad_byte = str(e).split("byte ")[1].split(":")[0]
+            LOGGER.debug(
+                f"Decoding error while reading null terminated string. Encoding {encoding} encountered"
+                f" a byte that could not be decoded: {bad_byte}. Trying 'latin1' encoding."
+            )
+            return str(value.decode(encoding="latin1"))
+        raise e
 
 
 def read_u32i(open_file: io.TextIOWrapper) -> str:
