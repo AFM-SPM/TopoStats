@@ -33,7 +33,7 @@ from topostats.utils import convolve_skelly, ResolutionError
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-OUTPUT_DIR = Path("/Users/maxgamill/Desktop/")
+OUTPUT_DIR = Path("/Users/laurawiggins/Desktop/")
 
 
 class dnaTrace:
@@ -224,7 +224,7 @@ class dnaTrace:
                 return sum_conf / (i + 1)
             except ZeroDivisionError:
                 return None
-            
+
     @staticmethod
     def minimum_crossing_confs(node_dict):
         confs = []
@@ -287,10 +287,8 @@ class dnaTrace:
         return holey_smooth
 
     def get_disordered_trace(self):
-        #self.smoothed_grain = self.smooth_grains(self.grain)
-        self.skeleton = getSkeleton(self.gauss_image, self.grain).get_skeleton(
-            self.skeletonisation_params.copy()
-        )
+        # self.smoothed_grain = self.smooth_grains(self.grain)
+        self.skeleton = getSkeleton(self.gauss_image, self.grain).get_skeleton(self.skeletonisation_params.copy())
         # np.savetxt(OUTPUT_DIR / "skel.txt", self.skeleton)
         # np.savetxt(OUTPUT_DIR / "image.txt", self.image)
         # np.savetxt(OUTPUT_DIR / "smooth.txt", self.smoothed_grain)
@@ -975,7 +973,10 @@ def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: 
     # Subset image and grains then zip them up
     cropped_images = [crop_array(image, grain.bbox, pad_width) for grain in region_properties]
     cropped_images = [np.pad(grain, pad_width=pad_width) for grain in cropped_images]
-    cropped_masks = [crop_array(np.where(labelled_grains_mask == i+1, 1, 0), grain.bbox, pad_width) for i, grain in enumerate(region_properties)]
+    cropped_masks = [
+        crop_array(np.where(labelled_grains_mask == i + 1, 1, 0), grain.bbox, pad_width)
+        for i, grain in enumerate(region_properties)
+    ]
     cropped_masks = [np.pad(grain, pad_width=pad_width) for grain in cropped_masks]
     # Flip every labelled region to be 1 instead of its label
     cropped_masks = [np.where(grain == 0, 0, 1) for grain in cropped_masks]
@@ -1045,7 +1046,7 @@ def trace_grain(
     dnatrace.trace_dna()
     results = {}
 
-    if dnatrace.num_mols == 0: # incase no mols could be traced
+    if dnatrace.num_mols == 0:  # incase no mols could be traced
         results[0] = {
             "image": dnatrace.filename,
             "grain_number": n_grain,
@@ -1141,6 +1142,7 @@ def pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int) -> 
     # Right Column : Make this the last column if too close
     bounding_box[3] = array_shape[1] if bounding_box[3] + pad_width > array_shape[1] else bounding_box[3] + pad_width
     return bounding_box
+
 
 # 2023-06-09 - Code that runs dnatracing in parallel across grains, left deliberately for use when we remodularise the
 #              entry-points/workflow. Will require that the gaussian filtered array is saved and passed in along with
@@ -1239,13 +1241,15 @@ class nodeStats:
         self.node_centre_mask = None
         self.num_crossings = 0
         self.node_dict = {}
-        self.image_dict = {'nodes': {}, 
-                           'grain': {
-                               'grain_image': self.image,
-                               'grain_mask': self.grain,
-                               'grain_visual_crossings': None,
-                               }}
-        #self.grain_image_dict = {}
+        self.image_dict = {
+            "nodes": {},
+            "grain": {
+                "grain_image": self.image,
+                "grain_mask": self.grain,
+                "grain_visual_crossings": None,
+            },
+        }
+        # self.grain_image_dict = {}
         self.test = None
         self.test2 = None
         self.test3 = None
@@ -1285,7 +1289,7 @@ class nodeStats:
         self.conv_skelly = convolve_skelly(self.skeleton)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             # convolve to see crossing and end points
-            #self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
+            # self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
             # reset skeleton var as tidy branches may have modified it
             self.skeleton = np.where(self.conv_skelly != 0, 1, 0)
             # get graph of skeleton
@@ -1672,7 +1676,7 @@ class nodeStats:
 
         # check whether average trace resides inside the grain mask
         dilate = ndimage.binary_dilation(self.skeleton, iterations=2)
-        average_trace_advised = False #dilate[self.smoothed_grain == 1].sum() == dilate.sum()
+        average_trace_advised = False  # dilate[self.smoothed_grain == 1].sum() == dilate.sum()
         LOGGER.info(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
 
         # iterate over the nodes to find areas
@@ -1841,7 +1845,7 @@ class nodeStats:
                     crossing_quants = []
                     for branch_idx, values in matched_branches.items():
                         crossing_quants.append(values["fwhm2"][0])
-                    if len(crossing_quants) == 1: # from 3 eminnating branches
+                    if len(crossing_quants) == 1:  # from 3 eminnating branches
                         conf = None
                     else:
                         combs = self.get_two_combinations(crossing_quants)
@@ -1907,10 +1911,10 @@ class nodeStats:
                 }
 
                 self.image_dict["nodes"][real_node_count] = {
-                    #"node_area_image": self.image,  # [
+                    # "node_area_image": self.image,  # [
                     # image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
                     # ],  # self.hess
-                    #"node_area_grain": self.grain,  # [
+                    # "node_area_grain": self.grain,  # [
                     # image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
                     # ],
                     "node_area_skeleton": reduced_node_area,  # [
@@ -2813,8 +2817,8 @@ class nodeStats:
                 if coord_val + 2 > node_image_cp.shape[j]:
                     coord[j] = node_image_cp.shape[j] - 2
             node_image_cp[
-                coord[0] - pad_nodes : coord[0] + pad_nodes + 1,
-                coord[1] - pad_nodes : coord[1] + pad_nodes + 1] = 0
+                coord[0] - pad_nodes : coord[0] + pad_nodes + 1, coord[1] - pad_nodes : coord[1] + pad_nodes + 1
+            ] = 0
 
         return node_image_cp
 
@@ -2863,7 +2867,7 @@ class nodeStats:
 
         try:
             low_conf_idx = np.nanargmin(np.array(confidences, dtype=np.float))
-        except ValueError: # when no crossings or only 3-branch crossings
+        except ValueError:  # when no crossings or only 3-branch crossings
             low_conf_idx = None
 
         # Get the image minus the crossing regions
@@ -2921,7 +2925,7 @@ class nodeStats:
         # TODO: Finish / do triv identification via maybe:
         #   one segment 2 branches
         #   topology based -> 0_1 all triv, 2^2_1 -> 2 real (may have to check against no. nodes to see which are real)
-        #self.identify_trivial_crossings(node_coords)
+        # self.identify_trivial_crossings(node_coords)
 
         im = np.zeros_like(self.skeleton)
         for i in coord_trace:
@@ -2930,7 +2934,7 @@ class nodeStats:
 
         # visual over under img
         visual = self.get_visual_img(coord_trace, fwhms, crossing_coords)
-        self.image_dict['grain']['grain_visual_crossings'] = visual
+        self.image_dict["grain"]["grain_visual_crossings"] = visual
 
         # np.savetxt(OUTPUT_DIR / "visual.txt", visual)
 
@@ -2941,7 +2945,7 @@ class nodeStats:
 
         # print("Getting PD Codes:")
         topology = self.get_topology(simple_trace)
-        if reverse_min_conf_crossing and low_conf_idx is None: # when there's nothing to reverse
+        if reverse_min_conf_crossing and low_conf_idx is None:  # when there's nothing to reverse
             topology = [None for _ in enumerate(topology)]
         """
         if len(coord_trace) <= 2:
