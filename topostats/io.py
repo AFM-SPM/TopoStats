@@ -6,6 +6,7 @@ import io
 import logging
 import os
 import pickle as pkl
+import re
 import struct
 from datetime import datetime
 from importlib import resources
@@ -915,6 +916,35 @@ class LoadScans:
         pre_string = ""
         LoadScans._gwy_print_dict(gwy_file_dict=gwy_file_dict, pre_string=pre_string)
 
+    @staticmethod
+    def _gwy_get_channels(gwy_file_structure: dict) -> dict:
+        """
+        Extract a list of channels and their corresponding dictionary key ids from the `.gwy` file dictionary.
+
+        Parameters
+        ----------
+        gwy_file_structure : dict
+            Dictionary of the nested object / component structure of a `.gwy` file.
+
+        Returns
+        -------
+        dict
+            Dictionary where the keys are the channel names and the values are the dictionary key ids.
+        """
+        title_key_pattern = re.compile(r"\d+(?=/data/title)")
+        channel_ids = {}
+
+        for key, _ in gwy_file_structure.items():
+            match = re.search(title_key_pattern, key)
+            if match:
+                channel = gwy_file_structure[key]
+                channel_ids[channel] = match.group()
+                print(f" Key: {key} Channel: {channel} | ID: {match.group()}")
+            else:
+                print(f" No match for key: {key}")
+
+        return channel_ids
+
     def load_gwy(self) -> tuple[npt.NDArray, float]:
         """
         Extract image and pixel to nm scaling from the Gwyddion .gwy file.
@@ -939,18 +969,17 @@ class LoadScans:
             # available keys:
             # LoadScans._gwy_print_dict_wrapper(gwy_file_dict=image_data_dict)
 
-            if "/0/data" in image_data_dict:
-                image = image_data_dict["/0/data"]["data"]
-                units = image_data_dict["/0/data"]["si_unit_xy"]["unitstr"]
-                px_to_nm = image_data_dict["/0/data"]["xreal"] * 1e9 / image.shape[1]
-            elif "/1/data" in image_data_dict:
-                image = image_data_dict["/1/data"]["data"]
-                px_to_nm = image_data_dict["/1/data"]["xreal"] * 1e9 / image.shape[1]
-                units = image_data_dict["/1/data"]["si_unit_xy"]["unitstr"]
-            else:
+            channel_ids = LoadScans._gwy_get_channels(gwy_file_structure=image_data_dict)
+
+            if self.channel not in channel_ids:
                 raise KeyError(
-                    "Data location not defined in the .gwy file. Please locate it and add to the load_gwy() function."
+                    f"Channel {self.channel} not found in {self.img_path.suffix} channel list: {channel_ids}"
                 )
+
+            # Get the image data
+            image = image_data_dict[f"/{channel_ids[self.channel]}/data"]["data"]
+            units = image_data_dict[f"/{channel_ids[self.channel]}/data"]["si_unit_xy"]["unitstr"]
+            px_to_nm = image_data_dict[f"/{channel_ids[self.channel]}/data"]["xreal"] * 1e9 / image.shape[1]
 
             # Convert image heights to nanometresQ
             if units == "m":

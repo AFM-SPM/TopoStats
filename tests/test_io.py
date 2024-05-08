@@ -607,6 +607,64 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
         assert list(test_dict.values()) == [{"test nested component": 3}]
 
 
+@pytest.mark.parametrize(
+    ("gwy_file_data", "expected_channel_ids"),
+    [
+        pytest.param(
+            {
+                "/0/data": "Height Channel Data",
+                "/0/data/title": "Height",
+                "/0/data/meta": "Height Channel Metadata",
+                "/1/data": "Amplitude Channel Data",
+                "/1/data/title": "Amplitude",
+                "/1/data/meta": "Amplitude Channel Metadata",
+                "/2/data": "Phase Channel Data",
+                "/2/data/title": "Phase",
+                "/2/data/meta": "Phase Channel Metadata",
+                "/3/data": "Error Channel Data",
+                "/3/data/title": "Error",
+                "/3/data/meta": "Error Channel Metadata",
+            },
+            {
+                "Height": "0",
+                "Amplitude": "1",
+                "Phase": "2",
+                "Error": "3",
+            },
+            id="leading slash",
+        ),
+        pytest.param(
+            {
+                "0/data": "Height Channel Data",
+                "0/data/title": "Height",
+                "0/data/meta": "Height Channel Metadata",
+                "1/data": "Amplitude Channel Data",
+                "1/data/title": "Amplitude",
+                "1/data/meta": "Amplitude Channel Metadata",
+                "2/data": "Phase Channel Data",
+                "2/data/title": "Phase",
+                "2/data/meta": "Phase Channel Metadata",
+                "3/data": "Error Channel Data",
+                "3/data/title": "Error",
+                "3/data/meta": "Error Channel Metadata",
+            },
+            {
+                "Height": "0",
+                "Amplitude": "1",
+                "Phase": "2",
+                "Error": "3",
+            },
+            id="no leading slash",
+        ),
+    ],
+)
+def test_gwy_get_channels(load_scan_dummy: LoadScans, gwy_file_data: dict, expected_channel_ids: dict) -> None:
+    """Tests getting the channels of a `.gwy` file."""
+    channel_ids = load_scan_dummy._gwy_get_channels(gwy_file_structure=gwy_file_data)
+
+    assert channel_ids == expected_channel_ids
+
+
 @patch("pySPM.SPM.SPM_image.pxs")
 @pytest.mark.parametrize(
     ("unit", "x", "y", "expected_px2nm"),
@@ -769,6 +827,8 @@ def test_dict_to_hdf5_all_together_group_path_non_standard(tmp_path: Path) -> No
         assert list(f.keys()) == list(expected.keys())
         assert f["d"]["a"][()] == expected["d"]["a"]
         np.testing.assert_array_equal(f["d"]["b"][()], expected["d"]["b"])
+        # pylint thinks that f["c"] is a group but it is a bytes object that can be decoded
+        # pylint: disable=no-member
         assert f["d"]["c"][()].decode("utf-8") == expected["d"]["c"]
         assert f["d"]["d"]["e"][()] == expected["d"]["d"]["e"]
         np.testing.assert_array_equal(f["d"]["d"]["f"][()], expected["d"]["d"]["f"])
