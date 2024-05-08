@@ -321,7 +321,7 @@ def test_read_null_terminated_string(string_start_position: int, expected_string
 def test_read_u32i() -> None:
     """Test reading an unsigned 32 bit integer from a binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(5)
+        open_binary_file.seek(6)
         value = read_u32i(open_binary_file)
         assert isinstance(value, int)
         assert value == 32
@@ -330,7 +330,7 @@ def test_read_u32i() -> None:
 def test_read_64d() -> None:
     """Test reading a 64-bit double from an open binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(9)
+        open_binary_file.seek(10)
         value = read_64d(open_binary_file)
         assert isinstance(value, float)
         assert value == 3.141592653589793
@@ -339,7 +339,7 @@ def test_read_64d() -> None:
 def test_read_char() -> None:
     """Test reading a character from an open binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(17)
+        open_binary_file.seek(18)
         value = read_char(open_binary_file)
         assert isinstance(value, str)
         assert value == "Z"
@@ -348,7 +348,7 @@ def test_read_char() -> None:
 def test_read_gwy_component_dtype() -> None:
     """Test reading a data type of a `.gwy` file component from an open binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(18)
+        open_binary_file.seek(19)
         value = read_gwy_component_dtype(open_binary_file)
         assert isinstance(value, str)
         assert value == "D"
@@ -600,10 +600,10 @@ def test_gwy_read_object(load_scan_dummy: LoadScans) -> None:
 def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
     """Tests reading a component of a `.gwy` file object from an open binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(55)
+        open_binary_file.seek(56)
         test_dict = {}
         byte_size = load_scan_dummy._gwy_read_component(
-            initial_byte_pos=55, open_file=open_binary_file, data_dict=test_dict
+            initial_byte_pos=56, open_file=open_binary_file, data_dict=test_dict
         )
         print(test_dict.items())
         print(test_dict.values())
