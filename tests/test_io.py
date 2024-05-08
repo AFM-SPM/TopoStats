@@ -305,12 +305,17 @@ def test_find_files() -> None:
     assert "minicircle.spm" in str(found_images[0])
 
 
-def test_read_null_terminated_string() -> None:
+@pytest.mark.parametrize(
+    ("string_start_position", "expected_string"),
+    [pytest.param(0, "test", id="utf8 string"), pytest.param(5, "µ ", id="ISO 8859-1 character")],
+)
+def test_read_null_terminated_string(string_start_position: int, expected_string: str) -> None:
     """Test reading a null terminated string from a binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
+        open_binary_file.seek(string_start_position)
         value = read_null_terminated_string(open_binary_file)
         assert isinstance(value, str)
-        assert value == "test"
+        assert value == expected_string
 
 
 def test_read_u32i() -> None:
