@@ -202,6 +202,17 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
             ),
             "min_skeleton_size": lambda n: n > 0.0,
+            "mask_smoothing_params": {
+                "gaussian_sigma": Or(
+                    float,
+                    int,
+                    None,
+                ),
+                "dilation_iterations": Or(
+                    int,
+                    None,
+                )
+            },
             "skeletonisation_params": {
                 "skeletonisation_method": Or(
                     "zhang",

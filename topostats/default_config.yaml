@@ -52,6 +52,9 @@ grainstats:
 dnatracing:
   run: true # Options : true, false
   min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.
+  mask_smoothing_params:
+    gaussian_sigma: null # Gaussian smoothing parameter 'sigma'. 'null' defaults to max(grain.shape) / 256.
+    dilation_iterations: 2 # Number of dilation iterations to use for grain smoothing.
   skeletonisation_params:
     skeletonisation_method: topostats # Options : zhang | lee | thin | topostats
     height_bias: 0.6 # Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.

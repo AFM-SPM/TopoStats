@@ -57,6 +57,9 @@ class dnaTrace:
         Convert nanometers to metres.
     min_skeleton_size : int
         Minimum skeleton size below which tracing statistics are not calculated.
+    mask_smoothing_params: dict
+        Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains 
+        a gaussian 'sigma' and number of dilation iterations.
     skeletonisation_params : dict
         Skeletonisation Parameters. Method of skeletonisation to use 'topostats' is the original TopoStats
         method. Three methods from scikit-image are available 'zhang', 'lee' and 'thin'.
@@ -86,8 +89,9 @@ class dnaTrace:
         pixel_to_nm_scaling: float,
         convert_nm_to_m: bool = True,
         min_skeleton_size: int = 10,
-        skeletonisation_params={"skeletonisation_method": "zhang"},
-        pruning_params={"pruning_method": "topostats"},
+        mask_smoothing_params: dict = {"gaussian_sigma": None, "dilation_iterations": 2},
+        skeletonisation_params: dict = {"skeletonisation_method": "zhang"},
+        pruning_params: dict = {"pruning_method": "topostats"},
         n_grain: int = None,
         joining_node_length=7e-9,
         spline_step_size: float = 7e-9,
@@ -113,6 +117,9 @@ class dnaTrace:
             Convert nanometers to metres.
         min_skeleton_size : int
             Minimum skeleton size below which tracing statistics are not calculated.
+        mask_smoothing_params: dict
+            Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains 
+            a gaussian 'sigma' and number of dilation iterations.
         skeletonisation_params : dict
             Skeletonisation Parameters. Method of skeletonisation to use 'topostats' is the original TopoStats
             method. Three methods from scikit-image are available 'zhang', 'lee' and 'thin'.
@@ -138,6 +145,7 @@ class dnaTrace:
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling * 1e-9 if convert_nm_to_m else pixel_to_nm_scaling
         self.min_skeleton_size = min_skeleton_size
+        self.mask_smoothing_params = mask_smoothing_params
         self.skeletonisation_params = skeletonisation_params
         self.pruning_params = pruning_params
         self.n_grain = n_grain
@@ -190,7 +198,8 @@ class dnaTrace:
 
     def trace_dna(self):
         """Perform the DNA tracing pipeline."""
-        self.smoothed_grain += self.smooth_grains(self.grain)
+        print("------", self.mask_smoothing_params)
+        self.smoothed_grain += self.smooth_grains(self.grain, **self.mask_smoothing_params)
         self.get_disordered_trace()
 
         if self.disordered_trace is None:
@@ -287,7 +296,7 @@ class dnaTrace:
         LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Gaussian filter applied.")
 
     def smooth_grains(
-        self, grain: npt.NDArray, dilation_iterations: int | None, gaussian_sigma: float | None
+        self, grain: npt.NDArray, dilation_iterations: int=2, gaussian_sigma: float | int | None=None
     ) -> npt.NDArray:
         """
         Smooth grains based on the lower number of binary pixels added from dilation or gaussian.
@@ -297,11 +306,9 @@ class dnaTrace:
         Parameters
         ----------
         grain : npt.NDArray
-            Numpy array of grain.
-
-        dilation_iterations : int | None
-            Number of times to dilate the grain to smooth it. If None, defaults to 2.
-
+            Numpy array of the grain mask.
+        dilation_iterations : int
+            Number of times to dilate the grain to smooth it. Default is 2.
         gaussian_sigma : float | None
             Gaussian sigma value to smooth the grains after an Otsu threshold. If None, defaults to max(grain.shape) / 256.
 
@@ -310,9 +317,8 @@ class dnaTrace:
         npt.NDArray
             Numpy array of smmoothed image.
         """
-        dilation_iterations = dilation_iterations if dilation_iterations is None else 2
-        gaussian_sigma = gaussian_sigma if gaussian_sigma is None else max(grain.shape) / 256
-
+        gaussian_sigma = max(grain.shape) / 256 if gaussian_sigma is None else gaussian_sigma
+        print("-------", dilation_iterations, type(dilation_iterations))
         dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
         gauss = gaussian(grain, sigma=gaussian_sigma)
         gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
@@ -1155,6 +1161,7 @@ def trace_image(
     filename: str,
     pixel_to_nm_scaling: float,
     min_skeleton_size: int,
+    mask_smoothing_params: dict,
     skeletonisation_params: dict,
     pruning_params: dict,
     joining_node_length: float = 7e-9,
@@ -1179,7 +1186,10 @@ def trace_image(
         Pixel to nm scaling.
     min_skeleton_size : int
         Minimum size of grain in pixels after skeletonisation.
-    skeletonisation_params : dicxt
+    mask_smoothing_params: dict
+        Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains 
+        a gaussian 'sigma' and number of dilation iterations.
+    skeletonisation_params : dict
         Dictionary of options for skeletonisation, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin'
         (scikitimage) or 'topostats' (original TopoStats method).
     pruning_params : dict
@@ -1242,6 +1252,7 @@ def trace_image(
             cropped_image=cropped_image,
             cropped_mask=cropped_mask,
             pixel_to_nm_scaling=pixel_to_nm_scaling,
+            mask_smoothing_params=mask_smoothing_params,
             skeletonisation_params=skeletonisation_params,
             pruning_params=pruning_params,
             filename=filename,
@@ -1498,6 +1509,7 @@ def trace_grain(
     cropped_image: npt.NDArray,
     cropped_mask: npt.NDArray,
     pixel_to_nm_scaling: float,
+    mask_smoothing_params: dict,
     skeletonisation_params: dict,
     pruning_params: dict,
     filename: str = None,
@@ -1529,6 +1541,9 @@ def trace_grain(
         converted to a binary mask.
     pixel_to_nm_scaling : float
         Pixel to nm scaling.
+    mask_smoothing_params: dict
+        Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains 
+        a gaussian 'sigma' and number of dilation iterations.
     skeletonisation_params : dict
         Dictionary of skeletonisation parameters, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin'
         (scikitimage) or 'topostats' (original TopoStats method).
@@ -1561,6 +1576,7 @@ def trace_grain(
         filename=filename,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         min_skeleton_size=min_skeleton_size,
+        mask_smoothing_params=mask_smoothing_params,
         skeletonisation_params=skeletonisation_params,
         pruning_params=pruning_params,
         joining_node_length=joining_node_length,
