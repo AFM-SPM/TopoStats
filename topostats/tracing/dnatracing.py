@@ -104,7 +104,7 @@ class dnaTrace:
         self.n_grain = n_grain
         self.number_of_rows = self.image.shape[0]
         self.number_of_columns = self.image.shape[1]
-        self.sigma = 2  # 0.7 / (self.pixel_to_nm_scaling * 1e9)
+        self.sigma = 0  # 0.7 / (self.pixel_to_nm_scaling * 1e9)
 
         self.gauss_image = gaussian(self.image, self.sigma)
         self.smoothed_grain = np.zeros_like(image)
@@ -187,6 +187,7 @@ class dnaTrace:
                     mol_is_circular = self.linear_or_circular(trace)
                     self.mol_is_circulars.append(mol_is_circular)
                     fitted_trace = self.get_fitted_traces(trace, mol_is_circular)
+                    fitted_trace = trace
                     self.fitted_trace_img += self.coords_2_img(fitted_trace, self.image)
                     # Propper cleanup needed - ordered trace instead of fitted trace
                     splined_trace = self.get_splined_traces(trace, trace, mol_is_circular)
@@ -1295,7 +1296,7 @@ class nodeStats:
             # get graph of skeleton
             self.whole_skel_graph = self.skeleton_image_to_graph(self.skeleton)
             # connect the close nodes
-            self.connected_nodes = self.connect_close_nodes(self.conv_skelly, node_width=7e-9)
+            self.connected_nodes = self.connect_close_nodes(self.conv_skelly, node_width=1e-9)
             # connect the odd-branch nodes
             self.connected_nodes = self.connect_extended_nodes_nearest(
                 self.connected_nodes, extend_dist=14e-9 / self.px_2_nm
