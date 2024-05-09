@@ -924,12 +924,18 @@ class LoadScans:
         Parameters
         ----------
         gwy_file_structure : dict
-            Dictionary of the nested object / component structure of a `.gwy` file.
+            Dictionary of the nested object / component structure of a `.gwy` file. Where the keys are object names
+            and the values are dictionaries of the object's components.
 
         Returns
         -------
         dict
             Dictionary where the keys are the channel names and the values are the dictionary key ids.
+
+        Examples
+        --------
+        # Using a loaded dictionary generated from a `.gwy` file:
+        LoadScans._gwy_get_channels(gwy_file_structure=loaded_gwy_file_dictionary)
         """
         title_key_pattern = re.compile(r"\d+(?=/data/title)")
         channel_ids = {}
@@ -939,9 +945,6 @@ class LoadScans:
             if match:
                 channel = gwy_file_structure[key]
                 channel_ids[channel] = match.group()
-                print(f" Key: {key} Channel: {channel} | ID: {match.group()}")
-            else:
-                print(f" No match for key: {key}")
 
         return channel_ids
 
@@ -979,11 +982,13 @@ class LoadScans:
             # Get the image data
             image = image_data_dict[f"/{channel_ids[self.channel]}/data"]["data"]
             units = image_data_dict[f"/{channel_ids[self.channel]}/data"]["si_unit_xy"]["unitstr"]
-            px_to_nm = image_data_dict[f"/{channel_ids[self.channel]}/data"]["xreal"] * 1e9 / image.shape[1]
+            # currently only support equal pixel sizes in x and y
+            px_to_nm = image_data_dict[f"/{channel_ids[self.channel]}/data"]["xreal"] / image.shape[1]
 
             # Convert image heights to nanometresQ
             if units == "m":
                 image = image * 1e9
+                px_to_nm = px_to_nm * 1e9
             else:
                 raise ValueError(
                     f"Units '{units}' have not been added for .gwy files. Please add \

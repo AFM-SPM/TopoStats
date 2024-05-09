@@ -605,8 +605,6 @@ def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
         byte_size = load_scan_dummy._gwy_read_component(
             initial_byte_pos=56, open_file=open_binary_file, data_dict=test_dict
         )
-        print(test_dict.items())
-        print(test_dict.values())
         assert byte_size == 73
         assert list(test_dict.keys()) == ["test object component"]
         assert list(test_dict.values()) == [{"test nested component": 3}]
