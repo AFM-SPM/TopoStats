@@ -571,8 +571,9 @@ class heightPruning:
     @staticmethod
     def _get_branch_middles(image: npt.NDArray, segments: npt.NDArray) -> npt.NDArray:
         """
-        Collect the positionally ordered middle height value of each labeled branch. Where
-        the branch has an even ammount of points, average the two middle hights.
+        Collect the positionally ordered middle height value of each labeled branch.
+
+        Where the branch has an even ammount of points, average the two middle hights.
 
         Parameters
         ----------
@@ -594,9 +595,9 @@ class heightPruning:
                 start = np.argwhere(convolve_skeleton(segment) == 2)[0]
                 ordered_coords = order_branch_from_end(segment, start)
                 # if even no. points, average two middles
-                middle_idx, middle_remainder = (len(ordered_coords)+ 1) // 2 - 1, (len(ordered_coords)+ 1) % 2
+                middle_idx, middle_remainder = (len(ordered_coords) + 1) // 2 - 1, (len(ordered_coords) + 1) % 2
                 mid_coord = ordered_coords[[middle_idx, middle_idx + middle_remainder]]
-                height = image[mid_coord[:,0], mid_coord[:,1]].mean()
+                height = image[mid_coord[:, 0], mid_coord[:, 1]].mean()
             else:
                 # if 2 points, need to average them
                 height = image[segment == 1].mean()
@@ -706,12 +707,15 @@ class heightPruning:
         return morphology.label(skeleton).max() == 1
 
     def filter_segments(self, segments: npt.NDArray, skeleton_rtn: npt.NDArray) -> npt.NDArray:
-        """Identifies and removes segments of a skeleton based on the underlying image height.
+        """
+        Identify and remove segments of a skeleton based on the underlying image height.
 
         Parameters
         ----------
         segments : npt.NDArray
             A labelled 2D array of skeleton segments.
+        skeleton_rtn : npt.NDArray
+            A copy of the skeleton to perform the branch filtering on.
 
         Returns
         -------
@@ -730,7 +734,9 @@ class heightPruning:
         if self.method_outlier == "abs":
             idxs = self._get_abs_thresh_idx(height_values, self.height_threshold)
         elif self.method_outlier == "mean_abs":
-            idxs = self._get_mean_abs_thresh_idx(height_values, self.height_threshold, self.image, self.skeleton["skeleton"])
+            idxs = self._get_mean_abs_thresh_idx(
+                height_values, self.height_threshold, self.image, self.skeleton["skeleton"]
+            )
         elif self.method_outlier == "iqr":
             idxs = self._get_iqr_thresh_idx(self.image, segments)
 
@@ -745,10 +751,10 @@ class heightPruning:
 
     def remove_bridges(self) -> npt.NDArray:
         """
-        Identify and remove spurious branches using the underlying image height. Bridges cross the skeleton in places
-        they shouldn't and are defined as an internal branch and thus have no endpoints.
+        Identify and remove skeleton bridges using the underlying image height.
 
-        Bridges occur due to poor thresholding creating holes in the mask, creating false "bridges" which misrepresent the
+        Bridges cross the skeleton in places they shouldn't and are defined as an internal branch and thus have no endpoints.
+        They occur due to poor thresholding creating holes in the mask, creating false "bridges" which misrepresent the
         skeleton of the molecule.
 
         Returns
@@ -762,14 +768,14 @@ class heightPruning:
         segments = morphology.label(np.where(nodeless != 0, 1, 0))
         # bridges should not concern endpoints so remove these
         for i in range(1, segments.max() + 1):
-            if (conv[segments==i] == 2).any():
+            if (conv[segments == i] == 2).any():
                 segments[segments == i] = 0
         segments = morphology.label(np.where(segments != 0, 1, 0))
         # filter the segments based on hight criteria
         skeleton_rtn = self.filter_segments(segments, self.skeleton["skeleton"].copy())
 
         return skeleton_rtn
-    
+
     def height_prune(self) -> npt.NDArray:
         """
         Identify and remove spurious branches (containing endpoints) using the underlying image height.
@@ -783,9 +789,9 @@ class heightPruning:
         # Split the skeleton into branches by removing junctions/nodes and label
         nodeless = np.where(conv == 3, 0, conv)
         segments = morphology.label(np.where(nodeless != 0, 1, 0))
-         # height pruning should only concern endpoints so remove interal connections
+        # height pruning should only concern endpoints so remove interal connections
         for i in range(1, segments.max() + 1):
-            if not (conv[segments==i] == 2).any():
+            if not (conv[segments == i] == 2).any():
                 segments[segments == i] = 0
         segments = morphology.label(np.where(segments != 0, 1, 0))
         # filter the segments based on hight criteria
@@ -805,11 +811,11 @@ def order_branch_from_end(nodeless: npt.NDArray, start: list, max_length: float 
     Parameters
     ----------
     nodeless : npt.NDArray
-        _description_.
+        A 2D binary array where there are no crossing pixels.
     start : list
-        _description_.
+        A coordinate to start closest to / at.
     max_length : float, optional
-        _description_, by default np.inf.
+        The maximum length to order along the branch, in pixels, by default np.inf.
 
     Returns
     -------
