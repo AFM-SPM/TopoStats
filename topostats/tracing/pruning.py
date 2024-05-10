@@ -571,7 +571,8 @@ class heightPruning:
     @staticmethod
     def _get_branch_middles(image: npt.NDArray, segments: npt.NDArray) -> npt.NDArray:
         """
-        Collect the positionally ordered middle height value of each labeled branch.
+        Collect the positionally ordered middle height value of each labeled branch. Where
+        the branch has an even ammount of points, average the two middle hights.
 
         Parameters
         ----------
@@ -592,16 +593,20 @@ class heightPruning:
                 # sometimes start is not found ?
                 start = np.argwhere(convolve_skeleton(segment) == 2)[0]
                 ordered_coords = order_branch_from_end(segment, start)
-                mid_coord = ordered_coords[len(ordered_coords) // 2]
+                # if even no. points, average two middles
+                middle_idx, middle_remainder = (len(ordered_coords)+ 1) // 2 - 1, (len(ordered_coords)+ 1) % 2
+                mid_coord = ordered_coords[[middle_idx, middle_idx + middle_remainder]]
+                height = image[mid_coord[:,0], mid_coord[:,1]].mean()
             else:
-                mid_coord = np.argwhere(segment == 1)[0]
-            branch_middles[i - 1] += image[mid_coord[0], mid_coord[1]]
+                # if 2 points, need to average them
+                height = image[segment == 1].mean()
+            branch_middles[i - 1] += height
         return branch_middles
 
     @staticmethod
     def _get_abs_thresh_idx(height_values: npt.NDArray, threshold: float | int) -> npt.NDArray:
         """
-        Identify indices on branches whose height values are less than a given threshold.
+        Identify indices of labelled branches whose height values are less than a given threshold.
 
         Parameters
         ----------
