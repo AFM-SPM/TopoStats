@@ -1052,6 +1052,7 @@ class TestTopoStatsPrune:
         "iqr_thresh_idx_target",
         "check_skeleton_one_object_target",
         "remove_bridges_target",
+        "height_prune_target",
     ),
     [
         pytest.param(
@@ -1062,7 +1063,7 @@ class TestTopoStatsPrune:
                         [0, 1, 0, 0, 0, 0],
                         [0, 1, 0, 0, 0, 0],
                         [0, 1, 0, 0, 0, 0],
-                        [0, 1, 1, 1, 1, 0],
+                        [0, 0, 1, 1, 1, 0],
                         [0, 1, 0, 0, 0, 0],
                         [0, 1, 0, 0, 0, 0],
                         [0, 1, 0, 0, 0, 0],
@@ -1072,13 +1073,13 @@ class TestTopoStatsPrune:
                 "img": np.asarray(
                     [
                         [0, 0, 0, 0, 0, 0],
-                        [0, 10, 0, 0, 0, 0],
                         [0, 9, 0, 0, 0, 0],
                         [0, 9, 0, 0, 0, 0],
-                        [0, 10, 8, 8, 10, 0],
-                        [0, 7, 0, 0, 0, 0],
-                        [0, 7, 0, 0, 0, 0],
                         [0, 10, 0, 0, 0, 0],
+                        [0, 0, 11, 8, 8, 0],
+                        [0, 13, 0, 0, 0, 0],
+                        [0, 7, 0, 0, 0, 0],
+                        [0, 7, 0, 0, 0, 0],
                         [0, 0, 0, 0, 0, 0],
                     ]
                 ),
@@ -1092,9 +1093,9 @@ class TestTopoStatsPrune:
                     [0, 0, 0, 0, 0, 0],
                     [0, 2, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0],
-                    [0, 3, 0, 0, 0, 0],
-                    [0, 3, 3, 1, 2, 0],
-                    [0, 3, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 0, 3, 1, 2, 0],
+                    [0, 1, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0],
                     [0, 2, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0],
@@ -1105,9 +1106,9 @@ class TestTopoStatsPrune:
                     [0, 0, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
                     [0, 0, 0, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0],
@@ -1118,19 +1119,19 @@ class TestTopoStatsPrune:
                     [0, 0, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
                     [0, 0, 0, 2, 2, 0],
-                    [0, 0, 0, 0, 0, 0],
+                    [0, 3, 0, 0, 0, 0],
                     [0, 3, 0, 0, 0, 0],
                     [0, 3, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0],
                 ]
             ),
             np.asarray([9, 8, 7]),  # branch_mins
-            np.asarray([9.5, 9, 8.5]),  # branch_medians : Used in _abs_thresh_idx with threshold of 9
-            np.asarray([10, 8, 7]),  # branch_middles
-            np.asarray([3]),  # abs_thresh_idx : index + 1 in above noted array that are < 9
-            np.asarray([]),  # mean_abs_thresh_idx
+            np.asarray([9, 8, 7]),  # branch_medians : Used in _abs_thresh_idx with threshold of 9
+            np.asarray([9, 8, 7]),  # branch_middles
+            np.asarray([2, 3]),  # abs_thresh_idx : index + 1 in above noted array that are < 9
+            np.asarray([2, 3]),  # mean_abs_thresh_idx
             np.asarray([]),  # iqr_thresh_idx
             False,
             np.asarray(
@@ -1139,10 +1140,23 @@ class TestTopoStatsPrune:
                     [0, 1, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 0],
                     [0, 1, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0],
                 ]
             ),
@@ -1232,7 +1246,7 @@ class TestTopoStatsPrune:
             ),
             np.asarray([9, 8, 7, 9, 9]),  # branch_mins
             np.asarray([9.5, 9, 7, 9, 9]),  # branch_medians : Used in _abs_thresh_idx with threshold of 9
-            np.asarray([10, 8, 7, 9, 9]),  # branch_middles
+            np.asarray([9.5, 8, 7, 9, 9]),  # branch_middles
             np.asarray([3]),  # abs_thresh_idx : index + 1 in above noted array that are < 9
             np.asarray([3]),  # mean_abs_thresh_idx
             np.asarray([]),  # iqr_thresh_idx
@@ -1240,15 +1254,30 @@ class TestTopoStatsPrune:
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 1, 0],
                     [0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
                     [0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
                     [0, 1, 0, 0, 0, 1, 0, 1, 0, 0],
                     [0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 ]
             ),
@@ -1263,7 +1292,7 @@ class TestTopoStatsPrune:
                         [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
                         [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
                         [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                        [0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0],
                         [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
                         [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
                         [0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0],
@@ -1278,7 +1307,7 @@ class TestTopoStatsPrune:
                         [0, 0, 9, 0, 0, 0, 0, 9, 0, 0, 0, 0],
                         [0, 9, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0],
                         [0, 9, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0],
-                        [0, 9, 9, 7, 7, 9, 0, 0, 9, 0, 0, 0],
+                        [0, 0, 9, 7, 7, 9, 0, 0, 9, 0, 0, 0],
                         [0, 9, 0, 0, 0, 0, 0, 0, 9, 0, 6, 0],
                         [0, 9, 0, 0, 0, 0, 0, 0, 9, 0, 6, 0],
                         [0, 0, 9, 0, 0, 0, 0, 9, 0, 9, 0, 0],
@@ -1297,9 +1326,9 @@ class TestTopoStatsPrune:
                     [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
                     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                    [0, 3, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                    [0, 3, 3, 1, 1, 2, 0, 0, 1, 0, 0, 0],
-                    [0, 3, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 3, 1, 1, 2, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 3, 0, 1, 0],
                     [0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0],
                     [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
@@ -1312,9 +1341,9 @@ class TestTopoStatsPrune:
                     [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
                     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
                     [0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
                     [0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0],
                     [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
@@ -1327,22 +1356,37 @@ class TestTopoStatsPrune:
                     [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
                     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
                     [0, 0, 0, 2, 2, 2, 0, 0, 1, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 0],
-                    [0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0],
-                    [0, 0, 4, 0, 0, 0, 0, 4, 0, 3, 0, 0],
-                    [0, 0, 0, 4, 4, 4, 4, 0, 0, 0, 0, 0],
+                    [0, 3, 0, 0, 0, 0, 0, 0, 1, 0, 4, 0],
+                    [0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0],
+                    [0, 0, 3, 0, 0, 0, 0, 3, 0, 4, 0, 0],
+                    [0, 0, 0, 3, 3, 3, 3, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 ]
             ),
-            np.asarray([8, 7, 6, 8]),  # branch_mins
-            np.asarray([9, 7, 6, 9]),  # branch_medians : Used in _abs_thresh_idx with threshold of 9
-            np.asarray([9, 7, 6, 8]),  # branch_middles
-            np.asarray([2, 3]),  # abs_thresh_idx : index + 1 in above noted array that are < 9
-            np.asarray([2, 3]),  # mean_abs_thresh_idx
-            np.asarray([3]),  # iqr_thresh_idx
+            np.asarray([8, 7, 8, 6]),  # branch_mins
+            np.asarray([9, 7, 9, 6]),  # branch_medians : Used in _abs_thresh_idx with threshold of 9
+            np.asarray([8.5, 7, 8.5, 6]),  # branch_middles
+            np.asarray([2, 4]),  # abs_thresh_idx : index + 1 in above noted array that are < 9
+            np.asarray([2, 4]),  # mean_abs_thresh_idx
+            np.asarray([4]),  # iqr_thresh_idx
             False,
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -1350,7 +1394,7 @@ class TestTopoStatsPrune:
                     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
                     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
@@ -1475,7 +1519,7 @@ class TestTopoStatsPrune:
             ),
             np.asarray([10, 8, 9, 10, 9]),  # branch_mins
             np.asarray([12.5, 11.0, 9.0, 10.0, 12.0]),  # branch_medians : Used in _abs_thresh_idx with threshold of 9
-            np.asarray([15.0, 14.0, 9.0, 11.0, 12.0]),  # branch_middles
+            np.asarray([12.5, 11, 9, 10.5, 12]),  # branch_middles
             np.asarray([3]),  # abs_thresh_idx : index + 1 in above noted array that are < 10
             np.asarray([3]),  # mean_abs_thresh_idx
             np.asarray([2]),  # iqr_thresh_idx
@@ -1486,9 +1530,30 @@ class TestTopoStatsPrune:
                     [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 1, 0, 1, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
                     [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
@@ -1502,6 +1567,115 @@ class TestTopoStatsPrune:
                 ]
             ),
             id="long straight skeleton with forked branch",
+            # marks=pytest.mark.xfail(reason="Not sure middles are correct, arbitrarily takes point left or gith of even
+            # lengthed branches see region 1"),
+        ),
+        pytest.param(
+            {
+                "skeleton": np.asarray(
+                    [
+                        [0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0],
+                        [0, 1, 0, 0, 0, 1, 0],
+                        [0, 1, 0, 0, 0, 1, 0],
+                        [0, 0, 1, 1, 1, 0, 0],
+                        [0, 1, 0, 0, 0, 1, 0],
+                        [0, 1, 0, 0, 0, 1, 0],
+                        [0, 0, 1, 1, 1, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+                "img": np.asarray(
+                    [
+                        [0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 9, 9, 9, 0, 0],
+                        [0, 9, 0, 0, 0, 9, 0],
+                        [0, 9, 0, 0, 0, 9, 0],
+                        [0, 0, 10, 5, 7, 0, 0],
+                        [0, 9, 0, 0, 0, 9, 0],
+                        [0, 9, 0, 0, 0, 9, 0],
+                        [0, 0, 9, 9, 9, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+            },
+            -1,
+            9,
+            "min",
+            "abs",
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 3, 1, 3, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 2, 0, 0, 0],
+                    [0, 3, 0, 0, 0, 3, 0],
+                    [0, 3, 0, 0, 0, 3, 0],
+                    [0, 0, 3, 3, 3, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray([9, 5, 9]),  # branch_mins
+            np.asarray([9, 5, 9,]),  # branch_medians : Used in _abs_thresh_idx with threshold of 9
+            np.asarray([9, 5, 9]),  # branch_middles
+            np.asarray([2]),  # abs_thresh_idx : index + 1 in above noted array that are < 10
+            np.asarray([2]),  # mean_abs_thresh_idx
+            np.asarray([2]),  # iqr_thresh_idx
+            False,
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            id="figure 8",
             # marks=pytest.mark.xfail(reason="Not sure middles are correct, arbitrarily takes point left or gith of even
             # lengthed branches see region 1"),
         ),
@@ -1548,6 +1722,7 @@ class TestHeightPruningBasic:
         iqr_thresh_idx_target: npt.NDArray,
         check_skeleton_one_object_target: bool,
         remove_bridges_target: npt.NDArray,
+        height_prune_target: npt.NDArray,
     ) -> None:
         """Test convolve_skeleton() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
@@ -1573,6 +1748,7 @@ class TestHeightPruningBasic:
         iqr_thresh_idx_target: npt.NDArray,
         check_skeleton_one_object_target: bool,
         remove_bridges_target: npt.NDArray,
+        height_prune_target: npt.NDArray,
     ) -> None:
         """Test segment_skeleton() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
@@ -1598,6 +1774,7 @@ class TestHeightPruningBasic:
         iqr_thresh_idx_target: npt.NDArray,
         check_skeleton_one_object_target: bool,
         remove_bridges_target: npt.NDArray,
+        height_prune_target: npt.NDArray,
     ) -> None:
         """Test label_branches() method of HeightPruning class."""
         height_pruning = self.topostats_height_pruner(
@@ -1623,6 +1800,7 @@ class TestHeightPruningBasic:
         iqr_thresh_idx_target: npt.NDArray,
         check_skeleton_one_object_target: bool,
         remove_bridges_target: npt.NDArray,
+        height_prune_target: npt.NDArray,
     ) -> None:
         """Test of get_branch_mins() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
@@ -1651,6 +1829,7 @@ class TestHeightPruningBasic:
         iqr_thresh_idx_target: npt.NDArray,
         check_skeleton_one_object_target: bool,
         remove_bridges_target: npt.NDArray,
+        height_prune_target: npt.NDArray,
     ) -> None:
         """Test of get_branch_medians() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
@@ -1679,6 +1858,7 @@ class TestHeightPruningBasic:
         iqr_thresh_idx_target: npt.NDArray,
         check_skeleton_one_object_target: bool,
         remove_bridges_target: npt.NDArray,
+        height_prune_target: npt.NDArray,
     ) -> None:
         """
         Test of get_branch_middles() method of heightPruning class.
@@ -1712,12 +1892,10 @@ class TestHeightPruningBasic:
         iqr_thresh_idx_target: npt.NDArray,
         check_skeleton_one_object_target: bool,
         remove_bridges_target: npt.NDArray,
+        height_prune_target: npt.NDArray,
     ) -> None:
         """
         Test of get_abs_thresh_idx(self) method of heightPruning class.
-
-        NB - Doesn't appear to do what the docstring states which is get indices _on_ branches, rather it gets indices
-        _of summarised (either min/median/middles) branch heights_
         """
         height_pruning = self.topostats_height_pruner(
             img_skeleton, max_length, height_threshold, method_values, method_outliers
@@ -1743,12 +1921,10 @@ class TestHeightPruningBasic:
         iqr_thresh_idx_target: npt.NDArray,
         check_skeleton_one_object_target: bool,
         remove_bridges_target: npt.NDArray,
+        height_prune_target: npt.NDArray,
     ) -> None:
         """
         Test of get_mean_abs_thresh_idx() method of heightPruning class.
-
-        NB - Doesn't appear to do what the docstring states which is get indices _on_ branches, rather it gets indices
-        _of summarised (either min/median/middles) branch heights_
         """
         height_pruning = self.topostats_height_pruner(
             img_skeleton, max_length, height_threshold, method_values, method_outliers
@@ -1779,6 +1955,7 @@ class TestHeightPruningBasic:
         iqr_thresh_idx_target: npt.NDArray,
         check_skeleton_one_object_target: bool,
         remove_bridges_target: npt.NDArray,
+        height_prune_target: npt.NDArray,
     ) -> None:
         """Test of get_iqr_thresh_idx() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
@@ -1807,6 +1984,7 @@ class TestHeightPruningBasic:
         iqr_thresh_idx_target: npt.NDArray,
         check_skeleton_one_object_target: bool,
         remove_bridges_target: npt.NDArray,
+        height_prune_target: npt.NDArray,
     ) -> None:
         """Test of check_skeleton_one_object() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
@@ -1817,7 +1995,7 @@ class TestHeightPruningBasic:
         )
         assert check_skeleton_one_object == check_skeleton_one_object_target
 
-    @pytest.mark.xfail(reason="Skeletons aren't pruned as expected (if at all)")
+    #@pytest.mark.xfail(reason="Skeletons aren't pruned as expected (if at all)")
     def test_remove_bridges(
         self,
         img_skeleton: str,
@@ -1836,6 +2014,7 @@ class TestHeightPruningBasic:
         iqr_thresh_idx_target: npt.NDArray,
         check_skeleton_one_object_target: bool,
         remove_bridges_target: npt.NDArray,
+        height_prune_target: npt.NDArray,
     ) -> None:
         """Test of remove_bridges() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
@@ -1844,6 +2023,34 @@ class TestHeightPruningBasic:
         remove_bridges = height_pruning.remove_bridges()
         print(f"{remove_bridges=}")
         np.testing.assert_array_equal(remove_bridges, remove_bridges_target)
+
+    def test_height_prune(
+        self,
+        img_skeleton: str,
+        max_length: float,
+        height_threshold: float,
+        method_values: str,
+        method_outliers: str,
+        convolved_skeleton_target: npt.NDArray,
+        segmented_skeleton_target: npt.NDArray,
+        labelled_skeleton_target: npt.NDArray,
+        branch_mins_target: npt.NDArray,
+        branch_medians_target: npt.NDArray,
+        branch_middles_target: npt.NDArray,
+        abs_thresh_idx_target: npt.NDArray,
+        mean_abs_thresh_idx_target: npt.NDArray,
+        iqr_thresh_idx_target: npt.NDArray,
+        check_skeleton_one_object_target: bool,
+        remove_bridges_target: npt.NDArray,
+        height_prune_target: npt.NDArray,
+    ) -> None:
+        """Test of remove_bridges() method of heightPruning class."""
+        height_pruning = self.topostats_height_pruner(
+            img_skeleton, max_length, height_threshold, method_values, method_outliers
+        )
+        height_prune = height_pruning.height_prune()
+        print(f"{height_prune=}")
+        np.testing.assert_array_equal(height_prune, height_prune_target)
 
 
 # @pytest.mark.parametrize(
@@ -2068,60 +2275,56 @@ def test_order_branch_from_end(
         pytest.param(
             np.asarray(
                 [
-                    [0, 0, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 1, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 0, 1, 1, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
                 ]
             ),
             np.asarray(
                 [
-                    [0, 0, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
                 ]
             ),
             id="linear with single 1-pixel branch",
-            marks=pytest.mark.xfail(reason="not sure why this is failing?"),
         ),
         pytest.param(
             np.asarray(
                 [
-                    [0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 1, 0],
-                    [0, 1, 0, 0, 1, 0],
-                    [0, 1, 0, 0, 1, 0],
-                    [0, 1, 1, 0, 1, 0],
-                    [0, 1, 0, 0, 1, 0],
-                    [0, 1, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 1, 0, 1, 0],
+                    [0, 1, 0, 0, 1, 0, 0],
+                    [0, 0, 1, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
                 ]
             ),
             np.asarray(
                 [
-                    [0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 1, 0],
-                    [0, 1, 0, 0, 1, 0],
-                    [0, 1, 0, 0, 1, 0],
-                    [0, 1, 0, 0, 1, 0],
-                    [0, 1, 0, 0, 1, 0],
-                    [0, 1, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 1, 0, 0],
+                    [0, 0, 1, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
                 ]
             ),
             id="circular with single 1-pixel branch internally",
-            marks=pytest.mark.xfail(
-                reason="not sure why this is failing? also skeleton shape actually changes unexpectedly"
-            ),
         ),
     ],
 )
@@ -2191,7 +2394,7 @@ def test_rm_nibs(img: npt.NDArray, target: npt.NDArray) -> None:
             np.asarray([0, 1, 1, 1, 0, 1, 1, 1, 0]),
             6,
             id="3x3 1's; point on left edge",
-            marks=pytest.mark.xfail(reason="Point on left edge of image."),
+            #marks=pytest.mark.xfail(reason="Point on left edge of image."),
         ),
         pytest.param(
             np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
