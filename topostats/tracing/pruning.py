@@ -627,7 +627,7 @@ class heightPruning:
         height_values: npt.NDArray, threshold: float | int, image: npt.NDArray, skeleton: npt.NDArray
     ) -> npt.NDArray:
         """
-        Identify indices on branch whose height values are less than mean skeleton height - absolute threshold.
+        Identify indices of labelled branch whose height values are less than mean skeleton height - absolute threshold.
 
         For DNA a threshold of 0.85nm (the depth of the major groove) would ideally remove all segments whose lowest
         point is < mean(height) - 0.85nm, i.e. 1.15nm.
@@ -654,7 +654,7 @@ class heightPruning:
     @staticmethod
     def _get_iqr_thresh_idx(image: npt.NDArray, segments: npt.NDArray) -> npt.NDArray:
         """
-        Identify indices on branches whose height values are less than 1.5 x interquartile range of all heights.
+        Identify indices of labelled branches whose height values are less than 1.5 x interquartile range of all heights.
 
         Parameters
         ----------
