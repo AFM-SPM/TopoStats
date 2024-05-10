@@ -907,7 +907,7 @@ from topostats.tracing.pruning import heightPruning, local_area_sum, order_branc
     ],
 )
 class TestTopoStatsPrune:
-    """Tests of topostatsPrine() class."""
+    """Tests of topostatsPrune() class."""
 
     def topostats_pruner(
         self,
