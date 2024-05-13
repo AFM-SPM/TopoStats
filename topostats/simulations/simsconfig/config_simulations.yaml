@@ -1,0 +1,82 @@
+# Config file generated 2024-02-12 13:37:35
+# For more information on configuration and how to use it:
+# https://afm-spm.github.io/TopoStats/main/configuration.html
+base_dir: ./ # Directory in which to search for data files
+output_dir: ./images/output # Directory to output results to
+log_level: info # Verbosity of output. Options: warning, error, info, debug
+cores: 2 # Number of CPU cores to utilise for processing multiple files simultaneously.
+file_ext: .spm # File extension of the data files.
+loading:
+  channel: Height # Channel to pull data from in the data files.
+filter:
+  run: false # Options : true, false
+  row_alignment_quantile: 0.5 # below values may improve flattening of larger features
+  threshold_method: std_dev # Options : otsu, std_dev, absolute
+  otsu_threshold_multiplier: 1.0
+  threshold_std_dev:
+    below: 10.0 # Threshold for data below the image background
+    above: 1.0 # Threshold for data above the image background
+  threshold_absolute:
+    below: -1.0 # Threshold for data below the image background
+    above: 1.0 # Threshold for data above the image background
+  gaussian_size: 1.0121397464510862 # Gaussian blur intensity in px
+  gaussian_mode: nearest
+  # Scar remvoal parameters. Be careful with editing these as making the algorithm too sensitive may
+  # result in ruining legitimate data.
+  remove_scars:
+    run: false
+    removal_iterations: 2 # Number of times to run scar removal.
+    threshold_low: 0.250 # below values make scar removal more sensitive
+    threshold_high: 0.666 # below values make scar removal more sensitive
+    max_scar_width: 4 # Maximum thichness of scars in pixels.
+    min_scar_length: 16 # Minimum length of scars in pixels.
+grains:
+  run: true # Options : true, false
+  # Thresholding by height
+  threshold_method: absolute # Options : std_dev, otsu, absolute
+  otsu_threshold_multiplier: 1.0
+  threshold_std_dev:
+    below: 10.0 # Threshold for grains below the image background
+    above: 1.0 # Threshold for grains above the image background
+  threshold_absolute:
+    below: -1.0 # Threshold for grains below the image background
+    above: 0 # Threshold for grains above the image background
+  direction: above # Options: above, below, both (defines whether to look for grains above or below thresholds or both)
+  # Thresholding by area
+  smallest_grain_size_nm2: 50 # Size in nm^2 of tiny grains/blobs (noise) to remove, must be > 0.0
+  absolute_area_threshold:
+    above: [ 300, 3000 ] # above surface [Low, High] in nm^2 (also takes null)
+    below: [ null, null ] # below surface [Low, High] in nm^2 (also takes null)
+grainstats:
+  run: true # Options : true, false
+  edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
+  cropped_size: 40.0 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
+dnatracing:
+  run: true # Options : true, false
+  min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.
+  skeletonisation_params:
+    skeletonisation_method: joe # Options : zhang | lee | thin | topostats
+    height_bias: 0.6 # (for joe) Percentage of lowest points to remove per skeletionisaion iteration
+  pruning_params:
+    pruning_method: joe # Options : joe, max (more to come)
+    max_length: -1 # (for joe) The maximum length for a skeleton branch to not be pruned
+    method_values: mid
+    method_outlier: abs_mean
+    height_threshold: 0.85 # (for joe) The threshold for the minimum height of a skeleton segment to be below to be removed
+  pad_width: 20 # Cells to pad grains by when tracing
+#  cores: 1 # Number of cores to use for parallel processing
+plotting:
+  run: true # Options : true, false
+  save_format: png # Options : see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
+  pixel_interpolation: null # Options : https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html
+  image_set: core  # Options : all, core
+  zrange: [null, null]  # low and high height range for core images (can take [null, null]). low <= high
+  colorbar: true  # Options : true, false
+  axes: true # Options : true, false (due to off being a bool when parsed)
+  cmap: nanoscope # Options : nanoscope, afmhot, gwyddion
+  mask_cmap: blu # Options : blu, jet_r and any in matplotlib
+  histogram_log_axis: false # Options : true, false
+  histogram_bins: 200 # Number of bins for histogram plots to use
+summary_stats:
+  run: true # Whether to make summary plots for output data
+  config: null
