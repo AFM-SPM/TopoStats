@@ -573,7 +573,7 @@ class heightPruning:
         """
         Collect the positionally ordered middle height value of each labeled branch.
 
-        Where the branch has an even ammount of points, average the two middle hights.
+        Where the branch has an even amount of points, average the two middle heights.
 
         Parameters
         ----------
@@ -655,7 +655,7 @@ class heightPruning:
     @staticmethod
     def _get_iqr_thresh_idx(image: npt.NDArray, segments: npt.NDArray) -> npt.NDArray:
         """
-        Identify indices of labelled branches whose height values are less than 1.5 x interquartile range of all heights.
+        Identify labelled branch indices whose heights are less than 1.5 x interquartile range of all heights.
 
         Parameters
         ----------
@@ -720,7 +720,7 @@ class heightPruning:
         Returns
         -------
         npt.NDArray
-            The original skeleton without the segments identified by the hight criteria.
+            The original skeleton without the segments identified by the height criteria.
         """
         # Obtain the height of each branch via the min | median | mid methods
         if self.method_values == "min":
@@ -753,9 +753,9 @@ class heightPruning:
         """
         Identify and remove skeleton bridges using the underlying image height.
 
-        Bridges cross the skeleton in places they shouldn't and are defined as an internal branch and thus have no endpoints.
-        They occur due to poor thresholding creating holes in the mask, creating false "bridges" which misrepresent the
-        skeleton of the molecule.
+        Bridges cross the skeleton in places they shouldn't and are defined as an internal branch and thus have no
+        endpoints. They occur due to poor thresholding creating holes in the mask, creating false "bridges" which
+        misrepresent the skeleton of the molecule.
 
         Returns
         -------
@@ -771,10 +771,9 @@ class heightPruning:
             if (conv[segments == i] == 2).any():
                 segments[segments == i] = 0
         segments = morphology.label(np.where(segments != 0, 1, 0))
-        # filter the segments based on hight criteria
-        skeleton_rtn = self.filter_segments(segments, self.skeleton["skeleton"].copy())
 
-        return skeleton_rtn
+        # filter the segments based on height criteria
+        return self.filter_segments(segments, self.skeleton["skeleton"].copy())
 
     def height_prune(self) -> npt.NDArray:
         """
@@ -789,15 +788,14 @@ class heightPruning:
         # Split the skeleton into branches by removing junctions/nodes and label
         nodeless = np.where(conv == 3, 0, conv)
         segments = morphology.label(np.where(nodeless != 0, 1, 0))
-        # height pruning should only concern endpoints so remove interal connections
+        # height pruning should only concern endpoints so remove internal connections
         for i in range(1, segments.max() + 1):
             if not (conv[segments == i] == 2).any():
                 segments[segments == i] = 0
         segments = morphology.label(np.where(segments != 0, 1, 0))
-        # filter the segments based on hight criteria
-        skeleton_rtn = self.filter_segments(segments, self.skeleton["skeleton"].copy())
 
-        return skeleton_rtn
+        # filter the segments based on height criteria
+        return self.filter_segments(segments, self.skeleton["skeleton"].copy())
 
 
 def order_branch_from_end(nodeless: npt.NDArray, start: list, max_length: float = np.inf) -> npt.NDArray:
