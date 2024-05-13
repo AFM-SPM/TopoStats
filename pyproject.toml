@@ -70,7 +70,7 @@ docs = [
   "myst_parser",
   "numpydoc",
   "pydata_sphinx_theme",
-  "sphinx-autoapi",
+  "sphinx-autoapi==3.1.0b0",
   "sphinx-autodoc-typehints",
   "sphinx-multiversion",
   "sphinx_markdown_tables",
