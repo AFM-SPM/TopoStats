@@ -2,7 +2,9 @@
 name: Sphinx docs to gh-pages
 
 on:
-  push:
+  pull_request:
+    branches:
+      - main
     # Uncomment if only tagged releases are to have documentation built
     # tags:
     #   - v*
