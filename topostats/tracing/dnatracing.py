@@ -58,7 +58,7 @@ class dnaTrace:
     min_skeleton_size : int
         Minimum skeleton size below which tracing statistics are not calculated.
     mask_smoothing_params : dict
-        Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains 
+        Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains
         a gaussian 'sigma' and number of dilation iterations.
     skeletonisation_params : dict
         Skeletonisation Parameters. Method of skeletonisation to use 'topostats' is the original TopoStats
@@ -118,7 +118,7 @@ class dnaTrace:
         min_skeleton_size : int
             Minimum skeleton size below which tracing statistics are not calculated.
         mask_smoothing_params : dict
-            Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains 
+            Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains
             a gaussian 'sigma' and number of dilation iterations.
         skeletonisation_params : dict
             Skeletonisation Parameters. Method of skeletonisation to use 'topostats' is the original TopoStats
@@ -296,7 +296,7 @@ class dnaTrace:
         LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Gaussian filter applied.")
 
     def smooth_grains(
-        self, grain: npt.NDArray, dilation_iterations: int=2, gaussian_sigma: float | int | None=None
+        self, grain: npt.NDArray, dilation_iterations: int = 2, gaussian_sigma: float | int | None = None
     ) -> npt.NDArray:
         """
         Smooth grains based on the lower number of binary pixels added from dilation or gaussian.
@@ -1187,7 +1187,7 @@ def trace_image(
     min_skeleton_size : int
         Minimum size of grain in pixels after skeletonisation.
     mask_smoothing_params : dict
-        Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains 
+        Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains
         a gaussian 'sigma' and number of dilation iterations.
     skeletonisation_params : dict
         Dictionary of options for skeletonisation, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin'
@@ -1542,7 +1542,7 @@ def trace_grain(
     pixel_to_nm_scaling : float
         Pixel to nm scaling.
     mask_smoothing_params : dict
-        Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains 
+        Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains
         a gaussian 'sigma' and number of dilation iterations.
     skeletonisation_params : dict
         Dictionary of skeletonisation parameters, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin'

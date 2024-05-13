@@ -1643,7 +1643,13 @@ class TestTopoStatsPrune:
                 ]
             ),
             np.asarray([9, 5, 9]),  # branch_mins
-            np.asarray([9, 5, 9,]),  # branch_medians : Used in _abs_thresh_idx with threshold of 9
+            np.asarray(
+                [
+                    9,
+                    5,
+                    9,
+                ]
+            ),  # branch_medians : Used in _abs_thresh_idx with threshold of 9
             np.asarray([9, 5, 9]),  # branch_middles
             np.asarray([2]),  # abs_thresh_idx : index + 1 in above noted array that are < 10
             np.asarray([2]),  # mean_abs_thresh_idx
@@ -1995,7 +2001,7 @@ class TestHeightPruningBasic:
         )
         assert check_skeleton_one_object == check_skeleton_one_object_target
 
-    #@pytest.mark.xfail(reason="Skeletons aren't pruned as expected (if at all)")
+    # @pytest.mark.xfail(reason="Skeletons aren't pruned as expected (if at all)")
     def test_remove_bridges(
         self,
         img_skeleton: str,
@@ -2394,7 +2400,7 @@ def test_rm_nibs(img: npt.NDArray, target: npt.NDArray) -> None:
             np.asarray([0, 1, 1, 1, 0, 1, 1, 1, 0]),
             6,
             id="3x3 1's; point on left edge",
-            #marks=pytest.mark.xfail(reason="Point on left edge of image."),
+            # marks=pytest.mark.xfail(reason="Point on left edge of image."),
         ),
         pytest.param(
             np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
