@@ -181,7 +181,6 @@ exclude = [
   "dist",
   "docs/conf.py",
   "node_modules",
-  "pygwytracing.py",
   "tests/tracing/test_dnacurvature.py",
   "tests/tracing/test_dnatracing.py",
   "tests/tracing/test_tracing_dna.py",

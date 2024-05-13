@@ -1900,9 +1900,7 @@ class TestHeightPruningBasic:
         remove_bridges_target: npt.NDArray,
         height_prune_target: npt.NDArray,
     ) -> None:
-        """
-        Test of get_abs_thresh_idx(self) method of heightPruning class.
-        """
+        """Test of get_abs_thresh_idx(self) method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
             img_skeleton, max_length, height_threshold, method_values, method_outliers
         )
@@ -1929,9 +1927,7 @@ class TestHeightPruningBasic:
         remove_bridges_target: npt.NDArray,
         height_prune_target: npt.NDArray,
     ) -> None:
-        """
-        Test of get_mean_abs_thresh_idx() method of heightPruning class.
-        """
+        """Test of get_mean_abs_thresh_idx() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
             img_skeleton, max_length, height_threshold, method_values, method_outliers
         )
