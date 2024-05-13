@@ -57,7 +57,7 @@ class dnaTrace:
         Convert nanometers to metres.
     min_skeleton_size : int
         Minimum skeleton size below which tracing statistics are not calculated.
-    mask_smoothing_params: dict
+    mask_smoothing_params : dict
         Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains 
         a gaussian 'sigma' and number of dilation iterations.
     skeletonisation_params : dict
@@ -117,7 +117,7 @@ class dnaTrace:
             Convert nanometers to metres.
         min_skeleton_size : int
             Minimum skeleton size below which tracing statistics are not calculated.
-        mask_smoothing_params: dict
+        mask_smoothing_params : dict
             Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains 
             a gaussian 'sigma' and number of dilation iterations.
         skeletonisation_params : dict
@@ -1186,7 +1186,7 @@ def trace_image(
         Pixel to nm scaling.
     min_skeleton_size : int
         Minimum size of grain in pixels after skeletonisation.
-    mask_smoothing_params: dict
+    mask_smoothing_params : dict
         Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains 
         a gaussian 'sigma' and number of dilation iterations.
     skeletonisation_params : dict
@@ -1541,7 +1541,7 @@ def trace_grain(
         converted to a binary mask.
     pixel_to_nm_scaling : float
         Pixel to nm scaling.
-    mask_smoothing_params: dict
+    mask_smoothing_params : dict
         Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains 
         a gaussian 'sigma' and number of dilation iterations.
     skeletonisation_params : dict
