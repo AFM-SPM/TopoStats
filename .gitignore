@@ -24,7 +24,6 @@ output/config.yaml
 *.csv
 *.spm
 *.svg
-*.yaml
 
 # Example Data
 !minicircle.spm
@@ -51,4 +50,3 @@ _build/
 
 # Ignore topostats/_version.py as per setuptools_scm
 topostats/_version.py
-topostats/simulations/Structures_2_AFM.ipynb
