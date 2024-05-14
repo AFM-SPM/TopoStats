@@ -211,7 +211,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "dilation_iterations": Or(
                     int,
                     None,
-                )
+                ),
             },
             "skeletonisation_params": {
                 "skeletonisation_method": Or(
