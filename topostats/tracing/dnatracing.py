@@ -2927,10 +2927,11 @@ class nodeStats:
 
         coord_trace, simple_trace = self.simple_xyz_trace(ordered, cross_add, z, n=100)
         #np.save("/Users/Maxgamill/Downloads/trace")
-        # TODO: Finish / do triv identification via maybe:
-        #   one segment 2 branches
-        #   topology based -> 0_1 all triv, 2^2_1 -> 2 real (may have to check against no. nodes to see which are real)
-        #self.identify_trivial_crossings(node_coords)
+        # TODO: Finish / do triv identification via crude approximation:
+        #   take each seperate trace (if > 1) and find duplicate coords.
+        #   then seek the crossing they come from, and add trivial label to dict
+        if len(coord_trace) >= 2: # if catenane
+            self.identify_catenane_trivial_crossings(node_coords, coord_trace)
 
         im = np.zeros_like(self.skeleton)
         for i, coords in enumerate(coord_trace):
@@ -2944,12 +2945,6 @@ class nodeStats:
 
         # np.savetxt(OUTPUT_DIR / "visual.txt", visual)
 
-        # I could use the traced coords, remove the node centre coords, and re-label segments
-        #   following 1, 2, 3... around the mol which should look like the Planar Diagram formation
-        #   (https://topoly.cent.uw.edu.pl/dictionary.html#codes). Then look at each corssing zone again,
-        #   determine which in in-undergoing and assign labels counter-clockwise
-
-        # print("Getting PD Codes:")
         topology = self.get_topology(simple_trace)
         if reverse_min_conf_crossing and low_conf_idx is None: # when there's nothing to reverse
             topology = [None for _ in enumerate(topology)]
@@ -3043,10 +3038,32 @@ class nodeStats:
 
         return mol_coords, simple_coords
 
-    def identify_trivial_crossings(self, crossings):
-        # TODO
-        for i, cross in enumerate(crossings):
-            self.node_dict[i + 1]["crossing_type"] = "real"
+    def identify_catenane_trivial_crossings(self, node_coords: list, traces: list):
+        """Identifies and labeles self crossings in catenated molecules.
+
+        Parameters
+        ----------
+        node_coords : list
+            List of length no. nodes, containing a list of each branches node coordinates.
+        traces : list
+            List of each found molecules' ordered molecule coordinates.
+        """
+        # iterate through each molecule
+        for trace in traces:
+            # find duplicate coords
+            unique_coords, counts = np.unique(trace, return_counts=True, axis=0)
+            duplicate_coord = unique_coords[counts > 1]
+            # find in what node the crossing exists
+            for i, cross in enumerate(node_coords):
+                cross = np.concatenate(cross)
+                crossing_indicies = np.argwhere((cross[:, None] == unique_coords).all(axis=2).any(axis=0)==True).reshape(-1)
+                unique_coords = np.delete(unique_coords, crossing_indicies, axis=0)
+                # if matching unique and node indicies are found, label that node as trivial 
+                if len(crossing_indicies) > 0:
+                    print(f"The unique coords are in the Node {i} coords - trivial?")
+                    # label as trivial
+                    self.node_dict[f"node_{i + 1}"]["crossing_type"] = "trivial"
+            print(f"Uniques should return empty: {unique_coords}")
 
     @staticmethod
     def reduce_rows(array, n=300):
