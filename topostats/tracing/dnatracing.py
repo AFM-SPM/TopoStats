@@ -3052,12 +3052,12 @@ class nodeStats:
         for trace in traces:
             # find duplicate coords
             unique_coords, counts = np.unique(trace, return_counts=True, axis=0)
-            duplicate_coord = unique_coords[counts > 1]
+            duplicate_coords = unique_coords[counts > 1]
             # find in what node the crossing exists
             for i, cross in enumerate(node_coords):
                 cross = np.concatenate(cross)
-                crossing_indicies = np.argwhere((cross[:, None] == unique_coords).all(axis=2).any(axis=0)==True).reshape(-1)
-                unique_coords = np.delete(unique_coords, crossing_indicies, axis=0)
+                crossing_indicies = np.argwhere((cross[:, None] == duplicate_coords).all(axis=2).any(axis=0)==True).reshape(-1)
+                duplicate_coords = np.delete(duplicate_coords, crossing_indicies, axis=0)
                 # if matching unique and node indicies are found, label that node as trivial 
                 if len(crossing_indicies) > 0:
                     print(f"The unique coords are in the Node {i} coords - trivial?")
