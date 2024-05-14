@@ -23,7 +23,7 @@ from topostats.tracing.pruning import heightPruning, local_area_sum, order_branc
     ),
     [
         pytest.param(
-            "pruning_skeleton_loop1",
+            "skeleton_loop1",
             -1,
             90,
             "min",
@@ -166,7 +166,7 @@ from topostats.tracing.pruning import heightPruning, local_area_sum, order_branc
             # marks=pytest.mark.skip(),
         ),
         pytest.param(
-            "pruning_skeleton_loop2",
+            "skeleton_loop2",
             -1,
             90,
             "min",
@@ -398,7 +398,7 @@ from topostats.tracing.pruning import heightPruning, local_area_sum, order_branc
             # marks=pytest.mark.skip(),
         ),
         pytest.param(
-            "pruning_skeleton_linear1",
+            "skeleton_linear1",
             -1,
             90,
             "min",
@@ -612,7 +612,7 @@ from topostats.tracing.pruning import heightPruning, local_area_sum, order_branc
             # marks=pytest.mark.skip(),
         ),
         pytest.param(
-            "pruning_skeleton_linear2",
+            "skeleton_linear2",
             -1,
             90,
             "min",
@@ -710,7 +710,7 @@ from topostats.tracing.pruning import heightPruning, local_area_sum, order_branc
             # marks=pytest.mark.skip(),
         ),
         pytest.param(
-            "pruning_skeleton_linear3",
+            "skeleton_linear3",
             -1,
             90,
             "min",
@@ -1019,7 +1019,7 @@ class TestTopoStatsPrune:
 # Tests for convPrune class
 # @pytest.mark.parametrize(
 #     ("img_skeleton", "max_length", "height_threshold", "method_values", "method_outliers"),
-#     [pytest.param("pruning_skeleton_loop1", 10, 90, "min", "abs", id="skeleton loop1")],
+#     [pytest.param("skeleton_loop1", 10, 90, "min", "abs", id="skeleton loop1")],
 # )
 # class TestConvPrune:
 #     """Tests of the convPrune() class."""
@@ -2057,7 +2057,7 @@ class TestHeightPruningBasic:
 
 # @pytest.mark.parametrize(
 #     ("img_skeleton", "max_length", "height_threshold", "method_values", "method_outliers"),
-#     [pytest.param("pruning_skeleton_loop1", id="skeleton loop1")],
+#     [pytest.param("skeleton_loop1", id="skeleton loop1")],
 # )
 # class TestHeightPruningImages:
 #     """Tests for heightPruning() class using dummy skeletons and heights."""
@@ -2246,7 +2246,7 @@ def test_order_branch_from_end(
 # Tests for pruneSkeleton class
 # @pytest.mark.parametrize(
 #     ("img_skeleton", "max_length", "height_threshold", "method_values", "method_outliers"),
-#     [pytest.param("pruning_skeleton_loop1", 10, 90, "min", "abs", id="skeleton loop1")],
+#     [pytest.param("skeleton_loop1", 10, 90, "min", "abs", id="skeleton loop1")],
 # )
 # class TestPruneSkeleton:
 #     img_skeleton = request.getfixturevalue(img_skeleton)
@@ -2396,7 +2396,7 @@ def test_rm_nibs(img: npt.NDArray, target: npt.NDArray) -> None:
             np.asarray([0, 1, 1, 1, 0, 1, 1, 1, 0]),
             6,
             id="3x3 1's; point on left edge",
-            # marks=pytest.mark.xfail(reason="Point on left edge of image."),
+            marks=pytest.mark.xfail(reason="Point on left edge of image."),
         ),
         pytest.param(
             np.asarray([[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
