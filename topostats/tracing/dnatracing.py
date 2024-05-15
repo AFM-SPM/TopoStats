@@ -158,6 +158,7 @@ class dnaTrace:
                 n_grain=self.n_grain,
             )
             self.node_dict, self.node_image_dict = nodes.get_node_stats()
+            self.test2 = nodes.test2
             self.avg_crossing_confidence = self.average_crossing_confs(self.node_dict)
             self.min_crossing_confidence = self.minimum_crossing_confs(self.node_dict)
             self.node_image = nodes.connected_nodes
@@ -167,6 +168,7 @@ class dnaTrace:
             if nodes.check_node_errorless():
                 ordered_traces, self.visuals, self.topology = nodes.compile_trace()
                 _, _, self.topology2 = nodes.compile_trace(reverse_min_conf_crossing=True)
+                self.test3 = nodes.test3
                 self.num_mols = len(ordered_traces)
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} ordered via nodeStats.")
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} has {len(ordered_traces)} molecules.")
@@ -919,7 +921,7 @@ def trace_image(
     all_traces = []
 
     for n_grain, (cropped_image, cropped_mask) in enumerate(zip(cropped_images, cropped_masks)):
-        result, node_dict, node_image_dict, images, trace = trace_grain(
+        result, node_dict, node_image_dict, images, trace, test2 = trace_grain(
             cropped_image,
             cropped_mask,
             pixel_to_nm_scaling,
@@ -948,7 +950,7 @@ def trace_image(
 
     print(grains_results)
 
-    return grains_results, full_node_dict, full_node_image_dict, all_images, all_traces
+    return grains_results, full_node_dict, full_node_image_dict, all_images, all_traces, test2
 
 
 def prep_arrays(image: np.ndarray, labelled_grains_mask: np.ndarray, pad_width: int) -> Tuple[list, list]:
@@ -1085,7 +1087,7 @@ def trace_grain(
         "fitted_traces": dnatrace.fitted_trace_img,
         "visual": dnatrace.visuals,
     }
-    return results, dnatrace.node_dict, dnatrace.node_image_dict, images, dnatrace.splined_traces
+    return results, dnatrace.node_dict, dnatrace.node_image_dict, images, dnatrace.splined_traces, [dnatrace.test2, dnatrace.test3]
 
 
 def crop_array(array: np.ndarray, bounding_box: tuple, pad_width: int = 0) -> np.ndarray:
@@ -1677,7 +1679,7 @@ class nodeStats:
 
         # check whether average trace resides inside the grain mask
         dilate = ndimage.binary_dilation(self.skeleton, iterations=2)
-        average_trace_advised = False  # dilate[self.smoothed_grain == 1].sum() == dilate.sum()
+        average_trace_advised = True #dilate[self.smoothed_grain == 1].sum() == dilate.sum()
         LOGGER.info(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
 
         # iterate over the nodes to find areas
@@ -1712,6 +1714,10 @@ class nodeStats:
             branch_mask[branch_mask == 3] = 0
             branch_mask[branch_mask == 2] = 1
             node_coords = np.argwhere(reduced_node_area == 3)
+            
+            nodeless = reduced_node_area.copy()
+            nodeless[reduced_node_area==3] = 0
+            node_test = label(nodeless)
 
             error = False  # to see if node too complex or region too small
 
@@ -1874,8 +1880,8 @@ class nodeStats:
                         branch_label += 1
                         branch_img[ordered_branches[i][:, 0], ordered_branches[i][:, 1]] = branch_label
 
-                    if node_no == 0:
-                        self.test3 = avg_img
+                    #if node_no == 0:
+                        #self.test3 = avg_img
 
                     # calc crossing angle
                     # get full branch vectors
@@ -1911,8 +1917,8 @@ class nodeStats:
                     "confidence": conf,
                 }
 
-                self.image_dict["nodes"][real_node_count] = {
-                    # "node_area_image": self.image,  # [
+                self.image_dict["nodes"][f"node_{real_node_count}"] = {
+                    #"node_area_image": self.image,  # [
                     # image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
                     # ],  # self.hess
                     # "node_area_grain": self.grain,  # [
@@ -1925,6 +1931,7 @@ class nodeStats:
                     # image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]
                     # ],
                     "node_avg_mask": avg_img,
+                    "node_test": node_test,
                 }
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
 
@@ -2883,7 +2890,8 @@ class nodeStats:
         for node_num, crossings in enumerate(crossing_coords):
             for crossing_num, crossing in enumerate(crossings):
                 both[crossing[:, 0], crossing[:, 1]] = node_num + crossing_num + minus.max()
-        # np.savetxt(OUTPUT_DIR / "both.txt", both)
+        #np.save(OUTPUT_DIR / "both", both)
+        self.test3 = both
 
         # setup z array
         z = []
@@ -2913,38 +2921,35 @@ class nodeStats:
                 z.append(z_idx[j])
 
         # get an image of each ordered segment
+        # this needs to produce an image where branch segments start+end a litter further from the nodes
         cross_add = np.zeros_like(self.image)
         for i, coords in enumerate(ordered):
             single_cross_img = dnaTrace.coords_2_img(np.array(coords), cross_add)
             cross_add[single_cross_img != 0] = i + 1
 
-        # np.savetxt(OUTPUT_DIR / "cross_add.txt", cross_add)
+        #np.save(OUTPUT_DIR / "cross_add", cross_add)
         LOGGER.info(f"[{self.filename}] Getting coordinate trace")
 
         coord_trace, simple_trace = self.simple_xyz_trace(ordered, cross_add, z, n=100)
-
-        # TODO: Finish / do triv identification via maybe:
-        #   one segment 2 branches
-        #   topology based -> 0_1 all triv, 2^2_1 -> 2 real (may have to check against no. nodes to see which are real)
-        # self.identify_trivial_crossings(node_coords)
+        #np.save("/Users/Maxgamill/Downloads/trace")
+        # TODO: Finish / do triv identification via crude approximation:
+        #   take each seperate trace (if > 1) and find duplicate coords.
+        #   then seek the crossing they come from, and add trivial label to dict
+        if len(coord_trace) >= 2: # if catenane
+            self.identify_catenane_trivial_crossings(node_coords, coord_trace)
 
         im = np.zeros_like(self.skeleton)
-        for i in coord_trace:
-            im[i[:, 0], i[:, 1]] = 1
-        # np.savetxt(OUTPUT_DIR / "trace.txt", coord_trace[0])
+        for i, coords in enumerate(coord_trace):
+            im[coords[:, 0], coords[:, 1]] += i + 1
+        #np.save(OUTPUT_DIR / "trace", coord_trace[0])
 
         # visual over under img
         visual = self.get_visual_img(coord_trace, fwhms, crossing_coords)
-        self.image_dict["grain"]["grain_visual_crossings"] = visual
+        if not reverse_min_conf_crossing:
+            self.image_dict['grain']['grain_visual_crossings'] = visual
 
         # np.savetxt(OUTPUT_DIR / "visual.txt", visual)
 
-        # I could use the traced coords, remove the node centre coords, and re-label segments
-        #   following 1, 2, 3... around the mol which should look like the Planar Diagram formation
-        #   (https://topoly.cent.uw.edu.pl/dictionary.html#codes). Then look at each corssing zone again,
-        #   determine which in in-undergoing and assign labels counter-clockwise
-
-        # print("Getting PD Codes:")
         topology = self.get_topology(simple_trace)
         if reverse_min_conf_crossing and low_conf_idx is None:  # when there's nothing to reverse
             topology = [None for _ in enumerate(topology)]
@@ -2981,7 +2986,7 @@ class nodeStats:
 
     def simple_xyz_trace(self, ordered_segment_coords, both_img, zs, n=100):
         """Obtains a trace and simplified trace of the molecule by following connected segments."""
-        np.save(OUTPUT_DIR / "both.txt", both_img)
+        #np.save(OUTPUT_DIR / "both", both_img)
         mol_coords = []
         simple_coords = []
         remaining = both_img.copy().astype(np.int32)
@@ -2997,6 +3002,7 @@ class nodeStats:
                 coord_idx = np.unique(remaining)[1] - 1  # avoid choosing 0
             coord_trace = np.empty((0, 2)).astype(np.int32)
             simple_trace = np.empty((0, 3)).astype(np.int32)
+            
             while coord_idx > -1:  # either cycled through all or hits terminus -> all will be just background
                 remaining[remaining == coord_idx + 1] = 0
                 trace_segment = self.get_trace_segment(remaining, ordered_segment_coords, coord_idx)
@@ -3027,7 +3033,7 @@ class nodeStats:
             nxyz = np.column_stack((np.arange(0, len(simple_trace)), simple_trace))
             if len(nxyz) > 2 and (nxyz[0][1] - nxyz[-1][1]) ** 2 + (nxyz[0][2] - nxyz[-1][2]) ** 2 <= 2:
                 # single coord traces mean nxyz[0]==[1] so cause issues when duplicating for topoly
-                print("Looped so duplicating index 0: ", nxyz[0])
+                print("Looped so duplicating first index (nxyz): ", nxyz[0], nxyz[-1])
                 nxyz = np.append(nxyz, nxyz[0][np.newaxis, :], axis=0)
             simple_coords.append(nxyz)
 
@@ -3037,10 +3043,32 @@ class nodeStats:
 
         return mol_coords, simple_coords
 
-    def identify_trivial_crossings(self, crossings):
-        # TODO
-        for i, cross in enumerate(crossings):
-            self.node_dict[i + 1]["crossing_type"] = "real"
+    def identify_catenane_trivial_crossings(self, node_coords: list, traces: list):
+        """Identifies and labeles self crossings in catenated molecules.
+
+        Parameters
+        ----------
+        node_coords : list
+            List of length no. nodes, containing a list of each branches node coordinates.
+        traces : list
+            List of each found molecules' ordered molecule coordinates.
+        """
+        # iterate through each molecule
+        for trace in traces:
+            # find duplicate coords
+            unique_coords, counts = np.unique(trace, return_counts=True, axis=0)
+            duplicate_coords = unique_coords[counts > 1]
+            # find in what node the crossing exists
+            for i, cross in enumerate(node_coords):
+                cross = np.concatenate(cross)
+                crossing_indicies = np.argwhere((cross[:, None] == duplicate_coords).all(axis=2).any(axis=0)==True).reshape(-1)
+                duplicate_coords = np.delete(duplicate_coords, crossing_indicies, axis=0)
+                # if matching unique and node indicies are found, label that node as trivial 
+                if len(crossing_indicies) > 0:
+                    print(f"The unique coords are in the Node {i} coords - trivial?")
+                    # label as trivial
+                    self.node_dict[f"node_{i + 1}"]["crossing_type"] = "trivial"
+            print(f"Uniques should return empty: {unique_coords}")
 
     @staticmethod
     def reduce_rows(array, n=300):
@@ -3165,7 +3193,7 @@ class nodeStats:
         for mol_no, coords in enumerate(coord_trace):
             temp_img = np.zeros_like(img)
             temp_img[coords[:, 0], coords[:, 1]] = 1
-            temp_img = binary_dilation(temp_img)
+            #temp_img = binary_dilation(temp_img)
             img[temp_img != 0] = 1  # mol_no + 1
 
         # np.savetxt(OUTPUT_DIR / "preimg.txt", img)
@@ -3206,7 +3234,7 @@ class nodeStats:
                     matching_coords = np.append(matching_coords, c)
                     val = matching_coords.argmax() + 1
                     temp_img[cross_coords[:, 0], cross_coords[:, 1]] = 1
-                    temp_img = binary_dilation(temp_img)
+                    #temp_img = binary_dilation(temp_img)
                     img[temp_img != 0] = i + 2
 
         return img

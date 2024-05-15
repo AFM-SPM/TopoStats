@@ -20,7 +20,8 @@ from topostats.theme import Colormap
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-# matplotlib.rcParams.update({'font.size': 16})
+# matplotlib.rcParams.update({'font.size': 20})
+plt.rcParams["font.family"] = "Arial"
 
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
@@ -354,7 +355,7 @@ def plot_crossing_linetrace_halfmax(branch_stats_dict: dict, cmap: matplotlib.co
     branch_stats_dict: dict
         Dictionary containing branch height, distance and fwhm2 info.
     """
-    fig, ax = plt.subplots(1, 1)
+    fig, ax = plt.subplots(1, 1, figsize=(7, 4))
     cmp = Colormap(cmap).get_cmap()
     total_branches = len(branch_stats_dict)
     # plot the highest first
@@ -371,7 +372,7 @@ def plot_crossing_linetrace_halfmax(branch_stats_dict: dict, cmap: matplotlib.co
             cmap_ratio = i / (total_branches - 1)
         heights = branch_stats_dict[branch_idx]["heights"]
         x = branch_stats_dict[branch_idx]["distances"]
-        ax.plot(x, heights, label=f"Branch: {branch_idx}", c=cmp(cmap_ratio))
+        ax.plot(x, heights, c=cmp(cmap_ratio)) # label=f"Branch: {branch_idx}"
 
         # plot the high point lines
         plt.plot([-15, m_vals[1]], [m_vals[2], m_vals[2]], c=cmp(cmap_ratio), label=f"FWHM: {fwhm:.4f}")
@@ -379,10 +380,11 @@ def plot_crossing_linetrace_halfmax(branch_stats_dict: dict, cmap: matplotlib.co
         plt.plot([hm_vals[0], hm_vals[0]], [hm_vals[2], heights.min()], c=cmp(cmap_ratio))
         plt.plot([hm_vals[1], hm_vals[1]], [hm_vals[2], heights.min()], c=cmp(cmap_ratio))
 
-    ax.set_xlabel("Distance from Node (nm)")
-    ax.set_ylabel("Height")
-    ax.set_title(title)
-    ax.legend()
+    ax.tick_params(axis='both', labelsize=20)
+    #ax.set_xlabel("Distance from Node (nm)", fontsize="22")
+    #ax.set_ylabel("Height", fontsize="22")
+    #ax.set_title(title, fontsize="20")
+    ax.legend(fontsize="16")
     return fig, ax
 
 

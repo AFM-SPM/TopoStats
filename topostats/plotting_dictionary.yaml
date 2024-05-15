@@ -160,38 +160,39 @@ orig_skeletons:
   image_type: "non-binary"
   mask_cmap: "green_black"
   core_set: false
-  dpi: 1000
+  dpi: 100
 pruned_skeletons:
   filename: "23-pruned_skeletons"
   title: "Image with Overlapping Pruned Skeletons"
   image_type: "non-binary"
   mask_cmap: "green_black"
   core_set: false
-  dpi: 1000
+  dpi: 200
 nodes:
   filename: "24-nodes"
   title: "Image with Skeletons and Highlighted Nodes"
   image_type: "non-binary"
   mask_cmap: "green_black"
   core_set: false
-  dpi: 1000
+  dpi: 800
 zoom_node:
   title: "Zoom of Node Skeleton"
   image_type: "non-binary"
   core_set: false
   mask_cmap: "green_black"
-  dpi: 800
+  dpi: 100
 crossings:
   title: "Crossing and Skeleton Branches"
   image_type: "non-binary"
   core_set: false
   mask_cmap: "green_green"
-  dpi: 800
+  dpi: 200
 tripple_crossings:
   title: "Image with Main and Paralell Traces"
   image_type: "non-binary"
   mask_cmap: "green_green"
   core_set: false
+  dpi: 200
 line_trace:
   title: "Heights of Crossing"
   image_type: "non-binary"
@@ -207,31 +208,36 @@ visual:
   image_type: "non-binary"
   mask_cmap: "blu_purp_green"
   core_set: false
-  dpi: 500
+  dpi: 200
 single_mol:
   title: "Separated Molecule"
   image_type: "non-binary"
   mask_cmap: "blu_purp"
   core_set: false
-  dpi: 300
+  dpi: 100
 ordered_trace:
   filename: "26-ordered-traces"
   title: "Ordered Traces"
   image_type: "non-binary"
   mask_cmap: "viridis"
   core_set: false
-  dpi: 800
+  dpi: 200
 fitted_trace:
   filename: "27-fitted-traces"
   title: "Fitted Trace"
   image_type: "non-binary"
   mask_cmap: "blu_purp"
   core_set: false
-  dpi: 800
+  dpi: 200
 splined_trace:
   title: "Splined Traces"
   image_type: "non-binary"
   mask_cmap: "blu_purp"
+  core_set: true
+
+test:
+  title: "Vectors"
+  image_type: "non-binary"
   core_set: true
   dpi: 800
 

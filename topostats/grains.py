@@ -447,7 +447,7 @@ class Grains:
                     image_output_dir=Path("./"),
                     filename=self.filename + f"_grain_{grain_number}",
                 )
-
+                #np.save('lnorm.npy', predicted_mask)
                 # Get only the biggest segmentation object
                 pred_labeled = morphology.label(predicted_mask)
                 sizes = np.array([(pred_labeled==lbl).sum() for lbl in range(1, pred_labeled.max()+1)])
@@ -462,3 +462,4 @@ class Grains:
                 self.directions[direction]["removed_small_objects"] = unet_mask
                 unet_labelled_regions = self.label_regions(unet_mask)
                 self.directions[direction]["labelled_regions_02"] = unet_labelled_regions
+                #np.save('lr.npy',unet_labelled_regions)
