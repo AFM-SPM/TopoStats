@@ -10,9 +10,10 @@ from pathlib import Path
 import sys
 import yaml
 import matplotlib.pyplot as plt
+import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import seaborn as sns
-import numpy as np
 
 from topostats.io import read_yaml, save_pkl, write_yaml, convert_basename_to_relative_paths
 from topostats.logs.logs import LOGGER_NAME
@@ -473,3 +474,64 @@ def run_toposum(args=None) -> None:
 
     # Plot statistics
     toposum(config)
+
+
+def plot_height_profiles(height_profiles: list | npt.NDArray) -> tuple:
+    """
+    Plot height profiles.
+
+    Parameters
+    ----------
+    height_profiles : npt.NDArray
+        Single height profile (1-D numpy array of heights) or array of height profiles. If the later the profiles plot
+        will be overlaid.
+
+    Returns
+    -------
+    tuple
+        Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
+    """
+    # If we have only one profile put it in a list so we can process
+    if not isinstance(height_profiles, list):
+        height_profiles = [height_profiles]
+    # We have 1-D arrays of different sizes, we need to know the maximum length and then pad shorter ones so that the
+    # profiles will roughly align in the middle
+    max_array_length = max(map(len, height_profiles))
+
+    # Pad shorter height profiles to the length of the longest
+    padded_height_profiles = [_pad_array(profile, max_array_length) for profile in height_profiles]
+    fig, ax = plt.subplots(1, 1)
+    max_y = 0
+    for height_profile in padded_height_profiles:
+        ax.plot(np.arange(max_array_length), height_profile)
+        max_y = max_y if max(height_profile) < max_y else max(height_profile) + 1
+    ax.margins(0.01, 0.1)
+    return fig, ax
+
+
+def _pad_array(profile: npt.NDArray, max_array_length: int) -> npt.NDArray:
+    """
+    Pad array so that it matches the largest profile and plots are somewhat aligned.
+
+    Centering is done based on the mid-point of longest grain and heights of zero ('0.0') are used in padding.
+
+    Parameters
+    ----------
+    profile : npt.NDArray
+        1-D Height profile.
+    max_array_length : int
+        The longest height profile across a range of detected grains.
+
+    Returns
+    -------
+    npt.NDArray
+        Array padded to the same length as max_array_length.
+    """
+    profile_length = profile.shape[0]
+    array_diff = max_array_length - profile_length
+    pad = array_diff // 2
+    if array_diff % 2 == 0:
+        left, right = pad, pad
+    else:
+        left, right = pad, (pad + 1)
+    return np.pad(profile, (left, right))

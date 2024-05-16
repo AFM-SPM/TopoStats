@@ -1,8 +1,12 @@
 """Tests for the plotting module."""
 
+from __future__ import annotations
+
 from importlib import resources
 from pathlib import Path
 
+import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import pytest
 import yaml
@@ -10,7 +14,7 @@ from matplotlib.figure import Figure
 
 import topostats
 from topostats.entry_point import entry_point
-from topostats.plotting import TopoSum, toposum
+from topostats.plotting import TopoSum, _pad_array, plot_height_profiles, toposum
 
 # pylint: disable=protected-access
 
@@ -192,3 +196,82 @@ def test_plot_violin_multiple_directories(toposum_object_multiple_directories: T
     """Test plotting Kernel Density Estimate and Histogram for area with multiple images."""
     fig, _ = toposum_object_multiple_directories.sns_violinplot()
     return fig
+
+
+@pytest.mark.mpl_image_compare(baseline_dir="resources/img/height_profiles/")
+@pytest.mark.parametrize(
+    ("height_profile"),
+    [
+        pytest.param(np.asarray([0, 0, 0, 2, 3, 4, 4, 4, 3, 2, 0, 0, 0]), id="Single height profile"),
+        pytest.param(
+            [
+                np.asarray([0, 0, 0, 2, 3, 4, 4, 4, 3, 2, 0, 0, 0]),
+                np.asarray([0, 0, 0, 2, 4, 5, 5, 5, 4, 2, 0, 0, 0]),
+            ],
+            id="Two arrays of same length",
+        ),
+        pytest.param(
+            [
+                np.asarray([0, 0, 0, 2, 3, 4, 4, 4, 3, 2, 0, 0, 0]),
+                np.asarray([0, 0, 2, 4, 5, 5, 5, 4, 2, 0, 0]),
+            ],
+            id="Two arrays of different length (diff in length is even)",
+        ),
+        pytest.param(
+            [
+                np.asarray([0, 0, 0, 2, 3, 4, 4, 4, 3, 2, 0, 0, 0]),
+                np.asarray([0, 0, 2, 4, 5, 5, 5, 4, 2, 0, 0, 0]),
+            ],
+            id="Two arrays of different length (diff in length is odd)",
+        ),
+        pytest.param(
+            [
+                np.asarray([0, 0, 0, 2, 3, 4, 4, 4, 3, 2, 0, 0, 0]),
+                np.asarray([0, 0, 2, 4, 5, 5, 5, 4, 2, 0, 0]),
+                np.asarray([0, 0, 1, 5, 6, 7, 6, 5, 1, 0, 0, 0]),
+            ],
+            id="Three arrays of different length (one even, one odd)",
+        ),
+        pytest.param(
+            [
+                np.asarray([0, 0, 0, 2, 3, 4, 4, 4, 3, 2, 0, 0, 0]),
+                np.asarray([0, 0, 2, 4, 5, 5, 5, 4, 2, 0, 0]),
+                np.asarray([0, 0, 1, 5, 6, 7, 6, 5, 1, 0, 0, 0]),
+                np.asarray([0, 0, 1, 4, 1, 0, 0]),
+            ],
+            id="Four arrays of different length (one even, two odd)",
+        ),
+    ],
+)
+def test_plot_height_profiles(height_profile: list | npt.NDArray) -> None:
+    """Test plotting of height profiles."""
+    fig, _ = plot_height_profiles(height_profile)
+    return fig
+
+
+@pytest.mark.parametrize(
+    ("arrays", "max_array_length", "target"),
+    [
+        pytest.param(
+            np.asarray([1, 1, 1]),
+            3,
+            np.asarray([1, 1, 1]),
+            id="Array length 3, max array length 3",
+        ),
+        pytest.param(
+            np.asarray([1, 1, 1]),
+            5,
+            np.asarray([0, 1, 1, 1, 0]),
+            id="Array length 3, max array length 5",
+        ),
+        pytest.param(
+            np.asarray([1, 1, 1]),
+            4,
+            np.asarray([1, 1, 1, 0]),
+            id="Array length 3, max array length 4",
+        ),
+    ],
+)
+def test_pad_array(arrays: list, max_array_length: int, target: list) -> None:
+    """Test padding of arrays."""
+    np.testing.assert_array_equal(_pad_array(arrays, max_array_length), target)
