@@ -305,18 +305,23 @@ def test_find_files() -> None:
     assert "minicircle.spm" in str(found_images[0])
 
 
-def test_read_null_terminated_string() -> None:
+@pytest.mark.parametrize(
+    ("string_start_position", "expected_string"),
+    [pytest.param(0, "test", id="utf8 string"), pytest.param(5, "µ ", id="ISO 8859-1 character")],
+)
+def test_read_null_terminated_string(string_start_position: int, expected_string: str) -> None:
     """Test reading a null terminated string from a binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
+        open_binary_file.seek(string_start_position)
         value = read_null_terminated_string(open_binary_file)
         assert isinstance(value, str)
-        assert value == "test"
+        assert value == expected_string
 
 
 def test_read_u32i() -> None:
     """Test reading an unsigned 32 bit integer from a binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(5)
+        open_binary_file.seek(6)
         value = read_u32i(open_binary_file)
         assert isinstance(value, int)
         assert value == 32
@@ -325,7 +330,7 @@ def test_read_u32i() -> None:
 def test_read_64d() -> None:
     """Test reading a 64-bit double from an open binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(9)
+        open_binary_file.seek(10)
         value = read_64d(open_binary_file)
         assert isinstance(value, float)
         assert value == 3.141592653589793
@@ -334,7 +339,7 @@ def test_read_64d() -> None:
 def test_read_char() -> None:
     """Test reading a character from an open binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(17)
+        open_binary_file.seek(18)
         value = read_char(open_binary_file)
         assert isinstance(value, str)
         assert value == "Z"
@@ -343,7 +348,7 @@ def test_read_char() -> None:
 def test_read_gwy_component_dtype() -> None:
     """Test reading a data type of a `.gwy` file component from an open binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(18)
+        open_binary_file.seek(19)
         value = read_gwy_component_dtype(open_binary_file)
         assert isinstance(value, str)
         assert value == "D"
@@ -595,16 +600,72 @@ def test_gwy_read_object(load_scan_dummy: LoadScans) -> None:
 def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
     """Tests reading a component of a `.gwy` file object from an open binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(55)
+        open_binary_file.seek(56)
         test_dict = {}
         byte_size = load_scan_dummy._gwy_read_component(
-            initial_byte_pos=55, open_file=open_binary_file, data_dict=test_dict
+            initial_byte_pos=56, open_file=open_binary_file, data_dict=test_dict
         )
-        print(test_dict.items())
-        print(test_dict.values())
         assert byte_size == 73
         assert list(test_dict.keys()) == ["test object component"]
         assert list(test_dict.values()) == [{"test nested component": 3}]
+
+
+@pytest.mark.parametrize(
+    ("gwy_file_data", "expected_channel_ids"),
+    [
+        pytest.param(
+            {
+                "/0/data": "Height Channel Data",
+                "/0/data/title": "Height",
+                "/0/data/meta": "Height Channel Metadata",
+                "/1/data": "Amplitude Channel Data",
+                "/1/data/title": "Amplitude",
+                "/1/data/meta": "Amplitude Channel Metadata",
+                "/2/data": "Phase Channel Data",
+                "/2/data/title": "Phase",
+                "/2/data/meta": "Phase Channel Metadata",
+                "/3/data": "Error Channel Data",
+                "/3/data/title": "Error",
+                "/3/data/meta": "Error Channel Metadata",
+            },
+            {
+                "Height": "0",
+                "Amplitude": "1",
+                "Phase": "2",
+                "Error": "3",
+            },
+            id="leading slash",
+        ),
+        pytest.param(
+            {
+                "0/data": "Height Channel Data",
+                "0/data/title": "Height",
+                "0/data/meta": "Height Channel Metadata",
+                "1/data": "Amplitude Channel Data",
+                "1/data/title": "Amplitude",
+                "1/data/meta": "Amplitude Channel Metadata",
+                "2/data": "Phase Channel Data",
+                "2/data/title": "Phase",
+                "2/data/meta": "Phase Channel Metadata",
+                "3/data": "Error Channel Data",
+                "3/data/title": "Error",
+                "3/data/meta": "Error Channel Metadata",
+            },
+            {
+                "Height": "0",
+                "Amplitude": "1",
+                "Phase": "2",
+                "Error": "3",
+            },
+            id="no leading slash",
+        ),
+    ],
+)
+def test_gwy_get_channels(load_scan_dummy: LoadScans, gwy_file_data: dict, expected_channel_ids: dict) -> None:
+    """Tests getting the channels of a `.gwy` file."""
+    channel_ids = load_scan_dummy._gwy_get_channels(gwy_file_structure=gwy_file_data)
+
+    assert channel_ids == expected_channel_ids
 
 
 @patch("pySPM.SPM.SPM_image.pxs")
@@ -769,6 +830,8 @@ def test_dict_to_hdf5_all_together_group_path_non_standard(tmp_path: Path) -> No
         assert list(f.keys()) == list(expected.keys())
         assert f["d"]["a"][()] == expected["d"]["a"]
         np.testing.assert_array_equal(f["d"]["b"][()], expected["d"]["b"])
+        # pylint thinks that f["c"] is a group but it is a bytes object that can be decoded
+        # pylint: disable=no-member
         assert f["d"]["c"][()].decode("utf-8") == expected["d"]["c"]
         assert f["d"]["d"]["e"][()] == expected["d"]["d"]["e"]
         np.testing.assert_array_equal(f["d"]["d"]["f"][()], expected["d"]["d"]["f"])

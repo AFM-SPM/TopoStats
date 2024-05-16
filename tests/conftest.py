@@ -396,7 +396,7 @@ def load_scan_jpk() -> LoadScans:
 @pytest.fixture()
 def load_scan_gwy() -> LoadScans:
     """Instantiate a LoadScans object from a .gwy file."""
-    return LoadScans([RESOURCES / "file.gwy"], channel="dummy_channel")
+    return LoadScans([RESOURCES / "file.gwy"], channel="ZSensor")
 
 
 @pytest.fixture()

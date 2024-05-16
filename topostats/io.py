@@ -6,6 +6,7 @@ import io
 import logging
 import os
 import pickle as pkl
+import re
 import struct
 from datetime import datetime
 from importlib import resources
@@ -308,7 +309,7 @@ def save_folder_grainstats(output_dir: str | Path, base_dir: str | Path, all_sta
             LOGGER.info(f"No folder-wise statistics for directory {_dir}, no grains detected in any images.")
 
 
-def read_null_terminated_string(open_file: io.TextIOWrapper) -> str:
+def read_null_terminated_string(open_file: io.TextIOWrapper, encoding: str = "utf-8") -> str:
     """
     Read an open file from the current position in the open binary file, until the next null value.
 
@@ -316,18 +317,37 @@ def read_null_terminated_string(open_file: io.TextIOWrapper) -> str:
     ----------
     open_file : io.TextIOWrapper
         An open file object.
+    encoding : str
+        Encoding to use when decoding the bytes.
 
     Returns
     -------
     str
         String of the ASCII decoded bytes before the next null byte.
+
+    Examples
+    --------
+    >>> with open("test.txt", "rb") as f:
+    ...     print(read_null_terminated_string(f), encoding="utf-8")
     """
     byte = open_file.read(1)
     value = b""
     while byte != b"\x00":
         value += byte
         byte = open_file.read(1)
-    return str(value.decode("utf-8"))
+    # Sometimes encodings cannot decode a byte that is not defined in the encoding.
+    # Try 'latin1' in this case as it is able to handle symbols such as micro (µ).
+    try:
+        return str(value.decode(encoding=encoding))
+    except UnicodeDecodeError as e:
+        if "codec can't decode byte" in str(e):
+            bad_byte = str(e).split("byte ")[1].split(":")[0]
+            LOGGER.debug(
+                f"Decoding error while reading null terminated string. Encoding {encoding} encountered"
+                f" a byte that could not be decoded: {bad_byte}. Trying 'latin1' encoding."
+            )
+            return str(value.decode(encoding="latin1"))
+        raise e
 
 
 def read_u32i(open_file: io.TextIOWrapper) -> str:
@@ -896,6 +916,38 @@ class LoadScans:
         pre_string = ""
         LoadScans._gwy_print_dict(gwy_file_dict=gwy_file_dict, pre_string=pre_string)
 
+    @staticmethod
+    def _gwy_get_channels(gwy_file_structure: dict) -> dict:
+        """
+        Extract a list of channels and their corresponding dictionary key ids from the `.gwy` file dictionary.
+
+        Parameters
+        ----------
+        gwy_file_structure : dict
+            Dictionary of the nested object / component structure of a `.gwy` file. Where the keys are object names
+            and the values are dictionaries of the object's components.
+
+        Returns
+        -------
+        dict
+            Dictionary where the keys are the channel names and the values are the dictionary key ids.
+
+        Examples
+        --------
+        # Using a loaded dictionary generated from a `.gwy` file:
+        LoadScans._gwy_get_channels(gwy_file_structure=loaded_gwy_file_dictionary)
+        """
+        title_key_pattern = re.compile(r"\d+(?=/data/title)")
+        channel_ids = {}
+
+        for key, _ in gwy_file_structure.items():
+            match = re.search(title_key_pattern, key)
+            if match:
+                channel = gwy_file_structure[key]
+                channel_ids[channel] = match.group()
+
+        return channel_ids
+
     def load_gwy(self) -> tuple[npt.NDArray, float]:
         """
         Extract image and pixel to nm scaling from the Gwyddion .gwy file.
@@ -920,22 +972,23 @@ class LoadScans:
             # available keys:
             # LoadScans._gwy_print_dict_wrapper(gwy_file_dict=image_data_dict)
 
-            if "/0/data" in image_data_dict:
-                image = image_data_dict["/0/data"]["data"]
-                units = image_data_dict["/0/data"]["si_unit_xy"]["unitstr"]
-                px_to_nm = image_data_dict["/0/data"]["xreal"] * 1e9 / image.shape[1]
-            elif "/1/data" in image_data_dict:
-                image = image_data_dict["/1/data"]["data"]
-                px_to_nm = image_data_dict["/1/data"]["xreal"] * 1e9 / image.shape[1]
-                units = image_data_dict["/1/data"]["si_unit_xy"]["unitstr"]
-            else:
+            channel_ids = LoadScans._gwy_get_channels(gwy_file_structure=image_data_dict)
+
+            if self.channel not in channel_ids:
                 raise KeyError(
-                    "Data location not defined in the .gwy file. Please locate it and add to the load_gwy() function."
+                    f"Channel {self.channel} not found in {self.img_path.suffix} channel list: {channel_ids}"
                 )
+
+            # Get the image data
+            image = image_data_dict[f"/{channel_ids[self.channel]}/data"]["data"]
+            units = image_data_dict[f"/{channel_ids[self.channel]}/data"]["si_unit_xy"]["unitstr"]
+            # currently only support equal pixel sizes in x and y
+            px_to_nm = image_data_dict[f"/{channel_ids[self.channel]}/data"]["xreal"] / image.shape[1]
 
             # Convert image heights to nanometresQ
             if units == "m":
                 image = image * 1e9
+                px_to_nm = px_to_nm * 1e9
             else:
                 raise ValueError(
                     f"Units '{units}' have not been added for .gwy files. Please add \
