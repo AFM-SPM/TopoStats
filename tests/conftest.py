@@ -805,11 +805,13 @@ def _generate_random_skeleton(**extra_kwargs):
         "shape": None,
         "allow_overlap": True,
     }
+    # kwargs.update
     heights = {"scale": 100, "sigma": 5.0, "cval": 20.0}
-    random_image, _ = draw.random_shapes(**kwargs, **extra_kwargs)
+    kwargs = {**kwargs, **extra_kwargs}
+    random_image, _ = draw.random_shapes(**kwargs)
     mask = random_image != 255
     skeleton = skeletonize(mask)
-    return {"img": _generate_heights(skeleton, **heights), "skeleton": skeleton}
+    return {"original": mask, "img": _generate_heights(skeleton, **heights), "skeleton": skeleton}
 
 
 @pytest.fixture()
@@ -842,13 +844,21 @@ def skeleton_linear3() -> dict:
     return _generate_random_skeleton(rng=894632511, min_size=20)
 
 
+@pytest.fixture()
+def pruning_skeleton() -> dict:
+    """Smaller skeleton for testing parameters of prune_all_skeletons()."""
+    return _generate_random_skeleton(rng=69432138, min_size=15, image_shape=(30, 30))
+
+
 ## Helper function visualising for generating skeletons and heights
 
+
+# import matplotlib.pyplot as plt
 # def pruned_plot(gen_shape: dict) -> None:
 #     """Plot the original skeleton, its derived height and the pruned skeleton."""
-#     img_skeleton = gen_shape()
+#     img_skeleton = gen_shape
 #     pruned = topostatsPrune(
-#         img_skeleton["heights"],
+#         img_skeleton["img"],
 #         img_skeleton["skeleton"],
 #         max_length=-1,
 #         height_threshold=90,
@@ -857,14 +867,20 @@ def skeleton_linear3() -> dict:
 #     )
 #     pruned_skeleton = pruned._prune_by_length(pruned.skeleton, pruned.max_length)
 #     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
-#     ax1.imshow(img_skeleton["skeleton"])
-#     ax2.imshow(img_skeleton["heights"])
-#     ax3.imshow(pruned_skeleton)
+#     ax1.imshow(img_skeleton["original"])
+#     ax1.set_title("Original mask")
+#     ax2.imshow(img_skeleton["skeleton"])
+#     ax2.set_title("Skeleton")
+#     ax3.imshow(img_skeleton["img"])
+#     ax3.set_title("Gaussian Blurring")
+#     ax4.imshow(pruned_skeleton)
+#     ax4.set_title("Pruned Skeleton")
 #     plt.show()
 
 
-# pruned_plot(pruning_skeleton_loop1)
-# pruned_plot(pruning_skeleton_loop2)
-# pruned_plot(pruning_skeleton_linear1)
-# pruned_plot(pruning_skeleton_linear2)
-# pruned_plot(pruning_skeleton_linear3)
+# pruned_plot(pruning_skeleton_loop1())
+# pruned_plot(pruning_skeleton_loop2())
+# pruned_plot(pruning_skeleton_linear1())
+# pruned_plot(pruning_skeleton_linear2())
+# pruned_plot(pruning_skeleton_linear3())
+# pruned_plot(pruning_skeleton())

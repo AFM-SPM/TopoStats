@@ -209,7 +209,8 @@ class topostatsPrune:  # pylint: disable=too-few-public-methods
         npt.NDArray
             A single mask with all pruned skeletons.
         """
-        pruned_skeleton_mask = np.zeros_like(self.skeleton)
+        pruned_skeleton_mask = np.zeros_like(self.skeleton, dtype=np.uint8)
+        # print(f"{pruned_skeleton_mask=}")
         labeled_skel = morphology.label(self.skeleton)
         for i in range(1, labeled_skel.max() + 1):
             single_skeleton = np.where(labeled_skel == i, 1, 0)
@@ -224,7 +225,13 @@ class topostatsPrune:  # pylint: disable=too-few-public-methods
                     method_outlier=self.method_outlier,
                 ).remove_bridges()
             # skeletonise to remove nibs
-            pruned_skeleton_mask += getSkeleton(self.img, single_skeleton, method="zhang").get_skeleton()
+            # Discovered this caused an error when writing tests...
+            #
+            #  numpy.core._exceptions._UFuncOutputCastingError: Cannot cast ufunc 'add' output from dtype('int8') to
+            #  dtype('bool') with casting...
+            # pruned_skeleton_mask += getSkeleton(self.img, single_skeleton, method="zhang").get_skeleton()
+            pruned_skeleton = getSkeleton(self.img, single_skeleton, method="zhang").get_skeleton()
+            pruned_skeleton_mask += pruned_skeleton.astype(dtype=np.uint8)
         return pruned_skeleton_mask
 
     def _prune_by_length(  # pylint: disable=too-many-locals  # noqa: C901
@@ -421,7 +428,7 @@ class convPrune:  # pylint: disable=too-few-public-methods
 
     def _prune_by_length(self, single_skeleton: npt.NDArray, max_length: float | int = -1) -> npt.NDArray:
         """
-        Remove the hanging branches from a single skeleton via local-area convoluions.
+        Remove the hanging branches from a single skeleton via local-area convolutions.
 
         Parameters
         ----------
@@ -451,6 +458,9 @@ class convPrune:  # pylint: disable=too-few-public-methods
         for i in range(1, nodeless_labels.max() + 1):
             vals = conv_skelly[nodeless_labels == i]
             # check if there is an endpoint and length is below expected
+            # @ns-rse 2024-05-29 : There is an issue here where you _have_ to have max_branch_length defined as not
+            # None, but the configuration and way in which topostatsPrune is written it is permissible to have no branch
+            # length. It also seems strange to use the default max_branch_length as noted above
             if (vals == 2).any() and (vals.size < max_branch_length):
                 single_skeleton[nodeless_labels == i] = 0
 
