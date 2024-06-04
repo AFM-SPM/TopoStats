@@ -1,13 +1,11 @@
 """Test the nodestats module."""
 
-import pytest
-
 # from topostats.tracing.nodestats import nodeStats
 
 # pylint: disable=unnecessary-pass
 
 
-@pytest.mark.parametrize()
+# @pytest.mark.parametrize()
 def test_get_node_stats() -> None:
     """Test of get_node_stats() method of nodeStats class."""
     pass

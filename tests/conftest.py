@@ -846,7 +846,7 @@ def skeleton_linear3() -> dict:
 
 @pytest.fixture()
 def pruning_skeleton() -> dict:
-    """Smaller skeleton for testing parameters of prune_all_skeletons()."""
+    """Smaller skeleton for testing parameters of prune_all_skeletons(). Has a T-junction."""
     return _generate_random_skeleton(rng=69432138, min_size=15, image_shape=(30, 30))
 
 
