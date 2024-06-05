@@ -64,7 +64,7 @@ pip install topostats==2.0.0
 For more information on using `pip` to install and manage packages please refer to the [pip
 documentation](https://pip.pypa.io/en/stable/user_guide/).
 
-### Cloning from GitHub
+### Installing from GitHub
 
 You may wish to consider cloning and installing TopoStats from GitHub if...
 
@@ -73,42 +73,45 @@ You may wish to consider cloning and installing TopoStats from GitHub if...
 - If you have found an issue in a released version and want to see if it has been fixed in the unreleased version.
 - If you wish to develop and extend TopoStats with new features yourself.
 
+There are two options to install from GitHub, which you use will depend on what you want to do.
+
+1. Using PyPI to install directly.
+2. Clone the repository and install from there.
+
+If all you want to do is use the development version of TopoStats then you can use option 1. If you wish to change the
+underlying code you should use option 2.
+
+#### Installing from GitHub using PyPI
+
+[`pip`][pip] supports [installing packages from GitHub][pip_github]. To install the `main` branch of TopoStats use the
+following in your Virtual Environment.
+
+```bash
+pip install git+https://github.com/AFM-SPM/TopoStats.git@main
+```
+
+You can install any branch on GitHub by modifying the last argument (`@main`) to the branch you wish to install,
+e.g. `@another_branch` would install the `another_branch` (if it existed).
+
+#### Cloning the Repository and installing
+
 If you do not have Git already installed please see [Git](installation#git). If you intend to contribute to the
 development of TopoStats please read through the [contributing](contributing) section.
 
 If you are familiar with the command line then you can clone and install TopoStats with the following _after_ activating
-your virtual environment.
+your virtual environment. By installing in editable mode (with the `-e` flag) switching branches will make the branch
+available.
 
 ```bash
-git clone https://github.com/AFM-SPM/TopoStats.git
-# If you have SSH access configured to GitHub then you can use
+cd ~/where/to/clone
 git clone git@github.com:AFM-SPM/TopoStats.git
+cd TopoStats
+pip install -e .
 ```
-
-#### Cloning Using GitKraken
-
-If you are using GitKraken you can clone the repository by selecting "Clone" and then "GitHub.com" and typing
-`TopoStats` into the box next to "Repository to Clone" and you should be presented with the option of selecting
-"TopoStats" from the AFM-SPM organisation.
-
-Alternatively you can "Clone with URL" and enter `https://github.com/AFM-SPM/TopoStats.git` as the URL to clone from,
-selecting a destination to clone to.
-
-#### Installing TopoStats from the Cloned Repository
-
-Once cloned you will have to open a Terminal and navigate to the directory you cloned and _after_ activating your
-virtual environment install TopoStats with the following.
-
-```bash
-cd /path/to/where/topostats/was/cloned/TopoStats
-pip install .
-```
-
-If you wish to make changes to the code and test then make a `git branch`, make your changes and install in editable mode,
-i.e. `pip install -e .`.
 
 If you plan to contribute to development by adding features or address an existing
-[issue](https://github.com/AFM-SPM/TopoStats/issues) please refer to the [contributing](contributing) section.
+[issue](https://github.com/AFM-SPM/TopoStats/issues) please refer to the [contributing](contributing) section and pay
+particular attention to the section about installing additional dependencies.
 
 We include [notebooks](notebooks) which show how to use different aspects of TopoStats. If you wish to try these out the
 [Jupyter Noteooks](https://jupyter.org/) then you can install the dependencies that are required from the cloned
@@ -118,12 +121,18 @@ TopoStats repository using...
 pip install ".[notebooks]"
 ```
 
+#### Cloning Using GitKraken
+
+If you are using GitKraken you can clone the repository by selecting "Clone" and then "GitHub.com" and typing
+`TopoStats` into the box next to "Repository to Clone" and you should be presented with the option of selecting
+"TopoStats" from the AFM-SPM organisation. Once cloned follow
+
 ## Tests
 
 One of the major changes in the refactoring is the introduction of unit tests. These require certain packages to be
 installed which are not installed to your virtual environment by
 [setuptools](https://setuptools.pypa.io/en/latest/setuptools.html) in the above steps. If you are intending to modify or
-contribute to the development of TopoStats and making changes to the code base you will likely want to be able to run
+contribute to the development of TopoStats or make changes to the code base you will likely want to be able to run
 the tests. Install the necessary dependencies to do so with...
 
 ```bash
@@ -135,9 +144,13 @@ pytest
 
 ## Git
 
-[Git](https://git.vc) is a version control system for managing software development and is required to be installed on
+[Git][git] is a version control system for managing software development and is required to be installed on
 your computer in order to clone the TopoStats repository. Instructions on installing Git can be found at [Git Guides -
 install git](https://github.com/git-guides/install-git).
 
 A nice Graphical User Interface for working with Git is [GitKraken](https://www.gitkraken.com/) which includes
 everything you need.
+
+[git]: https://git.vc
+[pip]: https://pypi.org/project/pip/
+[pip_github]: https://pip.pypa.io/en/stable/getting-started/#install-a-package-from-github
