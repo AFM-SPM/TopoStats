@@ -124,7 +124,9 @@ write_to = "topostats/_version.py"
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = ["--cov", "--mpl", "-ra", "--strict-config", "--strict-markers"]
-log_cli_level = "Info"
+log_level = "INFO"
+log_cli = true
+log_cli_level = "INFO"
 testpaths = [
     "tests",
 ]

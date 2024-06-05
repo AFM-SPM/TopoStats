@@ -35,7 +35,7 @@ def dnatrace_linear(process_scan_config: dict) -> dnaTrace:
     tracing_config.pop("pad_width")
     return dnaTrace(
         image=LINEAR_IMAGE,
-        grain=LINEAR_MASK,
+        mask=LINEAR_MASK,
         filename="linear",
         pixel_to_nm_scaling=PIXEL_SIZE,
         **tracing_config,
@@ -50,7 +50,7 @@ def dnatrace_circular(process_scan_config: dict) -> dnaTrace:
     tracing_config.pop("pad_width")
     return dnaTrace(
         image=CIRCULAR_IMAGE,
-        grain=CIRCULAR_MASK,
+        mask=CIRCULAR_MASK,
         filename="circular",
         pixel_to_nm_scaling=PIXEL_SIZE,
         **tracing_config,
@@ -147,6 +147,10 @@ def test_get_disordered_trace(
     dnatrace.skeletonisation_params["method"] = skeletonisation_method
     dnatrace.gaussian_filter()
     dnatrace.get_disordered_trace()
+    import matplotlib.pyplot as plt
+
+    plt.imshow(dnatrace.pruned_skeleton)
+    plt.show()
     assert isinstance(dnatrace.disordered_trace, np.ndarray)
     assert len(dnatrace.disordered_trace) == length
     np.testing.assert_array_equal(dnatrace.disordered_trace[0,], start)
