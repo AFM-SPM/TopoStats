@@ -56,10 +56,10 @@ dnatracing:
     gaussian_sigma: null # Gaussian smoothing parameter 'sigma'. 'null' defaults to max(grain.shape) / 256.
     dilation_iterations: 2 # Number of dilation iterations to use for grain smoothing.
   skeletonisation_params:
-    skeletonisation_method: topostats # Options : zhang | lee | thin | topostats
+    method: topostats # Options : zhang | lee | thin | topostats
     height_bias: 0.6 # Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
   pruning_params:
-    pruning_method: topostats # Method to clean branches of the skeleton. Options : max | topostats
+    method: topostats # Method to clean branches of the skeleton. Options : topostats
     max_length: -1 # Maximum length in nm to remove a branch containing an endpoint. '-1' is 15% of total trace length (in pixels).
     height_threshold: # The height to remove branches below.
     method_values: mid # The method to obtain a branch's height for pruning. Options : min | median | mid

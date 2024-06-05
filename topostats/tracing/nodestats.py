@@ -12,7 +12,7 @@ from skimage.morphology import label
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.skeletonize import getSkeleton
-from topostats.tracing.pruning import pruneSkeleton
+from topostats.tracing.pruning import prune_skeleton  # pruneSkeleton
 from topostats.utils import ResolutionError, convolve_skeleton, coords_2_img
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -193,9 +193,10 @@ class nodeStats:
         new_skeleton = self.keep_biggest_object(new_skeleton)
         # Re-skeletonise
         new_skeleton = getSkeleton(image, new_skeleton, method="topostats", height_bias=0.6).get_skeleton()
-        new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton(
-            {"pruning_method": "topostats", "max_length": -1}
-        )
+        # new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton(
+        #     {"pruning_method": "topostats", "max_length": -1}
+        # )
+        new_skeleton = prune_skeleton(image, new_skeleton, **{"pruning_method": "topostats", "max_length": -1})
         # cleanup around nibs
         new_skeleton = getSkeleton(image, new_skeleton, method="zhang").get_skeleton()
         # might also need to remove segments that have squares connected
