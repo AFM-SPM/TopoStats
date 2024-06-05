@@ -19,9 +19,9 @@ import numpy.typing as npt
 import pandas as pd
 import pySPM
 import tifffile
+from AFMReader import asd
 from igor2 import binarywave
 from ruamel.yaml import YAML, YAMLError
-from topofileformats import asd
 
 from topostats.logs.logs import LOGGER_NAME
 
