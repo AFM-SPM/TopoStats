@@ -19,9 +19,9 @@ import numpy.typing as npt
 import pandas as pd
 import pySPM
 import tifffile
+from AFMReader import asd
 from igor2 import binarywave
 from ruamel.yaml import YAML, YAMLError
-from topofileformats import asd
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -1026,6 +1026,7 @@ class LoadScans:
                     self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
                 except Exception as e:
                     if "Channel" in str(e) and "not found" in str(e):
+                        LOGGER.warning(e)  # log the specific error message
                         LOGGER.warning(f"[{self.filename}] Channel {self.channel} not found, skipping image.")
                     else:
                         raise

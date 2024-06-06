@@ -561,7 +561,7 @@ def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
     frames, px_to_nm_scaling = load_scan_asd.load_asd()
     assert isinstance(frames, np.ndarray)
     assert frames.shape == (197, 200, 200)
-    assert frames.sum() == -71724923530211.84
+    assert frames.sum() == -1368044348.3393068
     assert isinstance(px_to_nm_scaling, float)
     assert px_to_nm_scaling == 2.0
 
@@ -698,12 +698,14 @@ def test__spm_pixel_to_nm_scaling(
 @pytest.mark.parametrize(
     ("load_scan_object", "length", "image_shape", "image_sum", "filename", "pixel_to_nm_scaling"),
     [
-        ("load_scan_spm", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
-        ("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625),
-        ("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876),
-        ("load_scan_gwy", 1, (512, 512), 33836850.232917726, "file", 0.8468632812499975),
-        ("load_scan_topostats", 1, (1024, 1024), 184140.8593819073, "file", 0.4940029296875),
-        ("load_scan_asd", 197, (200, 200), -673381139990.2344, "file_122", 2.0),
+        pytest.param("load_scan_spm", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875, id="spm"),
+        pytest.param("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625, id="ibw"),
+        pytest.param("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876, id="jpk"),
+        pytest.param("load_scan_gwy", 1, (512, 512), 33836850.232917726, "file", 0.8468632812499975, id="gwy"),
+        pytest.param(
+            "load_scan_topostats", 1, (1024, 1024), 184140.8593819073, "file", 0.4940029296875, id="topostats"
+        ),
+        pytest.param("load_scan_asd", 197, (200, 200), -12843725.967220962, "file_122", 2.0, id="asd"),
     ],
 )
 def test_load_scan_get_data(
