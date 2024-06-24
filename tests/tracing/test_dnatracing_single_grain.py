@@ -58,16 +58,74 @@ def dnatrace_circular(process_scan_config: dict) -> dnaTrace:
 
 
 @pytest.mark.parametrize(
-    ("dnatrace", "gauss_image_sum"),
+    ("dnatrace", "dilation_iterations", "gaussian_sigma", "smoothed_mask_sum"),
     [
-        pytest.param(lazy_fixture("dnatrace_linear"), 5.517763534147536e-06, id="linear molecule"),
-        pytest.param(lazy_fixture("dnatrace_circular"), 6.126947266262167e-06, id="circular molecule"),
+        pytest.param(
+            lazy_fixture("dnatrace_linear"),
+            1,
+            None,
+            2443,
+            id="linear molecule, dilation iterations = 1, gaussian_sigma = None",
+        ),
+        pytest.param(
+            lazy_fixture("dnatrace_circular"),
+            1,
+            None,
+            2675,
+            id="circular molecule, dilation iterations = 1, gaussian_sigma = None",
+        ),
+        pytest.param(
+            lazy_fixture("dnatrace_linear"),
+            1,
+            3,
+            2299,
+            id="linear molecule, dilation iterations = 1, gaussian_sigma = 1",
+        ),
+        pytest.param(
+            lazy_fixture("dnatrace_circular"),
+            1,
+            3,
+            2595,
+            id="circular molecule, dilation iterations = 1, gaussian_sigma = 1",
+        ),
+        pytest.param(
+            lazy_fixture("dnatrace_linear"),
+            1,
+            7,
+            2510,
+            id="linear molecule, dilation iterations = 1, gaussian_sigma = 7",
+        ),
+        pytest.param(
+            lazy_fixture("dnatrace_circular"),
+            1,
+            7,
+            3031,
+            id="circular molecule, dilation iterations = 1, gaussian_sigma = 7",
+        ),
+        pytest.param(
+            lazy_fixture("dnatrace_linear"),
+            3,
+            1,
+            2336,
+            id="linear molecule, dilation iterations = 3, gaussian_sigma = 1",
+        ),
+        pytest.param(
+            lazy_fixture("dnatrace_circular"),
+            3,
+            1,
+            2603,
+            id="circular molecule, dilation iterations = 3, gaussian_sigma = 1",
+        ),
     ],
 )
-def test_gaussian_filter(dnatrace: dnaTrace, gauss_image_sum: float) -> None:
+def test_smooth_mask(
+    dnatrace: dnaTrace, smoothed_mask_sum: float, dilation_iterations: int, gaussian_sigma: None | float
+) -> None:
     """Test of the method."""
-    dnatrace.gaussian_filter()
-    assert dnatrace.smoothed_grain.sum() == pytest.approx(gauss_image_sum)
+    dnatrace.mask_smoothing_params["dilation_iterations"] = dilation_iterations
+    dnatrace.mask_smoothing_params["gaussian_sigma"] = gaussian_sigma
+    dnatrace.smoothed_mask = dnatrace.smooth_mask(mask=dnatrace.mask, **dnatrace.mask_smoothing_params)
+    assert dnatrace.smoothed_mask.sum() == pytest.approx(smoothed_mask_sum)
 
 
 @pytest.mark.skip(reason="Need to correctly prune skeletons to match previous state, parameters need tweaking.")
@@ -147,10 +205,6 @@ def test_get_disordered_trace(
     dnatrace.skeletonisation_params["method"] = skeletonisation_method
     dnatrace.gaussian_filter()
     dnatrace.get_disordered_trace()
-    import matplotlib.pyplot as plt
-
-    plt.imshow(dnatrace.pruned_skeleton)
-    plt.show()
     assert isinstance(dnatrace.disordered_trace, np.ndarray)
     assert len(dnatrace.disordered_trace) == length
     np.testing.assert_array_equal(dnatrace.disordered_trace[0,], start)
