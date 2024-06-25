@@ -2,7 +2,9 @@
 
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 import pytest
 from pytest_lazyfixture import lazy_fixture
 
@@ -119,7 +121,7 @@ def dnatrace_circular(process_scan_config: dict) -> dnaTrace:
     ],
 )
 def test_smooth_mask(
-    dnatrace: dnaTrace, smoothed_mask_sum: float, dilation_iterations: int, gaussian_sigma: None | float
+    dnatrace: dnaTrace, dilation_iterations: int, gaussian_sigma: None | float, smoothed_mask_sum: float
 ) -> None:
     """Test of the method."""
     dnatrace.mask_smoothing_params["dilation_iterations"] = dilation_iterations
@@ -128,30 +130,29 @@ def test_smooth_mask(
     assert dnatrace.smoothed_mask.sum() == pytest.approx(smoothed_mask_sum)
 
 
-@pytest.mark.skip(reason="Need to correctly prune skeletons to match previous state, parameters need tweaking.")
 @pytest.mark.parametrize(
     ("dnatrace", "skeletonisation_method", "length", "start", "end"),
     [
         pytest.param(
             lazy_fixture("dnatrace_linear"),
             "topostats",
-            120,
-            np.asarray([28, 47]),
-            np.asarray([106, 87]),
+            91,
+            np.asarray([63, 51]),
+            np.asarray([107, 82]),
             id="linear molecule, skeletonise topostats",
         ),
         pytest.param(
             lazy_fixture("dnatrace_circular"),
             "topostats",
-            150,
-            np.asarray([59, 59]),
-            np.asarray([113, 54]),
+            154,
+            np.asarray([59, 57]),
+            np.asarray([114, 51]),
             id="circular molecule, skeletonise topostats",
         ),
         pytest.param(
             lazy_fixture("dnatrace_linear"),
             "zhang",
-            170,
+            122,
             np.asarray([28, 47]),
             np.asarray([106, 87]),
             id="linear molecule, skeletonise zhang",
@@ -159,8 +160,8 @@ def test_smooth_mask(
         pytest.param(
             lazy_fixture("dnatrace_circular"),
             "zhang",
-            184,
-            np.asarray([43, 95]),
+            149,
+            np.asarray([59, 59]),
             np.asarray([113, 54]),
             id="circular molecule, skeletonise zhang",
         ),
@@ -175,23 +176,23 @@ def test_smooth_mask(
         pytest.param(
             lazy_fixture("dnatrace_circular"),
             "lee",
-            177,
-            np.asarray([45, 93]),
+            151,
+            np.asarray([60, 56]),
             np.asarray([114, 53]),
             id="circular molecule, skeletonise lee",
         ),
         pytest.param(
             lazy_fixture("dnatrace_linear"),
             "thin",
-            187,
-            np.asarray([27, 45]),
+            118,
+            np.asarray([28, 47]),
             np.asarray([106, 83]),
             id="linear molecule, skeletonise thin",
         ),
         pytest.param(
             lazy_fixture("dnatrace_circular"),
             "thin",
-            190,
+            175,
             np.asarray([38, 85]),
             np.asarray([115, 52]),
             id="circular molecule, skeletonise thin",
@@ -203,7 +204,7 @@ def test_get_disordered_trace(
 ) -> None:
     """Test of get_disordered_trace the method."""
     dnatrace.skeletonisation_params["method"] = skeletonisation_method
-    dnatrace.gaussian_filter()
+    dnatrace.smoothed_mask = dnatrace.smooth_mask(mask=dnatrace.mask, **dnatrace.mask_smoothing_params)
     dnatrace.get_disordered_trace()
     assert isinstance(dnatrace.disordered_trace, np.ndarray)
     assert len(dnatrace.disordered_trace) == length
@@ -709,3 +710,15 @@ def test_grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int, ta
 #     assert trace_stats["end_to_end_distance"] == pytest.approx(end_to_end_distance)
 #     assert trace_stats["circular"] == circular
 #     assert trace_stats["contour_length"] == pytest.approx(contour_length)
+
+
+# Short helper function for plotting coordinates (consider adding/moving to topostats/plottingfuncs.py)
+def plot_coordinates(coords: npt.NDArray, title: str) -> None:
+    """Plot coordinates (from get_[dis])ordered_trace()."""
+    skeleton = np.zeros((coords.max() + 2, coords.max() + 2))
+    # print(f"{skeleton.shape=}")
+    skeleton[coords[:, 0], coords[:, 1]] = 1
+    # print(f"{skeleton=}")
+    plt.imshow(skeleton)
+    plt.title(title)
+    plt.show()
