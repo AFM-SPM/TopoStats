@@ -206,8 +206,6 @@ class dnaTrace:
         if self.disordered_trace is None:
             LOGGER.info(f"[{self.filename}] : Grain failed to Skeletonise")
         elif len(self.disordered_trace) >= self.min_skeleton_size:
-            self.linear_or_circular(self.disordered_trace)
-            # self.get_ordered_traces()
             nodes = nodeStats(
                 filename=self.filename,
                 image=self.image,
@@ -239,7 +237,6 @@ class dnaTrace:
             """
             except ValueError: # if nodestats fails, use default ordering method
                 LOGGER.info(f"[{self.filename}] : Grain {self.n_grain} failed to order through nodeStats, trying standard ordering.")
-                self.get_ordered_traces()
             """
 
             for trace in self.ordered_traces:  # can be multiple traces from 1 grain like in catenated mols
@@ -536,23 +533,6 @@ class dnaTrace:
         if points_with_one_neighbour == 0:
             return True
         return False
-
-    def get_ordered_traces(self):
-        """
-        Obtain ordered traces from disordered traces.
-        """
-        if self.mol_is_circular:
-            self.ordered_trace, trace_completed = reorderTrace.circularTrace(self.disordered_trace)
-
-            if not trace_completed:
-                self.mol_is_circular = False
-                try:
-                    self.ordered_trace = reorderTrace.linearTrace(self.ordered_trace.tolist())
-                except UnboundLocalError:
-                    pass
-
-        elif not self.mol_is_circular:
-            self.ordered_trace = reorderTrace.linearTrace(self.disordered_trace.tolist())
 
     def get_fitted_traces(self, ordered_trace: npt.NDArray, mol_is_circular: bool) -> npt.NDArray:
         """
