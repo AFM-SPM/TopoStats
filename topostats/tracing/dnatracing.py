@@ -200,7 +200,7 @@ class dnaTrace:
     def trace_dna(self):
         """Perform the DNA tracing pipeline."""
         LOGGER.info(f"[{self.filename}] : mask_smooth_params : {self.mask_smoothing_params=}")
-        self.smoothed_image += self.smooth_mask(self.mask, **self.mask_smoothing_params)
+        self.smoothed_mask += self.smooth_mask(self.mask, **self.mask_smoothing_params)
         self.get_disordered_trace()
 
         if self.disordered_trace is None:
@@ -211,8 +211,8 @@ class dnaTrace:
             nodes = nodeStats(
                 filename=self.filename,
                 image=self.image,
-                grain=self.mask,
-                smoothed_grain=self.smoothed_image,
+                mask=self.mask,
+                smoothed_mask=self.smoothed_mask,
                 skeleton=self.pruned_skeleton,
                 px_2_nm=self.pixel_to_nm_scaling,
                 n_grain=self.n_grain,

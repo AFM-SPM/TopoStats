@@ -27,9 +27,9 @@ class nodeStats:
         The name of the file being processed. For logging purposes.
     image : np.ndarray
         The array of pixels.
-    grain : np.ndarray
+    mask : np.ndarray
         The binary segmentation mask.
-    smoothed_grain : np.ndarray
+    smoothed_mask : np.ndarray
         A smoothed version of the bianary segmentation mask.
     skeleton : np.ndarray
         A binary single-pixel wide mask of objects in the 'image'.
@@ -45,8 +45,8 @@ class nodeStats:
         self,
         filename: str,
         image: np.ndarray,
-        grain: np.ndarray,
-        smoothed_grain: np.ndarray,
+        mask: np.ndarray,
+        smoothed_mask: np.ndarray,
         skeleton: np.ndarray,
         px_2_nm: float,
         n_grain: int,
@@ -61,9 +61,9 @@ class nodeStats:
             The name of the file being processed. For logging purposes.
         image : np.ndarray
             The array of pixels.
-        grain : np.ndarray
+        mask : np.ndarray
             The binary segmentation mask.
-        smoothed_grain : np.ndarray
+        smoothed_mask : np.ndarray
             A smoothed version of the bianary segmentation mask.
         skeleton : np.ndarray
             A binary single-pixel wide mask of objects in the 'image'.
@@ -76,8 +76,8 @@ class nodeStats:
         """
         self.filename = filename
         self.image = image
-        self.grain = grain
-        self.smoothed_grain = smoothed_grain
+        self.mask = mask
+        self.smoothed_mask = smoothed_mask
         self.skeleton = skeleton
         self.px_2_nm = px_2_nm
         self.n_grain = n_grain
@@ -95,7 +95,7 @@ class nodeStats:
             "nodes": {},
             "grain": {
                 "grain_image": self.image,
-                "grain_mask": self.grain,
+                "grain_mask": self.mask,
                 "grain_visual_crossings": None,
             },
         }
@@ -248,7 +248,7 @@ class nodeStats:
             new_skeleton[
                 node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
                 node_centre[1] - node_len // 2 - overflow : node_centre[1] + node_len // 2 + overflow,
-            ] = self.grain[
+            ] = self.mask[
                 node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
                 node_centre[1] - node_len // 2 - overflow : node_centre[1] + node_len // 2 + overflow,
             ]
@@ -534,7 +534,7 @@ class nodeStats:
 
         # check whether average trace resides inside the grain mask
         dilate = binary_dilation(self.skeleton, iterations=2)
-        average_trace_advised = dilate[self.smoothed_grain == 1].sum() == dilate.sum()
+        average_trace_advised = dilate[self.smoothed_mask == 1].sum() == dilate.sum()
         LOGGER.info(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
 
         # iterate over the nodes to find areas
