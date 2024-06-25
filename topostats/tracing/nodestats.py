@@ -289,7 +289,7 @@ class nodeStats:
             LOGGER.info(f"{e}: mask is empty.")
             return mask
 
-    def connect_close_nodes(self, conv_skelly: np.ndarray, node_width: float = 2.85e-9) -> None:
+    def connect_close_nodes(self, conv_skelly: np.ndarray, node_width: float = 2.85e-9) -> np.ndarray:
         """
         Connect nodes within the 'node_width' boundary distance.
 
@@ -304,7 +304,7 @@ class nodeStats:
 
         Returns
         -------
-        NoneType
+        np.ndarray
             None is returned.
         """
         self.connected_nodes = conv_skelly.copy()
