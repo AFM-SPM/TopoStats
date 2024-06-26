@@ -154,8 +154,7 @@ class dnaTrace:
         self.number_of_columns = self.image.shape[1]
         self.sigma = 0.7 / (self.pixel_to_nm_scaling * 1e9)
         # Images
-        self.smoothed_image = np.zeros_like(image)
-        self.smoothed_mask = np.zeros_like(image)
+        self.smoothed_grain = np.zeros_like(image)
         self.skeleton = np.zeros_like(image)
         self.pruned_skeleton = np.zeros_like(image)
         self.node_image = np.zeros_like(image)
@@ -286,30 +285,18 @@ class dnaTrace:
 
     def gaussian_filter(self, **kwargs) -> npt.NDArray:
         """
-        Apply Gaussian filter to image heights.
+        Apply Gaussian filter.
 
         Parameters
         ----------
         **kwargs
             Arguments passed to 'skimage.filter.gaussian(**kwargs)'.
         """
-        self.smoothed_image = gaussian(self.image, sigma=self.sigma, **kwargs)
+        self.smoothed_grain = gaussian(self.image, sigma=self.sigma, **kwargs)
         LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Gaussian filter applied.")
 
-    def dilate_mask(self, **kwargs) -> npt.NDArray:
-        """
-        Binary dilation of mask.
-
-        Parameters
-        ----------
-        **kwargs
-            Arguments passed to 'ndimage.binary_dilation(**kwargs)'.
-        """
-        self.smoothed_mask = ndimage.binary_dilation(self.mask, iterations=1, **kwargs).astype(self.mask.dtype)
-        LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Binary dilation of mask applied.")
-
-    def smooth_mask(
-        self, mask: npt.NDArray, dilation_iterations: int = 2, gaussian_sigma: float | int | None = None
+    def smooth_grains(
+        self, grain: npt.NDArray, dilation_iterations: int = 2, gaussian_sigma: float | int | None = None
     ) -> npt.NDArray:
         """
         Smooth grains based on the lower number of binary pixels added from dilation or gaussian.
@@ -318,7 +305,7 @@ class dnaTrace:
 
         Parameters
         ----------
-        mask : npt.NDArray
+        grain : npt.NDArray
             Numpy array of the grain mask.
         dilation_iterations : int
             Number of times to dilate the grain to smooth it. Default is 2.
@@ -330,16 +317,19 @@ class dnaTrace:
         npt.NDArray
             Numpy array of smmoothed image.
         """
-        gaussian_sigma = max(mask.shape) / 256 if gaussian_sigma is None else gaussian_sigma
-        # TODO - replace with call to self.dilate_mask()
-        dilation = ndimage.binary_dilation(mask, iterations=dilation_iterations).astype(np.int32)
-        gauss = gaussian(mask, sigma=gaussian_sigma)
+        gaussian_sigma = max(grain.shape) / 256 if gaussian_sigma is None else gaussian_sigma
+        print("-------", dilation_iterations, type(dilation_iterations))
+        dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
+        gauss = gaussian(grain, sigma=gaussian_sigma)
         gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
         gauss[gauss != 1] = 0
         gauss = gauss.astype(np.int32)
-        if dilation.sum() - mask.sum() > gauss.sum() - mask.sum():
-            return self.re_add_holes(mask, gauss)
-        return self.re_add_holes(mask, dilation)
+        if dilation.sum() - grain.sum() > gauss.sum() - grain.sum():
+            gauss = self.re_add_holes(grain, gauss)
+            return gauss
+        else:
+            dilation = self.re_add_holes(grain, dilation)
+            return dilation
 
     def re_add_holes(
         self, orig_mask: npt.NDArray, new_mask: npt.NDArray, holearea_min_max: list = [4, np.inf]
@@ -401,7 +391,7 @@ class dnaTrace:
         npt.NDArray
             Smoothed array ordered by the ordered trace.
         """
-        return np.array(self.smoothed_image[ordered_trace[:, 0], ordered_trace[:, 1]])
+        return np.array(self.smoothed_grain[ordered_trace[:, 0], ordered_trace[:, 1]])
 
     def get_ordered_trace_cumulative_distances(self, ordered_trace: npt.NDArray) -> npt.NDArray:
         """
@@ -472,15 +462,13 @@ class dnaTrace:
         """
         Derive the disordered trace coordinates from the binary mask and image via skeletonisation and pruning.
         """
-        self.dilate_mask()
         self.skeleton = getSkeleton(
-            self.smoothed_image,
-            self.smoothed_mask,
-            # self.mask,
+            self.smoothed_grain,
+            self.mask,
             method=self.skeletonisation_params["method"],
             height_bias=self.skeletonisation_params["height_bias"],
         ).get_skeleton()
-        self.pruned_skeleton = prune_skeleton(self.smoothed_image, self.skeleton, **self.pruning_params.copy())
+        self.pruned_skeleton = prune_skeleton(self.smoothed_grain, self.skeleton, **self.pruning_params.copy())
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
@@ -580,7 +568,7 @@ class dnaTrace:
             height_values = None
 
             # Block of code to prevent indexing outside image limits
-            # e.g. indexing self.smoothed_image[130, 130] for 128x128 image
+            # e.g. indexing self.smoothed_grain[130, 130] for 128x128 image
             if trace_coordinate[0] < 0:
                 # prevents negative number indexing
                 # i.e. stops (trace_coordinate - index_width) < 0
@@ -644,13 +632,13 @@ class dnaTrace:
             # Use the perp array to index the gaussian filtered image
             perp_array = np.column_stack((x_coords, y_coords))
             try:
-                height_values = self.smoothed_image[perp_array[:, 0], perp_array[:, 1]]
+                height_values = self.smoothed_grain[perp_array[:, 0], perp_array[:, 1]]
             except IndexError:
                 perp_array[:, 0] = np.where(
-                    perp_array[:, 0] > self.smoothed_image.shape[0], self.smoothed_image.shape[0], perp_array[:, 0]
+                    perp_array[:, 0] > self.smoothed_grain.shape[0], self.smoothed_grain.shape[0], perp_array[:, 0]
                 )
                 perp_array[:, 1] = np.where(
-                    perp_array[:, 1] > self.smoothed_image.shape[1], self.smoothed_image.shape[1], perp_array[:, 1]
+                    perp_array[:, 1] > self.smoothed_grain.shape[1], self.smoothed_grain.shape[1], perp_array[:, 1]
                 )
                 height_values = self.image[perp_array[:, 1], perp_array[:, 0]]
 
@@ -818,7 +806,7 @@ class dnaTrace:
 
     def show_traces(self):
         """Plot traces."""
-        plt.pcolormesh(self.smoothed_image, vmax=-3e-9, vmin=3e-9)
+        plt.pcolormesh(self.smoothed_grain, vmax=-3e-9, vmin=3e-9)
         plt.colorbar()
         plt.plot(self.ordered_trace[:, 0], self.ordered_trace[:, 1], markersize=1)
         plt.plot(self.fitted_trace[:, 0], self.fitted_trace[:, 1], markersize=1)

@@ -322,22 +322,18 @@ class topostatsPrune:
             Pruned skeleton as binary array.
         """
         pruning = True
-        prune_by_length = 0
-        # Assess overall length once, if a specific length isn't given branches that are < 15% of the initial total
-        # skeleton length are removed
-        coordinates = np.argwhere(single_skeleton == 1).tolist()
-        max_branch_length = max_length if max_length != -1 else int(len(coordinates) * 0.15)
         while pruning:
             single_skeleton = rm_nibs(single_skeleton)
-            no_branches = True
+            n_branches = 0
             coordinates = np.argwhere(single_skeleton == 1).tolist()
 
-            LOGGER.debug(f"[pruning] [iteration : {prune_by_length=}] : Maximum branch length : {max_branch_length}")
+            # The branches are typically short so if a branch is longer than
+            #  0.15 * total points, its assumed to be part of the real data
+            max_branch_length = max_length if max_length != -1 else int(len(coordinates) * 0.15)
+            LOGGER.info(f"[pruning] : Maximum branch length : {max_branch_length}")
             # first check to find all the end coordinates in the trace
             potential_branch_ends = self._find_branch_ends(coordinates)
-            LOGGER.debug(
-                f"[pruning] [iteration : {prune_by_length=}] : Number of branch ends : {len(potential_branch_ends)=}"
-            )
+
             # Now check if its a branch - and if it is delete it
             for branch_x, branch_y in potential_branch_ends:
                 branch_coordinates = [[branch_x, branch_y]]
@@ -371,15 +367,14 @@ class topostatsPrune:
                     if len(branch_coordinates) > max_branch_length:
                         branch_continues = False
                         is_branch = False
-                # If this is a branch switch the skeleton (which are 1's) to 0's to remove it and increment
+                #
                 if is_branch:
-                    no_branches = False
+                    n_branches += 1
                     for x, y in branch_coordinates:
                         single_skeleton[x, y] = 0
 
-            if no_branches:
+            if n_branches == 0:
                 pruning = False
-            prune_by_length += 1
 
         return single_skeleton
 
