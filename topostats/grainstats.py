@@ -834,8 +834,8 @@ class GrainStats:
                     (extremes["x_max"] - extremes["x_min"]),
                     (extremes["y_max"] - extremes["y_min"]),
                 )
-                # Enforce >= 1 aspect ratio
-                if aspect_ratio < 1.0:
+                # Enforce <= 1 aspect ratio
+                if aspect_ratio > 1.0:
                     aspect_ratio = 1 / aspect_ratio
 
         # Unrotate the bounding box vertices
