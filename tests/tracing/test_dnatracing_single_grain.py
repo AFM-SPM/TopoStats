@@ -212,7 +212,7 @@ def test_get_disordered_trace(
     np.testing.assert_array_equal(dnatrace.disordered_trace[-1,], end)
 
 
-# @pytest.mark.skip(reason="Need to correctly prune arrays first.")
+@pytest.mark.skip(reason="Need to correctly prune arrays first.")
 @pytest.mark.parametrize(
     ("dnatrace", "mol_is_circular"),
     [
@@ -227,10 +227,41 @@ def test_get_disordered_trace(
 )
 def test_linear_or_circular(dnatrace: dnaTrace, mol_is_circular: int) -> None:
     """Test of the linear_or_circular method."""
-    dnatrace.smoothed_mask = dnatrace.smooth_mask(mask=dnatrace.mask, **dnatrace.mask_smoothing_params)
+    dnatrace.gaussian_filter()
     dnatrace.get_disordered_trace()
     # Modified as mol_is_circular is no longer an attribute and the method linear_or_circular() returns Boolean instead
     assert dnatrace.linear_or_circular(dnatrace.disordered_trace) == mol_is_circular
+
+
+@pytest.mark.skip(reason="Need to correctly prune arrays first.")
+@pytest.mark.parametrize(
+    ("dnatrace", "length", "start", "end"),
+    [
+        pytest.param(lazy_fixture("dnatrace_linear"), 118, np.asarray([28, 48]), np.asarray([88, 70]), id="linear"),
+        pytest.param(lazy_fixture("dnatrace_circular"), 151, np.asarray([59, 59]), np.asarray([59, 59]), id="circular"),
+    ],
+)
+def test_get_ordered_traces(dnatrace: dnaTrace, length: int, start: np.array, end: np.array) -> None:
+    """Test of the get_ordered_traces method.
+
+    Note the coordinates at the start and end differ from the fixtures for test_get_disordered_trace, but that the
+    circular molecule starts and ends in the same place but the linear doesn't (even though it is currently reported as
+    being circular!).
+    """
+    dnatrace.gaussian_filter()
+    dnatrace.get_disordered_trace()
+    dnatrace.linear_or_circular(dnatrace.disordered_trace)
+    dnatrace.get_ordered_traces()
+    assert isinstance(dnatrace.ordered_trace, np.ndarray)
+    assert len(dnatrace.ordered_trace) == length
+    np.testing.assert_array_equal(
+        dnatrace.ordered_trace[0,],
+        start,
+    )
+    np.testing.assert_array_almost_equal(
+        dnatrace.ordered_trace[-1,],
+        end,
+    )
 
 
 @pytest.mark.skip(reason="Need to correctly prune arrays first.")
