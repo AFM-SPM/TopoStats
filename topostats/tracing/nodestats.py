@@ -156,7 +156,7 @@ class nodeStats:
         # self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
 
     @staticmethod
-    def skeleton_image_to_graph(skeleton: np.ndrray) -> nx.Graph:
+    def skeleton_image_to_graph(skeleton: np.ndarray) -> nx.Graph:
         """
         Convert a skeletonised mask into a Graph representation.
 
