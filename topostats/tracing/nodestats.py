@@ -2,6 +2,7 @@
 
 import logging
 import math
+from typing import Union
 
 import networkx as nx
 import numpy as np
@@ -156,7 +157,7 @@ class nodeStats:
         # self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
 
     @staticmethod
-    def skeleton_image_to_graph(skeleton: np.ndrray) -> nx.Graph:
+    def skeleton_image_to_graph(skeleton: np.ndarray) -> nx.Graph:
         """
         Convert a skeletonised mask into a Graph representation.
 
@@ -839,7 +840,7 @@ class nodeStats:
         return np.array(ordered)
 
     def order_branch_from_start(
-        self, nodeless: np.ndarray, start: np.ndarray, max_length: float | np.inf = np.inf
+        self, nodeless: np.ndarray, start: np.ndarray, max_length: float = np.inf
     ) -> np.ndarray:
         """
         Order an unbranching skeleton from an end (startpoint) along a specified length.
@@ -1433,7 +1434,7 @@ class nodeStats:
         distances = []
         for i in np.unique(labels)[1:]:
             trace_img = np.where(labels == i, 1, 0)
-            trace_img = getSkeleton(img, trace_img).get_skeleton({"skeletonisation_method": "zhang"})
+            trace_img = getSkeleton(img, trace_img, method="zhang").get_skeleton()
             trace = self.order_branch(trace_img, branch_coords[0])
             height_trace = img[trace[:, 0], trace[:, 1]]
             dist = self.coord_dist_rad(trace, centre)  # self.coord_dist(trace)
@@ -1958,3 +1959,73 @@ class nodeStats:
                     img[temp_img != 0] = i + 2
 
         return img
+
+    @staticmethod
+    def average_crossing_confs(node_dict) -> Union[None, float]:
+        """
+        Return the average crossing confidence of all crossings in the molecule.
+
+        Parameters
+        ----------
+        node_dict : dict
+            A dictionary containing node statistics and information.
+
+        Returns
+        -------
+        Union[None, float]
+            The value of minimum confidence or none if not possible.
+        """
+        sum_conf = 0
+        valid_confs = 0
+        for i, (_, values) in enumerate(node_dict.items()):
+            conf = values["confidence"]
+            if conf is not None:
+                sum_conf += conf
+                valid_confs += 1
+            try:
+                return sum_conf / (i + 1)
+            except ZeroDivisionError:
+                return None
+
+    @staticmethod
+    def minimum_crossing_confs(node_dict: dict) -> Union[None, float]:
+        """
+        Return the minimum crossing confidence of all crossings in the molecule.
+
+        Parameters
+        ----------
+        node_dict : dict
+            A dictionary containing node statistics and information.
+
+        Returns
+        -------
+        Union[None, float]
+            The value of minimum confidence or none if not possible.
+        """
+        confs = []
+        valid_confs = 0
+        for i, (_, values) in enumerate(node_dict.items()):
+            conf = values["confidence"]
+            if conf is not None:
+                confs.append(conf)
+                valid_confs += 1
+        try:
+            return min(confs)
+        except ValueError:
+            return None
+
+    def check_node_errorless(self) -> bool:
+        """
+        Check if an error has occured while processing the node dictionary.
+
+        Returns
+        -------
+        bool
+            Whether the error is present.
+        """
+        for _, vals in self.node_dict.items():
+            if vals["error"]:
+                return False
+            else:
+                pass
+        return True
