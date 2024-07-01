@@ -51,7 +51,7 @@ dependencies = [
   "seaborn",
   "snoop",
   "tifffile",
-  "topofileformats",
+  "AFMReader",
   "tqdm",
 ]
 
