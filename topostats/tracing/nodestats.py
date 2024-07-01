@@ -1129,8 +1129,8 @@ class nodeStats:
         if hm is None:
             # Get half max
             hm = (
-                (heights.max() - heights.min()) / 2 + heights.min()
-            )  # heights_norm.max() / 2  # half max value -> try to make it the same as other crossing branch?
+                heights.max() - heights.min()
+            ) / 2 + heights.min()  # heights_norm.max() / 2  # half max value -> try to make it the same as other crossing branch?
             # increase make hm = lowest of peak if it doesn't hit one side
             if np.min(arr1) > hm:
                 arr1_local_min = argrelextrema(arr1, np.less)[-1]  # closest to end
@@ -1967,7 +1967,7 @@ class nodeStats:
         return img
 
     @staticmethod
-    def average_crossing_confs(node_dict) -> Union[None, float]:
+    def average_crossing_confs(node_dict) -> None | float:
         """
         Return the average crossing confidence of all crossings in the molecule.
 
@@ -1994,7 +1994,7 @@ class nodeStats:
                 return None
 
     @staticmethod
-    def minimum_crossing_confs(node_dict: dict) -> Union[None, float]:
+    def minimum_crossing_confs(node_dict: dict) -> None | float:
         """
         Return the minimum crossing confidence of all crossings in the molecule.
 
