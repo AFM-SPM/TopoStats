@@ -49,6 +49,7 @@ grainstats:
   run: true # Options : true, false
   edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
   cropped_size: 40.0 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
+  extract_height_profile: true # Extract height profiles along maximum feret of molecules
 dnatracing:
   run: true # Options : true, false
   min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.

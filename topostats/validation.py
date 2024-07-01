@@ -194,6 +194,12 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 float,
                 int,
             ),
+            "extract_height_profile": Or(
+                True,
+                False,
+                error="Invalid value in config for 'grainstats.extract_height_profile',"
+                "valid values are 'True' or 'False'",
+            ),
         },
         "dnatracing": {
             "run": Or(

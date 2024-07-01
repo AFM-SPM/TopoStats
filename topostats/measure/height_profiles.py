@@ -18,7 +18,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 warnings.filterwarnings("error")
 
 
-def interpolate_height_profile(img: npt.NDArray, skeleton: npt.NDArray, **kwargs) -> npt.NDArray:
+def interpolate_height_profile(img: npt.NDArray, mask: npt.NDArray, **kwargs) -> npt.NDArray:
     """
     Interpolate heights along the maximum feret.
 
@@ -30,7 +30,7 @@ def interpolate_height_profile(img: npt.NDArray, skeleton: npt.NDArray, **kwargs
     ----------
     img : npt.NDArray
         Original image with heights.
-    skeleton : npt.NDArray
+    mask : npt.NDArray
         Binary skeleton.
     **kwargs : dict
         Keyword arguments passed on to scipy.interpolate.RegularGridInterpolator().
@@ -41,7 +41,7 @@ def interpolate_height_profile(img: npt.NDArray, skeleton: npt.NDArray, **kwargs
         Interpolated heights between the calculated feret co-cordinates.
     """
     # Extract feret coordinates
-    feret_stats = feret.get_feret_from_mask(skeleton)
+    feret_stats = feret.get_feret_from_mask(mask)
     x_coords = np.sort(feret_stats["max_feret_coords"][:, 0])
     y_coords = np.sort(feret_stats["max_feret_coords"][:, 1])
     # Evenly spaced points on x-axis

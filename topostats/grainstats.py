@@ -16,7 +16,7 @@ import skimage.measure as skimage_measure
 import skimage.morphology as skimage_morphology
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.measure import feret
+from topostats.measure import feret, height_profiles
 from topostats.utils import create_empty_dataframe
 
 # pylint: disable=too-many-lines
@@ -79,6 +79,8 @@ class GrainStats:
     edge_detection_method : str
         Method used for detecting the edges of grain masks before calculating statistics on them.
         Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
+    extract_height_profile : bool
+        Extract the height profile.
     cropped_size : float
         Length of square side (in nm) to crop grains to.
     plot_opts : dict
@@ -97,6 +99,7 @@ class GrainStats:
         base_output_dir: str | Path,
         image_name: str = None,
         edge_detection_method: str = "binary_erosion",
+        extract_height_profile: bool = False,
         cropped_size: float = -1,
         plot_opts: dict = None,
         metre_scaling_factor: float = 1e-9,
@@ -121,6 +124,8 @@ class GrainStats:
         edge_detection_method : str
             Method used for detecting the edges of grain masks before calculating statistics on them.
             Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
+        extract_height_profile : bool
+            Extract the height profile.
         cropped_size : float
             Length of square side (in nm) to crop grains to.
         plot_opts : dict
@@ -137,6 +142,7 @@ class GrainStats:
         self.start_point = None
         self.image_name = image_name
         self.edge_detection_method = edge_detection_method
+        self.extract_height_profile = extract_height_profile
         self.cropped_size = cropped_size
         self.plot_opts = plot_opts
         self.metre_scaling_factor = metre_scaling_factor
@@ -196,11 +202,12 @@ class GrainStats:
             and a list of dictionaries containing grain data to be plotted.
         """
         grains_plot_data = []
+        all_height_profiles = {}
         if self.labelled_data is None:
             LOGGER.info(
                 f"[{self.image_name}] : No labelled regions for this image, grain statistics can not be calculated."
             )
-            return pd.DataFrame(columns=GRAIN_STATS_COLUMNS), grains_plot_data
+            return pd.DataFrame(columns=GRAIN_STATS_COLUMNS), grains_plot_data, all_height_profiles
 
         # Calculate region properties
         region_properties = skimage_measure.regionprops(self.labelled_data)
@@ -297,6 +304,12 @@ class GrainStats:
             feret_statistics["min_feret"] = feret_statistics["min_feret"] * length_scaling_factor
             feret_statistics["max_feret"] = feret_statistics["max_feret"] * length_scaling_factor
 
+            if self.extract_height_profile:
+                all_height_profiles[index] = height_profiles.interpolate_height_profile(
+                    img=grain_image, mask=grain_mask
+                )
+                LOGGER.info(f"[{self.image_name}] : Height profiles extracted.")
+
             # Save the stats to dictionary. Note that many of the stats are multiplied by a scaling factor to convert
             # from pixel units to nanometres.
             # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
@@ -334,7 +347,7 @@ class GrainStats:
         grainstats_df.index.name = "molecule_number"
         grainstats_df["image"] = self.image_name
 
-        return grainstats_df, grains_plot_data
+        return grainstats_df, grains_plot_data, all_height_profiles
 
     @staticmethod
     def calculate_points(grain_mask: npt.NDArray) -> list:

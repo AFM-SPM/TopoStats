@@ -41,6 +41,7 @@ dependencies = [
   "igor2",
   "matplotlib",
   "numpy",
+  "numpyencoder",
   "pandas",
   "pySPM",
   "pyfiglet",
