@@ -4,7 +4,13 @@ import numpy as np
 import pytest
 from numpy.typing import NDArray
 
-from topostats.measure.geometry import bounding_box_cartesian_points
+from topostats.measure.geometry import bounding_box_cartesian_points, do_points_in_arrays_touch
+
+
+def test_bounding_box_cartesian_points_raises_value_error():
+    """Test the bounding_box_cartesian_points function raises a ValueError."""
+    with pytest.raises(ValueError, match="Input array must be Nx2."):
+        bounding_box_cartesian_points(np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]]))
 
 
 @pytest.mark.parametrize(
@@ -22,3 +28,28 @@ def test_bounding_box_cartesian_points(
 ):
     """Test the bounding_box_cartesian_points function."""
     assert bounding_box_cartesian_points(points) == expected_bbox
+
+
+def test_do_points_in_arrays_touch_raises_value_error():
+    """Test the do_points_in_arrays_touch function raises a ValueError."""
+    with pytest.raises(ValueError, match="Input arrays must be Nx2 and Mx2."):
+        do_points_in_arrays_touch(np.array([[0, 0], [1, 1], [2, 2]]), np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]]))
+
+
+@pytest.mark.parametrize(
+    ("array_1", "array_2", "expected"),
+    [
+        pytest.param(
+            np.array([[0, 0], [1, 1], [2, 2]]), np.array([[4, 4], [5, 5], [6, 6]]), False, id="no touching points"
+        ),
+        pytest.param(
+            np.array([[0, 0], [1, 1], [2, 2]]), np.array([[2, 3], [3, 4], [5, 5]]), True, id="touching points, non_diag"
+        ),
+        pytest.param(
+            np.array([[0, 0], [1, 1], [2, 2]]), np.array([[3, 3], [4, 4], [5, 5]]), True, id="touching points, diag"
+        ),
+    ],
+)
+def test_do_points_in_arrays_touch(array_1: NDArray[np.number], array_2: NDArray[np.number], expected: bool):
+    """Test the do_points_in_arrays_touch function."""
+    assert do_points_in_arrays_touch(array_1, array_2) == expected

@@ -27,3 +27,35 @@ def bounding_box_cartesian_points(points: NDArray[np.number]) -> tuple[np.float6
         raise ValueError("Input array must be Nx2.")
     x_coords, y_coords = points[:, 0].astype(np.float64), points[:, 1].astype(np.float64)
     return (np.min(x_coords), np.min(y_coords), np.max(x_coords), np.max(y_coords))
+
+
+def do_points_in_arrays_touch(points1: NDArray[np.number], points2: NDArray[np.number]) -> bool:
+    """
+    Check if any points in two arrays are touching.
+
+    Parameters
+    ----------
+    points1 : NDArray[np.number]
+        Nx2 numpy array of points.
+    points2 : NDArray[np.number]
+        Mx2 numpy array of points.
+
+    Returns
+    -------
+    bool
+        True if any points in the two arrays are touching, False otherwise.
+
+    Raises
+    ------
+    ValueError
+        If the input arrays are not Nx2 and Mx2.
+    """
+    if points1.shape[1] != 2 or points2.shape[1] != 2:
+        raise ValueError("Input arrays must be Nx2 and Mx2.")
+
+    for point1 in points1:
+        for point2 in points2:
+            diff = np.abs(point1 - point2)
+            if np.all(diff <= 1):
+                return True
+    return False
