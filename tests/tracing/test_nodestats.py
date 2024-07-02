@@ -1,5 +1,11 @@
 """Test the nodestats module."""
 
+import numpy as np
+import pytest
+from numpy.typing import NDArray
+
+from topostats.tracing.nodestats import nodeStats
+
 # from topostats.tracing.nodestats import nodeStats
 
 # pylint: disable=unnecessary-pass
@@ -51,13 +57,110 @@ def test_connect_extended_nodes() -> None:
     pass
 
 
-def test_connect_extended_nodes_nearest() -> None:
-    """Test of connect_extended_nodes_nearest() method of nodeStats class."""
-    pass
+@pytest.mark.parametrize(
+    ("connected_nodes", "expected_nodes"),
+    [
+        pytest.param(
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 3, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 3, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            id="theta_grain",
+        ),
+        pytest.param(
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+                    [0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 3, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+                    [0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 3, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            id="figure_8",
+        ),
+    ],
+)
+def test_connect_extended_nodes_nearest(
+    connected_nodes: NDArray[np.number], expected_nodes: NDArray[np.number]
+) -> None:
+    """Test of connect_extended_nodes_nearest() method of nodeStats class.
 
+    Needs a test for theta topology and figure 8.
+    """
+    nodestats = nodeStats(
+        filename="dummy",
+        image=np.array([[0, 0, 0], [0, 1.5, 0], [0, 0, 0]]),
+        grain=np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
+        smoothed_grain=np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
+        skeleton=connected_nodes.astype(bool),
+        px_2_nm=1.0,
+        n_grain=0,
+        node_joining_length=0.0,
+    )
+    nodestats.whole_skel_graph = nodestats.skeleton_image_to_graph(nodestats.skeleton)
+    result = nodestats.connect_extended_nodes_nearest(connected_nodes, extend_dist=8.0)
 
-#   def bounding_box
-#   def do_sets_touch() -> None:
+    assert np.array_equal(result, expected_nodes)
 
 
 def test_find_branch_starts() -> None:

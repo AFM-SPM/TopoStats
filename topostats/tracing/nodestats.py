@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import Union
 
 import networkx as nx
 import numpy as np
@@ -14,8 +13,9 @@ from scipy.signal import argrelextrema
 from skimage.morphology import label
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.tracing.skeletonize import getSkeleton
+from topostats.measure.geometry import bounding_box_cartesian_points
 from topostats.tracing.pruning import prune_skeleton  # pruneSkeleton
+from topostats.tracing.skeletonize import getSkeleton
 from topostats.utils import ResolutionError, convolve_skeleton, coords_2_img
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -374,57 +374,16 @@ class nodeStats:
         just_branches[connected_nodes == 1] = labelled_nodes.max() + 1
         labelled_branches = label(just_branches)
 
-        def bounding_box(points: npt.NDArray) -> list:
-            """
-            Obtain the bounding box from coordinates.
-
-            Parameters
-            ----------
-            points : npt.NDArray
-                Nx2 array of x and y coordinates.
-
-            Returns
-            -------
-            list
-                The bounding box given by min(x), min(y), max(x), max(y).
-            """
-            x_coordinates, y_coordinates = zip(*points)
-            return [(min(x_coordinates), min(y_coordinates)), (max(x_coordinates), max(y_coordinates))]
-
-        def do_sets_touch(set_a: npt.NDArray, set_b: npt.NDArray) -> tuple[bool, npt.NDArray | None]:
-            """
-            Check if coordinates in two coordinate arrays are < root(2) away.
-
-            Parameters
-            ----------
-            set_a : npt.NDArray
-                Nx2 array of coordinates.
-            set_b : npt.NDArray
-                Nx2 array of coordinates.
-
-            Returns
-            -------
-            tuple[bool, npt.NDArray | None]
-                Boolean indicator if they touch, and the point if they do / 'None' if they do not.
-            """
-            # Iterate through coordinates in set_A and set_B
-            # TODO: instead of iterate, minus point from array and see if abs(diff) <= 2?
-            for point_a in set_a:
-                for point_b in set_b:
-                    # Check if any coordinate in set_A is adjacent to any coordinate in set_B
-                    if abs(point_a[0] - point_b[0]) <= 1 and abs(point_a[1] - point_b[1]) <= 1:
-                        return True, point_a  # Sets touch
-            return False, None  # Sets do not touch
-
         emanating_branch_starts_by_node = {}  # Dictionary to store emanating branches for each label
         nodes_with_odd_branches = []  # List to store nodes with three branches
 
         for node_num in range(1, labelled_nodes.max() + 1):
             num_branches = 0
             # makes lil box around node with 1 overflow
-            bounding = bounding_box(np.argwhere(labelled_nodes == node_num))
+            bounding_box = bounding_box_cartesian_points(np.argwhere(labelled_nodes == node_num))
+            print(f"bounding box: {bounding_box}")
             cropped_matrix = connected_nodes[
-                bounding[0][0] - 1 : bounding[1][0] + 2, bounding[0][1] - 1 : bounding[1][1] + 2
+                bounding_box[0] - 1 : bounding_box[3] + 2, bounding_box[2] - 1 : bounding_box[4] + 2
             ]
             # get coords of nodes and branches in box
             node_coords = np.argwhere(cropped_matrix == 3)
@@ -580,8 +539,10 @@ class nodeStats:
                     res = self.px_2_nm <= 1000 / 512
                     if not res:
                         print(f"Resolution {res} is below suggested {1000 / 512}, node difficult to analyse.")
-                        # raise ResolutionError
-                    # elif x - length < 0 or y - length < 0 or x + length > self.image.shape[0] or y + length > self.image.shape[1]:
+                    # raise ResolutionError
+                    # elif x - length < 0 or y - length < 0 or
+                    #   x + length > self.image.shape[0] or
+                    #   y + length > self.image.shape[1]:
                     # LOGGER.info(f"Node lies too close to image boundary, increase 'pad_with' value.")
                     # raise ResolutionError
 
@@ -692,7 +653,8 @@ class nodeStats:
                     for _, values in matched_branches.items():
                         fwhms.append(values["fwhm2"][0])
                     branch_idx_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(fwhms))]
-                    # branch_idx_order = np.arange(0,len(matched_branches)) #uncomment to unorder (will not unorder the height traces)
+                    # branch_idx_order = np.arange(0,len(matched_branches))
+                    # uncomment to unorder (will not unorder the height traces)
 
                     for i, branch_idx in enumerate(branch_idx_order):
                         branch_coords = matched_branches[branch_idx]["ordered_coords"]
@@ -1092,7 +1054,8 @@ class nodeStats:
         """
         Caculate the FWHM value.
 
-        First identifyies the HM then finding the closest values in the distances array and using linear interpolation to calculate the FWHM.
+        First identifyies the HM then finding the closest values in the distances array and using
+        linear interpolation to calculate the FWHM.
 
         Parameters
         ----------
@@ -1128,9 +1091,8 @@ class nodeStats:
 
         if hm is None:
             # Get half max
-            hm = (
-                heights.max() - heights.min()
-            ) / 2 + heights.min()  # heights_norm.max() / 2  # half max value -> try to make it the same as other crossing branch?
+            hm = (heights.max() - heights.min()) / 2 + heights.min()  # heights_norm.max() / 2
+            # half max value -> try to make it the same as other crossing branch?
             # increase make hm = lowest of peak if it doesn't hit one side
             if np.min(arr1) > hm:
                 arr1_local_min = argrelextrema(arr1, np.less)[-1]  # closest to end
@@ -1298,8 +1260,8 @@ class nodeStats:
         """
         Calculate the distance from the centre coordinate to a point along the ordered coordinates.
 
-        This differs to traversal along the coordinates taken. This also averages any common distace values and makes those in
-        the trace before the node index negitive.
+        This differs to traversal along the coordinates taken. This also averages any common distace
+        values and makes those in the trace before the node index negitive.
 
         Parameters
         ----------
@@ -1754,7 +1716,8 @@ class nodeStats:
         """
         Obtain an ordered trace of each complete path.
 
-        Here a 'complete path' means following and removing connected segments until there are no more segments to follow.
+        Here a 'complete path' means following and removing connected segments until
+        there are no more segments to follow.
 
         Parameters
         ----------

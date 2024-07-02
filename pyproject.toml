@@ -190,7 +190,6 @@ exclude = [
   "topostats/tracing/dnatracing.py",
   "topostats/tracing/tracing_dna.py",
   "topostats/tracing/tracingfuncs.py",
-  "topostats/tracing/nodestats.py",
   "venv",
 ]
 # per-file-ignores = []
@@ -256,7 +255,7 @@ convention = "numpy"
 fixture-parentheses = true
 
 [tool.codespell]
-skip = '*.spm*,*.mplstyle,*.svg,*nodestats.py'
+skip = '*.spm*,*.mplstyle,*.svg'
 count = ''
 quiet-level = 3
 
