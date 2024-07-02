@@ -154,7 +154,7 @@ class dnaTrace:
         self.number_of_columns = self.image.shape[1]
         self.sigma = 0.7 / (self.pixel_to_nm_scaling * 1e9)
         # Images
-        self.smoothed_grain = np.zeros_like(image)
+        self.smoothed_mask = np.zeros_like(image)
         self.skeleton = np.zeros_like(image)
         self.pruned_skeleton = np.zeros_like(image)
         self.node_image = np.zeros_like(image)
@@ -292,10 +292,10 @@ class dnaTrace:
         **kwargs
             Arguments passed to 'skimage.filter.gaussian(**kwargs)'.
         """
-        self.smoothed_grain = gaussian(self.image, sigma=self.sigma, **kwargs)
+        self.smoothed_mask = gaussian(self.image, sigma=self.sigma, **kwargs)
         LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Gaussian filter applied.")
 
-    def smooth_grains(
+    def smooth_mask(
         self, grain: npt.NDArray, dilation_iterations: int = 2, gaussian_sigma: float | int | None = None
     ) -> npt.NDArray:
         """
@@ -391,7 +391,7 @@ class dnaTrace:
         npt.NDArray
             Smoothed array ordered by the ordered trace.
         """
-        return np.array(self.smoothed_grain[ordered_trace[:, 0], ordered_trace[:, 1]])
+        return np.array(self.smoothed_mask[ordered_trace[:, 0], ordered_trace[:, 1]])
 
     def get_ordered_trace_cumulative_distances(self, ordered_trace: npt.NDArray) -> npt.NDArray:
         """
@@ -463,12 +463,12 @@ class dnaTrace:
         Derive the disordered trace coordinates from the binary mask and image via skeletonisation and pruning.
         """
         self.skeleton = getSkeleton(
-            self.smoothed_grain,
+            self.smoothed_mask,
             self.mask,
             method=self.skeletonisation_params["method"],
             height_bias=self.skeletonisation_params["height_bias"],
         ).get_skeleton()
-        self.pruned_skeleton = prune_skeleton(self.smoothed_grain, self.skeleton, **self.pruning_params.copy())
+        self.pruned_skeleton = prune_skeleton(self.smoothed_mask, self.skeleton, **self.pruning_params.copy())
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
@@ -568,7 +568,7 @@ class dnaTrace:
             height_values = None
 
             # Block of code to prevent indexing outside image limits
-            # e.g. indexing self.smoothed_grain[130, 130] for 128x128 image
+            # e.g. indexing self.smoothed_mask[130, 130] for 128x128 image
             if trace_coordinate[0] < 0:
                 # prevents negative number indexing
                 # i.e. stops (trace_coordinate - index_width) < 0
@@ -632,13 +632,13 @@ class dnaTrace:
             # Use the perp array to index the gaussian filtered image
             perp_array = np.column_stack((x_coords, y_coords))
             try:
-                height_values = self.smoothed_grain[perp_array[:, 0], perp_array[:, 1]]
+                height_values = self.smoothed_mask[perp_array[:, 0], perp_array[:, 1]]
             except IndexError:
                 perp_array[:, 0] = np.where(
-                    perp_array[:, 0] > self.smoothed_grain.shape[0], self.smoothed_grain.shape[0], perp_array[:, 0]
+                    perp_array[:, 0] > self.smoothed_mask.shape[0], self.smoothed_mask.shape[0], perp_array[:, 0]
                 )
                 perp_array[:, 1] = np.where(
-                    perp_array[:, 1] > self.smoothed_grain.shape[1], self.smoothed_grain.shape[1], perp_array[:, 1]
+                    perp_array[:, 1] > self.smoothed_mask.shape[1], self.smoothed_mask.shape[1], perp_array[:, 1]
                 )
                 height_values = self.image[perp_array[:, 1], perp_array[:, 0]]
 
@@ -806,7 +806,7 @@ class dnaTrace:
 
     def show_traces(self):
         """Plot traces."""
-        plt.pcolormesh(self.smoothed_grain, vmax=-3e-9, vmin=3e-9)
+        plt.pcolormesh(self.smoothed_mask, vmax=-3e-9, vmin=3e-9)
         plt.colorbar()
         plt.plot(self.ordered_trace[:, 0], self.ordered_trace[:, 1], markersize=1)
         plt.plot(self.fitted_trace[:, 0], self.fitted_trace[:, 1], markersize=1)
@@ -1566,7 +1566,7 @@ def trace_grain(
     """
     dnatrace = dnaTrace(
         image=cropped_image,
-        grain=cropped_mask,
+        mask=cropped_mask,
         filename=filename,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         min_skeleton_size=min_skeleton_size,
@@ -1625,8 +1625,8 @@ def trace_grain(
 
     images = {
         "image": dnatrace.image,
-        "grain": dnatrace.grain,
-        "smoothed_grain": dnatrace.smoothed_grain,
+        "grain": dnatrace.mask,
+        "smoothed_grain": dnatrace.smoothed_mask,
         "skeleton": dnatrace.skeleton,
         "pruned_skeleton": dnatrace.pruned_skeleton,
         "node_img": dnatrace.node_image,
