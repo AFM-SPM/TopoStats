@@ -150,8 +150,8 @@ def test_connect_extended_nodes_nearest(
     nodestats = nodeStats(
         filename="dummy",
         image=np.array([[0, 0, 0], [0, 1.5, 0], [0, 0, 0]]),
-        grain=np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
-        smoothed_grain=np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
+        mask=np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
+        smoothed_mask=np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
         skeleton=connected_nodes.astype(bool),
         px_2_nm=1.0,
         n_grain=0,

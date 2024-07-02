@@ -13,7 +13,7 @@ from scipy.signal import argrelextrema
 from skimage.morphology import label
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.measure.geometry import bounding_box_cartesian_points
+from topostats.measure.geometry import bounding_box_cartesian_points_integer
 from topostats.tracing.pruning import prune_skeleton  # pruneSkeleton
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.utils import ResolutionError, convolve_skeleton, coords_2_img
@@ -380,11 +380,12 @@ class nodeStats:
         for node_num in range(1, labelled_nodes.max() + 1):
             num_branches = 0
             # makes lil box around node with 1 overflow
-            bounding_box = bounding_box_cartesian_points(np.argwhere(labelled_nodes == node_num))
-            print(f"bounding box: {bounding_box}")
-            cropped_matrix = connected_nodes[
-                bounding_box[0] - 1 : bounding_box[3] + 2, bounding_box[2] - 1 : bounding_box[4] + 2
-            ]
+            bounding_box = bounding_box_cartesian_points_integer(np.argwhere(labelled_nodes == node_num))
+            crop_left = bounding_box[0] - 1
+            crop_right = bounding_box[2] + 2
+            crop_top = bounding_box[1] - 1
+            crop_bottom = bounding_box[3] + 2
+            cropped_matrix = connected_nodes[crop_left:crop_right, crop_top:crop_bottom]
             # get coords of nodes and branches in box
             node_coords = np.argwhere(cropped_matrix == 3)
             branch_coords = np.argwhere(cropped_matrix == 1)
