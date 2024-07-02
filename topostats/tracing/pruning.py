@@ -17,128 +17,189 @@ from topostats.utils import convolve_skeleton
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-class pruneSkeleton:  # pylint: disable=too-few-public-methods
+def prune_skeleton(image: npt.NDArray, skeleton: npt.NDArray, **kwargs) -> npt.NDArray:
     """
-    Class containing skeletonization pruning code from factory methods to functions dependent on the method.
+    Pruning skeletons using different pruning methods.
 
-    Pruning is the act of removing spurious branches commonly found when implementing skeletonization algorithms.
+    This is a thin wrapper to the methods provided within the pruning classes below.
 
     Parameters
     ----------
     image : npt.NDArray
-        Original image from which the skeleton derives including heights.
+        Original image as 2D numpy array.
     skeleton : npt.NDArray
-        Single-pixel-thick skeleton pertaining to features of the image.
+        Skeleton to be pruned.
+    **kwargs
+        Pruning options passed to the respective method.
+
+    Returns
+    -------
+    npt.NDArray
+        An array of the skeleton with spurious branching artefacts removed.
     """
-
-    def __init__(self, image: npt.NDArray, skeleton: npt.NDArray) -> None:
-        """
-        Initialise the class.
-
-        Parameters
-        ----------
-        image : npt.NDArray
-            Original image from which the skeleton derives including heights.
-        skeleton : npt.NDArray
-            Single-pixel-thick skeleton pertaining to features of the image.
-        """
-        self.image = image
-        self.skeleton = skeleton
-
-    def prune_skeleton(  # pylint: disable=dangerous-default-value
-        self,
-        prune_args: dict = {"pruning_method": "topostats"},  # noqa: B006
-    ) -> npt.NDArray:
-        """
-        Pruning skeletons.
-
-        This is a thin wrapper to the methods provided within the pruning classes below.
-
-        Parameters
-        ----------
-        prune_args : dict
-            Method to use, default is 'topostats'.
-
-        Returns
-        -------
-        npt.NDArray
-            An array of the skeleton with spurious branching artefacts removed.
-        """
-        return self._prune_method(prune_args)
-
-    def _prune_method(self, prune_args: str = None) -> Callable:
-        """
-        Determine which skeletonize method to use.
-
-        Parameters
-        ----------
-        prune_args : str
-            Method to use for skeletonizing, methods are 'topostats' other options are 'conv'.
-
-        Returns
-        -------
-        Callable
-            Returns the function appropriate for the required skeletonizing method.
-
-        Raises
-        ------
-        ValueError
-            Invalid method passed.
-        """
-        method = prune_args.pop("pruning_method")
-        if method == "topostats":
-            return self._prune_topostats(self.image, self.skeleton, prune_args)
-        if method == "conv":
-            return self._prune_conv(self.image, self.skeleton, prune_args)
-        # I've read about a "Discrete Skeleton Evolultion" (DSE) method that might be useful
-        raise ValueError(method)
-
-    @staticmethod
-    def _prune_topostats(img: npt.NDArray, skeleton: npt.NDArray, prune_args: dict) -> npt.NDArray:
-        """
-        Prune using the original TopoStats method.
-
-        This is a modified version of the pubhlished Zhang method.
-
-        Parameters
-        ----------
-        img : npt.NDArray
-            Image used to find skeleton, may be original heights or binary mask.
-        skeleton : npt.NDArray
-            Binary mask of the skeleton.
-        prune_args : dict
-            Dictionary of pruning arguments. ??? Needs expanding on what the valid arguments are.
-
-        Returns
-        -------
-        npt.NDArray
-            The skeleton with spurious branches removed.
-        """
-        return topostatsPrune(img, skeleton, **prune_args).prune_all_skeletons()
-
-    @staticmethod
-    def _prune_conv(img: npt.NDArray, skeleton: npt.NDArray, prune_args: dict) -> npt.NDArray:
-        """
-        Prune using a convolutional method.
-
-        Parameters
-        ----------
-        img : npt.NDArray
-            Image used to find skeleton, may be original heights or binary mask.
-        skeleton : npt.NDArray
-            Binary array containing skeleton.
-        prune_args : dict
-            Dictionary of pruning arguments for convPrune class. ??? Needs expanding on what the valid arguments are.
-
-        Returns
-        -------
-        npt.NDArray
-            The skeleton with spurious branches removed.
-        """
-        return convPrune(img, skeleton, **prune_args).prune_all_skeletons()
+    if image.shape != skeleton.shape:
+        raise AttributeError("Error image and skeleton are not the same size.")
+    return _prune_method(image, skeleton, **kwargs)
 
 
-class topostatsPrune:  # pylint: disable=too-few-public-methods
+def _prune_method(image: npt.NDArray, skeleton: npt.NDArray, **kwargs) -> Callable:
+    """
+    Determine which skeletonize method to use.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        Original image as 2D numpy array.
+    skeleton : npt.NDArray
+        Skeleton to be pruned.
+    **kwargs
+        Pruning options passed to the respective method.
+
+    Returns
+    -------
+    Callable
+        Returns the function appropriate for the required skeletonizing method.
+
+    Raises
+    ------
+    ValueError
+        Invalid method passed.
+    """
+    method = kwargs.pop("method")
+    if method == "topostats":
+        return _prune_topostats(image, skeleton, **kwargs)
+    # @maxgamill-sheffield I've read about a "Discrete Skeleton Evolultion" (DSE) method that might be useful
+    # @ns-rse (2024-06-04) : https://en.wikipedia.org/wiki/Discrete_skeleton_evolution
+    #                        https://link.springer.com/chapter/10.1007/978-3-540-74198-5_28
+    #                        https://dl.acm.org/doi/10.5555/1780074.1780108
+    #                        Python implementation : https://github.com/originlake/DSE-skeleton-pruning
+    raise ValueError(f"Invalid pruning method provided ({method}) please use one of 'topostats'.")
+
+
+def _prune_topostats(img: npt.NDArray, skeleton: npt.NDArray, **kwargs) -> npt.NDArray:
+    """
+    Prune using the original TopoStats method.
+
+    This is a modified version of the pubhlished Zhang method.
+
+    Parameters
+    ----------
+    img : npt.NDArray
+        Image used to find skeleton, may be original heights or binary mask.
+    skeleton : npt.NDArray
+        Binary mask of the skeleton.
+    **kwargs
+        Pruning options passed to the topostatsPrune class.
+
+    Returns
+    -------
+    npt.NDArray
+        The skeleton with spurious branches removed.
+    """
+    return topostatsPrune(img, skeleton, **kwargs).prune_skeleton()
+
+
+# class pruneSkeleton:  pylint: disable=too-few-public-methods
+#     """
+#     Class containing skeletonization pruning code from factory methods to functions dependent on the method.
+
+#     Pruning is the act of removing spurious branches commonly found when implementing skeletonization algorithms.
+
+#     Parameters
+#     ----------
+#     image : npt.NDArray
+#         Original image from which the skeleton derives including heights.
+#     skeleton : npt.NDArray
+#         Single-pixel-thick skeleton pertaining to features of the image.
+#     """
+
+#     def __init__(self, image: npt.NDArray, skeleton: npt.NDArray) -> None:
+#         """
+#         Initialise the class.
+
+#         Parameters
+#         ----------
+#         image : npt.NDArray
+#             Original image from which the skeleton derives including heights.
+#         skeleton : npt.NDArray
+#             Single-pixel-thick skeleton pertaining to features of the image.
+#         """
+#         self.image = image
+#         self.skeleton = skeleton
+
+#     def prune_skeleton(  pylint: disable=dangerous-default-value
+#         self,
+#         prune_args: dict = {"pruning_method": "topostats"},  noqa: B006
+#     ) -> npt.NDArray:
+#         """
+#         Pruning skeletons.
+
+#         This is a thin wrapper to the methods provided within the pruning classes below.
+
+#         Parameters
+#         ----------
+#         prune_args : dict
+#             Method to use, default is 'topostats'.
+
+#         Returns
+#         -------
+#         npt.NDArray
+#             An array of the skeleton with spurious branching artefacts removed.
+#         """
+#         return self._prune_method(prune_args)
+
+#     def _prune_method(self, prune_args: str = None) -> Callable:
+#         """
+#         Determine which skeletonize method to use.
+
+#         Parameters
+#         ----------
+#         prune_args : str
+#             Method to use for skeletonizing, methods are 'topostats' other options are 'conv'.
+
+#         Returns
+#         -------
+#         Callable
+#             Returns the function appropriate for the required skeletonizing method.
+
+#         Raises
+#         ------
+#         ValueError
+#             Invalid method passed.
+#         """
+#         method = prune_args.pop("pruning_method")
+#         if method == "topostats":
+#             return self._prune_topostats(self.image, self.skeleton, prune_args)
+#         I've read about a "Discrete Skeleton Evolultion" (DSE) method that might be useful
+#         @ns-rse (2024-06-04) : Citation or link?
+#         raise ValueError(method)
+
+#     @staticmethod
+#     def _prune_topostats(img: npt.NDArray, skeleton: npt.NDArray, prune_args: dict) -> npt.NDArray:
+#         """
+#         Prune using the original TopoStats method.
+
+#         This is a modified version of the pubhlished Zhang method.
+
+#         Parameters
+#         ----------
+#         img : npt.NDArray
+#             Image used to find skeleton, may be original heights or binary mask.
+#         skeleton : npt.NDArray
+#             Binary mask of the skeleton.
+#         prune_args : dict
+#             Dictionary of pruning arguments. ??? Needs expanding on what the valid arguments are.
+
+#         Returns
+#         -------
+#         npt.NDArray
+#             The skeleton with spurious branches removed.
+#         """
+#         return topostatsPrune(img, skeleton, **prune_args).prune_skeleton()
+
+
+# Might be worth renaming this to reflect what it does which is prune by length and height
+class topostatsPrune:
     """
     Prune spurious skeletal branches based on their length and/or height.
 
@@ -160,7 +221,7 @@ class topostatsPrune:  # pylint: disable=too-few-public-methods
     method_outlier : str
         Method for pruning brancvhes based on height. Options are 'abs' (below absolute value), 'mean_abs' (below the
         skeleton mean - absolute threshold) or 'iqr' (below 1.5 * inter-quartile range).
-    """  # numpydoc: ignore=PR01
+    """
 
     def __init__(
         self,
@@ -200,31 +261,43 @@ class topostatsPrune:  # pylint: disable=too-few-public-methods
 
     # Diverges from the change in layout to apply skeletonisation/pruning/tracing to individual grains and then process
     # all grains in an image (possibly in parallel).
-    def prune_all_skeletons(self) -> npt.NDArray:
+    def prune_skeleton(self) -> npt.NDArray:
         """
-        Prune all skeletons.
+        Prune skeleton by length and/or height.
+
+        If the class was initialised with both `max_length is not None` an d `height_threshold is not None` then length
+        based pruning is performed prior to height based pruning.
 
         Returns
         -------
         npt.NDArray
-            A single mask with all pruned skeletons.
+            A pruned skeleton.
         """
-        pruned_skeleton_mask = np.zeros_like(self.skeleton)
+        pruned_skeleton_mask = np.zeros_like(self.skeleton, dtype=np.uint8)
+        # print(f"{pruned_skeleton_mask=}")
         labeled_skel = morphology.label(self.skeleton)
         for i in range(1, labeled_skel.max() + 1):
             single_skeleton = np.where(labeled_skel == i, 1, 0)
             if self.max_length is not None:
+                LOGGER.info("[pruning] : Pruning by length.")
                 single_skeleton = self._prune_by_length(single_skeleton, max_length=self.max_length)
             if self.height_threshold is not None:
+                LOGGER.info("[pruning] : Pruning by height.")
                 single_skeleton = heightPruning(
                     self.img,
                     single_skeleton,
                     height_threshold=self.height_threshold,
                     method_values=self.method_values,
                     method_outlier=self.method_outlier,
-                ).remove_bridges()
+                ).skeleton_pruned
             # skeletonise to remove nibs
-            pruned_skeleton_mask += getSkeleton(self.img, single_skeleton, method="zhang").get_skeleton()
+            # Discovered this caused an error when writing tests...
+            #
+            #  numpy.core._exceptions._UFuncOutputCastingError: Cannot cast ufunc 'add' output from dtype('int8') to
+            #  dtype('bool') with casting...
+            # pruned_skeleton_mask += getSkeleton(self.img, single_skeleton, method="zhang").get_skeleton()
+            pruned_skeleton = getSkeleton(self.img, single_skeleton, method="zhang").get_skeleton()
+            pruned_skeleton_mask += pruned_skeleton.astype(dtype=np.uint8)
         return pruned_skeleton_mask
 
     def _prune_by_length(  # pylint: disable=too-many-locals  # noqa: C901
@@ -257,6 +330,7 @@ class topostatsPrune:  # pylint: disable=too-few-public-methods
             # The branches are typically short so if a branch is longer than
             #  0.15 * total points, its assumed to be part of the real data
             max_branch_length = max_length if max_length != -1 else int(len(coordinates) * 0.15)
+            LOGGER.info(f"[pruning] : Maximum branch length : {max_branch_length}")
             # first check to find all the end coordinates in the trace
             potential_branch_ends = self._find_branch_ends(coordinates)
 
@@ -322,142 +396,16 @@ class topostatsPrune:  # pylint: disable=too-few-public-methods
         list
             List of x, y coordinates of the branch ends.
         """
-        potential_branch_ends = []
+        branch_ends = []
 
         # Most of the branch ends are just points with one neighbour
         for x, y in coordinates:
             if genTracingFuncs.count_and_get_neighbours(x, y, coordinates)[0] == 1:
-                potential_branch_ends.append([x, y])
-        return potential_branch_ends
+                branch_ends.append([x, y])
+        return branch_ends
 
 
-class convPrune:  # pylint: disable=too-few-public-methods
-    """
-    Prune spurious branches based on their length and/or height using sliding window convolutions.
-
-    Parameters
-    ----------
-    image : npt.NDArray
-        The original data, with heights, to aid branch removal.
-    skeleton : npt.NDArray
-        Skeleton from which unwanted branches are to be removed.
-    max_length : float
-        Maximum length of branches to prune in nanometres (nm).
-    height_threshold : float
-        Absolute height value to remove granches below in nanometres (nm). Determined by the value of
-        'method_values'.
-    method_values : str
-        Method for obtaining the height thresholding values. Options are 'min' (minimum value of branch), 'median'
-        (median value of branch), 'mid' (ordered branch middle coordinate value).
-    method_outlier : str
-        Method to prune branches based on height. Options are 'abs' (below absolute value), 'mean_abs' (below the
-        skeleton mean), or 'iqr' (below 1.5 * inter-quartile range).
-    """  # numpydoc: ignore=PR01
-
-    def __init__(
-        self,
-        image: npt.NDArray,
-        skeleton: npt.NDArray,
-        max_length: float = None,
-        height_threshold: float = None,
-        method_values: str = None,
-        method_outlier: str = None,
-    ) -> None:
-        """
-        Initialise the class.
-
-        Parameters
-        ----------
-        image : npt.NDArray
-            The original data, with heights, to aid branch removal.
-        skeleton : npt.NDArray
-            Skeleton from which unwanted branches are to be removed.
-        max_length : float
-            Maximum length of branches to prune in nanometres (nm).
-        height_threshold : float
-            Absolute height value to remove granches below in nanometres (nm). Determined by the value of
-            'method_values'.
-        method_values : str
-            Method for obtaining the height thresholding values. Options are 'min' (minimum value of branch), 'median'
-            (median value of branch), 'mid' (ordered branch middle coordinate value).
-        method_outlier : str
-            Method to prune branches based on height. Options are 'abs' (below absolute value), 'mean_abs' (below the
-            skeleton mean), or 'iqr' (below 1.5 * inter-quartile range).
-        """
-        self.image = image
-        self.skeleton = skeleton.copy()
-        self.max_length = max_length
-        self.height_threshold = height_threshold
-        self.method_values = method_values
-        self.method_outlier = method_outlier
-
-    def prune_all_skeletons(self) -> npt.NDArray:
-        """
-        Prune all skeletons.
-
-        Returns
-        -------
-        npt.NDArray
-            A single mask with all pruned skeletons.
-        """
-        pruned_skeleton_mask = np.zeros_like(self.skeleton)
-        labeled_skel = morphology.label(self.skeleton)
-        for i in range(1, labeled_skel.max() + 1):
-            single_skeleton = np.where(labeled_skel == i, 1, 0)
-            if self.max_length is not None:
-                single_skeleton = self._prune_by_length(single_skeleton, max_length=self.max_length)
-            if self.height_threshold is not None:
-                single_skeleton = heightPruning(
-                    self.image,
-                    single_skeleton,
-                    height_threshold=self.height_threshold,
-                    method_values=self.method_values,
-                    method_outlier=self.method_outlier,
-                ).remove_bridges()
-            # skeletonise to remove nibs
-            pruned_skeleton_mask += getSkeleton(self.image, single_skeleton, method="zhang").get_skeleton()
-
-        return pruned_skeleton_mask
-
-    def _prune_by_length(self, single_skeleton: npt.NDArray, max_length: float | int = -1) -> npt.NDArray:
-        """
-        Remove the hanging branches from a single skeleton via local-area convoluions.
-
-        Parameters
-        ----------
-        single_skeleton : npt.NDArray
-            Binary array containing a single skeleton.
-        max_length : float | int
-            Maximum length of branch to prune in nanometres (nm). Default is '-1' which sets to the maximum
-            branch length to be 15% of the total skeleton length.
-
-        Returns
-        -------
-        npt.NDArray
-            Pruned skeleton.
-        """
-        total_points = self.skeleton.size
-        single_skeleton = self.skeleton.copy()
-        conv_skelly = convolve_skeleton(self.skeleton)
-        nodeless = self.skeleton.copy()
-        nodeless[conv_skelly == 3] = 0
-
-        # The branches are typically short so if a branch is longer than
-        #  0.15 * total points, its assumed to be part of the real data
-        max_branch_length = max_length if max_length != -1 else int(len(total_points) * 0.15)
-
-        # iterate through branches
-        nodeless_labels = morphology.label(nodeless)
-        for i in range(1, nodeless_labels.max() + 1):
-            vals = conv_skelly[nodeless_labels == i]
-            # check if there is an endpoint and length is below expected
-            if (vals == 2).any() and (vals.size < max_branch_length):
-                single_skeleton[nodeless_labels == i] = 0
-
-        return single_skeleton
-
-
-class heightPruning:
+class heightPruning:  # pylint: disable=too-many-instance-attributes
     """
     Pruning of branches based on height.
 
@@ -509,7 +457,10 @@ class heightPruning:
             skeleton mean - absolute threshold) or 'iqr' (below 1.5 * inter-quartile range).
         """
         self.image = image
-        self.skeleton = {"skeleton": skeleton}
+        self.skeleton = skeleton
+        self.skeleton_convolved = None
+        self.skeleton_branches = None
+        self.skeleton_branches_labelled = None
         self.max_length = max_length
         self.height_threshold = height_threshold
         self.method_values = method_values
@@ -517,28 +468,26 @@ class heightPruning:
         self.convolve_skeleton()
         self.segment_skeleton()
         self.label_branches()
+        self.skeleton_pruned = self.height_prune()
 
     def convolve_skeleton(self) -> None:
         """Convolve skeleton."""
-        self.skeleton["convolved_skeleton"] = convolve_skeleton(self.skeleton["skeleton"])
+        self.skeleton_convolved = convolve_skeleton(self.skeleton)
 
     def segment_skeleton(self) -> None:
         """Convolve skeleton and break into segments at nodes/junctions."""
-        self.skeleton["branches"] = np.where(self.skeleton["convolved_skeleton"] == 3, 0, self.skeleton["skeleton"])
+        self.skeleton_branches = np.where(self.skeleton_convolved == 3, 0, self.skeleton)
 
     def label_branches(self) -> None:
         """Label segmented branches."""
-        self.skeleton["labelled_branches"] = morphology.label(self.skeleton["branches"])
+        self.skeleton_branches_labelled = morphology.label(self.skeleton_branches)
 
-    @staticmethod
-    def _get_branch_mins(image: npt.NDArray, segments: npt.NDArray) -> npt.NDArray:
+    def _get_branch_mins(self, segments: npt.NDArray) -> npt.NDArray:
         """
         Collect the minimum height value of each individually labeled branch.
 
         Parameters
         ----------
-        image : npt.NDArray
-            The original image data to help with branch removal.
         segments : npt.NDArray
             Integer labeled array matching the dimensions of the image.
 
@@ -547,17 +496,14 @@ class heightPruning:
         npt.NDArray
             Array of minimum values of each branch index -1.
         """
-        return np.array([np.min(image[segments == i]) for i in range(1, segments.max() + 1)])
+        return np.array([np.min(self.image[segments == i]) for i in range(1, segments.max() + 1)])
 
-    @staticmethod
-    def _get_branch_medians(image: npt.NDArray, segments: npt.NDArray) -> npt.NDArray:
+    def _get_branch_medians(self, segments: npt.NDArray) -> npt.NDArray:
         """
         Collect the median height value of each labeled branch.
 
         Parameters
         ----------
-        image : npt.NDArray
-            The original image data to help with branch removal.
         segments : npt.NDArray
             Integer labeled array matching the dimensions of the image.
 
@@ -566,10 +512,9 @@ class heightPruning:
         npt.NDArray
             Array of median values of each branch index -1.
         """
-        return np.array([np.median(image[segments == i]) for i in range(1, segments.max() + 1)])
+        return np.array([np.median(self.image[segments == i]) for i in range(1, segments.max() + 1)])
 
-    @staticmethod
-    def _get_branch_middles(image: npt.NDArray, segments: npt.NDArray) -> npt.NDArray:
+    def _get_branch_middles(self, segments: npt.NDArray) -> npt.NDArray:
         """
         Collect the positionally ordered middle height value of each labeled branch.
 
@@ -577,8 +522,6 @@ class heightPruning:
 
         Parameters
         ----------
-        image : npt.NDArray
-            The original image data to help with branch removal.
         segments : npt.NDArray
             Integer labeled array matching the dimensions of the image.
 
@@ -597,10 +540,11 @@ class heightPruning:
                 # if even no. points, average two middles
                 middle_idx, middle_remainder = (len(ordered_coords) + 1) // 2 - 1, (len(ordered_coords) + 1) % 2
                 mid_coord = ordered_coords[[middle_idx, middle_idx + middle_remainder]]
-                height = image[mid_coord[:, 0], mid_coord[:, 1]].mean()
+                # height = image[mid_coord[:, 0], mid_coord[:, 1]].mean()
+                height = self.image[mid_coord[:, 0], mid_coord[:, 1]].mean()
             else:
                 # if 2 points, need to average them
-                height = image[segment == 1].mean()
+                height = self.image[segment == 1].mean()
             branch_middles[i - 1] += height
         return branch_middles
 
@@ -650,6 +594,8 @@ class heightPruning:
             Branch indices which are less than mean(height) - threshold.
         """
         avg = image[skeleton == 1].mean()
+        print(f"{avg=}")
+        print(f"{(avg-threshold)=}")
         return np.asarray(np.where(np.asarray(height_values) < (avg - threshold)))[0] + 1
 
     @staticmethod
@@ -674,6 +620,9 @@ class heightPruning:
         q75, q25 = np.percentile(heights, [75, 25])
         iqr = q75 - q25
         threshold = q25 - 1.5 * iqr
+        print(f"{q25=}")
+        print(f"{q75=}")
+        print(f"{threshold=}")
         low_coords = coords[heights < threshold]
         low_segment_idxs = []
         low_segment_mins = []
@@ -706,7 +655,7 @@ class heightPruning:
         skeleton = np.where(skeleton != 0, 1, 0)
         return morphology.label(skeleton).max() == 1
 
-    def filter_segments(self, segments: npt.NDArray, skeleton_rtn: npt.NDArray) -> npt.NDArray:
+    def filter_segments(self, segments: npt.NDArray) -> npt.NDArray:
         """
         Identify and remove segments of a skeleton based on the underlying image height.
 
@@ -714,8 +663,6 @@ class heightPruning:
         ----------
         segments : npt.NDArray
             A labelled 2D array of skeleton segments.
-        skeleton_rtn : npt.NDArray
-            A copy of the skeleton to perform the branch filtering on.
 
         Returns
         -------
@@ -724,56 +671,55 @@ class heightPruning:
         """
         # Obtain the height of each branch via the min | median | mid methods
         if self.method_values == "min":
-            height_values = self._get_branch_mins(self.image, segments)
+            height_values = self._get_branch_mins(segments)
         elif self.method_values == "median":
-            height_values = self._get_branch_medians(self.image, segments)
+            height_values = self._get_branch_medians(segments)
         elif self.method_values == "mid":
-            height_values = self._get_branch_middles(self.image, segments)
-
+            height_values = self._get_branch_middles(segments)
+        print(f"{height_values=}")
         # threshold heights to obtain indexes of branches to be removed
         if self.method_outlier == "abs":
             idxs = self._get_abs_thresh_idx(height_values, self.height_threshold)
         elif self.method_outlier == "mean_abs":
-            idxs = self._get_mean_abs_thresh_idx(
-                height_values, self.height_threshold, self.image, self.skeleton["skeleton"]
-            )
+            idxs = self._get_mean_abs_thresh_idx(height_values, self.height_threshold, self.image, self.skeleton)
         elif self.method_outlier == "iqr":
             idxs = self._get_iqr_thresh_idx(self.image, segments)
 
         # Only remove the bridge if the skeleton remains a single object.
+        skeleton_rtn = self.skeleton.copy()
         for i in idxs:
-            temp_skel = skeleton_rtn.copy()
+            temp_skel = self.skeleton.copy()
             temp_skel[segments == i] = 0
             if self.check_skeleton_one_object(temp_skel):
                 skeleton_rtn[segments == i] = 0
 
         return skeleton_rtn
 
-    def remove_bridges(self) -> npt.NDArray:
-        """
-        Identify and remove skeleton bridges using the underlying image height.
+    # def remove_bridges(self) -> npt.NDArray:
+    #     """
+    #     Identify and remove skeleton bridges using the underlying image height.
 
-        Bridges cross the skeleton in places they shouldn't and are defined as an internal branch and thus have no
-        endpoints. They occur due to poor thresholding creating holes in the mask, creating false "bridges" which
-        misrepresent the skeleton of the molecule.
+    #     Bridges cross the skeleton in places they shouldn't and are defined as an internal branch and thus have no
+    #     endpoints. They occur due to poor thresholding creating holes in the mask, creating false "bridges" which
+    #     misrepresent the skeleton of the molecule.
 
-        Returns
-        -------
-        npt.NDArray
-            A skeleton with internal branches removed by height.
-        """
-        conv = convolve_skeleton(self.skeleton["skeleton"])
-        # Split the skeleton into branches by removing junctions/nodes and label
-        nodeless = np.where(conv == 3, 0, conv)
-        segments = morphology.label(np.where(nodeless != 0, 1, 0))
-        # bridges should not concern endpoints so remove these
-        for i in range(1, segments.max() + 1):
-            if (conv[segments == i] == 2).any():
-                segments[segments == i] = 0
-        segments = morphology.label(np.where(segments != 0, 1, 0))
+    #     Returns
+    #     -------
+    #     npt.NDArray
+    #         A skeleton with internal branches removed by height.
+    #     """
+    #     conv = convolve_skeleton(self.skeleton)
+    #     # Split the skeleton into branches by removing junctions/nodes and label
+    #     nodeless = np.where(conv == 3, 0, conv)
+    #     segments = morphology.label(np.where(nodeless != 0, 1, 0))
+    #     # bridges should not concern endpoints so remove these
+    #     for i in range(1, segments.max() + 1):
+    #         if (conv[segments == i] == 2).any():
+    #             segments[segments == i] = 0
+    #     segments = morphology.label(np.where(segments != 0, 1, 0))
 
-        # filter the segments based on height criteria
-        return self.filter_segments(segments, self.skeleton["skeleton"].copy())
+    #     # filter the segments based on height criteria
+    #     return self.filter_segments(segments)
 
     def height_prune(self) -> npt.NDArray:
         """
@@ -784,10 +730,8 @@ class heightPruning:
         npt.NDArray
             A skeleton with outer branches removed by height.
         """
-        conv = convolve_skeleton(self.skeleton["skeleton"])
-        # Split the skeleton into branches by removing junctions/nodes and label
-        nodeless = np.where(conv == 3, 0, conv)
-        segments = morphology.label(np.where(nodeless != 0, 1, 0))
+        conv = convolve_skeleton(self.skeleton)
+        segments = self._split_skeleton(conv)
         # height pruning should only concern endpoints so remove internal connections
         for i in range(1, segments.max() + 1):
             if not (conv[segments == i] == 2).any():
@@ -795,7 +739,25 @@ class heightPruning:
         segments = morphology.label(np.where(segments != 0, 1, 0))
 
         # filter the segments based on height criteria
-        return self.filter_segments(segments, self.skeleton["skeleton"].copy())
+        return self.filter_segments(segments)
+
+    @staticmethod
+    def _split_skeleton(skeleton: npt.NDArray) -> npt.NDArray:
+        """
+        Split the skeleton into branches by removing junctions/nodes and label branches.
+
+        Parameters
+        ----------
+        skeleton : npt.NDArray
+            Convolved skeleton to be split. This should have nodes labelled as 3, ends as 2 and all other points as 1.
+
+        Returns
+        -------
+        npt.NDArray
+            Removes the junctions (3) and returns all remaining sections as labelled segments.
+        """
+        nodeless = np.where(skeleton == 3, 0, skeleton)
+        return morphology.label(np.where(nodeless != 0, 1, 0))
 
 
 def order_branch_from_end(nodeless: npt.NDArray, start: list, max_length: float = np.inf) -> npt.NDArray:

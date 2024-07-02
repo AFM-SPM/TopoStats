@@ -1,18 +1,21 @@
 """Perform Crossing Region Processing and Analysis."""
 
+from __future__ import annotations
+
 import logging
 import math
 from typing import Union
 
 import networkx as nx
 import numpy as np
+import numpy.typing as npt
 from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.morphology import label
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.tracing.pruning import pruneSkeleton
 from topostats.tracing.skeletonize import getSkeleton
+from topostats.tracing.pruning import prune_skeleton  # pruneSkeleton
 from topostats.utils import ResolutionError, convolve_skeleton, coords_2_img
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -26,13 +29,13 @@ class nodeStats:
     ----------
     filename : str
         The name of the file being processed. For logging purposes.
-    image : np.ndarray
+    image : npt.NDArray
         The array of pixels.
-    grain : np.ndarray
+    mask : npt.NDArray
         The binary segmentation mask.
-    smoothed_grain : np.ndarray
+    smoothed_mask : npt.NDArray
         A smoothed version of the bianary segmentation mask.
-    skeleton : np.ndarray
+    skeleton : npt.NDArray
         A binary single-pixel wide mask of objects in the 'image'.
     px_2_nm : float
         The pixel to nm scaling factor.
@@ -45,10 +48,10 @@ class nodeStats:
     def __init__(
         self,
         filename: str,
-        image: np.ndarray,
-        grain: np.ndarray,
-        smoothed_grain: np.ndarray,
-        skeleton: np.ndarray,
+        image: npt.NDArray,
+        mask: npt.NDArray,
+        smoothed_mask: npt.NDArray,
+        skeleton: npt.NDArray,
         px_2_nm: float,
         n_grain: int,
         node_joining_length: float,
@@ -60,13 +63,13 @@ class nodeStats:
         ----------
         filename : str
             The name of the file being processed. For logging purposes.
-        image : np.ndarray
+        image : npt.NDArray
             The array of pixels.
-        grain : np.ndarray
+        mask : npt.NDArray
             The binary segmentation mask.
-        smoothed_grain : np.ndarray
+        smoothed_mask : npt.NDArray
             A smoothed version of the bianary segmentation mask.
-        skeleton : np.ndarray
+        skeleton : npt.NDArray
             A binary single-pixel wide mask of objects in the 'image'.
         px_2_nm : float
             The pixel to nm scaling factor.
@@ -77,8 +80,8 @@ class nodeStats:
         """
         self.filename = filename
         self.image = image
-        self.grain = grain
-        self.smoothed_grain = smoothed_grain
+        self.mask = mask
+        self.smoothed_mask = smoothed_mask
         self.skeleton = skeleton
         self.px_2_nm = px_2_nm
         self.n_grain = n_grain
@@ -96,7 +99,7 @@ class nodeStats:
             "nodes": {},
             "grain": {
                 "grain_image": self.image,
-                "grain_mask": self.grain,
+                "grain_mask": self.mask,
                 "grain_visual_crossings": None,
             },
         }
@@ -157,7 +160,7 @@ class nodeStats:
         # self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
 
     @staticmethod
-    def skeleton_image_to_graph(skeleton: np.ndarray) -> nx.Graph:
+    def skeleton_image_to_graph(skeleton: npt.NDArray) -> nx.Graph:
         """
         Convert a skeletonised mask into a Graph representation.
 
@@ -165,7 +168,7 @@ class nodeStats:
 
         Parameters
         ----------
-        skeleton : np.ndarray
+        skeleton : npt.NDArray
             A binary single-pixel wide mask, or result from conv_skelly().
 
         Returns
@@ -195,7 +198,7 @@ class nodeStats:
         return g
 
     @staticmethod
-    def graph_to_skeleton_image(g: nx.Graph, im_shape: tuple[int]) -> np.ndarray:
+    def graph_to_skeleton_image(g: nx.Graph, im_shape: tuple[int]) -> npt.NDArray:
         """
         Convert the skeleton graph back to a binary image.
 
@@ -208,7 +211,7 @@ class nodeStats:
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             Skeleton binary image from the graph representation.
         """
         im = np.zeros(im_shape)
@@ -218,7 +221,7 @@ class nodeStats:
         return im
 
     # TODO: Maybe move to skeletonisation
-    def tidy_branches(self, connect_node_mask: np.ndarray, image: np.ndarray) -> np.ndarray:
+    def tidy_branches(self, connect_node_mask: npt.NDArray, image: npt.NDArray) -> npt.NDArray:
         """
         Wrangle distant connected nodes back towards the main cluster.
 
@@ -226,14 +229,14 @@ class nodeStats:
 
         Parameters
         ----------
-        connect_node_mask : np.ndarray
+        connect_node_mask : npt.NDArray
             The connected node mask - a skeleton where node regions = 3, endpoints = 2, and skeleton = 1.
-        image : np.ndarray
+        image : npt.NDArray
             The intensity image.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             The wrangled connected_node_mask.
         """
         new_skeleton = np.where(connect_node_mask != 0, 1, 0)
@@ -249,7 +252,7 @@ class nodeStats:
             new_skeleton[
                 node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
                 node_centre[1] - node_len // 2 - overflow : node_centre[1] + node_len // 2 + overflow,
-            ] = self.grain[
+            ] = self.mask[
                 node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
                 node_centre[1] - node_len // 2 - overflow : node_centre[1] + node_len // 2 + overflow,
             ]
@@ -257,9 +260,10 @@ class nodeStats:
         new_skeleton = self.keep_biggest_object(new_skeleton)
         # Re-skeletonise
         new_skeleton = getSkeleton(image, new_skeleton, method="topostats", height_bias=0.6).get_skeleton()
-        new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton(
-            {"pruning_method": "topostats", "max_length": -1}
-        )
+        # new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton(
+        #     {"method": "topostats", "max_length": -1}
+        # )
+        new_skeleton = prune_skeleton(image, new_skeleton, **{"method": "topostats", "max_length": -1})
         # cleanup around nibs
         new_skeleton = getSkeleton(image, new_skeleton, method="zhang").get_skeleton()
         # might also need to remove segments that have squares connected
@@ -267,18 +271,18 @@ class nodeStats:
         return convolve_skeleton(new_skeleton)
 
     @staticmethod
-    def keep_biggest_object(mask: np.ndarray) -> np.ndarray:
+    def keep_biggest_object(mask: npt.NDArray) -> npt.NDArray:
         """
         Retain the largest object in a binary mask.
 
         Parameters
         ----------
-        mask : np.ndarray
+        mask : npt.NDArray
             Binary mask.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             A binary mask with only one object.
         """
         labelled_mask = label(mask)
@@ -290,7 +294,7 @@ class nodeStats:
             LOGGER.info(f"{e}: mask is empty.")
             return mask
 
-    def connect_close_nodes(self, conv_skelly: np.ndarray, node_width: float = 2.85e-9) -> np.ndarray:
+    def connect_close_nodes(self, conv_skelly: npt.NDArray, node_width: float = 2.85e-9) -> None:
         """
         Connect nodes within the 'node_width' boundary distance.
 
@@ -298,7 +302,7 @@ class nodeStats:
 
         Parameters
         ----------
-        conv_skelly : np.ndarray
+        conv_skelly : npt.NDArray
             A labeled skeleton image with skeleton = 1, endpoints = 2, crossing points =3.
         node_width : float
             The width of the dna in the grain, used to connect close nodes.
@@ -319,18 +323,18 @@ class nodeStats:
 
         return self.connected_nodes
 
-    def highlight_node_centres(self, mask: np.ndarray) -> np.ndarray:
+    def highlight_node_centres(self, mask: npt.NDArray) -> npt.NDArray:
         """
         Calculate the node centres based on height and re-plot on the mask.
 
         Parameters
         ----------
-        mask : np.ndarray
+        mask : npt.NDArray
             2D array with background = 0, skeleton = 1, endpoints = 2, node_centres = 3.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             2D array with the highest node coordinate for each node labeled as 3.
         """
         small_node_mask = mask.copy()
@@ -345,20 +349,22 @@ class nodeStats:
 
         return small_node_mask
 
-    def connect_extended_nodes_nearest(self, connected_nodes: np.ndarray, extend_dist: int | float = -1) -> np.ndarray:
+    def connect_extended_nodes_nearest(
+        self, connected_nodes: npt.NDArray, extend_dist: int | float = -1
+    ) -> npt.NDArray:
         """
         Extend the odd branched nodes to other odd branched nodes within the 'extend_dist' threshold.
 
         Parameters
         ----------
-        connected_nodes : np.ndarray
+        connected_nodes : npt.NDArray
             A 2D array with background = 0, skeleton = 1, endpoints = 2, node_centres = 3.
         extend_dist : int | float, optional
             The distance over which to connect odd-branched nodes, by default -1 for no-limit.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             Connected nodes array with odd-branched nodes connected.
         """
         just_nodes = np.where(connected_nodes == 3, 1, 0)  # remove branches & termini points
@@ -368,13 +374,13 @@ class nodeStats:
         just_branches[connected_nodes == 1] = labelled_nodes.max() + 1
         labelled_branches = label(just_branches)
 
-        def bounding_box(points: np.ndarray) -> list:
+        def bounding_box(points: npt.NDArray) -> list:
             """
             Obtain the bounding box from coordinates.
 
             Parameters
             ----------
-            points : np.ndarray
+            points : npt.NDArray
                 Nx2 array of x and y coordinates.
 
             Returns
@@ -385,20 +391,20 @@ class nodeStats:
             x_coordinates, y_coordinates = zip(*points)
             return [(min(x_coordinates), min(y_coordinates)), (max(x_coordinates), max(y_coordinates))]
 
-        def do_sets_touch(set_a: np.ndarray, set_b: np.ndarray) -> tuple[bool, np.ndarray | None]:
+        def do_sets_touch(set_a: npt.NDArray, set_b: npt.NDArray) -> tuple[bool, npt.NDArray | None]:
             """
             Check if coordinates in two coordinate arrays are < root(2) away.
 
             Parameters
             ----------
-            set_a : np.ndarray
+            set_a : npt.NDArray
                 Nx2 array of coordinates.
-            set_b : np.ndarray
+            set_b : npt.NDArray
                 Nx2 array of coordinates.
 
             Returns
             -------
-            tuple[bool, np.ndarray | None]
+            tuple[bool, npt.NDArray | None]
                 Boolean indicator if they touch, and the point if they do / 'None' if they do not.
             """
             # Iterate through coordinates in set_A and set_B
@@ -500,18 +506,18 @@ class nodeStats:
         return self.connected_nodes
 
     @staticmethod
-    def find_branch_starts(reduced_node_image: np.ndarray) -> np.ndarray:
+    def find_branch_starts(reduced_node_image: npt.NDArray) -> npt.NDArray:
         """
         Find the corrdinates where the branches connect to the node region through binary dilation of the node.
 
         Parameters
         ----------
-        reduced_node_image : np.ndarray
+        reduced_node_image : npt.NDArray
             A 2D numpy array containing a single node region (=3) and its connected branches (=1).
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             Coordinate array of pixels next to crossing points (=3 in input).
         """
         node = np.where(reduced_node_image == 3, 1, 0)
@@ -534,7 +540,7 @@ class nodeStats:
 
         # check whether average trace resides inside the grain mask
         dilate = binary_dilation(self.skeleton, iterations=2)
-        average_trace_advised = dilate[self.smoothed_grain == 1].sum() == dilate.sum()
+        average_trace_advised = dilate[self.smoothed_mask == 1].sum() == dilate.sum()
         LOGGER.info(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
 
         # iterate over the nodes to find areas
@@ -805,20 +811,20 @@ class nodeStats:
         except ZeroDivisionError:
             return 0
 
-    def order_branch(self, binary_image: np.ndarray, anchor: list):
+    def order_branch(self, binary_image: npt.NDArray, anchor: list):
         """
         Order a linear branch by identifing an endpoint, and looking at the local area of the point to find the next.
 
         Parameters
         ----------
-        binary_image : np.ndarray
+        binary_image : npt.NDArray
             A binary image of a skeleton segment to order it's points.
         anchor : list
             A list of 2 integers representing the coordinate to order the branch from the endpoint closest to this.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             An array of ordered cordinates.
         """
         skel = binary_image.copy()
@@ -840,23 +846,23 @@ class nodeStats:
         return np.array(ordered)
 
     def order_branch_from_start(
-        self, nodeless: np.ndarray, start: np.ndarray, max_length: float = np.inf
-    ) -> np.ndarray:
+        self, nodeless: npt.NDArray, start: npt.NDArray, max_length: float | np.inf = np.inf
+    ) -> npt.NDArray:
         """
         Order an unbranching skeleton from an end (startpoint) along a specified length.
 
         Parameters
         ----------
-        nodeless : np.ndarray
+        nodeless : npt.NDArray
             A 2D array of a binary unbranching skeleton.
-        start : np.ndarray
+        start : npt.NDArray
             2x1 coordinate that must exist in 'nodeless'.
         max_length : float | np.inf, optional
             Maximum length to traverse along while ordering, by default np.inf.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             Ordered coordinates.
         """
         dist = 0
@@ -900,20 +906,20 @@ class nodeStats:
         return np.array(ordered)
 
     @staticmethod
-    def local_area_sum(binary_map: np.ndarray, point: list | tuple | np.ndarray) -> np.ndarray:
+    def local_area_sum(binary_map: npt.NDArray, point: list | tuple | npt.NDArray) -> npt.NDArray:
         """
         Evaluate the local area around a point in a binary map.
 
         Parameters
         ----------
-        binary_map : np.ndarray
+        binary_map : npt.NDArray
             A binary array of an image.
-        point : Union[list, tuple, np.ndarray]
+        point : Union[list, tuple, npt.NDArray]
             A single object containing 2 integers relating to a point within the binary_map.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             An array values of the local coordinates around the point.
         int
             A value corresponding to the number of neighbours around the point in the binary_map.
@@ -924,20 +930,20 @@ class nodeStats:
         return local_pixels, local_pixels.sum()
 
     @staticmethod
-    def get_vector(coords: np.ndarray, origin: np.ndarray) -> np.ndarray:
+    def get_vector(coords: npt.NDArray, origin: npt.NDArray) -> npt.NDArray:
         """
         Calculate the normalised vector of the coordinate means in a branch.
 
         Parameters
         ----------
-        coords : np.ndarray
+        coords : npt.NDArray
             2xN array of x, y coordinates.
-        origin : np.ndarray
+        origin : npt.NDArray
             2x1 array of an x, y coordinate.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             Normalised vector from origin to the mean coordinate.
         """
         vector = coords.mean(axis=0) - origin
@@ -945,7 +951,7 @@ class nodeStats:
         return vector if norm == 0 else vector / norm  # normalise vector so length=1
 
     @staticmethod
-    def calc_angles(vectors: np.ndarray) -> np.ndarray:
+    def calc_angles(vectors: npt.NDArray) -> npt.NDArray:
         """
         Calculate the angles between vectors in an array.
 
@@ -953,12 +959,12 @@ class nodeStats:
 
         Parameters
         ----------
-        vectors : np.ndarray
+        vectors : npt.NDArray
             Array of 2x1 vectors.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             An array of the cosine of the angles between the vectors.
         """
         dot = vectors @ vectors.T
@@ -966,18 +972,18 @@ class nodeStats:
         cos_angles = dot / (norm.reshape(-1, 1) @ norm.reshape(1, -1))
         return abs(np.arccos(cos_angles) / np.pi * 180)  # angles in degrees
 
-    def pair_vectors(self, vectors: np.ndarray) -> np.ndarray:
+    def pair_vectors(self, vectors: npt.NDArray) -> npt.NDArray:
         """
         Take a list of vectors and pairs them based on the angle between them.
 
         Parameters
         ----------
-        vectors : np.ndarray
+        vectors : npt.NDArray
             Array of 2x1 vectors to be paired.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             An array of the matching pair indicies.
         """
         # calculate cosine of angle
@@ -987,20 +993,20 @@ class nodeStats:
         # match angles
         return self.best_matches(angles)
 
-    def best_matches(self, arr: np.ndarray, max_weight_matching: bool = True) -> np.ndarray:
+    def best_matches(self, arr: npt.NDArray, max_weight_matching: bool = True) -> npt.NDArray:
         """
         Turn a matrix into a graph and calulates the best matching index pairs.
 
         Parameters
         ----------
-        arr : np.ndarray
+        arr : npt.NDArray
             Transpose symetric MxM array where the value of index i, j represents a weight between i and j.
         max_weight_matching : bool
             Whether to obtain best matching pairs via maximum weight, or minimum weight matching.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             Array of pairs of indexes.
         """
         if max_weight_matching:
@@ -1013,13 +1019,13 @@ class nodeStats:
         return matching
 
     @staticmethod
-    def create_weighted_graph(matrix: np.ndarray) -> nx.Graph:
+    def create_weighted_graph(matrix: npt.NDArray) -> nx.Graph:
         """
         Create a bipartite graph connecting i <-> j from a square matrix of weights matrix[i, j].
 
         Parameters
         ----------
-        matrix : np.ndarray
+        matrix : npt.NDArray
             Square array of weights between rows and columns.
 
         Returns
@@ -1035,13 +1041,13 @@ class nodeStats:
         return G
 
     @staticmethod
-    def pair_angles(angles: np.ndarray) -> list:
+    def pair_angles(angles: npt.NDArray) -> list:
         """
         Pair angles that are 180 degrees to eachother and removes them before selecting the next pair.
 
         Parameters
         ----------
-        angles : np.ndarray
+        angles : npt.NDArray
              Square array (i,j) of angles between i and j.
 
         Returns
@@ -1060,13 +1066,13 @@ class nodeStats:
         return np.asarray(pairs)
 
     @staticmethod
-    def gaussian(x: np.ndarray, h: float, mean: float, sigma: float):
+    def gaussian(x: npt.NDArray, h: float, mean: float, sigma: float):
         """
         Apply the gaussian function.
 
         Parameters
         ----------
-        x : np.ndarray
+        x : npt.NDArray
             X values to be passed into the gaussian.
         h : float
             The peak height of the gaussian.
@@ -1077,12 +1083,12 @@ class nodeStats:
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             The y-values of the gaussian performed on the x values.
         """
         return h * np.exp(-((x - mean) ** 2) / (2 * sigma**2))
 
-    def fwhm2(self, heights: np.ndarray, distances: np.ndarray, hm: float | None = None) -> tuple:
+    def fwhm2(self, heights: npt.NDArray, distances: npt.NDArray, hm: float | None = None) -> tuple:
         """
         Caculate the FWHM value.
 
@@ -1090,9 +1096,9 @@ class nodeStats:
 
         Parameters
         ----------
-        heights : np.ndarray
+        heights : npt.NDArray
             Array of heights.
-        distances : np.ndarray
+        distances : npt.NDArray
             Array of distances.
         hm : Union[None, float], optional
             The halfmax value to match (if wanting the same HM between curves), by default None.
@@ -1183,15 +1189,15 @@ class nodeStats:
         raise ValueError
 
     @staticmethod
-    def order_branches(branch1: np.ndarray, branch2: np.ndarray) -> tuple:
+    def order_branches(branch1: npt.NDArray, branch2: npt.NDArray) -> tuple:
         """
         Order the two ordered arrays based on the closest endpoint coordinates.
 
         Parameters
         ----------
-        branch1 : np.ndarray
+        branch1 : npt.NDArray
             An Nx2 array describing coordinates.
-        branch2 : np.ndarray
+        branch2 : npt.NDArray
             An Nx2 array describing coordinates.
 
         Returns
@@ -1212,20 +1218,20 @@ class nodeStats:
         return branch1[::-1], branch2[::-1]
 
     @staticmethod
-    def binary_line(start: np.ndarray, end: np.ndarray) -> np.ndarray:
+    def binary_line(start: npt.NDArray, end: npt.NDArray) -> npt.NDArray:
         """
         Create a binary path following the straight line between 2 points.
 
         Parameters
         ----------
-        start : np.ndarray
+        start : npt.NDArray
             A coordinate.
-        end : np.ndarray
+        end : npt.NDArray
             Another coordinate.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             An Nx2 coordinate array that the line passes thorugh.
         """
         arr = []
@@ -1261,20 +1267,20 @@ class nodeStats:
         return arr
 
     @staticmethod
-    def coord_dist(coords: np.ndarray, px_2_nm: float = 1) -> np.ndarray:
+    def coord_dist(coords: npt.NDArray, px_2_nm: float = 1) -> npt.NDArray:
         """
         Accumulate a real distance traversing from pixel to pixel from a list of corrdinates.
 
         Parameters
         ----------
-        coords : np.ndarray
+        coords : npt.NDArray
             A Nx2 integer array corresponding to the ordered coordinates of a binary trace.
         px_2_nm : float
             The pixel to nanometer scaling factor.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             An array of length N containing thcumulative sum of the distances.
         """
         dist_list = [0]
@@ -1288,7 +1294,7 @@ class nodeStats:
         return np.asarray(dist_list) * px_2_nm
 
     @staticmethod
-    def coord_dist_rad(coords: np.ndarray, centre: np.ndarray, px_2_nm: float = 1) -> np.ndarray:
+    def coord_dist_rad(coords: npt.NDArray, centre: npt.NDArray, px_2_nm: float = 1) -> npt.NDArray:
         """
         Calculate the distance from the centre coordinate to a point along the ordered coordinates.
 
@@ -1297,16 +1303,16 @@ class nodeStats:
 
         Parameters
         ----------
-        coords : np.ndarray
+        coords : npt.NDArray
             Nx2 array of branch coordinates.
-        centre : np.ndarray
+        centre : npt.NDArray
             A 1x2 array of the centre coordinates to identify a 0 point for the node.
         px_2_nm : float, optional
             The pixel to nanometer scaling factor to provide real units, by default 1.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             A Nx1 array of the distance from the node centre.
         """
         diff_coords = coords - centre
@@ -1319,13 +1325,13 @@ class nodeStats:
         return rad_dist * px_2_nm
 
     @staticmethod
-    def above_below_value_idx(array: np.ndarray, value: float) -> list:
+    def above_below_value_idx(array: npt.NDArray, value: float) -> list:
         """
         Identify indicies of the array neighbouring the specified value.
 
         Parameters
         ----------
-        array : np.ndarray
+        array : npt.NDArray
             Array of values.
         value : float
             Value to identify indices between.
@@ -1355,7 +1361,7 @@ class nodeStats:
             return None
 
     def average_height_trace(
-        self, img: np.ndarray, branch_mask: np.ndarray, branch_coords: np.ndarray, centre=(0, 0)
+        self, img: npt.NDArray, branch_mask: npt.NDArray, branch_coords: npt.NDArray, centre=(0, 0)
     ) -> tuple:
         """
         Average two side-by-side ordered skeleton distance and height traces.
@@ -1366,11 +1372,11 @@ class nodeStats:
 
         Parameters
         ----------
-        img : np.ndarray
+        img : npt.NDArray
             An array of numbers pertaining to an image.
-        branch_mask : np.ndarray
+        branch_mask : npt.NDArray
             A binary array of the branch, must share the same dimensions as the image.
-        branch_coords : np.ndarray
+        branch_coords : npt.NDArray
             Ordered coordinates of the branch mask.
         centre : Union[float, None]
             The coordinates to centre the branch around.
@@ -1488,18 +1494,18 @@ class nodeStats:
         )
 
     @staticmethod
-    def fill_holes(mask: np.ndarray) -> np.ndarray:
+    def fill_holes(mask: npt.NDArray) -> npt.NDArray:
         """
         Fill all holes within a binary mask.
 
         Parameters
         ----------
-        mask : np.ndarray
+        mask : npt.NDArray
             Binary array of object.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             Binary array of object with any interior holes filled in.
         """
         inv_mask = np.where(mask != 0, 0, 1)
@@ -1509,7 +1515,7 @@ class nodeStats:
         return np.where(lbl_inv != max_idx, 1, 0)
 
     @staticmethod
-    def _remove_re_entering_branches(mask: np.ndarray, remaining_branches: int = 1) -> np.ndarray:
+    def _remove_re_entering_branches(mask: npt.NDArray, remaining_branches: int = 1) -> npt.NDArray:
         """
         Remove smallest branches which branches exit and re-enter the viewing area.
 
@@ -1517,14 +1523,14 @@ class nodeStats:
 
         Parameters
         ----------
-        mask : np.ndarray
+        mask : npt.NDArray
             Skeletonised binary mask of an object.
         remaining_branches : int, optional
             Number of objects (branches) to keep, by default 1.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             Mask with only a single skeletonised branch.
         """
         rtn_image = mask.copy()
@@ -1542,21 +1548,21 @@ class nodeStats:
         return rtn_image
 
     @staticmethod
-    def _only_centre_branches(node_image: np.ndarray, node_coordinate: np.ndarray):
+    def _only_centre_branches(node_image: npt.NDArray, node_coordinate: npt.NDArray):
         """
         Remove all branches not connected to the current node.
 
         Parameters
         ----------
-        node_image : np.ndarray
+        node_image : npt.NDArray
             An image of the skeletonised area surrounding the node where
             the background = 0, skeleton = 1, termini = 2, nodes = 3.
-        node_coordinate : np.ndarray
+        node_coordinate : npt.NDArray
             2x1 coordinate describing the position of a node.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             The initial node image but only with skeletal branches
             connected to the middle node.
         """
@@ -1600,15 +1606,15 @@ class nodeStats:
         return node_image_cp
 
     @staticmethod
-    def average_uniques(arr1: np.ndarray, arr2: np.ndarray) -> tuple:
+    def average_uniques(arr1: npt.NDArray, arr2: npt.NDArray) -> tuple:
         """
         Obtain the unique values of both arrays, and the average of common values.
 
         Parameters
         ----------
-        arr1 : np.ndarray
+        arr1 : npt.NDArray
             An array.
-        arr2 : np.ndarray
+        arr2 : npt.NDArray
             An array.
 
         Returns
@@ -1633,7 +1639,7 @@ class nodeStats:
 
         Returns
         -------
-        tuple[list, np.ndarray]
+        tuple[list, npt.NDArray]
             A list of each complete path's ordered coordinates, and labeled crosing image array.
         """
         LOGGER.info(f"[{self.filename}] : Compiling the trace.")
@@ -1714,15 +1720,15 @@ class nodeStats:
         return coord_trace, visual
 
     @staticmethod
-    def remove_common_values(arr1: np.ndarray, arr2: np.ndarray, retain: list = ()) -> np.array:
+    def remove_common_values(arr1: npt.NDArray, arr2: npt.NDArray, retain: list = ()) -> np.array:
         """
         Remove common values between two coordinate arrays while retaining specified coordinates.
 
         Parameters
         ----------
-        arr1 : np.ndarray
+        arr1 : npt.NDArray
             Coordinate array 1.
-        arr2 : np.ndarray
+        arr2 : npt.NDArray
             Coordinate array 2.
         retain : list, optional
             List of possible coordinates to keep, by default ().
@@ -1744,7 +1750,7 @@ class nodeStats:
 
         return np.asarray(filtered_arr1)
 
-    def trace(self, ordered_segment_coords: list, both_img: np.ndarray) -> list:
+    def trace(self, ordered_segment_coords: list, both_img: npt.NDArray) -> list:
         """
         Obtain an ordered trace of each complete path.
 
@@ -1754,7 +1760,7 @@ class nodeStats:
         ----------
         ordered_segment_coords : list
             Ordered coordinates of each labeled segment in 'both_img'.
-        both_img : np.ndarray
+        both_img : npt.NDArray
             A skeletonised labeled image of each path segment.
 
         Returns
@@ -1793,7 +1799,7 @@ class nodeStats:
         return mol_coords
 
     @staticmethod
-    def get_trace_segment(remaining_img: np.ndarray, ordered_segment_coords: list, coord_idx: int) -> np.ndarray:
+    def get_trace_segment(remaining_img: npt.NDArray, ordered_segment_coords: list, coord_idx: int) -> npt.NDArray:
         """
         Return an ordered segment at the end of the current one.
 
@@ -1802,7 +1808,7 @@ class nodeStats:
 
         Parameters
         ----------
-        remaining_img : np.ndarray
+        remaining_img : npt.NDArray
             A 2D array representing an image composed of connected segments of different integers.
         ordered_segment_coords : list
             A list of 2xN coordinates representing each segment.
@@ -1812,7 +1818,7 @@ class nodeStats:
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             2xN array of coordinates representing a skeletonised ordered trace segment.
         """
         start_xy = ordered_segment_coords[coord_idx][0]
@@ -1822,20 +1828,20 @@ class nodeStats:
         return ordered_segment_coords[coord_idx][::-1]  # end is endpoint
 
     @staticmethod
-    def remove_duplicates(current_segment: np.ndarray, prev_segment: np.ndarray) -> np.ndarray:
+    def remove_duplicates(current_segment: npt.NDArray, prev_segment: npt.NDArray) -> npt.NDArray:
         """
         Remove overlapping coordinates present in both arrays.
 
         Parameters
         ----------
-        current_segment : np.ndarray
+        current_segment : npt.NDArray
             2xN coordinate array.
-        prev_segment : np.ndarray
+        prev_segment : npt.NDArray
             2xN coordinate array.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             2xN coordinate array without the previous segment coorinates.
         """
         # Convert arrays to tuples
@@ -1847,20 +1853,20 @@ class nodeStats:
         return np.array([row for row in curr_segment_tuples if tuple(row) in unique_rows])
 
     @staticmethod
-    def order_from_end(last_segment_coord: np.ndarray, current_segment: np.ndarray) -> np.ndarray:
+    def order_from_end(last_segment_coord: npt.NDArray, current_segment: npt.NDArray) -> npt.NDArray:
         """
         Order the current segment to follow from the end of the previous one.
 
         Parameters
         ----------
-        last_segment_coord : np.ndarray
+        last_segment_coord : npt.NDArray
             X and Y coordinates of the end of the last segment.
-        current_segment : np.ndarray
+        current_segment : npt.NDArray
             A 2xN array of coordinates of the current segment to order.
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             The current segment orientated to follow on from the last.
         """
         start_xy = current_segment[0]
@@ -1893,7 +1899,7 @@ class nodeStats:
             over_idxs.append(order[-1])
         return under_idxs, over_idxs
 
-    def get_visual_img(self, coord_trace: list, fwhms: list, crossing_coords: list) -> np.ndarray:
+    def get_visual_img(self, coord_trace: list, fwhms: list, crossing_coords: list) -> npt.NDArray:
         """
         Obtain a labeled image according to the main trace (=1), under (=2), over (=3).
 
@@ -1908,7 +1914,7 @@ class nodeStats:
 
         Returns
         -------
-        np.ndarray
+        npt.NDArray
             2D crossing order labeled image.
         """
         # put down traces
@@ -1961,7 +1967,7 @@ class nodeStats:
         return img
 
     @staticmethod
-    def average_crossing_confs(node_dict) -> Union[None, float]:
+    def average_crossing_confs(node_dict) -> None | float:
         """
         Return the average crossing confidence of all crossings in the molecule.
 
@@ -1988,7 +1994,7 @@ class nodeStats:
                 return None
 
     @staticmethod
-    def minimum_crossing_confs(node_dict: dict) -> Union[None, float]:
+    def minimum_crossing_confs(node_dict: dict) -> None | float:
         """
         Return the minimum crossing confidence of all crossings in the molecule.
 

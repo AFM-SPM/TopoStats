@@ -11,6 +11,7 @@ from topostats.logs.logs import LOGGER_NAME
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=line-too-long
+# pylint: disable=too-many-lines
 
 
 def validate_config(config: dict, schema: Schema, config_type: str) -> None:
@@ -214,7 +215,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 ),
             },
             "skeletonisation_params": {
-                "skeletonisation_method": Or(
+                "method": Or(
                     "zhang",
                     "lee",
                     "thin",
@@ -226,10 +227,9 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "height_bias": lambda n: 0 < n <= 1,
             },
             "pruning_params": {
-                "pruning_method": Or(
+                "method": Or(
                     "topostats",
-                    "conv",
-                    error="Invalid value in config for 'dnatracing.pruning_method', valid values are 'topostats', 'max",
+                    error="Invalid value in config for 'dnatracing.pruning_method', valid values are 'topostats'",
                 ),
                 "max_length": Or(int, float, None),
                 "method_values": Or("min", "median", "mid"),
