@@ -1,0 +1,13 @@
+topostats.__main__
+==================
+
+.. py:module:: topostats.__main__
+
+.. autoapi-nested-parse::
+
+   Main Module.
+
+   ..
+       !! processed by numpydoc !!
+
+

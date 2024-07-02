@@ -1,0 +1,310 @@
+topostats.utils
+===============
+
+.. py:module:: topostats.utils
+
+.. autoapi-nested-parse::
+
+   Utilities.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.utils.LOGGER
+   topostats.utils.ALL_STATISTICS_COLUMNS
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.utils.convert_path
+   topostats.utils.update_config
+   topostats.utils.update_plotting_config
+   topostats.utils._get_mask
+   topostats.utils.get_mask
+   topostats.utils.get_thresholds
+   topostats.utils.create_empty_dataframe
+   topostats.utils.bound_padded_coordinates_to_image
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:data:: ALL_STATISTICS_COLUMNS
+   :value: ('image', 'basename', 'molecule_number', 'area', 'area_cartesian_bbox', 'aspect_ratio',...
+
+
+.. py:function:: convert_path(path: str | pathlib.Path) -> pathlib.Path
+
+   
+   Ensure path is Path object.
+
+   :param path: Path to be converted.
+   :type path: str | Path
+
+   :returns: Pathlib object of path.
+   :rtype: Path
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: update_config(config: dict, args: dict | argparse.Namespace) -> dict
+
+   
+   Update the configuration with any arguments.
+
+   :param config: Dictionary of configuration (typically read from YAML file specified with '-c/--config <filename>').
+   :type config: dict
+   :param args: Command line arguments.
+   :type args: Namespace
+
+   :returns: Dictionary updated with command arguments.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: update_plotting_config(plotting_config: dict) -> dict
+
+   
+   Update the plotting config for each of the plots in plot_dict.
+
+   Ensures that each entry has all the plotting configuration values that are needed.
+
+   :param plotting_config: Plotting configuration to be updated.
+   :type plotting_config: dict
+
+   :returns: Updated plotting configuration.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _get_mask(image: numpy.typing.NDArray, thresh: float, threshold_direction: str, img_name: str = None) -> numpy.typing.NDArray
+
+   
+   Calculate a mask for pixels that exceed the threshold.
+
+   :param image: Numpy array representing image.
+   :type image: np.array
+   :param thresh: A float representing the threshold.
+   :type thresh: float
+   :param threshold_direction: A string representing the direction that should be thresholded. ("above", "below").
+   :type threshold_direction: str
+   :param img_name: Name of image being processed.
+   :type img_name: str
+
+   :returns: Numpy array of image with objects coloured.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_mask(image: numpy.typing.NDArray, thresholds: dict, img_name: str = None) -> numpy.typing.NDArray
+
+   
+   Mask data that should not be included in flattening.
+
+   :param image: 2D Numpy array of the image to have a mask derived for.
+   :type image: npt.NDArray
+   :param thresholds: Dictionary of thresholds, at a bare minimum must have key 'below' with an associated value, second key is
+                      to have an 'above' threshold.
+   :type thresholds: dict
+   :param img_name: Image name that is being masked.
+   :type img_name: str
+
+   :returns: 2D Numpy boolean array of points to mask.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_thresholds(image: numpy.typing.NDArray, threshold_method: str, otsu_threshold_multiplier: float = None, threshold_std_dev: dict = None, absolute: dict = None, **kwargs) -> dict
+
+   
+   Obtain thresholds for masking data points.
+
+   :param image: 2D Numpy array of image to be masked.
+   :type image: npt.NDArray
+   :param threshold_method: Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
+   :type threshold_method: str
+   :param otsu_threshold_multiplier: Scaling value for Otsu threshold.
+   :type otsu_threshold_multiplier: float
+   :param threshold_std_dev: Dict of above and below thresholds for the standard deviation method.
+   :type threshold_std_dev: dict
+   :param absolute: Dict of below and above thresholds.
+   :type absolute: tuple
+   :param \*\*kwargs: Dictionary passed to 'topostats.threshold(**kwargs)'.
+
+   :returns: Dictionary of thresholds, contains keys 'below' and optionally 'above'.
+   :rtype: Dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: str = 'molecule_number') -> pandas.DataFrame
+
+   
+   Create an empty data frame for returning when no results are found.
+
+   :param columns: Columns of the empty dataframe.
+   :type columns: list
+   :param index: Column to set as index of empty dataframe.
+   :type index: str
+
+   :returns: Empty Pandas DataFrame.
+   :rtype: pd.DataFrame
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: bound_padded_coordinates_to_image(coordinates: numpy.typing.NDArray, padding: int, image_shape: tuple) -> tuple
+
+   
+   Ensure the padding of coordinates points does not fall outside of the image shape.
+
+   This function is primarily used in the dnaTrace.get_fitted_traces() method which aims to adjust the points of a
+   skeleton to sit on the highest points of a traced molecule. In order to do so it takes the ordered skeleton, which
+   may not lie on the highest points as it is generated from a binary mask that is unaware of the heights, and then
+   defines a padded boundary of 3nm profile perpendicular to the backbone of the DNA (which at this point is the
+   skeleton based on a mask). Each point along the skeleton therefore needs padding by a minimum of 2 pixels (in this
+   case each pixel equates to a cell in a NumPy array). If a point is within 2 pixels (i.e. 2 cells) of the border then
+   we can not pad beyond this region, we have to stop at the edge of the image and so the coordinates is adjusted such
+   that the padding will lie on the edge of the image/array.
+
+   :param coordinates: Coordinates of a point on the mask based skeleton.
+   :type coordinates: npt.NDArray
+   :param padding: Number of pixels/cells to pad around the point.
+   :type padding: int
+   :param image_shape: The shape of the original image from which the pixel is obtained.
+   :type image_shape: tuple
+
+   :returns: Returns a tuple of coordinates that ensure that when the point is padded by the noted padding width in
+             subsequent calculations it will not be outside of the image shape.
+   :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
