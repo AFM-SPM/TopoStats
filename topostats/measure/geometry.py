@@ -2,6 +2,7 @@
 
 import numpy as np
 from numpy.typing import NDArray
+import networkx
 
 
 def bounding_box_cartesian_points_float(
@@ -88,3 +89,34 @@ def do_points_in_arrays_touch(
             if np.all(diff <= 1):
                 return (True, point1, point2)
     return (False, None, None)
+
+
+def calculate_shortest_branch_distances(
+    nodes_with_branches: dict[int, NDArray[np.number]], whole_skeleton_graph: networkx.classes.graph.Graph
+):
+    """Calculate the shortest distances between branches emanating from nodes."""
+
+    num_nodes = len(nodes_with_branches)
+    shortest_node_distances = np.zeros((num_nodes, num_nodes), dtype=np.float64)
+    shortest_distances_branch_indexes = np.zeros((num_nodes, num_nodes), dtype=np.int32)
+    shortest_distances_coordinates = np.empty((num_nodes, num_nodes, 2), dtype=object)
+
+    for node_index_i, (node1, branches1) in enumerate(nodes_with_branches.items()):
+        for node_index_j, (node2, branches2) in enumerate(nodes_with_branches.items()):
+            # Don't compare the same node to itself
+            if node_index_i == node_index_j:
+                continue
+            shortest_distance = None
+            shortest_distance_branch_indexes = None
+            # Iteratively compare all branches from node1 to all branches from node2 to find the shortest distance between any two branches
+            for branch1 in branches1:
+                for branch2 in branches2:
+                    shortest_path_length_between_branch_1_and_2 = networkx.shortest_path_length(
+                        whole_skeleton_graph, tuple(branch1), tuple(branch2)
+                    )
+                    if shortest_distance is None or shortest_path_length_between_branch_1_and_2 < shortest_distance:
+                        shortest_distance = shortest_path_length_between_branch_1_and_2
+                        shortest_distance_branch_indexes = (node1, node2)
+
+            shortest_node_distances[node_index_i, node_index_j] = shortest_distance
+            shortest_distances_branch_indexes[node_index_i, node_index_j] = shortest_distance_branch_indexes
