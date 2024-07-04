@@ -120,3 +120,9 @@ def calculate_shortest_branch_distances(
 
             shortest_node_distances[node_index_i, node_index_j] = shortest_distance
             shortest_distances_branch_indexes[node_index_i, node_index_j] = shortest_distance_branch_indexes
+            shortest_distances_coordinates[node_index_i, node_index_j] = (
+                nodes_with_branches[shortest_distance_branch_indexes[0]][0],
+                nodes_with_branches[shortest_distance_branch_indexes[1]][0],
+            )
+
+    return shortest_node_distances, shortest_distances_branch_indexes, shortest_distances_coordinates
