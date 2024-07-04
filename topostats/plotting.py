@@ -15,7 +15,7 @@ import numpy.typing as npt
 import pandas as pd
 import seaborn as sns
 
-from topostats.io import read_yaml, save_pkl, write_yaml, convert_basename_to_relative_paths
+from topostats.io import read_yaml, write_yaml, convert_basename_to_relative_paths
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import update_config
 
@@ -384,7 +384,6 @@ def toposum(config: dict) -> dict:
         return None
     violin = config.pop("violin")
     all_stats_to_sum = config.pop("stats_to_sum")
-    pickle_plots = config.pop("pickle_plots")
     figures = defaultdict()
 
     # Plot each variable on its own graph
@@ -406,10 +405,6 @@ def toposum(config: dict) -> dict:
                 ) = topo_sum.sns_violinplot()
         else:
             LOGGER.info(f"[plotting] Statistic is not in dataframe : {var}")
-    if pickle_plots:
-        outfile = Path(config["output_dir"]) / "distribution_plots.pkl"
-        save_pkl(outfile=outfile, to_pkl=figures)
-        LOGGER.info(f"[plotting] Images pickled to : {outfile}")
 
     return figures
 

@@ -2,7 +2,6 @@ base_dir: ./ # Directory from which all files and directories are relative to ("
 output_dir: ./output/summary_distributions
 csv_file: ./all_statistics.csv
 savefig_format: png
-pickle_plots: True # Save plots to a Python pickle
 var_to_label: null # Optional YAML file that maps variable names to labels, uses topostats/var_to_label.yaml if null
 molecule_id: molecule_number
 image_id: image
