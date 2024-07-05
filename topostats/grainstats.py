@@ -819,13 +819,6 @@ class GrainStats:
             # If current bounding rectangle is the smallest so far
             if smallest_bounding_area is None or bounding_area < smallest_bounding_area:
                 smallest_bounding_area = bounding_area
-                # smallest_bounding_rectangle = (
-                #     extremes["x_min"],
-                #     extremes["x_max"],
-                #     extremes["y_min"],
-                #     extremes["y_max"],
-                # )
-                aspect_ratio = (extremes["x_max"] - extremes["x_min"]) / (extremes["y_max"] - extremes["y_min"])
                 smallest_bounding_width = min(
                     (extremes["x_max"] - extremes["x_min"]),
                     (extremes["y_max"] - extremes["y_min"]),
@@ -834,9 +827,8 @@ class GrainStats:
                     (extremes["x_max"] - extremes["x_min"]),
                     (extremes["y_max"] - extremes["y_min"]),
                 )
-                # Enforce >= 1 aspect ratio
-                if aspect_ratio < 1.0:
-                    aspect_ratio = 1 / aspect_ratio
+                # aspect ratio bounded to be <= 1
+                aspect_ratio = smallest_bounding_width / smallest_bounding_length
 
         # Unrotate the bounding box vertices
         r_inverse = rotated_coordinates.T
