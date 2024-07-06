@@ -196,7 +196,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 int,
             ),
         },
-        "dnatracing": {
+        "disordered_tracing": {
             "run": Or(
                 True,
                 False,
@@ -236,6 +236,13 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "method_outlier": Or("abs", "mean_abs", "iqr"),
                 "height_threshold": Or(int, float, None),
             },
+        },
+        "dnatracing": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+            ),
             "joining_node_length": float,
             "pad_width": lambda n: n > 0.0,
             "spline_step_size": lambda n: n > 0.0,

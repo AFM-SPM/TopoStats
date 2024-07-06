@@ -283,97 +283,6 @@ class dnaTrace:
             self.mol_is_circulars.append([])
             self.end_to_end_distances.append([])
 
-    def gaussian_filter(self, **kwargs) -> npt.NDArray:
-        """
-        Apply Gaussian filter.
-
-        Parameters
-        ----------
-        **kwargs
-            Arguments passed to 'skimage.filter.gaussian(**kwargs)'.
-        """
-        self.smoothed_mask = gaussian(self.image, sigma=self.sigma, **kwargs)
-        LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Gaussian filter applied.")
-
-    def smooth_mask(
-        self, grain: npt.NDArray, dilation_iterations: int = 2, gaussian_sigma: float | int | None = None
-    ) -> npt.NDArray:
-        """
-        Smooth grains based on the lower number of binary pixels added from dilation or gaussian.
-
-        This method ensures gaussian smoothing isn't too aggressive and covers / creates gaps in the mask.
-
-        Parameters
-        ----------
-        grain : npt.NDArray
-            Numpy array of the grain mask.
-        dilation_iterations : int
-            Number of times to dilate the grain to smooth it. Default is 2.
-        gaussian_sigma : float | None
-            Gaussian sigma value to smooth the grains after an Otsu threshold. If None, defaults to max(grain.shape) / 256.
-
-        Returns
-        -------
-        npt.NDArray
-            Numpy array of smmoothed image.
-        """
-        gaussian_sigma = max(grain.shape) / 256 if gaussian_sigma is None else gaussian_sigma
-        print("-------", dilation_iterations, type(dilation_iterations))
-        dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
-        gauss = gaussian(grain, sigma=gaussian_sigma)
-        gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
-        gauss[gauss != 1] = 0
-        gauss = gauss.astype(np.int32)
-        if dilation.sum() - grain.sum() > gauss.sum() - grain.sum():
-            gauss = self.re_add_holes(grain, gauss)
-            return gauss
-        else:
-            dilation = self.re_add_holes(grain, dilation)
-            return dilation
-
-    def re_add_holes(
-        self, orig_mask: npt.NDArray, new_mask: npt.NDArray, holearea_min_max: list = [4, np.inf]
-    ) -> npt.NDArray:
-        """
-        Restore holes in masks that were occluded by dilation.
-
-        As Gaussian dilation smoothing methods can close holes in the original mask, this function obtains those holes
-        (based on the general background being the first due to padding) and adds them back into the smoothed mask. When
-        paired, this essentially just smooths the outer edge of the grains.
-
-        Parameters
-        ----------
-        orig_mask : npt.NDArray
-            Original mask.
-        new_mask : npt.NDArray
-            New mask.
-        holearea_min_max : list
-            List of minimum and maximum hole area (in pixels).
-
-        Returns
-        -------
-        npt.NDArray
-            Smoothed mask with holes restored.
-        """
-
-        holesize_min_px = holearea_min_max[0] / ((self.pixel_to_nm_scaling / 1e-9) ** 2)
-        holesize_max_px = holearea_min_max[1] / ((self.pixel_to_nm_scaling / 1e-9) ** 2)
-        holes = 1 - orig_mask
-        holes = label(holes)
-        sizes = [holes[holes == i].size for i in range(1, holes.max() + 1)]
-        holes[holes == 1] = 0  # set background to 0
-
-        for i, size in enumerate(sizes):
-            if size < holesize_min_px or size > holesize_max_px:  # small holes may be fake are left out
-                holes[holes == i + 1] = 0
-        holes[holes != 0] = 1
-
-        # compare num holes in each mask
-        holey_smooth = new_mask.copy()
-        holey_smooth[holes == 1] = 0
-
-        return holey_smooth
-
     def get_ordered_trace_heights(self, ordered_trace) -> npt.NDArray:
         """
         Sort the smoothed grain array by the ordered trace.
@@ -457,20 +366,6 @@ class dnaTrace:
         cumulative_distances_nm = cumulative_distances * px_to_nm
 
         return cumulative_distances_nm
-
-    def get_disordered_trace(self):
-        """
-        Derive the disordered trace coordinates from the binary mask and image via skeletonisation and pruning.
-        """
-        self.skeleton = getSkeleton(
-            self.smoothed_mask,
-            self.mask,
-            method=self.skeletonisation_params["method"],
-            height_bias=self.skeletonisation_params["height_bias"],
-        ).get_skeleton()
-        self.pruned_skeleton = prune_skeleton(self.smoothed_mask, self.skeleton, **self.pruning_params.copy())
-        self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
-        self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
     @staticmethod
     def remove_touching_edge(skeleton: npt.NDArray) -> npt.NDArray:
