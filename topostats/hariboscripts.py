@@ -85,3 +85,26 @@ def calculate_real_distance_between_points_in_array(
             distance = 0
 
     return distances
+
+
+def calculate_contour_length_from_points(
+    points: np.ndarray, pixel_to_nm_scaling: np.float32, circular: bool
+) -> np.float32:
+    """Calculate the contour length of a molecule backbone defined by a set of points."""
+    if circular:
+        # Get a copy of the points with the first point reprated at the end
+        if not np.array_equal(points[0], points[-1]):
+            points = np.vstack([points, points[0]])
+        else:
+            points = points.copy()
+    else:
+        # Ensure that the start and end are not the same point
+        if np.array_equal(points[0], points[-1]):
+            raise ValueError(
+                "The start and end points are the same. The molecule is not circular, but was passed as such."
+            )
+
+    contour_length: np.float32 = np.float32(0.0)
+    for i in range(len(points) - 1):
+        contour_length += np.float32(np.linalg.norm(points[i + 1] - points[i])) * pixel_to_nm_scaling
+    return contour_length

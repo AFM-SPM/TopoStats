@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from topostats.hariboscripts import flip_if_anticlockwise
+from topostats.hariboscripts import flip_if_anticlockwise, calculate_circular_contour_length_from_points
 
 
 @pytest.mark.parametrize(
@@ -35,3 +35,19 @@ def test_flip_if_anticlockwise(trace: np.ndarray, expected: np.ndarray):
     """Test the flip_if_anticlockwise function."""
 
     assert np.array_equal(flip_if_anticlockwise(trace), expected)
+
+
+@pytest.mark.parametrize(
+    "points, expected",
+    [
+        pytest.param(
+            np.array([[0, 0], [1, 0], [1, 1], [0, 1]]),
+            4.0,
+            id="square",
+        ),
+        pytest.param(np.array([[0, 0], [1, 1], [2, 0]]), 2 * np.sqrt(2) + 1, id="triangle"),
+    ],
+)
+def test_calculate_circular_contour_length_from_points(points: np.ndarray, expected: float):
+    """Test calculate_circular_contour_length_from_points function."""
+    assert calculate_circular_contour_length_from_points(points) == expected
