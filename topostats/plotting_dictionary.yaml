@@ -193,26 +193,26 @@ grain_mask_image:
   savefig_dpi: 100
   core_set: false
 # Disordered Tracing Troubleshooting Images
-orig_grains:
+orig_grain:
   filename: "20-original_grains"
   title: "Image with Threshold Mask"
   image_type: "non-binary"
   mask_cmap: "blu"
   core_set: false
-smoothed_grains:
+smoothed_grain:
   filename: "21-smoothed_grains"
   title: "Image with Gaussian-Smoothed Threshold Mask"
   image_type: "non-binary"
   mask_cmap: "blu"
   core_set: false
-orig_skeletons:
+skeleton:
   filename: "22-original_skeletons"
   title: "Image with Overlapping Original Skeletons"
   image_type: "non-binary"
   mask_cmap: "blu"
   core_set: false
   savefig_dpi: 600
-pruned_skeletons:
+pruned_skeleton:
   filename: "23-pruned_skeletons"
   title: "Image with Overlapping Pruned Skeletons"
   image_type: "non-binary"
