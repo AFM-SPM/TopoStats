@@ -300,8 +300,8 @@ def trace_image_disordered(
 
     Returns
     -------
-    dict
-        Coordinates from skeletonising and pruning the grains in the image.
+    tuple[dict, dict]
+        Binary and interger labeled cropped and full-image masks from skeletonising and pruning the grains in the image.
     """
     # Check both arrays are the same shape - should this be a test instead, why should this ever occur?
     if image.shape != grains_mask.shape:
@@ -310,23 +310,21 @@ def trace_image_disordered(
     cropped_images, cropped_masks, bboxs = prep_arrays(image, grains_mask, pad_width)
     n_grains = len(cropped_images)
     img_base = np.zeros_like(image)
-
-    disordered_traces = {}
+    disordered_trace_crop_data = {}
 
     # want to get each cropped image, use some anchor coords to match them onto the image,
     #   and compile all the grain images onto a single image
     all_images = {
-        "orig_grains": img_base,
-        "smoothed_grains": img_base.copy(),
-        "orig_skeletons": img_base.copy(),
-        "pruned_skeletons": img_base.copy(),
+        "smoothed_grain": img_base.copy(),
+        "skeleton": img_base.copy(),
+        "pruned_skeleton": img_base.copy(),
     }
 
     LOGGER.info(f"[{filename}] : Calculating DNA tracing statistics for {n_grains} grains.")
 
     for cropped_image_index, cropped_image in cropped_images.items():
         cropped_mask = cropped_masks[cropped_image_index]
-        disordered_trace, disordered_trace_images = trace_grain(
+        disordered_trace_images = trace_grain(
             cropped_image=cropped_image,
             cropped_mask=cropped_mask,
             pixel_to_nm_scaling=pixel_to_nm_scaling,
@@ -339,15 +337,16 @@ def trace_image_disordered(
         )
         LOGGER.info(f"[{filename}] : Disordered Traced grain {cropped_image_index + 1} of {n_grains}")
 
-        disordered_traces[f"grain_{cropped_image_index}"] = disordered_trace
-
         # remap the cropped images back onto the original
         for image_name, full_image in all_images.items():
             crop = disordered_trace_images[image_name]
             bbox = bboxs[cropped_image_index]
             full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
 
-    return {"disordered_traces": disordered_traces, "fill_images": all_images}
+        disordered_trace_crop_data[f"grain_{cropped_image_index}"] = disordered_trace_images
+        disordered_trace_crop_data[f"grain_{cropped_image_index}"]["bbox"] = bboxs[cropped_image_index]
+
+    return disordered_trace_crop_data, all_images
 
 
 # not used
@@ -601,15 +600,15 @@ def trace_grain(
 
     disorderedtrace.trace_dna()
 
-    images = {
-        "image": disorderedtrace.image,
-        "grain": disorderedtrace.mask,
+    cropped_images = {
+        "original_image": cropped_image,
+        "original_grain": cropped_mask,
         "smoothed_grain": disorderedtrace.smoothed_mask,
         "skeleton": disorderedtrace.skeleton,
         "pruned_skeleton": disorderedtrace.pruned_skeleton,
     }
 
-    return disorderedtrace, images
+    return cropped_images
 
 
 def crop_array(array: npt.NDArray, bounding_box: tuple, pad_width: int = 0) -> npt.NDArray:

@@ -1,5 +1,5 @@
 base_dir: ./ # Directory in which to search for data files
-output_dir: ./ # Directory to output results to
+output_dir: ./output # Directory to output results to
 log_level: info # Verbosity of output. Options: warning, error, info, debug
 cores: 1 # Number of CPU cores to utilise for processing multiple files simultaneously.
 file_ext: .spm # File extension of the data files.
@@ -52,6 +52,7 @@ grainstats:
 disordered_tracing:
   run: true # Options : true, false
   min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.
+  pad_width: 1 # Pixels to pad grains by when tracing
   mask_smoothing_params:
     gaussian_sigma: null # Gaussian smoothing parameter 'sigma'. 'null' defaults to max(grain.shape) / 256.
     dilation_iterations: 2 # Number of dilation iterations to use for grain smoothing.
