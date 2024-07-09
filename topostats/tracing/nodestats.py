@@ -13,7 +13,7 @@ from scipy.signal import argrelextrema
 from skimage.morphology import label
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.measure.geometry import bounding_box_cartesian_points_integer
+from topostats.measure.geometry import bounding_box_cartesian_points_integer, do_points_in_arrays_touch
 from topostats.tracing.pruning import prune_skeleton  # pruneSkeleton
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.utils import ResolutionError, convolve_skeleton, coords_2_img
@@ -367,6 +367,7 @@ class nodeStats:
         npt.NDArray
             Connected nodes array with odd-branched nodes connected.
         """
+
         just_nodes = np.where(connected_nodes == 3, 1, 0)  # remove branches & termini points
         labelled_nodes = label(just_nodes)
 
@@ -386,6 +387,9 @@ class nodeStats:
             crop_top = bounding_box[1] - 1
             crop_bottom = bounding_box[3] + 2
             cropped_matrix = connected_nodes[crop_left:crop_right, crop_top:crop_bottom]
+            print(f"======= CROPPED MATRIX ========")
+            print(cropped_matrix)
+            print(f"===============================")
             # get coords of nodes and branches in box
             node_coords = np.argwhere(cropped_matrix == 3)
             branch_coords = np.argwhere(cropped_matrix == 1)
@@ -398,17 +402,19 @@ class nodeStats:
 
             # find the branch start point of odd branched nodes
             if num_branches % 2 == 1:
+                print(f"odd number of branches")
                 nodes_with_odd_branches.append(node_num)
                 emanating_branches = []  # List to store emanating branches for the current label
                 for branch in range(1, labelled_branches.max() + 1):
                     # technically using labelled_branches when there's an end loop will only cause one
                     #   of the end loop coords to be captured. This shopuldn't matter as the other
                     #   label after the crossing should be closer to another node.
-                    touching, branch_start = do_sets_touch(
-                        np.argwhere(labelled_branches == branch), np.argwhere(labelled_nodes == node_num)
+                    touching, touching_point_1, touching_point_2 = do_points_in_arrays_touch(
+                        np.argwhere(labelled_branches == branch),
+                        np.argwhere(labelled_nodes == node_num),
                     )
                     if touching:
-                        emanating_branches.append(branch_start)
+                        emanating_branches.append(touching_point_1)
                     emanating_branch_starts_by_node[node_num - 1] = (
                         emanating_branches  # Store emanating branches for this label
                     )
@@ -417,6 +423,10 @@ class nodeStats:
         if (
             len(emanating_branch_starts_by_node) <= 1
         ):  # only <1 odd branch so ignore pairing. will nx work with this and return no pairs anyway?
+            print(f"only <1 odd branch so ignoring pairing, returning connected nodes")
+            print("========= CONNECTED NODES ============")
+            print(self.connected_nodes)
+            print("======================================")
             return self.connected_nodes
 
         # Iterate through the nodes and their emanating branches
@@ -430,36 +440,68 @@ class nodeStats:
             np.int64
         )
 
+        print(f"emanating_branch_starts_by_node: {emanating_branch_starts_by_node}")
+        print(f"whole skel graph: {type(self.whole_skel_graph)} \n {self.whole_skel_graph}")
+        # example emanating_branch_starts_by_node: {0: [array([6, 1]), array([7, 3]), array([8, 1])], 1: [array([ 6, 11]), array([7, 9]), array([ 8, 11])]}
+        # This is where 6,1, 7,3, 8,1 are branch starting points surrounding a node point at 7,1 and 6,11, 7,9, 8,11 are branch starting points surrounding a node point at 7,11
         for i, (node1, branch_starts1) in enumerate(emanating_branch_starts_by_node.items()):
             for j, (node2, branch_starts2) in enumerate(emanating_branch_starts_by_node.items()):
                 if node1 != node2:  # Avoid comparing a node with itself
                     # get shortest distance between all branch starts in n1 and n2, on #px not nm length
+                    # this finds the shortest distance between all branch starts in n1 and n2 but not between branches of a common node (two branches of the same node won't be considered)
+                    # this distance is simply the number of pixels between the two and not following the trace
                     temp_length_matrix = np.zeros((len(branch_starts1), len(branch_starts2)))
+                    print(
+                        f"comparing {node1} to {node2} | branch_starts1: {branch_starts1} to branch_starts2: {branch_starts2}"
+                    )
                     for ii, bs1 in enumerate(branch_starts1):
                         for jj, bs2 in enumerate(branch_starts2):
-                            temp_length_matrix[ii, jj] = nx.shortest_path_length(
+                            shortest_path_length = nx.shortest_path_length(
                                 self.whole_skel_graph, tuple(bs1), tuple(bs2)
                             )
+                            print(f" shortest path length between {bs1} and {bs2} is {shortest_path_length}")
+                            temp_length_matrix[ii, jj] = shortest_path_length
+                            # temp length matrix is a matrix storing each index vs each other index distance between branch starts
                     # add shortest dist to shortest dist matrix
+                    # Used
                     shortest_dist = np.min(temp_length_matrix)
                     shortest_node_dists[i, j] = shortest_dist
+                    print(
+                        f" temp length matrix (containing shortest paths between different branches): \n{temp_length_matrix}"
+                    )
+                    # Used
                     shortest_dists_branch_idxs[i, j] = np.argwhere(temp_length_matrix == shortest_dist)[0]
+                    # Unused?
                     shortest_dist_coords[i, j] = (
                         branch_starts1[shortest_dists_branch_idxs[i, j][0]],
                         branch_starts2[shortest_dists_branch_idxs[i, j][1]],
                     )
+        print(f"shortest_node_dists: {shortest_node_dists}")
+        print(f"shortest_dists_branch_idxs: {shortest_dists_branch_idxs}")
+        print(f"shortest_dist_coords: {shortest_dist_coords}")
+        print(f"\n")
 
         # get best matches
         matches = self.best_matches(shortest_node_dists, max_weight_matching=False)
         # get paths of best matches. TODO: replace below with using shortest dist coords
+        print(f"getting paths of best matches")
         for node_pair_idx in matches:
+            print(f" node pair idx: {node_pair_idx}")
             shortest_dist = shortest_node_dists[node_pair_idx[0], node_pair_idx[1]]
+            print(f" shortest dist: {shortest_dist}")
             if shortest_dist <= extend_dist or extend_dist == -1:
+                print(f" shortest dist <= extend dist or extend dist == -1")
+                print(f" node_pair_idx: {node_pair_idx}")
                 branch_idxs = shortest_dists_branch_idxs[node_pair_idx[0], node_pair_idx[1]]
+                print(f" branch idxs: {branch_idxs}")
                 node_nums = list(emanating_branch_starts_by_node.keys())
+                print(f" node nums: {node_nums}")
                 source = tuple(emanating_branch_starts_by_node[node_nums[node_pair_idx[0]]][branch_idxs[0]])
+                print(f" source: {source}")
                 target = tuple(emanating_branch_starts_by_node[node_nums[node_pair_idx[1]]][branch_idxs[1]])
+                print(f" target: {target}")
                 path = np.array(nx.shortest_path(self.whole_skel_graph, source, target))
+                print(f" path: {path}")
                 connected_nodes[path[:, 0], path[:, 1]] = 3
 
         self.connected_nodes = connected_nodes
