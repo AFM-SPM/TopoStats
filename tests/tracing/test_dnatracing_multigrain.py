@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import pytest
 
@@ -47,9 +48,9 @@ SMALL_MASK = np.asarray(
 
 
 @pytest.mark.parametrize(
-    ("pad_width", "target_image", "target_mask"),
+    ("pad_width", "target_image", "target_mask", "target_bbox"),
     [
-        (
+        pytest.param(
             0,
             [
                 np.asarray(
@@ -67,8 +68,14 @@ SMALL_MASK = np.asarray(
                 np.asarray([[1], [1], [1], [1]]),
                 np.asarray([[0, 0, 1], [1, 1, 1]]),
             ],
+            [
+                np.asarray([1, 1, 4, 4]),
+                np.asarray([2, 7, 6, 8]),
+                np.asarray([6, 1, 8, 4]),
+            ],
+            id="Three basic arrays, padwitdh of 0",
         ),
-        (
+        pytest.param(
             1,
             [
                 np.asarray(
@@ -140,15 +147,24 @@ SMALL_MASK = np.asarray(
                     ]
                 ),
             ],
+            [
+                np.asarray([0, 0, 5, 5]),
+                np.asarray([1, 6, 7, 9]),
+                np.asarray([5, 0, 9, 5]),
+            ],
+            id="Multiple arrays to prepare, padding width of 1.",
         ),
     ],
 )
-def test_prep_arrays(pad_width: int, target_image: np.ndarray, target_mask: np.ndarray) -> None:
+def test_prep_arrays(
+    pad_width: int, target_image: npt.NDArray, target_mask: npt.NDArray, target_bbox: npt.NDArray
+) -> None:
     """Tests the image and masks are correctly prepared to lists."""
-    images, masks = prep_arrays(image=SMALL_ARRAY, labelled_grains_mask=SMALL_MASK, pad_width=pad_width)
-    for (grain, image), (grain, mask) in zip(images.items(), masks.items()):
+    images, masks, bboxes = prep_arrays(image=SMALL_ARRAY, labelled_grains_mask=SMALL_MASK, pad_width=pad_width)
+    for (grain, image), (grain, mask), bbox in zip(images.items(), masks.items(), bboxes):
         np.testing.assert_array_almost_equal(image, target_image[grain])
         np.testing.assert_array_equal(mask, target_mask[grain])
+        np.testing.assert_array_equal(bbox, target_bbox[grain])
 
 
 def test_image_trace_unequal_arrays() -> None:
@@ -161,7 +177,13 @@ def test_image_trace_unequal_arrays() -> None:
             filename="dummy",
             pixel_to_nm_scaling=PIXEL_SIZE,
             min_skeleton_size=MIN_SKELETON_SIZE,
-            skeletonisation_method="topostats",
+            mask_smoothing_params=None,
+            skeletonisation_params=None,
+            pruning_params=None,
+            joining_node_length=None,
+            spline_step_size=None,
+            spline_linear_smoothing=None,
+            spline_circular_smoothing=None,
             pad_width=PAD_WIDTH,
             cores=1,
         )
@@ -304,7 +326,7 @@ TARGET_ARRAY = np.asarray(
     ],
 )
 def test_trace_mask(
-    grain_anchors: list, ordered_traces: list, image_shape: tuple, pad_width: int, expected: np.ndarray
+    grain_anchors: list, ordered_traces: list, image_shape: tuple, pad_width: int, expected: npt.NDArray
 ) -> None:
     """Test the trace_mask."""
     image = trace_mask(grain_anchors, ordered_traces, image_shape, pad_width)
@@ -381,7 +403,13 @@ def test_trace_mask(
     ],
 )
 def test_trace_image(
-    image: str, skeletonisation_method: str, cores: int, statistics, ordered_trace_start: list, ordered_trace_end: list
+    image: str,
+    skeletonisation_method: str,
+    cores: int,
+    statistics: pd.DataFrame,
+    ordered_trace_start: list,
+    ordered_trace_end: list,
+    default_config: dict,
 ) -> None:
     """Tests the processing of an image using trace_image() function.
 
@@ -391,14 +419,15 @@ def test_trace_image(
          Initial attempts at using SMALL_ARRAY/SMALL_MASK were unsuccessful as they were not traced because the grains
          are < min_skeleton_size, adjusting this to 1 didn't help they still weren't skeletonised.
     """
+    dnatracing_config = default_config["dnatracing"]
+    dnatracing_config.pop("run")
+    dnatracing_config["skeletonisation_params"]["method"] = skeletonisation_method
     results = trace_image(
         image=MULTIGRAIN_IMAGE,
         grains_mask=MULTIGRAIN_MASK,
         filename=image,
         pixel_to_nm_scaling=PIXEL_SIZE,
-        min_skeleton_size=MIN_SKELETON_SIZE,
-        skeletonisation_method=skeletonisation_method,
-        pad_width=PAD_WIDTH,
+        **dnatracing_config,
         cores=cores,
     )
     statistics.set_index(["molecule_number"], inplace=True)
