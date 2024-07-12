@@ -903,11 +903,6 @@ SUMMARY_SCHEMA = Schema(
             "tif",
             error=("Invalid value in config 'savefig_format', valid values are 'png', 'pdf', 'svg', 'tiff' or 'tif'"),
         ),
-        "pickle_plots": Or(
-            True,
-            False,
-            error="Invalid value in config for 'pickle_plots', valid values are 'True' or 'False'",
-        ),
         "var_to_label": Or(
             None,
             str,
