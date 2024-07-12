@@ -220,7 +220,7 @@ pruned_skeleton:
   core_set: false
   savefig_dpi: 600
 # Nodestats troubleshooting images
-nodes:
+connected_nodes:
   filename: "24-nodes"
   title: "Image with Skeletons and Highlighted Nodes"
   image_type: "non-binary"

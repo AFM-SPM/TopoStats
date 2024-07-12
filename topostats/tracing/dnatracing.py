@@ -1044,7 +1044,7 @@ class dnaTrace:
         return 0
 
 
-def trace_image(
+def dnatrace_image(
     image: npt.NDArray,
     grains_mask: npt.NDArray,
     filename: str,
