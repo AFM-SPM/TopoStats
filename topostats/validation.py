@@ -249,13 +249,21 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "height_threshold": Or(int, float, None),
             },
         },
+        "nodestats": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+            ),
+            "node_joining_length": float,
+            "pad_width": lambda n: n > 0.0,
+        },
         "dnatracing": {
             "run": Or(
                 True,
                 False,
                 error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
             ),
-            "joining_node_length": float,
             "pad_width": lambda n: n > 0.0,
             "spline_step_size": lambda n: n > 0.0,
             "spline_linear_smoothing": lambda n: n >= 0.0,
@@ -953,7 +961,7 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "nodes": {
+        "connected_nodes": {
             "filename": str,
             "title": str,
             "image_type": Or(

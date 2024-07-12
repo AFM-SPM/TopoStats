@@ -7,9 +7,11 @@ import logging
 import networkx as nx
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.morphology import label
+import matplotlib.pyplot as plt
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.geometry import (
@@ -84,9 +86,9 @@ class nodeStats:
         self.filename = filename
         self.image = image
         self.mask = mask
-        self.smoothed_mask = smoothed_mask
+        self.smoothed_mask = smoothed_mask  # only used to average traces
         self.skeleton = skeleton
-        self.px_2_nm = px_2_nm
+        self.px_2_nm = px_2_nm * 1e-9
         self.n_grain = n_grain
         self.node_joining_length = node_joining_length
 
@@ -94,8 +96,14 @@ class nodeStats:
         self.connected_nodes = np.zeros_like(self.skeleton)
         self.all_connected_nodes = self.skeleton.copy()
         self.whole_skel_graph = None
+
+        self.metrics = {
+            "num_crossings": 0,
+            "avg_crossing_confidence": None,
+            "min_crossing_confidence": None,
+        }
+
         self.node_centre_mask = None
-        self.num_crossings = 0
         self.node_dict = {}
         self.image_dict = {
             "nodes": {},
@@ -150,17 +158,19 @@ class nodeStats:
             # get graph of skeleton
             self.whole_skel_graph = self.skeleton_image_to_graph(self.skeleton)
             # connect the close nodes
+            LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} connecting close nodes.")
             self.connected_nodes = self.connect_close_nodes(self.conv_skelly, node_width=self.node_joining_length)
             # connect the odd-branch nodes
             self.connected_nodes = self.connect_extended_nodes_nearest(
                 self.connected_nodes, extend_dist=14e-9 / self.px_2_nm
             )
-            # self.connected_nodes = self.connect_extended_nodes(self.connected_nodes)
+            # obtain a mask of node centers and their count
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
             self.num_crossings = (self.node_centre_mask == 3).sum()
             # Begin the hefty crossing analysis
             LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
             self.analyse_nodes(max_branch_length=20e-9)
+            self.compile_metrics()
         else:
             LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} has no crossings.")
         return self.node_dict, self.image_dict
@@ -1001,7 +1011,7 @@ class nodeStats:
 
     def fwhm2(self, heights: npt.NDArray, distances: npt.NDArray, hm: float | None = None) -> tuple:
         """
-        Calculate the FWHM value.
+        Calculate the FWHM value. TODO: Dictionary-ify this one to help saving.
 
         First identifyies the HM then finding the closest values in the distances array and using
         linear interpolation to calculate the FWHM.
@@ -1945,3 +1955,102 @@ class nodeStats:
             if vals["error"]:
                 return False
         return True
+
+    def compile_metrics(self) -> None:
+        """
+        Adds number of crossings, and average and minimum crossing confidence to the metrics dictionary.
+        """
+        self.metrics["num_crossings"] = (self.node_centre_mask == 3).sum()
+        self.metrics["avg_crossing_confidence"] = nodeStats.average_crossing_confs(self.node_dict)
+        self.metrics["min_crossing_confidence"] = nodeStats.minimum_crossing_confs(self.node_dict)
+
+
+def nodestats_image(
+    image: npt.NPArray,
+    disordered_tracing_direction_data: dict,
+    filename: str,
+    pixel_to_nm_scaling: float,
+    node_joining_length: float,
+    pad_width: int = 1,
+) -> tuple:
+    """
+    Run nodestats on multiple grains for a single image.
+
+    Parameters
+    ----------
+    image : npt.NPArray
+        _description_
+    disordered_tracing_direction_data : dict
+        _description_
+    filename : str
+        _description_
+    pixel_to_nm_scaling : float
+        _description_
+    node_joining_length : float
+        _description_
+    pad_width : int, optional
+        _description_, by default 1
+
+    Returns
+    -------
+    tuple[dict, pd.DataFrame, dict]
+        The nodestats statistics for each crossing, crossing statitics to be added to the grain statistics, an image dictionary of nodestats steps.
+    """
+    n_grains = len(disordered_tracing_direction_data)
+    img_base = np.zeros_like(image)
+    nodestats_data = {}
+
+    # want to get each cropped image, use some anchor coords to match them onto the image,
+    #   and compile all the grain images onto a single image
+    all_images = {
+        "connected_nodes": img_base.copy(),
+    }
+    grainstats_additions = {}
+
+    LOGGER.info(f"[{filename}] : Calculating NodeStats statistics for {n_grains} grains.")
+
+    for n_grain, disordered_tracing_grain_data in disordered_tracing_direction_data.items():
+        nodestats = None  # reset the nodestats variable
+        # try:
+        nodestats = nodeStats(
+            image=disordered_tracing_grain_data["original_image"],
+            mask=disordered_tracing_grain_data["original_mask"],
+            smoothed_mask=disordered_tracing_grain_data["smoothed_grain"],
+            skeleton=disordered_tracing_grain_data["pruned_skeleton"],
+            px_2_nm=pixel_to_nm_scaling,
+            filename=filename,
+            n_grain=n_grain,
+            node_joining_length=node_joining_length,
+        )
+        nodestats_dict, node_image_dict = nodestats.get_node_stats()
+        LOGGER.info(f"[{filename}] : Disordered Traced {n_grain} of {n_grains}")
+
+        # compile images
+        nodestats_images = {
+            "connected_nodes": nodestats.connected_nodes,
+        }
+        # compile metrics
+        grainstats_additions[n_grain] = {
+            "image": filename,
+            "grain_number": int(n_grain.split("_")[-1]),
+        }
+        grainstats_additions[n_grain].update(nodestats.metrics)
+        nodestats_data[n_grain] = nodestats_dict
+
+        # remap the cropped images back onto the original
+        for image_name, full_image in all_images.items():
+            crop = nodestats_images[image_name]
+            bbox = disordered_tracing_grain_data["bbox"]
+            full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+
+        """
+        except Exception as e:
+            LOGGER.error(f"[{filename}] : Disordered tracing for {n_grain} failed with - {e}")
+            disordered_trace_crop_data[n_grain] = {}
+            pass
+        """
+        # turn the grainstats additions into a dataframe
+        grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
+        print("--------------\n", grainstats_additions_df)
+
+    return nodestats_data, grainstats_additions_df, all_images

@@ -54,7 +54,7 @@ disordered_tracing:
   min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.
   pad_width: 1 # Pixels to pad grains by when tracing
   mask_smoothing_params:
-    gaussian_sigma: 2 # Gaussian smoothing parameter 'sigma'.
+    gaussian_sigma: 2 # Gaussian smoothing parameter 'sigma' in pixels.
     dilation_iterations: 2 # Number of dilation iterations to use for grain smoothing.
     holearea_min_max: [0, null] # Range (min, max) of a hole area in nm to refil in the smoothed masks.
   skeletonisation_params:
@@ -66,13 +66,16 @@ disordered_tracing:
     height_threshold: # The height to remove branches below.
     method_values: mid # The method to obtain a branch's height for pruning. Options : min | median | mid
     method_outlier: mean_abs # The method to prune branches based on height. Options : abs | mean_abs | iqr.
+nodestats:
+  run: true # Options : true, false
+  node_joining_length: 7.0e-9 # The distance over which to join nearby crossing points.
+  pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing)
 dnatracing:
   run: false # Options : true, false
-  joining_node_length: 7.0e-9 # The distance over which to join nearby crossing nodes.
   spline_step_size: 7.0e-9 # The sampling rate of the spline in metres.
   spline_linear_smoothing: 5.0 # The amount of smoothing to apply to linear splines.
   spline_circular_smoothing: 0.0 # The amount of smoothing to apply to circular splines.
-  pad_width: 1 # Cells to pad grains by when tracing
+  pad_width: 1 # Pixels to pad grains by when tracing
 #  cores: 1 # Number of cores to use for parallel processing
 plotting:
   run: true # Options : true, false
