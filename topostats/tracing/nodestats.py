@@ -11,6 +11,7 @@ import pandas as pd
 from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.morphology import label
+import matplotlib.pyplot as plt
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.geometry import (
@@ -925,7 +926,7 @@ class nodeStats:
 
     def fwhm(self, heights: npt.NDArray, distances: npt.NDArray, hm: float | None = None) -> tuple:
         """
-        Calculate the FWHM value.
+        Calculate the FWHM value. TODO: Dictionary-ify this one to help saving.
 
         First identifyies the HM then finding the closest values in the distances array and using
         linear interpolation to calculate the FWHM.
