@@ -236,25 +236,28 @@ class disorderedTrace:
         dilation_iterations : int
             Number of times to dilate the grain to smooth it. Default is 2.
         gaussian_sigma : float | None
-            Gaussian sigma value to smooth the grains after an Otsu threshold. If None, defaults to
-            max(grain.shape) / 256.
+            Gaussian sigma value to smooth the grains after an Otsu threshold.
 
         Returns
         -------
         npt.NDArray
             Numpy array of smmoothed image.
         """
-        gaussian_sigma = max(grain.shape) / 256 if gaussian_sigma is None else gaussian_sigma
-        print("-------", dilation_iterations, type(dilation_iterations))
         dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
         gauss = gaussian(grain, sigma=gaussian_sigma)
         gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
         gauss[gauss != 1] = 0
         gauss = gauss.astype(np.int32)
         # gauss
-        if dilation.sum() - grain.sum() > gauss.sum() - grain.sum():
+        if dilation.sum() - grain.sum() > gauss.sum() - grain.sum() or dilation_iterations is None:
+            LOGGER.info(
+                f"[{self.filename}] : smoothed grain via Gaussian (diff: {gauss.sum() - grain.sum()} vs {dilation.sum() - grain.sum()})"
+            )
             return self.re_add_holes(grain, gauss)
         # dilation
+        LOGGER.info(
+            f"[{self.filename}] : smoothed grain via Dilation (diff: {dilation.sum() - grain.sum()} vs {gauss.sum() - grain.sum()})"
+        )
         return self.re_add_holes(grain, dilation)
 
 
@@ -301,7 +304,7 @@ def trace_image_disordered(
     Returns
     -------
     tuple[dict, dict]
-        Binary and interger labeled cropped and full-image masks from skeletonising and pruning the grains in the image.
+        Binary and integer labeled cropped and full-image masks from skeletonising and pruning the grains in the image.
     """
     # Check both arrays are the same shape - should this be a test instead, why should this ever occur?
     if image.shape != grains_mask.shape:
@@ -600,15 +603,13 @@ def trace_grain(
 
     disorderedtrace.trace_dna()
 
-    cropped_images = {
+    return {
         "original_image": cropped_image,
-        "original_grain": cropped_mask,
+        "original_mask": cropped_mask,
         "smoothed_grain": disorderedtrace.smoothed_mask,
         "skeleton": disorderedtrace.skeleton,
         "pruned_skeleton": disorderedtrace.pruned_skeleton,
     }
-
-    return cropped_images
 
 
 def crop_array(array: npt.NDArray, bounding_box: tuple, pad_width: int = 0) -> npt.NDArray:
