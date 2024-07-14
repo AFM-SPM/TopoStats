@@ -153,7 +153,7 @@ removed_small_objects:
   core_set: false
 mask_overlay:
   title: "Masked Objects"
-  image_type: "non-binary"
+  image_type: "binary"
   savefig_dpi: 100
   core_set: true
 labelled_regions_02:
@@ -223,7 +223,7 @@ pruned_skeleton:
 connected_nodes:
   filename: "24-nodes"
   title: "Image with Skeletons and Highlighted Nodes"
-  image_type: "non-binary"
+  image_type: "integer"
   mask_cmap: "blu_purp_green"
   core_set: false
   savefig_dpi: 600

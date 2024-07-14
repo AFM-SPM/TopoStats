@@ -166,7 +166,7 @@ class Colormap:
     @staticmethod
     def blu() -> ListedColormap:
         """
-        Set RGBA colour map of just the colour blue.
+        Set RGB colour map of just the colour blue.
 
         Returns
         -------
@@ -177,7 +177,7 @@ class Colormap:
 
     @staticmethod
     def blu_purp_green():
-        """RGBA colour map of just the colour blue."""
+        """RGB colour map of blue, purple and green as 3 integers."""
         return ListedColormap(
             [[0 / 256, 157 / 256, 229 / 256], [255 / 256, 100 / 256, 225 / 256], [0 / 256, 1, 139 / 256]],
             "blu_purp_green",

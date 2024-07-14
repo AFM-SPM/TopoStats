@@ -370,6 +370,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'extracted_channel.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -403,6 +404,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'initial_median_flatten.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -421,6 +423,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'initial_tilt_removal.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -439,6 +442,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'initial_quadratic_removal.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -457,6 +461,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'initial_scar_removal.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -475,6 +480,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'initial_zero_average_background.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -493,6 +499,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'initial_nonlinear_polynomial_removal.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -526,6 +533,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'masked_median_flatten.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -544,6 +552,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'masked_tilt_removal.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -562,6 +571,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'masked_quadratic_removal.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -580,6 +590,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'masked_nonlinear_polynomial_removal.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -598,6 +609,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'masked_quadratic_removal.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -616,6 +628,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'masked_quadratic_removal.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -634,6 +647,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'final_zero_average_background.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -652,6 +666,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'gaussian_filtered.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -669,8 +684,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'z_threshold.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'z_threshold.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "core_set": True,
@@ -686,8 +702,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'mask_grains.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'mask_grains.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
@@ -703,6 +720,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'labelled_regions_01.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -721,8 +739,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'tidied_border.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'tidied_border.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
@@ -738,8 +757,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'removed_noise.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'removed_noise.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
@@ -755,6 +775,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'removed_small_objects.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -772,8 +793,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'mask_overlay.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'mask_overlay.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "core_set": True,
@@ -789,6 +811,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'labelled_regions_02.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -807,6 +830,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'coloured_regions.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -825,8 +849,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'bounding_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'bounding_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
@@ -842,8 +867,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
@@ -857,8 +883,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'grain_image.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'grain_image.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "core_set": False,
@@ -872,7 +899,10 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=("Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"),
+                "integer",
+                error=(
+                    "Invalid value in config 'grain_mask.image_type', valid values are 'binary', 'integer' or 'non-binary'"
+                ),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -885,6 +915,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'grain_mask_image.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -903,8 +934,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -916,8 +948,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -929,8 +962,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -943,8 +977,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -957,8 +992,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -970,8 +1006,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -983,8 +1020,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -996,8 +1034,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1008,8 +1047,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "cmap": str,
@@ -1019,8 +1059,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1032,8 +1073,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1045,8 +1087,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1059,8 +1102,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1073,8 +1117,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary', 'integer' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1086,6 +1131,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'all_molecule_traces.image_type', valid values "
                     "are 'binary' or 'non-binary'"
@@ -1102,6 +1148,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
+                "integer",
                 error=(
                     "Invalid value in config 'single_molecule_trace.image_type', valid values "
                     "are 'binary' or 'non-binary'"

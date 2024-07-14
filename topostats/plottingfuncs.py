@@ -200,7 +200,7 @@ class Images:
         masked_array : npt.NDarray
             Optional mask array to overlay onto an image.
         plot_coords : npt.NDArray
-            ??? Needs defining.
+            2xN coordinates to plot on top of the image. Must be within image bounds.
         title : str
             Title for plot.
         image_type : str
@@ -339,7 +339,9 @@ class Images:
                 vmax=self.zrange[1],
             )
             if isinstance(self.masked_array, np.ndarray):
-                # self.masked_array[self.masked_array != 0] = 1
+                print(self.title, self.image_type)
+                if self.image_type == "binary":
+                    self.masked_array[self.masked_array != 0] = 1
                 # If the image is too large for singles to be resolved in the mask, then dilate the mask proportionally
                 # to image size to enable clear viewing.
                 # if np.max(self.masked_array.shape) > 500:
@@ -360,7 +362,7 @@ class Images:
                     interpolation=self.interpolation,
                     alpha=0.7,
                 )
-                patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
+                patch = [Patch(color=self.mask_cmap(0, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1.02, 1.09))
             # if coordinates are provided (such as in splines, plot those)
             elif self.plot_coords is not None:
