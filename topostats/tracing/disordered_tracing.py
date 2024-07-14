@@ -243,22 +243,28 @@ class disorderedTrace:
         npt.NDArray
             Numpy array of smmoothed image.
         """
-        dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
-        gauss = gaussian(grain, sigma=gaussian_sigma)
-        gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
-        gauss[gauss != 1] = 0
-        gauss = gauss.astype(np.int32)
-        # gauss
-        if dilation.sum() - grain.sum() > gauss.sum() - grain.sum() or dilation_iterations is None:
+        if dilation_iterations is not None:
+            dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
+        if gaussian_sigma is not None:
+            gauss = gaussian(grain, sigma=gaussian_sigma)
+            gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
+            gauss[gauss != 1] = 0
+            gauss = gauss.astype(np.int32)
+        try:
+            # gauss
+            if dilation.sum() - grain.sum() > gauss.sum() - grain.sum() or dilation_iterations is None:
+                LOGGER.info(
+                    f"[{self.filename}] : smoothed grain via Gaussian (diff: {gauss.sum() - grain.sum()} vs {dilation.sum() - grain.sum()})"
+                )
+                return self.re_add_holes(grain, gauss)
+            # dilation
             LOGGER.info(
-                f"[{self.filename}] : smoothed grain via Gaussian (diff: {gauss.sum() - grain.sum()} vs {dilation.sum() - grain.sum()})"
+                f"[{self.filename}] : smoothed grain via Dilation (diff: {dilation.sum() - grain.sum()} vs {gauss.sum() - grain.sum()})"
             )
-            return self.re_add_holes(grain, gauss)
-        # dilation
-        LOGGER.info(
-            f"[{self.filename}] : smoothed grain via Dilation (diff: {dilation.sum() - grain.sum()} vs {gauss.sum() - grain.sum()})"
-        )
-        return self.re_add_holes(grain, dilation)
+            return self.re_add_holes(grain, dilation)
+        except (NameError, UnboundLocalError):
+            LOGGER.info(f"[{self.filename}] : 'null' for both mask smoothing values ('sigma' and 'dilations'). Not smoothing the mask.")
+            return grain.copy()
 
 
 def trace_image_disordered(
