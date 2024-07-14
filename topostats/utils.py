@@ -136,10 +136,7 @@ def update_plotting_config(plotting_config: dict) -> dict:
         LOGGER.debug(f"After adding missing configuration options :\n{pformat(plotting_config['plot_dict'][image])}")
         # Make it so that binary images do not have the user-defined z-scale
         # applied, but non-binary images do.
-        if (
-            plotting_config["plot_dict"][image]["image_type"] == "binary"
-            or plotting_config["plot_dict"][image]["image_type"] == "integer"
-        ):
+        if plotting_config["plot_dict"][image]["image_type"] == "binary":
             plotting_config["plot_dict"][image]["zrange"] = [None, None]
 
     return plotting_config
