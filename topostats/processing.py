@@ -216,7 +216,7 @@ def run_grains(  # noqa: C901
                     Images(
                         image,
                         filename=f"{filename}_{direction}_masked",
-                        masked_array=grains.directions[direction]["removed_small_objects"],
+                        masked_array=grains.directions[direction]["removed_small_objects"].astype(bool),
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
 
