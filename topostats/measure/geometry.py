@@ -1,8 +1,8 @@
 """Functions for measuring geometric properties of grains."""
 
+import networkx
 import numpy as np
 from numpy.typing import NDArray
-import networkx
 
 
 def bounding_box_cartesian_points_float(
@@ -95,7 +95,6 @@ def calculate_shortest_branch_distances(
     nodes_with_branches: dict[int, NDArray[np.number]], whole_skeleton_graph: networkx.classes.graph.Graph
 ):
     """Calculate the shortest distances between branches emanating from nodes."""
-
     num_nodes = len(nodes_with_branches)
     shortest_node_distances = np.zeros((num_nodes, num_nodes), dtype=np.float64)
     shortest_distances_branch_indexes = np.zeros((num_nodes, num_nodes), dtype=np.int32)
@@ -126,3 +125,55 @@ def calculate_shortest_branch_distances(
             )
 
     return shortest_node_distances, shortest_distances_branch_indexes, shortest_distances_coordinates
+
+
+def connect_best_matches(
+    network_array_representation: NDArray[np.int32],
+    whole_skeleton_graph: networkx.classes.graph.Graph,
+    match_indexes: NDArray[np.int32],
+    shortest_distances_between_nodes: NDArray[np.float64],
+    shortest_distances_branch_indexes: NDArray[np.int32],
+    emanating_branch_starts_by_node: dict[int, NDArray[np.int32]],
+    extend_distance: float = -1,
+):
+    """Connect the branches between node pairs that have been deemed to be best matches.
+
+    Parameters
+    ----------
+    network_array_representation : NDArray[np.int32]
+        2D numpy array representing the network using integers to represent branches, nodes etc.
+    whole_skeleton_graph : networkx.classes.graph.Graph
+        Networkx graph representing the whole network.
+    match_indexes : NDArray[np.int32]
+        Nx2 numpy array of indexes of the best matching nodes.
+    shortest_distances_between_nodes : NDArray[np.float64]
+        NxN numpy array of shortest distances between every node pair.
+    shortest_distances_branch_indexes : NDArray[np.int32]
+        NxNx2 numpy array of indexes of the branches to connect between the best matching nodes.
+
+    Returns
+    -------
+    NDArray[np.int32]
+        2D numpy array representing the network using integers to represent branches, nodes etc.
+    """
+    for node_pair_index in match_indexes:
+        # Fetch the shortest distance between two nodes
+        shortest_distance = shortest_distances_between_nodes[node_pair_index[0], node_pair_index[1]]
+        if shortest_distance <= extend_distance or extend_distance == -1:
+            # Fetch the indexes of the branches to connect defined by the closest connecting branchees of the given nodes
+            indexes_of_branches_to_connect = shortest_distances_branch_indexes[node_pair_index[0], node_pair_index[1]]
+            node_numbers = list(emanating_branch_starts_by_node.keys())
+            # Grab the coordinate of the starting branch position of the branch to connect
+            source = tuple(
+                emanating_branch_starts_by_node[node_numbers[node_pair_index[0]]][indexes_of_branches_to_connect[0]]
+            )
+            # Grab the coordinate of the branch position to connect to
+            target = tuple(
+                emanating_branch_starts_by_node[node_numbers[node_pair_index[1]]][indexes_of_branches_to_connect[1]]
+            )
+            # Get the path between the two branches using networkx
+            path = np.array(networkx.shortest_path(whole_skeleton_graph, source, target))
+            # Set all the coordinates in the path to 3 in the network array representation
+            network_array_representation[path[:, 0], path[:, 1]] = 3
+
+    return network_array_representation
