@@ -93,8 +93,22 @@ def do_points_in_arrays_touch(
 
 def calculate_shortest_branch_distances(
     nodes_with_branches: dict[int, NDArray[np.number]], whole_skeleton_graph: networkx.classes.graph.Graph
-):
-    """Calculate the shortest distances between branches emanating from nodes."""
+) -> tuple[float, int, NDArray]:
+    """
+    Calculate the shortest distances between branches emanating from nodes.
+
+    Parameters
+    ----------
+    nodes_with_branches : dict[int, NDArray[np.number]]
+        Dictionary of arrays that emanante from a node.
+    whole_skeleton_graph : networkx.classes.graph.Graph
+        NetworkX Graph representation of the whole skeleton.
+
+    Returns
+    -------
+    tuple(float, int, NDArray)
+        A tuple of the shortest node distances, their indexes and the shortest distance coordinates.
+    """
     num_nodes = len(nodes_with_branches)
     shortest_node_distances = np.zeros((num_nodes, num_nodes), dtype=np.float64)
     shortest_distances_branch_indexes = np.zeros((num_nodes, num_nodes), dtype=np.int32)
