@@ -1,8 +1,8 @@
 """Functions for measuring geometric properties of grains."""
 
+import networkx
 import numpy as np
 from numpy.typing import NDArray
-import networkx
 
 
 def bounding_box_cartesian_points_float(
@@ -95,7 +95,6 @@ def calculate_shortest_branch_distances(
     nodes_with_branches: dict[int, NDArray[np.number]], whole_skeleton_graph: networkx.classes.graph.Graph
 ):
     """Calculate the shortest distances between branches emanating from nodes."""
-
     num_nodes = len(nodes_with_branches)
     shortest_node_distances = np.zeros((num_nodes, num_nodes), dtype=np.float64)
     shortest_distances_branch_indexes = np.zeros((num_nodes, num_nodes), dtype=np.int32)
