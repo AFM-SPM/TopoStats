@@ -1,12 +1,16 @@
 """Tests for the geometry module."""
 
+import networkx
 import numpy as np
 import pytest
 from numpy.typing import NDArray
+from pytest_lazyfixture import lazy_fixture
 
+# pylint: disable=too-many-arguments
 from topostats.measure.geometry import (
     bounding_box_cartesian_points_float,
     bounding_box_cartesian_points_integer,
+    connect_best_matches,
     do_points_in_arrays_touch,
 )
 
@@ -105,3 +109,55 @@ def test_do_points_in_arrays_touch(
     assert result_touching == expected_result_touching
     np.testing.assert_array_equal(point_touching_1, expected_point_1_touching)
     np.testing.assert_array_equal(point_touching_2, expected_point_2_touching)
+
+
+@pytest.mark.parametrize(
+    (
+        "network_array_representation",
+        "whole_skeleton_graph",
+        "match_indexes",
+        "shortest_distances_between_nodes",
+        "shortest_distances_branch_indexes",
+        "emanating_branch_starts_by_node",
+        "extend_distance",
+        "expected_network_array_representation",
+    ),
+    [
+        pytest.param(
+            lazy_fixture("network_array_representation_figure_8"),
+            lazy_fixture("whole_skeleton_graph_figure_8"),
+            np.array([[1, 0]]),
+            np.array([[0.0, 6.0], [6.0, 0.0]]),
+            np.array([[[0, 0], [1, 1]], [[1, 1], [0, 0]]]),
+            {
+                0: [np.array([6, 1]), np.array([7, 3]), np.array([8, 1])],
+                1: [np.array([6, 11]), np.array([7, 9]), np.array([8, 11])],
+            },
+            8.0,
+            lazy_fixture("expected_network_array_representation_figure_8"),
+            id="figure 8",
+        )
+    ],
+)
+def test_connect_best_matches(
+    network_array_representation: NDArray[np.int32],
+    whole_skeleton_graph: networkx.classes.graph.Graph,
+    match_indexes: NDArray[np.int32],
+    shortest_distances_between_nodes: NDArray[np.number],
+    shortest_distances_branch_indexes: NDArray[np.int32],
+    emanating_branch_starts_by_node: NDArray[np.int32],
+    extend_distance: float,
+    expected_network_array_representation: NDArray[np.int32],
+):
+    """Test the connect_best_matches function."""
+    result = connect_best_matches(
+        network_array_representation,
+        whole_skeleton_graph,
+        match_indexes,
+        shortest_distances_between_nodes,
+        shortest_distances_branch_indexes,
+        emanating_branch_starts_by_node,
+        extend_distance,
+    )
+
+    np.testing.assert_array_equal(result, expected_network_array_representation)
