@@ -306,7 +306,7 @@ class Images:
                 fig, ax = self.save_figure()
                 LOGGER.info(
                     f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}"
-                    " | DPI: {self.savefig_dpi}"
+                    f" | DPI: {self.savefig_dpi}"
                 )
                 plt.close()
                 return fig, ax

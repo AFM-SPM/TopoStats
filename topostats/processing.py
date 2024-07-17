@@ -284,6 +284,7 @@ def run_grainstats(
                 if key in ["grain_image", "grain_mask", "grain_mask_image"]
             }
             grainstats_dict = {}
+            height_profiles_dict = {}
             # There are two layers to process those above the given threshold and those below
             for direction, _ in grain_masks.items():
                 # Check if there are grains
@@ -293,7 +294,7 @@ def run_grainstats(
                     )
                     grainstats_dict[direction] = create_empty_dataframe()
                 else:
-                    grainstats_dict[direction], grains_plot_data = GrainStats(
+                    grainstats_calculator = GrainStats(
                         data=image,
                         labelled_data=grain_masks[direction],
                         pixel_to_nanometre_scaling=pixel_to_nm_scaling,
@@ -302,7 +303,10 @@ def run_grainstats(
                         image_name=filename,
                         plot_opts=grain_plot_dict,
                         **grainstats_config,
-                    ).calculate_stats()
+                    )
+                    grainstats_dict[direction], grains_plot_data, height_profiles_dict[direction] = (
+                        grainstats_calculator.calculate_stats()
+                    )
                     grainstats_dict[direction]["threshold"] = direction
 
                     # Plot grains if required
@@ -333,16 +337,18 @@ def run_grainstats(
                     "grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible."
                 )
 
-            return grainstats_df
+            return grainstats_df, height_profiles_dict
 
         except Exception:
             LOGGER.info(
                 f"[{filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
             )
-            return create_empty_dataframe()
+            return create_empty_dataframe(), height_profiles_dict
     else:
-        LOGGER.info(f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe.")
-        return create_empty_dataframe()
+        LOGGER.info(
+            f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe and empty height_profiles."
+        )
+        return create_empty_dataframe(), {}
 
 
 def run_dnatracing(  # noqa: C901
@@ -605,7 +611,7 @@ def process_scan(
 
     if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
         # Grainstats :
-        results_df = run_grainstats(
+        results_df, height_profiles = run_grainstats(
             image=topostats_object["image_flattened"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
@@ -629,11 +635,13 @@ def process_scan(
             results_df=results_df,
         )
 
-        # Add grain trace data to topostats object
+        # Add grain trace data and height profiles to topostats object
         topostats_object["grain_trace_data"] = grain_trace_data
+        topostats_object["height_profiles"] = height_profiles
 
     else:
         results_df = create_empty_dataframe()
+        height_profiles = {}
 
     # Get image statistics
     LOGGER.info(f"[{topostats_object['filename']}] : *** Image Statistics ***")
@@ -655,7 +663,7 @@ def process_scan(
         output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
     )
 
-    return topostats_object["img_path"], results_df, image_stats
+    return topostats_object["img_path"], results_df, image_stats, height_profiles
 
 
 def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:

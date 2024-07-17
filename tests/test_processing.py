@@ -1,5 +1,7 @@
 """Test end-to-end running of topostats."""
 
+import json
+import platform
 from pathlib import Path
 
 import filetype
@@ -7,6 +9,7 @@ import h5py
 import numpy as np
 import pandas as pd
 import pytest
+from numpyencoder import NumpyEncoder
 from test_io import dict_almost_equal
 
 from topostats.io import LoadScans, hdf5_to_dict
@@ -35,7 +38,7 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
 
     process_scan_config["grains"]["direction"] = "below"
     img_dic = load_scan_data.img_dict
-    _, results, img_stats = process_scan(
+    _, results, img_stats, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -51,6 +54,31 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
     print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
 
+@pytest.mark.skipif(platform.platform()[:5] == "macOS", reason="Precision differences on macOS")
+def test_process_scan_below_height_profiles(
+    regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans
+) -> None:
+    """Regression test for checking the process_scan functions correctly."""
+    # Ensure there are below grains
+    process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
+    process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
+    process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
+
+    process_scan_config["grains"]["direction"] = "below"
+    img_dic = load_scan_data.img_dict
+    _, _, _, height_profiles = process_scan(
+        topostats_object=img_dic["minicircle_small"],
+        base_dir=BASE_DIR,
+        filter_config=process_scan_config["filter"],
+        grains_config=process_scan_config["grains"],
+        grainstats_config=process_scan_config["grainstats"],
+        dnatracing_config=process_scan_config["dnatracing"],
+        plotting_config=process_scan_config["plotting"],
+        output_dir=tmp_path,
+    )
+    print(json.dumps(height_profiles, cls=NumpyEncoder), file=regtest)  # noqa: T201
+
+
 def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains
@@ -58,7 +86,7 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
 
     img_dic = load_scan_data.img_dict
-    _, results, img_stats = process_scan(
+    _, results, img_stats, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -74,6 +102,30 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
     print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
 
+@pytest.mark.skipif(platform.platform()[:5] == "macOS", reason="Precision differences on macOS")
+def test_process_scan_above_height_profiles(
+    regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans
+) -> None:
+    """Regression test for checking the process_scan functions correctly."""
+    # Ensure there are below grains
+    process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
+    process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
+
+    img_dic = load_scan_data.img_dict
+    _, _, _, height_profiles = process_scan(
+        topostats_object=img_dic["minicircle_small"],
+        base_dir=BASE_DIR,
+        filter_config=process_scan_config["filter"],
+        grains_config=process_scan_config["grains"],
+        grainstats_config=process_scan_config["grainstats"],
+        dnatracing_config=process_scan_config["dnatracing"],
+        plotting_config=process_scan_config["plotting"],
+        output_dir=tmp_path,
+    )
+    # Remove the Basename column as this differs on CI
+    print(json.dumps(height_profiles, cls=NumpyEncoder), file=regtest)  # noqa: T201
+
+
 def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains
@@ -83,7 +135,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
 
     process_scan_config["grains"]["direction"] = "both"
     img_dic = load_scan_data.img_dict
-    _, results, img_stats = process_scan(
+    _, results, img_stats, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -131,7 +183,7 @@ def test_save_cropped_grains(
     process_scan_config["plotting"]["savefig_dpi"] = 50
 
     img_dic = load_scan_data.img_dict
-    _, _, _ = process_scan(
+    _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -176,7 +228,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
 
     img_dic = load_scan_data.img_dict
-    _, _, _ = process_scan(
+    _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -311,7 +363,7 @@ def test_check_run_steps(
             True,
             False,
             False,
-            "Calculation of grainstats disabled, returning empty dataframe.",
+            "Calculation of grainstats disabled, returning empty dataframe and empty height_profiles.",
             "minicircle_small_above_masked.png",
             id="Filtering and Grain enabled",
         ),
@@ -358,7 +410,7 @@ def test_process_stages(
     process_scan_config["grains"]["run"] = grains_run
     process_scan_config["grainstats"]["run"] = grainstats_run
     process_scan_config["dnatracing"]["run"] = dnatracing_run
-    _, _, _ = process_scan(
+    _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -378,7 +430,7 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
     img_dic = load_scan_data.img_dict
     process_scan_config["grains"]["threshold_std_dev"]["above"] = 1000
     process_scan_config["filter"]["remove_scars"]["run"] = False
-    _, _, _ = process_scan(
+    _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -407,7 +459,7 @@ def test_process_scan_align_grainstats_dnatracing(
     process_scan_config["filter"]["remove_scars"]["run"] = False
     process_scan_config["grains"]["absolute_area_threshold"]["above"] = [150, 3000]
     process_scan_config["dnatracing"]["min_skeleton_size"] = 50
-    _, results, _ = process_scan(
+    _, results, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -485,7 +537,7 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     mask_below = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
     grain_masks = {"above": mask_above, "below": mask_below}
 
-    grainstats_df = run_grainstats(
+    grainstats_df, _ = run_grainstats(
         image=flattened_image,
         pixel_to_nm_scaling=0.4940029296875,
         grain_masks=grain_masks,

@@ -1,6 +1,7 @@
 """Tests of IO."""
 
 import argparse
+import json
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -16,6 +17,7 @@ from topostats.io import (
     LoadScans,
     convert_basename_to_relative_paths,
     dict_to_hdf5,
+    dict_to_json,
     find_files,
     get_date_time,
     get_out_path,
@@ -1351,3 +1353,29 @@ def test_save_and_load_topostats_file(
         np.testing.assert_array_equal(grain_mask_below, topostats_data["grain_masks"]["below"])
     if grain_trace_data is not None:
         np.testing.assert_equal(grain_trace_data, topostats_data["grain_trace_data"])
+
+
+@pytest.mark.parametrize(
+    ("dictionary", "target"),
+    [
+        pytest.param(
+            {"above": {"a": [1, 2, 3], "b": [4, 5, 6]}},
+            {"above": {"a": [1, 2, 3], "b": [4, 5, 6]}},
+            id="dictionary and lists",
+        ),
+        pytest.param(
+            {"above": {"a": np.asarray([1, 2, 3]), "b": np.asarray([4, 5, 6])}},
+            {"above": {"a": [1, 2, 3], "b": [4, 5, 6]}},
+            id="dictionary and numpy arrays",
+        ),
+    ],
+)
+def test_dict_to_json(dictionary: dict, target: dict, tmp_path: Path) -> None:
+    """Test writing of dictionary to JSON file."""
+    dict_to_json(data=dictionary, output_dir=tmp_path, filename="test.json")
+
+    outfile = tmp_path / "test.json"
+    assert outfile.is_file()
+
+    with outfile.open("r", encoding="utf-8") as f:
+        assert target == json.load(f)

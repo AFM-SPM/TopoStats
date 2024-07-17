@@ -16,13 +16,7 @@ import pandas as pd
 import yaml
 from tqdm import tqdm
 
-from topostats.io import (
-    LoadScans,
-    find_files,
-    read_yaml,
-    save_folder_grainstats,
-    write_yaml,
-)
+from topostats.io import LoadScans, dict_to_json, find_files, read_yaml, save_folder_grainstats, write_yaml
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import check_run_steps, completion_message, process_scan
@@ -130,11 +124,12 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
     with Pool(processes=config["cores"]) as pool:
         results = defaultdict()
         image_stats_all = defaultdict()
+        height_profile_all = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result, individual_image_stats_df in pool.imap_unordered(
+            for img, result, individual_image_stats_df, height_profiles in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
             ):
@@ -144,6 +139,8 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
                 # Add the dataframe to the results dict
                 image_stats_all[str(img)] = individual_image_stats_df
 
+                # Combine all height profiles
+                height_profile_all[str(img)] = height_profiles
                 # Display completion message for the image
                 LOGGER.info(f"[{img.name}] Processing completed.")
 
@@ -158,6 +155,11 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
+
+    # If requested save height profiles
+    if config["grainstats"]["extract_height_profile"]:
+        LOGGER.info(f"Saving all height profiles to {config['output_dir']}/height_profiles.json")
+        dict_to_json(data=height_profile_all, output_dir=config["output_dir"], filename="height_profiles.json")
 
     # Summary Statistics and Plots
     if config["summary_stats"]["run"]:

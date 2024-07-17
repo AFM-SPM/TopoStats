@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import json
 import logging
 import os
 import pickle as pkl
@@ -21,6 +22,7 @@ import pySPM
 import tifffile
 from AFMReader import asd
 from igor2 import binarywave
+from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
 from topostats.logs.logs import LOGGER_NAME
@@ -1259,3 +1261,26 @@ def load_pkl(infile: Path) -> Any:
     """
     with infile.open("rb", encoding=None) as f:
         return pkl.load(f)  # noqa: S301
+
+
+def dict_to_json(data: dict, output_dir: str | Path, filename: str | Path, indent: int = 4) -> None:
+    """
+    Write a dictionary to a JSON file at the specified location with the given name.
+
+    NB : The `NumpyEncoder` class is used as the default encoder to ensure Numpy dtypes are written as strings (they are
+         not serialisable to JSON using the default JSONEncoder).
+
+    Parameters
+    ----------
+    data : dict
+        Data as a dictionary that is to be written to file.
+    output_dir : str | Path
+        Directory the file is to be written to.
+    filename : str | Path
+        Name of output file.
+    indent : int
+        Spaces to indent JSON with, default is 4.
+    """
+    output_file = output_dir / filename
+    with output_file.open("w") as f:
+        json.dump(data, f, indent=indent, cls=NumpyEncoder)
