@@ -509,5 +509,4 @@ def test_interpolate_height_profile_images(img: dict, interpolate_conf: dict, ta
     """Test interpolate_height_profile() with more realistic images."""
     _img = request.getfixturevalue(img)
     interpolated_heights = height_profiles.interpolate_height_profile(_img["img"], _img["skeleton"], **interpolate_conf)
-    print(f"{interpolated_heights=}")
     np.testing.assert_array_almost_equal(interpolated_heights, target, decimal=12)
