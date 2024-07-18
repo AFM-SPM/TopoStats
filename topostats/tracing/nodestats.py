@@ -8,6 +8,7 @@ import math
 import networkx as nx
 import numpy as np
 import numpy.typing as npt
+from numpy.typing import NDArray
 from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.morphology import label
@@ -17,6 +18,8 @@ from topostats.measure.geometry import (
     bounding_box_cartesian_points_integer,
     connect_best_matches,
     do_points_in_arrays_touch,
+    calculate_shortest_branch_distances,
+    find_branches_for_nodes,
 )
 from topostats.tracing.pruning import prune_skeleton  # pruneSkeleton
 from topostats.tracing.skeletonize import getSkeleton
@@ -353,22 +356,21 @@ class nodeStats:
 
         return small_node_mask
 
-    def connect_extended_nodes_nearest(
-        self, connected_nodes: npt.NDArray, extend_dist: int | float = -1
-    ) -> npt.NDArray:
+    def connect_extended_nodes_nearest(self, connected_nodes: NDArray, extend_dist: float = -1) -> NDArray[np.int32]:
         """
         Extend the odd branched nodes to other odd branched nodes within the 'extend_dist' threshold.
 
         Parameters
         ----------
-        connected_nodes : npt.NDArray
-            A 2D array with background = 0, skeleton = 1, endpoints = 2, node_centres = 3.
+        connected_nodes : NDArray
+            A 2D array representing the network with background = 0, skeleton = 1, endpoints = 2,
+            node_centres = 3.
         extend_dist : int | float, optional
             The distance over which to connect odd-branched nodes, by default -1 for no-limit.
 
         Returns
         -------
-        npt.NDArray
+        NDArray[np.int32]
             Connected nodes array with odd-branched nodes connected.
         """
         just_nodes = np.where(connected_nodes == 3, 1, 0)  # remove branches & termini points
@@ -378,173 +380,39 @@ class nodeStats:
         just_branches[connected_nodes == 1] = labelled_nodes.max() + 1
         labelled_branches = label(just_branches)
 
-        emanating_branch_starts_by_node = {}  # Dictionary to store emanating branches for each label
-        nodes_with_odd_branches = []  # List to store nodes with three branches
+        nodes_with_branch_starting_coords = find_branches_for_nodes(
+            network_array_representation=connected_nodes,
+            labelled_nodes=labelled_nodes,
+            labelled_branches=labelled_branches,
+        )
 
-        for node_num in range(1, labelled_nodes.max() + 1):
-            num_branches = 0
-            # makes lil box around node with 1 overflow
-            bounding_box = bounding_box_cartesian_points_integer(np.argwhere(labelled_nodes == node_num))
-            crop_left = bounding_box[0] - 1
-            crop_right = bounding_box[2] + 2
-            crop_top = bounding_box[1] - 1
-            crop_bottom = bounding_box[3] + 2
-            cropped_matrix = connected_nodes[crop_left:crop_right, crop_top:crop_bottom]
-            print("======= CROPPED MATRIX ========")
-            print(cropped_matrix)
-            print("===============================")
-            # get coords of nodes and branches in box
-            node_coords = np.argwhere(cropped_matrix == 3)
-            branch_coords = np.argwhere(cropped_matrix == 1)
-            # iterate through node coords to see which are within 8 dirs
-            for node_coord in node_coords:
-                for branch_coord in branch_coords:
-                    distance = math.dist(node_coord, branch_coord)
-                    if distance <= math.sqrt(2):
-                        num_branches = num_branches + 1
-
-            # find the branch start point of odd branched nodes
-            if num_branches % 2 == 1:
-                print("odd number of branches")
-                nodes_with_odd_branches.append(node_num)
-                emanating_branches = []  # List to store emanating branches for the current label
-                for branch in range(1, labelled_branches.max() + 1):
-                    # technically using labelled_branches when there's an end loop will only cause one
-                    #   of the end loop coords to be captured. This shopuldn't matter as the other
-                    #   label after the crossing should be closer to another node.
-                    touching, touching_point_1, touching_point_2 = do_points_in_arrays_touch(
-                        np.argwhere(labelled_branches == branch),
-                        np.argwhere(labelled_nodes == node_num),
-                    )
-                    if touching:
-                        emanating_branches.append(touching_point_1)
-                    emanating_branch_starts_by_node[node_num - 1] = (
-                        emanating_branches  # Store emanating branches for this label
-                    )
-                    # assert len(emanating_branches) // 2 == 1
-
-        if (
-            len(emanating_branch_starts_by_node) <= 1
-        ):  # only <1 odd branch so ignore pairing. will nx work with this and return no pairs anyway?
-            print("only <1 odd branch so ignoring pairing, returning connected nodes")
-            print("========= CONNECTED NODES ============")
-            print(self.connected_nodes)
-            print("======================================")
+        # If there is only one node, then there is no need to connect the nodes since there is nothing to
+        # connect it to. Return the original connected_nodes instead.
+        if len(nodes_with_branch_starting_coords) <= 1:
+            self.connected_nodes = connected_nodes
             return self.connected_nodes
 
-        # Iterate through the nodes and their emanating branches
-        shortest_node_dists = np.zeros(
-            (len(emanating_branch_starts_by_node), len(emanating_branch_starts_by_node))
-        )  # initialise the maximal pairing matrix
-        shortest_dists_branch_idxs = np.zeros((shortest_node_dists.shape[0], shortest_node_dists.shape[0], 2)).astype(
-            np.int64
-        )
-        shortest_dist_coords = np.zeros((shortest_node_dists.shape[0], shortest_node_dists.shape[0], 2, 2)).astype(
-            np.int64
+        shortest_node_dists, shortest_dists_branch_idxs, _shortest_dist_coords = calculate_shortest_branch_distances(
+            nodes_with_branch_starting_coords=nodes_with_branch_starting_coords,
+            whole_skeleton_graph=self.whole_skel_graph,
         )
 
-        print(f"emanating_branch_starts_by_node: {emanating_branch_starts_by_node}")
-        print(f"whole skel graph: {type(self.whole_skel_graph)} \n {self.whole_skel_graph}")
-        # example emanating_branch_starts_by_node: {0: [array([6, 1]), array([7, 3]), array([8, 1])], 1: [array([ 6, 11]), array([7, 9]), array([ 8, 11])]}
-        # This is where 6,1, 7,3, 8,1 are branch starting points surrounding a node point at 7,1 and 6,11, 7,9, 8,11 are branch starting points surrounding a node point at 7,11
-        for i, (node1, branch_starts1) in enumerate(emanating_branch_starts_by_node.items()):
-            for j, (node2, branch_starts2) in enumerate(emanating_branch_starts_by_node.items()):
-                if node1 != node2:  # Avoid comparing a node with itself
-                    # get shortest distance between all branch starts in n1 and n2, on #px not nm length
-                    # this finds the shortest distance between all branch starts in n1 and n2 but not between branches of a common node (two branches of the same node won't be considered)
-                    # this distance is simply the number of pixels between the two and not following the trace
-                    temp_length_matrix = np.zeros((len(branch_starts1), len(branch_starts2)))
-                    print(
-                        f"comparing {node1} to {node2} | branch_starts1: {branch_starts1} to branch_starts2: {branch_starts2}"
-                    )
-                    for ii, bs1 in enumerate(branch_starts1):
-                        for jj, bs2 in enumerate(branch_starts2):
-                            shortest_path_length = nx.shortest_path_length(
-                                self.whole_skel_graph, tuple(bs1), tuple(bs2)
-                            )
-                            print(f" shortest path length between {bs1} and {bs2} is {shortest_path_length}")
-                            temp_length_matrix[ii, jj] = shortest_path_length
-                            # temp length matrix is a matrix storing each index vs each other index distance between branch starts. the index represents the branch start index in the branch_starts list
-                    # add shortest dist to shortest dist matrix
-                    # Used
-                    shortest_dist = np.min(temp_length_matrix)
-                    shortest_node_dists[i, j] = shortest_dist
-                    print(
-                        f" temp length matrix (containing shortest paths between different branches): \n{temp_length_matrix}"
-                    )
-                    # Used
-                    # find the indexes of the shortest distance in the temp length matrix.
-                    # eg if the shortest distance (say 5) is between branch 1 and branch 2 then the value at index 1, 2 will be 5 hence
-                    # argwhere_temp_length_matrix_equals_shortest_dist will be [[1, 2]].
-                    # It is a list of lists because there could be multiple shortest distances between branches.
-                    argwhere_temp_length_matrix_equals_shortest_dist = np.argwhere(temp_length_matrix == shortest_dist)
-                    print(f" temp_length_matrix: {temp_length_matrix}")
-                    print(f" shortest_dist: {shortest_dist}")
-                    print(f" temp_length_matrix == shortest_dist: {temp_length_matrix == shortest_dist}")
-                    print(
-                        f" argwhere_temp_length_matrix_equals_shortest_dist: {argwhere_temp_length_matrix_equals_shortest_dist}"
-                    )
-                    shortest_dists_branch_idxs[i, j] = argwhere_temp_length_matrix_equals_shortest_dist[0]
-                    print(f" shortest_dists_branch_idxs[{i}, {j}] : {shortest_dists_branch_idxs[i, j]}")
-                    # Unused?
-                    shortest_dist_coords[i, j] = (
-                        branch_starts1[shortest_dists_branch_idxs[i, j][0]],
-                        branch_starts2[shortest_dists_branch_idxs[i, j][1]],
-                    )
-        print(f"shortest_node_dists: {shortest_node_dists}")
-        print(f"shortest_dists_branch_idxs: {shortest_dists_branch_idxs}")
-        print(f"shortest_dist_coords: {shortest_dist_coords}")
-        print("\n")
+        # Matches is an Nx2 numpy array of indexes of the best matching nodes.
+        # Eg: np.array([[1, 0], [2, 3]]) means that the best matching nodes are
+        # node 1 and node 0, and node 2 and node 3.
+        matches: NDArray[np.int32] = self.best_matches(shortest_node_dists, max_weight_matching=False)
 
-        # at this point, shortest_dists_branch_idxs will contain some non-zero value pairs (i, j) where i and j are the node numbers
-        # but other pairs will be zero because they are not directly connected I think?
-
-        # get best matches
-        # what defines a best match?
-        print(f" {shortest_node_dists=}")
-        # shortest_node_dists appears to be a matrix of the shortest distances between branch starts of different nodes
-        # when this is passed to best_matches, it returns a list of tuples where each tuple is a pair of node numbers
-        # the pairs are the best matches of nodes based on the shortest distance between their branch starts
-        matches = self.best_matches(shortest_node_dists, max_weight_matching=False)
-        # # matches is a list of tuplees where each tuple is a pair of node numbers
-        # print(f" {matches=}")
-        # # get paths of best matches. TODO: replace below with using shortest dist coords
-        # print(f"getting paths of best matches")
-        # for node_pair_idx in matches:
-        #     # iterating over each node to allow matching up of branches
-        #     print(f" node pair idx: {node_pair_idx}")  # [1 0], so just using node numbers
-        #     shortest_dist = shortest_node_dists[node_pair_idx[0], node_pair_idx[1]]  # 6.0
-        #     # fetch the shortest distance between the two nodes
-        #     print(f" shortest dist: {shortest_dist}")
-        #     if shortest_dist <= extend_dist or extend_dist == -1:
-        #         # if the distance meets the criteria then connect the nodes.
-        #         print(f" shortest dist <= extend dist or extend dist == -1")
-        #         print(f" node_pair_idx: {node_pair_idx}")
-        #         branch_idxs = shortest_dists_branch_idxs[node_pair_idx[0], node_pair_idx[1]]
-        #         print(f" branch idxs: {branch_idxs}")
-        #         node_nums = list(emanating_branch_starts_by_node.keys())
-        #         print(f" node nums: {node_nums}")
-        #         source = tuple(emanating_branch_starts_by_node[node_nums[node_pair_idx[0]]][branch_idxs[0]])
-        #         # source and target are simply the start and end points of the path to be traced
-        #         print(f" source: {source}")
-        #         target = tuple(emanating_branch_starts_by_node[node_nums[node_pair_idx[1]]][branch_idxs[1]])
-        #         print(f" target: {target}")
-        #         path = np.array(nx.shortest_path(self.whole_skel_graph, source, target))
-        #         print(f" path: {path}")
-        #         # turn the path of the best match into 3s in the connected nodes array
-        #         connected_nodes[path[:, 0], path[:, 1]] = 3
-
+        # Connect the nodes by their best matches, using the shortest distances between their branch starts.
         connected_nodes = connect_best_matches(
             network_array_representation=connected_nodes,
             whole_skeleton_graph=self.whole_skel_graph,
             match_indexes=matches,
             shortest_distances_between_nodes=shortest_node_dists,
             shortest_distances_branch_indexes=shortest_dists_branch_idxs,
-            emanating_branch_starts_by_node=emanating_branch_starts_by_node,
+            emanating_branch_starts_by_node=nodes_with_branch_starting_coords,
             extend_distance=extend_dist,
         )
 
-        print(f"connected nodes: {connected_nodes}")
         self.connected_nodes = connected_nodes
         return self.connected_nodes
 
