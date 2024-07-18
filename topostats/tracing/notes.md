@@ -22,6 +22,17 @@ shortest path length between [7 9] and [8 1] is 8
 shortest path length between [ 8 11] and [6 1] is 10
 shortest path length between [ 8 11] and [7 3] is 8
 shortest path length between [ 8 11] and [8 1] is 10
+
+temp_length_matrix (containing shortest paths between different branches):
+[[10.  8. 10.]
+ [ 8.  6.  8.]
+ [10.  8. 10.]]
+
+shortest_dists_branch_idxs[i, j] = np.argwhere[temp_length_matrix == shortest_dist](0)
+what is the [0] for?
+argwhere will return a list of indices of where temp_length_matrix == shortest_dist.
+eg:
+
 shortest_node_dists: [[0. 6.]
  [6. 0.]]
 shortest_dists_branch_idxs: [[[0 0]
