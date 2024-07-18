@@ -1,6 +1,7 @@
 """Functions for measuring geometric properties of grains."""
 
 from __future__ import annotations
+
 import math
 
 import networkx
@@ -94,15 +95,16 @@ def do_points_in_arrays_touch(
     return (False, None, None)
 
 
+# pylint: disable=too-many-locals
 def calculate_shortest_branch_distances(
     nodes_with_branch_starting_coords: dict[int, NDArray[np.number]], whole_skeleton_graph: networkx.classes.graph.Graph
-) -> tuple[NDArray, NDArray, NDArray]:  # pylint: disable=too-many-locals
+) -> tuple[NDArray, NDArray, NDArray]:
     """
     Calculate the shortest distances between branches emanating from nodes.
 
     Parameters
     ----------
-    nodes_with_branches : dict[int, NDArray[np.number]]
+    nodes_with_branch_starting_coords : dict[int, NDArray[np.number]]
         Dictionary where the key is the node number and the value is an Nx2 numpy array of the starting coordinates
         of its branches.
     whole_skeleton_graph : networkx.classes.graph.Graph
@@ -114,10 +116,11 @@ def calculate_shortest_branch_distances(
         - NxN numpy array of shortest distances between every node pair. Indexes of this array represent the nodes.
         Eg for a 3x3 matrix, there are 3 nodes being compared with each other.
         This matrix is diagonally symmetric and the diagonal values are 0 since a node is always 0 distance from itself.
-        - NxNx2 numpy array of indexes of the best branches to connect between each node pair. Eg for node 1 and 3, the closest branches
-        might be indexes 2 and 4, so the value at [1, 3] would be [2, 4].
-        - NxNx2x2 numpy array of the coordinates of the branches to connect between each node pair. Eg for node 1 and 3, the closest branches
-        might be at coordinates [2, 3] and [4, 5], so the value at [1, 3] would be [[2, 3], [4, 5]].
+        - NxNx2 numpy array of indexes of the best branches to connect between each node pair.
+        Eg for node 1 and 3, the closest branches might be indexes 2 and 4, so the value at [1, 3] would be [2, 4].
+        - NxNx2x2 numpy array of the coordinates of the branches to connect between each node pair.
+        Eg for node 1 and 3, the closest branches might be at coordinates [2, 3] and [4, 5], so the
+        value at [1, 3] would be [[2, 3], [4, 5]].
     """
     num_nodes = len(nodes_with_branch_starting_coords)
     shortest_node_distances = np.zeros((num_nodes, num_nodes), dtype=np.float64)
@@ -183,7 +186,7 @@ def connect_best_matches(
     shortest_distances_branch_indexes: NDArray[np.int32],
     emanating_branch_starts_by_node: dict[int, NDArray[np.int32]],
     extend_distance: float = -1,
-):
+) -> NDArray[np.int32]:
     """
     Connect the branches between node pairs that have been deemed to be best matches.
 
@@ -246,3 +249,76 @@ def connect_best_matches(
             network_array_representation[path[:, 0], path[:, 1]] = 3
 
     return network_array_representation
+
+
+# pylint: disable=too-many-locals
+def find_branches_for_nodes(
+    network_array_representation: NDArray[np.int32],
+    labelled_nodes: NDArray[np.int32],
+    labelled_branches: NDArray[np.int32],
+) -> dict[int, list[NDArray[np.number] | None]]:
+    """
+    Locate branch starting positions for each node in a network.
+
+    Parameters
+    ----------
+    network_array_representation : NDArray[np.int32]
+        2D numpy array representing the network using integers to represent branches, nodes etc.
+    labelled_nodes : NDArray[np.int32]
+        2D numpy array representing the network using integers to represent nodes.
+    labelled_branches : NDArray[np.int32]
+        2D numpy array representing the network using integers to represent branches.
+
+    Returns
+    -------
+    dict[int, NDArray[np.int32]]
+        Dictionary where the key is the node number and the value is an Nx2 numpy array of the starting coordinates
+        of the branches emanating from that node.
+    """
+    # Dictionary to store emanating branches for each labelled node
+    emanating_branch_starts_by_node = {}
+
+    # Iterate over all the nodes in the labelled nodes image
+    for node_num in range(1, labelled_nodes.max() + 1):
+        num_branches = 0
+        # makes lil box around node with 1 overflow
+        bounding_box = bounding_box_cartesian_points_integer(np.argwhere(labelled_nodes == node_num))
+        crop_left = bounding_box[0] - 1
+        crop_right = bounding_box[2] + 2
+        crop_top = bounding_box[1] - 1
+        crop_bottom = bounding_box[3] + 2
+        cropped_matrix = network_array_representation[crop_left:crop_right, crop_top:crop_bottom]
+        # get coords of nodes and branches in box
+        node_coords = np.argwhere(cropped_matrix == 3)
+        branch_coords = np.argwhere(cropped_matrix == 1)
+        # iterate through node coords to see which are within 8 dirs
+        for node_coord in node_coords:
+            for branch_coord in branch_coords:
+                distance = math.dist(node_coord, branch_coord)
+                if distance <= math.sqrt(2):
+                    num_branches = num_branches + 1
+
+        # All nodes with even branches are considered to be complete as they have one
+        # strand going in for each coming out. This assumes that no strands naturally terminate at nodes.
+
+        # find the branch start point of odd branched nodes
+        nodes_with_odd_branches = []
+        if num_branches % 2 == 1:
+            nodes_with_odd_branches.append(node_num)
+            emanating_branches = []  # List to store emanating branches for the current label
+            for branch in range(1, labelled_branches.max() + 1):
+                # technically using labelled_branches when there's an end loop will only cause one
+                #   of the end loop coords to be captured. This shopuldn't matter as the other
+                #   label after the crossing should be closer to another node.
+                # Check that the branch is touching the node. Unsure of why this is necessary - Sylvia
+                touching, touching_point_1, _touching_point_2 = do_points_in_arrays_touch(
+                    np.argwhere(labelled_branches == branch),
+                    np.argwhere(labelled_nodes == node_num),
+                )
+                if touching:
+                    emanating_branches.append(touching_point_1)
+                emanating_branch_starts_by_node[node_num - 1] = (
+                    emanating_branches  # Store emanating branches for this label
+                )
+
+    return emanating_branch_starts_by_node
