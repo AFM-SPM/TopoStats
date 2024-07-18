@@ -163,3 +163,44 @@ def test_connect_best_matches(
     )
 
     np.testing.assert_array_equal(result, expected_network_array_representation)
+
+
+@pytest.mark.parametrize(
+    (
+        "nodes_with_branches_starting_coords",
+        "whole_skeleton_graph",
+        "expected_shortest_node_distances",
+        "expected_shortest_distances_branch_indexes",
+        "expected_shortest_distances_branch_coordinates",
+    ),
+    [
+        pytest.param(
+            {
+                0: [np.array([6, 1]), np.array([7, 3]), np.array([8, 1])],
+                1: [np.array([6, 11]), np.array([7, 9]), np.array([8, 11])],
+            },
+            lazy_fixture("whole_skeleton_graph_figure_8"),
+            np.array([[0, 6.0], [6.0, 0.0]]),
+            np.array([[[0, 0], [1, 1]], [[1, 1], [0, 0]]]),
+            np.array([[[[0, 0], [0, 0]], [[7, 3], [7, 9]]], [[[7, 9], [7, 3]], [[0, 0], [0, 0]]]]),
+            id="figure 8",
+        )
+    ],
+)
+def test_calculate_shortest_branch_distances(
+    nodes_with_branches_starting_coords: dict[int, NDArray[np.number]],
+    whole_skeleton_graph: networkx.classes.graph.Graph,
+    expected_shortest_node_distances: dict[int, float],
+    expected_shortest_distances_branch_indexes: dict[int, NDArray[np.int32]],
+    expected_shortest_distances_branch_coordinates: dict[int, NDArray[np.number]],
+) -> None:
+    """Test the calculate_shortest_branch_distances function."""
+    shortest_node_distances, shortest_distances_branch_indexes, shortest_distances_branch_coordinates = (
+        calculate_shortest_branch_distances(nodes_with_branches_starting_coords, whole_skeleton_graph)
+    )
+
+    np.testing.assert_array_equal(shortest_node_distances, expected_shortest_node_distances)
+    np.testing.assert_array_equal(shortest_distances_branch_indexes, expected_shortest_distances_branch_indexes)
+    print(shortest_distances_branch_coordinates)
+    np.testing.assert_array_equal(shortest_distances_branch_coordinates, expected_shortest_distances_branch_coordinates)
+
