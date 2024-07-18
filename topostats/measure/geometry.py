@@ -1,5 +1,8 @@
 """Functions for measuring geometric properties of grains."""
 
+from __future__ import annotations
+import math
+
 import networkx
 import numpy as np
 from numpy.typing import NDArray
@@ -92,8 +95,8 @@ def do_points_in_arrays_touch(
 
 
 def calculate_shortest_branch_distances(
-    nodes_with_branches: dict[int, NDArray[np.number]], whole_skeleton_graph: networkx.classes.graph.Graph
-):  # pylint: disable=too-many-locals
+    nodes_with_branch_starting_coords: dict[int, NDArray[np.number]], whole_skeleton_graph: networkx.classes.graph.Graph
+) -> tuple[NDArray, NDArray, NDArray]:  # pylint: disable=too-many-locals
     """
     Calculate the shortest distances between branches emanating from nodes.
 
@@ -108,44 +111,68 @@ def calculate_shortest_branch_distances(
     Returns
     -------
     Tuple[NDArray[np.number], NDArray[np.int32], NDArray[np.number]]
-        Tuple of the shortest distances between branches emanating from nodes, the indexes of the branches to
-        connect between the best matching nodes, and the coordinates of the branches to connect between the best
-        matching nodes.
+        - NxN numpy array of shortest distances between every node pair. Indexes of this array represent the nodes.
+        Eg for a 3x3 matrix, there are 3 nodes being compared with each other.
+        This matrix is diagonally symmetric and the diagonal values are 0 since a node is always 0 distance from itself.
+        - NxNx2 numpy array of indexes of the best branches to connect between each node pair. Eg for node 1 and 3, the closest branches
+        might be indexes 2 and 4, so the value at [1, 3] would be [2, 4].
+        - NxNx2x2 numpy array of the coordinates of the branches to connect between each node pair. Eg for node 1 and 3, the closest branches
+        might be at coordinates [2, 3] and [4, 5], so the value at [1, 3] would be [[2, 3], [4, 5]].
     """
-    num_nodes = len(nodes_with_branches)
+    num_nodes = len(nodes_with_branch_starting_coords)
     shortest_node_distances = np.zeros((num_nodes, num_nodes), dtype=np.float64)
-    shortest_distances_branch_indexes = np.zeros((num_nodes, num_nodes), dtype=np.int32)
-    shortest_distances_coordinates = np.empty((num_nodes, num_nodes, 2), dtype=object)
+    # For storing the indexes of the branches that are the best candidate between two nodes.
+    # Eg: [[[0, 0], [1, 2]], [[1, 2], [0, 0]]] means that node 0's branch 0 connects with node 1's branch 2.
+    # Note that this matrix is symmetric about the diagonal as we double-iterate between all nodes.
+    shortest_distances_branch_indexes = np.zeros((num_nodes, num_nodes, 2), dtype=np.int32)
+    shortest_distances_branch_coordinates = np.zeros((num_nodes, num_nodes, 2, 2), dtype=object)
 
-    for node_index_i, (node1, branches1) in enumerate(nodes_with_branches.items()):
-        for node_index_j, (node2, branches2) in enumerate(nodes_with_branches.items()):
+    # Iterate over the nodes twice to compare each combination of nodes. This double counts, so will create a symmetric
+    # matrix about the diagonal.
+    for node_index_i, (_node_i, node_branches_starts_coords_i) in enumerate(nodes_with_branch_starting_coords.items()):
+        for node_index_j, (_node_j, node_branches_starts_coords_j) in enumerate(
+            nodes_with_branch_starting_coords.items()
+        ):
             # Don't compare the same node to itself
             if node_index_i == node_index_j:
                 continue
+            # Store the shortest distance as we iterate.
             shortest_distance = None
-            shortest_distance_branch_indexes = None
+            # For storing the pair of branch indexes that are the best candidate between the two nodes.
+            # Eg: (3, 2) means that node i's branch 3 connects with node j's branch 2.
+            shortest_distance_branch_indexes: tuple[int, int] | None = None
             # Iteratively compare all branches from node1 to all branches from node2
             # to find the shortest distance between any two branches
-            for branch1 in branches1:
-                for branch2 in branches2:
-                    shortest_path_length_between_branch_1_and_2 = networkx.shortest_path_length(
-                        whole_skeleton_graph, tuple(branch1), tuple(branch2)
+            for branch_index_i, branch_start_i in enumerate(node_branches_starts_coords_i):
+                for branch_index_j, branch_start_j in enumerate(node_branches_starts_coords_j):
+                    shortest_path_length_between_branch_i_and_j = networkx.shortest_path_length(
+                        whole_skeleton_graph, tuple(branch_start_i), tuple(branch_start_j)
                     )
-                    if shortest_distance is None or shortest_path_length_between_branch_1_and_2 < shortest_distance:
-                        shortest_distance = shortest_path_length_between_branch_1_and_2
-                        shortest_distance_branch_indexes = (node1, node2)
+                    if shortest_distance is None or shortest_path_length_between_branch_i_and_j < shortest_distance:
+                        shortest_distance = shortest_path_length_between_branch_i_and_j
+                        # Store the indexes of the branches that are the shortest distance apart for node i and node j
+                        shortest_distance_branch_indexes = (branch_index_i, branch_index_j)
 
+            # Store the shortest distance between the two nodes
             shortest_node_distances[node_index_i, node_index_j] = shortest_distance
+            # Store the indexes of the branches that are the shortest distance apart for node i and node j.
+            # Note this may be None as the nodes may not be connected?
             shortest_distances_branch_indexes[node_index_i, node_index_j] = shortest_distance_branch_indexes
+            # Ensure that the nodes are connected before storing the coordinates of the branches starting coords
             if shortest_distance_branch_indexes is not None:
-                shortest_distances_coordinates[node_index_i, node_index_j] = (
-                    nodes_with_branches[shortest_distance_branch_indexes[0]][0],
-                    nodes_with_branches[shortest_distance_branch_indexes[1]][0],
+                # Add the coordinates of the branch pairs for each node-node combination. So for example, for
+                # node 0 and node 1, branches starting [6, 1] and [6, 11]:
+                # np.array([ [ [[0, 0][0, 0]] [[6 1][6 11]] ] [ [[6 11][6 1]] [[0, 0][0, 0]] ] ])
+                # Where the square [0 0][0 0]s are for node 0 / node 0 and node 1 / node 1.
+                # And [6 1][6 11] is for node 0 / node 1, indicating that branches start at [6, 1] and [6, 11].
+                shortest_distances_branch_coordinates[node_index_i, node_index_j] = (
+                    node_branches_starts_coords_i[shortest_distance_branch_indexes[0]],
+                    node_branches_starts_coords_j[shortest_distance_branch_indexes[1]],
                 )
             else:
-                shortest_distances_coordinates[node_index_i, node_index_j] = (None, None)
+                shortest_distances_branch_coordinates[node_index_i, node_index_j] = (None, None)
 
-    return shortest_node_distances, shortest_distances_branch_indexes, shortest_distances_coordinates
+    return shortest_node_distances, shortest_distances_branch_indexes, shortest_distances_branch_coordinates
 
 
 def connect_best_matches(

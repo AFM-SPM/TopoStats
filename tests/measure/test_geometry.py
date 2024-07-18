@@ -12,16 +12,18 @@ from topostats.measure.geometry import (
     bounding_box_cartesian_points_integer,
     connect_best_matches,
     do_points_in_arrays_touch,
+    calculate_shortest_branch_distances,
+    find_branches_for_nodes,
 )
 
 
-def test_bounding_box_cartesian_points_float_raises_value_error():
+def test_bounding_box_cartesian_points_float_raises_value_error() -> None:
     """Test the bounding_box_cartesian_points function raises a ValueError."""
     with pytest.raises(ValueError, match="Input array must be Nx2."):
         bounding_box_cartesian_points_float(np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]]))
 
 
-def test_bounding_box_cartesian_points_integer_raises_value_error():
+def test_bounding_box_cartesian_points_integer_raises_value_error() -> None:
     """Test the bounding_box_cartesian_points function raises a ValueError."""
     with pytest.raises(ValueError, match="Input array must be Nx2."):
         bounding_box_cartesian_points_float(np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]]))
@@ -39,7 +41,7 @@ def test_bounding_box_cartesian_points_integer_raises_value_error():
 )
 def test_bounding_box_cartesian_points_float(
     points: NDArray[np.number], expected_bbox: tuple[np.float64, np.float64, np.float64, np.float64]
-):
+) -> None:
     """Test the bounding_box_cartesian_points function."""
     assert bounding_box_cartesian_points_float(points) == expected_bbox
 
@@ -56,12 +58,12 @@ def test_bounding_box_cartesian_points_float(
 )
 def test_bounding_box_cartesian_points_integer(
     points: NDArray[np.number], expected_bbox: tuple[np.float64, np.float64, np.float64, np.float64]
-):
+) -> None:
     """Test the bounding_box_cartesian_points function."""
     assert bounding_box_cartesian_points_integer(points) == expected_bbox
 
 
-def test_do_points_in_arrays_touch_raises_value_error():
+def test_do_points_in_arrays_touch_raises_value_error() -> None:
     """Test the do_points_in_arrays_touch function raises a ValueError."""
     with pytest.raises(ValueError, match="Input arrays must be Nx2 and Mx2."):
         do_points_in_arrays_touch(np.array([[0, 0], [1, 1], [2, 2]]), np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]]))
@@ -102,7 +104,7 @@ def test_do_points_in_arrays_touch(
     expected_result_touching: bool,
     expected_point_1_touching: NDArray[np.number],
     expected_point_2_touching: NDArray[np.number],
-):
+) -> None:
     """Test the do_points_in_arrays_touch function."""
     result_touching, point_touching_1, point_touching_2 = do_points_in_arrays_touch(array_1, array_2)
 
@@ -148,7 +150,7 @@ def test_connect_best_matches(
     emanating_branch_starts_by_node: NDArray[np.int32],
     extend_distance: float,
     expected_network_array_representation: NDArray[np.int32],
-):
+) -> None:
     """Test the connect_best_matches function."""
     result = connect_best_matches(
         network_array_representation,
