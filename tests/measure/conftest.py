@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+from skimage.morphology import label
 
 from topostats.tracing.nodestats import nodeStats
 
@@ -29,6 +30,24 @@ def network_array_representation_figure_8():
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ]
     )
+
+
+@pytest.fixture()
+def labelled_nodes_figure_8(network_array_representation_figure_8):
+    """Fixture for the labelled nodes of the figure 8 test molecule."""
+    # Grab the nodes from the network array representation.
+    just_nodes = np.where(network_array_representation_figure_8 == 3, 1, 0)
+    # Adding the 1 and 0 in the np.where call above makes the nodes 1 and the rest 0.
+    return label(just_nodes)
+
+
+@pytest.fixture()
+def labelled_branches_figure_8(network_array_representation_figure_8):
+    """Fixture for the labelled branches of the figure 8 test molecule."""
+    # Grab the branches from the network array representation.
+    just_branches = np.where(network_array_representation_figure_8 == 1, 1, 0)
+    # Adding the 1 and 0 in the np.where call above makes the branches 1 and the rest 0.
+    return label(just_branches)
 
 
 # fixture for just the skeleton
