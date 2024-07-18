@@ -10,9 +10,9 @@ from pytest_lazyfixture import lazy_fixture
 from topostats.measure.geometry import (
     bounding_box_cartesian_points_float,
     bounding_box_cartesian_points_integer,
+    calculate_shortest_branch_distances,
     connect_best_matches,
     do_points_in_arrays_touch,
-    calculate_shortest_branch_distances,
     find_branches_for_nodes,
 )
 
@@ -204,3 +204,30 @@ def test_calculate_shortest_branch_distances(
     print(shortest_distances_branch_coordinates)
     np.testing.assert_array_equal(shortest_distances_branch_coordinates, expected_shortest_distances_branch_coordinates)
 
+
+@pytest.mark.parametrize(
+    ("network_array_representation", "labelled_nodes", "labelled_branches", "expected_emanating_branch_starts_by_node"),
+    [
+        pytest.param(
+            pytest.lazy_fixture("network_array_representation_figure_8"),
+            pytest.lazy_fixture("labelled_nodes_figure_8"),
+            pytest.lazy_fixture("labelled_branches_figure_8"),
+            {
+                0: [np.array([6, 1]), np.array([7, 3]), np.array([8, 1])],
+                1: [np.array([6, 11]), np.array([7, 9]), np.array([8, 11])],
+            },
+        )
+    ],
+)
+def test_find_branches_for_nodes(
+    network_array_representation: NDArray[np.int32],
+    labelled_nodes: NDArray[np.int32],
+    labelled_branches: NDArray[np.int32],
+    expected_emanating_branch_starts_by_node: dict[int, NDArray[np.number]],
+) -> None:
+    """Test the find_branches_for_nodes function."""
+    emanating_branch_starts_by_node = find_branches_for_nodes(
+        network_array_representation, labelled_nodes, labelled_branches
+    )
+
+    np.testing.assert_equal(emanating_branch_starts_by_node, expected_emanating_branch_starts_by_node)
