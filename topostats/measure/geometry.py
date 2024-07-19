@@ -6,18 +6,18 @@ import math
 
 import networkx
 import numpy as np
-from numpy.typing import NDArray
+import numpy.typing as npt
 
 
 def bounding_box_cartesian_points_float(
-    points: NDArray[np.number],
+    points: npt.NDArray[np.number],
 ) -> tuple[np.float64, np.float64, np.float64, np.float64]:
     """
     Calculate the bounding box from a set of points.
 
     Parameters
     ----------
-    points : NDArray[np.number]
+    points : npt.NDArray[np.number]
         Nx2 numpy array of points.
 
     Returns
@@ -36,13 +36,15 @@ def bounding_box_cartesian_points_float(
     return (np.min(x_coords), np.min(y_coords), np.max(x_coords), np.max(y_coords))
 
 
-def bounding_box_cartesian_points_integer(points: NDArray[np.number]) -> tuple[np.int32, np.int32, np.int32, np.int32]:
+def bounding_box_cartesian_points_integer(
+    points: npt.NDArray[np.number],
+) -> tuple[np.int32, np.int32, np.int32, np.int32]:
     """
     Calculate the bounding box from a set of points.
 
     Parameters
     ----------
-    points : NDArray[np.number]
+    points : npt.NDArray[np.number]
         Nx2 numpy array of points.
 
     Returns
@@ -62,21 +64,21 @@ def bounding_box_cartesian_points_integer(points: NDArray[np.number]) -> tuple[n
 
 
 def do_points_in_arrays_touch(
-    points1: NDArray[np.int32], points2: NDArray[np.int32]
-) -> tuple[bool, NDArray[np.int32] | None, NDArray[np.int32] | None]:
+    points1: npt.NDArray[np.int32], points2: npt.NDArray[np.int32]
+) -> tuple[bool, npt.NDArray[np.int32] | None, npt.NDArray[np.int32] | None]:
     """
     Check if any points in two arrays are touching.
 
     Parameters
     ----------
-    points1 : NDArray[np.int32]
+    points1 : npt.NDArray[np.int32]
         Nx2 numpy array of points.
-    points2 : NDArray[np.int32]
+    points2 : npt.NDArray[np.int32]
         Mx2 numpy array of points.
 
     Returns
     -------
-    tuple[bool, NDArray[np.int32] | None, NDArray[np.int32] | None]
+    tuple[bool, npt.NDArray[np.int32] | None, npt.NDArray[np.int32] | None]
         True if any points in the two arrays are touching, False otherwise, followed by the first touching point pair
         that was found. If no points are touching, the second and third elements of the tuple will be None.
 
@@ -98,15 +100,15 @@ def do_points_in_arrays_touch(
 
 # pylint: disable=too-many-locals
 def calculate_shortest_branch_distances(
-    nodes_with_branch_starting_coords: dict[int, list[NDArray[np.int32]]],
+    nodes_with_branch_starting_coords: dict[int, list[npt.NDArray[np.int32]]],
     whole_skeleton_graph: networkx.classes.graph.Graph,
-) -> tuple[NDArray[np.number], NDArray[np.int32], NDArray[np.number]]:
+) -> tuple[npt.NDArray[np.number], npt.NDArray[np.int32], npt.NDArray[np.number]]:
     """
     Calculate the shortest distances between branches emanating from nodes.
 
     Parameters
     ----------
-    nodes_with_branch_starting_coords : dict[int, list[NDArray[np.int32]]]
+    nodes_with_branch_starting_coords : dict[int, list[npt.NDArray[np.int32]]]
         Dictionary where the key is the node number and the value is an Nx2 numpy array of the starting coordinates
         of its branches.
     whole_skeleton_graph : networkx.classes.graph.Graph
@@ -114,7 +116,7 @@ def calculate_shortest_branch_distances(
 
     Returns
     -------
-    Tuple[NDArray[np.number], NDArray[np.int32], NDArray[np.int32]]
+    Tuple[npt.NDArray[np.number], npt.NDArray[np.int32], npt.NDArray[np.int32]]
         - NxN numpy array of shortest distances between every node pair. Indexes of this array represent the nodes.
         Eg for a 3x3 matrix, there are 3 nodes being compared with each other.
         This matrix is diagonally symmetric and the diagonal values are 0 since a node is always 0 distance from itself.
@@ -181,36 +183,36 @@ def calculate_shortest_branch_distances(
 
 
 def connect_best_matches(
-    network_array_representation: NDArray[np.int32],
+    network_array_representation: npt.NDArray[np.int32],
     whole_skeleton_graph: networkx.classes.graph.Graph,
-    match_indexes: NDArray[np.int32],
-    shortest_distances_between_nodes: NDArray[np.number],
-    shortest_distances_branch_indexes: NDArray[np.int32],
-    emanating_branch_starts_by_node: dict[int, list[NDArray[np.int32]]],
+    match_indexes: npt.NDArray[np.int32],
+    shortest_distances_between_nodes: npt.NDArray[np.number],
+    shortest_distances_branch_indexes: npt.NDArray[np.int32],
+    emanating_branch_starts_by_node: dict[int, list[npt.NDArray[np.int32]]],
     extend_distance: float = -1,
-) -> NDArray[np.int32]:
+) -> npt.NDArray[np.int32]:
     """
     Connect the branches between node pairs that have been deemed to be best matches.
 
     Parameters
     ----------
-    network_array_representation : NDArray[np.int32]
+    network_array_representation : npt.NDArray[np.int32]
         2D numpy array representing the network using integers to represent branches, nodes etc.
     whole_skeleton_graph : networkx.classes.graph.Graph
         Networkx graph representing the whole network.
-    match_indexes : NDArray[np.int32]
+    match_indexes : npt.NDArray[np.int32]
         Nx2 numpy array of indexes of the best matching nodes.
         Eg: np.array([[1, 0], [2, 3]]) means that the best matching nodes are node 1 and node 0, and node 2 and node 3.
-    shortest_distances_between_nodes : NDArray[np.number]
+    shortest_distances_between_nodes : npt.NDArray[np.number]
         NxN numpy array of shortest distances between every node pair.
         Index positions indicate which node it's referring to, so index 2, 3 will be the shortest distance
         between nodes 2 and 3.
         Values on the diagonal will be 0 because the shortest distance between a node and itself is 0.
         Eg: np.array([[0.0, 6.0], [6.0, 0.0]]) means that the shortest distance between node 0 and node 1 is 6.0.
-    shortest_distances_branch_indexes : NDArray[np.int32]
+    shortest_distances_branch_indexes : npt.NDArray[np.int32]
         NxNx2 numpy array of indexes of the branches to connect between the best matching nodes.
         Not entirely sure what it does so won't attempt to explain more to avoid confusion.
-    emanating_branch_starts_by_node : dict[int, list[NDArray[np.int32]]]
+    emanating_branch_starts_by_node : dict[int, list[npt.NDArray[np.int32]]]
         Dictionary where the key is the node number and the value is an Nx2 numpy array of the starting coordinates
         of the branches emanating from that node. Rather self-explanatory.
         Eg:
@@ -226,7 +228,7 @@ def connect_best_matches(
 
     Returns
     -------
-    NDArray[np.int32]
+    npt.NDArray[np.int32]
         2D numpy array representing the network using integers to represent branches, nodes etc.
     """
     for node_pair_index in match_indexes:
@@ -255,25 +257,25 @@ def connect_best_matches(
 
 # pylint: disable=too-many-locals
 def find_branches_for_nodes(
-    network_array_representation: NDArray[np.int32],
-    labelled_nodes: NDArray[np.int32],
-    labelled_branches: NDArray[np.int32],
-) -> dict[int, list[NDArray[np.int32]]]:
+    network_array_representation: npt.NDArray[np.int32],
+    labelled_nodes: npt.NDArray[np.int32],
+    labelled_branches: npt.NDArray[np.int32],
+) -> dict[int, list[npt.NDArray[np.int32]]]:
     """
     Locate branch starting positions for each node in a network.
 
     Parameters
     ----------
-    network_array_representation : NDArray[np.int32]
+    network_array_representation : npt.NDArray[np.int32]
         2D numpy array representing the network using integers to represent branches, nodes etc.
-    labelled_nodes : NDArray[np.int32]
+    labelled_nodes : npt.NDArray[np.int32]
         2D numpy array representing the network using integers to represent nodes.
-    labelled_branches : NDArray[np.int32]
+    labelled_branches : npt.NDArray[np.int32]
         2D numpy array representing the network using integers to represent branches.
 
     Returns
     -------
-    dict[int, list[NDArray[np.int32]]]
+    dict[int, list[npt.NDArray[np.int32]]]
         Dictionary where the key is the node number and the value is an Nx2 numpy array of the starting coordinates
         of the branches emanating from that node.
     """
@@ -305,7 +307,9 @@ def find_branches_for_nodes(
 
         # find the branch start point of odd branched nodes
         if num_branches % 2 == 1:
-            emanating_branches: list[NDArray[np.int32]] = []  # List to store emanating branches for the current label
+            emanating_branches: list[npt.NDArray[np.int32]] = (
+                []
+            )  # List to store emanating branches for the current label
             for branch in range(1, labelled_branches.max() + 1):
                 # technically using labelled_branches when there's an end loop will only cause one
                 #   of the end loop coords to be captured. This shopuldn't matter as the other
@@ -319,7 +323,7 @@ def find_branches_for_nodes(
                 if touching:
                     assert touching_point_1 is not None
                     # Above required for mypy to ensure that there are no Nones
-                    # in the list, to prevent the return type being NDArray[np.int32 | None]
+                    # in the list, to prevent the return type being npt.NDArray[np.int32 | None]
                     emanating_branches.append(touching_point_1)
 
             assert len(emanating_branches) > 0, f"No branches found for node {node_num}"

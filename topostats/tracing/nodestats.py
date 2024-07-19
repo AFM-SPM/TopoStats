@@ -7,8 +7,6 @@ import logging
 import networkx as nx
 import numpy as np
 import numpy.typing as npt
-import pandas as pd
-from numpy.typing import NDArray
 from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.morphology import label
@@ -34,9 +32,9 @@ class nodeStats:
     ----------
     filename : str
         The name of the file being processed. For logging purposes.
-    image : npt.NDArray
+    image : npt.npt.NDArray
         The array of pixels.
-    mask : npt.NDArray
+    mask : npt.npt.NDArray
         The binary segmentation mask.
     smoothed_mask : npt.NDArray
         A smoothed version of the bianary segmentation mask.
@@ -358,13 +356,15 @@ class nodeStats:
 
         return small_node_mask
 
-    def connect_extended_nodes_nearest(self, connected_nodes: NDArray, extend_dist: float = -1) -> NDArray[np.int32]:
+    def connect_extended_nodes_nearest(
+        self, connected_nodes: npt.NDArray, extend_dist: float = -1
+    ) -> npt.NDArray[np.int32]:
         """
         Extend the odd branched nodes to other odd branched nodes within the 'extend_dist' threshold.
 
         Parameters
         ----------
-        connected_nodes : NDArray
+        connected_nodes : npt.NDArra
             A 2D array representing the network with background = 0, skeleton = 1, endpoints = 2,
             node_centres = 3.
         extend_dist : int | float, optional
@@ -372,7 +372,7 @@ class nodeStats:
 
         Returns
         -------
-        NDArray[np.int32]
+        npt.NDArra[np.int32]
             Connected nodes array with odd-branched nodes connected.
         """
         just_nodes = np.where(connected_nodes == 3, 1, 0)  # remove branches & termini points
@@ -402,7 +402,7 @@ class nodeStats:
         # Matches is an Nx2 numpy array of indexes of the best matching nodes.
         # Eg: np.array([[1, 0], [2, 3]]) means that the best matching nodes are
         # node 1 and node 0, and node 2 and node 3.
-        matches: NDArray[np.int32] = self.best_matches(shortest_node_dists, max_weight_matching=False)
+        matches: npt.NDArray[np.int32] = self.best_matches(shortest_node_dists, max_weight_matching=False)
 
         # Connect the nodes by their best matches, using the shortest distances between their branch starts.
         connected_nodes = connect_best_matches(
@@ -635,11 +635,6 @@ class nodeStats:
                     for i, angle in enumerate(angles):
                         matched_branches[i]["angles"] = angle
 
-                    # """
-                    # except ValueError:
-                    #     LOGGER.error(f"Node {node_no} too complex, see images for details.")
-                    #     error = True
-                    # """
                 except ResolutionError:
                     LOGGER.info(f"Node stats skipped as resolution too low: {self.px_2_nm}nm per pixel")
                     error = True
@@ -1006,7 +1001,7 @@ class nodeStats:
 
     def fwhm2(self, heights: npt.NDArray, distances: npt.NDArray, hm: float | None = None) -> tuple:
         """
-        Calculate the FWHM value. TODO: Dictionary-ify this one to help saving.
+        Calculate the FWHM value.
 
         First identifyies the HM then finding the closest values in the distances array and using
         linear interpolation to calculate the FWHM.

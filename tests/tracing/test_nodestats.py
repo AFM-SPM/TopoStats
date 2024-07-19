@@ -1,8 +1,8 @@
 """Test the nodestats module."""
 
 import numpy as np
+import numpy.typing as npt
 import pytest
-from numpy.typing import NDArray
 
 from topostats.tracing.nodestats import nodeStats
 
@@ -141,7 +141,7 @@ def test_connect_extended_nodes() -> None:
     ],
 )
 def test_connect_extended_nodes_nearest(
-    connected_nodes: NDArray[np.number], expected_nodes: NDArray[np.number]
+    connected_nodes: npt.NDArray[np.number], expected_nodes: npt.NDArray[np.number]
 ) -> None:
     """Test of connect_extended_nodes_nearest() method of nodeStats class.
 

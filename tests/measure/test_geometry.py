@@ -2,8 +2,8 @@
 
 import networkx
 import numpy as np
+import numpy.typing as npt
 import pytest
-from numpy.typing import NDArray
 from pytest_lazyfixture import lazy_fixture
 
 # pylint: disable=too-many-arguments
@@ -40,7 +40,7 @@ def test_bounding_box_cartesian_points_integer_raises_value_error() -> None:
     ],
 )
 def test_bounding_box_cartesian_points_float(
-    points: NDArray[np.number], expected_bbox: tuple[np.float64, np.float64, np.float64, np.float64]
+    points: npt.NDArray[np.number], expected_bbox: tuple[np.float64, np.float64, np.float64, np.float64]
 ) -> None:
     """Test the bounding_box_cartesian_points function."""
     assert bounding_box_cartesian_points_float(points) == expected_bbox
@@ -57,7 +57,7 @@ def test_bounding_box_cartesian_points_float(
     ],
 )
 def test_bounding_box_cartesian_points_integer(
-    points: NDArray[np.number], expected_bbox: tuple[np.float64, np.float64, np.float64, np.float64]
+    points: npt.NDArray[np.number], expected_bbox: tuple[np.float64, np.float64, np.float64, np.float64]
 ) -> None:
     """Test the bounding_box_cartesian_points function."""
     assert bounding_box_cartesian_points_integer(points) == expected_bbox
@@ -99,11 +99,11 @@ def test_do_points_in_arrays_touch_raises_value_error() -> None:
     ],
 )
 def test_do_points_in_arrays_touch(
-    array_1: NDArray[np.number],
-    array_2: NDArray[np.number],
+    array_1: npt.NDArray[np.number],
+    array_2: npt.NDArray[np.number],
     expected_result_touching: bool,
-    expected_point_1_touching: NDArray[np.number],
-    expected_point_2_touching: NDArray[np.number],
+    expected_point_1_touching: npt.NDArray[np.number],
+    expected_point_2_touching: npt.NDArray[np.number],
 ) -> None:
     """Test the do_points_in_arrays_touch function."""
     result_touching, point_touching_1, point_touching_2 = do_points_in_arrays_touch(array_1, array_2)
@@ -142,14 +142,14 @@ def test_do_points_in_arrays_touch(
     ],
 )
 def test_connect_best_matches(
-    network_array_representation: NDArray[np.int32],
+    network_array_representation: npt.NDArray[np.int32],
     whole_skeleton_graph: networkx.classes.graph.Graph,
-    match_indexes: NDArray[np.int32],
-    shortest_distances_between_nodes: NDArray[np.number],
-    shortest_distances_branch_indexes: NDArray[np.int32],
-    emanating_branch_starts_by_node: NDArray[np.int32],
+    match_indexes: npt.NDArray[np.int32],
+    shortest_distances_between_nodes: npt.NDArray[np.number],
+    shortest_distances_branch_indexes: npt.NDArray[np.int32],
+    emanating_branch_starts_by_node: npt.NDArray[np.int32],
     extend_distance: float,
-    expected_network_array_representation: NDArray[np.int32],
+    expected_network_array_representation: npt.NDArray[np.int32],
 ) -> None:
     """Test the connect_best_matches function."""
     result = connect_best_matches(
@@ -188,11 +188,11 @@ def test_connect_best_matches(
     ],
 )
 def test_calculate_shortest_branch_distances(
-    nodes_with_branches_starting_coords: dict[int, NDArray[np.number]],
+    nodes_with_branches_starting_coords: dict[int, npt.NDArray[np.number]],
     whole_skeleton_graph: networkx.classes.graph.Graph,
     expected_shortest_node_distances: dict[int, float],
-    expected_shortest_distances_branch_indexes: dict[int, NDArray[np.int32]],
-    expected_shortest_distances_branch_coordinates: dict[int, NDArray[np.number]],
+    expected_shortest_distances_branch_indexes: dict[int, npt.NDArray[np.int32]],
+    expected_shortest_distances_branch_coordinates: dict[int, npt.NDArray[np.number]],
 ) -> None:
     """Test the calculate_shortest_branch_distances function."""
     shortest_node_distances, shortest_distances_branch_indexes, shortest_distances_branch_coordinates = (
@@ -220,10 +220,10 @@ def test_calculate_shortest_branch_distances(
     ],
 )
 def test_find_branches_for_nodes(
-    network_array_representation: NDArray[np.int32],
-    labelled_nodes: NDArray[np.int32],
-    labelled_branches: NDArray[np.int32],
-    expected_emanating_branch_starts_by_node: dict[int, NDArray[np.number]],
+    network_array_representation: npt.NDArray[np.int32],
+    labelled_nodes: npt.NDArray[np.int32],
+    labelled_branches: npt.NDArray[np.int32],
+    expected_emanating_branch_starts_by_node: dict[int, npt.NDArray[np.number]],
 ) -> None:
     """Test the find_branches_for_nodes function."""
     emanating_branch_starts_by_node = find_branches_for_nodes(
