@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import math
 
 import networkx as nx
 import numpy as np
@@ -13,14 +12,11 @@ from numpy.typing import NDArray
 from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.morphology import label
-import matplotlib.pyplot as plt
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.geometry import (
-    bounding_box_cartesian_points_integer,
-    connect_best_matches,
-    do_points_in_arrays_touch,
     calculate_shortest_branch_distances,
+    connect_best_matches,
     find_branches_for_nodes,
 )
 from topostats.tracing.pruning import prune_skeleton  # pruneSkeleton
