@@ -7,6 +7,7 @@ import logging
 import networkx as nx
 import numpy as np
 import numpy.typing as npt
+from numpy.typing import NDArray
 from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.morphology import label
