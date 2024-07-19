@@ -196,13 +196,14 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 int,
             ),
         },
-        "dnatracing": {
+        "disordered_tracing": {
             "run": Or(
                 True,
                 False,
                 error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
             ),
             "min_skeleton_size": lambda n: n > 0.0,
+            "pad_width": lambda n: n > 0.0,
             "mask_smoothing_params": {
                 "gaussian_sigma": Or(
                     float,
@@ -236,7 +237,22 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "method_outlier": Or("abs", "mean_abs", "iqr"),
                 "height_threshold": Or(int, float, None),
             },
-            "joining_node_length": float,
+        },
+        "nodestats": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+            ),
+            "node_joining_length": float,
+            "pad_width": lambda n: n > 0.0,
+        },
+        "dnatracing": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+            ),
             "pad_width": lambda n: n > 0.0,
             "spline_step_size": lambda n: n > 0.0,
             "spline_linear_smoothing": lambda n: n >= 0.0,
@@ -881,7 +897,7 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
         },
-        "orig_grains": {
+        "orig_grain": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -894,7 +910,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
         },
-        "smoothed_grains": {
+        "smoothed_grain": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -907,21 +923,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
         },
-        "orig_skeletons": {
-            "filename": str,
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "mask_cmap": str,
-            "core_set": bool,
-            "savefig_dpi": int,
-        },
-        "pruned_skeletons": {
+        "skeleton": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -935,7 +937,21 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "nodes": {
+        "pruned_skeleton": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+        },
+        "connected_nodes": {
             "filename": str,
             "title": str,
             "image_type": Or(

@@ -89,6 +89,8 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         filter_run=config["filter"]["run"],
         grains_run=config["grains"]["run"],
         grainstats_run=config["grainstats"]["run"],
+        disordered_tracing_run=config["disordered_tracing"]["run"],
+        nodestats_run=config["nodestats"]["run"],
         dnatracing_run=config["dnatracing"]["run"],
     )
     # Ensures each image has all plotting options which are passed as **kwargs
@@ -115,6 +117,8 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         filter_config=config["filter"],
         grains_config=config["grains"],
         grainstats_config=config["grainstats"],
+        disordered_tracing_config=config["disordered_tracing"],
+        nodestats_config=config["nodestats"],
         dnatracing_config=config["dnatracing"],
         plotting_config=config["plotting"],
         output_dir=config["output_dir"],
