@@ -925,7 +925,6 @@ class nodeStats:
         npt.NDArray
             Array of pairs of indexes.
         """
-        print(f" finding best matches from array: \n{arr}")
         if max_weight_matching:
             G = self.create_weighted_graph(arr)
             matching = np.array(list(nx.max_weight_matching(G, maxcardinality=True)))
@@ -933,8 +932,6 @@ class nodeStats:
             np.fill_diagonal(arr, arr.max() + 1)
             G = self.create_weighted_graph(arr)
             matching = np.array(list(nx.min_weight_matching(G)))
-        print(f" created graph: \n{G}")
-        print(f" matching: {matching}")
         return matching
 
     @staticmethod
