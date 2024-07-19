@@ -10,7 +10,7 @@ from topostats.tracing.nodestats import nodeStats
 
 
 @pytest.fixture()
-def network_array_representation_figure_8():
+def network_array_representation_figure_8() -> npt.NDArray:
     """Fixture for the network array representation of the figure 8 test molecule."""
     return np.array(
         [
