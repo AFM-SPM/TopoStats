@@ -197,26 +197,26 @@ orig_grain:
   filename: "20-original_grains"
   title: "Image with Threshold Mask"
   image_type: "non-binary"
-  mask_cmap: "blu"
+  mask_cmap: "blue"
   core_set: false
 smoothed_grain:
   filename: "21-smoothed_grains"
   title: "Image with Gaussian-Smoothed Threshold Mask"
   image_type: "non-binary"
-  mask_cmap: "blu"
+  mask_cmap: "blue"
   core_set: false
 skeleton:
   filename: "22-original_skeletons"
   title: "Image with Overlapping Original Skeletons"
   image_type: "non-binary"
-  mask_cmap: "blu"
+  mask_cmap: "blue"
   core_set: false
   savefig_dpi: 600
 pruned_skeleton:
   filename: "23-pruned_skeletons"
   title: "Image with Overlapping Pruned Skeletons"
   image_type: "non-binary"
-  mask_cmap: "blu"
+  mask_cmap: "blue"
   core_set: false
   savefig_dpi: 600
 # Nodestats troubleshooting images
@@ -224,46 +224,46 @@ nodes:
   filename: "24-nodes"
   title: "Image with Skeletons and Highlighted Nodes"
   image_type: "non-binary"
-  mask_cmap: "blu_purp_green"
+  mask_cmap: "blue_purple_green"
   core_set: false
   savefig_dpi: 600
 zoom_node:
   title: "Zoom of Node Skeleton"
   image_type: "non-binary"
   core_set: false
-  mask_cmap: "blu_purp_green"
+  mask_cmap: "blue_purple_green"
   savefig_dpi: 600
 crossings:
   title: "Crossing and Skeleton Branches"
   image_type: "non-binary"
   core_set: false
-  mask_cmap: "blu_purp_green"
+  mask_cmap: "blue_purple_green"
   savefig_dpi: 600
 tripple_crossings:
   title: "Image with Main and Parallel Traces"
   image_type: "non-binary"
-  mask_cmap: "blu_purp_green"
+  mask_cmap: "blue_purple_green"
   core_set: false
 line_trace:
   title: "Heights of Crossing"
   image_type: "non-binary"
-  cmap: "blu_purp_green"
+  cmap: "blue_purple_green"
 visual_crop:
   title: "Visualised Molecule Crossings"
   image_type: "non-binary"
-  mask_cmap: "blu_purp_green"
+  mask_cmap: "blue_purple_green"
   core_set: false
 visual:
   filename: "25-molecule_crossings"
   title: "Visualised Molecule Crossings"
   image_type: "non-binary"
-  mask_cmap: "blu_purp_green"
+  mask_cmap: "blue_purple_green"
   core_set: false
   savefig_dpi: 600
 single_mol:
   title: "Separated Molecule"
   image_type: "non-binary"
-  mask_cmap: "blu_purp_green"
+  mask_cmap: "blue_purple_green"
   core_set: false
   savefig_dpi: 600
 ordered_trace:
@@ -277,7 +277,7 @@ fitted_trace:
   filename: "27-fitted-traces"
   title: "Fitted Trace"
   image_type: "non-binary"
-  mask_cmap: "blu_purp_green"
+  mask_cmap: "blue_purple_green"
   core_set: false
   savefig_dpi: 600
 all_molecule_traces:
