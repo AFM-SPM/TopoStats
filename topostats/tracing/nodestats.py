@@ -62,7 +62,7 @@ class nodeStats:
         node_joining_length: float,
     ) -> None:
         """
-        Initalise the nodeStats class.
+        Initialise the nodeStats class.
 
         Parameters
         ----------
@@ -166,7 +166,7 @@ class nodeStats:
             )
             # obtain a mask of node centers and their count
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
-            # beigin the hefty crossing analysis
+            # Begin the hefty crossing analysis
             LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
             self.analyse_nodes(max_branch_length=20e-9)
             self.compile_metrics()
@@ -180,7 +180,7 @@ class nodeStats:
         """
         Convert a skeletonised mask into a Graph representation.
 
-        Graphs conserve the corrdinates via the node label.
+        Graphs conserve the coordinates via the node label.
 
         Parameters
         ----------
@@ -272,7 +272,7 @@ class nodeStats:
                 node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
                 node_centre[1] - node_len // 2 - overflow : node_centre[1] + node_len // 2 + overflow,
             ]
-        # remove any artifacts of thre grain caught in the overflow areas
+        # remove any artifacts of the grain caught in the overflow areas
         new_skeleton = self.keep_biggest_object(new_skeleton)
         # Re-skeletonise
         new_skeleton = getSkeleton(image, new_skeleton, method="topostats", height_bias=0.6).get_skeleton()
@@ -359,7 +359,7 @@ class nodeStats:
         big_nodes = np.where(mask == 3, 1, 0)  # remove non-nodes & set nodes to 1
         big_node_mask = label(big_nodes)
 
-        for i in np.delete(np.unique(big_node_mask), 0):  # get node indecies
+        for i in np.delete(np.unique(big_node_mask), 0):  # get node indices
             centre = np.unravel_index((self.image * (big_node_mask == i).astype(int)).argmax(), self.image.shape)
             small_node_mask[centre] = 3
 
@@ -428,7 +428,7 @@ class nodeStats:
     @staticmethod
     def find_branch_starts(reduced_node_image: npt.NDArray) -> npt.NDArray:
         """
-        Find the corrdinates where the branches connect to the node region through binary dilation of the node.
+        Find the coordinates where the branches connect to the node region through binary dilation of the node.
 
         Parameters
         ----------
@@ -496,7 +496,7 @@ class nodeStats:
                 # self.connected_nodes[node_coords[:, 0], node_coords[:, 1]] = 1  # remove these from connected_nodes
             else:
                 try:
-                    # check wether resolution good enough to trace
+                    # check whether resolution good enough to trace
                     res = self.px_2_nm <= 1000 / 512
                     if not res:
                         print(f"Resolution {res} is below suggested {1000 / 512}, node difficult to analyse.")
@@ -642,11 +642,11 @@ class nodeStats:
                     for i, angle in enumerate(angles):
                         matched_branches[i]["angles"] = angle
 
-                    """
-                    except ValueError:
-                        LOGGER.error(f"Node {node_no} too complex, see images for details.")
-                        error = True
-                    """
+                    # """
+                    # except ValueError:
+                    #     LOGGER.error(f"Node {node_no} too complex, see images for details.")
+                    #     error = True
+                    # """
                 except ResolutionError:
                     LOGGER.info(f"Node stats skipped as resolution too low: {self.px_2_nm}nm per pixel")
                     error = True
@@ -695,7 +695,7 @@ class nodeStats:
 
     def cross_confidence(self, combs: list) -> float:
         """
-        Obtain the average confidence of the combinations using a reciprical funcation.
+        Obtain the average confidence of the combinations using a reciprical function.
 
         Parameters
         ----------
@@ -736,7 +736,7 @@ class nodeStats:
 
     def order_branch(self, binary_image: npt.NDArray, anchor: list):
         """
-        Order a linear branch by identifing an endpoint, and looking at the local area of the point to find the next.
+        Order a linear branch by identifying an endpoint, and looking at the local area of the point to find the next.
 
         Parameters
         ----------
@@ -748,7 +748,7 @@ class nodeStats:
         Returns
         -------
         npt.NDArray
-            An array of ordered cordinates.
+            An array of ordered coordinates.
         """
         skel = binary_image.copy()
 
@@ -907,7 +907,7 @@ class nodeStats:
         Returns
         -------
         npt.NDArray
-            An array of the matching pair indicies.
+            An array of the matching pair indices.
         """
         # calculate cosine of angle
         angles = self.calc_angles(vectors)
@@ -918,12 +918,12 @@ class nodeStats:
 
     def best_matches(self, arr: npt.NDArray, max_weight_matching: bool = True) -> npt.NDArray:
         """
-        Turn a matrix into a graph and calulates the best matching index pairs.
+        Turn a matrix into a graph and calculates the best matching index pairs.
 
         Parameters
         ----------
         arr : npt.NDArray
-            Transpose symetric MxM array where the value of index i, j represents a weight between i and j.
+            Transpose symmetric MxM array where the value of index i, j represents a weight between i and j.
         max_weight_matching : bool
             Whether to obtain best matching pairs via maximum weight, or minimum weight matching.
 
@@ -969,7 +969,7 @@ class nodeStats:
     @staticmethod
     def pair_angles(angles: npt.NDArray) -> list:
         """
-        Pair angles that are 180 degrees to eachother and removes them before selecting the next pair.
+        Pair angles that are 180 degrees to each other and removes them before selecting the next pair.
 
         Parameters
         ----------
@@ -1016,7 +1016,7 @@ class nodeStats:
 
     def fwhm2(self, heights: npt.NDArray, distances: npt.NDArray, hm: float | None = None) -> tuple:
         """
-        Caculate the FWHM value. TODO: Dictionary-ify this one to help saving.
+        Calculate the FWHM value. TODO: Dictionary-ify this one to help saving.
 
         First identifyies the HM then finding the closest values in the distances array and using
         linear interpolation to calculate the FWHM.
@@ -1036,7 +1036,7 @@ class nodeStats:
             The FWHM value, [distance at hm for 1st half of trace, distance at hm for 2nd half of trace,
             HM value], [index of the highest point, distance at highest point, height at highest point].
         """
-        centre_fraction = int(len(heights) * 0.2)  # incase zone approaches another node, look around centre for max
+        centre_fraction = int(len(heights) * 0.2)  # in case zone approaches another node, look around centre for max
         if centre_fraction == 0:
             high_idx = np.argmax(heights)
         else:
@@ -1158,7 +1158,7 @@ class nodeStats:
         Returns
         -------
         npt.NDArray
-            An Nx2 coordinate array that the line passes thorugh.
+            An Nx2 coordinate array that the line passes through.
         """
         arr = []
         m_swap = False
@@ -1170,7 +1170,7 @@ class nodeStats:
             slope = 1 / slope
             m_swap = True
 
-        if start[0] > end[0]:  # swap x coords if coords wrong way arround
+        if start[0] > end[0]:  # swap x coords if coords wrong way around
             start, end = end, start
             x_swap = True
 
@@ -1195,7 +1195,7 @@ class nodeStats:
     @staticmethod
     def coord_dist(coords: npt.NDArray, px_2_nm: float = 1) -> npt.NDArray:
         """
-        Accumulate a real distance traversing from pixel to pixel from a list of corrdinates.
+        Accumulate a real distance traversing from pixel to pixel from a list of coordinates.
 
         Parameters
         ----------
@@ -1224,8 +1224,8 @@ class nodeStats:
         """
         Calculate the distance from the centre coordinate to a point along the ordered coordinates.
 
-        This differs to traversal along the coordinates taken. This also averages any common distace
-        values and makes those in the trace before the node index negitive.
+        This differs to traversal along the coordinates taken. This also averages any common distance
+        values and makes those in the trace before the node index negative.
 
         Parameters
         ----------
@@ -1253,7 +1253,7 @@ class nodeStats:
     @staticmethod
     def above_below_value_idx(array: npt.NDArray, value: float) -> list:
         """
-        Identify indicies of the array neighbouring the specified value.
+        Identify indices of the array neighbouring the specified value.
 
         Parameters
         ----------
@@ -1348,14 +1348,14 @@ class nodeStats:
                 labels[trace_coords_remove[:, 0], trace_coords_remove[:, 1]] = 0
             labels = label(labels)
         #   reduce binary dilation distance
-        paralell = np.zeros_like(branch_mask).astype(np.int32)
+        parallel = np.zeros_like(branch_mask).astype(np.int32)
         for i in range(1, labels.max() + 1):
             single = labels.copy()
             single[single != i] = 0
             single[single == i] = 1
             sing_dil = binary_dilation(single)
-            paralell[(sing_dil == dilate_minus) & (sing_dil == 1)] = i
-        labels = paralell.copy()
+            parallel[(sing_dil == dilate_minus) & (sing_dil == 1)] = i
+        labels = parallel.copy()
 
         binary = labels.copy()
         binary[binary != 0] = 1
@@ -1561,7 +1561,7 @@ class nodeStats:
         Pipeline to obtain the trace and crossing trace image.
 
         This function uses the branches and FWHM's identified in the node_stats dictionary to create a
-        continious trace of the molecule.
+        continuous trace of the molecule.
 
         Returns
         -------
@@ -1570,7 +1570,7 @@ class nodeStats:
         """
         LOGGER.info(f"[{self.filename}] : Compiling the trace.")
 
-        # iterate throught the dict to get branch coords, heights and fwhms
+        # iterate through the dict to get branch coords, heights and fwhms
         node_coords = []
         crossing_coords = []
         crossing_heights = []
@@ -1699,7 +1699,7 @@ class nodeStats:
 
         mol_coords = []
         remaining = both_img.copy().astype(np.int32)
-        endpoints = np.unique(remaining[convolve_skeleton(remaining) == 2])  # uniq incase of whole mol
+        endpoints = np.unique(remaining[convolve_skeleton(remaining) == 2])  # uniq in case of whole mol
 
         while remaining.max() != 0:
             # select endpoint to start if there is one
@@ -1717,7 +1717,7 @@ class nodeStats:
                         trace_segment, prev_segment
                     )  # remove overlaps in trace (may be more efficient to do it on the prev segment)
                     trace_segment = self.order_from_end(coord_trace[-1], trace_segment)
-                prev_segment = trace_segment.copy()  # update prev segement
+                prev_segment = trace_segment.copy()  # update prev segment
                 coord_trace = np.append(coord_trace, trace_segment.astype(np.int32), axis=0)
                 x, y = coord_trace[-1]
                 coord_idx = remaining[x - 1 : x + 2, y - 1 : y + 2].max() - 1  # should only be one value
@@ -1769,7 +1769,7 @@ class nodeStats:
         Returns
         -------
         npt.NDArray
-            2xN coordinate array without the previous segment coorinates.
+            2xN coordinate array without the previous segment coordinates.
         """
         # Convert arrays to tuples
         curr_segment_tuples = [tuple(row) for row in current_segment]
@@ -1805,7 +1805,7 @@ class nodeStats:
     @staticmethod
     def get_trace_idxs(fwhms: list) -> tuple:
         """
-        Split underpassing and overpassing indecies.
+        Split underpassing and overpassing indices.
 
         Parameters
         ----------
@@ -1815,7 +1815,7 @@ class nodeStats:
         Returns
         -------
         tuple
-            All the under, and over indicies of the for each node FWHMs in the provided FWHM list.
+            All the under, and over indices of the for each node FWHMs in the provided FWHM list.
         """
         # node fwhms can be a list of different lengths so cannot use np arrays
         under_idxs = []
@@ -1855,7 +1855,7 @@ class nodeStats:
         lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
 
         if False:  # len(coord_trace) > 1:
-            # plots seperate mols
+            # plots separate mols
             for type_idxs in [lower_idxs, upper_idxs]:
                 for node_crossing_coords, type_idx in zip(crossing_coords, type_idxs):
                     temp_img = np.zeros_like(img)
@@ -1949,7 +1949,7 @@ class nodeStats:
 
     def check_node_errorless(self) -> bool:
         """
-        Check if an error has occured while processing the node dictionary.
+        Check if an error has occurred while processing the node dictionary.
 
         Returns
         -------
@@ -1964,9 +1964,7 @@ class nodeStats:
         return True
 
     def compile_metrics(self) -> None:
-        """
-        Adds number of crossings, and average and minimum crossing confidence to the metrics dictionary.
-        """
+        """Add number of crossings, and average and minimum crossing confidence to the metrics dictionary."""
         self.metrics["num_crossings"] = (self.node_centre_mask == 3).sum()
         self.metrics["avg_crossing_confidence"] = nodeStats.average_crossing_confs(self.node_dict)
         self.metrics["min_crossing_confidence"] = nodeStats.minimum_crossing_confs(self.node_dict)
@@ -2001,7 +1999,8 @@ def nodestats_image(
     Returns
     -------
     tuple[dict, pd.DataFrame, dict]
-        The nodestats statistics for each crossing, crossing statitics to be added to the grain statistics, an image dictionary of nodestats steps.
+        The nodestats statistics for each crossing, crossing statistics to be added to
+        the grain statistics, an image dictionary of nodestats steps.
     """
     n_grains = len(disordered_tracing_direction_data)
     img_base = np.zeros_like(image)
