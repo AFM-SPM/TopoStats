@@ -7,7 +7,6 @@ import logging
 import networkx as nx
 import numpy as np
 import numpy.typing as npt
-import pandas as pd
 from numpy.typing import NDArray
 from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
