@@ -467,13 +467,54 @@ class nodeStats:
         """
         Obtain the main analyses for the nodes of a single molecule along the 'max_branch_length' (nm) from the node.
 
+        Uses:
+
+            Class functions
+            ---------------
+            self._only_centre_branches
+                - A function to remove the branches of a node that are not directly connected to the exact centre pixel of the node.
+                - Returns a skeleton image
+            self.skeleton_image_to_graph
+            self.find_branch_starts
+            self.order_branch_from_start
+            self.get_vector
+            self.pair_vectors
+            self.order_branches
+            self.order_branch
+            self.average_height_trace
+            self.coord_dist_rad
+            self.average_uniques
+            self.fwhm2
+            self.get_two_combinations
+            self.cross_confidence
+            self.calc_angles
+
+            Class variables
+            ---------------
+            self.node_centre_mask
+            self.skeleton
+            self.smoothed_mask
+            self.filename
+            self.connected_nodes
+            self.reduced_skel_graph
+            self.px_2_nm
+            self.test2
+            self.skeleton
+            self.node_dict
+            self.image_dict
+            self.image
+            self.all_connected_nodes
+
+
         Parameters
         ----------
         max_branch_length : float
             The side length of the box around the node to analyse (in nm).
         """
         # get coordinates of nodes
+        print(f"node_centre_mask: {self.node_centre_mask}")
         xy_arr = np.argwhere(self.node_centre_mask.copy() == 3)
+        print(f"xy_arr: {xy_arr}")
 
         # check whether average trace resides inside the grain mask
         dilate = binary_dilation(self.skeleton, iterations=2)
@@ -491,7 +532,13 @@ class nodeStats:
             max_length_px = max_branch_length / self.px_2_nm
 
             # reduce the skeleton area
+            # Sylvia: this appears to remove all branches that are not connected directly to the exact centre of the node
             reduced_node_area = self._only_centre_branches(self.connected_nodes, (x, y))
+            # Sylvia: self.reduced_skel_graph appears to be a graph representation of the node but with only direct branch connections
+            # and all other branch connections removed.
+            # Sylvia: This turns the reduced node skeleton into a graph representation.
+            # Note that this is done every iteration and likely overwrites itself. Is it used later on in the iteration?
+            # If not, it could be moved outside the loop.
             self.reduced_skel_graph = self.skeleton_image_to_graph(reduced_node_area)
             branch_mask = reduced_node_area.copy()
 
