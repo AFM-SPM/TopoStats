@@ -200,7 +200,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "run": Or(
                 True,
                 False,
-                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+                error="Invalid value in config for 'disordered_tracing.run', valid values are 'True' or 'False'",
             ),
             "min_skeleton_size": lambda n: n > 0.0,
             "pad_width": lambda n: n > 0.0,
@@ -222,7 +222,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "thin",
                     "medial_axis",
                     "topostats",
-                    error="Invalid value in config for 'dnatracing.skeletonisation_method',"
+                    error="Invalid value in config for 'disordered_tracing.skeletonisation_method',"
                     "valid values are 'zhang', 'lee', 'thin', 'medial_axis', 'topostats'",
                 ),
                 "height_bias": lambda n: 0 < n <= 1,
@@ -230,7 +230,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "pruning_params": {
                 "method": Or(
                     "topostats",
-                    error="Invalid value in config for 'dnatracing.pruning_method', valid values are 'topostats'",
+                    error="Invalid value in config for 'disordered_tracing.pruning_method', valid values are 'topostats'",
                 ),
                 "max_length": Or(int, float, None),
                 "method_values": Or("min", "median", "mid"),
