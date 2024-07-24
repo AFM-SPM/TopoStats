@@ -389,7 +389,7 @@ def run_disorderedTrace(
         try:
             # run image using directional grain masks
             for direction, _ in grain_masks.items():
-                disordered_tracing_results = trace_image_disordered(
+                disordered_traces_cropped_data, disordered_tracing_images = trace_image_disordered(
                     image=image,
                     grains_mask=grain_masks[direction],
                     filename=filename,
@@ -397,9 +397,9 @@ def run_disorderedTrace(
                     **disordered_tracing_config,
                 )
                 # append direction results to dict
-                disordered_traces[direction] = disordered_tracing_results.pop("disordered_traces")
+                disordered_traces[direction] = disordered_traces_cropped_data
                 # save plots
-                for plot_name, image_value in disordered_tracing_results["full_images"].items():
+                for plot_name, image_value in disordered_tracing_images.items():
                     Images(
                         image,
                         masked_array=image_value,
