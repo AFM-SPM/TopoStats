@@ -66,7 +66,7 @@ disordered_tracing:
     method_values: mid # The method to obtain a branch's height for pruning. Options : min | median | mid
     method_outlier: mean_abs # The method to prune branches based on height. Options : abs | mean_abs | iqr.
 dnatracing:
-  run: true # Options : true, false
+  run: false # Options : true, false
   joining_node_length: 7.0e-9 # The distance over which to join nearby crossing nodes.
   spline_step_size: 7.0e-9 # The sampling rate of the spline in metres.
   spline_linear_smoothing: 5.0 # The amount of smoothing to apply to linear splines.
