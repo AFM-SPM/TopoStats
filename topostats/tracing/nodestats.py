@@ -1684,7 +1684,7 @@ class nodeStats:
 
         mol_coords = []
         remaining = both_img.copy().astype(np.int32)
-        endpoints = np.unique(remaining[convolve_skeleton(remaining) == 2])  # uniq in case of whole mol
+        endpoints = np.unique(remaining[convolve_skeleton(remaining) == 2])  # unique in case of whole mol
 
         while remaining.max() != 0:
             # select endpoint to start if there is one
@@ -1700,9 +1700,9 @@ class nodeStats:
                 if len(coord_trace) > 0:  # can only order when there's a reference point / segment
                     trace_segment = self.remove_duplicates(
                         trace_segment, prev_segment
-                    )  # remove overlaps in trace (may be more efficient to do it on the prev segment)
+                    )  # remove overlaps in trace (may be more efficient to do it on the previous segment)
                     trace_segment = self.order_from_end(coord_trace[-1], trace_segment)
-                prev_segment = trace_segment.copy()  # update prev segment
+                prev_segment = trace_segment.copy()  # update previous segment
                 coord_trace = np.append(coord_trace, trace_segment.astype(np.int32), axis=0)
                 x, y = coord_trace[-1]
                 coord_idx = remaining[x - 1 : x + 2, y - 1 : y + 2].max() - 1  # should only be one value
@@ -1840,7 +1840,7 @@ class nodeStats:
         lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
 
         if False:  # len(coord_trace) > 1:
-            # plots separate mols
+            # plot separate mols
             for type_idxs in [lower_idxs, upper_idxs]:
                 for node_crossing_coords, type_idx in zip(crossing_coords, type_idxs):
                     temp_img = np.zeros_like(img)
@@ -1944,6 +1944,4 @@ class nodeStats:
         for _, vals in self.node_dict.items():
             if vals["error"]:
                 return False
-            else:
-                pass
         return True

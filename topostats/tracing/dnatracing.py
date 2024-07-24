@@ -296,7 +296,7 @@ class dnaTrace:
         LOGGER.info(f"[{self.filename}] [{self.n_grain}] : Gaussian filter applied.")
 
     def smooth_mask(
-        self, grain: npt.NDArray, dilation_iterations: int = 2, gaussian_sigma: float | int | None = None
+        self, mask: npt.NDArray, dilation_iterations: int = 2, gaussian_sigma: float | int | None = None
     ) -> npt.NDArray:
         """
         Smooth grains based on the lower number of binary pixels added from dilation or gaussian.
@@ -305,7 +305,7 @@ class dnaTrace:
 
         Parameters
         ----------
-        grain : npt.NDArray
+        mask : npt.NDArray
             Numpy array of the grain mask.
         dilation_iterations : int
             Number of times to dilate the grain to smooth it. Default is 2.
@@ -317,18 +317,18 @@ class dnaTrace:
         npt.NDArray
             Numpy array of smmoothed image.
         """
-        gaussian_sigma = max(grain.shape) / 256 if gaussian_sigma is None else gaussian_sigma
-        print("-------", dilation_iterations, type(dilation_iterations))
-        dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
-        gauss = gaussian(grain, sigma=gaussian_sigma)
+        gaussian_sigma = max(mask.shape) / 256 if gaussian_sigma is None else gaussian_sigma
+        LOGGER.debug(f"dilation iterations {dilation_iterations}, (type : {type(dilation_iterations)})")
+        dilation = ndimage.binary_dilation(mask, iterations=dilation_iterations).astype(np.int32)
+        gauss = gaussian(mask, sigma=gaussian_sigma)
         gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
         gauss[gauss != 1] = 0
         gauss = gauss.astype(np.int32)
-        if dilation.sum() - grain.sum() > gauss.sum() - grain.sum():
-            gauss = self.re_add_holes(grain, gauss)
+        if dilation.sum() - mask.sum() > gauss.sum() - mask.sum():
+            gauss = self.re_add_holes(mask, gauss)
             return gauss
         else:
-            dilation = self.re_add_holes(grain, dilation)
+            dilation = self.re_add_holes(mask, dilation)
             return dilation
 
     def re_add_holes(
