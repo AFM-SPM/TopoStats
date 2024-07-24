@@ -1,14 +1,11 @@
 """Regression test for nodestats tracing."""
 
-import importlib.resources as pkg_resources
 from pathlib import Path
 
 import h5py
-import yaml
 from test_io import dict_almost_equal
 
-import topostats
-from topostats.io import LoadScans, hdf5_to_dict, read_yaml
+from topostats.io import LoadScans, hdf5_to_dict
 from topostats.processing import (
     process_scan,
 )
