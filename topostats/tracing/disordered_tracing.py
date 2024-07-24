@@ -302,7 +302,7 @@ def trace_image_disordered(
 
     for cropped_image_index, cropped_image in cropped_images.items():
         cropped_mask = cropped_masks[cropped_image_index]
-        disordered_trace_images = trace_grain(
+        disordered_trace_images = disordered_trace_grain(
             cropped_image=cropped_image,
             cropped_mask=cropped_mask,
             pixel_to_nm_scaling=pixel_to_nm_scaling,
@@ -395,7 +395,7 @@ def grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int) -> list
     return (bounding_coordinates[0], bounding_coordinates[1])
 
 
-def trace_grain(
+def disordered_trace_grain(
     cropped_image: npt.NDArray,
     cropped_mask: npt.NDArray,
     pixel_to_nm_scaling: float,
@@ -475,7 +475,7 @@ def crop_array(array: npt.NDArray, bounding_box: tuple, pad_width: int = 0) -> n
     Crop an array.
 
     Ideally we pad the array that is being cropped so that we have heights outside of the grains bounding box. However,
-    in some cases, if an grain is near the edge of the image scan this results in requesting indexes outside of the
+    in some cases, if a grain is near the edge of the image scan this results in requesting indexes outside of the
     existing image. In which case we get as much of the image padded as possible.
 
     Parameters
