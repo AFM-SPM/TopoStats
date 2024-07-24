@@ -326,6 +326,7 @@ def trace_image_disordered(
 
     return disordered_trace_crop_data, all_images
 
+
 def prep_arrays(
     image: npt.NDArray, labelled_grains_mask: npt.NDArray, pad_width: int
 ) -> tuple[dict[int, npt.NDArray], dict[int, npt.NDArray]]:
