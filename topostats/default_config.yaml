@@ -66,7 +66,7 @@ disordered_tracing:
     method_values: mid # The method to obtain a branch's height for pruning. Options : min | median | mid
     method_outlier: mean_abs # The method to prune branches based on height. Options : abs | mean_abs | iqr.
 dnatracing:
-  run: false # Options : true, false
+  run: true # Options : true, false
   joining_node_length: 7.0e-9 # The distance over which to join nearby crossing nodes.
   spline_step_size: 7.0e-9 # The sampling rate of the spline in metres.
   spline_linear_smoothing: 5.0 # The amount of smoothing to apply to linear splines.
@@ -85,7 +85,7 @@ plotting:
   axes: true # Options : true, false (due to off being a bool when parsed)
   num_ticks: [null, null] # Number of ticks to have along the x and y axes. Options : null (auto) or integer > 1
   cmap: null # Colormap/colourmap to use (default is 'nanoscope' which is used if null, other options are 'afmhot', 'viridis' etc.)
-  mask_cmap: blu # Options : blu, jet_r and any in matplotlib
+  mask_cmap: blue # Options : blu, jet_r and any in matplotlib
   histogram_log_axis: false # Options : true, false
 summary_stats:
   run: true # Whether to make summary plots for output data

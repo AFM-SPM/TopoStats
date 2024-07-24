@@ -889,7 +889,7 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
         },
-        "orig_grains": {
+        "orig_grain": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -902,7 +902,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
         },
-        "smoothed_grains": {
+        "smoothed_grain": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -915,7 +915,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
         },
-        "orig_skeletons": {
+        "skeleton": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -929,7 +929,7 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "pruned_skeletons": {
+        "pruned_skeleton": {
             "filename": str,
             "title": str,
             "image_type": Or(
