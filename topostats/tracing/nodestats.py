@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import math
 
 import networkx as nx
 import numpy as np
@@ -13,7 +12,11 @@ from scipy.signal import argrelextrema
 from skimage.morphology import label
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.measure.geometry import bounding_box_cartesian_points_integer
+from topostats.measure.geometry import (
+    calculate_shortest_branch_distances,
+    connect_best_matches,
+    find_branches_for_nodes,
+)
 from topostats.tracing.pruning import prune_skeleton  # pruneSkeleton
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.utils import ResolutionError, convolve_skeleton, coords_2_img
@@ -29,9 +32,9 @@ class nodeStats:
     ----------
     filename : str
         The name of the file being processed. For logging purposes.
-    image : npt.NDArray
+    image : npt.npt.NDArray
         The array of pixels.
-    mask : npt.NDArray
+    mask : npt.npt.NDArray
         The binary segmentation mask.
     smoothed_mask : npt.NDArray
         A smoothed version of the bianary segmentation mask.
@@ -91,7 +94,6 @@ class nodeStats:
         self.connected_nodes = np.zeros_like(self.skeleton)
         self.all_connected_nodes = self.skeleton.copy()
         self.whole_skel_graph = None
-
         self.node_centre_mask = None
         self.num_crossings = 0
         self.node_dict = {}
@@ -140,6 +142,7 @@ class nodeStats:
         LOGGER.info(f"Node Stats - Processing Grain: {self.n_grain}")
         self.conv_skelly = convolve_skeleton(self.skeleton)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
+            LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} contains crossings.")
             # convolve to see crossing and end points
             self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
             # reset skeleton var as tidy branches may have modified it
@@ -155,7 +158,11 @@ class nodeStats:
             # self.connected_nodes = self.connect_extended_nodes(self.connected_nodes)
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
             self.num_crossings = (self.node_centre_mask == 3).sum()
+            # Begin the hefty crossing analysis
+            LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
             self.analyse_nodes(max_branch_length=20e-9)
+        else:
+            LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} has no crossings.")
         return self.node_dict, self.image_dict
         # self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
 
@@ -294,7 +301,7 @@ class nodeStats:
             LOGGER.info(f"{e}: mask is empty.")
             return mask
 
-    def connect_close_nodes(self, conv_skelly: npt.NDArray, node_width: float = 2.85e-9) -> None:
+    def connect_close_nodes(self, conv_skelly: npt.NDArray, node_width: float = 2.85e-9) -> npt.NDArray:
         """
         Connect nodes within the 'node_width' boundary distance.
 
@@ -310,7 +317,7 @@ class nodeStats:
         Returns
         -------
         np.ndarray
-            None is returned.
+            The skeleton (label=1) with close nodes connected (label=3).
         """
         self.connected_nodes = conv_skelly.copy()
         nodeless = conv_skelly.copy()
@@ -350,21 +357,22 @@ class nodeStats:
         return small_node_mask
 
     def connect_extended_nodes_nearest(
-        self, connected_nodes: npt.NDArray, extend_dist: int | float = -1
-    ) -> npt.NDArray:
+        self, connected_nodes: npt.NDArray, extend_dist: float = -1
+    ) -> npt.NDArray[np.int32]:
         """
         Extend the odd branched nodes to other odd branched nodes within the 'extend_dist' threshold.
 
         Parameters
         ----------
-        connected_nodes : npt.NDArray
-            A 2D array with background = 0, skeleton = 1, endpoints = 2, node_centres = 3.
+        connected_nodes : npt.NDArra
+            A 2D array representing the network with background = 0, skeleton = 1, endpoints = 2,
+            node_centres = 3.
         extend_dist : int | float, optional
             The distance over which to connect odd-branched nodes, by default -1 for no-limit.
 
         Returns
         -------
-        npt.NDArray
+        npt.NDArra[np.int32]
             Connected nodes array with odd-branched nodes connected.
         """
         just_nodes = np.where(connected_nodes == 3, 1, 0)  # remove branches & termini points
@@ -374,93 +382,38 @@ class nodeStats:
         just_branches[connected_nodes == 1] = labelled_nodes.max() + 1
         labelled_branches = label(just_branches)
 
-        emanating_branch_starts_by_node = {}  # Dictionary to store emanating branches for each label
-        nodes_with_odd_branches = []  # List to store nodes with three branches
+        nodes_with_branch_starting_coords = find_branches_for_nodes(
+            network_array_representation=connected_nodes,
+            labelled_nodes=labelled_nodes,
+            labelled_branches=labelled_branches,
+        )
 
-        for node_num in range(1, labelled_nodes.max() + 1):
-            num_branches = 0
-            # makes lil box around node with 1 overflow
-            bounding_box = bounding_box_cartesian_points_integer(np.argwhere(labelled_nodes == node_num))
-            crop_left = bounding_box[0] - 1
-            crop_right = bounding_box[2] + 2
-            crop_top = bounding_box[1] - 1
-            crop_bottom = bounding_box[3] + 2
-            cropped_matrix = connected_nodes[crop_left:crop_right, crop_top:crop_bottom]
-            # get coords of nodes and branches in box
-            node_coords = np.argwhere(cropped_matrix == 3)
-            branch_coords = np.argwhere(cropped_matrix == 1)
-            # iterate through node coords to see which are within 8 dirs
-            for node_coord in node_coords:
-                for branch_coord in branch_coords:
-                    distance = math.dist(node_coord, branch_coord)
-                    if distance <= math.sqrt(2):
-                        num_branches = num_branches + 1
-
-            # find the branch start point of odd branched nodes
-            if num_branches % 2 == 1:
-                nodes_with_odd_branches.append(node_num)
-                emanating_branches = []  # List to store emanating branches for the current label
-                for branch in range(1, labelled_branches.max() + 1):
-                    # technically using labelled_branches when there's an end loop will only cause one
-                    #   of the end loop coords to be captured. This shopuldn't matter as the other
-                    #   label after the crossing should be closer to another node.
-                    touching, branch_start = do_sets_touch(
-                        np.argwhere(labelled_branches == branch), np.argwhere(labelled_nodes == node_num)
-                    )
-                    if touching:
-                        emanating_branches.append(branch_start)
-                    emanating_branch_starts_by_node[node_num - 1] = (
-                        emanating_branches  # Store emanating branches for this label
-                    )
-                    # assert len(emanating_branches) // 2 == 1
-
-        if (
-            len(emanating_branch_starts_by_node) <= 1
-        ):  # only <1 odd branch so ignore pairing. will nx work with this and return no pairs anyway?
+        # If there is only one node, then there is no need to connect the nodes since there is nothing to
+        # connect it to. Return the original connected_nodes instead.
+        if len(nodes_with_branch_starting_coords) <= 1:
+            self.connected_nodes = connected_nodes
             return self.connected_nodes
 
-        # Iterate through the nodes and their emanating branches
-        shortest_node_dists = np.zeros(
-            (len(emanating_branch_starts_by_node), len(emanating_branch_starts_by_node))
-        )  # initialise the maximal pairing matrix
-        shortest_dists_branch_idxs = np.zeros((shortest_node_dists.shape[0], shortest_node_dists.shape[0], 2)).astype(
-            np.int64
-        )
-        shortest_dist_coords = np.zeros((shortest_node_dists.shape[0], shortest_node_dists.shape[0], 2, 2)).astype(
-            np.int64
+        shortest_node_dists, shortest_dists_branch_idxs, _shortest_dist_coords = calculate_shortest_branch_distances(
+            nodes_with_branch_starting_coords=nodes_with_branch_starting_coords,
+            whole_skeleton_graph=self.whole_skel_graph,
         )
 
-        for i, (node1, branch_starts1) in enumerate(emanating_branch_starts_by_node.items()):
-            for j, (node2, branch_starts2) in enumerate(emanating_branch_starts_by_node.items()):
-                if node1 != node2:  # Avoid comparing a node with itself
-                    # get shortest distance between all branch starts in n1 and n2, on #px not nm length
-                    temp_length_matrix = np.zeros((len(branch_starts1), len(branch_starts2)))
-                    for ii, bs1 in enumerate(branch_starts1):
-                        for jj, bs2 in enumerate(branch_starts2):
-                            temp_length_matrix[ii, jj] = nx.shortest_path_length(
-                                self.whole_skel_graph, tuple(bs1), tuple(bs2)
-                            )
-                    # add shortest dist to shortest dist matrix
-                    shortest_dist = np.min(temp_length_matrix)
-                    shortest_node_dists[i, j] = shortest_dist
-                    shortest_dists_branch_idxs[i, j] = np.argwhere(temp_length_matrix == shortest_dist)[0]
-                    shortest_dist_coords[i, j] = (
-                        branch_starts1[shortest_dists_branch_idxs[i, j][0]],
-                        branch_starts2[shortest_dists_branch_idxs[i, j][1]],
-                    )
+        # Matches is an Nx2 numpy array of indexes of the best matching nodes.
+        # Eg: np.array([[1, 0], [2, 3]]) means that the best matching nodes are
+        # node 1 and node 0, and node 2 and node 3.
+        matches: npt.NDArray[np.int32] = self.best_matches(shortest_node_dists, max_weight_matching=False)
 
-        # get best matches
-        matches = self.best_matches(shortest_node_dists, max_weight_matching=False)
-        # get paths of best matches. TODO: replace below with using shortest dist coords
-        for node_pair_idx in matches:
-            shortest_dist = shortest_node_dists[node_pair_idx[0], node_pair_idx[1]]
-            if shortest_dist <= extend_dist or extend_dist == -1:
-                branch_idxs = shortest_dists_branch_idxs[node_pair_idx[0], node_pair_idx[1]]
-                node_nums = list(emanating_branch_starts_by_node.keys())
-                source = tuple(emanating_branch_starts_by_node[node_nums[node_pair_idx[0]]][branch_idxs[0]])
-                target = tuple(emanating_branch_starts_by_node[node_nums[node_pair_idx[1]]][branch_idxs[1]])
-                path = np.array(nx.shortest_path(self.whole_skel_graph, source, target))
-                connected_nodes[path[:, 0], path[:, 1]] = 3
+        # Connect the nodes by their best matches, using the shortest distances between their branch starts.
+        connected_nodes = connect_best_matches(
+            network_array_representation=connected_nodes,
+            whole_skeleton_graph=self.whole_skel_graph,
+            match_indexes=matches,
+            shortest_distances_between_nodes=shortest_node_dists,
+            shortest_distances_branch_indexes=shortest_dists_branch_idxs,
+            emanating_branch_starts_by_node=nodes_with_branch_starting_coords,
+            extend_distance=extend_dist,
+        )
 
         self.connected_nodes = connected_nodes
         return self.connected_nodes
@@ -682,11 +635,6 @@ class nodeStats:
                     for i, angle in enumerate(angles):
                         matched_branches[i]["angles"] = angle
 
-                    """
-                    except ValueError:
-                        LOGGER.error(f"Node {node_no} too complex, see images for details.")
-                        error = True
-                    """
                 except ResolutionError:
                     LOGGER.info(f"Node stats skipped as resolution too low: {self.px_2_nm}nm per pixel")
                     error = True
@@ -1736,7 +1684,7 @@ class nodeStats:
 
         mol_coords = []
         remaining = both_img.copy().astype(np.int32)
-        endpoints = np.unique(remaining[convolve_skeleton(remaining) == 2])  # unique in case of whole molecule
+        endpoints = np.unique(remaining[convolve_skeleton(remaining) == 2])  # unique in case of whole mol
 
         while remaining.max() != 0:
             # select endpoint to start if there is one
