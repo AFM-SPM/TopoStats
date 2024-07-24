@@ -230,10 +230,9 @@ class disorderedTrace:
         gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
         gauss[gauss != 1] = 0
         gauss = gauss.astype(np.int32)
-        # gauss
+        # Add hole to the smooth mask conditional on smallest pixel difference for dilation or the Gaussian smoothing.
         if dilation.sum() > gauss.sum():
             return self.re_add_holes(grain, gauss)
-        # dilation
         return self.re_add_holes(grain, dilation)
 
 
@@ -326,54 +325,6 @@ def trace_image_disordered(
         disordered_trace_crop_data[f"grain_{cropped_image_index}"]["bbox"] = bboxs[cropped_image_index]
 
     return disordered_trace_crop_data, all_images
-
-
-# not used
-def round_splined_traces(splined_traces: dict) -> dict:
-    """
-    Round a Dict of floating point coordinates to integer floating point coordinates.
-
-    Parameters
-    ----------
-    splined_traces : dict
-        Floating point coordinates to be rounded.
-
-    Returns
-    -------
-    dict
-        Dictionary of rounded integer coordinates.
-    """
-    rounded_splined_traces = {}
-    for grain_number, splined_trace in splined_traces.items():
-        if splined_trace is not None:
-            rounded_splined_traces[grain_number] = np.round(splined_trace).astype(int)
-        else:
-            rounded_splined_traces[grain_number] = None
-
-    return rounded_splined_traces
-
-
-# not used
-def trim_array(array: npt.NDArray, pad_width: int) -> npt.NDArray:
-    """
-    Trim an array by the specified pad_width.
-
-    Removes a border from an array. Typically this is the second padding that is added to the image/masks for edge cases
-    that are near image borders and means traces will be correctly aligned as a mask for the original image.
-
-    Parameters
-    ----------
-    array : npt.NDArray
-        Numpy array to be trimmed.
-    pad_width : int
-        Padding to be removed.
-
-    Returns
-    -------
-    npt.NDArray
-        Trimmed array.
-    """
-    return array[pad_width:-pad_width, pad_width:-pad_width]
 
 
 def adjust_coordinates(coordinates: npt.NDArray, pad_width: int) -> npt.NDArray:
