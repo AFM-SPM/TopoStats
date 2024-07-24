@@ -23,16 +23,6 @@ class disorderedTrace:
     """
     Calculate disordered traces for a DNA molecule and calculates statistics from those traces.
 
-    2023-06-09 : This class has undergone some refactoring so that it works with a single grain. The `trace_grain()`
-    helper function runs the class and returns the expected statistics whilst the `trace_image_disordered()` function
-    handles processing all detected grains within an image. The original methods of skeletonisation are available along
-    with additional methods from scikit-image.
-
-    Some bugs have been identified and corrected see commits for further details...
-
-    236750b2
-    2a79c4ff
-
     Parameters
     ----------
     image : npt.NDArray
