@@ -225,14 +225,13 @@ class disorderedTrace:
             Numpy array of smmoothed image.
         """
         gaussian_sigma = max(grain.shape) / 256 if gaussian_sigma is None else gaussian_sigma
-        print("-------", dilation_iterations, type(dilation_iterations))
         dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
         gauss = gaussian(grain, sigma=gaussian_sigma)
         gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
         gauss[gauss != 1] = 0
         gauss = gauss.astype(np.int32)
         # gauss
-        if dilation.sum() - grain.sum() > gauss.sum() - grain.sum():
+        if dilation.sum() > gauss.sum():
             return self.re_add_holes(grain, gauss)
         # dilation
         return self.re_add_holes(grain, dilation)
