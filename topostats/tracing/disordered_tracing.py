@@ -149,20 +149,20 @@ class disorderedTrace:
             self.disordered_trace = None
 
     def re_add_holes(
-        self, orig_mask: npt.NDArray, new_mask: npt.NDArray, holearea_min_max: list = (4, np.inf)
+        self, orig_mask: npt.NDArray, smoothed_mask: npt.NDArray, holearea_min_max: list = (4, np.inf)
     ) -> npt.NDArray:
         """
         Restore holes in masks that were occluded by dilation.
 
         As Gaussian dilation smoothing methods can close holes in the original mask, this function obtains those holes
         (based on the general background being the first due to padding) and adds them back into the smoothed mask. When
-        paired with smooth_mask, this essentially just smooths the outer edge of the mask.
+        paired with ``smooth_mask``, this essentially just smooths the outer edge of the mask.
 
         Parameters
         ----------
         orig_mask : npt.NDArray
             Original mask.
-        new_mask : npt.NDArray
+        smoothed_mask : npt.NDArray
             New mask.
         holearea_min_max : list
             List of minimum and maximum hole area (in pixels).
@@ -185,7 +185,7 @@ class disorderedTrace:
         holes[holes != 0] = 1
 
         # compare num holes in each mask
-        holey_smooth = new_mask.copy()
+        holey_smooth = smoothed_mask.copy()
         holey_smooth[holes == 1] = 0
 
         return holey_smooth
