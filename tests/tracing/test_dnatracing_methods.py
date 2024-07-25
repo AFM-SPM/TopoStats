@@ -26,7 +26,7 @@ def dnatrace() -> dnaTrace:
     """dnaTrace object for use in tests."""  # noqa: D403
     return dnaTrace(
         image=np.asarray([[1]]),
-        grain=None,
+        mask=None,
         filename="test.spm",
         pixel_to_nm_scaling=PIXEL_SIZE,
         min_skeleton_size=MIN_SKELETON_SIZE,
@@ -232,21 +232,21 @@ GRAINS["six_ends"] = np.asarray(
 @pytest.mark.parametrize(
     ("grain", "mol_is_circular"),
     [
-        (GRAINS["vertical"], False),
-        (GRAINS["horizontal"], False),
-        (GRAINS["diagonal1"], True),  # This is wrong, this IS a linear molecule
-        (GRAINS["diagonal2"], False),
-        (GRAINS["diagonal3"], False),
-        (GRAINS["circle"], True),
-        (GRAINS["blob"], True),
-        (GRAINS["cross"], False),
-        (GRAINS["single_L"], False),
-        (GRAINS["double_L"], True),  # This is wrong, this IS a linear molecule
-        (GRAINS["diagonal_end_single_L"], False),
-        (GRAINS["diagonal_end_straight"], False),
-        (GRAINS["figure8"], True),
-        (GRAINS["three_ends"], False),
-        (GRAINS["six_ends"], False),
+        pytest.param(GRAINS["vertical"], False, id="vertical"),
+        pytest.param(GRAINS["horizontal"], False, id="horizontal"),
+        pytest.param(GRAINS["diagonal1"], True, id="diagonal1"),  # This is wrong, this IS a linear molecule
+        pytest.param(GRAINS["diagonal2"], False, id="diagonal2"),
+        pytest.param(GRAINS["diagonal3"], False, id="diagonal3"),
+        pytest.param(GRAINS["circle"], True, id="circle"),
+        pytest.param(GRAINS["blob"], True, id="blob"),
+        pytest.param(GRAINS["cross"], False, id="cross"),
+        pytest.param(GRAINS["single_L"], False, id="singl_L"),
+        pytest.param(GRAINS["double_L"], True, id="double_L"),  # This is wrong, this IS a linear molecule
+        pytest.param(GRAINS["diagonal_end_single_L"], False, id="diagonal_end_single_L"),
+        pytest.param(GRAINS["diagonal_end_straight"], False, id="diagonal_end_straight"),
+        pytest.param(GRAINS["figure8"], True, id="figure8"),
+        pytest.param(GRAINS["three_ends"], False, id="three_ends"),
+        pytest.param(GRAINS["six_ends"], False, id="six_ends"),
     ],
 )
 def test_linear_or_circular(dnatrace, grain: np.ndarray, mol_is_circular: bool) -> None:
@@ -280,7 +280,7 @@ TEST_LABELLED = np.asarray(
 @pytest.mark.parametrize(
     ("bounding_box", "target", "pad_width"),
     [
-        (
+        pytest.param(
             (1, 1, 2, 7),
             np.asarray(
                 [
@@ -288,8 +288,9 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             0,
+            id="Zero padding",
         ),
-        (
+        pytest.param(
             (1, 1, 2, 7),
             np.asarray(
                 [
@@ -299,8 +300,9 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             1,
+            id="Single pixel padding",
         ),
-        (
+        pytest.param(
             (1, 1, 2, 7),
             np.asarray(
                 [
@@ -311,8 +313,9 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             2,
+            id="Two pixel padding",
         ),
-        (
+        pytest.param(
             (1, 9, 6, 14),
             np.asarray(
                 [
@@ -324,8 +327,9 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             0,
+            id="Ring with zero padding",
         ),
-        (
+        pytest.param(
             (3, 1, 9, 7),
             np.asarray(
                 [
@@ -338,8 +342,9 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             0,
+            id="L with zero padding",
         ),
-        (
+        pytest.param(
             (7, 8, 9, 14),
             np.asarray(
                 [
@@ -348,8 +353,9 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             0,
+            id="solid with zero padding",
         ),
-        (
+        pytest.param(
             (10, 1, 15, 5),
             np.asarray(
                 [
@@ -361,8 +367,9 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             0,
+            id="small area with zero padding",
         ),
-        (
+        pytest.param(
             (10, 5, 14, 14),
             np.asarray(
                 [
@@ -373,8 +380,9 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             0,
+            id="larger area with zero pixel padding",
         ),
-        (
+        pytest.param(
             (10, 5, 14, 14),
             np.asarray(
                 [
@@ -388,13 +396,13 @@ TEST_LABELLED = np.asarray(
                 ]
             ),
             2,
+            id="larger area with two pixel padding",
         ),
     ],
 )
 def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> None:
     """Test the cropping of images."""
     cropped = crop_array(TEST_LABELLED, bounding_box, pad_width)
-    print(f"cropped :\n{cropped}")
     np.testing.assert_array_equal(cropped, target)
 
 

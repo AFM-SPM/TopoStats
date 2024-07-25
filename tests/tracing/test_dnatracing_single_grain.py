@@ -69,7 +69,7 @@ def dnatrace_circular(process_scan_config: dict) -> dnaTrace:
 def test_gaussian_filter(dnatrace: dnaTrace, gauss_image_sum: float) -> None:
     """Test of the method."""
     dnatrace.gaussian_filter()
-    assert dnatrace.smoothed_grain.sum() == pytest.approx(gauss_image_sum)
+    assert dnatrace.smoothed_mask.sum() == pytest.approx(gauss_image_sum)
 
 
 @pytest.mark.parametrize(
