@@ -530,3 +530,4 @@ def plot_crossing_linetrace_halfmax(
     ax.set_title(title)
     ax.legend()
     return fig, ax
+
