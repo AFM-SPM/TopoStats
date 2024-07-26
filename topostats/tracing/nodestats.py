@@ -463,12 +463,11 @@ class nodeStats:
 
         return np.argwhere(thicc_node * nodeless == 1)
 
-    def analyse_nodes(self, max_branch_length: float = 20e-9) -> None:
+    def analyse_nodes(self, max_branch_length: float = 20e-9, test_run=False) -> None:
         """
         Obtain the main analyses for the nodes of a single molecule along the 'max_branch_length' (nm) from the node.
 
         Uses:
-
             Class functions
             ---------------
             self._only_centre_branches
@@ -506,18 +505,36 @@ class nodeStats:
             self.all_connected_nodes
 
 
+        Outputs / Results
+        -----------------
+        self.image_dict
+        self.node_dict
+        self.all_connected_nodes
+            Image 
+
         Parameters
         ----------
         max_branch_length : float
             The side length of the box around the node to analyse (in nm).
         """
+        # Sylvia: Save all the used class variables for creating a test
+        if not test_run:
+            np.save("catenane_image.npy", self.image)
+            np.save("catenane_node_centre_mask.npy", self.node_centre_mask)
+            np.save("catenane_skeleton.npy", self.skeleton)
+            np.save("catenane_smoothed_mask.npy", self.smoothed_mask)
+            np.save("catenane_connected_nodes.npy", self.connected_nodes)
+
         # get coordinates of nodes
+        # Sylvia: This is a numpy array of coords, shape Nx2
         print(f"node_centre_mask: {self.node_centre_mask}")
         xy_arr = np.argwhere(self.node_centre_mask.copy() == 3)
         print(f"xy_arr: {xy_arr}")
 
         # check whether average trace resides inside the grain mask
+        # Sylvia: Checks if we dilate the skeleton once or twice, then all the pixels should fit in the grain mask
         dilate = binary_dilation(self.skeleton, iterations=2)
+        # Sylvia: This flag determines whether to use average of 3 traces in calculation of FWHM
         average_trace_advised = dilate[self.smoothed_mask == 1].sum() == dilate.sum()
         LOGGER.info(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
 
@@ -533,13 +550,13 @@ class nodeStats:
 
             # reduce the skeleton area
             # Sylvia: this appears to remove all branches that are not connected directly to the exact centre of the node
-            reduced_node_area = self._only_centre_branches(self.connected_nodes, (x, y))
+            reduced_node_area = self._only_centre_branches(self.connected_nodes, (x, y))  # Sylvia: CLEAN OF SELF.
             # Sylvia: self.reduced_skel_graph appears to be a graph representation of the node but with only direct branch connections
             # and all other branch connections removed.
             # Sylvia: This turns the reduced node skeleton into a graph representation.
             # Note that this is done every iteration and likely overwrites itself. Is it used later on in the iteration?
             # If not, it could be moved outside the loop.
-            self.reduced_skel_graph = self.skeleton_image_to_graph(reduced_node_area)
+            self.reduced_skel_graph = self.skeleton_image_to_graph(reduced_node_area)  # Sylvia: CLEAN OF SELF.
             branch_mask = reduced_node_area.copy()
 
             branch_mask[branch_mask == 3] = 0
@@ -548,7 +565,8 @@ class nodeStats:
 
             error = False  # to see if node too complex or region too small
 
-            branch_start_coords = self.find_branch_starts(reduced_node_area)
+            # Find the coordinates of any branches connected to the node
+            branch_start_coords = self.find_branch_starts(reduced_node_area)  # Sylvia: CLEAN OF SELF.
 
             # stop processing if nib (node has 2 branches)
             if branch_start_coords.shape[0] <= 2:
@@ -578,7 +596,9 @@ class nodeStats:
                     nodeless = np.where(reduced_node_area == 1, 1, 0)
                     for branch_start_coord in branch_start_coords:
                         # order branch
-                        ordered = order_branch_from_start(nodeless.copy(), branch_start_coord, max_length=max_length_px)
+                        ordered = order_branch_from_start(
+                            nodeless.copy(), branch_start_coord, max_length=max_length_px
+                        )
                         # identify vector
                         vector = self.get_vector(ordered, branch_start_coord)  # [x, y]
                         # add to list
@@ -601,7 +621,7 @@ class nodeStats:
                         # find close ends by rearranging branch coords
                         branch_1_coords, branch_2_coords = self.order_branches(
                             ordered_branches[branch_1], ordered_branches[branch_2]
-                        )
+                        )  # Sylvia: CLEAN OF SELF.
                         # Get graphical shortest path between branch ends on the skeleton
                         crossing = nx.shortest_path(
                             self.reduced_skel_graph,
@@ -626,7 +646,7 @@ class nodeStats:
                             assert average_trace_advised
                             distances, heights, mask, _ = self.average_height_trace(
                                 self.image, single_branch_img, single_branch_coords, [x, y]
-                            )  # hess_area
+                            )  # hess_area Sylvia: CLEAN OF SELF.
                             masked_image[i]["avg_mask"] = mask
                         except (
                             AssertionError,
@@ -634,7 +654,7 @@ class nodeStats:
                         ) as e:  # Assertion - avg trace not advised, Index - wiggy branches
                             LOGGER.info(f"[{self.filename}] : avg trace failed with {e}, single trace only.")
                             average_trace_advised = False
-                            distances = self.coord_dist_rad(single_branch_coords, [x, y])
+                            distances = self.coord_dist_rad(single_branch_coords, [x, y])  # Sylvia: CLEAN OF SELF.
                             # distances = self.coord_dist(single_branch_coords)
                             zero_dist = distances[
                                 np.argmin(
