@@ -1,15 +1,20 @@
 """Fixtures for the tracing tests."""
 
 from pathlib import Path
+import pickle
 
 import numpy as np
 import pandas as pd
 import pytest
+from typing import TypedDict
 
 from topostats.filters import Filters
 from topostats.grains import Grains
+import numpy.typing as npt
+import h5py
 from topostats.tracing.dnatracing import dnaTrace
 from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
+from topostats.tracing.nodestats import nodeStats
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
@@ -154,3 +159,100 @@ def skeletonize_linear_bool_int(skeletonize_linear) -> np.ndarray:
 def topostats_skeletonise(skeletonize_circular, skeletonize_circular_bool_int):
     """TopostatsSkeletonise for testing individual functions."""
     return topostatsSkeletonize(skeletonize_circular, skeletonize_circular_bool_int, 0.6)
+
+
+# class CatenaneImageType(TypedDict):
+#     """Type for the catenane image dictionary fixture."""
+
+#     image: npt.NDArray[np.number]
+#     mask: npt.NDArray[np.bool_]
+#     p_to_nm: np.float32
+
+
+# @pytest.fixture()
+# def catenane_image() -> CatenaneImageType:
+#     """Image, mask and pixel to nanometre scaling of a catenane molecule."""
+#     with h5py.File(RESOURCES / "catenane_image.topostats", "r") as file:
+#         image: npt.NDArray[np.number] = file["image"][:]
+#         mask: npt.NDArray[np.bool_] = file["grain_masks"]["above"][:]
+#         p_to_nm: np.float32 = file["pixel_to_nm_scaling"][()]
+
+#     return {"image": image, "mask": mask, "p_to_nm": p_to_nm}
+
+
+@pytest.fixture()
+def catenane_image() -> npt.NDArray[np.number]:
+    """Image of a catenane molecule."""
+    return np.load(RESOURCES / "catenane_image.npy")
+
+
+@pytest.fixture()
+def catenane_skeleton() -> npt.NDArray[np.bool_]:
+    """Skeleton of the catenane test image."""
+    return np.load(RESOURCES / "catenane_skeleton.npy")
+
+
+@pytest.fixture()
+def catenane_smoothed_mask() -> npt.NDArray[np.bool_]:
+    """Smoothed mask of the catenane test image."""
+    return np.load(RESOURCES / "catenane_smoothed_mask.npy")
+
+
+# @pytest.fixture()
+# def catenane_pruned_skeleton() -> npt.NDArray[np.bool_]:
+#     """Pruned skeleton of the catenane test image."""
+#     return np.load(RESOURCES / "catenane_pruned_skeleton.npy")
+
+
+@pytest.fixture()
+def catenane_node_centre_mask() -> npt.NDArray[np.int32]:
+    """
+    Catenane node centre mask.
+
+    Effectively just the skeleton, but
+    with the nodes set to 2 while the skeleton is 1 and background is 0.
+    """
+    return np.load(RESOURCES / "catenane_node_centre_mask.npy")
+
+
+@pytest.fixture()
+def catenane_connected_nodes() -> npt.NDArray[np.int32]:
+    """
+    Connected nodes of the catenane test image.
+
+    Effectively just the skeleton, but with the extended nodes
+    set to 2 while the skeleton is 1 and background is 0.
+    """
+    return np.load(RESOURCES / "catenane_connected_nodes.npy")
+
+
+@pytest.fixture()
+def nodestats_catenane(
+    catenane_image: npt.NDArray[np.number],
+    catenane_smoothed_mask: npt.NDArray[np.bool_],
+    catenane_skeleton: npt.NDArray[np.bool_],
+    # catenane_pruned_skeleton: npt.NDArray[np.int32],
+    catenane_node_centre_mask: npt.NDArray[np.int32],
+    catenane_connected_nodes: npt.NDArray[np.int32],
+) -> nodeStats:
+    """Fixture for the nodeStats object for a catenated molecule, to be used in analyse_nodes."""
+
+    # Create a nodestats object
+    nodestats = nodeStats(
+        filename="test_catenane",
+        image=catenane_image,
+        mask=catenane_smoothed_mask,
+        smoothed_mask=catenane_smoothed_mask,
+        skeleton=catenane_skeleton,
+        px_2_nm=np.float32(0.18124609375),
+        n_grain=1,
+        node_joining_length=7e-9,
+    )
+
+    nodestats.node_centre_mask = catenane_node_centre_mask
+    nodestats.connected_nodes = catenane_connected_nodes
+    nodestats.skeleton = catenane_skeleton
+
+    return nodestats
+
+
