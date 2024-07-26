@@ -256,3 +256,21 @@ def nodestats_catenane(
     return nodestats
 
 
+@pytest.fixture()
+def nodestats_catenane_node_dict() -> dict:
+    """Node dictionary for the catenane test image."""
+    with Path.open(RESOURCES / "catenane_node_dict.pkl", "rb") as file:
+        return pickle.load(file)
+
+
+@pytest.fixture()
+def nodestats_catenane_image_dict() -> dict:
+    """Image dictionary for the catenane test image."""
+    with Path.open(RESOURCES / "catenane_image_dict.pkl", "rb") as file:
+        return pickle.load(file)
+
+
+@pytest.fixture()
+def nodestats_catenane_all_connected_nodes() -> npt.NDArray[np.int32]:
+    """All connected nodes for the catenane test image."""
+    return np.load(RESOURCES / "catenane_all_connected_nodes.npy")
