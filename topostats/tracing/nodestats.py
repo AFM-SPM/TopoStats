@@ -42,7 +42,7 @@ class nodeStats:
         A smoothed version of the bianary segmentation mask.
     skeleton : npt.NDArray
         A binary single-pixel wide mask of objects in the 'image'.
-    px_2_nm : float
+    px_2_nm : np.float32
         The pixel to nm scaling factor.
     n_grain : int
         The grain number.
@@ -61,7 +61,7 @@ class nodeStats:
         mask: npt.NDArray,
         smoothed_mask: npt.NDArray,
         skeleton: npt.NDArray,
-        px_2_nm: float,
+        px_2_nm: np.float32,
         n_grain: int,
         node_joining_length: float,
         node_extend_dist: float,
