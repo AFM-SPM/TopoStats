@@ -1,6 +1,9 @@
 """Test the nodestats module."""
 
+from pathlib import Path
+
 import numpy as np
+import pickle
 import numpy.typing as npt
 import pytest
 
@@ -168,9 +171,65 @@ def test_find_branch_starts() -> None:
     pass
 
 
-def test_analyse_nodes() -> None:
+# Create nodestats class using the cats image - will allow running the code for diagnostics
+def test_analyse_nodes(
+    nodestats_catenane: nodeStats,
+    nodestats_catenane_node_dict: dict,
+    nodestats_catenane_image_dict: dict,
+    nodestats_catenane_all_connected_nodes: npt.NDArray[np.int32],
+) -> None:
     """Test of analyse_nodes() method of nodeStats class."""
-    pass
+    # Sylvia: Max branch length is hardcoded in nodestats as 20e-9. Unsure of why this value is used.
+    nodestats_catenane.analyse_nodes(max_branch_length=20e-9, test_run=True)
+
+    # Check outputs
+    print("===== node dict =====")
+    node_dict = nodestats_catenane.node_dict
+    # Nodestats dict has structure:
+    # "node_1":
+    #  - error: Bool
+    #  - px_2_nm: float
+    #  - crossing_type: None
+    #  - branch_starts: dict:
+    #    - ordered coords: array Nx2
+    #    - heights: array Nx2
+    #    - distances: array Nx2
+    #    - fwhm2: tuple(float, list(3?), list (3?))
+
+    # pickle it to act as a regression test
+    # with Path.open(Path("./catenane_node_dict.pkl"), "wb") as f:
+    #     pickle.dump(node_dict, f)
+    print(node_dict.keys())
+    print(node_dict)
+    print("===== image dict =====")
+    image_dict = nodestats_catenane.image_dict
+    # Image dict has structure:
+    # - nodes
+    #   - 1: dict
+    #     - node_area_skeleton: array NxN
+    #     - node_branch_mask: array NxN
+    #     - node_average_mask: None
+    #   - 2 ...
+    # - grain
+    #   - grain_image: array NxN
+    #   - grain_mask: array NxN
+    #   - grain_visual_crossings: None
+
+    # pickle it to act as a regression test
+    # with Path.open(Path("./catenane_image_dict.pkl"), "wb") as f:
+    #     pickle.dump(image_dict, f)
+    print(image_dict.keys())
+    print(image_dict)
+    print("==== all connected nodes =====")
+    all_connected_nodes = nodestats_catenane.all_connected_nodes
+    # All connected nodes is an NxM numpy array
+    # np.save("./catenane_all_connected_nodes.npy", all_connected_nodes)
+    print(all_connected_nodes.shape)
+    print(all_connected_nodes)
+
+    np.testing.assert_equal(nodestats_catenane.node_dict, nodestats_catenane_node_dict)
+    np.testing.assert_equal(nodestats_catenane.image_dict, nodestats_catenane_image_dict)
+    np.testing.assert_array_equal(nodestats_catenane.all_connected_nodes, nodestats_catenane_all_connected_nodes)
 
 
 def test_sq() -> None:
