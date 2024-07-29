@@ -11,7 +11,6 @@ import pandas as pd
 from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.morphology import label
-import matplotlib.pyplot as plt
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.geometry import (
@@ -19,7 +18,7 @@ from topostats.measure.geometry import (
     connect_best_matches,
     find_branches_for_nodes,
 )
-from topostats.tracing.pruning import prune_skeleton  # pruneSkeleton
+from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.utils import ResolutionError, convolve_skeleton, coords_2_img
 

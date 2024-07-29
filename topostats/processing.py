@@ -465,7 +465,7 @@ def run_nodestats(
                     output_dir=tracing_out_path / direction,
                     **plotting_config["plot_dict"][plot_name],
                 ).plot_and_save()
-            
+
             # plot sinlge node images
             for mol_no, mol_stats in nodestats_data.items():
                 if mol_stats is not None:
@@ -486,10 +486,12 @@ def run_nodestats(
                                 fig, _ = plot_crossing_linetrace_halfmax(
                                     branch_stats_dict=single_node_stats["branch_stats"],
                                     mask_cmap=plotting_config["plot_dict"]["line_trace"]["mask_cmap"],
-                                    title=plotting_config["plot_dict"]["line_trace"]["mask_cmap"]
+                                    title=plotting_config["plot_dict"]["line_trace"]["mask_cmap"],
                                 )
                                 fig.savefig(
-                                    tracing_out_path / direction / "nodes"
+                                    tracing_out_path
+                                    / direction
+                                    / "nodes"
                                     / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
                                     format="svg",
                                 )
