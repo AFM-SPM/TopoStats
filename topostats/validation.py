@@ -1011,7 +1011,8 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'node_branch_mask.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'node_branch_mask.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,

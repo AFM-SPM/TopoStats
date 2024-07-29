@@ -15,7 +15,6 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME, setup_logger
-from topostats.plotting import plot_crossing_linetrace_halfmax
 from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
 from topostats.statistics import image_statistics
 from topostats.tracing.disordered_tracing import trace_image_disordered
@@ -746,6 +745,7 @@ def run_dnatracing(
                 ).plot_and_save()
 
             plot_names = {
+                "nodes": tracing_results["all_images"]["node_img"],
                 "visual": tracing_results["all_images"]["visual"],
                 "ordered_trace": tracing_results["all_images"]["ordered_traces"],
                 "fitted_trace": tracing_results["all_images"]["fitted_traces"],
@@ -826,8 +826,6 @@ def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: 
         Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "above", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "below", parents=True, exist_ok=True)
-        Path.mkdir(tracing_out_path / "above" / "nodes", parents=True, exist_ok=True)
-        Path.mkdir(tracing_out_path / "below" / "nodes", parents=True, exist_ok=True)
 
     return core_out_path, filter_out_path, grain_out_path, tracing_out_path
 
