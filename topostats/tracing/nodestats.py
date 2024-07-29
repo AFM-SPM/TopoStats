@@ -590,20 +590,20 @@ class nodeStats:
                         matched_branches[i]["heights"] = heights
                         matched_branches[i]["distances"] = distances  # * self.px_2_nm
                         # identify over/under
-                        matched_branches[i]["fwhm2"] = self.fwhm2(heights, distances)
+                        matched_branches[i]["fwhm"] = self.fwhm(heights, distances)
 
                     # redo fwhms after to get better baselines + same hm matching
                     hms = []
                     for _, values in matched_branches.items():  # get hms
-                        hms.append(values["fwhm2"][1][2])
+                        hms.append(values["fwhm"]["half_maxs"][2])
                     for branch_idx, values in matched_branches.items():  # use same highest hm
-                        fwhm2 = self.fwhm2(values["heights"], values["distances"], hm=max(hms))
-                        matched_branches[branch_idx]["fwhm2"] = fwhm2
+                        fwhm = self.fwhm(values["heights"], values["distances"], hm=max(hms))
+                        matched_branches[branch_idx]["fwhm"] = fwhm
 
                     # get confidences
                     crossing_quants = []
                     for _, values in matched_branches.items():
-                        crossing_quants.append(values["fwhm2"][0])
+                        crossing_quants.append(values["fwhm"]["fwhm"])
                     if len(crossing_quants) == 1:  # from 3 eminnating branches
                         conf = None
                     else:
@@ -613,7 +613,7 @@ class nodeStats:
                     # add paired and unpaired branches to image plot
                     fwhms = []
                     for _, values in matched_branches.items():
-                        fwhms.append(values["fwhm2"][0])
+                        fwhms.append(values["fwhm"]["fwhm"])
                     branch_idx_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(fwhms))]
                     # branch_idx_order = np.arange(0,len(matched_branches))
                     # uncomment to unorder (will not unorder the height traces)
@@ -647,14 +647,10 @@ class nodeStats:
                     LOGGER.info(f"Node stats skipped as resolution too low: {self.px_2_nm}nm per pixel")
                     error = True
 
-                if average_trace_advised:
-                    avg_img = avg_img  # [image_slices[0] : image_slices[1], image_slices[2] : image_slices[3]]
-
                 print("Error: ", error)
                 self.node_dict[f"node_{real_node_count}"] = {
                     "error": error,
                     "px_2_nm": self.px_2_nm,
-                    "crossing_type": None,
                     "branch_stats": matched_branches,
                     "node_coords": node_coords,
                     "confidence": conf,
@@ -1007,9 +1003,9 @@ class nodeStats:
         """
         return h * np.exp(-((x - mean) ** 2) / (2 * sigma**2))
 
-    def fwhm2(self, heights: npt.NDArray, distances: npt.NDArray, hm: float | None = None) -> tuple:
+    def fwhm(self, heights: npt.NDArray, distances: npt.NDArray, hm: float | None = None) -> tuple:
         """
-        Calculate the FWHM value. TODO: Dictionary-ify this one to help saving.
+        Calculate the FWHM value.
 
         First identifyies the HM then finding the closest values in the distances array and using
         linear interpolation to calculate the FWHM.
@@ -1076,7 +1072,9 @@ class nodeStats:
 
         fwhm = abs(arr2_hm - arr1_hm)
 
-        return fwhm, [arr1_hm, arr2_hm, hm], [high_idx, distances[high_idx], heights[high_idx]]
+        return {
+            "fwhm": fwhm, "half_maxs": [arr1_hm, arr2_hm, hm], "peaks": [high_idx, distances[high_idx], heights[high_idx]]
+        }
 
     @staticmethod
     def lin_interp(point_1: list, point_2: list, xvalue: float | None = None, yvalue: float | None = None) -> float:
@@ -1579,7 +1577,7 @@ class nodeStats:
                 temp_coords.append(branch_stats["ordered_coords"])
                 temp__heights.append(branch_stats["heights"])
                 temp_distances.append(branch_stats["distances"])
-                temp_fwhms.append(branch_stats["fwhm2"][0])
+                temp_fwhms.append(branch_stats["fwhm"][0])
                 temp_nodes.append(stats["node_coords"])
             node_coords.append(temp_nodes)
             crossing_coords.append(temp_coords)
