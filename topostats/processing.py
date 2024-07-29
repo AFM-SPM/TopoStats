@@ -480,25 +480,25 @@ def run_nodestats(
             for mol_no, mol_stats in nodestats_data.items():
                 if mol_stats is not None:
                     for node_no, single_node_stats in mol_stats.items():
-                        if plotting_config["image_set"] == "all":
-                            # plot the node and branch_mask images
-                            for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
-                                node_no
-                            ].items():
-                                Images(
-                                    nodestats_branch_images[mol_no]["grain"]["grain_image"],
-                                    masked_array=cropped_image,
-                                    output_dir=tracing_out_path / direction / "nodes",
-                                    filename=f"{mol_no}_{node_no}_{cropped_image_type}",
-                                    **plotting_config["plot_dict"][cropped_image_type],
-                                ).plot_and_save()
+                        # plot the node and branch_mask images
+                        for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
+                            node_no
+                        ].items():
+                            Images(
+                                nodestats_branch_images[mol_no]["grain"]["grain_image"],
+                                masked_array=cropped_image,
+                                output_dir=tracing_out_path / direction / "nodes",
+                                filename=f"{mol_no}_{node_no}_{cropped_image_type}",
+                                **plotting_config["plot_dict"][cropped_image_type],
+                            ).plot_and_save()
 
-                            # plot crossing height linetrace
+                        # plot crossing height linetrace
+                        if plotting_config["image_set"] == "all":
                             if not single_node_stats["error"]:
                                 fig, _ = plot_crossing_linetrace_halfmax(
                                     branch_stats_dict=single_node_stats["branch_stats"],
-                                    mask_cmap=plotting_config["plot_dict"]["line_trace"]["mask_cmap"],
-                                    title=plotting_config["plot_dict"]["line_trace"]["mask_cmap"],
+                                    mask_cmap=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
+                                    title=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
                                 )
                                 fig.savefig(
                                     tracing_out_path
