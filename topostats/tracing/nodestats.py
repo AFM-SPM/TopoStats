@@ -1507,7 +1507,7 @@ def nodestats_image(
     node_extend_dist: float,
     branch_pairing_length: float,
     pad_width: int,
-) -> tuple:
+    ) -> tuple:
     """
     Initialise the nodeStats class.
 
@@ -1533,7 +1533,7 @@ def nodestats_image(
     Returns
     -------
     tuple[dict, pd.DataFrame, dict, dict]
-        The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics, an image dictionary of nodestats steps for the entire image, and single grain images.
+        The nodestats statistics for each crossing, crossing statitics to be added to the grain statistics, an image dictionary of nodestats steps.
     """
     n_grains = len(disordered_tracing_direction_data)
     img_base = np.zeros_like(image)
