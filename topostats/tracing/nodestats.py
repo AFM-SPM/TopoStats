@@ -926,7 +926,7 @@ class nodeStats:
 
     def fwhm(self, heights: npt.NDArray, distances: npt.NDArray, hm: float | None = None) -> tuple:
         """
-        Calculate the FWHM value. TODO: Dictionary-ify this one to help saving.
+        Calculate the FWHM value.
 
         First identifyies the HM then finding the closest values in the distances array and using
         linear interpolation to calculate the FWHM.
