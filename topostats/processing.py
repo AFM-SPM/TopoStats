@@ -461,7 +461,7 @@ def run_nodestats(
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
                 **nodestats_config,
             )
-            
+
             # save per image new grainstats stats
             grainstats_additions_df["threshold"] = direction
             grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
@@ -485,7 +485,6 @@ def run_nodestats(
                         if plotting_config["image_set"] == "all":
                             # plot the node and branch_mask images
                             for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][node_no].items():
-                                print(cropped_image_type)
                                 Images(
                                     nodestats_branch_images[mol_no]["grain"]["grain_image"],
                                     masked_array=cropped_image,
@@ -496,7 +495,6 @@ def run_nodestats(
 
                             # plot crossing height linetrace
                             if not single_node_stats["error"]:
-                                print(plotting_config["plot_dict"]["line_trace"])
                                 fig, _ = plot_crossing_linetrace_halfmax(
                                     branch_stats_dict=single_node_stats["branch_stats"],
                                     mask_cmap=plotting_config["plot_dict"]["line_trace"]["mask_cmap"],
@@ -839,6 +837,7 @@ def process_scan(
             nodestats_config=nodestats_config,
             results_df=results_df,
         )
+        topostats_object["nodestats"] = nodestats
 
         # DNAtracing
         results_df, grain_trace_data = run_dnatracing(
@@ -855,7 +854,7 @@ def process_scan(
         )
 
         # Add grain trace data to topostats object
-        topostats_object["grain_trace_data"] = grain_trace_data
+        #topostats_object["grain_trace_data"] = grain_trace_data
 
     else:
         results_df = create_empty_dataframe()
