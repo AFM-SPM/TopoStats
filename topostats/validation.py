@@ -256,6 +256,8 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
             ),
             "node_joining_length": float,
+            "node_extend_dist": float,
+            "branch_pairing_length": float,
             "pad_width": lambda n: n > 0.0,
         },
         "dnatracing": {
@@ -1015,7 +1017,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
         },
-        "line_trace": {
+        "node_line_trace": {
             "title": str,
             "image_type": Or(
                 "binary",
