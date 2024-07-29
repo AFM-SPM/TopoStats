@@ -964,39 +964,39 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "zoom_node": {
+        "node_area_skeleton": {
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'node_area_skeleton.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "crossings": {
+        "node_branch_mask": {
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'node_branch_mask.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "tripple_crossings": {
+        "node_avg_mask": {
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'node_avg_mask.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1011,7 +1011,7 @@ PLOTTING_SCHEMA = Schema(
                     "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
-            "cmap": str,
+            "mask_cmap": str,
         },
         "visual_crop": {
             "title": str,
