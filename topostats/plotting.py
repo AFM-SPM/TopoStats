@@ -507,10 +507,23 @@ def plot_crossing_linetrace_halfmax(
         ax.plot(x, heights, c=cmp(cmap_ratio))  # label=f"Branch: {branch_idx}"
 
         # plot the high point lines
-        plt.plot([-15, fwhm_dict["peaks"][1]], [fwhm_dict["peaks"][2], fwhm_dict["peaks"][2]], c=cmp(cmap_ratio), label=f"FWHM: {fwhm_dict['fwhm']:.4f}")
+        plt.plot(
+            [-15, fwhm_dict["peaks"][1]],
+            [fwhm_dict["peaks"][2], fwhm_dict["peaks"][2]],
+            c=cmp(cmap_ratio),
+            label=f"FWHM: {fwhm_dict['fwhm']:.4f}",
+        )
         # plot the half max lines
-        plt.plot([fwhm_dict["half_maxs"][0], fwhm_dict["half_maxs"][0]], [fwhm_dict["half_maxs"][2], heights.min()], c=cmp(cmap_ratio))
-        plt.plot([fwhm_dict["half_maxs"][1], fwhm_dict["half_maxs"][1]], [fwhm_dict["half_maxs"][2], heights.min()], c=cmp(cmap_ratio))
+        plt.plot(
+            [fwhm_dict["half_maxs"][0], fwhm_dict["half_maxs"][0]],
+            [fwhm_dict["half_maxs"][2], heights.min()],
+            c=cmp(cmap_ratio),
+        )
+        plt.plot(
+            [fwhm_dict["half_maxs"][1], fwhm_dict["half_maxs"][1]],
+            [fwhm_dict["half_maxs"][2], heights.min()],
+            c=cmp(cmap_ratio),
+        )
 
     ax.set_xlabel("Distance from Node (nm)")
     ax.set_ylabel("Height")
