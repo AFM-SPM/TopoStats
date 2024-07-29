@@ -510,7 +510,7 @@ class nodeStats:
         self.image_dict
         self.node_dict
         self.all_connected_nodes
-            Image 
+            Image
 
         Parameters
         ----------
@@ -608,6 +608,7 @@ class nodeStats:
                         self.test2 = vectors
                     # pair vectors
                     # print(f"NODE {real_node_count}, vectors:\n {vectors}")
+                    # pairs eg: array[[1, 2]] for branches 1 and 2
                     pairs = self.pair_vectors(np.asarray(vectors))
 
                     # join matching branches through node
@@ -629,6 +630,7 @@ class nodeStats:
                             target=tuple(branch_2_coords[0]),
                             weight="weight",
                         )
+                        # Crossing example: [array([279, 352]), array([280, 353])]
                         crossing = np.asarray(crossing[1:-1])  # remove start and end points & turn into array
                         # Branch coords and crossing
                         if crossing.shape == (0,):
@@ -638,7 +640,7 @@ class nodeStats:
                         # make images of single branch joined and multiple branches joined
                         single_branch_img = np.zeros_like(self.skeleton)
                         single_branch_img[branch_coords[:, 0], branch_coords[:, 1]] = 1
-                        single_branch_coords = order_branch(single_branch_img, [0, 0])
+                        single_branch_coords = order_branch(single_branch_img, [0, 0])  # Sylvia: CLEAN OF SELF.
                         # calc image-wide coords
                         matched_branches[i]["ordered_coords"] = single_branch_coords
                         # get heights and trace distance of branch
@@ -654,6 +656,7 @@ class nodeStats:
                         ) as e:  # Assertion - avg trace not advised, Index - wiggy branches
                             LOGGER.info(f"[{self.filename}] : avg trace failed with {e}, single trace only.")
                             average_trace_advised = False
+                            # distances example: length 4, [-2.23, -1.41, 0.0, 1.41]
                             distances = self.coord_dist_rad(single_branch_coords, [x, y])  # Sylvia: CLEAN OF SELF.
                             # distances = self.coord_dist(single_branch_coords)
                             zero_dist = distances[
