@@ -243,7 +243,7 @@ node_avg_mask:
   image_type: "non-binary"
   mask_cmap: "blue_purple_green"
   core_set: false
-line_trace:
+node_line_trace:
   title: "Heights of Crossing"
   image_type: "non-binary"
   mask_cmap: "blue_purple_green"
