@@ -1072,7 +1072,9 @@ class nodeStats:
         fwhm = abs(arr2_hm - arr1_hm)
 
         return {
-            "fwhm": fwhm, "half_maxs": [arr1_hm, arr2_hm, hm], "peaks": [high_idx, distances[high_idx], heights[high_idx]]
+            "fwhm": fwhm,
+            "half_maxs": [arr1_hm, arr2_hm, hm],
+            "peaks": [high_idx, distances[high_idx], heights[high_idx]],
         }
 
     @staticmethod

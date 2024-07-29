@@ -472,7 +472,9 @@ def run_nodestats(
                     for node_no, single_node_stats in mol_stats.items():
                         if plotting_config["image_set"] == "all":
                             # plot the node and branch_mask images
-                            for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][node_no].items():
+                            for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
+                                node_no
+                            ].items():
                                 Images(
                                     nodestats_branch_images[mol_no]["grain"]["grain_image"],
                                     masked_array=cropped_image,
@@ -843,7 +845,7 @@ def process_scan(
         )
 
         # Add grain trace data to topostats object
-        #topostats_object["grain_trace_data"] = grain_trace_data
+        # topostats_object["grain_trace_data"] = grain_trace_data
 
     else:
         results_df = create_empty_dataframe()
