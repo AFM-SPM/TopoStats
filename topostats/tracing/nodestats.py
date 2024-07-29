@@ -11,7 +11,6 @@ import pandas as pd
 from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.morphology import label
-import matplotlib.pyplot as plt
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.geometry import (

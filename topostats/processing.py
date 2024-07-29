@@ -449,7 +449,7 @@ def run_nodestats(
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
                 **nodestats_config,
             )
-            
+
             # save per image new grainstats stats
             grainstats_additions_df["threshold"] = direction
             grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
@@ -465,14 +465,16 @@ def run_nodestats(
                     output_dir=tracing_out_path / direction,
                     **plotting_config["plot_dict"][plot_name],
                 ).plot_and_save()
-            
+
             # plot sinlge node images
             for mol_no, mol_stats in nodestats_data.items():
                 if mol_stats is not None:
                     for node_no, single_node_stats in mol_stats.items():
                         if plotting_config["image_set"] == "all":
                             # plot the node and branch_mask images
-                            for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][node_no].items():
+                            for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
+                                node_no
+                            ].items():
                                 print(cropped_image_type)
                                 Images(
                                     nodestats_branch_images[mol_no]["grain"]["grain_image"],
@@ -488,10 +490,12 @@ def run_nodestats(
                                 fig, _ = plot_crossing_linetrace_halfmax(
                                     branch_stats_dict=single_node_stats["branch_stats"],
                                     mask_cmap=plotting_config["plot_dict"]["line_trace"]["mask_cmap"],
-                                    title=plotting_config["plot_dict"]["line_trace"]["mask_cmap"]
+                                    title=plotting_config["plot_dict"]["line_trace"]["mask_cmap"],
                                 )
                                 fig.savefig(
-                                    tracing_out_path / direction / "nodes"
+                                    tracing_out_path
+                                    / direction
+                                    / "nodes"
                                     / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
                                     format="svg",
                                 )
