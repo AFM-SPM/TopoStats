@@ -110,7 +110,6 @@ class nodeStats:
             "grain": {
                 "grain_image": self.image,
                 "grain_mask": self.mask,
-                "grain_visual_crossings": None,
             },
         }
         self.full_dict = {}
@@ -145,7 +144,6 @@ class nodeStats:
                             'grain'
                                 |-> 'grain_image'
                                 |-> 'grain_mask'
-                                |-> 'grain_visual_crossings'
         """
         LOGGER.info(f"Node Stats - Processing Grain: {self.n_grain}")
         self.conv_skelly = convolve_skeleton(self.skeleton)
@@ -662,7 +660,7 @@ class nodeStats:
                     "confidence": conf,
                 }
 
-                self.image_dict["nodes"][real_node_count] = {
+                self.image_dict["nodes"][f"node_{real_node_count}"] = {
                     "node_area_skeleton": reduced_node_area,
                     "node_branch_mask": branch_img,
                     "node_avg_mask": avg_img,
@@ -2005,6 +2003,7 @@ def nodestats_image(
     all_images = {
         "connected_nodes": img_base.copy(),
     }
+    nodestats_branch_images = {}
     grainstats_additions = {}
 
     LOGGER.info(f"[{filename}] : Calculating NodeStats statistics for {n_grains} grains.")
@@ -2014,7 +2013,7 @@ def nodestats_image(
         # try:
         nodestats = nodeStats(
             image=disordered_tracing_grain_data["original_image"],
-            mask=disordered_tracing_grain_data["original_mask"],
+            mask=disordered_tracing_grain_data["original_grain"],
             smoothed_mask=disordered_tracing_grain_data["smoothed_grain"],
             skeleton=disordered_tracing_grain_data["pruned_skeleton"],
             px_2_nm=pixel_to_nm_scaling,
@@ -2029,6 +2028,7 @@ def nodestats_image(
         nodestats_images = {
             "connected_nodes": nodestats.connected_nodes,
         }
+        nodestats_branch_images[n_grain] = node_image_dict
         # compile metrics
         grainstats_additions[n_grain] = {
             "image": filename,
@@ -2053,4 +2053,4 @@ def nodestats_image(
         grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
         print("--------------\n", grainstats_additions_df)
 
-    return nodestats_data, grainstats_additions_df, all_images
+    return nodestats_data, grainstats_additions_df, all_images, nodestats_branch_images
