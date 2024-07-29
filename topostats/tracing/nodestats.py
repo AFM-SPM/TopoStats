@@ -47,6 +47,10 @@ class nodeStats:
         The grain number.
     node_joining_length : float
         The length over which to join skeletal intersections to be counted as one crossing.
+    node_joining_length : float
+        The distance over which to join nearby odd-branched nodes.
+    branch_pairing_length : float
+        The length from the crossing point to pair and trace, obtaining FWHM's.
     """
 
     def __init__(
@@ -59,6 +63,8 @@ class nodeStats:
         px_2_nm: float,
         n_grain: int,
         node_joining_length: float,
+        node_extend_dist: float,
+        branch_pairing_length: float,
     ) -> None:
         """
         Initialise the nodeStats class.
@@ -81,6 +87,10 @@ class nodeStats:
             The grain number.
         node_joining_length : float
             The length over which to join skeletal intersections to be counted as one crossing.
+        node_joining_length : float
+            The distance over which to join nearby odd-branched nodes.
+        branch_pairing_length : float
+            The length from the crossing point to pair and trace, obtaining FWHM's.
         """
         self.filename = filename
         self.image = image
@@ -90,6 +100,8 @@ class nodeStats:
         self.px_2_nm = px_2_nm * 1e-9
         self.n_grain = n_grain
         self.node_joining_length = node_joining_length
+        self.node_extend_dist = node_extend_dist / self.px_2_nm
+        self.branch_pairing_length = branch_pairing_length
 
         self.conv_skelly = np.zeros_like(self.skeleton)
         self.connected_nodes = np.zeros_like(self.skeleton)
@@ -159,14 +171,13 @@ class nodeStats:
             self.connected_nodes = self.connect_close_nodes(self.conv_skelly, node_width=self.node_joining_length)
             # connect the odd-branch nodes
             self.connected_nodes = self.connect_extended_nodes_nearest(
-                self.connected_nodes, extend_dist=14e-9 / self.px_2_nm
+                self.connected_nodes, node_extend_dist=self.node_extend_dist
             )
             # obtain a mask of node centers and their count
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
-            self.num_crossings = (self.node_centre_mask == 3).sum()
             # Begin the hefty crossing analysis
             LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
-            self.analyse_nodes(max_branch_length=20e-9)
+            self.analyse_nodes(max_branch_length=self.branch_pairing_length)
             self.compile_metrics()
         else:
             LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} has no crossings.")
@@ -364,7 +375,7 @@ class nodeStats:
         return small_node_mask
 
     def connect_extended_nodes_nearest(
-        self, connected_nodes: npt.NDArray, extend_dist: float = -1
+        self, connected_nodes: npt.NDArray, node_extend_dist: float = -1
     ) -> npt.NDArray[np.int32]:
         """
         Extend the odd branched nodes to other odd branched nodes within the 'extend_dist' threshold.
@@ -374,7 +385,7 @@ class nodeStats:
         connected_nodes : npt.NDArra
             A 2D array representing the network with background = 0, skeleton = 1, endpoints = 2,
             node_centres = 3.
-        extend_dist : int | float, optional
+        node_extend_dist : int | float, optional
             The distance over which to connect odd-branched nodes, by default -1 for no-limit.
 
         Returns
@@ -419,7 +430,7 @@ class nodeStats:
             shortest_distances_between_nodes=shortest_node_dists,
             shortest_distances_branch_indexes=shortest_dists_branch_idxs,
             emanating_branch_starts_by_node=nodes_with_branch_starting_coords,
-            extend_distance=extend_dist,
+            extend_distance=node_extend_dist,
         )
 
         self.connected_nodes = connected_nodes
@@ -1968,29 +1979,35 @@ def nodestats_image(
     filename: str,
     pixel_to_nm_scaling: float,
     node_joining_length: float,
-    pad_width: int = 1,
-) -> tuple:
+    node_extend_dist: float,
+    branch_pairing_length: float,
+    pad_width: int,
+    ) -> tuple:
     """
-    Run nodestats on multiple grains for a single image.
+    Initialise the nodeStats class.
 
     Parameters
     ----------
-    image : npt.NPArray
-        _description_
+    image : npt.NDArray
+        The array of pixels.
     disordered_tracing_direction_data : dict
-        _description_
+        The images and bbox coordinates of the pruned skeletons.
     filename : str
-        _description_
+        The name of the file being processed. For logging purposes.
     pixel_to_nm_scaling : float
-        _description_
+        The pixel to nm scaling factor.
     node_joining_length : float
-        _description_
-    pad_width : int, optional
-        _description_, by default 1
+        The length over which to join skeletal intersections to be counted as one crossing.
+    node_joining_length : float
+        The distance over which to join nearby odd-branched nodes.
+    branch_pairing_length : float
+        The length from the crossing point to pair and trace, obtaining FWHM's.
+    Pad width : int
+        The number of edge pixels to pad the image by.
 
     Returns
     -------
-    tuple[dict, pd.DataFrame, dict]
+    tuple[dict, pd.DataFrame, dict, dict]
         The nodestats statistics for each crossing, crossing statitics to be added to the grain statistics, an image dictionary of nodestats steps.
     """
     n_grains = len(disordered_tracing_direction_data)
@@ -2019,6 +2036,8 @@ def nodestats_image(
             filename=filename,
             n_grain=n_grain,
             node_joining_length=node_joining_length,
+            node_extend_dist=node_extend_dist,
+            branch_pairing_length=branch_pairing_length,
         )
         nodestats_dict, node_image_dict = nodestats.get_node_stats()
         LOGGER.info(f"[{filename}] : Disordered Traced {n_grain} of {n_grains}")
