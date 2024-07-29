@@ -15,6 +15,7 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME, setup_logger
+from topostats.plotting import plot_crossing_linetrace_halfmax
 from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
 from topostats.statistics import image_statistics
 from topostats.tracing.disordered_tracing import trace_image_disordered
@@ -451,7 +452,8 @@ def run_nodestats(
             (
                 nodestats_data,
                 grainstats_additions_df,
-                nodestats_images,
+                nodestats_full_images,
+                nodestats_branch_images,
             ) = nodestats_image(
                 image=image,
                 disordered_tracing_direction_data=disordered_tracing_direction_data,
@@ -459,6 +461,7 @@ def run_nodestats(
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
                 **nodestats_config,
             )
+            
             # save per image new grainstats stats
             grainstats_additions_df["threshold"] = direction
             grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
@@ -466,14 +469,45 @@ def run_nodestats(
             # append direction results to dict
             nodestats_image_data[direction] = nodestats_data
 
-            # save plots
-            for plot_name, image_value in nodestats_images.items():
+            # save whole image plots
+            for plot_name, image_value in nodestats_full_images.items():
                 Images(
                     image,
                     masked_array=image_value,
                     output_dir=tracing_out_path / direction,
                     **plotting_config["plot_dict"][plot_name],
                 ).plot_and_save()
+            
+            # plot sinlge node images
+            for mol_no, mol_stats in nodestats_data.items():
+                if mol_stats is not None:
+                    for node_no, single_node_stats in mol_stats.items():
+                        if plotting_config["image_set"] == "all":
+                            # plot the node and branch_mask images
+                            for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][node_no].items():
+                                print(cropped_image_type)
+                                Images(
+                                    nodestats_branch_images[mol_no]["grain"]["grain_image"],
+                                    masked_array=cropped_image,
+                                    output_dir=tracing_out_path / direction / "nodes",
+                                    filename=f"{mol_no}_{node_no}_{cropped_image_type}",
+                                    **plotting_config["plot_dict"][cropped_image_type],
+                                ).plot_and_save()
+
+                            # plot crossing height linetrace
+                            if not single_node_stats["error"]:
+                                print(plotting_config["plot_dict"]["line_trace"])
+                                fig, _ = plot_crossing_linetrace_halfmax(
+                                    branch_stats_dict=single_node_stats["branch_stats"],
+                                    mask_cmap=plotting_config["plot_dict"]["line_trace"]["mask_cmap"],
+                                    title=plotting_config["plot_dict"]["line_trace"]["mask_cmap"]
+                                )
+                                fig.savefig(
+                                    tracing_out_path / direction / "nodes"
+                                    / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
+                                    format="svg",
+                                )
+            LOGGER.info(f"[{filename}] : Finished Plotting DNA Tracing Images")
 
         # merge grainstats data with other dataframe
         resultant_grainstats = (
@@ -595,7 +629,6 @@ def run_dnatracing(
                 ).plot_and_save()
 
             plot_names = {
-                "nodes": tracing_results["all_images"]["node_img"],
                 "visual": tracing_results["all_images"]["visual"],
                 "ordered_trace": tracing_results["all_images"]["ordered_traces"],
                 "fitted_trace": tracing_results["all_images"]["fitted_traces"],
@@ -676,6 +709,8 @@ def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: 
         Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "above", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "below", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "above" / "nodes", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "below" / "nodes", parents=True, exist_ok=True)
 
     return core_out_path, filter_out_path, grain_out_path, tracing_out_path
 
