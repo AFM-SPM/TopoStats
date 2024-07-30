@@ -219,25 +219,38 @@ pruned_skeleton:
   core_set: true
   savefig_dpi: 600
 # Nodestats troubleshooting images
-connected_nodes:
-  filename: "24-nodes"
+convolved_skeletons:
+  filename: "24-convolved_skeleton"
   title: "Image with Skeletons and Highlighted Nodes"
   image_type: "non-binary"
   mask_cmap: "blue_purple_green"
   core_set: false
+  savefig_dpi: 600
+node_centres:
+  filename: "25-node_centres"
+  title: "Image with Skeletons and Highlighted Nodes"
+  image_type: "non-binary"
+  mask_cmap: "blue_purple_green"
+  core_set: false
+  savefig_dpi: 600
+connected_nodes:
+  title: "Image with Skeletons and Highlighted Nodes"
+  image_type: "non-binary"
+  mask_cmap: "blue_purple_green"
+  core_set: true
   savefig_dpi: 600
 node_area_skeleton:
   title: "Zoom of Node Skeleton"
   image_type: "non-binary"
   core_set: false
   mask_cmap: "blue_purple_green"
-  savefig_dpi: 600
+  savefig_dpi: 200
 node_branch_mask:
   title: "Crossing and Skeleton Branches"
   image_type: "non-binary"
   core_set: false
   mask_cmap: "blue_purple_green"
-  savefig_dpi: 600
+  savefig_dpi: 200
 node_avg_mask:
   title: "Image with Main and Parallel Traces"
   image_type: "non-binary"
