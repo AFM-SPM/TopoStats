@@ -182,6 +182,8 @@ def test_analyse_nodes(
     # Sylvia: Max branch length is hardcoded in nodestats as 20e-9. Unsure of why this value is used.
     nodestats_catenane.analyse_nodes(max_branch_length=20e-9, test_run=True)
 
+    print("test")
+
     # Check outputs
     print("===== node dict =====")
     node_dict = nodestats_catenane.node_dict
@@ -227,7 +229,8 @@ def test_analyse_nodes(
     print(all_connected_nodes.shape)
     print(all_connected_nodes)
 
-    np.testing.assert_equal(nodestats_catenane.node_dict, nodestats_catenane_node_dict)
+    nodestats_catenane_node_dict_result = nodestats_catenane.node_dict
+    np.testing.assert_equal(nodestats_catenane_node_dict_result, nodestats_catenane_node_dict)
     np.testing.assert_equal(nodestats_catenane.image_dict, nodestats_catenane_image_dict)
     np.testing.assert_array_equal(nodestats_catenane.all_connected_nodes, nodestats_catenane_all_connected_nodes)
 

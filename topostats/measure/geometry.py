@@ -335,7 +335,10 @@ def find_branches_for_nodes(
 
 
 # Test cases
+
 node_no = 0
+pairs = np.array([1, 3]), np.array([2, 0])
+# ordered_branches =
 matched_branches = {
     # Node pair 0
     0: {

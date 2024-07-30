@@ -545,7 +545,7 @@ class nodeStats:
         real_node_count = 0
         for node_no, (x, y) in enumerate(xy_arr):  # get centres
             # get area around node
-            max_length_px = max_branch_length / self.px_2_nm
+            max_length_px = max_branch_length / (self.px_2_nm * 1e-9)
 
             # reduce the skeleton area
             # Sylvia: this appears to remove all branches that are not connected directly to the exact centre of the node
@@ -607,6 +607,8 @@ class nodeStats:
                         self.test2 = vectors
                     # pair vectors
                     # print(f"NODE {real_node_count}, vectors:\n {vectors}")
+                    # vectors example: node 0: [array([0, 0]), array([0, 0]), array([0, 0]), array([0, 0])].
+                    # idk why this is zero.
                     # pairs eg: array[[1, 2]] for branches 1 and 2
                     pairs = self.pair_vectors(np.asarray(vectors))
 
@@ -615,7 +617,10 @@ class nodeStats:
                     masked_image = {}
                     branch_img = np.zeros_like(self.skeleton)  # initialising paired branch img
                     avg_img = np.zeros_like(self.skeleton)
+                    # np.save(f"tests/resources/node_{node_no}_ordered_branches.npy", ordered_branches)
                     for i, (branch_1, branch_2) in enumerate(pairs):
+                        # Branch 1 and branch 2 are indexes of branches eg, 1 & 0, 2 & 3
+                        # for the test catenane, this doesn't seem to change even for other nodes??
                         matched_branches[i] = {}
                         masked_image[i] = {}
                         # find close ends by rearranging branch coords
