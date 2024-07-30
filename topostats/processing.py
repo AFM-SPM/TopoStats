@@ -417,21 +417,11 @@ def run_disorderedTrace(
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
 
-            # save plots
-            for plot_name, image_value in disordered_tracing_images.items():
-                Images(
-                    image,
-                    masked_array=image_value,
-                    output_dir=tracing_out_path / direction,
-                    **plotting_config["plot_dict"][plot_name],
-                ).plot_and_save()
+            return disordered_traces
 
-        return disordered_traces
-        """
         except Exception:
             LOGGER.info("Disordered tracing failed - skipping.")
             return disordered_traces
-        """
 
 
 def run_nodestats(
