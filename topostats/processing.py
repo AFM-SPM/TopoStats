@@ -416,11 +416,10 @@ def run_disorderedTrace(
                     ).plot_and_save()
 
             return disordered_traces
-        
+
         except Exception:
             LOGGER.info("Disordered tracing failed - skipping.")
             return disordered_traces
-        
 
 
 # noqa: C901
