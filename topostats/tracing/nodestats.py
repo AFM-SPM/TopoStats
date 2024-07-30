@@ -180,6 +180,7 @@ class nodeStats:
             )
             # obtain a mask of node centers and their count
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
+            print("CENT: ", self.node_centre_mask)
             # Begin the hefty crossing analysis
             LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
             self.analyse_nodes(max_branch_length=self.branch_pairing_length)
@@ -1575,6 +1576,7 @@ def nodestats_image(
             "node_centres": nodestats.node_centre_mask,
             "connected_nodes": nodestats.connected_nodes,
         }
+        [print(f'-----{k}-----',v) for k,v in nodestats_images.items()]
         nodestats_branch_images[n_grain] = node_image_dict
 
         # compile metrics

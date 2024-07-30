@@ -244,13 +244,13 @@ node_area_skeleton:
   image_type: "non-binary"
   core_set: false
   mask_cmap: "blue_purple_green"
-  savefig_dpi: 600
+  savefig_dpi: 200
 node_branch_mask:
   title: "Crossing and Skeleton Branches"
   image_type: "non-binary"
   core_set: false
   mask_cmap: "blue_purple_green"
-  savefig_dpi: 600
+  savefig_dpi: 200
 node_avg_mask:
   title: "Image with Main and Parallel Traces"
   image_type: "non-binary"

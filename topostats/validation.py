@@ -1019,19 +1019,6 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "node_avg_mask": {
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'node_avg_mask.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "mask_cmap": str,
-            "core_set": bool,
-            "savefig_dpi": int,
-        },
         "node_branch_mask": {
             "title": str,
             "image_type": Or(
