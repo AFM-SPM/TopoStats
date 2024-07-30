@@ -930,7 +930,6 @@ PLOTTING_SCHEMA = Schema(
             "savefig_dpi": int,
         },
         "pruned_skeleton": {
-            "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",

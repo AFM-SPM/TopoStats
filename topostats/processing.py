@@ -352,6 +352,7 @@ def run_disorderedTrace(
     grain_masks: dict,
     pixel_to_nm_scaling: float,
     filename: str,
+    core_out_path: Path,
     tracing_out_path: Path,
     disordered_tracing_config: dict,
     plotting_config: dict,
@@ -386,32 +387,40 @@ def run_disorderedTrace(
         disordered_tracing_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Disordered Tracing ***")
         disordered_traces = defaultdict()
-        try:
-            # run image using directional grain masks
-            for direction, _ in grain_masks.items():
-                disordered_traces_cropped_data, disordered_tracing_images = trace_image_disordered(
-                    image=image,
-                    grains_mask=grain_masks[direction],
-                    filename=filename,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                    **disordered_tracing_config,
-                )
-                # append direction results to dict
-                disordered_traces[direction] = disordered_traces_cropped_data
-                # save plots
-                for plot_name, image_value in disordered_tracing_images.items():
-                    Images(
-                        image,
-                        masked_array=image_value,
-                        output_dir=tracing_out_path / direction,
-                        **plotting_config["plot_dict"][plot_name],
-                    ).plot_and_save()
+        #try:
+        # run image using directional grain masks
+        for direction, _ in grain_masks.items():
+            disordered_traces_cropped_data, disordered_tracing_images = trace_image_disordered(
+                image=image,
+                grains_mask=grain_masks[direction],
+                filename=filename,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                **disordered_tracing_config,
+            )
+            # append direction results to dict
+            disordered_traces[direction] = disordered_traces_cropped_data
+            # save plots
+            Images(
+                image,
+                masked_array=disordered_tracing_images.pop("pruned_skeleton"),
+                output_dir=core_out_path,
+                filename=f"{filename}_{direction}_disordered_trace",
+                **plotting_config["plot_dict"]["pruned_skeleton"],
+            ).plot_and_save()
+            for plot_name, image_value in disordered_tracing_images.items():
+                Images(
+                    image,
+                    masked_array=image_value,
+                    output_dir=tracing_out_path / direction,
+                    **plotting_config["plot_dict"][plot_name],
+                ).plot_and_save()
 
-            return disordered_traces
-
+        return disordered_traces
+        """
         except Exception:
             LOGGER.info("Disordered tracing failed - skipping.")
             return disordered_traces
+        """
 
 
 # noqa: C901
@@ -701,6 +710,7 @@ def process_scan(
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
             filename=topostats_object["filename"],
+            core_out_path=core_out_path,
             tracing_out_path=tracing_out_path,
             disordered_tracing_config=disordered_tracing_config,
             plotting_config=plotting_config,
