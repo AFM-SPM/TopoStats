@@ -213,11 +213,10 @@ skeleton:
   core_set: false
   savefig_dpi: 600
 pruned_skeleton:
-  filename: "23-pruned_skeletons"
   title: "Image with Overlapping Pruned Skeletons"
   image_type: "non-binary"
   mask_cmap: "blue"
-  core_set: false
+  core_set: true
   savefig_dpi: 600
 # Nodestats troubleshooting images
 convolved_skeletons:

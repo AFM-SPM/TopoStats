@@ -301,28 +301,31 @@ def trace_image_disordered(
     LOGGER.info(f"[{filename}] : Calculating DNA tracing statistics for {n_grains} grains.")
 
     for cropped_image_index, cropped_image in cropped_images.items():
-        cropped_mask = cropped_masks[cropped_image_index]
-        disordered_trace_images = disordered_trace_grain(
-            cropped_image=cropped_image,
-            cropped_mask=cropped_mask,
-            pixel_to_nm_scaling=pixel_to_nm_scaling,
-            mask_smoothing_params=mask_smoothing_params,
-            skeletonisation_params=skeletonisation_params,
-            pruning_params=pruning_params,
-            filename=filename,
-            min_skeleton_size=min_skeleton_size,
-            n_grain=cropped_image_index,
-        )
-        LOGGER.info(f"[{filename}] : Disordered Traced grain {cropped_image_index + 1} of {n_grains}")
+        try:
+            cropped_mask = cropped_masks[cropped_image_index]
+            disordered_trace_images = disordered_trace_grain(
+                cropped_image=cropped_image,
+                cropped_mask=cropped_mask,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                mask_smoothing_params=mask_smoothing_params,
+                skeletonisation_params=skeletonisation_params,
+                pruning_params=pruning_params,
+                filename=filename,
+                min_skeleton_size=min_skeleton_size,
+                n_grain=cropped_image_index,
+            )
+            LOGGER.info(f"[{filename}] : Disordered Traced grain {cropped_image_index + 1} of {n_grains}")
 
-        # remap the cropped images back onto the original
-        for image_name, full_image in all_images.items():
-            crop = disordered_trace_images[image_name]
-            bbox = bboxs[cropped_image_index]
-            full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+            # remap the cropped images back onto the original
+            for image_name, full_image in all_images.items():
+                crop = disordered_trace_images[image_name]
+                bbox = bboxs[cropped_image_index]
+                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+            disordered_trace_crop_data[f"grain_{cropped_image_index}"] = disordered_trace_images
+            disordered_trace_crop_data[f"grain_{cropped_image_index}"]["bbox"] = bboxs[cropped_image_index]
 
-        disordered_trace_crop_data[f"grain_{cropped_image_index}"] = disordered_trace_images
-        disordered_trace_crop_data[f"grain_{cropped_image_index}"]["bbox"] = bboxs[cropped_image_index]
+        except Exception as e:
+            LOGGER.warning(f"[{filename}] : Disordered tracing of grain {cropped_image_index} failed with {e}.")
 
     return disordered_trace_crop_data, all_images
 
