@@ -1534,7 +1534,7 @@ def nodestats_image(
     Returns
     -------
     tuple[dict, pd.DataFrame, dict, dict]
-        The nodestats statistics for each crossing, crossing statitics to be added to the grain statistics, an image dictionary of nodestats steps.
+        The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics, an image dictionary of nodestats steps for the entire image, and single grain images.
     """
     n_grains = len(disordered_tracing_direction_data)
     img_base = np.zeros_like(image)
@@ -1576,7 +1576,6 @@ def nodestats_image(
             "node_centres": nodestats.node_centre_mask,
             "connected_nodes": nodestats.connected_nodes,
         }
-        [print(f"-----{k}-----", v) for k, v in nodestats_images.items()]
         nodestats_branch_images[n_grain] = node_image_dict
 
         # compile metrics
@@ -1596,6 +1595,7 @@ def nodestats_image(
         """
         except Exception as e:
             LOGGER.error(f"[{filename}] : Disordered tracing for {n_grain} failed with - {e}")
+            nodestats_data[n_grain] = {}
         """
         # turn the grainstats additions into a dataframe
         grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
