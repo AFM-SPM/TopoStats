@@ -216,7 +216,7 @@ pruned_skeleton:
   title: "Image with Overlapping Pruned Skeletons"
   image_type: "non-binary"
   mask_cmap: "blue"
-  core_set: false
+  core_set: true
   savefig_dpi: 600
 # Nodestats troubleshooting images
 nodes:
