@@ -105,8 +105,9 @@ class nodeStats:
 
         self.conv_skelly = np.zeros_like(self.skeleton)
         self.connected_nodes = np.zeros_like(self.skeleton)
-        self.all_connected_nodes = self.skeleton.copy()
+        self.all_connected_nodes = np.zeros_like(self.skeleton)
         self.whole_skel_graph = None
+        self.node_centre_mask = np.zeros_like(self.skeleton)
 
         self.metrics = {
             "num_crossings": 0,
@@ -114,7 +115,6 @@ class nodeStats:
             "min_crossing_confidence": None,
         }
 
-        self.node_centre_mask = None
         self.node_dict = {}
         self.image_dict = {
             "nodes": {},
@@ -123,6 +123,7 @@ class nodeStats:
                 "grain_mask": self.mask,
             },
         }
+
         self.full_dict = {}
         self.mol_coords = {}
         self.visuals = {}
@@ -175,6 +176,7 @@ class nodeStats:
             )
             # obtain a mask of node centers and their count
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
+            print("CENT: ", self.node_centre_mask)
             # Begin the hefty crossing analysis
             LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
             self.analyse_nodes(max_branch_length=self.branch_pairing_length)
@@ -2017,6 +2019,8 @@ def nodestats_image(
     # want to get each cropped image, use some anchor coords to match them onto the image,
     #   and compile all the grain images onto a single image
     all_images = {
+        "convolved_skeletons": img_base.copy(),
+        "node_centres": img_base.copy(),
         "connected_nodes": img_base.copy(),
     }
     nodestats_branch_images = {}
@@ -2040,12 +2044,15 @@ def nodestats_image(
             branch_pairing_length=branch_pairing_length,
         )
         nodestats_dict, node_image_dict = nodestats.get_node_stats()
-        LOGGER.info(f"[{filename}] : Disordered Traced {n_grain} of {n_grains}")
+        LOGGER.info(f"[{filename}] : Nodestats processed {n_grain} of {n_grains}")
 
         # compile images
         nodestats_images = {
+            "convolved_skeletons": nodestats.conv_skelly,
+            "node_centres": nodestats.node_centre_mask,
             "connected_nodes": nodestats.connected_nodes,
         }
+        [print(f'-----{k}-----',v) for k,v in nodestats_images.items()]
         nodestats_branch_images[n_grain] = node_image_dict
         # compile metrics
         grainstats_additions[n_grain] = {
