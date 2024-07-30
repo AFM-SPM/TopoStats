@@ -435,6 +435,7 @@ def run_nodestats(
     disordered_tracing_data: dict,
     pixel_to_nm_scaling: float,
     filename: str,
+    core_out_path: Path,
     tracing_out_path: Path,
     nodestats_config: dict,
     plotting_config: dict,
@@ -470,6 +471,13 @@ def run_nodestats(
             nodestats_image_data[direction] = nodestats_data
 
             # save whole image plots
+            Images(
+                filename=f"{filename}_{direction}_nodes",
+                data=image,
+                masked_array=nodestats_full_images.pop("connected_nodes"),
+                output_dir=core_out_path,
+                **plotting_config["plot_dict"]["connected_nodes"],
+            ).plot_and_save()
             for plot_name, image_value in nodestats_full_images.items():
                 Images(
                     image,
@@ -835,7 +843,7 @@ def process_scan(
             disordered_tracing_data=topostats_object["disordered_traces"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
-            # core_out_path=core_out_path,
+            core_out_path=core_out_path,
             tracing_out_path=tracing_out_path,
             plotting_config=plotting_config,
             nodestats_config=nodestats_config,
