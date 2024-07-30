@@ -1984,7 +1984,7 @@ def nodestats_image(
     node_extend_dist: float,
     branch_pairing_length: float,
     pad_width: int,
-    ) -> tuple:
+) -> tuple:
     """
     Initialise the nodeStats class.
 
@@ -2052,7 +2052,7 @@ def nodestats_image(
             "node_centres": nodestats.node_centre_mask,
             "connected_nodes": nodestats.connected_nodes,
         }
-        [print(f'-----{k}-----',v) for k,v in nodestats_images.items()]
+        [print(f"-----{k}-----", v) for k, v in nodestats_images.items()]
         nodestats_branch_images[n_grain] = node_image_dict
         # compile metrics
         grainstats_additions[n_grain] = {
