@@ -1,5 +1,8 @@
-base_dir: ./ # Directory in which to search for data files
-output_dir: ./output # Directory to output results to
+# Config file generated 2024-07-29 11:11:05
+# # For more information on configuration and how to use it:
+# https://afm-spm.github.io/TopoStats/main/configuration.html
+base_dir: ./data # Directory in which to search for data files
+output_dir: ./data # Directory to output results to
 log_level: info # Verbosity of output. Options: warning, error, info, debug
 cores: 1 # Number of CPU cores to utilise for processing multiple files simultaneously.
 file_ext: .spm # File extension of the data files.
@@ -68,6 +71,8 @@ disordered_tracing:
 nodestats:
   run: true # Options : true, false
   node_joining_length: 7.0e-9 # The distance over which to join nearby crossing points.
+  node_extend_dist: 14.0e-9 # The distance over which to join nearby odd-branched nodes.
+  branch_pairing_length: 20.0e-9 # The length from the crossing point to pair and trace, obtaining FWHM's
   pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing)
 dnatracing:
   run: false # Options : true, false
@@ -88,7 +93,7 @@ plotting:
   axes: true # Options : true, false (due to off being a bool when parsed)
   num_ticks: [null, null] # Number of ticks to have along the x and y axes. Options : null (auto) or integer > 1
   cmap: null # Colormap/colourmap to use (default is 'nanoscope' which is used if null, other options are 'afmhot', 'viridis' etc.)
-  mask_cmap: blue # Options : blu, jet_r and any in matplotlib
+  mask_cmap: blue_purple_green # Options : blu, jet_r and any in matplotlib
   histogram_log_axis: false # Options : true, false
 summary_stats:
   run: true # Whether to make summary plots for output data
