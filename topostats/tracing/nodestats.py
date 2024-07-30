@@ -694,7 +694,8 @@ class nodeStats:
         """
         combs = []
         for i in range(len(fwhm_list) - 1):
-            [combs.append([fwhm_list[i], j]) for j in fwhm_list[i + 1 :]]
+            for j in fwhm_list[i + 1 :]:
+                combs.append([fwhm_list[i], j])
         return combs
 
     def cross_confidence(self, combs: list) -> float:
@@ -1015,6 +1016,28 @@ class nodeStats:
         """
         return h * np.exp(-((x - mean) ** 2) / (2 * sigma**2))
 
+    def interpolate_between_yvalue(self, x: npt.NDArray, y: npt.NDArray, yvalue: float) -> float:
+        """Calculate the x value between the two points either side of yvalue in y.
+
+        Parameters
+        ----------
+        x : npt.NDArray
+            An array of length y.
+        y : npt.NDArray
+            An array of length x.
+        yvalue : float
+            A value within the bounds of the y array.
+
+        Returns
+        -------
+        float
+            The linearly interpolated x value between the arrays.
+        """
+        for i in range(len(y) - 1):
+            if y[i] <= yvalue <= y[i + 1]:  # if points cross through the hm value
+                return self.lin_interp([x[i], y[i]], [x[i + 1], y[i + 1]], yvalue=yvalue)
+        return 0
+
     def fwhm(self, heights: npt.NDArray, distances: npt.NDArray, hm: float | None = None) -> tuple:
         """
         Calculate the FWHM value.
@@ -1043,20 +1066,15 @@ class nodeStats:
         else:
             high_idx = np.argmax(heights[centre_fraction:-centre_fraction]) + centre_fraction
 
-        # heights_norm = heights.copy() - heights.min()  # lower graph so min is 0
-
         # get array halves to find first points that cross hm
-        arr1 = heights[:high_idx][::-1]  # heights_norm[:high_idx][::-1]
+        arr1 = heights[:high_idx][::-1]
         dist1 = distances[:high_idx][::-1]
-        arr2 = heights[high_idx:]  # heights_norm[high_idx:]
+        arr2 = heights[high_idx:]
         dist2 = distances[high_idx:]
-
-        arr1_hm = 0
-        arr2_hm = 0
 
         if hm is None:
             # Get half max
-            hm = (heights.max() - heights.min()) / 2 + heights.min()  # heights_norm.max() / 2
+            hm = (heights.max() - heights.min()) / 2 + heights.min()
             # half max value -> try to make it the same as other crossing branch?
             # increase make hm = lowest of peak if it doesn't hit one side
             if np.min(arr1) > hm:
@@ -1072,15 +1090,8 @@ class nodeStats:
                 except IndexError:  # index error when no local minima
                     hm = np.min(arr2)
 
-        for i in range(len(arr1) - 1):
-            if (arr1[i] >= hm) and (arr1[i + 1] <= hm):  # if points cross through the hm value
-                arr1_hm = self.lin_interp([dist1[i], arr1[i]], [dist1[i + 1], arr1[i + 1]], yvalue=hm)
-                break
-
-        for i in range(len(arr2) - 1):
-            if (arr2[i] >= hm) and (arr2[i + 1] <= hm):  # if points cross through the hm value
-                arr2_hm = self.lin_interp([dist2[i], arr2[i]], [dist2[i + 1], arr2[i + 1]], yvalue=hm)
-                break
+        arr1_hm = self.interpolate_between_yvalue(x=dist1, y=arr1, yvalue=hm)
+        arr2_hm = self.interpolate_between_yvalue(x=dist2, y=arr2, yvalue=hm)
 
         fwhm = abs(arr2_hm - arr1_hm)
 
@@ -1181,7 +1192,7 @@ class nodeStats:
 
         # code assumes slope < 1 hence swap
         x_start, y_start = start
-        x_end, y_end = end
+        x_end, _ = end
         for x in range(x_start, x_end + 1):
             y_true = slope * (x - x_start) + y_start
             y_pixel = np.round(y_true)
@@ -1279,9 +1290,9 @@ class nodeStats:
         """
         idx1 = abs(array - value).argmin()
         try:
-            if value < array[idx1 + 1] and array[idx1] < value:
+            if array[idx1] < value < array[idx1 + 1]:
                 idx2 = idx1 + 1
-            elif value < array[idx1] and array[idx1 - 1] < value:
+            elif array[idx1 - 1] < value < array[idx1]:
                 idx2 = idx1 - 1
             else:
                 raise IndexError  # this will be if the number is the same
@@ -1505,15 +1516,15 @@ class nodeStats:
         labeled_nodes = label(nodes)
 
         # find which cluster is closest to the centre
-        centre = node_coordinate
         node_coords = np.argwhere(nodes == 3)
-        min_coords = node_coords[abs(node_coords - centre).sum(axis=1).argmin()]
+        min_coords = node_coords[abs(node_coords - node_coordinate).sum(axis=1).argmin()]
         centre_idx = labeled_nodes[min_coords[0], min_coords[1]]
 
         # get nodeless image
         nodeless = node_image_cp.copy()
-        nodeless[nodeless == 3] = 0
-        nodeless[nodeless == 2] = 1  # if termini, need this in the labeled branches too
+        nodeless = np.where(
+            (node_image == 1) | (node_image == 2), 1, 0
+        )  # if termini, need this in the labeled branches too
         nodeless[labeled_nodes == centre_idx] = 1  # return centre node
         labeled_nodeless = label(nodeless)
 
@@ -1924,6 +1935,7 @@ class nodeStats:
                 return sum_conf / (i + 1)
             except ZeroDivisionError:
                 return None
+        return None
 
     @staticmethod
     def minimum_crossing_confs(node_dict: dict) -> None | float:
@@ -1942,7 +1954,7 @@ class nodeStats:
         """
         confs = []
         valid_confs = 0
-        for i, (_, values) in enumerate(node_dict.items()):
+        for _, (_, values) in enumerate(node_dict.items()):
             conf = values["confidence"]
             if conf is not None:
                 confs.append(conf)
@@ -1968,7 +1980,11 @@ class nodeStats:
 
     def compile_metrics(self) -> None:
         """
-        Adds number of crossings, and average and minimum crossing confidence to the metrics dictionary.
+        Add the number of crossings, average and minimum crossing confidence to the metrics dictionary.
+
+        Returns
+        -------
+        None
         """
         self.metrics["num_crossings"] = (self.node_centre_mask == 3).sum()
         self.metrics["avg_crossing_confidence"] = nodeStats.average_crossing_confs(self.node_dict)
@@ -2010,7 +2026,7 @@ def nodestats_image(
     Returns
     -------
     tuple[dict, pd.DataFrame, dict, dict]
-        The nodestats statistics for each crossing, crossing statitics to be added to the grain statistics, an image dictionary of nodestats steps.
+        The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics, an image dictionary of nodestats steps for the entire image, and single grain images.
     """
     n_grains = len(disordered_tracing_direction_data)
     img_base = np.zeros_like(image)
@@ -2052,8 +2068,8 @@ def nodestats_image(
             "node_centres": nodestats.node_centre_mask,
             "connected_nodes": nodestats.connected_nodes,
         }
-        [print(f"-----{k}-----", v) for k, v in nodestats_images.items()]
         nodestats_branch_images[n_grain] = node_image_dict
+
         # compile metrics
         grainstats_additions[n_grain] = {
             "image": filename,
@@ -2067,15 +2083,12 @@ def nodestats_image(
             crop = nodestats_images[image_name]
             bbox = disordered_tracing_grain_data["bbox"]
             full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
-
         """
         except Exception as e:
             LOGGER.error(f"[{filename}] : Disordered tracing for {n_grain} failed with - {e}")
-            disordered_trace_crop_data[n_grain] = {}
-            pass
+            nodestats_data[n_grain] = {}
         """
         # turn the grainstats additions into a dataframe
         grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
-        print("--------------\n", grainstats_additions_df)
 
     return nodestats_data, grainstats_additions_df, all_images, nodestats_branch_images
