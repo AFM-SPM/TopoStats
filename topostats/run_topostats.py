@@ -119,6 +119,7 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         grainstats_config=config["grainstats"],
         disordered_tracing_config=config["disordered_tracing"],
         nodestats_config=config["nodestats"],
+        ordered_trace_config=config["ordered_tracing"],
         dnatracing_config=config["dnatracing"],
         plotting_config=config["plotting"],
         output_dir=config["output_dir"],
