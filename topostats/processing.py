@@ -522,7 +522,7 @@ def run_nodestats(
 
             # merge all image dictionaries
             return nodestats_image_data, resultant_grainstats
-        
+
         except Exception as e:
             LOGGER.info(f"NodeStats failed with {e} - skipping.")
             return nodestats_image_data, resultant_grainstats
