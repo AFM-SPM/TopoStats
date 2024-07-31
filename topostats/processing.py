@@ -441,94 +441,91 @@ def run_nodestats(
         LOGGER.info(f"[{filename}] : *** Nodestats ***")
         nodestats_image_data = defaultdict()
         grainstats_additions_image = pd.DataFrame()
-        # try:
-        # run image using directional grain masks
-        for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
-            (
-                nodestats_data,
-                grainstats_additions_df,
-                nodestats_full_images,
-                nodestats_branch_images,
-            ) = nodestats_image(
-                image=image,
-                disordered_tracing_direction_data=disordered_tracing_direction_data,
-                filename=filename,
-                pixel_to_nm_scaling=pixel_to_nm_scaling,
-                **nodestats_config,
+        try:
+            # run image using directional grain masks
+            for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
+                (
+                    nodestats_data,
+                    grainstats_additions_df,
+                    nodestats_full_images,
+                    nodestats_branch_images,
+                ) = nodestats_image(
+                    image=image,
+                    disordered_tracing_direction_data=disordered_tracing_direction_data,
+                    filename=filename,
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    **nodestats_config,
+                )
+
+                # save per image new grainstats stats
+                grainstats_additions_df["threshold"] = direction
+                grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
+
+                # append direction results to dict
+                nodestats_image_data[direction] = nodestats_data
+
+                # save whole image plots
+                Images(
+                    filename=f"{filename}_{direction}_nodes",
+                    data=image,
+                    masked_array=nodestats_full_images.pop("connected_nodes"),
+                    output_dir=core_out_path,
+                    **plotting_config["plot_dict"]["connected_nodes"],
+                ).plot_and_save()
+                for plot_name, image_value in nodestats_full_images.items():
+                    Images(
+                        image,
+                        masked_array=image_value,
+                        output_dir=tracing_out_path / direction,
+                        **plotting_config["plot_dict"][plot_name],
+                    ).plot_and_save()
+
+                # plot sinlge node images
+                for mol_no, mol_stats in nodestats_data.items():
+                    if mol_stats is not None:
+                        for node_no, single_node_stats in mol_stats.items():
+                            # plot the node and branch_mask images
+                            for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
+                                node_no
+                            ].items():
+                                Images(
+                                    nodestats_branch_images[mol_no]["grain"]["grain_image"],
+                                    masked_array=cropped_image,
+                                    output_dir=tracing_out_path / direction / "nodes",
+                                    filename=f"{mol_no}_{node_no}_{cropped_image_type}",
+                                    **plotting_config["plot_dict"][cropped_image_type],
+                                ).plot_and_save()
+
+                            # plot crossing height linetrace
+                            if plotting_config["image_set"] == "all":
+                                if not single_node_stats["error"]:
+                                    fig, _ = plot_crossing_linetrace_halfmax(
+                                        branch_stats_dict=single_node_stats["branch_stats"],
+                                        mask_cmap=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
+                                        title=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
+                                    )
+                                    fig.savefig(
+                                        tracing_out_path
+                                        / direction
+                                        / "nodes"
+                                        / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
+                                        format="svg",
+                                    )
+                LOGGER.info(f"[{filename}] : Finished Plotting DNA Tracing Images")
+
+            # merge grainstats data with other dataframe
+            resultant_grainstats = (
+                pd.merge(results_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
+                if results_df is not None
+                else grainstats_additions_image
             )
 
-            # save per image new grainstats stats
-            grainstats_additions_df["threshold"] = direction
-            grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
-
-            # append direction results to dict
-            nodestats_image_data[direction] = nodestats_data
-
-            # save whole image plots
-            Images(
-                filename=f"{filename}_{direction}_nodes",
-                data=image,
-                masked_array=nodestats_full_images.pop("connected_nodes"),
-                output_dir=core_out_path,
-                **plotting_config["plot_dict"]["connected_nodes"],
-            ).plot_and_save()
-            for plot_name, image_value in nodestats_full_images.items():
-                Images(
-                    image,
-                    masked_array=image_value,
-                    output_dir=tracing_out_path / direction,
-                    **plotting_config["plot_dict"][plot_name],
-                ).plot_and_save()
-
-            # plot sinlge node images
-            for mol_no, mol_stats in nodestats_data.items():
-                if mol_stats is not None:
-                    for node_no, single_node_stats in mol_stats.items():
-                        # plot the node and branch_mask images
-                        for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
-                            node_no
-                        ].items():
-                            Images(
-                                nodestats_branch_images[mol_no]["grain"]["grain_image"],
-                                masked_array=cropped_image,
-                                output_dir=tracing_out_path / direction / "nodes",
-                                filename=f"{mol_no}_{node_no}_{cropped_image_type}",
-                                **plotting_config["plot_dict"][cropped_image_type],
-                            ).plot_and_save()
-
-                        # plot crossing height linetrace
-                        if plotting_config["image_set"] == "all":
-                            if not single_node_stats["error"]:
-                                fig, _ = plot_crossing_linetrace_halfmax(
-                                    branch_stats_dict=single_node_stats["branch_stats"],
-                                    mask_cmap=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
-                                    title=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
-                                )
-                                fig.savefig(
-                                    tracing_out_path
-                                    / direction
-                                    / "nodes"
-                                    / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
-                                    format="svg",
-                                )
-            LOGGER.info(f"[{filename}] : Finished Plotting DNA Tracing Images")
-
-        # merge grainstats data with other dataframe
-        resultant_grainstats = (
-            pd.merge(results_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
-            if results_df is not None
-            else grainstats_additions_image
-        )
-        print("------- new all grainstats -------\n", resultant_grainstats)
-
-        # merge all image dictionaries
-
-        return nodestats_image_data, resultant_grainstats
-        """
-        except Exception:
-            LOGGER.info("NodeStats failed - skipping.")
-            return nodestats
-        """
+            # merge all image dictionaries
+            return nodestats_image_data, resultant_grainstats
+        
+        except Exception as e:
+            LOGGER.info(f"NodeStats failed with {e} - skipping.")
+            return nodestats_image_data, resultant_grainstats
 
 
 # noqa: C901
