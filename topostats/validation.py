@@ -249,6 +249,14 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "branch_pairing_length": float,
             "pad_width": lambda n: n > 0.0,
         },
+        "ordered_tracing": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'ordered_tracing.run', valid values are 'True' or 'False'",
+            ),
+            "pad_width": lambda n: n > 0.0,
+        },
         "dnatracing": {
             "run": Or(
                 True,

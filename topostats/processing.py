@@ -724,6 +724,7 @@ def process_scan(
     grainstats_config: dict,
     disordered_tracing_config: dict,
     nodestats_config: dict,
+    ordered_tracing_config: dict,
     dnatracing_config: dict,
     plotting_config: dict,
     output_dir: str | Path = "output",
