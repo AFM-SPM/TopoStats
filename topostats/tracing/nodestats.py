@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import pickle as pkl
 
 import networkx as nx
 import numpy as np
@@ -556,6 +557,11 @@ class nodeStats:
             # Note that this is done every iteration and likely overwrites itself. Is it used later on in the iteration?
             # If not, it could be moved outside the loop.
             self.reduced_skel_graph = self.skeleton_image_to_graph(reduced_node_area)  # Sylvia: CLEAN OF SELF.
+            if test_run:
+                pkl.dump(
+                    self.reduced_skel_graph,
+                    open(f"tests/resources/catenane_node_{node_no}_reduced_skeleton_graph.pkl", "wb"),
+                )
             branch_mask = reduced_node_area.copy()
 
             branch_mask[branch_mask == 3] = 0
@@ -618,6 +624,11 @@ class nodeStats:
                     branch_img = np.zeros_like(self.skeleton)  # initialising paired branch img
                     avg_img = np.zeros_like(self.skeleton)
                     # np.save(f"tests/resources/node_{node_no}_ordered_branches.npy", ordered_branches)
+                    if test_run:
+                        pkl.dump(
+                            ordered_branches,
+                            open(f"tests/resources/catenane_node_{node_no}_ordered_branches.pkl", "wb"),
+                        )
                     for i, (branch_1, branch_2) in enumerate(pairs):
                         # Branch 1 and branch 2 are indexes of branches eg, 1 & 0, 2 & 3
                         # for the test catenane, this doesn't seem to change even for other nodes??
@@ -680,6 +691,11 @@ class nodeStats:
                         # identify over/under
                         matched_branches[i]["fwhm"] = self.fwhm(heights, distances)
 
+                    if test_run:
+                        pkl.dump(
+                            matched_branches,
+                            open(f"tests/resources/catenane_node_{node_no}_matched_branches.pkl", "wb"),
+                        )
                     # redo fwhms after to get better baselines + same hm matching
                     hms = []
                     for _, values in matched_branches.items():  # get hms
