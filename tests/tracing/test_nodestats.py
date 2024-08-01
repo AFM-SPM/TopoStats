@@ -250,6 +250,7 @@ def test_analyse_nodes(
         "node_y",
         "filename",
         "expected_matched_branches_filename",
+        "expected_masked_image_filename",
     ),
     [
         pytest.param(
@@ -262,6 +263,7 @@ def test_analyse_nodes(
             353,
             "catenane_test_image",
             "catenane_node_0_matched_branches.pkl",
+            "catenane_node_0_masked_image.pkl",
             id="node 0",
         ),
         pytest.param(
@@ -274,6 +276,7 @@ def test_analyse_nodes(
             237,
             "catenane_test_image",
             "catenane_node_1_matched_branches.pkl",
+            "catenane_node_1_masked_image.pkl",
             id="node 1",
         ),
         pytest.param(
@@ -286,6 +289,7 @@ def test_analyse_nodes(
             438,
             "catenane_test_image",
             "catenane_node_2_matched_branches.pkl",
+            "catenane_node_2_masked_image.pkl",
             id="node 2",
         ),
         pytest.param(
@@ -298,6 +302,7 @@ def test_analyse_nodes(
             224,
             "catenane_test_image",
             "catenane_node_3_matched_branches.pkl",
+            "catenane_node_3_masked_image.pkl",
             id="node 3",
         ),
         pytest.param(
@@ -310,6 +315,7 @@ def test_analyse_nodes(
             194,
             "catenane_test_image",
             "catenane_node_4_matched_branches.pkl",
+            "catenane_node_4_masked_image.pkl",
             id="node 4",
         ),
     ],
@@ -324,6 +330,7 @@ def test_join_matching_branches_through_node(
     node_y: np.int32,
     filename: str,
     expected_matched_branches_filename: str,
+    expected_masked_image_filename: str,
 ) -> None:
     """Test of join_matching_branches_through_node() method of nodeStats class."""
     # Load the ordered branches
@@ -338,7 +345,11 @@ def test_join_matching_branches_through_node(
     with Path(RESOURCES / f"{expected_matched_branches_filename}").open("rb") as f:
         expected_matched_branches = pickle.load(f)
 
-    result_matched_branches = nodeStats.join_matching_branches_through_node(
+    # Load expected masked image
+    with Path(RESOURCES / f"{expected_masked_image_filename}").open("rb") as f:
+        expected_masked_image = pickle.load(f)
+
+    result_matched_branches, result_masked_image = nodeStats.join_matching_branches_through_node(
         pairs=pairs,
         ordered_branches=ordered_branches,
         reduced_skeleton_graph=reduced_skeleton_graph,
@@ -350,6 +361,7 @@ def test_join_matching_branches_through_node(
     )
 
     np.testing.assert_equal(result_matched_branches, expected_matched_branches)
+    np.testing.assert_equal(result_masked_image, expected_masked_image)
 
 
 def test_sq() -> None:
