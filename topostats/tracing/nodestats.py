@@ -817,6 +817,102 @@ class nodeStats:
             return 0
 
     @staticmethod
+    def order_branch(binary_image: npt.NDArray, anchor: list):
+        """
+        Order a linear branch by identifying an endpoint, and looking at the local area of the point to find the next.
+
+        Parameters
+        ----------
+        binary_image : npt.NDArray
+            A binary image of a skeleton segment to order it's points.
+        anchor : list
+            A list of 2 integers representing the coordinate to order the branch from the endpoint closest to this.
+
+        Returns
+        -------
+        npt.NDArray
+            An array of ordered coordinates.
+        """
+        skel = binary_image.copy()
+
+        if len(np.argwhere(skel == 1)) < 3:  # if < 3 coords just return them
+            return np.argwhere(skel == 1)
+
+        # get branch starts
+        endpoints_highlight = convolve_skeleton(skel)
+        endpoints = np.argwhere(endpoints_highlight == 2)
+        if len(endpoints) != 0:  # if any endpoints, start closest to anchor
+            dist_vals = abs(endpoints - anchor).sum(axis=1)
+            start = endpoints[np.argmin(dist_vals)]
+        else:  # will be circular so pick the first coord (is this always the case?)
+            start = np.argwhere(skel == 1)[0]
+        # order the points according to what is nearby
+        ordered = nodeStats.order_branch_from_start(skel, start)
+
+        return np.array(ordered)
+
+    @staticmethod
+    def order_branch_from_start(
+        nodeless: npt.NDArray, start: npt.NDArray, max_length: float | np.inf = np.inf
+    ) -> npt.NDArray:
+        """
+        Order an unbranching skeleton from an end (startpoint) along a specified length.
+
+        Parameters
+        ----------
+        nodeless : npt.NDArray
+            A 2D array of a binary unbranching skeleton.
+        start : npt.NDArray
+            2x1 coordinate that must exist in 'nodeless'.
+        max_length : float | np.inf, optional
+            Maximum length to traverse along while ordering, by default np.inf.
+
+        Returns
+        -------
+        npt.NDArray
+            Ordered coordinates.
+        """
+        dist = 0
+        # add starting point to ordered array
+        ordered = []
+        ordered.append(start)
+        nodeless[start[0], start[1]] = 0  # remove from array
+
+        # iterate to order the rest of the points
+        current_point = ordered[-1]  # get last point
+        area, _ = nodeStats.local_area_sum(nodeless, current_point)  # look at local area
+        local_next_point = np.argwhere(
+            area.reshape(
+                (
+                    3,
+                    3,
+                )
+            )
+            == 1
+        ) - (1, 1)
+        dist += np.sqrt(2) if abs(local_next_point).sum() > 1 else 1
+
+        while len(local_next_point) != 0 and dist <= max_length:
+            next_point = (current_point + local_next_point)[0]
+            # find where to go next
+            ordered.append(next_point)
+            nodeless[next_point[0], next_point[1]] = 0  # set value to zero
+            current_point = ordered[-1]  # get last point
+            area, _ = nodeStats.local_area_sum(nodeless, current_point)  # look at local area
+            local_next_point = np.argwhere(
+                area.reshape(
+                    (
+                        3,
+                        3,
+                    )
+                )
+                == 1
+            ) - (1, 1)
+            dist += np.sqrt(2) if abs(local_next_point).sum() > 1 else 1
+
+        return np.array(ordered)
+
+    @staticmethod
     def get_vector(coords: npt.NDArray, origin: npt.NDArray) -> npt.NDArray:
         """
         Calculate the normalised vector of the coordinate means in a branch.
@@ -997,7 +1093,7 @@ class nodeStats:
                 return self.lin_interp([x[i], y[i]], [x[i + 1], y[i + 1]], yvalue=yvalue)
         return 0
 
-    def fwhm(self, heights: npt.NDArray, distances: npt.NDArray, hm: float | None = None) -> tuple:
+    def fwhm(heights: npt.NDArray, distances: npt.NDArray, hm: float | None = None) -> tuple:
         """
         Calculate the FWHM value.
 
@@ -1049,8 +1145,15 @@ class nodeStats:
                 except IndexError:  # index error when no local minima
                     hm = np.min(arr2)
 
-        arr1_hm = self.interpolate_between_yvalue(x=dist1, y=arr1, yvalue=hm)
-        arr2_hm = self.interpolate_between_yvalue(x=dist2, y=arr2, yvalue=hm)
+        for i in range(len(arr1) - 1):
+            if (arr1[i] >= hm) and (arr1[i + 1] <= hm):  # if points cross through the hm value
+                arr1_hm = lin_interp([dist1[i], arr1[i]], [dist1[i + 1], arr1[i + 1]], yvalue=hm)
+                break
+
+        for i in range(len(arr2) - 1):
+            if (arr2[i] >= hm) and (arr2[i + 1] <= hm):  # if points cross through the hm value
+                arr2_hm = lin_interp([dist2[i], arr2[i]], [dist2[i + 1], arr2[i + 1]], yvalue=hm)
+                break
 
         fwhm = abs(arr2_hm - arr1_hm)
 
@@ -1234,8 +1337,9 @@ class nodeStats:
         except IndexError:
             return None
 
+    @staticmethod
     def average_height_trace(
-        self, img: npt.NDArray, branch_mask: npt.NDArray, branch_coords: npt.NDArray, centre=(0, 0)
+        img: npt.NDArray, branch_mask: npt.NDArray, branch_coords: npt.NDArray, centre=(0, 0)
     ) -> tuple:
         """
         Average two side-by-side ordered skeleton distance and height traces.
@@ -1262,10 +1366,10 @@ class nodeStats:
             from the crossing.
         """
         # get heights and dists of the original (middle) branch
-        branch_dist = self.coord_dist_rad(branch_coords, centre)
+        branch_dist = nodeStats.coord_dist_rad(branch_coords, centre)
         # branch_dist = self.coord_dist(branch_coords)
         branch_heights = img[branch_coords[:, 0], branch_coords[:, 1]]
-        branch_dist, branch_heights = self.average_uniques(
+        branch_dist, branch_heights = nodeStats.average_uniques(
             branch_dist, branch_heights
         )  # needs to be paired with coord_dist_rad
         dist_zero_point = branch_dist[
@@ -1275,14 +1379,14 @@ class nodeStats:
 
         # want to get a 3 pixel line trace, one on each side of orig
         dilate = binary_dilation(branch_mask, iterations=1)
-        dilate = self.fill_holes(dilate)
+        dilate = nodeStats.fill_holes(dilate)
         dilate_minus = np.where(dilate != branch_mask, 1, 0)
         dilate2 = binary_dilation(dilate, iterations=1)
         dilate2[(dilate == 1) | (branch_mask == 1)] = 0
         labels = label(dilate2)
         # Cleanup stages - re-entering, early terminating, closer traces
         #   if parallel trace out and back in zone, can get > 2 labels
-        labels = self._remove_re_entering_branches(labels, remaining_branches=2)
+        labels = nodeStats._remove_re_entering_branches(labels, remaining_branches=2)
         #   if parallel trace doesn't exit window, can get 1 label
         #       occurs when skeleton has poor connections (extra branches which cut corners)
         if labels.max() == 1:
@@ -1317,8 +1421,8 @@ class nodeStats:
             trace_img = getSkeleton(img, trace_img, method="zhang").get_skeleton()
             trace = order_branch(trace_img, branch_coords[0])
             height_trace = img[trace[:, 0], trace[:, 1]]
-            dist = self.coord_dist_rad(trace, centre)  # self.coord_dist(trace)
-            dist, height_trace = self.average_uniques(dist, height_trace)  # needs to be paired with coord_dist_rad
+            dist = nodeStats.coord_dist_rad(trace, centre)  # self.coord_dist(trace)
+            dist, height_trace = nodeStats.average_uniques(dist, height_trace)  # needs to be paired with coord_dist_rad
             heights.append(height_trace)
             distances.append(
                 dist - dist_zero_point  # - 0
@@ -1338,13 +1442,13 @@ class nodeStats:
                 # if not, linearly interpolate the mid-branch value
                 else:
                     # get index after and before the mid branches' x coord
-                    xidxs = self.above_below_value_idx(distance, mid_dist)
+                    xidxs = nodeStats.above_below_value_idx(distance, mid_dist)
                     if xidxs is None:
                         pass  # if indexes outside of range, pass
                     else:
                         point1 = [distance[xidxs[0]], height[xidxs[0]]]
                         point2 = [distance[xidxs[1]], height[xidxs[1]]]
-                        y = self.lin_interp(point1, point2, xvalue=mid_dist)
+                        y = nodeStats.lin_interp(point1, point2, xvalue=mid_dist)
                         if i == 0:
                             avg1.append([mid_dist, y])
                         else:
