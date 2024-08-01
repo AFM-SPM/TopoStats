@@ -618,83 +618,25 @@ class nodeStats:
                     # pairs eg: array[[1, 2]] for branches 1 and 2
                     pairs = self.pair_vectors(np.asarray(vectors))
 
-                    # join matching branches through node
-                    matched_branches = {}
-                    masked_image = {}
-                    branch_img = np.zeros_like(self.skeleton)  # initialising paired branch img
-                    avg_img = np.zeros_like(self.skeleton)
-                    # np.save(f"tests/resources/node_{node_no}_ordered_branches.npy", ordered_branches)
-                    if test_run:
-                        pkl.dump(
-                            ordered_branches,
-                            open(f"tests/resources/catenane_node_{node_no}_ordered_branches.pkl", "wb"),
-                        )
-                    for i, (branch_1, branch_2) in enumerate(pairs):
-                        # Branch 1 and branch 2 are indexes of branches eg, 1 & 0, 2 & 3
-                        # for the test catenane, this doesn't seem to change even for other nodes??
-                        matched_branches[i] = {}
-                        masked_image[i] = {}
-                        # find close ends by rearranging branch coords
-                        branch_1_coords, branch_2_coords = self.order_branches(
-                            ordered_branches[branch_1], ordered_branches[branch_2]
-                        )  # Sylvia: CLEAN OF SELF.
-                        # Get graphical shortest path between branch ends on the skeleton
-                        crossing = nx.shortest_path(
-                            self.reduced_skel_graph,
-                            source=tuple(branch_1_coords[-1]),
-                            target=tuple(branch_2_coords[0]),
-                            weight="weight",
-                        )
-                        # Crossing example: [array([279, 352]), array([280, 353])]
-                        crossing = np.asarray(crossing[1:-1])  # remove start and end points & turn into array
-                        # Branch coords and crossing
-                        if crossing.shape == (0,):
-                            branch_coords = np.vstack([branch_1_coords, branch_2_coords])
-                        else:
-                            branch_coords = np.vstack([branch_1_coords, crossing, branch_2_coords])
-                        # make images of single branch joined and multiple branches joined
-                        single_branch_img = np.zeros_like(self.skeleton)
-                        single_branch_img[branch_coords[:, 0], branch_coords[:, 1]] = 1
-                        single_branch_coords = order_branch(single_branch_img, [0, 0])  # Sylvia: CLEAN OF SELF.
-                        # calc image-wide coords
-                        matched_branches[i]["ordered_coords"] = single_branch_coords
-                        # get heights and trace distance of branch
-                        try:
-                            assert average_trace_advised
-                            distances, heights, mask, _ = self.average_height_trace(
-                                self.image, single_branch_img, single_branch_coords, [x, y]
-                            )  # hess_area Sylvia: CLEAN OF SELF.
-                            masked_image[i]["avg_mask"] = mask
-                        except (
-                            AssertionError,
-                            IndexError,
-                        ) as e:  # Assertion - avg trace not advised, Index - wiggy branches
-                            LOGGER.info(f"[{self.filename}] : avg trace failed with {e}, single trace only.")
-                            average_trace_advised = False
-                            # distances example: length 4, [-2.23, -1.41, 0.0, 1.41]
-                            distances = self.coord_dist_rad(single_branch_coords, [x, y])  # Sylvia: CLEAN OF SELF.
-                            # distances = self.coord_dist(single_branch_coords)
-                            zero_dist = distances[
-                                np.argmin(
-                                    np.sqrt(
-                                        (single_branch_coords[:, 0] - x) ** 2 + (single_branch_coords[:, 1] - y) ** 2
-                                    )
-                                )
-                            ]
-                            heights = self.image[single_branch_coords[:, 0], single_branch_coords[:, 1]]  # self.hess
-                            distances = distances - zero_dist
-                            distances, heights = self.average_uniques(
-                                distances, heights
-                            )  # needs to be paired with coord_dist_rad
-                        matched_branches[i]["heights"] = heights
-                        matched_branches[i]["distances"] = distances  # * self.px_2_nm
-                        # identify over/under
-                        matched_branches[i]["fwhm"] = self.fwhm(heights, distances)
+                    matched_branches, masked_image = self.join_matching_branches_through_node(
+                        pairs,
+                        ordered_branches,
+                        self.reduced_skel_graph,
+                        self.image,
+                        average_trace_advised,
+                        x,
+                        y,
+                        self.filename,
+                    )
 
                     if test_run:
                         pkl.dump(
                             matched_branches,
                             open(f"tests/resources/catenane_node_{node_no}_matched_branches.pkl", "wb"),
+                        )
+                        pkl.dump(
+                            masked_image,
+                            open(f"tests/resources/catenane_node_{node_no}_masked_image.pkl", "wb"),
                         )
                     # redo fwhms after to get better baselines + same hm matching
                     hms = []
@@ -721,6 +663,9 @@ class nodeStats:
                     branch_idx_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(fwhms))]
                     # branch_idx_order = np.arange(0,len(matched_branches))
                     # uncomment to unorder (will not unorder the height traces)
+
+                    branch_img: npt.NDArray[np.int32] = np.zeros_like(self.image)  # initialising paired branch img
+                    avg_img: npt.NDArray[np.int32] = np.zeros_like(self.image)  # initialising avg trace img
 
                     for i, branch_idx in enumerate(branch_idx_order):
                         branch_coords = matched_branches[branch_idx]["ordered_coords"]
@@ -770,14 +715,14 @@ class nodeStats:
     @staticmethod
     def join_matching_branches_through_node(
         pairs: npt.NDArray[np.int32],
-        ordered_branches: dict[int, npt.NDArray[np.int32]],
+        ordered_branches: list[npt.NDArray[np.int32]],
         reduced_skeleton_graph: nx.classes.graph.Graph,
         image: npt.NDArray[np.number],
         average_trace_advised: bool,
         node_x: np.int32,
         node_y: np.int32,
         filename: str,
-    ):
+    ) -> tuple[dict[int, dict[str, npt.NDArray[np.number]]], dict[int, dict[str, npt.NDArray[np.bool_]]]]:
         """
         Join branches that are matched through a node.
 
@@ -794,11 +739,16 @@ class nodeStats:
             - "ordered_coords" : npt.NDArray[np.int32].
             - "heights" : npt.NDArray[np.number]. Heights of the branches.
             - "distances" :
+            - "fwhm2" : npt.NDArray[np.number]. Full width half maximum of the branches.
+        masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]]
+            Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+            keys:
+            - "avg_mask" : npt.NDArray[np.bool_]. Average mask of the branches.
         """
-        matched_branches = {}
-        masked_image = {}
-        branch_img = np.zeros_like(image)  # initialising paired branch img
-        avg_img = np.zeros_like(image)
+        matched_branches: dict[int, dict[str, npt.NDArray[np.number]]] = {}
+        masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]] = (
+            {}
+        )  # Masked image is a dictionary of pairs of branches
         for i, (branch_1, branch_2) in enumerate(pairs):
             matched_branches[i] = {}
             masked_image[i] = {}
@@ -855,7 +805,7 @@ class nodeStats:
             # identify over/under
             matched_branches[i]["fwhm2"] = nodeStats.fwhm2(heights, distances)
 
-        return matched_branches
+        return matched_branches, masked_image
 
     @staticmethod
     def get_two_combinations(fwhm_list) -> list:
