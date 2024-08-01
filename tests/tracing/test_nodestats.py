@@ -6,8 +6,12 @@ import numpy as np
 import pickle
 import numpy.typing as npt
 import pytest
+from pytest_lazyfixture import lazy_fixture
 
 from topostats.tracing.nodestats import nodeStats
+
+BASE_DIR = Path.cwd()
+RESOURCES = BASE_DIR / "tests" / "resources"
 
 # from topostats.tracing.nodestats import nodeStats
 
@@ -233,6 +237,119 @@ def test_analyse_nodes(
     np.testing.assert_equal(nodestats_catenane_node_dict_result, nodestats_catenane_node_dict)
     np.testing.assert_equal(nodestats_catenane.image_dict, nodestats_catenane_image_dict)
     np.testing.assert_array_equal(nodestats_catenane.all_connected_nodes, nodestats_catenane_all_connected_nodes)
+
+
+@pytest.mark.parametrize(
+    (
+        "pairs",
+        "ordered_branches_filename",
+        "reduced_skeleton_graph_filename",
+        "image",
+        "average_trace_advised",
+        "node_x",
+        "node_y",
+        "filename",
+        "expected_matched_branches_filename",
+    ),
+    [
+        pytest.param(
+            np.array([[1, 3], [2, 0]]),
+            "catenane_node_0_ordered_branches.pkl",
+            "catenane_node_0_reduced_skeleton_graph.pkl",
+            lazy_fixture("catenane_image"),
+            True,
+            280,
+            353,
+            "catenane_test_image",
+            "catenane_node_0_matched_branches.pkl",
+            id="node 0",
+        ),
+        pytest.param(
+            np.array([[0, 3], [2, 1]]),
+            "catenane_node_1_ordered_branches.pkl",
+            "catenane_node_1_reduced_skeleton_graph.pkl",
+            lazy_fixture("catenane_image"),
+            True,
+            312,
+            237,
+            "catenane_test_image",
+            "catenane_node_1_matched_branches.pkl",
+            id="node 1",
+        ),
+        pytest.param(
+            np.array([[3, 1], [0, 2]]),
+            "catenane_node_2_ordered_branches.pkl",
+            "catenane_node_2_reduced_skeleton_graph.pkl",
+            lazy_fixture("catenane_image"),
+            True,
+            407,
+            438,
+            "catenane_test_image",
+            "catenane_node_2_matched_branches.pkl",
+            id="node 2",
+        ),
+        pytest.param(
+            np.array([[1, 3], [2, 0]]),
+            "catenane_node_3_ordered_branches.pkl",
+            "catenane_node_3_reduced_skeleton_graph.pkl",
+            lazy_fixture("catenane_image"),
+            True,
+            451,
+            224,
+            "catenane_test_image",
+            "catenane_node_3_matched_branches.pkl",
+            id="node 3",
+        ),
+        pytest.param(
+            np.array([[1, 3], [2, 0]]),
+            "catenane_node_4_ordered_branches.pkl",
+            "catenane_node_4_reduced_skeleton_graph.pkl",
+            lazy_fixture("catenane_image"),
+            True,
+            558,
+            194,
+            "catenane_test_image",
+            "catenane_node_4_matched_branches.pkl",
+            id="node 4",
+        ),
+    ],
+)
+def test_join_matching_branches_through_node(
+    pairs: npt.NDArray[np.int32],
+    ordered_branches_filename: str,
+    reduced_skeleton_graph_filename: str,
+    image: npt.NDArray[np.float64],
+    average_trace_advised: bool,
+    node_x: np.int32,
+    node_y: np.int32,
+    filename: str,
+    expected_matched_branches_filename: str,
+) -> None:
+    """Test of join_matching_branches_through_node() method of nodeStats class."""
+    # Load the ordered branches
+    with Path(RESOURCES / f"{ordered_branches_filename}").open("rb") as f:
+        ordered_branches = pickle.load(f)
+
+    # Load the reduced skeleton graph
+    with Path(RESOURCES / f"{reduced_skeleton_graph_filename}").open("rb") as f:
+        reduced_skeleton_graph = pickle.load(f)
+
+    # Load expected matched branches
+    with Path(RESOURCES / f"{expected_matched_branches_filename}").open("rb") as f:
+        expected_matched_branches = pickle.load(f)
+
+    result_matched_branches = nodeStats.join_matching_branches_through_node(
+        pairs=pairs,
+        ordered_branches=ordered_branches,
+        reduced_skeleton_graph=reduced_skeleton_graph,
+        image=image,
+        average_trace_advised=average_trace_advised,
+        node_x=node_x,
+        node_y=node_y,
+        filename=filename,
+    )
+
+    np.testing.assert_equal(result_matched_branches, expected_matched_branches)
 
 
 def test_sq() -> None:
