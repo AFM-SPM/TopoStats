@@ -768,6 +768,96 @@ class nodeStats:
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
 
     @staticmethod
+    def join_matching_branches_through_node(
+        pairs: npt.NDArray[np.int32],
+        ordered_branches: dict[int, npt.NDArray[np.int32]],
+        reduced_skeleton_graph: nx.classes.graph.Graph,
+        image: npt.NDArray[np.number],
+        average_trace_advised: bool,
+        node_x: np.int32,
+        node_y: np.int32,
+        filename: str,
+    ):
+        """
+        Join branches that are matched through a node.
+
+        Parameters
+        ----------
+        pairs: npt.NDArray[np.int32]
+            Nx2 numpy array of pairs of branches that are matched through a node.
+
+        Returns
+        -------
+        matched_branches: dict[int, dict[str, npt.NDArray[np.number]]]
+            Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+            keys:
+            - "ordered_coords" : npt.NDArray[np.int32].
+            - "heights" : npt.NDArray[np.number]. Heights of the branches.
+            - "distances" :
+        """
+        matched_branches = {}
+        masked_image = {}
+        branch_img = np.zeros_like(image)  # initialising paired branch img
+        avg_img = np.zeros_like(image)
+        for i, (branch_1, branch_2) in enumerate(pairs):
+            matched_branches[i] = {}
+            masked_image[i] = {}
+            # find close ends by rearranging branch coords
+            branch_1_coords, branch_2_coords = nodeStats.order_branches(
+                ordered_branches[branch_1], ordered_branches[branch_2]
+            )  # Sylvia: CLEAN OF SELF.
+            # Get graphical shortest path between branch ends on the skeleton
+            crossing = nx.shortest_path(
+                reduced_skeleton_graph,
+                source=tuple(branch_1_coords[-1]),
+                target=tuple(branch_2_coords[0]),
+                weight="weight",
+            )
+            crossing = np.asarray(crossing[1:-1])  # remove start and end points & turn into array
+            # Branch coords and crossing
+            if crossing.shape == (0,):
+                branch_coords = np.vstack([branch_1_coords, branch_2_coords])
+            else:
+                branch_coords = np.vstack([branch_1_coords, crossing, branch_2_coords])
+            # make images of single branch joined and multiple branches joined
+            single_branch_img: npt.NDArray[np.bool_] = np.zeros_like(image).astype(bool)
+            single_branch_img[branch_coords[:, 0], branch_coords[:, 1]] = True
+            single_branch_coords = nodeStats.order_branch(
+                single_branch_img.astype(bool), [0, 0]
+            )  # Sylvia: CLEAN OF SELF.
+            # calc image-wide coords
+            matched_branches[i]["ordered_coords"] = single_branch_coords
+            # get heights and trace distance of branch
+            try:
+                assert average_trace_advised
+                distances, heights, mask, _ = nodeStats.average_height_trace(
+                    image, single_branch_img, single_branch_coords, [node_x, node_y]
+                )  # hess_area Sylvia: CLEAN OF SELF.
+                masked_image[i]["avg_mask"] = mask
+            except (
+                AssertionError,
+                IndexError,
+            ) as e:  # Assertion - avg trace not advised, Index - wiggy branches
+                LOGGER.info(f"[{filename}] : avg trace failed with {e}, single trace only.")
+                average_trace_advised = False
+                distances = nodeStats.coord_dist_rad(single_branch_coords, [node_x, node_y])  # Sylvia: CLEAN OF SELF.
+                # distances = self.coord_dist(single_branch_coords)
+                zero_dist = distances[
+                    np.argmin(np.sqrt((single_branch_coords[:, 0] - x) ** 2 + (single_branch_coords[:, 1] - y) ** 2))
+                ]
+                heights = image[single_branch_coords[:, 0], single_branch_coords[:, 1]]  # self.hess
+                distances = distances - zero_dist
+                distances, heights = nodeStats.average_uniques(
+                    distances, heights
+                )  # needs to be paired with coord_dist_rad
+            matched_branches[i]["heights"] = heights
+            matched_branches[i]["distances"] = distances
+            # identify over/under
+            matched_branches[i]["fwhm2"] = nodeStats.fwhm2(heights, distances)
+
+        return matched_branches
+
+    @staticmethod
     def get_two_combinations(fwhm_list) -> list:
         """
         Obtain all paired combinations of values in the list.
