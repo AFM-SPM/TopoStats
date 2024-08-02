@@ -9,7 +9,7 @@ import numpy as np
 import numpy.typing as npt
 import skimage.measure as skimage_measure
 from scipy import ndimage
-from skimage.filters import gaussian, threshold_otsu
+from skimage import filters
 from skimage.morphology import label
 
 from topostats.logs.logs import LOGGER_NAME
@@ -19,7 +19,7 @@ from topostats.tracing.skeletonize import getSkeleton
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-class disorderedTrace:
+class disorderedTrace:  # pylint: disable=too-many-instance-attributes
     """
     Calculate disordered traces for a DNA molecule and calculates statistics from those traces.
 
@@ -50,7 +50,7 @@ class disorderedTrace:
         Grain number being processed (only  used in logging).
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         image: npt.NDArray,
         mask: npt.NDArray,
@@ -153,7 +153,8 @@ class disorderedTrace:
         orig_mask : npt.NDArray
             Original mask.
         smoothed_mask : npt.NDArray
-            Original mask but with inner and outer edged smoothed. The smoothing operation may have closed up important holes in the mask.
+            Original mask but with inner and outer edged smoothed. The smoothing operation may have closed up important
+            holes in the mask.
         holearea_min_max : list
             List of minimum and maximum hole area (in nanometers).
 
@@ -226,8 +227,8 @@ class disorderedTrace:
         """
         gaussian_sigma = max(grain.shape) / 256 if gaussian_sigma is None else gaussian_sigma
         dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
-        gauss = gaussian(grain, sigma=gaussian_sigma)
-        gauss[gauss > threshold_otsu(gauss) * 1.3] = 1
+        gauss = filters.gaussian(grain, sigma=gaussian_sigma)
+        gauss[gauss > filters.threshold_otsu(gauss) * 1.3] = 1
         gauss[gauss != 1] = 0
         gauss = gauss.astype(np.int32)
         # Add hole to the smooth mask conditional on smallest pixel difference for dilation or the Gaussian smoothing.
@@ -236,7 +237,7 @@ class disorderedTrace:
         return self.re_add_holes(grain, dilation)
 
 
-def trace_image_disordered(
+def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-locals
     image: npt.NDArray,
     grains_mask: npt.NDArray,
     filename: str,
@@ -246,7 +247,6 @@ def trace_image_disordered(
     skeletonisation_params: dict,
     pruning_params: dict,
     pad_width: int = 1,
-    cores: int = 1,
 ) -> dict:
     """
     Processor function for tracing image.
@@ -273,13 +273,11 @@ def trace_image_disordered(
         Dictionary of options for pruning.
     pad_width : int
         Padding to the cropped image mask.
-    cores : int
-        Number of cores to process with.
 
     Returns
     -------
     tuple[dict, dict]
-        Binary and interger labeled cropped and full-image masks from skeletonising and pruning the grains in the image.
+        Binary and integer labeled cropped and full-image masks from skeletonising and pruning the grains in the image.
     """
     # Check both arrays are the same shape - should this be a test instead, why should this ever occur?
     if image.shape != grains_mask.shape:
@@ -324,7 +322,7 @@ def trace_image_disordered(
             disordered_trace_crop_data[f"grain_{cropped_image_index}"] = disordered_trace_images
             disordered_trace_crop_data[f"grain_{cropped_image_index}"]["bbox"] = bboxs[cropped_image_index]
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.warning(f"[{filename}] : Disordered tracing of grain {cropped_image_index} failed with {e}.")
 
     return disordered_trace_crop_data, all_images
@@ -399,7 +397,7 @@ def grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int) -> list
     return (bounding_coordinates[0], bounding_coordinates[1])
 
 
-def disordered_trace_grain(
+def disordered_trace_grain(  # pylint: disable=too-many-arguments
     cropped_image: npt.NDArray,
     cropped_mask: npt.NDArray,
     pixel_to_nm_scaling: float,
@@ -463,15 +461,13 @@ def disordered_trace_grain(
 
     disorderedtrace.trace_dna()
 
-    cropped_images = {
+    return {
         "original_image": cropped_image,
         "original_grain": cropped_mask,
         "smoothed_grain": disorderedtrace.smoothed_mask,
         "skeleton": disorderedtrace.skeleton,
         "pruned_skeleton": disorderedtrace.pruned_skeleton,
     }
-
-    return cropped_images
 
 
 def crop_array(array: npt.NDArray, bounding_box: tuple, pad_width: int = 0) -> npt.NDArray:
