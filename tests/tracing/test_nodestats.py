@@ -364,6 +364,55 @@ def test_join_matching_branches_through_node(
     np.testing.assert_equal(result_masked_image, expected_masked_image)
 
 
+@pytest.mark.parametrize(
+    ("reduced_node_area", "branch_start_coords", "max_length_px", "expected_ordered_branches", "expected_vectors"),
+    [
+        pytest.param(
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 1, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 3, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 3, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 3, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 3, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.array([[4, 3], [3, 4], [6, 5], [5, 6]]),
+            2,
+            [
+                np.array([[4, 3], [4, 2]]),
+                np.array([[3, 4], [2, 4]]),
+                np.array([[6, 5], [5, 6]]),
+                np.array([[5, 6], [6, 7]]),
+            ],
+            [
+                np.array([0.0, -1.0]),
+                np.array([-1.0, 0.0]),
+                np.array([-0.70710678, 0.70710678]),
+                np.array([0.70710678, 0.70710678]),
+            ],
+        ),
+    ],
+)
+def test_get_ordered_branches_and_vectors(
+    reduced_node_area: npt.NDArray[np.int32],
+    branch_start_coords: npt.NDArray[np.int32],
+    max_length_px: np.int32,
+    expected_ordered_branches: list[npt.NDArray[np.int32]],
+    expected_vectors: list[npt.NDArray[np.int32]],
+) -> None:
+    """Test of get_ordered_branches_and_vectors() method of nodeStats class."""
+    result_ordered_branches, result_vectors = nodeStats.get_ordered_branches_and_vectors(
+        reduced_node_area=reduced_node_area, branch_start_coords=branch_start_coords, max_length_px=max_length_px
+    )
+    np.testing.assert_equal(result_ordered_branches, expected_ordered_branches)
+    np.testing.assert_almost_equal(result_vectors, expected_vectors, decimal=6)
+
+
 def test_sq() -> None:
     """Test of sq() method of nodeStats class."""
     pass
