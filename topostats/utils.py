@@ -22,7 +22,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 ALL_STATISTICS_COLUMNS = (
     "image",
     "basename",
-    "molecule_number",
+    "grain_number",
     "area",
     "area_cartesian_bbox",
     "aspect_ratio",
@@ -262,7 +262,7 @@ def get_thresholds(  # noqa: C901
     return thresholds
 
 
-def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: str = "molecule_number") -> pd.DataFrame:
+def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: str = "grain_number") -> pd.DataFrame:
     """
     Create an empty data frame for returning when no results are found.
 

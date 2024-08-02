@@ -4,7 +4,7 @@ csv_file: ./all_statistics.csv
 savefig_format: png
 pickle_plots: True # Save plots to a Python pickle
 var_to_label: null # Optional YAML file that maps variable names to labels, uses topostats/var_to_label.yaml if null
-molecule_id: molecule_number
+molecule_id: grain_number
 image_id: image
 # If both hist and kde are True they are plotted on the same graph, if you only want one you MUST set the other to False
 kde: True
