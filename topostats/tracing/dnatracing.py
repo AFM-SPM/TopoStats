@@ -1728,7 +1728,7 @@ def pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int) -> 
 #                 pbar.update()
 #     try:
 #         results = pd.DataFrame.from_dict(results, orient="index")
-#         results.index.name = "molecule_number"
+#         results.index.name = "grain_number"
 #     except ValueError as error:
 #         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
 #         LOGGER.error(error)
