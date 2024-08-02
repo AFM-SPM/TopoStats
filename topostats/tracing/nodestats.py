@@ -62,7 +62,7 @@ class nodeStats:
         mask: npt.NDArray,
         smoothed_mask: npt.NDArray,
         skeleton: npt.NDArray,
-        px_2_nm: np.float32,
+        px_2_nm: np.float64,
         n_grain: int,
         node_joining_length: float,
         node_extend_dist: float,
@@ -586,7 +586,7 @@ class nodeStats:
                     # check whether resolution good enough to trace
                     res = self.px_2_nm <= 1000 / 512
                     if not res:
-                        print(f"Resolution {res} is below suggested {1000 / 512}, node difficult to analyse.")
+                        LOGGER.warning(f"Resolution {res} is below suggested {1000 / 512}, node difficult to analyse.")
                     # raise ResolutionError
                     # elif x - length < 0 or y - length < 0 or
                     #   x + length > self.image.shape[0] or
@@ -595,27 +595,14 @@ class nodeStats:
                     # raise ResolutionError
 
                     real_node_count += 1
-                    print(f"Real node: {real_node_count}")
-                    ordered_branches = []
-                    vectors = []
-                    nodeless = np.where(reduced_node_area == 1, 1, 0)
-                    for branch_start_coord in branch_start_coords:
-                        # order branch
-                        ordered = order_branch_from_start(
-                            nodeless.copy(), branch_start_coord, max_length=max_length_px
-                        )
-                        # identify vector
-                        vector = self.get_vector(ordered, branch_start_coord)  # [x, y]
-                        # add to list
-                        vectors.append(vector)
-                        ordered_branches.append(ordered)
-                    if node_no == 0:
-                        self.test2 = vectors
+                    LOGGER.info(f"Real node: {real_node_count}")
+
+                    ordered_branches, vectors = nodeStats.get_ordered_branches_and_vectors(
+                        reduced_node_area, branch_start_coords, max_length_px
+                    )
+# 
                     # pair vectors
-                    # print(f"NODE {real_node_count}, vectors:\n {vectors}")
-                    # vectors example: node 0: [array([0, 0]), array([0, 0]), array([0, 0]), array([0, 0])].
-                    # idk why this is zero.
-                    # pairs eg: array[[1, 2]] for branches 1 and 2
+                    # pairs eg: array[[1, 2], [3, 0]] for branches 1, 2 and 3, 0 being paired up
                     pairs = self.pair_vectors(np.asarray(vectors))
 
                     matched_branches, masked_image = self.join_matching_branches_through_node(
@@ -806,6 +793,50 @@ class nodeStats:
             matched_branches[i]["fwhm2"] = nodeStats.fwhm2(heights, distances)
 
         return matched_branches, masked_image
+
+    @staticmethod
+    def get_ordered_branches_and_vectors(
+        reduced_node_area: npt.NDArray[np.int32],
+        branch_start_coords: npt.NDArray[np.int32],
+        max_length_px: np.int32,
+    ) -> tuple[list[npt.NDArray[np.int32]], list[npt.NDArray[np.int32]]]:
+        """
+        Get ordered branches and vectors for a node.
+
+        Branches are ordered so they are no longer just a disordered set of coordinates, and vectors are calculated to
+        represent the general direction tendency of the branch, this allows for alignment matching later on.
+
+        Parameters
+        ----------
+        reduced_node_area : npt.NDArray[np.int32]
+            An Nx2 numpy array of coordinates representing the reduced node area. Nodes are represented as 3, while
+            branches are represented as 1. Background is 0.
+        branch_start_coords : npt.NDArray[np.int32]
+            An Px2 numpy array of coordinates representing the start of branches where P is the number of branches.
+        max_length_px : np.int32
+            The maximum length in pixels to traverse along while ordering.
+        
+        Returns
+        -------
+        tuple[list[npt.NDArray[np.int32]], list[npt.NDArray[np.int32]]]
+            A tuple containing a list of ordered branches and a list of vectors.
+        
+        """
+        ordered_branches = []
+        vectors = []
+        nodeless = np.where(reduced_node_area == 1, 1, 0)
+        for branch_start_coord in branch_start_coords:
+            # Order the branch coordinates so they're no longer just a disordered set of coordinates
+            ordered_branch = nodeStats.order_branch_from_start(
+                nodeless.copy(), branch_start_coord, max_length=max_length_px
+            )
+            ordered_branches.append(ordered_branch)
+
+            # Calculate vector to represent the general direction tendency of the branch (for alignment matching)
+            vector = nodeStats.get_vector(ordered_branch, branch_start_coord)
+            vectors.append(vector)
+
+        return ordered_branches, vectors
 
     @staticmethod
     def get_two_combinations(fwhm_list) -> list:
