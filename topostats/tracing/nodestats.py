@@ -583,91 +583,50 @@ class nodeStats:
                 # self.connected_nodes[node_coords[:, 0], node_coords[:, 1]] = 1  # remove these from connected_nodes
             else:
                 try:
-                    # check whether resolution good enough to trace
-                    res = self.px_2_nm <= 1000 / 512
-                    if not res:
-                        LOGGER.warning(f"Resolution {res} is below suggested {1000 / 512}, node difficult to analyse.")
-                    # raise ResolutionError
-                    # elif x - length < 0 or y - length < 0 or
-                    #   x + length > self.image.shape[0] or
-                    #   y + length > self.image.shape[1]:
-                    # LOGGER.info(f"Node lies too close to image boundary, increase 'pad_with' value.")
-                    # raise ResolutionError
-
                     real_node_count += 1
-                    LOGGER.info(f"Real node: {real_node_count}")
+                    LOGGER.info(f"Node: {real_node_count}")
 
-                    ordered_branches, vectors = nodeStats.get_ordered_branches_and_vectors(
-                        reduced_node_area, branch_start_coords, max_length_px
-                    )
-# 
-                    # pair vectors
-                    # pairs eg: array[[1, 2], [3, 0]] for branches 1, 2 and 3, 0 being paired up
-                    pairs = self.pair_vectors(np.asarray(vectors))
-
-                    matched_branches, masked_image = self.join_matching_branches_through_node(
-                        pairs,
-                        ordered_branches,
-                        self.reduced_skel_graph,
-                        self.image,
-                        average_trace_advised,
-                        x,
-                        y,
-                        self.filename,
+                    pairs, matched_branches, ordered_branches, masked_image, branch_idx_order, conf = (
+                        self.analyse_node_branches(
+                            self.px_2_nm,
+                            reduced_node_area,
+                            branch_start_coords,
+                            max_length_px,
+                            self.reduced_skel_graph,
+                            self.image,
+                            average_trace_advised,
+                            (x, y),
+                            self.filename,
+                            test_run,
+                            1000 / 512,
+                            node_no,
+                        )
                     )
 
-                    if test_run:
-                        pkl.dump(
-                            matched_branches,
-                            open(f"tests/resources/catenane_node_{node_no}_matched_branches.pkl", "wb"),
-                        )
-                        pkl.dump(
-                            masked_image,
-                            open(f"tests/resources/catenane_node_{node_no}_masked_image.pkl", "wb"),
-                        )
-                    # redo fwhms after to get better baselines + same hm matching
-                    hms = []
-                    for _, values in matched_branches.items():  # get hms
-                        hms.append(values["fwhm"]["half_maxs"][2])
-                    for branch_idx, values in matched_branches.items():  # use same highest hm
-                        fwhm = self.fwhm(values["heights"], values["distances"], hm=max(hms))
-                        matched_branches[branch_idx]["fwhm"] = fwhm
-
-                    # get confidences
-                    crossing_quants = []
-                    for _, values in matched_branches.items():
-                        crossing_quants.append(values["fwhm"]["fwhm"])
-                    if len(crossing_quants) == 1:  # from 3 eminnating branches
-                        conf = None
-                    else:
-                        combs = self.get_two_combinations(crossing_quants)
-                        conf = self.cross_confidence(combs)
-
+                    # PULL INTO FUNCTION??? FOR ADDING BRANCHES TO LABELLED IMAGE ==============================================
                     # add paired and unpaired branches to image plot
-                    fwhms = []
-                    for _, values in matched_branches.items():
-                        fwhms.append(values["fwhm"]["fwhm"])
-                    branch_idx_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(fwhms))]
-                    # branch_idx_order = np.arange(0,len(matched_branches))
-                    # uncomment to unorder (will not unorder the height traces)
-
                     branch_img: npt.NDArray[np.int32] = np.zeros_like(self.image)  # initialising paired branch img
                     avg_img: npt.NDArray[np.int32] = np.zeros_like(self.image)  # initialising avg trace img
 
                     for i, branch_idx in enumerate(branch_idx_order):
                         branch_coords = matched_branches[branch_idx]["ordered_coords"]
+                        # Add the matched branches to the branch image
                         branch_img[branch_coords[:, 0], branch_coords[:, 1]] = i + 1  # add to branch img
                         if average_trace_advised:  # add avg traces
                             avg_img[masked_image[branch_idx]["avg_mask"] != 0] = i + 1
                         else:
                             avg_img = None
 
+                    # Calculates the branches we haven't been able to pair
                     unpaired_branches = np.delete(np.arange(0, branch_start_coords.shape[0]), pairs.flatten())
                     LOGGER.info(f"Unpaired branches: {unpaired_branches}")
+                    # Ensure that unpaired branches start at index I where I is the number of paired branches.
                     branch_label = branch_img.max()
+                    # Puts the unpaired branches back on the branch image
                     for i in unpaired_branches:  # carries on from loop variable i
                         branch_label += 1
                         branch_img[ordered_branches[i][:, 0], ordered_branches[i][:, 1]] = branch_label
+                    # =========================================================================
 
                     # calc crossing angle
                     # get full branch vectors
@@ -698,6 +657,82 @@ class nodeStats:
                     "node_avg_mask": avg_img,
                 }
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
+
+    @staticmethod
+    def analyse_node_branches(
+        p_to_nm: np.float64,
+        reduced_node_area: npt.NDArray[np.int32],
+        branch_start_coords: npt.NDArray[np.int32],
+        max_length_px: np.float64,
+        reduced_skeleton_graph: nx.classes.graph.Graph,
+        image: npt.NDArray[np.number],
+        average_trace_advised: bool,
+        node_coord: tuple[np.int32, np.int32],
+        filename: str,
+        test_run: bool,
+        resolution_threshold: np.float64,
+        node_number: int,
+    ):
+        """Analyse the branches of a single node."""
+        if not p_to_nm <= resolution_threshold:
+            LOGGER.warning(
+                f"Resolution {p_to_nm} is below suggested {resolution_threshold}, node difficult to analyse."
+            )
+
+        # Pixel-wise order the branches coming from the node and calculate the starting vector for each branch
+        ordered_branches, vectors = nodeStats.get_ordered_branches_and_vectors(
+            reduced_node_area, branch_start_coords, max_length_px
+        )
+
+        # Pair the vectors based on their suitability using vector orientation.
+        pairs = nodeStats.pair_vectors(np.asarray(vectors))
+
+        # Match the branches up
+        matched_branches, masked_image = nodeStats.join_matching_branches_through_node(
+            pairs,
+            ordered_branches,
+            reduced_skeleton_graph,
+            image,
+            average_trace_advised,
+            node_coord[0],
+            node_coord[1],
+            filename,
+        )
+
+        if test_run:
+            pkl.dump(
+                matched_branches,
+                open(f"tests/resources/catenane_node_{node_number}_matched_branches.pkl", "wb"),
+            )
+            pkl.dump(
+                masked_image,
+                open(f"tests/resources/catenane_node_{node_number}_masked_image.pkl", "wb"),
+            )
+
+        # Redo the FWHMs after the processing for more accurate determination of under/overs.
+        hms = []
+        for _, values in matched_branches.items():
+            hms.append(values["fwhm2"][1][2])
+        for branch_idx, values in matched_branches.items():
+            fwhm2 = nodeStats.fwhm2(values["heights"], values["distances"], hm=max(hms))
+            matched_branches[branch_idx]["fwhm2"] = fwhm2
+
+        # Get the confidence of the crossing
+        crossing_quants = []
+        for _, values in matched_branches.items():
+            crossing_quants.append(values["fwhm2"][0])
+        if len(crossing_quants) == 1:
+            conf = None
+        else:
+            combs = nodeStats.get_two_combinations(crossing_quants)
+            conf = nodeStats.cross_confidence(combs)
+
+        fwhms = []
+        for _, values in matched_branches.items():
+            fwhms.append(values["fwhm2"][0])
+        branch_idx_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(fwhms))]
+
+        return pairs, matched_branches, ordered_branches, masked_image, branch_idx_order, conf
 
     @staticmethod
     def join_matching_branches_through_node(
@@ -780,7 +815,9 @@ class nodeStats:
                 distances = nodeStats.coord_dist_rad(single_branch_coords, [node_x, node_y])  # Sylvia: CLEAN OF SELF.
                 # distances = self.coord_dist(single_branch_coords)
                 zero_dist = distances[
-                    np.argmin(np.sqrt((single_branch_coords[:, 0] - x) ** 2 + (single_branch_coords[:, 1] - y) ** 2))
+                    np.argmin(
+                        np.sqrt((single_branch_coords[:, 0] - node_x) ** 2 + (single_branch_coords[:, 1] - node_y) ** 2)
+                    )
                 ]
                 heights = image[single_branch_coords[:, 0], single_branch_coords[:, 1]]  # self.hess
                 distances = distances - zero_dist
@@ -815,12 +852,12 @@ class nodeStats:
             An Px2 numpy array of coordinates representing the start of branches where P is the number of branches.
         max_length_px : np.int32
             The maximum length in pixels to traverse along while ordering.
-        
+
         Returns
         -------
         tuple[list[npt.NDArray[np.int32]], list[npt.NDArray[np.int32]]]
             A tuple containing a list of ordered branches and a list of vectors.
-        
+
         """
         ordered_branches = []
         vectors = []
@@ -861,7 +898,8 @@ class nodeStats:
                 combs.append([fwhm_list[i], j])
         return combs
 
-    def cross_confidence(self, combs: list) -> float:
+    @staticmethod
+    def cross_confidence(combs: list) -> float:
         """
         Obtain the average confidence of the combinations using a reciprical function.
 
@@ -877,7 +915,7 @@ class nodeStats:
         """
         c = 0
         for comb in combs:
-            c += self.recip(comb)
+            c += nodeStats.recip(comb)
         return c / len(combs)
 
     @staticmethod
@@ -1041,7 +1079,8 @@ class nodeStats:
         cos_angles = dot / (norm.reshape(-1, 1) @ norm.reshape(1, -1))
         return abs(np.arccos(cos_angles) / np.pi * 180)  # angles in degrees
 
-    def pair_vectors(self, vectors: npt.NDArray) -> npt.NDArray:
+    @staticmethod
+    def pair_vectors(vectors: npt.NDArray) -> npt.NDArray:
         """
         Take a list of vectors and pairs them based on the angle between them.
 
@@ -1056,13 +1095,14 @@ class nodeStats:
             An array of the matching pair indices.
         """
         # calculate cosine of angle
-        angles = self.calc_angles(vectors)
+        angles = nodeStats.calc_angles(vectors)
         # find highest values
         np.fill_diagonal(angles, 0)  # ensures not paired with itself
         # match angles
-        return self.best_matches(angles)
+        return nodeStats.best_matches(angles)
 
-    def best_matches(self, arr: npt.NDArray, max_weight_matching: bool = True) -> npt.NDArray:
+    @staticmethod
+    def best_matches(arr: npt.NDArray, max_weight_matching: bool = True) -> npt.NDArray:
         """
         Turn a matrix into a graph and calculates the best matching index pairs.
 
@@ -1079,11 +1119,11 @@ class nodeStats:
             Array of pairs of indexes.
         """
         if max_weight_matching:
-            G = self.create_weighted_graph(arr)
+            G = nodeStats.create_weighted_graph(arr)
             matching = np.array(list(nx.max_weight_matching(G, maxcardinality=True)))
         else:
             np.fill_diagonal(arr, arr.max() + 1)
-            G = self.create_weighted_graph(arr)
+            G = nodeStats.create_weighted_graph(arr)
             matching = np.array(list(nx.min_weight_matching(G)))
         return matching
 
