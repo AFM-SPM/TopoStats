@@ -241,6 +241,122 @@ def test_analyse_nodes(
 
 @pytest.mark.parametrize(
     (
+        "p_to_nm",
+        "reduced_node_area_filename",
+        "branch_start_coords",
+        "max_length_px",
+        "reduced_skeleton_graph_filename",
+        "image",
+        "average_trace_advised",
+        "node_coord",
+        "filename",
+        "test_run",
+        "resolution_threshold",
+        "node_number",
+        "expected_pairs",
+        "expected_matched_branches_filename",
+        "expected_ordered_branches_filename",
+        "expected_masked_image_filename",
+        "expected_branch_idx_order",
+        "expected_conf",
+    ),
+    [
+        pytest.param(
+            0.18124609,
+            "catenane_node_0_reduced_node_area.npy",
+            [np.array([278, 353]), np.array([279, 351]), np.array([281, 352]), np.array([281, 354])],
+            110.34720989566988,
+            "catenane_node_0_reduced_skeleton_graph.pkl",
+            lazy_fixture("catenane_image"),
+            True,
+            (280, 353),
+            "catenane_test_image",
+            False,
+            1000 / 512,
+            0,
+            np.array([(1, 3), (2, 0)]),
+            "catenane_node_0_matched_branches_analyse_node_branches.pkl",
+            "catenane_node_0_ordered_branches.pkl",
+            "catenane_node_0_masked_image.pkl",
+            np.array([0, 1]),
+            0.48972025484111525,
+            id="node 0",
+        )
+    ],
+)
+def test_analyse_node_branches(
+    p_to_nm: float,
+    reduced_node_area_filename: npt.NDArray[np.int32],
+    branch_start_coords: npt.NDArray[np.int32],
+    max_length_px: np.int32,
+    reduced_skeleton_graph_filename: npt.NDArray[np.int32],
+    image: npt.NDArray[np.float64],
+    average_trace_advised: bool,
+    node_coord: tuple[int, int],
+    filename: str,
+    test_run: bool,
+    resolution_threshold: float,
+    node_number: int,
+    expected_pairs: npt.NDArray[np.int32],
+    expected_matched_branches_filename: str,
+    expected_ordered_branches_filename: str,
+    expected_masked_image_filename: str,
+    expected_branch_idx_order: npt.NDArray[np.int32],
+    expected_conf: float,
+) -> None:
+    """Test of analyse_node_branches() method of nodeStats class."""
+
+    # Load the reduced node area
+    reduced_node_area = np.load(RESOURCES / f"{reduced_node_area_filename}")
+
+    # Load the reduced skeleton graph
+    with Path(RESOURCES / f"{reduced_skeleton_graph_filename}").open("rb") as f:
+        reduced_skeleton_graph = pickle.load(f)
+
+    (
+        result_pairs,
+        result_matched_branches,
+        result_ordered_branches,
+        result_masked_image,
+        result_branch_idx_order,
+        result_conf,
+    ) = nodeStats.analyse_node_branches(
+        p_to_nm=p_to_nm,
+        reduced_node_area=reduced_node_area,
+        branch_start_coords=branch_start_coords,
+        max_length_px=max_length_px,
+        reduced_skeleton_graph=reduced_skeleton_graph,
+        image=image,
+        average_trace_advised=average_trace_advised,
+        node_coord=node_coord,
+        filename=filename,
+        test_run=test_run,
+        resolution_threshold=resolution_threshold,
+        node_number=node_number,
+    )
+
+    # Load expected matched branches
+    with Path(RESOURCES / f"{expected_matched_branches_filename}").open("rb") as f:
+        expected_matched_branches = pickle.load(f)
+
+    # Load expected masked image
+    with Path(RESOURCES / f"{expected_masked_image_filename}").open("rb") as f:
+        expected_masked_image = pickle.load(f)
+
+    # Load expected ordered branches
+    with Path(RESOURCES / f"{expected_ordered_branches_filename}").open("rb") as f:
+        expected_ordered_branches = pickle.load(f)
+
+    np.testing.assert_equal(result_pairs, expected_pairs)
+    np.testing.assert_equal(result_matched_branches, expected_matched_branches)
+    np.testing.assert_equal(result_ordered_branches, expected_ordered_branches)
+    np.testing.assert_equal(result_masked_image, expected_masked_image)
+    np.testing.assert_equal(result_branch_idx_order, expected_branch_idx_order)
+    np.testing.assert_almost_equal(result_conf, expected_conf, decimal=6)
+
+
+@pytest.mark.parametrize(
+    (
         "pairs",
         "ordered_branches_filename",
         "reduced_skeleton_graph_filename",
@@ -262,7 +378,7 @@ def test_analyse_nodes(
             280,
             353,
             "catenane_test_image",
-            "catenane_node_0_matched_branches.pkl",
+            "catenane_node_0_matched_branches_join_matching_branches_through_node.pkl",
             "catenane_node_0_masked_image.pkl",
             id="node 0",
         ),
@@ -275,7 +391,7 @@ def test_analyse_nodes(
             312,
             237,
             "catenane_test_image",
-            "catenane_node_1_matched_branches.pkl",
+            "catenane_node_1_matched_branches_join_matching_branches_through_node.pkl",
             "catenane_node_1_masked_image.pkl",
             id="node 1",
         ),
@@ -288,7 +404,7 @@ def test_analyse_nodes(
             407,
             438,
             "catenane_test_image",
-            "catenane_node_2_matched_branches.pkl",
+            "catenane_node_2_matched_branches_join_matching_branches_through_node.pkl",
             "catenane_node_2_masked_image.pkl",
             id="node 2",
         ),
@@ -301,7 +417,7 @@ def test_analyse_nodes(
             451,
             224,
             "catenane_test_image",
-            "catenane_node_3_matched_branches.pkl",
+            "catenane_node_3_matched_branches_join_matching_branches_through_node.pkl",
             "catenane_node_3_masked_image.pkl",
             id="node 3",
         ),
@@ -314,7 +430,7 @@ def test_analyse_nodes(
             558,
             194,
             "catenane_test_image",
-            "catenane_node_4_matched_branches.pkl",
+            "catenane_node_4_matched_branches_join_matching_branches_through_node.pkl",
             "catenane_node_4_masked_image.pkl",
             id="node 4",
         ),
