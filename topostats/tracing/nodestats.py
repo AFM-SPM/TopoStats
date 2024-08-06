@@ -563,6 +563,7 @@ class nodeStats:
                     self.reduced_skel_graph,
                     open(f"tests/resources/catenane_node_{node_no}_reduced_skeleton_graph.pkl", "wb"),
                 )
+                np.save(f"tests/resources/catenane_node_{node_no}_reduced_node_area.npy", reduced_node_area)
             branch_mask = reduced_node_area.copy()
 
             branch_mask[branch_mask == 3] = 0
@@ -603,6 +604,12 @@ class nodeStats:
                             node_no,
                         )
                     )
+
+                    if test_run:
+                        pkl.dump(
+                            matched_branches,
+                            open(f"tests/resources/catenane_node_{node_no}_matched_branches_analyse_node_branches.pkl", "wb"),
+                        )
 
                     # PULL INTO FUNCTION??? FOR ADDING BRANCHES TO LABELLED IMAGE ==============================================
                     # add paired and unpaired branches to image plot
@@ -703,7 +710,7 @@ class nodeStats:
         if test_run:
             pkl.dump(
                 matched_branches,
-                open(f"tests/resources/catenane_node_{node_number}_matched_branches.pkl", "wb"),
+                open(f"tests/resources/catenane_node_{node_number}_matched_branches_join_matching_branches_through_node.pkl", "wb"),
             )
             pkl.dump(
                 masked_image,
