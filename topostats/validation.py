@@ -266,6 +266,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'ordered_tracing.run', valid values are 'True' or 'False'",
             ),
+            "ordering_method": Or(
+                "nodestats",
+                "original",
+                error="Invalid value in config for 'ordered_tracing.ordering_method', valid values are 'nodestats' or 'original'"
+            ),
             "pad_width": lambda n: n > 0.0,
         },
         "dnatracing": {
