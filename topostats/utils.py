@@ -124,13 +124,16 @@ def update_plotting_config(plotting_config: dict) -> dict:
         f"Main plotting options that need updating/adding to plotting dict :\n{pformat(main_config, indent=4)}"
     )
     for image, options in plotting_config["plot_dict"].items():
+        main_config_temp = main_config.copy()
         LOGGER.debug(f"Dictionary for image : {image}")
         LOGGER.debug(f"{pformat(options, indent=4)}")
         # First update options with values that exist in main_config
-        plotting_config["plot_dict"][image] = update_config(options, main_config)
+        if not plotting_config["plot_dict"][image]["core_set"]: # avoids updating colurmap for diagnostic images
+            main_config_temp.pop("mask_cmap")
+        plotting_config["plot_dict"][image] = update_config(options, main_config_temp)
         LOGGER.debug(f"Updated values :\n{pformat(plotting_config['plot_dict'][image])}")
         # Then combine the remaining key/values we need from main_config that don't already exist
-        for key_main, value_main in main_config.items():
+        for key_main, value_main in main_config_temp.items():
             if key_main not in plotting_config["plot_dict"][image]:
                 plotting_config["plot_dict"][image][key_main] = value_main
         LOGGER.debug(f"After adding missing configuration options :\n{pformat(plotting_config['plot_dict'][image])}")
