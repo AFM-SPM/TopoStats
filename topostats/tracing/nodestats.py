@@ -20,6 +20,7 @@ from topostats.measure.geometry import (
 )
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
+from topostats.tracing.tracingfuncs import order_branch, order_branch_from_start
 from topostats.utils import ResolutionError, convolve_skeleton, coords_2_img
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -529,7 +530,7 @@ class nodeStats:
                     nodeless = np.where(reduced_node_area == 1, 1, 0)
                     for branch_start_coord in branch_start_coords:
                         # order branch
-                        ordered = self.order_branch_from_start(
+                        ordered = order_branch_from_start(
                             nodeless.copy(), branch_start_coord, max_length=max_length_px
                         )
                         # identify vector
@@ -571,7 +572,7 @@ class nodeStats:
                         # make images of single branch joined and multiple branches joined
                         single_branch_img = np.zeros_like(self.skeleton)
                         single_branch_img[branch_coords[:, 0], branch_coords[:, 1]] = 1
-                        single_branch_coords = self.order_branch(single_branch_img, [0, 0])
+                        single_branch_coords = order_branch(single_branch_img, [0, 0])
                         # calc image-wide coords
                         matched_branches[i]["ordered_coords"] = single_branch_coords
                         # get heights and trace distance of branch
@@ -740,124 +741,6 @@ class nodeStats:
             return 1 - min(vals) / max(vals)
         except ZeroDivisionError:
             return 0
-
-    def order_branch(self, binary_image: npt.NDArray, anchor: list):
-        """
-        Order a linear branch by identifying an endpoint, and looking at the local area of the point to find the next.
-
-        Parameters
-        ----------
-        binary_image : npt.NDArray
-            A binary image of a skeleton segment to order it's points.
-        anchor : list
-            A list of 2 integers representing the coordinate to order the branch from the endpoint closest to this.
-
-        Returns
-        -------
-        npt.NDArray
-            An array of ordered coordinates.
-        """
-        skel = binary_image.copy()
-
-        if len(np.argwhere(skel == 1)) < 3:  # if < 3 coords just return them
-            return np.argwhere(skel == 1)
-
-        # get branch starts
-        endpoints_highlight = convolve_skeleton(skel)
-        endpoints = np.argwhere(endpoints_highlight == 2)
-        if len(endpoints) != 0:  # if any endpoints, start closest to anchor
-            dist_vals = abs(endpoints - anchor).sum(axis=1)
-            start = endpoints[np.argmin(dist_vals)]
-        else:  # will be circular so pick the first coord (is this always the case?)
-            start = np.argwhere(skel == 1)[0]
-        # order the points according to what is nearby
-        ordered = self.order_branch_from_start(skel, start)
-
-        return np.array(ordered)
-
-    def order_branch_from_start(
-        self, nodeless: npt.NDArray, start: npt.NDArray, max_length: float | np.inf = np.inf
-    ) -> npt.NDArray:
-        """
-        Order an unbranching skeleton from an end (startpoint) along a specified length.
-
-        Parameters
-        ----------
-        nodeless : npt.NDArray
-            A 2D array of a binary unbranching skeleton.
-        start : npt.NDArray
-            2x1 coordinate that must exist in 'nodeless'.
-        max_length : float | np.inf, optional
-            Maximum length to traverse along while ordering, by default np.inf.
-
-        Returns
-        -------
-        npt.NDArray
-            Ordered coordinates.
-        """
-        dist = 0
-        # add starting point to ordered array
-        ordered = []
-        ordered.append(start)
-        nodeless[start[0], start[1]] = 0  # remove from array
-
-        # iterate to order the rest of the points
-        current_point = ordered[-1]  # get last point
-        area, _ = self.local_area_sum(nodeless, current_point)  # look at local area
-        local_next_point = np.argwhere(
-            area.reshape(
-                (
-                    3,
-                    3,
-                )
-            )
-            == 1
-        ) - (1, 1)
-        dist += np.sqrt(2) if abs(local_next_point).sum() > 1 else 1
-
-        while len(local_next_point) != 0 and dist <= max_length:
-            next_point = (current_point + local_next_point)[0]
-            # find where to go next
-            ordered.append(next_point)
-            nodeless[next_point[0], next_point[1]] = 0  # set value to zero
-            current_point = ordered[-1]  # get last point
-            area, _ = self.local_area_sum(nodeless, current_point)  # look at local area
-            local_next_point = np.argwhere(
-                area.reshape(
-                    (
-                        3,
-                        3,
-                    )
-                )
-                == 1
-            ) - (1, 1)
-            dist += np.sqrt(2) if abs(local_next_point).sum() > 1 else 1
-
-        return np.array(ordered)
-
-    @staticmethod
-    def local_area_sum(binary_map: npt.NDArray, point: list | tuple | npt.NDArray) -> npt.NDArray:
-        """
-        Evaluate the local area around a point in a binary map.
-
-        Parameters
-        ----------
-        binary_map : npt.NDArray
-            A binary array of an image.
-        point : Union[list, tuple, npt.NDArray]
-            A single object containing 2 integers relating to a point within the binary_map.
-
-        Returns
-        -------
-        npt.NDArray
-            An array values of the local coordinates around the point.
-        int
-            A value corresponding to the number of neighbours around the point in the binary_map.
-        """
-        x, y = point
-        local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
-        local_pixels[4] = 0  # ensure centre is 0
-        return local_pixels, local_pixels.sum()
 
     @staticmethod
     def get_vector(coords: npt.NDArray, origin: npt.NDArray) -> npt.NDArray:
@@ -1385,7 +1268,7 @@ class nodeStats:
         for i in np.unique(labels)[1:]:
             trace_img = np.where(labels == i, 1, 0)
             trace_img = getSkeleton(img, trace_img, method="zhang").get_skeleton()
-            trace = self.order_branch(trace_img, branch_coords[0])
+            trace = order_branch(trace_img, branch_coords[0])
             height_trace = img[trace[:, 0], trace[:, 1]]
             dist = self.coord_dist_rad(trace, centre)  # self.coord_dist(trace)
             dist, height_trace = self.average_uniques(dist, height_trace)  # needs to be paired with coord_dist_rad
@@ -1574,343 +1457,6 @@ class nodeStats:
 
         return arr1[index], arr2_new
 
-    def compile_trace(self) -> tuple:
-        """
-        Pipeline to obtain the trace and crossing trace image.
-
-        This function uses the branches and FWHM's identified in the node_stats dictionary to create a
-        continuous trace of the molecule.
-
-        Returns
-        -------
-        tuple[list, npt.NDArray]
-            A list of each complete path's ordered coordinates, and labeled crosing image array.
-        """
-        LOGGER.info(f"[{self.filename}] : Compiling the trace.")
-
-        # iterate through the dict to get branch coords, heights and fwhms
-        node_coords = []
-        crossing_coords = []
-        crossing_heights = []
-        crossing_distances = []
-        fwhms = []
-        for _, stats in self.node_dict.items():
-            temp_nodes = []
-            temp_coords = []
-            temp__heights = []
-            temp_distances = []
-            temp_fwhms = []
-            for _, branch_stats in stats["branch_stats"].items():
-                temp_coords.append(branch_stats["ordered_coords"])
-                temp__heights.append(branch_stats["heights"])
-                temp_distances.append(branch_stats["distances"])
-                temp_fwhms.append(branch_stats["fwhm"][0])
-                temp_nodes.append(stats["node_coords"])
-            node_coords.append(temp_nodes)
-            crossing_coords.append(temp_coords)
-            crossing_heights.append(temp__heights)
-            crossing_distances.append(temp_distances)
-            fwhms.append(temp_fwhms)
-
-        # Get the image minus the crossing regions
-        minus = self.skeleton.copy()
-        for crossings in crossing_coords:
-            for crossing in crossings:
-                minus[crossing[:, 0], crossing[:, 1]] = 0
-        minus = label(minus)
-
-        # Get both image
-        both = minus.copy()
-        for node_num, crossings in enumerate(crossing_coords):
-            for crossing_num, crossing in enumerate(crossings):
-                both[crossing[:, 0], crossing[:, 1]] = node_num + crossing_num + minus.max()
-
-        # setup z array
-        z = []
-        # order minus segments
-        ordered = []
-        for i in range(1, minus.max() + 1):
-            arr = np.where(minus, minus == i, 0)
-            ordered.append(self.order_branch(arr, [0, 0]))  # orientated later
-            z.append(0)
-
-        # add crossing coords to ordered segment list
-        for i, node_crossing_coords in enumerate(crossing_coords):
-            z_idx = np.argsort(fwhms[i])
-            z_idx[z_idx == 0] = -1
-            for j, single_cross in enumerate(node_crossing_coords):
-                # check current single cross has no duplicate coords with ordered, except crossing points
-                uncommon_single_cross = np.array(single_cross).copy()
-                for coords in ordered:
-                    uncommon_single_cross = self.remove_common_values(
-                        uncommon_single_cross, np.array(coords), retain=node_coords[i][j]
-                    )
-                if len(uncommon_single_cross) > 0:
-                    ordered.append(uncommon_single_cross)
-                z.append(z_idx[j])
-
-        # get an image of each ordered segment
-        cross_add = np.zeros_like(self.image)
-        for i, coords in enumerate(ordered):
-            single_cross_img = coords_2_img(np.array(coords), cross_add)
-            cross_add[single_cross_img != 0] = i + 1
-
-        coord_trace = self.trace(ordered, cross_add)
-
-        # visual over under img
-        visual = self.get_visual_img(coord_trace, fwhms, crossing_coords)
-        self.image_dict["grain"]["grain_visual_crossings"] = visual
-
-        return coord_trace, visual
-
-    @staticmethod
-    def remove_common_values(arr1: npt.NDArray, arr2: npt.NDArray, retain: list = ()) -> np.array:
-        """
-        Remove common values between two coordinate arrays while retaining specified coordinates.
-
-        Parameters
-        ----------
-        arr1 : npt.NDArray
-            Coordinate array 1.
-        arr2 : npt.NDArray
-            Coordinate array 2.
-        retain : list, optional
-            List of possible coordinates to keep, by default ().
-
-        Returns
-        -------
-        np.array
-            Unique array values and retained coordinates.
-        """
-        # Convert the arrays to sets for faster common value lookup
-        set_arr2 = {tuple(row) for row in arr2}
-        set_retain = {tuple(row) for row in retain}
-        # Create a new filtered list while maintaining the order of the first array
-        filtered_arr1 = []
-        for coord in arr1:
-            tup_coord = tuple(coord)
-            if tup_coord not in set_arr2 or tup_coord in set_retain:
-                filtered_arr1.append(coord)
-
-        return np.asarray(filtered_arr1)
-
-    def trace(self, ordered_segment_coords: list, both_img: npt.NDArray) -> list:
-        """
-        Obtain an ordered trace of each complete path.
-
-        Here a 'complete path' means following and removing connected segments until
-        there are no more segments to follow.
-
-        Parameters
-        ----------
-        ordered_segment_coords : list
-            Ordered coordinates of each labeled segment in 'both_img'.
-        both_img : npt.NDArray
-            A skeletonised labeled image of each path segment.
-
-        Returns
-        -------
-        list
-            Ordered trace coordinates of each complete path.
-        """
-        LOGGER.info(f"[{self.filename}] Getting coordinate trace")
-
-        mol_coords = []
-        remaining = both_img.copy().astype(np.int32)
-        endpoints = np.unique(remaining[convolve_skeleton(remaining) == 2])  # unique in case of whole mol
-
-        while remaining.max() != 0:
-            # select endpoint to start if there is one
-            endpoints = [i for i in endpoints if i in np.unique(remaining)]  # remove if removed from remaining
-            if endpoints:
-                coord_idx = endpoints[0] - 1
-            else:  # if no endpoints, just a loop
-                coord_idx = np.unique(remaining)[1] - 1  # avoid choosing 0
-            coord_trace = np.empty((0, 2)).astype(np.int32)
-            while coord_idx > -1:  # either cycled through all or hits terminus -> all will be just background
-                remaining[remaining == coord_idx + 1] = 0
-                trace_segment = self.get_trace_segment(remaining, ordered_segment_coords, coord_idx)
-                if len(coord_trace) > 0:  # can only order when there's a reference point / segment
-                    trace_segment = self.remove_duplicates(
-                        trace_segment, prev_segment
-                    )  # remove overlaps in trace (may be more efficient to do it on the previous segment)
-                    trace_segment = self.order_from_end(coord_trace[-1], trace_segment)
-                prev_segment = trace_segment.copy()  # update previous segment
-                coord_trace = np.append(coord_trace, trace_segment.astype(np.int32), axis=0)
-                x, y = coord_trace[-1]
-                coord_idx = remaining[x - 1 : x + 2, y - 1 : y + 2].max() - 1  # should only be one value
-            mol_coords.append(coord_trace)
-
-        return mol_coords
-
-    @staticmethod
-    def get_trace_segment(remaining_img: npt.NDArray, ordered_segment_coords: list, coord_idx: int) -> npt.NDArray:
-        """
-        Return an ordered segment at the end of the current one.
-
-        Check the branch of given index to see if it contains an endpoint. If it does,
-        the segment coordinates will be returned starting from the endpoint.
-
-        Parameters
-        ----------
-        remaining_img : npt.NDArray
-            A 2D array representing an image composed of connected segments of different integers.
-        ordered_segment_coords : list
-            A list of 2xN coordinates representing each segment.
-        coord_idx : int
-            The index of the current segment to look at. There is an index mismatch between the
-            remaining_img and ordered_segment_coords by -1.
-
-        Returns
-        -------
-        npt.NDArray
-            2xN array of coordinates representing a skeletonised ordered trace segment.
-        """
-        start_xy = ordered_segment_coords[coord_idx][0]
-        start_max = remaining_img[start_xy[0] - 1 : start_xy[0] + 2, start_xy[1] - 1 : start_xy[1] + 2].max() - 1
-        if start_max == -1:
-            return ordered_segment_coords[coord_idx]  # start is endpoint
-        return ordered_segment_coords[coord_idx][::-1]  # end is endpoint
-
-    @staticmethod
-    def remove_duplicates(current_segment: npt.NDArray, prev_segment: npt.NDArray) -> npt.NDArray:
-        """
-        Remove overlapping coordinates present in both arrays.
-
-        Parameters
-        ----------
-        current_segment : npt.NDArray
-            2xN coordinate array.
-        prev_segment : npt.NDArray
-            2xN coordinate array.
-
-        Returns
-        -------
-        npt.NDArray
-            2xN coordinate array without the previous segment coordinates.
-        """
-        # Convert arrays to tuples
-        curr_segment_tuples = [tuple(row) for row in current_segment]
-        prev_segment_tuples = [tuple(row) for row in prev_segment]
-        # Find unique rows
-        unique_rows = list(set(curr_segment_tuples) - set(prev_segment_tuples))
-        # Remove duplicate rows from array1
-        return np.array([row for row in curr_segment_tuples if tuple(row) in unique_rows])
-
-    @staticmethod
-    def order_from_end(last_segment_coord: npt.NDArray, current_segment: npt.NDArray) -> npt.NDArray:
-        """
-        Order the current segment to follow from the end of the previous one.
-
-        Parameters
-        ----------
-        last_segment_coord : npt.NDArray
-            X and Y coordinates of the end of the last segment.
-        current_segment : npt.NDArray
-            A 2xN array of coordinates of the current segment to order.
-
-        Returns
-        -------
-        npt.NDArray
-            The current segment orientated to follow on from the last.
-        """
-        start_xy = current_segment[0]
-        dist = np.sum((start_xy - last_segment_coord) ** 2) ** 0.5
-        if dist <= np.sqrt(2):
-            return current_segment
-        return current_segment[::-1]
-
-    @staticmethod
-    def get_trace_idxs(fwhms: list) -> tuple:
-        """
-        Split underpassing and overpassing indices.
-
-        Parameters
-        ----------
-        fwhms : list
-            List of arrays of FWHM values for each crossing point.
-
-        Returns
-        -------
-        tuple
-            All the under, and over indices of the for each node FWHMs in the provided FWHM list.
-        """
-        # node fwhms can be a list of different lengths so cannot use np arrays
-        under_idxs = []
-        over_idxs = []
-        for node_fwhms in fwhms:
-            order = np.argsort(node_fwhms)
-            under_idxs.append(order[0])
-            over_idxs.append(order[-1])
-        return under_idxs, over_idxs
-
-    def get_visual_img(self, coord_trace: list, fwhms: list, crossing_coords: list) -> npt.NDArray:
-        """
-        Obtain a labeled image according to the main trace (=1), under (=2), over (=3).
-
-        Parameters
-        ----------
-        coord_trace : list
-            Ordered coordinate trace of each molecule.
-        fwhms : list
-            List of FWHMs for each crossing in the trace.
-        crossing_coords : list
-            The crossing coordinates of each branch crossing.
-
-        Returns
-        -------
-        npt.NDArray
-            2D crossing order labeled image.
-        """
-        # put down traces
-        img = np.zeros_like(self.skeleton)
-        for mol_no, coords in enumerate(coord_trace):
-            temp_img = np.zeros_like(img)
-            temp_img[coords[:, 0], coords[:, 1]] = 1
-            temp_img = binary_dilation(temp_img)
-            img[temp_img != 0] = 1  # mol_no + 1
-
-        lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
-
-        if False:  # len(coord_trace) > 1:
-            # plot separate mols
-            for type_idxs in [lower_idxs, upper_idxs]:
-                for node_crossing_coords, type_idx in zip(crossing_coords, type_idxs):
-                    temp_img = np.zeros_like(img)
-                    cross_coords = node_crossing_coords[type_idx]
-                    # decide which val
-                    matching_coords = np.array([])
-                    for trace in coord_trace:
-                        c = 0
-                        # get overlaps between segment coords and crossing under coords
-                        for cross_coord in cross_coords:
-                            c += ((trace == cross_coord).sum(axis=1) == 2).sum()
-                        matching_coords = np.append(matching_coords, c)
-                    val = matching_coords.argmax() + 1
-                    temp_img[cross_coords[:, 0], cross_coords[:, 1]] = 1
-                    temp_img = binary_dilation(temp_img)
-                    img[temp_img != 0] = val
-
-        else:
-            # plots over/unders
-            for i, type_idxs in enumerate([lower_idxs, upper_idxs]):
-                for crossing, type_idx in zip(crossing_coords, type_idxs):
-                    temp_img = np.zeros_like(img)
-                    cross_coords = crossing[type_idx]
-                    # decide which val
-                    matching_coords = np.array([])
-                    c = 0
-                    # get overlaps between segment coords and crossing under coords
-                    for cross_coord in cross_coords:
-                        c += ((coord_trace[0] == cross_coord).sum(axis=1) == 2).sum()
-                    matching_coords = np.append(matching_coords, c)
-                    val = matching_coords.argmax() + 1
-                    temp_img[cross_coords[:, 0], cross_coords[:, 1]] = 1
-                    temp_img = binary_dilation(temp_img)
-                    img[temp_img != 0] = i + 2
-
-        return img
-
     @staticmethod
     def average_crossing_confs(node_dict) -> None | float:
         """
@@ -1965,20 +1511,6 @@ class nodeStats:
             return min(confs)
         except ValueError:
             return None
-
-    def check_node_errorless(self) -> bool:
-        """
-        Check if an error has occurred while processing the node dictionary.
-
-        Returns
-        -------
-        bool
-            Whether the error is present.
-        """
-        for _, vals in self.node_dict.items():
-            if vals["error"]:
-                return False
-        return True
 
     def compile_metrics(self) -> None:
         """
@@ -2089,7 +1621,6 @@ def nodestats_image(
         """
         except Exception as e:
             LOGGER.error(f"[{filename}] : Disordered tracing for {n_grain} failed with - {e}")
-            nodestats_data[n_grain] = {}
         """
         # turn the grainstats additions into a dataframe
         grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
