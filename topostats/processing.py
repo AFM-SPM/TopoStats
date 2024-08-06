@@ -439,7 +439,7 @@ def run_nodestats(
     if nodestats_config["run"]:
         nodestats_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Nodestats ***")
-        nodestats_image_data = defaultdict()
+        nodestats_whole_data = defaultdict()
         grainstats_additions_image = pd.DataFrame()
         try:
             # run image using directional grain masks
@@ -462,7 +462,7 @@ def run_nodestats(
                 grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
 
                 # append direction results to dict
-                nodestats_image_data[direction] = nodestats_data
+                nodestats_whole_data[direction] = {"stats": nodestats_data, "images": nodestats_branch_images}
 
                 # save whole image plots
                 Images(

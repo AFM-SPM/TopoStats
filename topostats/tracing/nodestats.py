@@ -121,6 +121,7 @@ class nodeStats:
             "grain": {
                 "grain_image": self.image,
                 "grain_mask": self.mask,
+                "grain_skeleton": self.skeleton,
             },
         }
 
@@ -156,6 +157,7 @@ class nodeStats:
                             'grain'
                                 |-> 'grain_image'
                                 |-> 'grain_mask'
+                                |-> 'grain_skeleton'
         """
         LOGGER.info(f"Node Stats - Processing Grain: {self.n_grain}")
         self.conv_skelly = convolve_skeleton(self.skeleton)
@@ -165,6 +167,7 @@ class nodeStats:
             self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
             # reset skeleton var as tidy branches may have modified it
             self.skeleton = np.where(self.conv_skelly != 0, 1, 0)
+            self.image_dict["grain"]["grain_skeleton"] = self.skeleton
             # get graph of skeleton
             self.whole_skel_graph = self.skeleton_image_to_graph(self.skeleton)
             # connect the close nodes
@@ -176,7 +179,6 @@ class nodeStats:
             )
             # obtain a mask of node centers and their count
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
-            print("CENT: ", self.node_centre_mask)
             # Begin the hefty crossing analysis
             LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
             self.analyse_nodes(max_branch_length=self.branch_pairing_length)
@@ -2076,7 +2078,8 @@ def nodestats_image(
             "grain_number": int(n_grain.split("_")[-1]),
         }
         grainstats_additions[n_grain].update(nodestats.metrics)
-        nodestats_data[n_grain] = nodestats_dict
+        if nodestats_dict: # if the grain's nodestats dict is not empty
+            nodestats_data[n_grain] = nodestats_dict
 
         # remap the cropped images back onto the original
         for image_name, full_image in all_images.items():
