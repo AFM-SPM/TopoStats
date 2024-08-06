@@ -260,12 +260,8 @@ node_line_trace:
   title: "Heights of Crossing"
   image_type: "non-binary"
   mask_cmap: "blue_purple_green"
-visual_crop:
-  title: "Visualised Molecule Crossings"
-  image_type: "non-binary"
-  mask_cmap: "blue_purple_green"
-  core_set: false
-visual:
+# Ordered tracing troubleshooting images
+over_under:
   filename: "25-molecule_crossings"
   title: "Visualised Molecule Crossings"
   image_type: "non-binary"
@@ -278,7 +274,7 @@ single_mol:
   mask_cmap: "blue_purple_green"
   core_set: false
   savefig_dpi: 600
-ordered_trace:
+ordered_traces:
   filename: "26-ordered-traces"
   title: "Ordered Traces"
   image_type: "non-binary"

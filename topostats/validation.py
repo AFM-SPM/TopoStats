@@ -1058,19 +1058,7 @@ PLOTTING_SCHEMA = Schema(
             ),
             "mask_cmap": str,
         },
-        "visual_crop": {
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "mask_cmap": str,
-            "core_set": bool,
-        },
-        "visual": {
+        "over_under": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -1111,7 +1099,7 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "ordered_trace": {
+        "ordered_traces": {
             "filename": str,
             "title": str,
             "image_type": Or(
