@@ -1068,6 +1068,7 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "mask_cmap": str,
+            "core_set": bool,
         },
         "over_under": {
             "filename": str,
@@ -1111,7 +1112,6 @@ PLOTTING_SCHEMA = Schema(
             "savefig_dpi": int,
         },
         "ordered_traces": {
-            "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",

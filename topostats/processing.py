@@ -579,11 +579,11 @@ def run_ordered_tracing(
 
             # save whole image plots
             Images(
-                filename=f"{filename}_{direction}_nodes",
+                filename=f"{filename}_{direction}_ordered_traces",
                 data=image,
                 masked_array=ordered_tracing_full_images.pop("ordered_traces"),
                 output_dir=core_out_path,
-                **plotting_config["plot_dict"]["connected_nodes"],
+                **plotting_config["plot_dict"]["ordered_traces"],
             ).plot_and_save()
             """
             for plot_name, image_value in ordered_tracing_full_images.items():
