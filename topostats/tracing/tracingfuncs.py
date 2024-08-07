@@ -103,7 +103,9 @@ class reorderTrace:
         # Randomly choose one of the neighbouring points as the next point
         x_n = ordered_points[0][0]
         y_n = ordered_points[0][1]
-        no_of_neighbours, neighbour_array = genTracingFuncs.count_and_get_neighbours(x_n, y_n, remaining_unordered_coords)
+        no_of_neighbours, neighbour_array = genTracingFuncs.count_and_get_neighbours(
+            x_n, y_n, remaining_unordered_coords
+        )
         ordered_points.append(neighbour_array[0])
         remaining_unordered_coords.pop(remaining_unordered_coords.index(neighbour_array[0]))
 
@@ -413,6 +415,7 @@ def order_branch(binary_image: npt.NDArray, anchor: list):
 
     return np.array(ordered)
 
+
 def order_branch_from_start(
     nodeless: npt.NDArray, start: npt.NDArray, max_length: float | np.inf = np.inf
 ) -> npt.NDArray:
@@ -473,6 +476,7 @@ def order_branch_from_start(
 
     return np.array(ordered)
 
+
 def local_area_sum(binary_map: npt.NDArray, point: list | tuple | npt.NDArray) -> npt.NDArray:
     """
     Evaluate the local area around a point in a binary map.
@@ -495,6 +499,7 @@ def local_area_sum(binary_map: npt.NDArray, point: list | tuple | npt.NDArray) -
     local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
     local_pixels[4] = 0  # ensure centre is 0
     return local_pixels, local_pixels.sum()
+
 
 @staticmethod
 def coord_dist(coords: npt.NDArray, px_2_nm: float = 1) -> npt.NDArray:

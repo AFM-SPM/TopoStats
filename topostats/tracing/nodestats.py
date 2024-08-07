@@ -20,8 +20,8 @@ from topostats.measure.geometry import (
 )
 from topostats.tracing.pruning import prune_skeleton  # pruneSkeleton
 from topostats.tracing.skeletonize import getSkeleton
-from topostats.tracing.tracingfuncs import order_branch, order_branch_from_start, coord_dist
-from topostats.utils import ResolutionError, convolve_skeleton, coords_2_img
+from topostats.tracing.tracingfuncs import order_branch, order_branch_from_start
+from topostats.utils import ResolutionError, convolve_skeleton
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -531,9 +531,7 @@ class nodeStats:
                     nodeless = np.where(reduced_node_area == 1, 1, 0)
                     for branch_start_coord in branch_start_coords:
                         # order branch
-                        ordered = order_branch_from_start(
-                            nodeless.copy(), branch_start_coord, max_length=max_length_px
-                        )
+                        ordered = order_branch_from_start(nodeless.copy(), branch_start_coord, max_length=max_length_px)
                         # identify vector
                         vector = self.get_vector(ordered, branch_start_coord)  # [x, y]
                         # add to list
@@ -1584,7 +1582,7 @@ def nodestats_image(
             "grain_number": int(n_grain.split("_")[-1]),
         }
         grainstats_additions[n_grain].update(nodestats.metrics)
-        if nodestats_dict: # if the grain's nodestats dict is not empty
+        if nodestats_dict:  # if the grain's nodestats dict is not empty
             nodestats_data[n_grain] = nodestats_dict
 
         # remap the cropped images back onto the original

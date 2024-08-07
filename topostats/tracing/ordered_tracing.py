@@ -10,7 +10,7 @@ import pandas as pd
 from skimage.morphology import label
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.tracing.tracingfuncs import genTracingFuncs, order_branch, reorderTrace, coord_dist
+from topostats.tracing.tracingfuncs import coord_dist, genTracingFuncs, order_branch, reorderTrace
 from topostats.utils import convolve_skeleton, coords_2_img
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -466,7 +466,7 @@ class OrderedTraceNodestats:
             self.mol_tracing_stats["circular"] = linear_or_circular(mol_trace)
             ordered_trace_data[f"mol_{i}"] = {
                 "ordered_coords": mol_trace,
-                "heights": self.image[mol_trace[:,0], mol_trace[:,1]],
+                "heights": self.image[mol_trace[:, 0], mol_trace[:, 1]],
                 "distances": coord_dist(mol_trace[0]),
                 "mol_stats": self.mol_tracing_stats,
             }
@@ -581,9 +581,9 @@ class OrderedTraceTopostats:
             A list of each molecules ordered trace coordinates, the ordered_traicing stats, and the images.
         """
         disordered_trace_coords = np.argwhere(self.skeleton == 1)
-        
+
         self.mol_tracing_stats["circular"] = linear_or_circular(disordered_trace_coords)
-        
+
         ordered_trace = self.get_ordered_traces(disordered_trace_coords, self.mol_tracing_stats["circular"])
 
         self.images["ordered_traces"] = ordered_trace_mask(ordered_trace, self.image.shape)
@@ -594,7 +594,7 @@ class OrderedTraceTopostats:
         for i, mol_trace in enumerate(ordered_trace):
             ordered_trace_data[f"mol_{i}"] = {
                 "ordered_coords": mol_trace,
-                "heights": self.image[ordered_trace[0][:,0], ordered_trace[0][:,1]],
+                "heights": self.image[ordered_trace[0][:, 0], ordered_trace[0][:, 1]],
                 "distances": coord_dist(ordered_trace[0]),
                 "mol_stats": self.mol_tracing_stats,
             }
@@ -633,6 +633,7 @@ def linear_or_circular(traces) -> bool:
     if points_with_one_neighbour == 0:
         return True
     return False
+
 
 def ordered_trace_mask(ordered_coordinates: npt.NDArray, shape: tuple) -> npt.NDArray:
     """
