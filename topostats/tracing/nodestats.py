@@ -20,7 +20,7 @@ from topostats.measure.geometry import (
 )
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
-from topostats.tracing.tracingfuncs import order_branch, order_branch_from_start
+from topostats.tracing.tracingfuncs import order_branch, order_branch_from_start, coord_dist
 from topostats.utils import ResolutionError, convolve_skeleton, coords_2_img
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -1092,33 +1092,6 @@ class nodeStats:
         if x_swap:
             return arr[::-1]
         return arr
-
-    @staticmethod
-    def coord_dist(coords: npt.NDArray, px_2_nm: float = 1) -> npt.NDArray:
-        """
-        Accumulate a real distance traversing from pixel to pixel from a list of coordinates.
-
-        Parameters
-        ----------
-        coords : npt.NDArray
-            A Nx2 integer array corresponding to the ordered coordinates of a binary trace.
-        px_2_nm : float
-            The pixel to nanometer scaling factor.
-
-        Returns
-        -------
-        npt.NDArray
-            An array of length N containing thcumulative sum of the distances.
-        """
-        dist_list = [0]
-        dist = 0
-        for i in range(len(coords) - 1):
-            if abs(coords[i] - coords[i + 1]).sum() == 2:
-                dist += 2**0.5
-            else:
-                dist += 1
-            dist_list.append(dist)
-        return np.asarray(dist_list) * px_2_nm
 
     @staticmethod
     def coord_dist_rad(coords: npt.NDArray, centre: npt.NDArray, px_2_nm: float = 1) -> npt.NDArray:

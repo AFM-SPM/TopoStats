@@ -495,3 +495,30 @@ def local_area_sum(binary_map: npt.NDArray, point: list | tuple | npt.NDArray) -
     local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
     local_pixels[4] = 0  # ensure centre is 0
     return local_pixels, local_pixels.sum()
+
+@staticmethod
+def coord_dist(coords: npt.NDArray, px_2_nm: float = 1) -> npt.NDArray:
+    """
+    Accumulate a real distance traversing from pixel to pixel from a list of coordinates.
+
+    Parameters
+    ----------
+    coords : npt.NDArray
+        A Nx2 integer array corresponding to the ordered coordinates of a binary trace.
+    px_2_nm : float
+        The pixel to nanometer scaling factor.
+
+    Returns
+    -------
+    npt.NDArray
+        An array of length N containing thcumulative sum of the distances.
+    """
+    dist_list = [0]
+    dist = 0
+    for i in range(len(coords) - 1):
+        if abs(coords[i] - coords[i + 1]).sum() == 2:
+            dist += 2**0.5
+        else:
+            dist += 1
+        dist_list.append(dist)
+    return np.asarray(dist_list) * px_2_nm
