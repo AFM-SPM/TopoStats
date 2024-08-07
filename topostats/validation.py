@@ -238,13 +238,23 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "height_threshold": Or(int, float, None),
             },
         },
+        "nodestats": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+            ),
+            "node_joining_length": float,
+            "node_extend_dist": float,
+            "branch_pairing_length": float,
+            "pad_width": lambda n: n > 0.0,
+        },
         "dnatracing": {
             "run": Or(
                 True,
                 False,
                 error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
             ),
-            "joining_node_length": float,
             "pad_width": lambda n: n > 0.0,
             "spline_step_size": lambda n: n > 0.0,
             "spline_linear_smoothing": lambda n: n >= 0.0,
@@ -942,13 +952,41 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "nodes": {
+        "convolved_skeletons": {
             "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
+                    "Invalid value in config 'convolved_skeleton.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+        },
+        "node_centres": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'node_centres.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+        },
+        "connected_nodes": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
                     "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
@@ -956,33 +994,47 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "zoom_node": {
+        "node_area_skeleton": {
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'node_area_skeleton.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "crossings": {
+        "node_branch_mask": {
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'node_branch_mask.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "tripple_crossings": {
+        "node_avg_mask": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'node_avg_mask.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+        },
+        "node_line_trace": {
             "title": str,
             "image_type": Or(
                 "binary",
@@ -992,18 +1044,6 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "mask_cmap": str,
-            "core_set": bool,
-        },
-        "line_trace": {
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "cmap": str,
         },
         "visual_crop": {
             "title": str,

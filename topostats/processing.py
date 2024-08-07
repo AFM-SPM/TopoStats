@@ -15,10 +15,12 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME, setup_logger
+from topostats.plotting import plot_crossing_linetrace_halfmax
 from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
 from topostats.statistics import image_statistics
 from topostats.tracing.disordered_tracing import trace_image_disordered
-from topostats.tracing.dnatracing import trace_image
+from topostats.tracing.dnatracing import dnatrace_image
+from topostats.tracing.nodestats import nodestats_image
 from topostats.utils import create_empty_dataframe
 
 # pylint: disable=broad-except
@@ -427,6 +429,276 @@ def run_disorderedTrace(
         return {}
 
 
+def run_nodestats(
+    image: npt.NDArray,
+    disordered_tracing_data: dict,
+    pixel_to_nm_scaling: float,
+    filename: str,
+    core_out_path: Path,
+    tracing_out_path: Path,
+    nodestats_config: dict,
+    plotting_config: dict,
+    results_df: pd.DataFrame = None,
+) -> tuple[dict, pd.DataFrame]:
+    """
+    Analyse crossing points in grains adding results to statistics data frames and optionally plot results.
+
+    Parameters
+    ----------
+    image : npt.ndarray
+        Image containing the DNA to pass to the tracing function.
+    disordered_tracing_data : dict
+        Dictionary of skeletonised and pruned grain masks. Result from "run_disordered_tracing".
+    pixel_to_nm_scaling : float
+        Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixels per nanometres (nm).
+    filename : str
+        Name of the image.
+    core_out_path : Path
+        Path to save the core NodeStats image to.
+    tracing_out_path : Path
+        Path to save optional, diagnostic NodeStats images to.
+    nodestats_config : dict
+        Dictionary configuration for analysing the crossing points.
+    plotting_config : dict
+        Dictionary configuration for plotting images.
+    results_df : pd.DataFrame, optional
+        The grainstats dataframe to bee added to. by default None.
+
+    Returns
+    -------
+    tuple[dict, pd.DataFrame]
+        A NodeStats analysis dictionary and grainstats metrics dataframe.
+    """
+    if nodestats_config["run"]:
+        nodestats_config.pop("run")
+        LOGGER.info(f"[{filename}] : *** Nodestats ***")
+        nodestats_image_data = defaultdict()
+        grainstats_additions_image = pd.DataFrame()
+        try:
+            # run image using directional grain masks
+            for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
+                (
+                    nodestats_data,
+                    grainstats_additions_df,
+                    nodestats_full_images,
+                    nodestats_branch_images,
+                ) = nodestats_image(
+                    image=image,
+                    disordered_tracing_direction_data=disordered_tracing_direction_data,
+                    filename=filename,
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    **nodestats_config,
+                )
+
+                # save per image new grainstats stats
+                grainstats_additions_df["threshold"] = direction
+                grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
+
+                # append direction results to dict
+                nodestats_image_data[direction] = nodestats_data
+
+                # save whole image plots
+                Images(
+                    filename=f"{filename}_{direction}_nodes",
+                    data=image,
+                    masked_array=nodestats_full_images.pop("connected_nodes"),
+                    output_dir=core_out_path,
+                    **plotting_config["plot_dict"]["connected_nodes"],
+                ).plot_and_save()
+                for plot_name, image_value in nodestats_full_images.items():
+                    Images(
+                        image,
+                        masked_array=image_value,
+                        output_dir=tracing_out_path / direction,
+                        **plotting_config["plot_dict"][plot_name],
+                    ).plot_and_save()
+
+                # plot single node images
+                for mol_no, mol_stats in nodestats_data.items():
+                    if mol_stats is not None:
+                        for node_no, single_node_stats in mol_stats.items():
+                            # plot the node and branch_mask images
+                            for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
+                                node_no
+                            ].items():
+                                Images(
+                                    nodestats_branch_images[mol_no]["grain"]["grain_image"],
+                                    masked_array=cropped_image,
+                                    output_dir=tracing_out_path / direction / "nodes",
+                                    filename=f"{mol_no}_{node_no}_{cropped_image_type}",
+                                    **plotting_config["plot_dict"][cropped_image_type],
+                                ).plot_and_save()
+
+                            # plot crossing height linetrace
+                            if plotting_config["image_set"] == "all":
+                                if not single_node_stats["error"]:
+                                    fig, _ = plot_crossing_linetrace_halfmax(
+                                        branch_stats_dict=single_node_stats["branch_stats"],
+                                        mask_cmap=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
+                                        title=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
+                                    )
+                                    fig.savefig(
+                                        tracing_out_path
+                                        / direction
+                                        / "nodes"
+                                        / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
+                                        format="svg",
+                                    )
+                LOGGER.info(f"[{filename}] : Finished Plotting DNA Tracing Images")
+
+            # merge grainstats data with other dataframe
+            resultant_grainstats = (
+                pd.merge(results_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
+                if results_df is not None
+                else grainstats_additions_image
+            )
+
+            # merge all image dictionaries
+            return nodestats_image_data, resultant_grainstats
+
+        except Exception as e:
+            LOGGER.info(f"NodeStats failed with {e} - skipping.")
+            return nodestats_image_data, resultant_grainstats
+    else:
+        LOGGER.info(f"[{filename}] : Calculation of nodestats disabled, returning empty dataframe.")
+        return None, results_df
+
+
+def run_nodestats(
+    image: npt.NDArray,
+    disordered_tracing_data: dict,
+    pixel_to_nm_scaling: float,
+    filename: str,
+    core_out_path: Path,
+    tracing_out_path: Path,
+    nodestats_config: dict,
+    plotting_config: dict,
+    results_df: pd.DataFrame = None,
+) -> tuple[dict, pd.DataFrame]:
+    """
+    Analyse crossing points in grains adding results to statistics data frames and optionally plot results.
+
+    Parameters
+    ----------
+    image : npt.ndarray
+        Image containing the DNA to pass to the tracing function.
+    disordered_tracing_data : dict
+        Dictionary of skeletonised and pruned grain masks. Result from "run_disordered_tracing".
+    pixel_to_nm_scaling : float
+        Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixels per nanometres (nm).
+    filename : str
+        Name of the image.
+    core_out_path : Path
+        Path to save the core NodeStats image to.
+    tracing_out_path : Path
+        Path to save optional, diagnostic NodeStats images to.
+    nodestats_config : dict
+        Dictionary configuration for analysing the crossing points.
+    plotting_config : dict
+        Dictionary configuration for plotting images.
+    results_df : pd.DataFrame, optional
+        The grainstats dataframe to bee added to. by default None.
+
+    Returns
+    -------
+    tuple[dict, pd.DataFrame]
+        A NodeStats analysis dictionary and grainstats metrics dataframe.
+    """
+    if nodestats_config["run"]:
+        nodestats_config.pop("run")
+        LOGGER.info(f"[{filename}] : *** Nodestats ***")
+        nodestats_image_data = defaultdict()
+        grainstats_additions_image = pd.DataFrame()
+        try:
+            # run image using directional grain masks
+            for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
+                (
+                    nodestats_data,
+                    grainstats_additions_df,
+                    nodestats_full_images,
+                    nodestats_branch_images,
+                ) = nodestats_image(
+                    image=image,
+                    disordered_tracing_direction_data=disordered_tracing_direction_data,
+                    filename=filename,
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    **nodestats_config,
+                )
+
+                # save per image new grainstats stats
+                grainstats_additions_df["threshold"] = direction
+                grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
+
+                # append direction results to dict
+                nodestats_image_data[direction] = nodestats_data
+
+                # save whole image plots
+                Images(
+                    filename=f"{filename}_{direction}_nodes",
+                    data=image,
+                    masked_array=nodestats_full_images.pop("connected_nodes"),
+                    output_dir=core_out_path,
+                    **plotting_config["plot_dict"]["connected_nodes"],
+                ).plot_and_save()
+                for plot_name, image_value in nodestats_full_images.items():
+                    Images(
+                        image,
+                        masked_array=image_value,
+                        output_dir=tracing_out_path / direction,
+                        **plotting_config["plot_dict"][plot_name],
+                    ).plot_and_save()
+
+                # plot single node images
+                for mol_no, mol_stats in nodestats_data.items():
+                    if mol_stats is not None:
+                        for node_no, single_node_stats in mol_stats.items():
+                            # plot the node and branch_mask images
+                            for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
+                                node_no
+                            ].items():
+                                Images(
+                                    nodestats_branch_images[mol_no]["grain"]["grain_image"],
+                                    masked_array=cropped_image,
+                                    output_dir=tracing_out_path / direction / "nodes",
+                                    filename=f"{mol_no}_{node_no}_{cropped_image_type}",
+                                    **plotting_config["plot_dict"][cropped_image_type],
+                                ).plot_and_save()
+
+                            # plot crossing height linetrace
+                            if plotting_config["image_set"] == "all":
+                                if not single_node_stats["error"]:
+                                    fig, _ = plot_crossing_linetrace_halfmax(
+                                        branch_stats_dict=single_node_stats["branch_stats"],
+                                        mask_cmap=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
+                                        title=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
+                                    )
+                                    fig.savefig(
+                                        tracing_out_path
+                                        / direction
+                                        / "nodes"
+                                        / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
+                                        format="svg",
+                                    )
+                LOGGER.info(f"[{filename}] : Finished Plotting DNA Tracing Images")
+
+            # merge grainstats data with other dataframe
+            resultant_grainstats = (
+                pd.merge(results_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
+                if results_df is not None
+                else grainstats_additions_image
+            )
+
+            # merge all image dictionaries
+            return nodestats_image_data, resultant_grainstats
+
+        except Exception as e:
+            LOGGER.info(f"NodeStats failed with {e} - skipping.")
+            return nodestats_image_data, resultant_grainstats
+    else:
+        LOGGER.info(f"[{filename}] : Calculation of nodestats disabled, returning empty dataframe.")
+        return None, results_df
+
+
 # noqa: C901
 def run_dnatracing(
     image: npt.NDArray,
@@ -488,7 +760,7 @@ def run_dnatracing(
         tracing_stats = defaultdict()
         grain_trace_data = defaultdict()
         for direction, _ in grain_masks.items():
-            tracing_results = trace_image(
+            tracing_results = dnatrace_image(
                 image=image,
                 grains_mask=grain_masks[direction],
                 filename=filename,
@@ -529,7 +801,6 @@ def run_dnatracing(
                 ).plot_and_save()
 
             plot_names = {
-                "nodes": tracing_results["all_images"]["node_img"],
                 "visual": tracing_results["all_images"]["visual"],
                 "ordered_trace": tracing_results["all_images"]["ordered_traces"],
                 "fitted_trace": tracing_results["all_images"]["fitted_traces"],
@@ -610,6 +881,8 @@ def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: 
         Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "above", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "below", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "above" / "nodes", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "below" / "nodes", parents=True, exist_ok=True)
 
     return core_out_path, filter_out_path, grain_out_path, tracing_out_path
 
@@ -621,6 +894,7 @@ def process_scan(
     grains_config: dict,
     grainstats_config: dict,
     disordered_tracing_config: dict,
+    nodestats_config: dict,
     dnatracing_config: dict,
     plotting_config: dict,
     output_dir: str | Path = "output",
@@ -643,6 +917,8 @@ def process_scan(
         Dictionary of configuration options for running the Grain Statistics stage.
     disordered_tracing_config : dict
         Dictionary configuration for obtaining a disordered trace representation of the grains.
+    nodestats_config : dict
+        Dictionary of configuration options for running the NodeStats stage.
     dnatracing_config : dict
         Dictionary of configuration options for running the DNA Tracing stage.
     plotting_config : dict
@@ -711,20 +987,37 @@ def process_scan(
         # Disordered Tracing
         disordered_traces = run_disorderedTrace(
             image=topostats_object["image_flattened"],
-            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
+            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
             core_out_path=core_out_path,
             tracing_out_path=tracing_out_path,
             disordered_tracing_config=disordered_tracing_config,
             plotting_config=plotting_config,
         )
+        topostats_object["disordered_traces"] = (
+            disordered_traces if disordered_traces is not None else topostats_object["grain_masks"]
+        )
+
+        # Nodestats
+        nodestats, results_df = run_nodestats(
+            image=topostats_object["image_flattened"],
+            disordered_tracing_data=topostats_object["disordered_traces"],
+            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+            filename=topostats_object["filename"],
+            core_out_path=core_out_path,
+            tracing_out_path=tracing_out_path,
+            plotting_config=plotting_config,
+            nodestats_config=nodestats_config,
+            results_df=results_df,
+        )
+        topostats_object["nodestats"] = nodestats
 
         # DNAtracing
         results_df, grain_trace_data = run_dnatracing(
             image=topostats_object["image_flattened"],
-            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
+            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
             core_out_path=core_out_path,
             tracing_out_path=tracing_out_path,
@@ -735,7 +1028,7 @@ def process_scan(
         )
 
         # Add grain trace data to topostats object
-        topostats_object["grain_trace_data"] = grain_trace_data
+        # topostats_object["grain_trace_data"] = grain_trace_data
 
     else:
         results_df = create_empty_dataframe()
@@ -768,6 +1061,7 @@ def check_run_steps(
     grains_run: bool,
     grainstats_run: bool,
     disordered_tracing_run: bool,
+    nodestats_run: bool,
     dnatracing_run: bool,
 ) -> None:  # noqa: C901
     """
@@ -785,13 +1079,17 @@ def check_run_steps(
         Flag for running GrainStats.
     disordered_tracing_run : bool
         Flag for running Disordered Tracing.
+    nodestats_run : bool
+        Flag for running NodeStats.
     dnatracing_run : bool
         Flag for running DNA Tracing.
     """
     if dnatracing_run:
-        if disordered_tracing_run is False:
+        if nodestats_run is False:
+            LOGGER.error("DNA tracing enabled but NodeStats is disabled. Tracing will use the 'old' method.")
+        elif disordered_tracing_run is False:
             LOGGER.error(
-                "DNA tracing enabled but Disordered Tracing is disabled. Ordered Tracing will use the 'old' method."
+                "DNA tracing enabled but Disordered Tracing is disabled. Please check your configuration file."
             )
         elif grainstats_run is False:
             LOGGER.error("DNA tracing enabled but Grainstats disabled. Please check your configuration file.")
