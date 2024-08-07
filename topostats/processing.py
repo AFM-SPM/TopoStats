@@ -439,7 +439,35 @@ def run_nodestats(
     plotting_config: dict,
     results_df: pd.DataFrame = None,
 ) -> tuple[dict, pd.DataFrame]:
+    """
+    Analyse crossing points in grains adding results to statistics data frames and optionally plot results.
 
+    Parameters
+    ----------
+    image : npt.ndarray
+        Image containing the DNA to pass to the tracing function.
+    disordered_tracing_data : dict
+        Dictionary of skeletonised and pruned grain masks. Result from "run_disordered_tracing".
+    pixel_to_nm_scaling : float
+        Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixels per nanometres (nm).
+    filename : str
+        Name of the image.
+    core_out_path : Path
+        Path to save the core NodeStats image to.
+    tracing_out_path : Path
+        Path to save optional, diagnostic NodeStats images to.
+    nodestats_config : dict
+        Dictionary configuration for analysing the crossing points.
+    plotting_config : dict
+        Dictionary configuration for plotting images.
+    results_df : pd.DataFrame, optional
+        The grainstats dataframe to bee added to. by default None.
+
+    Returns
+    -------
+    tuple[dict, pd.DataFrame]
+        A NodeStats analysis dictionary and grainstats metrics dataframe.
+    """
     if nodestats_config["run"]:
         nodestats_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Nodestats ***")
@@ -484,7 +512,7 @@ def run_nodestats(
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
 
-                # plot sinlge node images
+                # plot single node images
                 for mol_no, mol_stats in nodestats_data.items():
                     if mol_stats is not None:
                         for node_no, single_node_stats in mol_stats.items():
@@ -530,6 +558,9 @@ def run_nodestats(
         except Exception as e:
             LOGGER.info(f"NodeStats failed with {e} - skipping.")
             return nodestats_image_data, resultant_grainstats
+    else:
+        LOGGER.info(f"[{filename}] : Calculation of nodestats disabled, returning empty dataframe.")
+        return None, results_df
 
 
 # noqa: C901
