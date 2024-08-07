@@ -43,7 +43,7 @@ class OrderedTraceNodestats:
         
         self.images = {
             "over_under": np.zeros_like(image),
-            "different_mols": np.zeros_like(image),
+            "all_molecules": np.zeros_like(image),
             "ordered_traces": np.zeros_like(image),
             }
 
@@ -145,9 +145,8 @@ class OrderedTraceNodestats:
         coord_trace = self.trace(ordered, cross_add)
 
         # visual over under img
-        over_under = self.get_over_under_img(coord_trace, fwhms, crossing_coords)
-        self.images["over_under"] = over_under
-
+        self.images["over_under"] = self.get_over_under_img(coord_trace, fwhms, crossing_coords)
+        self.images["all_molecules"] = self.get_mols_img(coord_trace, fwhms, crossing_coords)
         self.images["ordered_traces"] = ordered_trace_mask(coord_trace, self.image.shape)
 
         return coord_trace, self.images
@@ -332,7 +331,7 @@ class OrderedTraceNodestats:
         for _, coords in enumerate(coord_trace):
             temp_img = np.zeros_like(img)
             temp_img[coords[:, 0], coords[:, 1]] = 1
-            temp_img = binary_dilation(temp_img)
+            #temp_img = binary_dilation(temp_img)
             img[temp_img != 0] = 1  # mol_no + 1
         lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
 
@@ -350,7 +349,7 @@ class OrderedTraceNodestats:
                 matching_coords = np.append(matching_coords, c)
                 val = matching_coords.argmax() + 1
                 temp_img[cross_coords[:, 0], cross_coords[:, 1]] = 1
-                temp_img = binary_dilation(temp_img)
+                #temp_img = binary_dilation(temp_img)
                 img[temp_img != 0] = i + 2
 
         return img
@@ -377,7 +376,6 @@ class OrderedTraceNodestats:
         for mol_no, coords in enumerate(coord_trace):
             temp_img = np.zeros_like(img)
             temp_img[coords[:, 0], coords[:, 1]] = 1
-            temp_img = binary_dilation(temp_img)
             img[temp_img != 0] = mol_no + 1
         lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
 
@@ -396,7 +394,6 @@ class OrderedTraceNodestats:
                     matching_coords = np.append(matching_coords, c)
                 val = matching_coords.argmax() + 1
                 temp_img[cross_coords[:, 0], cross_coords[:, 1]] = 1
-                temp_img = binary_dilation(temp_img)
                 img[temp_img != 0] = val
 
         return img
@@ -460,9 +457,16 @@ class OrderedTraceTopostats:
         self.skeleton = skeleton
         self.tracing_stats = {
             "num_mols": 1,
+            "circular": None,
         }
         self.images = {
             "ordered_traces": np.zeros_like(image),
+            "all_molecules": np.zeros_like(image),
+            "over_under": np.zeros_like(image),
+        }
+        self.profiles = {
+            "distances": [],
+            "heights": [],
         }
 
     @staticmethod
@@ -484,12 +488,44 @@ class OrderedTraceTopostats:
             ordered_trace = reorderTrace.linearTrace(disordered_trace_coords)
         
         return [ordered_trace]
+    
+    @staticmethod
+    def get_mols_img(ordered_trace: npt.NDArray, shape: tuple) -> npt.NDArray:
+        """Obtain a mask of the molecules in the traced coordinates.
+        
+        As there is only one mol found by this method, this is set to 1.
 
-    def run_topostats_tracing(self):
+        Parameters
+        ----------
+        ordered_trace : npt.NDArray
+            X,Y coordinates of the traced molecule.
+        shape : tuple
+            Shape bounding the coordinates of the ordered trace.
+
+        Returns
+        -------
+        npt.NDArray
+            Mask there the ordered coordinates is 1.
+        """
+        mask = np.zeros(shape)
+        print(mask.shape, ordered_trace[0].shape)
+        mask[ordered_trace[0][:,0], ordered_trace[0][:,1]] = 1
+        return mask
+
+    def run_topostats_tracing(self) -> tuple[list, dict, dict]:
+        """Run the topostats tracing pipeline.
+
+        Returns
+        -------
+        tuple[list, dict, dict]
+            A list of each molecules ordered trace coordinates, the ordered_traicing stats, and the images.
+        """
         disordered_trace_coords = np.argwhere(self.skeleton==1)
         mol_is_circular = linear_or_circular(disordered_trace_coords)
         ordered_trace = self.get_ordered_traces(disordered_trace_coords, mol_is_circular)
         self.images["ordered_traces"] = ordered_trace_mask(ordered_trace, self.image.shape)
+        self.images["all_molecules"] = self.get_mols_img(ordered_trace, self.image.shape)
+        self.images["over_under"] = self.get_mols_img(ordered_trace, self.image.shape)
 
         return ordered_trace, self.tracing_stats, self.images
 
@@ -539,6 +575,8 @@ def ordered_tracing_image(
 
     ordered_trace_full_images = {
         "ordered_traces": np.zeros_like(image),
+        "all_molecules": np.zeros_like(image),
+        "over_under": np.zeros_like(image),
     }
     grainstats_additions = {}
     all_traces = {}
@@ -570,13 +608,9 @@ def ordered_tracing_image(
             ordered_traces, tracing_stats, images = topostats_tracing.run_topostats_tracing()
             LOGGER.info(f"[{filename}] : Grain {grain_no} ordered via TopoStats.")
 
+        #TODO: images, stats, height/dist traces
         # compile traces
         all_traces[grain_no] = ordered_traces
-
-        # compile images
-        ordered_images = {
-            "ordered_traces": images["ordered_traces"],
-        }
 
         # compile metrics
         grainstats_additions[grain_no] = {
@@ -586,7 +620,7 @@ def ordered_tracing_image(
 
         # remap the cropped images back onto the original
         for image_name, full_image in ordered_trace_full_images.items():
-            crop = ordered_images[image_name]
+            crop = images[image_name]
             bbox = disordered_trace_data["bbox"]
             full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
 

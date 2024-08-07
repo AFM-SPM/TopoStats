@@ -263,7 +263,7 @@ node_line_trace:
   core_set: false
 # Ordered tracing troubleshooting images
 over_under:
-  filename: "25-molecule_crossings"
+  filename: "26-molecule_crossings"
   title: "Visualised Molecule Crossings"
   image_type: "non-binary"
   mask_cmap: "blue_purple_green"
@@ -281,6 +281,13 @@ ordered_traces:
   mask_cmap: "viridis"
   core_set: false
   savefig_dpi: 600
+all_molecules:
+  filename: "27-all-molecules"
+  title: "Individual Molecules"
+  image_type: "non-binary"
+  mask_cmap: "viridis"
+  savefig_dpi: 600
+  core_set: true
 fitted_trace:
   filename: "27-fitted-traces"
   title: "Fitted Trace"
@@ -288,11 +295,6 @@ fitted_trace:
   mask_cmap: "blue_purple_green"
   core_set: false
   savefig_dpi: 600
-all_molecule_traces:
-  title: "Molecule Traces"
-  image_type: "non-binary"
-  savefig_dpi: 600
-  core_set: true
 single_molecule_trace:
   image_type: "non-binary"
   savefig_dpi: 100

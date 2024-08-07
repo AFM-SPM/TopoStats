@@ -1124,7 +1124,8 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "all_molecule_traces": {
+        "all_molecules": {
+            "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
@@ -1134,6 +1135,7 @@ PLOTTING_SCHEMA = Schema(
                     "are 'binary' or 'non-binary'"
                 ),
             ),
+            "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": Or(
                 lambda n: n > 0,
