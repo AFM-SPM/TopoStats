@@ -19,9 +19,9 @@ from topostats.plotting import plot_crossing_linetrace_halfmax
 from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
 from topostats.statistics import image_statistics
 from topostats.tracing.disordered_tracing import trace_image_disordered
-from topostats.tracing.ordered_tracing import ordered_tracing_image
 from topostats.tracing.dnatracing import dnatrace_image
 from topostats.tracing.nodestats import nodestats_image
+from topostats.tracing.ordered_tracing import ordered_tracing_image
 from topostats.utils import create_empty_dataframe
 
 # pylint: disable=broad-except
@@ -547,14 +547,45 @@ def run_ordered_tracing(
     plotting_config: dict,
     results_df: pd.DataFrame = None,
 ) -> tuple:
+    """
+    Order coordinates of traces, adding results to statistics data frames and optionally plot results.
+
+    Parameters
+    ----------
+    image : npt.ndarray
+        Image containing the DNA to pass to the tracing function.
+    disordered_tracing_data : dict
+        Dictionary of skeletonised and pruned grain masks. Result from "run_disordered_tracing".
+    nodestats_data : dict
+        Dictionary of images and statistics from the NodeStats analysis. Result from "run_nodestats".
+    pixel_to_nm_scaling : float
+        Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixels per nanometres (nm).
+    filename : str
+        Name of the image.
+    core_out_path : Path
+        Path to save the core ordered tracing image to.
+    tracing_out_path : Path
+        Path to save optional, diagnostic ordered trace images to.
+    ordered_tracing_config : dict
+        Dictionary configuration for obtaining an ordered trace representation of the skeletons.
+    plotting_config : dict
+        Dictionary configuration for plotting images.
+    results_df : pd.DataFrame, optional
+        The grainstats dataframe to bee added to. by default None.
+
+    Returns
+    -------
+    tuple[dict, pd.DataFrame]
+        A NodeStats analysis dictionary and grainstats metrics dataframe.
+    """
 
     if ordered_tracing_config["run"]:
         ordered_tracing_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Ordered Tracing ***")
-        ordered_trace_data = defaultdict()
+        ordered_tracing_image_data = defaultdict()
         grainstats_additions_image = pd.DataFrame()
 
-        #try:
+        # try:
         # run image using directional grain masks
         for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
             (
@@ -571,11 +602,11 @@ def run_ordered_tracing(
             )
 
             # save per image new grainstats stats
-            #grainstats_additions_df["threshold"] = direction
-            #grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
+            grainstats_additions_df["threshold"] = direction
+            grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
 
             # append direction results to dict
-            #nodestats_image_data[direction] = nodestats_data
+            ordered_tracing_image_data[direction] = ordered_tracing_data
 
             # save whole image plots
             Images(
@@ -585,7 +616,7 @@ def run_ordered_tracing(
                 output_dir=core_out_path,
                 **plotting_config["plot_dict"]["ordered_traces"],
             ).plot_and_save()
-            """
+            # save optional false core_set plots
             for plot_name, image_value in ordered_tracing_full_images.items():
                 Images(
                     image,
@@ -593,22 +624,18 @@ def run_ordered_tracing(
                     output_dir=tracing_out_path / direction,
                     **plotting_config["plot_dict"][plot_name],
                 ).plot_and_save()
-            """
             
-            # plot sinlge node images
-            #LOGGER.info(f"[{filename}] : Finished Plotting DNA Tracing Images")
+            LOGGER.info(f"[{filename}] : Finished Plotting Ordered Tracing Images")
 
         # merge grainstats data with other dataframe
-        """
         resultant_grainstats = (
             pd.merge(results_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
             if results_df is not None
             else grainstats_additions_image
         )
-        """
 
-            # merge all image dictionaries
-            #return nodestats_image_data, resultant_grainstats
+        # merge all image dictionaries
+        return ordered_tracing_image_data, resultant_grainstats
         """
         except Exception as e:
             LOGGER.info(f"NodeStats failed with {e} - skipping.")
@@ -933,7 +960,7 @@ def process_scan(
         topostats_object["nodestats"] = nodestats
 
         # Ordered Tracing
-        ordered_coordinates, results_df = run_ordered_tracing(
+        ordered_tracing, results_df = run_ordered_tracing(
             image=topostats_object["image_flattened"],
             disordered_tracing_data=disordered_traces,
             nodestats_data=nodestats,
@@ -943,8 +970,9 @@ def process_scan(
             tracing_out_path=tracing_out_path,
             ordered_tracing_config=ordered_tracing_config,
             plotting_config=plotting_config,
-            results_df=None,
+            results_df=results_df,
         )
+        topostats_object["ordered_traces"] = ordered_tracing
 
         # DNAtracing
         results_df, grain_trace_data = run_dnatracing(

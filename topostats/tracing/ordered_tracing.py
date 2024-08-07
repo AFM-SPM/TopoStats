@@ -10,7 +10,7 @@ import pandas as pd
 from skimage.morphology import label
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.tracing.tracingfuncs import genTracingFuncs, order_branch, reorderTrace
+from topostats.tracing.tracingfuncs import genTracingFuncs, order_branch, reorderTrace, coord_dist
 from topostats.utils import convolve_skeleton, coords_2_img
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -58,11 +58,13 @@ class OrderedTraceNodestats:
         self.filename = filename
         self.skeleton = skeleton
 
-        self.tracing_stats = {
+        self.grain_tracing_stats = {
             "num_mols": 0,
             "circular": None,
-            "end_to_end_distance": None,
         }
+        self.mol_tracing_stats = {"circular": None}
+
+        self.ordered_traces = None
 
         self.images = {
             "over_under": np.zeros_like(image),
@@ -70,7 +72,7 @@ class OrderedTraceNodestats:
             "ordered_traces": np.zeros_like(image),
         }
 
-        self.ordered_traces = {"height": None, "distance": None}
+        self.profiles = {}
 
         self.ordered_coordinates = []
 
@@ -457,11 +459,19 @@ class OrderedTraceNodestats:
             A list of each molecules ordered trace coordinates, the ordered_traicing stats, and the images.
         """
         self.ordered_traces, self.images = self.compile_trace()
+        self.grain_tracing_stats["num_mols"] = len(self.ordered_traces)
 
-        self.tracing_stats["num_mols"] = len(self.ordered_traces)
-        # self.tracing_stats["circular"] = linear_or_circular(self.ordered_traces)
+        ordered_trace_data = {}
+        for i, mol_trace in enumerate(self.ordered_traces):
+            self.mol_tracing_stats["circular"] = linear_or_circular(mol_trace)
+            ordered_trace_data[f"mol_{i}"] = {
+                "ordered_coords": mol_trace,
+                "heights": self.image[mol_trace[:,0], mol_trace[:,1]],
+                "distances": coord_dist(mol_trace[0]),
+                "mol_stats": self.mol_tracing_stats,
+            }
 
-        return self.ordered_traces, self.tracing_stats, self.images
+        return ordered_trace_data, self.grain_tracing_stats, self.images
 
 
 class OrderedTraceTopostats:
@@ -493,18 +503,16 @@ class OrderedTraceTopostats:
         """
         self.image = image
         self.skeleton = skeleton
-        self.tracing_stats = {
+        self.grain_tracing_stats = {
             "num_mols": 1,
             "circular": None,
         }
+        self.mol_tracing_stats = {"circular": None}
+
         self.images = {
             "ordered_traces": np.zeros_like(image),
             "all_molecules": np.zeros_like(image),
             "over_under": np.zeros_like(image),
-        }
-        self.profiles = {
-            "distances": [],
-            "heights": [],
         }
 
     @staticmethod
@@ -573,14 +581,25 @@ class OrderedTraceTopostats:
             A list of each molecules ordered trace coordinates, the ordered_traicing stats, and the images.
         """
         disordered_trace_coords = np.argwhere(self.skeleton == 1)
-        mol_is_circular = linear_or_circular(disordered_trace_coords)
-        ordered_trace = self.get_ordered_traces(disordered_trace_coords, mol_is_circular)
+        
+        self.mol_tracing_stats["circular"] = linear_or_circular(disordered_trace_coords)
+        
+        ordered_trace = self.get_ordered_traces(disordered_trace_coords, self.mol_tracing_stats["circular"])
 
         self.images["ordered_traces"] = ordered_trace_mask(ordered_trace, self.image.shape)
         self.images["all_molecules"] = self.get_mols_img(ordered_trace, self.image.shape)
         self.images["over_under"] = self.get_mols_img(ordered_trace, self.image.shape)
 
-        return ordered_trace, self.tracing_stats, self.images
+        ordered_trace_data = {}
+        for i, mol_trace in enumerate(ordered_trace):
+            ordered_trace_data[f"mol_{i}"] = {
+                "ordered_coords": mol_trace,
+                "heights": self.image[ordered_trace[0][:,0], ordered_trace[0][:,1]],
+                "distances": coord_dist(ordered_trace[0]),
+                "mol_stats": self.mol_tracing_stats,
+            }
+
+        return ordered_trace_data, self.grain_tracing_stats, self.images
 
 
 @staticmethod
@@ -614,6 +633,30 @@ def linear_or_circular(traces) -> bool:
     if points_with_one_neighbour == 0:
         return True
     return False
+
+def ordered_trace_mask(ordered_coordinates: npt.NDArray, shape: tuple) -> npt.NDArray:
+    """
+    Obtain a mask of the trace coordinates with each trace pixel.
+
+    Parameters
+    ----------
+    ordered_coordinates : npt.NDArray
+        Ordered array of coordinates.
+
+    shape : tuple
+        The shape of the array bounding the coordinates.
+
+    Returns
+    -------
+    npt.NDArray
+        NxM image with each pixel in the ordered trace labeled in ascending order.
+    """
+    ordered_mask = np.zeros(shape)
+    if isinstance(ordered_coordinates, list):
+        for mol_coords in ordered_coordinates:
+            ordered_mask[mol_coords[:, 0], mol_coords[:, 1]] = np.arange(len(mol_coords))
+
+    return ordered_mask
 
 
 def ordered_tracing_image(
@@ -656,8 +699,7 @@ def ordered_tracing_image(
         "over_under": np.zeros_like(image),
     }
     grainstats_additions = {}
-    all_traces = {}
-    ordered_trace_data = {}
+    all_traces_data = {}
 
     # iterate through disordered_tracing_dict
     for grain_no, disordered_trace_data in disordered_tracing_direction_data.items():
@@ -671,7 +713,7 @@ def ordered_tracing_image(
                 skeleton=nodestats_direction_data["images"][grain_no]["grain"]["grain_skeleton"],
             )
             if nodestats_tracing.check_node_errorless():
-                ordered_traces, tracing_stats, images = nodestats_tracing.run_nodestats_tracing()
+                ordered_traces_data, tracing_stats, images = nodestats_tracing.run_nodestats_tracing()
                 LOGGER.info(f"[{filename}] : Grain {grain_no} ordered via NodeStats.")
             else:
                 LOGGER.warning(f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}")
@@ -682,17 +724,18 @@ def ordered_tracing_image(
                 image=disordered_trace_data["original_image"],
                 skeleton=disordered_trace_data["pruned_skeleton"],
             )
-            ordered_traces, tracing_stats, images = topostats_tracing.run_topostats_tracing()
+            ordered_traces_data, tracing_stats, images = topostats_tracing.run_topostats_tracing()
             LOGGER.info(f"[{filename}] : Grain {grain_no} ordered via TopoStats.")
 
-        # TODO: images, stats, height/dist traces
         # compile traces
-        all_traces[grain_no] = ordered_traces
+        all_traces_data[grain_no] = ordered_traces_data
 
         # compile metrics
         grainstats_additions[grain_no] = {
             "image": filename,
+            "grain_number": int(grain_no.split("_")[-1]),
         }
+        tracing_stats.pop("circular")
         grainstats_additions[grain_no].update(tracing_stats)
 
         # remap the cropped images back onto the original
@@ -702,30 +745,6 @@ def ordered_tracing_image(
             full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
 
     grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
+    print(grainstats_additions_df)
 
-    return ordered_trace_data, grainstats_additions_df, ordered_trace_full_images
-
-
-def ordered_trace_mask(ordered_coordinates: npt.NDArray, shape: tuple) -> npt.NDArray:
-    """
-    Obtain a mask of the trace coordinates with each trace pixel.
-
-    Parameters
-    ----------
-    ordered_coordinates : npt.NDArray
-        Ordered array of coordinates.
-
-    shape : tuple
-        The shape of the array bounding the coordinates.
-
-    Returns
-    -------
-    npt.NDArray
-        NxM image with each pixel in the ordered trace labeled in ascending order.
-    """
-    ordered_mask = np.zeros(shape)
-    if isinstance(ordered_coordinates, list):
-        for mol_coords in ordered_coordinates:
-            ordered_mask[mol_coords[:, 0], mol_coords[:, 1]] = np.arange(len(mol_coords))
-
-    return ordered_mask
+    return all_traces_data, grainstats_additions_df, ordered_trace_full_images
