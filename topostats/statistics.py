@@ -80,7 +80,7 @@ def image_statistics(
     return image_stats_df
 
 
-def roughness_rms(image: np.ndarray) -> float:
+def roughness_rms(image: np.ndarray, mask: np.ndarray = None) -> float:
     """
     Calculate the root-mean-square roughness of a heightmap image.
 
@@ -94,4 +94,12 @@ def roughness_rms(image: np.ndarray) -> float:
     float
         The RMS roughness of the input array.
     """
+    if mask is not None:
+        # Ensure the mask and image are the same shape
+        if mask.shape != image.shape:
+            raise ValueError("Mask and image must be the same shape.")
+        # Apply the mask to the image
+        image = image[mask == 1]
+    
+    # Calculate RMS roughness
     return np.sqrt(np.mean(np.square(image)))
