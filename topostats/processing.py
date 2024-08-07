@@ -358,12 +358,12 @@ def run_disorderedTrace(
     plotting_config: dict,
 ) -> dict:
     """
-    Trace DNA molecule for the supplied grains adding results to statistics data frames and optionally plot results.
+    Skeletonise and prune grains, adding results to statistics data frames and optionally plot results.
 
     Parameters
     ----------
     image : npt.ndarray
-        Image containing the DNA to pass to the tracing function.
+        Image containing the grains to pass to the tracing function.
     grain_masks : dict
         Dictionary of grain masks, keys "above" or "below" with values of 2D Numpy boolean arrays indicating the pixels
         that have been masked as grains.
@@ -371,8 +371,10 @@ def run_disorderedTrace(
         Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixesl per nanometres (nm).
     filename : str
         Name of the image.
+    core_out_path : Path
+        Path to save the core disordered trace image to.
     tracing_out_path : Path
-        Dictionary to save optional DNA tracing visual information to.
+        Path to save the optional, diagnostic disordered trace images to.
     disordered_tracing_config : dict
         Dictionary configuration for obtaining a disordered trace representation of the grains.
     plotting_config : dict
@@ -420,6 +422,9 @@ def run_disorderedTrace(
         except Exception:
             LOGGER.info("Disordered tracing failed - skipping.")
             return disordered_traces
+    else:
+        LOGGER.info(f"[{filename}] Calculation of Disordered Tracing disabled, returning empty dictionary.")
+        return {}
 
 
 # noqa: C901
