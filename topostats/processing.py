@@ -698,7 +698,7 @@ def run_nodestats(
     else:
         LOGGER.info(f"[{filename}] : Calculation of nodestats disabled, returning empty dataframe.")
         return None, results_df
-        
+
 
 def run_ordered_tracing(
     image: npt.NDArray,
@@ -743,7 +743,6 @@ def run_ordered_tracing(
     tuple[dict, pd.DataFrame]
         A NodeStats analysis dictionary and grainstats metrics dataframe.
     """
-
     if ordered_tracing_config["run"]:
         ordered_tracing_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Ordered Tracing ***")
@@ -789,7 +788,7 @@ def run_ordered_tracing(
                     output_dir=tracing_out_path / direction,
                     **plotting_config["plot_dict"][plot_name],
                 ).plot_and_save()
-            
+
             LOGGER.info(f"[{filename}] : Finished Plotting Ordered Tracing Images")
 
         # merge grainstats data with other dataframe

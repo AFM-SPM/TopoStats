@@ -128,7 +128,7 @@ def update_plotting_config(plotting_config: dict) -> dict:
         LOGGER.debug(f"Dictionary for image : {image}")
         LOGGER.debug(f"{pformat(options, indent=4)}")
         # First update options with values that exist in main_config
-        if not plotting_config["plot_dict"][image]["core_set"]: # avoids updating colurmap for diagnostic images
+        if not plotting_config["plot_dict"][image]["core_set"]:  # avoids updating colurmap for diagnostic images
             main_config_temp.pop("mask_cmap")
         plotting_config["plot_dict"][image] = update_config(options, main_config_temp)
         LOGGER.debug(f"Updated values :\n{pformat(plotting_config['plot_dict'][image])}")
