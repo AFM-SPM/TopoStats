@@ -273,7 +273,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "pad_width": lambda n: n > 0.0,
         },
-        "dnatracing": {
+        "splining": {
             "run": Or(
                 True,
                 False,

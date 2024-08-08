@@ -79,8 +79,8 @@ ordered_tracing:
   run: true
   ordering_method: nodestats # The method of ordering the disordered traces.
   pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing).
-dnatracing:
-  run: false # Options : true, false
+splining:
+  run: true # Options : true, false
   spline_step_size: 7.0e-9 # The sampling rate of the spline in metres.
   spline_linear_smoothing: 5.0 # The amount of smoothing to apply to linear splines.
   spline_circular_smoothing: 0.0 # The amount of smoothing to apply to circular splines.
