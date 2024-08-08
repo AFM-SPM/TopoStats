@@ -870,7 +870,7 @@ def process_scan(
     disordered_tracing_config: dict,
     nodestats_config: dict,
     ordered_tracing_config: dict,
-    dnatracing_config: dict,
+    splining_config: dict,
     plotting_config: dict,
     output_dir: str | Path = "output",
 ) -> tuple[dict, pd.DataFrame, dict]:
@@ -1003,17 +1003,16 @@ def process_scan(
         )
         topostats_object["ordered_traces"] = ordered_tracing
 
-        # DNAtracing
-        results_df, grain_trace_data = run_dnatracing(
+        # splining
+        splined_data, results_df = run_splining(
             image=topostats_object["image_flattened"],
-            grain_masks=topostats_object["grain_masks"],
+            ordered_tracing_data=topostats_object["ordered_traces"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
             core_out_path=core_out_path,
             tracing_out_path=tracing_out_path,
-            image_path=topostats_object["img_path"],
             plotting_config=plotting_config,
-            dnatracing_config=dnatracing_config,
+            splining_config=splining_config,
             results_df=results_df,
         )
 
