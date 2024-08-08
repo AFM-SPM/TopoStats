@@ -244,6 +244,7 @@ def run_grainstats(
     pixel_to_nm_scaling: float,
     grain_masks: dict,
     filename: str,
+    basename: Path,
     grainstats_config: dict,
     plotting_config: dict,
     grain_out_path: Path,
@@ -263,6 +264,8 @@ def run_grainstats(
         boolean arrays indicating the pixels that have been masked as grains.
     filename : str
         Name of the image.
+    basename : Path
+        Path to directory containing the image.
     grainstats_config : dict
         Dictionary of configuration for the GrainStats class to be used when initialised.
     plotting_config : dict
@@ -336,6 +339,7 @@ def run_grainstats(
                 raise ValueError(
                     "grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible."
                 )
+            grainstats_df["basename"] = basename.parent
 
             return grainstats_df
 
