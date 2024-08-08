@@ -1049,7 +1049,7 @@ def check_run_steps(
     grainstats_run: bool,
     disordered_tracing_run: bool,
     nodestats_run: bool,
-    dnatracing_run: bool,
+    splining_run: bool,
 ) -> None:  # noqa: C901
     """
     Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
@@ -1068,22 +1068,22 @@ def check_run_steps(
         Flag for running Disordered Tracing.
     nodestats_run : bool
         Flag for running NodeStats.
-    dnatracing_run : bool
+    splining_run : bool
         Flag for running DNA Tracing.
     """
-    if dnatracing_run:
+    if splining_run:
         if nodestats_run is False:
-            LOGGER.error("DNA tracing enabled but NodeStats is disabled. Tracing will use the 'old' method.")
+            LOGGER.error("Splining enabled but NodeStats is disabled. Tracing will use the 'old' method.")
         elif disordered_tracing_run is False:
             LOGGER.error(
-                "DNA tracing enabled but Disordered Tracing is disabled. Please check your configuration file."
+                "Splining enabled but Disordered Tracing is disabled. Please check your configuration file."
             )
         elif grainstats_run is False:
-            LOGGER.error("DNA tracing enabled but Grainstats disabled. Please check your configuration file.")
+            LOGGER.error("Tracing enabled but Grainstats disabled. Please check your configuration file.")
         elif grains_run is False:
-            LOGGER.error("DNA tracing enabled but Grains disabled. Please check your configuration file.")
+            LOGGER.error("Tracing enabled but Grains disabled. Please check your configuration file.")
         elif filter_run is False:
-            LOGGER.error("DNA tracing enabled but Filters disabled. Please check your configuration file.")
+            LOGGER.error("Tracing enabled but Filters disabled. Please check your configuration file.")
         else:
             LOGGER.info("Configuration run options are consistent, processing can proceed.")
     elif grainstats_run:
