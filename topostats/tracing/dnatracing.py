@@ -22,7 +22,7 @@ from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.nodestats import nodeStats
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.tracing.pruning import prune_skeleton  # pruneSkeleton
-from topostats.tracing.tracingfuncs import genTracingFuncs, reorderTrace
+from topostats.tracing.tracingfuncs import genTracingFuncs
 from topostats.utils import coords_2_img
 
 
@@ -419,23 +419,6 @@ class dnaTrace:
         if points_with_one_neighbour == 0:
             return True
         return False
-
-    def get_ordered_traces(self):
-        """
-        Obtain ordered traces from disordered traces.
-        """
-        if self.mol_is_circular:
-            self.ordered_trace, trace_completed = reorderTrace.circularTrace(self.disordered_trace)
-
-            if not trace_completed:
-                self.mol_is_circular = False
-                try:
-                    self.ordered_trace = reorderTrace.linearTrace(self.ordered_trace.tolist())
-                except UnboundLocalError:
-                    pass
-
-        elif not self.mol_is_circular:
-            self.ordered_trace = reorderTrace.linearTrace(self.disordered_trace.tolist())
 
     def get_fitted_traces(self, ordered_trace: npt.NDArray, mol_is_circular: bool) -> npt.NDArray:
         """

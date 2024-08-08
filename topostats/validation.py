@@ -249,6 +249,19 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "branch_pairing_length": float,
             "pad_width": lambda n: n > 0.0,
         },
+        "ordered_tracing": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'ordered_tracing.run', valid values are 'True' or 'False'",
+            ),
+            "ordering_method": Or(
+                "nodestats",
+                "original",
+                error="Invalid value in config for 'ordered_tracing.ordering_method', valid values are 'nodestats' or 'original'",
+            ),
+            "pad_width": lambda n: n > 0.0,
+        },
         "dnatracing": {
             "run": Or(
                 True,
@@ -1044,8 +1057,9 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "mask_cmap": str,
+            "core_set": bool,
         },
-        "visual_crop": {
+        "ordered_traces": {
             "title": str,
             "image_type": Or(
                 "binary",
@@ -1056,8 +1070,28 @@ PLOTTING_SCHEMA = Schema(
             ),
             "mask_cmap": str,
             "core_set": bool,
+            "savefig_dpi": int,
         },
-        "visual": {
+        "trace_segments": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'all_molecule_traces.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+        },
+        "over_under": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -1071,18 +1105,24 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "single_mol": {
+        "all_molecules": {
+            "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'all_molecule_traces.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
             "core_set": bool,
-            "savefig_dpi": int,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
         },
         "fitted_trace": {
             "filename": str,
@@ -1097,37 +1137,6 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
-        },
-        "ordered_trace": {
-            "filename": str,
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "mask_cmap": str,
-            "core_set": bool,
-            "savefig_dpi": int,
-        },
-        "all_molecule_traces": {
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'all_molecule_traces.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "core_set": bool,
-            "savefig_dpi": Or(
-                lambda n: n > 0,
-                "figure",
-                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
-            ),
         },
         "single_molecule_trace": {
             "image_type": Or(
