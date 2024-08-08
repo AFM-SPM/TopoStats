@@ -429,7 +429,6 @@ def run_disorderedTrace(
         return {}
 
 
-
 def run_nodestats(
     image: npt.NDArray,
     disordered_tracing_data: dict,
