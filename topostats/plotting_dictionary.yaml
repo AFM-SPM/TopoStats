@@ -262,27 +262,28 @@ node_line_trace:
   mask_cmap: "blue_purple_green"
   core_set: false
 # Ordered tracing troubleshooting images
-over_under:
-  filename: "26-molecule_crossings"
-  title: "Visualised Molecule Crossings"
-  image_type: "non-binary"
-  mask_cmap: "blue_purple_green"
-  core_set: false
-  savefig_dpi: 600
-single_mol:
-  title: "Separated Molecule"
-  image_type: "non-binary"
-  mask_cmap: "blue_purple_green"
-  core_set: false
-  savefig_dpi: 600
 ordered_traces:
   title: "Ordered Traces"
   image_type: "non-binary"
   mask_cmap: "viridis"
   core_set: false
   savefig_dpi: 600
+trace_segments:
+  filename: "26-trace_segments"
+  title: "Trace Segments"
+  image_type: "non-binary"
+  mask_cmap: "gist_rainbow"
+  savefig_dpi: 600
+  core_set: false
+over_under:
+  filename: "27-molecule_crossings"
+  title: "Visualised Molecule Crossings"
+  image_type: "non-binary"
+  mask_cmap: "blue_purple_green"
+  core_set: false
+  savefig_dpi: 600
 all_molecules:
-  filename: "27-all-molecules"
+  filename: "28-all_molecules"
   title: "Individual Molecules"
   image_type: "non-binary"
   mask_cmap: "viridis"
