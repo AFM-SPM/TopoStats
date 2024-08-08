@@ -70,6 +70,7 @@ class OrderedTraceNodestats:
             "over_under": np.zeros_like(image),
             "all_molecules": np.zeros_like(image),
             "ordered_traces": np.zeros_like(image),
+            "trace_segments": np.zeros_like(image),
         }
 
         self.profiles = {}
@@ -160,6 +161,7 @@ class OrderedTraceNodestats:
         coord_trace = self.trace(ordered, cross_add)
 
         # visual over under img
+        self.images["trace_segments"] = cross_add
         self.images["over_under"] = self.get_over_under_img(coord_trace, fwhms, crossing_coords)
         self.images["all_molecules"] = self.get_mols_img(coord_trace, fwhms, crossing_coords)
         self.images["ordered_traces"] = ordered_trace_mask(coord_trace, self.image.shape)
@@ -511,8 +513,9 @@ class OrderedTraceTopostats:
 
         self.images = {
             "ordered_traces": np.zeros_like(image),
-            "all_molecules": np.zeros_like(image),
-            "over_under": np.zeros_like(image),
+            "all_molecules": skeleton.copy(),
+            "over_under": skeleton.copy(),
+            "trace_segments": skeleton.copy(),
         }
 
     @staticmethod
@@ -547,30 +550,6 @@ class OrderedTraceTopostats:
 
         return [ordered_trace]
 
-    @staticmethod
-    def get_mols_img(ordered_trace: npt.NDArray, shape: tuple) -> npt.NDArray:
-        """
-        Obtain a mask of the molecules in the traced coordinates.
-
-        As there is only one mol found by this method, this is set to 1.
-
-        Parameters
-        ----------
-        ordered_trace : npt.NDArray
-            X,Y coordinates of the traced molecule.
-        shape : tuple
-            Shape bounding the coordinates of the ordered trace.
-
-        Returns
-        -------
-        npt.NDArray
-            Mask there the ordered coordinates is 1.
-        """
-        mask = np.zeros(shape)
-        print(mask.shape, ordered_trace[0].shape)
-        mask[ordered_trace[0][:, 0], ordered_trace[0][:, 1]] = 1
-        return mask
-
     def run_topostats_tracing(self) -> tuple[list, dict, dict]:
         """
         Run the topostats tracing pipeline.
@@ -587,8 +566,6 @@ class OrderedTraceTopostats:
         ordered_trace = self.get_ordered_traces(disordered_trace_coords, self.mol_tracing_stats["circular"])
 
         self.images["ordered_traces"] = ordered_trace_mask(ordered_trace, self.image.shape)
-        self.images["all_molecules"] = self.get_mols_img(ordered_trace, self.image.shape)
-        self.images["over_under"] = self.get_mols_img(ordered_trace, self.image.shape)
 
         ordered_trace_data = {}
         for i, mol_trace in enumerate(ordered_trace):
@@ -698,6 +675,7 @@ def ordered_tracing_image(
         "ordered_traces": np.zeros_like(image),
         "all_molecules": np.zeros_like(image),
         "over_under": np.zeros_like(image),
+        "trace_segments": np.zeros_like(image),
     }
     grainstats_additions = {}
     all_traces_data = {}
