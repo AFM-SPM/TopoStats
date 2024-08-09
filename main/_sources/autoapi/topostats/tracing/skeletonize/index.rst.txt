@@ -1,0 +1,188 @@
+topostats.tracing.skeletonize
+=============================
+
+.. py:module:: topostats.tracing.skeletonize
+
+.. autoapi-nested-parse::
+
+   Skeletonize molecules.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.tracing.skeletonize.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.tracing.skeletonize.get_skeleton
+   topostats.tracing.skeletonize._get_skeletonize
+   topostats.tracing.skeletonize._skeletonize_zhang
+   topostats.tracing.skeletonize._skeletonize_lee
+   topostats.tracing.skeletonize._skeletonize_thin
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: get_skeleton(image: numpy.typing.NDArray, method: str) -> numpy.typing.NDArray
+
+   
+   Skeletonizing masked molecules.
+
+   :param image: Image of molecule to be skeletonized.
+   :type image: npt.NDArray
+   :param method: Method to use, default is 'zhang' other options are 'lee', and 'thin'.
+   :type method: str
+
+   :returns: Skeletonised version of the image.all($0).
+   :rtype: npt.NDArray
+
+   .. rubric:: Notes
+
+   This is a thin wrapper to the methods provided
+   by the `skimage.morphology
+   <https://scikit-image.org/docs/stable/api/skimage.morphology.html?highlight=skeletonize>`_
+   module. See also the `examples
+   <https://scikit-image.org/docs/stable/auto_examples/edges/plot_skeleton.html>_
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _get_skeletonize(method: str = 'zhang') -> collections.abc.Callable
+
+   
+   Creator component which determines which skeletonize method to use.
+
+   :param method: Method to use for skeletonizing, methods are 'zhang' (default), 'lee', and 'thin'.
+   :type method: str
+
+   :returns: Returns the function appropriate for the required skeletonizing method.
+   :rtype: Callable
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _skeletonize_zhang(image: numpy.typing.NDArray) -> numpy.typing.NDArray
+
+   
+   Skeletonize using Zhang method.
+
+   :param image: Numpy array to be skeletonized.
+   :type image: npt.NDArray
+
+   :returns: Skeletonized Numpy array.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _skeletonize_lee(image: numpy.typing.NDArray) -> numpy.typing.NDArray
+
+   
+   Skeletonize using Lee method.
+
+   :param image: Numpy array to be skeletonized.
+   :type image: npt.NDArray
+
+   :returns: Skeletonized Numpy array.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _skeletonize_thin(image: numpy.typing.NDArray) -> numpy.typing.NDArray
+
+   
+   Skeletonize using thinning method.
+
+   :param image: Numpy array to be skeletonized.
+   :type image: npt.NDArray
+
+   :returns: Skeletonized Numpy array.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

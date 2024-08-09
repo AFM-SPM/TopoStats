@@ -1,0 +1,137 @@
+topostats.tracing.dnacurvature
+==============================
+
+.. py:module:: topostats.tracing.dnacurvature
+
+.. autoapi-nested-parse::
+
+   Module for calculating curvature statistics.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.tracing.dnacurvature.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.tracing.dnacurvature.Curvature
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:class:: Curvature(molecule_coordinates: numpy.ndarray, circular: bool)
+
+   
+   Class for determining the curvature of molecules.
+
+   :param molecule_coordinates: Coordinates of the simplified splined trace of a molecule. These are returned by dnaTracing.
+   :type molecule_coordinates: np.ndarray
+   :param circular: Whether the image is circular or not.
+   :type circular: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: molecule_coordinates
+
+
+   .. py:attribute:: circular
+
+
+   .. py:attribute:: n_points
+
+
+   .. py:attribute:: first_derivative
+      :value: None
+
+
+
+   .. py:attribute:: second_derivative
+      :value: None
+
+
+
+   .. py:attribute:: local_curvature
+      :value: None
+
+
+
+   .. py:method:: calculate_derivatives(edge_order: int = 1) -> None
+
+      
+      Find the curvature for an individual molecule.
+
+      :param edge_order: Gradient is passed to numpy.gradient and Gradient is calculated using N-th order accurate differences at
+                         boundaries. Also used to expand the array by the necessary number of coordinates at either end to form a
+                         loop for the calculations.
+      :type edge_order: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _calculate_local_curvature() -> float
+
+      
+      Calculate the local curvature between points.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+

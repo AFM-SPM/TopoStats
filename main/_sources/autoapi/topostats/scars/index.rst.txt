@@ -1,0 +1,342 @@
+topostats.scars
+===============
+
+.. py:module:: topostats.scars
+
+.. autoapi-nested-parse::
+
+   Image artefact correction functions that interpolates values filling the space of any detected scars.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.scars.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.scars._mark_if_positive_scar
+   topostats.scars._mark_if_negative_scar
+   topostats.scars._spread_scars
+   topostats.scars._remove_short_scars
+   topostats.scars._mark_scars
+   topostats.scars._remove_marked_scars
+   topostats.scars.remove_scars
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: _mark_if_positive_scar(row_col: tuple, stddev: float, img: numpy.typing.NDArray, marked: numpy.typing.NDArray, threshold_low: float, max_scar_width: int) -> None
+
+   
+   Mark scars as positive (i.e. a ridge rather than a dip).
+
+   Determine if the points below and including the pixel at the specified row and column are a positive scar (a
+   ridge rather than a dip). If they are, mark them in the marked 2d npt.NDArray. Note that this only detects positive
+   scars.
+
+   :param row_col: A tuple containing the row and column indices of the pixel for the top of the potential scar. Note that
+                   the first value is the row index, and the second is the column index.
+   :type row_col: tuple
+   :param stddev: The standard deviation, or the root-mean-square value for the image.
+   :type stddev: float
+   :param img: A 2-D image of the data to remove scars from.
+   :type img: npt.NDArray
+   :param marked: A 2-D image of pixels that stores the positions of scars marked for removal. The value of the pixel is a
+                  floating point value that represents how strongly the algorithm considers it to be a scar.
+                  This may or may not already contain non-zero values given that previous iterations of scar removal
+                  may have been performed.
+   :type marked: np.ndarry
+   :param threshold_low: A value that when multiplied with the standard deviation, acts as a threshold to determine if an increase
+                         or decrease in height might constitute the top or bottom of a scar.
+   :type threshold_low: float
+   :param max_scar_width: A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,
+                          rather vertical, this is because we consider scars to be laying flat, horizontally, so their width is
+                          vertical and their length is horizontal.
+   :type max_scar_width: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _mark_if_negative_scar(row_col: tuple, stddev: float, img: numpy.typing.NDArray, marked: numpy.typing.NDArray, threshold_low: float, max_scar_width: int) -> None
+
+   
+   Mark scars as negative (i.e. a dip rather than a ridge).
+
+   Determine if the points below and including the pixel at the specified row and column are a negative scar (a
+   dip rather than a ridge). If they are, mark them in the marked 2d npt.NDArray. Note that this only detects negative
+   scars.
+
+   :param row_col: A tuple containing the row and column indices of the pixel for the top of the potential scar. Note that
+                   the first value is the row index, and the second is the column index.
+   :type row_col: tuple
+   :param stddev: The standard deviation, or the root-mean-square value for the image.
+   :type stddev: float
+   :param img: A 2-D image of the data to remove scars from.
+   :type img: npt.NDArray
+   :param marked: A 2-D image of pixels that stores the positions of scars marked for removal. The value of the pixel is a
+                  floating point value that represents how strongly the algorithm considers it to be a scar.
+                  This may or may not already contain non-zero values given that previous iterations of scar removal
+                  may have been performed.
+   :type marked: np.ndarry
+   :param threshold_low: A value that when multiplied with the standard deviation, acts as a threshold to determine if an increase
+                         or decrease in height might constitute the top or bottom of a scar.
+   :type threshold_low: float
+   :param max_scar_width: A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,
+                          rather vertical, this is because we consider scars to be laying flat, horizontally, so their width is
+                          vertical and their length is horizontal.
+   :type max_scar_width: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _spread_scars(marked: numpy.typing.NDArray, threshold_low: float, threshold_high: float) -> None
+
+   
+   Spread high-marked pixels into adjacent low-marked pixels.
+
+   This is a smudging function that attempts to catch any pixels that are parts of scars that might not have been
+   extreme enough to get marked above the high_threshold. Any remaining marked pixels below high_threshold are
+   considered not to be scars and are removed from the mask.
+
+   :param marked: A 2-D image of pixels that stores the positions of scars marked for removal. The value of the pixel is a
+                  floating point value that represents how strongly the algorithm considers it to be a scar.
+                  This may or may not already contain non-zero values given that previous iterations of scar removal
+                  may have been performed.
+   :type marked: npt.NDArray
+   :param threshold_low: A floating point value, that when multiplied by the standard deviation of the image, acts as a
+                         threshold for sharp inclines or descents in pixel values and thus marks potential scars.
+                         A lower value will make the algorithm
+                         more sensitive, and a higher value will make it less sensitive.
+   :type threshold_low: float
+   :param threshold_high: A floating point value that is used similarly to threshold_low, however sharp inclines or descents
+                          that result in values in the mask higher than this threshold are automatically considered scars.
+   :type threshold_high: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _remove_short_scars(marked: numpy.typing.NDArray, threshold_high: float, min_scar_length: int) -> None
+
+   
+   Remove scars that are too short (horizontally), based on the minimum length.
+
+   :param marked: A 2-D image of pixels that stores the positions of scars marked for removal. The value of the pixel is a
+                  floating point value that represents how strongly the algorithm considers it to be a scar.
+                  This may or may not already contain non-zero values given that previous iterations of scar removal
+                  may have been performed.
+   :type marked: npt.NDArray
+   :param threshold_high: A floating point value that is used similarly to threshold_low, however sharp inclines or descents
+                          that result in values in the mask higher than this threshold are automatically considered scars.
+   :type threshold_high: float
+   :param min_scar_length: A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,
+                           rather vertical, this is because we consider scars to be laying flat, horizontally, so their width is
+                           vertical and their length is horizontal.
+   :type min_scar_length: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _mark_scars(img: numpy.typing.NDArray, direction: str, threshold_low: float, threshold_high: float, max_scar_width: int, min_scar_length: int) -> numpy.typing.NDArray
+
+   
+   Mark scars within an image, returning a boolean 2D npt.NDArray of pixels that have been detected as scars.
+
+   :param img: A 2-D image of the data to detect scars in.
+   :type img: npt.NDArray
+   :param direction: Options : 'positive', 'negative'. The direction of scars to detect. For example, to detect scars
+                     that lie above the data, select 'positive'.
+   :type direction: str
+   :param threshold_low: A floating point value, that when multiplied by the standard deviation of the image, acts as a
+                         threshold for sharp inclines or descents in pixel values and thus marks potential scars.
+                         A lower value will make the algorithm
+                         more sensitive, and a higher value will make it less sensitive.
+   :type threshold_low: float
+   :param threshold_high: A floating point value that is used similarly to threshold_low, however sharp inclines or descents
+                          that result in values in the mask higher than this threshold are automatically considered scars.
+   :type threshold_high: float
+   :param max_scar_width: An integer that restricts the algorithm to only mark scars that are as thin or thinner than this width.
+                          This is important for ensuring that legitimate grain data is not detected as scarred data.
+                          Note that width here is vertical, as scars are thin, horizontal features.
+   :type max_scar_width: int
+   :param min_scar_length: An integer that restricts the algorithm to only mark scars that are as long or longer than this length.
+                           This is important for ensuring that noise or legitimate but sharp datapoints do not get detected as scars.
+                           Note that length here is horizontal, as scars are thin, horizontal features.
+   :type min_scar_length: int
+
+   :returns: **marked** -- Returns a 2-D image of the same shape as the data image, where each pixel's value represents
+             a metric for how strongly that pixel is considered to be a scar. Higher values mean more likely
+             to be a scar.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _remove_marked_scars(img: numpy.typing.NDArray, scar_mask: numpy.typing.NDArray) -> None
+
+   
+   Interpolate values covered by marked scars.
+
+   Takes an image, and a marked scar boolean mask for that image. Returns the image where the marked scars are replaced
+   by interpolated values.
+
+   :param img: A 2-D image of the data to remove scars from.
+   :type img: npt.NDArray
+   :param scar_mask: A boolean image of pixels that determine which values are flagged as scars and therefore should
+                     be interpolated over in the original data image.
+   :type scar_mask: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: remove_scars(img: numpy.typing.NDArray, filename: str, removal_iterations: int = 2, threshold_low: float = 0.25, threshold_high: float = 0.666, max_scar_width: int = 4, min_scar_length: int = 16)
+
+   
+   Remove scars from an image.
+
+   Scars are long, typically 1-4 pixels wide streaks of high or low data in AFM images. They are a problem
+   resulting from random errors in the AFM data collection process and are hard to avoid. This function
+   detects and removes these artefacts by interpolating over them between the pixels above and below them.
+   This method takes no parameters as it uses parameters already established as instance variables when the
+   class was instantiated.
+
+   :param img: A 2-D image to remove scars from.
+   :type img: npt.NDArray
+   :param filename: The filename (used for logging outputs only).
+   :type filename: str
+   :param removal_iterations: The number of times the scar removal should run on the image.
+                              Running just once sometimes isn't enough to remove some of the
+                              more difficult to remove scars.
+   :type removal_iterations: int
+   :param threshold_low: A value that when multiplied with the standard deviation, acts as a threshold to determine if an increase
+                         or decrease in height might constitute the top or bottom of a scar.
+   :type threshold_low: float
+   :param threshold_high: A floating point value that is used similarly to threshold_low, however sharp inclines or descents
+                          that result in values in the mask higher than this threshold are automatically considered scars.
+   :type threshold_high: float
+   :param max_scar_width: A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,
+                          rather vertical, this is because we consider scars to be laying flat, horizontally, so their width is
+                          vertical and their length is horizontal.
+   :type max_scar_width: int
+   :param min_scar_length: An integer that restricts the algorithm to only mark scars that are as long or longer than this length.
+                           This is important for ensuring that noise or legitimate but sharp datapoints do not get detected as scars.
+                           Note that length here is horizontal, as scars are thin, horizontal features.
+   :type min_scar_length: int
+
+   :returns: The original 2-D image with scars removed, unless the config has run set to False, in which case it
+             will not remove the scars.
+   :rtype: self.img
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

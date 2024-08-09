@@ -1,0 +1,541 @@
+feret
+=====
+
+.. py:module:: feret
+
+.. autoapi-nested-parse::
+
+   Calculate feret distances for 2-D objects.
+
+   This code comes from a gist written by @VolkerH under BSD-3 License
+
+   https://gist.github.com/VolkerH/0d07d05d5cb189b56362e8ee41882abf
+
+   During testing it was discovered that sorting points prior to derivation of upper and lower convex hulls was problematic
+   so this step was removed.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   feret.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   feret.orientation
+   feret.sort_coords
+   feret.hulls
+   feret.all_pairs
+   feret.rotating_calipers
+   feret.triangle_height
+   feret._min_feret_coord
+   feret._angle_between
+   feret.sort_clockwise
+   feret.min_max_feret
+   feret.get_feret_from_mask
+   feret.get_feret_from_labelim
+   feret.plot_feret
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: orientation(p: numpy.typing.NDArray, q: numpy.typing.NDArray, r: numpy.typing.NDArray) -> int
+
+   
+   Determine the orientation of three points as either clockwise, counter-clock-wise or colinear.
+
+   :param p: First point (assumed to have a length of 2).
+   :type p: npt.NDArray
+   :param q: Second point (assumed to have a length of 2).
+   :type q: npt.NDArray
+   :param r: Third point (assumed to have a length of 2).
+   :type r: npt.NDArray
+
+   :returns: Returns a positive value if p-q-r are clockwise, neg if counter-clock-wise, zero if colinear.
+   :rtype: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: sort_coords(points: numpy.typing.NDArray, axis: int = 1) -> numpy.typing.NDArray
+
+   
+   Sort the coordinates.
+
+   :param points: Array of coordinates.
+   :type points: npt.NDArray
+   :param axis: Which axis to axis coordinates on 0 for row; 1 for columns (default).
+   :type axis: int
+
+   :returns: Array sorted by row then column.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: hulls(points: numpy.typing.NDArray, axis: int = 1) -> tuple[list, list]
+
+   
+   Graham scan to find upper and lower convex hulls of a set of 2-D points.
+
+   Points should be sorted in asecnding order first.
+
+   `Graham scan <https://en.wikipedia.org/wiki/Graham_scan>`
+
+   :param points: 2-D Array of points for the outline of an object.
+   :type points: npt.NDArray
+   :param axis: Which axis to sort coordinates on 0 for row; 1 for columns (default).
+   :type axis: int
+
+   :returns: Tuple of two Numpy arrays of the original coordinates split into upper and lower hulls.
+   :rtype: tuple[list, list]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: all_pairs(points: numpy.typing.NDArray) -> list[tuple[list, list]]
+
+   
+   Given a list of 2-D points, finds all ways of sandwiching the points.
+
+   Calculates the upper and lower convex hulls and then finds all pairwise combinations between each set of points.
+
+   :param points: Numpy array of coordinates defining the outline of an object.
+   :type points: npt.NDArray
+
+   :returns: List of all pair-wise combinations of points between lower and upper hulls.
+   :rtype: List[tuple[int, int]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: rotating_calipers(points: numpy.typing.NDArray, axis: int = 0) -> collections.abc.Generator
+
+   
+   Given a list of 2-D points, finds all ways of sandwiching the points between two parallel lines.
+
+   This yields the sequence of pairs of points touched by each pair of lines across all points around the hull of a
+   polygon.
+
+   `Rotating Calipers <https://en.wikipedia.org/wiki/Rotating_calipers>_`
+
+   :param points: Numpy array of coordinates defining the outline of an object.
+   :type points: npt.NDArray
+   :param axis: Which axis to sort coordinates on, 0 for row (default); 1 for columns.
+   :type axis: int
+
+   :returns: Numpy array of pairs of points.
+   :rtype: Generator
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: triangle_height(base1: numpy.typing.NDArray | list, base2: numpy.typing.NDArray | list, apex: numpy.typing.NDArray | list) -> float
+
+   
+   Calculate the height of triangle formed by three points.
+
+   :param base1: Coordinate of first base point of triangle.
+   :type base1: int
+   :param base2: Coordinate of second base point of triangle.
+   :type base2: int
+   :param apex: Coordinate of the apex of the triangle.
+   :type apex: int
+
+   :returns: Height of the triangle.
+   :rtype: float
+
+   .. rubric:: Examples
+
+   >>> min_feret([4, 0], [4, 3], [0,0])
+       4.0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _min_feret_coord(base1: numpy.typing.NDArray, base2: numpy.typing.NDArray, apex: numpy.typing.NDArray, round_coord: bool = False) -> numpy.typing.NDArray
+
+   
+   Calculate the coordinate opposite the apex that is prependicular to the base of the triangle.
+
+   Code courtesy of @SylviaWhittle.
+
+   :param base1: Coordinates of one point on base of triangle, these are on the same side of the hull.
+   :type base1: npt.NDArray
+   :param base2: Coordinates of second point on base of triangle, these are on the same side of the hull.
+   :type base2: npt.NDArray
+   :param apex: Coordinate of the apex of the triangle, this is on the opposite hull.
+   :type apex: npt.NDArray
+   :param round_coord: Whether to round the point to the nearest NumPy index relative to the apex's position (i.e. either floor or
+                       ceiling).
+   :type round_coord: bool
+
+   :returns: Coordinates of the point perpendicular to the base line that is opposite the apex, this line is the minimum
+             feret distance for acute triangles (but not scalene triangles).
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _angle_between(apex: numpy.typing.NDArray, b: numpy.typing.NDArray) -> float
+
+   
+   Calculate the angle between the apex and base of the triangle.
+
+   :param apex: Difference between apex and base1 coordinates.
+   :type apex: npt.NDArray
+   :param b: Difference between base2 and base1 coordinates.
+   :type b: npt.NDArray
+
+   :returns: The angle between the base and the apex.
+   :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: sort_clockwise(coordinates: numpy.typing.NDArray) -> numpy.typing.NDArray
+
+   
+   Sort an array of coordinates in a clockwise order.
+
+   :param coordinates: Unordered array of points. Typically a convex hull.
+   :type coordinates: npt.NDArray
+
+   :returns: Points ordered in a clockwise direction.
+   :rtype: npt.NDArray
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from topostats.measure import feret
+   >>> unordered = np.asarray([[0, 0], [5, 5], [0, 5], [5, 0]])
+   >>> feret.sort_clockwise(unordered)
+
+       array([[0, 0],
+              [0, 5],
+              [5, 5],
+              [5, 0]])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: min_max_feret(points: numpy.typing.NDArray, axis: int = 0, precision: int = 13) -> dict[float, tuple[int, int], float, tuple[int, int]]
+
+   
+   Given a list of 2-D points, returns the minimum and maximum feret diameters.
+
+   `Feret diameter <https://en.wikipedia.org/wiki/Feret_diameter>`
+
+   :param points: A 2-D array of points for the outline of an object.
+   :type points: npt.NDArray
+   :param axis: Which axis to sort coordinates on, 0 for row (default); 1 for columns.
+   :type axis: int
+   :param precision: Number of decimal places passed on to in_polygon() for rounding.
+   :type precision: int
+
+   :returns: Tuple of the minimum feret distance and its coordinates and the maximum feret distance and  its coordinates.
+   :rtype: dictionary
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_feret_from_mask(mask_im: numpy.typing.NDArray, axis: int = 0) -> tuple[float, tuple[int, int], float, tuple[int, int]]
+
+   
+   Calculate the minimum and maximum feret diameter of the foreground object of a binary mask.
+
+   The outline of the object is calculated and the pixel coordinates transformed to a list for calculation.
+
+   :param mask_im: Binary Numpy array.
+   :type mask_im: npt.NDArray
+   :param axis: Which axis to sort coordinates on, 0 for row (default); 1 for columns.
+   :type axis: int
+
+   :returns: Returns a tuple of the minimum feret and its coordinates and the maximum feret and its coordinates.
+   :rtype: Tuple[float, Tuple[int, int], float, Tuple[int, int]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_feret_from_labelim(label_image: numpy.typing.NDArray, labels: None | list | set = None, axis: int = 0) -> dict
+
+   
+   Calculate the minimum and maximum feret and coordinates of each connected component within a labelled image.
+
+   If labels is None, all labels > 0 will be analyzed.
+
+   :param label_image: Numpy array with labelled connected components (integer).
+   :type label_image: npt.NDArray
+   :param labels: A list of labelled objects for which to calculate.
+   :type labels: None | list
+   :param axis: Which axis to sort coordinates on, 0 for row (default); 1 for columns.
+   :type axis: int
+
+   :returns: Labels as keys and values are a tuple of the minimum and maximum feret distances and coordinates.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: plot_feret(points: numpy.typing.NDArray, axis: int = 0, plot_points: str | None = 'k', plot_hulls: tuple | None = ('g-', 'r-'), plot_calipers: str | None = 'y-', plot_triangle_heights: str | None = 'b:', plot_min_feret: str | None = 'm--', plot_max_feret: str | None = 'm--', filename: str | pathlib.Path | None = './feret.png', show: bool = False) -> tuple
+
+   
+   Plot upper and lower convex hulls with rotating calipers and optionally the feret distances.
+
+   Plot varying levels of details in constructing convex hulls and deriving the minimum and maximum feret.
+
+   For format strings see the Notes section of `matplotlib.pyplot.plot
+   <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html>`.
+
+   :param points: Points to be plotted which form the shape of interest.
+   :type points: npt.NDArray
+   :param axis: Which axis to sort coordinates on, 0 for row (default); 1 for columns. (Should give the same results!).
+   :type axis: int
+   :param plot_points: Format string for plotting points. If 'None' points are not plotted.
+   :type plot_points: str | None
+   :param plot_hulls: Tuple of length 2 of format strings for plotting the convex hull, these should differe to allow distinction
+                      between hulls. If 'None' hulls are not plotted.
+   :type plot_hulls: tuple | None
+   :param plot_calipers: Format string for plotting calipers. If 'None' calipers are not plotted.
+   :type plot_calipers: str | None
+   :param plot_triangle_heights: Format string for plotting the triangle heights used in calulcating the minimum feret. These should cross the
+                                 opposite edge perpendicularly. If 'None' triangle heights are not plotted.
+   :type plot_triangle_heights: str | None
+   :param plot_min_feret: Format string for plotting the minimum feret. If 'None' the minimum feret is not plotted.
+   :type plot_min_feret: str | None
+   :param plot_max_feret: Format string for plotting the maximum feret. If 'None' the maximum feret is not plotted.
+   :type plot_max_feret: str | None
+   :param filename: Location to save the image to.
+   :type filename: str | Path | None
+   :param show: Whether to display the image.
+   :type show: bool
+
+   :returns: Returns Matplotlib figure and axis objects.
+   :rtype: fig, ax
+
+   .. rubric:: Examples
+
+   >>> from skimage import draw
+   >>> from topostats.measure import feret
+
+   >>> tiny_quadrilateral = np.asarray(
+       [
+           [0, 0, 0, 0, 0, 0],
+           [0, 0, 1, 0, 0, 0],
+           [0, 1, 0, 0, 1, 0],
+           [0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0],
+           [0, 0, 1, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0],
+       ],
+       dtype=np.uint8)
+
+   >>> feret.plot_feret(np.argwhere(tiny_quadrilateral == 1))
+
+   >>> holo_ellipse_angled = np.zeros((8, 10), dtype=np.uint8)
+       rr, cc = draw.ellipse_perimeter(4, 5, 1, 3, orientation=np.deg2rad(30))
+       holo_ellipse_angled[rr, cc] = 1
+
+   >>> feret.plot_feret(np.argwhere(holo_ellipse_angled == 1), plot_heights = None)
+
+   >>> another_triangle = np.asarray([[5, 4], [2, 1], [8,2]])
+
+   >>> feret.plot_feret(another_triangle)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
