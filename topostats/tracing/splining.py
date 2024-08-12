@@ -25,7 +25,6 @@ class splineTrace:
         image: npt.NDArray,
         mol_ordered_tracing_data: dict,
         pixel_to_nm_scaling: float,
-        filename: str,
         spline_step_size: float,
         spline_linear_smoothing: float,
         spline_circular_smoothing: float,
@@ -33,19 +32,13 @@ class splineTrace:
     ) -> None:
         
         self.image = image
-        print(mol_ordered_tracing_data.keys())
         self.mol_ordered_trace = mol_ordered_tracing_data["ordered_coords"]
         self.mol_is_circular = mol_ordered_tracing_data["mol_stats"]["circular"]
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
-        self.filename = filename
         self.spline_step_size = spline_step_size
         self.spline_linear_smoothing = spline_linear_smoothing
         self.spline_circular_smoothing = spline_circular_smoothing
         self.spline_degree = spline_degree
-
-        self.images = {
-            "splined_traces": np.zeros_like(image),
-        }
 
         self.tracing_stats = {
             "contour_length": None,
@@ -193,8 +186,7 @@ class splineTrace:
         # Should always be at least 1.
         # Note that step_size_m is in m and pixel_to_nm_scaling is in m because of the legacy code which seems to almost always have
         # pixel_to_nm_scaling be set in metres using the flag convert_nm_to_m. No idea why this is the case.
-        step_size_px = max(int(self.spline_step_size / self.pixel_to_nm_scaling), 1)
-
+        step_size_px = max(int(self.spline_step_size / (self.pixel_to_nm_scaling * 1e-9)), 1)
         # Splines will be totalled and then divived by number of splines to calculate the average spline
         spline_sum = None
 
@@ -304,85 +296,6 @@ class splineTrace:
             if index == 0 or not np.array_equal(tuple_list[index - 1], tup):
                 duplicates_removed.append(tup)
         return np.array(duplicates_removed)
-    
-    @staticmethod
-    def measure_contour_length(splined_trace: npt.NDArray, mol_is_circular: bool, pixel_to_nm_scaling: float) -> float:
-        """
-        Contour length for each of the splined traces accounting  for whether the molecule is circular or linear.
-
-        Contour length units are nm.
-
-        Parameters
-        ----------
-        splined_trace : npt.NDArray
-            The splined trace.
-        mol_is_circular : bool
-            Whether the molecule is circular or not.
-
-        Returns
-        -------
-        float
-            Length of molecule in nanometres (nm).
-        """
-        if mol_is_circular:
-            for num, i in enumerate(splined_trace):
-                x1 = splined_trace[num - 1, 0]
-                y1 = splined_trace[num - 1, 1]
-                x2 = splined_trace[num, 0]
-                y2 = splined_trace[num, 1]
-
-                try:
-                    hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
-                except NameError:
-                    hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
-
-            contour_length = np.sum(np.array(hypotenuse_array)) * pixel_to_nm_scaling
-            del hypotenuse_array
-
-        else:
-            for num, i in enumerate(splined_trace):
-                try:
-                    x1 = splined_trace[num, 0]
-                    y1 = splined_trace[num, 1]
-                    x2 = splined_trace[num + 1, 0]
-                    y2 = splined_trace[num + 1, 1]
-
-                    try:
-                        hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
-                    except NameError:
-                        hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
-                except IndexError:  # IndexError happens at last point in array
-                    contour_length = np.sum(np.array(hypotenuse_array)) * pixel_to_nm_scaling
-                    del hypotenuse_array
-                    break
-        return contour_length
-    
-    @staticmethod
-    def measure_end_to_end_distance(splined_trace, mol_is_circular, pixel_to_nm_scaling: float):
-        """
-        Euclidean distance between the start and end of linear molecules.
-
-        The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
-        molecules. If the molecule is circular then the distance is set to zero (0).
-
-        Parameters
-        ----------
-        splined_trace : npt.NDArray
-            The splined trace.
-        mol_is_circular : bool
-            Whether the molecule is circular or not.
-
-        Returns
-        -------
-        float
-            Length of molecule in nanometres (nm).
-        """
-        if not mol_is_circular:
-            return (
-                math.hypot((splined_trace[0, 0] - splined_trace[-1, 0]), (splined_trace[0, 1] - splined_trace[-1, 1]))
-                * pixel_to_nm_scaling
-            )
-        return 0
 
     def run_spline_trace(self):
         # fitted trace
@@ -391,25 +304,146 @@ class splineTrace:
         # splined_trace = self.get_splined_traces(fitted_trace, mol_is_circular)
         splined_trace = self.get_splined_traces(self.mol_ordered_trace)
         # compile CL & E2E distance
-        self.tracing_stats["contour_length"] = self.measure_contour_length(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling)
-        self.tracing_stats["end_to_end_distance"] = self.measure_end_to_end_distance(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling)
-        # compile images
+        self.tracing_stats["contour_length"] = measure_contour_length(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling)
+        self.tracing_stats["end_to_end_distance"] = measure_end_to_end_distance(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling)
+        # compile images?
 
-        return splined_trace, self.tracing_stats, self.images
+        return splined_trace, self.tracing_stats
     
 
 class windowTrace:
     
     def __init__(
         self,
-        image: npt.NDArray,
-        ordered_tracing_data: dict,
+        mol_ordered_tracing_data: dict,
         pixel_to_nm_scaling: float,
-        filename: str,
         rolling_window_size: float,
     ) -> None:
-        return
+        
+        self.mol_ordered_trace = mol_ordered_tracing_data["ordered_coords"]
+        self.mol_is_circular = mol_ordered_tracing_data["mol_stats"]["circular"]
+        self.pixel_to_nm_scaling = pixel_to_nm_scaling
+        self.rolling_window_size = rolling_window_size
+
+        self.tracing_stats = {
+            "contour_length": None,
+            "end_to_end_distance": None,
+        }
     
+    @staticmethod
+    def pool_trace(pixel_trace: npt.NDArray[np.int32], rolling_window_size: np.float64 = 6.0, pixel_to_nm_scaling: float = 1) -> npt.NDArray[np.float64]:
+        # Pool the trace points
+        pooled_trace = []
+
+        for i in range(len(pixel_trace)):
+            binned_points = []
+            current_length = 0
+            j = 1
+            # compile roalling window
+            while current_length < rolling_window_size:
+                current_index = i + j
+                previous_index = i + j - 1
+                while current_index >= len(pixel_trace):
+                    current_index -= len(pixel_trace)
+                while previous_index >= len(pixel_trace):
+                    previous_index -= len(pixel_trace)
+                current_length += np.linalg.norm(pixel_trace[current_index] - pixel_trace[previous_index]) * pixel_to_nm_scaling
+                binned_points.append(pixel_trace[current_index])
+                j += 1
+
+            # Get the mean of the binned points
+            pooled_trace.append(np.mean(binned_points, axis=0))
+
+        return np.array(pooled_trace)
+    
+    def run_window_trace(self):
+        # fitted trace
+        #fitted_trace = self.get_fitted_traces(self.ordered_trace, mol_is_circular)
+        # splined trace
+        splined_trace = self.pool_trace(self.mol_ordered_trace, self.rolling_window_size, self.pixel_to_nm_scaling)
+        # compile CL & E2E distance
+        self.tracing_stats["contour_length"] = measure_contour_length(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling)
+        self.tracing_stats["end_to_end_distance"] = measure_end_to_end_distance(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling)
+
+        return splined_trace, self.tracing_stats
+    
+
+def measure_contour_length(splined_trace: npt.NDArray, mol_is_circular: bool, pixel_to_nm_scaling: float) -> float:
+    """
+    Contour length for each of the splined traces accounting  for whether the molecule is circular or linear.
+
+    Contour length units are nm.
+
+    Parameters
+    ----------
+    splined_trace : npt.NDArray
+        The splined trace.
+    mol_is_circular : bool
+        Whether the molecule is circular or not.
+
+    Returns
+    -------
+    float
+        Length of molecule in nanometres (nm).
+    """
+    if mol_is_circular:
+        for num, i in enumerate(splined_trace):
+            x1 = splined_trace[num - 1, 0]
+            y1 = splined_trace[num - 1, 1]
+            x2 = splined_trace[num, 0]
+            y2 = splined_trace[num, 1]
+
+            try:
+                hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
+            except NameError:
+                hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
+
+        contour_length = np.sum(np.array(hypotenuse_array)) * pixel_to_nm_scaling
+        del hypotenuse_array
+
+    else:
+        for num, i in enumerate(splined_trace):
+            try:
+                x1 = splined_trace[num, 0]
+                y1 = splined_trace[num, 1]
+                x2 = splined_trace[num + 1, 0]
+                y2 = splined_trace[num + 1, 1]
+
+                try:
+                    hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
+                except NameError:
+                    hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
+            except IndexError:  # IndexError happens at last point in array
+                contour_length = np.sum(np.array(hypotenuse_array)) * pixel_to_nm_scaling
+                del hypotenuse_array
+                break
+    return contour_length
+
+def measure_end_to_end_distance(splined_trace, mol_is_circular, pixel_to_nm_scaling: float):
+    """
+    Euclidean distance between the start and end of linear molecules.
+
+    The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
+    molecules. If the molecule is circular then the distance is set to zero (0).
+
+    Parameters
+    ----------
+    splined_trace : npt.NDArray
+        The splined trace.
+    mol_is_circular : bool
+        Whether the molecule is circular or not.
+
+    Returns
+    -------
+    float
+        Length of molecule in nanometres (nm).
+    """
+    if not mol_is_circular:
+        return (
+            math.hypot((splined_trace[0, 0] - splined_trace[-1, 0]), (splined_trace[0, 1] - splined_trace[-1, 1]))
+            * pixel_to_nm_scaling
+        )
+    return 0
 
 
 def splining_image(
@@ -425,9 +459,6 @@ def splining_image(
     spline_degree: int,
     pad_width: int,
 ):
-    splined_full_images = {
-        "splined_traces": np.zeros_like(image),
-    }
     grainstats_additions = {}
     all_splines_data = {}
 
@@ -436,24 +467,28 @@ def splining_image(
         grain_trace_stats = {"total_contour_length": 0, "average_end_to_end_distance": 0}
         all_splines_data[grain_no] = {}
         for mol_no, mol_trace_data in ordered_grain_data.items():
+            LOGGER.info(f"[{filename}] : Splining {grain_no} - {mol_no}")
             # check if want to do nodestats tracing or not
             if method == "spline":
                 spline = splineTrace(
                     image=image,
                     mol_ordered_tracing_data=mol_trace_data,
                     pixel_to_nm_scaling=pixel_to_nm_scaling,
-                    filename=filename,
                     spline_step_size=spline_step_size,
                     spline_linear_smoothing=spline_linear_smoothing,
                     spline_circular_smoothing=spline_circular_smoothing,
                     spline_degree=spline_degree,
                 )
-                splined_data, tracing_stats, images = spline.run_spline_trace()
+                splined_data, tracing_stats = spline.run_spline_trace()
 
             # if not doing nodestats ordering, do original TS ordering
             elif method == "rolling_window":
-                splined_data, tracing_stats, images = None, None, None
-                pass
+                smooth = windowTrace(
+                    mol_ordered_tracing_data=mol_trace_data,
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    rolling_window_size=rolling_window_size,
+                )
+                splined_data, tracing_stats = smooth.run_window_trace()
             else:
                 LOGGER.warning("Neither 'spline' or 'rolling_window' methods are being used.")
 
@@ -462,11 +497,12 @@ def splining_image(
             grain_trace_stats["average_end_to_end_distance"] += tracing_stats["end_to_end_distance"]
             
             # get individual mol stats
-            print(f'>> {grain_no}, {mol_no}')
             all_splines_data[grain_no][mol_no] = {
                 "spline_coords": splined_data,
+                "bbox": mol_trace_data["bbox"],
                 "tracing_stats": tracing_stats,
             }
+            LOGGER.info(f"[{filename}] : Finished splining {grain_no} - {mol_no}")
             
         # average the e2e dists
         grain_trace_stats["average_end_to_end_distance"] /= int(mol_no.split('_')[-1]) + 1
