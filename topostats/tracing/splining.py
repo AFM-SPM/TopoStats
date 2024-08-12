@@ -339,8 +339,9 @@ class windowTrace:
             binned_points = []
             current_length = 0
             j = 1
-            # compile roalling window
-            while current_length < rolling_window_size:
+
+            # compile rolling window
+            while (current_length < rolling_window_size):
                 current_index = i + j
                 previous_index = i + j - 1
                 while current_index >= len(pixel_trace):
@@ -356,11 +357,44 @@ class windowTrace:
 
         return np.array(pooled_trace)
     
+    @staticmethod
+    def pool_trace_linear(pixel_trace: npt.NDArray[np.int32], rolling_window_size: np.float64 = 6.0, pixel_to_nm_scaling: float = 1) -> npt.NDArray[np.float64]:
+        # Pool the trace points
+        pooled_trace = [pixel_trace[0]] # add first coord as to not cut it off
+
+        for i in range(1,len(pixel_trace)-1):
+            binned_points = []
+            current_length = 0
+            j = 1
+
+            # compile rolling window
+            while current_length < rolling_window_size:
+                current_index = i + j
+                previous_index = i + j - 1
+                if current_index + 1 >= len(pixel_trace): # exit if exceeding the trace
+                    break
+                current_length += np.linalg.norm(pixel_trace[current_index] - pixel_trace[previous_index]) * pixel_to_nm_scaling
+                binned_points.append(pixel_trace[current_index])
+                j += 1
+            # Get the mean of the binned points
+            pooled_trace.append(np.mean(binned_points, axis=0))
+            
+            # exit if reached the end of the trace
+            if current_index + 1 >= len(pixel_trace):
+                break
+
+        pooled_trace.append(pixel_trace[-1]) # add last coord as to not cut it off
+
+        return np.array(pooled_trace)
+    
     def run_window_trace(self):
         # fitted trace
         #fitted_trace = self.get_fitted_traces(self.ordered_trace, mol_is_circular)
         # splined trace
-        splined_trace = self.pool_trace(self.mol_ordered_trace, self.rolling_window_size, self.pixel_to_nm_scaling)
+        if self.mol_is_circular:
+            splined_trace = self.pool_trace(self.mol_ordered_trace, self.rolling_window_size, self.pixel_to_nm_scaling)
+        else:
+            splined_trace = self.pool_trace_linear(self.mol_ordered_trace, self.rolling_window_size, self.pixel_to_nm_scaling)
         # compile CL & E2E distance
         self.tracing_stats["contour_length"] = measure_contour_length(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling)
         self.tracing_stats["end_to_end_distance"] = measure_end_to_end_distance(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling)
