@@ -611,30 +611,6 @@ class nodeStats:
                             ),
                         )
 
-                    # PULL INTO FUNCTION??? FOR ADDING BRANCHES TO LABELLED IMAGE ==============================================
-                    # add paired and unpaired branches to image plot
-                    # branch_image: npt.NDArray[np.int32] = np.zeros_like(self.image)  # initialising paired branch img
-                    # avg_image: npt.NDArray[np.int32] = np.zeros_like(self.image)  # initialising avg trace img
-
-                    # for i, branch_idx in enumerate(branch_under_over_order):
-                    #     branch_coords = matched_branches[branch_idx]["ordered_coords"]
-                    #     # Add the matched branches to the branch image
-                    #     branch_image[branch_coords[:, 0], branch_coords[:, 1]] = i + 1  # add to branch img
-                    #     if average_trace_advised:  # add avg traces
-                    #         avg_image[masked_image[branch_idx]["avg_mask"] != 0] = i + 1
-                    #     else:
-                    #         avg_img = None
-
-                    # # Calculates the branches we haven't been able to pair
-                    # unpaired_branches = np.delete(np.arange(0, branch_start_coords.shape[0]), pairs.flatten())
-                    # LOGGER.info(f"Unpaired branches: {unpaired_branches}")
-                    # # Ensure that unpaired branches start at index I where I is the number of paired branches.
-                    # branch_label = branch_image.max()
-                    # # Puts the unpaired branches back on the branch image
-                    # for i in unpaired_branches:  # carries on from loop variable i
-                    #     branch_label += 1
-                    #     branch_image[ordered_branches[i][:, 0], ordered_branches[i][:, 1]] = branch_label
-                    # =========================================================================
                     branch_image, avg_image = nodeStats.add_branches_to_labelled_image(
                         branch_under_over_order=branch_under_over_order,
                         matched_branches=matched_branches,
@@ -645,6 +621,11 @@ class nodeStats:
                         average_trace_advised=average_trace_advised,
                         image_shape=self.image.shape,
                     )
+
+                    if test_run:
+                        if node_no == 0:
+                            np.save(f"tests/resources/catenane_node_{node_no}_branch_image.npy", branch_image)
+                            np.save(f"tests/resources/catenane_node_{node_no}_avg_image.npy", avg_image)
 
                     # calc crossing angle
                     # get full branch vectors
@@ -685,7 +666,7 @@ class nodeStats:
         ordered_branches: list[npt.NDArray[np.int32]],
         pairs: npt.NDArray[np.int32],
         average_trace_advised: bool,
-        image_shape: tuple[int],
+        image_shape: tuple[int, int],
     ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32] | None]:
         """
         Add branches to a labelled image.
