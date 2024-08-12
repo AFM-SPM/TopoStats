@@ -257,7 +257,7 @@ def test_analyse_nodes(
         "expected_matched_branches_filename",
         "expected_ordered_branches_filename",
         "expected_masked_image_filename",
-        "expected_branch_idx_order",
+        "expected_branch_under_over_order",
         "expected_conf",
     ),
     [
@@ -301,7 +301,7 @@ def test_analyse_node_branches(
     expected_matched_branches_filename: str,
     expected_ordered_branches_filename: str,
     expected_masked_image_filename: str,
-    expected_branch_idx_order: npt.NDArray[np.int32],
+    expected_branch_under_over_order: npt.NDArray[np.int32],
     expected_conf: float,
 ) -> None:
     """Test of analyse_node_branches() method of nodeStats class."""
@@ -351,7 +351,7 @@ def test_analyse_node_branches(
     np.testing.assert_equal(result_matched_branches, expected_matched_branches)
     np.testing.assert_equal(result_ordered_branches, expected_ordered_branches)
     np.testing.assert_equal(result_masked_image, expected_masked_image)
-    np.testing.assert_equal(result_branch_idx_order, expected_branch_idx_order)
+    np.testing.assert_equal(result_branch_idx_order, expected_branch_under_over_order)
     np.testing.assert_almost_equal(result_conf, expected_conf, decimal=6)
 
 
@@ -362,8 +362,7 @@ def test_analyse_node_branches(
         "reduced_skeleton_graph_filename",
         "image",
         "average_trace_advised",
-        "node_x",
-        "node_y",
+        "node_coords",
         "filename",
         "expected_matched_branches_filename",
         "expected_masked_image_filename",
@@ -375,8 +374,7 @@ def test_analyse_node_branches(
             "catenane_node_0_reduced_skeleton_graph.pkl",
             lazy_fixture("catenane_image"),
             True,
-            280,
-            353,
+            (280, 353),
             "catenane_test_image",
             "catenane_node_0_matched_branches_join_matching_branches_through_node.pkl",
             "catenane_node_0_masked_image.pkl",
@@ -388,8 +386,7 @@ def test_analyse_node_branches(
             "catenane_node_1_reduced_skeleton_graph.pkl",
             lazy_fixture("catenane_image"),
             True,
-            312,
-            237,
+            (312, 237),
             "catenane_test_image",
             "catenane_node_1_matched_branches_join_matching_branches_through_node.pkl",
             "catenane_node_1_masked_image.pkl",
@@ -401,8 +398,7 @@ def test_analyse_node_branches(
             "catenane_node_2_reduced_skeleton_graph.pkl",
             lazy_fixture("catenane_image"),
             True,
-            407,
-            438,
+            (407, 438),
             "catenane_test_image",
             "catenane_node_2_matched_branches_join_matching_branches_through_node.pkl",
             "catenane_node_2_masked_image.pkl",
@@ -414,8 +410,7 @@ def test_analyse_node_branches(
             "catenane_node_3_reduced_skeleton_graph.pkl",
             lazy_fixture("catenane_image"),
             True,
-            451,
-            224,
+            (451, 224),
             "catenane_test_image",
             "catenane_node_3_matched_branches_join_matching_branches_through_node.pkl",
             "catenane_node_3_masked_image.pkl",
@@ -427,8 +422,7 @@ def test_analyse_node_branches(
             "catenane_node_4_reduced_skeleton_graph.pkl",
             lazy_fixture("catenane_image"),
             True,
-            558,
-            194,
+            (558, 194),
             "catenane_test_image",
             "catenane_node_4_matched_branches_join_matching_branches_through_node.pkl",
             "catenane_node_4_masked_image.pkl",
@@ -442,8 +436,7 @@ def test_join_matching_branches_through_node(
     reduced_skeleton_graph_filename: str,
     image: npt.NDArray[np.float64],
     average_trace_advised: bool,
-    node_x: np.int32,
-    node_y: np.int32,
+    node_coords: tuple[np.int32, np.int32],
     filename: str,
     expected_matched_branches_filename: str,
     expected_masked_image_filename: str,
@@ -471,8 +464,7 @@ def test_join_matching_branches_through_node(
         reduced_skeleton_graph=reduced_skeleton_graph,
         image=image,
         average_trace_advised=average_trace_advised,
-        node_x=node_x,
-        node_y=node_y,
+        node_coords=node_coords,
         filename=filename,
     )
 

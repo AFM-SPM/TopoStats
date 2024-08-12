@@ -527,9 +527,7 @@ class nodeStats:
 
         # get coordinates of nodes
         # Sylvia: This is a numpy array of coords, shape Nx2
-        print(f"node_centre_mask: {self.node_centre_mask}")
         xy_arr = np.argwhere(self.node_centre_mask.copy() == 3)
-        print(f"xy_arr: {xy_arr}")
 
         # check whether average trace resides inside the grain mask
         # Sylvia: Checks if we dilate the skeleton once or twice, then all the pixels should fit in the grain mask
@@ -587,7 +585,7 @@ class nodeStats:
                     real_node_count += 1
                     LOGGER.info(f"Node: {real_node_count}")
 
-                    pairs, matched_branches, ordered_branches, masked_image, branch_idx_order, conf = (
+                    pairs, matched_branches, ordered_branches, masked_image, branch_under_over_order, conf = (
                         self.analyse_node_branches(
                             self.px_2_nm,
                             reduced_node_area,
@@ -607,33 +605,46 @@ class nodeStats:
                     if test_run:
                         pkl.dump(
                             matched_branches,
-                            open(f"tests/resources/catenane_node_{node_no}_matched_branches_analyse_node_branches.pkl", "wb"),
+                            open(
+                                f"tests/resources/catenane_node_{node_no}_matched_branches_analyse_node_branches.pkl",
+                                "wb",
+                            ),
                         )
 
                     # PULL INTO FUNCTION??? FOR ADDING BRANCHES TO LABELLED IMAGE ==============================================
                     # add paired and unpaired branches to image plot
-                    branch_img: npt.NDArray[np.int32] = np.zeros_like(self.image)  # initialising paired branch img
-                    avg_img: npt.NDArray[np.int32] = np.zeros_like(self.image)  # initialising avg trace img
+                    # branch_image: npt.NDArray[np.int32] = np.zeros_like(self.image)  # initialising paired branch img
+                    # avg_image: npt.NDArray[np.int32] = np.zeros_like(self.image)  # initialising avg trace img
 
-                    for i, branch_idx in enumerate(branch_idx_order):
-                        branch_coords = matched_branches[branch_idx]["ordered_coords"]
-                        # Add the matched branches to the branch image
-                        branch_img[branch_coords[:, 0], branch_coords[:, 1]] = i + 1  # add to branch img
-                        if average_trace_advised:  # add avg traces
-                            avg_img[masked_image[branch_idx]["avg_mask"] != 0] = i + 1
-                        else:
-                            avg_img = None
+                    # for i, branch_idx in enumerate(branch_under_over_order):
+                    #     branch_coords = matched_branches[branch_idx]["ordered_coords"]
+                    #     # Add the matched branches to the branch image
+                    #     branch_image[branch_coords[:, 0], branch_coords[:, 1]] = i + 1  # add to branch img
+                    #     if average_trace_advised:  # add avg traces
+                    #         avg_image[masked_image[branch_idx]["avg_mask"] != 0] = i + 1
+                    #     else:
+                    #         avg_img = None
 
-                    # Calculates the branches we haven't been able to pair
-                    unpaired_branches = np.delete(np.arange(0, branch_start_coords.shape[0]), pairs.flatten())
-                    LOGGER.info(f"Unpaired branches: {unpaired_branches}")
-                    # Ensure that unpaired branches start at index I where I is the number of paired branches.
-                    branch_label = branch_img.max()
-                    # Puts the unpaired branches back on the branch image
-                    for i in unpaired_branches:  # carries on from loop variable i
-                        branch_label += 1
-                        branch_img[ordered_branches[i][:, 0], ordered_branches[i][:, 1]] = branch_label
+                    # # Calculates the branches we haven't been able to pair
+                    # unpaired_branches = np.delete(np.arange(0, branch_start_coords.shape[0]), pairs.flatten())
+                    # LOGGER.info(f"Unpaired branches: {unpaired_branches}")
+                    # # Ensure that unpaired branches start at index I where I is the number of paired branches.
+                    # branch_label = branch_image.max()
+                    # # Puts the unpaired branches back on the branch image
+                    # for i in unpaired_branches:  # carries on from loop variable i
+                    #     branch_label += 1
+                    #     branch_image[ordered_branches[i][:, 0], ordered_branches[i][:, 1]] = branch_label
                     # =========================================================================
+                    branch_image, avg_image = nodeStats.add_branches_to_labelled_image(
+                        branch_under_over_order=branch_under_over_order,
+                        matched_branches=matched_branches,
+                        masked_image=masked_image,
+                        branch_start_coords=branch_start_coords,
+                        ordered_branches=ordered_branches,
+                        pairs=pairs,
+                        average_trace_advised=average_trace_advised,
+                        image_shape=self.image.shape,
+                    )
 
                     # calc crossing angle
                     # get full branch vectors
@@ -660,8 +671,8 @@ class nodeStats:
 
                 self.image_dict["nodes"][f"node_{real_node_count}"] = {
                     "node_area_skeleton": reduced_node_area,
-                    "node_branch_mask": branch_img,
-                    "node_avg_mask": avg_img,
+                    "node_branch_mask": branch_image,
+                    "node_avg_mask": avg_image,
                 }
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
 
@@ -670,7 +681,7 @@ class nodeStats:
         p_to_nm: np.float64,
         reduced_node_area: npt.NDArray[np.int32],
         branch_start_coords: npt.NDArray[np.int32],
-        max_length_px: np.float64,
+        max_length_px: np.int32,
         reduced_skeleton_graph: nx.classes.graph.Graph,
         image: npt.NDArray[np.number],
         average_trace_advised: bool,
@@ -680,7 +691,58 @@ class nodeStats:
         resolution_threshold: np.float64,
         node_number: int,
     ):
-        """Analyse the branches of a single node."""
+        """Analyse the branches of a single node.
+
+        Parameters
+        ----------
+        p_to_nm : np.float64
+            The pixel to nm scaling factor.
+        reduced_node_area : npt.NDArray[np.int32]
+            An NxM numpy array of the node in question and the branches connected to it.
+            Node is marked by 3, and branches by 1.
+        branch_start_coords: npt.NDArray[np.int32]
+            An Nx2 numpy array of the coordinates of the branches connected to the node.
+        max_length_px : np.int32
+            The maximum length in pixels to traverse along while ordering.
+        reduced_skeleton_graph: nx.classes.graph.Graph
+            The graph representation of the reduced node area.
+        image: npt.NDArray[np.number]
+            The full image of the grain.
+        average_trace_advised: bool
+            Flag to determine whether to use the average trace.
+        node_coord: tuple[np.int32, np.int32]
+            The node coordinates.
+        filename: str
+            The filename of the image.
+        test_run: bool
+            Flag to determine whether to run in test mode, if enabled, it will pickle objects to files.
+        resolution_threshold: np.float64
+            The resolution threshold below which to warn the user that the node is difficult to analyse.
+        node_number: int
+            The node number.
+
+        Returns
+        -------
+        pairs: npt.NDArray[np.int32]
+            Nx2 numpy array of pairs of branches that are matched through a node.
+        matched_branches: dict[int, dict[str, npt.NDArray[np.number]]]
+            Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+            keys:
+            - "ordered_coords" : npt.NDArray[np.int32].
+            - "heights" : npt.NDArray[np.number]. Heights of the branches.
+            - "distances" :
+            - "fwhm2" : npt.NDArray[np.number]. Full width half maximum of the branches.
+        ordered_branches: list[npt.NDArray[np.int32]]
+            List of numpy arrays of ordered branch coordinates.
+        masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]]
+            Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+            keys:
+            - "avg_mask" : npt.NDArray[np.bool_]. Average mask of the branches.
+        branch_under_over_order: npt.NDArray[np.int32]
+            The order of the branches based on the FWHM.
+        conf: np.float64
+            The confidence of the crossing.
+        """
         if not p_to_nm <= resolution_threshold:
             LOGGER.warning(
                 f"Resolution {p_to_nm} is below suggested {resolution_threshold}, node difficult to analyse."
@@ -701,15 +763,17 @@ class nodeStats:
             reduced_skeleton_graph,
             image,
             average_trace_advised,
-            node_coord[0],
-            node_coord[1],
+            node_coord,
             filename,
         )
 
         if test_run:
             pkl.dump(
                 matched_branches,
-                open(f"tests/resources/catenane_node_{node_number}_matched_branches_join_matching_branches_through_node.pkl", "wb"),
+                open(
+                    f"tests/resources/catenane_node_{node_number}_matched_branches_join_matching_branches_through_node.pkl",
+                    "wb",
+                ),
             )
             pkl.dump(
                 masked_image,
@@ -737,9 +801,10 @@ class nodeStats:
         fwhms = []
         for _, values in matched_branches.items():
             fwhms.append(values["fwhm2"][0])
-        branch_idx_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(fwhms))]
+        # Order the branch indexes based on the FWHM of the branches.
+        branch_under_over_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(fwhms))]
 
-        return pairs, matched_branches, ordered_branches, masked_image, branch_idx_order, conf
+        return pairs, matched_branches, ordered_branches, masked_image, branch_under_over_order, conf
 
     @staticmethod
     def join_matching_branches_through_node(
@@ -748,8 +813,7 @@ class nodeStats:
         reduced_skeleton_graph: nx.classes.graph.Graph,
         image: npt.NDArray[np.number],
         average_trace_advised: bool,
-        node_x: np.int32,
-        node_y: np.int32,
+        node_coords: tuple[np.int32, np.int32],
         filename: str,
     ) -> tuple[dict[int, dict[str, npt.NDArray[np.number]]], dict[int, dict[str, npt.NDArray[np.bool_]]]]:
         """
@@ -759,6 +823,18 @@ class nodeStats:
         ----------
         pairs: npt.NDArray[np.int32]
             Nx2 numpy array of pairs of branches that are matched through a node.
+        ordered_branches: list[npt.NDArray[np.int32]]
+            List of numpy arrays of ordered branch coordinates.
+        reduced_skeleton_graph: nx.classes.graph.Graph
+            Graph representation of the skeleton.
+        image: npt.NDArray[np.number]
+            The full image of the grain.
+        average_trace_advised: bool
+            Flag to determine whether to use the average trace.
+        node_coords: tuple[np.int32, np.int32]
+            The node coordinates.
+        filename: str
+            The filename of the image.
 
         Returns
         -------
@@ -810,7 +886,7 @@ class nodeStats:
             try:
                 assert average_trace_advised
                 distances, heights, mask, _ = nodeStats.average_height_trace(
-                    image, single_branch_img, single_branch_coords, [node_x, node_y]
+                    image, single_branch_img, single_branch_coords, [node_coords[0], node_coords[1]]
                 )  # hess_area Sylvia: CLEAN OF SELF.
                 masked_image[i]["avg_mask"] = mask
             except (
@@ -819,11 +895,16 @@ class nodeStats:
             ) as e:  # Assertion - avg trace not advised, Index - wiggy branches
                 LOGGER.info(f"[{filename}] : avg trace failed with {e}, single trace only.")
                 average_trace_advised = False
-                distances = nodeStats.coord_dist_rad(single_branch_coords, [node_x, node_y])  # Sylvia: CLEAN OF SELF.
+                distances = nodeStats.coord_dist_rad(
+                    single_branch_coords, [node_coords[0], node_coords[1]]
+                )  # Sylvia: CLEAN OF SELF.
                 # distances = self.coord_dist(single_branch_coords)
                 zero_dist = distances[
                     np.argmin(
-                        np.sqrt((single_branch_coords[:, 0] - node_x) ** 2 + (single_branch_coords[:, 1] - node_y) ** 2)
+                        np.sqrt(
+                            (single_branch_coords[:, 0] - node_coords[0]) ** 2
+                            + (single_branch_coords[:, 1] - node_coords[1]) ** 2
+                        )
                     )
                 ]
                 heights = image[single_branch_coords[:, 0], single_branch_coords[:, 1]]  # self.hess
@@ -853,8 +934,8 @@ class nodeStats:
         Parameters
         ----------
         reduced_node_area : npt.NDArray[np.int32]
-            An Nx2 numpy array of coordinates representing the reduced node area. Nodes are represented as 3, while
-            branches are represented as 1. Background is 0.
+            An NxM numpy array of the node in question and the branches connected to it.
+            Node is marked by 3, and branches by 1.
         branch_start_coords : npt.NDArray[np.int32]
             An Px2 numpy array of coordinates representing the start of branches where P is the number of branches.
         max_length_px : np.int32
