@@ -277,12 +277,19 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "run": Or(
                 True,
                 False,
-                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+                error="Invalid value in config for 'splining.run', valid values are 'True' or 'False'",
             ),
+            "method": Or(
+                "spline",
+                "rolling_window",
+                error="Invalid value in config for 'splining.method', valid values are 'spline' or 'rolling_window'",
+            ),
+            "rolling_window_size": lambda n: n > 0.0,
             "pad_width": lambda n: n > 0.0,
             "spline_step_size": lambda n: n > 0.0,
             "spline_linear_smoothing": lambda n: n >= 0.0,
             "spline_circular_smoothing": lambda n: n >= 0.0,
+            "spline_degree": int,
             # "cores": lambda n: n > 0.0,
         },
         "plotting": {

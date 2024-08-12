@@ -8,6 +8,8 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from skimage.morphology import label
+from scipy import ndimage, interpolate as interp
+import math
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import coord_dist, genTracingFuncs, order_branch, reorderTrace
