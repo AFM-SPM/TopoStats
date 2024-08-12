@@ -1133,7 +1133,7 @@ def process_scan(
         )
 
         # Add grain trace data to topostats object
-        # topostats_object["grain_trace_data"] = grain_trace_data
+        topostats_object["splining"] = splined_data
 
     else:
         results_df = create_empty_dataframe()
