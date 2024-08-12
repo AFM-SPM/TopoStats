@@ -221,7 +221,7 @@ pruned_skeleton:
 # Nodestats troubleshooting images
 convolved_skeletons:
   filename: "24-convolved_skeleton"
-  title: "Image with Skeletons and Highlighted Nodes"
+  title: "Skeletons and Nodes"
   image_type: "non-binary"
   mask_cmap: "blue_purple_green"
   core_set: false
@@ -234,7 +234,7 @@ node_centres:
   core_set: false
   savefig_dpi: 600
 connected_nodes:
-  title: "Image with Skeletons and Highlighted Nodes"
+  title: "Skeletons and Nodes"
   image_type: "non-binary"
   mask_cmap: "blue_purple_green"
   core_set: true
@@ -252,7 +252,7 @@ node_branch_mask:
   mask_cmap: "blue_purple_green"
   savefig_dpi: 200
 node_avg_mask:
-  title: "Image with Main and Parallel Traces"
+  title: "Main and Parallel Traces"
   image_type: "non-binary"
   mask_cmap: "blue_purple_green"
   core_set: false
@@ -289,6 +289,7 @@ all_molecules:
   mask_cmap: "viridis"
   savefig_dpi: 600
   core_set: true
+# Splining
 fitted_trace:
   filename: "27-fitted-traces"
   title: "Fitted Trace"
@@ -296,7 +297,8 @@ fitted_trace:
   mask_cmap: "blue_purple_green"
   core_set: false
   savefig_dpi: 600
-single_molecule_trace:
+splined_trace:
+  title: "Smoothed Traces"
   image_type: "non-binary"
-  savefig_dpi: 100
-  core_set: false
+  savefig_dpi: 300
+  core_set: true

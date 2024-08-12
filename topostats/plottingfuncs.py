@@ -369,7 +369,7 @@ class Images:
                         grain_coords[:, 1] * self.pixel_to_nm_scaling,
                         (shape[0] - grain_coords[:, 0]) * self.pixel_to_nm_scaling,
                         c="c",
-                        linewidth=2.5,
+                        linewidth=1,
                     )
 
             plt.title(self.title)
