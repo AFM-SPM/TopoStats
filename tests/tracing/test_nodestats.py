@@ -241,6 +241,81 @@ def test_analyse_nodes(
 
 @pytest.mark.parametrize(
     (
+        "branch_under_over_order",
+        "matched_branches_filename",
+        "masked_image_filename",
+        "branch_start_coords",
+        "ordered_branches_filename",
+        "pairs",
+        "average_trace_advised",
+        "image_shape",
+        "expected_branch_image_filename",
+        "expected_average_image_filename",
+    ),
+    [
+        pytest.param(
+            np.array([0, 1]),
+            "catenane_node_0_matched_branches_analyse_node_branches.pkl",
+            "catenane_node_0_masked_image.pkl",
+            np.array([np.array([278, 353]), np.array([279, 351]), np.array([281, 352]), np.array([281, 354])]),
+            "catenane_node_0_ordered_branches.pkl",
+            np.array([(1, 3), (2, 0)]),
+            True,
+            (755, 621),
+            "catenane_node_0_branch_image.npy",
+            "catenane_node_0_avg_image.npy",
+        )
+    ],
+)
+def test_add_branches_to_labelled_image(
+    branch_under_over_order: npt.NDArray[np.int32],
+    matched_branches_filename: str,
+    masked_image_filename: str,
+    branch_start_coords: npt.NDArray[np.int32],
+    ordered_branches_filename: str,
+    pairs: npt.NDArray[np.int32],
+    average_trace_advised: bool,
+    image_shape: tuple[int, int],
+    expected_branch_image_filename: npt.NDArray[np.int32],
+    expected_average_image_filename: npt.NDArray[np.float64],
+) -> None:
+    """Test of add_branches_to_labelled_image() method of nodeStats class."""
+
+    # Load the matched branches
+    with Path(RESOURCES / f"{matched_branches_filename}").open("rb") as f:
+        matched_branches: dict[int, dict[str, npt.NDArray[np.number]]] = pickle.load(f)
+
+    # Load the masked image
+    with Path(RESOURCES / f"{masked_image_filename}").open("rb") as f:
+        masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]] = pickle.load(f)
+
+    # Load the ordered branches
+    with Path(RESOURCES / f"{ordered_branches_filename}").open("rb") as f:
+        ordered_branches: list[npt.NDArray[np.int32]] = pickle.load(f)
+
+    # Load the branch image
+    expected_branch_image = np.load(RESOURCES / expected_branch_image_filename)
+
+    # Load the average image
+    expected_average_image = np.load(RESOURCES / expected_average_image_filename)
+
+    result_branch_image, result_average_image = nodeStats.add_branches_to_labelled_image(
+        branch_under_over_order=branch_under_over_order,
+        matched_branches=matched_branches,
+        masked_image=masked_image,
+        branch_start_coords=branch_start_coords,
+        ordered_branches=ordered_branches,
+        pairs=pairs,
+        average_trace_advised=average_trace_advised,
+        image_shape=image_shape,
+    )
+
+    np.testing.assert_equal(result_branch_image, expected_branch_image)
+    np.testing.assert_equal(result_average_image, expected_average_image)
+
+
+@pytest.mark.parametrize(
+    (
         "p_to_nm",
         "reduced_node_area_filename",
         "branch_start_coords",
@@ -264,7 +339,7 @@ def test_analyse_nodes(
         pytest.param(
             0.18124609,
             "catenane_node_0_reduced_node_area.npy",
-            [np.array([278, 353]), np.array([279, 351]), np.array([281, 352]), np.array([281, 354])],
+            np.array([np.array([278, 353]), np.array([279, 351]), np.array([281, 352]), np.array([281, 354])]),
             110.34720989566988,
             "catenane_node_0_reduced_skeleton_graph.pkl",
             lazy_fixture("catenane_image"),
