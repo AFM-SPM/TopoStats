@@ -756,9 +756,58 @@ def test_remove_re_entering_branches() -> None:
     pass
 
 
-def test_only_centre_branches() -> None:
+@pytest.mark.parametrize(
+    ("node_image", "node_coordinate", "expected_node_image"),
+    [
+        pytest.param(
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 1, 0, 3, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 1, 0, 0, 0, 0, 3, 1, 0, 0],
+                    [0, 0, 0, 3, 0, 0, 0, 0, 3, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.array([6, 7]),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 1, 0, 3, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+        )
+    ],
+)
+def test_only_centre_branches(
+    node_image: npt.NDArray[np.int32],
+    node_coordinate: npt.NDArray[np.int32],
+    expected_node_image: npt.NDArray[np.int32],
+) -> None:
     """Test of only_centre_branches() method of nodeStats class."""
-    pass
+
+    result_node_image = nodeStats.only_centre_branches(node_image, node_coordinate)
+
+    np.testing.assert_equal(result_node_image, expected_node_image)
 
 
 def test_average_uniques() -> None:
