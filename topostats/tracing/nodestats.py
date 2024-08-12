@@ -678,6 +678,79 @@ class nodeStats:
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
 
     @staticmethod
+    def add_branches_to_labelled_image(
+        branch_under_over_order: npt.NDArray[np.int32],
+        matched_branches: dict[int, dict[str, npt.NDArray[np.number]]],
+        masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]],
+        branch_start_coords: npt.NDArray[np.int32],
+        ordered_branches: list[npt.NDArray[np.int32]],
+        pairs: npt.NDArray[np.int32],
+        average_trace_advised: bool,
+        image_shape: tuple[int],
+    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32] | None]:
+        """
+        Add branches to a labelled image.
+
+        Parameters
+        ----------
+        branch_under_over_order : npt.NDArray[np.int32]
+            The order of the branches.
+        matched_branches: dict[int, dict[str, npt.NDArray[np.number]]]
+            Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+            keys:
+            - "ordered_coords" : npt.NDArray[np.int32].
+            - "heights" : npt.NDArray[np.number]. Heights of the branches.
+            - "distances" :
+            - "fwhm2" : npt.NDArray[np.number]. Full width half maximum of the branches.
+        masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]]
+            Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+            keys:
+            - "avg_mask" : npt.NDArray[np.bool_]. Average mask of the branches.
+        branch_start_coords: npt.NDArray[np.int32]
+            An Nx2 numpy array of the coordinates of the branches connected to the node.
+        ordered_branches: list[npt.NDArray[np.int32]]
+            List of numpy arrays of ordered branch coordinates.
+        pairs: npt.NDArray[np.int32]
+            Nx2 numpy array of pairs of branches that are matched through a node.
+        average_trace_advised: bool
+            Flag to determine whether to use the average trace.
+        image_shape : tuple[int]
+            The shape of the image, to create a mask from.
+
+        Returns
+        -------
+        npt.NDArray[np.int32]
+            The labelled image with the branches added.
+        """
+        branch_image: npt.NDArray[np.int32] = np.zeros(image_shape)
+        avg_image: npt.NDArray[np.int32] | None = np.zeros(image_shape)
+
+        for i, branch_index in enumerate(branch_under_over_order):
+            branch_coords = matched_branches[branch_index]["ordered_coords"]
+
+            # Add the matched branch to the image, starting at index 1
+            branch_image[branch_coords[:, 0], branch_coords[:, 1]] = i + 1
+            if average_trace_advised:
+                # For type safety, check if avg_image is None and skip if so.
+                # This is because the type hinting does not allow for None in the array.
+                if avg_image is not None:
+                    avg_image[masked_image[branch_index]["avg_mask"] != 0] = i + 1
+            else:
+                avg_image = None
+
+        # Determine branches that were not able to be paired
+        unpaired_branches = np.delete(np.arange(0, branch_start_coords.shape[0]), pairs.flatten())
+        LOGGER.debug(f"Unpaired branches: {unpaired_branches}")
+        # Ensure that unpaired branches start at index I where I is the number of paired branches.
+        branch_label = branch_image.max()
+        # Add the unpaired branches back to the branch image
+        for i in unpaired_branches:
+            branch_label += 1
+            branch_image[ordered_branches[i][:, 0], ordered_branches[i][:, 1]] = branch_label
+
+        return branch_image, avg_image
+
+    @staticmethod
     def analyse_node_branches(
         p_to_nm: np.float64,
         reduced_node_area: npt.NDArray[np.int32],
