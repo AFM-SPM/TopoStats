@@ -16,7 +16,10 @@ from topostats.utils import convolve_skeleton, coords_2_img
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-class OrderedTraceNodestats:
+# pylint: disable=too-many-locals
+
+
+class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
     """
     Order single pixel thick skeleton coordinates via NodeStats results.
 
@@ -77,7 +80,7 @@ class OrderedTraceNodestats:
 
         self.ordered_coordinates = []
 
-    def compile_trace(self) -> tuple:
+    def compile_trace(self) -> tuple:  # noqa: C901
         """
         Pipeline to obtain the trace and crossing trace image.
 
@@ -637,12 +640,39 @@ def ordered_trace_mask(ordered_coordinates: npt.NDArray, shape: tuple) -> npt.ND
     return ordered_mask
 
 
+def trace_mask(coordinates: npt.NDArray, shape: tuple) -> npt.NDArray:
+    """
+    Obtain a mask of the trace coordinates with each trace pixel.
+
+    Parameters
+    ----------
+    coordinates : npt.NDArray
+        Ordered array of coordinates.
+
+    shape : tuple
+        The shape of the array bounding the coordinates.
+
+    Returns
+    -------
+    npt.NDArray
+        NxM image with each pixel in the ordered trace labeled in ascending order.
+    """
+    mask = np.zeros(shape)
+    if isinstance(coordinates, np.ndarray):
+        mask[coordinates[:, 0], coordinates[:, 1]] = 1
+        return mask
+    if isinstance(coordinates, list):
+        for mol_coords in coordinates:
+            mask[mol_coords[0], mol_coords[1]] = 1
+        return mask
+    raise TypeError("Only Numpy arrays or lists can be passed to this function.")
+
+
 def ordered_tracing_image(
     image: npt.NDArray,
     disordered_tracing_direction_data: dict,
     nodestats_direction_data: dict,
     filename: str,
-    pixel_to_nm_scaling: float,
     ordering_method: str,
     pad_width: int,
 ) -> tuple[dict, pd.DataFrame, dict]:
@@ -659,8 +689,6 @@ def ordered_tracing_image(
         Dictionary result from the nodestats analysis.
     filename : str
         Image filename (for logging purposes).
-    pixel_to_nm_scaling : float
-        _description_.
     ordering_method : str
         The method to order the trace coordinates - "topostats" or "nodestats".
     pad_width : int
@@ -669,7 +697,8 @@ def ordered_tracing_image(
     Returns
     -------
     tuple[dict, pd.DataFrame, dict]
-        Results containing the ordered_trace_data (coordinates), any grain-level metrics to be added to the grains dataframe, and the diagnostic images.
+        Results containing the ordered_trace_data (coordinates), any grain-level metrics to be added to the grains
+        dataframe, and the diagnostic images.
     """
     ordered_trace_full_images = {
         "ordered_traces": np.zeros_like(image),
