@@ -742,36 +742,20 @@ def run_splining(
             # append direction results to dict
             splined_image_data[direction] = splined_data
 
-            """
             # Plot traces on each grain individually
-            for grain_index, mol_dict in enumerate(ordered_traces.values()):
-                Images(
-                    cropped_images[grain_index],
-                    output_dir=tracing_out_path / direction,
-                    filename=f"{filename}_grain_trace_{grain_index}",
-                    plot_coords=list(mol_dict.values()),
-                    **plotting_config["plot_dict"]["single_molecule_trace"],
-                ).plot_and_save()
-
-            # save whole image plots
+            all_splines = []
+            for _, grain_dict in splined_data.items():
+                for _, mol_dict in grain_dict.items():
+                    all_splines.append(mol_dict["spline_coords"] + mol_dict["bbox"][:2])
             Images(
-                filename=f"{filename}_{direction}_ordered_traces",
                 data=image,
-                masked_array=ordered_tracing_full_images.pop("ordered_traces"),
                 output_dir=core_out_path,
-                **plotting_config["plot_dict"]["ordered_traces"],
+                filename=f"{filename}_{direction}_all_splines",
+                plot_coords=all_splines,
+                **plotting_config["plot_dict"]["splined_trace"],
             ).plot_and_save()
-            # save optional false core_set plots
-            for plot_name, image_value in ordered_tracing_full_images.items():
-                Images(
-                    image,
-                    masked_array=image_value,
-                    output_dir=tracing_out_path / direction,
-                    **plotting_config["plot_dict"][plot_name],
-                ).plot_and_save()
-
             LOGGER.info(f"[{filename}] : Finished Plotting Splining Images")
-            """
+
         # merge grainstats data with other dataframe
         resultant_grainstats = (
             pd.merge(results_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])

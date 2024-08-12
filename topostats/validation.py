@@ -1143,15 +1143,16 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "single_molecule_trace": {
+        "splined_trace": {
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'single_molecule_trace.image_type', valid values "
+                    "Invalid value in config 'splined_trace.image_type', valid values "
                     "are 'binary' or 'non-binary'"
                 ),
             ),
+            "title": str,
             "core_set": bool,
             "savefig_dpi": Or(
                 lambda n: n > 0,
