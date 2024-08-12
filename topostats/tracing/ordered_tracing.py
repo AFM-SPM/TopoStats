@@ -708,7 +708,8 @@ def ordered_tracing_image(
 
         # compile traces
         all_traces_data[grain_no] = ordered_traces_data
-
+        for mol_no, _ in ordered_traces_data.items():
+            all_traces_data[grain_no][mol_no].update({"bbox": disordered_trace_data["bbox"]})
         # compile metrics
         grainstats_additions[grain_no] = {
             "image": filename,
@@ -724,6 +725,5 @@ def ordered_tracing_image(
             full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
 
     grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
-    print(grainstats_additions_df)
 
     return all_traces_data, grainstats_additions_df, ordered_trace_full_images
