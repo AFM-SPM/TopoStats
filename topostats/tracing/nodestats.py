@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import pickle as pkl
 
 import networkx as nx
 import numpy as np
@@ -192,7 +191,7 @@ class nodeStats:
         # self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
 
     @staticmethod
-    def skeleton_image_to_graph(skeleton: npt.NDArray) -> nx.Graph:
+    def skeleton_image_to_graph(skeleton: npt.NDArray) -> nx.classes.graph.Graph:
         """
         Convert a skeletonised mask into a Graph representation.
 
@@ -205,7 +204,7 @@ class nodeStats:
 
         Returns
         -------
-        nx.Graph
+        nx.classes.graph.Graph
             A networkX graph connecting the pixels in the skeleton to their neighbours.
         """
         skeImPos = np.argwhere(skeleton).T
@@ -464,154 +463,82 @@ class nodeStats:
 
         return np.argwhere(thicc_node * nodeless == 1)
 
-    def analyse_nodes(self, max_branch_length: float = 20e-9, test_run=False) -> None:
+    # pylint: disable=too-many-locals
+    def analyse_nodes(self, max_branch_length: float = 20e-9) -> None:
         """
-        Obtain the main analyses for the nodes of a single molecule along the 'max_branch_length' (nm) from the node.
-
-        Uses:
-            Class functions
-            ---------------
-            self._only_centre_branches
-                - A function to remove the branches of a node that are not directly connected to the exact centre pixel of the node.
-                - Returns a skeleton image
-            self.skeleton_image_to_graph
-            self.find_branch_starts
-            self.order_branch_from_start
-            self.get_vector
-            self.pair_vectors
-            self.order_branches
-            self.order_branch
-            self.average_height_trace
-            self.coord_dist_rad
-            self.average_uniques
-            self.fwhm2
-            self.get_two_combinations
-            self.cross_confidence
-            self.calc_angles
-
-            Class variables
-            ---------------
-            self.node_centre_mask
-            self.skeleton
-            self.smoothed_mask
-            self.filename
-            self.connected_nodes
-            self.reduced_skel_graph
-            self.px_2_nm
-            self.test2
-            self.skeleton
-            self.node_dict
-            self.image_dict
-            self.image
-            self.all_connected_nodes
-
-
-        Outputs / Results
-        -----------------
-        self.image_dict
-        self.node_dict
-        self.all_connected_nodes
-            Image
+        Obtain the main analyses for the nodes of a single molecule along the 'max_branch_length'(nm) from the node.
 
         Parameters
         ----------
         max_branch_length : float
             The side length of the box around the node to analyse (in nm).
+        test_run : bool, optional
+            Flag to determine whether to run in test mode, if enabled, it will pickle objects to
+            files, by default False.
         """
-        # Sylvia: Save all the used class variables for creating a test
-        if not test_run:
-            np.save("catenane_image.npy", self.image)
-            np.save("catenane_node_centre_mask.npy", self.node_centre_mask)
-            np.save("catenane_skeleton.npy", self.skeleton)
-            np.save("catenane_smoothed_mask.npy", self.smoothed_mask)
-            np.save("catenane_connected_nodes.npy", self.connected_nodes)
+        # Get coordinates of nodes
+        # This is a numpy array of coords, shape Nx2
+        assert self.node_centre_mask is not None, "Node centre mask is not defined."
+        node_coords: npt.NDArray[np.int32] = np.argwhere(self.node_centre_mask.copy() == 3)
 
-        # get coordinates of nodes
-        # Sylvia: This is a numpy array of coords, shape Nx2
-        xy_arr = np.argwhere(self.node_centre_mask.copy() == 3)
-
-        # check whether average trace resides inside the grain mask
-        # Sylvia: Checks if we dilate the skeleton once or twice, then all the pixels should fit in the grain mask
+        # Check whether average trace resides inside the grain mask
+        # Checks if we dilate the skeleton once or twice, then all the pixels should fit in the grain mask
         dilate = binary_dilation(self.skeleton, iterations=2)
-        # Sylvia: This flag determines whether to use average of 3 traces in calculation of FWHM
+        # This flag determines whether to use average of 3 traces in calculation of FWHM
         average_trace_advised = dilate[self.smoothed_mask == 1].sum() == dilate.sum()
-        LOGGER.info(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
+        LOGGER.debug(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
 
-        # iterate over the nodes to find areas
+        # Iterate over the nodes and analyse the branches
         matched_branches = None
-        branch_img = None
-        avg_img = None
-
+        branch_image = None
+        avg_image = None
         real_node_count = 0
-        for node_no, (x, y) in enumerate(xy_arr):  # get centres
-            # get area around node
+        for node_no, (node_x, node_y) in enumerate(node_coords):
+            error = False
+
+            # Get branches relevant to the node
             max_length_px = max_branch_length / (self.px_2_nm * 1e-9)
+            reduced_node_area: npt.NDArray[np.int32] = self.only_centre_branches(self.connected_nodes, (node_x, node_y))
+            # Reduced skel graph is a networkx graph of the reduced node area.
+            self.reduced_skel_graph: nx.classes.graph.Graph = self.skeleton_image_to_graph(reduced_node_area)
 
-            # reduce the skeleton area
-            # Sylvia: this appears to remove all branches that are not connected directly to the exact centre of the node
-            reduced_node_area = self._only_centre_branches(self.connected_nodes, (x, y))  # Sylvia: CLEAN OF SELF.
-            # Sylvia: self.reduced_skel_graph appears to be a graph representation of the node but with only direct branch connections
-            # and all other branch connections removed.
-            # Sylvia: This turns the reduced node skeleton into a graph representation.
-            # Note that this is done every iteration and likely overwrites itself. Is it used later on in the iteration?
-            # If not, it could be moved outside the loop.
-            self.reduced_skel_graph = self.skeleton_image_to_graph(reduced_node_area)  # Sylvia: CLEAN OF SELF.
-            if test_run:
-                pkl.dump(
-                    self.reduced_skel_graph,
-                    open(f"tests/resources/catenane_node_{node_no}_reduced_skeleton_graph.pkl", "wb"),
-                )
-                np.save(f"tests/resources/catenane_node_{node_no}_reduced_node_area.npy", reduced_node_area)
+            # Binarise the reduced node area
             branch_mask = reduced_node_area.copy()
-
             branch_mask[branch_mask == 3] = 0
             branch_mask[branch_mask == 2] = 1
             node_coords = np.argwhere(reduced_node_area == 3)
 
-            error = False  # to see if node too complex or region too small
+            # Find the starting coordinates of any branches connected to the node
+            branch_start_coords = self.find_branch_starts(reduced_node_area)
 
-            # Find the coordinates of any branches connected to the node
-            branch_start_coords = self.find_branch_starts(reduced_node_area)  # Sylvia: CLEAN OF SELF.
-
-            # stop processing if nib (node has 2 branches)
+            # Stop processing if nib (node has 2 branches)
             if branch_start_coords.shape[0] <= 2:
-                LOGGER.info(f"node {node_no} has only two branches - skipped & nodes removed")
-                # sometimes removal of nibs can cause problems when re-indexing nodes
-                LOGGER.info(f"{len(node_coords)} pixels in nib node")
-                # TODO: node coords might be missaligned
-                # self.node_centre_mask[node_coords[:, 0], node_coords[:, 0]] = 1  # remove these from node_centre_mask
-                # self.connected_nodes[node_coords[:, 0], node_coords[:, 1]] = 1  # remove these from connected_nodes
+                LOGGER.info(
+                    f"node {node_no} has only two branches - skipped & nodes removed.{len(node_coords)}"
+                    "pixels in nib node."
+                )
             else:
                 try:
                     real_node_count += 1
                     LOGGER.info(f"Node: {real_node_count}")
 
+                    # Analyse the node branches
                     pairs, matched_branches, ordered_branches, masked_image, branch_under_over_order, conf = (
                         self.analyse_node_branches(
-                            self.px_2_nm,
-                            reduced_node_area,
-                            branch_start_coords,
-                            max_length_px,
-                            self.reduced_skel_graph,
-                            self.image,
-                            average_trace_advised,
-                            (x, y),
-                            self.filename,
-                            test_run,
-                            1000 / 512,
-                            node_no,
+                            p_to_nm=self.px_2_nm,
+                            reduced_node_area=reduced_node_area,
+                            branch_start_coords=branch_start_coords,
+                            max_length_px=max_length_px,
+                            reduced_skeleton_graph=self.reduced_skel_graph,
+                            image=self.image,
+                            average_trace_advised=average_trace_advised,
+                            node_coord=(node_x, node_y),
+                            filename=self.filename,
+                            resolution_threshold=1000 / 512,
                         )
                     )
 
-                    if test_run:
-                        pkl.dump(
-                            matched_branches,
-                            open(
-                                f"tests/resources/catenane_node_{node_no}_matched_branches_analyse_node_branches.pkl",
-                                "wb",
-                            ),
-                        )
-
+                    # Add the analysed branches to the labelled image
                     branch_image, avg_image = nodeStats.add_branches_to_labelled_image(
                         branch_under_over_order=branch_under_over_order,
                         matched_branches=matched_branches,
@@ -623,26 +550,21 @@ class nodeStats:
                         image_shape=self.image.shape,
                     )
 
-                    if test_run:
-                        if node_no == 0:
-                            np.save(f"tests/resources/catenane_node_{node_no}_branch_image.npy", branch_image)
-                            np.save(f"tests/resources/catenane_node_{node_no}_avg_image.npy", avg_image)
-
-                    # calc crossing angle
-                    # get full branch vectors
+                    # Calculate crossing angles
+                    # Get the vector of each branch based on ordered_coords. Ordered_coords is only the first N nm
+                    # of the branch so this is just a general vibe on what direction a branch is going.
                     vectors = []
                     for _, values in matched_branches.items():
-                        vectors.append(self.get_vector(values["ordered_coords"], [x, y]))
-                    # calc angles to first vector i.e. first should always be 0
-                    angles = self.calc_angles(np.asarray(vectors))[0]
-                    for i, angle in enumerate(angles):
+                        vectors.append(self.get_vector(values["ordered_coords"], [node_x, node_y]))
+                    # Calculate angles between the vectors
+                    angles_between_vectors_along_branch = self.calc_angles(np.asarray(vectors))[0]
+                    for i, angle in enumerate(angles_between_vectors_along_branch):
                         matched_branches[i]["angles"] = angle
 
                 except ResolutionError:
                     LOGGER.info(f"Node stats skipped as resolution too low: {self.px_2_nm}nm per pixel")
                     error = True
 
-                print("Error: ", error)
                 self.node_dict[f"node_{real_node_count}"] = {
                     "error": error,
                     "px_2_nm": self.px_2_nm,
@@ -658,6 +580,7 @@ class nodeStats:
                 }
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
 
+    # pylint: disable=too-many-arguments
     @staticmethod
     def add_branches_to_labelled_image(
         branch_under_over_order: npt.NDArray[np.int32],
@@ -742,9 +665,8 @@ class nodeStats:
         average_trace_advised: bool,
         node_coord: tuple[np.int32, np.int32],
         filename: str,
-        test_run: bool,
+        # test_run: bool,
         resolution_threshold: np.float64,
-        node_number: int,
     ):
         """Analyse the branches of a single node.
 
@@ -822,26 +744,27 @@ class nodeStats:
             filename,
         )
 
-        if test_run:
-            pkl.dump(
-                matched_branches,
-                open(
-                    f"tests/resources/catenane_node_{node_number}_matched_branches_join_matching_branches_through_node.pkl",
-                    "wb",
-                ),
-            )
-            pkl.dump(
-                masked_image,
-                open(f"tests/resources/catenane_node_{node_number}_masked_image.pkl", "wb"),
-            )
+        # if test_run:
+        # pkl.dump(
+        #     matched_branches,
+        #     open(
+        #         f"tests/resources/catenane_node_{node_number}_matched_branches_"
+        #          "join_matching_branches_through_node.pkl",
+        #         "wb",
+        #     ),
+        # )
+        # pkl.dump(
+        #     masked_image,
+        #     open(f"tests/resources/catenane_node_{node_number}_masked_image.pkl", "wb"),
+        # )
 
         # Redo the FWHMs after the processing for more accurate determination of under/overs.
         hms = []
         for _, values in matched_branches.items():
             hms.append(values["fwhm2"][1][2])
-        for branch_idx, values in matched_branches.items():
+        for _, values in matched_branches.items():
             fwhm2 = nodeStats.fwhm2(values["heights"], values["distances"], hm=max(hms))
-            matched_branches[branch_idx]["fwhm2"] = fwhm2
+            values["fwhm2"] = fwhm2
 
         # Get the confidence of the crossing
         crossing_quants = []
@@ -915,7 +838,7 @@ class nodeStats:
             # find close ends by rearranging branch coords
             branch_1_coords, branch_2_coords = nodeStats.order_branches(
                 ordered_branches[branch_1], ordered_branches[branch_2]
-            )  # Sylvia: CLEAN OF SELF.
+            )
             # Get graphical shortest path between branch ends on the skeleton
             crossing = nx.shortest_path(
                 reduced_skeleton_graph,
@@ -932,9 +855,7 @@ class nodeStats:
             # make images of single branch joined and multiple branches joined
             single_branch_img: npt.NDArray[np.bool_] = np.zeros_like(image).astype(bool)
             single_branch_img[branch_coords[:, 0], branch_coords[:, 1]] = True
-            single_branch_coords = nodeStats.order_branch(
-                single_branch_img.astype(bool), [0, 0]
-            )  # Sylvia: CLEAN OF SELF.
+            single_branch_coords = nodeStats.order_branch(single_branch_img.astype(bool), [0, 0])
             # calc image-wide coords
             matched_branches[i]["ordered_coords"] = single_branch_coords
             # get heights and trace distance of branch
@@ -942,7 +863,7 @@ class nodeStats:
                 assert average_trace_advised
                 distances, heights, mask, _ = nodeStats.average_height_trace(
                     image, single_branch_img, single_branch_coords, [node_coords[0], node_coords[1]]
-                )  # hess_area Sylvia: CLEAN OF SELF.
+                )
                 masked_image[i]["avg_mask"] = mask
             except (
                 AssertionError,
@@ -950,9 +871,7 @@ class nodeStats:
             ) as e:  # Assertion - avg trace not advised, Index - wiggy branches
                 LOGGER.info(f"[{filename}] : avg trace failed with {e}, single trace only.")
                 average_trace_advised = False
-                distances = nodeStats.coord_dist_rad(
-                    single_branch_coords, [node_coords[0], node_coords[1]]
-                )  # Sylvia: CLEAN OF SELF.
+                distances = nodeStats.coord_dist_rad(single_branch_coords, [node_coords[0], node_coords[1]])
                 # distances = self.coord_dist(single_branch_coords)
                 zero_dist = distances[
                     np.argmin(
@@ -1795,7 +1714,7 @@ class nodeStats:
         return rtn_image
 
     @staticmethod
-    def _only_centre_branches(node_image: npt.NDArray, node_coordinate: npt.NDArray):
+    def only_centre_branches(node_image: npt.NDArray, node_coordinate: npt.NDArray) -> npt.NDArray[np.int32]:
         """
         Remove all branches not connected to the current node.
 
@@ -1809,7 +1728,7 @@ class nodeStats:
 
         Returns
         -------
-        npt.NDArray
+        npt.NDArray[np.int32]
             The initial node image but only with skeletal branches
             connected to the middle node.
         """
