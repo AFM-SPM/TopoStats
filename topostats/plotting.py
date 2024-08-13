@@ -480,12 +480,22 @@ def run_toposum(args=None) -> None:
 def plot_crossing_linetrace_halfmax(
     branch_stats_dict: dict, mask_cmap: matplotlib.colors.Colormap, title: str
 ) -> tuple:
-    """Plots the heightmap lines traces of the branches found in the 'branch_stats' dictionary, and their meetings.
+    """
+    Plot the heightmap lines traces of the branches found in the 'branch_stats' dictionary, and their meetings.
 
-    Parameters:
-    -----------
-    branch_stats_dict: dict
+    Parameters
+    ----------
+    branch_stats_dict : dict
         Dictionary containing branch height, distance and fwhm info.
+    mask_cmap : matplotlib.colors.Colormap
+        Colormap to plot with.
+    title : str
+        Title for the plot.
+
+    Returns
+    -------
+    tuple
+        Matplotlib figure and axis objects.
     """
     fig, ax = plt.subplots(1, 1, figsize=(7, 4))
     cmp = Colormap(mask_cmap).get_cmap()
