@@ -184,7 +184,7 @@ def test_analyse_nodes(
 ) -> None:
     """Test of analyse_nodes() method of nodeStats class."""
     # Sylvia: Max branch length is hardcoded in nodestats as 20e-9. Unsure of why this value is used.
-    nodestats_catenane.analyse_nodes(max_branch_length=20e-9, test_run=True)
+    nodestats_catenane.analyse_nodes(max_branch_length=20e-9)
 
     print("test")
 
@@ -325,9 +325,7 @@ def test_add_branches_to_labelled_image(
         "average_trace_advised",
         "node_coord",
         "filename",
-        "test_run",
         "resolution_threshold",
-        "node_number",
         "expected_pairs",
         "expected_matched_branches_filename",
         "expected_ordered_branches_filename",
@@ -346,9 +344,7 @@ def test_add_branches_to_labelled_image(
             True,
             (280, 353),
             "catenane_test_image",
-            False,
             1000 / 512,
-            0,
             np.array([(1, 3), (2, 0)]),
             "catenane_node_0_matched_branches_analyse_node_branches.pkl",
             "catenane_node_0_ordered_branches.pkl",
@@ -369,9 +365,7 @@ def test_analyse_node_branches(
     average_trace_advised: bool,
     node_coord: tuple[int, int],
     filename: str,
-    test_run: bool,
     resolution_threshold: float,
-    node_number: int,
     expected_pairs: npt.NDArray[np.int32],
     expected_matched_branches_filename: str,
     expected_ordered_branches_filename: str,
@@ -405,9 +399,7 @@ def test_analyse_node_branches(
         average_trace_advised=average_trace_advised,
         node_coord=node_coord,
         filename=filename,
-        test_run=test_run,
         resolution_threshold=resolution_threshold,
-        node_number=node_number,
     )
 
     # Load expected matched branches
