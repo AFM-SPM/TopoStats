@@ -71,9 +71,9 @@ disordered_tracing:
     method_outlier: mean_abs # The method to prune branches based on height. Options : abs | mean_abs | iqr.
 nodestats:
   run: true # Options : true, false
-  node_joining_length: 7.0 # The distance over which to join nearby crossing points.
-  node_extend_dist: 14.0 # The distance over which to join nearby odd-branched nodes.
-  branch_pairing_length: 20.0 # The length from the crossing point to pair and trace, obtaining FWHM's.
+  node_joining_length: 7.0e-9 # The distance over which to join nearby crossing points.
+  node_extend_dist: 14.0e-9 # The distance over which to join nearby odd-branched nodes.
+  branch_pairing_length: 20.0e-9 # The length extending from the crossing point used to pair and obtain FWHM's.
   pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing).
 ordered_tracing:
   run: true
@@ -82,12 +82,11 @@ ordered_tracing:
 splining:
   run: true # Options : true, false
   method: "rolling_window" # Options : "spline", "rolling_window"
-  rolling_window_size: 20 # size in nm of the rolling window.
+  rolling_window_size: 20.0e-9 # size in nm of the rolling window.
   spline_step_size: 7.0e-9 # The sampling rate of the spline in metres.
   spline_linear_smoothing: 5.0 # The amount of smoothing to apply to linear splines.
   spline_circular_smoothing: 5.0 # The amount of smoothing to apply to circular splines.
   spline_degree: 3 # The polynomial degree of the spline.
-  pad_width: 1 # Pixels to pad grains by when tracing
 #  cores: 1 # Number of cores to use for parallel processing
 plotting:
   run: true # Options : true, false
