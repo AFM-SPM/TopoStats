@@ -24,6 +24,7 @@ from topostats.tracing.nodestats import nodestats_image
 from topostats.tracing.ordered_tracing import ordered_tracing_image
 from topostats.utils import create_empty_dataframe
 
+# pylint: disable=too-many-lines
 # pylint: disable=broad-except
 # pylint: disable=line-too-long
 # pylint: disable=too-many-arguments
@@ -430,7 +431,7 @@ def run_disorderedTrace(
         return {}
 
 
-def run_nodestats(
+def run_nodestats(  # noqa: C901
     image: npt.NDArray,
     disordered_tracing_data: dict,
     pixel_to_nm_scaling: float,
@@ -569,7 +570,6 @@ def run_ordered_tracing(
     image: npt.NDArray,
     disordered_tracing_data: dict,
     nodestats_data: dict,
-    pixel_to_nm_scaling: float,
     filename: str,
     core_out_path: Path,
     tracing_out_path: Path,
@@ -588,8 +588,6 @@ def run_ordered_tracing(
         Dictionary of skeletonised and pruned grain masks. Result from "run_disordered_tracing".
     nodestats_data : dict
         Dictionary of images and statistics from the NodeStats analysis. Result from "run_nodestats".
-    pixel_to_nm_scaling : float
-        Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixels per nanometres (nm).
     filename : str
         Name of the image.
     core_out_path : Path
@@ -614,7 +612,6 @@ def run_ordered_tracing(
         ordered_tracing_image_data = defaultdict()
         grainstats_additions_image = pd.DataFrame()
 
-        # try:
         # run image using directional grain masks
         for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
             (
@@ -626,7 +623,6 @@ def run_ordered_tracing(
                 disordered_tracing_direction_data=disordered_tracing_direction_data,
                 nodestats_direction_data=nodestats_data[direction],
                 filename=filename,
-                pixel_to_nm_scaling=pixel_to_nm_scaling,
                 **ordered_tracing_config,
             )
 
@@ -665,11 +661,6 @@ def run_ordered_tracing(
 
         # merge all image dictionaries
         return ordered_tracing_image_data, resultant_grainstats
-        """
-        except Exception as e:
-            LOGGER.info(f"NodeStats failed with {e} - skipping.")
-            return nodestats_image_data, resultant_grainstats
-        """
     return None, None
 
 
@@ -894,6 +885,8 @@ def process_scan(
         Dictionary configuration for obtaining a disordered trace representation of the grains.
     nodestats_config : dict
         Dictionary of configuration options for running the NodeStats stage.
+    ordered_tracing_config : dict
+        Dictionary of configuration options for running the Ordered Tracing stage.
     dnatracing_config : dict
         Dictionary of configuration options for running the DNA Tracing stage.
     plotting_config : dict
@@ -993,7 +986,6 @@ def process_scan(
             image=topostats_object["image_flattened"],
             disordered_tracing_data=disordered_traces,
             nodestats_data=nodestats,
-            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
             core_out_path=core_out_path,
             tracing_out_path=tracing_out_path,
@@ -1046,14 +1038,14 @@ def process_scan(
     return topostats_object["img_path"], results_df, image_stats
 
 
-def check_run_steps(
+def check_run_steps(  # noqa: C901
     filter_run: bool,
     grains_run: bool,
     grainstats_run: bool,
     disordered_tracing_run: bool,
     nodestats_run: bool,
     dnatracing_run: bool,
-) -> None:  # noqa: C901
+) -> None:
     """
     Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
 
