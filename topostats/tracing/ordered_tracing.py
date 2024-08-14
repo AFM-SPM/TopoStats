@@ -414,7 +414,7 @@ class OrderedTraceNodestats:
         return img
 
     @staticmethod
-    def get_trace_idxs(fwhms: list) -> tuple:
+    def get_trace_idxs(fwhms: list) -> tuple[list, list]:
         """
         Split underpassing and overpassing indices.
 
