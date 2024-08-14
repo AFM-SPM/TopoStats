@@ -124,12 +124,12 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         # LOGGER.info(f"[{self.filename}] : mask_smooth_params : {self.mask_smoothing_params=}")
         self.smoothed_mask = self.smooth_mask(self.mask, **self.mask_smoothing_params)
         self.skeleton = getSkeleton(
+            self.image,
             self.smoothed_mask,
-            self.mask,
             method=self.skeletonisation_params["method"],
             height_bias=self.skeletonisation_params["height_bias"],
         ).get_skeleton()
-        self.pruned_skeleton = prune_skeleton(self.smoothed_mask, self.skeleton, **self.pruning_params.copy())
+        self.pruned_skeleton = prune_skeleton(self.image, self.skeleton, **self.pruning_params.copy())
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
