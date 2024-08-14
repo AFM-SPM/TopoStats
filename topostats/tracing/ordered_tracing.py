@@ -128,19 +128,19 @@ class OrderedTraceNodestats:
             for crossing_num, crossing in enumerate(crossings):
                 both[crossing[:, 0], crossing[:, 1]] = node_num + crossing_num + minus.max()
 
-        # setup z array
-        z = []
+        # setup stacking_order array
+        stacking_order = []
         # order minus segments
         ordered = []
         for i in range(1, minus.max() + 1):
             arr = np.where(minus, minus == i, 0)
             ordered.append(order_branch(arr, [0, 0]))  # orientated later
-            z.append(0)
+            stacking_order.append(0)
 
         # add crossing coords to ordered segment list
         for i, node_crossing_coords in enumerate(crossing_coords):
-            z_idx = np.argsort(fwhms[i])
-            z_idx[z_idx == 0] = -1
+            stacking_order_idx = np.argsort(fwhms[i])
+            stacking_order_idx[stacking_order_idx == 0] = -1
             for j, single_cross in enumerate(node_crossing_coords):
                 # check current single cross has no duplicate coords with ordered, except crossing points
                 uncommon_single_cross = np.array(single_cross).copy()
@@ -150,8 +150,7 @@ class OrderedTraceNodestats:
                     )
                 if len(uncommon_single_cross) > 0:
                     ordered.append(uncommon_single_cross)
-                z.append(z_idx[j])
-
+                stacking_order.append(stacking_order_idx[j])
         # get an image of each ordered segment
         cross_add = np.zeros_like(self.image)
         for i, coords in enumerate(ordered):
