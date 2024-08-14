@@ -77,9 +77,9 @@ class OrderedTraceNodestats:
 
         self.ordered_coordinates = []
 
-    def compile_trace(self) -> tuple:
+    def compile_trace(self) -> tuple[list, npt.NDArray]:
         """
-        Pipeline to obtain the trace and crossing trace image.
+        Obtain the trace and diagnostic crossing trace and molecule trace images.
 
         This function uses the branches and full-width half-maximums (FWHMs) identified in the node_stats dictionary
         to create a continuous trace of the molecule.
@@ -100,18 +100,18 @@ class OrderedTraceNodestats:
         for _, stats in self.nodestats_dict.items():
             temp_nodes = []
             temp_coords = []
-            temp__heights = []
+            temp_heights = []
             temp_distances = []
             temp_fwhms = []
             for _, branch_stats in stats["branch_stats"].items():
                 temp_coords.append(branch_stats["ordered_coords"])
-                temp__heights.append(branch_stats["heights"])
+                temp_heights.append(branch_stats["heights"])
                 temp_distances.append(branch_stats["distances"])
                 temp_fwhms.append(branch_stats["fwhm"]["fwhm"])
                 temp_nodes.append(stats["node_coords"])
             node_coords.append(temp_nodes)
             crossing_coords.append(temp_coords)
-            crossing_heights.append(temp__heights)
+            crossing_heights.append(temp_heights)
             crossing_distances.append(temp_distances)
             fwhms.append(temp_fwhms)
 
