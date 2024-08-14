@@ -79,7 +79,7 @@ class OrderedTraceNodestats:
 
     def compile_trace(self) -> tuple:
         """
-        Pipeline to obtain the trace and crossing trace image.
+        Obtain the trace and crossing trace image.
 
         This function uses the branches and FWHM's identified in the node_stats dictionary to create a
         continuous trace of the molecule.
