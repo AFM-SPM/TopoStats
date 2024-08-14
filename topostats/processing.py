@@ -645,7 +645,7 @@ def run_ordered_tracing(
                 output_dir=core_out_path,
                 **plotting_config["plot_dict"]["ordered_traces"],
             ).plot_and_save()
-            # save optional false core_set plots
+            # save optional diagnostic plots (those with core_set = False)
             for plot_name, image_value in ordered_tracing_full_images.items():
                 Images(
                     image,
