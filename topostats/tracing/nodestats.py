@@ -98,7 +98,7 @@ class nodeStats:
         self.mask = mask
         self.smoothed_mask = smoothed_mask  # only used to average traces
         self.skeleton = skeleton
-        self.px_2_nm = px_2_nm * 1e-9
+        self.px_2_nm = px_2_nm
         self.n_grain = n_grain
         self.node_joining_length = node_joining_length
         self.node_extend_dist = node_extend_dist / self.px_2_nm
@@ -277,7 +277,7 @@ class nodeStats:
             node_centre = coords.mean(axis=0).astype(np.int32)
             node_wid = coords[:, 0].max() - coords[:, 0].min() + 2  # +2 so always 2 by default
             node_len = coords[:, 1].max() - coords[:, 1].min() + 2  # +2 so always 2 by default
-            overflow = int(10e-9 / self.px_2_nm) if int(10e-9 / self.px_2_nm) != 0 else 1
+            overflow = int(10 / self.px_2_nm) if int(10 / self.px_2_nm) != 0 else 1
             # grain mask fill
             new_skeleton[
                 node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
@@ -324,7 +324,7 @@ class nodeStats:
             LOGGER.info(f"{e}: mask is empty.")
             return mask
 
-    def connect_close_nodes(self, conv_skelly: npt.NDArray, node_width: float = 2.85e-9) -> npt.NDArray:
+    def connect_close_nodes(self, conv_skelly: npt.NDArray, node_width: float = 2.85) -> npt.NDArray:
         """
         Connect nodes within the 'node_width' boundary distance.
 
@@ -463,7 +463,7 @@ class nodeStats:
         return np.argwhere(thicc_node * nodeless == 1)
 
     # pylint: disable=too-many-locals
-    def analyse_nodes(self, max_branch_length: float = 20e-9) -> None:
+    def analyse_nodes(self, max_branch_length: float = 20) -> None:
         """
         Obtain the main analyses for the nodes of a single molecule along the 'max_branch_length'(nm) from the node.
 
@@ -496,7 +496,7 @@ class nodeStats:
             error = False
 
             # Get branches relevant to the node
-            max_length_px = max_branch_length / (self.px_2_nm * 1e-9)
+            max_length_px = max_branch_length / (self.px_2_nm * 1)
             reduced_node_area: npt.NDArray[np.int32] = self.only_centre_branches(self.connected_nodes, (node_x, node_y))
             # Reduced skel graph is a networkx graph of the reduced node area.
             self.reduced_skel_graph: nx.classes.graph.Graph = self.skeleton_image_to_graph(reduced_node_area)
@@ -604,7 +604,7 @@ class nodeStats:
             - "ordered_coords" : npt.NDArray[np.int32].
             - "heights" : npt.NDArray[np.number]. Heights of the branches.
             - "distances" :
-            - "fwhm2" : npt.NDArray[np.number]. Full width half maximum of the branches.
+            - "fwhm" : npt.NDArray[np.number]. Full width half maximum of the branches.
         masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]]
             Dictionary where the key is the index of the pair and the value is a dictionary containing the following
             keys:
@@ -707,7 +707,7 @@ class nodeStats:
             - "ordered_coords" : npt.NDArray[np.int32].
             - "heights" : npt.NDArray[np.number]. Heights of the branches.
             - "distances" :
-            - "fwhm2" : npt.NDArray[np.number]. Full width half maximum of the branches.
+            - "fwhm" : npt.NDArray[np.number]. Full width half maximum of the branches.
         ordered_branches: list[npt.NDArray[np.int32]]
             List of numpy arrays of ordered branch coordinates.
         masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]]
@@ -760,15 +760,14 @@ class nodeStats:
         # Redo the FWHMs after the processing for more accurate determination of under/overs.
         hms = []
         for _, values in matched_branches.items():
-            hms.append(values["fwhm2"][1][2])
+            hms.append(values["fwhm"]["half_maxs"][2])
         for _, values in matched_branches.items():
-            fwhm2 = nodeStats.fwhm2(values["heights"], values["distances"], hm=max(hms))
-            values["fwhm2"] = fwhm2
+            values["fwhm"] = nodeStats.fwhm(values["heights"], values["distances"], hm=max(hms))
 
         # Get the confidence of the crossing
         crossing_quants = []
         for _, values in matched_branches.items():
-            crossing_quants.append(values["fwhm2"][0])
+            crossing_quants.append(values["fwhm"]["fwhm"])
         if len(crossing_quants) == 1:
             conf = None
         else:
@@ -777,7 +776,7 @@ class nodeStats:
 
         fwhms = []
         for _, values in matched_branches.items():
-            fwhms.append(values["fwhm2"][0])
+            fwhms.append(values["fwhm"]["fwhm"])
         # Order the branch indexes based on the FWHM of the branches.
         branch_under_over_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(fwhms))]
 
@@ -821,7 +820,7 @@ class nodeStats:
             - "ordered_coords" : npt.NDArray[np.int32].
             - "heights" : npt.NDArray[np.number]. Heights of the branches.
             - "distances" :
-            - "fwhm2" : npt.NDArray[np.number]. Full width half maximum of the branches.
+            - "fwhm" : npt.NDArray[np.number]. Full width half maximum of the branches.
         masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]]
             Dictionary where the key is the index of the pair and the value is a dictionary containing the following
             keys:
@@ -854,7 +853,7 @@ class nodeStats:
             # make images of single branch joined and multiple branches joined
             single_branch_img: npt.NDArray[np.bool_] = np.zeros_like(image).astype(bool)
             single_branch_img[branch_coords[:, 0], branch_coords[:, 1]] = True
-            single_branch_coords = nodeStats.order_branch(single_branch_img.astype(bool), [0, 0])
+            single_branch_coords = order_branch(single_branch_img.astype(bool), [0, 0])
             # calc image-wide coords
             matched_branches[i]["ordered_coords"] = single_branch_coords
             # get heights and trace distance of branch
@@ -888,7 +887,7 @@ class nodeStats:
             matched_branches[i]["heights"] = heights
             matched_branches[i]["distances"] = distances
             # identify over/under
-            matched_branches[i]["fwhm2"] = nodeStats.fwhm2(heights, distances)
+            matched_branches[i]["fwhm"] = nodeStats.fwhm(heights, distances)
 
         return matched_branches, masked_image
 
@@ -925,9 +924,7 @@ class nodeStats:
         nodeless = np.where(reduced_node_area == 1, 1, 0)
         for branch_start_coord in branch_start_coords:
             # Order the branch coordinates so they're no longer just a disordered set of coordinates
-            ordered_branch = nodeStats.order_branch_from_start(
-                nodeless.copy(), branch_start_coord, max_length=max_length_px
-            )
+            ordered_branch = order_branch_from_start(nodeless.copy(), branch_start_coord, max_length=max_length_px)
             ordered_branches.append(ordered_branch)
 
             # Calculate vector to represent the general direction tendency of the branch (for alignment matching)
@@ -1000,102 +997,6 @@ class nodeStats:
             return 1 - min(vals) / max(vals)
         except ZeroDivisionError:
             return 0
-
-    @staticmethod
-    def order_branch(binary_image: npt.NDArray, anchor: list):
-        """
-        Order a linear branch by identifying an endpoint, and looking at the local area of the point to find the next.
-
-        Parameters
-        ----------
-        binary_image : npt.NDArray
-            A binary image of a skeleton segment to order it's points.
-        anchor : list
-            A list of 2 integers representing the coordinate to order the branch from the endpoint closest to this.
-
-        Returns
-        -------
-        npt.NDArray
-            An array of ordered coordinates.
-        """
-        skel = binary_image.copy()
-
-        if len(np.argwhere(skel == 1)) < 3:  # if < 3 coords just return them
-            return np.argwhere(skel == 1)
-
-        # get branch starts
-        endpoints_highlight = convolve_skeleton(skel)
-        endpoints = np.argwhere(endpoints_highlight == 2)
-        if len(endpoints) != 0:  # if any endpoints, start closest to anchor
-            dist_vals = abs(endpoints - anchor).sum(axis=1)
-            start = endpoints[np.argmin(dist_vals)]
-        else:  # will be circular so pick the first coord (is this always the case?)
-            start = np.argwhere(skel == 1)[0]
-        # order the points according to what is nearby
-        ordered = nodeStats.order_branch_from_start(skel, start)
-
-        return np.array(ordered)
-
-    @staticmethod
-    def order_branch_from_start(
-        nodeless: npt.NDArray, start: npt.NDArray, max_length: float | np.inf = np.inf
-    ) -> npt.NDArray:
-        """
-        Order an unbranching skeleton from an end (startpoint) along a specified length.
-
-        Parameters
-        ----------
-        nodeless : npt.NDArray
-            A 2D array of a binary unbranching skeleton.
-        start : npt.NDArray
-            2x1 coordinate that must exist in 'nodeless'.
-        max_length : float | np.inf, optional
-            Maximum length to traverse along while ordering, by default np.inf.
-
-        Returns
-        -------
-        npt.NDArray
-            Ordered coordinates.
-        """
-        dist = 0
-        # add starting point to ordered array
-        ordered = []
-        ordered.append(start)
-        nodeless[start[0], start[1]] = 0  # remove from array
-
-        # iterate to order the rest of the points
-        current_point = ordered[-1]  # get last point
-        area, _ = nodeStats.local_area_sum(nodeless, current_point)  # look at local area
-        local_next_point = np.argwhere(
-            area.reshape(
-                (
-                    3,
-                    3,
-                )
-            )
-            == 1
-        ) - (1, 1)
-        dist += np.sqrt(2) if abs(local_next_point).sum() > 1 else 1
-
-        while len(local_next_point) != 0 and dist <= max_length:
-            next_point = (current_point + local_next_point)[0]
-            # find where to go next
-            ordered.append(next_point)
-            nodeless[next_point[0], next_point[1]] = 0  # set value to zero
-            current_point = ordered[-1]  # get last point
-            area, _ = nodeStats.local_area_sum(nodeless, current_point)  # look at local area
-            local_next_point = np.argwhere(
-                area.reshape(
-                    (
-                        3,
-                        3,
-                    )
-                )
-                == 1
-            ) - (1, 1)
-            dist += np.sqrt(2) if abs(local_next_point).sum() > 1 else 1
-
-        return np.array(ordered)
 
     @staticmethod
     def get_vector(coords: npt.NDArray, origin: npt.NDArray) -> npt.NDArray:
@@ -1258,7 +1159,8 @@ class nodeStats:
         """
         return h * np.exp(-((x - mean) ** 2) / (2 * sigma**2))
 
-    def interpolate_between_yvalue(self, x: npt.NDArray, y: npt.NDArray, yvalue: float) -> float:
+    @staticmethod
+    def interpolate_between_yvalue(x: npt.NDArray, y: npt.NDArray, yvalue: float) -> float:
         """Calculate the x value between the two points either side of yvalue in y.
 
         Parameters
@@ -1276,17 +1178,16 @@ class nodeStats:
             The linearly interpolated x value between the arrays.
         """
         for i in range(len(y) - 1):
-            if y[i] <= yvalue <= y[i + 1]:  # if points cross through the hm value
-                return self.lin_interp([x[i], y[i]], [x[i + 1], y[i + 1]], yvalue=yvalue)
+            if y[i] <= yvalue <= y[i + 1] or y[i + 1] <= yvalue <= y[i]:  # if points cross through the hm value
+                return nodeStats.lin_interp([x[i], y[i]], [x[i + 1], y[i + 1]], yvalue=yvalue)
         return 0
 
+    @staticmethod
     def fwhm(heights: npt.NDArray, distances: npt.NDArray, hm: float | None = None) -> tuple:
         """
         Calculate the FWHM value.
-
         First identifyies the HM then finding the closest values in the distances array and using
         linear interpolation to calculate the FWHM.
-
         Parameters
         ----------
         heights : npt.NDArray
@@ -1295,7 +1196,6 @@ class nodeStats:
             Array of distances.
         hm : Union[None, float], optional
             The halfmax value to match (if wanting the same HM between curves), by default None.
-
         Returns
         -------
         tuple[float, list, list]
@@ -1307,18 +1207,16 @@ class nodeStats:
             high_idx = np.argmax(heights)
         else:
             high_idx = np.argmax(heights[centre_fraction:-centre_fraction]) + centre_fraction
-
         # get array halves to find first points that cross hm
         arr1 = heights[:high_idx][::-1]
         dist1 = distances[:high_idx][::-1]
         arr2 = heights[high_idx:]
         dist2 = distances[high_idx:]
-
         if hm is None:
             # Get half max
             hm = (heights.max() - heights.min()) / 2 + heights.min()
             # half max value -> try to make it the same as other crossing branch?
-            # increase make hm = lowest of peak if it doesn't hit one side
+            # increase make hm = lowest of peak if it doesn’t hit one side
             if np.min(arr1) > hm:
                 arr1_local_min = argrelextrema(arr1, np.less)[-1]  # closest to end
                 try:
@@ -1331,19 +1229,9 @@ class nodeStats:
                     hm = arr2[arr2_local_min][0]
                 except IndexError:  # index error when no local minima
                     hm = np.min(arr2)
-
-        for i in range(len(arr1) - 1):
-            if (arr1[i] >= hm) and (arr1[i + 1] <= hm):  # if points cross through the hm value
-                arr1_hm = lin_interp([dist1[i], arr1[i]], [dist1[i + 1], arr1[i + 1]], yvalue=hm)
-                break
-
-        for i in range(len(arr2) - 1):
-            if (arr2[i] >= hm) and (arr2[i + 1] <= hm):  # if points cross through the hm value
-                arr2_hm = lin_interp([dist2[i], arr2[i]], [dist2[i + 1], arr2[i + 1]], yvalue=hm)
-                break
-
+        arr1_hm = nodeStats.interpolate_between_yvalue(x=dist1, y=arr1, yvalue=hm)
+        arr2_hm = nodeStats.interpolate_between_yvalue(x=dist2, y=arr2, yvalue=hm)
         fwhm = abs(arr2_hm - arr1_hm)
-
         return {
             "fwhm": fwhm,
             "half_maxs": [arr1_hm, arr2_hm, hm],

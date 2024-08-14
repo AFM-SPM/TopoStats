@@ -246,7 +246,9 @@ def nodestats_catenane(
         skeleton=catenane_skeleton,
         px_2_nm=np.float32(0.18124609375),
         n_grain=1,
-        node_joining_length=7e-9,
+        node_joining_length=7,
+        node_extend_dist=14.0,
+        branch_pairing_length=20.0,
     )
 
     nodestats.node_centre_mask = catenane_node_centre_mask
