@@ -117,19 +117,14 @@ class OrderedTraceNodestats:
             for crossing_num, crossing in enumerate(crossings):
                 both[crossing[:, 0], crossing[:, 1]] = node_num + crossing_num + minus.max()
 
-        # setup stacking_order array
-        stacking_order = []
         # order minus segments
         ordered = []
         for i in range(1, minus.max() + 1):
             arr = np.where(minus, minus == i, 0)
             ordered.append(order_branch(arr, [0, 0]))  # orientated later
-            stacking_order.append(0)
 
         # add crossing coords to ordered segment list
         for i, node_crossing_coords in enumerate(crossing_coords):
-            stacking_order_idx = np.argsort(fwhms[i])
-            stacking_order_idx[stacking_order_idx == 0] = -1
             for j, single_cross in enumerate(node_crossing_coords):
                 # check current single cross has no duplicate coords with ordered, except crossing points
                 uncommon_single_cross = np.array(single_cross).copy()
@@ -139,7 +134,7 @@ class OrderedTraceNodestats:
                     )
                 if len(uncommon_single_cross) > 0:
                     ordered.append(uncommon_single_cross)
-                stacking_order.append(stacking_order_idx[j])
+
         # get an image of each ordered segment
         cross_add = np.zeros_like(self.image)
         for i, coords in enumerate(ordered):
@@ -161,7 +156,8 @@ class OrderedTraceNodestats:
         ordered_array: npt.NDArray, common_value_check_array: npt.NDArray, retain: list = ()
     ) -> np.array:
         """
-        Remove from ordered_array any values in common with the common_value_check_array while retaining specified coordinates.
+        Remove from ordered_array any values in common with the common_value_check_array while retaining specified 
+        coordinates.
 
         Parameters
         ----------
