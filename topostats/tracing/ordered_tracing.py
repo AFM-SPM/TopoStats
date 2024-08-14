@@ -532,7 +532,6 @@ class OrderedTraceTopostats:
         return ordered_trace_data, self.grain_tracing_stats, self.images
 
 
-@staticmethod
 def linear_or_circular(traces) -> bool:
     """
     Determine whether the molecule is circular or linear via >1 points in the local start area.
