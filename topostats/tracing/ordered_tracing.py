@@ -156,8 +156,7 @@ class OrderedTraceNodestats:
         ordered_array: npt.NDArray, common_value_check_array: npt.NDArray, retain: list = ()
     ) -> np.array:
         """
-        Remove from ordered_array any values in common with the common_value_check_array while retaining specified 
-        coordinates.
+        Remove common values in common_value_check_array from ordered_array while retaining specified coordinates.
 
         Parameters
         ----------
@@ -221,7 +220,7 @@ class OrderedTraceNodestats:
                 remaining[remaining == coord_idx + 1] = 0
                 trace_segment = self.get_trace_segment(remaining, ordered_segment_coords, coord_idx)
                 if len(coord_trace) > 0:  # can only order when there's a reference point / segment
-                    trace_segment = self.remove_duplicates(  # replaced with remove_common values?
+                    trace_segment = self.remove_common_values(
                         trace_segment, prev_segment
                     )  # remove overlaps in trace (may be more efficient to do it on the previous segment)
                     trace_segment = self.order_from_end(coord_trace[-1], trace_segment)
@@ -261,31 +260,6 @@ class OrderedTraceNodestats:
         if start_max == -1:
             return ordered_segment_coords[coord_idx]  # start is endpoint
         return ordered_segment_coords[coord_idx][::-1]  # end is endpoint
-
-    @staticmethod
-    def remove_duplicates(current_segment: npt.NDArray, prev_segment: npt.NDArray) -> npt.NDArray:
-        """
-        Remove overlapping coordinates present in both arrays.
-
-        Parameters
-        ----------
-        current_segment : npt.NDArray
-            2xN coordinate array.
-        prev_segment : npt.NDArray
-            2xN coordinate array.
-
-        Returns
-        -------
-        npt.NDArray
-            2xN coordinate array without the previous segment coordinates.
-        """
-        # Convert arrays to tuples
-        curr_segment_tuples = [tuple(row) for row in current_segment]
-        prev_segment_tuples = [tuple(row) for row in prev_segment]
-        # Find unique rows
-        unique_rows = list(set(curr_segment_tuples) - set(prev_segment_tuples))
-        # Remove duplicate rows from array1
-        return np.array([row for row in curr_segment_tuples if tuple(row) in unique_rows])
 
     @staticmethod
     def order_from_end(last_segment_coord: npt.NDArray, current_segment: npt.NDArray) -> npt.NDArray:
