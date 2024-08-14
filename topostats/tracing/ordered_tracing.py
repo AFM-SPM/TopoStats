@@ -168,30 +168,32 @@ class OrderedTraceNodestats:
         return coord_trace, self.images
 
     @staticmethod
-    def remove_common_values(arr1: npt.NDArray, arr2: npt.NDArray, retain: list = ()) -> np.array:
+    def remove_common_values(
+        ordered_array: npt.NDArray, common_value_check_array: npt.NDArray, retain: list = ()
+    ) -> np.array:
         """
-        Remove common values between two coordinate arrays while retaining specified coordinates.
+        Remove any values from ordered_array in common with common_value_check_array, retaining specified coordinates.
 
         Parameters
         ----------
-        arr1 : npt.NDArray
-            Coordinate array 1.
-        arr2 : npt.NDArray
-            Coordinate array 2.
+        ordered_array : npt.NDArray
+            Coordinate array to remove / retain values from. Will retain its order.
+        common_value_check_array : npt.NDArray
+            Coordinate array containing any common values to be removed from ordered_array.
         retain : list, optional
             List of possible coordinates to keep, by default ().
 
         Returns
         -------
         np.array
-            Unique array values and retained coordinates.
+            Unique ordered_array values and retained coordinates. Retains the order of ordered_array.
         """
         # Convert the arrays to sets for faster common value lookup
-        set_arr2 = {tuple(row) for row in arr2}
+        set_arr2 = {tuple(row) for row in common_value_check_array}
         set_retain = {tuple(row) for row in retain}
         # Create a new filtered list while maintaining the order of the first array
         filtered_arr1 = []
-        for coord in arr1:
+        for coord in ordered_array:
             tup_coord = tuple(coord)
             if tup_coord not in set_arr2 or tup_coord in set_retain:
                 filtered_arr1.append(coord)
