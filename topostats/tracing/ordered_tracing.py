@@ -92,28 +92,17 @@ class OrderedTraceNodestats:
         LOGGER.info(f"[{self.filename}] : Compiling the trace.")
 
         # iterate through the dict to get branch coords, heights and fwhms
-        node_coords = []
-        crossing_coords = []
-        crossing_heights = []
-        crossing_distances = []
-        fwhms = []
-        for stats in self.nodestats_dict.values():
-            temp_nodes = []
-            temp_coords = []
-            temp_heights = []
-            temp_distances = []
-            temp_fwhms = []
-            for branch_stats in stats["branch_stats"].values():
-                temp_coords.append(branch_stats["ordered_coords"])
-                temp_heights.append(branch_stats["heights"])
-                temp_distances.append(branch_stats["distances"])
-                temp_fwhms.append(branch_stats["fwhm"]["fwhm"])
-                temp_nodes.append(stats["node_coords"])
-            node_coords.append(temp_nodes)
-            crossing_coords.append(temp_coords)
-            crossing_heights.append(temp_heights)
-            crossing_distances.append(temp_distances)
-            fwhms.append(temp_fwhms)
+        node_coords = [
+            [stats["node_coords"] for _ in stats["branch_stats"].values()] for stats in self.nodestats_dict.values()
+        ]
+        crossing_coords = [
+            [branch_stats["ordered_coords"] for branch_stats in stats["branch_stats"].values()]
+            for stats in self.nodestats_dict.values()
+        ]
+        fwhms = [
+            [branch_stats["fwhm"]["fwhm"] for branch_stats in stats["branch_stats"].values()]
+            for stats in self.nodestats_dict.values()
+        ]
 
         # Get the image minus the crossing regions
         minus = self.skeleton.copy()
