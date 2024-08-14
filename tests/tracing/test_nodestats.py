@@ -187,14 +187,10 @@ def test_analyse_nodes(
     """Test of analyse_nodes() method of nodeStats class."""
     # Sylvia: Max branch length is hardcoded in nodestats as 20e-9. Unsure of why this value is used.
     nodestats_catenane.analyse_nodes(max_branch_length=20)
-    _skelly = nodestats_catenane.skeleton
 
+    node_dict_result = nodestats_catenane.node_dict
+    image_dict_result = nodestats_catenane.image_dict
 
-    print("test")
-
-    # Check outputs
-    print("===== node dict =====")
-    node_dict = nodestats_catenane.node_dict
     # Nodestats dict has structure:
     # "node_1":
     #  - error: Bool
@@ -206,13 +202,6 @@ def test_analyse_nodes(
     #    - distances: array Nx2
     #    - fwhm2: tuple(float, list(3?), list (3?))
 
-    # pickle it to act as a regression test
-    # with Path.open(Path("./catenane_node_dict.pkl"), "wb") as f:
-    #     pickle.dump(node_dict, f)
-    print(node_dict.keys())
-    print(node_dict)
-    print("===== image dict =====")
-    image_dict = nodestats_catenane.image_dict
     # Image dict has structure:
     # - nodes
     #   - 1: dict
@@ -223,97 +212,18 @@ def test_analyse_nodes(
     # - grain
     #   - grain_image: array NxN
     #   - grain_mask: array NxN
-    #   - grain_visual_crossings: None
+    #   - grain_skeleton: array NxN
 
-    # pickle it to act as a regression test
-    # with Path.open(Path("./catenane_image_dict.pkl"), "wb") as f:
-    #     pickle.dump(image_dict, f)
-    print(image_dict.keys())
-    print(image_dict)
-    print("==== all connected nodes =====")
-    all_connected_nodes = nodestats_catenane.all_connected_nodes
-    # All connected nodes is an NxM numpy array
-    # np.save("./catenane_all_connected_nodes.npy", all_connected_nodes)
-    # print(all_connected_nodes.shape)
-    # print(all_connected_nodes)
+    # Save the results for comparison
+    # with Path(RESOURCES / "catenane_node_dict.pkl").open("wb") as f:
+    #     pickle.dump(node_dict_result, f)
 
-    # nodestats_catenane_node_dict_result = nodestats_catenane.node_dict
-    # for dictionary_key, dictionary in nodestats_catenane_node_dict.items():
-    #     dictionary["crossing_type"] = None
-        
-    #     # Remove crossing type from the dictionary using the method pop
-    #     dictionary.pop("crossing_type")
+    # with Path(RESOURCES / "catenane_image_dict.pkl").open("wb") as f:
+    #     pickle.dump(image_dict_result, f)
 
-    #     # turn fwhm into a tuple
-    #     for branch_key, branch_stats in dictionary["branch_stats"].items():
-
-    #         angles_copy = branch_stats["angles"].copy()
-
-    #         fwhm_tuple = branch_stats["fwhm2"]
-    #         new_fwhm_dict = {}
-    #         for key, value in enumerate(fwhm_tuple):
-    #             match key:
-    #                 case 0:
-    #                     new_key = "fwhm"
-    #                 case 1:
-    #                     new_key = "half_maxs"
-    #                 case 2:
-    #                     new_key = "peaks"
-    #                 case _:
-    #                     raise ValueError(f"Unexpected key {key}")
-    #             new_fwhm_dict[new_key] = value
-        
-    #         dictionary["branch_stats"][branch_key]["fwhm"] = new_fwhm_dict
-    #         dictionary["branch_stats"][branch_key].pop("fwhm2")
-    #         dictionary["branch_stats"][branch_key].pop("angles")
-    #         dictionary["branch_stats"][branch_key]["angles"] = angles_copy
-
-    # node_dicts_result = nodestats_catenane.node_dict
-    # node_dicts_expected = nodestats_catenane_node_dict
-
-
-    # # Iterate over sub dictionaries of both at the same time
-    # for (node_key_result, node_dict_result), (node_key_expected, node_dict_expected) in zip(
-    #     node_dicts_result.items(), node_dicts_expected.items()
-    # ):
-    #     assert node_key_result == node_key_expected
-
-    #     for (branch_key_result, branch_dict_result), (branch_key_expected, branch_dict_expected) in zip(
-    #         node_dict_result["branch_stats"].items(), node_dict_expected["branch_stats"].items()
-    #     ):
-    #         assert branch_key_result == branch_key_expected
-
-    #         for (stat_key_result, stat_result), (stat_key_expected, stat_expected) in zip(
-    #             branch_dict_result.items(), branch_dict_expected.items()
-    #         ):
-
-    #             fixed = False
-    #             if stat_key_result == "heights" or stat_key_result == "distances":
-    #                 # If the length of the result is 1 greater than the length of the expected, and the rest of the array is equal, copy it over
-    #                 if stat_result.shape[0] == stat_expected.shape[0] + 1:
-    #                     branch_dict_expected[stat_key_expected] = np.append(stat_expected, stat_result[-1])
-    #                     fixed = True
-                
-    #             np.testing.assert_equal(branch_dict_result[stat_key_result], branch_dict_expected[stat_key_expected])
-
-
-    # np.testing.assert_equal(nodestats_catenane_node_dict_result, nodestats_catenane_node_dict)
-    image_dict_expected = nodestats_catenane_image_dict
-    image_dict_result = nodestats_catenane.image_dict
-
-    # # reconstruct the expected image dict but with "node" prepended to each key
-    # new_nodes_dict = {}
-    # for node_key, node_dict in image_dict_expected["nodes"].items():
-    #     new_nodes_dict[f"node_{node_key}"] = node_dict
-    # image_dict_expected["nodes"] = new_nodes_dict
-
-    # image_dict_expected["grain"].pop("grain_visual_crossings")
-    # image_dict_expected["grain"]["grain_skeleton"] = image_dict_result["grain"]["grain_skeleton"]
-
-    np.testing.assert_equal(image_dict_result, image_dict_expected)
+    np.testing.assert_equal(node_dict_result, nodestats_catenane_node_dict)
+    np.testing.assert_equal(image_dict_result, nodestats_catenane_image_dict)
     np.testing.assert_array_equal(nodestats_catenane.all_connected_nodes, nodestats_catenane_all_connected_nodes)
-
-    
 
 
 @pytest.mark.parametrize(
@@ -586,6 +496,7 @@ def test_join_matching_branches_through_node(
     expected_masked_image_filename: str,
 ) -> None:
     """Test of join_matching_branches_through_node() method of nodeStats class."""
+
     # Load the ordered branches
     with Path(RESOURCES / f"{ordered_branches_filename}").open("rb") as f:
         ordered_branches = pickle.load(f)
