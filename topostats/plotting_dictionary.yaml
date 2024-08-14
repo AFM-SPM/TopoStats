@@ -288,7 +288,7 @@ all_molecules:
   image_type: "non-binary"
   mask_cmap: "viridis"
   savefig_dpi: 600
-  core_set: true
+  core_set: false
 # Splining
 fitted_trace:
   filename: "27-fitted-traces"
