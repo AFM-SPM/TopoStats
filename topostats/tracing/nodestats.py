@@ -141,24 +141,24 @@ class nodeStats:
             Key structure:  <grain_number>
                             |-> <node_number>
                                 |-> 'error'
-                                |-> 'branch_stats'
-                                    |-> <branch_number>
+                                └-> 'node_coords'
+                                └-> 'branch_stats'
+                                    └-> <branch_number>
                                         |-> 'ordered_coords'
                                         |-> 'heights'
                                         |-> 'gaussian_fit'
                                         |-> 'fwhm'
-                                        |-> 'angles'
-                                |-> 'node_coords'
+                                        └-> 'angles'
         dict
             Key structure:  'nodes'
                                 <node_number>
                                     |-> 'node_area_skeleton'
                                     |-> 'node_branch_mask'
-                                    |-> 'node_avg_mask
+                                    └-> 'node_avg_mask
                             'grain'
                                 |-> 'grain_image'
                                 |-> 'grain_mask'
-                                |-> 'grain_skeleton'
+                                └-> 'grain_skeleton'
         """
         LOGGER.info(f"Node Stats - Processing Grain: {self.n_grain}")
         self.conv_skelly = convolve_skeleton(self.skeleton)
