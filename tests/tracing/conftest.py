@@ -218,7 +218,7 @@ def catenane_node_centre_mask() -> npt.NDArray[np.int32]:
 @pytest.fixture()
 def catenane_connected_nodes() -> npt.NDArray[np.int32]:
     """
-    Connected nodes of the catenane test image.
+    Return connected nodes of the catenane test image.
 
     Effectively just the skeleton, but with the extended nodes
     set to 2 while the skeleton is 1 and background is 0.
@@ -236,7 +236,6 @@ def nodestats_catenane(
     catenane_connected_nodes: npt.NDArray[np.int32],
 ) -> nodeStats:
     """Fixture for the nodeStats object for a catenated molecule, to be used in analyse_nodes."""
-
     # Create a nodestats object
     nodestats = nodeStats(
         filename="test_catenane",
@@ -244,7 +243,7 @@ def nodestats_catenane(
         mask=catenane_smoothed_mask,
         smoothed_mask=catenane_smoothed_mask,
         skeleton=catenane_skeleton,
-        px_2_nm=np.float32(0.18124609375),
+        px_2_nm=np.float64(0.18124609375),
         n_grain=1,
         node_joining_length=7,
         node_extend_dist=14.0,
@@ -258,18 +257,20 @@ def nodestats_catenane(
     return nodestats
 
 
+# pylint: disable=unspecified-encoding
 @pytest.fixture()
 def nodestats_catenane_node_dict() -> dict:
     """Node dictionary for the catenane test image."""
     with Path.open(RESOURCES / "catenane_node_dict.pkl", "rb") as file:
-        return pickle.load(file)
+        return pickle.load(file)  # noqa: S301 - Pickles unsafe but we don't care
 
 
+# pylint: disable=unspecified-encoding
 @pytest.fixture()
 def nodestats_catenane_image_dict() -> dict:
     """Image dictionary for the catenane test image."""
     with Path.open(RESOURCES / "catenane_image_dict.pkl", "rb") as file:
-        return pickle.load(file)
+        return pickle.load(file)  # noqa: S301 - Pickles unsafe but we don't care
 
 
 @pytest.fixture()
