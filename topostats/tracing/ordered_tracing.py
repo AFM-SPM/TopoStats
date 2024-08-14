@@ -97,13 +97,13 @@ class OrderedTraceNodestats:
         crossing_heights = []
         crossing_distances = []
         fwhms = []
-        for _, stats in self.nodestats_dict.items():
+        for stats in self.nodestats_dict.values():
             temp_nodes = []
             temp_coords = []
             temp_heights = []
             temp_distances = []
             temp_fwhms = []
-            for _, branch_stats in stats["branch_stats"].items():
+            for branch_stats in stats["branch_stats"].values():
                 temp_coords.append(branch_stats["ordered_coords"])
                 temp_heights.append(branch_stats["heights"])
                 temp_distances.append(branch_stats["distances"])
@@ -344,7 +344,7 @@ class OrderedTraceNodestats:
         """
         # put down traces
         img = np.zeros_like(self.skeleton)
-        for _, coords in enumerate(coord_trace):
+        for coords in coord_trace:
             temp_img = np.zeros_like(img)
             temp_img[coords[:, 0], coords[:, 1]] = 1
             # temp_img = binary_dilation(temp_img)
@@ -446,7 +446,7 @@ class OrderedTraceNodestats:
         bool
             Whether the error is present.
         """
-        for _, vals in self.nodestats_dict.items():
+        for vals in self.nodestats_dict.values():
             if vals["error"]:
                 return False
         return True
