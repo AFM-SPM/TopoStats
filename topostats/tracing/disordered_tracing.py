@@ -97,11 +97,7 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling * 1e-9 if convert_nm_to_m else pixel_to_nm_scaling
         self.min_skeleton_size = min_skeleton_size
-        self.mask_smoothing_params = (
-            mask_smoothing_params
-            if mask_smoothing_params is not None
-            else {"gaussian_sigma": None, "dilation_iterations": 2}
-        )
+        self.mask_smoothing_params = mask_smoothing_params
         self.skeletonisation_params = (
             skeletonisation_params if skeletonisation_params is not None else {"method": "zhang"}
         )
@@ -124,12 +120,12 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         # LOGGER.info(f"[{self.filename}] : mask_smooth_params : {self.mask_smoothing_params=}")
         self.smoothed_mask = self.smooth_mask(self.mask, **self.mask_smoothing_params)
         self.skeleton = getSkeleton(
+            self.image,
             self.smoothed_mask,
-            self.mask,
             method=self.skeletonisation_params["method"],
             height_bias=self.skeletonisation_params["height_bias"],
         ).get_skeleton()
-        self.pruned_skeleton = prune_skeleton(self.smoothed_mask, self.skeleton, **self.pruning_params.copy())
+        self.pruned_skeleton = prune_skeleton(self.image, self.skeleton, **self.pruning_params.copy())
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
@@ -139,7 +135,10 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             self.disordered_trace = None
 
     def re_add_holes(
-        self, orig_mask: npt.NDArray, smoothed_mask: npt.NDArray, holearea_min_max: list = (4, np.inf)
+        self,
+        orig_mask: npt.NDArray,
+        smoothed_mask: npt.NDArray,
+        holearea_min_max: tuple[float | int | None] = (2, None),
     ) -> npt.NDArray:
         """
         Restore holes in masks that were occluded by dilation.
@@ -155,31 +154,40 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         smoothed_mask : npt.NDArray
             Original mask but with inner and outer edged smoothed. The smoothing operation may have closed up important
             holes in the mask.
-        holearea_min_max : list
-            List of minimum and maximum hole area (in nanometers).
+        holearea_min_max : tuple[float | int | None]
+            Tuple of minimum and maximum hole area (in nanometers) to replace from the original mask into the smoothed
+            mask.
 
         Returns
         -------
         npt.NDArray
             Smoothed mask with holes restored.
         """
+        # handle none's
+        if set(holearea_min_max) == {None}:
+            return smoothed_mask
+        if None in holearea_min_max:
+            none_index = holearea_min_max.index(None)
+            holearea_min_max[none_index] = 0 if none_index == 0 else np.inf
+
+        # obtain px holesizes
         holesize_min_px = holearea_min_max[0] / ((self.pixel_to_nm_scaling / 1e-9) ** 2)
         holesize_max_px = holearea_min_max[1] / ((self.pixel_to_nm_scaling / 1e-9) ** 2)
+
+        # obtain a hole mask
         holes = 1 - orig_mask
         holes = label(holes)
-        sizes = [holes[holes == i].size for i in range(1, holes.max() + 1)]
-        holes[holes == 1] = 0  # set background to 0
+        hole_sizes = [holes[holes == i].size for i in range(1, holes.max() + 1)]
+        holes[holes == 1] = 0  # set background to 0 assuming it is the first hole seen (from top left)
 
-        for i, size in enumerate(sizes):
-            if size < holesize_min_px or size > holesize_max_px:  # small holes may be fake are left out
+        # remove too small or too big holes from mask
+        for i, hole_size in enumerate(hole_sizes):
+            if hole_size < holesize_min_px or hole_size > holesize_max_px:  # small holes may be fake are left out
                 holes[holes == i + 1] = 0
-        holes[holes != 0] = 1
+        holes[holes != 0] = 1  # set correct sixe holes to 1
 
-        # compare num holes in each mask
-        holey_smooth = smoothed_mask.copy()
-        holey_smooth[holes == 1] = 0
-
-        return holey_smooth
+        # replace correct sized holes
+        return np.where(holes == 1, 0, smoothed_mask)
 
     @staticmethod
     def remove_touching_edge(skeleton: npt.NDArray) -> npt.NDArray:
@@ -203,10 +211,14 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         return skeleton
 
     def smooth_mask(
-        self, grain: npt.NDArray, dilation_iterations: int = 2, gaussian_sigma: float | int | None = None
+        self,
+        grain: npt.NDArray,
+        dilation_iterations: int = 2,
+        gaussian_sigma: float | int = 2,
+        holearea_min_max: tuple[int | float | None] = (0, None),
     ) -> npt.NDArray:
         """
-        Smooth grains based on the lower number of binary pixels added from dilation or gaussian.
+        Smooth a grain mask based on the lower number of binary pixels added from dilation or gaussian.
 
         This method ensures gaussian smoothing isn't too aggressive and covers / creates gaps in the mask.
 
@@ -217,24 +229,26 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         dilation_iterations : int
             Number of times to dilate the grain to smooth it. Default is 2.
         gaussian_sigma : float | None
-            Gaussian sigma value to smooth the grains after an Otsu threshold. If None, defaults to
-            max(grain.shape) / 256.
+            Gaussian sigma value to smooth the grains after an Otsu threshold. If None, defaults to 2.
+        holearea_min_max : tuple[float | int | None]
+            Tuple of minimum and maximum hole area (in nanometers) to replace from the original mask into the smoothed
+            mask.
 
         Returns
         -------
         npt.NDArray
             Numpy array of smmoothed image.
         """
-        gaussian_sigma = max(grain.shape) / 256 if gaussian_sigma is None else gaussian_sigma
         dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
         gauss = filters.gaussian(grain, sigma=gaussian_sigma)
-        gauss[gauss > filters.threshold_otsu(gauss) * 1.3] = 1
-        gauss[gauss != 1] = 0
+        gauss = np.where(gauss > filters.threshold_otsu(gauss) * 1.3, 1, 0)
         gauss = gauss.astype(np.int32)
         # Add hole to the smooth mask conditional on smallest pixel difference for dilation or the Gaussian smoothing.
         if dilation.sum() > gauss.sum():
-            return self.re_add_holes(grain, gauss)
-        return self.re_add_holes(grain, dilation)
+            LOGGER.info(f"[{self.filename}] : smoothing done by gaussian {gaussian_sigma}")
+            return self.re_add_holes(grain, gauss, holearea_min_max)
+        LOGGER.info(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
+        return self.re_add_holes(grain, dilation, holearea_min_max)
 
 
 def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-locals

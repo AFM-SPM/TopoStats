@@ -214,6 +214,17 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     int,
                     None,
                 ),
+                "holearea_min_max": [
+                    Or(
+                        int,
+                        float,
+                        None,
+                        error=(
+                            "Invalid value in config for 'disordered_tracing.mask_smoothing_params.holearea_min_max', valid values "
+                            "are int, float or null"
+                        ),
+                    ),
+                ],
             },
             "skeletonisation_params": {
                 "method": Or(
