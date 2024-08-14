@@ -172,7 +172,7 @@ class OrderedTraceNodestats:
         ordered_array: npt.NDArray, common_value_check_array: npt.NDArray, retain: list = ()
     ) -> np.array:
         """
-        Remove any values from ordered_array in common with common_value_check_array, retaining specified coordinates.
+        Remove from ordered_array any values in common with the common_value_check_array while retaining specified coordinates.
 
         Parameters
         ----------
@@ -352,7 +352,7 @@ class OrderedTraceNodestats:
             img[temp_img != 0] = 1  # mol_no + 1
         lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
 
-        # plots over/unders
+        # place over/unders onto image array
         for i, type_idxs in enumerate([lower_idxs, upper_idxs]):
             for crossing, type_idx in zip(crossing_coords, type_idxs):
                 temp_img = np.zeros_like(img)
@@ -415,7 +415,7 @@ class OrderedTraceNodestats:
         return img
 
     @staticmethod
-    def get_trace_idxs(fwhms: list) -> tuple:
+    def get_trace_idxs(fwhms: list) -> tuple[list, list]:
         """
         Split underpassing and overpassing indices.
 
@@ -426,7 +426,7 @@ class OrderedTraceNodestats:
 
         Returns
         -------
-        tuple
+        tuple[list, list]
             All the under, and over indices of the for each node FWHMs in the provided FWHM list.
         """
         # node fwhms can be a list of different lengths so cannot use np arrays
