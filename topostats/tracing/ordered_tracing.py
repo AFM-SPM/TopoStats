@@ -81,8 +81,8 @@ class OrderedTraceNodestats:
         """
         Pipeline to obtain the trace and crossing trace image.
 
-        This function uses the branches and FWHM's identified in the node_stats dictionary to create a
-        continuous trace of the molecule.
+        This function uses the branches and full-width half-maximums (FWHMs) identified in the node_stats dictionary
+        to create a continuous trace of the molecule.
 
         Returns
         -------
@@ -333,7 +333,7 @@ class OrderedTraceNodestats:
         coord_trace : list
             Ordered coordinate trace of each molecule.
         fwhms : list
-            List of FWHMs for each crossing in the trace.
+            List of full-width half-maximums (FWHMs) for each crossing in the trace.
         crossing_coords : list
             The crossing coordinates of each branch crossing.
 
@@ -378,7 +378,7 @@ class OrderedTraceNodestats:
         coord_trace : list
             Ordered coordinate trace of each molecule.
         fwhms : list
-            List of FWHMs for each crossing in the trace.
+            List of full-width half-maximums (FWHMs) for each crossing in the trace.
         crossing_coords : list
             The crossing coordinates of each branch crossing.
 
@@ -421,7 +421,7 @@ class OrderedTraceNodestats:
         Parameters
         ----------
         fwhms : list
-            List of arrays of FWHM values for each crossing point.
+            List of arrays of full-width half-maximum (FWHM) values for each crossing point.
 
         Returns
         -------
@@ -669,7 +669,8 @@ def ordered_tracing_image(
     Returns
     -------
     tuple[dict, pd.DataFrame, dict]
-        Results containing the ordered_trace_data (coordinates), any grain-level metrics to be added to the grains dataframe, and the diagnostic images.
+        Results containing the ordered_trace_data (coordinates), any grain-level metrics to be added to the grains
+        dataframe, and the diagnostic images.
     """
     ordered_trace_full_images = {
         "ordered_traces": np.zeros_like(image),
