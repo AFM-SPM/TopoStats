@@ -618,62 +618,62 @@ def run_ordered_tracing(
         ordered_tracing_image_data = defaultdict()
         grainstats_additions_image = pd.DataFrame()
 
-        # try:
-        # run image using directional grain masks
-        for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
-            (
-                ordered_tracing_data,
-                grainstats_additions_df,
-                ordered_tracing_full_images,
-            ) = ordered_tracing_image(
-                image=image,
-                disordered_tracing_direction_data=disordered_tracing_direction_data,
-                nodestats_direction_data=nodestats_data[direction],
-                filename=filename,
-                pixel_to_nm_scaling=pixel_to_nm_scaling,
-                **ordered_tracing_config,
+        try:
+            # run image using directional grain masks
+            for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
+                (
+                    ordered_tracing_data,
+                    grainstats_additions_df,
+                    ordered_tracing_full_images,
+                ) = ordered_tracing_image(
+                    image=image,
+                    disordered_tracing_direction_data=disordered_tracing_direction_data,
+                    nodestats_direction_data=nodestats_data[direction],
+                    filename=filename,
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    **ordered_tracing_config,
+                )
+
+                # save per image new grainstats stats
+                grainstats_additions_df["threshold"] = direction
+                grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
+
+                # append direction results to dict
+                ordered_tracing_image_data[direction] = ordered_tracing_data
+
+                # save whole image plots
+                Images(
+                    filename=f"{filename}_{direction}_ordered_traces",
+                    data=image,
+                    masked_array=ordered_tracing_full_images.pop("ordered_traces"),
+                    output_dir=core_out_path,
+                    **plotting_config["plot_dict"]["ordered_traces"],
+                ).plot_and_save()
+                # save optional diagnostic plots (those with core_set = False)
+                for plot_name, image_value in ordered_tracing_full_images.items():
+                    Images(
+                        image,
+                        masked_array=image_value,
+                        output_dir=tracing_out_path / direction,
+                        **plotting_config["plot_dict"][plot_name],
+                    ).plot_and_save()
+
+                LOGGER.info(f"[{filename}] : Finished Plotting Ordered Tracing Images")
+
+            # merge grainstats data with other dataframe
+            resultant_grainstats = (
+                pd.merge(results_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
+                if results_df is not None
+                else grainstats_additions_image
             )
 
-            # save per image new grainstats stats
-            grainstats_additions_df["threshold"] = direction
-            grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
+            # merge all image dictionaries
+            return ordered_tracing_image_data, resultant_grainstats
 
-            # append direction results to dict
-            ordered_tracing_image_data[direction] = ordered_tracing_data
-
-            # save whole image plots
-            Images(
-                filename=f"{filename}_{direction}_ordered_traces",
-                data=image,
-                masked_array=ordered_tracing_full_images.pop("ordered_traces"),
-                output_dir=core_out_path,
-                **plotting_config["plot_dict"]["ordered_traces"],
-            ).plot_and_save()
-            # save optional false core_set plots
-            for plot_name, image_value in ordered_tracing_full_images.items():
-                Images(
-                    image,
-                    masked_array=image_value,
-                    output_dir=tracing_out_path / direction,
-                    **plotting_config["plot_dict"][plot_name],
-                ).plot_and_save()
-
-            LOGGER.info(f"[{filename}] : Finished Plotting Ordered Tracing Images")
-
-        # merge grainstats data with other dataframe
-        resultant_grainstats = (
-            pd.merge(results_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
-            if results_df is not None
-            else grainstats_additions_image
-        )
-
-        # merge all image dictionaries
-        return ordered_tracing_image_data, resultant_grainstats
-        """
         except Exception as e:
-            LOGGER.info(f"NodeStats failed with {e} - skipping.")
-            return nodestats_image_data, resultant_grainstats
-        """
+            LOGGER.info(f"Ordered Tracing failed with {e} - skipping.")
+            return ordered_tracing_image_data, resultant_grainstats
+
     return None, None
 
 

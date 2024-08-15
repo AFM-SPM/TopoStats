@@ -10,6 +10,10 @@ from topostats.utils import convolve_skeleton
 
 
 class reorderTrace:
+    """
+    Class to aid the consecutive ordering of adjacent coordinates of a pixel grid.
+    """
+
     @staticmethod
     def linearTrace(trace_coordinates):
         """My own function to order the points from a linear trace.

@@ -77,12 +77,12 @@ class OrderedTraceNodestats:
 
         self.ordered_coordinates = []
 
-    def compile_trace(self) -> tuple:
+    def compile_trace(self) -> tuple[list, npt.NDArray]:
         """
-        Pipeline to obtain the trace and crossing trace image.
+        Obtain the trace and diagnostic crossing trace and molecule trace images.
 
-        This function uses the branches and FWHM's identified in the node_stats dictionary to create a
-        continuous trace of the molecule.
+        This function uses the branches and full-width half-maximums (FWHMs) identified in the node_stats dictionary
+        to create a continuous trace of the molecule.
 
         Returns
         -------
@@ -92,28 +92,17 @@ class OrderedTraceNodestats:
         LOGGER.info(f"[{self.filename}] : Compiling the trace.")
 
         # iterate through the dict to get branch coords, heights and fwhms
-        node_coords = []
-        crossing_coords = []
-        crossing_heights = []
-        crossing_distances = []
-        fwhms = []
-        for _, stats in self.nodestats_dict.items():
-            temp_nodes = []
-            temp_coords = []
-            temp__heights = []
-            temp_distances = []
-            temp_fwhms = []
-            for _, branch_stats in stats["branch_stats"].items():
-                temp_coords.append(branch_stats["ordered_coords"])
-                temp__heights.append(branch_stats["heights"])
-                temp_distances.append(branch_stats["distances"])
-                temp_fwhms.append(branch_stats["fwhm"]["fwhm"])
-                temp_nodes.append(stats["node_coords"])
-            node_coords.append(temp_nodes)
-            crossing_coords.append(temp_coords)
-            crossing_heights.append(temp__heights)
-            crossing_distances.append(temp_distances)
-            fwhms.append(temp_fwhms)
+        node_coords = [
+            [stats["node_coords"] for _ in stats["branch_stats"].values()] for stats in self.nodestats_dict.values()
+        ]
+        crossing_coords = [
+            [branch_stats["ordered_coords"] for branch_stats in stats["branch_stats"].values()]
+            for stats in self.nodestats_dict.values()
+        ]
+        fwhms = [
+            [branch_stats["fwhm"]["fwhm"] for branch_stats in stats["branch_stats"].values()]
+            for stats in self.nodestats_dict.values()
+        ]
 
         # Get the image minus the crossing regions
         minus = self.skeleton.copy()
@@ -128,19 +117,14 @@ class OrderedTraceNodestats:
             for crossing_num, crossing in enumerate(crossings):
                 both[crossing[:, 0], crossing[:, 1]] = node_num + crossing_num + minus.max()
 
-        # setup z array
-        z = []
         # order minus segments
         ordered = []
         for i in range(1, minus.max() + 1):
             arr = np.where(minus, minus == i, 0)
             ordered.append(order_branch(arr, [0, 0]))  # orientated later
-            z.append(0)
 
         # add crossing coords to ordered segment list
         for i, node_crossing_coords in enumerate(crossing_coords):
-            z_idx = np.argsort(fwhms[i])
-            z_idx[z_idx == 0] = -1
             for j, single_cross in enumerate(node_crossing_coords):
                 # check current single cross has no duplicate coords with ordered, except crossing points
                 uncommon_single_cross = np.array(single_cross).copy()
@@ -150,7 +134,6 @@ class OrderedTraceNodestats:
                     )
                 if len(uncommon_single_cross) > 0:
                     ordered.append(uncommon_single_cross)
-                z.append(z_idx[j])
 
         # get an image of each ordered segment
         cross_add = np.zeros_like(self.image)
@@ -169,30 +152,32 @@ class OrderedTraceNodestats:
         return coord_trace, self.images
 
     @staticmethod
-    def remove_common_values(arr1: npt.NDArray, arr2: npt.NDArray, retain: list = ()) -> np.array:
+    def remove_common_values(
+        ordered_array: npt.NDArray, common_value_check_array: npt.NDArray, retain: list = ()
+    ) -> np.array:
         """
-        Remove common values between two coordinate arrays while retaining specified coordinates.
+        Remove common values in common_value_check_array from ordered_array while retaining specified coordinates.
 
         Parameters
         ----------
-        arr1 : npt.NDArray
-            Coordinate array 1.
-        arr2 : npt.NDArray
-            Coordinate array 2.
+        ordered_array : npt.NDArray
+            Coordinate array to remove / retain values from. Will retain its order.
+        common_value_check_array : npt.NDArray
+            Coordinate array containing any common values to be removed from ordered_array.
         retain : list, optional
             List of possible coordinates to keep, by default ().
 
         Returns
         -------
         np.array
-            Unique array values and retained coordinates.
+            Unique ordered_array values and retained coordinates. Retains the order of ordered_array.
         """
         # Convert the arrays to sets for faster common value lookup
-        set_arr2 = {tuple(row) for row in arr2}
+        set_arr2 = {tuple(row) for row in common_value_check_array}
         set_retain = {tuple(row) for row in retain}
         # Create a new filtered list while maintaining the order of the first array
         filtered_arr1 = []
-        for coord in arr1:
+        for coord in ordered_array:
             tup_coord = tuple(coord)
             if tup_coord not in set_arr2 or tup_coord in set_retain:
                 filtered_arr1.append(coord)
@@ -235,7 +220,7 @@ class OrderedTraceNodestats:
                 remaining[remaining == coord_idx + 1] = 0
                 trace_segment = self.get_trace_segment(remaining, ordered_segment_coords, coord_idx)
                 if len(coord_trace) > 0:  # can only order when there's a reference point / segment
-                    trace_segment = self.remove_duplicates(  # replaced with remove_common values?
+                    trace_segment = self.remove_common_values(
                         trace_segment, prev_segment
                     )  # remove overlaps in trace (may be more efficient to do it on the previous segment)
                     trace_segment = self.order_from_end(coord_trace[-1], trace_segment)
@@ -277,31 +262,6 @@ class OrderedTraceNodestats:
         return ordered_segment_coords[coord_idx][::-1]  # end is endpoint
 
     @staticmethod
-    def remove_duplicates(current_segment: npt.NDArray, prev_segment: npt.NDArray) -> npt.NDArray:
-        """
-        Remove overlapping coordinates present in both arrays.
-
-        Parameters
-        ----------
-        current_segment : npt.NDArray
-            2xN coordinate array.
-        prev_segment : npt.NDArray
-            2xN coordinate array.
-
-        Returns
-        -------
-        npt.NDArray
-            2xN coordinate array without the previous segment coordinates.
-        """
-        # Convert arrays to tuples
-        curr_segment_tuples = [tuple(row) for row in current_segment]
-        prev_segment_tuples = [tuple(row) for row in prev_segment]
-        # Find unique rows
-        unique_rows = list(set(curr_segment_tuples) - set(prev_segment_tuples))
-        # Remove duplicate rows from array1
-        return np.array([row for row in curr_segment_tuples if tuple(row) in unique_rows])
-
-    @staticmethod
     def order_from_end(last_segment_coord: npt.NDArray, current_segment: npt.NDArray) -> npt.NDArray:
         """
         Order the current segment to follow from the end of the previous one.
@@ -333,7 +293,7 @@ class OrderedTraceNodestats:
         coord_trace : list
             Ordered coordinate trace of each molecule.
         fwhms : list
-            List of FWHMs for each crossing in the trace.
+            List of full-width half-maximums (FWHMs) for each crossing in the trace.
         crossing_coords : list
             The crossing coordinates of each branch crossing.
 
@@ -344,25 +304,18 @@ class OrderedTraceNodestats:
         """
         # put down traces
         img = np.zeros_like(self.skeleton)
-        for _, coords in enumerate(coord_trace):
+        for coords in coord_trace:
             temp_img = np.zeros_like(img)
             temp_img[coords[:, 0], coords[:, 1]] = 1
             # temp_img = binary_dilation(temp_img)
             img[temp_img != 0] = 1  # mol_no + 1
         lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
 
-        # plots over/unders
+        # place over/unders onto image array
         for i, type_idxs in enumerate([lower_idxs, upper_idxs]):
             for crossing, type_idx in zip(crossing_coords, type_idxs):
                 temp_img = np.zeros_like(img)
                 cross_coords = crossing[type_idx]
-                # decide which val
-                matching_coords = np.array([])
-                c = 0
-                # get overlaps between segment coords and crossing under coords
-                for cross_coord in cross_coords:
-                    c += ((coord_trace[0] == cross_coord).sum(axis=1) == 2).sum()
-                matching_coords = np.append(matching_coords, c)
                 temp_img[cross_coords[:, 0], cross_coords[:, 1]] = 1
                 # temp_img = binary_dilation(temp_img)
                 img[temp_img != 0] = i + 2
@@ -378,7 +331,7 @@ class OrderedTraceNodestats:
         coord_trace : list
             Ordered coordinate trace of each molecule.
         fwhms : list
-            List of FWHMs for each crossing in the trace.
+            List of full-width half-maximums (FWHMs) for each crossing in the trace.
         crossing_coords : list
             The crossing coordinates of each branch crossing.
 
@@ -414,18 +367,18 @@ class OrderedTraceNodestats:
         return img
 
     @staticmethod
-    def get_trace_idxs(fwhms: list) -> tuple:
+    def get_trace_idxs(fwhms: list) -> tuple[list, list]:
         """
         Split underpassing and overpassing indices.
 
         Parameters
         ----------
         fwhms : list
-            List of arrays of FWHM values for each crossing point.
+            List of arrays of full-width half-maximum (FWHM) values for each crossing point.
 
         Returns
         -------
-        tuple
+        tuple[list, list]
             All the under, and over indices of the for each node FWHMs in the provided FWHM list.
         """
         # node fwhms can be a list of different lengths so cannot use np arrays
@@ -446,7 +399,7 @@ class OrderedTraceNodestats:
         bool
             Whether the error is present.
         """
-        for _, vals in self.nodestats_dict.items():
+        for vals in self.nodestats_dict.values():
             if vals["error"]:
                 return False
         return True
@@ -579,7 +532,6 @@ class OrderedTraceTopostats:
         return ordered_trace_data, self.grain_tracing_stats, self.images
 
 
-@staticmethod
 def linear_or_circular(traces) -> bool:
     """
     Determine whether the molecule is circular or linear via >1 points in the local start area.
@@ -669,7 +621,8 @@ def ordered_tracing_image(
     Returns
     -------
     tuple[dict, pd.DataFrame, dict]
-        Results containing the ordered_trace_data (coordinates), any grain-level metrics to be added to the grains dataframe, and the diagnostic images.
+        Results containing the ordered_trace_data (coordinates), any grain-level metrics to be added to the grains
+        dataframe, and the diagnostic images.
     """
     ordered_trace_full_images = {
         "ordered_traces": np.zeros_like(image),
