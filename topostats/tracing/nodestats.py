@@ -675,7 +675,7 @@ class nodeStats:
         ----------
         branch_under_over_order : npt.NDArray[np.int32]
             The order of the branches.
-        matched_branches: dict[int, dict[str, npt.NDArray[np.number]]]
+        matched_branches: dict[int, dict[str, MatchedBranch]]
             Dictionary where the key is the index of the pair and the value is a dictionary containing the following
             keys:
             - "ordered_coords" : npt.NDArray[np.int32].
@@ -783,7 +783,7 @@ class nodeStats:
         -------
         pairs: npt.NDArray[np.int32]
             Nx2 numpy array of pairs of branches that are matched through a node.
-        matched_branches: dict[int, dict[str, npt.NDArray[np.number]]]
+        matched_branches: dict[int, MatchedBranch]]
             Dictionary where the key is the index of the pair and the value is a dictionary containing the following
             keys:
             - "ordered_coords" : npt.NDArray[np.int32].
