@@ -206,7 +206,6 @@ def nodestats_catenane(
     catenane_image: npt.NDArray[np.number],
     catenane_smoothed_mask: npt.NDArray[np.bool_],
     catenane_skeleton: npt.NDArray[np.bool_],
-    # catenane_pruned_skeleton: npt.NDArray[np.int32],
     catenane_node_centre_mask: npt.NDArray[np.int32],
     catenane_connected_nodes: npt.NDArray[np.int32],
 ) -> nodeStats:

@@ -217,13 +217,6 @@ def test_analyse_nodes(
     #   - grain_mask: array NxN
     #   - grain_skeleton: array NxN
 
-    # Save the results for comparison
-    # with Path(RESOURCES / "catenane_node_dict.pkl").open("wb") as f:
-    #     pickle.dump(node_dict_result, f)
-
-    # with Path(RESOURCES / "catenane_image_dict.pkl").open("wb") as f:
-    #     pickle.dump(image_dict_result, f)
-
     np.testing.assert_equal(node_dict_result, nodestats_catenane_node_dict)
     np.testing.assert_equal(image_dict_result, nodestats_catenane_image_dict)
     np.testing.assert_array_equal(nodestats_catenane.all_connected_nodes, nodestats_catenane_all_connected_nodes)
