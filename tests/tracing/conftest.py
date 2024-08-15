@@ -161,25 +161,6 @@ def topostats_skeletonise(skeletonize_circular, skeletonize_circular_bool_int):
     return topostatsSkeletonize(skeletonize_circular, skeletonize_circular_bool_int, 0.6)
 
 
-# class CatenaneImageType(TypedDict):
-#     """Type for the catenane image dictionary fixture."""
-
-#     image: npt.NDArray[np.number]
-#     mask: npt.NDArray[np.bool_]
-#     p_to_nm: np.float32
-
-
-# @pytest.fixture()
-# def catenane_image() -> CatenaneImageType:
-#     """Image, mask and pixel to nanometre scaling of a catenane molecule."""
-#     with h5py.File(RESOURCES / "catenane_image.topostats", "r") as file:
-#         image: npt.NDArray[np.number] = file["image"][:]
-#         mask: npt.NDArray[np.bool_] = file["grain_masks"]["above"][:]
-#         p_to_nm: np.float32 = file["pixel_to_nm_scaling"][()]
-
-#     return {"image": image, "mask": mask, "p_to_nm": p_to_nm}
-
-
 @pytest.fixture()
 def catenane_image() -> npt.NDArray[np.number]:
     """Image of a catenane molecule."""
@@ -196,12 +177,6 @@ def catenane_skeleton() -> npt.NDArray[np.bool_]:
 def catenane_smoothed_mask() -> npt.NDArray[np.bool_]:
     """Smoothed mask of the catenane test image."""
     return np.load(RESOURCES / "catenane_smoothed_mask.npy")
-
-
-# @pytest.fixture()
-# def catenane_pruned_skeleton() -> npt.NDArray[np.bool_]:
-#     """Pruned skeleton of the catenane test image."""
-#     return np.load(RESOURCES / "catenane_pruned_skeleton.npy")
 
 
 @pytest.fixture()
