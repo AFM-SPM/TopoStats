@@ -1,14 +1,17 @@
 """Fixtures for the tracing tests."""
 
+import pickle
 from pathlib import Path
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import pytest
 
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.tracing.dnatracing import dnaTrace
+from topostats.tracing.nodestats import nodeStats
 from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
 
 # This is required because of the inheritance used throughout
@@ -154,3 +157,95 @@ def skeletonize_linear_bool_int(skeletonize_linear) -> np.ndarray:
 def topostats_skeletonise(skeletonize_circular, skeletonize_circular_bool_int):
     """TopostatsSkeletonise for testing individual functions."""
     return topostatsSkeletonize(skeletonize_circular, skeletonize_circular_bool_int, 0.6)
+
+
+@pytest.fixture()
+def catenane_image() -> npt.NDArray[np.number]:
+    """Image of a catenane molecule."""
+    return np.load(RESOURCES / "catenane_image.npy")
+
+
+@pytest.fixture()
+def catenane_skeleton() -> npt.NDArray[np.bool_]:
+    """Skeleton of the catenane test image."""
+    return np.load(RESOURCES / "catenane_skeleton.npy")
+
+
+@pytest.fixture()
+def catenane_smoothed_mask() -> npt.NDArray[np.bool_]:
+    """Smoothed mask of the catenane test image."""
+    return np.load(RESOURCES / "catenane_smoothed_mask.npy")
+
+
+@pytest.fixture()
+def catenane_node_centre_mask() -> npt.NDArray[np.int32]:
+    """
+    Catenane node centre mask.
+
+    Effectively just the skeleton, but
+    with the nodes set to 2 while the skeleton is 1 and background is 0.
+    """
+    return np.load(RESOURCES / "catenane_node_centre_mask.npy")
+
+
+@pytest.fixture()
+def catenane_connected_nodes() -> npt.NDArray[np.int32]:
+    """
+    Return connected nodes of the catenane test image.
+
+    Effectively just the skeleton, but with the extended nodes
+    set to 2 while the skeleton is 1 and background is 0.
+    """
+    return np.load(RESOURCES / "catenane_connected_nodes.npy")
+
+
+@pytest.fixture()
+def nodestats_catenane(
+    catenane_image: npt.NDArray[np.number],
+    catenane_smoothed_mask: npt.NDArray[np.bool_],
+    catenane_skeleton: npt.NDArray[np.bool_],
+    catenane_node_centre_mask: npt.NDArray[np.int32],
+    catenane_connected_nodes: npt.NDArray[np.int32],
+) -> nodeStats:
+    """Fixture for the nodeStats object for a catenated molecule, to be used in analyse_nodes."""
+    # Create a nodestats object
+    nodestats = nodeStats(
+        filename="test_catenane",
+        image=catenane_image,
+        mask=catenane_smoothed_mask,
+        smoothed_mask=catenane_smoothed_mask,
+        skeleton=catenane_skeleton,
+        px_2_nm=np.float64(0.18124609375),
+        n_grain=1,
+        node_joining_length=7,
+        node_extend_dist=14.0,
+        branch_pairing_length=20.0,
+    )
+
+    nodestats.node_centre_mask = catenane_node_centre_mask
+    nodestats.connected_nodes = catenane_connected_nodes
+    nodestats.skeleton = catenane_skeleton
+
+    return nodestats
+
+
+# pylint: disable=unspecified-encoding
+@pytest.fixture()
+def nodestats_catenane_node_dict() -> dict:
+    """Node dictionary for the catenane test image."""
+    with Path.open(RESOURCES / "catenane_node_dict.pkl", "rb") as file:
+        return pickle.load(file)  # noqa: S301 - Pickles unsafe but we don't care
+
+
+# pylint: disable=unspecified-encoding
+@pytest.fixture()
+def nodestats_catenane_image_dict() -> dict:
+    """Image dictionary for the catenane test image."""
+    with Path.open(RESOURCES / "catenane_image_dict.pkl", "rb") as file:
+        return pickle.load(file)  # noqa: S301 - Pickles unsafe but we don't care
+
+
+@pytest.fixture()
+def nodestats_catenane_all_connected_nodes() -> npt.NDArray[np.int32]:
+    """All connected nodes for the catenane test image."""
+    return np.load(RESOURCES / "catenane_all_connected_nodes.npy")
