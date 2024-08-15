@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Union, TypedDict
+from typing import TypedDict
 
 import networkx as nx
 import numpy as np
@@ -554,7 +554,7 @@ class nodeStats:
         # Iterate over the nodes and analyse the branches
         matched_branches = None
         branch_image = None
-        avg_image = None
+        avg_image = np.zeros_like(self.image)
         real_node_count = 0
         for node_no, (node_x, node_y) in enumerate(node_coords):
             error = False
@@ -644,10 +644,6 @@ class nodeStats:
                     "confidence": conf,
                 }
 
-                # self.image_dict["nodes"][f"node_{real_node_count}"]: dict[npt.NDArray[np.int32]] = {}
-                # self.image_dict["nodes"][f"node_{real_node_count}"]["node_area_skeleton"] = reduced_node_area
-                # self.image_dict["nodes"][f"node_{real_node_count}"]["node_branch_mask"] = branch_image
-                # self.image_dict["nodes"][f"node_{real_node_count}"]["node_avg_mask"] = avg_image
                 assert reduced_node_area is not None, "Reduced node area is not defined."
                 assert branch_image is not None, "Branch image is not defined."
                 assert avg_image is not None, "Average image is not defined."
@@ -671,7 +667,7 @@ class nodeStats:
         pairs: npt.NDArray[np.int32],
         average_trace_advised: bool,
         image_shape: tuple[int, int],
-    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32] | None]:
+    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
         """
         Add branches to a labelled image.
 
@@ -707,7 +703,7 @@ class nodeStats:
             The labelled image with the branches added.
         """
         branch_image: npt.NDArray[np.int32] = np.zeros(image_shape).astype(np.int32)
-        avg_image: npt.NDArray[np.int32] | None = np.zeros(image_shape).astype(np.int32)
+        avg_image: npt.NDArray[np.int32] = np.zeros(image_shape).astype(np.int32)
 
         for i, branch_index in enumerate(branch_under_over_order):
             branch_coords = matched_branches[branch_index]["ordered_coords"]
@@ -717,10 +713,7 @@ class nodeStats:
             if average_trace_advised:
                 # For type safety, check if avg_image is None and skip if so.
                 # This is because the type hinting does not allow for None in the array.
-                if avg_image is not None:
-                    avg_image[masked_image[branch_index]["avg_mask"] != 0] = i + 1
-            else:
-                avg_image = None
+                avg_image[masked_image[branch_index]["avg_mask"] != 0] = i + 1
 
         # Determine branches that were not able to be paired
         unpaired_branches = np.delete(np.arange(0, branch_start_coords.shape[0]), pairs.flatten())
