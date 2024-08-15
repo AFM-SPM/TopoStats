@@ -754,7 +754,7 @@ class nodeStats:
         list[npt.NDArray[np.int32]],
         dict[int, dict[str, npt.NDArray[np.bool_]]],
         npt.NDArray[np.int32],
-        np.float64,
+        np.float64 | None,
     ]:
         """Analyse the branches of a single node.
 
@@ -862,7 +862,7 @@ class nodeStats:
             conf = None
         else:
             combs = nodeStats.get_two_combinations(crossing_quants)
-            conf = nodeStats.cross_confidence(combs)
+            conf = np.float64(nodeStats.cross_confidence(combs))
 
         fwhms = []
         for _, values in matched_branches.items():
@@ -1138,7 +1138,7 @@ class nodeStats:
         return abs(np.arccos(cos_angles) / np.pi * 180)  # angles in degrees
 
     @staticmethod
-    def pair_vectors(vectors: npt.NDArray) -> npt.NDArray:
+    def pair_vectors(vectors: npt.NDArray) -> npt.NDArray[np.int32]:
         """
         Take a list of vectors and pairs them based on the angle between them.
 
